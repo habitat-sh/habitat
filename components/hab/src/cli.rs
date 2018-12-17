@@ -693,23 +693,23 @@ pub fn sup_commands() -> App<'static, 'static> {
     // the top-level App name (not a named subcommand) and therefore is not
     // significant since we override `usage` below.
     clap_app!(("sup") =>
-        (about: "The Habitat Supervisor")
-        (version: super::VERSION)
-        (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
-        // set custom usage string, otherwise the binary
-        // is displayed as the clap_app name, which may or may not be different.
-        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-        (usage: "hab sup <SUBCOMMAND>")
-        (@setting VersionlessSubcommands)
-        (@setting SubcommandRequiredElseHelp)
-        (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
-        (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
-        (subcommand: sub_sup_run().aliases(&["r", "ru"]))
-        (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
-        (subcommand: sub_sup_sh().aliases(&[]))
-        (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
-        (subcommand: sub_sup_term().aliases(&["ter"]))
-        )
+    (about: "The Habitat Supervisor")
+    (version: super::VERSION)
+    (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
+    // set custom usage string, otherwise the binary
+    // is displayed as the clap_app name, which may or may not be different.
+    // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+    (usage: "hab sup <SUBCOMMAND>")
+    (@setting VersionlessSubcommands)
+    (@setting SubcommandRequiredElseHelp)
+    (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
+    (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
+    (subcommand: sub_sup_run().aliases(&["r", "ru"]))
+    (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
+    (subcommand: sub_sup_sh().aliases(&[]))
+    (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
+    (subcommand: sub_sup_term().aliases(&["ter"]))
+    )
 }
 
 fn sub_cli_completers() -> App<'static, 'static> {
@@ -727,7 +727,8 @@ fn sub_cli_completers() -> App<'static, 'static> {
             .help(
                 "The name of the shell you want to generate the command-completion. Supported \
                  Shells: bash, fish, zsh, powershell",
-            ).short("s")
+            )
+            .short("s")
             .long("shell")
             .required(true)
             .takes_value(true)
@@ -737,16 +738,16 @@ fn sub_cli_completers() -> App<'static, 'static> {
 
 fn sub_pkg_build() -> App<'static, 'static> {
     let mut sub = clap_app!(@subcommand build =>
-        (about: "Builds a Plan using a Studio")
-        (@arg HAB_ORIGIN_KEYS: -k --keys +takes_value
-            "Installs secret origin keys (ex: \"unicorn\", \"acme,other,acme-ops\")")
-        (@arg HAB_STUDIO_ROOT: -r --root +takes_value
-            "Sets the Studio root (default: /hab/studios/<DIR_NAME>)")
-        (@arg SRC_PATH: -s --src +takes_value
-            "Sets the source path (default: $PWD)")
-        (@arg PLAN_CONTEXT: +required +takes_value
-            "A directory containing a plan file \
-            or a `habitat/` directory which contains the plan file")
+    (about: "Builds a Plan using a Studio")
+    (@arg HAB_ORIGIN_KEYS: -k --keys +takes_value
+        "Installs secret origin keys (ex: \"unicorn\", \"acme,other,acme-ops\")")
+    (@arg HAB_STUDIO_ROOT: -r --root +takes_value
+        "Sets the Studio root (default: /hab/studios/<DIR_NAME>)")
+    (@arg SRC_PATH: -s --src +takes_value
+        "Sets the source path (default: $PWD)")
+    (@arg PLAN_CONTEXT: +required +takes_value
+        "A directory containing a plan file \
+        or a `habitat/` directory which contains the plan file")
     );
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
@@ -859,82 +860,82 @@ pub fn sub_sup_bash() -> App<'static, 'static> {
 
 pub fn sub_sup_run() -> App<'static, 'static> {
     clap_app!(@subcommand run =>
-        (about: "Run the Habitat Supervisor")
-        // set custom usage string, otherwise the binary
-        // is displayed confusingly as `hab-sup`
-        // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-        (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-              (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
-            "The listen address for the Gossip System Gateway.")
-        (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
-            "The listen address for the HTTP Gateway.")
-        (@arg HTTP_DISABLE: --("http-disable") -D
-            "Disable the HTTP Gateway completely [default: false]")
-        (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}
-            "The listen address for the Control Gateway. If not specified, the value will \
-            be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
-        (@arg ORGANIZATION: --org +takes_value
-            "The organization that the Supervisor and its subsequent services are part of.")
-        (@arg PEER: --peer +takes_value +multiple
-            "The listen address of one or more initial peers (IP[:PORT])")
-        (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-        (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
-            "Watch this file for connecting to the ring"
-        )
-        (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY")
-            "The name of the ring used by the Supervisor when running with wire encryption. \
-             (ex: hab sup run --ring myring)")
-        (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden
-            "The contents of the ring key when running with wire encryption. \
+    (about: "Run the Habitat Supervisor")
+    // set custom usage string, otherwise the binary
+    // is displayed confusingly as `hab-sup`
+    // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+    (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
+          (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
+        "The listen address for the Gossip System Gateway.")
+    (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
+        "The listen address for the HTTP Gateway.")
+    (@arg HTTP_DISABLE: --("http-disable") -D
+        "Disable the HTTP Gateway completely [default: false]")
+    (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}
+        "The listen address for the Control Gateway. If not specified, the value will \
+        be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
+    (@arg ORGANIZATION: --org +takes_value
+        "The organization that the Supervisor and its subsequent services are part of.")
+    (@arg PEER: --peer +takes_value +multiple
+        "The listen address of one or more initial peers (IP[:PORT])")
+    (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+    (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+        "Watch this file for connecting to the ring"
+    )
+    (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY")
+        "The name of the ring used by the Supervisor when running with wire encryption. \
+         (ex: hab sup run --ring myring)")
+    (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden
+        "The contents of the ring key when running with wire encryption. \
              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
              (ex: hab sup run --ring-key 'SYM-SEC-1 \
-                  foo-20181113185935 \
+              foo-20181113185935 \
 
                   GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
-        (@arg CHANNEL: --channel +takes_value
-            "Receive Supervisor updates from the specified release channel [default: stable]")
-        (@arg BLDR_URL: -u --url +takes_value {valid_url}
-            "Specify an alternate Builder endpoint. If not specified, the value will \
-             be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-             https://bldr.habitat.sh)")
+    (@arg CHANNEL: --channel +takes_value
+        "Receive Supervisor updates from the specified release channel [default: stable]")
+    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+        "Specify an alternate Builder endpoint. If not specified, the value will \
+         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+         https://bldr.habitat.sh)")
 
-        (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-            "Use package config from this path, rather than the package itself")
-        (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
-            itself")
-        (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-            group running a Habitat EventSrv to forward Supervisor and service event data to")
-        (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
-            "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
-             This should be a RSA private key or PKCS8-encoded private key, in PEM format.")
-        (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
-            "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
-             This should contain PEM-format certificates in the right order (the first certificate \
-             should certify KEY_FILE, the last should be a root CA).")
-        // === Optional arguments to additionally load an initial service for the Supervisor
-        (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
-            the Supervisor startup specified by a package identifier \
-            (ex: core/redis) or filepath to a Habitat Artifact \
-            (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
-        (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
-            "Application name; [default: not set].")
-        (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
-            "Environment name; [default: not set].")
-        (@arg GROUP: --group +takes_value
-            "The service group; shared config and topology [default: default].")
-        (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-            "Service topology; [default: none]")
-        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-            "The update strategy; [default: none] [values: none, at-once, rolling]")
-        (@arg BIND: --bind +takes_value +multiple
-            "One or more service groups to bind to a configuration")
-        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-            "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-             startup until all binds are present. [default: strict] [values: relaxed, strict]")
-        (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
-        (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
-        (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
-            Implies NO_COLOR")
+    (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
+        "Use package config from this path, rather than the package itself")
+    (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+        itself")
+    (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
+        group running a Habitat EventSrv to forward Supervisor and service event data to")
+    (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
+        "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
+         This should be a RSA private key or PKCS8-encoded private key, in PEM format.")
+    (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
+        "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
+         This should contain PEM-format certificates in the right order (the first certificate \
+         should certify KEY_FILE, the last should be a root CA).")
+    // === Optional arguments to additionally load an initial service for the Supervisor
+    (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
+        the Supervisor startup specified by a package identifier \
+        (ex: core/redis) or filepath to a Habitat Artifact \
+        (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
+    (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+        "Application name; [default: not set].")
+    (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+        "Environment name; [default: not set].")
+    (@arg GROUP: --group +takes_value
+        "The service group; shared config and topology [default: default].")
+    (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
+        "Service topology; [default: none]")
+    (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+        "The update strategy; [default: none] [values: none, at-once, rolling]")
+    (@arg BIND: --bind +takes_value +multiple
+        "One or more service groups to bind to a configuration")
+    (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+        "Governs how the presence or absence of binds affects service startup. `strict` blocks \
+         startup until all binds are present. [default: strict] [values: relaxed, strict]")
+    (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
+    (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
+    (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
+        Implies NO_COLOR")
     )
 }
 

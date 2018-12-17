@@ -68,7 +68,8 @@ fn do_job_group_status(
                 &mut tw,
                 "{}\t{}\t{}\t{}\n",
                 sr.created_at, sr.id, sr.state, sr.project_name,
-            ).unwrap();
+            )
+            .unwrap();
             tw.flush().unwrap();
             let mut written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
             println!("\n{}", written);
@@ -84,7 +85,8 @@ fn do_job_group_status(
                         &mut tw,
                         "{}\t{}\t{}\t{}\n",
                         p.name, p.state, p.job_id, ident,
-                    ).unwrap();
+                    )
+                    .unwrap();
                 }
                 written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
                 println!("{}", written);
@@ -115,7 +117,8 @@ fn do_origin_status(
                     &mut tw,
                     "{}\t{}\t{}\t{}\n",
                     s.created_at, s.id, s.state, s.project_name,
-                ).unwrap();
+                )
+                .unwrap();
             }
 
             tw.flush().unwrap();

@@ -701,7 +701,8 @@ impl<'a> InstallTask<'a> {
                 RETRY_WAIT,
                 || self.fetch_artifact(ui, ident, target, token),
                 |res| res.is_ok(),
-            ).is_err()
+            )
+            .is_err()
             {
                 return Err(Error::DownloadFailed(format!(
                     "We tried {} times but could not download {}. Giving up.",

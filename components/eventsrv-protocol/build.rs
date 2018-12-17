@@ -20,7 +20,8 @@ fn generate_protocols() {
             .collect::<Vec<&str>>()
             .as_slice(),
         includes: &["protocols"],
-    }).expect("protoc");
+    })
+    .expect("protoc");
 }
 
 fn protocol_files() -> Vec<String> {

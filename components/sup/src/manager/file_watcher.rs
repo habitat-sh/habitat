@@ -1736,10 +1736,10 @@ mod tests {
                 steps: vec![
                     Step {
                         action: StepAction::Nop,
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::MissingDirectory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1751,11 +1751,11 @@ mod tests {
                     },
                     Step {
                         action: StepAction::MkdirP(pb!("/a")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1773,12 +1773,12 @@ mod tests {
                     },
                     Step {
                         action: StepAction::MkdirP(pb!("/a/b")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                             pb!("/a/b") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1802,12 +1802,12 @@ mod tests {
                     },
                     Step {
                         action: StepAction::Touch(pb!("/a/b/c")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                             pb!("/a/b") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1831,12 +1831,12 @@ mod tests {
                     },
                     Step {
                         action: StepAction::RmRF(pb!("/a/b/c")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                             pb!("/a/b") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1860,11 +1860,11 @@ mod tests {
                     },
                     Step {
                         action: StepAction::RmRF(pb!("/a/b")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1882,10 +1882,10 @@ mod tests {
                     },
                     Step {
                         action: StepAction::RmRF(pb!("/a")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::MissingDirectory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1910,12 +1910,12 @@ mod tests {
                 steps: vec![
                     Step {
                         action: StepAction::Nop,
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                             pb!("/a/b") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1939,10 +1939,10 @@ mod tests {
                     },
                     Step {
                         action: StepAction::RmRF(pb!("/a")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::MissingDirectory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -1974,10 +1974,10 @@ mod tests {
                 steps: vec![
                     Step {
                         action: StepAction::Nop,
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 5,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Symlink,
                                 path_rest: vec![],
@@ -2013,10 +2013,10 @@ mod tests {
                     },
                     Step {
                         action: StepAction::RmRF(pb!("/s2")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 3,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Symlink,
                                 path_rest: vec![],
@@ -2040,10 +2040,10 @@ mod tests {
                     },
                     Step {
                         action: StepAction::LnS(pb!("/2"), pb!("/s2")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 4,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Symlink,
                                 path_rest: vec![],
@@ -2073,10 +2073,10 @@ mod tests {
                     },
                     Step {
                         action: StepAction::Mv(pb!("/tmp/link"), pb!("/s1")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 3,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Symlink,
                                 path_rest: vec![],
@@ -2122,11 +2122,11 @@ mod tests {
                 steps: vec![
                     Step {
                         action: StepAction::Nop,
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 3,
                             pb!("/old") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Symlink,
                                 path_rest: vec![],
@@ -2156,11 +2156,11 @@ mod tests {
                     },
                     Step {
                         action: StepAction::Mv(pb!("/tmp/link"), pb!("/data")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 3,
                             pb!("/new") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Symlink,
                                 path_rest: vec![],
@@ -2206,11 +2206,11 @@ mod tests {
                 steps: vec![
                     Step {
                         action: StepAction::Nop,
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -2228,11 +2228,11 @@ mod tests {
                     },
                     Step {
                         action: StepAction::RmRF(pb!("/a/b")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -2265,12 +2265,12 @@ mod tests {
                 steps: vec![
                     Step {
                         action: StepAction::Nop,
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 2,
                             pb!("/a") => 1,
                             pb!("/x") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c"), os!("d")],
@@ -2300,12 +2300,12 @@ mod tests {
                     },
                     Step {
                         action: StepAction::RmRF(pb!("/x/c")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 2,
                             pb!("/a") => 1,
                             pb!("/x") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c"), os!("d")],
@@ -2335,12 +2335,12 @@ mod tests {
                     },
                     Step {
                         action: StepAction::Touch(pb!("/x/d")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 2,
                             pb!("/a") => 1,
                             pb!("/x") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c"), os!("d")],
@@ -2370,12 +2370,12 @@ mod tests {
                     },
                     Step {
                         action: StepAction::LnS(pb!("."), pb!("/x/c")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 2,
                             pb!("/a") => 1,
                             pb!("/x") => 2,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c"), os!("d")],
@@ -2429,12 +2429,12 @@ mod tests {
                 steps: vec![
                     Step {
                         action: StepAction::Nop,
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 2,
                             pb!("/a") => 1,
                             pb!("/x") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c"), os!("d")],
@@ -2464,12 +2464,12 @@ mod tests {
                     },
                     Step {
                         action: StepAction::Mv(pb!("/tmp/link"), pb!("/x/c")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 2,
                             pb!("/a") => 1,
                             pb!("/x") => 2,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c"), os!("d")],
@@ -2518,12 +2518,12 @@ mod tests {
                 steps: vec![
                     Step {
                         action: StepAction::Nop,
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                             pb!("/a/b") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -2547,11 +2547,11 @@ mod tests {
                     },
                     Step {
                         action: StepAction::Mv(pb!("/a/b"), pb!("/a/d")),
-                        dirs: hm!{
+                        dirs: hm! {
                             pb!("/") => 1,
                             pb!("/a") => 1,
                         },
-                        paths: hm!{
+                        paths: hm! {
                             pb!("/a") => PathState {
                                 kind: PathKind::Directory,
                                 path_rest: vec![os!("b"), os!("c")],
@@ -3047,7 +3047,8 @@ mod tests {
                         err,
                         self.debug_info,
                     )
-                }).map(|rde| {
+                })
+                .map(|rde| {
                     rde.unwrap_or_else(|err| {
                         panic!(
                             "failed to get entry for {}: {}, debug info:\n{}",
@@ -3055,9 +3056,11 @@ mod tests {
                             err,
                             self.debug_info,
                         )
-                    }).path()
+                    })
+                    .path()
                     .to_owned()
-                }).collect()
+                })
+                .collect()
         }
 
         fn parent_is_watched(&self, path: &PathBuf) -> bool {
@@ -3077,7 +3080,8 @@ mod tests {
                     "path {} has no parent, debug info:\n{}",
                     path.display(),
                     self.debug_info
-                )).to_owned()
+                ))
+                .to_owned()
         }
 
         fn prepend_root(&self, p: &PathBuf) -> PathBuf {
@@ -3418,7 +3422,8 @@ mod tests {
                             },
                         },
                     )
-                }).collect()
+                })
+                .collect()
         }
 
         fn get_real_first_expected_path(

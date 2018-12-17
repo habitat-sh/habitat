@@ -580,7 +580,8 @@ impl MemberList {
                 Health::Suspect => Some(&self.aging_suspects),
                 Health::Confirmed => Some(&self.aging_confirmed),
                 _ => None,
-            }.and_then(|map| {
+            }
+            .and_then(|map| {
                 map.write()
                     .expect("aging lock is poisoned")
                     .remove(member_id)
@@ -594,7 +595,8 @@ impl MemberList {
             Health::Suspect => Some(&self.aging_suspects),
             Health::Confirmed => Some(&self.aging_confirmed),
             _ => None,
-        }.and_then(|map| {
+        }
+        .and_then(|map| {
             map.write()
                 .expect("aging lock is poisoned")
                 .insert(member_id.to_string(), SteadyTime::now())
@@ -725,7 +727,8 @@ impl MemberList {
                 m.id != sending_member_id
                     && m.id != target_member_id
                     && self.health_of_by_id(&m.id) == Some(Health::Alive)
-            }).take(PINGREQ_TARGETS)
+            })
+            .take(PINGREQ_TARGETS)
         {
             with_closure(member);
         }

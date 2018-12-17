@@ -45,7 +45,8 @@ impl HelperDef for EachAliveHelper {
                                     None
                                 }
                             })
-                        }).collect();
+                        })
+                        .collect();
                     let len = alive_members.len();
                     for i in 0..len {
                         let mut local_rc = rc.derive();

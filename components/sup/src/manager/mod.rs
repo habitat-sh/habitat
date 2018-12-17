@@ -871,8 +871,10 @@ impl Manager {
                     self.fs_cfg.clone(),
                     self.organization.as_ref().map(|org| &**org),
                     self.state.gateway_state.clone(),
-                ).into_iter()
-            }).collect();
+                )
+                .into_iter()
+            })
+            .collect();
         let watched_service_proxies: Vec<ServiceProxy> = watched_services
             .iter()
             .map(|s| ServiceProxy::new(s, config_rendering))
@@ -1081,22 +1083,24 @@ impl Manager {
                 ServiceState {
                     disk: Some((DesiredState::Up, disk_spec)),
                     running: Some(running_spec),
-                } => if running_spec == disk_spec {
-                    debug!("Reconciliation: '{}' unchanged", ident);
-                    None
-                } else {
-                    // TODO (CM): In the future, this would be the
-                    // place where we can evaluate what has changed
-                    // between the spec-on-disk and our in-memory
-                    // representation and potentially just bring our
-                    // in-memory representation in line without having
-                    // to restart the entire service.
-                    debug!("Reconciliation: '{}' queued for restart", ident);
-                    Some(ServiceOperation::Restart {
-                        to_stop: running_spec,
-                        to_start: disk_spec,
-                    })
-                },
+                } => {
+                    if running_spec == disk_spec {
+                        debug!("Reconciliation: '{}' unchanged", ident);
+                        None
+                    } else {
+                        // TODO (CM): In the future, this would be the
+                        // place where we can evaluate what has changed
+                        // between the spec-on-disk and our in-memory
+                        // representation and potentially just bring our
+                        // in-memory representation in line without having
+                        // to restart the entire service.
+                        debug!("Reconciliation: '{}' queued for restart", ident);
+                        Some(ServiceOperation::Restart {
+                            to_stop: running_spec,
+                            to_start: disk_spec,
+                        })
+                    }
+                }
 
                 ServiceState {
                     disk: Some((DesiredState::Down, _)),
@@ -1126,7 +1130,8 @@ impl Manager {
                     disk: None,
                     running: None,
                 } => unreachable!(),
-            }).collect()
+            })
+            .collect()
     }
 
     fn update_peers_from_watch_file(&mut self) -> Result<()> {

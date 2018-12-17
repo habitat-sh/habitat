@@ -107,10 +107,12 @@ impl EventsMgr {
         rz.send(()).unwrap();
         loop {
             match self.rx.recv() {
-                Ok(Command::TryConnect(addrs)) => for addr in addrs {
-                    debug!("Connecting to eventsrv, {:?}", addr);
-                    self.client.connect(&addr)
-                },
+                Ok(Command::TryConnect(addrs)) => {
+                    for addr in addrs {
+                        debug!("Connecting to eventsrv, {:?}", addr);
+                        self.client.connect(&addr)
+                    }
+                }
                 Ok(Command::SendEvent(mut event)) => {
                     debug!("Sending event, {:?}", event);
                     self.client.send(&mut event);

@@ -232,7 +232,8 @@ impl TestSup {
         cmd.env(
             "TESTING_FS_ROOT",
             fs_root.as_ref().to_string_lossy().as_ref(),
-        ).env("HAB_SUP_BINARY", &sup_exe)
+        )
+        .env("HAB_SUP_BINARY", &sup_exe)
         .env(BLDR_URL_ENVVAR, "http://hab.sup.test")
         .arg("run")
         .arg("--listen-gossip")

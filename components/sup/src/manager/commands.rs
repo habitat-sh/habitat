@@ -753,10 +753,7 @@ impl From<ServiceStatus> for protocol::types::ServiceStatus {
 
 #[derive(Deserialize)]
 struct ProcessStatus {
-    #[serde(
-        deserialize_with = "deserialize_time",
-        rename = "state_entered"
-    )]
+    #[serde(deserialize_with = "deserialize_time", rename = "state_entered")]
     elapsed: TimeDuration,
     pid: Option<u32>,
     state: ProcessState,

@@ -202,7 +202,8 @@ impl Client {
                         }
                     },
                 )
-            }).and_then(|(msg, success, socket)| {
+            })
+            .and_then(|(msg, success, socket)| {
                 let mut reply = if success {
                     SrvMessage::from(net::ok())
                 } else {
@@ -468,7 +469,8 @@ pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_tx: MgrSender) {
                     Client {
                         handle: handle.clone(),
                         state: state.clone(),
-                    }.serve(io),
+                    }
+                    .serve(io),
                     addr,
                 )
             });
@@ -480,5 +482,6 @@ pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_tx: MgrSender) {
                 Ok(())
             });
             core.run(server)
-        }).expect("ctl-gateway thread start failure");
+        })
+        .expect("ctl-gateway thread start failure");
 }

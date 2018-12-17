@@ -110,7 +110,8 @@ impl PackageGraph {
                 bfs.into_iter()
                     .map(|child| self.graph.node_weight(child).unwrap())
                     .collect()
-            }).unwrap_or(vec![])
+            })
+            .unwrap_or(vec![])
     }
 
     /// Return the dependencies of a given Package Identifier as `PackageIdent`s. This
@@ -141,7 +142,8 @@ impl PackageGraph {
                 bfs.into_iter()
                     .map(|child| self.graph.node_weight(child).unwrap())
                     .collect()
-            }).unwrap_or(vec![])
+            })
+            .unwrap_or(vec![])
     }
 
     /// Remove a package from a graph
@@ -174,7 +176,8 @@ impl PackageGraph {
                     ),
                 }
                 true
-            }).unwrap_or(false)
+            })
+            .unwrap_or(false)
     }
 
     /// does a specific PackageIdent appear in the graph
@@ -208,7 +211,8 @@ impl PackageGraph {
                     .neighbors_directed(idx, direction)
                     .map(|n| self.nodes.get_by_right(&n).unwrap()) //  unwrap here is ok as we have consistency between `self.graph` and `self.nodes`
                     .collect()
-            }).unwrap_or(vec![])
+            })
+            .unwrap_or(vec![])
     }
 
     /// Returns the direct dependencies for a package.

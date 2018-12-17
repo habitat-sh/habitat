@@ -65,6 +65,7 @@ fn print_binds(
             "Error while querying {} binds for {}",
             bind_type,
             package_ident
-        ).expect("Failed printing to stderr"),
+        )
+        .expect("Failed printing to stderr"),
     }
 }

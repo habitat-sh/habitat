@@ -563,7 +563,8 @@ fn set_composite_binds(spec: &mut ServiceSpec, bind_map: &mut BindMap, binds: &V
                 &bind_mapping.satisfying_service.name,
                 &spec.group,
                 None, // <-- organization
-            ).expect(
+            )
+            .expect(
                 "Failed to parse bind mapping into service group. Did you validate your input?",
             );
             let bind = ServiceBind {
@@ -612,7 +613,8 @@ mod test {
             path.as_ref()
                 .parent()
                 .expect("failed to determine file's parent directory"),
-        ).expect("failed to create parent directory recursively");
+        )
+        .expect("failed to create parent directory recursively");
         let mut file = File::create(path).expect("failed to create file");
         file.write_all(content.as_bytes())
             .expect("failed to write content to file");

@@ -80,7 +80,8 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
         Some(String::from(name)),
         None::<PathBuf>,
         Box::new(NSuitability(suitability)),
-    ).unwrap();
+    )
+    .unwrap();
     server
         .start(Timing::default())
         .expect("Cannot start server");

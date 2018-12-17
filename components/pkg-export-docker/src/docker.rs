@@ -491,12 +491,14 @@ impl DockerBuildRoot {
                 .template_render(custom, &json)
                 .map_err(SyncFailure::new)?,
             None => format!("{}/{}", ident.origin, ident.name),
-        }.to_lowercase();
+        }
+        .to_lowercase();
 
         let image_name = match naming.registry_url {
             Some(ref url) => format!("{}/{}", url, image_name),
             None => image_name,
-        }.to_lowercase();
+        }
+        .to_lowercase();
 
         let mut image = DockerImage::new(self.0.workdir(), image_name);
         if naming.version_release_tag {

@@ -221,7 +221,8 @@ mod tests {
             .spawn(move || -> () {
                 let _lock = lock_var();
                 panic!("This is an intentional panic; it's OK");
-            }).expect("Couldn't spawn thread!")
+            })
+            .expect("Couldn't spawn thread!")
             .join();
 
         // We should still be able to do something with it; otherwise

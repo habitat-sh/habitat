@@ -109,7 +109,8 @@ where
                                 )
                             },
                             |res| res.is_ok(),
-                        ).is_err()
+                        )
+                        .is_err()
                         {
                             return Err(Error::from(api_client::Error::UploadFailed(format!(
                                 "We tried \
@@ -141,7 +142,8 @@ where
                     )
                 },
                 |res| res.is_ok(),
-            ).is_err()
+            )
+            .is_err()
             {
                 return Err(Error::from(api_client::Error::UploadFailed(format!(
                     "We tried {} times but could not upload {}. Giving up.",
