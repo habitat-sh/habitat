@@ -13,6 +13,7 @@
 - Add --transitive option to hab pkg dependencies [#5940](https://github.com/habitat-sh/habitat/pull/5940) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
+- Updates Cargo.lock following v70 release [#5944](https://github.com/habitat-sh/habitat/pull/5944) ([eeyun](https://github.com/eeyun))
 - Fully migrate windows build to buildkite with native hab builds. [#5905](https://github.com/habitat-sh/habitat/pull/5905) ([scotthain](https://github.com/scotthain))
 - Refactor SpecWatcher [#5892](https://github.com/habitat-sh/habitat/pull/5892) ([christophermaier](https://github.com/christophermaier))
 - Update version file [#5943](https://github.com/habitat-sh/habitat/pull/5943) ([eeyun](https://github.com/eeyun))
