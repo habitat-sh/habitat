@@ -32,8 +32,6 @@ lazy_static! {
         Regex::new(r"\A(?P<application>[^#.@]+)\.(?P<environment>[^#.@]+)\z").unwrap();
 }
 
-static DEFAULT_HEALTH_CHECK_INTERVAL: Duration = Duration::from_secs(30);
-
 /// Determines how the presence of bound service groups affects the
 /// starting of a service.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -373,7 +371,7 @@ impl fmt::Display for HealthCheckInterval {
 
 impl Default for HealthCheckInterval {
     fn default() -> Self {
-        HealthCheckInterval(DEFAULT_HEALTH_CHECK_INTERVAL)
+        HealthCheckInterval(Duration::from_secs(30))
     }
 }
 
@@ -567,7 +565,7 @@ mod test {
     fn default_health_check_interval_has_correct_default() {
         assert_eq!(
             *HealthCheckInterval::default().as_ref(),
-            DEFAULT_HEALTH_CHECK_INTERVAL
+            Duration::from_secs(30)
         );
     }
 
