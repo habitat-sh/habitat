@@ -17,7 +17,7 @@ use std::fmt;
 use std::io;
 use std::result;
 
-use hab_core;
+use habitat_core as hab_core;
 use hyper;
 use openssl::{self, ssl};
 use serde_json;

@@ -12,18 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate base64;
-extern crate habitat_core as hab_core;
-extern crate httparse;
+// Used for `header!` macro which cannot be correctly resolved as it is exported as `hyper::header`
+// which is also a module name.
 #[macro_use]
 extern crate hyper;
-extern crate hyper_openssl;
+// Convenience importing of `debug!`/`info!` macros for entire crate.
 #[macro_use]
 extern crate log;
-extern crate openssl;
-extern crate serde;
-extern crate serde_json;
-extern crate url;
 
 mod api_client;
 mod error;
@@ -41,9 +36,9 @@ mod ssl {
     use std::path::Path;
     use std::str::FromStr;
 
-    use hab_core::env;
-    use hab_core::fs::cache_ssl_path;
-    use hab_core::package::{PackageIdent, PackageInstall};
+    use habitat_core::env;
+    use habitat_core::fs::cache_ssl_path;
+    use habitat_core::package::{PackageIdent, PackageInstall};
     use openssl::ssl::SslContextBuilder;
 
     use crate::error::Result;

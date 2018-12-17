@@ -16,7 +16,7 @@ use url::percent_encoding::percent_decode;
 use url::{self, Url};
 
 use base64;
-use hab_core::env;
+use habitat_core::env;
 
 use crate::error::{Error, Result};
 
