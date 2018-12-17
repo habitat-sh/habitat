@@ -6,7 +6,6 @@ build = "build.rs"
 workspace = "../../"
 
 [dependencies]
-clippy = {version = "*", optional = true}
 base64 = "*"
 log = "*"
 httparse = "*"
