@@ -43,7 +43,8 @@ where
             "No '{}' found for {}",
             DEFAULT_CFG_FILE,
             package.ident()
-        ).expect("Failed printing to stderr"),
+        )
+        .expect("Failed printing to stderr"),
     }
     Ok(())
 }

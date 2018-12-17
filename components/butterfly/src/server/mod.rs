@@ -1469,7 +1469,8 @@ mod tests {
                 None,
                 None::<PathBuf>,
                 Box::new(ZeroSuitability),
-            ).unwrap()
+            )
+            .unwrap()
         }
 
         fn start_with_corrupt_rumor_file(tmpdir: &TempDir) -> Server {
@@ -1503,7 +1504,8 @@ mod tests {
                 None,
                 Some(tmpdir.path()),
                 Box::new(ZeroSuitability),
-            ).unwrap()
+            )
+            .unwrap()
         }
 
         #[test]
@@ -1525,18 +1527,17 @@ mod tests {
             let swim_listen = "";
             let gossip_listen = "";
             let member = Member::default();
-            assert!(
-                Server::new(
-                    &swim_listen[..],
-                    &gossip_listen[..],
-                    member,
-                    Trace::default(),
-                    None,
-                    None,
-                    None::<PathBuf>,
-                    Box::new(ZeroSuitability),
-                ).is_err()
+            assert!(Server::new(
+                &swim_listen[..],
+                &gossip_listen[..],
+                member,
+                Trace::default(),
+                None,
+                None,
+                None::<PathBuf>,
+                Box::new(ZeroSuitability),
             )
+            .is_err())
         }
 
         #[test]

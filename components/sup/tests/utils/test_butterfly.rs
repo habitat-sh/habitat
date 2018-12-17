@@ -79,7 +79,8 @@ impl Client {
                 incarnation,
                 payload,
                 false,
-            ).expect("Cannot send the service configuration");
+            )
+            .expect("Cannot send the service configuration");
     }
 
     /// Generate a new incarnation number using the number of seconds

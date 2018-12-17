@@ -94,38 +94,44 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .long("chart")
                 .short("h")
                 .help("Name of the chart to create, if different from the package name"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("VERSION")
                 .value_name("VERSION")
                 .short("V")
                 .long("version")
                 .validator(valid_version)
                 .help(&VERSION_HELP),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("DESCRIPTION")
                 .value_name("DESCRIPTION")
                 .long("desc")
                 .help("A single-sentence description"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("KEYWORD")
                 .value_name("KEYWORD")
                 .long("keyword")
                 .short("k")
                 .multiple(true)
                 .help("A keyword for this project"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("HOME")
                 .value_name("URL")
                 .long("home")
                 .validator(valid_url)
                 .help("The URL of the project's home page"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("ICON")
                 .value_name("URL")
                 .long("icon")
                 .validator(valid_url)
                 .help("A URL of an SVG or PNG image to be used as an icon"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("SOURCE")
                 .value_name("URL")
                 .long("source")
@@ -133,7 +139,8 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .multiple(true)
                 .validator(valid_url)
                 .help("A URL to the source code for the project"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("MAINTAINER")
                 .value_name("MAINTAINER_SPEC")
                 .long("maint")
@@ -141,18 +148,21 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                 .multiple(true)
                 .validator(valid_maintainer)
                 .help("A maintainer of the project, in the form of NAME,[EMAIL[,URL]]"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("DEPRECATED")
                 .long("depr")
                 .help("Mark this chart as deprecated"),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("OPERATOR_VERSION")
                 .value_name("OPERATOR_VERSION")
                 .long("operator-version")
                 .validator(valid_version)
                 .help("Version of the Habitat operator to set as dependency")
                 .default_value(deps::DEFAULT_OPERATOR_VERSION),
-        ).arg(
+        )
+        .arg(
             Arg::with_name("OUTPUTDIR")
                 .value_name("OUTPUTDIR")
                 .short("o")
@@ -161,7 +171,8 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
                     "The directory to put the chart directory under (default: current working \
                      directory)",
                 ),
-        ).arg(Arg::with_name("DOWNLOAD_DEPS").long("download-deps").help(
+        )
+        .arg(Arg::with_name("DOWNLOAD_DEPS").long("download-deps").help(
             "Whether to download dependencies. The Kubernetes Habitat Operator is the only \
              dependency currently. (default: no)",
         ))

@@ -606,11 +606,12 @@ fn send_pending() {
         };
         // If the directory entry is a file and the base file name starts with `event-`, then this
         // is a cached event. Otherwise proceed to the next entry.
-        if metadata.is_file() && entry
-            .file_name()
-            .to_string_lossy()
-            .as_ref()
-            .starts_with("event-")
+        if metadata.is_file()
+            && entry
+                .file_name()
+                .to_string_lossy()
+                .as_ref()
+                .starts_with("event-")
         {
             let file_path = entry.path();
             // Send the event, but if not successful report and proceed to the next entry.

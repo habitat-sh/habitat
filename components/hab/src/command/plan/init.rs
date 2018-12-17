@@ -82,7 +82,8 @@ pub fn start(
                             // Type gymnastics!
                             val.as_os_str().to_os_string().into_string().ok()
                         })
-                    }).unwrap_or("unnamed".into()),
+                    })
+                    .unwrap_or("unnamed".into()),
             )
         }
     };

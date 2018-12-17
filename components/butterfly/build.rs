@@ -27,7 +27,8 @@ fn generate_protocols() {
                 "src/generated/{}",
                 file.file_name().unwrap().to_string_lossy()
             ),
-        ).expect("Could not copy generated code to src/generated");
+        )
+        .expect("Could not copy generated code to src/generated");
     }
 }
 

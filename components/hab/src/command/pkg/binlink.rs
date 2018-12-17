@@ -130,10 +130,11 @@ where
                     Some(executable_extensions) => match env::var_os("PATHEXT") {
                         Some(val) => {
                             if !env::split_paths(&val.to_string_lossy().to_uppercase()).any(|e| {
-                                e.to_string_lossy() == format!(
-                                    ".{}",
-                                    executable_extensions.to_string_lossy().to_uppercase()
-                                )
+                                e.to_string_lossy()
+                                    == format!(
+                                        ".{}",
+                                        executable_extensions.to_string_lossy().to_uppercase()
+                                    )
                             }) {
                                 continue;
                             }
@@ -305,7 +306,8 @@ mod test {
             &dst_path,
             rootfs.path(),
             force,
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(
             rootfs_src_dir.join("magicate.exe"),
             Binlink::from_file(rootfs_bin_dir.join(magicate_link))
@@ -320,7 +322,8 @@ mod test {
             &dst_path,
             rootfs.path(),
             force,
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(
             rootfs_src_dir.join("hypnoanalyze.exe"),
             Binlink::from_file(rootfs_bin_dir.join(hypnoanalyze_link))
@@ -434,7 +437,8 @@ mod test {
         // binaries
         fs::create_dir_all(
             hcore::fs::pkg_install_path(&ident, Some(rootfs.path())).join("bin/__junk__"),
-        ).unwrap();
+        )
+        .unwrap();
 
         #[cfg(target_os = "linux")]
         let magicate_link = "magicate.exe";
@@ -515,7 +519,8 @@ mod test {
             file.as_ref()
                 .parent()
                 .expect("Parent directory doesn't exist"),
-        ).expect("Failed to create parent directory");
+        )
+        .expect("Failed to create parent directory");
         let mut f = File::create(file).expect("File is not created");
         f.write_all(content.as_bytes())
             .expect("Bytes not written to file");

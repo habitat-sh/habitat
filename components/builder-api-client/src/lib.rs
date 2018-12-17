@@ -847,7 +847,8 @@ impl Client {
                     u.set_query(Some(&format!("target={}", target)))
                 }),
                 token,
-            ).send()?;
+            )
+            .send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));

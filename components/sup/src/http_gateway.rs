@@ -222,7 +222,8 @@ impl Server {
                 App::with_state(app_state)
                     .middleware(Authentication)
                     .configure(routes)
-            }).workers(thread_count);
+            })
+            .workers(thread_count);
 
             // On Windows the default actix signal handler will create a ctrl+c handler for the
             // process which will disable default windows ctrl+c behavior and allow us to
@@ -272,17 +273,23 @@ fn routes(app: App<AppState>) -> App<AppState> {
         .resource("/services", |r| r.get().f(services))
         .resource("/services/{svc}/{group}", |r| {
             r.get().f(service_without_org)
-        }).resource("/services/{svc}/{group}/config", |r| {
+        })
+        .resource("/services/{svc}/{group}/config", |r| {
             r.get().f(config_without_org)
-        }).resource("/services/{svc}/{group}/health", |r| {
+        })
+        .resource("/services/{svc}/{group}/health", |r| {
             r.get().f(health_without_org)
-        }).resource("/services/{svc}/{group}/{org}", |r| {
+        })
+        .resource("/services/{svc}/{group}/{org}", |r| {
             r.get().f(service_with_org)
-        }).resource("/services/{svc}/{group}/{org}/config", |r| {
+        })
+        .resource("/services/{svc}/{group}/{org}/config", |r| {
             r.get().f(config_with_org)
-        }).resource("/services/{svc}/{group}/{org}/health", |r| {
+        })
+        .resource("/services/{svc}/{group}/{org}/health", |r| {
             r.get().f(health_with_org)
-        }).resource("/butterfly", |r| r.get().filter(RedactHTTP).f(butterfly))
+        })
+        .resource("/butterfly", |r| r.get().filter(RedactHTTP).f(butterfly))
         .resource("/census", |r| r.get().filter(RedactHTTP).f(census))
 }
 
@@ -574,7 +581,8 @@ mod tests {
                 None,
                 None::<PathBuf>,
                 Box::new(ZeroSuitability),
-            ).unwrap()
+            )
+            .unwrap()
         }
 
         let server = start_server();

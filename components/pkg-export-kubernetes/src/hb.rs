@@ -46,7 +46,8 @@ impl HelperDef for QuoteHelper {
             .param(0)
             .ok_or_else(|| {
                 RenderError::new(&format!("Expected exactly one parameter for {}", h.name()))
-            })?.value()
+            })?
+            .value()
             .as_str()
             .ok_or_else(|| RenderError::new("Expected a string parameter"))?;
         let escaped = QuoteHelper::escape(to_escape);

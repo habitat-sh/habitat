@@ -295,7 +295,8 @@ impl Into<core::service::ServiceGroup> for ServiceGroup {
                 core::service::ApplicationEnvironment::new(
                     app_env.application,
                     app_env.environment,
-                ).unwrap(),
+                )
+                .unwrap(),
             )
         } else {
             None
@@ -305,7 +306,8 @@ impl Into<core::service::ServiceGroup> for ServiceGroup {
             self.service,
             self.group,
             self.organization.as_ref().map(String::as_str),
-        ).unwrap()
+        )
+        .unwrap()
     }
 }
 

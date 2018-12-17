@@ -38,11 +38,12 @@ impl Values {
     pub fn generate(&self, write: &mut Write) -> Result<()> {
         let mut out = "".to_owned();
         for entry in &self.values {
-            out = out + &format!(
-                "{}: {}\n",
-                entry.variable,
-                QuoteHelper::escape(&entry.value)
-            );
+            out = out
+                + &format!(
+                    "{}: {}\n",
+                    entry.variable,
+                    QuoteHelper::escape(&entry.value)
+                );
         }
 
         write.write(out.as_bytes())?;

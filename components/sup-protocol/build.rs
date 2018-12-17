@@ -39,7 +39,8 @@ fn generate_protocols() {
                 "src/generated/{}",
                 file.file_name().unwrap().to_string_lossy()
             ),
-        ).unwrap();
+        )
+        .unwrap();
     }
 }
 

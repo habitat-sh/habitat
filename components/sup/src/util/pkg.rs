@@ -61,7 +61,8 @@ where
         &InstallMode::default(),
         // TODO (CM): pass through and enable ignore-local mode
         &LocalPackageUsage::default(),
-    ).map_err(SupError::from)
+    )
+    .map_err(SupError::from)
 }
 
 /// Given an InstallSource, install a new package only if an existing

@@ -269,7 +269,8 @@ impl Service {
                 &self.service_group,
                 launcher,
                 self.svc_encrypted_password.as_ref(),
-            ).err()
+            )
+            .err()
         {
             outputln!(preamble self.service_group, "Service start failed: {}", err);
         } else {
@@ -296,7 +297,8 @@ impl Service {
                     &self.service_group,
                     launcher,
                     self.svc_encrypted_password.as_ref(),
-                ).err()
+                )
+                .err()
             {
                 outputln!(preamble self.service_group, "Service restart failed: {}", err);
             }

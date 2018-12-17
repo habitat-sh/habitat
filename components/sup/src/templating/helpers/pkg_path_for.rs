@@ -43,7 +43,8 @@ impl HelperDef for PkgPathForHelper {
                         .to_string_lossy()
                         .into_owned(),
                 )
-            }).unwrap_or("".to_string());
+            })
+            .unwrap_or("".to_string());
         rc.writer.write(target_pkg.into_bytes().as_ref())?;
         Ok(())
     }

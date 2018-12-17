@@ -110,13 +110,15 @@ impl<'a, 'b> Cli<'a, 'b> {
                         "Install packages from Builder at the specified URL \
                          (default: https://bldr.habitat.sh)",
                     ),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("CHANNEL")
                     .long("channel")
                     .short("c")
                     .value_name("CHANNEL")
                     .help("Install packages from the specified release channel (default: stable)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("BASE_PKGS_BLDR_URL")
                     .long("base-pkgs-url")
                     .value_name("BASE_PKGS_BLDR_URL")
@@ -125,7 +127,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                         "Install base packages from Builder at the specified URL \
                          (default: https://bldr.habitat.sh)",
                     ),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("BASE_PKGS_CHANNEL")
                     .long("base-pkgs-channel")
                     .value_name("BASE_PKGS_CHANNEL")
@@ -133,7 +136,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                         "Install base packages from the specified release channel \
                          (default: stable)",
                     ),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("BLDR_AUTH_TOKEN")
                     .long("auth")
                     .short("z")
@@ -152,34 +156,40 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .long("tag-version-release")
                     .conflicts_with("NO_TAG_VERSION_RELEASE")
                     .help("Tag image with :\"{{pkg_version}}-{{pkg_release}}\" (default: yes)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("NO_TAG_VERSION_RELEASE")
                     .long("no-tag-version-release")
                     .conflicts_with("TAG_VERSION_RELEASE")
                     .help(
                         "Do not tag image with :\"{{pkg_version}}-{{pkg_release}}\" (default: no)",
                     ),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("TAG_VERSION")
                     .long("tag-version")
                     .conflicts_with("NO_TAG_VERSION")
                     .help("Tag image with :\"{{pkg_version}}\" (default: yes)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("NO_TAG_VERSION")
                     .long("no-tag-version")
                     .conflicts_with("TAG_VERSION")
                     .help("Do not tag image with :\"{{pkg_version}}\" (default: no)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("TAG_LATEST")
                     .long("tag-latest")
                     .conflicts_with("NO_TAG_LATEST")
                     .help("Tag image with :\"latest\" (default: yes)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("NO_TAG_LATEST")
                     .long("no-tag-latest")
                     .conflicts_with("TAG_LATEST")
                     .help("Do not tag image with :\"latest\" (default: no)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("TAG_CUSTOM")
                     .long("tag-custom")
                     .value_name("TAG_CUSTOM")
@@ -201,12 +211,14 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .conflicts_with("NO_PUSH_IMAGE")
                     .requires_all(&["REGISTRY_USERNAME", "REGISTRY_PASSWORD"])
                     .help("Push image to remote registry (default: no)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("NO_PUSH_IMAGE")
                     .long("no-push-image")
                     .conflicts_with("PUSH_IMAGE")
                     .help("Do not push image to remote registry (default: yes)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("REGISTRY_USERNAME")
                     .long("username")
                     .short("U")
@@ -215,7 +227,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .help(
                         "Remote registry username, required for pushing image to remote registry",
                     ),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("REGISTRY_PASSWORD")
                     .long("password")
                     .short("P")
@@ -224,14 +237,16 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .help(
                         "Remote registry password, required for pushing image to remote registry",
                     ),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("REGISTRY_TYPE")
                     .possible_values(RegistryType::variants())
                     .long("registry-type")
                     .short("R")
                     .value_name("REGISTRY_TYPE")
                     .help("Remote registry type (default: docker)"),
-            ).arg(
+            )
+            .arg(
                 Arg::with_name("REGISTRY_URL")
                     // This is not strictly a requirement but will keep someone from
                     // making a mistake when inputing an ECR URL

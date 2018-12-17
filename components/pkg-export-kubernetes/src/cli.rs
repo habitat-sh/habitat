@@ -99,13 +99,15 @@ impl<'a, 'b> Cli<'a, 'b> {
                             "The Kubernetes resource name \
                              (default: {{pkg_name}}-{{pkg_version}}-{{pkg_release}})",
                         ),
-                ).arg(
+                )
+                .arg(
                     Arg::with_name("COUNT")
                         .value_name("COUNT")
                         .long("count")
                         .validator(valid_natural_number)
                         .help("Count is the number of desired instances"),
-                ).arg(
+                )
+                .arg(
                     Arg::with_name("TOPOLOGY")
                         .value_name("TOPOLOGY")
                         .long("topology")
@@ -116,7 +118,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                              within a Habitat service group. Specify either standalone or leader \
                              topology (default: standalone)",
                         ),
-                ).arg(
+                )
+                .arg(
                     Arg::with_name("GROUP")
                         .value_name("GROUP")
                         .long("service-group")
@@ -125,7 +128,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                             "Group is a logical grouping of services with the same package and \
                              topology type connected together in a ring (default: default)",
                         ),
-                ).arg(
+                )
+                .arg(
                     Arg::with_name("CONFIG")
                         .value_name("CONFIG")
                         .long("config")
@@ -135,7 +139,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                              will use it for initial configuration of the service running in a \
                              Kubernetes cluster",
                         ),
-                ).arg(
+                )
+                .arg(
                     Arg::with_name("ENVIRONMENT")
                         .value_name("ENVIRONMENT")
                         .long("env")
@@ -143,7 +148,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .multiple(true)
                         .number_of_values(1)
                         .help("Additional environment variables to set for the service"),
-                ).arg(
+                )
+                .arg(
                     Arg::with_name("PERSISTENT_STORAGE")
                         .value_name("PERSISTENT_STORAGE")
                         .long("storage")

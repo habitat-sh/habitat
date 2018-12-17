@@ -255,7 +255,8 @@ impl<'a> BuildSpec<'a> {
             &dst,
             rootfs.as_ref(),
             true,
-        ).map_err(SyncFailure::new)?;
+        )
+        .map_err(SyncFailure::new)?;
         hab::command::pkg::binlink::start(ui, &base_pkgs.hab, "hab", &dst, rootfs.as_ref(), true)
             .map_err(SyncFailure::new)?;
         Ok(())
@@ -494,7 +495,8 @@ impl BuildRootContext {
             .filter_map(|t| match *t {
                 PkgIdentType::Svc(ref svc) => Some(svc.ident.as_ref()),
                 _ => None,
-            }).collect()
+            })
+            .collect()
     }
 
     /// Returns the first service package from the provided Habitat packages.
@@ -860,7 +862,8 @@ mod test {
                         .join("bin")
                         .to_string_lossy()
                         .as_ref(),
-                ).unwrap();
+                )
+                .unwrap();
                 for bin in self.bins.iter() {
                     util::write_file(prefix.join("bin").join(bin), "").unwrap();
                 }

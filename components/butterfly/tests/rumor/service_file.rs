@@ -48,7 +48,8 @@ fn service_file_via_client() {
             0,
             payload,
             false,
-        ).expect("Cannot send the service file");
+        )
+        .expect("Cannot send the service file");
     net.wait_for_gossip_rounds(1);
     net[1]
         .service_file_store

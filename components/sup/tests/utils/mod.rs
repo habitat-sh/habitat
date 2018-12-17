@@ -156,6 +156,7 @@ where
         format!(
             "Could not write file contents to metafile {}",
             metafile.as_ref().display()
-        ).as_str(),
+        )
+        .as_str(),
     );
 }
