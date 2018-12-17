@@ -38,7 +38,6 @@ use crate::error::{Error, Result};
 ///     let url = Url::from_str("http://proxy.example.com:8001/").unwrap();
 ///     let proxy = ProxyInfo::new(url, None).unwrap();
 ///
-///     assert_eq!(proxy.scheme(), "http");
 ///     assert_eq!(proxy.host(), "proxy.example.com");
 ///     assert_eq!(proxy.port(), 8001);
 ///     assert!(proxy.authorization_header_value().is_none());
@@ -60,7 +59,6 @@ use crate::error::{Error, Result};
 ///     let authz = ProxyBasicAuthorization::new("foo".to_string(), "bar".to_string());
 ///     let proxy = ProxyInfo::new(url, Some(authz)).unwrap();
 ///
-///     assert_eq!(proxy.scheme(), "http");
 ///     assert_eq!(proxy.host(), "proxy.example.com");
 ///     assert_eq!(proxy.port(), 80);
 ///     assert_eq!(proxy.authorization_header_value().unwrap(), "Basic Zm9vOmJhcg==");
@@ -99,11 +97,6 @@ impl ProxyInfo {
         }
 
         Ok(ProxyInfo { url, authorization })
-    }
-
-    /// Returns the scheme for the proxy server.
-    pub fn scheme(&self) -> &str {
-        self.url.scheme()
     }
 
     /// Returns the host entry for the proxy server.
@@ -190,7 +183,6 @@ impl ProxyBasicAuthorization {
 /// std::env::set_var("http_proxy", "http://proxy.example.com:8001/");
 /// let info = proxy::http_proxy().unwrap().unwrap();
 ///
-/// assert_eq!(info.scheme(), "http");
 /// assert_eq!(info.host(), "proxy.example.com");
 /// assert_eq!(info.port(), 8001);
 /// assert!(info.authorization_header_value().is_none());
@@ -205,7 +197,6 @@ impl ProxyBasicAuthorization {
 /// std::env::set_var("http_proxy", "http://itsme:asecret@proxy.example.com");
 /// let info = proxy::http_proxy().unwrap().unwrap();
 ///
-/// assert_eq!(info.scheme(), "http");
 /// assert_eq!(info.host(), "proxy.example.com");
 /// assert_eq!(info.port(), 80);
 /// assert_eq!(info.authorization_header_value().unwrap(), "Basic aXRzbWU6YXNlY3JldA==");
@@ -276,7 +267,6 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 /// std::env::set_var("https_proxy", "http://proxy.example.com:8001/");
 /// let info = proxy::https_proxy().unwrap().unwrap();
 ///
-/// assert_eq!(info.scheme(), "http");
 /// assert_eq!(info.host(), "proxy.example.com");
 /// assert_eq!(info.port(), 8001);
 /// assert!(info.authorization_header_value().is_none());
@@ -291,7 +281,6 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 /// std::env::set_var("https_proxy", "http://itsme:asecret@proxy.example.com");
 /// let info = proxy::https_proxy().unwrap().unwrap();
 ///
-/// assert_eq!(info.scheme(), "http");
 /// assert_eq!(info.host(), "proxy.example.com");
 /// assert_eq!(info.port(), 80);
 /// assert_eq!(info.authorization_header_value().unwrap(), "Basic aXRzbWU6YXNlY3JldA==");
@@ -435,7 +424,6 @@ pub fn https_proxy() -> Result<Option<ProxyInfo>> {
 ///     let for_domain = Url::from_str("https://www.example.com").unwrap();
 ///     let info = proxy::proxy_unless_domain_exempted(Some(&for_domain)).unwrap().unwrap();
 ///
-///     assert_eq!(info.scheme(), "http");
 ///     assert_eq!(info.host(), "proxy.example.com");
 ///     assert_eq!(info.port(), 8001);
 ///     assert_eq!(info.authorization_header_value().unwrap(), "Basic aXRzbWU6YXNlY3JldA==");
