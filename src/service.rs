@@ -365,6 +365,12 @@ impl AsRef<Duration> for HealthCheckInterval {
     }
 }
 
+impl fmt::Display for HealthCheckInterval {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "({}s)", self.0.as_secs())
+    }
+}
+
 impl Default for HealthCheckInterval {
     fn default() -> Self {
         HealthCheckInterval(DEFAULT_HEALTH_CHECK_INTERVAL)
@@ -582,8 +588,16 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "oh-noes")]
+    #[should_panic(expected = "InvalidDigit")]
     fn health_check_interval_from_str_invalid() {
-        ApplicationEnvironment::from_str("oh-noes").unwrap();
+        HealthCheckInterval::from_str("oh-noes").unwrap();
+    }
+
+    #[test]
+    fn health_check_interval_display() {
+        assert_eq!(
+            "(5s)".to_owned(),
+            format!("{}", HealthCheckInterval::from_str("5").unwrap())
+        );
     }
 }
