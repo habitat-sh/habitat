@@ -32,8 +32,7 @@ lazy_static! {
         Regex::new(r"\A(?P<application>[^#.@]+)\.(?P<environment>[^#.@]+)\z").unwrap();
 }
 
-static DEFAULT_HEALTH_CHECK_INTERVAL: Duration =
-    Duration::from_secs(30);
+static DEFAULT_HEALTH_CHECK_INTERVAL: Duration = Duration::from_secs(30);
 
 /// Determines how the presence of bound service groups affects the
 /// starting of a service.
@@ -578,8 +577,7 @@ mod test {
         assert!(one < *HealthCheckInterval::default().as_ref());
         let two: HealthCheckInterval = Duration::from_secs(50).into();
         assert!(two > *HealthCheckInterval::default().as_ref());
-        let three: HealthCheckInterval =
-            Duration::from_secs(30).into();
+        let three: HealthCheckInterval = Duration::from_secs(30).into();
         assert!(three == *HealthCheckInterval::default().as_ref());
     }
 
