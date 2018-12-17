@@ -32,9 +32,8 @@ lazy_static! {
         Regex::new(r"\A(?P<application>[^#.@]+)\.(?P<environment>[^#.@]+)\z").unwrap();
 }
 
-pub const DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS: u64 = 30;
-pub static DEFAULT_HEALTH_CHECK_INTERVAL: Duration =
-    Duration::from_secs(DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS);
+static DEFAULT_HEALTH_CHECK_INTERVAL: Duration =
+    Duration::from_secs(30);
 
 /// Determines how the presence of bound service groups affects the
 /// starting of a service.
@@ -358,8 +357,14 @@ impl FromStr for ApplicationEnvironment {
 }
 
 /// Represents how far apart to run health checks for individual services
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct HealthCheckInterval(pub Duration);
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct HealthCheckInterval(Duration);
+
+impl AsRef<Duration> for HealthCheckInterval {
+    fn as_ref(&self) -> &Duration {
+        &self.0
+    }
+}
 
 impl Default for HealthCheckInterval {
     fn default() -> Self {
@@ -381,9 +386,9 @@ impl From<Duration> for HealthCheckInterval {
     }
 }
 
-impl Into<Duration> for HealthCheckInterval {
-    fn into(self) -> Duration {
-        self.0
+impl From<HealthCheckInterval> for Duration {
+    fn from(h: HealthCheckInterval) -> Self {
+        Duration::from_secs(h.as_ref().as_secs())
     }
 }
 
@@ -556,7 +561,7 @@ mod test {
     #[test]
     fn default_health_check_interval_has_correct_default() {
         assert_eq!(
-            HealthCheckInterval::default().0,
+            *HealthCheckInterval::default().as_ref(),
             DEFAULT_HEALTH_CHECK_INTERVAL
         );
     }
@@ -570,12 +575,12 @@ mod test {
     #[test]
     fn health_check_interval_correctly_implements_comparison() {
         let one: HealthCheckInterval = Duration::from_secs(5).into();
-        assert!(one < HealthCheckInterval::default().0);
+        assert!(one < *HealthCheckInterval::default().as_ref());
         let two: HealthCheckInterval = Duration::from_secs(50).into();
-        assert!(two > HealthCheckInterval::default().0);
+        assert!(two > *HealthCheckInterval::default().as_ref());
         let three: HealthCheckInterval =
-            Duration::from_secs(DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS).into();
-        assert!(three == HealthCheckInterval::default().0);
+            Duration::from_secs(30).into();
+        assert!(three == *HealthCheckInterval::default().as_ref());
     }
 
     #[test]
