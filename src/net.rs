@@ -33,11 +33,11 @@ pub struct ProxyHttpsConnector<S: SslClient> {
 impl<S: SslClient> ProxyHttpsConnector<S> {
     /// Creates a new connection using the provided proxy server configuration and SSL
     /// implementation.
-    pub fn new(proxy: ProxyInfo, ssl: S) -> hyper::Result<Self> {
+    pub fn new(proxy: ProxyInfo, ssl_client: S) -> hyper::Result<Self> {
         Ok(ProxyHttpsConnector {
-            proxy: proxy,
+            proxy,
             proxy_connector: HttpConnector,
-            ssl_client: ssl,
+            ssl_client,
         })
     }
 }

@@ -83,7 +83,7 @@ impl ApiClient {
             inner: new_hyper_client(&endpoint, fs_root_path)?,
             proxy: proxy_unless_domain_exempted(Some(&endpoint))?,
             target_scheme: endpoint.scheme().to_string(),
-            endpoint: endpoint,
+            endpoint,
             user_agent_header: user_agent(product, version)?,
         })
     }

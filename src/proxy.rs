@@ -98,10 +98,7 @@ impl ProxyInfo {
             return Err(Error::UrlParseError(url::ParseError::InvalidPort));
         }
 
-        Ok(ProxyInfo {
-            url: url,
-            authorization: authorization,
-        })
+        Ok(ProxyInfo { url, authorization })
     }
 
     /// Returns the scheme for the proxy server.
@@ -156,10 +153,7 @@ pub struct ProxyBasicAuthorization {
 impl ProxyBasicAuthorization {
     /// Creates and returns a new `ProxyBasicAuthorization` with the given username and password.
     pub fn new(username: String, password: String) -> Self {
-        ProxyBasicAuthorization {
-            username: username,
-            password: password,
-        }
+        ProxyBasicAuthorization { username, password }
     }
 
     /// Returns a `String` containing the value for a `Proxy-Authorization` HTTP header.
