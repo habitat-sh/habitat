@@ -91,10 +91,10 @@ impl ProxyInfo {
                 return Err(Error::InvalidProxyValue(msg));
             }
         }
-        if let None = url.host_str() {
+        if url.host_str().is_none() {
             return Err(Error::UrlParseError(url::ParseError::EmptyHost));
         }
-        if let None = url.port_or_known_default() {
+        if url.port_or_known_default().is_none() {
             return Err(Error::UrlParseError(url::ParseError::InvalidPort));
         }
 
