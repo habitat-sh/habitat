@@ -24,7 +24,7 @@ Write-Host "--- Using hab executable at $baseHabExe"
 # install buildkite agent because we are in a container :(
 Write-Host "--- Installing buildkite agent in container"
 $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
-Invoke-Expression (Invoke-WebRequest https://raw.githubusercontent.com/buildkite/agent/master/install.ps1).Content
+Invoke-Expression (Invoke-WebRequest https://raw.githubusercontent.com/buildkite/agent/master/install.ps1 -UseBasicParsing).Content
 
 $HabArtifact = & buildkite-agent meta-data get hab-artifact-windows --job $Env:BUILDKITE_JOB_ID
 
