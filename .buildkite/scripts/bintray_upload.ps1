@@ -39,7 +39,7 @@ $Env:HAB_BLDR_CHANNEL="$SourceChannel"
 $Env:BINTRAY_USER="$Env:HABITAT_BINTRAY_USER"
 $Env:BINTRAY_KEY="$Env:HABITAT_BINTRAY_KEY"
 $Env:BINTRAY_PASSPHRASE="$Env:HABITAT_BINTRAY_PASSPHRASE"
+Invoke-Expression "$baseHabExe pkg exec core/hab-bintray-publish publish-studio"
+if($LASTEXITCODE -ne 0) { Write-Error "publishing studio container failed!" } 
 Invoke-Expression "$baseHabExe pkg exec core/hab-bintray-publish publish-hab -s -r $TargetChannel C:\hab\cache\artifacts\$HabArtifact"
-
-
-if($LASTEXITCODE -ne 0) { Write-Error "Something mysterious and unexpected happened!" } 
+if($LASTEXITCODE -ne 0) { Write-Error "publishing hab components failed!" } 
