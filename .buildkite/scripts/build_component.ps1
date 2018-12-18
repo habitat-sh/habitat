@@ -26,7 +26,7 @@ $Env:HAB_BLDR_CHANNEL="$SourceChannel"
 # install buildkite agent because we are in a container :(
 Write-Host "--- Installing buildkite agent in container"
 $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
-Invoke-Expression (Invoke-WebRequest https://raw.githubusercontent.com/buildkite/agent/master/install.ps1).Content
+Invoke-Expression (Invoke-WebRequest https://raw.githubusercontent.com/buildkite/agent/master/install.ps1 -UseBasicParsing).Content
     
 Write-Host "--- Installing base habitat binary version: $BaseHabVersion"
 $baseHabExe = [HabShared]::install_base_habitat_binary($BaseHabVersion, $SourceChannel)

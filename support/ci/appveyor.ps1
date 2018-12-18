@@ -3,7 +3,10 @@ function Get-RepoRoot {
     (Resolve-Path "$PSScriptRoot\..\..\").Path
 }
 function Test-ReleaseBuild {
-    $env:APPVEYOR_REPO_TAG_NAME -eq (Get-Content "$(Get-RepoRoot)/VERSION") -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))
+    # $env:APPVEYOR_REPO_TAG_NAME -eq (Get-Content "$(Get-RepoRoot)/VERSION") -and (!$env:APPVEYOR_REPO_TAG_NAME.EndsWith("dev"))
+    
+    # We are disabling release builds for now
+    $false
 }
 
 function Test-ComponentChanged ($path) {
