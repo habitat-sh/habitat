@@ -33,4 +33,5 @@ backline_artifact="$(get_backline_artifact "$BUILD_PKG_TARGET")"
 "${hab_binary}" pkg upload \
   --url https://bldr.acceptance.habitat.sh \
   --channel "$(acceptance_channel)" \
+  --auth "${HAB_AUTH_TOKEN}" \
   ~/.hab/cache/artifacts/"$backline_artifact"
