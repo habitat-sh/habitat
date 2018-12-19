@@ -385,15 +385,17 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
     if candidate.extension().is_none() {
         match henv::var_os("PATHEXT") {
-            Some(pathexts) => for pathext in env::split_paths(&pathexts) {
-                let mut source_candidate = candidate.to_path_buf();
-                let extension = pathext.to_str().unwrap().trim_matches('.');
-                source_candidate.set_extension(extension);
-                let current_candidate = source_candidate.to_path_buf();
-                if current_candidate.is_file() {
-                    return Some(current_candidate);
+            Some(pathexts) => {
+                for pathext in env::split_paths(&pathexts) {
+                    let mut source_candidate = candidate.to_path_buf();
+                    let extension = pathext.to_str().unwrap().trim_matches('.');
+                    source_candidate.set_extension(extension);
+                    let current_candidate = source_candidate.to_path_buf();
+                    if current_candidate.is_file() {
+                        return Some(current_candidate);
+                    }
                 }
-            },
+            }
             None => {}
         };
     }
@@ -442,7 +444,8 @@ fn fs_root_path() -> PathBuf {
             io::stderr(),
             "DEBUG: setting custom filesystem root for testing only (TESTING_FS_ROOT='{}')",
             &path
-        ).expect("Could not write to stderr");
+        )
+        .expect("Could not write to stderr");
         return PathBuf::from(path);
     }
 

@@ -480,12 +480,10 @@ mod test {
             Ok(_) => assert!(true),
             Err(_) => panic!("Generated pair should have a secret key"),
         }
-        assert!(
-            cache
-                .path()
-                .join(format!("{}.sym.key", pair.name_with_rev()))
-                .exists()
-        );
+        assert!(cache
+            .path()
+            .join(format!("{}.sym.key", pair.name_with_rev()))
+            .exists());
     }
 
     #[test]
@@ -602,7 +600,8 @@ mod test {
         fs::copy(
             fixture(&format!("keys/{}", VALID_KEY)),
             cache.path().join(VALID_KEY),
-        ).unwrap();
+        )
+        .unwrap();
 
         let result = SymKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
@@ -746,11 +745,13 @@ mod test {
         fs::copy(
             key,
             cache.path().join("ring-key-valid-20160504220722.sym.key"),
-        ).unwrap();
+        )
+        .unwrap();
 
         SymKey::write_file_from_str(
             "SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething",
             cache.path(),
-        ).unwrap();
+        )
+        .unwrap();
     }
 }

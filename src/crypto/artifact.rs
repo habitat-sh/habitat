@@ -307,7 +307,8 @@ mod test {
         // Delete the secret key
         fs::remove_file(
             SigKeyPair::get_secret_key_path(&pair.name_with_rev(), cache.path()).unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
         // Now reload the key pair which will be missing the secret key
         let pair = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
 
@@ -326,7 +327,8 @@ mod test {
         // Delete the public key
         fs::remove_file(
             SigKeyPair::get_public_key_path(&pair.name_with_rev(), cache.path()).unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
         // Now reload the key pair which will be missing the public key
         let _ = SigKeyPair::get_latest_pair_for("unicorn", cache.path(), None).unwrap();
 
@@ -431,8 +433,10 @@ mod test {
             format!(
                 "HART-1\n{}\nBLAKE2b\nnot:base64:signature",
                 pair.name_with_rev()
-            ).as_bytes(),
-        ).unwrap();
+            )
+            .as_bytes(),
+        )
+        .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -447,7 +451,8 @@ mod test {
         let mut f = File::create(&dst).unwrap();
         f.write_all(
             format!("HART-1\n{}\nBLAKE2b\nU3VycHJpc2Uh\n", pair.name_with_rev()).as_bytes(),
-        ).unwrap();
+        )
+        .unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }

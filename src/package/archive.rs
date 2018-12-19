@@ -36,105 +36,120 @@ lazy_static! {
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::CFlags
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Config,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Config
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Deps,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Deps
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::TDeps,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::TDeps
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Exposes,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Exposes
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Ident,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Ident
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::LdRunPath,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::LdRunPath
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::LdFlags,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::LdFlags
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::SvcUser,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::SvcUser
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Services,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Services
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::ResolvedServices,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::ResolvedServices
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Manifest,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Manifest
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Path,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Path
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Target,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Target
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map.insert(
             MetaFile::Type,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
                 MetaFile::Type
-            )).unwrap(),
+            ))
+            .unwrap(),
         );
         map
     };

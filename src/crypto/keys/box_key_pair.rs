@@ -518,18 +518,14 @@ mod test {
             Ok(_) => assert!(true),
             Err(_) => panic!("Generated pair should have a secret key"),
         }
-        assert!(
-            cache
-                .path()
-                .join(format!("{}.pub", pair.name_with_rev()))
-                .exists()
-        );
-        assert!(
-            cache
-                .path()
-                .join(format!("{}.box.key", pair.name_with_rev()))
-                .exists()
-        );
+        assert!(cache
+            .path()
+            .join(format!("{}.pub", pair.name_with_rev()))
+            .exists());
+        assert!(cache
+            .path()
+            .join(format!("{}.box.key", pair.name_with_rev()))
+            .exists());
     }
 
     #[test]
@@ -547,18 +543,14 @@ mod test {
             Ok(_) => assert!(true),
             Err(_) => panic!("Generated pair should have a secret key"),
         }
-        assert!(
-            cache
-                .path()
-                .join(format!("{}.pub", pair.name_with_rev()))
-                .exists()
-        );
-        assert!(
-            cache
-                .path()
-                .join(format!("{}.box.key", pair.name_with_rev()))
-                .exists()
-        );
+        assert!(cache
+            .path()
+            .join(format!("{}.pub", pair.name_with_rev()))
+            .exists());
+        assert!(cache
+            .path()
+            .join(format!("{}.box.key", pair.name_with_rev()))
+            .exists());
     }
 
     #[test]
@@ -668,7 +660,8 @@ mod test {
         fs::copy(
             fixture(&format!("keys/{}", VALID_PUB)),
             cache.path().join(VALID_PUB),
-        ).unwrap();
+        )
+        .unwrap();
 
         let result = BoxKeyPair::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_PUB));
@@ -687,7 +680,8 @@ mod test {
         fs::copy(
             fixture(&format!("keys/{}", VALID_KEY)),
             cache.path().join(VALID_KEY),
-        ).unwrap();
+        )
+        .unwrap();
 
         let result = BoxKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
@@ -751,7 +745,8 @@ mod test {
         // Delete the sender's secret key
         fs::remove_file(
             BoxKeyPair::get_secret_key_path(&sender.name_with_rev(), cache.path()).unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
         // Now reload the sender's pair which will be missing the secret key
         let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
 
@@ -783,11 +778,13 @@ mod test {
             fs::copy(
                 &secret,
                 sender_cache.path().join(&secret.file_name().unwrap()),
-            ).unwrap();
+            )
+            .unwrap();
             fs::copy(
                 &public,
                 sender_cache.path().join(&public.file_name().unwrap()),
-            ).unwrap();
+            )
+            .unwrap();
 
             // Prepare the receiver cache with receivers's secret and sender's public keys
             let secret =
@@ -799,11 +796,13 @@ mod test {
             fs::copy(
                 &secret,
                 receiver_cache.path().join(&secret.file_name().unwrap()),
-            ).unwrap();
+            )
+            .unwrap();
             fs::copy(
                 &public,
                 receiver_cache.path().join(&public.file_name().unwrap()),
-            ).unwrap();
+            )
+            .unwrap();
         }
 
         let ciphertext = {
@@ -835,7 +834,8 @@ mod test {
         // Delete the sender's secret key
         fs::remove_file(
             BoxKeyPair::get_secret_key_path(&sender.name_with_rev(), cache.path()).unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
         // Now reload the sender's pair which will be missing the secret key
         let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
 
@@ -856,7 +856,8 @@ mod test {
         // Delete the receiver's public key
         fs::remove_file(
             BoxKeyPair::get_public_key_path(&receiver.name_with_rev(), cache.path()).unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
         // Now reload the receiver's pair which will be missing the public key
         let receiver = BoxKeyPair::get_latest_pair_for("tnt.default@acme", cache.path()).unwrap();
 
@@ -877,7 +878,8 @@ mod test {
         // Delete the receiver's secret key
         fs::remove_file(
             BoxKeyPair::get_secret_key_path(&receiver.name_with_rev(), cache.path()).unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let ciphertext = sender
             .encrypt("problems ahead".as_bytes(), Some(&receiver))
@@ -897,7 +899,8 @@ mod test {
         // Delete the sender's public key
         fs::remove_file(
             BoxKeyPair::get_public_key_path(&sender.name_with_rev(), cache.path()).unwrap(),
-        ).unwrap();
+        )
+        .unwrap();
 
         let ciphertext = sender
             .encrypt("problems ahead".as_bytes(), Some(&receiver))

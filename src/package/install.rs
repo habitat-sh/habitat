@@ -836,7 +836,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let loaded = PackageInstall::load(
             &PackageIdent::from_str(ident_s).unwrap(),
             Some(fs_root.path()),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -877,7 +878,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let loaded = PackageInstall::load(
             &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
             Some(fs_root.path()),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -926,7 +928,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let loaded = PackageInstall::load(
             &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
             Some(fs_root.path()),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(matching_pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -940,7 +943,8 @@ core/bar=pub:core/publish sub:core/subscribe
             pkg_install
                 .installed_path()
                 .join(MetaFile::Target.to_string()),
-        ).unwrap();
+        )
+        .unwrap();
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
@@ -988,7 +992,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let loaded = PackageInstall::load_at_least(
             &PackageIdent::from_str(ident_s).unwrap(),
             Some(fs_root.path()),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -1029,7 +1034,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let loaded = PackageInstall::load_at_least(
             &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
             Some(fs_root.path()),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -1078,7 +1084,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let loaded = PackageInstall::load_at_least(
             &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
             Some(fs_root.path()),
-        ).unwrap();
+        )
+        .unwrap();
         assert_eq!(matching_pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -1092,7 +1099,8 @@ core/bar=pub:core/publish sub:core/subscribe
             pkg_install
                 .installed_path()
                 .join(MetaFile::Target.to_string()),
-        ).unwrap();
+        )
+        .unwrap();
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
@@ -1194,8 +1202,10 @@ core/bar=pub:core/publish sub:core/subscribe
                     pkg_prefix_for(&pkg_install).join("bin"),
                     pkg_prefix_for(&other_pkg_install).join("bin"),
                     pkg_prefix_for(&other_pkg_install).join("sbin"),
-                ].iter(),
-            ).unwrap()
+                ]
+                .iter(),
+            )
+            .unwrap()
             .to_string_lossy()
             .as_ref(),
         );
@@ -1220,8 +1230,10 @@ core/bar=pub:core/publish sub:core/subscribe
                 pkg_prefix_for(&pkg_install).join("bin"),
                 pkg_prefix_for(&other_pkg_install).join("bin"),
                 pkg_prefix_for(&other_pkg_install).join("sbin"),
-            ].iter(),
-        ).unwrap();
+            ]
+            .iter(),
+        )
+        .unwrap();
         write_metafile(
             &pkg_install,
             MetaFile::RuntimeEnvironment,
@@ -1320,7 +1332,8 @@ core/bar=pub:core/publish sub:core/subscribe
             pkg_install
                 .installed_path
                 .join(MetaFile::RuntimePath.to_string()),
-        ).unwrap();
+        )
+        .unwrap();
 
         assert_eq!(Vec::<PathBuf>::new(), pkg_install.runtime_paths().unwrap());
     }
@@ -1444,7 +1457,8 @@ core/bar=pub:core/publish sub:core/subscribe
                     &pkg_prefix_for(&other_pkg_install).join("sbin"),
                     Some(&*fs_root_path),
                 ),
-            ]).unwrap()
+            ])
+            .unwrap()
             .to_string_lossy()
             .into_owned(),
         );

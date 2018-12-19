@@ -408,18 +408,14 @@ mod test {
             Ok(_) => assert!(true),
             Err(_) => panic!("Generated pair should have a secret key"),
         }
-        assert!(
-            cache
-                .path()
-                .join(format!("{}.pub", pair.name_with_rev()))
-                .exists()
-        );
-        assert!(
-            cache
-                .path()
-                .join(format!("{}.sig.key", pair.name_with_rev()))
-                .exists()
-        );
+        assert!(cache
+            .path()
+            .join(format!("{}.pub", pair.name_with_rev()))
+            .exists());
+        assert!(cache
+            .path()
+            .join(format!("{}.sig.key", pair.name_with_rev()))
+            .exists());
     }
 
     #[test]
@@ -562,7 +558,8 @@ mod test {
         fs::copy(
             fixture(&format!("keys/{}", VALID_PUB)),
             cache.path().join(VALID_PUB),
-        ).unwrap();
+        )
+        .unwrap();
 
         let result = SigKeyPair::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_PUB));
@@ -581,7 +578,8 @@ mod test {
         fs::copy(
             fixture(&format!("keys/{}", VALID_KEY)),
             cache.path().join(VALID_KEY),
-        ).unwrap();
+        )
+        .unwrap();
 
         let result = SigKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
@@ -734,7 +732,8 @@ mod test {
         SigKeyPair::write_file_from_str(
             "SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n%",
             cache.path(),
-        ).unwrap();
+        )
+        .unwrap();
     }
 
     #[test]
@@ -745,7 +744,8 @@ mod test {
         SigKeyPair::write_file_from_str(
             "SIG-PUB-1\nim-in-trouble-123\n\nc29tZXRoaW5n%",
             cache.path(),
-        ).unwrap();
+        )
+        .unwrap();
     }
 
     #[test]
@@ -756,12 +756,14 @@ mod test {
         fs::copy(
             key,
             cache.path().join("origin-key-valid-20160509190508.sig.key"),
-        ).unwrap();
+        )
+        .unwrap();
 
         SigKeyPair::write_file_from_str(
             "SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
             cache.path(),
-        ).unwrap();
+        )
+        .unwrap();
     }
 
     #[test]
@@ -772,11 +774,13 @@ mod test {
         fs::copy(
             key,
             cache.path().join("origin-key-valid-20160509190508.pub"),
-        ).unwrap();
+        )
+        .unwrap();
 
         SigKeyPair::write_file_from_str(
             "SIG-PUB-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
             cache.path(),
-        ).unwrap();
+        )
+        .unwrap();
     }
 }

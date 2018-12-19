@@ -908,7 +908,8 @@ mod test {
             &cache_dir, // <-- THIS IS THE KEY PART OF THE TEST
             None,
             &KeyType::Sym,
-        ).expect("Could not fetch key revisions!");
+        )
+        .expect("Could not fetch key revisions!");
 
         assert_eq!(1, revisions.len());
         assert_eq!(revisions[0], key.name_with_rev());
