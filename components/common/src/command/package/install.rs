@@ -732,10 +732,21 @@ impl<'a> InstallTask<'a> {
                 let temp_dir = temp_package_directory(real_install_path)?;
                 let temp_install_path = &pkg_install_path(ident, Some(temp_dir.path()));
                 artifact.unpack(Some(temp_dir.path()))?;
-                fs::rename(temp_install_path, real_install_path)?;
+
+                if let Err(e) = fs::rename(temp_install_path, real_install_path) {
+                    // The rename might fail if the real_install_path
+                    // was created while we were unpacking. If the
+                    // package now exists, ignore the failure.
+                    debug!("rename failed with {:?}, checking for installed package", e);
+                    if PackageInstall::load(ident.as_ref(), Some(self.fs_root_path)).is_err() {
+                        return Err(Error::from(e));
+                    }
+                }
+
                 if cfg!(unix) {
                     fs::File::open(real_install_base).and_then(|f| f.sync_all())?;
                 }
+
                 ui.status(Status::Installed, ident)?;
                 Ok(())
             }
