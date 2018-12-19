@@ -133,7 +133,7 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
 mod tests {
     use std::env;
 
-    use winapi::winnt::{SidTypeUser, SidTypeWellKnownGroup};
+    use winapi::um::winnt::{SidTypeUser, SidTypeWellKnownGroup};
 
     use super::*;
 
