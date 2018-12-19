@@ -11,6 +11,7 @@
 - Remove minimum 3 member requirement from quorum check [#5965](https://github.com/habitat-sh/habitat/pull/5965) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- update cli docs [#5997](https://github.com/habitat-sh/habitat/pull/5997) ([mwrock](https://github.com/mwrock))
 - update changelog and add blog post [#5994](https://github.com/habitat-sh/habitat/pull/5994) ([mwrock](https://github.com/mwrock))
 - Updates Cargo.lock following v70 release [#5944](https://github.com/habitat-sh/habitat/pull/5944) ([eeyun](https://github.com/eeyun))
 - Fully migrate windows build to buildkite with native hab builds. [#5905](https://github.com/habitat-sh/habitat/pull/5905) ([scotthain](https://github.com/scotthain))
