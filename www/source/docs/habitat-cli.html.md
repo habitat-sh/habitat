@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.69.0/20181127182011 (linux) | 27 Nov 2018 |
+| hab 0.71.0/20181218014130 (linux) | 19 Dec 2018 |
 
 ## hab
 
@@ -1046,7 +1046,7 @@ hab pkg [SUBCOMMAND]
 | [hab pkg channels](#hab-pkg-channels) | Find out what channels a package belongs to |
 | [hab pkg config](#hab-pkg-config) | Displays the default configuration options for a service |
 | [hab pkg demote](#hab-pkg-demote) | Demote a package from a specified channel |
-| [hab pkg dependencies](#hab-pkg-dependencies) | Returns the Habitat Artifact dependencies |
+| [hab pkg dependencies](#hab-pkg-dependencies) | Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package |
 | [hab pkg env](#hab-pkg-env) | Prints the runtime environment of a specific installed package |
 | [hab pkg exec](#hab-pkg-exec) | Executes a command using the 'PATH' context of an installed package |
 | [hab pkg export](#hab-pkg-export) | Exports the package to the specified format |
@@ -1263,19 +1263,21 @@ hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL>
 
 ### hab pkg dependencies
 
-Returns the Habitat Artifact dependencies
+Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package
 
 **USAGE**
 
 ```
-hab pkg dependencies <PKG_IDENT>
+hab pkg dependencies [FLAGS] <PKG_IDENT>
 ```
 
 **FLAGS**
 
 ```
--h, --help       Prints help information
--V, --version    Prints version information
+-r, --reverse       Show packages which are dependant on this one
+-t, --transitive    Show transitive dependencies
+-h, --help          Prints help information
+-V, --version       Prints version information
 ```
 
 
@@ -1972,7 +1974,7 @@ hab ring key import
 
 ## hab studio
 
-
+[1;33m» Installing core/hab-studio/0.71.0[0m
 
 **USAGE**
 
@@ -2214,14 +2216,16 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --bind <BIND>...                       One or more service groups to bind to a configuration
     --binding-mode <BINDING_MODE>          Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] values: relaxed, strict]
 -u, --url <BLDR_URL>                       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --certs <CERT_FILE>                    Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. This should contain PEM-format certificates in the right order the first certificate should certify KEY_FILE, the last should be a root CA).
     --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel [default: stable]
     --config-from <CONFIG_DIR>             Use package config from this path, rather than the package itself
 -e, --environment <ENVIRONMENT>            Environment name; [default: not set].
 -n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward Supervisor and service event data to
     --group <GROUP>                        The service group; shared config and topology [default: default].
+    --key <KEY_FILE>                       Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. This should be a RSA private key or PKCS8-encoded private key, in PEM format.
     --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined. default: 127.0.0.1:9632]
-    --listen-gossip <LISTEN_GOSSIP>        The listen address for the Gossip System Gateway. If not specified, the value will be taken from the HAB_LISTEN_GOSSIP environment variable if defined. [default: 0.0.0.0:9638]
-    --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway. If not specified, the value will be taken from the HAB_LISTEN_HTTP environment variable if defined. default: 0.0.0.0:9631]
+    --listen-gossip <LISTEN_GOSSIP>        The listen address for the Gossip System Gateway. [env: HAB_LISTEN_GOSSIP=]  [default: 0.0.0.0:9638]
+    --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway. [env: HAB_LISTEN_HTTP=] default: 0.0.0.0:9631]
     --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of.
     --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
     --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
