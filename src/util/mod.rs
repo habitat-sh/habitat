@@ -73,7 +73,7 @@ where
 }
 
 /// Provide a way to convert numeric types safely to i64
-trait ToI64 {
+pub trait ToI64 {
     fn to_i64(self) -> i64;
 }
 
