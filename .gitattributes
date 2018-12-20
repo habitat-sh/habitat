@@ -1,3 +1,7 @@
 components/sup-protocol/src/generated/*.rs linguist-generated
 components/butterfly/src/generated/*.rs linguist-generated
-components/launcher-protocol/src/message/*.rs linguist-generated
+components/launcher-protocol/src/message/net.rs linguist-generated
+components/launcher-protocol/src/message/error.rs linguist-generated
+components/launcher-protocol/src/message/launcher.rs linguist-generated
+components/launcher-protocol/src/message/supervisor.rs linguist-generated
+components/eventsrv-protocol/src/message/event.rs linguist-generated
