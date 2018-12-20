@@ -1,2 +1,3 @@
 components/sup-protocol/src/generated/*.rs linguist-generated
 components/butterfly/src/generated/*.rs linguist-generated
+components/launcher-protocol/src/message/*.rs linguist-generated
