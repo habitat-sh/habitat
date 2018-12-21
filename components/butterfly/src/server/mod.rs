@@ -1212,11 +1212,22 @@ impl fmt::Display for Server {
 }
 
 fn persist_loop(server: Server) {
+    // TODO: Make this configurable with EnvConfig. That trait needs to move
+    // to common or core first
+    const MIN_LOOP_PERIOD: Duration = Duration::from_secs(30);
+
     loop {
-        let next_check = Instant::now() + Duration::from_millis(30_000);
+        let before_persist = Instant::now();
         server.persist_data();
-        let time_to_wait = next_check - Instant::now();
-        thread::sleep(time_to_wait);
+        let time_to_persist = before_persist.elapsed();
+        trace!("persist_data took {:?}", time_to_persist);
+        match MIN_LOOP_PERIOD.checked_sub(time_to_persist) {
+            Some(time_to_wait) => thread::sleep(time_to_wait),
+            None => warn!(
+                "Persisting data took longer than expected: {:?}",
+                time_to_persist
+            ),
+        }
     }
 }
 
