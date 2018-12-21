@@ -29,7 +29,7 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use butterfly::rumor::service::Service as ServiceRumor;
 use hcore;
@@ -37,7 +37,7 @@ use hcore::crypto::hash;
 use hcore::fs::FS_ROOT_PATH;
 use hcore::package::metadata::Bind;
 use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
+use hcore::service::{HealthCheckInterval, ServiceGroup};
 use launcher_client::LauncherCli;
 pub use protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
 use serde::ser::SerializeStruct;
@@ -65,10 +65,6 @@ static LOGKEY: &'static str = "SR";
 
 #[cfg(not(windows))]
 pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
-
-lazy_static! {
-    static ref HEALTH_CHECK_INTERVAL: Duration = { Duration::from_millis(30_000) };
-}
 
 /// When evaluating whether a particular service group can satisfy a
 /// bind of the Service, there are several states it can be
@@ -143,11 +139,12 @@ pub struct Service {
     hooks: HookTable,
     config_from: Option<PathBuf>,
     #[serde(skip_serializing)]
-    last_health_check: Option<Instant>,
+    scheduled_health_check: Option<Instant>,
     manager_fs_cfg: Arc<manager::FsCfg>,
     #[serde(rename = "process")]
     supervisor: Supervisor,
     svc_encrypted_password: Option<String>,
+    health_check_interval: HealthCheckInterval,
     composite: Option<String>,
 
     #[serde(skip_serializing)]
@@ -211,8 +208,9 @@ impl Service {
             topology: spec.topology,
             update_strategy: spec.update_strategy,
             config_from: spec.config_from,
-            last_health_check: None,
+            scheduled_health_check: None,
             svc_encrypted_password: spec.svc_encrypted_password,
+            health_check_interval: spec.health_check_interval,
             composite: spec.composite,
             defaults_updated: false,
             gateway_state: gateway_state,
@@ -395,6 +393,10 @@ impl Service {
                 }
             }
         }
+        if svc_updated {
+            self.schedule_special_health_check();
+        }
+
         svc_updated
     }
 
@@ -417,6 +419,7 @@ impl Service {
         if let Some(ref password) = self.svc_encrypted_password {
             spec.svc_encrypted_password = Some(password.clone())
         }
+        spec.health_check_interval = self.health_check_interval;
         spec
     }
 
@@ -608,6 +611,8 @@ impl Service {
                 (reload, reconfigure)
             };
 
+            self.schedule_special_health_check();
+
             self.needs_reload = reload;
             self.needs_reconfiguration = reconfigure;
         }
@@ -621,6 +626,9 @@ impl Service {
             Ok(pkg) => {
                 outputln!(preamble self.service_group,
                             "Updating service {} to {}", self.pkg.ident, pkg.ident);
+
+                self.schedule_special_health_check();
+
                 match CfgRenderer::new(&Self::config_root(&pkg, self.config_from.as_ref())) {
                     Ok(renderer) => self.config_renderer = renderer,
                     Err(e) => {
@@ -750,6 +758,10 @@ impl Service {
     }
 
     fn cache_health_check(&self, check_result: HealthCheck) {
+        debug!(
+            "Caching HealthCheck = '{}' for '{}'",
+            check_result, self.service_group
+        );
         &self
             .gateway_state
             .write()
@@ -843,13 +855,17 @@ impl Service {
             }
         } else {
             self.check_process();
-            match self.last_health_check {
-                Some(last_check) => {
-                    if Instant::now().duration_since(last_check) >= *HEALTH_CHECK_INTERVAL {
-                        self.run_health_check_hook();
-                    }
+
+            let now = Instant::now();
+            match self.scheduled_health_check {
+                Some(scheduled_check_instant) if scheduled_check_instant > now => {
+                    trace!(
+                        "Skipping health check; next scheduled for {:?} (now: {:?})",
+                        scheduled_check_instant,
+                        now
+                    );
                 }
-                None => self.run_health_check_hook(),
+                _ => self.run_health_check_hook(),
             }
 
             // NOTE: if you need reconfiguration and you DON'T have a
@@ -916,6 +932,7 @@ impl Service {
     }
 
     fn run_health_check_hook(&mut self) {
+        debug!("Running Health Check hook for ({})", self.spec_ident);
         let check_result = if let Some(ref hook) = self.hooks.health_check {
             hook.run(
                 &self.service_group,
@@ -928,8 +945,55 @@ impl Service {
                 (false, _) => HealthCheck::Critical,
             }
         };
-        self.last_health_check = Some(Instant::now());
+
+        // We have just ran a check; therefore we must unset the next scheduled check time
+        // in anticipation of `None` value being used in the next scheduled check time calculation.
+        self.scheduled_health_check = None;
+
+        if check_result == HealthCheck::Ok {
+            self.schedule_routine_health_check();
+            debug!(
+                "Service ({}) health check is: {}",
+                self.spec_ident, check_result
+            );
+        } else {
+            debug!(
+                "Service ({}) health check is: {}; scheduling special health check",
+                self.spec_ident, check_result
+            );
+            self.schedule_special_health_check();
+        }
+        self.health_check = check_result;
         self.cache_health_check(check_result);
+    }
+
+    fn schedule_routine_health_check(&mut self) {
+        let interval = self.health_check_interval;
+        self.schedule_health_check(interval);
+    }
+
+    fn schedule_special_health_check(&mut self) {
+        self.schedule_health_check(HealthCheckInterval::default());
+    }
+
+    fn schedule_health_check(&mut self, interval: HealthCheckInterval) {
+        let instant_to_schedule = Instant::now() + interval.into();
+        match self.scheduled_health_check {
+            Some(already_scheduled_instant) if instant_to_schedule > already_scheduled_instant => {
+                trace!(
+                        "Skipping health check schedule request for {:?}; there is already one scheduled sooner at {:?}",
+                        instant_to_schedule,
+                        already_scheduled_instant
+                    );
+            }
+            _ => {
+                debug!(
+                    "Scheduling next health check for ({}) in {}",
+                    self.spec_ident, interval
+                );
+                self.scheduled_health_check = Some(instant_to_schedule);
+            }
+        }
     }
 
     // Returns `false` if the write fails.
@@ -1104,6 +1168,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("spec_ident", &s.spec_ident)?;
         strukt.serialize_field("spec_identifier", &s.spec_ident.to_string())?;
         strukt.serialize_field("svc_encrypted_password", &s.svc_encrypted_password)?;
+        strukt.serialize_field("health_check_interval", &s.health_check_interval)?;
         strukt.serialize_field("sys", &s.sys)?;
         strukt.serialize_field("topology", &s.topology)?;
         strukt.serialize_field("update_strategy", &s.update_strategy)?;

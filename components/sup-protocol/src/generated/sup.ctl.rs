@@ -142,6 +142,9 @@ pub struct SvcLoad {
     /// Update strategy for the service.
     #[prost(enumeration="super::types::UpdateStrategy", optional, tag="13")]
     pub update_strategy: ::std::option::Option<i32>,
+    /// Health Check interval for the service
+    #[prost(message, optional, tag="15")]
+    pub health_check_interval: ::std::option::Option<super::types::HealthCheckInterval>,
 }
 /// Request to unload a loaded service.
 #[derive(Clone, PartialEq, Message)]

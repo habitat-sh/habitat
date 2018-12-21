@@ -21,3 +21,6 @@ impl message::MessageStatic for ServiceGroup {
 impl message::MessageStatic for ServiceStatus {
     const MESSAGE_ID: &'static str = "ServiceStatus";
 }
+impl message::MessageStatic for HealthCheckInterval {
+    const MESSAGE_ID: &'static str = "HealthCheckInterval";
+}

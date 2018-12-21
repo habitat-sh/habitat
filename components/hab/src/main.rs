@@ -61,7 +61,7 @@ use hcore::env as henv;
 use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path};
 use hcore::package::PackageIdent;
 
-use hcore::service::ServiceGroup;
+use hcore::service::{HealthCheckInterval, ServiceGroup};
 use hcore::url::{bldr_url_from_env, default_bldr_url};
 use protocol::codec::*;
 use protocol::ctl::ServiceBindList;
@@ -1643,6 +1643,15 @@ fn get_group_from_input(m: &ArgMatches) -> Option<String> {
     m.value_of("GROUP").map(ToString::to_string)
 }
 
+fn get_health_check_interval_from_input(
+    m: &ArgMatches,
+) -> Option<protocol::types::HealthCheckInterval> {
+    // Value will have already been validated by `cli::valid_health_check_interval`
+    m.value_of("HEALTH_CHECK_INTERVAL")
+        .and_then(|s| HealthCheckInterval::from_str(s).ok())
+        .map(|s| s.into())
+}
+
 #[cfg(target_os = "windows")]
 fn get_password_from_input(m: &ArgMatches) -> Result<Option<String>> {
     if let Some(password) = m.value_of("PASSWORD") {
@@ -1735,6 +1744,7 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
     }
     msg.group = get_group_from_input(m);
     msg.svc_encrypted_password = get_password_from_input(m)?;
+    msg.health_check_interval = get_health_check_interval_from_input(m);
     msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);

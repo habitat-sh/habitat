@@ -552,7 +552,10 @@ impl Worker {
                                 .expect("Main thread has gone away!");
                             break;
                         } else {
-                            debug!("Package found is not newer than ours");
+                            debug!(
+                                "Package found {} is not newer than ours",
+                                maybe_newer_package.ident()
+                            );
                         }
                     }
                     Err(e) => warn!("Updater failed to get latest package: {:?}", e),

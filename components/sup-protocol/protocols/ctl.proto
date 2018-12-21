@@ -97,6 +97,8 @@ message SvcLoad {
   optional sup.types.Topology topology = 12;
   // Update strategy for the service.
   optional sup.types.UpdateStrategy update_strategy = 13;
+  // Health Check interval for the service
+  optional sup.types.HealthCheckInterval health_check_interval = 15;
 }
 
 // Request to unload a loaded service.
