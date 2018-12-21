@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- Don&#39;t panic in the unusual event persisting butterfly data takes over 30 s [#6018](https://github.com/habitat-sh/habitat/pull/6018) ([baumanj](https://github.com/baumanj))
+
 #### New Features & Enhancements
 - Add --reverse option to hab pkg dependencies [#5923](https://github.com/habitat-sh/habitat/pull/5923) ([jamesc](https://github.com/jamesc))
 - Add --transitive option to hab pkg dependencies [#5940](https://github.com/habitat-sh/habitat/pull/5940) ([jamesc](https://github.com/jamesc))
