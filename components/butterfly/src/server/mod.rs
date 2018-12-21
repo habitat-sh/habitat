@@ -650,8 +650,7 @@ impl Server {
                 // actually needed.
                 me.mark_departed();
 
-                self.member_list
-                    .insert_health_by_id(&self.member_id, Health::Departed);
+                self.member_list.set_departed(&self.member_id);
                 trace_it!(
                     MEMBERSHIP: self,
                     TraceKind::MemberUpdate,
@@ -746,20 +745,16 @@ impl Server {
             });
             service_entries.sort_by_key(|k| k.member_id.clone());
             for service_rumor in service_entries.iter().take(1) {
-                if self
-                    .member_list
-                    .insert_health_by_id(&service_rumor.member_id, Health::Departed)
-                {
-                    // TODO (CM): Why are we inferring departure from
-                    // a service rumor?
-
-                    self.rumor_heat.purge(&service_rumor.member_id);
-                    self.rumor_heat.start_hot_rumor(RumorKey::new(
-                        RumorType::Member,
-                        service_rumor.member_id.clone(),
-                        "",
-                    ));
-                }
+                // TODO (CM): Why are we inferring departure from
+                // a service rumor?
+                self.member_list.set_departed(&service_rumor.member_id);
+                // Should the following be skipped we didn't know about this member?
+                self.rumor_heat.purge(&service_rumor.member_id);
+                self.rumor_heat.start_hot_rumor(RumorKey::new(
+                    RumorType::Member,
+                    service_rumor.member_id.clone(),
+                    "",
+                ));
             }
         }
         if self.service_store.insert(service) {
@@ -790,17 +785,16 @@ impl Server {
             self.departed
                 .compare_and_swap(false, true, Ordering::Relaxed);
         }
-        if self
-            .member_list
-            .insert_health_by_id(&departure.member_id, Health::Departed)
-        {
-            self.rumor_heat.purge(&departure.member_id);
-            self.rumor_heat.start_hot_rumor(RumorKey::new(
-                RumorType::Member,
-                departure.member_id.clone(),
-                "",
-            ));
-        }
+
+        self.member_list.set_departed(&departure.member_id);
+
+        self.rumor_heat.purge(&departure.member_id);
+        self.rumor_heat.start_hot_rumor(RumorKey::new(
+            RumorType::Member,
+            departure.member_id.clone(),
+            "",
+        ));
+
         if self.departure_store.insert(departure) {
             self.rumor_heat.start_hot_rumor(rk);
         }

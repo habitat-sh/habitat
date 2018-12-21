@@ -363,24 +363,8 @@ impl DatFile {
         W: Write,
     {
         let mut total = 0;
-        member_list.with_member_iter(|members| {
-            for member in members {
-                // we do not call membership_for here since that would recursively enter
-                // the members read lock that we are currently in now. One would assume that
-                // is acceptable but this has proven to potentially deadlock Windows threads
-                // in some scenarios. Windows uses a Slim Reader/Writer lock (SRW) and
-                // recursively acquiring locks may result in "undefined behavior" (see
-                // https://blogs.msdn.microsoft.com/oldnewthing/20160819-00/?p=94125)
-                if let Some(health) = member_list.health_of(member) {
-                    total += self.write_member(
-                        writer,
-                        &Membership {
-                            health: health,
-                            member: member.clone(),
-                        },
-                    )?;
-                }
-            }
+        member_list.with_memberships(|membership| {
+            total += self.write_member(writer, &membership)?;
             Ok(total)
         })
     }
