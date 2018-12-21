@@ -11,6 +11,7 @@
 - Remove minimum 3 member requirement from quorum check [#5965](https://github.com/habitat-sh/habitat/pull/5965) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- [svc health check] allow configurable interval between checks. [#5890](https://github.com/habitat-sh/habitat/pull/5890) ([jeremymv2](https://github.com/jeremymv2))
 - bump cargo deps [#6005](https://github.com/habitat-sh/habitat/pull/6005) ([mwrock](https://github.com/mwrock))
 - rename release blog to match pub date [#6004](https://github.com/habitat-sh/habitat/pull/6004) ([mwrock](https://github.com/mwrock))
 - bumping dev version [#6003](https://github.com/habitat-sh/habitat/pull/6003) ([mwrock](https://github.com/mwrock))
