@@ -58,7 +58,6 @@ use crate::{common::{cli::{cache_key_path_from_matches,
                        types::*},
             sup_client::{SrvClient,
                          SrvClientError}};
-
 use clap::{ArgMatches,
            Shell};
 use env_logger;
@@ -71,6 +70,7 @@ use hab::{analytics,
                    Config},
           error::{Error,
                   Result},
+          license,
           scaffolding,
           AUTH_TOKEN_ENVVAR,
           BLDR_URL_ENVVAR,
@@ -131,6 +131,28 @@ fn main() {
 }
 
 fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
+    if std::env::args().skip(1).collect::<Vec<_>>() == vec!["license", "accept"] {
+        license::accept_license(ui)?;
+        return Ok(());
+    } else {
+        license::check_for_license_acceptance_and_prompt(ui)?;
+    }
+
+    // JB TODO: this feels like an anti-pattern to me. I get that in certain cases, we want to hand
+    // off control from hab to a different binary to do the work, but this implementation feels
+    // like it's duplicating a lot of what clap does for us. I think we should let clap do the work
+    // it was designed to do, and hand off control a little bit later. Maybe there's a tiny
+    // performance penalty, but the code would be much clearer.
+    //
+    // In addition, it creates a confusing UX because we advertise certain options via clap, e.g.
+    // --url and --channel and since we're handing off control before clap has even had a chance to
+    // parse the args, clap doesn't have a chance to do any validation that it needs to. We just
+    // grab everything that was submitted and shove it all to the exporter or whatever other binary
+    // is doing the job, and trust that it implements those flags. In some cases, e.g. the cf
+    // exporter, it doesn't, so we're effectively lying to users.
+    //
+    // In my opinion, this function should go away and we should follow 1 standard flow for arg
+    // parsing and delegation.
     exec_subcommand_if_called(ui)?;
 
     let (args, remaining_args) = raw_parse_args();
@@ -1296,10 +1318,11 @@ fn args_after_first(args_to_skip: usize) -> Vec<OsString> {
 
 fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let mut args = env::args();
-    match (args.nth(1).unwrap_or_default().as_str(),
-           args.next().unwrap_or_default().as_str(),
-           args.next().unwrap_or_default().as_str())
-    {
+    let first = args.nth(1).unwrap_or_default();
+    let second = args.next().unwrap_or_default();
+    let third = args.next().unwrap_or_default();
+
+    match (first.as_str(), second.as_str(), third.as_str()) {
         ("pkg", "export", "docker") => {
             command::pkg::export::docker::start(ui, &args_after_first(4))
         }

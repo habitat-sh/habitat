@@ -70,6 +70,12 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n")
         (@setting GlobalVersion)
         (@setting ArgRequiredElseHelp)
+        (@subcommand license =>
+            (about: "Commands relating to Habitat license agreements")
+            (@setting ArgRequiredElseHelp)
+            (@subcommand accept =>
+                (about: "Accept the Chef Binary Distribution Agreement without prompting"))
+        )
         (@subcommand cli =>
             (about: "Commands relating to Habitat runtime config")
             (aliases: &["cl"])
