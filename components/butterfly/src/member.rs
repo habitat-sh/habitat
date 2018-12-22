@@ -325,15 +325,20 @@ impl FromProto<newscast::Rumor> for Membership {
     }
 }
 
-// todo: give this a more proper type
-type MemberListEntry = (Member, Health, SteadyTime);
+mod member_list {
+    #[derive(Clone, Debug)]
+    pub struct Entry {
+        pub member: super::Member,
+        pub health: super::Health,
+        pub health_updated_at: super::SteadyTime,
+    }
+}
 
 /// Tracks lists of members, their health, and how long they have been
 /// suspect or confirmed.
 #[derive(Debug)]
 pub struct MemberList {
-    // XXX maybe call this members_and_health?
-    members: RwLock<HashMap<UuidSimple, MemberListEntry>>,
+    entries: RwLock<HashMap<UuidSimple, member_list::Entry>>,
     /// Records timestamps of when Members are marked `Suspect`. This
     /// supports automatically transitioning them to `Confirmed` after
     /// an appropriate amount of time.
@@ -347,20 +352,24 @@ impl Serialize for MemberList {
         S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("member_list", 4)?;
-        // {
-        //     let member_struct = self.members.read().expect("Member lock is poisoned");
-        //     strukt.serialize_field("members", &*member_struct)?;
-        // }
-        // {
-        //     let health_struct = self.health.read().expect("Health lock is poisoned");
-        //     strukt.serialize_field("health", &*health_struct)?;
-        // }
-        {
-            // TODO (CM): why does this use a different ordering than
-            // get_update_counter (and why doesn't it just use get_update_counter?)
-            let update_number = self.update_counter.load(Ordering::SeqCst);
-            strukt.serialize_field("update_counter", &update_number)?;
+
+        // A hack to maintain backwards compatibility with the version
+        // Of MemberList where members was a HashMap<UuidSimple, Member>
+        // and health was a HashMap<UuidSimple, Health>
+        let mut member_struct = HashMap::new();
+        let mut health_struct = HashMap::new();
+        for (id, member_list::Entry { member, health, .. }) in self.read_entries().iter() {
+            member_struct.insert(id.clone(), member.clone());
+            health_struct.insert(id.clone(), *health);
         }
+        strukt.serialize_field("members", &member_struct)?;
+        strukt.serialize_field("health", &health_struct)?;
+
+        // TODO (CM): why does this use a different ordering than
+        // get_update_counter (and why doesn't it just use get_update_counter?)
+        let update_number = self.update_counter.load(Ordering::SeqCst);
+        strukt.serialize_field("update_counter", &update_number)?;
+
         strukt.end()
     }
 }
@@ -369,18 +378,20 @@ impl MemberList {
     /// Creates a new, empty, MemberList.
     pub fn new() -> MemberList {
         MemberList {
-            members: RwLock::new(HashMap::new()),
+            entries: RwLock::new(HashMap::new()),
             initial_members: RwLock::new(Vec::new()),
             update_counter: AtomicUsize::new(0),
         }
     }
 
-    fn members_read(&self) -> std::sync::RwLockReadGuard<HashMap<UuidSimple, MemberListEntry>> {
-        self.members.read().expect("Members read lock")
+    fn read_entries(&self) -> std::sync::RwLockReadGuard<HashMap<UuidSimple, member_list::Entry>> {
+        self.entries.read().expect("Members read lock")
     }
 
-    fn members_write(&self) -> std::sync::RwLockWriteGuard<HashMap<UuidSimple, MemberListEntry>> {
-        self.members.write().expect("Members write lock")
+    fn write_entries(
+        &self,
+    ) -> std::sync::RwLockWriteGuard<HashMap<UuidSimple, member_list::Entry>> {
+        self.entries.write().expect("Members write lock")
     }
 
     fn initial_members_read(&self) -> std::sync::RwLockReadGuard<Vec<Member>> {
@@ -491,21 +502,30 @@ impl MemberList {
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
-        let modified = match self.members_write().entry(incoming_member.id.clone()) {
+        let modified = match self.write_entries().entry(incoming_member.id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let mut val = entry.get_mut();
                 // maybe break this condition out?
-                if incoming_member.incarnation > val.0.incarnation
-                    || (incoming_member.incarnation == val.0.incarnation && incoming_health > val.1)
+                if incoming_member.incarnation > val.member.incarnation
+                    || (incoming_member.incarnation == val.member.incarnation
+                        && incoming_health > val.health)
                 {
-                    *val = (incoming_member, incoming_health, SteadyTime::now());
+                    *val = member_list::Entry {
+                        member: incoming_member,
+                        health: incoming_health,
+                        health_updated_at: SteadyTime::now(),
+                    };
                     true
                 } else {
                     false
                 }
             }
             hash_map::Entry::Vacant(entry) => {
-                entry.insert((incoming_member, incoming_health, SteadyTime::now()));
+                entry.insert(member_list::Entry {
+                    member: incoming_member,
+                    health: incoming_health,
+                    health_updated_at: SteadyTime::now(),
+                });
                 true
             }
         };
@@ -518,7 +538,9 @@ impl MemberList {
     }
 
     pub fn set_departed(&self, member_id: &str) {
-        if let Some((member, health, ..)) = self.members_write().get_mut(member_id) {
+        if let Some(member_list::Entry { member, health, .. }) =
+            self.write_entries().get_mut(member_id)
+        {
             debug!(
                 "Setting health of {:?}, {} -> {}",
                 member,
@@ -538,9 +560,9 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
-        self.members_read()
+        self.read_entries()
             .get(member_id)
-            .map(|(_, health, _)| *health)
+            .map(|member_list::Entry { health, .. }| *health)
     }
 
     /// Returns true if the member is alive, suspect, or persistent; used during the target
@@ -563,26 +585,26 @@ impl MemberList {
 
     /// Returns a protobuf membership record for the given member id.
     pub fn membership_for(&self, member_id: &str) -> Option<Membership> {
-        self.members_read()
+        self.read_entries()
             .get(member_id)
-            .map(|(member, health, _)| Membership {
+            .map(|member_list::Entry { member, health, .. }| Membership {
                 member: member.clone(),
                 health: *health,
             })
     }
 
-    /// Returns the number of members.
+    /// Returns the number of entries.
     pub fn len(&self) -> usize {
-        self.members_read().len()
+        self.read_entries().len()
     }
 
     /// A randomized list of members to check.
     pub fn check_list(&self, exclude_id: &str) -> Vec<Member> {
         let mut members: Vec<_> = self
-            .members_read()
+            .read_entries()
             .values()
-            .map(|(m, ..)| m)
-            .filter(|v| v.id != exclude_id)
+            .map(|member_list::Entry { member, .. }| member)
+            .filter(|member| member.id != exclude_id)
             .cloned()
             .collect();
         members.shuffle(&mut thread_rng());
@@ -597,27 +619,33 @@ impl MemberList {
         mut with_closure: impl FnMut(Member),
     ) {
         // This will lead to nested read locks if you don't deal with making a copy
-        let mut members: Vec<_> = self.members_read().values().cloned().collect();
-        members.shuffle(&mut thread_rng());
-        for member in members
+        let mut entries: Vec<_> = self.read_entries().values().cloned().collect();
+        entries.shuffle(&mut thread_rng());
+        for member_list::Entry { member, .. } in entries
             .into_iter()
-            .filter(|(m, health, ..)| {
-                m.id != sending_member_id && m.id != target_member_id && *health == Health::Alive
+            .filter(|member_list::Entry { member, health, .. }| {
+                member.id != sending_member_id
+                    && member.id != target_member_id
+                    && *health == Health::Alive
             })
             .take(PINGREQ_TARGETS)
         {
-            with_closure(member.0);
+            with_closure(member);
         }
     }
 
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
     pub fn with_member(&self, member_id: &str, mut with_closure: impl FnMut(Option<&Member>)) {
-        with_closure(self.members_read().get(member_id).map(|(m, ..)| m));
+        with_closure(
+            self.read_entries()
+                .get(member_id)
+                .map(|member_list::Entry { member, .. }| member),
+        );
     }
 
     /// Iterates over the member list, calling the function for each member.
     pub fn with_members(&self, mut with_closure: impl FnMut(&Member)) {
-        for (member, ..) in self.members_read().values() {
+        for member_list::Entry { member, .. } in self.read_entries().values() {
             with_closure(member);
         }
     }
@@ -628,13 +656,13 @@ impl MemberList {
         mut with_closure: impl FnMut(Membership) -> Result<u64>,
     ) -> Result<u64> {
         let mut ok: Result<u64> = Ok(0);
-        for membership in self
-            .members_read()
-            .values()
-            .map(|(member, health, ..)| Membership {
-                member: member.clone(),
-                health: *health,
-            })
+        for membership in
+            self.read_entries()
+                .values()
+                .map(|member_list::Entry { member, health, .. }| Membership {
+                    member: member.clone(),
+                    health: *health,
+                })
         {
             ok = Ok(with_closure(membership)?);
         }
@@ -677,13 +705,17 @@ impl MemberList {
         };
 
         let expired: Vec<_> = self
-            .members_write()
+            .write_entries()
             .iter_mut()
             .filter_map(|(id, v)| {
-                let (_, health, starting_timestamp) = v;
-                if *health == precursor_health && now >= *starting_timestamp + timeout {
+                let member_list::Entry {
+                    health,
+                    health_updated_at,
+                    ..
+                } = v;
+                if *health == precursor_health && now >= *health_updated_at + timeout {
                     *health = expiring_to;
-                    *starting_timestamp = now;
+                    *health_updated_at = now;
                     Some(id.clone())
                 } else {
                     None
@@ -699,7 +731,7 @@ impl MemberList {
     }
 
     pub fn contains_member(&self, member_id: &str) -> bool {
-        self.members_read().contains_key(member_id)
+        self.read_entries().contains_key(member_id)
     }
 }
 
@@ -717,12 +749,12 @@ impl<'a> Serialize for MemberListProxy<'a> {
     where
         S: Serializer,
     {
-        let map = self.0.members_read();
+        let map = self.0.read_entries();
 
         let mut m = serializer.serialize_map(Some(map.len()))?;
 
-        for (id, (member, h, ..)) in map.iter() {
-            m.serialize_entry(id, &MemberProxy::new(member, h))?;
+        for (id, member_list::Entry { member, health, .. }) in map.iter() {
+            m.serialize_entry(id, &MemberProxy::new(member, health))?;
         }
 
         m.end()
@@ -768,7 +800,7 @@ mod tests {
             mut with_closure: impl FnMut(hash_map::Values<String, Member>) -> T,
         ) -> T {
             let mut member_map = HashMap::new();
-            for (id, (member, ..)) in self.members_read().iter() {
+            for (id, super::member_list::Entry { member, .. }) in self.read_entries().iter() {
                 member_map.insert(id.clone(), member.clone());
             }
             with_closure(member_map.values())
