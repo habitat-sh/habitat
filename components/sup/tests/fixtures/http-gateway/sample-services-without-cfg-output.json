@@ -31,7 +31,6 @@
         "stderr_log_path": "/hab/svc/builder-api/logs/run.stderr.log",
         "stdout_log_path": "/hab/svc/builder-api/logs/run.stdout.log"
       },
-      "smoke_test": null,
       "suitability": null
     },
     "initialized": true,
@@ -189,7 +188,6 @@
       "state_entered": 1536689926
     },
     "service_group": "builder-api.default",
-    "smoke_check": "Pending",
     "spec_file": "/hab/sup/default/specs/builder-api.spec",
     "spec_ident": {
       "name": "builder-api",

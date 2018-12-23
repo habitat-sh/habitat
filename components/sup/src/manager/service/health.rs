@@ -51,27 +51,3 @@ impl fmt::Display for HealthCheck {
         write!(f, "{}", msg)
     }
 }
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub enum SmokeCheck {
-    Ok,
-    Failed(i32),
-    Pending,
-}
-
-impl Default for SmokeCheck {
-    fn default() -> SmokeCheck {
-        SmokeCheck::Pending
-    }
-}
-
-impl fmt::Display for SmokeCheck {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let msg = match *self {
-            SmokeCheck::Ok => "OK",
-            SmokeCheck::Failed(_) => "FAILED",
-            SmokeCheck::Pending => "PENDING",
-        };
-        write!(f, "{}", msg)
-    }
-}
