@@ -221,8 +221,8 @@ pub struct Server {
     pub election_store: RumorStore<Election>,
     pub update_store: RumorStore<ElectionUpdate>,
     pub departure_store: RumorStore<Departure>,
-    swim_addr: Arc<RwLock<SocketAddr>>,
-    gossip_addr: Arc<RwLock<SocketAddr>>,
+    swim_addr: SocketAddr,
+    gossip_addr: SocketAddr,
     suitability_lookup: Arc<Box<Suitability>>,
     data_path: Arc<Option<PathBuf>>,
     dat_file: Arc<RwLock<Option<DatFile>>>,
@@ -321,8 +321,8 @@ impl Server {
                     election_store: RumorStore::default(),
                     update_store: RumorStore::default(),
                     departure_store: RumorStore::default(),
-                    swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
-                    gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
+                    swim_addr: swim_socket_addr,
+                    gossip_addr: gossip_socket_addr,
                     suitability_lookup: Arc::new(suitability_lookup),
                     data_path: Arc::new(data_path.as_ref().map(|p| p.into())),
                     dat_file: Arc::new(RwLock::new(None)),
@@ -437,12 +437,7 @@ impl Server {
             }
         }
 
-        let socket = match UdpSocket::bind(
-            *self
-                .swim_addr
-                .read()
-                .expect("Swim address lock is poisoned"),
-        ) {
+        let socket = match UdpSocket::bind(self.swim_addr) {
             Ok(socket) => socket,
             Err(e) => return Err(Error::CannotBind(e)),
         };
@@ -558,7 +553,7 @@ impl Server {
     fn is_member_blocked(&self, member_id: &str) -> bool {
         let block_list = self
             .block_list
-            .write()
+            .read()
             .expect("Write lock for block_list is poisoned");
         block_list.contains(member_id)
     }
@@ -574,34 +569,23 @@ impl Server {
     }
 
     /// Return the swim address we are bound to
-    fn swim_addr(&self) -> SocketAddr {
-        let sa = self.swim_addr.read().expect("Swim Address lock poisoned");
-        sa.clone()
+    fn swim_addr(&self) -> &SocketAddr {
+        &self.swim_addr
     }
 
     /// Return the port number of the swim socket we are bound to.
-    pub fn swim_port(&self) -> u16 {
-        self.swim_addr
-            .read()
-            .expect("Swim Address lock poisoned")
-            .port()
+    fn swim_port(&self) -> u16 {
+        self.swim_addr.port()
     }
 
     /// Return the gossip address we are bound to
-    pub fn gossip_addr(&self) -> SocketAddr {
-        let ga = self
-            .gossip_addr
-            .read()
-            .expect("Gossip Address lock poisoned");
-        ga.clone()
+    pub fn gossip_addr(&self) -> &SocketAddr {
+        &self.gossip_addr
     }
 
     /// Return the port number of the gossip socket we are bound to.
-    pub fn gossip_port(&self) -> u16 {
-        self.gossip_addr
-            .read()
-            .expect("Gossip Address lock poisoned")
-            .port()
+    fn gossip_port(&self) -> u16 {
+        self.gossip_addr.port()
     }
 
     /// Return the member ID of this server.
