@@ -284,17 +284,6 @@
               }
             ]
           },
-          "smoke_test": {
-            "description": "The SmokeTest Hook",
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/definitions/hook"
-              }
-            ]
-          },
           "suitability": {
             "description": "The Suitability Hook",
             "oneOf": [
@@ -527,14 +516,6 @@
         "description": "The service group of this service",
         "type": "string"
       },
-      "smoke_check": {
-        "description": "The status of this service's smoke check. Not currently used.",
-        "enum": [
-          "Ok",
-          "Failed",
-          "Pending"
-        ]
-      },
       "spec_file": {
         "description": "The path to this service's spec file",
         "type": "string"
@@ -596,7 +577,6 @@
       "pkg",
       "process",
       "service_group",
-      "smoke_check",
       "spec_file",
       "spec_ident",
       "sys",

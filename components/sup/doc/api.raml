@@ -52,9 +52,6 @@ types:
             post_run:
                 type: hookInfo
                 required: false
-            smoke_test:
-                type: hookInfo
-                required: false
     processInfo:
         type: object
         properties:
@@ -171,12 +168,6 @@ types:
                 type: boolean
             needs_reconfiguration:
                 type: boolean
-            smoke_check:
-                enum: [
-                    "Ok",
-                    "Failed",
-                    "Pending",
-                ]
             hooks:
                 type: hookTable
             config_from:

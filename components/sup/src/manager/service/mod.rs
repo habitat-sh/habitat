@@ -48,7 +48,7 @@ pub use self::composite_spec::CompositeSpec;
 use self::config::CfgRenderer;
 pub use self::config::{Cfg, UserConfigPath};
 use self::dir::SvcDir;
-pub use self::health::{HealthCheck, SmokeCheck};
+pub use self::health::HealthCheck;
 use self::hooks::{Hook, HookTable};
 pub use self::package::{Env, Pkg, PkgProxy};
 pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
@@ -110,7 +110,6 @@ pub struct Service {
     last_election_status: ElectionStatus,
     needs_reload: bool,
     needs_reconfiguration: bool,
-    smoke_check: SmokeCheck,
     /// The mapping of bind name to a service group, specified by the
     /// user when the service definition was loaded into the Supervisor.
     binds: Vec<ServiceBind>,
@@ -198,7 +197,6 @@ impl Service {
             supervisor: Supervisor::new(&service_group),
             pkg: pkg,
             service_group: service_group,
-            smoke_check: SmokeCheck::default(),
             binds: spec.binds,
             all_pkg_binds: all_pkg_binds,
             unsatisfied_binds: HashSet::new(),
@@ -1163,7 +1161,6 @@ impl<'a> Serialize for ServiceProxy<'a> {
 
         strukt.serialize_field("process", &s.supervisor)?;
         strukt.serialize_field("service_group", &s.service_group)?;
-        strukt.serialize_field("smoke_check", &s.smoke_check)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
         strukt.serialize_field("spec_ident", &s.spec_ident)?;
         strukt.serialize_field("spec_identifier", &s.spec_ident.to_string())?;

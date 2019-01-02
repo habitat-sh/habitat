@@ -636,61 +636,6 @@ impl Hook for ReconfigureHook {
 }
 
 #[derive(Debug, Serialize)]
-pub struct SmokeTestHook {
-    render_pair: RenderPair,
-    stdout_log_path: PathBuf,
-    stderr_log_path: PathBuf,
-}
-
-impl Hook for SmokeTestHook {
-    type ExitValue = health::SmokeCheck;
-
-    fn file_name() -> &'static str {
-        "smoke-test"
-    }
-
-    fn new(service_group: &ServiceGroup, pair: RenderPair) -> Self {
-        SmokeTestHook {
-            render_pair: pair,
-            stdout_log_path: stdout_log_path::<Self>(service_group),
-            stderr_log_path: stderr_log_path::<Self>(service_group),
-        }
-    }
-
-    fn handle_exit<'a>(
-        &self,
-        service_group: &ServiceGroup,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
-        match status.code() {
-            Some(0) => health::SmokeCheck::Ok,
-            Some(code) => health::SmokeCheck::Failed(code),
-            None => {
-                Self::output_termination_message(service_group, status);
-                health::SmokeCheck::Failed(-1)
-            }
-        }
-    }
-
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
-
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
-
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
-
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
-}
-
-#[derive(Debug, Serialize)]
 pub struct SuitabilityHook {
     render_pair: RenderPair,
     stdout_log_path: PathBuf,
@@ -875,7 +820,6 @@ pub struct HookTable {
     pub suitability: Option<SuitabilityHook>,
     pub run: Option<RunHook>,
     pub post_run: Option<PostRunHook>,
-    pub smoke_test: Option<SmokeTestHook>,
     pub post_stop: Option<PostStopHook>,
 }
 
@@ -897,7 +841,6 @@ impl HookTable {
                 table.reconfigure = ReconfigureHook::load(service_group, &hooks_path, &templates);
                 table.run = RunHook::load(service_group, &hooks_path, &templates);
                 table.post_run = PostRunHook::load(service_group, &hooks_path, &templates);
-                table.smoke_test = SmokeTestHook::load(service_group, &hooks_path, &templates);
                 table.post_stop = PostStopHook::load(service_group, &hooks_path, &templates);
             }
         }
@@ -939,9 +882,6 @@ impl HookTable {
             changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.post_run {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
-        }
-        if let Some(ref hook) = self.smoke_test {
             changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.post_stop {
@@ -1114,7 +1054,6 @@ mod tests {
                       ReconfigureHook
                       ReloadHook
                       RunHook
-                      SmokeTestHook
                       SuitabilityHook
                       PostStopHook);
 
