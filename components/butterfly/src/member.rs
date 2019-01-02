@@ -339,9 +339,6 @@ mod member_list {
 #[derive(Debug)]
 pub struct MemberList {
     entries: RwLock<HashMap<UuidSimple, member_list::Entry>>,
-    /// Records timestamps of when Members are marked `Suspect`. This
-    /// supports automatically transitioning them to `Confirmed` after
-    /// an appropriate amount of time.
     initial_members: RwLock<Vec<Member>>,
     update_counter: AtomicUsize,
 }
