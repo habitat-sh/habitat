@@ -37,7 +37,7 @@ use std::path::PathBuf;
 use std::result;
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::mpsc::{self, channel};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -225,7 +225,7 @@ pub struct Server {
     gossip_addr: SocketAddr,
     suitability_lookup: Arc<Box<Suitability>>,
     data_path: Arc<Option<PathBuf>>,
-    dat_file: Arc<RwLock<Option<DatFile>>>,
+    dat_file: Option<Arc<Mutex<DatFile>>>,
     socket: Option<UdpSocket>,
     departed: Arc<AtomicBool>,
     // These are all here for testing support
@@ -325,7 +325,7 @@ impl Server {
                     gossip_addr: gossip_socket_addr,
                     suitability_lookup: Arc::new(suitability_lookup),
                     data_path: Arc::new(data_path.as_ref().map(|p| p.into())),
-                    dat_file: Arc::new(RwLock::new(None)),
+                    dat_file: None,
                     departed: Arc::new(AtomicBool::new(false)),
                     pause: Arc::new(AtomicBool::new(false)),
                     trace: Arc::new(RwLock::new(trace)),
@@ -421,8 +421,7 @@ impl Server {
                     Err(err) => return Err(err),
                 };
             }
-            let mut dat_file = self.dat_file.write().expect("DatFile lock is poisoned");
-            *dat_file = Some(file);
+            self.dat_file = Some(Arc::new(Mutex::new(file)));
 
             {
                 // Set up the incarnation persistence and ensure that
@@ -504,12 +503,7 @@ impl Server {
                 panic!("You should never, ever get here, liu");
             });
 
-        if self
-            .dat_file
-            .read()
-            .expect("DatFile lock poisoned")
-            .is_some()
-        {
+        if self.dat_file.is_some() {
             let server_f = self.clone();
             let _ = thread::Builder::new()
                 .name(format!("persist-{}", self.name()))
@@ -1151,7 +1145,8 @@ impl Server {
     }
 
     pub fn persist_data(&self) {
-        if let Some(ref dat_file) = *self.dat_file.write().expect("DatFile lock poisoned") {
+        if let Some(ref dat_file_lock) = self.dat_file {
+            let dat_file = dat_file_lock.lock().expect("DatFile lock poisoned");
             if let Some(err) = dat_file.write(self).err() {
                 error!("Error persisting rumors to disk, {}", err);
             } else {
