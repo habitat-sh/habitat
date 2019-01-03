@@ -5,6 +5,22 @@
 
 #### Bug Fixes
 - Don&#39;t panic in the unusual event persisting butterfly data takes over 30 s [#6018](https://github.com/habitat-sh/habitat/pull/6018) ([baumanj](https://github.com/baumanj))
+- [hab] Avoid install failure when running concurrently [#5999](https://github.com/habitat-sh/habitat/pull/5999) ([stevendanna](https://github.com/stevendanna))
+
+#### New Features & Enhancements
+- [svc health check] allow configurable interval between checks. [#5890](https://github.com/habitat-sh/habitat/pull/5890) ([jeremymv2](https://github.com/jeremymv2))
+
+#### Merged Pull Requests
+- Remove smoke-test hook [#6021](https://github.com/habitat-sh/habitat/pull/6021) ([rarenerd](https://github.com/rarenerd))
+- bump cargo deps [#6005](https://github.com/habitat-sh/habitat/pull/6005) ([mwrock](https://github.com/mwrock))
+- rename release blog to match pub date [#6004](https://github.com/habitat-sh/habitat/pull/6004) ([mwrock](https://github.com/mwrock))
+- bumping dev version [#6003](https://github.com/habitat-sh/habitat/pull/6003) ([mwrock](https://github.com/mwrock))
+- update cli docs [#5997](https://github.com/habitat-sh/habitat/pull/5997) ([mwrock](https://github.com/mwrock))
+- update changelog and add blog post [#5994](https://github.com/habitat-sh/habitat/pull/5994) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
+## [0.71.0](https//github.com/habitat-sh/habitat/tree/0.71.0) (2018-12-19)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.69.0...0.70.0)
 
 #### New Features & Enhancements
 - Add --reverse option to hab pkg dependencies [#5923](https://github.com/habitat-sh/habitat/pull/5923) ([jamesc](https://github.com/jamesc))
@@ -14,14 +30,6 @@
 - Remove minimum 3 member requirement from quorum check [#5965](https://github.com/habitat-sh/habitat/pull/5965) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
-- Remove smoke-test hook [#6021](https://github.com/habitat-sh/habitat/pull/6021) ([rarenerd](https://github.com/rarenerd))
-- [hab] Avoid install failure when running concurrently [#5999](https://github.com/habitat-sh/habitat/pull/5999) ([stevendanna](https://github.com/stevendanna))
-- [svc health check] allow configurable interval between checks. [#5890](https://github.com/habitat-sh/habitat/pull/5890) ([jeremymv2](https://github.com/jeremymv2))
-- bump cargo deps [#6005](https://github.com/habitat-sh/habitat/pull/6005) ([mwrock](https://github.com/mwrock))
-- rename release blog to match pub date [#6004](https://github.com/habitat-sh/habitat/pull/6004) ([mwrock](https://github.com/mwrock))
-- bumping dev version [#6003](https://github.com/habitat-sh/habitat/pull/6003) ([mwrock](https://github.com/mwrock))
-- update cli docs [#5997](https://github.com/habitat-sh/habitat/pull/5997) ([mwrock](https://github.com/mwrock))
-- update changelog and add blog post [#5994](https://github.com/habitat-sh/habitat/pull/5994) ([mwrock](https://github.com/mwrock))
 - Updates Cargo.lock following v70 release [#5944](https://github.com/habitat-sh/habitat/pull/5944) ([eeyun](https://github.com/eeyun))
 - Fully migrate windows build to buildkite with native hab builds. [#5905](https://github.com/habitat-sh/habitat/pull/5905) ([scotthain](https://github.com/scotthain))
 - Refactor SpecWatcher [#5892](https://github.com/habitat-sh/habitat/pull/5892) ([christophermaier](https://github.com/christophermaier))
@@ -30,7 +38,7 @@
 - Move env var and default value to clap layer for listen http [#5918](https://github.com/habitat-sh/habitat/pull/5918) ([mpeck](https://github.com/mpeck))
 - Release blog post for v0.70.0 [#5926](https://github.com/habitat-sh/habitat/pull/5926) ([eeyun](https://github.com/eeyun))
 - Eeyun/release v70 [#5920](https://github.com/habitat-sh/habitat/pull/5920) ([eeyun](https://github.com/eeyun))
-<!-- latest_release -->
+
 ## [0.70.0](https//github.com/habitat-sh/habitat/tree/0.70.0) (2018-12-04)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.69.0...0.70.0)
 
