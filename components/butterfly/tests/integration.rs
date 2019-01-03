@@ -144,6 +144,7 @@ fn six_members_unmeshed_allows_graceful_departure() {
 }
 
 #[test]
+#[cfg_attr(feature = "inconsistent_tests", ignore)]
 fn fifty_members_meshed_confirm_one_member() {
     let mut net = btest::SwimNet::new(50);
     net.mesh();

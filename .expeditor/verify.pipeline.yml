@@ -1,9 +1,297 @@
 steps:
-  - label: "Dummy Step! YAY!"
+  - label: "Shellcheck :linux: :bash:"
+    skip: "Need to update the tests to pass"
     command:
-      - echo "YAY!"
+      - ./test/shellcheck.sh
     agents:
       queue: 'docker-privileged'
     plugins:
       docker#v2.1.0:
         image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: builder-api-client"
+    command:
+      - ./test/run_cargo_test.sh builder-api-client
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: butterfly"
+    command:
+      - ./test/run_cargo_test.sh --test-options "--test-threads=1" butterfly
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: common"
+    command:
+      - ./test/run_cargo_test.sh common
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: hab"
+    command:
+      - ./test/run_cargo_test.sh hab
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: launcher-client"
+    command:
+      - ./test/run_cargo_test.sh launcher-client
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: launcher-protocol"
+    command:
+      - ./test/run_cargo_test.sh launcher-protocol
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: pkg-export-docker"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-docker
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: pkg-export-helm"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-helm
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: pkg-export-kubernetes"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-kubernetes
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: pkg-export-tar"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-tar
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: sup"
+    command:
+      - ./test/run_cargo_test.sh --features "inconsistent_tests integration_tests"  sup
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: sup-client"
+    command:
+      - ./test/run_cargo_test.sh sup-client
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: sup-protocol"
+    command:
+      - ./test/run_cargo_test.sh sup-protocol
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+ #################################################################
+
+
+  - label: "[unit] :windows: builder-api-client"
+    command:
+      - ./test/run_cargo_test.ps1 builder-api-client
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 15
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: butterfly"
+    command:
+      - ./test/run_cargo_test.ps1 butterfly -Features "inconsistent_tests" -TestOptions "--test-threads=1"
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 30
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: common"
+    command:
+      - ./test/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: hab"
+    command:
+      - ./test/run_cargo_test.ps1 hab
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: launcher-client"
+    command:
+      - ./test/run_cargo_test.ps1 launcher-client
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: launcher-protocol"
+    command:
+      - ./test/run_cargo_test.ps1 launcher-protocol
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: pkg-export-docker"
+    command:
+      - ./test/run_cargo_test.ps1 pkg-export-docker
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: pkg-export-tar"
+    command:
+      - ./test/run_cargo_test.ps1 pkg-export-tar
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: sup"
+    command:
+      # This test has test (not code) concurrency issues and will fail if we don't limit it
+      - ./test/run_cargo_test.ps1 sup -TestOptions "--test-threads=1"
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 35
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: sup-client"
+    command:
+      - ./test/run_cargo_test.ps1 sup-client
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: sup-protocol"
+    command:
+      - ./test/run_cargo_test.ps1 sup-protocol
+    agents:
+      queue: 'windows-default' 
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1

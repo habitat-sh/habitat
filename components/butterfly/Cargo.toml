@@ -47,3 +47,4 @@ tempfile = "*"
 [features]
 default = ["protocols"]
 protocols = []
+inconsistent_tests = []

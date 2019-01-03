@@ -32,3 +32,8 @@ github:
     - release_forever:
         # This version constraint is also arbitrary and will be used for a test branch
         version_constraint: 42*
+
+pipelines:
+  - verify:
+      # Adding a comment to do a thing
+      description: Pull Request validation tests

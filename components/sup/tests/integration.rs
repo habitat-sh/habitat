@@ -30,6 +30,7 @@ lazy_static! {
 }
 
 #[test]
+#[cfg_attr(feature = "inconsistent_tests", ignore)]
 fn config_only_packages_restart_on_config_application() {
     let hab_root = utils::HabRoot::new("config_only_packages_restart_on_config_application");
 
@@ -69,6 +70,7 @@ fn config_only_packages_restart_on_config_application() {
 }
 
 #[test]
+#[cfg_attr(feature = "inconsistent_tests", ignore)]
 fn hook_only_packages_restart_on_config_application() {
     let hab_root = utils::HabRoot::new("hook_only_packages_restart_on_config_application");
 
@@ -108,6 +110,7 @@ fn hook_only_packages_restart_on_config_application() {
 }
 
 #[test]
+#[cfg_attr(feature = "inconsistent_tests", ignore)]
 fn config_files_change_but_hooks_do_not_still_restarts() {
     let hab_root = utils::HabRoot::new("config_files_change_but_hooks_do_not_still_restarts");
 
@@ -155,6 +158,7 @@ hook_value = "default"
 }
 
 #[test]
+#[cfg_attr(feature = "inconsistent_tests", ignore)]
 fn hooks_change_but_config_files_do_not_still_restarts() {
     let hab_root = utils::HabRoot::new("hooks_change_but_config_files_do_not_still_restarts");
 
@@ -202,6 +206,7 @@ hook_value = "applied"
 }
 
 #[test]
+#[cfg_attr(feature = "inconsistent_tests", ignore)]
 fn applying_identical_configuration_results_in_no_changes_and_no_restart() {
     let hab_root = utils::HabRoot::new(
         "applying_identical_configuration_results_in_no_changes_and_no_restart",
@@ -251,6 +256,7 @@ hook_value = "default"
 }
 
 #[test]
+#[cfg_attr(feature = "integration_tests", ignore)]
 fn install_hook_success() {
     let hab_root = utils::HabRoot::new("install_hook_success");
 
@@ -292,6 +298,7 @@ fn install_hook_success() {
 }
 
 #[test]
+#[cfg_attr(feature = "integration_tests", ignore)]
 fn package_with_successful_install_hook_in_dependency_is_loaded() {
     let hab_root =
         utils::HabRoot::new("package_with_successful_install_hook_in_dependency_is_loaded");
@@ -335,6 +342,7 @@ fn package_with_successful_install_hook_in_dependency_is_loaded() {
 }
 
 #[test]
+#[cfg_attr(feature = "integration_tests", ignore)]
 fn install_hook_fails() {
     let hab_root = utils::HabRoot::new("install_hook_fails");
 
@@ -377,6 +385,7 @@ fn install_hook_fails() {
 }
 
 #[test]
+#[cfg_attr(feature = "integration_tests", ignore)]
 fn package_with_failing_install_hook_in_dependency_is_not_loaded() {
     let hab_root =
         utils::HabRoot::new("package_with_failing_install_hook_in_dependency_is_not_loaded");
