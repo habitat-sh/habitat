@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.71.0/20181218014130 (linux) | 19 Dec 2018 |
+| hab 0.72.0/20190103231731 (linux) | 4 Jan 2019 |
 
 ## hab
 
@@ -1974,7 +1974,7 @@ hab ring key import
 
 ## hab studio
 
-[1;33m» Installing core/hab-studio/0.71.0[0m
+
 
 **USAGE**
 
@@ -2212,26 +2212,12 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 **OPTIONS**
 
 ```
--a, --application <APPLICATION>            Application name; [default: not set].
-    --bind <BIND>...                       One or more service groups to bind to a configuration
-    --binding-mode <BINDING_MODE>          Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] values: relaxed, strict]
--u, --url <BLDR_URL>                       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    --certs <CERT_FILE>                    Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. This should contain PEM-format certificates in the right order the first certificate should certify KEY_FILE, the last should be a root CA).
-    --channel <CHANNEL>                    Receive Supervisor updates from the specified release channel [default: stable]
-    --config-from <CONFIG_DIR>             Use package config from this path, rather than the package itself
--e, --environment <ENVIRONMENT>            Environment name; [default: not set].
--n, --events <EVENTS>                      Name of the service group running a Habitat EventSrv to forward Supervisor and service event data to
-    --group <GROUP>                        The service group; shared config and topology [default: default].
-    --key <KEY_FILE>                       Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. This should be a RSA private key or PKCS8-encoded private key, in PEM format.
-    --listen-ctl <LISTEN_CTL>              The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined. default: 127.0.0.1:9632]
-    --listen-gossip <LISTEN_GOSSIP>        The listen address for the Gossip System Gateway. [env: HAB_LISTEN_GOSSIP=]  [default: 0.0.0.0:9638]
-    --listen-http <LISTEN_HTTP>            The listen address for the HTTP Gateway. [env: HAB_LISTEN_HTTP=] default: 0.0.0.0:9631]
-    --org <ORGANIZATION>                   The organization that the Supervisor and its subsequent services are part of.
-    --peer <PEER>...                       The listen address of one or more initial peers (IP[:PORT])
-    --peer-watch-file <PEER_WATCH_FILE>    Watch this file for connecting to the ring
--r, --ring <RING>                          The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup run --ring myring) [env: HAB_RING=]
--s, --strategy <STRATEGY>                  The update strategy; [default: none] [values: none, at-once, rolling]
--t, --topology <TOPOLOGY>                  Service topology; [default: none] [possible values: standalone, leader]
+-a, --application <APPLICATION>                        Application name; [default: not set].
+    --bind <BIND>...                                   One or more service groups to bind to a configuration
+    --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
+-u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --certs <CERT_FILE> Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. This should contain PEM-format certificates in the right order (the first certificate should certify KEY_FILE, the last should be a root CA).
+    --channel <CHANNEL> Receive Supervisor updates from the specified release channel [default: stable]
 ```
 
 **ARGS**
@@ -2501,16 +2487,11 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 **OPTIONS**
 
 ```
--a, --application <APPLICATION>      Application name; [default: not set].
-    --bind <BIND>...                 One or more service groups to bind to a configuration
-    --binding-mode <BINDING_MODE>    Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
--u, --url <BLDR_URL>                 Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    --channel <CHANNEL>              Receive package updates from the specified release channel [default: stable]
--e, --environment <ENVIRONMENT>      Environment name; [default: not set].
-    --group <GROUP>                  The service group; shared config and topology [default: default].
--r, --remote-sup <REMOTE_SUP>        Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
--s, --strategy <STRATEGY>            The update strategy; [default: none] [values: none, at-once, rolling]
--t, --topology <TOPOLOGY>            Service topology; [default: none] [possible values: standalone, leader]
+-a, --application <APPLICATION>                        Application name; [default: not set].
+    --bind <BIND>...                                   One or more service groups to bind to a configuration
+    --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
+-u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --channel <CHANNEL> Receive package updates from the specified release channel [default: stable]
 ```
 
 **ARGS**
