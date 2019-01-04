@@ -44,4 +44,5 @@ pub mod defaults;
 pub mod error;
 pub mod locked_env_var;
 pub mod package_graph;
+pub mod types;
 pub mod ui;

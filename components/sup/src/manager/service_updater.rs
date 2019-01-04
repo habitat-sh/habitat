@@ -31,7 +31,7 @@ use hcore::service::ServiceGroup;
 use launcher_client::LauncherCli;
 
 use census::CensusRing;
-use config::EnvConfig;
+use common::types::EnvConfig;
 use manager::periodic::Periodic;
 use manager::service::{Service, Topology, UpdateStrategy};
 use time::SteadyTime;
