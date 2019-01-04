@@ -23,10 +23,16 @@
 //! not global.
 
 // Standard Library
-use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::HashMap,
+    result,
+    str::FromStr,
+    sync::{Arc, RwLock},
+};
 
 // Internal Modules
+use common::types::EnvConfig;
+use error::Error;
 use rumor::{RumorKey, RumorType};
 
 // TODO (CM): Can we key by member instead? What do we do more frequently?
@@ -34,12 +40,45 @@ use rumor::{RumorKey, RumorType};
 // TODO (CM): what do we do with rumors that have officially
 // "cooled off"? Can we just remove them?
 
-/// The number of times a rumor will be shared before it goes cold for
-/// that member.
-// NOTE: This doesn't strictly need to be public, but making it so allows it
-// to be present in generated documentation (the documentation strings
-// of the functions in this module make reference to it).
-pub const RUMOR_COOL_DOWN_LIMIT: usize = 2;
+/// The number of times that a rumor will be shared with a given
+/// member before we stop sending it to that same member.
+///
+/// This is roughly analogous to the parameter `k` (used as a
+/// blind counter) in the paper _Epidemic Algorithms for
+/// Replicated Database Maintenance_ by Demers, et al., Section
+/// 1.4 "Complex Epidemics", subsection "Variations".
+///
+/// (To correspond more closely with the paper, this should be used on
+/// a per rumor basis, though, instead of a per rumor/member basis. As
+/// it is, this Supervisor will share each rumor `RumorShareLimit*n`
+/// times, where `n` is the number of Supervisors in the network.)
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+struct RumorShareLimit(usize);
+
+impl Default for RumorShareLimit {
+    /// Share a rumor with a member twice.
+    fn default() -> Self {
+        RumorShareLimit(2)
+    }
+}
+
+impl FromStr for RumorShareLimit {
+    type Err = Error;
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        let raw = s
+            .parse::<usize>()
+            .map_err(|_| Error::InvalidRumorShareLimit)?;
+        if raw > 0 {
+            Ok(RumorShareLimit(raw))
+        } else {
+            Err(Error::InvalidRumorShareLimit)
+        }
+    }
+}
+
+impl EnvConfig for RumorShareLimit {
+    const ENVVAR: &'static str = "HAB_RUMOR_SHARE_LIMIT";
+}
 
 /// Tracks the number of times a given rumor has been sent to each
 /// member of the supervision ring. This models the "heat" of a
@@ -85,7 +124,7 @@ impl RumorHeat {
             .expect("RumorHeat lock poisoned")
             .iter()
             .map(|(k, heat_map)| (k.clone(), heat_map.get(id).unwrap_or(&0).clone()))
-            .filter(|&(_, heat)| heat < RUMOR_COOL_DOWN_LIMIT)
+            .filter(|&(_, heat)| heat < RumorShareLimit::configured_value().0)
             .collect();
 
         // Reverse sorting by heat; 0s come last!
@@ -241,6 +280,8 @@ mod tests {
         }
     }
 
+    locked_env_var!(HAB_RUMOR_SHARE_LIMIT, lock_rumor_limit);
+
     /// Helper function that tests that a given rumor is currently
     /// considered "hot" for the given member.
     fn assert_rumor_is_hot<T>(heat: &RumorHeat, member_id: &str, rumor: T)
@@ -271,7 +312,7 @@ mod tests {
         T: Into<RumorKey>,
     {
         let rumor_keys = &[rumor.into()];
-        for _ in 0..RUMOR_COOL_DOWN_LIMIT {
+        for _ in 0..RumorShareLimit::default().0 {
             heat.cool_rumors(&member_id, rumor_keys);
         }
     }
@@ -287,6 +328,9 @@ mod tests {
 
     #[test]
     fn a_hot_rumor_is_returned_as_such() {
+        let l = lock_rumor_limit();
+        l.unset();
+
         let heat = RumorHeat::default();
         let member_id = "test_member";
         let rumor = FakeRumor::default();
@@ -300,6 +344,9 @@ mod tests {
 
     #[test]
     fn a_hot_rumor_eventually_cools_off() {
+        let l = lock_rumor_limit();
+        l.unset();
+
         let heat = RumorHeat::default();
         let member_id = "test_member";
         let rumor = FakeRumor::default();
@@ -313,7 +360,7 @@ mod tests {
         //
         // Not using the helper function here, as this function is
         // what this test is actually testing.
-        for _ in 0..RUMOR_COOL_DOWN_LIMIT {
+        for _ in 0..RumorShareLimit::default().0 {
             assert_rumor_is_hot(&heat, &member_id, &rumor);
             heat.cool_rumors(&member_id, rumor_keys);
         }
@@ -326,6 +373,9 @@ mod tests {
 
     #[test]
     fn rumors_can_become_hot_again_by_restarting_them() {
+        let l = lock_rumor_limit();
+        l.unset();
+
         let heat = RumorHeat::default();
         let member_id = "test_member";
         let rumor = FakeRumor::default();
@@ -349,6 +399,9 @@ mod tests {
 
     #[test]
     fn rumor_heat_is_tracked_per_member() {
+        let l = lock_rumor_limit();
+        l.unset();
+
         let heat = RumorHeat::default();
         let member_one = "test_member_1";
         let member_two = "test_member_2";
@@ -371,6 +424,9 @@ mod tests {
 
     #[test]
     fn hot_rumors_are_sorted_colder_to_warmer() {
+        let l = lock_rumor_limit();
+        l.unset();
+
         let heat = RumorHeat::default();
         let member = "test_member";
 
@@ -416,6 +472,9 @@ mod tests {
 
     #[test]
     fn purging_removes_heat_information_for_a_given_member() {
+        let l = lock_rumor_limit();
+        l.unset();
+
         // Here's our world... we've got 3 members. We'll have a
         // Service rumor and a Member rumor for each of them. Then,
         // we'll ensure that all rumors have cooled for all members,
@@ -479,7 +538,7 @@ mod tests {
                         heat_map
                             .get(*m)
                             .expect("Should have had an entry for the member"),
-                        &RUMOR_COOL_DOWN_LIMIT
+                        &RumorShareLimit::default().0
                     );
                 }
             }
@@ -494,7 +553,7 @@ mod tests {
                         heat_map
                             .get(*m)
                             .expect("Should have had an entry for the member"),
-                        &RUMOR_COOL_DOWN_LIMIT
+                        &RumorShareLimit::default().0
                     );
                 }
             }
@@ -516,7 +575,7 @@ mod tests {
                     .expect("Should have had a member rumor present");
                 assert_eq!(
                     heat_map.get(member_1_id).expect("lulz"),
-                    &RUMOR_COOL_DOWN_LIMIT
+                    &RumorShareLimit::default().0
                 );
                 assert!(
                     heat_map.get(member_2_id).is_none(),
@@ -524,7 +583,7 @@ mod tests {
                 );
                 assert_eq!(
                     heat_map.get(member_3_id).expect("lulz"),
-                    &RUMOR_COOL_DOWN_LIMIT
+                    &RumorShareLimit::default().0
                 );
             }
 
@@ -539,7 +598,7 @@ mod tests {
                     .expect("Should have had a service rumor present");
                 assert_eq!(
                     heat_map.get(member_1_id).expect("lulz"),
-                    &RUMOR_COOL_DOWN_LIMIT
+                    &RumorShareLimit::default().0
                 );
                 assert!(
                     heat_map.get(member_2_id).is_none(),
@@ -547,7 +606,7 @@ mod tests {
                 );
                 assert_eq!(
                     heat_map.get(member_3_id).expect("lulz"),
-                    &RUMOR_COOL_DOWN_LIMIT
+                    &RumorShareLimit::default().0
                 );
             }
         }

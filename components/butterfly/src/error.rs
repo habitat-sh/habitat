@@ -39,6 +39,7 @@ pub enum Error {
     IncarnationIO(PathBuf, io::Error),
     IncarnationParse(PathBuf, num::ParseIntError),
     InvalidIncarnationSynchronization,
+    InvalidRumorShareLimit,
     NonExistentRumor(String, String),
     ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
@@ -85,6 +86,9 @@ impl fmt::Display for Error {
             Error::InvalidIncarnationSynchronization => format!(
                 "Tried to synchronize own member incarnation from non-existent incarnation store"
             ),
+            Error::InvalidRumorShareLimit => {
+                format!("Rumor share limit should be a positive integer")
+            }
             Error::NonExistentRumor(ref member_id, ref rumor_id) => format!(
                 "Non existent rumor asked to be written to bytes: {} {}",
                 member_id, rumor_id
@@ -130,6 +134,7 @@ impl error::Error for Error {
             Error::InvalidIncarnationSynchronization => {
                 "Tried to synchronize own member incarnation from non-existent incarnation store"
             }
+            Error::InvalidRumorShareLimit => "Invalid rumor share limit",
             Error::NonExistentRumor(_, _) => {
                 "Cannot write rumor to bytes because it does not exist"
             }

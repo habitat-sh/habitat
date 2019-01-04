@@ -45,6 +45,8 @@
 
 extern crate byteorder;
 extern crate bytes;
+#[cfg_attr(test, macro_use)]
+extern crate habitat_common as common;
 extern crate habitat_core;
 #[macro_use]
 extern crate lazy_static;
