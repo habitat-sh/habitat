@@ -21,7 +21,7 @@ use std::sync::Arc;
 use std::thread::Builder as ThreadBuilder;
 
 use butterfly::member::Member;
-use common::defaults::GOSSIP_DEFAULT_PORT;
+use common::cli_defaults::GOSSIP_DEFAULT_PORT;
 use error::{Error, Result};
 use manager::file_watcher::{default_file_watcher, Callbacks};
 
@@ -163,7 +163,7 @@ impl PeerWatcher {
 mod tests {
     use super::PeerWatcher;
     use butterfly::member::Member;
-    use common::defaults::GOSSIP_DEFAULT_PORT;
+    use common::cli_defaults::GOSSIP_DEFAULT_PORT;
     use std::fs::{File, OpenOptions};
     use std::io::Write;
     use tempfile::TempDir;

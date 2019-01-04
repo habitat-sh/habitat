@@ -18,6 +18,7 @@ use std::str;
 use butterfly::rumor::service::SysInfo;
 use hcore;
 
+use common::types::ListenCtlAddr;
 use config::GossipListenAddr;
 use error::{Error, Result};
 use http_gateway;
@@ -44,7 +45,7 @@ impl Sys {
     pub fn new(
         permanent: bool,
         gossip: GossipListenAddr,
-        ctl: SocketAddr,
+        ctl: ListenCtlAddr,
         http: http_gateway::ListenAddr,
     ) -> Sys {
         let ip = match lookup_ip() {

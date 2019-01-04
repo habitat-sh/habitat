@@ -1021,12 +1021,12 @@ mod tests {
     use butterfly::rumor::RumorStore;
     use hcore::package::{PackageIdent, PackageInstall};
     use hcore::service::ServiceGroup;
-    use protocol;
     use tempfile::TempDir;
 
     use super::fs as supfs;
     use super::*;
     use census::CensusRing;
+    use common::types::ListenCtlAddr;
     use config::GossipListenAddr;
     use http_gateway;
     use manager::service::spec::ServiceBind;
@@ -1267,7 +1267,7 @@ echo "The message is Hola Mundo"
         let sys = Sys::new(
             true,
             GossipListenAddr::default(),
-            protocol::ctl::default_addr(),
+            ListenCtlAddr::default(),
             http_gateway::ListenAddr::default(),
         );
 
@@ -1381,7 +1381,7 @@ echo "The message is Hello"
         let sys = Sys::new(
             true,
             GossipListenAddr::default(),
-            protocol::ctl::default_addr(),
+            ListenCtlAddr::default(),
             http_gateway::ListenAddr::default(),
         );
 

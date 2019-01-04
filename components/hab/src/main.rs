@@ -40,7 +40,7 @@ use std::ffi::OsString;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, Read};
-use std::net::{SocketAddr, ToSocketAddrs};
+use std::net::ToSocketAddrs;
 use std::path::{Path, PathBuf};
 use std::process;
 use std::result;
@@ -49,6 +49,7 @@ use std::thread;
 
 use clap::{ArgMatches, Shell};
 use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
+use common::types::ListenCtlAddr;
 use common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
 use futures::prelude::*;
 use hcore::binlink::default_binlink_dir;
@@ -819,7 +820,7 @@ fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches) -> Result<()> {
 
 fn sub_svc_set(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui();
@@ -874,7 +875,7 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
             .unwrap_or("UNKNOWN".to_string()),
     ))?;
     ui.status(Status::Creating, format!("service configuration"))?;
-    SrvClient::connect(&sup_addr, &secret_key)
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
         .and_then(|conn| {
             conn.call(validate)
                 .for_each(|reply| match reply.message_id() {
@@ -897,11 +898,11 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
                 })
         })
         .wait()?;
-    ui.status(Status::Applying, format!("via peer {}", sup_addr))?;
+    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
     // JW: We should not need to make two connections here. I need a way to return the
     // SrvClient from a for_each iterator so we can chain upon a successful stream but I don't
     // know if it's possible with this version of futures.
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| {
             conn.call(set).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
@@ -924,11 +925,11 @@ fn sub_svc_set(m: &ArgMatches) -> Result<()> {
 fn sub_svc_config(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "ServiceCfg" => {
@@ -955,13 +956,13 @@ fn sub_svc_config(m: &ArgMatches) -> Result<()> {
 
 fn sub_svc_load(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcLoad::default();
     update_svc_load_from_input(m, &mut msg)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
         .wait()?;
     Ok(())
@@ -970,11 +971,11 @@ fn sub_svc_load(m: &ArgMatches) -> Result<()> {
 fn sub_svc_unload(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcUnload::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
         .wait()?;
     Ok(())
@@ -983,11 +984,11 @@ fn sub_svc_unload(m: &ArgMatches) -> Result<()> {
 fn sub_svc_start(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStart::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
         .wait()?;
     Ok(())
@@ -995,14 +996,14 @@ fn sub_svc_start(m: &ArgMatches) -> Result<()> {
 
 fn sub_svc_status(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStatus::default();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
     }
 
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| {
             let mut out = TabWriter::new(io::stdout());
             conn.call(msg)
@@ -1037,11 +1038,11 @@ fn sub_svc_status(m: &ArgMatches) -> Result<()> {
 fn sub_svc_stop(m: &ArgMatches) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStop::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
         .wait()?;
     Ok(())
@@ -1050,7 +1051,7 @@ fn sub_svc_stop(m: &ArgMatches) -> Result<()> {
 fn sub_file_put(m: &ArgMatches) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
     let mut msg = protocol::ctl::SvcFilePut::default();
@@ -1098,9 +1099,9 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
         }
         _ => msg.content = Some(buf.to_vec()),
     }
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| {
-            ui.status(Status::Applying, format!("via peer {}", sup_addr))
+            ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
                 .unwrap();
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
@@ -1128,12 +1129,12 @@ fn sub_file_put(m: &ArgMatches) -> Result<()> {
 
 fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
     let cfg = config::load()?;
-    let sup_addr = sup_addr_from_input(m)?;
+    let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
     let mut msg = protocol::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
-    SrvClient::connect(&sup_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, secret_key)
         .and_then(|conn| {
             ui.begin(format!(
                 "Permanently marking {} as departed",
@@ -1143,7 +1144,7 @@ fn sub_sup_depart(m: &ArgMatches) -> Result<()> {
                     .unwrap_or("UNKNOWN")
             ))
             .unwrap();
-            ui.status(Status::Applying, format!("via peer {}", sup_addr))
+            ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
                 .unwrap();
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
@@ -1562,11 +1563,11 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
 
     let cfg = config::load()?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let sup_addr = protocol::ctl::default_addr();
+    let listen_ctl_addr = ListenCtlAddr::default();
     let msg = protocol::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
-    SrvClient::connect(&sup_addr, &secret_key)
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
         .and_then(|conn| {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "ServiceStatus" => {
@@ -1676,24 +1677,28 @@ fn get_strategy_from_input(m: &ArgMatches) -> Option<UpdateStrategy> {
         .and_then(|f| UpdateStrategy::from_str(f).ok())
 }
 
-fn sup_addr_from_input(m: &ArgMatches) -> Result<SocketAddr> {
-    match m.value_of("REMOTE_SUP") {
-        Some(rs) => {
-            let sup_addr = if rs.find(':').is_some() {
-                rs.to_string()
-            } else {
-                format!("{}:{}", rs, protocol::ctl::DEFAULT_PORT)
-            };
-            let addrs: Vec<SocketAddr> = match sup_addr.to_socket_addrs() {
-                Ok(addrs) => addrs.collect(),
-                Err(e) => {
-                    return Err(Error::RemoteSupResolutionError(sup_addr, e));
-                }
-            };
-            Ok(addrs[0])
-        }
-        None => Ok(protocol::ctl::default_addr()),
-    }
+fn listen_ctl_addr_from_input(m: &ArgMatches) -> Result<ListenCtlAddr> {
+    m.value_of("REMOTE_SUP")
+        .map_or(Ok(ListenCtlAddr::default()), resolve_listen_ctl_addr)
+}
+
+fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
+    let listen_ctl_addr = if input.find(':').is_some() {
+        input.to_string()
+    } else {
+        format!("{}:{}", input, ListenCtlAddr::DEFAULT_PORT)
+    };
+
+    listen_ctl_addr
+        .to_socket_addrs()
+        .and_then(|mut addrs| {
+            addrs.next().ok_or(io::Error::new(
+                io::ErrorKind::AddrNotAvailable,
+                "Address could not be resolved.",
+            ))
+        })
+        .map(ListenCtlAddr::from)
+        .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))
 }
 
 /// Check to see if the user has passed in a USER param.
@@ -1749,4 +1754,43 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
     Ok(())
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    mod resolve_listen_ctl_addr {
+        use super::*;
+
+        #[test]
+        fn ip_is_resolved() {
+            let expected =
+                ListenCtlAddr::from_str("127.0.0.1:8080").expect("Could not create ListenCtlAddr");
+            let actual =
+                resolve_listen_ctl_addr("127.0.0.1:8080").expect("Could not resolve string");
+
+            assert_eq!(expected, actual);
+        }
+
+        #[test]
+        fn localhost_is_resolved() {
+            let expected =
+                ListenCtlAddr::from_str("127.0.0.1:8080").expect("Could not create ListenCtlAddr");
+            let actual =
+                resolve_listen_ctl_addr("localhost:8080").expect("Could not resolve string");
+
+            assert_eq!(expected, actual);
+        }
+
+        #[test]
+        fn port_is_set_to_default_if_not_specified() {
+            let expected =
+                ListenCtlAddr::from_str(&format!("127.0.0.1:{}", ListenCtlAddr::DEFAULT_PORT))
+                    .expect("Could not create ListenCtlAddr");
+            let actual = resolve_listen_ctl_addr("localhost").expect("Could not resolve string");
+
+            assert_eq!(expected, actual);
+        }
+    }
 }

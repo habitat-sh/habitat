@@ -43,6 +43,7 @@ extern crate futures;
 extern crate habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate log;
+extern crate habitat_common as common;
 extern crate prost;
 extern crate tokio;
 extern crate tokio_codec;
@@ -50,7 +51,6 @@ extern crate tokio_codec;
 use std::error;
 use std::fmt;
 use std::io;
-use std::net::SocketAddr;
 use std::path::PathBuf;
 
 use futures::prelude::*;
@@ -59,6 +59,8 @@ use protocol::codec::*;
 use protocol::net::NetErr;
 use tokio::net::TcpStream;
 use tokio_codec::Framed;
+
+use common::types::ListenCtlAddr;
 
 pub type SrvSend = sink::Send<SrvStream>;
 
@@ -149,15 +151,15 @@ pub struct SrvClient {
 
 impl SrvClient {
     /// Connect to the given remote server and authenticate with the given secret_key.
-    pub fn connect<T>(
-        addr: &SocketAddr,
-        secret_key: T,
+    pub fn connect<S>(
+        addr: &ListenCtlAddr,
+        secret_key: S,
     ) -> Box<Future<Item = SrvClient, Error = SrvClientError> + 'static>
     where
-        T: ToString,
+        S: ToString,
     {
         let secret_key = secret_key.to_string();
-        let conn = TcpStream::connect(addr)
+        let conn = TcpStream::connect(addr.as_ref())
             .map_err(SrvClientError::from)
             .and_then(move |socket| {
                 let client = Self::new(socket, None);

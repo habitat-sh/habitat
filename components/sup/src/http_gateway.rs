@@ -31,7 +31,7 @@ use actix_web::{
     pred::Predicate,
     server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
-use common::defaults::{
+use common::cli_defaults::{
     LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
 };
 use common::types::EnvConfig;

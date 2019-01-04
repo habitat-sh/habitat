@@ -931,6 +931,7 @@ version = "0.0.0"
 dependencies = [
  "futures 0.1.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat-sup-protocol 0.0.0",
+ "habitat_common 0.0.0",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
  "prost 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "protoc 1.7.4 (registry+https://github.com/rust-lang/crates.io-index)",

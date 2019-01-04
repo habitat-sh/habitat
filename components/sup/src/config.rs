@@ -29,7 +29,7 @@ use std::result;
 use std::str::FromStr;
 
 use common::{
-    defaults::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR},
+    cli_defaults::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR},
     types::EnvConfig,
 };
 use error::{Result, SupError};

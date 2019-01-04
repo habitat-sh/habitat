@@ -25,10 +25,11 @@ use protocol;
 use url::Url;
 
 use command::studio;
-use common::defaults::{
-    GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_HTTP_ADDRESS_ENVVAR,
-    LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
+use common::cli_defaults::{
+    GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_CTL_DEFAULT_ADDR_STRING,
+    LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
 };
+use common::types::{EnvConfig, ListenCtlAddr};
 use feat;
 
 pub fn get() -> App<'static, 'static> {
@@ -871,7 +872,7 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         "The listen address for the HTTP Gateway.")
     (@arg HTTP_DISABLE: --("http-disable") -D
         "Disable the HTTP Gateway completely [default: false]")
-    (@arg LISTEN_CTL: --("listen-ctl") +takes_value {valid_socket_addr}
+    (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(&LISTEN_CTL_DEFAULT_ADDR_STRING) {valid_socket_addr}
         "The listen address for the Control Gateway. If not specified, the value will \
         be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
     (@arg ORGANIZATION: --org +takes_value
