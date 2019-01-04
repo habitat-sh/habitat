@@ -21,7 +21,7 @@ use std::{num::ParseIntError, str::FromStr, sync::mpsc, thread::Builder, time::D
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
 use super::spec_dir::SpecDir;
-use config::EnvConfig;
+use common::types::EnvConfig;
 use error::{Error, Result};
 
 static LOGKEY: &'static str = "SW";
