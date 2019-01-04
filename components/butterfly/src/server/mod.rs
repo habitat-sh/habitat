@@ -692,7 +692,6 @@ impl Server {
 
     /// Given a membership record and some health, insert it into the Member List.
     fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
-        let mut incremented_incarnation = false;
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() {
             if health != Health::Alive {
@@ -700,7 +699,6 @@ impl Server {
                 if member.incarnation >= me.incarnation() {
                     me.refute_incarnation(member.incarnation);
                     health = Health::Alive;
-                    incremented_incarnation = true;
                 }
             }
         }
@@ -711,7 +709,7 @@ impl Server {
         let trace_incarnation = member.incarnation;
         let trace_health = health;
 
-        if self.member_list.insert(member, health) || incremented_incarnation {
+        if self.member_list.insert(member, health) {
             trace_it!(
                 MEMBERSHIP: self,
                 TraceKind::MemberUpdate,

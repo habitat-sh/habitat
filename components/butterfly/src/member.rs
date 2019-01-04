@@ -217,6 +217,18 @@ pub struct Membership {
     pub health: Health,
 }
 
+impl Membership {
+    /// See MemberList::insert
+    fn newer_or_less_healthy_than(
+        &self,
+        other_incarnation: Incarnation,
+        other_health: Health,
+    ) -> bool {
+        self.member.incarnation > other_incarnation
+            || (self.member.incarnation == other_incarnation && self.health > other_health)
+    }
+}
+
 impl protocol::Message<proto::Membership> for Membership {}
 
 impl From<Membership> for proto::Membership {
@@ -497,19 +509,22 @@ impl MemberList {
     ///
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
+        self.insert_membership(Membership {
+            member: incoming_member,
+            health: incoming_health,
+        })
+    }
+
+    fn insert_membership(&self, incoming: Membership) -> bool {
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
-        let modified = match self.write_entries().entry(incoming_member.id.clone()) {
+        let modified = match self.write_entries().entry(incoming.member.id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let mut val = entry.get_mut();
-                // maybe break this condition out?
-                if incoming_member.incarnation > val.member.incarnation
-                    || (incoming_member.incarnation == val.member.incarnation
-                        && incoming_health > val.health)
-                {
+                if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health) {
                     *val = member_list::Entry {
-                        member: incoming_member,
-                        health: incoming_health,
+                        member: incoming.member,
+                        health: incoming.health,
                         health_updated_at: SteadyTime::now(),
                     };
                     true
@@ -519,8 +534,8 @@ impl MemberList {
             }
             hash_map::Entry::Vacant(entry) => {
                 entry.insert(member_list::Entry {
-                    member: incoming_member,
-                    health: incoming_health,
+                    member: incoming.member,
+                    health: incoming.health,
                     health_updated_at: SteadyTime::now(),
                 });
                 true
