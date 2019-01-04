@@ -14,7 +14,6 @@
 
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
-use std::cmp;
 use std::collections::{hash_map, HashMap};
 use std::fmt;
 use std::iter::IntoIterator;
@@ -24,7 +23,7 @@ use std::ops::Add;
 use std::result;
 use std::str::FromStr;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, RwLock};
+use std::sync::RwLock;
 
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{
@@ -218,6 +217,18 @@ pub struct Membership {
     pub health: Health,
 }
 
+impl Membership {
+    /// See MemberList::insert
+    fn newer_or_less_healthy_than(
+        &self,
+        other_incarnation: Incarnation,
+        other_health: Health,
+    ) -> bool {
+        self.member.incarnation > other_incarnation
+            || (self.member.incarnation == other_incarnation && self.health > other_health)
+    }
+}
+
 impl protocol::Message<proto::Membership> for Membership {}
 
 impl From<Membership> for proto::Membership {
@@ -326,22 +337,22 @@ impl FromProto<newscast::Rumor> for Membership {
     }
 }
 
+mod member_list {
+    #[derive(Clone, Debug)]
+    pub struct Entry {
+        pub member: super::Member,
+        pub health: super::Health,
+        pub health_updated_at: super::SteadyTime,
+    }
+}
+
 /// Tracks lists of members, their health, and how long they have been
 /// suspect or confirmed.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct MemberList {
-    pub members: Arc<RwLock<HashMap<UuidSimple, Member>>>,
-    pub health: Arc<RwLock<HashMap<UuidSimple, Health>>>,
-    /// Records timestamps of when Members are marked `Suspect`. This
-    /// supports automatically transitioning them to `Confirmed` after
-    /// an appropriate amount of time.
-    aging_suspects: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
-    /// Records timestamps of when Members are marked
-    /// `Confirmed`. This supports automatically transitioning them to
-    /// `Departed` after an appropriate amount of time.
-    aging_confirmed: Arc<RwLock<HashMap<UuidSimple, SteadyTime>>>,
-    initial_members: Arc<RwLock<Vec<Member>>>,
-    update_counter: Arc<AtomicUsize>,
+    entries: RwLock<HashMap<UuidSimple, member_list::Entry>>,
+    initial_members: RwLock<Vec<Member>>,
+    update_counter: AtomicUsize,
 }
 
 impl Serialize for MemberList {
@@ -350,20 +361,24 @@ impl Serialize for MemberList {
         S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("member_list", 4)?;
-        {
-            let member_struct = self.members.read().expect("Member lock is poisoned");
-            strukt.serialize_field("members", &*member_struct)?;
+
+        // A hack to maintain backwards compatibility with the version
+        // Of MemberList where members was a HashMap<UuidSimple, Member>
+        // and health was a HashMap<UuidSimple, Health>
+        let mut member_struct = HashMap::new();
+        let mut health_struct = HashMap::new();
+        for (id, member_list::Entry { member, health, .. }) in self.read_entries().iter() {
+            member_struct.insert(id.clone(), member.clone());
+            health_struct.insert(id.clone(), *health);
         }
-        {
-            let health_struct = self.health.read().expect("Health lock is poisoned");
-            strukt.serialize_field("health", &*health_struct)?;
-        }
-        {
-            // TODO (CM): why does this use a different ordering than
-            // get_update_counter (and why doesn't it just use get_update_counter?)
-            let update_number = self.update_counter.load(Ordering::SeqCst);
-            strukt.serialize_field("update_counter", &update_number)?;
-        }
+        strukt.serialize_field("members", &member_struct)?;
+        strukt.serialize_field("health", &health_struct)?;
+
+        // TODO (CM): why does this use a different ordering than
+        // get_update_counter (and why doesn't it just use get_update_counter?)
+        let update_number = self.update_counter.load(Ordering::SeqCst);
+        strukt.serialize_field("update_counter", &update_number)?;
+
         strukt.end()
     }
 }
@@ -372,17 +387,34 @@ impl MemberList {
     /// Creates a new, empty, MemberList.
     pub fn new() -> MemberList {
         MemberList {
-            members: Arc::new(RwLock::new(HashMap::new())),
-            health: Arc::new(RwLock::new(HashMap::new())),
-            aging_suspects: Arc::new(RwLock::new(HashMap::new())),
-            aging_confirmed: Arc::new(RwLock::new(HashMap::new())),
-            initial_members: Arc::new(RwLock::new(Vec::new())),
-            update_counter: Arc::new(AtomicUsize::new(0)),
+            entries: RwLock::new(HashMap::new()),
+            initial_members: RwLock::new(Vec::new()),
+            update_counter: AtomicUsize::new(0),
         }
     }
 
-    /// Increment the update counter for this store.
-    ///
+    fn read_entries(&self) -> std::sync::RwLockReadGuard<HashMap<UuidSimple, member_list::Entry>> {
+        self.entries.read().expect("Members read lock")
+    }
+
+    fn write_entries(
+        &self,
+    ) -> std::sync::RwLockWriteGuard<HashMap<UuidSimple, member_list::Entry>> {
+        self.entries.write().expect("Members write lock")
+    }
+
+    fn initial_members_read(&self) -> std::sync::RwLockReadGuard<Vec<Member>> {
+        self.initial_members
+            .read()
+            .expect("Initial members read lock")
+    }
+
+    fn initial_members_write(&self) -> std::sync::RwLockWriteGuard<Vec<Member>> {
+        self.initial_members
+            .write()
+            .expect("Initial members write lock")
+    }
+
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
     fn increment_update_counter(&self) {
@@ -394,39 +426,19 @@ impl MemberList {
     }
 
     pub fn len_initial_members(&self) -> usize {
-        let im = self
-            .initial_members
-            .read()
-            .expect("Initial members lock is poisoned");
-        im.len()
+        self.initial_members_read().len()
     }
 
     pub fn add_initial_member(&self, member: Member) {
-        let mut im = self
-            .initial_members
-            .write()
-            .expect("Initial members lock is poisoned");
-        im.push(member);
+        self.initial_members_write().push(member);
     }
 
     pub fn set_initial_members(&self, members: Vec<Member>) {
-        let mut im = self
-            .initial_members
-            .write()
-            .expect("Initial members lock is poisoned");
-        im.clear();
-        im.extend(members);
+        *self.initial_members_write() = members;
     }
 
-    pub fn with_initial_members<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut(&Member),
-    {
-        let im = self
-            .initial_members
-            .read()
-            .expect("Initial members lock is poisoned");
-        for member in im.iter() {
+    pub fn with_initial_members(&self, mut with_closure: impl FnMut(&Member)) {
+        for member in self.initial_members_read().iter() {
             with_closure(member);
         }
     }
@@ -497,149 +509,72 @@ impl MemberList {
     ///
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
-        let accept_and_propagate_rumor = match self
-            .members
-            .read()
-            .expect("Member List read lock poisoned")
-            .get(&incoming_member.id)
-        {
-            None => true,
-            Some(existing_member) => {
-                match existing_member
-                    .incarnation
-                    .cmp(&incoming_member.incarnation)
-                {
-                    cmp::Ordering::Greater => false,
-                    cmp::Ordering::Less => true,
-                    cmp::Ordering::Equal => {
-                        // We know we have a health if we have a
-                        // record.
-                        //
-                        // (Doing this in two operations is necessary
-                        // due to the lock and lifetimes.)
-                        let health_lock = self.health.read().expect("Health lock is poisoned");
-                        let existing_health = health_lock.get(&existing_member.id).expect(
-                            "No health for a membership record should be impossible; did you use insert?",
-                        );
+        self.insert_membership(Membership {
+            member: incoming_member,
+            health: incoming_health,
+        })
+    }
 
-                        incoming_health > *existing_health
-                    }
+    fn insert_membership(&self, incoming: Membership) -> bool {
+        // Is this clone necessary, or can a key be a reference to a field contained in the value?
+        // Maybe the members we store should not contain the ID to reduce the duplication?
+        let modified = match self.write_entries().entry(incoming.member.id.clone()) {
+            hash_map::Entry::Occupied(mut entry) => {
+                let mut val = entry.get_mut();
+                if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health) {
+                    *val = member_list::Entry {
+                        member: incoming.member,
+                        health: incoming.health,
+                        health_updated_at: SteadyTime::now(),
+                    };
+                    true
+                } else {
+                    false
                 }
+            }
+            hash_map::Entry::Vacant(entry) => {
+                entry.insert(member_list::Entry {
+                    member: incoming.member,
+                    health: incoming.health,
+                    health_updated_at: SteadyTime::now(),
+                });
+                true
             }
         };
 
-        if accept_and_propagate_rumor {
-            let member_id = incoming_member.id.clone();
-            self.members
-                .write()
-                .expect("Member list lock is poisoned")
-                .insert(incoming_member.id.clone(), incoming_member);
-            let updated = self.insert_health_by_id(&member_id, incoming_health);
-            if !updated {
-                // TODO (CM): clean this logic up better
-
-                // insert_health_by_id calls increment_update_counter,
-                // but depending on the current state and the incoming
-                // rumor, it may not actually change the health
-                // recorded. In that case, we need to ensure that we
-                // increment the update counter to reflect that this
-                // rumor was accepted and should be propagated
-                self.increment_update_counter();
-            }
+        if modified {
+            self.increment_update_counter();
         }
 
-        accept_and_propagate_rumor
+        modified
     }
 
-    // TODO (CM): Should there be an invariant that you must refer to
-    // an existing member in order to run this?
-
-    /// Updates the health of a member without touching the member itself. Returns true if the
-    /// health changed, false otherwise. As health transitions from
-    /// state to state, appropriate bookkeeping is done to ensure that
-    /// Suspect and Confirmed rumors can properly time out to
-    /// Confirmed and Departed rumors, respectively.
-    pub fn insert_health_by_id(&self, member_id: &str, health: Health) -> bool {
-        // If we already have a health record for this member, then we
-        // need to check what that health is.
-        if let Some(current_health) = self
-            .health
-            .read()
-            .expect("Health read lock is poisoned")
-            .get(member_id)
+    pub fn set_departed(&self, member_id: &str) {
+        if let Some(member_list::Entry { member, health, .. }) =
+            self.write_entries().get_mut(member_id)
         {
-            if *current_health == health {
-                // Health did not change; there's nothing else to do,
-                // so bail out.
-                return false;
-            }
-
-            // If we are transitioning away from Suspect or Confirmed,
-            // we should stop timing how long we have been in that state.
-            match *current_health {
-                Health::Suspect => Some(&self.aging_suspects),
-                Health::Confirmed => Some(&self.aging_confirmed),
-                _ => None,
-            }
-            .and_then(|map| {
-                map.write()
-                    .expect("aging lock is poisoned")
-                    .remove(member_id)
-            });
+            debug!(
+                "Setting health of {:?}, {} -> {}",
+                member,
+                health,
+                Health::Departed
+            );
+            *health = Health::Departed;
+        } else {
+            trace!("set_departed called on unknown member {}", member_id);
         }
-
-        // Whether we have seen this member before or not, we now need
-        // to record the time it entered into the Suspect or Confirmed
-        // states.
-        match health {
-            Health::Suspect => Some(&self.aging_suspects),
-            Health::Confirmed => Some(&self.aging_confirmed),
-            _ => None,
-        }
-        .and_then(|map| {
-            map.write()
-                .expect("aging lock is poisoned")
-                .insert(member_id.to_string(), SteadyTime::now())
-        });
-
-        // Finally, we record the new health.
-        self.health
-            .write()
-            .expect("Health write lock is poisoned")
-            .insert(String::from(member_id), health);
-
-        self.increment_update_counter();
-        true
     }
-
-    // TODO (CM): accept AsRef<MemberId> here (and implement that on
-    // Member, as well as creating a MemberId type)... this would
-    // allow us to consolidate health_of and health_of_by_id
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of(&self, member: &Member) -> Option<Health> {
-        match self
-            .health
-            .read()
-            .expect("Health lock is poisoned")
-            .get(&member.id)
-        {
-            Some(health) => Some(*health),
-            None => None,
-        }
+        self.health_of_by_id(&member.id)
     }
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
-        match self
-            .health
-            .read()
-            .expect("Health lock is poisoned")
+        self.read_entries()
             .get(member_id)
-        {
-            Some(health) => Some(*health),
-            None => None,
-        }
+            .map(|member_list::Entry { health, .. }| *health)
     }
 
     /// Returns true if the member is alive, suspect, or persistent; used during the target
@@ -662,71 +597,48 @@ impl MemberList {
 
     /// Returns a protobuf membership record for the given member id.
     pub fn membership_for(&self, member_id: &str) -> Option<Membership> {
-        let mhealth = match self
-            .health
-            .read()
-            .expect("Health lock is poisoned")
+        self.read_entries()
             .get(member_id)
-        {
-            Some(health) => *health,
-            None => return None,
-        };
-        let ml = self.members.read().expect("Member list lock is poisoned");
-        match ml.get(member_id) {
-            Some(member) => Some(Membership {
-                health: mhealth,
+            .map(|member_list::Entry { member, health, .. }| Membership {
                 member: member.clone(),
-            }),
-            None => None,
-        }
+                health: *health,
+            })
     }
 
-    /// Returns the number of members.
+    /// Returns the number of entries.
     pub fn len(&self) -> usize {
-        self.members
-            .read()
-            .expect("Member list lock is poisoned")
-            .len()
+        self.read_entries().len()
     }
 
     /// A randomized list of members to check.
     pub fn check_list(&self, exclude_id: &str) -> Vec<Member> {
-        let mut members: Vec<Member> = self
-            .members
-            .read()
-            .expect("Member list lock is poisoned")
+        let mut members: Vec<_> = self
+            .read_entries()
             .values()
-            .filter(|v| v.id != exclude_id)
-            .map(|v| v.clone())
+            .map(|member_list::Entry { member, .. }| member)
+            .filter(|member| member.id != exclude_id)
+            .cloned()
             .collect();
-        let mut rng = thread_rng();
-        members.shuffle(&mut rng);
+        members.shuffle(&mut thread_rng());
         members
     }
 
     /// Takes a function whose first argument is a member, and calls it for every pingreq target.
-    pub fn with_pingreq_targets<F>(
+    pub fn with_pingreq_targets(
         &self,
         sending_member_id: &str,
         target_member_id: &str,
-        mut with_closure: F,
-    ) -> ()
-    where
-        F: FnMut(Member) -> (),
-    {
+        mut with_closure: impl FnMut(Member),
+    ) {
         // This will lead to nested read locks if you don't deal with making a copy
-        let mut members: Vec<Member> = {
-            let ml = self.members.read().expect("Member list lock is poisoned");
-            ml.values().map(|v| v.clone()).collect()
-        };
-        let mut rng = thread_rng();
-        members.shuffle(&mut rng);
-        for member in members
+        let mut entries: Vec<_> = self.read_entries().values().cloned().collect();
+        entries.shuffle(&mut thread_rng());
+        for member_list::Entry { member, .. } in entries
             .into_iter()
-            .filter(|m| {
-                m.id != sending_member_id
-                    && m.id != target_member_id
-                    && self.health_of_by_id(&m.id) == Some(Health::Alive)
+            .filter(|member_list::Entry { member, health, .. }| {
+                member.id != sending_member_id
+                    && member.id != target_member_id
+                    && *health == Health::Alive
             })
             .take(PINGREQ_TARGETS)
         {
@@ -734,43 +646,39 @@ impl MemberList {
         }
     }
 
-    /// Takes a function whose argument is a `HashMap::Values` iterator, with the ID and Membership
-    /// entry.
-    pub fn with_member_iter<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut(hash_map::Values<String, Member>) -> (),
-    {
+    /// Calls a function whose argument is a reference to a membership entry matching the given ID.
+    pub fn with_member(&self, member_id: &str, mut with_closure: impl FnMut(Option<&Member>)) {
         with_closure(
-            self.members
-                .read()
-                .expect("Member list lock is poisoned")
-                .values(),
+            self.read_entries()
+                .get(member_id)
+                .map(|member_list::Entry { member, .. }| member),
         );
     }
 
-    /// Calls a function whose argument is a reference to a membership entry matching the given ID.
-    pub fn with_member<F>(&self, member_id: &str, mut with_closure: F) -> ()
-    where
-        F: FnMut(Option<&Member>) -> (),
-    {
-        let ml = self.members.read().expect("Member list lock poisoned");
-        let member = ml.get(member_id);
-        with_closure(member);
-    }
-
     /// Iterates over the member list, calling the function for each member.
-    pub fn with_members<F>(&self, mut with_closure: F) -> ()
-    where
-        F: FnMut(&Member) -> (),
-    {
-        for member in self
-            .members
-            .read()
-            .expect("Member list lock is poisoned")
-            .values()
-        {
+    pub fn with_members(&self, mut with_closure: impl FnMut(&Member)) {
+        for member_list::Entry { member, .. } in self.read_entries().values() {
             with_closure(member);
         }
+    }
+
+    // This could be Result<T> instead, but there's only the one caller now
+    pub fn with_memberships(
+        &self,
+        mut with_closure: impl FnMut(Membership) -> Result<u64>,
+    ) -> Result<u64> {
+        let mut ok: Result<u64> = Ok(0);
+        for membership in
+            self.read_entries()
+                .values()
+                .map(|member_list::Entry { member, health, .. }| Membership {
+                    member: member.clone(),
+                    health: *health,
+                })
+        {
+            ok = Ok(with_closure(membership)?);
+        }
+        ok
     }
 
     /// Query the list of aging Suspect members to find those which
@@ -802,39 +710,40 @@ impl MemberList {
     // TODO (CM): Better return type than Vec<String>
     fn members_expired_to(&self, expiring_to: Health, timeout: Duration) -> Vec<String> {
         let now = SteadyTime::now();
-        let mut expired = Vec::new();
-
-        let population = match expiring_to {
-            Health::Confirmed => &self.aging_suspects,
-            Health::Departed => &self.aging_confirmed,
-            _ => {
-                // Note: this shouldn't ever be called
-                return expired;
-            }
+        let precursor_health = match expiring_to {
+            Health::Confirmed => Health::Suspect,
+            Health::Departed => Health::Confirmed,
+            other => panic!("Expiring to {} is invalid", other),
         };
 
-        population.write().expect("aging lock is poisoned").retain(
-            |ref member_id, ref starting_timestamp| {
-                if now >= **starting_timestamp + timeout {
-                    expired.push(member_id.to_string());
-                    false
+        let expired: Vec<_> = self
+            .write_entries()
+            .iter_mut()
+            .filter_map(|(id, v)| {
+                let member_list::Entry {
+                    health,
+                    health_updated_at,
+                    ..
+                } = v;
+                if *health == precursor_health && now >= *health_updated_at + timeout {
+                    *health = expiring_to;
+                    *health_updated_at = now;
+                    Some(id.clone())
                 } else {
-                    true
+                    None
                 }
-            },
-        );
+            })
+            .collect();
 
-        for id in expired.iter() {
-            self.insert_health_by_id(id, expiring_to);
+        if !expired.is_empty() {
+            self.increment_update_counter();
         }
+
         expired
     }
 
     pub fn contains_member(&self, member_id: &str) -> bool {
-        self.members
-            .read()
-            .expect("Member list lock is poisoned")
-            .contains_key(member_id)
+        self.read_entries().contains_key(member_id)
     }
 }
 
@@ -852,21 +761,12 @@ impl<'a> Serialize for MemberListProxy<'a> {
     where
         S: Serializer,
     {
-        let members = self.0.members.read().expect("Member lock is poisoned");
-        let health = self.0.health.read().expect("Health lock is poisoned");
-
-        let mut map = HashMap::new();
-
-        for (id, member) in members.iter() {
-            let h = health.get(id).unwrap();
-            let mp = MemberProxy::new(member, h);
-            map.insert(id, mp);
-        }
+        let map = self.0.read_entries();
 
         let mut m = serializer.serialize_map(Some(map.len()))?;
 
-        for (key, val) in map {
-            m.serialize_entry(key, &val)?;
+        for (id, member_list::Entry { member, health, .. }) in map.iter() {
+            m.serialize_entry(id, &MemberProxy::new(member, health))?;
         }
 
         m.end()
@@ -901,6 +801,24 @@ impl<'a> Serialize for MemberProxy<'a> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    impl MemberList {
+        // This is a remnant of when the MemberList::members entries were
+        // simple Member structs. The tests that use this should be replaced,
+        // but until then, this keeps them working.
+        fn with_member_iter<T>(
+            &self,
+            mut with_closure: impl FnMut(hash_map::Values<String, Member>) -> T,
+        ) -> T {
+            let mut member_map = HashMap::new();
+            for (id, super::member_list::Entry { member, .. }) in self.read_entries().iter() {
+                member_map.insert(id.clone(), member.clone());
+            }
+            with_closure(member_map.values())
+        }
+    }
+
     mod member {
         use member::{Incarnation, Member};
 
@@ -1323,20 +1241,15 @@ mod tests {
             same_incarnation!(same_d_to_s, Health::Departed, Health::Suspect);
             same_incarnation!(same_d_to_c, Health::Departed, Health::Confirmed);
             same_incarnation!(same_d_to_d, Health::Departed, Health::Departed);
-        }
-
-        /// Tests of MemberList::insert_health_by_id
-        mod insert_health_by_id {
-            use member::{Health, Member, MemberList};
 
             /// Tests that the transition from `from_health` to `to_health` for
-            /// `insert_health_by_id` works properly.
+            /// `insert` works properly.
             fn assert_insert_health_by_id_transition(from_health: Health, to_health: Health) {
                 let ml = MemberList::new();
                 let member_one = Member::default();
 
                 assert!(
-                    ml.insert_health_by_id(&member_one.id, from_health),
+                    ml.insert(member_one.clone(), from_health),
                     "Should be able to insert initial health of {:?} into empty MemberList",
                     from_health
                 );
@@ -1351,49 +1264,9 @@ mod tests {
 
                 let update_counter_before = ml.get_update_counter();
 
-                {
-                    let aging_suspects = ml.aging_suspects.read().unwrap();
-                    match from_health {
-                        Health::Suspect => {
-                            assert!(
-                                aging_suspects.contains_key(&member_one.id),
-                                "{:?} member should be an aging Suspect initially",
-                                from_health
-                            );
-                        }
-                        _ => {
-                            assert!(
-                                !aging_suspects.contains_key(&member_one.id),
-                                "{:?} member should not be an aging Suspect initially",
-                                from_health
-                            );
-                        }
-                    }
-                }
-
-                {
-                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
-                    match from_health {
-                        Health::Confirmed => {
-                            assert!(
-                                aging_confirmed.contains_key(&member_one.id),
-                                "{:?} member should be an aging Confirmed initially",
-                                from_health
-                            );
-                        }
-                        _ => {
-                            assert!(
-                                !aging_confirmed.contains_key(&member_one.id),
-                                "{:?} member should not be an aging Confirmed initially",
-                                from_health
-                            );
-                        }
-                    }
-                }
-
                 if from_health == to_health {
                     assert!(
-                        !ml.insert_health_by_id(&member_one.id, to_health),
+                        !ml.insert(member_one.clone(), to_health),
                         "Transitioning from {:?} to {:?} (i.e., no change) should be a no-op",
                         from_health,
                         to_health
@@ -1410,17 +1283,17 @@ mod tests {
                         "Member should have still have initial health {:?}",
                         from_health
                     );
-                } else {
+                } else if to_health > from_health {
                     assert!(
-                    ml.insert_health_by_id(&member_one.id, to_health),
-                    "Transitioning from {:?} to {:?} (i.e., different health) should NOT be a no-op",
+                    ml.insert(member_one.clone(), to_health),
+                    "Transitioning from {:?} to {:?} (i.e., worse health) should NOT be a no-op",
                     from_health,
                     to_health
-                );
+                    );
                     assert_eq!(ml.get_update_counter(), update_counter_before + 1,
                            "Transitioning from {:?} to {:?} (i.e., different health) should increment update counter by one",
                            from_health, to_health
-                );
+                    );
                     assert_eq!(
                         ml.health_of(&member_one).expect(
                             "Expected member to exist in health after update, but it didn't"
@@ -1430,50 +1303,25 @@ mod tests {
                         from_health,
                         to_health
                     );
-                }
-
-                {
-                    let aging_suspects = ml.aging_suspects.read().unwrap();
-                    match to_health {
-                        Health::Suspect => {
-                            assert!(
-                                aging_suspects.contains_key(&member_one.id),
-                                "{:?} member should be an aging Suspect after update to {:?}",
-                                from_health,
-                                to_health
-                            );
-                        }
-                        _ => {
-                            assert!(
-                                !aging_suspects.contains_key(&member_one.id),
-                                "{:?} member should not be an aging Suspect after update to {:?}",
-                                from_health,
-                                to_health
-                            );
-                        }
-                    }
-                }
-
-                {
-                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
-                    match to_health {
-                        Health::Confirmed => {
-                            assert!(
-                                aging_confirmed.contains_key(&member_one.id),
-                                "{:?} member should be an aging Confirmed after update to {:?}",
-                                from_health,
-                                to_health
-                            );
-                        }
-                        _ => {
-                            assert!(
-                                !aging_confirmed.contains_key(&member_one.id),
-                                "{:?} member should not be an aging Confirmed after update to {:?}",
-                                from_health,
-                                to_health
-                            );
-                        }
-                    }
+                } else {
+                    assert!(
+                        ml.insert(member_one.clone(), to_health) == false,
+                        "Transitioning from {:?} to {:?} (i.e., no worse health) should be a no-op",
+                        from_health,
+                        to_health
+                    );
+                    assert_eq!(ml.get_update_counter(), update_counter_before,
+                           "Transitioning from {:?} to {:?} (i.e., no worse health) should not increment update counter",
+                           from_health, to_health
+                    );
+                    assert_eq!(
+                        ml.health_of(&member_one).expect(
+                            "Expected member to exist in health after update, but it didn't"
+                        ),
+                        from_health,
+                        "Member should have retained old health {:?}",
+                        from_health
+                    );
                 }
             }
 
@@ -1537,28 +1385,12 @@ mod tests {
 
                 assert!(ml.insert(member_one.clone(), Health::Alive));
 
-                {
-                    let aging_suspects = ml.aging_suspects.read().unwrap();
-                    assert!(
-                        aging_suspects.is_empty(),
-                        "Member should not be considered an aging Suspect if it's Alive"
-                    );
-                }
-
                 assert!(
                     ml.members_expired_to_confirmed(small_timeout).is_empty(),
                     "Should be no newly Confirmed members when they're all Alive"
                 );
 
-                assert!(ml.insert_health_by_id(&member_one.id, Health::Suspect));
-
-                {
-                    let aging_suspects = ml.aging_suspects.read().unwrap();
-                    assert!(
-                        aging_suspects.contains_key(&member_one.id),
-                        "Member should be in aging_suspects after transitioning to Suspect"
-                    );
-                }
+                assert!(ml.insert(member_one.clone(), Health::Suspect));
 
                 assert!(
                     ml.members_expired_to_confirmed(large_timeout).is_empty(),
@@ -1579,22 +1411,6 @@ mod tests {
                     Some(Health::Confirmed),
                     "Member should have a health of Confirmed after timing out"
                 );
-
-                {
-                    let aging_suspects = ml.aging_suspects.read().unwrap();
-                    assert!(
-                        !aging_suspects.contains_key(&member_one.id),
-                        "Member should no longer be considered an aging Suspect after timing out to Confirmed"
-                    );
-                }
-
-                {
-                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
-                    assert!(
-                        aging_confirmed.contains_key(&member_one.id),
-                        "Member should be considered an aging Confirmed after timing out to Confirmed"
-                    );
-                }
             }
 
             #[test]
@@ -1614,39 +1430,18 @@ mod tests {
                         "An empty MemberList shouldn't have anything that's timing out to being Departed");
 
                 assert!(ml.insert(member_one.clone(), Health::Alive));
-                {
-                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
-                    assert!(
-                        aging_confirmed.is_empty(),
-                        "Member should not be considered an aging Confirmed if it's Alive"
-                    );
-                }
                 assert!(
                     ml.members_expired_to_departed(small_timeout).is_empty(),
                     "Should be no newly Departed members when they're all Alive"
                 );
 
-                assert!(ml.insert_health_by_id(&member_one.id, Health::Suspect));
-                {
-                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
-                    assert!(
-                        aging_confirmed.is_empty(),
-                        "Member should not be considered an aging Confirmed if it's Suspect"
-                    );
-                }
+                assert!(ml.insert(member_one.clone(), Health::Suspect));
                 assert!(
                     ml.members_expired_to_departed(small_timeout).is_empty(),
                     "Should be no newly Departed members when they're all Confirmed"
                 );
 
-                assert!(ml.insert_health_by_id(&member_one.id, Health::Confirmed));
-                {
-                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
-                    assert!(
-                        aging_confirmed.contains_key(&member_one.id),
-                        "Member should be in aging_confirmed after transitioning to Confirmed"
-                    );
-                }
+                assert!(ml.insert(member_one.clone(), Health::Confirmed));
 
                 assert!(
                     ml.members_expired_to_departed(small_timeout).is_empty(),
@@ -1672,13 +1467,6 @@ mod tests {
                     Some(Health::Departed),
                     "Member should have a health of Departed after timing out"
                 );
-                {
-                    let aging_confirmed = ml.aging_confirmed.read().unwrap();
-                    assert!(
-                        !aging_confirmed.contains_key(&member_one.id),
-                        "Member should no longer be considered an aging Confirmed after timing out to Departed"
-                    );
-                }
             }
 
             #[test]

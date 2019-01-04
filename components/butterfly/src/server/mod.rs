@@ -212,7 +212,7 @@ pub struct Server {
     // TODO (CM): This is currently public because butterfly-test
     // depends on it being so. Refactor so it can be private.
     pub member: Arc<RwLock<Myself>>,
-    pub member_list: MemberList,
+    pub member_list: Arc<MemberList>,
     ring_key: Arc<Option<SymKey>>,
     rumor_heat: RumorHeat,
     pub service_store: RumorStore<Service>,
@@ -312,7 +312,7 @@ impl Server {
                     // on member, if we have a better type
                     member_id: Arc::new(member_id),
                     member: Arc::new(RwLock::new(myself)),
-                    member_list: MemberList::new(),
+                    member_list: Arc::new(MemberList::new()),
                     ring_key: Arc::new(ring_key),
                     rumor_heat: RumorHeat::default(),
                     service_store: RumorStore::default(),
@@ -528,12 +528,7 @@ impl Server {
     }
 
     pub fn need_peer_seeding(&self) -> bool {
-        let m = self
-            .member_list
-            .members
-            .read()
-            .expect("Members lock is poisoned");
-        m.is_empty()
+        self.member_list.len() == 0
     }
 
     /// Persistently block a given address, causing no traffic to be seen.
@@ -655,8 +650,7 @@ impl Server {
                 // actually needed.
                 me.mark_departed();
 
-                self.member_list
-                    .insert_health_by_id(&self.member_id, Health::Departed);
+                self.member_list.set_departed(&self.member_id);
                 trace_it!(
                     MEMBERSHIP: self,
                     TraceKind::MemberUpdate,
@@ -698,7 +692,6 @@ impl Server {
 
     /// Given a membership record and some health, insert it into the Member List.
     fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
-        let mut incremented_incarnation = false;
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() {
             if health != Health::Alive {
@@ -706,7 +699,6 @@ impl Server {
                 if member.incarnation >= me.incarnation() {
                     me.refute_incarnation(member.incarnation);
                     health = Health::Alive;
-                    incremented_incarnation = true;
                 }
             }
         }
@@ -717,7 +709,7 @@ impl Server {
         let trace_incarnation = member.incarnation;
         let trace_health = health;
 
-        if self.member_list.insert(member, health) || incremented_incarnation {
+        if self.member_list.insert(member, health) {
             trace_it!(
                 MEMBERSHIP: self,
                 TraceKind::MemberUpdate,
@@ -751,20 +743,16 @@ impl Server {
             });
             service_entries.sort_by_key(|k| k.member_id.clone());
             for service_rumor in service_entries.iter().take(1) {
-                if self
-                    .member_list
-                    .insert_health_by_id(&service_rumor.member_id, Health::Departed)
-                {
-                    // TODO (CM): Why are we inferring departure from
-                    // a service rumor?
-
-                    self.rumor_heat.purge(&service_rumor.member_id);
-                    self.rumor_heat.start_hot_rumor(RumorKey::new(
-                        RumorType::Member,
-                        service_rumor.member_id.clone(),
-                        "",
-                    ));
-                }
+                // TODO (CM): Why are we inferring departure from
+                // a service rumor?
+                self.member_list.set_departed(&service_rumor.member_id);
+                // Should the following be skipped we didn't know about this member?
+                self.rumor_heat.purge(&service_rumor.member_id);
+                self.rumor_heat.start_hot_rumor(RumorKey::new(
+                    RumorType::Member,
+                    service_rumor.member_id.clone(),
+                    "",
+                ));
             }
         }
         if self.service_store.insert(service) {
@@ -795,17 +783,16 @@ impl Server {
             self.departed
                 .compare_and_swap(false, true, Ordering::Relaxed);
         }
-        if self
-            .member_list
-            .insert_health_by_id(&departure.member_id, Health::Departed)
-        {
-            self.rumor_heat.purge(&departure.member_id);
-            self.rumor_heat.start_hot_rumor(RumorKey::new(
-                RumorType::Member,
-                departure.member_id.clone(),
-                "",
-            ));
-        }
+
+        self.member_list.set_departed(&departure.member_id);
+
+        self.rumor_heat.purge(&departure.member_id);
+        self.rumor_heat.start_hot_rumor(RumorKey::new(
+            RumorType::Member,
+            departure.member_id.clone(),
+            "",
+        ));
+
         if self.departure_store.insert(departure) {
             self.rumor_heat.start_hot_rumor(rk);
         }
@@ -824,16 +811,9 @@ impl Server {
     }
 
     fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
-        match self
-            .member_list
-            .health
-            .read()
-            .expect("Health lock is poisoned")
-            .get(member_id)
-        {
-            Some(&Health::Alive) | Some(&Health::Suspect) | Some(&Health::Confirmed) => true,
-            Some(&Health::Departed) => false,
-            None => false,
+        match self.member_list.health_of_by_id(member_id) {
+            Some(Health::Alive) | Some(Health::Suspect) | Some(Health::Confirmed) => true,
+            Some(Health::Departed) | None => false,
         }
     }
 
