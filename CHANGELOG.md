@@ -11,6 +11,7 @@
 - [svc health check] allow configurable interval between checks. [#5890](https://github.com/habitat-sh/habitat/pull/5890) ([jeremymv2](https://github.com/jeremymv2))
 
 #### Merged Pull Requests
+- adding 0.72.0 release blog post [#6030](https://github.com/habitat-sh/habitat/pull/6030) ([mwrock](https://github.com/mwrock))
 - bump release version to 0.72.0 [#6029](https://github.com/habitat-sh/habitat/pull/6029) ([mwrock](https://github.com/mwrock))
 - Remove smoke-test hook [#6021](https://github.com/habitat-sh/habitat/pull/6021) ([rarenerd](https://github.com/rarenerd))
 - bump cargo deps [#6005](https://github.com/habitat-sh/habitat/pull/6005) ([mwrock](https://github.com/mwrock))
