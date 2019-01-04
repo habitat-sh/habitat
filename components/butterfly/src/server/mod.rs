@@ -37,7 +37,7 @@ use std::path::PathBuf;
 use std::result;
 use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::sync::mpsc::{self, channel};
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -221,11 +221,11 @@ pub struct Server {
     pub election_store: RumorStore<Election>,
     pub update_store: RumorStore<ElectionUpdate>,
     pub departure_store: RumorStore<Departure>,
-    swim_addr: Arc<RwLock<SocketAddr>>,
-    gossip_addr: Arc<RwLock<SocketAddr>>,
+    swim_addr: SocketAddr,
+    gossip_addr: SocketAddr,
     suitability_lookup: Arc<Box<Suitability>>,
     data_path: Arc<Option<PathBuf>>,
-    dat_file: Arc<RwLock<Option<DatFile>>>,
+    dat_file: Option<Arc<Mutex<DatFile>>>,
     socket: Option<UdpSocket>,
     departed: Arc<AtomicBool>,
     // These are all here for testing support
@@ -321,11 +321,11 @@ impl Server {
                     election_store: RumorStore::default(),
                     update_store: RumorStore::default(),
                     departure_store: RumorStore::default(),
-                    swim_addr: Arc::new(RwLock::new(swim_socket_addr)),
-                    gossip_addr: Arc::new(RwLock::new(gossip_socket_addr)),
+                    swim_addr: swim_socket_addr,
+                    gossip_addr: gossip_socket_addr,
                     suitability_lookup: Arc::new(suitability_lookup),
                     data_path: Arc::new(data_path.as_ref().map(|p| p.into())),
-                    dat_file: Arc::new(RwLock::new(None)),
+                    dat_file: None,
                     departed: Arc::new(AtomicBool::new(false)),
                     pause: Arc::new(AtomicBool::new(false)),
                     trace: Arc::new(RwLock::new(trace)),
@@ -421,8 +421,7 @@ impl Server {
                     Err(err) => return Err(err),
                 };
             }
-            let mut dat_file = self.dat_file.write().expect("DatFile lock is poisoned");
-            *dat_file = Some(file);
+            self.dat_file = Some(Arc::new(Mutex::new(file)));
 
             {
                 // Set up the incarnation persistence and ensure that
@@ -437,12 +436,7 @@ impl Server {
             }
         }
 
-        let socket = match UdpSocket::bind(
-            *self
-                .swim_addr
-                .read()
-                .expect("Swim address lock is poisoned"),
-        ) {
+        let socket = match UdpSocket::bind(self.swim_addr) {
             Ok(socket) => socket,
             Err(e) => return Err(Error::CannotBind(e)),
         };
@@ -509,12 +503,7 @@ impl Server {
                 panic!("You should never, ever get here, liu");
             });
 
-        if self
-            .dat_file
-            .read()
-            .expect("DatFile lock poisoned")
-            .is_some()
-        {
+        if self.dat_file.is_some() {
             let server_f = self.clone();
             let _ = thread::Builder::new()
                 .name(format!("persist-{}", self.name()))
@@ -553,7 +542,7 @@ impl Server {
     fn is_member_blocked(&self, member_id: &str) -> bool {
         let block_list = self
             .block_list
-            .write()
+            .read()
             .expect("Write lock for block_list is poisoned");
         block_list.contains(member_id)
     }
@@ -569,34 +558,23 @@ impl Server {
     }
 
     /// Return the swim address we are bound to
-    fn swim_addr(&self) -> SocketAddr {
-        let sa = self.swim_addr.read().expect("Swim Address lock poisoned");
-        sa.clone()
+    fn swim_addr(&self) -> &SocketAddr {
+        &self.swim_addr
     }
 
     /// Return the port number of the swim socket we are bound to.
-    pub fn swim_port(&self) -> u16 {
-        self.swim_addr
-            .read()
-            .expect("Swim Address lock poisoned")
-            .port()
+    fn swim_port(&self) -> u16 {
+        self.swim_addr.port()
     }
 
     /// Return the gossip address we are bound to
-    pub fn gossip_addr(&self) -> SocketAddr {
-        let ga = self
-            .gossip_addr
-            .read()
-            .expect("Gossip Address lock poisoned");
-        ga.clone()
+    pub fn gossip_addr(&self) -> &SocketAddr {
+        &self.gossip_addr
     }
 
     /// Return the port number of the gossip socket we are bound to.
-    pub fn gossip_port(&self) -> u16 {
-        self.gossip_addr
-            .read()
-            .expect("Gossip Address lock poisoned")
-            .port()
+    fn gossip_port(&self) -> u16 {
+        self.gossip_addr.port()
     }
 
     /// Return the member ID of this server.
@@ -1147,7 +1125,8 @@ impl Server {
     }
 
     pub fn persist_data(&self) {
-        if let Some(ref dat_file) = *self.dat_file.write().expect("DatFile lock poisoned") {
+        if let Some(ref dat_file_lock) = self.dat_file {
+            let dat_file = dat_file_lock.lock().expect("DatFile lock poisoned");
             if let Some(err) = dat_file.write(self).err() {
                 error!("Error persisting rumors to disk, {}", err);
             } else {
