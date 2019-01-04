@@ -21,8 +21,10 @@ function runCommand(command, args) {
 }
 
 function parseOutput(command, output) {
+  const sectionToken = '\^/--IMATOKEN--\^/';
+
   const lines = output.split('\n');
-  const sections = output.split('\n\n');
+  const sections = output.replace(/\n\n(.+):\n/g, sectionToken + '$1:').split(sectionToken);
 
   let result = {
     name: lines[0].trim(),
