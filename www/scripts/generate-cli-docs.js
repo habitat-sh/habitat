@@ -2,7 +2,7 @@ const { spawnSync } = require('child_process');
 const { platform } = require('os');
 
 function getHelp(command, sub) {
-  const proc = runCommand(command, ['--help']);
+  const proc = runCommand(command, ['-h']);
 
   function render(data) {
     parsed = parseOutput(command, data.replace(/`/g, ''));
