@@ -11,6 +11,7 @@
 - [svc health check] allow configurable interval between checks. [#5890](https://github.com/habitat-sh/habitat/pull/5890) ([jeremymv2](https://github.com/jeremymv2))
 
 #### Merged Pull Requests
+- update cargo locks [#6038](https://github.com/habitat-sh/habitat/pull/6038) ([mwrock](https://github.com/mwrock))
 - ListenCtlAddr type [#5950](https://github.com/habitat-sh/habitat/pull/5950) ([mpeck](https://github.com/mpeck))
 - bump dev version for 0.73 [#6036](https://github.com/habitat-sh/habitat/pull/6036) ([mwrock](https://github.com/mwrock))
 - Parameterize the rumor sharing limit [#6032](https://github.com/habitat-sh/habitat/pull/6032) ([christophermaier](https://github.com/christophermaier))
