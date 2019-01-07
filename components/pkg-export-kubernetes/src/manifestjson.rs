@@ -14,8 +14,8 @@
 
 use serde_json::Value;
 
-use hb;
-use manifest::Manifest;
+use crate::hb;
+use crate::manifest::Manifest;
 
 /// Represents the [`Manifest`] in JSON format. This is an intermediate type that can be converted
 /// to the final manifest YAML file content, ready for consumption by a Kubernetes cluster.

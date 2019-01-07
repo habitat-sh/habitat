@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hcore::fs::FS_ROOT_PATH;
+use crate::hcore::fs::FS_ROOT_PATH;
 use std::path::{Path, PathBuf};
 
 lazy_static! {

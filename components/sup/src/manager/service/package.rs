@@ -18,15 +18,15 @@ use std::ops::Deref;
 use std::path::PathBuf;
 use std::result;
 
-use hcore::os::users;
-use hcore::package::{PackageIdent, PackageInstall};
-use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
+use crate::hcore::os::users;
+use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
-use error::{Error, Result};
-use fs;
-use util;
+use crate::error::{Error, Result};
+use crate::fs;
+use crate::util;
 
 const DEFAULT_USER: &'static str = "hab";
 const DEFAULT_GROUP: &'static str = "hab";

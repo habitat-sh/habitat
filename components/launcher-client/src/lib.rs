@@ -23,12 +23,12 @@ extern crate protobuf;
 mod client;
 pub mod error;
 
-pub use protocol::{
+pub use crate::protocol::{
     ERR_NO_RETRY_EXCODE, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV, OK_NO_RETRY_EXCODE,
 };
 
-pub use client::LauncherCli;
-pub use error::Error;
+pub use crate::client::LauncherCli;
+pub use crate::error::Error;
 
 pub fn env_pipe() -> Option<String> {
     core::env::var(protocol::LAUNCHER_PIPE_ENV).ok()

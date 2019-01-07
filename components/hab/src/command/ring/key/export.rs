@@ -16,9 +16,9 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
-use hcore::crypto::SymKey;
+use crate::hcore::crypto::SymKey;
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ring: &str, cache: &Path) -> Result<()> {
     let latest = SymKey::get_latest_pair_for(ring, cache)?;

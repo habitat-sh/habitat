@@ -14,14 +14,14 @@
 
 use std::path::Path;
 
-use api_client::Client;
-use common;
-use common::command::package::install::{RETRIES, RETRY_WAIT};
-use common::ui::{Status, UIWriter, UI};
-use hcore::crypto::SigKeyPair;
+use crate::api_client::Client;
+use crate::common;
+use crate::common::command::package::install::{RETRIES, RETRY_WAIT};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::crypto::SigKeyPair;
 
-use error::{Error, Result};
-use {PRODUCT, VERSION};
+use crate::error::{Error, Result};
+use crate::{PRODUCT, VERSION};
 
 use retry::retry;
 

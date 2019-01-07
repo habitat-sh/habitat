@@ -65,8 +65,8 @@ pub mod message;
 pub mod net;
 pub mod types;
 
-use core::env as henv;
-use net::{ErrCode, NetResult};
+use crate::core::env as henv;
+use crate::net::{ErrCode, NetResult};
 use rand::RngCore;
 use std::fs::File;
 use std::io::Read;

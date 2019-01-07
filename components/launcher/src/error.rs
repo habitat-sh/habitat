@@ -19,9 +19,9 @@ use std::result;
 
 use ipc_channel;
 use protobuf;
-use protocol;
+use crate::protocol;
 
-use {SUP_CMD, SUP_PACKAGE_IDENT};
+use crate::{SUP_CMD, SUP_PACKAGE_IDENT};
 
 #[derive(Debug)]
 pub enum Error {

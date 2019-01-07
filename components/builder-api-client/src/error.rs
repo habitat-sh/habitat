@@ -23,8 +23,8 @@ use hyper;
 use serde_json;
 use url;
 
-use hab_core;
-use hab_http;
+use crate::hab_core;
+use crate::hab_http;
 
 pub type Result<T> = result::Result<T, Error>;
 

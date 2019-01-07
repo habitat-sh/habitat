@@ -54,20 +54,20 @@ use std::fmt;
 use std::result;
 use std::str::FromStr;
 
-use common::ui::{UIWriter, UI};
-use hcore::url as hurl;
-use hcore::{channel, PROGRAM_NAME};
+use crate::common::ui::{UIWriter, UI};
+use crate::hcore::url as hurl;
+use crate::hcore::{channel, PROGRAM_NAME};
 
-use aws_creds::StaticProvider;
+use crate::aws_creds::StaticProvider;
 use clap::App;
 use rusoto_core::request::*;
 use rusoto_core::Region;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use build::BuildSpec;
-pub use cli::{Cli, PkgIdentArgOptions};
-pub use docker::{DockerBuildRoot, DockerImage};
-pub use error::{Error, Result};
+pub use crate::build::BuildSpec;
+pub use crate::cli::{Cli, PkgIdentArgOptions};
+pub use crate::docker::{DockerBuildRoot, DockerImage};
+pub use crate::error::{Error, Result};
 
 /// The version of this library and program when built.
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

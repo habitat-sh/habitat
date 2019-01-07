@@ -16,7 +16,7 @@ use std::error;
 use std::fmt;
 use std::result;
 
-use core;
+use crate::core;
 
 #[derive(Debug)]
 pub enum Error {

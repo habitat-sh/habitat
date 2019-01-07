@@ -21,11 +21,11 @@ use std::time::Duration;
 
 use time::{Duration as TimeDuration, SteadyTime};
 
-use common::command::package::install::InstallSource;
-use common::ui::UI;
-use env;
-use hcore::package::{PackageIdent, PackageInstall};
-use util;
+use crate::common::command::package::install::InstallSource;
+use crate::common::ui::UI;
+use crate::env;
+use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::util;
 
 pub const SUP_PKG_IDENT: &'static str = "core/hab-sup";
 const DEFAULT_FREQUENCY: i64 = 60_000;

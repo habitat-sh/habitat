@@ -19,9 +19,9 @@ use std::str::FromStr;
 use std::string::ToString;
 use url::Url;
 
-use export_docker::Result;
+use crate::export_docker::Result;
 
-use error::Error;
+use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct Maintainer {

@@ -42,21 +42,21 @@ use std::path::{Path, PathBuf};
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
-use api_client::Error::APIError;
-use api_client::{self, Client};
+use crate::api_client::Error::APIError;
+use crate::api_client::{self, Client};
 use glob;
-use hcore;
-use hcore::crypto::keys::parse_name_with_rev;
-use hcore::crypto::{artifact, SigKeyPair};
-use hcore::fs::cache_key_path;
-use hcore::fs::pkg_install_path;
-use hcore::package::list::temp_package_directory;
-use hcore::package::metadata::PackageType;
-use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
+use crate::hcore;
+use crate::hcore::crypto::keys::parse_name_with_rev;
+use crate::hcore::crypto::{artifact, SigKeyPair};
+use crate::hcore::fs::cache_key_path;
+use crate::hcore::fs::pkg_install_path;
+use crate::hcore::package::list::temp_package_directory;
+use crate::hcore::package::metadata::PackageType;
+use crate::hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
 use hyper::status::StatusCode;
 
-use error::{Error, Result};
-use ui::{Status, UIWriter};
+use crate::error::{Error, Result};
+use crate::ui::{Status, UIWriter};
 
 use retry::retry;
 

@@ -23,19 +23,19 @@ use std::time;
 
 use time::Duration;
 
-use butterfly;
-use common::ui::UI;
-use hcore::env as henv;
-use hcore::package::{PackageIdent, PackageInstall, PackageTarget};
-use hcore::service::ServiceGroup;
-use launcher_client::LauncherCli;
+use crate::butterfly;
+use crate::common::ui::UI;
+use crate::hcore::env as henv;
+use crate::hcore::package::{PackageIdent, PackageInstall, PackageTarget};
+use crate::hcore::service::ServiceGroup;
+use crate::launcher_client::LauncherCli;
 
-use census::CensusRing;
-use common::types::EnvConfig;
-use manager::periodic::Periodic;
-use manager::service::{Service, Topology, UpdateStrategy};
+use crate::census::CensusRing;
+use crate::common::types::EnvConfig;
+use crate::manager::periodic::Periodic;
+use crate::manager::service::{Service, Topology, UpdateStrategy};
 use time::SteadyTime;
-use util;
+use crate::util;
 
 static LOGKEY: &'static str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not

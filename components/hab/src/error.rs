@@ -21,12 +21,12 @@ use std::num;
 use std::path::{self, PathBuf};
 use std::result;
 
-use api_client;
-use common;
+use crate::api_client;
+use crate::common;
 use handlebars;
-use hcore;
-use protocol::net;
-use sup_client::SrvClientError;
+use crate::hcore;
+use crate::protocol::net;
+use crate::sup_client::SrvClientError;
 use toml;
 
 pub type Result<T> = result::Result<T, Error>;

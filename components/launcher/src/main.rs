@@ -21,7 +21,7 @@ extern crate log;
 use std::env;
 use std::process;
 
-use launcher::server;
+use crate::launcher::server;
 
 fn main() {
     env_logger::init();

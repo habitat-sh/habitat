@@ -25,20 +25,20 @@ pub mod cli;
 mod error;
 mod rootfs;
 
-pub use cli::Cli;
-use common::ui::UI;
-pub use error::{Error, Result};
+pub use crate::cli::Cli;
+use crate::common::ui::UI;
+pub use crate::error::{Error, Result};
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use hcore::channel;
-use hcore::package::{PackageIdent, PackageInstall};
-use hcore::url as hurl;
+use crate::hcore::channel;
+use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::url as hurl;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use tar::Builder;
 
-pub use build::BuildSpec;
+pub use crate::build::BuildSpec;
 
 /// The version of this library and program when built.
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

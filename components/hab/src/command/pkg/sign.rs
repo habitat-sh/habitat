@@ -14,10 +14,10 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UIWriter, UI};
-use hcore::crypto::{artifact, SigKeyPair};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::crypto::{artifact, SigKeyPair};
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ui: &mut UI, origin: &SigKeyPair, src: &Path, dst: &Path) -> Result<()> {
     ui.begin(format!("Signing {}", src.display()))?;

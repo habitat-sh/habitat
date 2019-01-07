@@ -43,21 +43,21 @@ use std::time::Duration;
 
 use num_cpus;
 
-use butterfly;
-use butterfly::member::Member;
-use butterfly::server::{timing::Timing, ServerProxy, Suitability};
-use butterfly::trace::Trace;
-use common::types::{EnvConfig, ListenCtlAddr};
+use crate::butterfly;
+use crate::butterfly::member::Member;
+use crate::butterfly::server::{timing::Timing, ServerProxy, Suitability};
+use crate::butterfly::trace::Trace;
+use crate::common::types::{EnvConfig, ListenCtlAddr};
 use futures::prelude::*;
 use futures::sync::mpsc;
-use hcore::crypto::SymKey;
-use hcore::env;
-use hcore::os::process::{self, Pid, Signal};
-use hcore::os::signals::{self, SignalEvent};
-use hcore::package::{Identifiable, PackageIdent, PackageInstall};
-use hcore::service::ServiceGroup;
-use launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
-use protocol;
+use crate::hcore::crypto::SymKey;
+use crate::hcore::env;
+use crate::hcore::os::process::{self, Pid, Signal};
+use crate::hcore::os::signals::{self, SignalEvent};
+use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use crate::hcore::service::ServiceGroup;
+use crate::launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
+use crate::protocol;
 use rustls::{internal::pemfile, NoClientAuth, ServerConfig};
 use serde_json;
 use time::{self, Duration as TimeDuration, Timespec};
@@ -77,13 +77,13 @@ use self::spec_watcher::SpecWatcher;
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use super::feat;
-use census::{CensusRing, CensusRingProxy};
-use config::GossipListenAddr;
-use ctl_gateway::{self, CtlRequest};
-use error::{Error, Result, SupError};
-use http_gateway;
-use ShutdownReason;
-use VERSION;
+use crate::census::{CensusRing, CensusRingProxy};
+use crate::config::GossipListenAddr;
+use crate::ctl_gateway::{self, CtlRequest};
+use crate::error::{Error, Result, SupError};
+use crate::http_gateway;
+use crate::ShutdownReason;
+use crate::VERSION;
 
 const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
 const PROC_LOCK_FILE: &'static str = "LOCK";
@@ -1411,7 +1411,7 @@ impl Future for CtlHandler {
 #[cfg(test)]
 mod test {
     use super::*;
-    use protocol::STATE_PATH_PREFIX;
+    use crate::protocol::STATE_PATH_PREFIX;
     use std::path::PathBuf;
 
     #[test]

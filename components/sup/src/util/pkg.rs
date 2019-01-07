@@ -14,16 +14,16 @@
 
 use std::path::Path;
 
-use common;
-use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
-use common::ui::UIWriter;
-use hcore::env as henv;
-use hcore::fs::{self, FS_ROOT_PATH};
-use hcore::package::{PackageIdent, PackageInstall};
-use hcore::AUTH_TOKEN_ENVVAR;
+use crate::common;
+use crate::common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
+use crate::common::ui::UIWriter;
+use crate::hcore::env as henv;
+use crate::hcore::fs::{self, FS_ROOT_PATH};
+use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::AUTH_TOKEN_ENVVAR;
 
-use error::{Result, SupError};
-use {PRODUCT, VERSION};
+use crate::error::{Result, SupError};
+use crate::{PRODUCT, VERSION};
 
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.

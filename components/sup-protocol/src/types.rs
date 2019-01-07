@@ -25,10 +25,10 @@ include!("generated/sup.types.impl.rs");
 use std::fmt;
 use std::str::FromStr;
 
-use core;
-use core::package::{self, Identifiable};
+use crate::core;
+use crate::core::package::{self, Identifiable};
 
-use net::{self, ErrCode, NetErr};
+use crate::net::{self, ErrCode, NetErr};
 
 impl ServiceGroup {
     pub fn validate(value: &str) -> core::Result<()> {

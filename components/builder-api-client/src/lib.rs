@@ -37,7 +37,7 @@ extern crate tee;
 extern crate url;
 
 pub mod error;
-pub use error::{Error, Result};
+pub use crate::error::{Error, Result};
 
 use std::fmt;
 use std::fs::{self, File};
@@ -47,9 +47,9 @@ use std::string::ToString;
 
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
-use hab_core::package::{Identifiable, PackageArchive, PackageIdent, PackageTarget};
-use hab_http::util::decoded_response;
-use hab_http::ApiClient;
+use crate::hab_core::package::{Identifiable, PackageArchive, PackageIdent, PackageTarget};
+use crate::hab_http::util::decoded_response;
+use crate::hab_http::ApiClient;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;

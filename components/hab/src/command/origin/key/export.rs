@@ -16,10 +16,10 @@ use std::fs::File;
 use std::io;
 use std::path::Path;
 
-use hcore::crypto::keys::PairType;
-use hcore::crypto::SigKeyPair;
+use crate::hcore::crypto::keys::PairType;
+use crate::hcore::crypto::SigKeyPair;
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(origin: &str, pair_type: PairType, cache: &Path) -> Result<()> {
     let latest = SigKeyPair::get_latest_pair_for(origin, cache, Some(&pair_type))?;

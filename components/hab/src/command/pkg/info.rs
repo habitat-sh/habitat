@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use common::ui::{UIWriter, UI};
-use error::Result;
-use hcore::package::PackageArchive;
+use crate::common::ui::{UIWriter, UI};
+use crate::error::Result;
+use crate::hcore::package::PackageArchive;
 use serde::Serialize;
 use serde_json::{self, Value as Json};
 use std::io::{self, Write};

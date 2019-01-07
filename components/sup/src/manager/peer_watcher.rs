@@ -20,10 +20,10 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread::Builder as ThreadBuilder;
 
-use butterfly::member::Member;
-use common::cli_defaults::GOSSIP_DEFAULT_PORT;
-use error::{Error, Result};
-use manager::file_watcher::{default_file_watcher, Callbacks};
+use crate::butterfly::member::Member;
+use crate::common::cli_defaults::GOSSIP_DEFAULT_PORT;
+use crate::error::{Error, Result};
+use crate::manager::file_watcher::{default_file_watcher, Callbacks};
 
 static LOGKEY: &'static str = "PW";
 
@@ -162,8 +162,8 @@ impl PeerWatcher {
 #[cfg(test)]
 mod tests {
     use super::PeerWatcher;
-    use butterfly::member::Member;
-    use common::cli_defaults::GOSSIP_DEFAULT_PORT;
+    use crate::butterfly::member::Member;
+    use crate::common::cli_defaults::GOSSIP_DEFAULT_PORT;
     use std::fs::{File, OpenOptions};
     use std::io::Write;
     use tempfile::TempDir;

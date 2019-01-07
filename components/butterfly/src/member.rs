@@ -34,10 +34,10 @@ use serde::{
 use time::{Duration, SteadyTime};
 use uuid::Uuid;
 
-use error::{Error, Result};
-pub use protocol::swim::Health;
-use protocol::{self, newscast, swim as proto, FromProto};
-use rumor::{RumorKey, RumorPayload, RumorType};
+use crate::error::{Error, Result};
+pub use crate::protocol::swim::Health;
+use crate::protocol::{self, newscast, swim as proto, FromProto};
+use crate::rumor::{RumorKey, RumorPayload, RumorType};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -820,7 +820,7 @@ mod tests {
     }
 
     mod member {
-        use member::{Incarnation, Member};
+        use crate::member::{Incarnation, Member};
 
         // Sets the uuid to simple, and the incarnation to the default.
         #[test]
@@ -832,8 +832,8 @@ mod tests {
     }
 
     mod membership {
-        use member::{Health, Member, Membership};
-        use protocol::Message;
+        use crate::member::{Health, Member, Membership};
+        use crate::protocol::Message;
         #[test]
         fn encode_decode_roundtrip() {
             let member = Member::default();
@@ -855,7 +855,7 @@ mod tests {
     }
 
     mod member_list {
-        use member::{Health, Member, MemberList, PINGREQ_TARGETS};
+        use crate::member::{Health, Member, MemberList, PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
             let ml = MemberList::new();
@@ -959,7 +959,7 @@ mod tests {
 
         /// Tests of MemberList::insert
         mod insert {
-            use member::{Health, Incarnation, Member, MemberList};
+            use crate::member::{Health, Incarnation, Member, MemberList};
 
             fn assert_cannot_insert_member_rumor_of_lower_incarnation(
                 from_health: Health,
@@ -1362,7 +1362,7 @@ mod tests {
         /// - MemberList::members_expired_to_confirmed
         /// - MemberList::members_expired_to_departed
         mod timed_expiration {
-            use member::{Health, Member, MemberList};
+            use crate::member::{Health, Member, MemberList};
             use std::thread;
             use std::time::Duration as StdDuration;
             use time::Duration;

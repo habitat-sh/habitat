@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use error::Result;
-use hcore::fs as hfs;
-use hcore::package::list;
-use hcore::package::PackageIdent;
+use crate::error::Result;
+use crate::hcore::fs as hfs;
+use crate::hcore::package::list;
+use crate::hcore::package::PackageIdent;
 
 use std::path::Path;
 use std::str::FromStr;

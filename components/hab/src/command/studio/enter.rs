@@ -17,13 +17,13 @@ use std::ffi::OsString;
 use std::fs as stdfs;
 use std::path::PathBuf;
 
-use common::ui::UI;
-use hcore::crypto::CACHE_KEY_PATH_ENV_VAR;
-use hcore::env as henv;
-use hcore::fs;
+use crate::common::ui::UI;
+use crate::hcore::crypto::CACHE_KEY_PATH_ENV_VAR;
+use crate::hcore::env as henv;
+use crate::hcore::fs;
 
-use config;
-use error::Result;
+use crate::config;
+use crate::error::Result;
 
 pub const ARTIFACT_PATH_ENVVAR: &'static str = "ARTIFACT_PATH";
 
@@ -71,19 +71,19 @@ mod inner {
     use std::path::PathBuf;
     use std::str::FromStr;
 
-    use common::ui::{UIWriter, UI};
-    use hcore::crypto::{default_cache_key_path, init};
-    use hcore::env as henv;
-    use hcore::fs::{am_i_root, find_command};
-    use hcore::os::process;
-    use hcore::package::PackageIdent;
-    use hcore::users::linux as group;
+    use crate::common::ui::{UIWriter, UI};
+    use crate::hcore::crypto::{default_cache_key_path, init};
+    use crate::hcore::env as henv;
+    use crate::hcore::fs::{am_i_root, find_command};
+    use crate::hcore::os::process;
+    use crate::hcore::package::PackageIdent;
+    use crate::hcore::users::linux as group;
 
-    use error::{Error, Result};
-    use exec;
-    use VERSION;
+    use crate::error::{Error, Result};
+    use crate::exec;
+    use crate::VERSION;
 
-    use command::studio::docker;
+    use crate::command::studio::docker;
 
     const SUDO_CMD: &'static str = "sudo";
 

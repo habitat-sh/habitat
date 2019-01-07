@@ -17,14 +17,14 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
-use common::ui::{Status, UIWriter, UI};
-use export_docker;
-use export_docker::Result;
-use export_k8s::{Manifest, ManifestJson, PersistentStorage};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::export_docker;
+use crate::export_docker::Result;
+use crate::export_k8s::{Manifest, ManifestJson, PersistentStorage};
 
-use chartfile::ChartFile;
-use deps::Deps;
-use values::Values;
+use crate::chartfile::ChartFile;
+use crate::deps::Deps;
+use crate::values::Values;
 
 pub struct Chart<'a> {
     chartdir: PathBuf,

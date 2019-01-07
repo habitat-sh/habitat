@@ -22,10 +22,10 @@ use std::thread;
 use std::time::Duration;
 
 use super::AckSender;
-use member::Health;
-use server::{outbound, Server};
-use swim::{Ack, Ping, PingReq, Swim, SwimKind};
-use trace::TraceKind;
+use crate::member::Health;
+use crate::server::{outbound, Server};
+use crate::swim::{Ack, Ping, PingReq, Swim, SwimKind};
+use crate::trace::TraceKind;
 
 /// Takes the Server and a channel to send received Acks to the outbound thread.
 pub struct Inbound {

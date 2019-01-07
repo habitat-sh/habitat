@@ -21,7 +21,7 @@ pub use self::spawn::*;
 pub use self::terminate::*;
 
 use protobuf;
-use protocol;
+use crate::protocol;
 
 use super::{Sender, ServiceTable};
 

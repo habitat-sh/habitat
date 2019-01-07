@@ -15,14 +15,14 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::str;
 
-use butterfly::rumor::service::SysInfo;
-use hcore;
+use crate::butterfly::rumor::service::SysInfo;
+use crate::hcore;
 
-use common::types::ListenCtlAddr;
-use config::GossipListenAddr;
-use error::{Error, Result};
-use http_gateway;
-use VERSION;
+use crate::common::types::ListenCtlAddr;
+use crate::config::GossipListenAddr;
+use crate::error::{Error, Result};
+use crate::http_gateway;
+use crate::VERSION;
 
 static LOGKEY: &'static str = "SY";
 

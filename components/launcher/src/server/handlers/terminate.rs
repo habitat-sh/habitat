@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use protocol;
+use crate::protocol;
 
 use super::{HandleResult, Handler};
-use server::ServiceTable;
+use crate::server::ServiceTable;
 
 pub struct TerminateHandler;
 impl Handler for TerminateHandler {

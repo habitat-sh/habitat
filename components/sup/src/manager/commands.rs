@@ -25,28 +25,28 @@ use serde_json;
 use time::{self, Duration as TimeDuration, Timespec};
 use toml;
 
-use butterfly;
-use common::{command::package::install::InstallSource, ui::UIWriter};
-use ctl_gateway::CtlRequest;
-use error::{Error, Result};
-use hcore::{
+use crate::butterfly;
+use crate::common::{command::package::install::InstallSource, ui::UIWriter};
+use crate::ctl_gateway::CtlRequest;
+use crate::error::{Error, Result};
+use crate::hcore::{
     fs::FS_ROOT_PATH,
     package::metadata::PackageType,
     package::{Identifiable, PackageIdent, PackageInstall, PackageTarget},
     service::ServiceGroup,
 };
-use manager::{
+use crate::manager::{
     service::{
         spec::{IntoServiceSpec, ServiceSpec},
         CompositeSpec, DesiredState, Pkg, ProcessState, Spec,
     },
     ManagerConfig, ManagerState,
 };
-use protocol::{
+use crate::protocol::{
     self,
     net::{self, ErrCode, NetResult},
 };
-use util;
+use crate::util;
 
 static LOGKEY: &'static str = "CMD";
 

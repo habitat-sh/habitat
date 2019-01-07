@@ -24,7 +24,7 @@ use std::error;
 use std::fmt;
 use std::io;
 
-use core;
+use crate::core;
 
 pub type NetResult<T> = Result<T, NetErr>;
 

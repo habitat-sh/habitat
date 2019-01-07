@@ -34,17 +34,17 @@ use std::time::Duration;
 use futures::future::{self, Either};
 use futures::prelude::*;
 use futures::sync::mpsc;
-use hcore::crypto;
+use crate::hcore::crypto;
 use prost;
-use protocol;
-use protocol::codec::*;
-use protocol::net::{self, ErrCode, NetErr, NetResult};
+use crate::protocol;
+use crate::protocol::codec::*;
+use crate::protocol::net::{self, ErrCode, NetErr, NetResult};
 use tokio::net::TcpListener;
 use tokio_codec::Framed;
 use tokio_core::reactor;
 
 use super::{CtlRequest, REQ_TIMEOUT};
-use manager::{commands, ManagerState};
+use crate::manager::{commands, ManagerState};
 
 /// Sending half of an mpsc unbounded channel used for sending replies for a transactional message
 /// from the main thread back to the CtlGateway. This half is stored in a

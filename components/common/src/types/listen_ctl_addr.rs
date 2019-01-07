@@ -18,7 +18,7 @@ use std::result;
 use std::str::FromStr;
 
 use super::env_config::EnvConfig;
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);

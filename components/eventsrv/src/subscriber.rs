@@ -29,7 +29,7 @@ use std::io::Read;
 
 use byteorder::{ByteOrder, LittleEndian};
 use protobuf::parse_from_bytes;
-use protocol::{EventEnvelope, EventEnvelope_Type, ServiceUpdate as ServiceUpdateProto};
+use crate::protocol::{EventEnvelope, EventEnvelope_Type, ServiceUpdate as ServiceUpdateProto};
 use zmq::{Context, SUB};
 
 fn main() {

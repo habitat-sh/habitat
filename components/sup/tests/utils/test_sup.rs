@@ -24,7 +24,7 @@ use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 
-use hcore::url::BLDR_URL_ENVVAR;
+use crate::hcore::url::BLDR_URL_ENVVAR;
 use rand;
 use rand::distributions::{Distribution, Uniform};
 

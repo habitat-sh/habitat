@@ -28,11 +28,11 @@ use std::option;
 use std::result;
 use std::str::FromStr;
 
-use common::{
+use crate::common::{
     cli_defaults::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR},
     types::EnvConfig,
 };
-use error::{Result, SupError};
+use crate::error::{Result, SupError};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);

@@ -22,9 +22,9 @@ use std::str;
 use std::string;
 use toml;
 
-use api_client;
-use hcore;
-use hcore::package::PackageIdent;
+use crate::api_client;
+use crate::hcore;
+use crate::hcore::package::PackageIdent;
 
 pub type Result<T> = result::Result<T, Error>;
 

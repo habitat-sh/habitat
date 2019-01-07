@@ -19,9 +19,9 @@
 use std::thread;
 use std::time::Duration;
 
-use rumor::{RumorKey, RumorType};
-use server::timing::Timing;
-use server::Server;
+use crate::rumor::{RumorKey, RumorType};
+use crate::server::timing::Timing;
+use crate::server::Server;
 
 const LOOP_DELAY_MS: u64 = 500;
 

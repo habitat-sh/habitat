@@ -30,7 +30,7 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
-use common::ui::{Status, UIWriter, UI};
+use crate::common::ui::{Status, UIWriter, UI};
 
 pub mod cli;
 pub mod env;
@@ -42,14 +42,14 @@ pub mod service_bind;
 pub mod storage;
 pub mod topology;
 
-use export_docker::Result;
+use crate::export_docker::Result;
 
-pub use cli::Cli;
-pub use error::Error;
-pub use hb::QuoteHelper;
-pub use manifest::Manifest;
-pub use manifestjson::ManifestJson;
-pub use storage::PersistentStorage;
+pub use crate::cli::Cli;
+pub use crate::error::Error;
+pub use crate::hb::QuoteHelper;
+pub use crate::manifest::Manifest;
+pub use crate::manifestjson::ManifestJson;
+pub use crate::storage::PersistentStorage;
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &'static str = "0.1.0";

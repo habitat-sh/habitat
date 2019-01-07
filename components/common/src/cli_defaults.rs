@@ -17,7 +17,7 @@
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
 
-use types::ListenCtlAddr;
+use crate::types::ListenCtlAddr;
 
 pub const GOSSIP_DEFAULT_IP: &str = "0.0.0.0";
 pub const GOSSIP_DEFAULT_PORT: u16 = 9638;

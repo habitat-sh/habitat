@@ -19,8 +19,8 @@ use std::fs::{self, File};
 use std::io::{BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 
-use error::{Error, Result};
-use member::Incarnation;
+use crate::error::{Error, Result};
+use crate::member::Incarnation;
 use std::io;
 use std::num;
 

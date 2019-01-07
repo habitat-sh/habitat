@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use rumor::departure::Departure as CDeparture;
-use rumor::election::{Election as CElection, ElectionUpdate as CElectionUpdate};
-use rumor::service::Service as CService;
-use rumor::service_config::ServiceConfig as CServiceConfig;
-use rumor::service_file::ServiceFile as CServiceFile;
+use crate::rumor::departure::Departure as CDeparture;
+use crate::rumor::election::{Election as CElection, ElectionUpdate as CElectionUpdate};
+use crate::rumor::service::Service as CService;
+use crate::rumor::service_config::ServiceConfig as CServiceConfig;
+use crate::rumor::service_file::ServiceFile as CServiceFile;
 
 include!("../generated/butterfly.newscast.rs");
 

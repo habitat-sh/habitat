@@ -19,10 +19,10 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::str::FromStr;
 
-use hcore::fs::{find_command, FS_ROOT_PATH};
-use hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::fs::{find_command, FS_ROOT_PATH};
+use crate::hcore::package::{PackageIdent, PackageInstall};
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 static LOGKEY: &'static str = "PT";
 

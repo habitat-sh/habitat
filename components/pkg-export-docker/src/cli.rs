@@ -20,10 +20,10 @@ use std::result;
 use std::str::FromStr;
 
 use clap::{App, Arg};
-use hcore::package::PackageIdent;
+use crate::hcore::package::PackageIdent;
 use url::Url;
 
-use RegistryType;
+use crate::RegistryType;
 
 /// The version of this library and program when built.
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

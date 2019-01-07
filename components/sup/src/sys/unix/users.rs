@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hcore::os::users;
+use crate::hcore::os::users;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 static LOGKEY: &'static str = "UR";
 

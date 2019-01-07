@@ -30,18 +30,18 @@ use winreg::enums::{HKEY_LOCAL_MACHINE, KEY_ALL_ACCESS, KEY_READ};
 #[cfg(windows)]
 use winreg::RegKey;
 
-use common::ui::{UIReader, UIWriter, UI};
-use hcore::crypto::SigKeyPair;
-use hcore::env as henv;
-use hcore::package::ident;
-use hcore::Error::InvalidOrigin;
+use crate::common::ui::{UIReader, UIWriter, UI};
+use crate::hcore::crypto::SigKeyPair;
+use crate::hcore::env as henv;
+use crate::hcore::package::ident;
+use crate::hcore::Error::InvalidOrigin;
 use url::Url;
 
-use analytics;
-use command;
-use config;
-use error::Result;
-use {AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR};
+use crate::analytics;
+use crate::command;
+use crate::config;
+use crate::error::Result;
+use crate::{AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR};
 
 pub fn start(
     ui: &mut UI,

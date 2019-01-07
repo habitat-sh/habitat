@@ -20,9 +20,9 @@
 
 use std::cmp::Ordering;
 
-use error::{Error, Result};
-use protocol::{self, newscast, newscast::Rumor as ProtoRumor, FromProto};
-use rumor::{Rumor, RumorPayload, RumorType};
+use crate::error::{Error, Result};
+use crate::protocol::{self, newscast, newscast::Rumor as ProtoRumor, FromProto};
+use crate::rumor::{Rumor, RumorPayload, RumorType};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Departure {
@@ -107,7 +107,7 @@ mod tests {
     use std::cmp::Ordering;
 
     use super::Departure;
-    use rumor::{Rumor, RumorStore};
+    use crate::rumor::{Rumor, RumorStore};
 
     fn create_departure(member_id: &str) -> Departure {
         Departure::new(member_id)

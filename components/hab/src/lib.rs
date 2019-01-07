@@ -74,7 +74,7 @@ pub const CTL_SECRET_ENVVAR: &'static str = "HAB_CTL_SECRET";
 pub const ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 pub const BLDR_URL_ENVVAR: &'static str = "HAB_BLDR_URL";
 
-pub use hcore::AUTH_TOKEN_ENVVAR;
+pub use crate::hcore::AUTH_TOKEN_ENVVAR;
 
 features! {
     pub mod feat {

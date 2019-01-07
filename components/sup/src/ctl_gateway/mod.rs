@@ -30,13 +30,13 @@ use std::path::Path;
 
 use regex::Regex;
 
-use api_client::DisplayProgress;
-use common::ui::UIWriter;
+use crate::api_client::DisplayProgress;
+use crate::common::ui::UIWriter;
 use futures::prelude::*;
-use hcore::{self, output};
-use protocol;
+use crate::hcore::{self, output};
+use crate::protocol;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 lazy_static! {
     /// Shamelessly stolen from https://github.com/chalk/ansi-regex/blob/master/index.js
@@ -283,7 +283,7 @@ where
 
 #[cfg(not(windows))]
 fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-    use hcore::util::posix_perm;
+    use crate::hcore::util::posix_perm;
 
     posix_perm::set_permissions(path.as_ref(), CTL_SECRET_PERMISSIONS)
 }

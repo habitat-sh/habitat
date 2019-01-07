@@ -17,12 +17,12 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use core::os::process::Pid;
+use crate::core::os::process::Pid;
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use protobuf;
-use protocol;
+use crate::protocol;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 type Env = HashMap<String, String>;
 type IpcServer = IpcOneShotServer<Vec<u8>>;

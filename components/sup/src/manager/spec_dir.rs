@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use glob;
 
 use super::service::spec::ServiceSpec;
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 static LOGKEY: &'static str = "SD";
 const SPEC_FILE_EXT: &'static str = "spec";

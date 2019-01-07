@@ -16,8 +16,8 @@ extern crate habitat_pkg_export_docker as export_docker;
 
 use std::io::Write;
 
-use export_docker::Result;
-use export_k8s::QuoteHelper;
+use crate::export_docker::Result;
+use crate::export_k8s::QuoteHelper;
 
 pub struct Values {
     values: Vec<ValuesEntry>,

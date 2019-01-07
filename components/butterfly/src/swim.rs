@@ -18,10 +18,10 @@ use std::str::FromStr;
 use bytes::BytesMut;
 use prost::Message as ProstMessage;
 
-use error::{Error, Result};
-use member::{Health, Member, Membership};
-pub use protocol::swim::{SwimPayload, SwimType};
-use protocol::{self, swim as proto, FromProto};
+use crate::error::{Error, Result};
+use crate::member::{Health, Member, Membership};
+pub use crate::protocol::swim::{SwimPayload, SwimType};
+use crate::protocol::{self, swim as proto, FromProto};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Ack {

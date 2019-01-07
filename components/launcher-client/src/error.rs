@@ -21,7 +21,7 @@ use std::result;
 
 use ipc_channel;
 use protobuf;
-use protocol;
+use crate::protocol;
 
 #[derive(Debug)]
 pub enum Error {

@@ -82,7 +82,7 @@ pub mod swim;
 
 use std::cell::UnsafeCell;
 
-pub use server::Server;
+pub use crate::server::Server;
 
 lazy_static! {
     /// A threadsafe shared ZMQ context for consuming services.

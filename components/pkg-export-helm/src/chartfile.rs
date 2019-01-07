@@ -17,10 +17,10 @@ use failure::SyncFailure;
 use handlebars::Handlebars;
 use serde_json;
 
-use export_docker::Result;
-use hcore::package::PackageIdent;
+use crate::export_docker::Result;
+use crate::hcore::package::PackageIdent;
 
-use maintainer::Maintainer;
+use crate::maintainer::Maintainer;
 
 pub const DEFAULT_VERSION: &'static str = "0.0.1";
 

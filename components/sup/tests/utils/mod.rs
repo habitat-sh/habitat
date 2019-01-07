@@ -21,7 +21,7 @@ use std::string::ToString;
 use std::thread;
 use std::time::Duration;
 
-use hcore::os::users;
+use crate::hcore::os::users;
 
 pub mod fixture_root;
 pub mod hab_root;

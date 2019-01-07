@@ -25,9 +25,9 @@ extern crate habitat_pkg_export_docker as export_docker;
 #[macro_use]
 extern crate log;
 
-use common::ui::{UIWriter, UI};
+use crate::common::ui::{UIWriter, UI};
 
-use export_docker::Result;
+use crate::export_docker::Result;
 
 fn main() {
     env_logger::init();

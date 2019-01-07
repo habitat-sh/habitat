@@ -14,10 +14,10 @@
 
 use std::path::Path;
 
-use common::ui::{UIWriter, UI};
-use hcore::crypto::BoxKeyPair;
+use crate::common::ui::{UIWriter, UI};
+use crate::hcore::crypto::BoxKeyPair;
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ui: &mut UI, user: &str, cache: &Path) -> Result<()> {
     ui.begin(format!("Generating user key for {}", &user))?;

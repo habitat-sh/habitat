@@ -20,13 +20,13 @@ use std::process::{self, Command};
 use uuid::Uuid;
 
 use ansi_term::Colour;
-use api_client::DisplayProgress;
+use crate::api_client::DisplayProgress;
 use pbr;
 use term::terminfo::TermInfo;
 use term::{Terminal, TerminfoTerminal};
 
 use self::tty::StdStream;
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub const NONINTERACTIVE_ENVVAR: &'static str = "HAB_NONINTERACTIVE";
 

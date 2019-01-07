@@ -64,8 +64,8 @@ use prost::{self, Message};
 use tokio::net::TcpStream;
 use tokio_codec::{Decoder, Encoder, Framed};
 
-use message::MessageStatic;
-use net::{NetErr, NetResult};
+use crate::message::MessageStatic;
+use crate::net::{NetErr, NetResult};
 
 const BODY_LEN_MASK: u32 = 0xFFFFF;
 const HEADER_LEN: usize = 4;
@@ -429,7 +429,7 @@ impl Encoder for SrvCodec {
 #[cfg(test)]
 mod test {
     use super::*;
-    use net;
+    use crate::net;
 
     #[test]
     fn test_header_pack_unpack() {

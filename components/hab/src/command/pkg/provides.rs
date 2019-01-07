@@ -17,8 +17,8 @@ use std::path::Path;
 
 use walkdir::WalkDir;
 
-use error::{Error, Result};
-use hcore::fs::PKG_PATH;
+use crate::error::{Error, Result};
+use crate::hcore::fs::PKG_PATH;
 
 pub fn start(
     filename: &str,

@@ -7,9 +7,9 @@ extern crate habitat_pkg_export_tar as export_tar;
 extern crate log;
 
 use clap::App;
-use common::ui::{UIWriter, UI};
-use export_tar::{Cli, Result};
-use hcore::PROGRAM_NAME;
+use crate::common::ui::{UIWriter, UI};
+use crate::export_tar::{Cli, Result};
+use crate::hcore::PROGRAM_NAME;
 
 fn main() {
     let mut ui = UI::default_with_env();

@@ -16,9 +16,9 @@ use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::package::{PackageIdent, PackageInstall};
 
-use error::Result;
+use crate::error::Result;
 
 const BIN_PATH: &'static str = "/bin";
 

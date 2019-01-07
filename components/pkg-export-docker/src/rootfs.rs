@@ -15,10 +15,10 @@
 use std::fs;
 use std::path::Path;
 
-use hcore::util;
+use crate::hcore::util;
 
-use error::Result;
-use util::write_file;
+use crate::error::Result;
+use crate::util::write_file;
 
 /// The default password file contents.
 const ETC_PASSWD: &'static str = include_str!("../defaults/etc/passwd");

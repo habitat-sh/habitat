@@ -31,20 +31,20 @@ use actix_web::{
     pred::Predicate,
     server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
-use common::cli_defaults::{
+use crate::common::cli_defaults::{
     LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
 };
-use common::types::EnvConfig;
-use hcore::{crypto, env as henv, service::ServiceGroup};
+use crate::common::types::EnvConfig;
+use crate::hcore::{crypto, env as henv, service::ServiceGroup};
 use rustls::ServerConfig;
 use serde_json::{self, Value as Json};
 
-use error::{Result, SupError};
-use manager;
-use manager::service::hooks::{self, HealthCheckHook};
-use manager::service::HealthCheck;
+use crate::error::{Result, SupError};
+use crate::manager;
+use crate::manager::service::hooks::{self, HealthCheckHook};
+use crate::manager::service::HealthCheck;
 
-use feat;
+use crate::feat;
 
 const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
 pub const HTTP_THREADS_ENVVAR: &'static str = "HAB_SUP_HTTP_THREADS";
@@ -478,14 +478,14 @@ fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> O
 mod tests {
     use std::{fs::File, io::Read, path::PathBuf, sync::Mutex};
 
-    use butterfly::{
+    use crate::butterfly::{
         member::Member,
         server::{Server, ServerProxy, Suitability},
         trace::Trace,
     };
     use serde_json;
 
-    use test_helpers::*;
+    use crate::test_helpers::*;
 
     fn validate_sample_file_against_schema(name: &str, schema: &str) {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))

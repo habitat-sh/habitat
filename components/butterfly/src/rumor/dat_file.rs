@@ -21,13 +21,13 @@ use byteorder::{ByteOrder, LittleEndian};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 
-use error::{Error, Result};
-use member::{MemberList, Membership};
-use protocol::{newscast, Message};
-use rumor::{
+use crate::error::{Error, Result};
+use crate::member::{MemberList, Membership};
+use crate::protocol::{newscast, Message};
+use crate::rumor::{
     Departure, Election, ElectionUpdate, Rumor, RumorStore, Service, ServiceConfig, ServiceFile,
 };
-use server::Server;
+use crate::server::Server;
 
 const HEADER_VERSION: u8 = 2;
 

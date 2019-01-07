@@ -24,7 +24,7 @@ use serde::Serialize;
 use serde_json;
 
 pub use self::context::RenderContext;
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 static LOGKEY: &'static str = "TP";
 
@@ -98,8 +98,8 @@ mod test {
     use toml;
 
     use super::*;
-    use hcore::fs::FS_ROOT_PATH;
-    use util::convert;
+    use crate::hcore::fs::FS_ROOT_PATH;
+    use crate::util::convert;
 
     pub fn root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")

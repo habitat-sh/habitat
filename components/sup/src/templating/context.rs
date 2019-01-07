@@ -57,13 +57,13 @@ use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use toml;
 
-use butterfly::rumor::service::SysInfo;
-use hcore::package::PackageIdent;
-use hcore::service::ServiceGroup;
+use crate::butterfly::rumor::service::SysInfo;
+use crate::hcore::package::PackageIdent;
+use crate::hcore::service::ServiceGroup;
 
-use census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId};
-use manager::service::{Cfg, Env, Pkg, ServiceBind};
-use manager::Sys;
+use crate::census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId};
+use crate::manager::service::{Cfg, Env, Pkg, ServiceBind};
+use crate::manager::Sys;
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -606,13 +606,13 @@ mod tests {
     use serde_json;
     use tempfile::TempDir;
 
-    use butterfly::rumor::service::SysInfo;
-    use hcore::package::PackageIdent;
+    use crate::butterfly::rumor::service::SysInfo;
+    use crate::hcore::package::PackageIdent;
 
-    use manager::service::config::PackageConfigPaths;
-    use manager::service::Cfg;
-    use templating::TemplateRenderer;
-    use test_helpers::*;
+    use crate::manager::service::config::PackageConfigPaths;
+    use crate::manager::service::Cfg;
+    use crate::templating::TemplateRenderer;
+    use crate::test_helpers::*;
 
     ////////////////////////////////////////////////////////////////////////
 

@@ -21,8 +21,8 @@ extern crate habitat_eventsrv as eventsrv;
 extern crate log;
 extern crate protobuf;
 
-use core::config::ConfigFile;
-use eventsrv::config::Config;
+use crate::core::config::ConfigFile;
+use crate::eventsrv::config::Config;
 
 fn main() {
     let matches = app().get_matches();

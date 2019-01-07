@@ -15,7 +15,7 @@
 use std::env::VarError;
 use std::str::FromStr;
 
-use hcore::env as henv;
+use crate::hcore::env as henv;
 
 /// Enable the creation of a value based on an environment variable
 /// that can be supplied at runtime by the user.

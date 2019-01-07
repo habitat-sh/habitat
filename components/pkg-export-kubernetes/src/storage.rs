@@ -18,9 +18,9 @@ use std::path::Path;
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
-use export_docker::Result;
+use crate::export_docker::Result;
 
-use error::Error;
+use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct PersistentStorage {

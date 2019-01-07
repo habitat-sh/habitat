@@ -16,12 +16,12 @@ use std::ffi::OsStr;
 use std::os::unix::process::CommandExt;
 use std::process::{Child, Command, Stdio};
 
-use sys::abilities;
+use crate::sys::abilities;
 
-use hcore::os;
+use crate::hcore::os;
 
-use error::{Error, Result};
-use manager::service::Pkg;
+use crate::error::{Error, Result};
+use crate::manager::service::Pkg;
 
 static LOGKEY: &'static str = "EX";
 

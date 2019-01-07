@@ -26,12 +26,12 @@
 //!    If the specified channel does not exist, this will fail.
 //!
 
-use api_client::Client;
-use common::ui::{Status, UIWriter, UI};
-use hcore::package::PackageIdent;
+use crate::api_client::Client;
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::package::PackageIdent;
 
-use error::{Error, Result};
-use {PRODUCT, VERSION};
+use crate::error::{Error, Result};
+use crate::{PRODUCT, VERSION};
 
 /// Demote a package from the specified channel.
 ///

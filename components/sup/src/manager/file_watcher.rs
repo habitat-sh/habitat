@@ -22,11 +22,11 @@ use std::sync::mpsc::{channel, Receiver, TryRecvError};
 use std::thread;
 use std::time::Duration;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 use notify;
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
-use manager::debug::{IndentedStructFormatter, IndentedToString};
+use crate::manager::debug::{IndentedStructFormatter, IndentedToString};
 
 pub const WATCHER_DELAY_MS: u64 = 2_000;
 static LOGKEY: &'static str = "FW";

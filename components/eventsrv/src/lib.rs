@@ -32,7 +32,7 @@ use std::collections::HashMap;
 use std::collections::HashSet;
 
 use protobuf::parse_from_bytes;
-use protocol::EventEnvelope;
+use crate::protocol::EventEnvelope;
 use zmq::{Context, PULL, XPUB};
 
 /// Proxies messages coming into `frontend_port` out through

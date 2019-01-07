@@ -20,10 +20,10 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 
 use handlebars::Handlebars;
-use hcore::package::PackageIdent;
+use crate::hcore::package::PackageIdent;
 
-use common::ui::{Status, UIWriter, UI};
-use error::Result;
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::error::Result;
 
 const DEFAULT_PLAN_TEMPLATE: &'static str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),

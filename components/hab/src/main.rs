@@ -48,27 +48,27 @@ use std::str::FromStr;
 use std::thread;
 
 use clap::{ArgMatches, Shell};
-use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
-use common::types::ListenCtlAddr;
-use common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
+use crate::common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
+use crate::common::types::ListenCtlAddr;
+use crate::common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
 use futures::prelude::*;
-use hcore::binlink::default_binlink_dir;
-use hcore::channel;
+use crate::hcore::binlink::default_binlink_dir;
+use crate::hcore::channel;
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
-use hcore::crypto::keys::PairType;
-use hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
-use hcore::env as henv;
-use hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path};
-use hcore::package::PackageIdent;
+use crate::hcore::crypto::keys::PairType;
+use crate::hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
+use crate::hcore::env as henv;
+use crate::hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path};
+use crate::hcore::package::PackageIdent;
 
-use hcore::service::{HealthCheckInterval, ServiceGroup};
-use hcore::url::{bldr_url_from_env, default_bldr_url};
-use protocol::codec::*;
-use protocol::ctl::ServiceBindList;
-use protocol::net::ErrCode;
-use protocol::types::*;
-use sup_client::{SrvClient, SrvClientError};
+use crate::hcore::service::{HealthCheckInterval, ServiceGroup};
+use crate::hcore::url::{bldr_url_from_env, default_bldr_url};
+use crate::protocol::codec::*;
+use crate::protocol::ctl::ServiceBindList;
+use crate::protocol::net::ErrCode;
+use crate::protocol::types::*;
+use crate::sup_client::{SrvClient, SrvClientError};
 use tabwriter::TabWriter;
 
 use hab::analytics;
@@ -104,7 +104,7 @@ lazy_static! {
     /// first call and reflects on the presence and value of the environment variable keyed as
     /// `FS_ROOT_ENVVAR`.
     static ref FS_ROOT: PathBuf = {
-        use hcore::fs::FS_ROOT_ENVVAR;
+        use crate::hcore::fs::FS_ROOT_ENVVAR;
 
         if cfg!(target_os = "windows") {
             match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {

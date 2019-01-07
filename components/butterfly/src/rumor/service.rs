@@ -28,9 +28,9 @@ use toml;
 use habitat_core::package::Identifiable;
 use habitat_core::service::ServiceGroup;
 
-use error::{Error, Result};
-use protocol::{self, newscast, FromProto};
-use rumor::{Rumor, RumorPayload, RumorType};
+use crate::error::{Error, Result};
+use crate::protocol::{self, newscast, FromProto};
+use crate::rumor::{Rumor, RumorPayload, RumorType};
 
 #[derive(Debug, Clone)]
 pub struct Service {
@@ -252,8 +252,8 @@ mod tests {
     use habitat_core::service::ServiceGroup;
 
     use super::Service;
-    use rumor::service::SysInfo;
-    use rumor::Rumor;
+    use crate::rumor::service::SysInfo;
+    use crate::rumor::Rumor;
 
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();

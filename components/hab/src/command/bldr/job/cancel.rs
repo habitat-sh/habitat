@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use api_client;
-use common::ui::{Status, UIReader, UIWriter, UI};
+use crate::api_client;
+use crate::common::ui::{Status, UIReader, UIWriter, UI};
 
-use error::{Error, Result};
-use {PRODUCT, VERSION};
+use crate::error::{Error, Result};
+use crate::{PRODUCT, VERSION};
 
 pub fn start(ui: &mut UI, bldr_url: &str, group_id: &str, token: &str, force: bool) -> Result<()> {
     if !force {

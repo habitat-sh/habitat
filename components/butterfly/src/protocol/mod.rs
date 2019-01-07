@@ -19,7 +19,7 @@ use bytes::BytesMut;
 use prost::Message as ProstMessage;
 use serde::Serialize;
 
-use error::Result;
+use crate::error::Result;
 
 include!("../generated/butterfly.common.rs");
 

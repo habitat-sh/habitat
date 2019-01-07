@@ -19,16 +19,16 @@ use std::str::FromStr;
 
 use base64;
 use clap::ArgMatches;
-use common::ui::UI;
-use hcore::package::{PackageArchive, PackageIdent};
+use crate::common::ui::UI;
+use crate::hcore::package::{PackageArchive, PackageIdent};
 
-use export_docker::{DockerImage, Result};
+use crate::export_docker::{DockerImage, Result};
 
-use env::EnvironmentVariable;
-use manifestjson::ManifestJson;
-use service_bind::ServiceBind;
-use storage::PersistentStorage;
-use topology::Topology;
+use crate::env::EnvironmentVariable;
+use crate::manifestjson::ManifestJson;
+use crate::service_bind::ServiceBind;
+use crate::storage::PersistentStorage;
+use crate::topology::Topology;
 
 /// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]

@@ -20,9 +20,9 @@ use std::thread;
 
 #[cfg(windows)]
 use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
-use protocol;
+use crate::protocol;
 
-pub use sys::service::*;
+pub use crate::sys::service::*;
 
 pub struct Service {
     args: protocol::Spawn,

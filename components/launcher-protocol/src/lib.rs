@@ -20,10 +20,10 @@ use std::fmt;
 
 use protobuf::Message;
 
-pub use message::error::*;
-pub use message::launcher::*;
-use message::net::*;
-pub use message::supervisor::*;
+pub use crate::message::error::*;
+pub use crate::message::launcher::*;
+use crate::message::net::*;
+pub use crate::message::supervisor::*;
 
 pub const LAUNCHER_PIPE_ENV: &'static str = "HAB_LAUNCHER_PIPE";
 pub const LAUNCHER_PID_ENV: &'static str = "HAB_LAUNCHER_PID";

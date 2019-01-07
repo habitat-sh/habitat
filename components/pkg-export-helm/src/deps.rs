@@ -19,9 +19,9 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
-use common::ui::{Status, UIWriter, UI};
-use error::Error;
-use export_docker::Result;
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::error::Error;
+use crate::export_docker::Result;
 
 pub const DEFAULT_OPERATOR_VERSION: &'static str = "0.6.1";
 pub const OPERATOR_REPO_URL: &'static str = "https://habitat-sh.github.io/\

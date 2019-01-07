@@ -16,7 +16,7 @@ use std::fmt;
 use std::result;
 use std::str::FromStr;
 
-use error::Error;
+use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub enum Topology {

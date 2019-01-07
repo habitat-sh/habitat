@@ -22,13 +22,13 @@ use std::result;
 use std::str::FromStr;
 use std::time::Duration;
 
-use hcore::channel::STABLE_CHANNEL;
-use hcore::package::metadata::BindMapping;
-use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
-use hcore::url::DEFAULT_BLDR_URL;
-use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
-use protocol;
+use crate::hcore::channel::STABLE_CHANNEL;
+use crate::hcore::package::metadata::BindMapping;
+use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
+use crate::hcore::url::DEFAULT_BLDR_URL;
+use crate::hcore::util::{deserialize_using_from_str, serialize_using_to_string};
+use crate::protocol;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use serde::{self, Deserialize};
@@ -36,7 +36,7 @@ use toml;
 
 use super::composite_spec::CompositeSpec;
 use super::{BindingMode, Topology, UpdateStrategy};
-use error::{Error, Result, SupError};
+use crate::error::{Error, Result, SupError};
 
 static LOGKEY: &'static str = "SS";
 static DEFAULT_GROUP: &'static str = "default";
@@ -605,14 +605,14 @@ mod test {
     use std::path::{Path, PathBuf};
     use std::str::FromStr;
 
-    use hcore::error::Error as HError;
-    use hcore::package::PackageIdent;
-    use hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
+    use crate::hcore::error::Error as HError;
+    use crate::hcore::package::PackageIdent;
+    use crate::hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
     use tempfile::TempDir;
     use toml;
 
     use super::*;
-    use error::Error::*;
+    use crate::error::Error::*;
 
     fn file_from_str<P: AsRef<Path>>(path: P, content: &str) {
         fs::create_dir_all(

@@ -26,15 +26,15 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, ExitStatus};
 use std::result;
 
-use hcore::service::ServiceGroup;
-use hcore::{self, crypto};
+use crate::hcore::service::ServiceGroup;
+use crate::hcore::{self, crypto};
 use serde::{Serialize, Serializer};
 
 use super::{health, Pkg};
-use error::{Result, SupError};
-use fs;
-use templating::{RenderContext, TemplateRenderer};
-use util::exec;
+use crate::error::{Result, SupError};
+use crate::fs;
+use crate::templating::{RenderContext, TemplateRenderer};
+use crate::util::exec;
 
 #[cfg(not(windows))]
 pub const HOOK_PERMISSIONS: u32 = 0o755;
@@ -154,7 +154,7 @@ pub trait Hook: fmt::Debug + Sized {
 
     #[cfg(not(windows))]
     fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-        use hcore::util::posix_perm;
+        use crate::hcore::util::posix_perm;
 
         posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
     }
@@ -1010,28 +1010,28 @@ mod tests {
     use std::process::{Command, Stdio};
     use std::string::ToString;
 
-    use butterfly::member::MemberList;
-    use butterfly::rumor::election;
-    use butterfly::rumor::election::Election as ElectionRumor;
-    use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
-    use butterfly::rumor::service::Service as ServiceRumor;
-    use butterfly::rumor::service::SysInfo;
-    use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-    use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-    use butterfly::rumor::RumorStore;
-    use hcore::package::{PackageIdent, PackageInstall};
-    use hcore::service::ServiceGroup;
+    use crate::butterfly::member::MemberList;
+    use crate::butterfly::rumor::election;
+    use crate::butterfly::rumor::election::Election as ElectionRumor;
+    use crate::butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
+    use crate::butterfly::rumor::service::Service as ServiceRumor;
+    use crate::butterfly::rumor::service::SysInfo;
+    use crate::butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+    use crate::butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use crate::butterfly::rumor::RumorStore;
+    use crate::hcore::package::{PackageIdent, PackageInstall};
+    use crate::hcore::service::ServiceGroup;
     use tempfile::TempDir;
 
     use super::fs as supfs;
     use super::*;
-    use census::CensusRing;
-    use common::types::ListenCtlAddr;
-    use config::GossipListenAddr;
-    use http_gateway;
-    use manager::service::spec::ServiceBind;
-    use manager::service::{Cfg, Pkg};
-    use manager::sys::Sys;
+    use crate::census::CensusRing;
+    use crate::common::types::ListenCtlAddr;
+    use crate::config::GossipListenAddr;
+    use crate::http_gateway;
+    use crate::manager::service::spec::ServiceBind;
+    use crate::manager::service::{Cfg, Pkg};
+    use crate::manager::sys::Sys;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use

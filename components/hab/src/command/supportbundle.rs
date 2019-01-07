@@ -13,12 +13,12 @@
 // limitations under the License.
 
 use chrono::Local;
-use common::ui::{Status, UIWriter, UI};
-use error::{Error, Result};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::error::{Error, Result};
 use flate2::write::GzEncoder;
 use flate2::Compression;
-use hcore::fs::FS_ROOT_PATH;
-use hcore::os::net::hostname;
+use crate::hcore::fs::FS_ROOT_PATH;
+use crate::hcore::os::net::hostname;
 use std::env;
 use std::error::Error as StdErr;
 use std::fs;
