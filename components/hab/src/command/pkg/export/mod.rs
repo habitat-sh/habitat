@@ -133,9 +133,9 @@ mod inner {
 #[cfg(not(target_os = "linux"))]
 mod inner {
     use super::ExportFormat;
-    use common::ui::{UIWriter, UI};
-    use error::{Error, Result};
-    use hcore::package::PackageIdent;
+    use crate::common::ui::{UIWriter, UI};
+    use crate::error::{Error, Result};
+    use crate::hcore::package::PackageIdent;
     use std::env;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {

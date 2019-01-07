@@ -186,12 +186,12 @@ mod inner {
     use std::path::PathBuf;
     use std::str::FromStr;
 
-    use common::ui::UI;
-    use hcore::crypto::{default_cache_key_path, init};
-    use hcore::env as henv;
-    use hcore::fs::find_command;
-    use hcore::os::process;
-    use hcore::package::PackageIdent;
+    use crate::common::ui::UI;
+    use crate::hcore::crypto::{default_cache_key_path, init};
+    use crate::hcore::env as henv;
+    use crate::hcore::fs::find_command;
+    use crate::hcore::os::process;
+    use crate::hcore::package::PackageIdent;
 
     use crate::command::studio::docker;
     use crate::error::{Error, Result};

@@ -55,7 +55,7 @@ use futures::prelude::*;
 use crate::hcore::binlink::default_binlink_dir;
 use crate::hcore::channel;
 #[cfg(windows)]
-use hcore::crypto::dpapi::encrypt;
+use crate::hcore::crypto::dpapi::encrypt;
 use crate::hcore::crypto::keys::PairType;
 use crate::hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
 use crate::hcore::env as henv;
