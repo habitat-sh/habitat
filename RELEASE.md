@@ -121,6 +121,19 @@ Create a PR and ask all team members (especially those with changes in the relea
 
 Don't actually merge the PR until the release is complete.
 
+## Build the Windows Docker Studio image
+
+Until this is integrated into Builfkite, it needs to be performed manually on a Windows Docker host after Buildkite has uploaded all of the release candidate binaries:
+
+```
+$env:BINTRAY_USER="YOUR_USER_NAME"
+$env:BINTRAY_KEY="YOUR_API_KEY"
+$env:HAB_BLDR_CHANNEL="RC_CHANNEL"
+hab pkg exec core/hab-bintray-publish publish-studio
+```
+
+This will build the Docker Studio image for Windows and push it to our bintray registry.
+
 ## Validate the Release
 
 For each platform ([darwin](https://bintray.com/habitat/stable/hab-x86_64-darwin), [linux](https://bintray.com/habitat/stable/hab-x86_64-linux), [linux-kernel2](https://bintray.com/habitat/stable/hab-x86_64-linux-kernel2), [windows](https://bintray.com/habitat/stable/hab-x86_64-windows)), download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable) (you will need to be signed into Bintray and a member of the "Habitat" organization). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, do the following basic tests.
@@ -177,18 +190,22 @@ This should be automatically handled by Buildkite. You can find manual instructi
 
 Validate the update by running `brew update hab` on Mac OS X and checking the version is correct.
 
-## Rerun Chocolatey Validation Tests
+## Push Chocolatey package
 
-The Appveyor release will automaticaly publish to Chocolatey. However because we do not publish to bintray right away, Chocolatey's package validation will fail when it performs a test install.
+Until Buildkite integrates the Chocolatey package creation and upload, we need to run `support/ci/choco_push.ps1` from a Windows machine that has the `choco` cli installed.
 
-After we perform the final `make publish-release` above, we need to tell Chocolatey to rerun its validation so that they can pass and be visible to the public. To do this:
+The `choco` cli can be installed via:
+```
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+```
 
-1. Go to the [Chocolatey Habitat page](https://chocolatey.org/packages/habitat)
-1. Login with the `habitat` account (creds can be found in [1password](https://team-habitat.1password.com)).
-1. Scroll to the bottom of the package page and check the Version History section. The new version
-should be pending. If so, check back later to ensure it is eventually approved. If there is a failure, check `rerun tests` and submit.
+Now run:
+```
+.\support\ci\choco_push.ps1 -Version [VERSION] -Release [RELEASE] -ApiKey [CHOCO_API_KEY] -Checksum [BINTRAY_PUBLISHED_CHECKSUM]
+```
 
-The tests should now pass and the package should become publicly visible.
+`CHOCO_API_KEY` can be retrieved from 1password. `BINTRAY_PUBLISHED_CHECKSUM` should be the checksum in `windows.zip.sha256sum` file uploaded to bintray.
+
 
 ## Publish Release
 
