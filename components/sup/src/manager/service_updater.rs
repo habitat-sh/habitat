@@ -21,7 +21,7 @@ use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
 use std::thread;
 use std::time;
 
-use time::Duration;
+use time_crate::Duration;
 
 use crate::butterfly;
 use crate::common::ui::UI;
@@ -34,8 +34,8 @@ use crate::census::CensusRing;
 use crate::common::types::EnvConfig;
 use crate::manager::periodic::Periodic;
 use crate::manager::service::{Service, Topology, UpdateStrategy};
-use time::SteadyTime;
 use crate::util;
+use time_crate::SteadyTime;
 
 static LOGKEY: &'static str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not

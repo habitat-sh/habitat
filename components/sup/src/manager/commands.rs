@@ -591,7 +591,7 @@ pub fn service_status(
     if let Some(ident) = opts.ident {
         for status in statuses {
             if status.pkg.ident.satisfies(&ident) {
-                let mut msg: protocol::types::ServiceStatus = status.into();
+                let msg: protocol::types::ServiceStatus = status.into();
                 req.reply_complete(msg);
                 return Ok(());
             }
@@ -608,7 +608,7 @@ pub fn service_status(
     } else {
         let mut list = statuses.into_iter().peekable();
         while let Some(status) = list.next() {
-            let mut msg: protocol::types::ServiceStatus = status.into();
+            let msg: protocol::types::ServiceStatus = status.into();
             if list.peek().is_some() {
                 req.reply_partial(msg);
             } else {

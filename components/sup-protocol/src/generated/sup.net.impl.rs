@@ -1,4 +1,4 @@
-use message;
+use crate::message;
 
 impl message::MessageStatic for NetOk {
     const MESSAGE_ID: &'static str = "NetOk";

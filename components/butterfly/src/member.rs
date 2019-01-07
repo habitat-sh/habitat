@@ -520,7 +520,7 @@ impl MemberList {
         // Maybe the members we store should not contain the ID to reduce the duplication?
         let modified = match self.write_entries().entry(incoming.member.id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
-                let mut val = entry.get_mut();
+                let val = entry.get_mut();
                 if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health) {
                     *val = member_list::Entry {
                         member: incoming.member,
