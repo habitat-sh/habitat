@@ -43,9 +43,6 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-
-
-#[cfg_attr(test, macro_use)]
 use habitat_common as common;
 use habitat_core;
 #[macro_use]
@@ -55,7 +52,6 @@ extern crate log;
 use prost;
 #[macro_use]
 extern crate prost_derive;
-
 
 #[macro_use]
 extern crate serde_derive;

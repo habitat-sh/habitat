@@ -572,6 +572,7 @@ impl Worker {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::common::locked_env_var;
 
     #[test]
     fn default_update_period_is_equal_to_minimum_allowed_value() {

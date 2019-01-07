@@ -212,15 +212,16 @@ impl Default for RumorHeat {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::common::locked_env_var;
     use crate::error::Result;
     use crate::protocol::{self, newscast};
     use crate::rumor::{Rumor, RumorKey, RumorType};
     use uuid::Uuid;
 
-    use habitat_core::package::PackageIdent;
-    use habitat_core::service::ServiceGroup;
     use crate::member::Member;
     use crate::rumor::service::{Service, SysInfo};
+    use habitat_core::package::PackageIdent;
+    use habitat_core::service::ServiceGroup;
 
     // TODO (CM): This FakeRumor implementation is copied from
     // rumor.rs; factor this helper code better.

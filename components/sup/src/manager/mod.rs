@@ -48,8 +48,6 @@ use crate::butterfly::member::Member;
 use crate::butterfly::server::{timing::Timing, ServerProxy, Suitability};
 use crate::butterfly::trace::Trace;
 use crate::common::types::{EnvConfig, ListenCtlAddr};
-use futures::prelude::*;
-use futures::sync::mpsc;
 use crate::hcore::crypto::SymKey;
 use crate::hcore::env;
 use crate::hcore::os::process::{self, Pid, Signal};
@@ -58,6 +56,8 @@ use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use crate::hcore::service::ServiceGroup;
 use crate::launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use crate::protocol;
+use futures::prelude::*;
+use futures::sync::mpsc;
 use rustls::{internal::pemfile, NoClientAuth, ServerConfig};
 use serde_json;
 use time::{self, Duration as TimeDuration, Timespec};
@@ -1445,6 +1445,7 @@ mod test {
 
     mod tokio_thread_count {
         use super::*;
+        use crate::common::locked_env_var;
 
         locked_env_var!(HAB_TOKIO_THREAD_COUNT, lock_thread_count);
 

@@ -170,6 +170,7 @@ impl SpecWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::common::locked_env_var;
     use std::{
         fs::File,
         io::{Error as IoError, Write},

@@ -41,7 +41,6 @@
 
 use actix;
 
-
 #[macro_use]
 extern crate bitflags;
 
@@ -57,7 +56,6 @@ extern crate futures;
 use glob;
 
 use habitat_butterfly as butterfly;
-#[cfg_attr(test, macro_use)]
 use habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
@@ -75,8 +73,6 @@ use notify;
 use num_cpus;
 use prost;
 
-
-
 use rustls;
 use serde;
 #[macro_use]
@@ -86,15 +82,11 @@ extern crate serde_derive;
 extern crate serde_json;
 use serde_transcode;
 use serde_yaml;
-
-
-
+extern crate time as time_crate;
 
 #[macro_use]
 extern crate tokio_core;
 use toml;
-
-
 
 #[cfg(test)]
 extern crate json;

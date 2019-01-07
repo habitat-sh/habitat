@@ -136,6 +136,7 @@ mod tests {
 
     mod env_config {
         use super::*;
+        use crate::common::locked_env_var;
         use std::env;
         use std::num::ParseIntError;
         use std::result;

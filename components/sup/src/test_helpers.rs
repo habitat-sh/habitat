@@ -14,7 +14,7 @@
 
 use std::{fs::File, io::Read, path::PathBuf};
 
-use json;
+use crate::json;
 use serde_json;
 use valico::json_schema;
 
