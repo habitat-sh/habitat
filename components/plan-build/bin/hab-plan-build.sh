@@ -2523,7 +2523,7 @@ case "${pkg_type}" in
     "standalone")
         # Non-composite ("normal") Habitat package
 
-        # Run `do_begin`
+        # Run `do_begin` blah
         build_line "$_program setup"
         do_begin
 
