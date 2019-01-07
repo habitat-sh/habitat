@@ -271,7 +271,7 @@ impl Default for ElectionStatus {
 }
 
 impl fmt::Display for ElectionStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match *self {
             ElectionStatus::ElectionInProgress => "in-progress",
             ElectionStatus::ElectionNoQuorum => "no-quorum",
@@ -558,7 +558,7 @@ impl Serialize for CensusGroup {
         strukt.serialize_field("service_config", &self.service_config)?;
         strukt.serialize_field("local_member_id", &self.local_member_id)?;
 
-        let new_pop: BTreeMap<MemberId, CensusMemberProxy> = self
+        let new_pop: BTreeMap<MemberId, CensusMemberProxy<'_>> = self
             .population
             .iter()
             .map(|(k, v)| (k.clone(), CensusMemberProxy::new(v)))

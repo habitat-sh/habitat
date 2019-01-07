@@ -581,7 +581,7 @@ impl<'a> Serialize for SvcMember<'a> {
 /// it from *all* members, and not just active members. Users should
 /// move away from using `first`, and should instead just use
 /// `members[0]`, or `leader`.
-fn select_first(census_group: &CensusGroup) -> Option<SvcMember> {
+fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
     match census_group.leader() {
         Some(member) => Some(SvcMember::from_census_member(member)),
         None => census_group

@@ -56,7 +56,7 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::APIClient(ref err) => format!("{}", err),
             Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => format!(

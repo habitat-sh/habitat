@@ -367,7 +367,7 @@ impl DockerBuildRoot {
     ///
     /// * If the Docker image cannot be created successfully
     #[cfg(unix)]
-    pub fn export(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
+    pub fn export(&self, ui: &mut UI, naming: &Naming<'_>) -> Result<DockerImage> {
         self.build_docker_image(ui, naming)
     }
 
@@ -474,7 +474,7 @@ impl DockerBuildRoot {
         Ok(())
     }
 
-    fn build_docker_image(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
+    fn build_docker_image(&self, ui: &mut UI, naming: &Naming<'_>) -> Result<DockerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
         let version = &ident.version.expect("version exists");

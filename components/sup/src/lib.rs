@@ -39,62 +39,62 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
-extern crate actix;
-extern crate actix_web;
-extern crate ansi_term;
+use actix;
+
+
 #[macro_use]
 extern crate bitflags;
-extern crate byteorder;
+
 #[cfg(target_os = "linux")]
 extern crate caps;
-extern crate clap;
+
 #[cfg(windows)]
 extern crate ctrlc;
 #[macro_use]
 extern crate features;
 #[macro_use]
 extern crate futures;
-extern crate glob;
-extern crate hab;
-extern crate habitat_butterfly as butterfly;
+use glob;
+
+use habitat_butterfly as butterfly;
 #[cfg_attr(test, macro_use)]
-extern crate habitat_common as common;
+use habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
-extern crate habitat_api_client as api_client;
-extern crate habitat_eventsrv_client as eventsrv_client;
-extern crate habitat_launcher_client as launcher_client;
-extern crate habitat_sup_protocol as protocol;
-extern crate handlebars;
+use habitat_api_client as api_client;
+use habitat_eventsrv_client as eventsrv_client;
+use habitat_launcher_client as launcher_client;
+use habitat_sup_protocol as protocol;
+use handlebars;
 #[macro_use]
 extern crate lazy_static;
-extern crate libc;
+use libc;
 #[macro_use]
 extern crate log;
-extern crate notify;
-extern crate num_cpus;
-extern crate prost;
-extern crate protobuf;
-extern crate rand;
-extern crate regex;
-extern crate rustls;
-extern crate serde;
+use notify;
+use num_cpus;
+use prost;
+
+
+
+use rustls;
+use serde;
 #[macro_use]
 extern crate serde_derive;
 #[allow(unused_imports)]
 #[macro_use]
 extern crate serde_json;
-extern crate serde_transcode;
-extern crate serde_yaml;
-extern crate tempfile;
-extern crate time as time_crate;
-extern crate tokio;
-extern crate tokio_codec;
+use serde_transcode;
+use serde_yaml;
+
+
+
+
 #[macro_use]
 extern crate tokio_core;
-extern crate toml;
-extern crate url;
-extern crate valico;
+use toml;
+
+
 
 #[cfg(test)]
 extern crate json;

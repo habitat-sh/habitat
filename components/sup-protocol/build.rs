@@ -1,8 +1,8 @@
-extern crate heck;
-extern crate prost;
-extern crate prost_build;
-extern crate prost_types;
-extern crate tempfile;
+
+
+use prost_build;
+
+use tempfile;
 
 use std::collections::HashMap;
 use std::env;

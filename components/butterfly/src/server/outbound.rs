@@ -44,7 +44,7 @@ enum AckFrom {
 }
 
 impl fmt::Display for AckFrom {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             &AckFrom::Ping => write!(f, "Ping"),
             &AckFrom::PingReq => write!(f, "PingReq"),

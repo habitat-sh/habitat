@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate protobuf;
-extern crate serde;
+
+
 #[macro_use]
 extern crate serde_derive;
 

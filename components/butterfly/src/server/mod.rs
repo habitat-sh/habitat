@@ -223,7 +223,7 @@ pub struct Server {
     pub departure_store: RumorStore<Departure>,
     swim_addr: SocketAddr,
     gossip_addr: SocketAddr,
-    suitability_lookup: Arc<Box<Suitability>>,
+    suitability_lookup: Arc<Box<dyn Suitability>>,
     data_path: Arc<Option<PathBuf>>,
     dat_file: Option<Arc<Mutex<DatFile>>>,
     socket: Option<UdpSocket>,
@@ -282,7 +282,7 @@ impl Server {
         // complicates other parts of this code. We should find a way
         // to remove the optionality.
         data_path: Option<P>,
-        suitability_lookup: Box<Suitability>,
+        suitability_lookup: Box<dyn Suitability>,
     ) -> Result<Server>
     where
         T: ToSocketAddrs,
@@ -1159,7 +1159,7 @@ impl Serialize for Server {
 }
 
 impl fmt::Display for Server {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{}@{}/{}",

@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate env_logger;
-extern crate habitat_core as core;
-extern crate habitat_launcher_protocol as protocol;
-extern crate ipc_channel;
+
+use habitat_core as core;
+use habitat_launcher_protocol as protocol;
+use ipc_channel;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
+use protobuf;
 
 mod client;
 pub mod error;

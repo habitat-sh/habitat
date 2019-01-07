@@ -14,16 +14,16 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate habitat_core as core;
-extern crate habitat_eventsrv_protocol as protocol;
+use habitat_core as core;
+use habitat_eventsrv_protocol as protocol;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
-extern crate serde;
+
+
 #[macro_use]
 extern crate serde_derive;
-extern crate time;
-extern crate zmq;
+
+use zmq;
 
 pub mod config;
 pub mod error;

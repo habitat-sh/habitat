@@ -39,7 +39,7 @@ impl<'a> From<&'a ArgMatches<'a>> for ListingType {
     ///
     /// We assume that the arguments have been validated during CLI parsing i.e.
     /// ORIGIN and PKG_IDENT are a valid origin and package identifier
-    fn from(m: &ArgMatches) -> Self {
+    fn from(m: &ArgMatches<'_>) -> Self {
         if m.is_present("ALL") {
             return ListingType::AllPackages;
         }

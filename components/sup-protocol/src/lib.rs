@@ -40,23 +40,23 @@
 //! *not* by a build server intentionally. This is to ensure we have the source available for
 //! all protocol files.
 
-extern crate base64;
-extern crate bytes;
-extern crate futures;
-extern crate habitat_core as core;
+use base64;
+
+use futures;
+use habitat_core as core;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate prost;
+use prost;
 #[macro_use]
 extern crate prost_derive;
-extern crate rand;
-extern crate serde;
+use rand;
+
 #[macro_use]
 extern crate serde_derive;
-extern crate tokio;
-extern crate tokio_codec;
+
+
 
 pub mod butterfly;
 pub mod codec;

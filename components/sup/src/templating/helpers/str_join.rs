@@ -20,7 +20,7 @@ use super::super::RenderResult;
 pub struct StrJoinHelper;
 
 impl HelperDef for StrJoinHelper {
-    fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
+    fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
         let list: Vec<String> = h
             .param(0)
             .and_then(|v| v.value().as_array())

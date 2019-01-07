@@ -15,11 +15,11 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate clap;
-extern crate habitat_core as core;
-extern crate habitat_eventsrv as eventsrv;
-extern crate log;
-extern crate protobuf;
+use clap;
+use habitat_core as core;
+use habitat_eventsrv as eventsrv;
+
+
 
 use crate::core::config::ConfigFile;
 use crate::eventsrv::config::Config;

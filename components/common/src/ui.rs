@@ -124,9 +124,9 @@ pub trait UIWriter {
     type ProgressBar: DisplayProgress;
 
     /// IO Stream for sending error messages to.
-    fn err(&mut self) -> &mut io::Write;
+    fn err(&mut self) -> &mut dyn io::Write;
     /// IO Stream for sending normal or informational messages to.
-    fn out(&mut self) -> &mut io::Write;
+    fn out(&mut self) -> &mut dyn io::Write;
     /// Messages sent to the normal or informational IO stream will be formatted in color if true.
     fn is_out_colored(&self) -> bool;
     /// Messages sent to the error IO stream will be formatted in color if true.
@@ -354,15 +354,15 @@ impl UI {
     /// The standard input stream needs to implement `Read` and both the standard output and
     /// standard error streams need to implement `Write`.
     pub fn with_streams<O, E>(
-        stdin: Box<Read + Send>,
+        stdin: Box<dyn Read + Send>,
         stdout_fn: O,
         stderr_fn: E,
         coloring: Coloring,
         isatty: bool,
     ) -> Self
     where
-        O: FnMut() -> Box<Write + Send>,
-        E: FnMut() -> Box<Write + Send>,
+        O: FnMut() -> Box<dyn Write + Send>,
+        E: FnMut() -> Box<dyn Write + Send>,
     {
         Self::new(Shell::new(
             InputStream::new(stdin, isatty),
@@ -393,11 +393,11 @@ impl Default for UI {
 impl UIWriter for UI {
     type ProgressBar = ConsoleProgressBar;
 
-    fn out(&mut self) -> &mut io::Write {
+    fn out(&mut self) -> &mut dyn io::Write {
         &mut self.shell.out
     }
 
-    fn err(&mut self) -> &mut io::Write {
+    fn err(&mut self) -> &mut dyn io::Write {
         &mut self.shell.err
     }
 
@@ -622,12 +622,12 @@ pub enum Coloring {
 }
 
 pub struct InputStream {
-    inner: Box<Read + Send>,
+    inner: Box<dyn Read + Send>,
     isatty: bool,
 }
 
 impl InputStream {
-    pub fn new(inner: Box<Read + Send>, isatty: bool) -> Self {
+    pub fn new(inner: Box<dyn Read + Send>, isatty: bool) -> Self {
         InputStream {
             inner: inner,
             isatty: isatty,
@@ -656,7 +656,7 @@ impl Read for InputStream {
 }
 
 impl fmt::Debug for InputStream {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "InputStream {{ isatty: {} }}", self.isatty)
     }
 }
@@ -732,7 +732,7 @@ impl Write for OutputStream {
 }
 
 impl fmt::Debug for OutputStream {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "OutputStream {{ coloring: {:?}, isatty: {}, is_colored(): {}, supports_color(): {} }}",
@@ -745,8 +745,8 @@ impl fmt::Debug for OutputStream {
 }
 
 pub enum WriteStream {
-    NoColor(Box<Write + Send>),
-    Color(Box<Terminal<Output = Box<Write + Send>> + Send>),
+    NoColor(Box<dyn Write + Send>),
+    Color(Box<dyn Terminal<Output = Box<dyn Write + Send>> + Send>),
 }
 
 impl WriteStream {
@@ -754,7 +754,7 @@ impl WriteStream {
     // https://github.com/rust-lang/cargo/blob/d05ba53afec82308edcfeb778446010bf18e71ae/
     // src/cargo/core/shell.rs
 
-    pub fn create<T: FnMut() -> Box<Write + Send>>(mut writable_fn: T) -> Self {
+    pub fn create<T: FnMut() -> Box<dyn Write + Send>>(mut writable_fn: T) -> Self {
         match Self::get_term(writable_fn()) {
             Ok(t) => t,
             Err(_) => WriteStream::NoColor(writable_fn()),
@@ -778,11 +778,11 @@ impl WriteStream {
     }
 
     #[cfg(any(unix))]
-    fn get_term(writeable: Box<Write + Send>) -> Result<Self> {
+    fn get_term(writeable: Box<dyn Write + Send>) -> Result<Self> {
         Ok(Self::get_terminfo_term(writeable))
     }
 
-    fn get_terminfo_term(writeable: Box<Write + Send>) -> Self {
+    fn get_terminfo_term(writeable: Box<dyn Write + Send>) -> Self {
         // Use `TermInfo::from_env()` and `TerminfoTerminal::supports_color()` to determine if
         // creation of a TerminfoTerminal is possible regardless of the tty status. --color options
         // are parsed after Shell creation so always try to create a terminal that supports color
@@ -811,7 +811,7 @@ mod tty {
 
     #[cfg(unix)]
     pub fn isatty(output: StdStream) -> bool {
-        extern crate libc;
+        use libc;
 
         let fd = match output {
             StdStream::Stdin => libc::STDIN_FILENO,

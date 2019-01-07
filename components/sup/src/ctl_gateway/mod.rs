@@ -128,11 +128,11 @@ impl CtlRequest {
 impl UIWriter for CtlRequest {
     type ProgressBar = NetProgressBar;
 
-    fn out(&mut self) -> &mut io::Write {
+    fn out(&mut self) -> &mut dyn io::Write {
         self
     }
 
-    fn err(&mut self) -> &mut io::Write {
+    fn err(&mut self) -> &mut dyn io::Write {
         self
     }
 

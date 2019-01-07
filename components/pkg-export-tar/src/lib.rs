@@ -1,24 +1,24 @@
-extern crate base64;
+
 #[macro_use]
 extern crate clap;
-extern crate habitat_common as common;
-extern crate habitat_core as hcore;
-extern crate url;
+use habitat_common as common;
+use habitat_core as hcore;
 
-extern crate hab;
-extern crate handlebars;
 
-extern crate failure;
+
+
+
+use failure;
 #[macro_use]
 extern crate failure_derive;
-extern crate flate2;
-extern crate lazy_static;
+
+
 #[macro_use]
 extern crate log;
-extern crate mktemp;
-extern crate serde_json;
-extern crate tar;
-extern crate tempfile;
+
+
+
+
 
 mod build;
 pub mod cli;
@@ -45,7 +45,7 @@ pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSIO
 /// The Habitat Package Identifier string for a Busybox package.
 const BUSYBOX_IDENT: &'static str = "core/busybox-static";
 
-pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
+pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result<()> {
     let default_channel = channel::default();
     let default_url = hurl::default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_channel, &default_url);
@@ -54,7 +54,7 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result
     Ok(())
 }
 
-pub fn export(ui: &mut UI, build_spec: BuildSpec) -> Result<()> {
+pub fn export(ui: &mut UI, build_spec: BuildSpec<'_>) -> Result<()> {
     let hab_pkg = build_spec.hab;
     let build_result = build_spec.create(ui).unwrap();
     let builder_dir_path = build_result.0.path();

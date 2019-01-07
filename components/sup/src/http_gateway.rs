@@ -108,7 +108,7 @@ impl ToSocketAddrs for ListenAddr {
 }
 
 impl fmt::Display for ListenAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         write!(f, "{}", self.0)
     }
 }

@@ -725,7 +725,7 @@ struct ServiceStatus {
 }
 
 impl fmt::Display for ServiceStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{} ({}), {}, group:{}",
@@ -760,7 +760,7 @@ struct ProcessStatus {
 }
 
 impl fmt::Display for ProcessStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.pid {
             Some(pid) => write!(
                 f,
@@ -793,7 +793,7 @@ where
     impl<'de> serde::de::Visitor<'de> for FromTimespec {
         type Value = TimeDuration;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("a i64 integer")
         }
 

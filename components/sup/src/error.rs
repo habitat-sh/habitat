@@ -187,7 +187,7 @@ pub enum Error {
 impl fmt::Display for SupError {
     // We create a string for each type of error, then create a `StructuredOutput` for it, flip
     // verbose on, and print it.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match self.err {
             Error::APIClient(ref err) => format!("{}", err),
             Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),

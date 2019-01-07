@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate bincode;
+
 
 use std::error;
 use std::fmt;
@@ -39,7 +39,7 @@ pub enum Error {
 pub type Result<T> = result::Result<T, Error>;
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::AcceptConn => format!("Unable to accept connection from Launcher"),
             Error::BadPipe(ref e) => format!("Unable to open pipe to Launcher, {}", e),

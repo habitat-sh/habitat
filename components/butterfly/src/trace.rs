@@ -48,7 +48,7 @@ pub enum TraceKind {
 }
 
 impl fmt::Display for TraceKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             TraceKind::MemberUpdate => write!(f, "MemberUpdate"),
             TraceKind::ProbeBegin => write!(f, "ProbeBegin"),
@@ -124,7 +124,7 @@ impl<'a> TraceWrite<'a> {
 }
 
 impl<'a> fmt::Display for TraceWrite<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.time)?;
         write!(f, "^{}", self.kind)?;
         write!(f, "^{}", self.thread_name)?;
@@ -193,7 +193,7 @@ impl Trace {
     }
 
     /// Write a line to the trace file.
-    pub fn write(&mut self, trace_write: TraceWrite) {
+    pub fn write(&mut self, trace_write: TraceWrite<'_>) {
         let dump = format!("{:#?}", self);
         match self.file.as_mut() {
             Some(file) => match write!(file, "{}", trace_write) {

@@ -69,7 +69,7 @@ impl Incarnation {
 }
 
 impl fmt::Display for Incarnation {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -105,7 +105,7 @@ struct IncarnationVisitor;
 impl<'de> de::Visitor<'de> for IncarnationVisitor {
     type Value = Incarnation;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "a u64")
     }
 
@@ -393,23 +393,23 @@ impl MemberList {
         }
     }
 
-    fn read_entries(&self) -> std::sync::RwLockReadGuard<HashMap<UuidSimple, member_list::Entry>> {
+    fn read_entries(&self) -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.read().expect("Members read lock")
     }
 
     fn write_entries(
         &self,
-    ) -> std::sync::RwLockWriteGuard<HashMap<UuidSimple, member_list::Entry>> {
+    ) -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.write().expect("Members write lock")
     }
 
-    fn initial_members_read(&self) -> std::sync::RwLockReadGuard<Vec<Member>> {
+    fn initial_members_read(&self) -> std::sync::RwLockReadGuard<'_, Vec<Member>> {
         self.initial_members
             .read()
             .expect("Initial members read lock")
     }
 
-    fn initial_members_write(&self) -> std::sync::RwLockWriteGuard<Vec<Member>> {
+    fn initial_members_write(&self) -> std::sync::RwLockWriteGuard<'_, Vec<Member>> {
         self.initial_members
             .write()
             .expect("Initial members write lock")

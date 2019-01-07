@@ -101,7 +101,7 @@ impl ToSocketAddrs for GossipListenAddr {
 }
 
 impl fmt::Display for GossipListenAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         write!(f, "{}", self.0)
     }
 }

@@ -132,7 +132,7 @@ pub trait Hook: fmt::Debug + Sized {
     /// Compile a hook into its destination service directory.
     ///
     /// Returns `true` if the hook has changed.
-    fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> Result<bool> {
+    fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext<'_>) -> Result<bool> {
         let content = self.renderer().render(Self::file_name(), ctx)?;
         // We make sure we don't use a deprecated file name
         let path = self.path().with_file_name(Self::file_name());
@@ -220,7 +220,7 @@ pub trait Hook: fmt::Debug + Sized {
     fn handle_exit<'a>(
         &self,
         group: &ServiceGroup,
-        output: &'a HookOutput,
+        output: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue;
 
@@ -258,7 +258,7 @@ impl Hook for FileUpdatedHook {
     fn handle_exit<'a>(
         &self,
         _: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         status.success()
@@ -306,7 +306,7 @@ impl Hook for HealthCheckHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -368,7 +368,7 @@ impl Hook for InitHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -438,7 +438,7 @@ impl Hook for RunHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -492,7 +492,7 @@ impl Hook for PostRunHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -546,7 +546,7 @@ impl Hook for ReloadHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -606,7 +606,7 @@ impl Hook for ReconfigureHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -660,7 +660,7 @@ impl Hook for SuitabilityHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        hook_output: &'a HookOutput,
+        hook_output: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -745,7 +745,7 @@ impl Hook for PostStopHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -857,7 +857,7 @@ impl HookTable {
     ///
     /// Returns `true` if compiling any of the hooks resulted in new
     /// content being written to the hook scripts on disk.
-    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> bool {
+    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext<'_>) -> bool {
         debug!("{:?}", self);
         let mut changed = false;
         if let Some(ref hook) = self.file_updated {
@@ -890,7 +890,7 @@ impl HookTable {
         changed
     }
 
-    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, ctx: &RenderContext) -> bool
+    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, ctx: &RenderContext<'_>) -> bool
     where
         H: Hook,
     {
@@ -926,7 +926,7 @@ impl RenderPair {
 }
 
 impl fmt::Debug for RenderPair {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "path: {}", self.path.display())
     }
 }

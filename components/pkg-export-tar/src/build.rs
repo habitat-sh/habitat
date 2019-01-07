@@ -69,7 +69,7 @@ pub struct BuildSpec<'a> {
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
     pub fn new_from_cli_matches(
-        m: &'a clap::ArgMatches,
+        m: &'a clap::ArgMatches<'_>,
         default_channel: &'a str,
         default_url: &'a str,
     ) -> Self {

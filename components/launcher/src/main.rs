@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate env_logger;
-extern crate habitat_core as core;
-extern crate habitat_launcher as launcher;
+use env_logger;
+use habitat_core as core;
+use habitat_launcher as launcher;
 #[macro_use]
 extern crate log;
 

@@ -876,11 +876,11 @@ impl Manager {
                 .into_iter()
             })
             .collect();
-        let watched_service_proxies: Vec<ServiceProxy> = watched_services
+        let watched_service_proxies: Vec<ServiceProxy<'_>> = watched_services
             .iter()
             .map(|s| ServiceProxy::new(s, config_rendering))
             .collect();
-        let mut services_to_render: Vec<ServiceProxy> = services
+        let mut services_to_render: Vec<ServiceProxy<'_>> = services
             .values()
             .map(|s| ServiceProxy::new(s, config_rendering))
             .collect();

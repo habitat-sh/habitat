@@ -136,7 +136,7 @@ impl From<u32> for SrvTxn {
 }
 
 impl fmt::Debug for SrvTxn {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "SrvTxn[id: {}, is_complete: {}, is_response: {}]",
@@ -200,7 +200,7 @@ impl From<u32> for SrvHeader {
 }
 
 impl fmt::Debug for SrvHeader {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "SrvHeader[body_len: {}, message_id_len: {}, is_txn: {}]",
@@ -326,7 +326,7 @@ impl SrvMessage {
 }
 
 impl fmt::Debug for SrvMessage {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{:?}, {:?}, {:?}",

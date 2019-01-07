@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate protobuf;
+use protobuf;
 
 mod message;
 
@@ -93,13 +93,13 @@ where
 }
 
 impl fmt::Display for NetErr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}: {}", self.get_code(), self.get_msg())
     }
 }
 
 impl fmt::Display for ShutdownMethod {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let printable = match *self {
             ShutdownMethod::AlreadyExited => "Already Exited",
             ShutdownMethod::GracefulTermination => "Graceful Termination",

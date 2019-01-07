@@ -49,7 +49,7 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::APIError(ref c, ref m) if m.len() > 0 => format!("[{}] {}", c, m),
             Error::APIError(ref c, _) => format!("[{}]", c),

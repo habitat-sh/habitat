@@ -57,7 +57,7 @@ impl Default for DesiredState {
 }
 
 impl fmt::Display for DesiredState {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match *self {
             DesiredState::Down => "down",
             DesiredState::Up => "up",
@@ -481,7 +481,7 @@ impl FromStr for ServiceBind {
 }
 
 impl fmt::Display for ServiceBind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         // Even though we can have a service_name, that's only
         // relevant when overriding a composite bind from the command
         // line.

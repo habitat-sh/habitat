@@ -771,7 +771,7 @@ impl Service {
     /// Helper for compiling configuration templates into configuration files.
     ///
     /// Returns `true` if the configuration has changed.
-    fn compile_configuration(&self, ctx: &RenderContext) -> bool {
+    fn compile_configuration(&self, ctx: &RenderContext<'_>) -> bool {
         match self.config_renderer.compile(&self.pkg, ctx) {
             Ok(true) => true,
             Ok(false) => false,
@@ -789,7 +789,7 @@ impl Service {
     /// This function will also perform any necessary post-compilation tasks.
     ///
     /// Returns `true` if any hooks have changed.
-    fn compile_hooks(&self, ctx: &RenderContext) -> bool {
+    fn compile_hooks(&self, ctx: &RenderContext<'_>) -> bool {
         let changed = self.hooks.compile(&self.service_group, ctx);
         if let Some(err) = self.copy_run().err() {
             outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
@@ -1084,7 +1084,7 @@ impl Service {
 }
 
 impl fmt::Display for Service {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} [{}]", self.service_group, self.pkg.ident)
     }
 }

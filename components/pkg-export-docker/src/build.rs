@@ -84,7 +84,7 @@ pub struct BuildSpec<'a> {
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
     pub fn new_from_cli_matches(
-        m: &'a clap::ArgMatches,
+        m: &'a clap::ArgMatches<'_>,
         default_channel: &'a str,
         default_url: &'a str,
     ) -> Self {
@@ -450,7 +450,7 @@ impl BuildRootContext {
     /// * If an artifact file cannot be read or if a Package Identifier cannot be determined
     /// * If a Package Identifier cannot be parsed from an string representation
     /// * If package metadata cannot be read
-    pub fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec, rootfs: P) -> Result<Self> {
+    pub fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec<'_>, rootfs: P) -> Result<Self> {
         let rootfs = rootfs.into();
         let mut idents = Vec::new();
         for ident_or_archive in &spec.idents_or_archives {

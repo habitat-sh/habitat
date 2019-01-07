@@ -43,31 +43,31 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate byteorder;
-extern crate bytes;
+
+
 #[cfg_attr(test, macro_use)]
-extern crate habitat_common as common;
-extern crate habitat_core;
+use habitat_common as common;
+use habitat_core;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate prost;
+use prost;
 #[macro_use]
 extern crate prost_derive;
-extern crate rand;
-extern crate serde;
+
+
 #[macro_use]
 extern crate serde_derive;
 #[cfg(test)]
 extern crate mktemp;
-extern crate serde_json;
+
 #[cfg(test)]
 extern crate tempfile;
-extern crate time;
-extern crate toml;
-extern crate uuid;
-extern crate zmq;
+use time;
+use toml;
+
+use zmq;
 
 #[macro_use]
 pub mod trace;

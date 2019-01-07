@@ -24,7 +24,7 @@ use super::{to_json, JsonTruthy};
 pub struct EachAliveHelper;
 
 impl HelperDef for EachAliveHelper {
-    fn call(&self, h: &Helper, r: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
+    fn call(&self, h: &Helper<'_>, r: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
         let value = h
             .param(0)
             .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\""))?;

@@ -499,7 +499,7 @@ impl CfgRenderer {
     /// Compile and write all configuration files to the configuration directory.
     ///
     /// Returns `true` if the configuration has changed.
-    pub fn compile(&self, pkg: &Pkg, ctx: &RenderContext) -> Result<bool> {
+    pub fn compile(&self, pkg: &Pkg, ctx: &RenderContext<'_>) -> Result<bool> {
         // JW TODO: This function is loaded with IO errors that will be converted a Supervisor
         // error resulting in the end-user not knowing what the fuck happned at all. We need to go
         // through this and pipe the service group through to let people know which service is

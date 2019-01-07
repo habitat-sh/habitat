@@ -107,7 +107,7 @@ impl FromStr for Health {
 }
 
 impl fmt::Display for Health {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match *self {
             Health::Alive => "alive",
             Health::Suspect => "suspect",
