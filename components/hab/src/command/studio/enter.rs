@@ -193,10 +193,10 @@ mod inner {
     use hcore::os::process;
     use hcore::package::PackageIdent;
 
-    use command::studio::docker;
-    use error::{Error, Result};
-    use exec;
-    use VERSION;
+    use crate::command::studio::docker;
+    use crate::error::{Error, Result};
+    use crate::exec;
+    use crate::VERSION;
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {
