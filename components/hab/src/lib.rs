@@ -24,8 +24,6 @@ use habitat_sup_client as sup_client;
 use habitat_sup_protocol as protocol;
 use handlebars;
 
-
-
 #[macro_use]
 extern crate bitflags;
 
@@ -35,11 +33,8 @@ use dirs;
 #[macro_use]
 extern crate features;
 
-
 #[macro_use]
 extern crate log;
-
-
 
 #[macro_use]
 extern crate serde_derive;
@@ -48,9 +43,6 @@ use serde_json;
 use tar;
 
 use toml;
-
-
-
 
 #[cfg(windows)]
 extern crate widestring;

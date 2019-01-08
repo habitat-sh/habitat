@@ -20,8 +20,8 @@ pub use self::restart::*;
 pub use self::spawn::*;
 pub use self::terminate::*;
 
-use protobuf;
 use crate::protocol;
+use protobuf;
 
 use super::{Sender, ServiceTable};
 

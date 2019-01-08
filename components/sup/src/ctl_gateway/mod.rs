@@ -32,9 +32,9 @@ use regex::Regex;
 
 use crate::api_client::DisplayProgress;
 use crate::common::ui::UIWriter;
-use futures::prelude::*;
 use crate::hcore::{self, output};
 use crate::protocol;
+use futures::prelude::*;
 
 use crate::error::{Error, Result};
 

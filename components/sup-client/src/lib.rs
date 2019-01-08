@@ -46,17 +46,15 @@ extern crate log;
 use habitat_common as common;
 use prost;
 
-
-
 use std::error;
 use std::fmt;
 use std::io;
 use std::path::PathBuf;
 
-use futures::prelude::*;
-use futures::sink;
 use crate::protocol::codec::*;
 use crate::protocol::net::NetErr;
+use futures::prelude::*;
+use futures::sink;
 use tokio::net::TcpStream;
 use tokio_codec::Framed;
 

@@ -31,14 +31,14 @@ use std::rc::Rc;
 use std::thread;
 use std::time::Duration;
 
-use futures::future::{self, Either};
-use futures::prelude::*;
-use futures::sync::mpsc;
 use crate::hcore::crypto;
-use prost;
 use crate::protocol;
 use crate::protocol::codec::*;
 use crate::protocol::net::{self, ErrCode, NetErr, NetResult};
+use futures::future::{self, Either};
+use futures::prelude::*;
+use futures::sync::mpsc;
+use prost;
 use tokio::net::TcpListener;
 use tokio_codec::Framed;
 use tokio_core::reactor;
@@ -163,7 +163,10 @@ impl Client {
 
     /// Initiate a handshake with the connected client before allowing future requests. A failed
     /// handshake will close the connection.
-    fn handshake(&self, socket: SrvStream) -> Box<dyn Future<Item = SrvStream, Error = HandlerError>> {
+    fn handshake(
+        &self,
+        socket: SrvStream,
+    ) -> Box<dyn Future<Item = SrvStream, Error = HandlerError>> {
         let secret_key = self.state.borrow().secret_key.to_string();
         let handshake = socket
             .into_future()

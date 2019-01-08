@@ -17,10 +17,10 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::str::FromStr;
 
-use base64;
-use clap::ArgMatches;
 use crate::common::ui::UI;
 use crate::hcore::package::{PackageArchive, PackageIdent};
+use base64;
+use clap::ArgMatches;
 
 use crate::export_docker::{DockerImage, Result};
 

@@ -20,8 +20,8 @@ use std::result;
 
 use crate::core::os;
 use crate::core::os::process::{signal, Signal};
-use libc;
 use crate::protocol::{self, ShutdownMethod};
+use libc;
 use time::{Duration, SteadyTime};
 
 use crate::error::{Error, Result};

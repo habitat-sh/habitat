@@ -44,7 +44,6 @@ use std::str::FromStr;
 
 use crate::api_client::Error::APIError;
 use crate::api_client::{self, Client};
-use glob;
 use crate::hcore;
 use crate::hcore::crypto::keys::parse_name_with_rev;
 use crate::hcore::crypto::{artifact, SigKeyPair};
@@ -52,7 +51,10 @@ use crate::hcore::fs::cache_key_path;
 use crate::hcore::fs::pkg_install_path;
 use crate::hcore::package::list::temp_package_directory;
 use crate::hcore::package::metadata::PackageType;
-use crate::hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
+use crate::hcore::package::{
+    Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget,
+};
+use glob;
 use hyper::status::StatusCode;
 
 use crate::error::{Error, Result};
@@ -789,7 +791,10 @@ impl<'a> InstallTask<'a> {
         Ok(latest)
     }
 
-    fn latest_installed_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent<'_>> {
+    fn latest_installed_ident(
+        &self,
+        ident: &PackageIdent,
+    ) -> Result<FullyQualifiedPackageIdent<'_>> {
         match PackageInstall::load(ident, Some(self.fs_root_path)) {
             Ok(pi) => FullyQualifiedPackageIdent::from(pi.ident().clone()),
             Err(_) => Err(Error::PackageNotFound("".to_string())),

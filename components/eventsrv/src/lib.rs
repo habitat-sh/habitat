@@ -19,7 +19,6 @@ use habitat_eventsrv_protocol as protocol;
 #[macro_use]
 extern crate log;
 
-
 #[macro_use]
 extern crate serde_derive;
 
@@ -31,8 +30,8 @@ pub mod error;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-use protobuf::parse_from_bytes;
 use crate::protocol::EventEnvelope;
+use protobuf::parse_from_bytes;
 use zmq::{Context, PULL, XPUB};
 
 /// Proxies messages coming into `frontend_port` out through

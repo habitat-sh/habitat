@@ -393,7 +393,9 @@ impl MemberList {
         }
     }
 
-    fn read_entries(&self) -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+    fn read_entries(
+        &self,
+    ) -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.read().expect("Members read lock")
     }
 

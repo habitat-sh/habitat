@@ -1,4 +1,3 @@
-
 use env_logger;
 use habitat_common as common;
 use habitat_core as hcore;
@@ -6,10 +5,10 @@ use habitat_pkg_export_tar as export_tar;
 #[macro_use]
 extern crate log;
 
-use clap::App;
 use crate::common::ui::{UIWriter, UI};
 use crate::export_tar::{Cli, Result};
 use crate::hcore::PROGRAM_NAME;
+use clap::App;
 
 fn main() {
     let mut ui = UI::default_with_env();

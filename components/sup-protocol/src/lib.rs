@@ -56,8 +56,6 @@ use rand;
 #[macro_use]
 extern crate serde_derive;
 
-
-
 pub mod butterfly;
 pub mod codec;
 pub mod ctl;

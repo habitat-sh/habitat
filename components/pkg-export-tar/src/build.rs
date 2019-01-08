@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use clap;
 use crate::common;
 use crate::common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
 use crate::common::ui::{Status, UIWriter, UI};
@@ -20,6 +19,7 @@ use crate::error::Result;
 use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use crate::hcore::package::PackageIdent;
 use crate::hcore::PROGRAM_NAME;
+use clap;
 use std::fs as stdfs;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;

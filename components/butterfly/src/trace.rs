@@ -405,8 +405,8 @@ macro_rules! trace_it {
 #[cfg(test)]
 mod tests {
     mod trace {
-        use std::path::Path;
         use crate::trace::Trace;
+        use std::path::Path;
 
         #[test]
         fn default() {

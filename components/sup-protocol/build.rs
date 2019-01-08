@@ -1,5 +1,3 @@
-
-
 use prost_build;
 
 use tempfile;

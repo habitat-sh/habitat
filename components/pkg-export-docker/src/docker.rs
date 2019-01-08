@@ -18,16 +18,16 @@ use std::process::Command;
 use std::str::FromStr;
 
 use crate::common::ui::{Status, UIWriter, UI};
-use failure::SyncFailure;
-use handlebars::Handlebars;
 use crate::hcore::fs as hfs;
 use crate::hcore::package::PackageIdent;
+use failure::SyncFailure;
+use handlebars::Handlebars;
 
 use super::{Credentials, Naming};
 use crate::build::BuildRoot;
 use crate::error::{Error, Result};
-use serde_json;
 use crate::util;
+use serde_json;
 
 /// The `Dockerfile` template.
 #[cfg(unix)]

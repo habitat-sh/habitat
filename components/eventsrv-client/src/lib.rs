@@ -22,9 +22,9 @@ use zmq;
 
 pub mod message;
 
-use protobuf::Message;
 use crate::protocol::EventEnvelope;
 pub use crate::protocol::EventSrvAddr;
+use protobuf::Message;
 
 pub struct EventSrvClient(zmq::Socket);
 

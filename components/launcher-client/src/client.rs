@@ -18,9 +18,9 @@ use std::io;
 use std::path::Path;
 
 use crate::core::os::process::Pid;
+use crate::protocol;
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use protobuf;
-use crate::protocol;
 
 use crate::error::{Error, Result};
 

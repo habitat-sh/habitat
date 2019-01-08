@@ -17,8 +17,6 @@ extern crate habitat_butterfly;
 #[macro_use]
 extern crate habitat_butterfly_test as btest;
 
-
-
 mod encryption;
 mod rumor;
 

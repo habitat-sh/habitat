@@ -32,8 +32,6 @@ use rusoto_credential as aws_creds;
 #[macro_use]
 extern crate serde_json;
 
-
-
 use failure;
 #[macro_use]
 extern crate failure_derive;

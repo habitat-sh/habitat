@@ -24,6 +24,11 @@ use std::{
     thread,
 };
 
+use crate::common::cli_defaults::{
+    LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
+};
+use crate::common::types::EnvConfig;
+use crate::hcore::{crypto, env as henv, service::ServiceGroup};
 use actix;
 use actix_web::{
     http::{self, StatusCode},
@@ -31,11 +36,6 @@ use actix_web::{
     pred::Predicate,
     server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
 };
-use crate::common::cli_defaults::{
-    LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
-};
-use crate::common::types::EnvConfig;
-use crate::hcore::{crypto, env as henv, service::ServiceGroup};
 use rustls::ServerConfig;
 use serde_json::{self, Value as Json};
 

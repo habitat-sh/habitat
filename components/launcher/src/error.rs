@@ -17,9 +17,9 @@ use std::fmt;
 use std::io;
 use std::result;
 
+use crate::protocol;
 use ipc_channel;
 use protobuf;
-use crate::protocol;
 
 use crate::{SUP_CMD, SUP_PACKAGE_IDENT};
 

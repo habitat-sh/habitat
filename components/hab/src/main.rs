@@ -16,11 +16,9 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-
 #[macro_use]
 extern crate clap;
 use env_logger;
-
 
 use habitat_common as common;
 use habitat_core as hcore;
@@ -32,8 +30,6 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 use pbr;
-
-
 
 use std::env;
 use std::ffi::OsString;
@@ -47,11 +43,9 @@ use std::result;
 use std::str::FromStr;
 use std::thread;
 
-use clap::{ArgMatches, Shell};
 use crate::common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
 use crate::common::types::ListenCtlAddr;
 use crate::common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
-use futures::prelude::*;
 use crate::hcore::binlink::default_binlink_dir;
 use crate::hcore::channel;
 #[cfg(windows)]
@@ -59,8 +53,12 @@ use crate::hcore::crypto::dpapi::encrypt;
 use crate::hcore::crypto::keys::PairType;
 use crate::hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
 use crate::hcore::env as henv;
-use crate::hcore::fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path};
+use crate::hcore::fs::{
+    cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path,
+};
 use crate::hcore::package::PackageIdent;
+use clap::{ArgMatches, Shell};
+use futures::prelude::*;
 
 use crate::hcore::service::{HealthCheckInterval, ServiceGroup};
 use crate::hcore::url::{bldr_url_from_env, default_bldr_url};

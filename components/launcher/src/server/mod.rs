@@ -34,11 +34,11 @@ use crate::core::fs::{launcher_root_path, FS_ROOT_PATH};
 use crate::core::os::process::{self, Pid, Signal};
 use crate::core::os::signals::{self, SignalEvent};
 use crate::core::package::{PackageIdent, PackageInstall};
+use crate::protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 #[cfg(unix)]
 use libc;
 use protobuf;
-use crate::protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use semver::{Version, VersionReq};
 
 use self::handlers::Handler;

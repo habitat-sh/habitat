@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use chrono::Local;
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::{Error, Result};
-use flate2::write::GzEncoder;
-use flate2::Compression;
 use crate::hcore::fs::FS_ROOT_PATH;
 use crate::hcore::os::net::hostname;
+use chrono::Local;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 use std::env;
 use std::error::Error as StdErr;
 use std::fs;

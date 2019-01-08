@@ -12,16 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-
 use std::error;
 use std::fmt;
 use std::io;
 use std::result;
 
+use crate::protocol;
 use ipc_channel;
 use protobuf;
-use crate::protocol;
 
 #[derive(Debug)]
 pub enum Error {

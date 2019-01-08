@@ -16,9 +16,9 @@ use std::collections::HashMap;
 use std::io;
 use std::mem;
 
+use crate::protocol::{self, ShutdownMethod};
 use core::os::process::handle_from_pid;
 use core::os::process::windows_child::{Child, ExitStatus, Handle};
-use crate::protocol::{self, ShutdownMethod};
 use time::{Duration, SteadyTime};
 use winapi::shared::minwindef::{DWORD, LPDWORD, MAX_PATH};
 use winapi::shared::winerror::{ERROR_FILE_NOT_FOUND, WAIT_TIMEOUT};

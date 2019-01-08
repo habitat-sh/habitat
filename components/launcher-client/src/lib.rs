@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 use habitat_core as core;
 use habitat_launcher_protocol as protocol;
 use ipc_channel;

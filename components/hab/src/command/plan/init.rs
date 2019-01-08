@@ -19,8 +19,8 @@ use std::fs::{canonicalize, File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::path::Path;
 
-use handlebars::Handlebars;
 use crate::hcore::package::PackageIdent;
+use handlebars::Handlebars;
 
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::Result;

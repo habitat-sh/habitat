@@ -46,13 +46,10 @@ use std::{
     str::{self, FromStr},
 };
 
-use clap::ArgMatches;
 use crate::common::cli_defaults::GOSSIP_DEFAULT_PORT;
 use crate::common::command::package::install::InstallSource;
 use crate::common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
 use crate::hcore::channel;
-#[cfg(windows)]
-use hcore::crypto::dpapi::encrypt;
 use crate::hcore::crypto::{self, default_cache_key_path, SymKey};
 use crate::hcore::env as henv;
 use crate::hcore::url::{bldr_url_from_env, default_bldr_url};
@@ -61,6 +58,9 @@ use crate::protocol::{
     ctl::ServiceBindList,
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
+use clap::ArgMatches;
+#[cfg(windows)]
+use hcore::crypto::dpapi::encrypt;
 
 use crate::sup::cli::cli;
 use crate::sup::command;

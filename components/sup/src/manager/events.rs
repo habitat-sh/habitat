@@ -17,13 +17,13 @@ use std::str::FromStr;
 use std::sync::mpsc::{self, Receiver, RecvError, Sender, SyncSender};
 use std::thread;
 
-use byteorder::{ByteOrder, LittleEndian};
 use crate::eventsrv_client::message::{
     EventEnvelope, EventEnvelope_Type, PackageIdent as PackageIdentProto,
     ServiceUpdate as ServiceUpdateProto, SysInfo as SysInfoProto,
 };
 use crate::eventsrv_client::{EventSrvAddr, EventSrvClient};
 use crate::hcore::service::ServiceGroup;
+use byteorder::{ByteOrder, LittleEndian};
 use protobuf::Message;
 use toml;
 

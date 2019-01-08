@@ -192,10 +192,10 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use clap;
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::hcore;
 use crate::http_client::ApiClient;
+use clap;
 use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use uuid::Uuid;
 

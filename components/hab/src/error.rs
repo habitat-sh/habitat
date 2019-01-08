@@ -23,10 +23,10 @@ use std::result;
 
 use crate::api_client;
 use crate::common;
-use handlebars;
 use crate::hcore;
 use crate::protocol::net;
 use crate::sup_client::SrvClientError;
+use handlebars;
 use toml;
 
 pub type Result<T> = result::Result<T, Error>;

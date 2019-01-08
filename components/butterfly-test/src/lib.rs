@@ -21,7 +21,6 @@ extern crate habitat_butterfly;
 #[macro_use]
 extern crate lazy_static;
 
-
 use std::ops::{Deref, DerefMut, Range};
 use std::path::PathBuf;
 use std::str::FromStr;

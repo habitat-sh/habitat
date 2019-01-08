@@ -1237,8 +1237,8 @@ impl<'a> Serialize for ServerProxy<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use habitat_core::service::ServiceGroup;
     use crate::rumor::election::Term;
+    use habitat_core::service::ServiceGroup;
 
     fn get_mock_service(member_id: String, service_group: ServiceGroup) -> Service {
         Service {
@@ -1392,12 +1392,12 @@ mod tests {
         use crate::member::Member;
         use crate::server::timing::Timing;
         use crate::server::{Server, Suitability};
+        use crate::trace::Trace;
         use std::fs::File;
         use std::io::prelude::*;
         use std::path::PathBuf;
         use std::sync::Mutex;
         use tempfile::TempDir;
-        use crate::trace::Trace;
 
         lazy_static! {
             static ref SWIM_PORT: Mutex<u16> = Mutex::new(6666);

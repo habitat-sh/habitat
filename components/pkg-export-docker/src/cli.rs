@@ -19,8 +19,8 @@ use std::path::Path;
 use std::result;
 use std::str::FromStr;
 
-use clap::{App, Arg};
 use crate::hcore::package::PackageIdent;
+use clap::{App, Arg};
 use url::Url;
 
 use crate::RegistryType;

@@ -1,24 +1,14 @@
-
 #[macro_use]
 extern crate clap;
 use habitat_common as common;
 use habitat_core as hcore;
 
-
-
-
-
 use failure;
 #[macro_use]
 extern crate failure_derive;
 
-
 #[macro_use]
 extern crate log;
-
-
-
-
 
 mod build;
 pub mod cli;
@@ -28,11 +18,11 @@ mod rootfs;
 pub use crate::cli::Cli;
 use crate::common::ui::UI;
 pub use crate::error::{Error, Result};
-use flate2::write::GzEncoder;
-use flate2::Compression;
 use crate::hcore::channel;
 use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::hcore::url as hurl;
+use flate2::write::GzEncoder;
+use flate2::Compression;
 use std::fs::File;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;

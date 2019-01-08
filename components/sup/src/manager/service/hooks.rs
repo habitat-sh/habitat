@@ -890,7 +890,12 @@ impl HookTable {
         changed
     }
 
-    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, ctx: &RenderContext<'_>) -> bool
+    fn compile_one<H>(
+        &self,
+        hook: &H,
+        service_group: &ServiceGroup,
+        ctx: &RenderContext<'_>,
+    ) -> bool
     where
         H: Hook,
     {

@@ -18,9 +18,9 @@ use std::io::{self, BufRead, BufReader, Read, Write};
 use std::process::{ChildStderr, ChildStdout, ExitStatus};
 use std::thread;
 
+use crate::protocol;
 #[cfg(windows)]
 use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
-use crate::protocol;
 
 pub use crate::sys::service::*;
 

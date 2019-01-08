@@ -15,8 +15,6 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-
-
 use habitat_core as hab_core;
 use habitat_http_client as hab_http;
 #[macro_use]
@@ -24,8 +22,6 @@ extern crate hyper;
 
 #[macro_use]
 extern crate log;
-
-
 
 use serde;
 #[macro_use]
@@ -45,11 +41,11 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 
-use broadcast::BroadcastWriter;
-use chrono::DateTime;
 use crate::hab_core::package::{Identifiable, PackageArchive, PackageIdent, PackageTarget};
 use crate::hab_http::util::decoded_response;
 use crate::hab_http::ApiClient;
+use broadcast::BroadcastWriter;
+use chrono::DateTime;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;

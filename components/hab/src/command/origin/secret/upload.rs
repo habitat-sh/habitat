@@ -18,8 +18,8 @@ use crate::common::ui::{Status, UIWriter, UI};
 
 use crate::error::{Error, Result};
 use crate::hcore::crypto::BoxKeyPair;
-use std::path::Path;
 use crate::{PRODUCT, VERSION};
+use std::path::Path;
 
 pub fn start(
     ui: &mut UI,
