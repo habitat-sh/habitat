@@ -42,7 +42,7 @@ pub struct ChartFile {
 
 impl ChartFile {
     pub fn new_from_cli_matches(
-        matches: &clap::ArgMatches,
+        matches: &clap::ArgMatches<'_>,
         pkg_ident: &PackageIdent,
     ) -> Result<Self> {
         let name = matches

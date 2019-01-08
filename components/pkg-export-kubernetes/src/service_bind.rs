@@ -29,7 +29,7 @@ pub struct ServiceBind {
 }
 
 impl ServiceBind {
-    pub fn from_args(matches: &ArgMatches) -> Result<Vec<Self>> {
+    pub fn from_args(matches: &ArgMatches<'_>) -> Result<Vec<Self>> {
         let mut binds = Vec::new();
 
         if let Some(bind_args) = matches.values_of("BIND") {

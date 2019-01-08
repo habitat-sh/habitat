@@ -820,7 +820,7 @@ two = 2
     /// returning the result. This can help to verify that
     /// RenderContext data are accessible to users in the way we
     /// expect.
-    fn render(template_content: &str, ctx: &RenderContext) -> String {
+    fn render(template_content: &str, ctx: &RenderContext<'_>) -> String {
         let mut renderer = TemplateRenderer::new();
         renderer
             .register_template_string("testing", template_content)

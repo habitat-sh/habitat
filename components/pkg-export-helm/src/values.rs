@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate habitat_pkg_export_docker as export_docker;
+
 
 use std::io::Write;
 
@@ -35,7 +35,7 @@ impl Values {
         });
     }
 
-    pub fn generate(&self, write: &mut Write) -> Result<()> {
+    pub fn generate(&self, write: &mut dyn Write) -> Result<()> {
         let mut out = "".to_owned();
         for entry in &self.values {
             out = out

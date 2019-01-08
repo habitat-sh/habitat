@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate clap;
-extern crate env_logger;
-extern crate habitat_common as common;
-extern crate habitat_core as hcore;
-extern crate habitat_pkg_export_docker as export_docker;
-extern crate habitat_pkg_export_kubernetes as export_k8s;
+use clap;
+use env_logger;
+use habitat_common as common;
+use habitat_core as hcore;
+
+use habitat_pkg_export_kubernetes as export_k8s;
 #[macro_use]
 extern crate log;
 

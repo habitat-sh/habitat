@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate base64;
-extern crate clap;
-extern crate habitat_common as common;
-extern crate habitat_core as hcore;
-extern crate habitat_pkg_export_docker as export_docker;
-extern crate handlebars;
-extern crate serde;
+use base64;
+use clap;
+use habitat_common as common;
+use habitat_core as hcore;
+use habitat_pkg_export_docker as export_docker;
+use handlebars;
+
 #[macro_use]
 extern crate serde_json;
 
-extern crate failure;
+use failure;
 #[macro_use]
 extern crate failure_derive;
 
@@ -57,7 +57,7 @@ pub const VERSION: &'static str = "0.1.0";
 /// Convenient do-it-all function. You give it the CLI arguments from the user and it generates the
 /// Kubernetes manifest. If user passed an `--output` argument with a value that is not "`-`", the
 /// manifest is written to the provided file; otherwise, it is written to the standard output.
-pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
+pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result<()> {
     let image = if !matches.is_present("NO_DOCKER_IMAGE") {
         export_docker::export_for_cli_matches(ui, &matches)?
     } else {
@@ -69,7 +69,7 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result
     };
     let mut manifest = Manifest::new_from_cli_matches(ui, &matches, image)?;
 
-    let mut write: Box<Write> = match matches.value_of("OUTPUT") {
+    let mut write: Box<dyn Write> = match matches.value_of("OUTPUT") {
         Some(o) if o != "-" => {
             ui.status(Status::Creating, format!("Kubernetes manifest file {}", o))?;
             let file = Box::new(File::create(o)?);

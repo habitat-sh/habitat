@@ -41,7 +41,7 @@ impl QuoteHelper {
 }
 
 impl HelperDef for QuoteHelper {
-    fn call(&self, h: &Helper, _r: &Handlebars, rc: &mut RenderContext) -> Result<(), RenderError> {
+    fn call(&self, h: &Helper<'_>, _r: &Handlebars, rc: &mut RenderContext<'_>) -> Result<(), RenderError> {
         let to_escape = h
             .param(0)
             .ok_or_else(|| {

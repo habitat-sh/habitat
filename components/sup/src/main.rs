@@ -16,8 +16,6 @@ extern crate ansi_term;
 extern crate clap;
 extern crate env_logger;
 extern crate hab;
-#[cfg_attr(test, macro_use)]
-extern crate habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
 extern crate habitat_launcher_client as launcher_client;
@@ -59,6 +57,7 @@ use crate::protocol::{
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
 use clap::ArgMatches;
+use habitat_common as common;
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 
@@ -519,6 +518,7 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::common::locked_env_var;
     use crate::common::types::ListenCtlAddr;
     use crate::hcore::service::ServiceGroup;
     use crate::sup::config::GossipListenAddr;

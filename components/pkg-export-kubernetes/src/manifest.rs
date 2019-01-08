@@ -66,7 +66,7 @@ impl Manifest {
     /// [`clap::ArgMatches`]: https://kbknapp.github.io/clap-rs/clap/struct.ArgMatches.html
     pub fn new_from_cli_matches(
         _ui: &mut UI,
-        matches: &ArgMatches,
+        matches: &ArgMatches<'_>,
         image: Option<DockerImage>,
     ) -> Result<Self> {
         let count = matches.value_of("COUNT").unwrap_or("1").parse()?;
@@ -154,7 +154,7 @@ impl Manifest {
     }
 
     /// Generates the manifest as a string and writes it to `write`.
-    pub fn generate(&mut self, write: &mut Write) -> Result<()> {
+    pub fn generate(&mut self, write: &mut dyn Write) -> Result<()> {
         let out: String = ManifestJson::new(&self).into();
 
         write.write(out.as_bytes())?;

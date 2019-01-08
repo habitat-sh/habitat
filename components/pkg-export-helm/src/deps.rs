@@ -36,7 +36,7 @@ pub struct Deps {
 }
 
 impl Deps {
-    pub fn new_for_cli_matches(matches: &clap::ArgMatches) -> Self {
+    pub fn new_for_cli_matches(matches: &clap::ArgMatches<'_>) -> Self {
         Deps {
             operator_version: matches
                 .value_of("OPERATOR_VERSION")
@@ -46,7 +46,7 @@ impl Deps {
         }
     }
 
-    pub fn generate(&mut self, write: &mut Write) -> Result<()> {
+    pub fn generate(&mut self, write: &mut dyn Write) -> Result<()> {
         // TODO: Until this Helm issue is resolved or has a decent workaround, let's skip the
         //       operator dependency:
         //

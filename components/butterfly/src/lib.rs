@@ -54,11 +54,9 @@ extern crate prost_derive;
 
 #[macro_use]
 extern crate serde_derive;
-#[cfg(test)]
-extern crate mktemp;
 
-#[cfg(test)]
-extern crate tempfile;
+
+
 
 #[macro_use]
 pub mod trace;

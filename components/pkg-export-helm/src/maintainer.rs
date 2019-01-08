@@ -31,7 +31,7 @@ pub struct Maintainer {
 }
 
 impl Maintainer {
-    pub fn from_args(matches: &ArgMatches) -> Result<Vec<Self>> {
+    pub fn from_args(matches: &ArgMatches<'_>) -> Result<Vec<Self>> {
         let mut maintainers = Vec::new();
 
         if let Some(args) = matches.values_of("MAINTAINER") {

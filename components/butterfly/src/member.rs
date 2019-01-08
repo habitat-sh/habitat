@@ -811,7 +811,7 @@ mod tests {
         // but until then, this keeps them working.
         fn with_member_iter<T>(
             &self,
-            mut with_closure: impl FnMut(hash_map::Values<String, Member>) -> T,
+            mut with_closure: impl FnMut(hash_map::Values<'_, String, Member>) -> T,
         ) -> T {
             let mut member_map = HashMap::new();
             for (id, super::member_list::Entry { member, .. }) in self.read_entries().iter() {

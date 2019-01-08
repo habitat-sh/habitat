@@ -30,7 +30,7 @@ pub struct PersistentStorage {
 }
 
 impl PersistentStorage {
-    pub fn from_args(matches: &ArgMatches) -> Result<Option<Self>> {
+    pub fn from_args(matches: &ArgMatches<'_>) -> Result<Option<Self>> {
         if let Some(arg) = matches.value_of("PERSISTENT_STORAGE") {
             Ok(Some(arg.parse::<Self>()?))
         } else {
@@ -66,21 +66,21 @@ impl PersistentStorage {
         for c in size.chars() {
             match state {
                 State::Nothing => match c {
-                    '0'...'9' => state = State::Digits,
+                    '0'..='9' => state = State::Digits,
                     _ => return false,
                 },
                 State::Digits => match c {
-                    '0'...'9' => (),
+                    '0'..='9' => (),
                     'e' => state = State::E,
                     'E' | 'P' | 'T' | 'G' | 'M' | 'K' => state = State::PowerOfTen,
                     _ => return false,
                 },
                 State::E => match c {
-                    '0'...'9' => state = State::FixedPoint,
+                    '0'..='9' => state = State::FixedPoint,
                     _ => return false,
                 },
                 State::FixedPoint => match c {
-                    '0'...'9' => (),
+                    '0'..='9' => (),
                     _ => return false,
                 },
                 State::PowerOfTen => match c {

@@ -36,7 +36,7 @@ pub struct Chart<'a> {
 }
 
 impl<'a> Chart<'a> {
-    pub fn new_for_cli_matches(ui: &'a mut UI, matches: &clap::ArgMatches) -> Result<Self> {
+    pub fn new_for_cli_matches(ui: &'a mut UI, matches: &clap::ArgMatches<'_>) -> Result<Self> {
         let image = if !matches.is_present("NO_DOCKER_IMAGE") {
             export_docker::export_for_cli_matches(ui, &matches)?
         } else {

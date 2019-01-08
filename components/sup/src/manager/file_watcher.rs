@@ -2844,7 +2844,7 @@ mod tests {
     }
 
     impl Display for DebugInfo {
-        fn fmt(&self, f: &mut Formatter) -> Result<(), Error> {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
             write!(f, "----------------\n")?;
             for level_logs in &self.logs_per_level {
                 for entry in level_logs {
@@ -3288,7 +3288,7 @@ mod tests {
             fs_ops
         }
 
-        fn get_fs_ops(&mut self) -> FsOps {
+        fn get_fs_ops(&mut self) -> FsOps<'_> {
             FsOps {
                 debug_info: &mut self.debug_info,
                 root: &self.root,

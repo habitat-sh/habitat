@@ -28,7 +28,7 @@ pub struct EnvironmentVariable {
 }
 
 impl EnvironmentVariable {
-    pub fn from_args(matches: &ArgMatches) -> Result<Vec<Self>> {
+    pub fn from_args(matches: &ArgMatches<'_>) -> Result<Vec<Self>> {
         let mut environment = Vec::new();
 
         if let Some(bind_args) = matches.values_of("ENVIRONMENT") {
