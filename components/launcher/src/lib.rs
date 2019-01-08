@@ -15,11 +15,8 @@
 #[macro_use]
 extern crate habitat_core as core;
 use habitat_launcher_protocol as protocol;
-use ipc_channel;
-use libc;
 #[macro_use]
 extern crate log;
-use protobuf;
 
 #[cfg(windows)]
 extern crate winapi;

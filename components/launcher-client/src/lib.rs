@@ -14,10 +14,8 @@
 
 use habitat_core as core;
 use habitat_launcher_protocol as protocol;
-use ipc_channel;
 #[macro_use]
 extern crate log;
-use protobuf;
 
 mod client;
 pub mod error;

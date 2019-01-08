@@ -15,7 +15,6 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-use glob;
 use habitat_api_client as api_client;
 use habitat_core as hcore;
 
@@ -23,10 +22,6 @@ use habitat_core as hcore;
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
-use pbr;
-use petgraph;
-
-use toml;
 
 #[cfg(windows)]
 extern crate winapi;

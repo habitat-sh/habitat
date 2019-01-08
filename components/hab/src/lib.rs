@@ -22,14 +22,13 @@ use habitat_core as hcore;
 use habitat_http_client as http_client;
 use habitat_sup_client as sup_client;
 use habitat_sup_protocol as protocol;
-use handlebars;
 
 #[macro_use]
 extern crate bitflags;
 
 #[macro_use]
 extern crate clap;
-use dirs;
+
 #[macro_use]
 extern crate features;
 
@@ -38,11 +37,6 @@ extern crate log;
 
 #[macro_use]
 extern crate serde_derive;
-use serde_json;
-
-use tar;
-
-use toml;
 
 #[cfg(windows)]
 extern crate widestring;

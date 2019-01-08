@@ -44,12 +44,11 @@
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
 use habitat_common as common;
-use habitat_core;
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-use prost;
 #[macro_use]
 extern crate prost_derive;
 
@@ -60,10 +59,6 @@ extern crate mktemp;
 
 #[cfg(test)]
 extern crate tempfile;
-use time;
-use toml;
-
-use zmq;
 
 #[macro_use]
 pub mod trace;

@@ -40,9 +40,6 @@
 //! *not* by a build server intentionally. This is to ensure we have the source available for
 //! all protocol files.
 
-use base64;
-
-use futures;
 use habitat_core as core;
 #[macro_use]
 extern crate lazy_static;
@@ -51,7 +48,6 @@ extern crate log;
 use prost;
 #[macro_use]
 extern crate prost_derive;
-use rand;
 
 #[macro_use]
 extern crate serde_derive;

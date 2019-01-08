@@ -15,10 +15,8 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-use base64;
 #[macro_use]
 extern crate clap;
-use hab;
 use habitat_common as common;
 use habitat_core as hcore;
 

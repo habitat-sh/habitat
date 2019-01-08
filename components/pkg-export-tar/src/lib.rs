@@ -3,7 +3,6 @@ extern crate clap;
 use habitat_common as common;
 use habitat_core as hcore;
 
-use failure;
 #[macro_use]
 extern crate failure_derive;
 

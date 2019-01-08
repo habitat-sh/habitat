@@ -44,7 +44,6 @@ use habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate log;
 use habitat_common as common;
-use prost;
 
 use std::error;
 use std::fmt;

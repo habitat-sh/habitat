@@ -17,9 +17,6 @@
 
 use habitat_eventsrv_protocol as protocol;
 
-use time;
-use zmq;
-
 pub mod message;
 
 use crate::protocol::EventEnvelope;

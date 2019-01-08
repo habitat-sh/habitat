@@ -39,8 +39,6 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
-use actix;
-
 #[macro_use]
 extern crate bitflags;
 
@@ -53,7 +51,6 @@ extern crate ctrlc;
 extern crate features;
 #[macro_use]
 extern crate futures;
-use glob;
 
 use habitat_butterfly as butterfly;
 use habitat_common as common;
@@ -63,30 +60,20 @@ use habitat_api_client as api_client;
 use habitat_eventsrv_client as eventsrv_client;
 use habitat_launcher_client as launcher_client;
 use habitat_sup_protocol as protocol;
-use handlebars;
 #[macro_use]
 extern crate lazy_static;
-use libc;
 #[macro_use]
 extern crate log;
-use notify;
-use num_cpus;
-use prost;
 
-use rustls;
-use serde;
 #[macro_use]
 extern crate serde_derive;
 #[allow(unused_imports)]
 #[macro_use]
 extern crate serde_json;
-use serde_transcode;
-use serde_yaml;
 extern crate time as time_crate;
 
 #[macro_use]
 extern crate tokio_core;
-use toml;
 
 #[cfg(test)]
 extern crate json;
