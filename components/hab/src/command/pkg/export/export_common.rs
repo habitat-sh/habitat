@@ -94,9 +94,9 @@ mod inner {
 mod inner {
     use std::ffi::OsString;
 
-    use common::ui::{UIWriter, UI};
+    use crate::common::ui::{UIWriter, UI};
 
-    use error::{Error, Result};
+    use crate::error::{Error, Result};
 
     pub fn start(
         ui: &mut UI,

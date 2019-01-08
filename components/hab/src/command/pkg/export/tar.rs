@@ -80,10 +80,10 @@ mod inner {
 mod inner {
     use std::ffi::OsString;
 
-    use common::ui::{UIWriter, UI};
+    use crate::common::ui::{UIWriter, UI};
 
     use super::EXPORT_CMD;
-    use error::{Error, Result};
+    use crate::error::{Error, Result};
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let cmd = EXPORT_CMD.replace("hab", "").replace("-", " ");

@@ -73,9 +73,9 @@ mod inner {
     use std::env;
     use std::ffi::OsString;
 
-    use common::ui::{UIWriter, UI};
+    use crate::common::ui::{UIWriter, UI};
 
-    use error::{Error, Result};
+    use crate::error::{Error, Result};
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
