@@ -22,8 +22,10 @@ use crate::hcore::fs::{self, FS_ROOT_PATH};
 use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::hcore::AUTH_TOKEN_ENVVAR;
 
-use crate::error::{Result, SupError};
+use crate::error::{Error, Result, SupError};
 use crate::{PRODUCT, VERSION};
+
+static LOGKEY: &'static str = "UT";
 
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.
@@ -76,6 +78,7 @@ pub fn satisfy_or_install<T>(
     install_source: &InstallSource,
     bldr_url: &str,
     channel: &str,
+    must_be_runnable: bool,
 ) -> Result<PackageInstall>
 where
     T: UIWriter,
@@ -84,6 +87,16 @@ where
         Some(package) => Ok(package),
         None => install(ui, bldr_url, install_source, channel),
     }
+    .and_then(|installed| {
+        if must_be_runnable && !installed.is_runnable() {
+            outputln!("Can't start non-runnable service: {}", installed.ident());
+            Err(sup_error!(Error::PackageNotRunnable(
+                installed.ident().clone()
+            )))
+        } else {
+            Ok(installed)
+        }
+    })
 }
 
 /// Returns an installed package for the given ident, if one is present.
