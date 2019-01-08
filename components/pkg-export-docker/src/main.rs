@@ -15,9 +15,6 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-
-
-
 use env_logger;
 use habitat_common as common;
 

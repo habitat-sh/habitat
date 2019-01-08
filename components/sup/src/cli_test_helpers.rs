@@ -87,7 +87,10 @@ Failed assertions for command: '{}'
     }
 }
 
-fn assert_matches(matches: &ArgMatches<'_>, assertions: Vec<(&str, Expectation<'_>)>) -> Vec<CliTestError> {
+fn assert_matches(
+    matches: &ArgMatches<'_>,
+    assertions: Vec<(&str, Expectation<'_>)>,
+) -> Vec<CliTestError> {
     let mut errs = Vec::new();
 
     for (flag, expected_value) in assertions {

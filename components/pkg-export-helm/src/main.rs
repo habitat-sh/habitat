@@ -26,7 +26,6 @@ extern crate log;
 #[macro_use]
 extern crate serde_json;
 
-
 use failure;
 #[macro_use]
 extern crate failure_derive;

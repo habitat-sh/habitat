@@ -22,7 +22,6 @@ extern crate habitat_core as hcore;
 extern crate lazy_static;
 use rand;
 
-
 mod utils;
 
 // The fixture location is derived from the name of this test
