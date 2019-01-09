@@ -438,6 +438,28 @@ where
     }
 }
 
+impl RumorStore<Service> {
+    /// Returns true if there exist rumors for the given service's service
+    /// group, but none containing the given member.
+    pub fn contains_group_without_member(&self, service_group: &str, member_id: &str) -> bool {
+        match self
+            .list
+            .read()
+            .expect("Rumor store lock poisoned")
+            .get(service_group)
+        {
+            Some(group_rumors) => !group_rumors.contains_key(member_id),
+            None => false,
+        }
+    }
+
+    pub fn min_member_id_for(&self, service_group: &str) -> Option<String> {
+        let list = self.list.read().expect("Rumor store lock poisoned");
+        list.get(service_group)
+            .and_then(|rumor_hash_map| rumor_hash_map.keys().min().cloned())
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct RumorEnvelope {
     pub type_: RumorType,
