@@ -17,10 +17,8 @@
 #[cfg(windows)]
 #[macro_use]
 extern crate log;
-#[cfg(windows)]
-extern crate widestring;
-#[cfg(windows)]
-extern crate winapi;
+
+
 
 #[cfg(windows)]
 pub mod account;

@@ -1,6 +1,7 @@
 [package]
 name = "habitat_win_users"
 version = "0.0.0"
+edition = "2018"
 authors = ["Matt Wrock <matt@mattwrock.com>"]
 description = "Habitat library for win32 account api calls"
 workspace = "../../"

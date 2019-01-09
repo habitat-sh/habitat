@@ -1,4 +1,4 @@
-extern crate gcc;
+use gcc;
 
 #[cfg(windows)]
 fn main() {
