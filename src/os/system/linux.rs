@@ -17,9 +17,9 @@ use std::mem;
 
 use libc;
 
-use errno::errno;
 use crate::error::{Error, Result};
 use crate::os::system::Uname;
+use errno::errno;
 
 pub fn uname() -> Result<Uname> {
     unsafe { uname_libc() }
