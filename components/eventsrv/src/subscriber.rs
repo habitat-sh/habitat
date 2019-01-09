@@ -15,21 +15,18 @@
 // NOTE: The sole purpose of this subscriber is testing and debugging. It's not
 // required for normal operation.
 
-extern crate byteorder;
-extern crate env_logger;
-extern crate habitat_eventsrv;
-extern crate habitat_eventsrv_protocol as protocol;
+use env_logger;
+
+use habitat_eventsrv_protocol as protocol;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
-extern crate zmq;
 
 use std::env;
 use std::io::Read;
 
+use crate::protocol::{EventEnvelope, EventEnvelope_Type, ServiceUpdate as ServiceUpdateProto};
 use byteorder::{ByteOrder, LittleEndian};
 use protobuf::parse_from_bytes;
-use protocol::{EventEnvelope, EventEnvelope_Type, ServiceUpdate as ServiceUpdateProto};
 use zmq::{Context, SUB};
 
 fn main() {

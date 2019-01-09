@@ -21,12 +21,12 @@ use std::num;
 use std::path::{self, PathBuf};
 use std::result;
 
-use api_client;
-use common;
+use crate::api_client;
+use crate::common;
+use crate::hcore;
+use crate::protocol::net;
+use crate::sup_client::SrvClientError;
 use handlebars;
-use hcore;
-use protocol::net;
-use sup_client::SrvClientError;
 use toml;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -77,7 +77,7 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::APIClient(ref err) => format!("{}", err),
             Error::ArgumentError(ref e) => format!("{}", e),

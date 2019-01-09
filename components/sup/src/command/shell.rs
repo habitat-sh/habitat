@@ -17,11 +17,11 @@ use std::ffi::CString;
 use std::path::PathBuf;
 use std::ptr;
 
-use hcore::fs::find_command;
+use crate::hcore::fs::find_command;
 use libc;
 
-use error::{Error, Result};
-use util::path;
+use crate::error::{Error, Result};
+use crate::util::path;
 
 /// Our output key
 static LOGKEY: &'static str = "SH";

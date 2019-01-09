@@ -41,7 +41,7 @@ impl EtcPasswdEntry {
 }
 
 impl fmt::Display for EtcPasswdEntry {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{name}:x:{uid}:{gid}:{name} User:/:/bin/false",
@@ -82,7 +82,7 @@ impl EtcGroupEntry {
 }
 
 impl fmt::Display for EtcGroupEntry {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{name}:x:{gid}:{users}",

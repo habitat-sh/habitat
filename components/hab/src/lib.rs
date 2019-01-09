@@ -16,42 +16,27 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate habitat_api_client as api_client;
-extern crate habitat_common as common;
-extern crate habitat_core as hcore;
-extern crate habitat_http_client as http_client;
-extern crate habitat_sup_client as sup_client;
-extern crate habitat_sup_protocol as protocol;
-extern crate handlebars;
+use habitat_api_client as api_client;
+use habitat_common as common;
+use habitat_core as hcore;
+use habitat_http_client as http_client;
+use habitat_sup_client as sup_client;
+use habitat_sup_protocol as protocol;
 
-extern crate ansi_term;
-extern crate base64;
 #[macro_use]
 extern crate bitflags;
-extern crate chrono;
+
 #[macro_use]
 extern crate clap;
-extern crate dirs;
+
 #[macro_use]
 extern crate features;
-extern crate flate2;
-extern crate hyper;
+
 #[macro_use]
 extern crate log;
-extern crate pbr;
-extern crate retry;
-extern crate serde;
+
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
-extern crate tabwriter;
-extern crate tar;
-#[cfg(test)]
-extern crate tempfile;
-extern crate toml;
-extern crate url;
-extern crate uuid;
-extern crate walkdir;
 
 #[cfg(windows)]
 extern crate widestring;
@@ -74,7 +59,7 @@ pub const CTL_SECRET_ENVVAR: &'static str = "HAB_CTL_SECRET";
 pub const ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
 pub const BLDR_URL_ENVVAR: &'static str = "HAB_BLDR_URL";
 
-pub use hcore::AUTH_TOKEN_ENVVAR;
+pub use crate::hcore::AUTH_TOKEN_ENVVAR;
 
 features! {
     pub mod feat {

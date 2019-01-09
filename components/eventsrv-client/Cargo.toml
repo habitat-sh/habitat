@@ -1,6 +1,7 @@
 [package]
 name = "habitat-eventsrv-client"
 version = "0.0.0"
+edition = "2018"
 authors = [
   "Josh Black <raskchanky@gmail.com>",
   "Christopher Maier <cmaier@chef.io>",

@@ -31,9 +31,9 @@ use std::{
 };
 
 // Internal Modules
-use common::types::EnvConfig;
-use error::Error;
-use rumor::{RumorKey, RumorType};
+use crate::common::types::EnvConfig;
+use crate::error::Error;
+use crate::rumor::{RumorKey, RumorType};
 
 // TODO (CM): Can we key by member instead? What do we do more frequently?
 // TODO (CM): Might want to type the member ID explicitly
@@ -212,15 +212,16 @@ impl Default for RumorHeat {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use error::Result;
-    use protocol::{self, newscast};
-    use rumor::{Rumor, RumorKey, RumorType};
+    use crate::common::locked_env_var;
+    use crate::error::Result;
+    use crate::protocol::{self, newscast};
+    use crate::rumor::{Rumor, RumorKey, RumorType};
     use uuid::Uuid;
 
+    use crate::member::Member;
+    use crate::rumor::service::{Service, SysInfo};
     use habitat_core::package::PackageIdent;
     use habitat_core::service::ServiceGroup;
-    use member::Member;
-    use rumor::service::{Service, SysInfo};
 
     // TODO (CM): This FakeRumor implementation is copied from
     // rumor.rs; factor this helper code better.

@@ -17,18 +17,18 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::str::FromStr;
 
+use crate::common::ui::UI;
+use crate::hcore::package::{PackageArchive, PackageIdent};
 use base64;
 use clap::ArgMatches;
-use common::ui::UI;
-use hcore::package::{PackageArchive, PackageIdent};
 
-use export_docker::{DockerImage, Result};
+use crate::export_docker::{DockerImage, Result};
 
-use env::EnvironmentVariable;
-use manifestjson::ManifestJson;
-use service_bind::ServiceBind;
-use storage::PersistentStorage;
-use topology::Topology;
+use crate::env::EnvironmentVariable;
+use crate::manifestjson::ManifestJson;
+use crate::service_bind::ServiceBind;
+use crate::storage::PersistentStorage;
+use crate::topology::Topology;
 
 /// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]
@@ -66,7 +66,7 @@ impl Manifest {
     /// [`clap::ArgMatches`]: https://kbknapp.github.io/clap-rs/clap/struct.ArgMatches.html
     pub fn new_from_cli_matches(
         _ui: &mut UI,
-        matches: &ArgMatches,
+        matches: &ArgMatches<'_>,
         image: Option<DockerImage>,
     ) -> Result<Self> {
         let count = matches.value_of("COUNT").unwrap_or("1").parse()?;
@@ -154,7 +154,7 @@ impl Manifest {
     }
 
     /// Generates the manifest as a string and writes it to `write`.
-    pub fn generate(&mut self, write: &mut Write) -> Result<()> {
+    pub fn generate(&mut self, write: &mut dyn Write) -> Result<()> {
         let out: String = ManifestJson::new(&self).into();
 
         write.write(out.as_bytes())?;

@@ -20,13 +20,13 @@ use habitat_core::crypto::SymKey;
 use habitat_core::service::ServiceGroup;
 use zmq;
 
-use error::{Error, Result};
-use message;
-use rumor::departure::Departure;
-use rumor::service_config::ServiceConfig;
-use rumor::service_file::ServiceFile;
-use rumor::Rumor;
-use ZMQ_CONTEXT;
+use crate::error::{Error, Result};
+use crate::message;
+use crate::rumor::departure::Departure;
+use crate::rumor::service_config::ServiceConfig;
+use crate::rumor::service_file::ServiceFile;
+use crate::rumor::Rumor;
+use crate::ZMQ_CONTEXT;
 
 /// Holds a ZMQ Push socket, and an optional ring encryption key.
 pub struct Client {

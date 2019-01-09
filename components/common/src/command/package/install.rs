@@ -42,21 +42,23 @@ use std::path::{Path, PathBuf};
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
-use api_client::Error::APIError;
-use api_client::{self, Client};
+use crate::api_client::Error::APIError;
+use crate::api_client::{self, Client};
+use crate::hcore;
+use crate::hcore::crypto::keys::parse_name_with_rev;
+use crate::hcore::crypto::{artifact, SigKeyPair};
+use crate::hcore::fs::cache_key_path;
+use crate::hcore::fs::pkg_install_path;
+use crate::hcore::package::list::temp_package_directory;
+use crate::hcore::package::metadata::PackageType;
+use crate::hcore::package::{
+    Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget,
+};
 use glob;
-use hcore;
-use hcore::crypto::keys::parse_name_with_rev;
-use hcore::crypto::{artifact, SigKeyPair};
-use hcore::fs::cache_key_path;
-use hcore::fs::pkg_install_path;
-use hcore::package::list::temp_package_directory;
-use hcore::package::metadata::PackageType;
-use hcore::package::{Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget};
 use hyper::status::StatusCode;
 
-use error::{Error, Result};
-use ui::{Status, UIWriter};
+use crate::error::{Error, Result};
+use crate::ui::{Status, UIWriter};
 
 use retry::retry;
 
@@ -251,7 +253,7 @@ impl<'a> Default for Channel<'a> {
 }
 
 impl<'a> fmt::Display for Channel<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -299,7 +301,7 @@ impl<'a> AsRef<PackageIdent> for FullyQualifiedPackageIdent<'a> {
 }
 
 impl<'a> fmt::Display for FullyQualifiedPackageIdent<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.ident.as_ref().fmt(f)
     }
 }
@@ -487,7 +489,7 @@ impl<'a> InstallTask<'a> {
         ident: PackageIdent,
         target: &PackageTarget,
         token: Option<&str>,
-    ) -> Result<FullyQualifiedPackageIdent>
+    ) -> Result<FullyQualifiedPackageIdent<'_>>
     where
         T: UIWriter,
     {
@@ -606,7 +608,7 @@ impl<'a> InstallTask<'a> {
     fn install_package<T>(
         &self,
         ui: &mut T,
-        ident: &FullyQualifiedPackageIdent,
+        ident: &FullyQualifiedPackageIdent<'_>,
         target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<PackageInstall>
@@ -681,7 +683,7 @@ impl<'a> InstallTask<'a> {
     fn get_cached_artifact<T>(
         &self,
         ui: &mut T,
-        ident: &FullyQualifiedPackageIdent,
+        ident: &FullyQualifiedPackageIdent<'_>,
         target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<PackageArchive>
@@ -756,7 +758,7 @@ impl<'a> InstallTask<'a> {
 
     /// Adapter function to retrieve an installed package given an
     /// identifier, if it exists.
-    fn installed_package(&self, ident: &FullyQualifiedPackageIdent) -> Option<PackageInstall> {
+    fn installed_package(&self, ident: &FullyQualifiedPackageIdent<'_>) -> Option<PackageInstall> {
         PackageInstall::load(ident.as_ref(), Some(self.fs_root_path)).ok()
     }
 
@@ -765,7 +767,7 @@ impl<'a> InstallTask<'a> {
     fn latest_installed_or_cached(
         &self,
         ident: &PackageIdent,
-    ) -> Result<FullyQualifiedPackageIdent> {
+    ) -> Result<FullyQualifiedPackageIdent<'_>> {
         let latest_installed = self.latest_installed_ident(&ident);
         let latest_cached = self.latest_cached_ident(&ident);
         debug!(
@@ -789,14 +791,17 @@ impl<'a> InstallTask<'a> {
         Ok(latest)
     }
 
-    fn latest_installed_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent> {
+    fn latest_installed_ident(
+        &self,
+        ident: &PackageIdent,
+    ) -> Result<FullyQualifiedPackageIdent<'_>> {
         match PackageInstall::load(ident, Some(self.fs_root_path)) {
             Ok(pi) => FullyQualifiedPackageIdent::from(pi.ident().clone()),
             Err(_) => Err(Error::PackageNotFound("".to_string())),
         }
     }
 
-    fn latest_cached_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent> {
+    fn latest_cached_ident(&self, ident: &PackageIdent) -> Result<FullyQualifiedPackageIdent<'_>> {
         let filename_glob = {
             let mut ident = ident.clone();
             if ident.version.is_none() {
@@ -846,14 +851,14 @@ impl<'a> InstallTask<'a> {
         }
     }
 
-    fn is_artifact_cached(&self, ident: &FullyQualifiedPackageIdent) -> bool {
+    fn is_artifact_cached(&self, ident: &FullyQualifiedPackageIdent<'_>) -> bool {
         self.cached_artifact_path(ident).is_file()
     }
 
     /// Returns the path to the location this package would exist at in
     /// the local package cache. It does not mean that the package is
     /// actually *in* the package cache, though.
-    fn cached_artifact_path(&self, ident: &FullyQualifiedPackageIdent) -> PathBuf {
+    fn cached_artifact_path(&self, ident: &FullyQualifiedPackageIdent<'_>) -> PathBuf {
         self.artifact_cache_path.join(ident.archive_name())
     }
 
@@ -862,7 +867,7 @@ impl<'a> InstallTask<'a> {
         ident: &PackageIdent,
         target: &PackageTarget,
         token: Option<&str>,
-    ) -> Result<FullyQualifiedPackageIdent> {
+    ) -> Result<FullyQualifiedPackageIdent<'_>> {
         self.fetch_latest_pkg_ident_in_channel_for(ident, target, &self.channel, token)
     }
 
@@ -870,9 +875,9 @@ impl<'a> InstallTask<'a> {
         &self,
         ident: &PackageIdent,
         target: &PackageTarget,
-        channel: &Channel,
+        channel: &Channel<'_>,
         token: Option<&str>,
-    ) -> Result<FullyQualifiedPackageIdent> {
+    ) -> Result<FullyQualifiedPackageIdent<'_>> {
         let origin_package = self
             .api_client
             .show_package(ident, target, channel.0, token)?;
@@ -884,7 +889,7 @@ impl<'a> InstallTask<'a> {
     fn fetch_artifact<T>(
         &self,
         ui: &mut T,
-        ident: &FullyQualifiedPackageIdent,
+        ident: &FullyQualifiedPackageIdent<'_>,
         target: &PackageTarget,
         token: Option<&str>,
     ) -> Result<()>
@@ -937,7 +942,7 @@ impl<'a> InstallTask<'a> {
     // TODO (CM): Oh, we could just pass in the LocalArchive
     fn store_artifact_in_cache(
         &self,
-        ident: &FullyQualifiedPackageIdent,
+        ident: &FullyQualifiedPackageIdent<'_>,
         artifact_path: &Path,
     ) -> Result<()> {
         // Canonicalize both paths to ensure that there aren't any symlinks when comparing them
@@ -980,7 +985,7 @@ impl<'a> InstallTask<'a> {
     fn verify_artifact<T>(
         &self,
         ui: &mut T,
-        ident: &FullyQualifiedPackageIdent,
+        ident: &FullyQualifiedPackageIdent<'_>,
         artifact: &mut PackageArchive,
     ) -> Result<()>
     where

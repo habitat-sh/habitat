@@ -17,19 +17,19 @@ use std::str::FromStr;
 use std::sync::mpsc::{self, Receiver, RecvError, Sender, SyncSender};
 use std::thread;
 
-use byteorder::{ByteOrder, LittleEndian};
-use eventsrv_client::message::{
+use crate::eventsrv_client::message::{
     EventEnvelope, EventEnvelope_Type, PackageIdent as PackageIdentProto,
     ServiceUpdate as ServiceUpdateProto, SysInfo as SysInfoProto,
 };
-use eventsrv_client::{EventSrvAddr, EventSrvClient};
-use hcore::service::ServiceGroup;
+use crate::eventsrv_client::{EventSrvAddr, EventSrvClient};
+use crate::hcore::service::ServiceGroup;
+use byteorder::{ByteOrder, LittleEndian};
 use protobuf::Message;
 use toml;
 
-use census::{CensusMember, CensusRing};
-use manager::service::Service;
-use PRODUCT;
+use crate::census::{CensusMember, CensusRing};
+use crate::manager::service::Service;
+use crate::PRODUCT;
 
 enum Command {
     SendEvent(EventEnvelope),

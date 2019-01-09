@@ -1,4 +1,4 @@
-use message;
+use crate::message;
 
 impl message::MessageStatic for NetProgress {
     const MESSAGE_ID: &'static str = "NetProgress";

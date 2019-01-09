@@ -46,10 +46,10 @@ pub use self::election::{Election, ElectionUpdate};
 pub use self::service::Service;
 pub use self::service_config::ServiceConfig;
 pub use self::service_file::ServiceFile;
-use error::{Error, Result};
-use member::Membership;
-pub use protocol::newscast::{Rumor as ProtoRumor, RumorPayload, RumorType};
-use protocol::{FromProto, Message};
+use crate::error::{Error, Result};
+use crate::member::Membership;
+pub use crate::protocol::newscast::{Rumor as ProtoRumor, RumorPayload, RumorType};
+use crate::protocol::{FromProto, Message};
 
 #[derive(Debug, Clone, Serialize)]
 pub enum RumorKind {
@@ -176,7 +176,7 @@ where
 /// interaction between the 'key()' and 'id()' functions on the Rumor trait, each rumor type needs
 /// to be custom serialized if we want to avoid irrelevant implementation details leaking into the
 /// JSON output.
-pub struct RumorStoreProxy<'a, T: Rumor + 'a>(&'a RumorStore<T>);
+pub struct RumorStoreProxy<'a, T: Rumor>(&'a RumorStore<T>);
 
 impl<'a, T> RumorStoreProxy<'a, T>
 where
@@ -495,9 +495,9 @@ impl From<RumorEnvelope> for ProtoRumor {
 mod tests {
     use uuid::Uuid;
 
-    use error::Result;
-    use protocol::{self, newscast};
-    use rumor::{Rumor, RumorType};
+    use crate::error::Result;
+    use crate::protocol::{self, newscast};
+    use crate::rumor::{Rumor, RumorType};
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
@@ -611,8 +611,8 @@ mod tests {
 
     mod rumor_store {
         use super::FakeRumor;
-        use rumor::Rumor;
-        use rumor::RumorStore;
+        use crate::rumor::Rumor;
+        use crate::rumor::RumorStore;
         use std::usize;
 
         fn create_rumor_store() -> RumorStore<FakeRumor> {

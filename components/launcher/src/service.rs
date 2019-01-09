@@ -18,11 +18,11 @@ use std::io::{self, BufRead, BufReader, Read, Write};
 use std::process::{ChildStderr, ChildStdout, ExitStatus};
 use std::thread;
 
+use crate::protocol;
 #[cfg(windows)]
 use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
-use protocol;
 
-pub use sys::service::*;
+pub use crate::sys::service::*;
 
 pub struct Service {
     args: protocol::Spawn,
@@ -88,7 +88,7 @@ impl Service {
 }
 
 impl fmt::Debug for Service {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Service {{ pid: {:?} }}", self.process.id())
     }
 }

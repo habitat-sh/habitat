@@ -17,20 +17,20 @@ use std::path::Path;
 use std::result;
 use std::str::FromStr;
 
+use crate::hcore::package::ident;
+use crate::hcore::package::{Identifiable, PackageIdent};
+use crate::hcore::{crypto::keys::PairType, service::HealthCheckInterval, service::ServiceGroup};
+use crate::protocol;
 use clap::{App, AppSettings, Arg};
-use hcore::package::ident;
-use hcore::package::{Identifiable, PackageIdent};
-use hcore::{crypto::keys::PairType, service::HealthCheckInterval, service::ServiceGroup};
-use protocol;
 use url::Url;
 
-use command::studio;
-use common::cli_defaults::{
+use crate::command::studio;
+use crate::common::cli_defaults::{
     GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_CTL_DEFAULT_ADDR_STRING,
     LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
 };
-use common::types::{EnvConfig, ListenCtlAddr};
-use feat;
+use crate::common::types::{EnvConfig, ListenCtlAddr};
+use crate::feat;
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()

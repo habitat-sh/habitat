@@ -14,9 +14,9 @@
 
 use std::str::FromStr;
 
+use crate::hcore::fs;
+use crate::hcore::package::{Identifiable, PackageIdent};
 use handlebars::{Handlebars, Helper, HelperDef, RenderContext, RenderError};
-use hcore::fs;
-use hcore::package::{Identifiable, PackageIdent};
 use serde_json;
 
 use super::super::RenderResult;
@@ -25,7 +25,7 @@ use super::super::RenderResult;
 pub struct PkgPathForHelper;
 
 impl HelperDef for PkgPathForHelper {
-    fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
+    fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
         let param = h
             .param(0)
             .and_then(|v| v.value().as_str())

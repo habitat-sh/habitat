@@ -25,28 +25,28 @@ use serde_json;
 use time::{self, Duration as TimeDuration, Timespec};
 use toml;
 
-use butterfly;
-use common::{command::package::install::InstallSource, ui::UIWriter};
-use ctl_gateway::CtlRequest;
-use error::{Error, Result};
-use hcore::{
+use crate::butterfly;
+use crate::common::{command::package::install::InstallSource, ui::UIWriter};
+use crate::ctl_gateway::CtlRequest;
+use crate::error::{Error, Result};
+use crate::hcore::{
     fs::FS_ROOT_PATH,
     package::metadata::PackageType,
     package::{Identifiable, PackageIdent, PackageInstall, PackageTarget},
     service::ServiceGroup,
 };
-use manager::{
+use crate::manager::{
     service::{
         spec::{IntoServiceSpec, ServiceSpec},
         CompositeSpec, DesiredState, Pkg, ProcessState, Spec,
     },
     ManagerConfig, ManagerState,
 };
-use protocol::{
+use crate::protocol::{
     self,
     net::{self, ErrCode, NetResult},
 };
-use util;
+use crate::util;
 
 static LOGKEY: &'static str = "CMD";
 
@@ -591,7 +591,7 @@ pub fn service_status(
     if let Some(ident) = opts.ident {
         for status in statuses {
             if status.pkg.ident.satisfies(&ident) {
-                let mut msg: protocol::types::ServiceStatus = status.into();
+                let msg: protocol::types::ServiceStatus = status.into();
                 req.reply_complete(msg);
                 return Ok(());
             }
@@ -608,7 +608,7 @@ pub fn service_status(
     } else {
         let mut list = statuses.into_iter().peekable();
         while let Some(status) = list.next() {
-            let mut msg: protocol::types::ServiceStatus = status.into();
+            let msg: protocol::types::ServiceStatus = status.into();
             if list.peek().is_some() {
                 req.reply_partial(msg);
             } else {
@@ -725,7 +725,7 @@ struct ServiceStatus {
 }
 
 impl fmt::Display for ServiceStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{} ({}), {}, group:{}",
@@ -760,7 +760,7 @@ struct ProcessStatus {
 }
 
 impl fmt::Display for ProcessStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.pid {
             Some(pid) => write!(
                 f,
@@ -793,7 +793,7 @@ where
     impl<'de> serde::de::Visitor<'de> for FromTimespec {
         type Value = TimeDuration;
 
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
             formatter.write_str("a i64 integer")
         }
 

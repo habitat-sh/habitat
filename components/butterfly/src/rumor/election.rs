@@ -24,11 +24,13 @@
 
 use std::ops::{Deref, DerefMut};
 
-use error::{Error, Result};
-use protocol::newscast::Rumor as ProtoRumor;
-pub use protocol::newscast::{election::Status as ElectionStatus, Election as ProtoElection};
-use protocol::{self, newscast, FromProto};
-use rumor::{Rumor, RumorPayload, RumorType};
+use crate::error::{Error, Result};
+use crate::protocol::newscast::Rumor as ProtoRumor;
+pub use crate::protocol::newscast::{
+    election::Status as ElectionStatus, Election as ProtoElection,
+};
+use crate::protocol::{self, newscast, FromProto};
+use crate::rumor::{Rumor, RumorPayload, RumorType};
 
 pub trait ElectionRumor {
     fn member_id(&self) -> &str;
@@ -315,11 +317,11 @@ impl Rumor for ElectionUpdate {
 
 #[cfg(test)]
 mod tests {
-    use habitat_core::service::ServiceGroup;
-    use rumor::{
+    use crate::rumor::{
         election::{Election, ElectionUpdate, Term},
         Rumor, RumorStore,
     };
+    use habitat_core::service::ServiceGroup;
 
     fn create_election_rumor_store() -> RumorStore<Election> {
         RumorStore::default()

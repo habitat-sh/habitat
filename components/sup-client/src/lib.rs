@@ -40,27 +40,24 @@
 
 #[macro_use]
 extern crate futures;
-extern crate habitat_sup_protocol as protocol;
+use habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate log;
-extern crate habitat_common as common;
-extern crate prost;
-extern crate tokio;
-extern crate tokio_codec;
+use habitat_common as common;
 
 use std::error;
 use std::fmt;
 use std::io;
 use std::path::PathBuf;
 
+use crate::protocol::codec::*;
+use crate::protocol::net::NetErr;
 use futures::prelude::*;
 use futures::sink;
-use protocol::codec::*;
-use protocol::net::NetErr;
 use tokio::net::TcpStream;
 use tokio_codec::Framed;
 
-use common::types::ListenCtlAddr;
+use crate::common::types::ListenCtlAddr;
 
 pub type SrvSend = sink::Send<SrvStream>;
 
@@ -92,7 +89,7 @@ impl error::Error for SrvClientError {
 }
 
 impl fmt::Display for SrvClientError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match *self {
             SrvClientError::ConnectionClosed => format!("Connection closed"),
             SrvClientError::CtlSecretNotFound(ref path) => format!(
@@ -154,7 +151,7 @@ impl SrvClient {
     pub fn connect<S>(
         addr: &ListenCtlAddr,
         secret_key: S,
-    ) -> Box<Future<Item = SrvClient, Error = SrvClientError> + 'static>
+    ) -> Box<dyn Future<Item = SrvClient, Error = SrvClientError> + 'static>
     where
         S: ToString,
     {

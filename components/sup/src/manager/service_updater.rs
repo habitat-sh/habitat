@@ -21,21 +21,21 @@ use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
 use std::thread;
 use std::time;
 
-use time::Duration;
+use time_crate::Duration;
 
-use butterfly;
-use common::ui::UI;
-use hcore::env as henv;
-use hcore::package::{PackageIdent, PackageInstall, PackageTarget};
-use hcore::service::ServiceGroup;
-use launcher_client::LauncherCli;
+use crate::butterfly;
+use crate::common::ui::UI;
+use crate::hcore::env as henv;
+use crate::hcore::package::{PackageIdent, PackageInstall, PackageTarget};
+use crate::hcore::service::ServiceGroup;
+use crate::launcher_client::LauncherCli;
 
-use census::CensusRing;
-use common::types::EnvConfig;
-use manager::periodic::Periodic;
-use manager::service::{Service, Topology, UpdateStrategy};
-use time::SteadyTime;
-use util;
+use crate::census::CensusRing;
+use crate::common::types::EnvConfig;
+use crate::manager::periodic::Periodic;
+use crate::manager::service::{Service, Topology, UpdateStrategy};
+use crate::util;
+use time_crate::SteadyTime;
 
 static LOGKEY: &'static str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not
@@ -572,6 +572,7 @@ impl Worker {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::common::locked_env_var;
 
     #[test]
     fn default_update_period_is_equal_to_minimum_allowed_value() {

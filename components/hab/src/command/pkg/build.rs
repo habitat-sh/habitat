@@ -14,10 +14,10 @@
 
 use std::ffi::OsString;
 
-use common::ui::UI;
+use crate::common::ui::UI;
 
-use command::studio;
-use error::Result;
+use crate::command::studio;
+use crate::error::Result;
 
 pub fn start(
     ui: &mut UI,

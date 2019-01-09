@@ -14,7 +14,7 @@
 
 use hcore::os::users;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 static LOGKEY: &'static str = "UR";
 

@@ -16,8 +16,6 @@ extern crate ansi_term;
 extern crate clap;
 extern crate env_logger;
 extern crate hab;
-#[cfg_attr(test, macro_use)]
-extern crate habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
 extern crate habitat_launcher_client as launcher_client;
@@ -46,28 +44,29 @@ use std::{
     str::{self, FromStr},
 };
 
-use clap::ArgMatches;
-use common::cli_defaults::GOSSIP_DEFAULT_PORT;
-use common::command::package::install::InstallSource;
-use common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
-use hcore::channel;
-#[cfg(windows)]
-use hcore::crypto::dpapi::encrypt;
-use hcore::crypto::{self, default_cache_key_path, SymKey};
-use hcore::env as henv;
-use hcore::url::{bldr_url_from_env, default_bldr_url};
-use launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE};
-use protocol::{
+use crate::common::cli_defaults::GOSSIP_DEFAULT_PORT;
+use crate::common::command::package::install::InstallSource;
+use crate::common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
+use crate::hcore::channel;
+use crate::hcore::crypto::{self, default_cache_key_path, SymKey};
+use crate::hcore::env as henv;
+use crate::hcore::url::{bldr_url_from_env, default_bldr_url};
+use crate::launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE};
+use crate::protocol::{
     ctl::ServiceBindList,
     types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
 };
+use clap::ArgMatches;
+use habitat_common as common;
+#[cfg(windows)]
+use hcore::crypto::dpapi::encrypt;
 
-use sup::cli::cli;
-use sup::command;
-use sup::error::{Error, Result, SupError};
-use sup::feat;
-use sup::manager::{Manager, ManagerConfig};
-use sup::util;
+use crate::sup::cli::cli;
+use crate::sup::command;
+use crate::sup::error::{Error, Result, SupError};
+use crate::sup::feat;
+use crate::sup::manager::{Manager, ManagerConfig};
+use crate::sup::util;
 
 #[cfg(test)]
 use tempfile::TempDir;
@@ -519,10 +518,11 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
 #[cfg(test)]
 mod test {
     use super::*;
-    use common::types::ListenCtlAddr;
-    use hcore::service::ServiceGroup;
-    use sup::config::GossipListenAddr;
-    use sup::http_gateway;
+    use crate::common::locked_env_var;
+    use crate::common::types::ListenCtlAddr;
+    use crate::hcore::service::ServiceGroup;
+    use crate::sup::config::GossipListenAddr;
+    use crate::sup::http_gateway;
 
     mod manager_config {
 

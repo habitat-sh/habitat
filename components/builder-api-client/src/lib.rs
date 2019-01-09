@@ -15,29 +15,23 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate broadcast;
-extern crate chrono;
-extern crate habitat_core as hab_core;
-extern crate habitat_http_client as hab_http;
+use habitat_core as hab_core;
+use habitat_http_client as hab_http;
 #[macro_use]
 extern crate hyper;
-extern crate hyper_openssl;
+
 #[macro_use]
 extern crate log;
-extern crate pbr;
-extern crate rand;
-extern crate regex;
-extern crate serde;
+
+use serde;
 #[macro_use]
 extern crate serde_derive;
 #[allow(unused_imports)]
 #[macro_use]
 extern crate serde_json;
-extern crate tee;
-extern crate url;
 
 pub mod error;
-pub use error::{Error, Result};
+pub use crate::error::{Error, Result};
 
 use std::fmt;
 use std::fs::{self, File};
@@ -45,11 +39,11 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 
+use crate::hab_core::package::{Identifiable, PackageArchive, PackageIdent, PackageTarget};
+use crate::hab_http::util::decoded_response;
+use crate::hab_http::ApiClient;
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
-use hab_core::package::{Identifiable, PackageArchive, PackageIdent, PackageTarget};
-use hab_http::util::decoded_response;
-use hab_http::ApiClient;
 use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
 use hyper::header::{Accept, Authorization, Bearer, ContentType};
 use hyper::status::StatusCode;
@@ -72,7 +66,7 @@ pub struct NetError {
 }
 
 impl fmt::Display for NetError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "[err: {:?}, msg: {}]", self.code, self.msg)
     }
 }
@@ -101,7 +95,7 @@ pub struct OriginSecret {
 }
 
 impl fmt::Display for Project {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut s = format!("{:50} {}", self.ident, self.state);
 
         if let Ok(j) = self.job_id.parse::<i64>() {
@@ -125,7 +119,7 @@ pub struct SchedulerResponse {
 }
 
 impl fmt::Display for SchedulerResponse {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = Vec::new();
         output.push(format!(
             "Status for Job Group {} ({}): {}",
@@ -899,7 +893,7 @@ impl Client {
         };
         debug!("Reading from {}", &pa.path.display());
 
-        let mut reader: Box<Read> = if let Some(mut progress) = progress {
+        let mut reader: Box<dyn Read> = if let Some(mut progress) = progress {
             progress.size(file_size);
             Box::new(TeeReader::new(file, progress))
         } else {
@@ -1105,7 +1099,7 @@ impl Client {
         &'a self,
         rb: RequestBuilder<'a>,
         token: Option<&str>,
-    ) -> RequestBuilder {
+    ) -> RequestBuilder<'_> {
         if token.is_some() {
             rb.header(Authorization(Bearer {
                 token: token.unwrap().to_string(),
@@ -1115,7 +1109,7 @@ impl Client {
         }
     }
 
-    fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder {
+    fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder<'_> {
         rb.header(Authorization(Bearer {
             token: token.to_string(),
         }))

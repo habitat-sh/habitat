@@ -25,10 +25,10 @@ include!("generated/sup.types.impl.rs");
 use std::fmt;
 use std::str::FromStr;
 
-use core;
-use core::package::{self, Identifiable};
+use crate::core;
+use crate::core::package::{self, Identifiable};
 
-use net::{self, ErrCode, NetErr};
+use crate::net::{self, ErrCode, NetErr};
 
 impl ServiceGroup {
     pub fn validate(value: &str) -> core::Result<()> {
@@ -51,13 +51,13 @@ where
 }
 
 impl fmt::Display for ApplicationEnvironment {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}.{}", self.application, self.environment)
     }
 }
 
 impl fmt::Display for BindingMode {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match *self {
             BindingMode::Relaxed => "relaxed",
             BindingMode::Strict => "strict",
@@ -67,7 +67,7 @@ impl fmt::Display for BindingMode {
 }
 
 impl fmt::Display for PackageIdent {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match (self.version.as_ref(), self.release.as_ref()) {
             (Some(ref version), Some(ref release)) => {
                 write!(f, "{}/{}/{}/{}", self.origin, self.name, version, release,)
@@ -79,7 +79,7 @@ impl fmt::Display for PackageIdent {
 }
 
 impl fmt::Display for ProcessState {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let state = match *self {
             ProcessState::Down => "down",
             ProcessState::Up => "up",
@@ -89,7 +89,7 @@ impl fmt::Display for ProcessState {
 }
 
 impl fmt::Display for DesiredState {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let state = match *self {
             DesiredState::DesiredDown => "down",
             DesiredState::DesiredUp => "up",
@@ -197,7 +197,7 @@ impl FromStr for ServiceGroup {
 }
 
 impl fmt::Display for ServiceGroup {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut value = format!("{}.{}", self.service, self.group);
         if let Some(ref app_env) = self.application_environment {
             value.insert_str(0, &format!("{}#", app_env));
@@ -255,7 +255,7 @@ impl Into<package::PackageIdent> for PackageIdent {
 }
 
 impl fmt::Display for service_cfg::Format {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let state = match *self {
             service_cfg::Format::Toml => "TOML",
         };
@@ -359,7 +359,7 @@ impl FromStr for Topology {
 }
 
 impl fmt::Display for Topology {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
     }
 }
@@ -391,14 +391,14 @@ impl FromStr for UpdateStrategy {
 }
 
 impl fmt::Display for UpdateStrategy {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
     }
 }
 
 #[cfg(test)]
 mod test {
-    extern crate toml;
+    use toml;
 
     use std::str::FromStr;
 

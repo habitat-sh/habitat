@@ -14,15 +14,15 @@
 
 use std::path::Path;
 
-use api_client::{self, Client};
-use common::ui::{Status, UIWriter, UI};
-use error::{Error, Result};
-use hcore::crypto::keys::parse_name_with_rev;
-use hcore::crypto::{SigKeyPair, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
+use crate::api_client::{self, Client};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::error::{Error, Result};
+use crate::hcore::crypto::keys::parse_name_with_rev;
+use crate::hcore::crypto::{SigKeyPair, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
 use hyper::status::StatusCode;
 
 use super::get_name_with_rev;
-use {PRODUCT, VERSION};
+use crate::{PRODUCT, VERSION};
 
 pub fn start(
     ui: &mut UI,

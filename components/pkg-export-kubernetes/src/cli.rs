@@ -15,7 +15,7 @@
 use clap::{App, Arg};
 use std::result;
 
-use export_docker as docker;
+use crate::export_docker as docker;
 
 /// A Kubernetes-specific clap:App wrapper
 ///

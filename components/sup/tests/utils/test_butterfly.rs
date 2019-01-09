@@ -18,13 +18,13 @@
 //!
 //! No ring key or encryption abilities are currently supported.
 
-extern crate habitat_butterfly;
 use self::habitat_butterfly::client::Client as ButterflyClient;
+use habitat_butterfly;
 
-extern crate habitat_core;
 use self::habitat_core::service::ServiceGroup;
+use habitat_core;
 
-extern crate toml;
+use toml;
 
 use std::net::SocketAddr;
 use std::time::{SystemTime, UNIX_EPOCH};

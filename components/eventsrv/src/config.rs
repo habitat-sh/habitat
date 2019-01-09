@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use core::config::ConfigFile;
-use protocol::{DEFAULT_CONSUMER_PORT, DEFAULT_PRODUCER_PORT};
+use crate::core::config::ConfigFile;
+use crate::protocol::{DEFAULT_CONSUMER_PORT, DEFAULT_PRODUCER_PORT};
 
-use error::Error;
+use crate::error::Error;
 
 #[derive(Debug, Deserialize)]
 #[serde(default)]

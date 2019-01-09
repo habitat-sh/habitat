@@ -15,19 +15,16 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate base64;
-extern crate chrono;
-extern crate clap;
-extern crate env_logger;
-extern crate habitat_common as common;
-extern crate habitat_core as hcore;
-extern crate habitat_pkg_export_docker as export_docker;
+use env_logger;
+use habitat_common as common;
+
+use habitat_pkg_export_docker as export_docker;
 #[macro_use]
 extern crate log;
 
-use common::ui::{UIWriter, UI};
+use crate::common::ui::{UIWriter, UI};
 
-use export_docker::Result;
+use crate::export_docker::Result;
 
 fn main() {
     env_logger::init();

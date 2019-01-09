@@ -41,7 +41,7 @@ impl From<i8> for HealthCheck {
 }
 
 impl fmt::Display for HealthCheck {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             HealthCheck::Ok => "OK",
             HealthCheck::Warning => "WARNING",

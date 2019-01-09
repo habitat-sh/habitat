@@ -19,9 +19,9 @@ use std::io::Write;
 use std::path::Path;
 use std::process::Command;
 
-use common::ui::{Status, UIWriter, UI};
-use error::Error;
-use export_docker::Result;
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::error::Error;
+use crate::export_docker::Result;
 
 pub const DEFAULT_OPERATOR_VERSION: &'static str = "0.6.1";
 pub const OPERATOR_REPO_URL: &'static str = "https://habitat-sh.github.io/\
@@ -36,7 +36,7 @@ pub struct Deps {
 }
 
 impl Deps {
-    pub fn new_for_cli_matches(matches: &clap::ArgMatches) -> Self {
+    pub fn new_for_cli_matches(matches: &clap::ArgMatches<'_>) -> Self {
         Deps {
             operator_version: matches
                 .value_of("OPERATOR_VERSION")
@@ -46,7 +46,7 @@ impl Deps {
         }
     }
 
-    pub fn generate(&mut self, write: &mut Write) -> Result<()> {
+    pub fn generate(&mut self, write: &mut dyn Write) -> Result<()> {
         // TODO: Until this Helm issue is resolved or has a decent workaround, let's skip the
         //       operator dependency:
         //

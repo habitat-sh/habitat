@@ -21,7 +21,7 @@ use super::super::RenderResult;
 pub struct ToYamlHelper;
 
 impl HelperDef for ToYamlHelper {
-    fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
+    fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
         let param = h
             .param(0)
             .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toYaml\""))?

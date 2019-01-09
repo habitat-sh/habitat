@@ -1,8 +1,6 @@
-extern crate heck;
-extern crate prost;
-extern crate prost_build;
-extern crate prost_types;
-extern crate tempfile;
+use prost_build;
+
+use tempfile;
 
 use std::collections::HashMap;
 use std::env;
@@ -134,7 +132,7 @@ fn generate(files: Vec<FileDescriptorProto>) -> HashMap<Module, String> {
     for file in files {
         let module = module(&file);
         let mut buf = modules.entry(module).or_insert_with(String::new);
-        buf.push_str("use message;\n\n");
+        buf.push_str("use crate::message;\n\n");
         for msg in file.message_type.iter() {
             add_message(msg, &mut buf);
         }

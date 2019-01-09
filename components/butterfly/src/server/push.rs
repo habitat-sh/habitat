@@ -24,12 +24,12 @@ use std::time::Duration;
 use time::SteadyTime;
 use zmq;
 
-use member::{Member, Membership};
-use rumor::{RumorEnvelope, RumorKey, RumorKind, RumorType};
-use server::timing::Timing;
-use server::Server;
-use trace::TraceKind;
-use ZMQ_CONTEXT;
+use crate::member::{Member, Membership};
+use crate::rumor::{RumorEnvelope, RumorKey, RumorKind, RumorType};
+use crate::server::timing::Timing;
+use crate::server::Server;
+use crate::trace::TraceKind;
+use crate::ZMQ_CONTEXT;
 
 const FANOUT: usize = 5;
 

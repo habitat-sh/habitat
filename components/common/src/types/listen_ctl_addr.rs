@@ -18,7 +18,7 @@ use std::result;
 use std::str::FromStr;
 
 use super::env_config::EnvConfig;
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);
@@ -58,7 +58,7 @@ impl FromStr for ListenCtlAddr {
 }
 
 impl fmt::Display for ListenCtlAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         write!(f, "{}", self.0)
     }
 }

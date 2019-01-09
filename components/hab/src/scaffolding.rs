@@ -16,11 +16,11 @@ use std::io;
 use std::path::Path;
 use std::str::FromStr;
 
-use error::Result;
+use crate::error::Result;
 
-use common::ui::{Status, UIWriter, UI};
-use hcore::crypto::init;
-use hcore::package::PackageIdent;
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::crypto::init;
+use crate::hcore::package::PackageIdent;
 
 const SCAFFOLDING_GO_IDENT: &'static str = "core/scaffolding-go";
 const SCAFFOLDING_GRADLE_IDENT: &'static str = "core/scaffolding-gradle";

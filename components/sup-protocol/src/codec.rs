@@ -64,8 +64,8 @@ use prost::{self, Message};
 use tokio::net::TcpStream;
 use tokio_codec::{Decoder, Encoder, Framed};
 
-use message::MessageStatic;
-use net::{NetErr, NetResult};
+use crate::message::MessageStatic;
+use crate::net::{NetErr, NetResult};
 
 const BODY_LEN_MASK: u32 = 0xFFFFF;
 const HEADER_LEN: usize = 4;
@@ -136,7 +136,7 @@ impl From<u32> for SrvTxn {
 }
 
 impl fmt::Debug for SrvTxn {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "SrvTxn[id: {}, is_complete: {}, is_response: {}]",
@@ -200,7 +200,7 @@ impl From<u32> for SrvHeader {
 }
 
 impl fmt::Debug for SrvHeader {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "SrvHeader[body_len: {}, message_id_len: {}, is_txn: {}]",
@@ -326,7 +326,7 @@ impl SrvMessage {
 }
 
 impl fmt::Debug for SrvMessage {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{:?}, {:?}, {:?}",
@@ -429,7 +429,7 @@ impl Encoder for SrvCodec {
 #[cfg(test)]
 mod test {
     use super::*;
-    use net;
+    use crate::net;
 
     #[test]
     fn test_header_pack_unpack() {

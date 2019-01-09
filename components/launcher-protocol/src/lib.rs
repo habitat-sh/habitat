@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate protobuf;
-
 mod message;
 
 use std::fmt;
 
 use protobuf::Message;
 
-pub use message::error::*;
-pub use message::launcher::*;
-use message::net::*;
-pub use message::supervisor::*;
+pub use crate::message::error::*;
+pub use crate::message::launcher::*;
+use crate::message::net::*;
+pub use crate::message::supervisor::*;
 
 pub const LAUNCHER_PIPE_ENV: &'static str = "HAB_LAUNCHER_PIPE";
 pub const LAUNCHER_PID_ENV: &'static str = "HAB_LAUNCHER_PID";
@@ -93,13 +91,13 @@ where
 }
 
 impl fmt::Display for NetErr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{:?}: {}", self.get_code(), self.get_msg())
     }
 }
 
 impl fmt::Display for ShutdownMethod {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let printable = match *self {
             ShutdownMethod::AlreadyExited => "Already Exited",
             ShutdownMethod::GracefulTermination => "Graceful Termination",

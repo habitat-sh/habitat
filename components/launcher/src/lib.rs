@@ -12,17 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate ansi_term;
 #[macro_use]
 extern crate habitat_core as core;
-extern crate habitat_launcher_protocol as protocol;
-extern crate ipc_channel;
-extern crate libc;
+use habitat_launcher_protocol as protocol;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
-extern crate semver;
-extern crate time;
+
 #[cfg(windows)]
 extern crate winapi;
 

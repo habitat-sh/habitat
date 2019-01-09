@@ -14,9 +14,9 @@
 
 use std::ffi::OsString;
 
-use common::ui::UI;
+use crate::common::ui::UI;
 
-use error::Result;
+use crate::error::Result;
 
 const EXPORT_CMD: &'static str = "hab-pkg-export-tar";
 
@@ -30,17 +30,17 @@ mod inner {
     use std::path::PathBuf;
     use std::str::FromStr;
 
-    use common::ui::UI;
-    use hcore::crypto::{default_cache_key_path, init};
-    use hcore::env as henv;
-    use hcore::fs::find_command;
-    use hcore::os::process;
-    use hcore::package::PackageIdent;
+    use crate::common::ui::UI;
+    use crate::hcore::crypto::{default_cache_key_path, init};
+    use crate::hcore::env as henv;
+    use crate::hcore::fs::find_command;
+    use crate::hcore::os::process;
+    use crate::hcore::package::PackageIdent;
 
     use super::EXPORT_CMD;
-    use error::{Error, Result};
-    use exec;
-    use VERSION;
+    use crate::error::{Error, Result};
+    use crate::exec;
+    use crate::VERSION;
 
     const EXPORT_CMD_ENVVAR: &'static str = "HAB_PKG_EXPORT_TAR_BINARY";
     const EXPORT_PKG_IDENT: &'static str = "core/hab-pkg-export-tar";
@@ -80,10 +80,10 @@ mod inner {
 mod inner {
     use std::ffi::OsString;
 
-    use common::ui::{UIWriter, UI};
+    use crate::common::ui::{UIWriter, UI};
 
     use super::EXPORT_CMD;
-    use error::{Error, Result};
+    use crate::error::{Error, Result};
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let cmd = EXPORT_CMD.replace("hab", "").replace("-", " ");

@@ -1,15 +1,14 @@
-extern crate clap;
-extern crate env_logger;
-extern crate habitat_common as common;
-extern crate habitat_core as hcore;
-extern crate habitat_pkg_export_tar as export_tar;
+use env_logger;
+use habitat_common as common;
+use habitat_core as hcore;
+use habitat_pkg_export_tar as export_tar;
 #[macro_use]
 extern crate log;
 
+use crate::common::ui::{UIWriter, UI};
+use crate::export_tar::{Cli, Result};
+use crate::hcore::PROGRAM_NAME;
 use clap::App;
-use common::ui::{UIWriter, UI};
-use export_tar::{Cli, Result};
-use hcore::PROGRAM_NAME;
 
 fn main() {
     let mut ui = UI::default_with_env();

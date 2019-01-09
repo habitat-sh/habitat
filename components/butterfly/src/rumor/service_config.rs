@@ -24,9 +24,9 @@ use habitat_core::crypto::{default_cache_key_path, BoxKeyPair};
 use habitat_core::service::ServiceGroup;
 use toml;
 
-use error::{Error, Result};
-use protocol::{self, newscast, newscast::Rumor as ProtoRumor, FromProto};
-use rumor::{Rumor, RumorPayload, RumorType};
+use crate::error::{Error, Result};
+use crate::protocol::{self, newscast, newscast::Rumor as ProtoRumor, FromProto};
+use crate::rumor::{Rumor, RumorPayload, RumorType};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceConfig {
@@ -163,7 +163,7 @@ mod tests {
     use toml;
 
     use super::ServiceConfig;
-    use rumor::{Rumor, RumorStore};
+    use crate::rumor::{Rumor, RumorStore};
 
     fn create_rumor_store() -> RumorStore<ServiceConfig> {
         RumorStore::default()

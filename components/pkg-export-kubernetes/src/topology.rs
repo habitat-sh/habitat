@@ -16,7 +16,7 @@ use std::fmt;
 use std::result;
 use std::str::FromStr;
 
-use error::Error;
+use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub enum Topology {
@@ -34,7 +34,7 @@ impl Topology {
 }
 
 impl fmt::Display for Topology {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.as_str())
     }
 }

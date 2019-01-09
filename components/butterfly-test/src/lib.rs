@@ -17,10 +17,9 @@
 
 #[macro_use]
 extern crate habitat_butterfly;
-extern crate habitat_core;
+
 #[macro_use]
 extern crate lazy_static;
-extern crate time;
 
 use std::ops::{Deref, DerefMut, Range};
 use std::path::PathBuf;

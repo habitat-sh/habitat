@@ -16,11 +16,11 @@ use std::env;
 use std::ffi::OsString;
 use std::path::PathBuf;
 
-use hcore::fs::{find_command, FS_ROOT_PATH};
-use hcore::os::process;
-use hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::fs::{find_command, FS_ROOT_PATH};
+use crate::hcore::os::process;
+use crate::hcore::package::{PackageIdent, PackageInstall};
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub fn start<T>(ident: &PackageIdent, command: T, args: Vec<OsString>) -> Result<()>
 where

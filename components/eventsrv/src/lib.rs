@@ -14,16 +14,13 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate habitat_core as core;
-extern crate habitat_eventsrv_protocol as protocol;
+use habitat_core as core;
+use habitat_eventsrv_protocol as protocol;
 #[macro_use]
 extern crate log;
-extern crate protobuf;
-extern crate serde;
+
 #[macro_use]
 extern crate serde_derive;
-extern crate time;
-extern crate zmq;
 
 pub mod config;
 pub mod error;
@@ -31,8 +28,8 @@ pub mod error;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+use crate::protocol::EventEnvelope;
 use protobuf::parse_from_bytes;
-use protocol::EventEnvelope;
 use zmq::{Context, PULL, XPUB};
 
 /// Proxies messages coming into `frontend_port` out through

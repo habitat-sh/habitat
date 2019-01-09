@@ -37,15 +37,15 @@ use hyper::status::StatusCode;
 use retry::retry;
 
 // Local Dependencies
-use api_client::{self, Client};
-use common::command::package::install::{RETRIES, RETRY_WAIT};
-use common::ui::{Status, UIWriter, UI};
-use error::{Error, Result};
-use hcore::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
-use hcore::crypto::artifact::get_artifact_header;
-use hcore::crypto::keys::parse_name_with_rev;
-use hcore::package::{PackageArchive, PackageIdent, PackageTarget};
-use {PRODUCT, VERSION};
+use crate::api_client::{self, Client};
+use crate::common::command::package::install::{RETRIES, RETRY_WAIT};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::error::{Error, Result};
+use crate::hcore::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
+use crate::hcore::crypto::artifact::get_artifact_header;
+use crate::hcore::crypto::keys::parse_name_with_rev;
+use crate::hcore::package::{PackageArchive, PackageIdent, PackageTarget};
+use crate::{PRODUCT, VERSION};
 
 /// Upload a package from the cache to a Depot. The latest version/release of the package
 /// will be uploaded if not specified.

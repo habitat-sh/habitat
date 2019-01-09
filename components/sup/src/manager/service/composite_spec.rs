@@ -22,12 +22,12 @@ use std::path::Path;
 use std::result;
 use std::str::FromStr;
 
-use hcore::error::Error as HCoreError;
-use hcore::package::metadata::PackageType;
-use hcore::package::{Identifiable, PackageIdent, PackageInstall};
-use hcore::util::{deserialize_using_from_str, serialize_using_to_string};
+use crate::hcore::error::Error as HCoreError;
+use crate::hcore::package::metadata::PackageType;
+use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use crate::hcore::util::{deserialize_using_from_str, serialize_using_to_string};
 
-use error::{Error, Result, SupError};
+use crate::error::{Error, Result, SupError};
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use toml;

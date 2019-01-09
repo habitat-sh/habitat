@@ -21,7 +21,7 @@ use super::super::RenderResult;
 pub struct ToJsonHelper;
 
 impl HelperDef for ToJsonHelper {
-    fn call(&self, h: &Helper, _: &Handlebars, rc: &mut RenderContext) -> RenderResult<()> {
+    fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
         let param = h
             .param(0)
             .ok_or_else(|| RenderError::new("Expected 1 parameter for \"toJson\""))?

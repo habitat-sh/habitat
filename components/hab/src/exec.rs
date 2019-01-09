@@ -14,17 +14,17 @@
 
 use std::path::{Path, PathBuf};
 
-use common;
-use common::command::package::install::{InstallMode, LocalPackageUsage};
-use common::ui::{Status, UIWriter, UI};
-use hcore::env as henv;
-use hcore::fs::{self, cache_artifact_path, FS_ROOT_PATH};
-use hcore::package::{PackageIdent, PackageInstall, PackageTarget};
-use hcore::url::default_bldr_url;
-use hcore::{self, channel};
+use crate::common;
+use crate::common::command::package::install::{InstallMode, LocalPackageUsage};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::env as henv;
+use crate::hcore::fs::{self, cache_artifact_path, FS_ROOT_PATH};
+use crate::hcore::package::{PackageIdent, PackageInstall, PackageTarget};
+use crate::hcore::url::default_bldr_url;
+use crate::hcore::{self, channel};
 
-use error::{Error, Result};
-use {PRODUCT, VERSION};
+use crate::error::{Error, Result};
+use crate::{PRODUCT, VERSION};
 
 const MAX_RETRIES: u8 = 4;
 const INTERNAL_TOOLING_CHANNEL_ENVVAR: &'static str = "HAB_INTERNAL_BLDR_CHANNEL";

@@ -17,11 +17,11 @@ use std::fmt;
 use std::io;
 use std::result;
 
+use crate::protocol;
 use ipc_channel;
 use protobuf;
-use protocol;
 
-use {SUP_CMD, SUP_PACKAGE_IDENT};
+use crate::{SUP_CMD, SUP_PACKAGE_IDENT};
 
 #[derive(Debug)]
 pub enum Error {
@@ -45,7 +45,7 @@ pub enum Error {
 pub type Result<T> = result::Result<T, Error>;
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::AcceptConn => format!("Unable to accept connection from Supervisor"),
             Error::Connect(ref e) => {

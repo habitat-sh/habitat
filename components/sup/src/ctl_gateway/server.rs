@@ -31,20 +31,20 @@ use std::rc::Rc;
 use std::thread;
 use std::time::Duration;
 
+use crate::hcore::crypto;
+use crate::protocol;
+use crate::protocol::codec::*;
+use crate::protocol::net::{self, ErrCode, NetErr, NetResult};
 use futures::future::{self, Either};
 use futures::prelude::*;
 use futures::sync::mpsc;
-use hcore::crypto;
 use prost;
-use protocol;
-use protocol::codec::*;
-use protocol::net::{self, ErrCode, NetErr, NetResult};
 use tokio::net::TcpListener;
 use tokio_codec::Framed;
 use tokio_core::reactor;
 
 use super::{CtlRequest, REQ_TIMEOUT};
-use manager::{commands, ManagerState};
+use crate::manager::{commands, ManagerState};
 
 /// Sending half of an mpsc unbounded channel used for sending replies for a transactional message
 /// from the main thread back to the CtlGateway. This half is stored in a
@@ -79,7 +79,7 @@ impl error::Error for HandlerError {
 }
 
 impl fmt::Display for HandlerError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match *self {
             HandlerError::Decode(ref err) => format!("{}", err),
             HandlerError::Io(ref err) => format!("{}", err),
@@ -124,7 +124,7 @@ pub struct CtlCommand {
     // argument passed to this closure until `FnOnce<Box>` stabilizes.
     //
     // https://github.com/rust-lang/rust/issues/28796
-    fun: Box<Fn(&ManagerState, &mut CtlRequest) -> NetResult<()> + Send>,
+    fun: Box<dyn Fn(&ManagerState, &mut CtlRequest) -> NetResult<()> + Send>,
 }
 
 impl CtlCommand {
@@ -153,7 +153,7 @@ struct Client {
 
 impl Client {
     /// Serve the client from the given framed socket stream.
-    pub fn serve(self, socket: SrvStream) -> Box<Future<Item = (), Error = HandlerError>> {
+    pub fn serve(self, socket: SrvStream) -> Box<dyn Future<Item = (), Error = HandlerError>> {
         let mgr_tx = self.state.borrow().mgr_tx.clone();
         Box::new(
             self.handshake(socket)
@@ -163,7 +163,10 @@ impl Client {
 
     /// Initiate a handshake with the connected client before allowing future requests. A failed
     /// handshake will close the connection.
-    fn handshake(&self, socket: SrvStream) -> Box<Future<Item = SrvStream, Error = HandlerError>> {
+    fn handshake(
+        &self,
+        socket: SrvStream,
+    ) -> Box<dyn Future<Item = SrvStream, Error = HandlerError>> {
         let secret_key = self.state.borrow().secret_key.to_string();
         let handshake = socket
             .into_future()

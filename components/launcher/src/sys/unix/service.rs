@@ -18,14 +18,14 @@ use std::os::unix::process::CommandExt;
 use std::process::{Child, Command, ExitStatus, Stdio};
 use std::result;
 
-use core::os;
-use core::os::process::{signal, Signal};
+use crate::core::os;
+use crate::core::os::process::{signal, Signal};
+use crate::protocol::{self, ShutdownMethod};
 use libc;
-use protocol::{self, ShutdownMethod};
 use time::{Duration, SteadyTime};
 
-use error::{Error, Result};
-use service::Service;
+use crate::error::{Error, Result};
+use crate::service::Service;
 
 pub struct Process(Child);
 

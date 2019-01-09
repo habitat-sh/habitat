@@ -21,9 +21,9 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
 
-use fs;
-use hcore::fs::USER_CONFIG_FILE;
-use hcore::{self, crypto};
+use crate::fs;
+use crate::hcore::fs::USER_CONFIG_FILE;
+use crate::hcore::{self, crypto};
 use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use serde_json;
@@ -31,9 +31,9 @@ use serde_transcode;
 use toml;
 
 use super::Pkg;
-use census::CensusGroup;
-use error::{Error, Result};
-use templating::{RenderContext, TemplateRenderer};
+use crate::census::CensusGroup;
+use crate::error::{Error, Result};
+use crate::templating::{RenderContext, TemplateRenderer};
 
 static LOGKEY: &'static str = "CF";
 static ENV_VAR_PREFIX: &'static str = "HAB";
@@ -499,7 +499,7 @@ impl CfgRenderer {
     /// Compile and write all configuration files to the configuration directory.
     ///
     /// Returns `true` if the configuration has changed.
-    pub fn compile(&self, pkg: &Pkg, ctx: &RenderContext) -> Result<bool> {
+    pub fn compile(&self, pkg: &Pkg, ctx: &RenderContext<'_>) -> Result<bool> {
         // JW TODO: This function is loaded with IO errors that will be converted a Supervisor
         // error resulting in the end-user not knowing what the fuck happned at all. We need to go
         // through this and pipe the service group through to let people know which service is
@@ -621,8 +621,8 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 
 #[cfg(not(windows))]
 fn set_permissions<T: AsRef<Path>>(path: T, pkg: &Pkg) -> hcore::error::Result<()> {
-    use hcore::util::posix_perm;
-    use sys::abilities;
+    use crate::hcore::util::posix_perm;
+    use crate::sys::abilities;
 
     if abilities::can_run_services_as_svc_user() {
         posix_perm::set_owner(path.as_ref(), &pkg.svc_user, &pkg.svc_group)?;
@@ -647,7 +647,7 @@ mod test {
     use toml;
 
     use super::*;
-    use error::Error;
+    use crate::error::Error;
 
     fn toml_from_str(content: &str) -> toml::value::Table {
         toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))

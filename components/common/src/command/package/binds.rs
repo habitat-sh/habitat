@@ -25,11 +25,11 @@
 use std::io::{self, Write};
 use std::path::Path;
 
-use hcore;
-use hcore::package::metadata::Bind;
-use hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore;
+use crate::hcore::package::metadata::Bind;
+use crate::hcore::package::{PackageIdent, PackageInstall};
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start<P>(ident: &PackageIdent, fs_root_path: P) -> Result<()>
 where

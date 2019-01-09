@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hcore;
+use crate::hcore;
 
 #[derive(Debug, Fail)]
 pub enum Error {

@@ -14,11 +14,11 @@
 
 use std::path::Path;
 
-use common::ui::{UIWriter, UI};
-use hcore::crypto::artifact;
+use crate::common::ui::{UIWriter, UI};
+use crate::hcore::crypto::artifact;
 use std::io::{self, Write};
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
     ui.begin(format!("Reading package header for {}", &src.display()))?;

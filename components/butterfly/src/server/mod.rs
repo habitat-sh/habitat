@@ -46,19 +46,19 @@ use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 
 use self::incarnation_store::IncarnationStore;
-use error::{Error, Result};
-use member::{Health, Incarnation, Member, MemberList, MemberListProxy};
-use message;
-use rumor::dat_file::DatFile;
-use rumor::departure::Departure;
-use rumor::election::{Election, ElectionRumor, ElectionUpdate};
-use rumor::heat::RumorHeat;
-use rumor::service::Service;
-use rumor::service_config::ServiceConfig;
-use rumor::service_file::ServiceFile;
-use rumor::{Rumor, RumorKey, RumorStore, RumorStoreProxy, RumorType};
-use swim::Ack;
-use trace::{Trace, TraceKind};
+use crate::error::{Error, Result};
+use crate::member::{Health, Incarnation, Member, MemberList, MemberListProxy};
+use crate::message;
+use crate::rumor::dat_file::DatFile;
+use crate::rumor::departure::Departure;
+use crate::rumor::election::{Election, ElectionRumor, ElectionUpdate};
+use crate::rumor::heat::RumorHeat;
+use crate::rumor::service::Service;
+use crate::rumor::service_config::ServiceConfig;
+use crate::rumor::service_file::ServiceFile;
+use crate::rumor::{Rumor, RumorKey, RumorStore, RumorStoreProxy, RumorType};
+use crate::swim::Ack;
+use crate::trace::{Trace, TraceKind};
 
 /// The maximum number of other members we should notify when we shut
 /// down and leave the ring.
@@ -223,7 +223,7 @@ pub struct Server {
     pub departure_store: RumorStore<Departure>,
     swim_addr: SocketAddr,
     gossip_addr: SocketAddr,
-    suitability_lookup: Arc<Box<Suitability>>,
+    suitability_lookup: Arc<Box<dyn Suitability>>,
     data_path: Arc<Option<PathBuf>>,
     dat_file: Option<Arc<Mutex<DatFile>>>,
     socket: Option<UdpSocket>,
@@ -282,7 +282,7 @@ impl Server {
         // complicates other parts of this code. We should find a way
         // to remove the optionality.
         data_path: Option<P>,
-        suitability_lookup: Box<Suitability>,
+        suitability_lookup: Box<dyn Suitability>,
     ) -> Result<Server>
     where
         T: ToSocketAddrs,
@@ -1159,7 +1159,7 @@ impl Serialize for Server {
 }
 
 impl fmt::Display for Server {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
             "{}@{}/{}",
@@ -1237,8 +1237,8 @@ impl<'a> Serialize for ServerProxy<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::rumor::election::Term;
     use habitat_core::service::ServiceGroup;
-    use rumor::election::Term;
 
     fn get_mock_service(member_id: String, service_group: ServiceGroup) -> Service {
         Service {
@@ -1330,7 +1330,7 @@ mod tests {
 
     mod myself {
         use super::super::*;
-        use member::Member;
+        use crate::member::Member;
         use mktemp::Temp;
         use std::path::Path;
 
@@ -1389,15 +1389,15 @@ mod tests {
     }
 
     mod server {
-        use member::Member;
-        use server::timing::Timing;
-        use server::{Server, Suitability};
+        use crate::member::Member;
+        use crate::server::timing::Timing;
+        use crate::server::{Server, Suitability};
+        use crate::trace::Trace;
         use std::fs::File;
         use std::io::prelude::*;
         use std::path::PathBuf;
         use std::sync::Mutex;
         use tempfile::TempDir;
-        use trace::Trace;
 
         lazy_static! {
             static ref SWIM_PORT: Mutex<u16> = Mutex::new(6666);

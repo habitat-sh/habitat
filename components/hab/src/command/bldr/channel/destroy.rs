@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use api_client::Client;
-use common::ui::{Status, UIWriter, UI};
+use crate::api_client::Client;
+use crate::common::ui::{Status, UIWriter, UI};
 
-use error::{Error, Result};
-use {PRODUCT, VERSION};
+use crate::error::{Error, Result};
+use crate::{PRODUCT, VERSION};
 
 pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, channel: &str) -> Result<()> {
     let bldr_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;

@@ -17,11 +17,10 @@
 /// Integration tests for exercising the hook and config recompilation
 /// behavior of the Supervisor
 extern crate habitat_core as hcore;
-extern crate habitat_sup as sup;
+
 #[macro_use]
 extern crate lazy_static;
-extern crate rand;
-extern crate tempfile;
+use rand;
 
 mod utils;
 

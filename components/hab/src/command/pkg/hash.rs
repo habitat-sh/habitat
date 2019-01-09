@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hcore::crypto::hash;
+use crate::hcore::crypto::hash;
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(src: &str) -> Result<()> {
     let h = hash::hash_file(&src)?;

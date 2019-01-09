@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use hcore::package::PackageIdent;
+use crate::hcore::package::PackageIdent;
 use hyper::status::StatusCode;
 use std::str::FromStr;
 
-use api_client;
-use common::ui::{Status, UIReader, UIWriter, UI};
+use crate::api_client;
+use crate::common::ui::{Status, UIReader, UIWriter, UI};
 
-use error::{Error, Result};
-use {PRODUCT, VERSION};
+use crate::error::{Error, Result};
+use crate::{PRODUCT, VERSION};
 
 fn is_ident(s: &str) -> bool {
     PackageIdent::from_str(s).is_ok()
@@ -178,8 +178,8 @@ mod test {
     use std::sync::{Arc, RwLock};
 
     use super::get_ident_list;
-    use api_client::{Project, SchedulerResponse};
-    use common::ui::{Coloring, UI};
+    use crate::api_client::{Project, SchedulerResponse};
+    use crate::common::ui::{Coloring, UI};
 
     fn sample_project_list() -> Vec<Project> {
         let project1 = Project {

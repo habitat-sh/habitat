@@ -16,8 +16,8 @@ use bytes::BytesMut;
 use habitat_core::crypto::SymKey;
 use prost::Message;
 
-use error::{Error, Result};
-use protocol::Wire;
+use crate::error::{Error, Result};
+use crate::protocol::Wire;
 
 pub fn generate_wire(payload: Vec<u8>, ring_key: Option<&SymKey>) -> Result<Vec<u8>> {
     let mut wire = Wire::default();

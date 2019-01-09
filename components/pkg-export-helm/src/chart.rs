@@ -17,14 +17,14 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
-use common::ui::{Status, UIWriter, UI};
-use export_docker;
-use export_docker::Result;
-use export_k8s::{Manifest, ManifestJson, PersistentStorage};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::export_docker;
+use crate::export_docker::Result;
+use crate::export_k8s::{Manifest, ManifestJson, PersistentStorage};
 
-use chartfile::ChartFile;
-use deps::Deps;
-use values::Values;
+use crate::chartfile::ChartFile;
+use crate::deps::Deps;
+use crate::values::Values;
 
 pub struct Chart<'a> {
     chartdir: PathBuf,
@@ -36,7 +36,7 @@ pub struct Chart<'a> {
 }
 
 impl<'a> Chart<'a> {
-    pub fn new_for_cli_matches(ui: &'a mut UI, matches: &clap::ArgMatches) -> Result<Self> {
+    pub fn new_for_cli_matches(ui: &'a mut UI, matches: &clap::ArgMatches<'_>) -> Result<Self> {
         let image = if !matches.is_present("NO_DOCKER_IMAGE") {
             export_docker::export_for_cli_matches(ui, &matches)?
         } else {

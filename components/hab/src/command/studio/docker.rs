@@ -17,16 +17,16 @@ use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use command::studio::enter::ARTIFACT_PATH_ENVVAR;
-use common::ui::UI;
-use hcore::crypto::default_cache_key_path;
-use hcore::env as henv;
-use hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
-use hcore::os::process;
-use hcore::package::target;
+use crate::command::studio::enter::ARTIFACT_PATH_ENVVAR;
+use crate::common::ui::UI;
+use crate::hcore::crypto::default_cache_key_path;
+use crate::hcore::env as henv;
+use crate::hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
+use crate::hcore::os::process;
+use crate::hcore::package::target;
 
-use error::{Error, Result};
-use VERSION;
+use crate::error::{Error, Result};
+use crate::VERSION;
 
 const DOCKER_CMD: &'static str = "docker";
 const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
@@ -319,9 +319,9 @@ fn image_identifier(using_windows_containers: bool, target: &target::PackageTarg
 #[cfg(test)]
 mod tests {
     use super::{image_identifier, DOCKER_IMAGE, DOCKER_WINDOWS_IMAGE};
-    use VERSION;
+    use crate::VERSION;
 
-    use hcore::package::target;
+    use crate::hcore::package::target;
 
     #[test]
     fn retrieve_image_identifier() {

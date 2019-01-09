@@ -17,14 +17,14 @@ use std::path::Path;
 use std::str::FromStr;
 
 use super::{ExecutionStrategy, Scope};
-use common::package_graph::PackageGraph;
-use common::ui::{Status, UIWriter, UI};
-use error::{Error, Result};
-use hcore::error as herror;
-use hcore::fs as hfs;
-use hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use crate::common::package_graph::PackageGraph;
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::error::{Error, Result};
+use crate::hcore::error as herror;
+use crate::hcore::fs as hfs;
+use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
 
-use hcore::package::list::temp_package_directory;
+use crate::hcore::package::list::temp_package_directory;
 
 ///
 /// Delete a package and all dependencies which are not used by other packages.

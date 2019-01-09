@@ -26,12 +26,12 @@ use std::time::Duration;
 use time::SteadyTime;
 
 use super::AckReceiver;
-use member::{Health, Member};
-use rumor::{RumorKey, RumorType};
-use server::timing::Timing;
-use server::Server;
-use swim::{Ack, Ping, PingReq, Swim};
-use trace::TraceKind;
+use crate::member::{Health, Member};
+use crate::rumor::{RumorKey, RumorType};
+use crate::server::timing::Timing;
+use crate::server::Server;
+use crate::swim::{Ack, Ping, PingReq, Swim};
+use crate::trace::TraceKind;
 
 /// How long to sleep between calls to `recv`.
 const PING_RECV_QUEUE_EMPTY_SLEEP_MS: u64 = 10;
@@ -44,7 +44,7 @@ enum AckFrom {
 }
 
 impl fmt::Display for AckFrom {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             &AckFrom::Ping => write!(f, "Ping"),
             &AckFrom::PingReq => write!(f, "PingReq"),

@@ -19,9 +19,9 @@ use std::str::FromStr;
 use std::string::ToString;
 use url::Url;
 
-use export_docker::Result;
+use crate::export_docker::Result;
 
-use error::Error;
+use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct Maintainer {
@@ -31,7 +31,7 @@ pub struct Maintainer {
 }
 
 impl Maintainer {
-    pub fn from_args(matches: &ArgMatches) -> Result<Vec<Self>> {
+    pub fn from_args(matches: &ArgMatches<'_>) -> Result<Vec<Self>> {
         let mut maintainers = Vec::new();
 
         if let Some(args) = matches.values_of("MAINTAINER") {

@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use error::Result;
-use hcore::fs as hfs;
-use hcore::package::list;
-use hcore::package::PackageIdent;
+use crate::error::Result;
+use crate::hcore::fs as hfs;
+use crate::hcore::package::list;
+use crate::hcore::package::PackageIdent;
 
 use std::path::Path;
 use std::str::FromStr;
@@ -39,7 +39,7 @@ impl<'a> From<&'a ArgMatches<'a>> for ListingType {
     ///
     /// We assume that the arguments have been validated during CLI parsing i.e.
     /// ORIGIN and PKG_IDENT are a valid origin and package identifier
-    fn from(m: &ArgMatches) -> Self {
+    fn from(m: &ArgMatches<'_>) -> Self {
         if m.is_present("ALL") {
             return ListingType::AllPackages;
         }

@@ -2,7 +2,7 @@ use clap::{App, Arg};
 use std::result;
 use std::str::FromStr;
 
-use common::command::package::install::InstallSource;
+use crate::common::command::package::install::InstallSource;
 use url::Url;
 
 /// The version of this library and program when built.

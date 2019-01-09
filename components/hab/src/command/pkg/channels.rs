@@ -27,12 +27,12 @@
 //!    If the specified package does not exist, this will fail.
 //!
 
-use api_client::Client;
-use common::ui::{UIWriter, UI};
-use hcore::package::PackageIdent;
+use crate::api_client::Client;
+use crate::common::ui::{UIWriter, UI};
+use crate::hcore::package::PackageIdent;
 
-use error::Result;
-use {PRODUCT, VERSION};
+use crate::error::Result;
+use crate::{PRODUCT, VERSION};
 
 /// Return a list of channels that a package is in.
 ///

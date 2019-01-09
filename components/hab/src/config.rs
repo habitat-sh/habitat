@@ -18,11 +18,11 @@ use std::path::PathBuf;
 
 use dirs;
 
-use hcore::config::ConfigFile;
-use hcore::fs::{am_i_root, FS_ROOT_PATH};
+use crate::hcore::config::ConfigFile;
+use crate::hcore::fs::{am_i_root, FS_ROOT_PATH};
 use toml;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 const CLI_CONFIG_PATH: &'static str = "hab/etc/cli.toml";
 

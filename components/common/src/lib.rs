@@ -15,25 +15,14 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate ansi_term;
-extern crate bimap;
-extern crate glob;
-extern crate habitat_api_client as api_client;
-extern crate habitat_core as hcore;
-extern crate hyper;
+use habitat_api_client as api_client;
+use habitat_core as hcore;
+
 #[macro_use]
 extern crate log;
 #[macro_use]
 extern crate lazy_static;
-extern crate pbr;
-extern crate petgraph;
-extern crate regex;
-extern crate retry;
-extern crate tempfile;
-extern crate term;
-extern crate time;
-extern crate toml;
-extern crate uuid;
+
 #[cfg(windows)]
 extern crate winapi;
 

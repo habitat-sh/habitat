@@ -14,7 +14,7 @@
 
 use std::path::Path;
 
-use error::Result;
+use crate::error::Result;
 
 /// Creates a root file system under the given path.
 ///
@@ -29,7 +29,7 @@ where
 {
     use std::fs;
 
-    use hcore::util;
+    use crate::hcore::util;
 
     let root = root.as_ref();
     fs::create_dir_all(root)?;

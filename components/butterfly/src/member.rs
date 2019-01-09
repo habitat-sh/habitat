@@ -34,10 +34,10 @@ use serde::{
 use time::{Duration, SteadyTime};
 use uuid::Uuid;
 
-use error::{Error, Result};
-pub use protocol::swim::Health;
-use protocol::{self, newscast, swim as proto, FromProto};
-use rumor::{RumorKey, RumorPayload, RumorType};
+use crate::error::{Error, Result};
+pub use crate::protocol::swim::Health;
+use crate::protocol::{self, newscast, swim as proto, FromProto};
+use crate::rumor::{RumorKey, RumorPayload, RumorType};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -69,7 +69,7 @@ impl Incarnation {
 }
 
 impl fmt::Display for Incarnation {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -105,7 +105,7 @@ struct IncarnationVisitor;
 impl<'de> de::Visitor<'de> for IncarnationVisitor {
     type Value = Incarnation;
 
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(formatter, "a u64")
     }
 
@@ -393,23 +393,25 @@ impl MemberList {
         }
     }
 
-    fn read_entries(&self) -> std::sync::RwLockReadGuard<HashMap<UuidSimple, member_list::Entry>> {
+    fn read_entries(
+        &self,
+    ) -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.read().expect("Members read lock")
     }
 
     fn write_entries(
         &self,
-    ) -> std::sync::RwLockWriteGuard<HashMap<UuidSimple, member_list::Entry>> {
+    ) -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.write().expect("Members write lock")
     }
 
-    fn initial_members_read(&self) -> std::sync::RwLockReadGuard<Vec<Member>> {
+    fn initial_members_read(&self) -> std::sync::RwLockReadGuard<'_, Vec<Member>> {
         self.initial_members
             .read()
             .expect("Initial members read lock")
     }
 
-    fn initial_members_write(&self) -> std::sync::RwLockWriteGuard<Vec<Member>> {
+    fn initial_members_write(&self) -> std::sync::RwLockWriteGuard<'_, Vec<Member>> {
         self.initial_members
             .write()
             .expect("Initial members write lock")
@@ -520,7 +522,7 @@ impl MemberList {
         // Maybe the members we store should not contain the ID to reduce the duplication?
         let modified = match self.write_entries().entry(incoming.member.id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
-                let mut val = entry.get_mut();
+                let val = entry.get_mut();
                 if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health) {
                     *val = member_list::Entry {
                         member: incoming.member,
@@ -809,7 +811,7 @@ mod tests {
         // but until then, this keeps them working.
         fn with_member_iter<T>(
             &self,
-            mut with_closure: impl FnMut(hash_map::Values<String, Member>) -> T,
+            mut with_closure: impl FnMut(hash_map::Values<'_, String, Member>) -> T,
         ) -> T {
             let mut member_map = HashMap::new();
             for (id, super::member_list::Entry { member, .. }) in self.read_entries().iter() {
@@ -820,7 +822,7 @@ mod tests {
     }
 
     mod member {
-        use member::{Incarnation, Member};
+        use crate::member::{Incarnation, Member};
 
         // Sets the uuid to simple, and the incarnation to the default.
         #[test]
@@ -832,8 +834,8 @@ mod tests {
     }
 
     mod membership {
-        use member::{Health, Member, Membership};
-        use protocol::Message;
+        use crate::member::{Health, Member, Membership};
+        use crate::protocol::Message;
         #[test]
         fn encode_decode_roundtrip() {
             let member = Member::default();
@@ -855,7 +857,7 @@ mod tests {
     }
 
     mod member_list {
-        use member::{Health, Member, MemberList, PINGREQ_TARGETS};
+        use crate::member::{Health, Member, MemberList, PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
             let ml = MemberList::new();
@@ -959,7 +961,7 @@ mod tests {
 
         /// Tests of MemberList::insert
         mod insert {
-            use member::{Health, Incarnation, Member, MemberList};
+            use crate::member::{Health, Incarnation, Member, MemberList};
 
             fn assert_cannot_insert_member_rumor_of_lower_incarnation(
                 from_health: Health,
@@ -1362,7 +1364,7 @@ mod tests {
         /// - MemberList::members_expired_to_confirmed
         /// - MemberList::members_expired_to_departed
         mod timed_expiration {
-            use member::{Health, Member, MemberList};
+            use crate::member::{Health, Member, MemberList};
             use std::thread;
             use std::time::Duration as StdDuration;
             use time::Duration;

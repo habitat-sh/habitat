@@ -14,10 +14,10 @@
 
 use std::path::Path;
 
-use common::ui::{Status, UIWriter, UI};
-use hcore::crypto::artifact;
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::crypto::artifact;
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ui: &mut UI, src: &Path, cache: &Path) -> Result<()> {
     ui.begin(format!("Verifying artifact {}", &src.display()))?;

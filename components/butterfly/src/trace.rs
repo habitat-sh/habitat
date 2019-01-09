@@ -23,7 +23,7 @@ use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 
-use server::Server;
+use crate::server::Server;
 
 #[derive(Debug, Clone, Copy)]
 pub enum TraceKind {
@@ -48,7 +48,7 @@ pub enum TraceKind {
 }
 
 impl fmt::Display for TraceKind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             TraceKind::MemberUpdate => write!(f, "MemberUpdate"),
             TraceKind::ProbeBegin => write!(f, "ProbeBegin"),
@@ -124,7 +124,7 @@ impl<'a> TraceWrite<'a> {
 }
 
 impl<'a> fmt::Display for TraceWrite<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.time)?;
         write!(f, "^{}", self.kind)?;
         write!(f, "^{}", self.thread_name)?;
@@ -193,7 +193,7 @@ impl Trace {
     }
 
     /// Write a line to the trace file.
-    pub fn write(&mut self, trace_write: TraceWrite) {
+    pub fn write(&mut self, trace_write: TraceWrite<'_>) {
         let dump = format!("{:#?}", self);
         match self.file.as_mut() {
             Some(file) => match write!(file, "{}", trace_write) {
@@ -263,7 +263,7 @@ macro_rules! trace_it {
     (MEMBERSHIP: $server:expr, $msg_type:expr, $member_id:expr, $mem_incar:expr, $health:expr) => {{
         let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
         if trace_on {
-            use trace::TraceWrite;
+            use crate::trace::TraceWrite;
             let mut trace = $server.trace.write().expect("Trace lock is poisoned");
             trace.init($server);
             let thread = thread::current();
@@ -283,7 +283,7 @@ macro_rules! trace_it {
     (PROBE: $server:expr, $msg_type:expr, $to_member_id:expr, $to_addr:expr) => {{
         let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
         if trace_on {
-            use trace::TraceWrite;
+            use crate::trace::TraceWrite;
             let mut trace = $server.trace.write().expect("Trace lock is poisoned");
             trace.init($server);
             let thread = thread::current();
@@ -307,7 +307,7 @@ macro_rules! trace_it {
     (SWIM: $server:expr, $msg_type:expr, $to_member_id:expr, $to_addr:expr, $payload:expr) => {{
         let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
         if trace_on {
-            use trace::TraceWrite;
+            use crate::trace::TraceWrite;
             let mut trace = $server.trace.write().expect("Trace lock is poisoned");
             trace.init($server);
             let thread = thread::current();
@@ -339,8 +339,8 @@ macro_rules! trace_it {
         let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
         if trace_on {
             let mut trace = $server.trace.write().expect("Trace lock is poisoned");
-            use rumor;
-            use trace::TraceWrite;
+            use crate::rumor;
+            use crate::trace::TraceWrite;
             trace.init($server);
             let thread = thread::current();
             let thread_name = thread.name().unwrap_or("undefined");
@@ -405,8 +405,8 @@ macro_rules! trace_it {
 #[cfg(test)]
 mod tests {
     mod trace {
+        use crate::trace::Trace;
         use std::path::Path;
-        use trace::Trace;
 
         #[test]
         fn default() {

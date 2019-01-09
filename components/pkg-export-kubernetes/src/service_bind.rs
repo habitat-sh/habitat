@@ -17,10 +17,10 @@ use serde_json;
 use std::result;
 use std::str::FromStr;
 
-use export_docker::Result;
-use hcore::service::ServiceGroup;
+use crate::export_docker::Result;
+use crate::hcore::service::ServiceGroup;
 
-use error::Error;
+use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct ServiceBind {
@@ -29,7 +29,7 @@ pub struct ServiceBind {
 }
 
 impl ServiceBind {
-    pub fn from_args(matches: &ArgMatches) -> Result<Vec<Self>> {
+    pub fn from_args(matches: &ArgMatches<'_>) -> Result<Vec<Self>> {
         let mut binds = Vec::new();
 
         if let Some(bind_args) = matches.values_of("BIND") {

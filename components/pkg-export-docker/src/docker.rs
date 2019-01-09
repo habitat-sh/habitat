@@ -17,17 +17,17 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
 
-use common::ui::{Status, UIWriter, UI};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::fs as hfs;
+use crate::hcore::package::PackageIdent;
 use failure::SyncFailure;
 use handlebars::Handlebars;
-use hcore::fs as hfs;
-use hcore::package::PackageIdent;
 
 use super::{Credentials, Naming};
-use build::BuildRoot;
-use error::{Error, Result};
+use crate::build::BuildRoot;
+use crate::error::{Error, Result};
+use crate::util;
 use serde_json;
-use util;
 
 /// The `Dockerfile` template.
 #[cfg(unix)]
@@ -367,7 +367,7 @@ impl DockerBuildRoot {
     ///
     /// * If the Docker image cannot be created successfully
     #[cfg(unix)]
-    pub fn export(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
+    pub fn export(&self, ui: &mut UI, naming: &Naming<'_>) -> Result<DockerImage> {
         self.build_docker_image(ui, naming)
     }
 
@@ -423,7 +423,7 @@ impl DockerBuildRoot {
 
     #[cfg(unix)]
     fn create_entrypoint(&self, ui: &mut UI) -> Result<()> {
-        use hcore::util::posix_perm;
+        use crate::hcore::util::posix_perm;
 
         /// The entrypoint script template.
         const INIT_SH: &'static str = include_str!("../defaults/init.sh.hbs");
@@ -474,7 +474,7 @@ impl DockerBuildRoot {
         Ok(())
     }
 
-    fn build_docker_image(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
+    fn build_docker_image(&self, ui: &mut UI, naming: &Naming<'_>) -> Result<DockerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
         let version = &ident.version.expect("version exists");

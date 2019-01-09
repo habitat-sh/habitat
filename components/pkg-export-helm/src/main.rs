@@ -12,22 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate clap;
-extern crate env_logger;
-extern crate habitat_common as common;
-extern crate habitat_core as hcore;
-extern crate habitat_pkg_export_docker as export_docker;
-extern crate habitat_pkg_export_kubernetes as export_k8s;
-extern crate handlebars;
+use clap;
+use env_logger;
+use habitat_common as common;
+use habitat_core as hcore;
+use habitat_pkg_export_docker as export_docker;
+use habitat_pkg_export_kubernetes as export_k8s;
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
 #[macro_use]
 extern crate serde_json;
-extern crate url;
 
-extern crate failure;
+use failure;
 #[macro_use]
 extern crate failure_derive;
 
@@ -43,13 +42,13 @@ use std::str::FromStr;
 
 use clap::Arg;
 
-use common::ui::{UIWriter, UI};
-use export_docker::Result;
-use export_k8s::Cli;
-use hcore::PROGRAM_NAME;
+use crate::common::ui::{UIWriter, UI};
+use crate::export_docker::Result;
+use crate::export_k8s::Cli;
+use crate::hcore::PROGRAM_NAME;
 use url::Url;
 
-use chart::Chart;
+use crate::chart::Chart;
 
 fn main() {
     env_logger::init();
@@ -63,7 +62,7 @@ fn main() {
     }
 }
 
-fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches) -> Result<()> {
+fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result<()> {
     let chart = Chart::new_for_cli_matches(ui, matches)?;
     chart.generate()?;
 

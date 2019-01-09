@@ -17,23 +17,23 @@ use std::fmt;
 use std::result;
 use std::str::FromStr;
 
-use butterfly::member::{Health, Member, MemberList};
-use butterfly::rumor::election::Election as ElectionRumor;
-use butterfly::rumor::election::ElectionStatus as ElectionStatusRumor;
-use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
-use butterfly::rumor::service::Service as ServiceRumor;
-use butterfly::rumor::service::SysInfo;
-use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-use butterfly::rumor::RumorStore;
-use hcore;
-use hcore::package::PackageIdent;
-use hcore::service::ServiceGroup;
+use crate::butterfly::member::{Health, Member, MemberList};
+use crate::butterfly::rumor::election::Election as ElectionRumor;
+use crate::butterfly::rumor::election::ElectionStatus as ElectionStatusRumor;
+use crate::butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
+use crate::butterfly::rumor::service::Service as ServiceRumor;
+use crate::butterfly::rumor::service::SysInfo;
+use crate::butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+use crate::butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+use crate::butterfly::rumor::RumorStore;
+use crate::hcore;
+use crate::hcore::package::PackageIdent;
+use crate::hcore::service::ServiceGroup;
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use toml;
 
-use error::{Error, SupError};
+use crate::error::{Error, SupError};
 
 static LOGKEY: &'static str = "CE";
 
@@ -271,7 +271,7 @@ impl Default for ElectionStatus {
 }
 
 impl fmt::Display for ElectionStatus {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = match *self {
             ElectionStatus::ElectionInProgress => "in-progress",
             ElectionStatus::ElectionNoQuorum => "no-quorum",
@@ -558,7 +558,7 @@ impl Serialize for CensusGroup {
         strukt.serialize_field("service_config", &self.service_config)?;
         strukt.serialize_field("local_member_id", &self.local_member_id)?;
 
-        let new_pop: BTreeMap<MemberId, CensusMemberProxy> = self
+        let new_pop: BTreeMap<MemberId, CensusMemberProxy<'_>> = self
             .population
             .iter()
             .map(|(k, v)| (k.clone(), CensusMemberProxy::new(v)))
@@ -775,18 +775,18 @@ mod tests {
 
     use serde_json;
 
-    use butterfly::member::{Health, MemberList};
-    use butterfly::rumor::election;
-    use butterfly::rumor::election::Election as ElectionRumor;
-    use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
-    use butterfly::rumor::service::Service as ServiceRumor;
-    use butterfly::rumor::service::SysInfo;
-    use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-    use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-    use butterfly::rumor::RumorStore;
-    use hcore::package::ident::PackageIdent;
-    use hcore::service::ServiceGroup;
-    use test_helpers::*;
+    use crate::butterfly::member::{Health, MemberList};
+    use crate::butterfly::rumor::election;
+    use crate::butterfly::rumor::election::Election as ElectionRumor;
+    use crate::butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
+    use crate::butterfly::rumor::service::Service as ServiceRumor;
+    use crate::butterfly::rumor::service::SysInfo;
+    use crate::butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+    use crate::butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use crate::butterfly::rumor::RumorStore;
+    use crate::hcore::package::ident::PackageIdent;
+    use crate::hcore::service::ServiceGroup;
+    use crate::test_helpers::*;
 
     #[test]
     fn update_from_rumors() {

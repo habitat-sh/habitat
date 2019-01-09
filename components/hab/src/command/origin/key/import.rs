@@ -14,10 +14,10 @@
 
 use std::path::Path;
 
-use common::ui::{UIWriter, UI};
-use hcore::crypto::SigKeyPair;
+use crate::common::ui::{UIWriter, UI};
+use crate::hcore::crypto::SigKeyPair;
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ui: &mut UI, content: &str, cache: &Path) -> Result<()> {
     ui.begin("Importing origin key from standard input")?;

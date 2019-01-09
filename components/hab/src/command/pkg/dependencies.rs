@@ -15,9 +15,9 @@
 use std::path::Path;
 
 use super::{DependencyRelation, Scope};
-use common::package_graph::PackageGraph;
-use error::Result;
-use hcore::package::{PackageIdent, PackageInstall};
+use crate::common::package_graph::PackageGraph;
+use crate::error::Result;
+use crate::hcore::package::{PackageIdent, PackageInstall};
 
 /// Show the dependencies for an installed package.
 ///

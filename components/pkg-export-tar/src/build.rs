@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::common;
+use crate::common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::error::Result;
+use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
+use crate::hcore::package::PackageIdent;
+use crate::hcore::PROGRAM_NAME;
 use clap;
-use common;
-use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
-use common::ui::{Status, UIWriter, UI};
-use error::Result;
-use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
-use hcore::package::PackageIdent;
-use hcore::PROGRAM_NAME;
 use std::fs as stdfs;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
@@ -30,7 +30,7 @@ use tempfile::TempDir;
 
 use super::{BUSYBOX_IDENT, VERSION};
 
-use rootfs;
+use crate::rootfs;
 
 // Much of this functionality is duplicated (or slightly modified)
 // from the Docker exporter. This needs to be abstacted out in
@@ -69,7 +69,7 @@ pub struct BuildSpec<'a> {
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
     pub fn new_from_cli_matches(
-        m: &'a clap::ArgMatches,
+        m: &'a clap::ArgMatches<'_>,
         default_channel: &'a str,
         default_url: &'a str,
     ) -> Self {

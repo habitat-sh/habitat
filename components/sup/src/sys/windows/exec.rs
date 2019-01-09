@@ -16,8 +16,8 @@ use std::ffi::OsStr;
 
 use hcore::os::process::windows_child::Child;
 
-use error::Result;
-use manager::service::Pkg;
+use crate::error::Result;
+use crate::manager::service::Pkg;
 
 pub fn run<T, S>(path: S, pkg: &Pkg, svc_encrypted_password: Option<T>) -> Result<Child>
 where

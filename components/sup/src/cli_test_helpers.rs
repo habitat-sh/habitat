@@ -21,7 +21,7 @@ enum CliTestError {
 }
 
 impl fmt::Display for CliTestError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match self {
             CliTestError::ValueMismatch(flag, expected, actual) => format!(
                 r#"
@@ -57,7 +57,7 @@ Command Parse error:
     }
 }
 
-pub fn assert_command(app: App, cmd: &str, assertions: Vec<(&str, Expectation)>) {
+pub fn assert_command(app: App<'_, '_>, cmd: &str, assertions: Vec<(&str, Expectation<'_>)>) {
     let cmd_vec = Vec::from_iter(cmd.split_whitespace());
     let errors = match app.get_matches_from_safe(cmd_vec) {
         Ok(matches) => match matches.subcommand() {
@@ -87,7 +87,10 @@ Failed assertions for command: '{}'
     }
 }
 
-fn assert_matches(matches: &ArgMatches, assertions: Vec<(&str, Expectation)>) -> Vec<CliTestError> {
+fn assert_matches(
+    matches: &ArgMatches<'_>,
+    assertions: Vec<(&str, Expectation<'_>)>,
+) -> Vec<CliTestError> {
     let mut errs = Vec::new();
 
     for (flag, expected_value) in assertions {

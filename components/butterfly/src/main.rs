@@ -14,10 +14,7 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate env_logger;
-extern crate habitat_butterfly;
-extern crate habitat_core;
-extern crate log;
+use env_logger;
 
 use std::env;
 use std::net::SocketAddr;

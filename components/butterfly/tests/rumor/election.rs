@@ -15,7 +15,7 @@
 use habitat_butterfly::member::Health;
 use habitat_butterfly::rumor::election::ElectionStatus;
 
-use btest;
+use crate::btest;
 
 #[test]
 fn three_members_run_election() {

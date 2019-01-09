@@ -15,7 +15,7 @@
 use habitat_butterfly::member::Health;
 use habitat_core::crypto::keys::sym_key::SymKey;
 
-use btest;
+use crate::btest;
 
 #[test]
 fn symmetric_encryption_of_wire_payloads() {

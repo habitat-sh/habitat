@@ -26,15 +26,15 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, ExitStatus};
 use std::result;
 
-use hcore::service::ServiceGroup;
-use hcore::{self, crypto};
+use crate::hcore::service::ServiceGroup;
+use crate::hcore::{self, crypto};
 use serde::{Serialize, Serializer};
 
 use super::{health, Pkg};
-use error::{Result, SupError};
-use fs;
-use templating::{RenderContext, TemplateRenderer};
-use util::exec;
+use crate::error::{Result, SupError};
+use crate::fs;
+use crate::templating::{RenderContext, TemplateRenderer};
+use crate::util::exec;
 
 #[cfg(not(windows))]
 pub const HOOK_PERMISSIONS: u32 = 0o755;
@@ -132,7 +132,7 @@ pub trait Hook: fmt::Debug + Sized {
     /// Compile a hook into its destination service directory.
     ///
     /// Returns `true` if the hook has changed.
-    fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> Result<bool> {
+    fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext<'_>) -> Result<bool> {
         let content = self.renderer().render(Self::file_name(), ctx)?;
         // We make sure we don't use a deprecated file name
         let path = self.path().with_file_name(Self::file_name());
@@ -154,7 +154,7 @@ pub trait Hook: fmt::Debug + Sized {
 
     #[cfg(not(windows))]
     fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-        use hcore::util::posix_perm;
+        use crate::hcore::util::posix_perm;
 
         posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
     }
@@ -220,7 +220,7 @@ pub trait Hook: fmt::Debug + Sized {
     fn handle_exit<'a>(
         &self,
         group: &ServiceGroup,
-        output: &'a HookOutput,
+        output: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue;
 
@@ -258,7 +258,7 @@ impl Hook for FileUpdatedHook {
     fn handle_exit<'a>(
         &self,
         _: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         status.success()
@@ -306,7 +306,7 @@ impl Hook for HealthCheckHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -368,7 +368,7 @@ impl Hook for InitHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -438,7 +438,7 @@ impl Hook for RunHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -492,7 +492,7 @@ impl Hook for PostRunHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -546,7 +546,7 @@ impl Hook for ReloadHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -606,7 +606,7 @@ impl Hook for ReconfigureHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -660,7 +660,7 @@ impl Hook for SuitabilityHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        hook_output: &'a HookOutput,
+        hook_output: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -745,7 +745,7 @@ impl Hook for PostStopHook {
     fn handle_exit<'a>(
         &self,
         service_group: &ServiceGroup,
-        _: &'a HookOutput,
+        _: &'a HookOutput<'_>,
         status: &ExitStatus,
     ) -> Self::ExitValue {
         match status.code() {
@@ -857,7 +857,7 @@ impl HookTable {
     ///
     /// Returns `true` if compiling any of the hooks resulted in new
     /// content being written to the hook scripts on disk.
-    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext) -> bool {
+    pub fn compile(&self, service_group: &ServiceGroup, ctx: &RenderContext<'_>) -> bool {
         debug!("{:?}", self);
         let mut changed = false;
         if let Some(ref hook) = self.file_updated {
@@ -890,7 +890,12 @@ impl HookTable {
         changed
     }
 
-    fn compile_one<H>(&self, hook: &H, service_group: &ServiceGroup, ctx: &RenderContext) -> bool
+    fn compile_one<H>(
+        &self,
+        hook: &H,
+        service_group: &ServiceGroup,
+        ctx: &RenderContext<'_>,
+    ) -> bool
     where
         H: Hook,
     {
@@ -926,7 +931,7 @@ impl RenderPair {
 }
 
 impl fmt::Debug for RenderPair {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "path: {}", self.path.display())
     }
 }
@@ -1010,28 +1015,28 @@ mod tests {
     use std::process::{Command, Stdio};
     use std::string::ToString;
 
-    use butterfly::member::MemberList;
-    use butterfly::rumor::election;
-    use butterfly::rumor::election::Election as ElectionRumor;
-    use butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
-    use butterfly::rumor::service::Service as ServiceRumor;
-    use butterfly::rumor::service::SysInfo;
-    use butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-    use butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-    use butterfly::rumor::RumorStore;
-    use hcore::package::{PackageIdent, PackageInstall};
-    use hcore::service::ServiceGroup;
+    use crate::butterfly::member::MemberList;
+    use crate::butterfly::rumor::election;
+    use crate::butterfly::rumor::election::Election as ElectionRumor;
+    use crate::butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
+    use crate::butterfly::rumor::service::Service as ServiceRumor;
+    use crate::butterfly::rumor::service::SysInfo;
+    use crate::butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
+    use crate::butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
+    use crate::butterfly::rumor::RumorStore;
+    use crate::hcore::package::{PackageIdent, PackageInstall};
+    use crate::hcore::service::ServiceGroup;
     use tempfile::TempDir;
 
     use super::fs as supfs;
     use super::*;
-    use census::CensusRing;
-    use common::types::ListenCtlAddr;
-    use config::GossipListenAddr;
-    use http_gateway;
-    use manager::service::spec::ServiceBind;
-    use manager::service::{Cfg, Pkg};
-    use manager::sys::Sys;
+    use crate::census::CensusRing;
+    use crate::common::types::ListenCtlAddr;
+    use crate::config::GossipListenAddr;
+    use crate::http_gateway;
+    use crate::manager::service::spec::ServiceBind;
+    use crate::manager::service::{Cfg, Pkg};
+    use crate::manager::sys::Sys;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use

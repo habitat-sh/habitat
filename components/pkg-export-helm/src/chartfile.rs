@@ -17,10 +17,10 @@ use failure::SyncFailure;
 use handlebars::Handlebars;
 use serde_json;
 
-use export_docker::Result;
-use hcore::package::PackageIdent;
+use crate::export_docker::Result;
+use crate::hcore::package::PackageIdent;
 
-use maintainer::Maintainer;
+use crate::maintainer::Maintainer;
 
 pub const DEFAULT_VERSION: &'static str = "0.0.1";
 
@@ -42,7 +42,7 @@ pub struct ChartFile {
 
 impl ChartFile {
     pub fn new_from_cli_matches(
-        matches: &clap::ArgMatches,
+        matches: &clap::ArgMatches<'_>,
         pkg_ident: &PackageIdent,
     ) -> Result<Self> {
         let name = matches

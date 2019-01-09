@@ -20,11 +20,11 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
-use common::ui::{Status, UIWriter, UI};
-use hcore::fs as hfs;
-use hcore::package::{PackageIdent, PackageInstall};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::fs as hfs;
+use crate::hcore::package::{PackageIdent, PackageInstall};
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 #[cfg(windows)]
 const BAT_COMMENT_MARKER: &'static str = "REM";
@@ -199,7 +199,7 @@ impl Binlink {
     }
 
     pub fn link(&self) -> Result<()> {
-        use hcore::os::filesystem;
+        use crate::hcore::os::filesystem;
 
         Ok(filesystem::symlink(&self.src, &self.dest)?)
     }
@@ -264,9 +264,9 @@ mod test {
     use std::str::{self, FromStr};
     use std::sync::{Arc, RwLock};
 
-    use common::ui::{Coloring, UI};
-    use hcore;
-    use hcore::package::{PackageIdent, PackageTarget};
+    use crate::common::ui::{Coloring, UI};
+    use crate::hcore;
+    use crate::hcore::package::{PackageIdent, PackageTarget};
     use tempfile::TempDir;
 
     use super::{binlink_all_in_pkg, start, Binlink};

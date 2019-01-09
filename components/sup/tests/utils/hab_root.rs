@@ -29,8 +29,8 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 
-use hcore::fs::PKG_PATH;
-use hcore::package::metadata::MetaFile;
+use crate::hcore::fs::PKG_PATH;
+use crate::hcore::package::metadata::MetaFile;
 use tempfile::Builder;
 use tempfile::TempDir;
 

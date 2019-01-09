@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use protocol;
+use crate::protocol;
 
 use super::{HandleResult, Handler};
-use server::ServiceTable;
-use service;
+use crate::server::ServiceTable;
+use crate::service;
 
 pub struct SpawnHandler;
 impl Handler for SpawnHandler {

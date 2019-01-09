@@ -28,11 +28,11 @@ use std::option;
 use std::result;
 use std::str::FromStr;
 
-use common::{
+use crate::common::{
     cli_defaults::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR},
     types::EnvConfig,
 };
-use error::{Result, SupError};
+use crate::error::{Result, SupError};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
@@ -101,7 +101,7 @@ impl ToSocketAddrs for GossipListenAddr {
 }
 
 impl fmt::Display for GossipListenAddr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> result::Result<(), fmt::Error> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         write!(f, "{}", self.0)
     }
 }
@@ -136,6 +136,7 @@ mod tests {
 
     mod env_config {
         use super::*;
+        use crate::common::locked_env_var;
         use std::env;
         use std::num::ParseIntError;
         use std::result;

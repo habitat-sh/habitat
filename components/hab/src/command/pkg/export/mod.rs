@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use common::ui::UI;
-use hcore::package::PackageIdent;
+use crate::common::ui::UI;
+use crate::hcore::package::PackageIdent;
 
-use error::Result;
+use crate::error::Result;
 
 pub mod cf;
 pub mod docker;
@@ -62,18 +62,18 @@ mod inner {
     use std::ffi::OsString;
     use std::str::FromStr;
 
-    use common::ui::UI;
-    use hcore::channel::BLDR_CHANNEL_ENVVAR;
-    use hcore::crypto::{default_cache_key_path, init};
-    use hcore::fs::find_command;
-    use hcore::package::PackageIdent;
-    use hcore::url::BLDR_URL_ENVVAR;
+    use crate::common::ui::UI;
+    use crate::hcore::channel::BLDR_CHANNEL_ENVVAR;
+    use crate::hcore::crypto::{default_cache_key_path, init};
+    use crate::hcore::fs::find_command;
+    use crate::hcore::package::PackageIdent;
+    use crate::hcore::url::BLDR_URL_ENVVAR;
 
     use super::ExportFormat;
-    use command;
-    use error::{Error, Result};
-    use exec;
-    use VERSION;
+    use crate::command;
+    use crate::error::{Error, Result};
+    use crate::exec;
+    use crate::VERSION;
 
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
         let version: Vec<_> = VERSION.split("/").collect();
@@ -133,9 +133,9 @@ mod inner {
 #[cfg(not(target_os = "linux"))]
 mod inner {
     use super::ExportFormat;
-    use common::ui::{UIWriter, UI};
-    use error::{Error, Result};
-    use hcore::package::PackageIdent;
+    use crate::common::ui::{UIWriter, UI};
+    use crate::error::{Error, Result};
+    use crate::hcore::package::PackageIdent;
     use std::env;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {

@@ -192,14 +192,14 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore;
+use crate::http_client::ApiClient;
 use clap;
-use common::ui::{Status, UIWriter, UI};
-use hcore;
-use http_client::ApiClient;
 use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use uuid::Uuid;
 
-use error::Result;
+use crate::error::Result;
 
 /// The Google Analytics [Tracking
 /// ID](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#tid)

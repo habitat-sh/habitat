@@ -29,22 +29,22 @@ use std::os::unix::process::ExitStatusExt;
 #[cfg(unix)]
 use std::process::ExitStatus;
 
-use core;
-use core::fs::{launcher_root_path, FS_ROOT_PATH};
-use core::os::process::{self, Pid, Signal};
-use core::os::signals::{self, SignalEvent};
-use core::package::{PackageIdent, PackageInstall};
+use crate::core;
+use crate::core::fs::{launcher_root_path, FS_ROOT_PATH};
+use crate::core::os::process::{self, Pid, Signal};
+use crate::core::os::signals::{self, SignalEvent};
+use crate::core::package::{PackageIdent, PackageInstall};
+use crate::protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 #[cfg(unix)]
 use libc;
 use protobuf;
-use protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
 use semver::{Version, VersionReq};
 
 use self::handlers::Handler;
-use error::{Error, Result};
-use service::Service;
-use {SUP_CMD, SUP_PACKAGE_IDENT};
+use crate::error::{Error, Result};
+use crate::service::Service;
+use crate::{SUP_CMD, SUP_PACKAGE_IDENT};
 
 const IPC_CONNECT_TIMEOUT_SECS: &'static str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;

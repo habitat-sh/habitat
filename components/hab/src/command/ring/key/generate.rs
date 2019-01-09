@@ -14,10 +14,10 @@
 
 use std::path::Path;
 
-use common::ui::{UIWriter, UI};
-use hcore::crypto::SymKey;
+use crate::common::ui::{UIWriter, UI};
+use crate::hcore::crypto::SymKey;
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ui: &mut UI, ring: &str, cache: &Path) -> Result<()> {
     ui.begin(format!("Generating ring key for {}", &ring))?;

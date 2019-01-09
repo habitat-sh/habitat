@@ -19,11 +19,11 @@ use std::convert::From;
 use std::fs as stdfs;
 use std::path::Path;
 
-use error::{Error, Result};
-use fs;
-use manager::service::package::Pkg;
-use sys::abilities;
-use sys::users::assert_pkg_user_and_group;
+use crate::error::{Error, Result};
+use crate::fs;
+use crate::manager::service::package::Pkg;
+use crate::sys::abilities;
+use crate::sys::users::assert_pkg_user_and_group;
 
 /// Permissions that service-owned service directories should
 /// have. The user and group will be `SVC_USER` / `SVC_GROUP`.
@@ -142,7 +142,7 @@ impl<'a> SvcDir<'a> {
 
     #[cfg(not(windows))]
     fn set_permissions<T: AsRef<Path>>(&self, path: T) -> Result<()> {
-        use hcore::util::posix_perm;
+        use crate::hcore::util::posix_perm;
 
         if abilities::can_run_services_as_svc_user() {
             posix_perm::set_owner(path.as_ref(), &self.svc_user, &self.svc_group)?;

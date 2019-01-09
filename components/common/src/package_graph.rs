@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::error::Result;
+use crate::hcore::fs as hfs;
+use crate::hcore::package;
+use crate::hcore::package::ident::PackageIdent;
+use crate::hcore::package::PackageInstall;
 use bimap::BiMap;
-use error::Result;
-use hcore::fs as hfs;
-use hcore::package;
-use hcore::package::ident::PackageIdent;
-use hcore::package::PackageInstall;
 use petgraph;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;

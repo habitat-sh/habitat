@@ -15,16 +15,13 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate habitat_eventsrv_protocol as protocol;
-extern crate protobuf;
-extern crate time;
-extern crate zmq;
+use habitat_eventsrv_protocol as protocol;
 
 pub mod message;
 
+use crate::protocol::EventEnvelope;
+pub use crate::protocol::EventSrvAddr;
 use protobuf::Message;
-use protocol::EventEnvelope;
-pub use protocol::EventSrvAddr;
 
 pub struct EventSrvClient(zmq::Socket);
 

@@ -14,9 +14,9 @@
 
 use std::ffi::OsString;
 
-use common::ui::UI;
+use crate::common::ui::UI;
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
@@ -28,17 +28,17 @@ mod inner {
     use std::path::PathBuf;
     use std::str::FromStr;
 
-    use common::ui::UI;
-    use hcore::crypto::{default_cache_key_path, init};
-    use hcore::env as henv;
-    use hcore::fs::find_command;
-    use hcore::os::process;
-    use hcore::package::PackageIdent;
+    use crate::common::ui::UI;
+    use crate::hcore::crypto::{default_cache_key_path, init};
+    use crate::hcore::env as henv;
+    use crate::hcore::fs::find_command;
+    use crate::hcore::os::process;
+    use crate::hcore::package::PackageIdent;
 
     use super::super::sup::{SUP_CMD, SUP_CMD_ENVVAR, SUP_PKG_IDENT};
-    use error::{Error, Result};
-    use exec;
-    use VERSION;
+    use crate::error::{Error, Result};
+    use crate::exec;
+    use crate::VERSION;
 
     const LAUNCH_CMD: &'static str = "hab-launch";
     const LAUNCH_CMD_ENVVAR: &'static str = "HAB_LAUNCH_BINARY";
@@ -83,9 +83,9 @@ mod inner {
     use std::env;
     use std::ffi::OsString;
 
-    use common::ui::{UIWriter, UI};
+    use crate::common::ui::{UIWriter, UI};
 
-    use error::{Error, Result};
+    use crate::error::{Error, Result};
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());

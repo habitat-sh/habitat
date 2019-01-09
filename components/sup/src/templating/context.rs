@@ -57,13 +57,13 @@ use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use toml;
 
-use butterfly::rumor::service::SysInfo;
-use hcore::package::PackageIdent;
-use hcore::service::ServiceGroup;
+use crate::butterfly::rumor::service::SysInfo;
+use crate::hcore::package::PackageIdent;
+use crate::hcore::service::ServiceGroup;
 
-use census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId};
-use manager::service::{Cfg, Env, Pkg, ServiceBind};
-use manager::Sys;
+use crate::census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId};
+use crate::manager::service::{Cfg, Env, Pkg, ServiceBind};
+use crate::manager::Sys;
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -581,7 +581,7 @@ impl<'a> Serialize for SvcMember<'a> {
 /// it from *all* members, and not just active members. Users should
 /// move away from using `first`, and should instead just use
 /// `members[0]`, or `leader`.
-fn select_first(census_group: &CensusGroup) -> Option<SvcMember> {
+fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
     match census_group.leader() {
         Some(member) => Some(SvcMember::from_census_member(member)),
         None => census_group
@@ -606,13 +606,13 @@ mod tests {
     use serde_json;
     use tempfile::TempDir;
 
-    use butterfly::rumor::service::SysInfo;
-    use hcore::package::PackageIdent;
+    use crate::butterfly::rumor::service::SysInfo;
+    use crate::hcore::package::PackageIdent;
 
-    use manager::service::config::PackageConfigPaths;
-    use manager::service::Cfg;
-    use templating::TemplateRenderer;
-    use test_helpers::*;
+    use crate::manager::service::config::PackageConfigPaths;
+    use crate::manager::service::Cfg;
+    use crate::templating::TemplateRenderer;
+    use crate::test_helpers::*;
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -820,7 +820,7 @@ two = 2
     /// returning the result. This can help to verify that
     /// RenderContext data are accessible to users in the way we
     /// expect.
-    fn render(template_content: &str, ctx: &RenderContext) -> String {
+    fn render(template_content: &str, ctx: &RenderContext<'_>) -> String {
         let mut renderer = TemplateRenderer::new();
         renderer
             .register_template_string("testing", template_content)

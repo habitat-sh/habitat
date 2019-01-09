@@ -20,25 +20,25 @@ use std::os::windows::fs::symlink_dir as symlink;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use crate::common;
+use crate::common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
+use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
+use crate::hcore::package::{PackageArchive, PackageIdent, PackageInstall};
+use crate::hcore::PROGRAM_NAME;
 use clap;
-use common;
-use common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
-use common::ui::{Status, UIWriter, UI};
 #[cfg(unix)]
 use failure::SyncFailure;
 #[cfg(unix)]
 use hab;
-use hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
-use hcore::package::{PackageArchive, PackageIdent, PackageInstall};
-use hcore::PROGRAM_NAME;
 use tempfile::TempDir;
 
 use super::{BUSYBOX_IDENT, CACERTS_IDENT, VERSION};
-use accounts::{EtcGroupEntry, EtcPasswdEntry};
-use error::{Error, Result};
+use crate::accounts::{EtcGroupEntry, EtcPasswdEntry};
+use crate::error::{Error, Result};
 #[cfg(unix)]
-use rootfs;
-use util;
+use crate::rootfs;
+use crate::util;
 
 // Much of this functionality is duplicated (or slightly modified)
 // in the tar exporter. This needs to be abstacted out in
@@ -84,7 +84,7 @@ pub struct BuildSpec<'a> {
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
     pub fn new_from_cli_matches(
-        m: &'a clap::ArgMatches,
+        m: &'a clap::ArgMatches<'_>,
         default_channel: &'a str,
         default_url: &'a str,
     ) -> Self {
@@ -296,7 +296,7 @@ impl<'a> BuildSpec<'a> {
     where
         P: AsRef<Path>,
     {
-        use chmod;
+        use crate::chmod;
 
         let target = rootfs.as_ref().join("hab");
         ui.status(
@@ -450,7 +450,7 @@ impl BuildRootContext {
     /// * If an artifact file cannot be read or if a Package Identifier cannot be determined
     /// * If a Package Identifier cannot be parsed from an string representation
     /// * If package metadata cannot be read
-    pub fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec, rootfs: P) -> Result<Self> {
+    pub fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec<'_>, rootfs: P) -> Result<Self> {
         let rootfs = rootfs.into();
         let mut idents = Vec::new();
         for ident_or_archive in &spec.idents_or_archives {
@@ -759,8 +759,8 @@ impl PkgIdentType {
 
 #[cfg(test)]
 mod test {
-    use hcore;
-    use hcore::package::PackageTarget;
+    use crate::hcore;
+    use crate::hcore::package::PackageTarget;
 
     use clap::ArgMatches;
 
@@ -768,7 +768,7 @@ mod test {
 
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
     fn arg_matches<'a>(args: Vec<&str>) -> ArgMatches<'a> {
-        let app = ::cli();
+        let app = crate::cli();
         let matches = app.get_matches_from(&args);
         matches
     }
@@ -879,8 +879,8 @@ mod test {
         use std::io::{self, Cursor, Write};
         use std::sync::{Arc, RwLock};
 
-        use common::ui::{Coloring, UI};
-        use hcore;
+        use crate::common::ui::{Coloring, UI};
+        use crate::hcore;
 
         use tempfile::TempDir;
 
@@ -1051,7 +1051,7 @@ mod test {
     mod build_root_context {
         use std::str::FromStr;
 
-        use hcore::package::PackageIdent;
+        use crate::hcore::package::PackageIdent;
 
         use super::super::*;
         use super::*;

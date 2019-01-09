@@ -31,15 +31,15 @@ use std::result;
 use std::sync::{Arc, RwLock};
 use std::time::Instant;
 
-use butterfly::rumor::service::Service as ServiceRumor;
-use hcore;
-use hcore::crypto::hash;
-use hcore::fs::FS_ROOT_PATH;
-use hcore::package::metadata::Bind;
-use hcore::package::{PackageIdent, PackageInstall};
-use hcore::service::{HealthCheckInterval, ServiceGroup};
-use launcher_client::LauncherCli;
-pub use protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
+use crate::butterfly::rumor::service::Service as ServiceRumor;
+use crate::hcore;
+use crate::hcore::crypto::hash;
+use crate::hcore::fs::FS_ROOT_PATH;
+use crate::hcore::package::metadata::Bind;
+use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::service::{HealthCheckInterval, ServiceGroup};
+use crate::launcher_client::LauncherCli;
+pub use crate::protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use time::Timespec;
@@ -55,11 +55,11 @@ pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, Servic
 use self::supervisor::Supervisor;
 use super::ShutdownReason;
 use super::Sys;
-use census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile};
-use error::{Error, Result, SupError};
-use fs;
-use manager;
-use templating::RenderContext;
+use crate::census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile};
+use crate::error::{Error, Result, SupError};
+use crate::fs;
+use crate::manager;
+use crate::templating::RenderContext;
 
 static LOGKEY: &'static str = "SR";
 
@@ -771,7 +771,7 @@ impl Service {
     /// Helper for compiling configuration templates into configuration files.
     ///
     /// Returns `true` if the configuration has changed.
-    fn compile_configuration(&self, ctx: &RenderContext) -> bool {
+    fn compile_configuration(&self, ctx: &RenderContext<'_>) -> bool {
         match self.config_renderer.compile(&self.pkg, ctx) {
             Ok(true) => true,
             Ok(false) => false,
@@ -789,7 +789,7 @@ impl Service {
     /// This function will also perform any necessary post-compilation tasks.
     ///
     /// Returns `true` if any hooks have changed.
-    fn compile_hooks(&self, ctx: &RenderContext) -> bool {
+    fn compile_hooks(&self, ctx: &RenderContext<'_>) -> bool {
         let changed = self.hooks.compile(&self.service_group, ctx);
         if let Some(err) = self.copy_run().err() {
             outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
@@ -827,7 +827,7 @@ impl Service {
     #[cfg(not(windows))]
     fn set_hook_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
         use self::hooks::HOOK_PERMISSIONS;
-        use hcore::util::posix_perm;
+        use crate::hcore::util::posix_perm;
 
         posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
     }
@@ -1046,8 +1046,8 @@ impl Service {
 
     #[cfg(not(windows))]
     fn set_gossip_permissions<T: AsRef<Path>>(&self, path: T) -> bool {
-        use hcore::util::posix_perm;
-        use sys::abilities;
+        use crate::hcore::util::posix_perm;
+        use crate::sys::abilities;
 
         if abilities::can_run_services_as_svc_user() {
             let result =
@@ -1084,7 +1084,7 @@ impl Service {
 }
 
 impl fmt::Display for Service {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} [{}]", self.service_group, self.pkg.ident)
     }
 }
@@ -1181,17 +1181,17 @@ mod tests {
     use std::path::PathBuf;
     use std::str::FromStr;
 
-    use hcore::package::{ident::PackageIdent, PackageInstall};
+    use crate::hcore::package::{ident::PackageIdent, PackageInstall};
     use serde_json;
 
     use self::{
         manager::{sys::Sys, FsCfg},
         ServiceSpec,
     };
-    use common::types::ListenCtlAddr;
-    use config::GossipListenAddr;
-    use http_gateway;
-    use test_helpers::*;
+    use crate::common::types::ListenCtlAddr;
+    use crate::config::GossipListenAddr;
+    use crate::http_gateway;
+    use crate::test_helpers::*;
 
     #[test]
     fn service_proxy_conforms_to_the_schema() {

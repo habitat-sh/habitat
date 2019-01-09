@@ -16,9 +16,9 @@ use std::collections::HashMap;
 use std::io;
 use std::mem;
 
+use crate::protocol::{self, ShutdownMethod};
 use core::os::process::handle_from_pid;
 use core::os::process::windows_child::{Child, ExitStatus, Handle};
-use protocol::{self, ShutdownMethod};
 use time::{Duration, SteadyTime};
 use winapi::shared::minwindef::{DWORD, LPDWORD, MAX_PATH};
 use winapi::shared::winerror::{ERROR_FILE_NOT_FOUND, WAIT_TIMEOUT};
@@ -29,8 +29,8 @@ use winapi::um::tlhelp32::{self, LPPROCESSENTRY32W, PROCESSENTRY32W, TH32CS_SNAP
 use winapi::um::winbase::{INFINITE, WAIT_OBJECT_0};
 use winapi::um::wincon;
 
-use error::{Error, Result};
-use service::Service;
+use crate::error::{Error, Result};
+use crate::service::Service;
 
 const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;

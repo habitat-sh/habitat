@@ -15,9 +15,9 @@
 use std::collections::HashMap;
 use std::path::Path;
 
-use hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::package::{PackageIdent, PackageInstall};
 
-use error::Result;
+use crate::error::Result;
 
 pub fn start(ident: &PackageIdent, fs_root_path: &Path) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;

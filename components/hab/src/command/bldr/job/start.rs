@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use api_client::Client;
-use common::ui::{Status, UIReader, UIWriter, UI};
-use hcore::package::PackageIdent;
+use crate::api_client::Client;
+use crate::common::ui::{Status, UIReader, UIWriter, UI};
+use crate::hcore::package::PackageIdent;
 
-use error::{Error, Result};
-use {PRODUCT, VERSION};
+use crate::error::{Error, Result};
+use crate::{PRODUCT, VERSION};
 
 pub fn start(
     ui: &mut UI,

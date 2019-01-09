@@ -26,10 +26,10 @@ use std::time::Duration;
 
 use super::file_watcher::{default_file_watcher_with_no_initial_event, Callbacks};
 
-use hcore::fs::USER_CONFIG_FILE;
-use hcore::service::ServiceGroup;
-use manager::service::Service;
-use manager::service::UserConfigPath;
+use crate::hcore::fs::USER_CONFIG_FILE;
+use crate::hcore::service::ServiceGroup;
+use crate::manager::service::Service;
+use crate::manager::service::UserConfigPath;
 
 static LOGKEY: &'static str = "UCW";
 
@@ -289,7 +289,7 @@ mod tests {
     use std::thread;
     use std::time::{Duration, Instant};
 
-    use manager::file_watcher::WATCHER_DELAY_MS;
+    use crate::manager::file_watcher::WATCHER_DELAY_MS;
 
     use tempfile::TempDir;
 

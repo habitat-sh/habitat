@@ -48,23 +48,23 @@ use std::str;
 use std::string;
 use std::sync::mpsc;
 
-use api_client;
-use butterfly;
-use common;
+use crate::api_client;
+use crate::butterfly;
+use crate::common;
+use crate::hcore;
+use crate::hcore::os::process::Pid;
+use crate::hcore::output::StructuredOutput;
+use crate::hcore::package::{self, Identifiable, PackageInstall};
+use crate::launcher_client;
+use crate::protocol;
 use glob;
 use handlebars;
-use hcore;
-use hcore::os::process::Pid;
-use hcore::output::StructuredOutput;
-use hcore::package::{self, Identifiable, PackageInstall};
-use launcher_client;
 use notify;
-use protocol;
 use rustls;
 use serde_json;
 use toml;
 
-use PROGRAM_NAME;
+use crate::PROGRAM_NAME;
 
 static LOGKEY: &'static str = "ER";
 
@@ -187,7 +187,7 @@ pub enum Error {
 impl fmt::Display for SupError {
     // We create a string for each type of error, then create a `StructuredOutput` for it, flip
     // verbose on, and print it.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match self.err {
             Error::APIClient(ref err) => format!("{}", err),
             Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),

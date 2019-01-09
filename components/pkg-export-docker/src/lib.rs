@@ -15,26 +15,22 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate base64;
 #[macro_use]
 extern crate clap;
-extern crate hab;
-extern crate habitat_common as common;
-extern crate habitat_core as hcore;
-extern crate handlebars;
+use habitat_common as common;
+use habitat_core as hcore;
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-extern crate rusoto_core;
-extern crate rusoto_credential as aws_creds;
-extern crate rusoto_ecr;
+
+use rusoto_credential as aws_creds;
+
 #[macro_use]
 extern crate serde_json;
-extern crate tempfile;
-extern crate url;
 
-extern crate failure;
+use failure;
 #[macro_use]
 extern crate failure_derive;
 
@@ -54,20 +50,20 @@ use std::fmt;
 use std::result;
 use std::str::FromStr;
 
-use common::ui::{UIWriter, UI};
-use hcore::url as hurl;
-use hcore::{channel, PROGRAM_NAME};
+use crate::common::ui::{UIWriter, UI};
+use crate::hcore::url as hurl;
+use crate::hcore::{channel, PROGRAM_NAME};
 
-use aws_creds::StaticProvider;
+use crate::aws_creds::StaticProvider;
 use clap::App;
 use rusoto_core::request::*;
 use rusoto_core::Region;
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use build::BuildSpec;
-pub use cli::{Cli, PkgIdentArgOptions};
-pub use docker::{DockerBuildRoot, DockerImage};
-pub use error::{Error, Result};
+pub use crate::build::BuildSpec;
+pub use crate::cli::{Cli, PkgIdentArgOptions};
+pub use crate::docker::{DockerBuildRoot, DockerImage};
+pub use crate::error::{Error, Result};
 
 /// The version of this library and program when built.
 pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -103,7 +99,7 @@ pub struct Naming<'a> {
 
 impl<'a> Naming<'a> {
     /// Creates a `Naming` from cli arguments.
-    pub fn new_from_cli_matches(m: &'a clap::ArgMatches) -> Self {
+    pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>) -> Self {
         let registry_type =
             value_t!(m.value_of("REGISTRY_TYPE"), RegistryType).unwrap_or(RegistryType::Docker);
         let registry_url = m.value_of("REGISTRY_URL");
@@ -147,7 +143,7 @@ impl FromStr for RegistryType {
 }
 
 impl fmt::Display for RegistryType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let disp = match *self {
             RegistryType::Amazon => "amazon",
             RegistryType::Azure => "azure",
@@ -212,7 +208,7 @@ impl Credentials {
 /// * If additional Docker-related files cannot be created in the root file system
 /// * If building the Docker image fails
 /// * If destroying the temporary build root directory fails
-pub fn export(ui: &mut UI, build_spec: BuildSpec, naming: &Naming) -> Result<DockerImage> {
+pub fn export(ui: &mut UI, build_spec: BuildSpec<'_>, naming: &Naming<'_>) -> Result<DockerImage> {
     ui.begin(format!(
         "Building a runnable Docker image with: {}",
         build_spec.idents_or_archives.join(", ")
@@ -242,7 +238,7 @@ pub fn export(ui: &mut UI, build_spec: BuildSpec, naming: &Naming) -> Result<Doc
 /// * The image (tags) cannot be removed.
 pub fn export_for_cli_matches(
     ui: &mut UI,
-    matches: &clap::ArgMatches,
+    matches: &clap::ArgMatches<'_>,
 ) -> Result<Option<DockerImage>> {
     let default_channel = channel::default();
     let default_url = hurl::default_bldr_url();

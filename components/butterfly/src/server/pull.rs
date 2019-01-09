@@ -22,10 +22,10 @@ use std::time::Duration;
 
 use zmq;
 
-use rumor::{RumorEnvelope, RumorKind};
-use server::Server;
-use trace::TraceKind;
-use ZMQ_CONTEXT;
+use crate::rumor::{RumorEnvelope, RumorKind};
+use crate::server::Server;
+use crate::trace::TraceKind;
+use crate::ZMQ_CONTEXT;
 
 /// Takes a reference to the server itself
 pub struct Pull {
