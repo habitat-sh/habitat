@@ -24,7 +24,7 @@ use winapi::um::processthreadsapi;
 use winapi::um::winnt::{HANDLE, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_TERMINATE};
 
 use super::{OsSignal, Signal};
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 const STILL_ACTIVE: u32 = 259;
 

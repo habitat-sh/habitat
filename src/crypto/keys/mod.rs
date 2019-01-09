@@ -580,7 +580,7 @@ fn set_permissions<T: AsRef<Path>>(path: T) -> Result<()> {
 
 #[cfg(windows)]
 fn set_permissions<T: AsRef<Path>>(path: T) -> Result<()> {
-    use util::win_perm;
+    use crate::util::win_perm;
 
     win_perm::harden_path(path.as_ref())
 }

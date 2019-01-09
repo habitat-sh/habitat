@@ -28,7 +28,7 @@ use windows_acl::helper;
 
 use habitat_win_users::account::Account;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub struct PermissionEntry {
     pub account: Account,
@@ -136,7 +136,7 @@ mod tests {
     use habitat_win_users::account;
 
     use super::*;
-    use error::Error;
+    use crate::error::Error;
 
     #[test]
     fn set_permissions_ok_test() {

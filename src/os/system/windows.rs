@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use error::Result;
-use os::system::Uname;
+use crate::error::Result;
+use crate::os::system::Uname;
 
 pub fn uname() -> Result<Uname> {
     Ok(Uname {

@@ -21,7 +21,7 @@ use winapi::shared::minwindef::DWORD;
 use winapi::um::dpapi;
 use winapi::um::wincrypt::CRYPTOAPI_BLOB;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 const COMPLEXITY: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/hab-crypt"));
 
