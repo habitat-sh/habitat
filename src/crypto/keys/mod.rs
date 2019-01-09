@@ -34,7 +34,7 @@ use super::{
     SECRET_SYM_KEY_VERSION,
 };
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
     static ref KEYFILE_RE: Regex =
         Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\.(?P<suffix>[a-z]+(\.[a-z]+)?)\z").unwrap();

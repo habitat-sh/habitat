@@ -23,7 +23,7 @@ use regex::Regex;
 use crate::error::{Error, Result};
 use crate::package::PackageTarget;
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref ORIGIN_NAME_RE: Regex =
         Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile regex");
 }

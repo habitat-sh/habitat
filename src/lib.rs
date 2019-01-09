@@ -15,38 +15,15 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-use base64;
 extern crate crypto as rust_crypto;
 #[cfg(windows)]
 extern crate ctrlc;
-use dirs;
 
-use hex;
-
-#[macro_use]
-extern crate lazy_static;
-use libarchive;
-use libc;
-use libsodium_sys;
 #[macro_use]
 extern crate log;
 
-use regex;
-use serde;
-
 #[macro_use]
 extern crate serde_derive;
-
-// This is a little gross, but we only need the macros in tests right
-// now.
-#[cfg(test)]
-#[macro_use]
-extern crate serde_json;
-#[cfg(not(test))]
-extern crate serde_json;
-
-use time;
-use toml;
 
 #[cfg(not(windows))]
 extern crate users as linux_users;
@@ -84,7 +61,7 @@ pub use crate::os::users;
 
 pub const AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
 
-lazy_static! {
+lazy_static::lazy_static! {
     pub static ref PROGRAM_NAME: String = {
         let arg0 = std::env::args().next().map(|p| PathBuf::from(p));
         arg0.as_ref()

@@ -70,7 +70,7 @@ use habitat_win_users::sid::{self, Sid};
 use super::super::super::crypto::dpapi::decrypt;
 use super::super::users::get_current_username;
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref CREATE_PROCESS_LOCK: Mutex<()> = Mutex::new(());
 }
 

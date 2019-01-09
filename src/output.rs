@@ -350,7 +350,7 @@ mod tests {
 
         assert_eq!(
             actual,
-            json!({
+            serde_json::json!({
                 "preamble": "monkeys",
                 "logkey": LOGKEY,
                 "content": "I love monkeys"
@@ -369,7 +369,7 @@ mod tests {
 
         assert_eq!(
             actual,
-            json!({
+            serde_json::json!({
                 "preamble": "monkeys",
                 "logkey": LOGKEY,
                 "line": 1,
@@ -391,7 +391,7 @@ mod tests {
 
         assert_eq!(
             actual,
-            json!({
+            serde_json::json!({
                 "preamble": "monkeys",
                 "logkey": LOGKEY,
                 "content": "I love drab monkeys"

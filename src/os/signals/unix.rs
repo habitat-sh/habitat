@@ -23,7 +23,7 @@ use super::SignalEvent;
 
 static INIT: Once = ONCE_INIT;
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref CAUGHT_SIGNALS: Mutex<VecDeque<SignalCode>> = Mutex::new(VecDeque::new());
 }
 

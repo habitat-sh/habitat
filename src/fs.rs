@@ -54,7 +54,7 @@ pub const SYSTEMDRIVE_ENVVAR: &'static str = "SYSTEMDRIVE";
 /// The file where user-defined configuration for each service is found.
 pub const USER_CONFIG_FILE: &'static str = "user.toml";
 
-lazy_static! {
+lazy_static::lazy_static! {
     /// The default filesystem root path.
     ///
     /// WARNING: On Windows this variable mutates on first call if an environment variable with

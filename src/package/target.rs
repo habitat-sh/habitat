@@ -308,7 +308,7 @@ supported_package_targets! {
     ("x86_64-windows", X86_64_Windows, X86_64_WINDOWS, "x86_64", "windows");
 }
 
-lazy_static! {
+lazy_static::lazy_static! {
     /// A compiled regular expression that can parse the internal components of a `Type`.
     static ref TYPE_FROM_STR_RE: Regex = Regex::new(
         r"\A(?P<architecture>[a-z0-9_]+)-(?P<system>[a-z0-9_]+)(-(?P<variant>[a-z0-9_]+))?\z"

@@ -24,7 +24,7 @@ use regex::Regex;
 
 use crate::error::{Error, Result};
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref SG_FROM_STR_RE: Regex =
         Regex::new(r"\A((?P<application_environment>[^#@]+)#)?(?P<service>[^#@.]+)\.(?P<group>[^#@.]+)(@(?P<organization>[^#@.]+))?\z").unwrap();
 
