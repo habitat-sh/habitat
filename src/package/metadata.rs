@@ -67,7 +67,7 @@ impl FromStr for Bind {
 }
 
 impl fmt::Display for Bind {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let formatted_exports = self.exports.join(" ");
         write!(f, "[{}]={}", self.service, formatted_exports)
     }
@@ -195,7 +195,7 @@ pub enum MetaFile {
 }
 
 impl fmt::Display for MetaFile {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let id = match *self {
             MetaFile::BindMap => "BIND_MAP",
             MetaFile::Binds => "BINDS",
@@ -262,7 +262,7 @@ pub enum PackageType {
 }
 
 impl fmt::Display for PackageType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let id = match *self {
             PackageType::Standalone => "Standalone",
             PackageType::Composite => "Composite",

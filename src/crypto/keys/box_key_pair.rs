@@ -329,7 +329,7 @@ impl BoxKeyPair {
 
     // Return the metadata and encrypted text from a secret payload.
     // This is useful for services consuming an encrypted payload and need to decrypt it without having keys on disk
-    pub fn secret_metadata<'a>(payload: &'a [u8]) -> Result<BoxSecret> {
+    pub fn secret_metadata<'a>(payload: &'a [u8]) -> Result<BoxSecret<'_>> {
         let mut lines = str::from_utf8(payload)?.lines();
         let version = Self::box_key_format_version(lines.next())?;
         let sender = Self::box_key_sender(lines.next())?;

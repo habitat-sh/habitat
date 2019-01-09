@@ -164,7 +164,7 @@ impl<'a> Serialize for StructuredOutput<'a> {
 // essentially create a flag we check to see what output you want, then call a different formatting
 // function. Viola!
 impl<'a> fmt::Display for StructuredOutput<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.json.unwrap_or(is_json()) {
             // Our JSON serialization handles verbosity itself, and
             // color is ignored anyway, so there's no reason to check

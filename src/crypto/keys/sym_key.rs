@@ -32,7 +32,7 @@ use crate::error::{Error, Result};
 pub type SymKey = KeyPair<(), SymSecretKey>;
 
 impl fmt::Debug for SymKey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "SymKey")
     }
 }

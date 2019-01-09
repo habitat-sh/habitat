@@ -51,7 +51,7 @@ enum KeyType {
 }
 
 impl fmt::Display for KeyType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             KeyType::Box => write!(f, "box"),
             KeyType::Sig => write!(f, "sig"),
@@ -67,7 +67,7 @@ pub enum PairType {
 }
 
 impl fmt::Display for PairType {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             PairType::Public => write!(f, "public"),
             PairType::Secret => write!(f, "secret"),

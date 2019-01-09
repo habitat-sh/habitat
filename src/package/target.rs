@@ -363,7 +363,7 @@ impl PackageTarget {
     /// assert_eq!(it.next(), Some("linux"));
     /// assert_eq!(it.next(), None);
     /// ```
-    pub fn iter(&self) -> Iter {
+    pub fn iter(&self) -> Iter<'_> {
         Iter {
             target: self,
             pos: 0,
@@ -414,7 +414,7 @@ impl PackageTarget {
 }
 
 impl fmt::Display for PackageTarget {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0.as_str())
     }
 }

@@ -110,7 +110,7 @@ impl fmt::Display for Event {
     // tool with a `"line exceeded maximum length"` error. This ignore should be removed when we
     // upgrade rustfmt and retry.
     #[cfg_attr(rustfmt, rustfmt_skip)]
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
             Event::PackageUpload { origin: _, package: _, version: _, release: _, target: _,

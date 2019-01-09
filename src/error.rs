@@ -169,7 +169,7 @@ pub enum Error {
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::ArchiveError(ref err) => format!("{}", err),
             Error::BadBindingMode(ref value) => format!("Unknown binding mode '{}'", value),

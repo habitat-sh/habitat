@@ -15,27 +15,25 @@
 #![cfg_attr(feature = "clippy", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
 
-extern crate ansi_term;
-extern crate base64;
+use base64;
 extern crate crypto as rust_crypto;
 #[cfg(windows)]
 extern crate ctrlc;
-extern crate dirs;
-extern crate errno;
-extern crate hex;
-#[cfg(test)]
-extern crate hyper;
+use dirs;
+
+use hex;
+
 #[macro_use]
 extern crate lazy_static;
-extern crate libarchive;
-extern crate libc;
-extern crate libsodium_sys;
+use libarchive;
+use libc;
+use libsodium_sys;
 #[macro_use]
 extern crate log;
-extern crate rand;
-extern crate regex;
-extern crate serde;
-extern crate tempfile;
+
+use regex;
+use serde;
+
 #[macro_use]
 extern crate serde_derive;
 
@@ -47,11 +45,8 @@ extern crate serde_json;
 #[cfg(not(test))]
 extern crate serde_json;
 
-extern crate sodiumoxide;
-extern crate time;
-extern crate toml;
-extern crate typemap;
-extern crate url as extern_url;
+use time;
+use toml;
 
 #[cfg(not(windows))]
 extern crate users as linux_users;
