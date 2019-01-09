@@ -23,8 +23,8 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::vec::IntoIter;
 
-use error::{Error, Result};
-use package::PackageIdent;
+use crate::error::{Error, Result};
+use crate::package::PackageIdent;
 
 #[cfg(not(windows))]
 const ENV_PATH_SEPARATOR: char = ':';

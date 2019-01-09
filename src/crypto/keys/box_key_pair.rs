@@ -30,7 +30,7 @@ use super::{
     get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev, read_key_bytes,
     read_key_bytes_from_str, write_keypair_files, KeyPair, KeyType,
 };
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 #[derive(Debug)]
 pub struct BoxSecret<'a> {

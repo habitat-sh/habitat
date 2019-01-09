@@ -20,7 +20,7 @@ use std::str::FromStr;
 use super::metadata::{read_metafile, MetaFile};
 use super::{PackageIdent, PackageTarget};
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 use tempfile::Builder;
 use tempfile::TempDir;
@@ -318,9 +318,9 @@ fn is_existing_dir(path: &Path) -> Result<bool> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use package::test_support::testing_package_install;
+    use crate::package::test_support::testing_package_install;
 
-    use fs;
+    use crate::fs;
     use std::fs::File;
     use tempfile::Builder;
 

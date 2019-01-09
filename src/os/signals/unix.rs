@@ -17,7 +17,7 @@
 use std::collections::VecDeque;
 use std::sync::{Mutex, Once, ONCE_INIT};
 
-use os::process::{OsSignal, Signal, SignalCode};
+use crate::os::process::{OsSignal, Signal, SignalCode};
 
 use super::SignalEvent;
 

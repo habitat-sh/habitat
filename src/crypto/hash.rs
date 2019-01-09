@@ -21,7 +21,7 @@ use std::ptr;
 use hex;
 use libsodium_sys;
 
-use error::Result;
+use crate::error::Result;
 
 const BUF_SIZE: usize = 1024;
 

@@ -25,8 +25,8 @@ use regex::Regex;
 
 use super::metadata::{MetaFile, PackageType};
 use super::{Identifiable, PackageIdent, PackageTarget};
-use crypto::{artifact, hash};
-use error::{Error, Result};
+use crate::crypto::{artifact, hash};
+use crate::error::{Error, Result};
 
 lazy_static! {
     static ref METAFILE_REGXS: HashMap<MetaFile, Regex> = {

@@ -41,7 +41,7 @@ use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use serde_json;
 
-use PROGRAM_NAME;
+use crate::PROGRAM_NAME;
 
 static mut VERBOSE: AtomicBool = ATOMIC_BOOL_INIT;
 // I am sorry this isn't named the other way; I can't get an atomic initializer that defaults to
@@ -300,7 +300,7 @@ mod tests {
     use ansi_term::Colour::{Cyan, White};
     use serde_json;
 
-    use PROGRAM_NAME;
+    use crate::PROGRAM_NAME;
 
     static LOGKEY: &'static str = "SOT";
 

@@ -84,8 +84,8 @@ pub mod util;
 
 use std::path::PathBuf;
 
-pub use os::filesystem;
-pub use os::users;
+pub use crate::os::filesystem;
+pub use crate::os::users;
 
 pub const AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
 

@@ -28,7 +28,7 @@ pub use self::imp::*;
 
 pub trait OsSignal {
     fn os_signal(&self) -> SignalCode;
-    fn from_signal_code(SignalCode) -> Option<Signal>;
+    fn from_signal_code(_: SignalCode) -> Option<Signal>;
 }
 
 #[allow(non_snake_case)]

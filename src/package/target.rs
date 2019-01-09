@@ -85,8 +85,8 @@ use std::str::FromStr;
 use regex::Regex;
 use serde;
 
-use error::Error;
-use util;
+use crate::error::Error;
+use crate::util;
 
 macro_rules! supported_package_targets {
     (

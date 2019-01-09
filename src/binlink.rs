@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use env;
+use crate::env;
 
 /// Default Binlink Dir
 #[cfg(target_os = "windows")]

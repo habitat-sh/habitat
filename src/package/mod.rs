@@ -31,7 +31,7 @@ pub use self::target::PackageTarget;
 pub mod test_support {
     use super::metadata::MetaFile;
     use super::*;
-    use fs;
+    use crate::fs;
     use std::fs::{create_dir_all, File};
     use std::io::Write;
     use std::path::{Path, PathBuf};

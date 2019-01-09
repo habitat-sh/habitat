@@ -21,7 +21,7 @@ use std::process::Command;
 use libc::{self, pid_t};
 
 use super::{OsSignal, Signal};
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub type Pid = libc::pid_t;
 pub type SignalCode = libc::c_int;

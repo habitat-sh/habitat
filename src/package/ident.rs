@@ -20,8 +20,8 @@ use std::str::FromStr;
 
 use regex::Regex;
 
-use error::{Error, Result};
-use package::PackageTarget;
+use crate::error::{Error, Result};
+use crate::package::PackageTarget;
 
 lazy_static! {
     static ref ORIGIN_NAME_RE: Regex =

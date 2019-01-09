@@ -24,7 +24,7 @@ use sodiumoxide::crypto::sign;
 use super::hash;
 use super::keys::parse_name_with_rev;
 use super::{SigKeyPair, HART_FORMAT_VERSION, SIG_HASH_TYPE};
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 /// Generate and sign a package
 pub fn sign<P1: ?Sized, P2: ?Sized>(src: &P1, dst: &P2, pair: &SigKeyPair) -> Result<()>

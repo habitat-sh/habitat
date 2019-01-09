@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use env;
+use crate::env;
 
 pub const UNSTABLE_CHANNEL: &'static str = "unstable";
 pub const STABLE_CHANNEL: &'static str = "stable";

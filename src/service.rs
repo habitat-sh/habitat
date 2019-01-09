@@ -22,7 +22,7 @@ use std::time::Duration;
 
 use regex::Regex;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 lazy_static! {
     static ref SG_FROM_STR_RE: Regex =

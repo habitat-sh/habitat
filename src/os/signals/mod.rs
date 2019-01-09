@@ -17,7 +17,7 @@
 // our homespun implementation. Check for status of that here:
 // https://github.com/rust-lang/rfcs/issues/1368
 
-use os::process;
+use crate::os::process;
 
 #[allow(dead_code)]
 pub enum SignalEvent {

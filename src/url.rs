@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use env;
+use crate::env;
 
 /// Default Builder URL environment variable
 pub const BLDR_URL_ENVVAR: &'static str = "HAB_BLDR_URL";

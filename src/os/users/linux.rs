@@ -14,8 +14,8 @@
 
 use std::path::PathBuf;
 
-use linux_users;
-use linux_users::os::unix::{GroupExt, UserExt};
+use crate::linux_users;
+use crate::linux_users::os::unix::{GroupExt, UserExt};
 
 pub fn get_uid_by_name(owner: &str) -> Option<u32> {
     linux_users::get_user_by_name(owner).map(|u| u.uid())

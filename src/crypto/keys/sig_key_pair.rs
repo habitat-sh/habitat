@@ -29,7 +29,7 @@ use super::{
     get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev, read_key_bytes,
     write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile,
 };
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 

@@ -26,7 +26,7 @@ use base64;
 use regex::Regex;
 use time;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 use super::{
     PUBLIC_BOX_KEY_VERSION, PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_BOX_KEY_SUFFIX,
@@ -571,7 +571,7 @@ fn write_keypair_files(
 
 #[cfg(not(windows))]
 fn set_permissions<T: AsRef<Path>>(path: T) -> Result<()> {
-    use util::posix_perm;
+    use crate::util::posix_perm;
 
     use super::KEY_PERMISSIONS;
 

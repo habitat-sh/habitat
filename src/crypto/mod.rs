@@ -224,16 +224,16 @@
 //! <symkey_base64>
 //! ```
 
-use rust_crypto;
+use crate::rust_crypto;
 use std::path::{Path, PathBuf};
 
-use env as henv;
+use crate::env as henv;
 pub use sodiumoxide::init;
 
 pub use self::keys::box_key_pair::BoxKeyPair;
 pub use self::keys::sig_key_pair::SigKeyPair;
 pub use self::keys::sym_key::SymKey;
-use fs::cache_key_path;
+use crate::fs::cache_key_path;
 
 /// The suffix on the end of a public sig/box file
 pub static PUBLIC_KEY_SUFFIX: &'static str = "pub";
@@ -295,7 +295,7 @@ pub mod test_support {
 
     use time;
 
-    use error as herror;
+    use crate::error as herror;
 
     pub fn fixture(name: &str) -> PathBuf {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))

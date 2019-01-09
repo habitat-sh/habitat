@@ -27,8 +27,8 @@ use toml::Value;
 use super::list::package_list_for_ident;
 use super::metadata::{parse_key_value, read_metafile, Bind, BindMapping, MetaFile, PackageType};
 use super::{Identifiable, PackageIdent};
-use error::{Error, Result};
-use fs;
+use crate::error::{Error, Result};
+use crate::fs;
 
 #[cfg(test)]
 use super::PackageTarget;
@@ -667,7 +667,7 @@ mod test {
     use toml;
 
     use super::*;
-    use package::test_support::{fixture_path, testing_package_install};
+    use crate::package::test_support::{fixture_path, testing_package_install};
 
     /// Write the given contents into the specified metadata file for
     /// the package.

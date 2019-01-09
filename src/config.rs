@@ -20,7 +20,7 @@ use std::path::Path;
 use serde::de::DeserializeOwned;
 use toml;
 
-use error::Error;
+use crate::error::Error;
 
 pub trait ConfigFile: DeserializeOwned + Sized {
     type Error: StdError + From<Error>;

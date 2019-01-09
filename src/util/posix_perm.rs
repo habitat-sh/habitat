@@ -16,9 +16,9 @@ use libc::{self, c_char, c_int, mode_t};
 use std::ffi::CString;
 use std::path::Path;
 
-use users;
+use crate::users;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> Result<()> {
     debug!(
@@ -154,7 +154,7 @@ mod tests {
     use tempfile::Builder;
 
     use super::*;
-    use error::Error;
+    use crate::error::Error;
 
     #[test]
     fn chmod_ok_test() {

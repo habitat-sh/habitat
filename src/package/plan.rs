@@ -14,7 +14,7 @@
 
 use std::io::BufRead;
 
-use error::{Error, Result};
+use crate::error::{Error, Result};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Plan {
