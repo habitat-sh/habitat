@@ -52,6 +52,9 @@ extern crate prost_derive;
 #[macro_use]
 extern crate serde_derive;
 
+#[cfg(test)]
+extern crate tempfile;
+
 pub mod butterfly;
 pub mod codec;
 pub mod ctl;
@@ -125,6 +128,7 @@ where
                     ),
                 )
             })?;
+        *out = out.trim_end().into();
         Ok(true)
     } else {
         Ok(false)
@@ -161,4 +165,54 @@ pub fn socket_addr_env_or_default(env_var: &str, default: SocketAddr) -> SocketA
         .unwrap_or("".into())
         .parse()
         .unwrap_or(default)
+}
+
+#[cfg(test)]
+mod ctl_secret {
+    use super::*;
+    use std::fs::File;
+    use std::io::Write;
+    use tempfile::TempDir;
+
+    #[test]
+    fn read_secret_key_file_no_newline() {
+        let tmpdir = TempDir::new().unwrap();
+        let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
+        let mut secret_file = File::create(file_path).unwrap();
+        write!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==").unwrap();
+        let mut out = String::new();
+        assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
+        assert_eq!(out, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==");
+    }
+
+    #[test]
+    fn read_secret_key_file_newline_removed() {
+        let tmpdir = TempDir::new().unwrap();
+        let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
+        let mut secret_file = File::create(file_path).unwrap();
+        write!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==\n").unwrap();
+        let mut out = String::new();
+        assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
+        assert_eq!(out, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==");
+    }
+
+    #[test]
+    fn read_secret_key_file_crlf_removed() {
+        let tmpdir = TempDir::new().unwrap();
+        let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
+        let mut secret_file = File::create(file_path).unwrap();
+        write!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==\r\n").unwrap();
+        let mut out = String::new();
+        assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
+        assert_eq!(out, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==");
+    }
+
+    #[test]
+    fn read_secret_key_file_nonexistent() {
+        let tmpdir = TempDir::new().unwrap();
+        let mut out = String::new();
+        assert_eq!(read_secret_key(tmpdir, &mut out), Ok(false));
+        let empty = String::new();
+        assert_eq!(empty, out);
+    }
 }
