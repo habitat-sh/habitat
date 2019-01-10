@@ -6,7 +6,6 @@ authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletche
 workspace = "../../"
 
 [dependencies]
-clippy = {version = "*", optional = true}
 ansi_term = "*"
 bimap = "*"
 glob = "*"

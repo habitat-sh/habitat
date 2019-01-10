@@ -6,7 +6,6 @@ authors = ["Adam Jacob <adam@chef.io>"]
 workspace = "../../"
 
 [dependencies]
-clippy = {version = "*", optional = true}
 lazy_static = "*"
 time = "*"
 

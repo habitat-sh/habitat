@@ -17,7 +17,6 @@ doc = false
 [dependencies]
 base64 = "*"
 clap = { version = "*", features = ["suggestions", "color", "unstable"] }
-clippy = { version = "*", optional = true }
 chrono = "*"
 env_logger = "*"
 hab = { path = "../hab" }

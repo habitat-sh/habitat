@@ -12,7 +12,6 @@ doc = false
 
 [dependencies]
 bitflags = "*"
-clippy = {version = "*", optional = true}
 base64 = "*"
 ansi_term = "*"
 dirs = "*"
