@@ -27,6 +27,20 @@ fn two_members_share_services() {
 }
 
 #[test]
+/// This test is a bit flaky because it assumes that member 0 will be the
+/// the member that gets departed by insert_service. However, the member that
+/// insert_service departs is the Confirmed on whose member_id sorts first,
+/// so if more than just member 0 has made it to confirmed and one of their
+/// randomly generated member_ids sorts earlier, it will be departed instead
+/// of member 0 and this test will fail.
+///
+/// On the other hand, the test has value because it caught a potentially
+/// nasty bug when an attempt to simplify insert_service neglected to
+/// consider only Confirmed members when finding the member to depart.
+///
+/// We should convert this to a more unit-like test which will be faster and
+/// more directly test the behavior we're interested in, but for now it still
+/// has value even if it occasionally generates false negatives.
 fn six_members_unmeshed_with_same_service_forces_departure_on_new_members() {
     let mut net = btest::SwimNet::new(6);
     net.connect(0, 1);

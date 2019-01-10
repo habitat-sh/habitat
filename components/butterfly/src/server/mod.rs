@@ -726,7 +726,11 @@ impl Server {
             .service_store
             .contains_group_without_member(service_group, member_id)
         {
-            if let Some(member_id_to_depart) = self.service_store.min_member_id_for(service_group) {
+            if let Some(member_id_to_depart) =
+                self.service_store.min_member_id_with(service_group, |id| {
+                    self.member_list.health_of_by_id(id) == Some(Health::Confirmed)
+                })
+            {
                 self.member_list.set_departed(&member_id_to_depart);
                 self.rumor_heat.purge(&member_id_to_depart);
                 self.rumor_heat.start_hot_rumor(RumorKey::new(
