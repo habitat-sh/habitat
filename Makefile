@@ -200,7 +200,7 @@ unit-sup: build-launcher-for-supervisor-tests
 
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
-	$(run) sh -c 'cd components/$1 && cargo build --features clippy $(CARGO_FLAGS)'
+	$(run) sh -c 'cd components/$1 && cargo clippy $(CARGO_FLAGS)'
 .PHONY: lint-$1
 endef
 $(foreach component,$(ALL),$(eval $(call LINT,$(component))))
