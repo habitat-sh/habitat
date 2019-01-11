@@ -15,7 +15,6 @@
 /// Collect all the configuration data that is exposed to users, and render it.
 use std;
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::env;
 use std::fs::File;
 use std::io::prelude::*;
@@ -25,12 +24,10 @@ use std::result;
 use crate::fs;
 use crate::hcore::fs::USER_CONFIG_FILE;
 use crate::hcore::{self, crypto};
-use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use serde_json;
 use serde_transcode;
 use toml;
-use toml::ser;
 
 use super::Pkg;
 use crate::census::CensusGroup;
@@ -229,11 +226,10 @@ impl Cfg {
     }
 
     /// Returns a subset of the overall configuration which intersects with the given package exports.
-    pub fn to_exported(&self, exports: &HashMap<String, String>) -> Result<Vec<u8>> {
+    pub fn to_exported(&self, pkg: &Pkg) -> Result<toml::value::Table> {
         let mut map = toml::value::Table::default();
-        let cfg = toml::Value::try_from(&self).unwrap();
-        for (key, path) in exports.iter() {
-            let fields: Vec<&str> = path.split('.').collect();
+        let cfg = toml::Value::try_from(&self).expect("Cfg -> TOML conversion");;
+        for (key, path) in pkg.exports.iter() {
             let mut curr = &cfg;
             let mut found = false;
 
@@ -241,7 +237,7 @@ impl Cfg {
             // function to retrieve a value with a path which returns a
             // reference. We actually want the value for ourselves.
             // Let's improve this later to avoid allocating twice.
-            for field in fields {
+            for field in path.split('.') {
                 match curr.get(field) {
                     Some(val) => {
                         curr = val;
@@ -255,12 +251,7 @@ impl Cfg {
                 map.insert(key.clone(), curr.clone());
             }
         }
-
-        let mut dst = String::with_capacity(128);
-        match serialize_table(&map, &mut ser::Serializer::new(&mut dst)) {
-            Ok(_) => Ok(dst.into_bytes()),
-            Err(e) => Err(sup_error!(Error::TomlEncode(e))),
-        }
+        Ok(map)
     }
 
     fn load_toml_file<T1, T2>(dir: T1, file: T2) -> Result<Option<toml::value::Table>>
@@ -442,36 +433,8 @@ impl Serialize for Cfg {
             }
         }
 
-        serialize_table(&table, serializer)
+        toml::ser::tables_last(&table, serializer)
     }
-}
-
-fn serialize_table<S>(table: &toml::value::Table, serializer: S) -> result::Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    // Be sure to visit non-tables first (and also non
-    // array-of-tables) as all keys must be emitted first.
-    let mut map = serializer.serialize_map(Some(table.len()))?;
-    for (k, v) in table {
-        if !v.is_array() && !v.is_table() {
-            map.serialize_key(&k)?;
-            map.serialize_value(&v)?;
-        }
-    }
-    for (k, v) in table {
-        if v.is_array() {
-            map.serialize_key(&k)?;
-            map.serialize_value(&v)?;
-        }
-    }
-    for (k, v) in table {
-        if v.is_table() {
-            map.serialize_key(&k)?;
-            map.serialize_value(&v)?;
-        }
-    }
-    map.end()
 }
 
 #[derive(Debug)]
@@ -656,13 +619,9 @@ mod test {
     use std::env;
     use std::fs;
     use std::fs::OpenOptions;
-    use std::str;
 
     use tempfile::TempDir;
     use toml;
-
-    use hcore::package::{PackageIdent, PackageInstall};
-    use hcore::service::ServiceGroup;
 
     use super::*;
     use crate::error::Error;
@@ -1092,74 +1051,5 @@ mod test {
                 panic!("Expected Ok(None); got {:?}", other);
             }
         }
-    }
-
-    fn pkg_with_exports(exports: HashMap<String, String>) -> Pkg {
-        let service_group = ServiceGroup::new(None, "dummy", "service", None)
-            .expect("couldn't create ServiceGroup");
-        let pg_id = PackageIdent::new(
-            "testing",
-            &service_group.service(),
-            Some("1.0.0"),
-            Some("20170712000000"),
-        );
-
-        let pkg_install = PackageInstall::new_from_parts(
-            pg_id.clone(),
-            PathBuf::from("/tmp"),
-            PathBuf::from("/tmp"),
-            PathBuf::from("/tmp"),
-        );
-
-        let mut pkg = Pkg::from_install(pkg_install).expect("Could not create package!");
-        pkg.exports = exports;
-        pkg
-    }
-
-    #[test]
-    fn to_exported_test() {
-        let export_map = [("a".to_string(), "foo".to_string())]
-            .iter()
-            .cloned()
-            .collect();
-        let pkg = pkg_with_exports(export_map);
-
-        let cfg_data = CfgTestData::new();
-        let toml = "foo = 13";
-        write_toml(&cfg_data.ducp, toml);
-        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
-
-        let result = cfg.to_exported(&pkg.exports).expect("export");
-        assert_eq!("a = 13\n", str::from_utf8(&result).unwrap());
-    }
-
-    /// TOML encoding by default doesn't handle tables being in the middle of the output.
-    /// Let's check if we correctly put tables at the end
-    #[test]
-    fn nested_table_to_exported_test() {
-        let export_map = [
-            ("a".to_string(), "server".to_string()),
-            ("b".to_string(), "frubnub".to_string()),
-        ]
-        .iter()
-        .cloned()
-        .collect();
-        let pkg = pkg_with_exports(export_map);
-
-        let cfg_data = CfgTestData::new();
-        let toml = r#"
-            frubnub = "foobar"
-
-            [server]
-            port = 5000
-            "#;
-        write_toml(&cfg_data.ducp, toml);
-        let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
-
-        let result = cfg.to_exported(&pkg.exports).expect("export");
-        assert_eq!(
-            "b = \"foobar\"\n\n[a]\nport = 5000\n",
-            str::from_utf8(&result).unwrap()
-        );
     }
 }

@@ -667,7 +667,7 @@ impl Service {
     }
 
     pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
-        let exported = match self.cfg.to_exported(&self.pkg.exports) {
+        let exported = match self.cfg.to_exported(&self.pkg) {
             Ok(exported) => Some(exported),
             Err(err) => {
                 outputln!(preamble self.service_group,
