@@ -394,15 +394,23 @@ impl CensusGroup {
 
     /// Return previous alive peer, the peer to your left in the ordered members list, or None if
     /// you have no alive peers.
+    // XXX: Is me ever None or not Alive?
+    // XXX: Should we include Suspect members too, or only strictly Alive ones?
     pub fn previous_peer(&self) -> Option<&CensusMember> {
-        let alive_members: Vec<&CensusMember> =
-            self.population.values().filter(|cm| cm.alive()).collect();
-        if alive_members.len() <= 1 || self.me().is_none() {
+        Self::previous_peer_impl(self.population.values(), self.me())
+    }
+
+    fn previous_peer_impl<'a>(
+        members: impl Iterator<Item = &'a CensusMember>,
+        me: Option<&CensusMember>,
+    ) -> Option<&'a CensusMember> {
+        let alive_members: Vec<&CensusMember> = members.filter(|cm| cm.alive()).collect();
+        if alive_members.len() <= 1 || me.is_none() {
             return None;
         }
         match alive_members
             .iter()
-            .position(|cm| cm.member_id == self.me().unwrap().member_id)
+            .position(|cm| cm.member_id == me.unwrap().member_id)
         {
             Some(idx) => {
                 if idx == 0 {
@@ -903,9 +911,9 @@ mod tests {
     }
 
     /// Create a bare-minimum CensusMember with the given Health
-    fn test_census_member(id: MemberId, health: Health) -> CensusMember {
+    fn test_census_member(id: &str, health: Health) -> CensusMember {
         CensusMember {
-            member_id: id,
+            member_id: id.into(),
             pkg: None,
             application: None,
             environment: None,
@@ -935,10 +943,10 @@ mod tests {
     #[test]
     fn active_members_leaves_only_active_members() {
         let population = vec![
-            test_census_member("live-one".to_string(), Health::Alive),
-            test_census_member("suspect-one".to_string(), Health::Suspect),
-            test_census_member("confirmed-one".to_string(), Health::Confirmed),
-            test_census_member("departed-one".to_string(), Health::Departed),
+            test_census_member("live-one", Health::Alive),
+            test_census_member("suspect-one", Health::Suspect),
+            test_census_member("confirmed-one", Health::Confirmed),
+            test_census_member("departed-one", Health::Departed),
         ];
 
         let sg: ServiceGroup = "test-service.default"
@@ -956,5 +964,93 @@ mod tests {
         assert_eq!(active_members.len(), 2);
         assert_eq!(active_members[0].member_id, "live-one");
         assert_eq!(active_members[1].member_id, "suspect-one");
+    }
+
+    fn assert_eq_member_ids(cm: Option<&CensusMember>, id: Option<&str>) {
+        assert_eq!(cm.map(|cm| cm.member_id.as_str()), id);
+    }
+
+    #[test]
+    fn previous_peer_with_no_members() {
+        let members = vec![];
+        assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), None), None);
+    }
+
+    #[test]
+    fn previous_peer_with_only_me() {
+        let me = test_census_member("me", Health::Alive);
+        let members = vec![me.clone()];
+        assert_eq_member_ids(
+            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            None,
+        );
+    }
+
+    #[test]
+    fn previous_peer_simple() {
+        let me = test_census_member("me", Health::Alive);
+        let members = vec![test_census_member("left_of_me", Health::Alive), me.clone()];
+        assert_eq_member_ids(
+            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            Some("left_of_me"),
+        );
+    }
+
+    #[test]
+    fn previous_peer_wraparound() {
+        let me = test_census_member("me", Health::Alive);
+        let members = vec![
+            me.clone(),
+            test_census_member("left_of_me_with_wrapping", Health::Alive),
+        ];
+        assert_eq_member_ids(
+            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            Some("left_of_me_with_wrapping"),
+        );
+    }
+
+    #[test]
+    fn previous_peer_normal() {
+        let me = test_census_member("me", Health::Alive);
+        let members = vec![
+            test_census_member("2_left_of_me", Health::Alive),
+            test_census_member("left_of_me", Health::Alive),
+            me.clone(),
+            test_census_member("right_of_me", Health::Alive),
+        ];
+        assert_eq_member_ids(
+            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            Some("left_of_me"),
+        );
+    }
+
+    #[test]
+    fn previous_peer_with_confirmed() {
+        let me = test_census_member("me", Health::Alive);
+        let members = vec![
+            test_census_member("2_left_of_me", Health::Alive),
+            test_census_member("left_of_me", Health::Confirmed),
+            me.clone(),
+            test_census_member("right_of_me", Health::Alive),
+        ];
+        assert_eq_member_ids(
+            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            Some("2_left_of_me"),
+        );
+    }
+
+    #[test]
+    fn previous_peer_with_confirmed_and_wraparound() {
+        let me = test_census_member("me", Health::Alive);
+        let members = vec![
+            test_census_member("left_of_me", Health::Confirmed),
+            me.clone(),
+            test_census_member("left_of_me_with_wrapping", Health::Alive),
+            test_census_member("2_right_of_me", Health::Confirmed),
+        ];
+        assert_eq_member_ids(
+            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            Some("left_of_me_with_wrapping"),
+        );
     }
 }
