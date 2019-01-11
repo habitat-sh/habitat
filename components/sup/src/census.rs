@@ -405,22 +405,19 @@ impl CensusGroup {
         me: Option<&CensusMember>,
     ) -> Option<&'a CensusMember> {
         let alive_members: Vec<&CensusMember> = members.filter(|cm| cm.alive()).collect();
-        if alive_members.len() <= 1 || me.is_none() {
+
+        if alive_members.len() < 2 || me.is_none() {
             return None;
         }
-        match alive_members
+
+        alive_members
             .iter()
             .position(|cm| cm.member_id == me.unwrap().member_id)
-        {
-            Some(idx) => {
-                if idx == 0 {
-                    Some(alive_members[alive_members.len() - 1])
-                } else {
-                    Some(alive_members[idx - 1])
-                }
-            }
-            None => None,
-        }
+            .and_then(|idx| match idx {
+                0 => alive_members.last(),
+                idx => alive_members.get(idx - 1),
+            })
+            .map(|&reference| reference)
     }
 
     fn update_from_service_rumors(&mut self, rumors: &HashMap<String, ServiceRumor>) {
