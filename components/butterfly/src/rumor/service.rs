@@ -87,7 +87,7 @@ impl Service {
         package: &T,
         service_group: ServiceGroup,
         sys: SysInfo,
-        cfg: Option<&toml::value::Table>,
+        cfg: Option<toml::value::Table>,
     ) -> Self
     where
         T: Identifiable,
@@ -110,10 +110,14 @@ impl Service {
             initialized: false,
             pkg: package.to_string(),
             sys: sys,
-            // TODO FN: Can we really expect this all the time, should we return a `Result<Self>`
-            // in this constructor?
             cfg: cfg
-                .map(|v| toml::ser::to_vec(v).expect("Struct should serialize to bytes"))
+                .map(|v| {
+                    // Directly serializing a toml::value::Table can lead to an error
+                    // Wrapping it in a toml::value::Value makes this operation safe
+                    // See https://github.com/alexcrichton/toml-rs/issues/142
+                    toml::ser::to_vec(&toml::value::Value::Table(v))
+                        .expect("Struct should serialize to bytes")
+                })
                 .unwrap_or_default(),
         }
     }
@@ -351,5 +355,22 @@ mod tests {
             SysInfo::default(),
             None,
         );
+    }
+
+    #[test]
+    fn service_cfg_serialization() {
+        let package: PackageIdent = "core/foo/1.0.0/20180701125610".parse().unwrap();
+        let sg = ServiceGroup::new(None, "foo", "default", None).unwrap();
+
+        // This map contains a scalar value and a table such that the serialization order
+        // would trigger a ValueAfterTable error. This test ensures we avoid it.
+        // See https://github.com/habitat-sh/habitat/issues/5854
+        // See https://github.com/alexcrichton/toml-rs/issues/142
+        let mut map = toml::value::Table::default();
+        let sub_map = toml::value::Table::default();
+        map.insert("foo".into(), 5.into());
+        map.insert("a".into(), sub_map.into());
+
+        Service::new("member_id_val", &package, sg, SysInfo::default(), Some(map));
     }
 }

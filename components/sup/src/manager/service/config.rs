@@ -24,7 +24,6 @@ use std::result;
 use crate::fs;
 use crate::hcore::fs::USER_CONFIG_FILE;
 use crate::hcore::{self, crypto};
-use serde::ser::SerializeMap;
 use serde::{Serialize, Serializer};
 use serde_json;
 use serde_transcode;
@@ -226,12 +225,11 @@ impl Cfg {
         }
     }
 
-    /// Returns a subset of the overall configuration which intersects with the given package's exports.
+    /// Returns a subset of the overall configuration which intersects with the given package exports.
     pub fn to_exported(&self, pkg: &Pkg) -> Result<toml::value::Table> {
         let mut map = toml::value::Table::default();
-        let cfg = toml::Value::try_from(&self).unwrap();
+        let cfg = toml::Value::try_from(&self).expect("Cfg -> TOML conversion");;
         for (key, path) in pkg.exports.iter() {
-            let fields: Vec<&str> = path.split('.').collect();
             let mut curr = &cfg;
             let mut found = false;
 
@@ -239,7 +237,7 @@ impl Cfg {
             // function to retrieve a value with a path which returns a
             // reference. We actually want the value for ourselves.
             // Let's improve this later to avoid allocating twice.
-            for field in fields {
+            for field in path.split('.') {
                 match curr.get(field) {
                     Some(val) => {
                         curr = val;
@@ -435,28 +433,7 @@ impl Serialize for Cfg {
             }
         }
 
-        // Be sure to visit non-tables first (and also non
-        // array-of-tables) as all keys must be emitted first.
-        let mut map = serializer.serialize_map(Some(table.len()))?;
-        for (k, v) in &table {
-            if !v.is_array() && !v.is_table() {
-                map.serialize_key(&k)?;
-                map.serialize_value(&v)?;
-            }
-        }
-        for (k, v) in &table {
-            if v.is_array() {
-                map.serialize_key(&k)?;
-                map.serialize_value(&v)?;
-            }
-        }
-        for (k, v) in &table {
-            if v.is_table() {
-                map.serialize_key(&k)?;
-                map.serialize_value(&v)?;
-            }
-        }
-        map.end()
+        toml::ser::tables_last(&table, serializer)
     }
 }
 
@@ -1075,5 +1052,4 @@ mod test {
             }
         }
     }
-
 }
