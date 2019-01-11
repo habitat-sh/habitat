@@ -73,6 +73,11 @@ where
 ///
 /// Return the PackageInstall corresponding to the package that was
 /// installed, or was pre-existing.
+///
+/// JC: TODO: When composites are removed, we can remove the
+/// `must_be_runnable` parameter as then all invokers of this
+/// function will require runnable packages
+///
 pub fn satisfy_or_install<T>(
     ui: &mut T,
     install_source: &InstallSource,
