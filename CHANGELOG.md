@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
 - Don&#39;t panic in the unusual event persisting butterfly data takes over 30 s [#6018](https://github.com/habitat-sh/habitat/pull/6018) ([baumanj](https://github.com/baumanj))
 - [hab] Avoid install failure when running concurrently [#5999](https://github.com/habitat-sh/habitat/pull/5999) ([stevendanna](https://github.com/stevendanna))
 
