@@ -405,7 +405,7 @@ impl CensusGroup {
             .position(|cm| cm.member_id == self.me().unwrap().member_id)
         {
             Some(idx) => {
-                if idx <= 0 {
+                if idx == 0 {
                     Some(alive_members[alive_members.len() - 1])
                 } else {
                     Some(alive_members[idx - 1])
@@ -957,5 +957,4 @@ mod tests {
         assert_eq!(active_members[0].member_id, "live-one");
         assert_eq!(active_members[1].member_id, "suspect-one");
     }
-
 }

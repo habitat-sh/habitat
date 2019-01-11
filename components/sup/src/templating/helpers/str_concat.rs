@@ -29,7 +29,7 @@ impl HelperDef for StrConcatHelper {
             .map(|v| v.to_string().replace("\"", ""))
             .collect();
 
-        rc.writer.write(list.concat().into_bytes().as_ref())?;
+        rc.writer.write_all(list.concat().into_bytes().as_ref())?;
         Ok(())
     }
 }

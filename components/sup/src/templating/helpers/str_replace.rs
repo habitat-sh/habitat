@@ -34,7 +34,7 @@ impl HelperDef for StrReplaceHelper {
             .and_then(|v| v.value().as_str())
             .ok_or_else(|| RenderError::new("Expected 3 string parameters for \"strReplace\""))?;
         rc.writer
-            .write(param.replace(old, new).into_bytes().as_ref())?;
+            .write_all(param.replace(old, new).into_bytes().as_ref())?;
         Ok(())
     }
 }

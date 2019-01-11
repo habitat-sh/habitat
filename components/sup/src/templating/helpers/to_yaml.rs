@@ -28,7 +28,7 @@ impl HelperDef for ToYamlHelper {
             .value();
         let yaml = serde_yaml::to_string(param)
             .map_err(|e| RenderError::new(format!("Can't serialize parameter to YAML: {}", e)))?;
-        rc.writer.write(yaml.into_bytes().as_ref())?;
+        rc.writer.write_all(yaml.into_bytes().as_ref())?;
         Ok(())
     }
 }

@@ -83,6 +83,7 @@ lazy_static! {
 pub struct ServerContext(UnsafeCell<zmq::Context>);
 
 impl ServerContext {
+    #[allow(clippy::mut_from_ref)]
     pub fn as_mut(&self) -> &mut zmq::Context {
         unsafe { &mut *self.0.get() }
     }

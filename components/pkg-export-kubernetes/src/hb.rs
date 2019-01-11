@@ -57,7 +57,7 @@ impl HelperDef for QuoteHelper {
             .ok_or_else(|| RenderError::new("Expected a string parameter"))?;
         let escaped = QuoteHelper::escape(to_escape);
 
-        rc.writer.write(escaped.into_bytes().as_ref())?;
+        rc.writer.write_all(escaped.into_bytes().as_ref())?;
         Ok(())
     }
 }

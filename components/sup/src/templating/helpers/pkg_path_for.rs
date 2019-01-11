@@ -45,7 +45,7 @@ impl HelperDef for PkgPathForHelper {
                 )
             })
             .unwrap_or("".to_string());
-        rc.writer.write(target_pkg.into_bytes().as_ref())?;
+        rc.writer.write_all(target_pkg.into_bytes().as_ref())?;
         Ok(())
     }
 }

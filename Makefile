@@ -265,11 +265,11 @@ UNEXAMINED_LINTS = clippy::assign_op_pattern \
 ALLOWED_LINTS =
 
 # Known failing lints we want to receive warnings for, but not fail the build
-LINTS_TO_FIX =  clippy::correctness
+LINTS_TO_FIX =
 
 # Lints we don't expect to have in our code at all and want to avoid adding
 # even at the cost of failing the build
-DENIED_LINTS =
+DENIED_LINTS = clippy::correctness
 
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
