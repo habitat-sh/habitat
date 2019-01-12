@@ -405,20 +405,18 @@ impl CensusGroup {
         members: impl Iterator<Item = &'a CensusMember>,
         me: &CensusMember,
     ) -> Option<&'a CensusMember> {
-        let alive_members: Vec<&CensusMember> = members.filter(|cm| cm.alive()).collect();
+        let mut alive_members = members.filter(|cm| cm.alive());
+        let mut previous = None;
 
-        if alive_members.len() < 2 {
-            return None;
+        for member in alive_members.by_ref() {
+            if member.member_id == me.member_id {
+                return previous.or_else(|| alive_members.last());
+            } else {
+                previous = Some(member);
+            }
         }
 
-        alive_members
-            .iter()
-            .position(|cm| cm.member_id == me.member_id)
-            .and_then(|idx| match idx {
-                0 => alive_members.last(),
-                idx => alive_members.get(idx - 1),
-            })
-            .map(|&reference| reference)
+        None
     }
 
     fn update_from_service_rumors(&mut self, rumors: &HashMap<String, ServiceRumor>) {
