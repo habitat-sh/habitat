@@ -397,22 +397,23 @@ impl CensusGroup {
     // XXX: Is me ever None or not Alive?
     // XXX: Should we include Suspect members too, or only strictly Alive ones?
     pub fn previous_peer(&self) -> Option<&CensusMember> {
-        Self::previous_peer_impl(self.population.values(), self.me())
+        self.me()
+            .and_then(|me| Self::previous_peer_impl(self.population.values(), me))
     }
 
     fn previous_peer_impl<'a>(
         members: impl Iterator<Item = &'a CensusMember>,
-        me: Option<&CensusMember>,
+        me: &CensusMember,
     ) -> Option<&'a CensusMember> {
         let alive_members: Vec<&CensusMember> = members.filter(|cm| cm.alive()).collect();
 
-        if alive_members.len() < 2 || me.is_none() {
+        if alive_members.len() < 2 {
             return None;
         }
 
         alive_members
             .iter()
-            .position(|cm| cm.member_id == me.unwrap().member_id)
+            .position(|cm| cm.member_id == me.member_id)
             .and_then(|idx| match idx {
                 0 => alive_members.last(),
                 idx => alive_members.get(idx - 1),
@@ -969,18 +970,26 @@ mod tests {
 
     #[test]
     fn previous_peer_with_no_members() {
+        let me = test_census_member("me", Health::Alive);
         let members = vec![];
-        assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), None), None);
+        assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), None);
+    }
+
+    #[test]
+    fn previous_peer_with_no_alive_members() {
+        let me = test_census_member("me", Health::Alive);
+        let members = vec![
+            test_census_member("left_of_me", Health::Confirmed),
+            me.clone(),
+        ];
+        assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), None);
     }
 
     #[test]
     fn previous_peer_with_only_me() {
         let me = test_census_member("me", Health::Alive);
         let members = vec![me.clone()];
-        assert_eq_member_ids(
-            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
-            None,
-        );
+        assert_eq_member_ids(CensusGroup::previous_peer_impl(members.iter(), &me), None);
     }
 
     #[test]
@@ -988,7 +997,7 @@ mod tests {
         let me = test_census_member("me", Health::Alive);
         let members = vec![test_census_member("left_of_me", Health::Alive), me.clone()];
         assert_eq_member_ids(
-            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            CensusGroup::previous_peer_impl(members.iter(), &me),
             Some("left_of_me"),
         );
     }
@@ -1001,7 +1010,7 @@ mod tests {
             test_census_member("left_of_me_with_wrapping", Health::Alive),
         ];
         assert_eq_member_ids(
-            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            CensusGroup::previous_peer_impl(members.iter(), &me),
             Some("left_of_me_with_wrapping"),
         );
     }
@@ -1016,7 +1025,7 @@ mod tests {
             test_census_member("right_of_me", Health::Alive),
         ];
         assert_eq_member_ids(
-            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            CensusGroup::previous_peer_impl(members.iter(), &me),
             Some("left_of_me"),
         );
     }
@@ -1031,7 +1040,7 @@ mod tests {
             test_census_member("right_of_me", Health::Alive),
         ];
         assert_eq_member_ids(
-            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            CensusGroup::previous_peer_impl(members.iter(), &me),
             Some("2_left_of_me"),
         );
     }
@@ -1046,7 +1055,7 @@ mod tests {
             test_census_member("2_right_of_me", Health::Confirmed),
         ];
         assert_eq_member_ids(
-            CensusGroup::previous_peer_impl(members.iter(), Some(&me)),
+            CensusGroup::previous_peer_impl(members.iter(), &me),
             Some("left_of_me_with_wrapping"),
         );
     }
