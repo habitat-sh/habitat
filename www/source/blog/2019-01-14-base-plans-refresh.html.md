@@ -9,7 +9,7 @@ classes: body-article
 
 Hello, friendly Habicats! 
 
-We will be refreshing the Base Plans of Core Plans on Tuesday, January 22nd. Let's go over what this means for us and, more important, what it means for you.
+We will be refreshing the Base Plans of Core Plans on Tuesday, January 29th. Let's go over what this means for us and, more important, what it means for you.
 
 ## Base Plans 101
 Currently, there are about 600 Habitat plans under the Core Origin on Builder.
@@ -156,7 +156,7 @@ Success!
 I love when a plan.sh comes together!
 ```
 
-So...after the Core Plans refresh gets added to production and promoted to stable (which, again, we are doing on Tuesday, January 22nd), and all of the Base Plans and dependent Base Plans are promoted to stable, you may see some of these failures with your own plans. It's also possible they may fail on more than one dependency being out of sync. You can fix these errors in 2 ways:
+So...after the Core Plans refresh gets added to production and promoted to stable (which, again, we are doing on Tuesday, January 29th), and all of the Base Plans and dependent Base Plans are promoted to stable, you may see some of these failures with your own plans. It's also possible they may fail on more than one dependency being out of sync. You can fix these errors in 2 ways:
 
 1. (This is the option we recommend!) Rebuilding a dependency with an older version of a Base Plan (e.g. nellshamrell/world with core/glibc/2.22) with a newer version of that Base Plan, or at least the same version as the rest of your dependencies (e.g. nellshamrell/world with core/glibc/2.27).
 2. Pinning both dependencies to an older version of the Base Plan (e.g. we could pin both nellshamrell/widget and nellshamrell/world to core/glibc/2.22, and nellshamrell/widget_world would build just fine).
