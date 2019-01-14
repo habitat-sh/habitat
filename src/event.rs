@@ -112,22 +112,15 @@ impl fmt::Display for Event {
     #[cfg_attr(rustfmt, rustfmt_skip)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
-            Event::ProjectCreate { origin: _, package: _, account: _ } => "project-create",
-            Event::PackageUpload { origin: _, package: _, version: _, release: _, target: _,
-                account: _ } => {
-                "package-upload"
-            }
-            Event::OriginKeyUpload { origin: _, version: _, account: _ } => "origin-key-upload",
-            Event::OriginSigningKeyUpload { origin: _, version: _, account: _ } => {
-                "origin-secret-key-upload"
-            }
-            Event::OriginInvitationSend { origin: _, user: _, id: _, account: _ } => {
-                "origin-invitation-send"
-            }
-            Event::OriginInvitationAccept { id: _, account: _ } => "origin-invitation-accept",
-            Event::OriginInvitationIgnore { id: _, account: _ } => "origin-invitation-ignore",
-            Event::JobCreate { package: _, account: _ } => "job-create",
-            Event::GithubAuthenticate { user: _, account: _ } => "github-authenticate",
+            Event::ProjectCreate { .. } => "project-create",
+            Event::PackageUpload { .. } => { "package-upload" }
+            Event::OriginKeyUpload { .. } => "origin-key-upload",
+            Event::OriginSigningKeyUpload { .. } => { "origin-secret-key-upload" }
+            Event::OriginInvitationSend { .. } => { "origin-invitation-send" }
+            Event::OriginInvitationAccept { .. } => "origin-invitation-accept",
+            Event::OriginInvitationIgnore { .. } => "origin-invitation-ignore",
+            Event::JobCreate { .. } => "job-create",
+            Event::GithubAuthenticate { .. } => "github-authenticate",
         };
 
         write!(f, "{}", msg)
@@ -135,6 +128,7 @@ impl fmt::Display for Event {
 }
 
 impl Serialize for Event {
+    #[allow(clippy::many_single_char_names)]
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
     where
         S: Serializer,

@@ -400,14 +400,14 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "unicorn");
-        match pair.public() {
-            Ok(_) => assert!(true),
-            Err(_) => panic!("Generated pair should have a public key"),
-        }
-        match pair.secret() {
-            Ok(_) => assert!(true),
-            Err(_) => panic!("Generated pair should have a secret key"),
-        }
+        assert!(
+            pair.public().is_ok(),
+            "Generated pair should have a public key"
+        );
+        assert!(
+            pair.secret().is_ok(),
+            "Generated pair should have a public key"
+        );
         assert!(cache
             .path()
             .join(format!("{}.pub", pair.name_with_rev()))

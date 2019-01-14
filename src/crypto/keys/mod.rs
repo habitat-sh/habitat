@@ -492,7 +492,7 @@ pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
 fn read_key_bytes(keyfile: &Path) -> Result<Vec<u8>> {
     let mut f = File::open(keyfile)?;
     let mut s = String::new();
-    if f.read_to_string(&mut s)? <= 0 {
+    if f.read_to_string(&mut s)? == 0 {
         return Err(Error::CryptoError("Can't read key bytes".to_string()));
     }
     read_key_bytes_from_str(&s)

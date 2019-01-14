@@ -12,7 +12,6 @@ gcc = "0.3"
 
 [dependencies]
 ansi_term = "*"
-clippy = {version = "*", optional = true}
 base64 = "*"
 dirs = "*"
 errno = "*"
