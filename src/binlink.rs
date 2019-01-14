@@ -17,8 +17,10 @@ use crate::env;
 /// Default Binlink Dir
 #[cfg(target_os = "windows")]
 pub const DEFAULT_BINLINK_DIR: &'static str = "/hab/bin";
-#[cfg(not(target_os = "windows"))]
+#[cfg(target_os = "linux")]
 pub const DEFAULT_BINLINK_DIR: &'static str = "/bin";
+#[cfg(target_os = "macos")]
+pub const DEFAULT_BINLINK_DIR: &'static str = "/usr/local/bin";
 
 /// Binlink Dir Environment variable
 pub const BINLINK_DIR_ENVVAR: &'static str = "HAB_BINLINK_DIR";
