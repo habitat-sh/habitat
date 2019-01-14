@@ -472,14 +472,14 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "beyonce");
-        match pair.public() {
-            Ok(_) => assert!(true),
-            Err(_) => panic!("Generated pair should have an empty public key"),
-        }
-        match pair.secret() {
-            Ok(_) => assert!(true),
-            Err(_) => panic!("Generated pair should have a secret key"),
-        }
+        assert!(
+            pair.public().is_ok(),
+            "Generated pair should have an empty public key"
+        );
+        assert!(
+            pair.secret().is_ok(),
+            "Generated pair should have a secret key"
+        );
         assert!(cache
             .path()
             .join(format!("{}.sym.key", pair.name_with_rev()))

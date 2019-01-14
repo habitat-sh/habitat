@@ -61,19 +61,19 @@ pub fn get_archive_reader<P: AsRef<Path>>(src: &P) -> Result<BufReader<File>> {
     let mut empty_line = String::new();
 
     let mut reader = BufReader::new(f);
-    if reader.read_line(&mut your_format_version)? <= 0 {
+    if reader.read_line(&mut your_format_version)? == 0 {
         return Err(Error::CryptoError("Can't read format version".to_string()));
     }
-    if reader.read_line(&mut your_key_name)? <= 0 {
+    if reader.read_line(&mut your_key_name)? == 0 {
         return Err(Error::CryptoError("Can't read keyname".to_string()));
     }
-    if reader.read_line(&mut your_hash_type)? <= 0 {
+    if reader.read_line(&mut your_hash_type)? == 0 {
         return Err(Error::CryptoError("Can't read hash type".to_string()));
     }
-    if reader.read_line(&mut your_signature_raw)? <= 0 {
+    if reader.read_line(&mut your_signature_raw)? == 0 {
         return Err(Error::CryptoError("Can't read signature".to_string()));
     }
-    if reader.read_line(&mut empty_line)? <= 0 {
+    if reader.read_line(&mut empty_line)? == 0 {
         return Err(Error::CryptoError("Can't end of header".to_string()));
     }
     Ok(reader)
@@ -117,19 +117,19 @@ where
     let mut empty_line = String::new();
 
     let mut reader = BufReader::new(f);
-    if reader.read_line(&mut your_format_version)? <= 0 {
+    if reader.read_line(&mut your_format_version)? == 0 {
         return Err(Error::CryptoError("Can't read format version".to_string()));
     }
-    if reader.read_line(&mut your_key_name)? <= 0 {
+    if reader.read_line(&mut your_key_name)? == 0 {
         return Err(Error::CryptoError("Can't read keyname".to_string()));
     }
-    if reader.read_line(&mut your_hash_type)? <= 0 {
+    if reader.read_line(&mut your_hash_type)? == 0 {
         return Err(Error::CryptoError("Can't read hash type".to_string()));
     }
-    if reader.read_line(&mut your_signature_raw)? <= 0 {
+    if reader.read_line(&mut your_signature_raw)? == 0 {
         return Err(Error::CryptoError("Can't read signature".to_string()));
     }
-    if reader.read_line(&mut empty_line)? <= 0 {
+    if reader.read_line(&mut empty_line)? == 0 {
         return Err(Error::CryptoError("Can't end of header".to_string()));
     }
     let your_format_version = your_format_version.trim().to_string();
@@ -174,7 +174,7 @@ where
     };
     let pair = {
         let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? <= 0 {
+        if reader.read_line(&mut buffer)? == 0 {
             return Err(Error::CryptoError(
                 "Corrupt payload, can't read origin key name".to_string(),
             ));
@@ -213,7 +213,7 @@ where
     };
     let _ = {
         let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? <= 0 {
+        if reader.read_line(&mut buffer)? == 0 {
             return Err(Error::CryptoError(
                 "Corrupt payload, can't find end of header".to_string(),
             ));
@@ -261,7 +261,7 @@ pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
     };
     let name_with_rev = {
         let mut buffer = String::new();
-        if reader.read_line(&mut buffer)? <= 0 {
+        if reader.read_line(&mut buffer)? == 0 {
             return Err(Error::CryptoError(
                 "Corrupt payload, can't read origin key name".to_string(),
             ));
@@ -472,21 +472,21 @@ mod test {
         let f = BufReader::new(f);
         let mut lines = f.lines();
         corrupted
-            .write(lines.next().unwrap().unwrap().as_bytes())
+            .write_all(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // version
-        corrupted.write("\n".as_bytes()).unwrap();
+        corrupted.write_all("\n".as_bytes()).unwrap();
         corrupted
-            .write(lines.next().unwrap().unwrap().as_bytes())
+            .write_all(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // key
-        corrupted.write("\n".as_bytes()).unwrap();
+        corrupted.write_all("\n".as_bytes()).unwrap();
         corrupted
-            .write(lines.next().unwrap().unwrap().as_bytes())
+            .write_all(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // hash type
-        corrupted.write("\n".as_bytes()).unwrap();
+        corrupted.write_all("\n".as_bytes()).unwrap();
         corrupted
-            .write(lines.next().unwrap().unwrap().as_bytes())
+            .write_all(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // signature
-        corrupted.write("\n\n".as_bytes()).unwrap();
+        corrupted.write_all("\n\n".as_bytes()).unwrap();
         corrupted
             .write_all("payload-wont-match-signature".as_bytes())
             .unwrap(); // archive

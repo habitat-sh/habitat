@@ -329,7 +329,7 @@ impl BoxKeyPair {
 
     // Return the metadata and encrypted text from a secret payload.
     // This is useful for services consuming an encrypted payload and need to decrypt it without having keys on disk
-    pub fn secret_metadata<'a>(payload: &'a [u8]) -> Result<BoxSecret<'_>> {
+    pub fn secret_metadata(payload: &[u8]) -> Result<BoxSecret<'_>> {
         let mut lines = str::from_utf8(payload)?.lines();
         let version = Self::box_key_format_version(lines.next())?;
         let sender = Self::box_key_sender(lines.next())?;
@@ -478,6 +478,7 @@ mod test {
 
     use super::super::super::test_support::*;
     use super::BoxKeyPair;
+    use super::*;
 
     static VALID_KEY: &'static str = "service-key-valid.default@acme-20160509181736.box.key";
     static VALID_PUB: &'static str = "service-key-valid.default@acme-20160509181736.pub";
@@ -494,7 +495,8 @@ mod test {
         assert_eq!(pair.public, None);
         match pair.public() {
             Ok(_) => panic!("Empty pair should not have a public key"),
-            Err(_) => assert!(true),
+            Err(Error::CryptoError(_)) => assert!(true),
+            e => panic!("Unexpected error: {:?}", e),
         }
         assert_eq!(pair.secret, None);
         match pair.secret() {
@@ -510,14 +512,14 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "tnt.default@acme");
-        match pair.public() {
-            Ok(_) => assert!(true),
-            Err(_) => panic!("Generated pair should have a public key"),
-        }
-        match pair.secret() {
-            Ok(_) => assert!(true),
-            Err(_) => panic!("Generated pair should have a secret key"),
-        }
+        assert!(
+            pair.public().is_ok(),
+            "Generated pair should have a public key"
+        );
+        assert!(
+            pair.secret().is_ok(),
+            "Generated pair should have a secret key"
+        );
         assert!(cache
             .path()
             .join(format!("{}.pub", pair.name_with_rev()))
@@ -535,14 +537,14 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "wecoyote");
-        match pair.public() {
-            Ok(_) => assert!(true),
-            Err(_) => panic!("Generated pair should have a public key"),
-        }
-        match pair.secret() {
-            Ok(_) => assert!(true),
-            Err(_) => panic!("Generated pair should have a secret key"),
-        }
+        assert!(
+            pair.public().is_ok(),
+            "Generated pair should have a public key"
+        );
+        assert!(
+            pair.secret().is_ok(),
+            "Generated pair should have a secret key"
+        );
         assert!(cache
             .path()
             .join(format!("{}.pub", pair.name_with_rev()))
