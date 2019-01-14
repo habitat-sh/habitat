@@ -13,6 +13,7 @@
 - [svc health check] allow configurable interval between checks. [#5890](https://github.com/habitat-sh/habitat/pull/5890) ([jeremymv2](https://github.com/jeremymv2))
 
 #### Merged Pull Requests
+- Add jamesc to some code areas in CODEOWNERS [#6050](https://github.com/habitat-sh/habitat/pull/6050) ([jamesc](https://github.com/jamesc))
 - fixes problem when newlines exist in CTL_SECRET file [#6022](https://github.com/habitat-sh/habitat/pull/6022) ([jeremymv2](https://github.com/jeremymv2))
 - fix and clarify release issues found in 0.72.0 release [#6039](https://github.com/habitat-sh/habitat/pull/6039) ([mwrock](https://github.com/mwrock))
 - update cli docs for 0.72.0 [#6040](https://github.com/habitat-sh/habitat/pull/6040) ([mwrock](https://github.com/mwrock))
