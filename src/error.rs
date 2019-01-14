@@ -135,7 +135,7 @@ pub enum Error {
     PackageUnpackFailed(String),
     /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),
-    /// Occurs when setting ownership or permissions on a file or directory fails.
+    /// Occurs upon errors related to file or directory permissions.
     PermissionFailed(String),
     /// Error parsing the contents of a plan file were incomplete or malformed.
     PlanMalformed,
@@ -458,7 +458,7 @@ impl error::Error for Error {
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::PackageUnpackFailed(_) => "Package could not be unpacked",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
-            Error::PermissionFailed(_) => "Failed to set permissions",
+            Error::PermissionFailed(_) => "File system permissions error",
             Error::PlanMalformed => "Failed to read or parse contents of Plan file",
             Error::PrivilegeNotHeld => "Privilege not held to spawn process as different user",
             Error::RegexParse(_) => "Failed to parse a regular expression",

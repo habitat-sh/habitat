@@ -14,14 +14,14 @@
 
 use dirs;
 use std::env;
+use std::fs as stdfs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
-use crate::users;
-
 use crate::env as henv;
-use crate::error::Result;
+use crate::error::{Error, Result};
+use crate::os::users::{self, assert_pkg_user_and_group};
 use crate::package::{Identifiable, PackageIdent, PackageInstall};
 
 /// The default root path of the Habitat filesystem
@@ -53,6 +53,10 @@ pub const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
 pub const SYSTEMDRIVE_ENVVAR: &'static str = "SYSTEMDRIVE";
 /// The file where user-defined configuration for each service is found.
 pub const USER_CONFIG_FILE: &'static str = "user.toml";
+/// Permissions that service-owned service directories should
+/// have. The user and group will be `SVC_USER` / `SVC_GROUP`.
+#[cfg(not(windows))]
+const SVC_DIR_PERMISSIONS: u32 = 0o770;
 
 lazy_static::lazy_static! {
     /// The default filesystem root path.
@@ -60,6 +64,15 @@ lazy_static::lazy_static! {
     /// WARNING: On Windows this variable mutates on first call if an environment variable with
     ///          the key of `FS_ROOT_ENVVAR` is set.
     pub static ref FS_ROOT_PATH: PathBuf = fs_root_path();
+
+    /// The root path containing all runtime service directories and files
+    pub static ref SVC_ROOT: PathBuf = {
+        Path::new(&*FS_ROOT_PATH).join("hab").join("svc")
+    };
+
+    pub static ref USER_ROOT: PathBuf = {
+        Path::new(&*FS_ROOT_PATH).join("hab").join("user")
+    };
 
     static ref EUID: u32 = users::get_effective_uid();
 
@@ -223,6 +236,192 @@ where
     match fs_root_path {
         Some(fs_root_path) => fs_root_path.as_ref().join(LAUNCHER_ROOT_PATH),
         None => Path::new(&*FS_ROOT_PATH).join(LAUNCHER_ROOT_PATH),
+    }
+}
+
+/// Returns the root path for a given service's configuration, files, and data.
+pub fn svc_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    SVC_ROOT.join(service_name)
+}
+
+/// Returns the path to the configuration directory for a given service.
+pub fn svc_config_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("config")
+}
+
+/// Returns the path to the install configuration directory for a given service.
+pub fn svc_config_install_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("config_install")
+}
+
+/// Returns the path to a given service's data.
+pub fn svc_data_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("data")
+}
+
+/// Returns the path to a given service's gossiped config files.
+pub fn svc_files_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("files")
+}
+
+/// Returns the path to a given service's hooks.
+pub fn svc_hooks_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("hooks")
+}
+
+/// Returns the path to a given service's static content.
+pub fn svc_static_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("static")
+}
+
+/// Returns the path to a given service's variable state.
+pub fn svc_var_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("var")
+}
+
+/// Returns the path to a given service's logs.
+pub fn svc_logs_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("logs")
+}
+
+/// Returns the path to a given service's pid file.
+pub fn svc_pid_file<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    svc_path(service_name).join("PID")
+}
+
+/// Returns the root path for a given service's user configuration,
+/// files, and data.
+pub fn user_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    USER_ROOT.join(service_name)
+}
+
+/// Returns the path to a given service's user configuration
+/// directory.
+pub fn user_config_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
+    user_path(service_name).join("config")
+}
+
+/// Represents the service directory for a given package.
+pub struct SvcDir<'a> {
+    service_name: &'a str,
+    svc_user: &'a str,
+    svc_group: &'a str,
+}
+
+impl<'a> SvcDir<'a> {
+    // TODO (CM): When / if data intended solely for templated content
+    // is separated out of Pkg, we could just wrap a &Pkg directly,
+    // instead of extracting name, user, and group. Until then,
+    // however, we're being explicit to avoid confusion and needless
+    // intertwining of code.
+
+    // The fact that all our references are coming from a single Pkg
+    // (with a single lifetime) is why we only take a single lifetime
+    // parameter; beyond that, there's no intrinsic requirement for
+    // the lifetimes of the three struct members to be the same.
+    //
+    // (They could also be Strings and not references, but there's
+    // really no need to make copies of that data.)
+    pub fn new(name: &'a str, user: &'a str, group: &'a str) -> Self {
+        SvcDir {
+            service_name: name,
+            svc_user: user,
+            svc_group: group,
+        }
+    }
+
+    /// Create a service directory, including all necessary
+    /// sub-directories. Ownership and permissions are handled as
+    /// well.
+    pub fn create(&self) -> Result<()> {
+        if users::can_run_services_as_svc_user() {
+            // The only reason we assert that these users exist is
+            // because our `set_owner` calls will fail if they
+            // don't. If we don't have the ability to to change
+            // ownership, however, it doesn't really matter!
+            assert_pkg_user_and_group(&self.svc_user, &self.svc_group)?;
+        }
+
+        self.create_svc_root()?;
+        self.create_all_sup_owned_dirs()?;
+        self.create_all_svc_owned_dirs()?;
+
+        Ok(())
+    }
+
+    fn create_svc_root(&self) -> Result<()> {
+        Self::create_dir_all(svc_path(&self.service_name))
+    }
+
+    /// Creates all to sub-directories in a service directory that are
+    /// owned by the Supervisor (that is, the user the current thread
+    /// is running as).
+    fn create_all_sup_owned_dirs(&self) -> Result<()> {
+        Self::create_dir_all(svc_hooks_path(&self.service_name))?;
+        Self::create_dir_all(svc_logs_path(&self.service_name))?;
+        Ok(())
+    }
+
+    /// Creates all to sub-directories in a service directory that are
+    /// owned by the service user by default.
+    ///
+    /// If the Supervisor (i.e., the current thread) is not running as
+    /// a user that has the ability to change file and directory
+    /// ownership, however, they will be owned by the Supervisor
+    /// instead.
+    fn create_all_svc_owned_dirs(&self) -> Result<()> {
+        self.create_svc_owned_dir(svc_config_path(&self.service_name))?;
+        self.create_svc_owned_dir(svc_config_install_path(&self.service_name))?;
+        self.create_svc_owned_dir(svc_data_path(&self.service_name))?;
+        self.create_svc_owned_dir(svc_files_path(&self.service_name))?;
+        self.create_svc_owned_dir(svc_var_path(&self.service_name))?;
+        self.create_svc_owned_dir(svc_static_path(&self.service_name))?;
+        Ok(())
+    }
+
+    fn create_svc_owned_dir<P>(&self, path: P) -> Result<()>
+    where
+        P: AsRef<Path>,
+    {
+        // We do not want to change the permissions of an already
+        // existing directory
+        // See https://github.com/habitat-sh/habitat/issues/4475
+        if path.as_ref().exists() {
+            return Ok(());
+        }
+
+        Self::create_dir_all(&path)?;
+        self.set_permissions(&path)
+    }
+
+    fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
+        debug!("Creating dir with subdirs: {:?}", &path.as_ref());
+        if let Err(e) = stdfs::create_dir_all(&path) {
+            Err(Error::PermissionFailed(format!(
+                "Can't create {:?}, {}",
+                &path.as_ref(),
+                e
+            )))
+        } else {
+            Ok(())
+        }
+    }
+
+    #[cfg(not(windows))]
+    fn set_permissions<T: AsRef<Path>>(&self, path: T) -> Result<()> {
+        use crate::util::posix_perm;
+
+        if users::can_run_services_as_svc_user() {
+            posix_perm::set_owner(path.as_ref(), &self.svc_user, &self.svc_group)?;
+        }
+        posix_perm::set_permissions(path.as_ref(), SVC_DIR_PERMISSIONS).map_err(From::from)
+    }
+
+    #[cfg(windows)]
+    fn set_permissions<T: AsRef<Path>>(&self, path: T) -> Result<()> {
+        use crate::util::win_perm;
+
+        win_perm::harden_path(path.as_ref()).map_err(From::from)
     }
 }
 
@@ -487,9 +686,12 @@ mod test_find_command {
     }
 
     fn setup_path() {
+        let orig_path = env::var_os("PATH").unwrap();
+        let mut os_paths: Vec<PathBuf> = env::split_paths(&orig_path).collect();
         let first_path = fs::canonicalize("./tests/fixtures").unwrap();
         let second_path = fs::canonicalize("./tests/fixtures/bin").unwrap();
-        let path_bufs = vec![first_path, second_path];
+        let mut path_bufs = vec![first_path, second_path];
+        path_bufs.append(&mut os_paths);
         let new_path = env::join_paths(path_bufs).unwrap();
         env::set_var("PATH", &new_path);
     }

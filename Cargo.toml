@@ -37,6 +37,9 @@ url = "*"
 [target.'cfg(not(windows))'.dependencies]
 users = "*"
 
+[target.'cfg(target_os = "linux")'.dependencies]
+caps = "*"
+
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
 habitat_win_users = { path = "../win-users" }
