@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- Simplify insert_service [#6044](https://github.com/habitat-sh/habitat/pull/6044) ([baumanj](https://github.com/baumanj))
 - Only start services that are runnable [#6043](https://github.com/habitat-sh/habitat/pull/6043) ([jamesc](https://github.com/jamesc))
 - Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
 - Don&#39;t panic in the unusual event persisting butterfly data takes over 30 s [#6018](https://github.com/habitat-sh/habitat/pull/6018) ([baumanj](https://github.com/baumanj))
