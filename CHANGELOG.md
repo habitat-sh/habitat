@@ -7,11 +7,6 @@
 - Simplify insert_service [#6044](https://github.com/habitat-sh/habitat/pull/6044) ([baumanj](https://github.com/baumanj))
 - Only start services that are runnable [#6043](https://github.com/habitat-sh/habitat/pull/6043) ([jamesc](https://github.com/jamesc))
 - Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
-- Don&#39;t panic in the unusual event persisting butterfly data takes over 30 s [#6018](https://github.com/habitat-sh/habitat/pull/6018) ([baumanj](https://github.com/baumanj))
-- [hab] Avoid install failure when running concurrently [#5999](https://github.com/habitat-sh/habitat/pull/5999) ([stevendanna](https://github.com/stevendanna))
-
-#### New Features & Enhancements
-- [svc health check] allow configurable interval between checks. [#5890](https://github.com/habitat-sh/habitat/pull/5890) ([jeremymv2](https://github.com/jeremymv2))
 
 #### Merged Pull Requests
 - Add jamesc to some code areas in CODEOWNERS [#6050](https://github.com/habitat-sh/habitat/pull/6050) ([jamesc](https://github.com/jamesc))
@@ -23,6 +18,19 @@
 - bump dev version for 0.73 [#6036](https://github.com/habitat-sh/habitat/pull/6036) ([mwrock](https://github.com/mwrock))
 - Parameterize the rumor sharing limit [#6032](https://github.com/habitat-sh/habitat/pull/6032) ([christophermaier](https://github.com/christophermaier))
 - adding 0.72.0 release blog post [#6030](https://github.com/habitat-sh/habitat/pull/6030) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
+## [0.72.0](https://github.com/habitat-sh/habitat/tree/0.72.0) (2018-01-03)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.71.0...0.72.0)
+
+#### Bug Fixes
+- Don&#39;t panic in the unusual event persisting butterfly data takes over 30 s [#6018](https://github.com/habitat-sh/habitat/pull/6018) ([baumanj](https://github.com/baumanj))
+- [hab] Avoid install failure when running concurrently [#5999](https://github.com/habitat-sh/habitat/pull/5999) ([stevendanna](https://github.com/stevendanna))
+
+#### New Features & Enhancements
+- [svc health check] allow configurable interval between checks. [#5890](https://github.com/habitat-sh/habitat/pull/5890) ([jeremymv2](https://github.com/jeremymv2))
+
+#### Merged Pull Requests
 - bump release version to 0.72.0 [#6029](https://github.com/habitat-sh/habitat/pull/6029) ([mwrock](https://github.com/mwrock))
 - Remove smoke-test hook [#6021](https://github.com/habitat-sh/habitat/pull/6021) ([rarenerd](https://github.com/rarenerd))
 - bump cargo deps [#6005](https://github.com/habitat-sh/habitat/pull/6005) ([mwrock](https://github.com/mwrock))
@@ -30,10 +38,10 @@
 - bumping dev version [#6003](https://github.com/habitat-sh/habitat/pull/6003) ([mwrock](https://github.com/mwrock))
 - update cli docs [#5997](https://github.com/habitat-sh/habitat/pull/5997) ([mwrock](https://github.com/mwrock))
 - update changelog and add blog post [#5994](https://github.com/habitat-sh/habitat/pull/5994) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
-## [0.71.0](https//github.com/habitat-sh/habitat/tree/0.71.0) (2018-12-19)
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.69.0...0.70.0)
+
+## [0.71.0](https://github.com/habitat-sh/habitat/tree/0.71.0) (2018-12-19)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.70.0...0.71.0)
 
 #### New Features & Enhancements
 - Add --reverse option to hab pkg dependencies [#5923](https://github.com/habitat-sh/habitat/pull/5923) ([jamesc](https://github.com/jamesc))
@@ -52,7 +60,7 @@
 - Release blog post for v0.70.0 [#5926](https://github.com/habitat-sh/habitat/pull/5926) ([eeyun](https://github.com/eeyun))
 - Eeyun/release v70 [#5920](https://github.com/habitat-sh/habitat/pull/5920) ([eeyun](https://github.com/eeyun))
 
-## [0.70.0](https//github.com/habitat-sh/habitat/tree/0.70.0) (2018-12-04)
+## [0.70.0](https://github.com/habitat-sh/habitat/tree/0.70.0) (2018-12-04)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.69.0...0.70.0)
 
 #### New Features & Enhancements
