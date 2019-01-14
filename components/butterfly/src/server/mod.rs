@@ -704,31 +704,38 @@ impl Server {
     }
 
     /// Insert a service rumor into the service store.
+    /// If we're adding a new service group member, we want to avoid the
+    /// situation where we could lose quorum due to Confirmed but not yet
+    /// departed members. So, if we have any transition one to Departed to
+    /// offset the addition of the new member. We choose the member to depart
+    /// by ID rather than time since confirmed since different members may
+    /// have seen the transition to Confirmed at different times and we don't
+    /// want to depart a bunch of different members unnecessarily.
+    ///
+    /// See https://github.com/habitat-sh/habitat/issues/1994
+    /// See Server::check_quorum
     pub fn insert_service(&self, service: Service) {
         let rk = RumorKey::from(&service);
+        let RumorKey {
+            key: service_group,
+            id: member_id,
+            ..
+        } = &rk;
 
-        // * If we don't have a rumor
-        // * And we do have Confirmed members for this service
-        // * Select the first sorted Confirmed member, and change it to departed
-        if !self.service_store.contains_rumor(&rk.key, &rk.id) {
-            let mut service_entries: Vec<Service> = Vec::new();
-            self.service_store.with_rumors(&rk.key, |service_rumor| {
-                if self.member_list.health_of_by_id(&service_rumor.member_id)
-                    == Some(Health::Confirmed)
-                {
-                    service_entries.push(service_rumor.clone());
-                }
-            });
-            service_entries.sort_by_key(|k| k.member_id.clone());
-            for service_rumor in service_entries.iter().take(1) {
-                // TODO (CM): Why are we inferring departure from
-                // a service rumor?
-                self.member_list.set_departed(&service_rumor.member_id);
-                // Should the following be skipped we didn't know about this member?
-                self.rumor_heat.purge(&service_rumor.member_id);
+        if self
+            .service_store
+            .contains_group_without_member(service_group, member_id)
+        {
+            if let Some(member_id_to_depart) =
+                self.service_store.min_member_id_with(service_group, |id| {
+                    self.member_list.health_of_by_id(id) == Some(Health::Confirmed)
+                })
+            {
+                self.member_list.set_departed(&member_id_to_depart);
+                self.rumor_heat.purge(&member_id_to_depart);
                 self.rumor_heat.start_hot_rumor(RumorKey::new(
                     RumorType::Member,
-                    service_rumor.member_id.clone(),
+                    member_id_to_depart,
                     "",
                 ));
             }
