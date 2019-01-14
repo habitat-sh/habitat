@@ -155,6 +155,7 @@ pub enum Error {
     NotifyError(notify::Error),
     NulError(ffi::NulError),
     PackageNotFound(package::PackageIdent),
+    PackageNotRunnable(package::PackageIdent),
     Permissions(String),
     PidFileCorrupt(PathBuf),
     PidFileIO(PathBuf, io::Error),
@@ -295,6 +296,7 @@ impl fmt::Display for SupError {
                     format!("Cannot find a release of package: {}", pkg)
                 }
             }
+            Error::PackageNotRunnable(ref pkg) => format!("Package is not runnable: {}", pkg),
             Error::PidFileCorrupt(ref path) => {
                 format!("Unable to decode contents of PID file, {}", path.display())
             }
@@ -427,6 +429,7 @@ impl error::Error for SupError {
                 "An attempt was made to build a CString with a null byte inside it"
             }
             Error::PackageNotFound(_) => "Cannot find a package",
+            Error::PackageNotRunnable(_) => "The package is not runnable",
             Error::Permissions(_) => "File system permissions error",
             Error::PidFileCorrupt(_) => "Unable to decode contents of PID file",
             Error::PidFileIO(_, _) => "Unable to read or write to PID file",

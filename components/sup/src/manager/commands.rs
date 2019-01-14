@@ -244,7 +244,8 @@ pub fn service_load(
             // desired package identifier, it will be used;
             // otherwise, we'll install the latest suitable
             // version from the specified Builder channel.
-            let installed = util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel)?;
+            let installed =
+                util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel, true)?;
 
             let mut specs = generate_new_specs_from_package(&installed, &opts)?;
 
@@ -298,6 +299,7 @@ pub fn service_load(
                         &source,
                         &service_spec.bldr_url,
                         &service_spec.channel,
+                        true,
                     )?;
 
                     save_spec_for(&mgr.cfg, &service_spec)?;
@@ -349,6 +351,7 @@ pub fn service_load(
                             // like services can.
                             &bldr_url,
                             &bldr_channel,
+                            false,
                         )?;
 
                         // Generate new specs from the new composite package and
