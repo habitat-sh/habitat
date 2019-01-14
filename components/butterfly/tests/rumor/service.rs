@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use crate::btest;
-use habitat_butterfly::member::Health;
 
 #[test]
 fn two_members_share_services() {

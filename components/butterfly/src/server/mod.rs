@@ -720,6 +720,7 @@ impl Server {
             &self.service_store,
             &self.member_list,
             &self.rumor_heat,
+            |k| self.check_quorum(k),
         )
     }
 
@@ -728,6 +729,7 @@ impl Server {
         service_store: &RumorStore<Service>,
         member_list: &MemberList,
         rumor_heat: &RumorHeat,
+        check_quorum: impl Fn(&str) -> bool,
     ) {
         let rk = RumorKey::from(&service);
         let RumorKey {
@@ -736,22 +738,25 @@ impl Server {
             ..
         } = &rk;
 
-        if service_store.contains_group_without_member(service_group, member_id) {
-            if let Some(member_id_to_depart) = service_store
-                .min_member_id_with(service_group, |id| {
-                    member_list.health_of_by_id(id) == Some(Health::Confirmed)
-                })
-            {
-                member_list.set_departed(&member_id_to_depart);
-                rumor_heat.purge(&member_id_to_depart);
-                rumor_heat.start_hot_rumor(RumorKey::new(
-                    RumorType::Member,
-                    member_id_to_depart,
-                    "",
-                ));
-            }
-        }
+        let inserting_new_group_member =
+            service_store.contains_group_without_member(service_group, member_id);
+
         if service_store.insert(service) {
+            if inserting_new_group_member && !check_quorum(service_group) {
+                if let Some(member_id_to_depart) = service_store
+                    .min_member_id_with(service_group, |id| {
+                        member_list.health_of_by_id(id) == Some(Health::Confirmed)
+                    })
+                {
+                    member_list.set_departed(&member_id_to_depart);
+                    rumor_heat.purge(&member_id_to_depart);
+                    rumor_heat.start_hot_rumor(RumorKey::new(
+                        RumorType::Member,
+                        member_id_to_depart,
+                        "",
+                    ));
+                }
+            }
             rumor_heat.start_hot_rumor(rk);
         }
     }
@@ -898,16 +903,15 @@ impl Server {
         )
     }
 
-    fn elections_to_restart_impl<T, F>(
+    fn elections_to_restart_impl<T>(
         elections: &RumorStore<T>,
         service_store: &RumorStore<Service>,
         myself_member_id: &str,
-        check_quorum: F,
+        check_quorum: impl Fn(&str) -> bool,
         member_list: &MemberList,
     ) -> Vec<(String, u64)>
     where
         T: Rumor + ElectionRumor + Debug,
-        F: Fn(&str) -> bool,
     {
         let mut elections_to_restart = vec![];
 
@@ -1255,14 +1259,18 @@ impl<'a> Serialize for ServerProxy<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rumor::{election::Term, service::SysInfo};
+    use crate::rumor::election::Term;
     use habitat_core::service::ServiceGroup;
     use std::str::FromStr;
 
-    fn get_mock_service(member_id: String, service_group: ServiceGroup) -> Service {
+    fn check_quorum_returns(val: bool) -> impl Fn(&str) -> bool {
+        move |_: &str| val
+    }
+
+    fn mock_service(member: &Member) -> Service {
         Service {
-            member_id,
-            service_group,
+            member_id: member.id.clone(),
+            service_group: ServiceGroup::from_str("group.default").unwrap(),
             incarnation: Default::default(),
             initialized: Default::default(),
             pkg: Default::default(),
@@ -1276,17 +1284,16 @@ mod tests {
         env_logger::try_init().ok();
         let suitability = 1;
         let term = 0;
-        let service_group = ServiceGroup::new(None, "baz", "qux", None).unwrap();
         let elections = RumorStore::<Election>::default();
         let service_store = RumorStore::<Service>::default();
-        let myself_member_id = "myself";
+        let myself = Member::default();
         let unknown_leader_member_id = "unknown_leader";
-        let check_quorum = |_: &str| true;
         let member_list = MemberList::new();
+        let service = mock_service(&myself);
 
         let mut election_with_unknown_leader = Election::new(
             unknown_leader_member_id,
-            &service_group,
+            &service.service_group,
             Term::default(),
             suitability,
             true, // has_quorum
@@ -1294,18 +1301,17 @@ mod tests {
         election_with_unknown_leader.finish();
         elections.insert(election_with_unknown_leader);
 
-        let service = get_mock_service(myself_member_id.into(), service_group.clone());
-        service_store.insert(service);
+        service_store.insert(service.clone());
 
         let to_restart = Server::elections_to_restart_impl(
             &elections,
             &service_store,
-            myself_member_id,
-            check_quorum,
+            &myself.id,
+            check_quorum_returns(true),
             &member_list,
         );
 
-        assert_eq!(to_restart, vec![(service_group.to_string(), term)]);
+        assert_eq!(to_restart, vec![(service.service_group.to_string(), term)]);
     }
 
     #[test]
@@ -1313,17 +1319,16 @@ mod tests {
         env_logger::try_init().ok();
         let suitability = 1;
         let term = 0;
-        let service_group = ServiceGroup::new(None, "baz", "qux", None).unwrap();
         let elections = RumorStore::<Election>::default();
         let service_store = RumorStore::<Service>::default();
-        let myself_member_id = "myself";
+        let myself = Member::default();
         let departed_leader = Member::default();
-        let check_quorum = |_: &str| true;
         let member_list = MemberList::new();
+        let service = mock_service(&myself);
 
         let mut election_with_unknown_leader = Election::new(
             departed_leader.id.clone(),
-            &service_group,
+            &service.service_group,
             Term::default(),
             suitability,
             true, // has_quorum
@@ -1331,32 +1336,19 @@ mod tests {
         election_with_unknown_leader.finish();
         elections.insert(election_with_unknown_leader);
 
-        let service = get_mock_service(myself_member_id.into(), service_group.clone());
-        service_store.insert(service);
+        service_store.insert(service.clone());
 
         member_list.insert(departed_leader, Health::Departed);
 
         let to_restart = Server::elections_to_restart_impl(
             &elections,
             &service_store,
-            myself_member_id,
-            check_quorum,
+            &myself.id,
+            check_quorum_returns(true),
             &member_list,
         );
 
-        assert_eq!(to_restart, vec![(service_group.to_string(), term)]);
-    }
-
-    fn mock_service(member: &Member) -> Service {
-        Service {
-            member_id: member.id.clone(),
-            service_group: ServiceGroup::from_str("group.default").unwrap(),
-            incarnation: 0,
-            initialized: true,
-            pkg: "foo/bar".into(),
-            cfg: vec![],
-            sys: SysInfo::default(),
-        }
+        assert_eq!(to_restart, vec![(service.service_group.to_string(), term)]);
     }
 
     impl RumorStore<Service> {
@@ -1378,7 +1370,13 @@ mod tests {
         let member_list = MemberList::new();
         let rumor_heat = RumorHeat::default();
 
-        Server::insert_service_impl(service.clone(), &service_store, &member_list, &rumor_heat);
+        Server::insert_service_impl(
+            service.clone(),
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(false),
+        );
 
         assert!(service_store.contains(&service));
     }
@@ -1401,6 +1399,7 @@ mod tests {
             &service_store,
             &member_list,
             &rumor_heat,
+            check_quorum_returns(false),
         );
 
         assert_eq!(
@@ -1413,6 +1412,7 @@ mod tests {
             &service_store,
             &member_list,
             &rumor_heat,
+            check_quorum_returns(false),
         );
 
         assert_eq!(
@@ -1432,13 +1432,16 @@ mod tests {
         let rumor_heat = RumorHeat::default();
 
         member_list.insert(alive_member.clone(), Health::Alive);
-        member_list.insert(confirmed_member.clone(), Health::Confirmed);
+        // This member will become confirmed later. If it's already Confirmed
+        // when inserted, it could be departed immediately
+        member_list.insert(confirmed_member.clone(), Health::Alive);
 
         Server::insert_service_impl(
             alive_member_service_rumor.clone(),
             &service_store,
             &member_list,
             &rumor_heat,
+            check_quorum_returns(false),
         );
 
         Server::insert_service_impl(
@@ -1446,7 +1449,10 @@ mod tests {
             &service_store,
             &member_list,
             &rumor_heat,
+            check_quorum_returns(false),
         );
+
+        member_list.insert(confirmed_member.clone(), Health::Confirmed);
 
         Server::insert_service_impl(
             Service {
@@ -1456,6 +1462,7 @@ mod tests {
             &service_store,
             &member_list,
             &rumor_heat,
+            check_quorum_returns(false),
         );
 
         assert_eq!(
@@ -1464,6 +1471,45 @@ mod tests {
         );
     }
 
+    #[test]
+    fn insert_service_with_quorum_does_not_depart_confirmed_member() {
+        let alive_member = Member::default();
+        let confirmed_member = Member::default();
+        let confirmed_member_service_rumor = mock_service(&confirmed_member);
+        let alive_member_service_rumor = mock_service(&alive_member);
+        let service_store = RumorStore::default();
+        let member_list = MemberList::new();
+        let rumor_heat = RumorHeat::default();
+
+        member_list.insert(alive_member.clone(), Health::Alive);
+        member_list.insert(confirmed_member.clone(), Health::Confirmed);
+
+        Server::insert_service_impl(
+            confirmed_member_service_rumor.clone(),
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(true),
+        );
+
+        assert_eq!(
+            member_list.health_of(&confirmed_member),
+            Some(Health::Confirmed)
+        );
+
+        Server::insert_service_impl(
+            alive_member_service_rumor.clone(),
+            &service_store,
+            &member_list,
+            &rumor_heat,
+            check_quorum_returns(true),
+        );
+
+        assert_eq!(
+            member_list.health_of(&confirmed_member),
+            Some(Health::Confirmed)
+        );
+    }
     mod myself {
         use super::super::*;
         use crate::member::Member;
