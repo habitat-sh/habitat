@@ -40,9 +40,6 @@
 //!
 //! Start exploring the code base by following the thread of execution in the `server` module.
 
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
-
 use habitat_common as common;
 
 #[macro_use]
@@ -86,6 +83,7 @@ lazy_static! {
 pub struct ServerContext(UnsafeCell<zmq::Context>);
 
 impl ServerContext {
+    #[allow(clippy::mut_from_ref)]
     pub fn as_mut(&self) -> &mut zmq::Context {
         unsafe { &mut *self.0.get() }
     }

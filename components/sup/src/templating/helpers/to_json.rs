@@ -28,7 +28,7 @@ impl HelperDef for ToJsonHelper {
             .value();
         let json = serde_json::to_string_pretty(param)
             .map_err(|e| RenderError::new(format!("Can't serialize parameter to JSON: {}", e)))?;
-        rc.writer.write(json.into_bytes().as_ref())?;
+        rc.writer.write_all(json.into_bytes().as_ref())?;
         Ok(())
     }
 }

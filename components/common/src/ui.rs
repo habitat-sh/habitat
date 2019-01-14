@@ -155,7 +155,7 @@ pub trait UIWriter {
         } else {
             format!("{} {}\n", symbol, message)
         };
-        self.out().write(formatted.as_bytes())?;
+        self.out().write_all(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -173,7 +173,7 @@ pub trait UIWriter {
         } else {
             format!("{} {}\n", symbol, message)
         };
-        self.out().write(formatted.as_bytes())?;
+        self.out().write_all(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -192,7 +192,7 @@ pub trait UIWriter {
         } else {
             format!("{} {} {}\n", symbol, status_str, message)
         };
-        self.out().write(formatted.as_bytes())?;
+        self.out().write_all(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -201,7 +201,7 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.out().write(format!("{}\n", text).as_bytes())?;
+        self.out().write_all(format!("{}\n", text).as_bytes())?;
         self.out().flush()
     }
 
@@ -218,7 +218,7 @@ pub trait UIWriter {
         } else {
             format!("∅ {}\n", message)
         };
-        self.err().write(formatted.as_bytes())?;
+        self.err().write_all(formatted.as_bytes())?;
         self.err().flush()
     }
 
@@ -246,7 +246,7 @@ pub trait UIWriter {
             buf.push_str("✗✗✗\n");
             buf
         };
-        self.err().write(formatted.as_bytes())?;
+        self.err().write_all(formatted.as_bytes())?;
         self.err().flush()
     }
 
@@ -291,7 +291,7 @@ pub trait UIWriter {
         } else {
             format!("{}\n\n", text.as_ref())
         };
-        self.out().write(formatted.as_bytes())?;
+        self.out().write_all(formatted.as_bytes())?;
         self.out().flush()
     }
 
@@ -302,7 +302,7 @@ pub trait UIWriter {
 
     /// Write a line break message`.
     fn br(&mut self) -> io::Result<()> {
-        self.out().write(b"\n")?;
+        self.out().write_all(b"\n")?;
         self.out().flush()
     }
 }

@@ -17,7 +17,6 @@ use crate::error::Result;
 use crate::hcore::package::PackageArchive;
 use serde::Serialize;
 use serde_json::{self, Value as Json};
-use std::io::{self, Write};
 use std::path::Path;
 
 fn convert_to_json<T>(src: &T) -> Json
@@ -36,11 +35,11 @@ pub fn start(ui: &mut UI, src: &Path, to_json: bool) -> Result<()> {
         ui.begin(format!("Reading PackageIdent from {}", &src.display()))?;
         ui.para("")?;
 
-        io::stdout().write(format!("Package Path   : {}\n", &src.display()).as_bytes())?;
-        io::stdout().write(format!("Origin         : {}\n", &ident.origin).as_bytes())?;
-        io::stdout().write(format!("Name           : {}\n", &ident.name).as_bytes())?;
-        io::stdout().write(format!("Version        : {}\n", &ident.version.unwrap()).as_bytes())?;
-        io::stdout().write(format!("Release        : {}\n", &ident.release.unwrap()).as_bytes())?;
+        println!("Package Path   : {}", &src.display());
+        println!("Origin         : {}", &ident.origin);
+        println!("Name           : {}", &ident.name);
+        println!("Version        : {}", &ident.version.unwrap());
+        println!("Release        : {}", &ident.release.unwrap());
     }
     Ok(())
 }

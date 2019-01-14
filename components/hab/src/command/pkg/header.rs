@@ -16,7 +16,6 @@ use std::path::Path;
 
 use crate::common::ui::{UIWriter, UI};
 use crate::hcore::crypto::artifact;
-use std::io::{self, Write};
 
 use crate::error::Result;
 
@@ -24,11 +23,11 @@ pub fn start(ui: &mut UI, src: &Path) -> Result<()> {
     ui.begin(format!("Reading package header for {}", &src.display()))?;
     ui.para("")?;
     if let Ok(header) = artifact::get_artifact_header(src) {
-        io::stdout().write(format!("Package        : {}\n", &src.display()).as_bytes())?;
-        io::stdout().write(format!("Format Version : {}\n", header.format_version).as_bytes())?;
-        io::stdout().write(format!("Key Name       : {}\n", header.key_name).as_bytes())?;
-        io::stdout().write(format!("Hash Type      : {}\n", header.hash_type).as_bytes())?;
-        io::stdout().write(format!("Raw Signature  : {}\n", header.signature_raw).as_bytes())?;
+        println!("Package        : {}", &src.display());
+        println!("Format Version : {}", header.format_version);
+        println!("Key Name       : {}", header.key_name);
+        println!("Hash Type      : {}", header.hash_type);
+        println!("Raw Signature  : {}", header.signature_raw);
     } else {
         ui.warn("Failed to read package header.")?;
     }

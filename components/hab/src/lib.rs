@@ -13,8 +13,6 @@
 // limitations under the License.
 
 #![recursion_limit = "128"]
-#![cfg_attr(feature = "clippy", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
 
 use habitat_api_client as api_client;
 use habitat_common as common;

@@ -12,7 +12,6 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-clippy = {version = "*", optional = true}
 byteorder = "*"
 bytes = "*"
 env_logger = "*"

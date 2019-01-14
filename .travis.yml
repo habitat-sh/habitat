@@ -64,6 +64,7 @@ matrix:
           - "$HOME/pkgs"
       before_script:
         - rustup component add rustfmt-preview
+        - rustup component add clippy
       before_install:
         - ./support/ci/fast_pass.sh || exit 0
         - ./support/ci/compile_libsodium.sh
@@ -72,6 +73,7 @@ matrix:
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
+        - make lint-$COMPONENTS
 
 #
 # Job for testing Habitat Rust crate components
@@ -110,9 +112,11 @@ matrix:
         - ./support/ci/compile_zmq.sh
       before_script:
         - rustup component add rustfmt-preview
+        - rustup component add clippy
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
+        - make lint-$COMPONENTS
 
 # Web Jobs
 ########################################################################
