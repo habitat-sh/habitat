@@ -24,6 +24,7 @@ function parseOutput(command, output) {
   const sectionToken = '\^/--IMATOKEN--\^/';
 
   const lines = output.split('\n');
+  // TODO: Fix spacing issues when options include a line break between the option name and description.
   const sections = output.replace(/\n\n(.+):\n/g, sectionToken + '$1:').split(sectionToken);
 
   let result = {
