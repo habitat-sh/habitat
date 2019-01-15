@@ -12,6 +12,7 @@
 - Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
+- Add 0.73.0 blog post [#6057](https://github.com/habitat-sh/habitat/pull/6057) ([raskchanky](https://github.com/raskchanky))
 - Add jamesc to some code areas in CODEOWNERS [#6050](https://github.com/habitat-sh/habitat/pull/6050) ([jamesc](https://github.com/jamesc))
 - fixes problem when newlines exist in CTL_SECRET file [#6022](https://github.com/habitat-sh/habitat/pull/6022) ([jeremymv2](https://github.com/jeremymv2))
 - fix and clarify release issues found in 0.72.0 release [#6039](https://github.com/habitat-sh/habitat/pull/6039) ([mwrock](https://github.com/mwrock))
