@@ -1,5 +1,5 @@
 #[allow(dead_code)]
-const VERSION_ENVVAR: &'static str = "PLAN_VERSION";
+const VERSION_ENVVAR: &str = "PLAN_VERSION";
 
 #[allow(dead_code)]
 mod builder {
@@ -81,7 +81,8 @@ mod util {
         let mut f = File::create(
             Path::new(&env::var("OUT_DIR").expect("Failed to read OUT_DIR environment variable"))
                 .join(filename),
-        ).expect("Failed to create OUT_DIR file");
+        )
+        .expect("Failed to create OUT_DIR file");
         f.write_all(content.as_ref().trim().as_bytes())
             .expect("Failed to write to OUT_DIR file");
     }

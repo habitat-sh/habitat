@@ -6,7 +6,7 @@ use crate::common::command::package::install::InstallSource;
 use url::Url;
 
 /// The version of this library and program when built.
-pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 #[derive(Clone)]
 pub struct Cli<'a, 'b>

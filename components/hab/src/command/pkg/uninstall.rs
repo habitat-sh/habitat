@@ -128,7 +128,7 @@ pub fn start(
                         )?;
 
                         graph.remove(&p);
-                        count = count + 1;
+                        count += 1;
                     }
                     Some(c) => {
                         ui.status(
@@ -169,8 +169,8 @@ fn maybe_delete(
     fs_root_path: &Path,
     install: &PackageInstall,
     strategy: &ExecutionStrategy,
-    excludes: &Vec<PackageIdent>,
-    services: &Vec<PackageIdent>,
+    excludes: &[PackageIdent],
+    services: &[PackageIdent],
 ) -> Result<bool> {
     let ident = install.ident();
     let pkg_root_path = hfs::pkg_root_path(Some(fs_root_path));
@@ -237,7 +237,7 @@ fn do_clean_delete(pkg_root_path: &Path, real_install_path: &Path) -> Result<boo
                 match p.read_dir() {
                     Ok(contents) => {
                         // This will calculate the amount of items in the directory
-                        match contents.collect::<Vec<_>>().len() {
+                        match contents.count() {
                             0 => fs::remove_dir(&p)?,
                             _ => break,
                         }

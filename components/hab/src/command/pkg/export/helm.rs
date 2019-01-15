@@ -18,10 +18,10 @@ use crate::common::ui::UI;
 
 use crate::error::Result;
 
-const EXPORT_CMD: &'static str = "hab-pkg-export-helm";
-const EXPORT_CMD_ENVVAR: &'static str = "HAB_PKG_EXPORT_HELM_BINARY";
-const EXPORT_PKG_IDENT: &'static str = "core/hab-pkg-export-helm";
-const EXPORT_PKG_IDENT_ENVVAR: &'static str = "HAB_PKG_EXPORT_HELM_PKG_IDENT";
+const EXPORT_CMD: &str = "hab-pkg-export-helm";
+const EXPORT_CMD_ENVVAR: &str = "HAB_PKG_EXPORT_HELM_BINARY";
+const EXPORT_PKG_IDENT: &str = "core/hab-pkg-export-helm";
+const EXPORT_PKG_IDENT_ENVVAR: &str = "HAB_PKG_EXPORT_HELM_PKG_IDENT";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     crate::command::pkg::export::export_common::start(

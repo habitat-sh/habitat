@@ -122,12 +122,13 @@ impl DerefMut for SwimNet {
 
 impl SwimNet {
     pub fn new_with_suitability(suitabilities: Vec<u64>) -> SwimNet {
-        let count = suitabilities.len();
-        let mut members = Vec::with_capacity(count);
-        for x in 0..count {
-            members.push(start_server(&format!("{}", x), None, suitabilities[x]));
+        SwimNet {
+            members: suitabilities
+                .into_iter()
+                .enumerate()
+                .map(|(x, suitability)| start_server(&format!("{}", x), None, suitability))
+                .collect(),
         }
-        SwimNet { members: members }
     }
 
     pub fn new(count: usize) -> SwimNet {
@@ -165,12 +166,10 @@ impl SwimNet {
                 if pos == x_pos {
                     continue;
                 }
-                let server_b = self.members.get(x_pos).unwrap();
-                to_mesh.push(member_from_server(server_b))
+                to_mesh.push(member_from_server(&self.members[x_pos]))
             }
-            let server_a = self.members.get(pos).unwrap();
             for server_b in to_mesh.into_iter() {
-                server_a.insert_member(server_b, Health::Alive);
+                self.members[pos].insert_member(server_b, Health::Alive);
             }
         }
     }
@@ -250,24 +249,22 @@ impl SwimNet {
         self.gossip_rounds().iter().map(|r| r + count).collect()
     }
 
-    pub fn check_rounds(&self, rounds_in: &Vec<isize>) -> bool {
-        let mut finished = Vec::with_capacity(rounds_in.len());
-        for (i, round) in rounds_in.into_iter().enumerate() {
-            if self.members[i].paused() {
-                finished.push(true);
-            } else {
-                if self.members[i].swim_rounds() > *round {
-                    finished.push(true);
-                } else {
-                    finished.push(false);
-                }
+    fn check_rounds_impl(
+        &self,
+        rounds_in: &[isize],
+        get_rounds: impl Fn(&Server) -> isize,
+    ) -> bool {
+        for (member, round) in self.members.iter().zip(rounds_in) {
+            if !member.paused() && (get_rounds)(member) <= *round {
+                return false;
             }
         }
-        if finished.iter().all(|m| m == &true) {
-            return true;
-        } else {
-            return false;
-        }
+
+        true
+    }
+
+    pub fn check_rounds(&self, rounds_in: &[isize]) -> bool {
+        self.check_rounds_impl(rounds_in, Server::swim_rounds)
     }
 
     pub fn wait_for_rounds(&self, rounds: isize) {
@@ -280,24 +277,8 @@ impl SwimNet {
         }
     }
 
-    pub fn check_gossip_rounds(&self, rounds_in: &Vec<isize>) -> bool {
-        let mut finished = Vec::with_capacity(rounds_in.len());
-        for (i, round) in rounds_in.into_iter().enumerate() {
-            if self.members[i].paused() {
-                finished.push(true);
-            } else {
-                if self.members[i].gossip_rounds() > *round {
-                    finished.push(true);
-                } else {
-                    finished.push(false);
-                }
-            }
-        }
-        if finished.iter().all(|m| m == &true) {
-            return true;
-        } else {
-            return false;
-        }
+    pub fn check_gossip_rounds(&self, rounds_in: &[isize]) -> bool {
+        self.check_rounds_impl(rounds_in, Server::gossip_rounds)
     }
 
     #[allow(dead_code)]
@@ -428,13 +409,7 @@ impl SwimNet {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
             let network_health = self.network_health_of(to_check);
-            if network_health.iter().all(|x| {
-                if let &Some(ref h) = x {
-                    *h == health
-                } else {
-                    false
-                }
-            }) {
+            if network_health.iter().all(|&x| x == Some(health)) {
                 trace_it!(
                     TEST_NET: self,
                     format!(
@@ -448,11 +423,11 @@ impl SwimNet {
             } else if self.check_rounds(&rounds_in) {
                 for (i, some_health) in network_health.iter().enumerate() {
                     match some_health {
-                        &Some(ref health) => {
+                        Some(ref health) => {
                             println!("{}: {:?}", i, health);
                             trace_it!(TEST: &self.members[i], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                         }
-                        &None => {}
+                        None => {}
                     }
                 }
                 // println!("Failed network health check dump: {:#?}", self);

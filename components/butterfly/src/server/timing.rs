@@ -24,7 +24,7 @@ const SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS: i64 = 3;
 const GOSSIP_PERIOD_DEFAULT_MS: i64 = 1000;
 /// How long before we set a confirmed member to a departed member, removing them from quorums
 ///   just for your own sanity - this is 3 days.
-const DEPARTURE_TIMEOUT_DEFAULT_MS: i64 = 259200000;
+const DEPARTURE_TIMEOUT_DEFAULT_MS: i64 = 259_200_000;
 
 /// The timing of the outbound threads.
 #[derive(Debug, Clone)]

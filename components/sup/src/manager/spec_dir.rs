@@ -9,9 +9,9 @@ use glob;
 use super::service::spec::ServiceSpec;
 use crate::error::{Error, Result};
 
-static LOGKEY: &'static str = "SD";
-const SPEC_FILE_EXT: &'static str = "spec";
-const SPEC_FILE_GLOB: &'static str = "*.spec";
+static LOGKEY: &str = "SD";
+const SPEC_FILE_EXT: &str = "spec";
+const SPEC_FILE_GLOB: &str = "*.spec";
 
 #[derive(Debug, Clone)]
 pub struct SpecDir(PathBuf);

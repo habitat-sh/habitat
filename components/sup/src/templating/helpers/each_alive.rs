@@ -48,7 +48,7 @@ impl HelperDef for EachAliveHelper {
                         })
                         .collect();
                     let len = alive_members.len();
-                    for i in 0..len {
+                    for (i, alive_member) in alive_members.iter().enumerate() {
                         let mut local_rc = rc.derive();
                         local_rc.set_local_var("@first".to_string(), to_json(&(i == 0usize)));
                         local_rc.set_local_var("@last".to_string(), to_json(&(i == len - 1)));
@@ -56,7 +56,7 @@ impl HelperDef for EachAliveHelper {
 
                         if let Some(block_param) = h.block_param() {
                             let mut map = BTreeMap::new();
-                            map.insert(block_param.to_string(), to_json(&alive_members[i]));
+                            map.insert(block_param.to_string(), to_json(alive_member));
                             local_rc.push_block_context(&map)?;
                         }
 

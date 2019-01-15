@@ -84,11 +84,11 @@ impl Sys {
         sys_info.ip = self.ip.to_string();
         sys_info.hostname = self.hostname.clone();
         sys_info.gossip_ip = self.gossip_ip.to_string();
-        sys_info.gossip_port = self.gossip_port as u32;
+        sys_info.gossip_port = u32::from(self.gossip_port);
         sys_info.ctl_gateway_ip = self.ctl_gateway_ip.to_string();
-        sys_info.ctl_gateway_port = self.ctl_gateway_port as u32;
+        sys_info.ctl_gateway_port = u32::from(self.ctl_gateway_port);
         sys_info.http_gateway_ip = self.http_gateway_ip.to_string();
-        sys_info.http_gateway_port = self.http_gateway_port as u32;
+        sys_info.http_gateway_port = u32::from(self.http_gateway_port);
         sys_info
     }
 

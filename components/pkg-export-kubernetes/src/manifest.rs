@@ -74,7 +74,7 @@ impl Manifest {
             .value_of("TOPOLOGY")
             .unwrap_or("standalone")
             .parse()
-            .unwrap_or(Default::default());
+            .unwrap_or_default();
         let group = matches.value_of("GROUP").map(|s| s.to_string());
         let config_file = matches.value_of("CONFIG");
         let ring_secret_name = matches.value_of("RING_SECRET_NAME").map(|s| s.to_string());
@@ -95,7 +95,7 @@ impl Manifest {
                 .release
                 .as_ref()
                 .map(|r| format!("{}-{}", v, r))
-                .unwrap_or(v.to_string()),
+                .unwrap_or_else(|| v.to_string()),
             None => "latest".to_owned(),
         };
         let name = matches
@@ -134,7 +134,7 @@ impl Manifest {
                 let mut contents = String::new();
                 File::open(name)?.read_to_string(&mut contents)?;
 
-                Some(base64::encode(&format!("{}", contents)))
+                Some(base64::encode(&contents))
             }
         };
 
@@ -175,7 +175,7 @@ mod tests {
             count: 3,
             service_topology: Default::default(),
             service_group: Some("group1".to_owned()),
-            config: Some(base64::encode(&format!("{}", "port = 4444"))),
+            config: Some(base64::encode(&"port = 4444")),
             ring_secret_name: Some("deltaechofoxtrot".to_owned()),
             binds: vec![],
             persistent_storage: None,

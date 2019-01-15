@@ -23,12 +23,12 @@ use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::Error;
 use crate::export_docker::Result;
 
-pub const DEFAULT_OPERATOR_VERSION: &'static str = "0.6.1";
-pub const OPERATOR_REPO_URL: &'static str = "https://habitat-sh.github.io/\
-                                             habitat-operator/helm/charts/stable/";
+pub const DEFAULT_OPERATOR_VERSION: &str = "0.6.1";
+pub const OPERATOR_REPO_URL: &str = "https://habitat-sh.github.io/\
+                                     habitat-operator/helm/charts/stable/";
 
 // Helm requirements.yaml template
-const DEPSFILE: &'static str = include_str!("../defaults/HelmDeps.hbs");
+const DEPSFILE: &str = include_str!("../defaults/HelmDeps.hbs");
 
 pub struct Deps {
     operator_version: String,

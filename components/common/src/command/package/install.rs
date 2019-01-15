@@ -151,10 +151,7 @@ impl FromStr for InstallSource {
                 // one string, such as `"x86_64-linux::core/redis"` (or similar). As there is
                 // currently no such representation, I'd argue that this `FromStr` is no longer
                 // reasonable. However, it's doing the job for now and we can proceed with caution.
-                Ok(ident) => Ok(InstallSource::Ident(
-                    ident,
-                    PackageTarget::active_target().clone(),
-                )),
+                Ok(ident) => Ok(InstallSource::Ident(ident, *PackageTarget::active_target())),
                 Err(e) => Err(e),
             }
         }
@@ -287,10 +284,12 @@ impl<'a> FullyQualifiedPackageIdent<'a> {
     }
 
     fn archive_name(&self) -> String {
-        self.ident.as_ref().archive_name().expect(&format!(
-            "PackageIdent {} should be fully qualified",
-            self.ident.as_ref()
-        ))
+        self.ident.as_ref().archive_name().unwrap_or_else(|_| {
+            panic!(
+                "PackageIdent {} should be fully qualified",
+                self.ident.as_ref()
+            )
+        })
     }
 }
 
@@ -697,20 +696,18 @@ impl<'a> InstallTask<'a> {
             );
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
-        } else {
-            if retry(
-                RETRIES,
-                RETRY_WAIT,
-                || self.fetch_artifact(ui, ident, target, token),
-                |res| res.is_ok(),
-            )
-            .is_err()
-            {
-                return Err(Error::DownloadFailed(format!(
-                    "We tried {} times but could not download {}. Giving up.",
-                    RETRIES, ident
-                )));
-            }
+        } else if retry(
+            RETRIES,
+            RETRY_WAIT,
+            || self.fetch_artifact(ui, ident, target, token),
+            |res| res.is_ok(),
+        )
+        .is_err()
+        {
+            return Err(Error::DownloadFailed(format!(
+                "We tried {} times but could not download {}. Giving up.",
+                RETRIES, ident
+            )));
         }
 
         let mut artifact = PackageArchive::new(self.cached_artifact_path(ident));
@@ -740,7 +737,7 @@ impl<'a> InstallTask<'a> {
                     // was created while we were unpacking. If the
                     // package now exists, ignore the failure.
                     debug!("rename failed with {:?}, checking for installed package", e);
-                    if PackageInstall::load(ident.as_ref(), Some(self.fs_root_path)).is_err() {
+                    if PackageInstall::load(ident, Some(self.fs_root_path)).is_err() {
                         return Err(Error::from(e));
                     }
                 }
@@ -826,18 +823,16 @@ impl<'a> InstallTask<'a> {
         {
             let mut artifact = PackageArchive::new(&file);
             let artifact_ident = artifact.ident().ok();
-            if let None = artifact_ident {
+            if artifact_ident.is_none() {
                 continue;
             }
             let artifact_ident = artifact_ident.unwrap();
             if artifact_ident.origin == ident.origin && artifact_ident.name == ident.name {
                 if latest.is_empty() {
                     latest.push((artifact_ident, artifact));
-                } else {
-                    if artifact_ident > latest[0].0 {
-                        let _ = latest.pop();
-                        latest.push((artifact_ident, artifact));
-                    }
+                } else if artifact_ident > latest[0].0 {
+                    latest.pop();
+                    latest.push((artifact_ident, artifact));
                 }
             }
         }
@@ -948,17 +943,15 @@ impl<'a> InstallTask<'a> {
         // Canonicalize both paths to ensure that there aren't any symlinks when comparing them
         // later. These calls can fail under certain circumstances, so we warn, allow failure and
         // try to continue.
-        let artifact_path = if let Some(canonicalized) = artifact_path.canonicalize().ok() {
-            canonicalized
-        } else {
-            artifact_path.to_path_buf()
-        };
+        let artifact_path = artifact_path
+            .canonicalize()
+            .unwrap_or_else(|_| artifact_path.to_path_buf());
         fs::create_dir_all(self.artifact_cache_path)?;
-        let cache_path = if let Some(canonicalized) = self.artifact_cache_path.canonicalize().ok() {
-            canonicalized.join(ident.archive_name())
-        } else {
-            self.artifact_cache_path.join(ident.archive_name())
-        };
+        let cache_path = self
+            .artifact_cache_path
+            .canonicalize()
+            .unwrap_or_else(|_| self.artifact_cache_path.to_path_buf())
+            .join(ident.archive_name());
 
         // Handle the pathological case where you're trying to install
         // an artifact file directly from the cache. Otherwise, you'd
@@ -1008,13 +1001,13 @@ impl<'a> InstallTask<'a> {
         let active_target = PackageTarget::active_target();
         if active_target != &artifact_target {
             return Err(Error::HabitatCore(hcore::Error::WrongActivePackageTarget(
-                active_target.clone(),
-                artifact_target.clone(),
+                *active_target,
+                artifact_target,
             )));
         }
 
         let nwr = artifact::artifact_signer(&artifact.path)?;
-        if let Err(_) = SigKeyPair::get_public_key_path(&nwr, self.key_cache_path) {
+        if SigKeyPair::get_public_key_path(&nwr, self.key_cache_path).is_err() {
             self.fetch_origin_key(ui, &nwr)?;
         }
 
@@ -1092,10 +1085,11 @@ impl<'a> InstallTask<'a> {
         };
 
         for channel in channels.iter().map(|c| Channel::new(c)) {
-            match self.fetch_latest_pkg_ident_in_channel_for(ident, target, &channel, token) {
-                Ok(pkg) => res.push((channel.to_string(), format!("{}", pkg))),
-                Err(_) => (),
-            };
+            if let Ok(pkg) =
+                self.fetch_latest_pkg_ident_in_channel_for(ident, target, &channel, token)
+            {
+                res.push((channel.to_string(), format!("{}", pkg)));
+            }
         }
 
         Ok(res)

@@ -283,10 +283,12 @@ impl DatFile {
     /// On windows this function does nothing.
     #[cfg(unix)]
     fn sync_parent_dir(&self) -> Result<()> {
-        let parent = self.path.parent().ok_or(Error::DatFileIO(
-            self.path.clone(),
-            io::Error::new(io::ErrorKind::Other, "Dat file has no parent directory"),
-        ))?;
+        let parent = self.path.parent().ok_or_else(|| {
+            Error::DatFileIO(
+                self.path.clone(),
+                io::Error::new(io::ErrorKind::Other, "Dat file has no parent directory"),
+            )
+        })?;
         fs::File::open(parent)
             .and_then(|f| f.sync_all())
             .map_err(|err| Error::DatFileIO(parent.to_path_buf(), err))?;

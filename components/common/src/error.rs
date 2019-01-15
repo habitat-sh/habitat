@@ -64,17 +64,17 @@ impl fmt::Display for Error {
                 ai, a, i
             ),
             Error::CantUploadGossipToml => {
-                format!("Can't upload gossip.toml, it's a reserved file name")
+                "Can't upload gossip.toml, it's a reserved file name".to_string()
             }
-            Error::ChannelNotFound => format!("Channel not found"),
+            Error::ChannelNotFound => "Channel not found".to_string(),
             Error::CryptoKeyError(ref s) => format!("Missing or invalid key: {}", s),
             Error::GossipFileRelativePath(ref s) => format!(
                 "Path for gossip file cannot have relative components (eg: ..): {}",
                 s
             ),
-            Error::DownloadFailed(ref msg) => format!("{}", msg),
-            Error::EditStatus => format!("Failed edit text command"),
-            Error::FileNameError => format!("Failed to extract a filename"),
+            Error::DownloadFailed(ref msg) => msg.to_string(),
+            Error::EditStatus => "Failed edit text command".to_string(),
+            Error::FileNameError => "Failed to extract a filename".to_string(),
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::IO(ref err) => format!("{}", err),
             Error::NetParseError(ref err) => format!("{}", err),

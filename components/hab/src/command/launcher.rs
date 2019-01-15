@@ -40,14 +40,14 @@ mod inner {
     use crate::exec;
     use crate::VERSION;
 
-    const LAUNCH_CMD: &'static str = "hab-launch";
-    const LAUNCH_CMD_ENVVAR: &'static str = "HAB_LAUNCH_BINARY";
-    const LAUNCH_PKG_IDENT: &'static str = "core/hab-launcher";
+    const LAUNCH_CMD: &str = "hab-launch";
+    const LAUNCH_CMD_ENVVAR: &str = "HAB_LAUNCH_BINARY";
+    const LAUNCH_PKG_IDENT: &str = "core/hab-launcher";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         init();
         if henv::var(SUP_CMD_ENVVAR).is_err() {
-            let version: Vec<&str> = VERSION.split("/").collect();
+            let version: Vec<&str> = VERSION.split('/').collect();
             exec::command_from_min_pkg(
                 ui,
                 SUP_CMD,
@@ -60,18 +60,18 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let cmd = exec::command_from_min_pkg(
+                exec::command_from_min_pkg(
                     ui,
                     LAUNCH_CMD,
                     &PackageIdent::from_str(LAUNCH_PKG_IDENT)?,
                     &default_cache_key_path(None),
                     0,
-                )?;
-                PathBuf::from(cmd)
+                )?
             }
         };
         if let Some(cmd) = find_command(&command) {
-            Ok(process::become_command(cmd, args)?)
+            process::become_command(cmd, args)?;
+            Ok(())
         } else {
             Err(Error::ExecCommandNotFound(command))
         }

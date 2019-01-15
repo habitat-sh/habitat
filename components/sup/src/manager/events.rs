@@ -70,7 +70,7 @@ impl EventsCli {
         if let Some(cg) = census.census_group_for(&self.group) {
             // JW TODO: We're over allocating here. We should determine who we are already
             // connected to before we generate an addr list.
-            let addrs = cg.members().iter().map(|m| eventsrv_addr(&m)).collect();
+            let addrs = cg.members().map(|m| eventsrv_addr(&m)).collect();
             self.tx.send(Command::TryConnect(addrs)).unwrap();
         }
     }
@@ -126,18 +126,8 @@ impl EventsMgr {
 fn eventsrv_addr(member: &CensusMember) -> EventSrvAddr {
     let mut addr = EventSrvAddr::default();
     addr.host = IpAddr::from_str(&member.sys.ip).unwrap();
-    addr.consumer_port = member
-        .cfg
-        .get("consumer_port")
-        .unwrap()
-        .as_integer()
-        .unwrap() as u16;
-    addr.producer_port = member
-        .cfg
-        .get("producer_port")
-        .unwrap()
-        .as_integer()
-        .unwrap() as u16;
+    addr.consumer_port = member.cfg["consumer_port"].as_integer().unwrap() as u16;
+    addr.producer_port = member.cfg["producer_port"].as_integer().unwrap() as u16;
     addr
 }
 

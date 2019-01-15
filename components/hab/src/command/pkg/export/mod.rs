@@ -76,7 +76,7 @@ mod inner {
     use crate::VERSION;
 
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
-        let version: Vec<_> = VERSION.split("/").collect();
+        let version: Vec<_> = VERSION.split('/').collect();
         match value {
             "aci" => {
                 let format = ExportFormat {

@@ -64,20 +64,19 @@ impl Client {
         T: ToString,
     {
         let config = config.to_string();
+        let config = config.as_bytes();
 
         // Validate the TOML, to save you from typos in your tests
-        if let Err(err) = self::toml::de::from_slice::<self::toml::value::Value>(&config.as_bytes())
-        {
+        if let Err(err) = self::toml::de::from_slice::<self::toml::value::Value>(&config) {
             panic!("Invalid TOML! {:?} ==> {:?}", config, err);
         }
 
-        let payload = Vec::from(config.as_bytes());
         let incarnation = Self::new_incarnation();
         self.butterfly_client
             .send_service_config(
                 ServiceGroup::new(None, &self.package_name, &self.service_group, None).unwrap(),
                 incarnation,
-                payload,
+                config,
                 false,
             )
             .expect("Cannot send the service configuration");

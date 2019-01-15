@@ -39,7 +39,7 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
-            Error::AcceptConn => format!("Unable to accept connection from Launcher"),
+            Error::AcceptConn => "Unable to accept connection from Launcher".to_string(),
             Error::BadPipe(ref e) => format!("Unable to open pipe to Launcher, {}", e),
             Error::Connect(ref e) => format!("Unable to connect to Launcher's pipe, {}", e),
             Error::Deserialize(ref e) => {

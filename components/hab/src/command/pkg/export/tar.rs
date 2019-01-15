@@ -18,7 +18,7 @@ use crate::common::ui::UI;
 
 use crate::error::Result;
 
-const EXPORT_CMD: &'static str = "hab-pkg-export-tar";
+const EXPORT_CMD: &str = "hab-pkg-export-tar";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
@@ -42,9 +42,9 @@ mod inner {
     use crate::exec;
     use crate::VERSION;
 
-    const EXPORT_CMD_ENVVAR: &'static str = "HAB_PKG_EXPORT_TAR_BINARY";
-    const EXPORT_PKG_IDENT: &'static str = "core/hab-pkg-export-tar";
-    const EXPORT_PKG_IDENT_ENVVAR: &'static str = "HAB_PKG_EXPORT_TAR_PKG_IDENT";
+    const EXPORT_CMD_ENVVAR: &str = "HAB_PKG_EXPORT_TAR_BINARY";
+    const EXPORT_PKG_IDENT: &str = "core/hab-pkg-export-tar";
+    const EXPORT_PKG_IDENT_ENVVAR: &str = "HAB_PKG_EXPORT_TAR_PKG_IDENT";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let command = match henv::var(EXPORT_CMD_ENVVAR) {
@@ -54,22 +54,22 @@ mod inner {
                 let ident = match henv::var(EXPORT_PKG_IDENT_ENVVAR) {
                     Ok(ref ident_str) => PackageIdent::from_str(ident_str)?,
                     Err(_) => {
-                        let version: Vec<&str> = VERSION.split("/").collect();
+                        let version: Vec<&str> = VERSION.split('/').collect();
                         PackageIdent::from_str(&format!("{}/{}", EXPORT_PKG_IDENT, version[0]))?
                     }
                 };
-                let cmd = exec::command_from_min_pkg(
+                exec::command_from_min_pkg(
                     ui,
                     EXPORT_CMD,
                     &ident,
                     &default_cache_key_path(None),
                     0,
-                )?;
-                PathBuf::from(cmd)
+                )?
             }
         };
         if let Some(cmd) = find_command(&command) {
-            Ok(process::become_command(cmd, args)?)
+            process::become_command(cmd, args)?;
+            Ok(())
         } else {
             Err(Error::ExecCommandNotFound(command))
         }

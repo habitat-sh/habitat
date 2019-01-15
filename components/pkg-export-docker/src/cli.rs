@@ -23,7 +23,7 @@ use url::Url;
 use crate::RegistryType;
 
 /// The version of this library and program when built.
-pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// A Docker-specific clap:App wrapper
 #[derive(Clone)]

@@ -54,7 +54,7 @@ impl Push {
     /// all FANOUT targets faster than `Timing::GOSSIP_PERIOD_DEFAULT_MS`, we will block until we
     /// exceed that time.
     pub fn run(&mut self) {
-        'send: loop {
+        loop {
             if self.server.pause.load(Ordering::Relaxed) {
                 thread::sleep(Duration::from_millis(100));
                 continue;
@@ -67,7 +67,7 @@ impl Push {
 
             'fanout: loop {
                 let mut thread_list = Vec::with_capacity(FANOUT);
-                if check_list.len() == 0 {
+                if check_list.is_empty() {
                     break 'fanout;
                 }
                 let drain_length = if check_list.len() >= FANOUT {
@@ -89,7 +89,7 @@ impl Push {
                         && !self.server.member_list.persistent_and_confirmed(&member)
                     {
                         let rumors = self.server.rumor_heat.currently_hot_rumors(&member.id);
-                        if rumors.len() > 0 {
+                        if !rumors.is_empty() {
                             let sc = self.server.clone();
 
                             let guard = match thread::Builder::new()
@@ -173,7 +173,7 @@ impl PushWorker {
                 return;
             }
         }
-        'rumorlist: for ref rumor_key in rumors.iter() {
+        'rumorlist: for rumor_key in rumors.iter() {
             let rumor_as_bytes = match rumor_key.kind {
                 RumorType::Member => {
                     let send_rumor = match self.create_member_rumor(&rumor_key) {

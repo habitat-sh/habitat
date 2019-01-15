@@ -70,16 +70,13 @@ pub fn start(ui: &mut UI) -> Result<()> {
             Status::Adding,
             format!("files from {}", &sup_root.display()),
         )?;
-        match tar.append_dir_all(format!("hab{}sup", MAIN_SEPARATOR), &sup_root) {
-            Err(why) => {
-                ui.fatal(format!(
-                    "Failed to add all files into the tarball: {:?}",
-                    why.description()
-                ))?;
-                fs::remove_file(&tarball_name)?;
-                process::exit(1)
-            }
-            Ok(_) => {}
+        if let Err(why) = tar.append_dir_all(format!("hab{}sup", MAIN_SEPARATOR), &sup_root) {
+            ui.fatal(format!(
+                "Failed to add all files into the tarball: {:?}",
+                why.description()
+            ))?;
+            fs::remove_file(&tarball_name)?;
+            process::exit(1);
         }
     } else {
         ui.fatal(format!(

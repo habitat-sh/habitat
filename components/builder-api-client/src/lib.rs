@@ -53,7 +53,7 @@ use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
 
-const DEFAULT_API_PATH: &'static str = "/v1";
+const DEFAULT_API_PATH: &str = "/v1";
 
 #[derive(Clone, Deserialize)]
 #[serde(rename = "error")]
@@ -127,9 +127,9 @@ impl fmt::Display for SchedulerResponse {
             output.push(format!("Created at: {}", c.to_string()));
         }
 
-        if self.projects.len() > 0 {
+        if !self.projects.is_empty() {
             output.push("".to_string());
-            output.push(format!("Reverse dependencies:"));
+            output.push("Reverse dependencies:".to_string());
             let mut projects = self.projects.clone();
             projects.sort_by(|a, b| a.ident.cmp(&b.ident));
 
@@ -163,6 +163,7 @@ pub struct JobGroupPromoteResponse {
 mod json_u64 {
     use serde::{self, Deserialize, Deserializer, Serializer};
 
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn serialize<S>(num: &u64, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -640,7 +641,6 @@ impl Client {
         debug!("Response body: {:?}", encoded);
         let channels: Vec<String> = serde_json::from_str::<Vec<String>>(&encoded)?
             .into_iter()
-            .map(|m| m.into())
             .collect();
         Ok(channels)
     }
@@ -805,7 +805,7 @@ impl Client {
         });
 
         match self.download(req_builder, dst_path.as_ref(), token, progress) {
-            Ok(file) => Ok(PackageArchive::new(PathBuf::from(file))),
+            Ok(file) => Ok(PackageArchive::new(file)),
             Err(e) => Err(e),
         }
     }
@@ -1042,16 +1042,13 @@ impl Client {
         include_sandbox_channels: bool,
     ) -> Result<Vec<String>> {
         let path = format!("depot/channels/{}", origin);
-        let mut res;
-
-        if include_sandbox_channels {
-            res = self
-                .0
+        let mut res = if include_sandbox_channels {
+            self.0
                 .get_with_custom_url(&path, |url| url.set_query(Some("sandbox=true")))
-                .send()?;
+                .send()?
         } else {
-            res = self.0.get(&path).send()?;
-        }
+            self.0.get(&path).send()?
+        };
 
         match res.status {
             StatusCode::Ok | StatusCode::PartialContent => {
@@ -1309,8 +1306,8 @@ mod tests {
     #[test]
     fn json_round_trip_u64_fields() {
         let pre = OriginPrivateSigningKey {
-            id: 705705315793903646,
-            origin_id: 705705305031319582,
+            id: 705_705_315_793_903_646,
+            origin_id: 705_705_305_031_319_582,
             name: "core".to_string(),
             revision: "20160810182414".to_string(),
             body: vec![1, 2, 3],

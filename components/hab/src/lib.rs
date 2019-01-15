@@ -51,18 +51,18 @@ pub mod error;
 mod exec;
 pub mod scaffolding;
 
-pub const PRODUCT: &'static str = "hab";
-pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-pub const CTL_SECRET_ENVVAR: &'static str = "HAB_CTL_SECRET";
-pub const ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
-pub const BLDR_URL_ENVVAR: &'static str = "HAB_BLDR_URL";
+pub const PRODUCT: &str = "hab";
+pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+pub const CTL_SECRET_ENVVAR: &str = "HAB_CTL_SECRET";
+pub const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
+pub const BLDR_URL_ENVVAR: &str = "HAB_BLDR_URL";
 
 pub use crate::hcore::AUTH_TOKEN_ENVVAR;
 
 features! {
     pub mod feat {
-        const List = 0b00000001,
-        const OfflineInstall = 0b00000010,
-        const IgnoreLocal = 0b00000100
+        const List           = 0b0000_0001,
+        const OfflineInstall = 0b0000_0010,
+        const IgnoreLocal    = 0b0000_0100
     }
 }

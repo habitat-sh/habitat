@@ -41,7 +41,7 @@ impl fmt::Display for CliTestError {
             ),
             CliTestError::MissingFlag(flag) => format!("Expected {} flag was missing.", flag),
             CliTestError::MissingSubcmd() => {
-                format!("Expected a subcommand, but none was specified")
+                "Expected a subcommand, but none was specified".to_string()
             }
             CliTestError::ClapError(err) => format!(
                 r#"
@@ -97,7 +97,7 @@ fn assert_matches(
         match expected_value {
             Value(expected) => match matches.value_of(flag) {
                 Some(actual) => {
-                    if actual != expected.to_string() {
+                    if actual != expected {
                         errs.push(CliTestError::ValueMismatch(
                             flag.to_string(),
                             expected.to_string(),

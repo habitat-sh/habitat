@@ -30,11 +30,11 @@ pub fn start(
 
     if group {
         let rdeps = api_client.fetch_rdeps(ident).map_err(Error::APIClient)?;
-        if rdeps.len() > 0 {
+        if !rdeps.is_empty() {
             ui.warn("Found the following reverse dependencies:")?;
 
             for rdep in rdeps {
-                ui.warn(format!("{}", rdep))?;
+                ui.warn(rdep.to_string())?;
             }
 
             let question = "If you choose to start a group build for this package, \

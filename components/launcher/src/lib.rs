@@ -26,5 +26,5 @@ pub mod server;
 pub mod service;
 mod sys;
 
-pub const SUP_CMD: &'static str = "hab-sup";
-pub const SUP_PACKAGE_IDENT: &'static str = "core/hab-sup";
+pub const SUP_CMD: &str = "hab-sup";
+pub const SUP_PACKAGE_IDENT: &str = "core/hab-sup";

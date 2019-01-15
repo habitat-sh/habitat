@@ -27,9 +27,9 @@ use crate::env;
 use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::util;
 
-pub const SUP_PKG_IDENT: &'static str = "core/hab-sup";
+pub const SUP_PKG_IDENT: &str = "core/hab-sup";
 const DEFAULT_FREQUENCY: i64 = 60_000;
-const FREQUENCY_ENVVAR: &'static str = "HAB_SUP_UPDATE_MS";
+const FREQUENCY_ENVVAR: &str = "HAB_SUP_UPDATE_MS";
 
 pub struct SelfUpdater {
     rx: Receiver<PackageInstall>,

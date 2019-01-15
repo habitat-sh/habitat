@@ -36,9 +36,9 @@ use crate::rootfs;
 // from the Docker exporter. This needs to be abstacted out in
 // the future for use with further exporters.
 // https://github.com/habitat-sh/habitat/issues/4522
-const DEFAULT_HAB_IDENT: &'static str = "core/hab";
-const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
-const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
+const DEFAULT_HAB_IDENT: &str = "core/hab";
+const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
+const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
 
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///

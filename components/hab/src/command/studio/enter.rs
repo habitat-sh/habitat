@@ -25,12 +25,12 @@ use crate::hcore::fs;
 use crate::config;
 use crate::error::Result;
 
-pub const ARTIFACT_PATH_ENVVAR: &'static str = "ARTIFACT_PATH";
+pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 
-const ORIGIN_ENVVAR: &'static str = "HAB_ORIGIN";
-const STUDIO_CMD: &'static str = "hab-studio";
-const STUDIO_CMD_ENVVAR: &'static str = "HAB_STUDIO_BINARY";
-const STUDIO_PACKAGE_IDENT: &'static str = "core/hab-studio";
+const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
+const STUDIO_CMD: &str = "hab-studio";
+const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
+const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     if henv::var(ORIGIN_ENVVAR).is_err() {
@@ -85,7 +85,7 @@ mod inner {
 
     use crate::command::studio::docker;
 
-    const SUDO_CMD: &'static str = "sudo";
+    const SUDO_CMD: &str = "sudo";
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         rerun_with_sudo_if_needed(ui, &args)?;
@@ -96,7 +96,7 @@ mod inner {
                 Ok(command) => PathBuf::from(command),
                 Err(_) => {
                     init();
-                    let version: Vec<&str> = VERSION.split("/").collect();
+                    let version: Vec<&str> = VERSION.split('/').collect();
                     let ident = PackageIdent::from_str(&format!(
                         "{}/{}",
                         super::STUDIO_PACKAGE_IDENT,
@@ -113,26 +113,27 @@ mod inner {
             };
 
             if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
-                Ok(process::become_command(cmd, args)?)
+                process::become_command(cmd, args)?;
+                Ok(())
             } else {
                 Err(Error::ExecCommandNotFound(command))
             }
         }
     }
 
-    fn is_docker_studio(args: &Vec<OsString>) -> bool {
+    fn is_docker_studio(args: &[OsString]) -> bool {
         if cfg!(not(target_os = "linux")) {
             return false;
         }
 
         for arg in args.iter() {
             let str_arg = arg.to_string_lossy();
-            if str_arg == String::from("-D") {
+            if str_arg == "-D" {
                 return true;
             }
         }
 
-        return false;
+        false
     }
 
     fn has_docker_group() -> bool {
@@ -141,15 +142,11 @@ mod inner {
         docker_members.map_or(false, |d| d.contains(&current_user))
     }
 
-    fn rerun_with_sudo_if_needed(ui: &mut UI, args: &Vec<OsString>) -> Result<()> {
+    fn rerun_with_sudo_if_needed(ui: &mut UI, args: &[OsString]) -> Result<()> {
         // If I have root permissions or if I am executing a docker studio
         // and have the appropriate group - early return, we are done.
-        if am_i_root() {
+        if am_i_root() || (is_docker_studio(&args) && has_docker_group()) {
             return Ok(());
-        } else if is_docker_studio(&args) {
-            if has_docker_group() {
-                return Ok(());
-            }
         }
 
         // Otherwise we will try to re-run this program using `sudo`
@@ -161,7 +158,8 @@ mod inner {
                     "-E".into(),
                 ];
                 args.append(&mut env::args_os().collect());
-                Ok(process::become_command(sudo_prog, args)?)
+                process::become_command(sudo_prog, args)?;
+                Ok(())
             }
             None => {
                 ui.warn(format!(

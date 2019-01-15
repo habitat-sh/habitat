@@ -251,8 +251,8 @@ impl Clone for Server {
             election_store: self.election_store.clone(),
             update_store: self.update_store.clone(),
             departure_store: self.departure_store.clone(),
-            swim_addr: self.swim_addr.clone(),
-            gossip_addr: self.gossip_addr.clone(),
+            swim_addr: self.swim_addr,
+            gossip_addr: self.gossip_addr,
             suitability_lookup: self.suitability_lookup.clone(),
             data_path: self.data_path.clone(),
             dat_file: self.dat_file.clone(),
@@ -307,7 +307,7 @@ impl Server {
                 let myself = Myself::new(member, None);
 
                 Ok(Server {
-                    name: Arc::new(name.unwrap_or(member_id.clone())),
+                    name: Arc::new(name.unwrap_or_else(|| member_id.clone())),
                     // TODO (CM): could replace this with an accessor
                     // on member, if we have a better type
                     member_id: Arc::new(member_id),
@@ -442,10 +442,10 @@ impl Server {
         };
         socket
             .set_read_timeout(Some(Duration::from_millis(1000)))
-            .map_err(|e| Error::SocketSetReadTimeout(e))?;
+            .map_err(Error::SocketSetReadTimeout)?;
         socket
             .set_write_timeout(Some(Duration::from_millis(1000)))
-            .map_err(|e| Error::SocketSetReadTimeout(e))?;
+            .map_err(Error::SocketSetReadTimeout)?;
 
         let server_a = self.clone();
         let socket_a = match socket.try_clone() {
@@ -671,13 +671,11 @@ impl Server {
     /// Given a membership record and some health, insert it into the Member List.
     fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
-        if member.id == self.member_id() {
-            if health != Health::Alive {
-                let mut me = self.member.write().expect("Member lock is poisoned");
-                if member.incarnation >= me.incarnation() {
-                    me.refute_incarnation(member.incarnation);
-                    health = Health::Alive;
-                }
+        if member.id == self.member_id() && health != Health::Alive {
+            let mut me = self.member.write().expect("Member lock is poisoned");
+            if member.incarnation >= me.incarnation() {
+                me.refute_incarnation(member.incarnation);
+                health = Health::Alive;
             }
         }
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
@@ -764,7 +762,7 @@ impl Server {
     /// Insert a departure rumor into the departure store.
     pub fn insert_departure(&self, departure: Departure) {
         let rk = RumorKey::from(&departure);
-        if &*self.member_id == &departure.member_id {
+        if *self.member_id == departure.member_id {
             self.departed
                 .compare_and_swap(false, true, Ordering::Relaxed);
         }
@@ -913,7 +911,7 @@ impl Server {
                 // If we are finished, and the leader is dead, we should restart the election
                 if election.is_finished() && election.member_id() == myself_member_id {
                     // If we are the leader, and we have lost quorum, we should restart the election
-                    if check_quorum(election.key()) == false {
+                    if !check_quorum(election.key()) {
                         warn!(
                             "Restarting election with a new term as the leader has lost \
                              quorum: {:?}",

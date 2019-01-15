@@ -78,10 +78,10 @@ use hab::scaffolding;
 use hab::{AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
 
 /// Makes the --org CLI param optional when this env var is set
-const HABITAT_ORG_ENVVAR: &'static str = "HAB_ORG";
+const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
 /// Makes the --user CLI param optional when this env var is set
-const HABITAT_USER_ENVVAR: &'static str = "HAB_USER";
-const SYSTEMDRIVE_ENVVAR: &'static str = "SYSTEMDRIVE";
+const HABITAT_USER_ENVVAR: &str = "HAB_USER";
+const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 
 lazy_static! {
     static ref STATUS_HEADER: Vec<&'static str> = {
@@ -111,12 +111,10 @@ lazy_static! {
                     environment variable."
                 ),
             }
+        } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
+            PathBuf::from(root)
         } else {
-            if let Some(root) = henv::var(FS_ROOT_ENVVAR).ok() {
-                PathBuf::from(root)
-            } else {
-                PathBuf::from("/")
-            }
+            PathBuf::from("/")
         }
     };
 }
@@ -125,7 +123,7 @@ fn main() {
     env_logger::init();
     let mut ui = UI::default_with_env();
     enable_features_from_env(&mut ui);
-    thread::spawn(|| analytics::instrument_subcommand());
+    thread::spawn(analytics::instrument_subcommand);
     if let Err(e) = start(&mut ui) {
         ui.fatal(e).unwrap();
         std::process::exit(1)
@@ -473,9 +471,10 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
         command::pkg::Scope::Package
     };
 
-    let direction = match m.is_present("REVERSE") {
-        true => command::pkg::DependencyRelation::Supports,
-        false => command::pkg::DependencyRelation::Requires,
+    let direction = if m.is_present("REVERSE") {
+        command::pkg::DependencyRelation::Supports
+    } else {
+        command::pkg::DependencyRelation::Requires
     };
     command::pkg::dependencies::start(&ident, &scope, &direction, &*FS_ROOT)
 }
@@ -499,8 +498,8 @@ fn sub_pkg_export(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = m
         .value_of("CHANNEL")
-        .and_then(|c| Some(c.to_string()))
-        .unwrap_or(channel::default());
+        .map(str::to_string)
+        .unwrap_or_else(channel::default);
     let export_fmt = command::pkg::export::format_for(ui, &format)?;
     command::pkg::export::start(ui, &url, &channel, &ident, &export_fmt)
 }
@@ -526,13 +525,15 @@ fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let execute_strategy = match m.is_present("DRYRUN") {
-        true => command::pkg::ExecutionStrategy::DryRun,
-        false => command::pkg::ExecutionStrategy::Run,
+    let execute_strategy = if m.is_present("DRYRUN") {
+        command::pkg::ExecutionStrategy::DryRun
+    } else {
+        command::pkg::ExecutionStrategy::Run
     };
-    let scope = match m.is_present("NO_DEPS") {
-        true => command::pkg::Scope::Package,
-        false => command::pkg::Scope::PackageAndDependencies,
+    let scope = if m.is_present("NO_DEPS") {
+        command::pkg::Scope::Package
+    } else {
+        command::pkg::Scope::PackageAndDependencies
     };
     let excludes = excludes_from_matches(&m);
 
@@ -864,13 +865,13 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         set.version
             .as_ref()
             .map(ToString::to_string)
-            .unwrap_or("UNKNOWN".to_string()),
+            .unwrap_or_else(|| "UNKNOWN".to_string()),
         set.service_group
             .as_ref()
             .map(ToString::to_string)
-            .unwrap_or("UNKNOWN".to_string()),
+            .unwrap_or_else(|| "UNKNOWN".to_string()),
     ))?;
-    ui.status(Status::Creating, format!("service configuration"))?;
+    ui.status(Status::Creating, "service configuration")?;
     SrvClient::connect(&listen_ctl_addr, &secret_key)
         .and_then(|conn| {
             conn.call(validate)
@@ -1070,13 +1071,13 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         msg.version
             .as_ref()
             .map(ToString::to_string)
-            .unwrap_or("UNKNOWN".to_string()),
+            .unwrap_or_else(|| "UNKNOWN".to_string()),
         msg.service_group
             .as_ref()
             .map(ToString::to_string)
-            .unwrap_or("UKNOWN".to_string()),
+            .unwrap_or_else(|| "UKNOWN".to_string()),
     ))?;
-    ui.status(Status::Creating, format!("service file"))?;
+    ui.status(Status::Creating, "service file")?;
     File::open(&file)?.read_to_end(&mut buf)?;
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
@@ -1387,8 +1388,8 @@ fn bldr_url_from_matches(matches: &ArgMatches<'_>) -> Result<String> {
 fn channel_from_matches(matches: &ArgMatches<'_>) -> String {
     matches
         .value_of("CHANNEL")
-        .and_then(|c| Some(c.to_string()))
-        .unwrap_or(channel::default())
+        .map(str::to_string)
+        .unwrap_or_else(channel::default)
 }
 
 fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
@@ -1422,13 +1423,10 @@ fn enable_features_from_env(ui: &mut UI) {
     // If the environment variable for a flag is set to _anything_ but
     // the empty string, it is activated.
     for feature in &features {
-        match henv::var(format!("HAB_FEAT_{}", feature.1)) {
-            Ok(_) => {
-                feat::enable(feature.0);
-                ui.warn(&format!("Enabling feature: {:?}", feature.0))
-                    .unwrap();
-            }
-            _ => {}
+        if henv::var(format!("HAB_FEAT_{}", feature.1)).is_ok() {
+            feat::enable(feature.0);
+            ui.warn(&format!("Enabling feature: {:?}", feature.0))
+                .unwrap();
         }
     }
 
@@ -1440,7 +1438,7 @@ fn enable_features_from_env(ui: &mut UI) {
                 "  * {:?}: HAB_FEAT_{}={}",
                 feature.0,
                 feature.1,
-                henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or("".to_string())
+                henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or_default()
             ))
             .unwrap();
         }
@@ -1448,10 +1446,10 @@ fn enable_features_from_env(ui: &mut UI) {
 }
 
 fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
-    let mut bar = pbr::ProgressBar::<io::Stdout>::new(0);
-    bar.set_units(pbr::Units::Bytes);
-    bar.show_tick = true;
-    bar.message("    ");
+    let mut progress_bar = pbr::ProgressBar::<io::Stdout>::new(0);
+    progress_bar.set_units(pbr::Units::Bytes);
+    progress_bar.show_tick = true;
+    progress_bar.message("    ");
     match reply.message_id() {
         "ConsoleLine" => {
             let m = reply
@@ -1463,9 +1461,9 @@ fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
             let m = reply
                 .parse::<protocol::ctl::NetProgress>()
                 .map_err(SrvClientError::Decode)?;
-            bar.total = m.total;
-            if bar.set(m.position) >= m.total {
-                bar.finish();
+            progress_bar.total = m.total;
+            if progress_bar.set(m.position) >= m.total {
+                progress_bar.finish();
             }
         }
         "NetErr" => {
@@ -1506,7 +1504,7 @@ where
             return Ok(());
         }
     };
-    let svc_type = status.composite.unwrap_or("standalone".to_string());
+    let svc_type = status.composite.unwrap_or_else(|| "standalone".to_string());
     let svc_desired_state = status
         .desired_state
         .map_or("<none>".to_string(), |s| s.to_string());
@@ -1527,11 +1525,11 @@ where
         }
     };
     if print_header {
-        write!(out, "{}\n", STATUS_HEADER.join("\t")).unwrap();
+        writeln!(out, "{}", STATUS_HEADER.join("\t")).unwrap();
     }
-    write!(
+    writeln!(
         out,
-        "{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+        "{}\t{}\t{}\t{}\t{}\t{}\t{}",
         status.ident,
         svc_type,
         DesiredState::from_str(&svc_desired_state)?,
@@ -1595,7 +1593,7 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
 fn bldr_url_from_input(m: &ArgMatches<'_>) -> Option<String> {
     m.value_of("BLDR_URL")
         .and_then(|u| Some(u.to_string()))
-        .or_else(|| bldr_url_from_env())
+        .or_else(bldr_url_from_env)
 }
 
 /// A channel name, but *only* if the user specified via CLI args.
@@ -1621,7 +1619,7 @@ fn get_binds_from_input(m: &ArgMatches<'_>) -> Result<Option<ServiceBindList>> {
         Some(bind_strs) => {
             let mut list = ServiceBindList::default();
             for bind_str in bind_strs {
-                list.binds.push(ServiceBind::from_str(bind_str)?.into());
+                list.binds.push(ServiceBind::from_str(bind_str)?);
             }
             Ok(Some(list))
         }
@@ -1633,7 +1631,6 @@ fn get_binding_mode_from_input(m: &ArgMatches<'_>) -> Option<protocol::types::Bi
     // There won't be errors, because we validate with `valid_binding_mode`
     m.value_of("BINDING_MODE")
         .and_then(|b| BindingMode::from_str(b).ok())
-        .map(|b| b.into())
 }
 
 fn get_group_from_input(m: &ArgMatches<'_>) -> Option<String> {
@@ -1688,10 +1685,12 @@ fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
     listen_ctl_addr
         .to_socket_addrs()
         .and_then(|mut addrs| {
-            addrs.next().ok_or(io::Error::new(
-                io::ErrorKind::AddrNotAvailable,
-                "Address could not be resolved.",
-            ))
+            addrs.next().ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::AddrNotAvailable,
+                    "Address could not be resolved.",
+                )
+            })
         })
         .map(ListenCtlAddr::from)
         .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))

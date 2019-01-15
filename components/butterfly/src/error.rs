@@ -83,11 +83,12 @@ impl fmt::Display for Error {
                 path.display(),
                 err
             ),
-            Error::InvalidIncarnationSynchronization => format!(
+            Error::InvalidIncarnationSynchronization => {
                 "Tried to synchronize own member incarnation from non-existent incarnation store"
-            ),
+                    .to_string()
+            }
             Error::InvalidRumorShareLimit => {
-                format!("Rumor share limit should be a positive integer")
+                "Rumor share limit should be a positive integer".to_string()
             }
             Error::NonExistentRumor(ref member_id, ref rumor_id) => format!(
                 "Non existent rumor asked to be written to bytes: {} {}",
@@ -103,7 +104,7 @@ impl fmt::Display for Error {
             Error::ServiceConfigNotUtf8(ref sg, ref err) => {
                 format!("Cannot read service configuration: group={}, {}", sg, err)
             }
-            Error::SocketCloneError => format!("Cannot clone the underlying UDP socket"),
+            Error::SocketCloneError => "Cannot clone the underlying UDP socket".to_string(),
             Error::SocketSetReadTimeout(ref err) => {
                 format!("Cannot set UDP socket read timeout: {}", err)
             }

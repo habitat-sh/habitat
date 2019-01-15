@@ -335,14 +335,14 @@ fn bldr_url(m: &ArgMatches) -> String {
 /// the environment
 fn bldr_url_from_input(m: &ArgMatches) -> Option<String> {
     m.value_of("BLDR_URL")
-        .and_then(|u| Some(u.to_string()))
-        .or_else(|| bldr_url_from_env())
+        .map(str::to_string)
+        .or_else(bldr_url_from_env)
 }
 
 /// Resolve a channel. Taken from CLI args, or (failing that), a
 /// default value.
 fn channel(matches: &ArgMatches) -> String {
-    channel_from_input(matches).unwrap_or(channel::default())
+    channel_from_input(matches).unwrap_or_else(channel::default)
 }
 
 /// A channel name, but *only* if the user specified via CLI args.
@@ -385,7 +385,7 @@ fn get_binds_from_input(m: &ArgMatches) -> Result<Option<ServiceBindList>> {
         Some(bind_strs) => {
             let mut list = ServiceBindList::default();
             for bind_str in bind_strs {
-                list.binds.push(ServiceBind::from_str(bind_str)?.into());
+                list.binds.push(ServiceBind::from_str(bind_str)?);
             }
             Ok(Some(list))
         }
@@ -438,12 +438,9 @@ fn enable_features_from_env() {
     // If the environment variable for a flag is set to _anything_ but
     // the empty string, it is activated.
     for feature in &features {
-        match henv::var(format!("HAB_FEAT_{}", feature.1)) {
-            Ok(_) => {
-                feat::enable(feature.0);
-                outputln!("Enabling feature: {:?}", feature.0);
-            }
-            _ => {}
+        if henv::var(format!("HAB_FEAT_{}", feature.1)).is_ok() {
+            feat::enable(feature.0);
+            outputln!("Enabling feature: {:?}", feature.0);
         }
     }
 
@@ -454,7 +451,7 @@ fn enable_features_from_env() {
                 "     * {:?}: HAB_FEAT_{}={}",
                 feature.0,
                 feature.1,
-                henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or("".to_string())
+                henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or_default()
             );
         }
         outputln!("The Supervisor will start now, enjoy!");

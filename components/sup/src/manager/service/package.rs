@@ -28,11 +28,11 @@ use crate::error::{Error, Result};
 use crate::fs;
 use crate::util;
 
-const DEFAULT_USER: &'static str = "hab";
-const DEFAULT_GROUP: &'static str = "hab";
+const DEFAULT_USER: &str = "hab";
+const DEFAULT_GROUP: &str = "hab";
 
-const PATH_KEY: &'static str = "PATH";
-static LOGKEY: &'static str = "PK";
+const PATH_KEY: &str = "PATH";
+static LOGKEY: &str = "PK";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Env(HashMap<String, String>);

@@ -31,11 +31,11 @@ use serde_json;
 
 /// The `Dockerfile` template.
 #[cfg(unix)]
-const DOCKERFILE: &'static str = include_str!("../defaults/Dockerfile.hbs");
+const DOCKERFILE: &str = include_str!("../defaults/Dockerfile.hbs");
 #[cfg(windows)]
-const DOCKERFILE: &'static str = include_str!("../defaults/Dockerfile_win.hbs");
+const DOCKERFILE: &str = include_str!("../defaults/Dockerfile_win.hbs");
 /// The build report template.
-const BUILD_REPORT: &'static str = include_str!("../defaults/last_docker_export.env.hbs");
+const BUILD_REPORT: &str = include_str!("../defaults/last_docker_export.env.hbs");
 
 lazy_static! {
     /// Absolute path to the Docker program
@@ -402,7 +402,7 @@ impl DockerBuildRoot {
                     Status::Creating,
                     format!("user '{}' in /{}", user.name, &file),
                 )?;
-                write!(f, "{}\n", user)?;
+                writeln!(f, "{}", user)?;
             }
         }
         {
@@ -415,7 +415,7 @@ impl DockerBuildRoot {
                     Status::Creating,
                     format!("group '{}' in /{}", group.name, &file),
                 )?;
-                write!(f, "{}\n", group)?;
+                writeln!(f, "{}", group)?;
             }
         }
         Ok(())
@@ -426,7 +426,7 @@ impl DockerBuildRoot {
         use crate::hcore::util::posix_perm;
 
         /// The entrypoint script template.
-        const INIT_SH: &'static str = include_str!("../defaults/init.sh.hbs");
+        const INIT_SH: &str = include_str!("../defaults/init.sh.hbs");
 
         ui.status(Status::Creating, "entrypoint script")?;
         let ctx = self.0.ctx();

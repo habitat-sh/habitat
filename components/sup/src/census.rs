@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::borrow::Cow;
 use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt;
 use std::result;
@@ -144,10 +145,11 @@ impl CensusRing {
         // is an indeterminate health anywhere.
         service_rumors.with_keys(|(service_group, rumors)| {
             if let Ok(sg) = service_group_from_str(service_group) {
+                let local_member_id = Cow::from(&self.local_member_id);
                 let census_group = self
                     .census_groups
                     .entry(sg.clone())
-                    .or_insert(CensusGroup::new(sg, &self.local_member_id));
+                    .or_insert_with(|| CensusGroup::new(sg, &local_member_id));
                 census_group.update_from_service_rumors(rumors);
             }
         });
@@ -206,10 +208,11 @@ impl CensusRing {
     fn update_from_service_files(&mut self, service_file_rumors: &RumorStore<ServiceFileRumor>) {
         service_file_rumors.with_keys(|(service_group, rumors)| {
             if let Ok(sg) = service_group_from_str(service_group) {
+                let local_member_id = Cow::from(&self.local_member_id);
                 let census_group = self
                     .census_groups
                     .entry(sg.clone())
-                    .or_insert(CensusGroup::new(sg, &self.local_member_id));
+                    .or_insert_with(|| CensusGroup::new(sg, &local_member_id));
                 census_group.update_from_service_file_rumors(rumors);
             }
         });
@@ -335,12 +338,12 @@ pub struct CensusGroup {
 }
 
 impl CensusGroup {
-    fn new(sg: ServiceGroup, local_member_id: &MemberId) -> Self {
+    fn new(sg: ServiceGroup, local_member_id: &str) -> Self {
         CensusGroup {
             service_group: sg,
             election_status: ElectionStatus::None,
             update_election_status: ElectionStatus::None,
-            local_member_id: local_member_id.clone(),
+            local_member_id: local_member_id.to_string(),
             population: BTreeMap::new(),
             leader_id: None,
             update_leader_id: None,
@@ -370,25 +373,24 @@ impl CensusGroup {
     }
 
     /// Returns a list of all members in the census ring.
-    pub fn members(&self) -> Vec<&CensusMember> {
-        self.population.values().map(|cm| cm).collect()
+    pub fn members(&self) -> impl Iterator<Item = &CensusMember> {
+        self.population.values()
     }
 
     /// Same as `members`, but only returns members that are either
     /// alive or suspect, i.e., nothing that is confirmed dead or
     /// departed. These are the members that we'll reasonably be
     /// interacting with at runtime.
-    pub fn active_members(&self) -> Vec<&CensusMember> {
+    pub fn active_members(&self) -> impl Iterator<Item = &CensusMember> {
         self.population
             .values()
             .filter(|cm| cm.alive() || cm.suspect())
-            .collect()
     }
 
     pub fn changed_service_files(&self) -> Vec<&ServiceFile> {
         self.changed_service_files
             .iter()
-            .map(|f| self.service_files.get(f).unwrap())
+            .map(|f| &self.service_files[f])
             .collect()
     }
 
@@ -503,7 +505,7 @@ impl CensusGroup {
             let file = self
                 .service_files
                 .entry(filename.clone())
-                .or_insert(ServiceFile::default());
+                .or_insert_with(ServiceFile::default);
 
             if service_file_rumor.incarnation > file.incarnation {
                 match service_file_rumor.body() {
@@ -541,7 +543,7 @@ impl CensusGroup {
     /// though, we'll just ask them).
     pub fn group_exports<'a>(&'a self) -> Result<HashSet<&'a String>, SupError> {
         self.leader()
-            .or_else(|| self.active_members().first().map(|m| *m))
+            .or_else(|| self.active_members().next())
             .ok_or(sup_error!(Error::NoActiveMembers(
                 self.service_group.clone()
             )))
@@ -630,8 +632,8 @@ impl CensusMember {
             Ok(ident) => self.pkg = Some(ident),
             Err(err) => warn!("Received a bad package ident from gossip data, err={}", err),
         };
-        self.sys = rumor.sys.clone().into();
-        self.cfg = toml::from_slice(&rumor.cfg).unwrap_or(toml::value::Table::default());
+        self.sys = rumor.sys.clone();
+        self.cfg = toml::from_slice(&rumor.cfg).unwrap_or_default();
     }
 
     fn update_from_election_rumor(&mut self, election: &ElectionRumor) -> bool {
@@ -668,7 +670,7 @@ impl CensusMember {
 
     fn update_from_member(&mut self, member: &Member) {
         self.sys.gossip_ip = member.address.to_string();
-        self.sys.gossip_port = member.gossip_port as u32;
+        self.sys.gossip_port = u32::from(member.gossip_port);
         self.persistent = true;
     }
 
@@ -810,9 +812,9 @@ mod tests {
             "member-b".to_string()
         );
 
-        let members = census_group_two.members();
-        assert_eq!(members[0].member_id, "member-a");
-        assert_eq!(members[1].member_id, "member-b");
+        let mut members = census_group_two.members();
+        assert_eq!(members.next().unwrap().member_id, "member-a");
+        assert_eq!(members.next().unwrap().member_id, "member-b");
     }
 
     #[test]
@@ -956,10 +958,10 @@ mod tests {
                 .insert(member.member_id.clone(), member);
         }
 
-        let active_members = census_group.active_members();
-        assert_eq!(active_members.len(), 2);
-        assert_eq!(active_members[0].member_id, "live-one");
-        assert_eq!(active_members[1].member_id, "suspect-one");
+        let mut active_members = census_group.active_members();
+        assert_eq!(active_members.next().unwrap().member_id, "live-one");
+        assert_eq!(active_members.next().unwrap().member_id, "suspect-one");
+        assert!(active_members.next().is_none());
     }
 
     fn assert_eq_member_ids(cm: Option<&CensusMember>, id: Option<&str>) {

@@ -81,10 +81,10 @@ impl Client {
         &mut self,
         service_group: ServiceGroup,
         incarnation: u64,
-        config: Vec<u8>,
+        config: &[u8],
         encrypted: bool,
     ) -> Result<()> {
-        let mut sc = ServiceConfig::new("butterflyclient", service_group, config);
+        let mut sc = ServiceConfig::new("butterflyclient", service_group, config.to_vec());
         sc.incarnation = incarnation;
         sc.encrypted = encrypted;
         self.send(sc)
@@ -96,13 +96,13 @@ impl Client {
         service_group: ServiceGroup,
         filename: S,
         incarnation: u64,
-        body: Vec<u8>,
+        body: &[u8],
         encrypted: bool,
     ) -> Result<()>
     where
         S: Into<String>,
     {
-        let mut sf = ServiceFile::new("butterflyclient", service_group, filename, body);
+        let mut sf = ServiceFile::new("butterflyclient", service_group, filename, body.to_vec());
         sf.incarnation = incarnation;
         sf.encrypted = encrypted;
         self.send(sf)

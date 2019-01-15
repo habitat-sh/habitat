@@ -91,7 +91,7 @@ impl error::Error for SrvClientError {
 impl fmt::Display for SrvClientError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match *self {
-            SrvClientError::ConnectionClosed => format!("Connection closed"),
+            SrvClientError::ConnectionClosed => "Connection closed".to_string(),
             SrvClientError::CtlSecretNotFound(ref path) => format!(
                 "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
                  `hab setup` or run the Supervisor for the first time before attempting to \

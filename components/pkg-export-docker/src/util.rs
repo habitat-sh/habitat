@@ -20,7 +20,7 @@ use crate::hcore::package::{PackageIdent, PackageInstall};
 
 use crate::error::Result;
 
-const BIN_PATH: &'static str = "/bin";
+const BIN_PATH: &str = "/bin";
 
 /// Returns the `bin` path used for symlinking programs.
 pub fn bin_path() -> &'static Path {

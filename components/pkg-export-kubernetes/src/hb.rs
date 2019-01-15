@@ -17,7 +17,7 @@ use serde::Serialize;
 use std::result::Result;
 
 // Kubernetes manifest template
-const MANIFESTFILE: &'static str = include_str!("../defaults/KubernetesManifest.hbs");
+const MANIFESTFILE: &str = include_str!("../defaults/KubernetesManifest.hbs");
 
 #[derive(Clone, Copy)]
 pub struct QuoteHelper;

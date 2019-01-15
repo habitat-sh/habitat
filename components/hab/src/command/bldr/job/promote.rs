@@ -49,7 +49,7 @@ pub fn get_ident_list(
         .map(|p| p.ident)
         .collect();
 
-    if idents.len() == 0 || !interactive {
+    if idents.is_empty() || !interactive {
         return Ok(idents);
     }
 
@@ -64,9 +64,9 @@ pub fn get_ident_list(
 
     Ok(ui
         .edit(&idents)?
-        .split("\n")
+        .split('\n')
         .filter(|s| is_ident(s))
-        .map(|s: &str| s.to_string())
+        .map(str::to_string)
         .collect())
 }
 
@@ -76,7 +76,7 @@ fn get_group_status(bldr_url: &str, group_id: u64) -> Result<api_client::Schedul
 
     let group_status = api_client
         .get_schedule(group_id as i64, true)
-        .map_err(|e| Error::ScheduleStatus(e))?;
+        .map_err(Error::ScheduleStatus)?;
 
     Ok(group_status)
 }
@@ -124,7 +124,7 @@ pub fn start(
     let group_status = get_group_status(bldr_url, gid)?;
     let idents = get_ident_list(ui, &group_status, origin, interactive)?;
 
-    if idents.len() == 0 {
+    if idents.is_empty() {
         ui.warn("No matching packages found")?;
         return Ok(());
     }

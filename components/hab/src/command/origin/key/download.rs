@@ -69,7 +69,7 @@ fn handle_public(
         None => {
             ui.begin(format!("Downloading public origin keys for {}", origin))?;
             match api_client.show_origin_keys(origin) {
-                Ok(ref keys) if keys.len() == 0 => {
+                Ok(ref keys) if keys.is_empty() => {
                     ui.end(format!("No public keys for {}.", origin))?;
                     Ok(())
                 }
@@ -98,9 +98,7 @@ fn handle_secret(
     cache: &Path,
 ) -> Result<()> {
     if token.is_none() {
-        ui.end(format!(
-            "No auth token found. You must pass a token to download secret keys."
-        ))?;
+        ui.end("No auth token found. You must pass a token to download secret keys.")?;
         return Ok(());
     }
 
@@ -121,9 +119,7 @@ fn handle_encryption(
     cache: &Path,
 ) -> Result<()> {
     if token.is_none() {
-        ui.end(format!(
-            "No auth token found. You must pass a token to download secret keys."
-        ))?;
+        ui.end("No auth token found. You must pass a token to download secret keys.")?;
         return Ok(());
     }
 

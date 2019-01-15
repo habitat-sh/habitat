@@ -199,67 +199,22 @@ unit-sup: build-launcher-for-supervisor-tests
 .PHONY: build-launcher-for-supervisor-tests
 
 # Lints we need to work through and decide as a team whether to allow or fix
-UNEXAMINED_LINTS = clippy::assign_op_pattern \
-                   clippy::blacklisted_name \
-                   clippy::block_in_if_condition_stmt \
-                   clippy::bool_comparison \
-                   clippy::cast_lossless \
-                   clippy::clone_on_copy \
-                   clippy::cmp_owned \
-                   clippy::collapsible_if \
-                   clippy::const_static_lifetime \
-                   clippy::cyclomatic_complexity \
-                   clippy::deref_addrof \
-                   clippy::expect_fun_call \
-                   clippy::for_kv_map \
-                   clippy::get_unwrap \
-                   clippy::identity_conversion \
-                   clippy::if_let_some_result \
+UNEXAMINED_LINTS = clippy::cyclomatic_complexity \
                    clippy::large_enum_variant \
                    clippy::len_without_is_empty \
-                   clippy::len_zero \
-                   clippy::let_and_return \
-                   clippy::let_unit_value \
-                   clippy::map_clone \
-                   clippy::match_bool \
-                   clippy::match_ref_pats \
                    clippy::module_inception \
-                   clippy::needless_bool \
-                   clippy::needless_collect \
                    clippy::needless_pass_by_value \
-                   clippy::needless_range_loop \
                    clippy::needless_return \
                    clippy::new_ret_no_self \
                    clippy::new_without_default \
                    clippy::new_without_default_derive \
-                   clippy::ok_expect \
-                   clippy::op_ref \
-                   clippy::option_map_unit_fn \
-                   clippy::or_fun_call \
-                   clippy::println_empty_string \
-                   clippy::ptr_arg \
                    clippy::question_mark \
-                   clippy::redundant_closure \
                    clippy::redundant_field_names \
-                   clippy::redundant_pattern_matching \
-                   clippy::single_char_pattern \
-                   clippy::single_match \
-                   clippy::string_lit_as_bytes \
                    clippy::too_many_arguments \
-                   clippy::toplevel_ref_arg \
                    clippy::trivially_copy_pass_by_ref \
-                   clippy::unit_arg \
-                   clippy::unnecessary_operation \
-                   clippy::unreadable_literal \
-                   clippy::unused_label \
-                   clippy::unused_unit \
-                   clippy::useless_asref \
-                   clippy::useless_format \
-                   clippy::useless_let_if_seq \
-                   clippy::useless_vec \
-                   clippy::write_with_newline \
                    clippy::wrong_self_convention \
-                   renamed_and_removed_lints
+                   renamed_and_removed_lints # Move to DENIED_LINTS after eventsrv is removed
+                                             # See https://github.com/habitat-sh/habitat/issues/5962
 
 # Lints we disagree with and choose to keep in our code with no warning
 ALLOWED_LINTS =
@@ -269,7 +224,53 @@ LINTS_TO_FIX =
 
 # Lints we don't expect to have in our code at all and want to avoid adding
 # even at the cost of failing the build
-DENIED_LINTS = clippy::correctness
+DENIED_LINTS = clippy::assign_op_pattern \
+               clippy::blacklisted_name \
+               clippy::block_in_if_condition_stmt \
+               clippy::bool_comparison \
+               clippy::cast_lossless \
+               clippy::clone_on_copy \
+               clippy::cmp_owned \
+               clippy::collapsible_if \
+               clippy::const_static_lifetime \
+               clippy::correctness \
+               clippy::deref_addrof \
+               clippy::expect_fun_call \
+               clippy::for_kv_map \
+               clippy::get_unwrap \
+               clippy::identity_conversion \
+               clippy::if_let_some_result \
+               clippy::len_zero \
+               clippy::let_and_return \
+               clippy::let_unit_value \
+               clippy::map_clone \
+               clippy::match_bool \
+               clippy::match_ref_pats \
+               clippy::needless_bool \
+               clippy::needless_collect \
+               clippy::needless_range_loop \
+               clippy::ok_expect \
+               clippy::op_ref \
+               clippy::option_map_unit_fn \
+               clippy::or_fun_call \
+               clippy::println_empty_string \
+               clippy::ptr_arg \
+               clippy::redundant_closure \
+               clippy::redundant_pattern_matching \
+               clippy::single_char_pattern \
+               clippy::single_match \
+               clippy::string_lit_as_bytes \
+               clippy::toplevel_ref_arg \
+               clippy::unit_arg \
+               clippy::unnecessary_operation \
+               clippy::unreadable_literal \
+               clippy::unused_label \
+               clippy::unused_unit \
+               clippy::useless_asref \
+               clippy::useless_format \
+               clippy::useless_let_if_seq \
+               clippy::useless_vec \
+               clippy::write_with_newline
 
 define LINT
 lint-$1: image ## executes the $1 component's linter checks

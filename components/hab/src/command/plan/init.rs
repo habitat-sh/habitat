@@ -25,36 +25,36 @@ use handlebars::Handlebars;
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::Result;
 
-const DEFAULT_PLAN_TEMPLATE: &'static str = include_str!(concat!(
+const DEFAULT_PLAN_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/default_template_plan.sh"
 ));
-const FULL_PLAN_TEMPLATE: &'static str = include_str!(concat!(
+const FULL_PLAN_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/full_template_plan.sh"
 ));
-const DEFAULT_PLAN_PS1_TEMPLATE: &'static str = include_str!(concat!(
+const DEFAULT_PLAN_PS1_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/default_template_plan.ps1"
 ));
-const FULL_PLAN_PS1_TEMPLATE: &'static str = include_str!(concat!(
+const FULL_PLAN_PS1_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/full_template_plan.ps1"
 ));
-const DEFAULT_TOML_TEMPLATE: &'static str = include_str!(concat!(
+const DEFAULT_TOML_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/template_default.toml"
 ));
-const GITIGNORE_TEMPLATE: &'static str = include_str!(concat!(
+const GITIGNORE_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/template_gitignore"
 ));
-const README_TEMPLATE: &'static str = include_str!(concat!(
+const README_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/static/template_README.md"
 ));
 
-const DEFAULT_PKG_VERSION: &'static str = "0.1.0";
+const DEFAULT_PKG_VERSION: &str = "0.1.0";
 
 pub fn start(
     ui: &mut UI,
@@ -83,7 +83,7 @@ pub fn start(
                             val.as_os_str().to_os_string().into_string().ok()
                         })
                     })
-                    .unwrap_or("unnamed".into()),
+                    .unwrap_or_else(|| "unnamed".into()),
             )
         }
     };
@@ -123,14 +123,12 @@ pub fn start(
             let rendered_plan = handlebars.template_render(DEFAULT_PLAN_PS1_TEMPLATE, &data)?;
             create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
         }
+    } else if with_all || scaffold.is_none() {
+        let rendered_plan = handlebars.template_render(FULL_PLAN_TEMPLATE, &data)?;
+        create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     } else {
-        if with_all || scaffold.is_none() {
-            let rendered_plan = handlebars.template_render(FULL_PLAN_TEMPLATE, &data)?;
-            create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
-        } else {
-            let rendered_plan = handlebars.template_render(DEFAULT_PLAN_TEMPLATE, &data)?;
-            create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
-        }
+        let rendered_plan = handlebars.template_render(DEFAULT_PLAN_TEMPLATE, &data)?;
+        create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     }
     ui.para(
         "`plan.sh` is the foundation of your new habitat. It contains \
@@ -149,26 +147,24 @@ pub fn start(
     ui.para("`README.md` contains a basic README document which you should update.")?;
 
     let config_path = format!("{}/config/", root);
-    match Path::new(&config_path).exists() {
-        true => ui.status(
+    if Path::new(&config_path).exists() {
+        ui.status(
             Status::Using,
             format!("existing directory: {}", config_path),
-        )?,
-        false => {
-            ui.status(Status::Creating, format!("directory: {}", config_path))?;
-            create_dir_all(&config_path)?;
-        }
-    };
+        )?;
+    } else {
+        ui.status(Status::Creating, format!("directory: {}", config_path))?;
+        create_dir_all(&config_path)?;
+    }
     ui.para("`/config/` contains configuration files for your app.")?;
 
     let hooks_path = format!("{}/hooks/", root);
-    match Path::new(&hooks_path).exists() {
-        true => ui.status(Status::Using, format!("existing directory: {}", hooks_path))?,
-        false => {
-            ui.status(Status::Creating, format!("directory: {}", hooks_path))?;
-            create_dir_all(&hooks_path)?;
-        }
-    };
+    if Path::new(&hooks_path).exists() {
+        ui.status(Status::Using, format!("existing directory: {}", hooks_path))?;
+    } else {
+        ui.status(Status::Creating, format!("directory: {}", hooks_path))?;
+        create_dir_all(&hooks_path)?;
+    }
     ui.para("`/hooks/` contains automation hooks into your habitat.")?;
 
     ui.para(
@@ -225,33 +221,25 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 }
 
 fn is_git_managed(path: &Path) -> bool {
-    if path.join(".git").is_dir() {
-        return true;
-    }
-
-    if let Some(parent) = path.parent() {
-        return is_git_managed(&parent);
-    }
-
-    return false;
+    path.join(".git").is_dir()
+        || path
+            .parent()
+            .map_or(false, |parent| is_git_managed(&parent))
 }
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {
     let path = Path::new(&location);
-    match path.exists() {
-        false => {
-            ui.status(Status::Creating, format!("file: {}", location))?;
-            // If the directory doesn't exist we need to make it.
-            if let Some(directory) = path.parent() {
-                create_dir_all(directory)?;
-            }
-            // Create and then render the template with Handlebars
-            File::create(path).and_then(|mut file| file.write(template.as_bytes()))?;
+    if path.exists() {
+        // If the user has already configured a file overwriting would be impolite.
+        ui.status(Status::Using, format!("existing file: {}", location))?;
+    } else {
+        ui.status(Status::Creating, format!("file: {}", location))?;
+        // If the directory doesn't exist we need to make it.
+        if let Some(directory) = path.parent() {
+            create_dir_all(directory)?;
         }
-        true => {
-            // If the user has already configured a file overwriting would be impolite.
-            ui.status(Status::Using, format!("existing file: {}", location))?;
-        }
-    };
+        // Create and then render the template with Handlebars
+        File::create(path).and_then(|mut file| file.write(template.as_bytes()))?;
+    }
     Ok(())
 }

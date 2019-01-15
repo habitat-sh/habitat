@@ -103,9 +103,7 @@ pub fn start(
                     ))?;
                     Ok(())
                 }
-                Err(e) => {
-                    return Err(Error::APIClient(e));
-                }
+                Err(e) => Err(Error::APIClient(e)),
             }
         };
 

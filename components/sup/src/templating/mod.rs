@@ -122,8 +122,7 @@ mod test {
         let mut config = String::new();
         let _ = file.read_to_string(&mut config).unwrap();
         let toml = toml::de::from_str(&config).unwrap();
-        let data = convert::toml_to_json(toml::Value::Table(toml));
-        data
+        convert::toml_to_json(toml::Value::Table(toml))
     }
 
     #[test]
@@ -253,7 +252,7 @@ test: something"#
         let rendered = renderer.render("t", &data).unwrap();
         assert_eq!(
             PathBuf::from(rendered),
-            PathBuf::from((&*FS_ROOT_PATH).join("/hab/pkgs/core/acl/2.2.52/20161208223311",))
+            (&*FS_ROOT_PATH).join("/hab/pkgs/core/acl/2.2.52/20161208223311",)
         );
     }
 

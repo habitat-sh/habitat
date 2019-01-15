@@ -230,7 +230,7 @@ impl Client {
                         io::ErrorKind::TimedOut,
                         "client timed out",
                     ))),
-                    Err(Either::A((err, _))) => future::err(HandlerError::from(err)),
+                    Err(Either::A((err, _))) => future::err(err),
                     Err(Either::B((err, _))) => future::err(HandlerError::from(err)),
                 }),
         )

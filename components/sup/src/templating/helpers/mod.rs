@@ -49,9 +49,9 @@ impl JsonTruthy for Json {
             Json::Bool(ref i) => *i,
             Json::Number(ref n) => n.as_f64().map(|f| f.is_normal()).unwrap_or(false),
             Json::Null => false,
-            Json::String(ref i) => i.len() > 0,
-            Json::Array(ref i) => i.len() > 0,
-            Json::Object(ref i) => i.len() > 0,
+            Json::String(ref i) => !i.is_empty(),
+            Json::Array(ref i) => !i.is_empty(),
+            Json::Object(ref i) => !i.is_empty(),
         }
     }
 }

@@ -22,10 +22,10 @@ use crate::common::ui::{Status, UIWriter, UI};
 use crate::hcore::crypto::init;
 use crate::hcore::package::PackageIdent;
 
-const SCAFFOLDING_GO_IDENT: &'static str = "core/scaffolding-go";
-const SCAFFOLDING_GRADLE_IDENT: &'static str = "core/scaffolding-gradle";
-const SCAFFOLDING_NODE_IDENT: &'static str = "core/scaffolding-node";
-const SCAFFOLDING_RUBY_IDENT: &'static str = "core/scaffolding-ruby";
+const SCAFFOLDING_GO_IDENT: &str = "core/scaffolding-go";
+const SCAFFOLDING_GRADLE_IDENT: &str = "core/scaffolding-gradle";
+const SCAFFOLDING_NODE_IDENT: &str = "core/scaffolding-node";
+const SCAFFOLDING_RUBY_IDENT: &str = "core/scaffolding-ruby";
 
 // Check to see if the --scaffolding passed matches available core scaffolding
 // If not check if we've been given a pkg ident for a custom scaffolding
@@ -120,47 +120,32 @@ fn is_project_go<T>(path: T) -> bool
 where
     T: AsRef<Path>,
 {
-    if path.as_ref().join("main.go").is_file()
+    path.as_ref().join("main.go").is_file()
         || path.as_ref().join("Godeps/Godeps.json").is_file()
         || path.as_ref().join("vendor/vendor.json").is_file()
         || path.as_ref().join("glide.yaml").is_file()
         || project_uses_gb(path.as_ref()).unwrap_or(false)
-    {
-        return true;
-    }
-    return false;
 }
 
 fn is_project_gradle<T>(path: T) -> bool
 where
     T: AsRef<Path>,
 {
-    if path.as_ref().join("build.gradle").is_file()
-        || path.as_ref().join("settings.gradle").is_file()
-    {
-        return true;
-    }
-    return false;
+    path.as_ref().join("build.gradle").is_file() || path.as_ref().join("settings.gradle").is_file()
 }
 
 fn is_project_node<T>(path: T) -> bool
 where
     T: AsRef<Path>,
 {
-    if path.as_ref().join("package.json").is_file() {
-        return true;
-    }
-    return false;
+    path.as_ref().join("package.json").is_file()
 }
 
 fn is_project_ruby<T>(path: T) -> bool
 where
     T: AsRef<Path>,
 {
-    if path.as_ref().join("Gemfile").is_file() {
-        return true;
-    }
-    return false;
+    path.as_ref().join("Gemfile").is_file()
 }
 
 fn project_uses_gb(dir: &Path) -> io::Result<bool> {
@@ -181,5 +166,5 @@ fn project_uses_gb(dir: &Path) -> io::Result<bool> {
             }
         }
     }
-    return Ok(false);
+    Ok(false)
 }

@@ -68,22 +68,22 @@ mod inner {
                 let ident = match henv::var(export_pkg_ident_envvar) {
                     Ok(ref ident_str) => PackageIdent::from_str(ident_str)?,
                     Err(_) => {
-                        let version: Vec<&str> = VERSION.split("/").collect();
+                        let version: Vec<&str> = VERSION.split('/').collect();
                         PackageIdent::from_str(&format!("{}/{}", export_pkg_ident, version[0]))?
                     }
                 };
-                let cmd = exec::command_from_min_pkg(
+                exec::command_from_min_pkg(
                     ui,
                     export_cmd,
                     &ident,
                     &default_cache_key_path(None),
                     0,
-                )?;
-                PathBuf::from(cmd)
+                )?
             }
         };
         if let Some(cmd) = find_command(&command) {
-            Ok(process::become_command(cmd, args)?)
+            process::become_command(cmd, args)?;
+            Ok(())
         } else {
             Err(Error::ExecCommandNotFound(command))
         }

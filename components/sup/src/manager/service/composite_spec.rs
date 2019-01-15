@@ -32,9 +32,9 @@ use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use toml;
 
-const SPEC_FILE_EXT: &'static str = "spec";
+const SPEC_FILE_EXT: &str = "spec";
 
-static LOGKEY: &'static str = "CS";
+static LOGKEY: &str = "CS";
 
 #[derive(Clone, Debug, Default, Deserialize, Serialize)]
 #[serde(default)]

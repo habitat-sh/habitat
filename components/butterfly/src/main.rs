@@ -42,7 +42,7 @@ fn main() {
 
     let bind_to_addr = bind_to.parse::<SocketAddr>().unwrap();
     let bind_port = bind_to_addr.port();
-    let mut gossip_bind_addr = bind_to_addr.clone();
+    let mut gossip_bind_addr = bind_to_addr;
     let gport = bind_port + 1;
     gossip_bind_addr.set_port(gport);
 

@@ -45,9 +45,9 @@ use crate::util;
 // the future for use with further exporters.
 // https://github.com/habitat-sh/habitat/issues/4522
 
-const DEFAULT_HAB_IDENT: &'static str = "core/hab";
-const DEFAULT_LAUNCHER_IDENT: &'static str = "core/hab-launcher";
-const DEFAULT_SUP_IDENT: &'static str = "core/hab-sup";
+const DEFAULT_HAB_IDENT: &str = "core/hab";
+const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
+const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
 const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 
 const DEFAULT_HAB_UID: u32 = 84;
@@ -176,7 +176,8 @@ impl<'a> BuildSpec<'a> {
             dst.display()
         );
 
-        Ok(symlink(src, dst)?)
+        symlink(src, dst)?;
+        Ok(())
     }
 
     fn create_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
@@ -190,7 +191,8 @@ impl<'a> BuildSpec<'a> {
             dst.display()
         );
 
-        Ok(symlink(src, dst)?)
+        symlink(src, dst)?;
+        Ok(())
     }
 
     fn install_base_pkgs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<BasePkgIdents> {
@@ -231,7 +233,7 @@ impl<'a> BuildSpec<'a> {
         &self,
         ui: &mut UI,
         rootfs: P,
-        user_pkgs: &Vec<PackageIdent>,
+        user_pkgs: &[PackageIdent],
     ) -> Result<()> {
         let dst = util::bin_path();
         for pkg in user_pkgs.iter() {
@@ -503,7 +505,6 @@ impl BuildRootContext {
     pub fn primary_svc_ident(&self) -> &PackageIdent {
         self.svc_idents()
             .first()
-            .map(|e| *e)
             .expect("Primary service package was confirmed")
     }
 
@@ -543,11 +544,14 @@ impl BuildRootContext {
         let gid = DEFAULT_USER_AND_GROUP_ID;
 
         let pkg = self.primary_svc()?;
-        let user_name = pkg.svc_user().unwrap_or(Some(String::from("hab"))).unwrap();
+        let user_name = pkg
+            .svc_user()
+            .unwrap_or_default()
+            .unwrap_or_else(|| String::from("hab"));
         let group_name = pkg
             .svc_group()
-            .unwrap_or(Some(String::from("hab")))
-            .unwrap();
+            .unwrap_or_default()
+            .unwrap_or_else(|| String::from("hab"));
 
         // TODO: In some cases, packages based on core/nginx and
         // core/httpd (and possibly others) will not work, because
@@ -702,7 +706,7 @@ impl BuildRootContext {
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
         // primary service package.
-        if let None = self.svc_idents().first().map(|e| *e) {
+        if self.svc_idents().first().is_none() {
             return Err(Error::PrimaryServicePackageNotFound(
                 self.idents.iter().map(|e| e.ident().to_string()).collect(),
             ))?;
@@ -769,8 +773,7 @@ mod test {
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
     fn arg_matches<'a>(args: Vec<&str>) -> ArgMatches<'a> {
         let app = crate::cli();
-        let matches = app.get_matches_from(&args);
-        matches
+        app.get_matches_from(&args)
     }
 
     fn build_spec<'a>() -> BuildSpec<'a> {
@@ -842,10 +845,10 @@ mod test {
 
         pub fn install(&self) -> PackageIdent {
             let mut ident = PackageIdent::from_str(&self.ident).unwrap();
-            if let None = ident.version {
+            if ident.version.is_none() {
                 ident.version = Some("1.2.3".into());
             }
-            if let None = ident.release {
+            if ident.release.is_none() {
                 ident.release = Some("21120102121200".into());
             }
             let prefix = hcore::fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));

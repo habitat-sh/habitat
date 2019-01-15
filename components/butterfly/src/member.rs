@@ -297,7 +297,7 @@ impl FromProto<proto::Member> for Member {
             // a value of `None`. We ultimately need to either _not_
             // generate meaningless default values, or tease apart the
             // two uses of our Member protobuf, or both.
-            address: proto.address.unwrap_or("".to_string()),
+            address: proto.address.unwrap_or_default(),
 
             swim_port: proto
                 .swim_port
@@ -1307,7 +1307,7 @@ mod tests {
                     );
                 } else {
                     assert!(
-                        ml.insert(member_one.clone(), to_health) == false,
+                        !ml.insert(member_one.clone(), to_health),
                         "Transitioning from {:?} to {:?} (i.e., no worse health) should be a no-op",
                         from_health,
                         to_health

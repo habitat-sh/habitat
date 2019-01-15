@@ -85,8 +85,8 @@ use crate::http_gateway;
 use crate::ShutdownReason;
 use crate::VERSION;
 
-const MEMBER_ID_FILE: &'static str = "MEMBER_ID";
-const PROC_LOCK_FILE: &'static str = "LOCK";
+const MEMBER_ID_FILE: &str = "MEMBER_ID";
+const PROC_LOCK_FILE: &str = "LOCK";
 
 static LOGKEY: &'static str = "MR";
 
@@ -682,9 +682,9 @@ impl Manager {
 
             if self.census_ring.changed() {
                 self.persist_state();
-                events
-                    .as_ref()
-                    .map(|events| events.try_connect(&self.census_ring));
+                if let Some(ref events) = events {
+                    events.try_connect(&self.census_ring);
+                }
 
                 for service in self
                     .state
@@ -697,9 +697,9 @@ impl Manager {
                         self.census_ring.census_group_for(&service.service_group)
                     {
                         if let Some(member) = census_group.me() {
-                            events
-                                .as_ref()
-                                .map(|events| events.send_service(member, service));
+                            if let Some(ref events) = events {
+                                events.send_service(member, service);
+                            }
                         }
                     }
                 }
@@ -912,7 +912,7 @@ impl Manager {
             service.stop(&self.launcher, cause);
         }
 
-        if let Err(_) = self.user_config_watcher.remove(service) {
+        if self.user_config_watcher.remove(service).is_err() {
             debug!(
                 "Error stopping user-config watcher thread for service {}",
                 service
@@ -1066,7 +1066,7 @@ impl Manager {
             let ident = ds.ident.clone();
             svc_states
                 .entry(ident)
-                .or_insert(ServiceState::default())
+                .or_insert_with(ServiceState::default)
                 .disk = Some((ds.desired_state, ds));
         }
 
