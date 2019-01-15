@@ -13,6 +13,14 @@
 // limitations under the License.
 
 /// Collect all the configuration data that is exposed to users, and render it.
+use crate::error::{Error, Result};
+use crate::hcore::fs::{self, USER_CONFIG_FILE};
+use crate::hcore::{self, crypto, outputln};
+use crate::templating::package::Pkg;
+use crate::templating::TemplateRenderer;
+use serde::{Serialize, Serializer};
+use serde_json;
+use serde_transcode;
 use std;
 use std::borrow::Cow;
 use std::env;
@@ -20,17 +28,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
-
-use crate::hcore::fs::{self, USER_CONFIG_FILE};
-use crate::hcore::{self, crypto, outputln};
-use serde::{Serialize, Serializer};
-use serde_json;
-use serde_transcode;
 use toml;
-
-use crate::error::{Error, Result};
-use crate::templating::package::Pkg;
-use crate::templating::TemplateRenderer;
 
 static LOGKEY: &'static str = "CF";
 static ENV_VAR_PREFIX: &'static str = "HAB";
@@ -42,6 +40,8 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
 #[cfg(not(windows))]
 pub const CONFIG_PERMISSIONS: u32 = 0o740;
+#[cfg(not(windows))]
+pub const CONFIG_DIR_PERMISSIONS: u32 = 0o770;
 
 /// Describes the path to user configuration that is used by the
 /// service.
@@ -431,31 +431,8 @@ impl CfgRenderer {
     where
         T: AsRef<Path>,
     {
-        let mut template = TemplateRenderer::new();
-        if let Ok(entries) = std::fs::read_dir(templates_path) {
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    // Skip any entries in the template directory which aren't files. Currently we
-                    // don't support recursing into directories to retrieve templates. If you want
-                    // to add that feature, this is largely the function you change.
-                    match entry.file_type() {
-                        Ok(file_type) => {
-                            if !file_type.is_file() {
-                                continue;
-                            }
-                        }
-                        Err(_) => continue,
-                    }
-                    let file = entry.path();
-                    let name = entry.file_name().to_string_lossy().into_owned();
-                    // JW TODO: This error needs improvement. TemplateFileError is too generic.
-                    template
-                        .register_template_file(&name, &file)
-                        .map_err(Error::TemplateFileError)?;
-                }
-            }
-        }
-        Ok(CfgRenderer(template))
+        let templates = load_templates(templates_path)?;
+        Ok(CfgRenderer(templates))
     }
 
     /// Compile and write all configuration files to the configuration directory.
@@ -495,15 +472,18 @@ impl CfgRenderer {
                     cfg_dest.display()
                 );
 
-                let mut config_file = File::create(&cfg_dest)?;
-                config_file.write_all(&compiled.into_bytes())?;
+                create_directory_structure(
+                    render_path.as_ref(),
+                    &cfg_dest,
+                    &pkg.svc_user,
+                    &pkg.svc_group,
+                )?;
+                write_templated_file(&cfg_dest, compiled, &pkg.svc_user, &pkg.svc_group)?;
                 outputln!(
                     preamble service_group_name,
                     "Created configuration file {}",
                     cfg_dest.display()
                 );
-
-                set_permissions(&cfg_dest, pkg)?;
 
                 changed = true
             } else if file_hash == compiled_hash {
@@ -518,15 +498,12 @@ impl CfgRenderer {
                     "Configuration {} has changed; restarting",
                     cfg_dest.display()
                 );
+                write_templated_file(&cfg_dest, compiled, &pkg.svc_user, &pkg.svc_group)?;
                 outputln!(
                     preamble service_group_name,
-                    "Modified configuration content in {}",
+                    "Modified configuration file {}",
                     cfg_dest.display()
                 );
-
-                let mut config_file = File::create(&cfg_dest)?;
-                config_file.write_all(&compiled.into_bytes())?;
-                set_permissions(&cfg_dest, pkg)?;
 
                 changed = true;
             }
@@ -588,34 +565,156 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 }
 
 #[cfg(not(windows))]
-fn set_permissions<T: AsRef<Path>>(path: T, pkg: &Pkg) -> hcore::error::Result<()> {
+fn set_permissions<T: AsRef<Path>>(path: T, user: &str, group: &str) -> hcore::error::Result<()> {
     use crate::hcore::os::users;
     use crate::hcore::util::posix_perm;
 
     if users::can_run_services_as_svc_user() {
-        posix_perm::set_owner(path.as_ref(), &pkg.svc_user, &pkg.svc_group)?;
+        posix_perm::set_owner(path.as_ref(), &user, &group)?;
     }
-    posix_perm::set_permissions(path.as_ref(), CONFIG_PERMISSIONS)
+    if path.as_ref().is_dir() {
+        posix_perm::set_permissions(path.as_ref(), CONFIG_DIR_PERMISSIONS)
+    } else {
+        posix_perm::set_permissions(path.as_ref(), CONFIG_PERMISSIONS)
+    }
 }
 
 #[cfg(windows)]
-fn set_permissions<T: AsRef<Path>>(path: T, _pkg: &Pkg) -> hcore::error::Result<()> {
+fn set_permissions<T: AsRef<Path>>(path: T, _user: &str, _group: &str) -> hcore::error::Result<()> {
     use crate::hcore::util::win_perm;
 
     win_perm::harden_path(path.as_ref())
 }
 
+/// Entry point to recursively walk the configuration directory and subdirectories to
+/// construct the list of template files
+///
+/// `dir` should be a directory that exists.
+fn load_templates<T>(dir: T) -> Result<TemplateRenderer>
+where
+    T: AsRef<Path>,
+{
+    let mut template = TemplateRenderer::new();
+    if dir.as_ref().is_dir() {
+        load_templates_recurse(&dir, &PathBuf::new(), &mut template)?;
+    } else {
+        debug!(
+            "Configuration directory is not a directory: {:?}",
+            dir.as_ref()
+        );
+    }
+    Ok(template)
+}
+
+/// Helper function for `load_templates` to recurse into the directory structure.
+///
+/// `dir` should be a directory
+fn load_templates_recurse<T>(
+    dir: T,
+    context: &PathBuf,
+    mut template: &mut TemplateRenderer,
+) -> Result<()>
+where
+    T: AsRef<Path>,
+{
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                // Skip any entries in the template directory which aren't files or directories
+                match entry.file_type() {
+                    Ok(file_type) => {
+                        if file_type.is_file() {
+                            // We're storing the pathname relative to the input config directory
+                            // as the identifier for the template
+                            let name = entry.file_name().to_string_lossy().into_owned();
+                            let relative_path = context.join(&name);
+
+                            // JW TODO: This error needs improvement. TemplateFileError is too generic.
+                            template
+                                .register_template_file(
+                                    &relative_path.to_string_lossy(),
+                                    &entry.path(),
+                                )
+                                .map_err(Error::TemplateFileError)?;
+                        } else if file_type.is_dir() {
+                            load_templates_recurse(
+                                &entry.path(),
+                                &subdir_path(&context, &entry),
+                                &mut template,
+                            )?;
+                        }
+                    }
+                    Err(e) => {
+                        debug!("Failed to get file metadata for {:?} : {}", entry, e);
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Helper function to construct a new PathBuf for each level of subdir we
+/// iterate into.
+fn subdir_path(context: &PathBuf, entry: &std::fs::DirEntry) -> PathBuf {
+    let mut subdir = context.clone();
+    subdir.push(entry.file_name());
+    subdir
+}
+
+/// Create the appropriate directories between a `root` directory
+/// and a file within that directory structure that we're about
+/// to create.
+///
+fn create_directory_structure<T>(root: T, file: T, user: &str, group: &str) -> Result<()>
+where
+    T: AsRef<Path>,
+{
+    // We check that `file` is below `root` in the directory structure and
+    // that `root` exists, so that we don't create arbitrary directory
+    // structures on disk
+    assert!(root.as_ref().is_dir());
+    assert!(file.as_ref().starts_with(root.as_ref()));
+
+    let dir = file.as_ref().parent().unwrap();
+
+    if !dir.exists() {
+        std::fs::create_dir_all(&dir)?;
+        for anc in dir.ancestors() {
+            if anc == root.as_ref() {
+                break;
+            }
+            set_permissions(&anc, &user, &group)?;
+        }
+    }
+    Ok(())
+}
+
+fn write_templated_file<T>(path: T, compiled: String, user: &str, group: &str) -> Result<()>
+where
+    T: AsRef<Path>,
+{
+    File::create(&path).and_then(|mut file| file.write_all(&compiled.into_bytes()))?;
+    set_permissions(&path, &user, &group)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
+    use super::*;
+    use crate::error::Error;
+    use crate::hcore::package::{PackageIdent, PackageInstall};
+    use crate::templating::context::RenderContext;
+    use crate::templating::test_helpers::*;
     use std::env;
     use std::fs;
     use std::fs::OpenOptions;
-
     use tempfile::TempDir;
     use toml;
 
-    use super::*;
-    use crate::error::Error;
+    const USER: &str = "hab";
+    const GROUP: &str = "hab";
 
     fn toml_from_str(content: &str) -> toml::value::Table {
         toml::from_str(content)
@@ -1043,5 +1142,139 @@ mod test {
                 panic!("Expected Ok(None); got {:?}", other);
             }
         }
+    }
+
+    #[test]
+    fn write_template_file_simple() {
+        let tmp = TempDir::new().expect("create temp dir");
+        let template_dir = tmp.path().join("output");
+        fs::create_dir_all(&template_dir).expect("create output dir");
+
+        let file = template_dir.join("config.cfg");
+        let contents = "foo\nbar\n";
+
+        assert_eq!(file.exists(), false);
+        write_templated_file(&file, contents.to_string(), &USER, &GROUP).expect("writes file");
+        assert!(file.exists());
+    }
+
+    #[test]
+    fn write_template_file_directory() {
+        let tmp = TempDir::new().expect("create temp dir");
+        let template_dir = tmp.path().join("output");
+        fs::create_dir_all(&template_dir).expect("create output dir");
+
+        let file = template_dir.join("foo/config.cfg");
+        let contents = "foo\nbar\n";
+
+        assert_eq!(file.exists(), false);
+
+        create_directory_structure(&template_dir, &file, &USER, &GROUP)
+            .expect("create output dir structure");
+        write_templated_file(&file, contents.to_string(), &USER, &GROUP).expect("writes file");
+        assert!(file.exists());
+        assert_eq!(file_content(file), contents);
+    }
+
+    #[test]
+    #[cfg(not(windows))]
+    #[should_panic(expected = "Permission denied")]
+    fn write_template_file_no_perms() {
+        use crate::hcore::util::posix_perm;
+        const NO_PERMISSIONS: u32 = 0o000;
+
+        let tmp = TempDir::new().expect("create temp dir");
+        let template_dir = tmp.path().join("output");
+        fs::create_dir_all(&template_dir).expect("create output dir");
+        posix_perm::set_permissions(&template_dir, NO_PERMISSIONS).unwrap();
+
+        let file = template_dir.join("config.cfg");
+        let contents = "foo\nbar\n";
+
+        assert_eq!(file.exists(), false);
+        write_templated_file(&file, contents.to_string(), &USER, &GROUP)
+            .expect("should fail on permissions");
+    }
+
+    #[test]
+    /// Check we can load templates out of a set of hierarchical directories
+    /// and that the template keys correspond to the relative file names from
+    /// the top-level config dir
+    fn test_load_templates_recursive() {
+        let tmp = TempDir::new().expect("create temp dir");
+        let input_dir = tmp.path().join("input");
+
+        let dir_a = input_dir.join("dir_a");
+        let dir_b = input_dir.join("dir_b");
+        let dir_c = dir_b.join("dir_c");
+        fs::create_dir_all(&dir_a).expect("create dir_a");
+        fs::create_dir_all(&dir_c).expect("create dir_b and dir_c");
+
+        create_with_content(&dir_a.join("foo.txt"), "Hello world!");
+        create_with_content(&dir_b.join("bar.txt"), "Hello world!");
+        create_with_content(&dir_c.join("baz.txt"), "Hello world!");
+
+        let renderer = load_templates(input_dir).expect("visit config dirs");
+
+        let expected_keys = vec![
+            PathBuf::from("dir_a").join("foo.txt"),
+            PathBuf::from("dir_b").join("bar.txt"),
+            PathBuf::from("dir_b").join("dir_c").join("baz.txt"),
+        ];
+        let templates = renderer.get_templates();
+        assert_eq!(templates.len(), 3);
+
+        for key in expected_keys {
+            let str_key = key.to_string_lossy().into_owned();
+            assert!(templates.contains_key(&str_key));
+        }
+    }
+
+    #[test]
+    fn test_compile_recursive_config_dir() {
+        let root = TempDir::new().expect("create temp dir").into_path();
+
+        // Setup a dummy package directory with a config file inside
+        // a directory structure
+        let pkg_dir = root.join("pkg/testing/test");
+        fs::create_dir_all(&pkg_dir).expect("create pkg dir");
+        let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
+        let pkg_install = PackageInstall::new_from_parts(
+            pg_id.clone(),
+            pkg_dir.clone(),
+            pkg_dir.clone(),
+            pkg_dir.clone(),
+        );
+        let toml_path = pkg_dir.join("default.toml");
+        create_with_content(toml_path, &String::from("message = \"Hello\""));
+
+        let config_dir = pkg_dir.join("config");
+        let deep_config_dir = config_dir.join("dir_a").join("dir_b");
+        fs::create_dir_all(&deep_config_dir).expect("create config/dir_a/dir_b");
+        create_with_content(
+            deep_config_dir.join("config.txt"),
+            &String::from("config message is {{cfg.message}}"),
+        );
+
+        // Setup context for loading and compiling templates
+        let output_dir = root.join("output");
+        fs::create_dir_all(&output_dir).expect("create output dir");
+
+        let pkg = Pkg::from_install(&pkg_install).unwrap();
+        let cfg = Cfg::new(&pkg, None).unwrap();
+        let ctx = RenderContext::new(&pkg, &cfg);
+
+        // Load templates from pkg config dir, and compile then into
+        // the output directory
+        let renderer = CfgRenderer::new(&config_dir).expect("create cfg renderer");
+        renderer
+            .compile("test", &pkg, &output_dir, &ctx)
+            .expect("compile");
+        let deep_output_dir = output_dir.join("dir_a").join("dir_b");
+
+        assert_eq!(
+            file_content(deep_output_dir.join("config.txt")),
+            "config message is Hello"
+        );
     }
 }
