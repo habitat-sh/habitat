@@ -2,7 +2,7 @@ const { spawnSync } = require('child_process');
 const { platform } = require('os');
 
 function getHelp(command, sub) {
-  const proc = runCommand(command, ['--help']);
+  const proc = runCommand(command, ['-h']);
 
   function render(data) {
     parsed = parseOutput(command, data.replace(/`/g, ''));
@@ -21,8 +21,11 @@ function runCommand(command, args) {
 }
 
 function parseOutput(command, output) {
+  const sectionToken = '\^/--IMATOKEN--\^/';
+
   const lines = output.split('\n');
-  const sections = output.split('\n\n');
+  // TODO: Fix spacing issues when options include a line break between the option name and description.
+  const sections = output.replace(/\n\n(.+):\n/g, sectionToken + '$1:').split(sectionToken);
 
   let result = {
     name: lines[0].trim(),
