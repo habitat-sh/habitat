@@ -12,6 +12,7 @@
 - Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
+- split sections by custom token when generating cli docs [#6037](https://github.com/habitat-sh/habitat/pull/6037) ([mpeck](https://github.com/mpeck))
 - Update CLI docs for 0.73.0 [#6058](https://github.com/habitat-sh/habitat/pull/6058) ([raskchanky](https://github.com/raskchanky))
 - Update Cargo.lock for 0.73.0 [#6060](https://github.com/habitat-sh/habitat/pull/6060) ([raskchanky](https://github.com/raskchanky))
 - Bump to 0.74.0-dev [#6059](https://github.com/habitat-sh/habitat/pull/6059) ([raskchanky](https://github.com/raskchanky))
