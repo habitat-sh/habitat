@@ -9,7 +9,7 @@ from the master branch on a bi-weekly schedule occurring every other Monday.
 1. Check off the items in the list as you go.
 1. If you make any changes to the release automation or documentation to include in the next release, you can mark those PRs as resolving the issue. Otherwise, just close it when the release is done.
 
-# If your Release is going to cause downtime
+# If your Release is going to cause downtime (highly unlikely)
 
 1. Put a scheduled maintenance window into PagerDuty so the on-call doesn't go off.
 1. Pre-announce outage on Twitter & Slack #general channel. There is no hard rule for a length of time you need to do this ahead of a release outage.
@@ -68,8 +68,7 @@ is in effect
 If there are problems discovered during validation, or you need to modify the tag to include
 additional commits, see [Addressing issues with a Release](#addressing-issues-with-a-release).
 
-Once the release tag is pushed, Buildkite and AppVeyor builds will be triggered on the release tag. AppVeyor builds are currently very prone to timing out,
-so set a 1-hour timer to go and check on them. If they do time out, you just have to restart them and hope. You may also want to set up [email notifications](https://ci.appveyor.com/notifications).
+Once the release tag is pushed, a Buildkite build will be triggered on the release tag.
 
 You can view/adminster Buildkite builds [here](https://buildkite.com/chef/habitat-sh-habitat-master-release).
 
@@ -268,13 +267,12 @@ Make sure the commands from the trace output look correct when the script execut
 1. The install is from the `unstable` channel
 1. The upload is to the `stable` channel
 
-## Promote the Builder Worker
+## The Builder Worker
 
-Now that the release is stable, it is time to promote the workers.
-
-In the Builder Web UI, go to the builds page for [`habitat/builder-worker`](https://bldr.habitat.sh/#/pkgs/habitat/builder-worker/latest) and check that the latest version is a successful recent build.
-
-Promote the release. Wait for a few minutes, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
+Now that the release is stable, we need to build a new version of builder-worker and promote it. Navigate to
+[habitat/builder-worker](https://bldr.habitat.sh/#/pkgs/habitat/builder-worker/latest) and check to see if a build is already running.
+If it is, just wait for it to finish and promote it. If it's not, click the
+`Build Latest Version` button to kick off a build, and promote when it's done.  Wait for a few minutes so that supervisors on all the workers can update to the newly promoted version, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
 
 # Release Notification
 
