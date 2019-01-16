@@ -24,9 +24,9 @@ The Base Plans are a group of plans (mostly low level systems libraries) that:
 * are used to build Habitat itself
 * need to be built in a certain order.
 
-You can see the [full list of Base Plans](https://github.com/habitat-sh/Core-Plans/blob/master/CODEOWNERS) in the Core Plans CODEOWNERS file.
+You can see the [full list of Base Plans](https://github.com/habitat-sh/core-plans/blob/master/CODEOWNERS) in the Core Plans CODEOWNERS file.
 
-Any time one of these plans is updated (especially ones that are nearly universally used, like [glibc](https://en.wikipedia.org/wiki/GNU_C_Library) and [gcc](https://gcc.gnu.org/), all other Base Plans which depend on it need to be built in a certain order, and then all plans that depend (or depend on a plan that depends) on those Base Plans also need to be rebuilt. We call this the "rebuild the world" scenario.
+Any time one of these plans is updated (especially ones that are nearly universally used, like [glibc](https://en.wikipedia.org/wiki/GNU_C_Library) and [GCC](https://gcc.gnu.org/), all other Base Plans which depend on it need to be built in a certain order, and then all plans that depend (or depend on a plan that depends) on those Base Plans also need to be rebuilt. We call this the "rebuild the world" scenario.
 
 ### Why are you refreshing them?
 
