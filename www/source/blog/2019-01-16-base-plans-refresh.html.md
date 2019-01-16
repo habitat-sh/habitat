@@ -1,6 +1,6 @@
 ---
 title: Base Plans Refresh is Coming to Habitat Core Plans!
-date: 2019-01-14
+date: 2019-01-16
 author: Scott Macfarlane
 tags: Core Plans
 category: update
@@ -30,7 +30,7 @@ Any time one of these plans is updated (especially ones that are nearly universa
 
 ### Why are you refreshing them?
 
-In this release we are moving from gcc 7 to gcc 8. Any plan that depends on gcc 7 will be rebuilt with gcc 8. It is vital to update them - and consequently every plan that depends on them - to more recent stable versions.
+In this release we are moving from GCC 7 to GCC 8. Any plan that depends on GCC 7 will be rebuilt with GCC 8. It is vital to update them - and consequently every plan that depends on them - to more recent stable versions.
 
 ### What else does it affect?
 
@@ -64,9 +64,9 @@ And let's say each of those plans depends on core/glibc for some reason:
 ```
 nellshamrell/widget_world
 -> nellshamrell/widget
---> core/glibc
+   --> core/glibc
 -> nellshamrell/world
---> core/glibc
+   --> core/glibc
 ```
 
 And let's say both are using the current core/glibc plan, which means they are both using version 2.22:
