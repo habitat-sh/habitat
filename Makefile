@@ -213,8 +213,7 @@ UNEXAMINED_LINTS = clippy::cyclomatic_complexity \
                    clippy::too_many_arguments \
                    clippy::trivially_copy_pass_by_ref \
                    clippy::wrong_self_convention \
-                   renamed_and_removed_lints # Move to DENIED_LINTS after eventsrv is removed
-                                             # See https://github.com/habitat-sh/habitat/issues/5962
+									 renamed_and_removed_lints
 
 # Lints we disagree with and choose to keep in our code with no warning
 ALLOWED_LINTS =

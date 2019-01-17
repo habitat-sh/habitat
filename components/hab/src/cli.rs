@@ -904,8 +904,6 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         "Use package config from this path, rather than the package itself")
     (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
         itself")
-    (@arg EVENTS: --events -n +takes_value {valid_service_group} "Name of the service \
-        group running a Habitat EventSrv to forward Supervisor and service event data to")
     (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
         "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
          This should be a RSA private key or PKCS8-encoded private key, in PEM format.")

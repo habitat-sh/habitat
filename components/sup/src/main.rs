@@ -221,7 +221,6 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         ring_key: get_ring_key(m)?,
         gossip_peers: get_peers(m)?,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
-        eventsrv_group: m.value_of("EVENTS").and_then(|events| events.parse().ok()),
         // TODO: Refactor this to remove the duplication
         gossip_listen: m.value_of("LISTEN_GOSSIP").map_or_else(
             || {
@@ -517,7 +516,6 @@ mod test {
     use super::*;
     use crate::common::locked_env_var;
     use crate::common::types::ListenCtlAddr;
-    use crate::hcore::service::ServiceGroup;
     use crate::sup::config::GossipListenAddr;
     use crate::sup::http_gateway;
 
@@ -680,16 +678,6 @@ mod test {
 
             let config = config_from_cmd_str("hab-sup run");
             assert_eq!(config.watch_peer_file, None);
-        }
-
-        #[test]
-        fn events_is_set() {
-            let config = config_from_cmd_str("hab-sup run --events event.service");
-            let eventsrv_group = config.eventsrv_group;
-            let expected_group: Option<hcore::service::ServiceGroup> =
-                ServiceGroup::from_str("event.service").ok().map(Into::into);
-
-            assert_eq!(eventsrv_group, expected_group);
         }
 
         #[test]

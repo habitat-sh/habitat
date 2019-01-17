@@ -4,7 +4,6 @@ components/backline @fnichol @baumanj
 components/builder* @chefsalim @raskchanky
 components/butterfly* @christophermaier @reset @baumanj @fnichol @raskchanky @jamesc
 components/common @fnichol @baumanj @raskchanky @jamesc
-components/eventsrv* @reset @raskchanky
 components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @raskchanky @eeyun @jamesc
 components/launcher* @christophermaier @reset @baumanj @raskchanky
 components/pkg-* @fnichol @christophermaier @eeyun @jamesc
