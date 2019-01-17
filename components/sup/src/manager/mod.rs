@@ -70,10 +70,7 @@ use serde_json;
 use time::{self, Duration as TimeDuration, SteadyTime, Timespec};
 use tokio::{executor, runtime};
 #[cfg(windows)]
-use winapi::{
-    shared::minwindef::PDWORD,
-    um::{processthreadsapi, winnt::HANDLE},
-};
+use winapi::{shared::minwindef::PDWORD, um::processthreadsapi};
 
 use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
@@ -415,7 +412,7 @@ impl Manager {
                     return Err(sup_error!(Error::BadDataFile(
                         fs_cfg.member_id_file.clone(),
                         err
-                    )))
+                    )));
                 }
             },
         }
@@ -1401,13 +1398,19 @@ where
 
 #[cfg(windows)]
 fn get_fd_count() -> std::io::Result<usize> {
-    let mut count: usize = 0;
+    let mut count: u32 = 0;
+    let count_ptr = &mut count as PDWORD;
 
     unsafe {
         let handle = processthreadsapi::GetCurrentProcess();
-        match processthreadsapi::GetProcessHandleCount(handle, &mut count as PDWORD) {
-            true => Ok(count),
-            false => Err("error getting file descriptor count"),
+        match processthreadsapi::GetProcessHandleCount(handle, count_ptr) {
+            // these are ints here because GetProcessHandleCount returns a BOOL which is actually
+            // an i32
+            1 => Ok(count as usize),
+            _ => Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "error getting file descriptor count",
+            )),
         }
     }
 }
@@ -1417,6 +1420,7 @@ fn get_fd_count() -> std::io::Result<usize> {
     proc_self::FdIter::new().map(|f| f.count())
 }
 
+#[cfg(unix)]
 fn track_memory_stats() {
     // We'd like to track some memory stats, but these stats are cached and only refreshed
     // when the epoch is advanced. We manually advance it here to ensure our stats are
@@ -1441,6 +1445,10 @@ fn track_memory_stats() {
         .with_label_values(&["retained"])
         .set(jemalloc_ctl::stats::retained().unwrap().to_i64());
 }
+
+// This is a no-op on purpose because windows doesn't support jemalloc
+#[cfg(windows)]
+fn track_memory_stats() {}
 
 struct CtlAcceptor {
     rx: ctl_gateway::server::MgrReceiver,

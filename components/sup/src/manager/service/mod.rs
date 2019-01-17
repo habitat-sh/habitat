@@ -292,7 +292,7 @@ impl Service {
 
     /// Runs the reconfigure hook if present, otherwise restarts the service.
     fn reload(&mut self, launcher: &LauncherCli) {
-        let timer = hook_timer("reload");
+        let _timer = hook_timer("reload");
         self.needs_reload = false;
         if self.process_down() || self.hooks.reload.is_none() {
             if let Some(err) = self
@@ -734,7 +734,7 @@ impl Service {
 
     /// Run reconfigure hook if present.
     fn reconfigure(&mut self) {
-        let timer = hook_timer("reconfigure");
+        let _timer = hook_timer("reconfigure");
 
         self.needs_reconfiguration = false;
         if let Some(ref hook) = self.hooks.reconfigure {
@@ -747,7 +747,7 @@ impl Service {
     }
 
     fn post_run(&mut self) {
-        let timer = hook_timer("post-run");
+        let _timer = hook_timer("post-run");
 
         if let Some(ref hook) = self.hooks.post_run {
             hook.run(
@@ -759,7 +759,7 @@ impl Service {
     }
 
     fn post_stop(&mut self) {
-        let timer = hook_timer("post-stop");
+        let _timer = hook_timer("post-stop");
 
         if let Some(ref hook) = self.hooks.post_stop {
             hook.run(
@@ -777,7 +777,7 @@ impl Service {
     }
 
     pub fn suitability(&self) -> Option<u64> {
-        let timer = hook_timer("suitability");
+        let _timer = hook_timer("suitability");
 
         if !self.initialized {
             return None;
@@ -921,7 +921,7 @@ impl Service {
 
     /// Run file-updated hook if present.
     fn file_updated(&self) -> bool {
-        let timer = hook_timer("file-updated");
+        let _timer = hook_timer("file-updated");
 
         if self.initialized {
             if let Some(ref hook) = self.hooks.file_updated {
@@ -974,7 +974,7 @@ impl Service {
     }
 
     fn run_health_check_hook(&mut self) {
-        let timer = hook_timer("health-check");
+        let _timer = hook_timer("health-check");
         debug!("Running Health Check hook for ({})", self.spec_ident);
         let check_result = if let Some(ref hook) = self.hooks.health_check {
             hook.run(

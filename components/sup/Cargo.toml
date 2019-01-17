@@ -33,8 +33,6 @@ habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_api_client = { path = "../builder-api-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
-jemallocator = "*"
-jemalloc-ctl = "*"
 lazy_static = "*"
 libc = "*"
 log = "*"
@@ -65,6 +63,8 @@ caps = "*"
 
 [target.'cfg(target_family = "unix")'.dependencies]
 proc_self = "0.1.0" # pinning this explicitly because newer versions switched to a different crate that doesn't support stable rust
+jemallocator = "*"
+jemalloc-ctl = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"

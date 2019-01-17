@@ -22,7 +22,9 @@ extern crate habitat_launcher_client as launcher_client;
 #[macro_use]
 extern crate habitat_sup as sup;
 extern crate habitat_sup_protocol as protocol;
+#[cfg(unix)]
 extern crate jemalloc_ctl;
+#[cfg(unix)]
 extern crate jemallocator;
 extern crate libc;
 #[macro_use]
@@ -76,6 +78,7 @@ use tempfile::TempDir;
 /// Our output key
 static LOGKEY: &'static str = "MN";
 
+#[cfg(unix)]
 #[global_allocator]
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
