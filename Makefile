@@ -274,11 +274,11 @@ DENIED_LINTS = clippy::assign_op_pattern \
 
 define LINT
 lint-$1: image ## executes the $1 component's linter checks
-	$(run) sh -c 'cd components/$1 && cargo clippy --all-targets --tests $(CARGO_FLAGS) -- \
-	                                               $(addprefix -A ,$(UNEXAMINED_LINTS)) \
-	                                               $(addprefix -A ,$(ALLOWED_LINTS)) \
-	                                               $(addprefix -W ,$(LINTS_TO_FIX)) \
-	                                               $(addprefix -D ,$(DENIED_LINTS))'
+	$(run) cargo clippy --all-targets --tests $(CARGO_FLAGS) -- \
+	                    $(addprefix -A ,$(UNEXAMINED_LINTS)) \
+	                    $(addprefix -A ,$(ALLOWED_LINTS)) \
+	                    $(addprefix -W ,$(LINTS_TO_FIX)) \
+	                    $(addprefix -D ,$(DENIED_LINTS))
 .PHONY: lint-$1
 endef
 $(foreach component,$(ALL),$(eval $(call LINT,$(component))))

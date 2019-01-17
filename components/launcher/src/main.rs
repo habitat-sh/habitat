@@ -45,7 +45,7 @@ fn main() {
 /// behaves the same as the Supervisor, we'll eavesdrop on the
 /// arguments being passed to the Supervisor in order to configure
 /// ourselves.
-fn set_global_logging_options(args: &Vec<String>) {
+fn set_global_logging_options(args: &[String]) {
     // Yeah, this is pretty weird, but it comes out of how the
     // hab-launch, hab, and hab-sup binaries interact.
     //

@@ -255,7 +255,7 @@ impl SwimNet {
         get_rounds: impl Fn(&Server) -> isize,
     ) -> bool {
         for (member, round) in self.members.iter().zip(rounds_in) {
-            if !member.paused() && (get_rounds)(member) <= *round {
+            if !member.paused() && get_rounds(member) <= *round {
                 return false;
             }
         }

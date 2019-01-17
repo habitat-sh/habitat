@@ -52,7 +52,7 @@ impl ChartFile {
         let pkg_version = pkg_ident.version.as_ref();
         let version = matches
             .value_of("VERSION")
-            .or(pkg_version.map(|s| s.as_ref()))
+            .or_else(|| pkg_version.map(|s| s.as_ref()))
             .unwrap_or(DEFAULT_VERSION)
             .to_owned();
         let app_version = pkg_version.map(|v| {
@@ -60,7 +60,7 @@ impl ChartFile {
                 .release
                 .as_ref()
                 .map(|r| format!("{}-{}", v, r))
-                .unwrap_or(v.to_string())
+                .unwrap_or_else(|| v.to_string())
         });
         let description = matches.value_of("DESCRIPTION").map(|s| s.to_owned());
         let home = matches.value_of("HOME").map(|s| s.to_owned());
@@ -69,11 +69,11 @@ impl ChartFile {
         let keywords = matches
             .values_of("KEYWORD")
             .map(|args| args.map(|k| k.to_owned()).collect())
-            .unwrap_or(vec![]);
+            .unwrap_or_default();
         let sources = matches
             .values_of("SOURCE")
             .map(|args| args.map(|k| k.to_owned()).collect())
-            .unwrap_or(vec![]);
+            .unwrap_or_default();
         let maintainers = Maintainer::from_args(&matches)?;
 
         Ok(ChartFile {

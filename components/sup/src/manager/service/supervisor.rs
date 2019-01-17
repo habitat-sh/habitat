@@ -202,7 +202,7 @@ impl Supervisor {
         // will use these, while newer versions will prefer the UID
         // and GID, ignoring the names.
         let pid = launcher.spawn(
-            group.to_string(),
+            &group.to_string(),
             &pkg.svc_run,
             service_user,     // Windows required, Linux optional
             service_group,    // Linux optional

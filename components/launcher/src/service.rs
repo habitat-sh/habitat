@@ -40,14 +40,14 @@ impl Service {
             let id = spawn.get_id().to_string();
             thread::Builder::new()
                 .name(format!("{}-out", spawn.get_id()))
-                .spawn(move || pipe_stdout(stdout, id))
+                .spawn(move || pipe_stdout(stdout, &id))
                 .ok();
         }
         if let Some(stderr) = stderr {
             let id = spawn.get_id().to_string();
             thread::Builder::new()
                 .name(format!("{}-err", spawn.get_id()))
-                .spawn(move || pipe_stderr(stderr, id))
+                .spawn(move || pipe_stderr(stderr, &id))
                 .ok();
         }
         Service {
@@ -94,7 +94,7 @@ impl fmt::Debug for Service {
 }
 
 /// Consume output from a child process until EOF, then finish
-fn pipe_stdout<T>(out: T, id: String)
+fn pipe_stdout<T>(out: T, id: &str)
 where
     T: Read,
 {
@@ -108,7 +108,7 @@ where
 }
 
 /// Consume standard error from a child process until EOF, then finish
-fn pipe_stderr<T>(err: T, id: String)
+fn pipe_stderr<T>(err: T, id: &str)
 where
     T: Read,
 {

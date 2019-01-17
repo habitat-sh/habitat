@@ -138,7 +138,7 @@ impl LauncherCli {
     /// accept either, but prefer numeric IDs.
     pub fn spawn<I, B, U, G, P>(
         &self,
-        id: I,
+        id: &I,
         bin: B,
         user: Option<U>,
         group: Option<G>,

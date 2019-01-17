@@ -55,7 +55,7 @@ impl Deps {
         //
         //let out = self.into_string()?;
         let out = String::new();
-        write.write(out.as_bytes())?;
+        write.write_all(out.as_bytes())?;
 
         Ok(())
     }

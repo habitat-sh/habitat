@@ -138,7 +138,8 @@ impl<'a> BuildSpec<'a> {
             dst.display()
         );
 
-        Ok(symlink(src, dst)?)
+        symlink(src, dst)?;
+        Ok(())
     }
 
     fn create_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
@@ -152,7 +153,8 @@ impl<'a> BuildSpec<'a> {
             dst.display()
         );
 
-        Ok(symlink(src, dst)?)
+        symlink(src, dst)?;
+        Ok(())
     }
 
     fn install_base_pkgs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<BasePkgIdents> {

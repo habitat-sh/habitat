@@ -62,8 +62,8 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str) {
     let mut tar_builder = Builder::new(enc);
     tar_builder.follow_symlinks(false);
 
-    let root_fs = temp_dir_path.clone().join("rootfs");
-    let hab_pkgs_path = temp_dir_path.clone().join("rootfs/hab");
+    let root_fs = temp_dir_path.join("rootfs");
+    let hab_pkgs_path = temp_dir_path.join("rootfs/hab");
 
     // Although this line of code DOES work (it adds the required directories
     // and subdirectories to the tarball), it also returns an error

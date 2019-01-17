@@ -66,7 +66,7 @@ impl FromStr for Maintainer {
     /// * An invalid URL is specified
     fn from_str(maintainer_str: &str) -> result::Result<Self, Self::Err> {
         let values: Vec<&str> = maintainer_str.split(',').collect();
-        if values.len() < 1 || values.len() > 3 {
+        if values.is_empty() || values.len() > 3 {
             return Err(Error::InvalidMaintainer(maintainer_str.to_owned()));
         }
 

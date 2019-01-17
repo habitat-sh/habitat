@@ -47,7 +47,7 @@ pub type Result<T> = result::Result<T, Error>;
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
-            Error::AcceptConn => format!("Unable to accept connection from Supervisor"),
+            Error::AcceptConn => "Unable to accept connection from Supervisor".to_string(),
             Error::Connect(ref e) => {
                 format!("Unable to connect to Supervisor's comm channel, {}", e)
             }
@@ -60,14 +60,14 @@ impl fmt::Display for Error {
             Error::Send(ref e) => format!("Unable to send to Launcher's comm channel, {}", e),
             Error::Serialize(ref e) => format!("Unable to serialize message to Supervisor, {}", e),
             Error::Spawn(ref e) => format!("Unable to spawn process, {}", e),
-            Error::SupBinaryVersion => format!("Unsupported Supervisor binary version"),
+            Error::SupBinaryVersion => "Unsupported Supervisor binary version".to_string(),
             Error::SupBinaryNotFound => {
                 format!("Supervisor package didn't contain '{}' binary", SUP_CMD)
             }
             Error::SupPackageNotFound => {
                 format!("Unable to locate Supervisor package, {}", SUP_PACKAGE_IDENT)
             }
-            Error::SupShutdown => format!("Error waiting for Supervisor to shutdown"),
+            Error::SupShutdown => "Error waiting for Supervisor to shutdown".to_string(),
             Error::SupSpawn(ref e) => format!("Unable to spawn Supervisor, {}", e),
             Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
         };

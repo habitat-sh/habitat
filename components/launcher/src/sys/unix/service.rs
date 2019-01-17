@@ -93,13 +93,13 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
         msg.get_svc_user_id()
     } else {
         os::users::get_uid_by_name(msg.get_svc_user())
-            .ok_or(Error::UserNotFound(msg.get_svc_user().to_string()))?
+            .ok_or_else(|| Error::UserNotFound(msg.get_svc_user().to_string()))?
     };
     let gid = if msg.has_svc_group_id() {
         msg.get_svc_group_id()
     } else {
         os::users::get_gid_by_name(msg.get_svc_group())
-            .ok_or(Error::GroupNotFound(msg.get_svc_group().to_string()))?
+            .ok_or_else(|| Error::GroupNotFound(msg.get_svc_group().to_string()))?
     };
 
     cmd.before_exec(owned_pgid);
