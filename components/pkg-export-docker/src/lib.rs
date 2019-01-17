@@ -63,12 +63,12 @@ pub use crate::docker::{DockerBuildRoot, DockerImage};
 pub use crate::error::{Error, Result};
 
 /// The version of this library and program when built.
-pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// The Habitat Package Identifier string for a Busybox package.
-const BUSYBOX_IDENT: &'static str = "core/busybox-static";
+const BUSYBOX_IDENT: &str = "core/busybox-static";
 /// The Habitat Package Identifier string for SSL certificate authorities (CA) certificates package.
-const CACERTS_IDENT: &'static str = "core/cacerts";
+const CACERTS_IDENT: &str = "core/cacerts";
 
 /// An image naming policy.
 ///
@@ -171,7 +171,7 @@ impl Credentials {
                 let token = client
                     .get_authorization_token(auth_token_req)
                     .sync()
-                    .map_err(|e| Error::TokenFetchFailed(e))
+                    .map_err(Error::TokenFetchFailed)
                     .and_then(|resp| {
                         resp.authorization_data
                             .ok_or(Error::NoECRTokensReturned)

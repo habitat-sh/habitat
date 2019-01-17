@@ -109,8 +109,8 @@ impl IndentedToString for OsString {
 impl<T: IndentedToString> IndentedToString for Option<T> {
     fn indented_to_string(&self, spaces: &str, repeat: usize) -> String {
         match self {
-            &Some(ref v) => format!("Some({})", its!(v, spaces, repeat)),
-            &None => "None".to_string(),
+            Some(ref v) => format!("Some({})", its!(v, spaces, repeat)),
+            None => "None".to_string(),
         }
     }
 }

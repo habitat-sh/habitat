@@ -46,8 +46,8 @@ use crate::manager::service::HealthCheck;
 
 use crate::feat;
 
-const APIDOCS: &'static str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
-pub const HTTP_THREADS_ENVVAR: &'static str = "HAB_SUP_HTTP_THREADS";
+const APIDOCS: &str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
+pub const HTTP_THREADS_ENVVAR: &str = "HAB_SUP_HTTP_THREADS";
 pub const HTTP_THREAD_COUNT: usize = 2;
 
 /// Default listening port for the HTTPGateway listener.
@@ -494,10 +494,10 @@ mod tests {
             .join("http-gateway")
             .join(name);
 
-        let mut f = File::open(path).expect(&format!("could not open {}", &name));
+        let mut f = File::open(path).unwrap_or_else(|_| panic!("could not open {}", &name));
         let mut json = String::new();
         f.read_to_string(&mut json)
-            .expect(&format!("could not read {}", &name));
+            .unwrap_or_else(|_| panic!("could not read {}", &name));
 
         assert_valid(&json, schema);
     }

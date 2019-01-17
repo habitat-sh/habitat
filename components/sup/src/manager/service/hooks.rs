@@ -77,7 +77,7 @@ pub trait Hook: fmt::Debug + Sized {
         T: AsRef<Path>,
     {
         let file_name = Self::file_name();
-        let deprecated_file_name = if Self::file_name().contains("-") {
+        let deprecated_file_name = if Self::file_name().contains('-') {
             Some(Self::file_name().replace("-", "_"))
         } else {
             None
@@ -788,7 +788,7 @@ where
     T: AsRef<Path>,
 {
     if path.as_ref().exists() {
-        crypto::hash::hash_file(path).map_err(|e| SupError::from(e))
+        crypto::hash::hash_file(path).map_err(SupError::from)
     } else {
         Ok(String::new())
     }
@@ -831,7 +831,7 @@ impl HookTable {
         T: AsRef<Path>,
     {
         let mut table = HookTable::default();
-        if let Some(meta) = std::fs::metadata(templates.as_ref()).ok() {
+        if let Ok(meta) = std::fs::metadata(templates.as_ref()) {
             if meta.is_dir() {
                 table.file_updated = FileUpdatedHook::load(service_group, &hooks_path, &templates);
                 table.health_check = HealthCheckHook::load(service_group, &hooks_path, &templates);
@@ -982,7 +982,7 @@ impl<'a> HookOutput<'a> {
         let preamble_str = self.stream_preamble::<H>(service_group);
         if let Some(ref mut stdout) = process.stdout {
             for line in BufReader::new(stdout).lines() {
-                if let Some(ref l) = line.ok() {
+                if let Ok(ref l) = line {
                     outputln!(preamble preamble_str, l);
                     stdout_log
                         .write_fmt(format_args!("{}\n", l))
@@ -992,7 +992,7 @@ impl<'a> HookOutput<'a> {
         }
         if let Some(ref mut stderr) = process.stderr {
             for line in BufReader::new(stderr).lines() {
-                if let Some(ref l) = line.ok() {
+                if let Ok(ref l) = line {
                     outputln!(preamble preamble_str, l);
                     stderr_log
                         .write_fmt(format_args!("{}\n", l))

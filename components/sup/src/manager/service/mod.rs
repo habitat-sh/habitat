@@ -431,7 +431,7 @@ impl Service {
     /// the service, those binds will be removed from the rendering
     /// context, allowing services to take appropriate action.
     fn validate_binds(&mut self, census_ring: &CensusRing) {
-        for ref bind in self.binds.iter() {
+        for bind in self.binds.iter() {
             let mut bind_is_unsatisfied = true;
 
             match self.current_bind_status(census_ring, bind) {
@@ -477,19 +477,17 @@ impl Service {
 
             if bind_is_unsatisfied {
                 // TODO (CM): use Entry API to clone only when necessary
-                self.unsatisfied_binds.insert((*bind).clone())
-            } else {
-                if self.unsatisfied_binds.remove(*bind) {
-                    // We'll log if the bind was previously
-                    // unsatisfied, but now it is satisfied.
-                    outputln!(preamble self.service_group,
+                self.unsatisfied_binds.insert((bind).clone())
+            } else if self.unsatisfied_binds.remove(bind) {
+                // We'll log if the bind was previously
+                // unsatisfied, but now it is satisfied.
+                outputln!(preamble self.service_group,
                               "The group '{}' satisfies the `{}` bind",
                               bind.service_group,
                               bind.name);
-                    true
-                } else {
-                    false
-                }
+                true
+            } else {
+                false
             };
         }
     }
@@ -504,7 +502,7 @@ impl Service {
         match census_ring.census_group_for(&service_bind.service_group) {
             None => BindStatus::NotPresent,
             Some(group) => {
-                if group.active_members().is_empty() {
+                if group.active_members().count() == 0 {
                     BindStatus::Empty
                 } else {
                     match self.unsatisfied_bind_exports(group, &service_bind.name) {
@@ -542,7 +540,7 @@ impl Service {
 
         let diff: HashSet<&String> = exports
             .difference(&group_exports)
-            .map(|m| *m) // &&String -> &String
+            .cloned() // &&String -> &String
             .collect();
 
         Ok(diff)
@@ -734,8 +732,7 @@ impl Service {
             );
         }
 
-        &self
-            .gateway_state
+        self.gateway_state
             .write()
             .expect("GatewayState lock is poisoned")
             .health_check_data
@@ -760,8 +757,7 @@ impl Service {
             "Caching HealthCheck = '{}' for '{}'",
             check_result, self.service_group
         );
-        &self
-            .gateway_state
+        self.gateway_state
             .write()
             .expect("GatewayState lock is poisoned")
             .health_check_data
@@ -1127,7 +1123,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
     where
         S: Serializer,
     {
-        let num_fields: usize = if *&self.config_rendering == ConfigRendering::Full {
+        let num_fields: usize = if self.config_rendering == ConfigRendering::Full {
             28
         } else {
             27
@@ -1140,7 +1136,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("binds", &s.binds)?;
         strukt.serialize_field("bldr_url", &s.bldr_url)?;
 
-        if *&self.config_rendering == ConfigRendering::Full {
+        if self.config_rendering == ConfigRendering::Full {
             strukt.serialize_field("cfg", &s.cfg)?;
         }
 

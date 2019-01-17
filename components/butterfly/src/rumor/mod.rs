@@ -100,10 +100,10 @@ impl RumorKey {
     }
 
     pub fn key(&self) -> String {
-        if self.key.len() > 0 {
+        if !self.key.is_empty() {
             format!("{}-{}", self.id, self.key)
         } else {
-            format!("{}", self.id)
+            self.id.to_string()
         }
     }
 }
@@ -221,7 +221,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, Election> {
         let mut new_map = HashMap::new();
 
         for (k, v) in map.iter() {
-            let election = v.get("election").clone();
+            let election = v.get("election");
             let _service_group = new_map.entry(k).or_insert(election);
         }
 
@@ -245,7 +245,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
         let mut new_map = HashMap::new();
 
         for (k, v) in map.iter() {
-            let election = v.get("election").clone();
+            let election = v.get("election");
             let _service_group = new_map.entry(k).or_insert(election);
         }
 
@@ -284,7 +284,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
         let mut new_map = HashMap::new();
 
         for (k, v) in map.iter() {
-            let service_config = v.get("service_config").clone();
+            let service_config = v.get("service_config");
             let _service_group = new_map.entry(k).or_insert(service_config);
         }
 
@@ -371,7 +371,7 @@ where
         let mut list = self.list.write().expect("Rumor store lock poisoned");
         let rumors = list
             .entry(String::from(rumor.key()))
-            .or_insert(HashMap::new());
+            .or_insert_with(HashMap::new);
         // Result reveals if there was a change so we can increment the counter if needed.
         let result = match rumors.entry(rumor.id().into()) {
             Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
@@ -423,10 +423,7 @@ where
 
     pub fn contains_rumor(&self, key: &str, id: &str) -> bool {
         let list = self.list.read().expect("Rumor store lock poisoned");
-        match list.get(key).and_then(|l| l.get(id)) {
-            Some(_) => true,
-            None => false,
-        }
+        list.get(key).and_then(|l| l.get(id)).is_some()
     }
 
     /// Increment the update counter for this store.

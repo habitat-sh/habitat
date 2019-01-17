@@ -123,7 +123,7 @@ impl RumorHeat {
             .read()
             .expect("RumorHeat lock poisoned")
             .iter()
-            .map(|(k, heat_map)| (k.clone(), heat_map.get(id).unwrap_or(&0).clone()))
+            .map(|(k, heat_map)| (k.clone(), *heat_map.get(id).unwrap_or(&0)))
             .filter(|&(_, heat)| heat < RumorShareLimit::configured_value().0)
             .collect();
 
@@ -144,9 +144,9 @@ impl RumorHeat {
     /// **NOTE**: "cool" in the name of the function is a *verb*; you're
     /// not going to get a list of cool rumors from this.
     pub fn cool_rumors(&self, id: &str, rumors: &[RumorKey]) {
-        if rumors.len() > 0 {
+        if !rumors.is_empty() {
             let mut rumor_map = self.0.write().expect("RumorHeat lock poisoned");
-            for ref rk in rumors {
+            for rk in rumors {
                 if rumor_map.contains_key(&rk) {
                     let heat_map = rumor_map.get_mut(&rk).unwrap();
                     if heat_map.contains_key(id) {

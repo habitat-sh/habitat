@@ -55,7 +55,7 @@ pub fn service_cfg(
     req: &mut CtlRequest,
     opts: protocol::ctl::SvcGetDefaultCfg,
 ) -> NetResult<()> {
-    let ident: PackageIdent = opts.ident.ok_or(err_update_client())?.into();
+    let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
     let mut msg = protocol::types::ServiceCfg {
         format: Some(protocol::types::service_cfg::Format::Toml as i32),
         default: None,
@@ -86,7 +86,7 @@ pub fn service_cfg_validate(
     req: &mut CtlRequest,
     opts: protocol::ctl::SvcValidateCfg,
 ) -> NetResult<()> {
-    let cfg = opts.cfg.ok_or(err_update_client())?;
+    let cfg = opts.cfg.ok_or_else(err_update_client)?;
     let format = opts
         .format
         .and_then(protocol::types::service_cfg::Format::from_i32)
@@ -148,10 +148,10 @@ pub fn service_cfg_set(
     req: &mut CtlRequest,
     opts: protocol::ctl::SvcSetCfg,
 ) -> NetResult<()> {
-    let cfg = opts.cfg.ok_or(err_update_client())?;
+    let cfg = opts.cfg.ok_or_else(err_update_client)?;
     let is_encrypted = opts.is_encrypted.unwrap_or(false);
-    let version = opts.version.ok_or(err_update_client())?;
-    let service_group: ServiceGroup = opts.service_group.ok_or(err_update_client())?.into();
+    let version = opts.version.ok_or_else(err_update_client)?;
+    let service_group: ServiceGroup = opts.service_group.ok_or_else(err_update_client)?.into();
     if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
         return Err(net::err(
             ErrCode::EntityTooLarge,
@@ -173,7 +173,7 @@ pub fn service_cfg_set(
             return Err(net::err(ErrCode::Internal, err.to_string()));
         }
     };
-    match client.send_service_config(service_group, version, cfg, is_encrypted) {
+    match client.send_service_config(service_group, version, &cfg, is_encrypted) {
         Ok(()) => {
             req.reply_complete(net::ok());
             return Ok(());
@@ -187,11 +187,11 @@ pub fn service_file_put(
     req: &mut CtlRequest,
     opts: protocol::ctl::SvcFilePut,
 ) -> NetResult<()> {
-    let content = opts.content.ok_or(err_update_client())?;
-    let filename = opts.filename.ok_or(err_update_client())?;
+    let content = opts.content.ok_or_else(err_update_client)?;
+    let filename = opts.filename.ok_or_else(err_update_client)?;
     let is_encrypted = opts.is_encrypted.unwrap_or(false);
-    let version = opts.version.ok_or(err_update_client())?;
-    let service_group: ServiceGroup = opts.service_group.ok_or(err_update_client())?.into();
+    let version = opts.version.ok_or_else(err_update_client)?;
+    let service_group: ServiceGroup = opts.service_group.ok_or_else(err_update_client)?.into();
     if content.len() > protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES {
         return Err(net::err(ErrCode::EntityTooLarge, "File content too large."));
     }
@@ -211,7 +211,7 @@ pub fn service_file_put(
             return Err(net::err(ErrCode::Internal, err.to_string()));
         }
     };
-    match client.send_service_file(service_group, filename, version, content, is_encrypted) {
+    match client.send_service_file(service_group, filename, version, &content, is_encrypted) {
         Ok(()) => {
             req.reply_complete(net::ok());
             return Ok(());
@@ -225,16 +225,16 @@ pub fn service_load(
     req: &mut CtlRequest,
     opts: protocol::ctl::SvcLoad,
 ) -> NetResult<()> {
-    let ident: PackageIdent = opts.ident.clone().ok_or(err_update_client())?.into();
+    let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
     let bldr_url = opts
         .bldr_url
         .clone()
-        .unwrap_or(protocol::DEFAULT_BLDR_URL.to_string());
+        .unwrap_or_else(|| protocol::DEFAULT_BLDR_URL.to_string());
     let bldr_channel = opts
         .bldr_channel
         .clone()
-        .unwrap_or(protocol::DEFAULT_BLDR_CHANNEL.to_string());
-    let force = opts.force.clone().unwrap_or(false);
+        .unwrap_or_else(|| protocol::DEFAULT_BLDR_CHANNEL.to_string());
+    let force = opts.force.unwrap_or(false);
     let source = InstallSource::Ident(ident.clone(), *PackageTarget::active_target());
     match existing_specs_for_ident(&mgr.cfg, source.as_ref())? {
         None => {
@@ -420,7 +420,7 @@ pub fn service_unload(
     req: &mut CtlRequest,
     opts: protocol::ctl::SvcUnload,
 ) -> NetResult<()> {
-    let ident: PackageIdent = opts.ident.ok_or(err_update_client())?.into();
+    let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
     // Gather up the paths to all the spec files we care about,
     // along with their corresponding idents (we do this to ensure
     // we emit a proper "unloading X" message for each member of a
@@ -461,7 +461,7 @@ pub fn service_start(
     req: &mut CtlRequest,
     opts: protocol::ctl::SvcStart,
 ) -> NetResult<()> {
-    let ident = opts.ident.ok_or(err_update_client())?.into();
+    let ident = opts.ident.ok_or_else(err_update_client)?.into();
     let updated_specs = match existing_specs_for_ident(&mgr.cfg, &ident)? {
         Some(Spec::Service(mut spec)) => {
             let mut updated_specs = vec![];
@@ -488,7 +488,7 @@ pub fn service_start(
             ));
         }
     };
-    let specs_changed = updated_specs.len() > 0;
+    let specs_changed = !updated_specs.is_empty();
     for spec in updated_specs.iter() {
         save_spec_for(&mgr.cfg, spec)?;
     }
@@ -509,7 +509,7 @@ pub fn service_stop(
     req: &mut CtlRequest,
     opts: protocol::ctl::SvcStop,
 ) -> NetResult<()> {
-    let ident: PackageIdent = opts.ident.ok_or(err_update_client())?.into();
+    let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
     let updated_specs = match existing_specs_for_ident(&mgr.cfg, &ident)? {
         Some(Spec::Service(mut spec)) => {
             let mut updated_specs = vec![];
@@ -536,7 +536,7 @@ pub fn service_stop(
             ));
         }
     };
-    let specs_changed = updated_specs.len() > 0;
+    let specs_changed = !updated_specs.is_empty();
     for spec in updated_specs.iter() {
         save_spec_for(&mgr.cfg, spec)?;
     }
@@ -557,7 +557,7 @@ pub fn supervisor_depart(
     req: &mut CtlRequest,
     opts: protocol::ctl::SupDepart,
 ) -> NetResult<()> {
-    let member_id = opts.member_id.ok_or(err_update_client())?;
+    let member_id = opts.member_id.ok_or_else(err_update_client)?;
     let mut client = match butterfly::client::Client::new(
         mgr.cfg.gossip_listen.local_addr(),
         mgr.cfg.ring_key.clone(),

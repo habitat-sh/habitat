@@ -23,13 +23,13 @@ static LOGKEY: &'static str = "UR";
 ///     b) we are the specified user:group
 ///     c) fail otherwise
 pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
-    if let None = users::get_uid_by_name(user) {
+    if users::get_uid_by_name(user).is_none() {
         return Err(sup_error!(Error::Permissions(format!(
             "Package requires user {} to exist, but it doesn't",
             user
         ))));
     }
-    if let None = users::get_gid_by_name(&group) {
+    if users::get_gid_by_name(&group).is_none() {
         return Err(sup_error!(Error::Permissions(format!(
             "Package requires group {} to exist, but it doesn't",
             group
@@ -39,13 +39,13 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
     let current_user = users::get_current_username();
     let current_group = users::get_current_groupname();
 
-    if let None = current_user {
+    if current_user.is_none() {
         return Err(sup_error!(Error::Permissions(
             "Can't determine current user".to_string(),
         )));
     }
 
-    if let None = current_group {
+    if current_group.is_none() {
         return Err(sup_error!(Error::Permissions(
             "Can't determine current group".to_string(),
         )));
@@ -54,15 +54,13 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
     let current_user = current_user.unwrap();
     let current_group = current_group.unwrap();
 
-    if current_user == users::root_level_account() {
+    if current_user == users::root_level_account()
+        || (current_user == user && current_group == group)
+    // ok, sup is running as svc_user/svc_group already
+    {
         Ok(())
     } else {
-        if current_user == user && current_group == group {
-            // ok, sup is running as svc_user/svc_group already
-            Ok(())
-        } else {
-            let msg = format!("Package must run as {}:{} or root", user, &group);
-            return Err(sup_error!(Error::Permissions(msg)));
-        }
+        let msg = format!("Package must run as {}:{} or root", user, &group);
+        return Err(sup_error!(Error::Permissions(msg)));
     }
 }

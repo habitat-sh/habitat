@@ -201,17 +201,15 @@ impl Rumor for Election {
             other.steal_votes(self);
             *self = other;
             true
+        } else if self.member_id >= other.member_id {
+            debug!("stored rumor wins tie-breaker; take received rumor's votes and share");
+            self.steal_votes(&mut other);
+            true
         } else {
-            if self.member_id >= other.member_id {
-                debug!("stored rumor wins tie-breaker; take received rumor's votes and share");
-                self.steal_votes(&mut other);
-                true
-            } else {
-                debug!("received rumor wins tie-breaker; take stored rumor's votes, replace stored and share");
-                other.steal_votes(self);
-                *self = other;
-                true
-            }
+            debug!("received rumor wins tie-breaker; take stored rumor's votes, replace stored and share");
+            other.steal_votes(self);
+            *self = other;
+            true
         }
     }
 

@@ -137,7 +137,7 @@ impl<'a> fmt::Display for TraceWrite<'a> {
         write!(f, "^{}", self.to_addr.unwrap_or(""))?;
         write!(f, "^{}", self.swim.unwrap_or(""))?;
         write!(f, "^{}", self.rumor.unwrap_or(""))?;
-        write!(f, "\n")
+        writeln!(f)
     }
 }
 

@@ -1120,9 +1120,9 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
 fn valid_socket_addr(val: String) -> result::Result<(), String> {
     match SocketAddr::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!(
-            "Socket address should include both IP and port, eg: '0.0.0.0:9700'"
-        )),
+        Err(_) => {
+            Err("Socket address should include both IP and port, eg: '0.0.0.0:9700'".to_string())
+        }
     }
 }
 

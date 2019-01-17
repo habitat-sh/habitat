@@ -92,63 +92,52 @@ where
                             Some(p) => PathBuf::from(p),
                             None => unreachable!(),
                         };
-                        if retry(
-                            RETRIES,
-                            RETRY_WAIT,
-                            || {
-                                attempt_upload_dep(
-                                    ui,
-                                    &api_client,
-                                    token,
-                                    &dep,
-                                    &target,
-                                    additional_release_channel,
-                                    force_upload,
-                                    &candidate_path,
-                                    &key_path,
-                                )
-                            },
-                            |res| res.is_ok(),
-                        )
-                        .is_err()
-                        {
-                            return Err(Error::from(api_client::Error::UploadFailed(format!(
-                                "We tried \
-                                 {} times \
-                                 but could \
-                                 not upload \
-                                 {}. Giving \
-                                 up.",
-                                RETRIES, &dep
-                            ))));
+                        let upload = || {
+                            attempt_upload_dep(
+                                ui,
+                                &api_client,
+                                token,
+                                &dep,
+                                &target,
+                                additional_release_channel,
+                                force_upload,
+                                &candidate_path,
+                                &key_path,
+                            )
+                        };
+                        match retry(RETRIES, RETRY_WAIT, upload, Result::is_ok) {
+                            Ok(_) => trace!("attempt_upload_dep succeeded"),
+                            Err(_) => {
+                                return Err(Error::from(api_client::Error::UploadFailed(format!(
+                                    "We tried {} times but could not upload {}. Giving up.",
+                                    RETRIES, &dep
+                                ))))
+                            }
                         }
                     }
                     Err(e) => return Err(Error::from(e)),
                 }
             }
 
-            if retry(
-                RETRIES,
-                RETRY_WAIT,
-                || {
-                    upload_into_depot(
-                        ui,
-                        &api_client,
-                        token,
-                        &ident,
-                        additional_release_channel,
-                        force_upload,
-                        &mut archive,
-                    )
-                },
-                |res| res.is_ok(),
-            )
-            .is_err()
-            {
-                return Err(Error::from(api_client::Error::UploadFailed(format!(
-                    "We tried {} times but could not upload {}. Giving up.",
-                    RETRIES, &ident
-                ))));
+            let upload = || {
+                upload_into_depot(
+                    ui,
+                    &api_client,
+                    token,
+                    &ident,
+                    additional_release_channel,
+                    force_upload,
+                    &mut archive,
+                )
+            };
+            match retry(RETRIES, RETRY_WAIT, upload, Result::is_ok) {
+                Ok(_) => trace!("upload_into_depot succeeded"),
+                Err(_) => {
+                    return Err(Error::from(api_client::Error::UploadFailed(format!(
+                        "We tried {} times but could not upload {}. Giving up.",
+                        RETRIES, &ident
+                    ))))
+                }
             }
             ui.end(format!("Upload of {} complete.", &ident))?;
             Ok(())
@@ -308,6 +297,6 @@ where
             )?;
             Ok(())
         }
-        Err(err) => return Err(Error::from(err)),
+        Err(err) => Err(Error::from(err)),
     }
 }

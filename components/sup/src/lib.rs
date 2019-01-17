@@ -110,7 +110,7 @@ use std::path::PathBuf;
 
 lazy_static! {
     pub static ref PROGRAM_NAME: String = {
-        let arg0 = env::args().next().map(|p| PathBuf::from(p));
+        let arg0 = env::args().next().map(PathBuf::from);
         arg0.as_ref()
             .and_then(|p| p.file_stem())
             .and_then(|p| p.to_str())
@@ -125,16 +125,16 @@ lazy_static! {
 /// Search for feat::is_enabled(feat::FeatureName) to learn more
 features! {
     pub mod feat {
-        const List          = 0b00000001,
-        const TestExit      = 0b00000010,
-        const TestBootFail  = 0b00000100,
-        const RedactHTTP    = 0b00001000,
-        const IgnoreSignals = 0b00010000
+        const List          = 0b0000_0001,
+        const TestExit      = 0b0000_0010,
+        const TestBootFail  = 0b0000_0100,
+        const RedactHTTP    = 0b0000_1000,
+        const IgnoreSignals = 0b0001_0000
     }
 }
 
-pub const PRODUCT: &'static str = "hab-sup";
-pub const VERSION: &'static str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
+pub const PRODUCT: &str = "hab-sup";
+pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 #[derive(Copy, Clone)]
 pub enum ShutdownReason {

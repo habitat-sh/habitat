@@ -28,9 +28,9 @@ use term::{Terminal, TerminfoTerminal};
 use self::tty::StdStream;
 use crate::error::{Error, Result};
 
-pub const NONINTERACTIVE_ENVVAR: &'static str = "HAB_NONINTERACTIVE";
+pub const NONINTERACTIVE_ENVVAR: &str = "HAB_NONINTERACTIVE";
 
-pub const NOCOLORING_ENVVAR: &'static str = "HAB_NOCOLORING";
+pub const NOCOLORING_ENVVAR: &str = "HAB_NOCOLORING";
 
 pub enum Status {
     Applying,
@@ -239,7 +239,7 @@ pub trait UIWriter {
             buf.push_str(&format!("{}\n", color.bold().paint("✗✗✗")));
             buf
         } else {
-            let mut buf = format!("✗✗✗\n");
+            let mut buf = "✗✗✗\n".to_string();
             for line in message.to_string().lines() {
                 buf.push_str(&format!("✗✗✗ {}\n", line));
             }
@@ -256,11 +256,7 @@ pub trait UIWriter {
         T: AsRef<str>,
     {
         if self.is_out_colored() {
-            write!(
-                self.out(),
-                "{}\n",
-                Colour::Green.bold().paint(text.as_ref())
-            )?;
+            writeln!(self.out(), "{}", Colour::Green.bold().paint(text.as_ref()))?;
             write!(
                 self.out(),
                 "{}\n\n",
@@ -271,7 +267,7 @@ pub trait UIWriter {
                 ))
             )?;
         } else {
-            write!(self.out(), "{}\n", text.as_ref())?;
+            writeln!(self.out(), "{}", text.as_ref())?;
             write!(
                 self.out(),
                 "{}\n\n",
@@ -432,46 +428,32 @@ impl UIReader for UI {
     }
 
     fn prompt_yes_no(&mut self, question: &str, default: Option<bool>) -> Result<bool> {
-        let ref mut stream = self.shell.out;
-        let choice = match default {
-            Some(yes) => {
-                if yes {
-                    match stream.is_colored() {
-                        true => format!(
-                            "{}{}{}",
-                            Colour::White.paint("["),
-                            Colour::White.bold().paint("Yes"),
-                            Colour::White.paint("/no/quit]")
-                        ),
-                        false => format!("[Yes/no/quit]"),
-                    }
-                } else {
-                    match stream.is_colored() {
-                        true => format!(
-                            "{}{}{}",
-                            Colour::White.paint("[yes/"),
-                            Colour::White.bold().paint("No"),
-                            Colour::White.paint("/quit]")
-                        ),
-                        false => format!("[yes/No/quit]"),
-                    }
-                }
+        let stream = &mut self.shell.out;
+        let choice = {
+            let (prefix, default_text, suffix) = match default {
+                Some(true) => ("[", "Yes", "/no/quit]"),
+                Some(false) => ("[yes/", "No", "/quit]"),
+                None => ("[yes/no/quit]", "", ""),
+            };
+            if stream.is_colored() {
+                format!(
+                    "{}{}{}",
+                    Colour::White.paint(prefix),
+                    Colour::White.bold().paint(default_text),
+                    Colour::White.paint(suffix)
+                )
+            } else {
+                format!("{}{}{}", prefix, default_text, suffix)
             }
-            None => match stream.is_colored() {
-                true => format!("{}", Colour::White.paint("[yes/no/quit]")),
-                false => format!("[yes/no/quit]"),
-            },
+        };
+        let question = if stream.is_colored() {
+            Colour::Cyan.paint(question).to_string()
+        } else {
+            question.to_string()
         };
         loop {
             stream.flush()?;
-            match stream.is_colored() {
-                true => {
-                    write!(stream, "{} {} ", Colour::Cyan.paint(question), choice)?;
-                }
-                false => {
-                    write!(stream, "{} {} ", question, choice)?;
-                }
-            }
+            write!(stream, "{} {} ", question, choice)?;
             stream.flush()?;
             let mut response = String::new();
             {
@@ -492,34 +474,25 @@ impl UIReader for UI {
     }
 
     fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
-        let ref mut stream = self.shell.out;
+        let stream = &mut self.shell.out;
         let choice = match default {
-            Some(d) => match stream.is_colored() {
-                true => format!(
-                    " {}{}{}",
-                    Colour::White.paint("[default: "),
-                    Colour::White.bold().paint(d),
-                    Colour::White.paint("]")
-                ),
-                false => format!(" [default: {}]", d),
-            },
+            Some(d) if stream.is_colored() => format!(
+                "{}{}{}",
+                Colour::White.paint("[default: "),
+                Colour::White.bold().paint(d),
+                Colour::White.paint("]")
+            ),
+            Some(d) => format!("[default: {}]", d),
             None => "".to_string(),
+        };
+        let question = if stream.is_colored() {
+            Colour::Cyan.paint(question).to_string()
+        } else {
+            question.to_string()
         };
         loop {
             stream.flush()?;
-            match stream.is_colored() {
-                true => {
-                    write!(
-                        stream,
-                        "{}{} ",
-                        Colour::Cyan.paint(format!("{}:", question)),
-                        choice
-                    )?;
-                }
-                false => {
-                    write!(stream, "{}{} ", format!("{}:", question), choice)?;
-                }
-            }
+            write!(stream, "{}: {} ", question, choice)?;
             stream.flush()?;
             let mut response = String::new();
             {
@@ -540,14 +513,14 @@ impl UIReader for UI {
     where
         T: fmt::Display,
     {
-        let editor = env::var("EDITOR").map_err(|e| Error::EditorEnv(e))?;
+        let editor = env::var("EDITOR").map_err(Error::EditorEnv)?;
 
         let mut tmp_file_path = env::temp_dir();
         tmp_file_path.push(format!("_hab_{}.tmp", Uuid::new_v4()));
 
         let mut tmp_file = File::create(&tmp_file_path)?;
 
-        if contents.len() > 0 {
+        if !contents.is_empty() {
             for line in contents {
                 write!(tmp_file, "{}", line)?;
             }
@@ -873,8 +846,8 @@ impl DisplayProgress for ConsoleProgressBar {
     }
 
     fn finish(&mut self) {
-        println!("");
-        io::stdout().flush().ok().expect("flush() fail");
+        println!();
+        io::stdout().flush().expect("flush() fail");
     }
 }
 
@@ -913,7 +886,7 @@ where
         for word in line.split_whitespace() {
             let wl = word.chars().count();
             if (width + wl + 1) > (wrap_width - left_indent) {
-                write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
+                writeln!(stream, "{:<width$}{}", " ", buffer, width = left_indent)?;
                 buffer.clear();
                 width = 0;
             }
@@ -922,9 +895,9 @@ where
             buffer.push(' ');
         }
         if !buffer.is_empty() {
-            write!(stream, "{:<width$}{}\n", " ", buffer, width = left_indent)?;
+            writeln!(stream, "{:<width$}{}", " ", buffer, width = left_indent)?;
         }
-        write!(stream, "\n")?;
+        writeln!(stream)?;
     }
     stream.flush()
 }

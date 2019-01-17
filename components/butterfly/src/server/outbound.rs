@@ -46,8 +46,8 @@ enum AckFrom {
 impl fmt::Display for AckFrom {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            &AckFrom::Ping => write!(f, "Ping"),
-            &AckFrom::PingReq => write!(f, "PingReq"),
+            AckFrom::Ping => write!(f, "Ping"),
+            AckFrom::PingReq => write!(f, "PingReq"),
         }
     }
 }
@@ -266,7 +266,7 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
         .take(5) // TODO (CM): magic number!
         .collect();
 
-    for ref rkey in rumors.iter() {
+    for rkey in rumors.iter() {
         if let Some(member) = server.member_list.membership_for(&rkey.key()) {
             swim.membership.push(member);
         }

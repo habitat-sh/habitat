@@ -237,14 +237,12 @@ impl DisplayProgress for NetProgressBar {
         self.inner.total = size;
     }
 
-    fn finish(&mut self) {
-        ()
-    }
+    fn finish(&mut self) {}
 }
 
 impl io::Write for NetProgressBar {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.inner.position = self.inner.position + buf.len() as u64;
+        self.inner.position += buf.len() as u64;
         self.req.reply_partial(self.inner.clone());
         Ok(buf.len())
     }

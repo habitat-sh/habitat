@@ -40,7 +40,7 @@ use time_crate::SteadyTime;
 static LOGKEY: &'static str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not
 // "frequency"... we need to fix that.
-const PERIOD_BYPASS_CHECK_ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";
+const PERIOD_BYPASS_CHECK_ENVVAR: &str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";
 lazy_static! {
     static ref MIN_ALLOWED_PERIOD: Duration = Duration::seconds(60);
 }
@@ -245,10 +245,10 @@ impl ServiceUpdater {
                         .census_group_for(&service.service_group)
                     {
                         Some(census_group) => {
-                            if census_group.members().iter().any(|cm| {
-                                cm.pkg.as_ref().unwrap()
-                                    != census_group.me().unwrap().pkg.as_ref().unwrap()
-                            }) {
+                            if census_group
+                                .members()
+                                .any(|cm| cm.pkg != census_group.me().unwrap().pkg)
+                            {
                                 debug!("Update leader still waiting for followers...");
                                 return false;
                             }
@@ -355,7 +355,7 @@ impl FromStr for ServiceUpdatePeriod {
     fn from_str(s: &str) -> result::Result<Self, Self::Err> {
         // Parsing as a u32 gives us an effective range of 49+ days
         let raw = s.parse::<u32>()?;
-        Ok(Duration::milliseconds(raw as i64).into())
+        Ok(Duration::milliseconds(i64::from(raw)).into())
     }
 }
 
@@ -633,7 +633,7 @@ mod tests {
 
         period.set("120000");
         bypass.unset();
-        let expected_period: ServiceUpdatePeriod = Duration::milliseconds(120000).into();
+        let expected_period: ServiceUpdatePeriod = Duration::milliseconds(120_000).into();
         assert!(expected_period >= *MIN_ALLOWED_PERIOD);
         assert_eq!(expected_period, worker.update_period());
     }

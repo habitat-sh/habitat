@@ -28,15 +28,15 @@ use crate::hcore::package::target;
 use crate::error::{Error, Result};
 use crate::VERSION;
 
-const DOCKER_CMD: &'static str = "docker";
-const DOCKER_CMD_ENVVAR: &'static str = "HAB_DOCKER_BINARY";
+const DOCKER_CMD: &str = "docker";
+const DOCKER_CMD_ENVVAR: &str = "HAB_DOCKER_BINARY";
 
-const DOCKER_IMAGE: &'static str = "habitat/default-studio";
-const DOCKER_WINDOWS_IMAGE: &'static str = "habitat-docker-registry.bintray.io/win-studio";
-const DOCKER_IMAGE_ENVVAR: &'static str = "HAB_DOCKER_STUDIO_IMAGE";
-const DOCKER_OPTS_ENVVAR: &'static str = "HAB_DOCKER_OPTS";
-const DOCKER_SOCKET: &'static str = "/var/run/docker.sock";
-const HAB_STUDIO_SECRET: &'static str = "HAB_STUDIO_SECRET_";
+const DOCKER_IMAGE: &str = "habitat/default-studio";
+const DOCKER_WINDOWS_IMAGE: &str = "habitat-docker-registry.bintray.io/win-studio";
+const DOCKER_IMAGE_ENVVAR: &str = "HAB_DOCKER_STUDIO_IMAGE";
+const DOCKER_OPTS_ENVVAR: &str = "HAB_DOCKER_OPTS";
+const DOCKER_SOCKET: &str = "/var/run/docker.sock";
+const HAB_STUDIO_SECRET: &str = "HAB_STUDIO_SECRET_";
 
 pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> {
     if args.get(0) == Some(&OsString::from("rm")) {
@@ -52,9 +52,10 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
         pull_image(&docker_cmd)?;
     }
 
-    let mnt_prefix = match is_serving_windows_containers(&docker_cmd) {
-        true => "c:",
-        false => "",
+    let mnt_prefix = if is_serving_windows_containers(&docker_cmd) {
+        "c:"
+    } else {
+        ""
     };
     let mut volumes = vec![
         format!(
@@ -122,7 +123,7 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
 }
 
 fn find_docker_cmd() -> Result<PathBuf> {
-    let docker_cmd = henv::var(DOCKER_CMD_ENVVAR).unwrap_or(DOCKER_CMD.to_string());
+    let docker_cmd = henv::var(DOCKER_CMD_ENVVAR).unwrap_or_else(|_| DOCKER_CMD.to_string());
 
     match find_command(&docker_cmd) {
         Some(docker_abs_path) => Ok(docker_abs_path),
@@ -247,7 +248,7 @@ where
     }
     if let Ok(opts) = henv::var(DOCKER_OPTS_ENVVAR) {
         let opts = opts
-            .split(" ")
+            .split(' ')
             .map(|v| v.into())
             // Ensure we're not passing something like `--tty` again here.
             .filter(|v| !cmd_args.contains(v))
@@ -279,12 +280,13 @@ where
         cmd_args.push("c:/".into());
     }
     unset_proxy_env_vars();
-    Ok(process::become_command(docker_cmd, cmd_args)?)
+    process::become_command(docker_cmd, cmd_args)?;
+    Ok(())
 }
 
 fn unset_proxy_env_vars() {
-    for var in vec!["http_proxy", "https_proxy"] {
-        if let Ok(_) = henv::var(var) {
+    for var in &["http_proxy", "https_proxy"] {
+        if henv::var(var).is_ok() {
             debug!("Unsetting process environment variable '{}'", var);
             env::remove_var(var);
         }
@@ -301,19 +303,19 @@ fn image_identifier_for_active_target(docker_cmd: &Path) -> String {
 /// Returns the Docker Studio image with tag for the desired version which corresponds to the
 /// same version (minus release) as this program.
 fn image_identifier(using_windows_containers: bool, target: &target::PackageTarget) -> String {
-    let version: Vec<&str> = VERSION.split("/").collect();
-    let (img, studio_target) = match using_windows_containers {
-        true => (DOCKER_WINDOWS_IMAGE, target::X86_64_WINDOWS.as_ref()),
-        false => {
-            let t = match *target {
-                target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2.as_ref(),
-                _ => target::X86_64_LINUX.as_ref(),
-            };
-            (DOCKER_IMAGE, t)
-        }
+    let version: Vec<&str> = VERSION.split('/').collect();
+    let (img, studio_target) = if using_windows_containers {
+        (DOCKER_WINDOWS_IMAGE, target::X86_64_WINDOWS.as_ref())
+    } else {
+        let t = match *target {
+            target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2.as_ref(),
+            _ => target::X86_64_LINUX.as_ref(),
+        };
+        (DOCKER_IMAGE, t)
     };
 
-    henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or(format!("{}-{}:{}", img, studio_target, version[0]))
+    henv::var(DOCKER_IMAGE_ENVVAR)
+        .unwrap_or_else(|_| format!("{}-{}:{}", img, studio_target, version[0]))
 }
 
 #[cfg(test)]

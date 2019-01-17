@@ -45,7 +45,7 @@ pub fn start(
                 // skip prefix_count segments of the path
                 let _ = comps
                     .nth(prefix_count)
-                    .ok_or(Error::FileNotFound(f.to_string()))?;
+                    .ok_or_else(|| Error::FileNotFound(f.to_string()))?;
 
                 let segments = if full_releases {
                     // take all 4 segments of the path

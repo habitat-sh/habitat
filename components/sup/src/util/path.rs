@@ -29,14 +29,14 @@ static LOGKEY: &'static str = "PT";
 /// The package identifier for the OS specific interpreter which the Supervisor is built with,
 /// or which may be independently installed
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-const INTERPRETER_IDENT: &'static str = "core/busybox-static";
+const INTERPRETER_IDENT: &str = "core/busybox-static";
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-const INTERPRETER_COMMAND: &'static str = "busybox";
+const INTERPRETER_COMMAND: &str = "busybox";
 
 #[cfg(target_os = "windows")]
-const INTERPRETER_IDENT: &'static str = "core/powershell";
+const INTERPRETER_IDENT: &str = "core/powershell";
 #[cfg(target_os = "windows")]
-const INTERPRETER_COMMAND: &'static str = "powershell";
+const INTERPRETER_COMMAND: &str = "powershell";
 
 /// Returns a list of path entries, one of which should contain the interpreter binary.
 ///

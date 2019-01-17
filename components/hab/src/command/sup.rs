@@ -18,9 +18,9 @@ use crate::common::ui::UI;
 
 use crate::error::Result;
 
-pub const SUP_CMD: &'static str = "hab-sup";
-pub const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
-pub const SUP_PKG_IDENT: &'static str = "core/hab-sup";
+pub const SUP_CMD: &str = "hab-sup";
+pub const SUP_CMD_ENVVAR: &str = "HAB_SUP_BINARY";
+pub const SUP_PKG_IDENT: &str = "core/hab-sup";
 
 pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
     inner::start(ui, args)
@@ -49,19 +49,19 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let version: Vec<&str> = VERSION.split("/").collect();
-                let cmd = exec::command_from_min_pkg(
+                let version: Vec<&str> = VERSION.split('/').collect();
+                exec::command_from_min_pkg(
                     ui,
                     SUP_CMD,
                     &PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, version[0]))?,
                     &default_cache_key_path(None),
                     0,
-                )?;
-                PathBuf::from(cmd)
+                )?
             }
         };
         if let Some(cmd) = find_command(&command) {
-            Ok(process::become_command(cmd, args)?)
+            process::become_command(cmd, args)?;
+            Ok(())
         } else {
             Err(Error::ExecCommandNotFound(command))
         }

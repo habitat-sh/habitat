@@ -27,7 +27,7 @@ use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::error::{Error, Result};
 
 #[cfg(windows)]
-const BAT_COMMENT_MARKER: &'static str = "REM";
+const BAT_COMMENT_MARKER: &str = "REM";
 
 pub fn start(
     ui: &mut UI,
@@ -129,13 +129,15 @@ where
                 match bin_file.path().extension() {
                     Some(executable_extensions) => match env::var_os("PATHEXT") {
                         Some(val) => {
-                            if !env::split_paths(&val.to_string_lossy().to_uppercase()).any(|e| {
-                                e.to_string_lossy()
-                                    == format!(
-                                        ".{}",
-                                        executable_extensions.to_string_lossy().to_uppercase()
-                                    )
-                            }) {
+                            let any_matches =
+                                env::split_paths(&val.to_string_lossy().to_uppercase()).any(|e| {
+                                    e.to_string_lossy()
+                                        == format!(
+                                            ".{}",
+                                            executable_extensions.to_string_lossy().to_uppercase()
+                                        )
+                                });
+                            if !any_matches {
                                 continue;
                             }
                         }
@@ -201,7 +203,8 @@ impl Binlink {
     pub fn link(&self) -> Result<()> {
         use crate::hcore::os::filesystem;
 
-        Ok(filesystem::symlink(&self.src, &self.dest)?)
+        filesystem::symlink(&self.src, &self.dest)?;
+        Ok(())
     }
 }
 
@@ -490,10 +493,10 @@ mod test {
         P: AsRef<Path>,
     {
         let mut ident = PackageIdent::from_str(ident).unwrap();
-        if let None = ident.version {
+        if ident.version.is_none() {
             ident.version = Some("1.2.3".into());
         }
-        if let None = ident.release {
+        if ident.release.is_none() {
             ident.release = Some("21120102121200".into());
         }
         let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));

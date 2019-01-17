@@ -154,35 +154,33 @@ impl Inbound {
     fn process_ack(&self, addr: SocketAddr, mut msg: Ack) {
         trace_it!(SWIM: &self.server, TraceKind::RecvAck, &msg.from.id, addr, &msg);
         trace!("Ack from {}@{}", msg.from.id, addr);
-        if msg.forward_to.is_some() {
-            if *self.server.member_id != msg.forward_to.as_ref().unwrap().id {
-                let (forward_to_addr, from_addr) = {
-                    let forward_to = msg.forward_to.as_ref().unwrap();
-                    let forward_addr_str =
-                        format!("{}:{}", forward_to.address, forward_to.swim_port);
-                    let forward_to_addr = match forward_addr_str.parse() {
-                        Ok(addr) => addr,
-                        Err(e) => {
-                            error!(
-                                "Abandoning Ack forward: cannot parse member address: {}:{}, {}",
-                                forward_to.address, forward_to.swim_port, e
-                            );
-                            return;
-                        }
-                    };
-                    trace!(
-                        "Forwarding Ack from {}@{} to {}@{}",
-                        msg.from.id,
-                        addr,
-                        forward_to.id,
-                        forward_to.address,
-                    );
-                    (forward_to_addr, addr.ip().to_string())
+        if msg.forward_to.is_some() && *self.server.member_id != msg.forward_to.as_ref().unwrap().id
+        {
+            let (forward_to_addr, from_addr) = {
+                let forward_to = msg.forward_to.as_ref().unwrap();
+                let forward_addr_str = format!("{}:{}", forward_to.address, forward_to.swim_port);
+                let forward_to_addr = match forward_addr_str.parse() {
+                    Ok(addr) => addr,
+                    Err(e) => {
+                        error!(
+                            "Abandoning Ack forward: cannot parse member address: {}:{}, {}",
+                            forward_to.address, forward_to.swim_port, e
+                        );
+                        return;
+                    }
                 };
-                msg.from.address = from_addr;
-                outbound::forward_ack(&self.server, &self.socket, forward_to_addr, msg);
-                return;
-            }
+                trace!(
+                    "Forwarding Ack from {}@{} to {}@{}",
+                    msg.from.id,
+                    addr,
+                    forward_to.id,
+                    forward_to.address,
+                );
+                (forward_to_addr, addr.ip().to_string())
+            };
+            msg.from.address = from_addr;
+            outbound::forward_ack(&self.server, &self.socket, forward_to_addr, msg);
+            return;
         }
         let memberships = msg.membership.clone();
         match self.tx_outbound.send((addr, msg)) {

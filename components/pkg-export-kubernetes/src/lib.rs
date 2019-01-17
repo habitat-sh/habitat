@@ -52,7 +52,7 @@ pub use crate::manifestjson::ManifestJson;
 pub use crate::storage::PersistentStorage;
 
 // Synced with the version of the Habitat operator.
-pub const VERSION: &'static str = "0.1.0";
+pub const VERSION: &str = "0.1.0";
 
 /// Convenient do-it-all function. You give it the CLI arguments from the user and it generates the
 /// Kubernetes manifest. If user passed an `--output` argument with a value that is not "`-`", the

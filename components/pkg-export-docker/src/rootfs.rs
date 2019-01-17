@@ -21,13 +21,13 @@ use crate::error::Result;
 use crate::util::write_file;
 
 /// The default password file contents.
-const ETC_PASSWD: &'static str = include_str!("../defaults/etc/passwd");
+const ETC_PASSWD: &str = include_str!("../defaults/etc/passwd");
 /// The default group file contents.
-const ETC_GROUP: &'static str = include_str!("../defaults/etc/group");
+const ETC_GROUP: &str = include_str!("../defaults/etc/group");
 /// The default `resolv.conf` contents.
-const ETC_RESOLV_CONF: &'static str = include_str!("../defaults/etc/resolv.conf");
+const ETC_RESOLV_CONF: &str = include_str!("../defaults/etc/resolv.conf");
 /// The default `nsswitch.conf` contents.
-const ETC_NSSWITCH_CONF: &'static str = include_str!("../defaults/etc/nsswitch.conf");
+const ETC_NSSWITCH_CONF: &str = include_str!("../defaults/etc/nsswitch.conf");
 
 /// Creates a root file system under the given path.
 ///

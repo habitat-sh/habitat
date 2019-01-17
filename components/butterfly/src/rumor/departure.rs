@@ -66,11 +66,7 @@ impl From<Departure> for newscast::Departure {
 
 impl Rumor for Departure {
     fn merge(&mut self, other: Departure) -> bool {
-        if *self >= other {
-            false
-        } else {
-            true
-        }
+        *self < other
     }
 
     fn kind(&self) -> RumorType {

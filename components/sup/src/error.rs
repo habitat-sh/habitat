@@ -190,14 +190,14 @@ impl fmt::Display for SupError {
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match self.err {
-            Error::APIClient(ref err) => format!("{}", err),
+            Error::APIClient(ref err) => err.to_string(),
             Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),
             Error::BadCompositesPath(ref path, ref err) => format!(
                 "Unable to create the composites directory '{}' ({})",
                 path.display(),
                 err
             ),
-            Error::Departed => format!(
+            Error::Departed => {
                 "This Supervisor has been manually departed.\n\nFor the safety of the system, \
                  this Supervisor cannot be started (if we did, we would risk the services on \
                  this machine behaving badly without our knowledge.) If you know that the \
@@ -206,7 +206,8 @@ impl fmt::Display for SupError {
                  This will cause the Supervisor to join the ring as a new member.\n\n \
                  If you are in doubt, it is better to consider the services managed by this \
                  Supervisor as unsafe to run."
-            ),
+                    .to_string()
+            }
             Error::BadDataFile(ref path, ref err) => format!(
                 "Unable to read or write to data file, {}, {}",
                 path.display(),
@@ -232,8 +233,8 @@ impl fmt::Display for SupError {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
             Error::BindTimeout(ref err) => format!("Timeout waiting to bind to {}", err),
-            Error::LockPoisoned => format!("A mutex or read/write lock has failed."),
-            Error::TestBootFail => format!("Simulated boot failure"),
+            Error::LockPoisoned => "A mutex or read/write lock has failed.".to_string(),
+            Error::TestBootFail => "Simulated boot failure".to_string(),
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
             Error::CtlSecretIo(ref path, ref err) => format!(
                 "IoError while reading or writing ctl secret, {}, {}",
@@ -243,14 +244,14 @@ impl fmt::Display for SupError {
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
-            Error::Permissions(ref err) => format!("{}", err),
-            Error::HabitatCommon(ref err) => format!("{}", err),
-            Error::HabitatCore(ref err) => format!("{}", err),
+            Error::Permissions(ref err) => err.to_string(),
+            Error::HabitatCommon(ref err) => err.to_string(),
+            Error::HabitatCore(ref err) => err.to_string(),
             Error::TemplateFileError(ref err) => format!("{:?}", err),
-            Error::TemplateRenderError(ref err) => format!("{}", err),
-            Error::EnvJoinPathsError(ref err) => format!("{}", err),
+            Error::TemplateRenderError(ref err) => err.to_string(),
+            Error::EnvJoinPathsError(ref err) => err.to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::FileWatcherFileIsRoot => format!("Watched file is root"),
+            Error::FileWatcherFileIsRoot => "Watched file is root".to_string(),
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
             Error::InvalidBinding(ref binding) => format!(
                 "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> or \
@@ -265,30 +266,30 @@ impl fmt::Display for SupError {
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
-            Error::InvalidPidFile => format!("Invalid child process PID file"),
+            Error::InvalidPidFile => "Invalid child process PID file".to_string(),
             Error::InvalidTokioThreadCount => {
-                format!("Tokio thread count should be a positive integer")
+                "Tokio thread count should be a positive integer".to_string()
             }
             Error::InvalidTopology(ref t) => format!("Invalid topology: {}", t),
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
-            Error::Io(ref err) => format!("{}", err),
-            Error::IPFailed => format!("Failed to discover this hosts outbound IP address"),
-            Error::Launcher(ref err) => format!("{}", err),
+            Error::Io(ref err) => err.to_string(),
+            Error::IPFailed => "Failed to discover this hosts outbound IP address".to_string(),
+            Error::Launcher(ref err) => err.to_string(),
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
             }
             Error::MissingRequiredIdent => {
-                format!("Missing required ident field: (example: ident = \"core/redis\")")
+                "Missing required ident field: (example: ident = \"core/redis\")".to_string()
             }
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
-            Error::NetErr(ref err) => format!("{}", err),
+            Error::NetErr(ref err) => err.to_string(),
             Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
             Error::NoActiveMembers(ref g) => format!("No active members in service group {}", g),
-            Error::NoLauncher => format!("Supervisor must be run from `hab-launch`"),
+            Error::NoLauncher => "Supervisor must be run from `hab-launch`".to_string(),
             Error::NoSuchBind(ref b) => format!("No such bind: {}", b),
             Error::NotifyCreateError(ref e) => format!("Notify create error: {}", e),
             Error::NotifyError(ref e) => format!("Notify error: {}", e),
-            Error::NulError(ref e) => format!("{}", e),
+            Error::NulError(ref e) => e.to_string(),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
@@ -303,7 +304,7 @@ impl fmt::Display for SupError {
             Error::PidFileIO(ref path, ref err) => {
                 format!("Unable to read PID file, {}, {}", path.display(), err)
             }
-            Error::ProcessLockCorrupt => format!("Unable to decode contents of process lock"),
+            Error::ProcessLockCorrupt => "Unable to decode contents of process lock".to_string(),
             Error::ProcessLocked(ref pid) => format!(
                 "Unable to start Habitat Supervisor because another instance is already \
                  running with the pid {}.",
@@ -315,7 +316,7 @@ impl fmt::Display for SupError {
                 path.display(),
                 err
             ),
-            Error::RecvError(ref err) => format!("{}", err),
+            Error::RecvError(ref err) => err.to_string(),
             Error::RenderContextSerialization(ref e) => {
                 format!("Unable to serialize rendering context, {}", e)
             }
@@ -337,21 +338,21 @@ impl fmt::Display for SupError {
             Error::ServiceSpecRender(ref err) => {
                 format!("Service spec could not be rendered successfully: {}", err)
             }
-            Error::SignalFailed => format!("Failed to send a signal to the child process"),
-            Error::SpecWatcherNotCreated => format!("Failed to create a SpecWatcher"),
+            Error::SignalFailed => "Failed to send a signal to the child process".to_string(),
+            Error::SpecWatcherNotCreated => "Failed to create a SpecWatcher".to_string(),
             Error::SpecDirNotFound(ref path) => format!(
                 "Spec directory '{}' not created or is not a directory",
                 path
             ),
-            Error::SpecWatcherGlob(ref e) => format!("{}", e),
-            Error::StrFromUtf8Error(ref e) => format!("{}", e),
-            Error::StringFromUtf8Error(ref e) => format!("{}", e),
-            Error::TLSError(ref e) => format!("{}", e),
+            Error::SpecWatcherGlob(ref e) => e.to_string(),
+            Error::StrFromUtf8Error(ref e) => e.to_string(),
+            Error::StringFromUtf8Error(ref e) => e.to_string(),
+            Error::TLSError(ref e) => e.to_string(),
             Error::TomlEncode(ref e) => format!("Failed to encode TOML: {}", e),
             Error::TomlMergeError(ref e) => format!("Failed to merge TOML: {}", e),
             Error::TomlParser(ref err) => format!("Failed to parse TOML: {}", err),
-            Error::TryRecvError(ref err) => format!("{}", err),
-            Error::UnpackFailed => format!("Failed to unpack a package"),
+            Error::TryRecvError(ref err) => err.to_string(),
+            Error::UnpackFailed => "Failed to unpack a package".to_string(),
             Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
         };
         let progname = PROGRAM_NAME.as_str();

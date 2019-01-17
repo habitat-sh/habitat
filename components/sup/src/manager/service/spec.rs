@@ -38,9 +38,9 @@ use super::composite_spec::CompositeSpec;
 use super::{BindingMode, Topology, UpdateStrategy};
 use crate::error::{Error, Result, SupError};
 
-static LOGKEY: &'static str = "SS";
-static DEFAULT_GROUP: &'static str = "default";
-const SPEC_FILE_EXT: &'static str = "spec";
+static LOGKEY: &str = "SS";
+static DEFAULT_GROUP: &str = "default";
+const SPEC_FILE_EXT: &str = "spec";
 
 pub type BindMap = HashMap<PackageIdent, Vec<BindMapping>>;
 
@@ -95,8 +95,8 @@ pub enum Spec {
 impl Spec {
     pub fn ident(&self) -> &PackageIdent {
         match self {
-            &Spec::Composite(ref s, _) => s.ident(),
-            &Spec::Service(ref s) => s.ident.as_ref(),
+            Spec::Composite(ref s, _) => s.ident(),
+            Spec::Service(ref s) => s.ident.as_ref(),
         }
     }
 }
@@ -136,7 +136,10 @@ pub trait IntoServiceSpec {
 impl IntoServiceSpec for protocol::ctl::SvcLoad {
     fn into_spec(&self, spec: &mut ServiceSpec) {
         spec.ident = self.ident.clone().unwrap().into();
-        spec.group = self.group.clone().unwrap_or(DEFAULT_GROUP.to_string());
+        spec.group = self
+            .group
+            .clone()
+            .unwrap_or_else(|| DEFAULT_GROUP.to_string());
         if let Some(ref app_env) = self.application_environment {
             spec.application_environment = Some(app_env.clone().into());
         }
@@ -544,7 +547,7 @@ impl Into<ServiceBind> for protocol::types::ServiceBind {
 ///
 /// * bind_map: output of package.bind_map()
 /// * cli_binds: per-service overrides given on the CLI
-fn set_composite_binds(spec: &mut ServiceSpec, bind_map: &mut BindMap, binds: &Vec<ServiceBind>) {
+fn set_composite_binds(spec: &mut ServiceSpec, bind_map: &mut BindMap, binds: &[ServiceBind]) {
     // We'll be layering bind specifications from the composite
     // with any additional ones from the CLI. We'll store them here,
     // keyed to the bind name

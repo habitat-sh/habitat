@@ -134,8 +134,7 @@ impl Supervisor {
             let gid = users::get_effective_gid();
 
             let name_for_logging = username
-                .as_ref()
-                .map(|name| name.clone())
+                .clone()
                 .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
             outputln!(preamble self.preamble, "Current user ({}) lacks sufficient capabilites to \
                 run services as a different user; running as self!", name_for_logging);

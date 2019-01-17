@@ -46,16 +46,16 @@ use crate::error::{Error, Result};
 use crate::service::Service;
 use crate::{SUP_CMD, SUP_PACKAGE_IDENT};
 
-const IPC_CONNECT_TIMEOUT_SECS: &'static str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
+const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
-const SUP_CMD_ENVVAR: &'static str = "HAB_SUP_BINARY";
+const SUP_CMD_ENVVAR: &str = "HAB_SUP_BINARY";
 static LOGKEY: &'static str = "SV";
 
-const SUP_VERSION_CHECK_DISABLE: &'static str = "HAB_LAUNCH_NO_SUP_VERSION_CHECK";
+const SUP_VERSION_CHECK_DISABLE: &str = "HAB_LAUNCH_NO_SUP_VERSION_CHECK";
 // Version 0.56 is somewhat arbitrary. This functionality is for when we make
 // changes to the launcher that depend on supervisor behavior that hasn't
 // always existed such as https://github.com/habitat-sh/habitat/issues/5380
-const SUP_VERSION_REQ: &'static str = ">= 0.56";
+const SUP_VERSION_REQ: &str = ">= 0.56";
 
 type Receiver = IpcReceiver<Vec<u8>>;
 type Sender = IpcSender<Vec<u8>>;

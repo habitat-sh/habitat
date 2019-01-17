@@ -27,7 +27,7 @@ use crate::error::{Error, Result};
 use crate::{PRODUCT, VERSION};
 
 const MAX_RETRIES: u8 = 4;
-const INTERNAL_TOOLING_CHANNEL_ENVVAR: &'static str = "HAB_INTERNAL_BLDR_CHANNEL";
+const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 
 /// Returns the absolute path to the given command from a package no
 /// older than the given package identifier.

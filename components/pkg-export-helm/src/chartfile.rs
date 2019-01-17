@@ -22,10 +22,10 @@ use crate::hcore::package::PackageIdent;
 
 use crate::maintainer::Maintainer;
 
-pub const DEFAULT_VERSION: &'static str = "0.0.1";
+pub const DEFAULT_VERSION: &str = "0.0.1";
 
 // Helm chart file template
-const CHARTFILE: &'static str = include_str!("../defaults/HelmChartFile.hbs");
+const CHARTFILE: &str = include_str!("../defaults/HelmChartFile.hbs");
 
 pub struct ChartFile {
     pub name: String,

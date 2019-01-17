@@ -55,7 +55,8 @@ pub enum Error {
     FileNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
-    HandlebarsRenderError(handlebars::TemplateRenderError),
+    // Boxed because https://rust-lang-nursery.github.io/rust-clippy/master/index.html#large_enum_variant
+    HandlebarsRenderError(Box<handlebars::TemplateRenderError>),
     IO(io::Error),
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
     JobGroupCancel(api_client::Error),
@@ -79,9 +80,9 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
-            Error::APIClient(ref err) => format!("{}", err),
-            Error::ArgumentError(ref e) => format!("{}", e),
-            Error::ButterflyError(ref e) => format!("{}", e),
+            Error::APIClient(ref e) => e.to_string(),
+            Error::ArgumentError(ref e) => e.to_string(),
+            Error::ButterflyError(ref e) => e.to_string(),
             Error::CannotParseBinlinkBinaryName(ref p) => {
                 format!("Cannot parse binlink binary name from {}.", p.display())
             }
@@ -89,7 +90,7 @@ impl fmt::Display for Error {
                 format!("Cannot parse binlink source path from {}.", p.display())
             }
             Error::CannotRemoveDockerStudio => {
-                format!("Docker Studios are not persistent and cannot be removed")
+                "Docker Studios are not persistent and cannot be removed".to_string()
             }
             Error::CannotRemoveFromChannel((ref p, ref c)) => {
                 format!("{} cannot be removed from the {} channel.", p, c)
@@ -102,22 +103,24 @@ impl fmt::Display for Error {
                 "`{}' was not found under any 'PATH' directories in the {} package",
                 c, p
             ),
-            Error::CryptoCLI(ref e) => format!("{}", e),
-            Error::CtlClient(ref e) => format!("{}", e),
+            Error::CryptoCLI(ref e) => e.to_string(),
+            Error::CtlClient(ref e) => e.to_string(),
             Error::DockerDaemonDown => {
-                format!("Can not connect to Docker. Is the Docker daemon running?")
+                "Can not connect to Docker. Is the Docker daemon running?".to_string()
             }
             #[cfg(not(windows))]
-            Error::DockerFileSharingNotEnabled => format!(
+            Error::DockerFileSharingNotEnabled => {
                 "File Sharing must be enabled in order to enter a studio.\nPlease enable \
                  it in the Docker preferences and share (at a minimum) your home \
                  directory."
-            ),
+                    .to_string()
+            }
             #[cfg(windows)]
-            Error::DockerFileSharingNotEnabled => format!(
+            Error::DockerFileSharingNotEnabled => {
                 "File Sharing must be enabled in order to enter a studio.\nPlease select \
                  a drive to share in the Docker preferences."
-            ),
+                    .to_string()
+            }
             Error::DockerImageNotFound(ref e) => format!(
                 "The Docker image {} was not found in the docker registry.\nYou can \
                  specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
@@ -136,11 +139,11 @@ impl fmt::Display for Error {
                 "`{}' was not found on the filesystem or in PATH",
                 c.display()
             ),
-            Error::FFINulError(ref e) => format!("{}", e),
+            Error::FFINulError(ref e) => e.to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::HabitatCommon(ref e) => format!("{}", e),
-            Error::HabitatCore(ref e) => format!("{}", e),
-            Error::HandlebarsRenderError(ref e) => format!("{}", e),
+            Error::HabitatCommon(ref e) => e.to_string(),
+            Error::HabitatCore(ref e) => e.to_string(),
+            Error::HandlebarsRenderError(ref e) => e.to_string(),
             Error::IO(ref err) => format!("{}", err),
             Error::JobGroupPromoteOrDemoteUnprocessable(true) => {
                 "Failed to promote job group, the build job is still in progress".to_string()
@@ -154,8 +157,8 @@ impl fmt::Display for Error {
                 e
             ),
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
-            Error::NameLookup => format!("Error resolving a name or IP address"),
-            Error::NetErr(ref e) => format!("{}", e),
+            Error::NameLookup => "Error resolving a name or IP address".to_string(),
+            Error::NetErr(ref e) => e.to_string(),
             Error::PackageArchiveMalformed(ref e) => format!(
                 "Package archive was unreadable or contained unexpected contents: {:?}",
                 e
@@ -275,7 +278,7 @@ impl From<hcore::Error> for Error {
 
 impl From<handlebars::TemplateRenderError> for Error {
     fn from(err: handlebars::TemplateRenderError) -> Error {
-        Error::HandlebarsRenderError(err)
+        Error::HandlebarsRenderError(Box::new(err))
     }
 }
 

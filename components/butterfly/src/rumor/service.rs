@@ -50,7 +50,7 @@ impl Serialize for Service {
         S: Serializer,
     {
         let mut strukt = serializer.serialize_struct("service", 7)?;
-        let cfg = toml::from_slice(&self.cfg).unwrap_or(toml::value::Table::default());
+        let cfg: toml::value::Table = toml::from_slice(&self.cfg).unwrap_or_default();
         strukt.serialize_field("member_id", &self.member_id)?;
         strukt.serialize_field("service_group", &self.service_group)?;
         strukt.serialize_field("package", &self.pkg)?;

@@ -303,7 +303,6 @@ impl<'a> Svc<'a> {
             members: Cow::Owned(
                 census_group
                     .active_members()
-                    .iter()
                     .map(|m| SvcMember::from_census_member(m))
                     .collect(),
             ),
@@ -416,7 +415,6 @@ impl<'a> BindGroup<'a> {
             leader: group.leader().map(|m| SvcMember::from_census_member(m)),
             members: group
                 .active_members()
-                .iter()
                 .map(|m| SvcMember::from_census_member(m))
                 .collect(),
         }
@@ -586,8 +584,8 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
         Some(member) => Some(SvcMember::from_census_member(member)),
         None => census_group
             .members()
-            .first()
-            .and_then(|m| Some(SvcMember::from_census_member(m))),
+            .next()
+            .map(SvcMember::from_census_member),
     }
 }
 
@@ -663,15 +661,14 @@ mod tests {
         let mut buffer = fs::File::create(default_toml).expect("couldn't write file");
         buffer
             .write_all(
-                r#"
+                br#"
 foo = "bar"
 baz = "boo"
 
 [foobar]
 one = 1
 two = 2
-"#
-                .as_bytes(),
+"#,
             )
             .expect("Couldn't write default.toml");
         (tmp, pkg)
@@ -885,7 +882,7 @@ two = 2
 
         // Just make sure our default context is set up how this test
         // is expecting
-        assert!(ctx.bind.0.get("foo").unwrap().leader.is_none());
+        assert!(ctx.bind.0["foo"].leader.is_none());
 
         let output = render(
             "{{#if bind.foo.leader}}THERE IS A LEADER{{else}}NO LEADER{{/if}}",

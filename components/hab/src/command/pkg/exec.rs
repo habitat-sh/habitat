@@ -44,5 +44,6 @@ where
         display_args.push_str(arg.to_string_lossy().as_ref());
     }
     debug!("Running: {}", display_args);
-    Ok(process::become_command(command, args)?)
+    process::become_command(command, args)?;
+    Ok(())
 }

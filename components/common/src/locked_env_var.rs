@@ -218,7 +218,7 @@ mod tests {
         // Poison the lock
         let _ = thread::Builder::new()
             .name("testing-locked-env-var-panic".into())
-            .spawn(move || -> () {
+            .spawn(move || {
                 let _lock = lock_var();
                 panic!("This is an intentional panic; it's OK");
             })

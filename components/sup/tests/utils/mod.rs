@@ -67,7 +67,7 @@ pub fn setup_package_files<O, P, S>(
         format!("Missing a spec file at {:?}", spec_source)
     );
     fs::copy(&spec_source, &spec_destination)
-        .expect(format!("Could not copy {:?} to {:?}", spec_source, spec_destination).as_str());
+        .unwrap_or_else(|_| panic!("Could not copy {:?} to {:?}", spec_source, spec_destination));
 
     // Copy the expanded package directory over
     let expanded_fixture_dir = fixture_root.expanded_package_dir(&package_name);
@@ -94,10 +94,10 @@ where
     let dest_dir = dest_dir.as_ref().to_path_buf();
 
     fs::create_dir_all(&dest_dir)
-        .expect(format!("Could not create directory {:?}", dest_dir).as_str());
+        .unwrap_or_else(|_| panic!("Could not create directory {:?}", dest_dir));
 
     let source_dir_entries = fs::read_dir(&source_dir)
-        .expect(format!("Could not read entries in {:?}", source_dir).as_str());
+        .unwrap_or_else(|_| panic!("Could not read entries in {:?}", source_dir));
 
     for entry in source_dir_entries {
         let source = entry.unwrap().path();
@@ -105,7 +105,7 @@ where
 
         if source.is_file() {
             fs::copy(&source, &destination)
-                .expect(format!("could not copy {:?} to {:?}", source, destination).as_str());
+                .unwrap_or_else(|_| panic!("could not copy {:?} to {:?}", source, destination));
         } else if source.is_dir() {
             copy_dir(&source, &destination);
         }
@@ -151,12 +151,11 @@ where
     P: AsRef<Path>,
 {
     let mut f = File::create(&metafile)
-        .expect(format!("Could not create metafile {}", metafile.as_ref().display()).as_str());
-    f.write_all(content.as_bytes()).expect(
-        format!(
+        .unwrap_or_else(|_| panic!("Could not create metafile {}", metafile.as_ref().display()));
+    f.write_all(content.as_bytes()).unwrap_or_else(|_| {
+        panic!(
             "Could not write file contents to metafile {}",
             metafile.as_ref().display()
         )
-        .as_str(),
-    );
+    });
 }

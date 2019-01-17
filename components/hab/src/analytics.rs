@@ -204,23 +204,23 @@ use crate::error::Result;
 /// The Google Analytics [Tracking
 /// ID](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#tid)
 /// which represents this product.
-const GOOGLE_ANALYTICS_ID: &'static str = "UA-6369228-7";
+const GOOGLE_ANALYTICS_ID: &str = "UA-6369228-7";
 /// The Google Analytics [URL endpoint][g].
 ///
 /// [g]: https://developers.google.com/analytics/devguides/collection/protocol/v1/reference#endpoint
-const GOOGLE_ANALYTICS_URL: &'static str = "https://www.google-analytics.com/collect";
+const GOOGLE_ANALYTICS_URL: &str = "https://www.google-analytics.com/collect";
 /// The product name for this application.
-const PRODUCT: &'static str = "hab";
+const PRODUCT: &str = "hab";
 /// A representation of the source of the analytics data.
-const DATA_SOURCE: &'static str = "cli--hab";
+const DATA_SOURCE: &str = "cli--hab";
 /// The filename containing a randomly generated [Client
 /// ID](https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#cid).
-const CLIENT_ID_METAFILE: &'static str = "CLIENT_ID";
+const CLIENT_ID_METAFILE: &str = "CLIENT_ID";
 /// The filename which represents a program which has opted in to analytics
-const OPTED_IN_METAFILE: &'static str = "OPTED_IN";
+const OPTED_IN_METAFILE: &str = "OPTED_IN";
 /// The filename which represents a program which has explicitly opted out to analytics. Note that
 /// the default is opted out.
-const OPTED_OUT_METAFILE: &'static str = "OPTED_OUT";
+const OPTED_OUT_METAFILE: &str = "OPTED_OUT";
 
 /// Different kinds of analytic events.
 enum Event {

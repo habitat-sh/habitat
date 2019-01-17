@@ -56,7 +56,7 @@ pub enum UserConfigPath {
 impl UserConfigPath {
     pub fn get_path(&self) -> &PathBuf {
         match self {
-            &UserConfigPath::Recommended(ref p) | &UserConfigPath::Deprecated(ref p) => p,
+            UserConfigPath::Recommended(ref p) | UserConfigPath::Deprecated(ref p) => p,
         }
     }
 }
@@ -151,7 +151,7 @@ impl Cfg {
         cfg: &toml::value::Table,
     ) -> Option<Vec<String>> {
         let mut errors = vec![];
-        for (key, _) in cfg {
+        for key in cfg.keys() {
             if !interface.contains_key(key) {
                 errors.push(format!("Unknown key: {}", key));
             }
@@ -199,12 +199,12 @@ impl Cfg {
             Self::load_default(pkg_root.as_ref())?
         };
 
-        let mut changed = false;
         if incoming_defaults != self.default {
             self.default = incoming_defaults;
-            changed = true;
+            Ok(true)
+        } else {
+            Ok(false)
         }
-        Ok(changed)
     }
 
     /// Updates the service configuration with data from a census group if the census group has
@@ -343,7 +343,7 @@ impl Cfg {
         Ok(())
     }
 
-    fn load_environment(package_name: &String) -> Result<Option<toml::value::Table>> {
+    fn load_environment(package_name: &str) -> Result<Option<toml::value::Table>> {
         let var_name = format!("{}_{}", ENV_VAR_PREFIX, package_name)
             .to_ascii_uppercase()
             .replace("-", "_");
@@ -485,7 +485,7 @@ impl CfgRenderer {
         let service_group_name = ctx.service_group_name();
 
         let mut changed = false;
-        for (template, _) in self.0.get_templates() {
+        for template in self.0.get_templates().keys() {
             let compiled = self.0.render(&template, ctx)?;
             let compiled_hash = crypto::hash::hash_string(&compiled);
             let cfg_dest = pkg.svc_config_path.join(&template);
@@ -513,31 +513,29 @@ impl CfgRenderer {
                 set_permissions(&cfg_dest, pkg)?;
 
                 changed = true
+            } else if file_hash == compiled_hash {
+                debug!(
+                    "Configuration {} {} has not changed; not restarting.",
+                    cfg_dest.display(),
+                    file_hash
+                );
+                continue;
             } else {
-                if file_hash == compiled_hash {
-                    debug!(
-                        "Configuration {} {} has not changed; not restarting.",
-                        cfg_dest.display(),
-                        file_hash
-                    );
-                    continue;
-                } else {
-                    debug!(
-                        "Configuration {} has changed; restarting",
-                        cfg_dest.display()
-                    );
-                    outputln!(
-                        preamble service_group_name,
-                        "Modified configuration content in {}",
-                        cfg_dest.display()
-                    );
+                debug!(
+                    "Configuration {} has changed; restarting",
+                    cfg_dest.display()
+                );
+                outputln!(
+                    preamble service_group_name,
+                    "Modified configuration content in {}",
+                    cfg_dest.display()
+                );
 
-                    let mut config_file = File::create(&cfg_dest)?;
-                    config_file.write_all(&compiled.into_bytes())?;
-                    set_permissions(&cfg_dest, pkg)?;
+                let mut config_file = File::create(&cfg_dest)?;
+                config_file.write_all(&compiled.into_bytes())?;
+                set_permissions(&cfg_dest, pkg)?;
 
-                    changed = true;
-                }
+                changed = true;
             }
         }
         Ok(changed)
@@ -627,7 +625,8 @@ mod test {
     use crate::error::Error;
 
     fn toml_from_str(content: &str) -> toml::value::Table {
-        toml::from_str(content).expect(&format!("Content should parse as TOML: {}", content))
+        toml::from_str(content)
+            .unwrap_or_else(|_| panic!("Content should parse as TOML: {}", content))
     }
 
     #[test]

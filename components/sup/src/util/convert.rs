@@ -19,7 +19,7 @@ use toml;
 
 pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
     match value {
-        toml::Value::String(s) => serde_json::Value::String(format!("{}", s)),
+        toml::Value::String(s) => serde_json::Value::String(s),
         toml::Value::Integer(i) => serde_json::Value::from(i as i64),
         toml::Value::Float(i) => serde_json::Value::from(i as f64),
         toml::Value::Boolean(b) => serde_json::Value::Bool(b),
@@ -41,7 +41,7 @@ fn toml_vec_to_json(toml: Vec<toml::Value>) -> serde_json::Value {
 fn toml_table_to_json(toml: BTreeMap<String, toml::Value>) -> serde_json::Value {
     let mut map = serde_json::Map::with_capacity(toml.len());
     for (key, value) in toml.iter() {
-        map.insert(format!("{}", key), toml_to_json(value.clone()));
+        map.insert(key.to_string(), toml_to_json(value.clone()));
     }
     serde_json::Value::Object(map)
 }

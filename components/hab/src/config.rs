@@ -24,7 +24,7 @@ use toml;
 
 use crate::error::{Error, Result};
 
-const CLI_CONFIG_PATH: &'static str = "hab/etc/cli.toml";
+const CLI_CONFIG_PATH: &str = "hab/etc/cli.toml";
 
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Config {

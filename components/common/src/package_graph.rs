@@ -83,7 +83,7 @@ impl PackageGraph {
     }
 
     /// Extend a graph by adding in dependencies for a package
-    fn extend(&mut self, package: &PackageIdent, deps: &Vec<PackageIdent>) -> (usize, usize) {
+    fn extend(&mut self, package: &PackageIdent, deps: &[PackageIdent]) -> (usize, usize) {
         let idx = self.node_idx(package);
 
         for dep in deps {
@@ -97,8 +97,6 @@ impl PackageGraph {
     }
 
     /// Return the dependencies of a given Package Identifier
-    ///
-    /// Returns `None` if the package identifier is not in the graph
     pub fn ordered_deps(&self, package: &PackageIdent) -> Vec<&PackageIdent> {
         self.nodes
             .get_by_left(package)
@@ -107,19 +105,15 @@ impl PackageGraph {
                 // `skip` it here so it's not in the result Vec
                 let bfs = Bfs::new(&self.graph, idx).iter(&self.graph).skip(1);
 
-                bfs.into_iter()
-                    .map(|child| self.graph.node_weight(child).unwrap())
+                bfs.map(|child| self.graph.node_weight(child).unwrap())
                     .collect()
             })
-            .unwrap_or(vec![])
+            .unwrap_or_default()
     }
 
     /// Return the dependencies of a given Package Identifier as `PackageIdent`s. This
     /// allows you to modify the underlying graph (via `PackageGraph::remove`) while traversing the
     /// dependencies
-    ///
-    /// Returns `None` if the package identifier is not in the graph
-
     pub fn owned_ordered_deps(&self, package: &PackageIdent) -> Vec<PackageIdent> {
         self.ordered_deps(&package)
             .iter()
@@ -127,8 +121,6 @@ impl PackageGraph {
             .collect()
     }
     /// Return the reverse dependencies of a given Package Identifier
-    ///
-    /// Returns `None` if the package identifier is not in the graph
     pub fn ordered_reverse_deps(&self, package: &PackageIdent) -> Vec<&PackageIdent> {
         self.nodes
             .get_by_left(package)
@@ -139,11 +131,10 @@ impl PackageGraph {
                     .iter(Reversed(&self.graph))
                     .skip(1);
 
-                bfs.into_iter()
-                    .map(|child| self.graph.node_weight(child).unwrap())
+                bfs.map(|child| self.graph.node_weight(child).unwrap())
                     .collect()
             })
-            .unwrap_or(vec![])
+            .unwrap_or_default()
     }
 
     /// Remove a package from a graph
@@ -212,7 +203,7 @@ impl PackageGraph {
                     .map(|n| self.nodes.get_by_right(&n).unwrap()) //  unwrap here is ok as we have consistency between `self.graph` and `self.nodes`
                     .collect()
             })
-            .unwrap_or(vec![])
+            .unwrap_or_default()
     }
 
     /// Returns the direct dependencies for a package.
@@ -274,7 +265,7 @@ mod test {
         }
     }
 
-    fn package_deps(ident: PackageIdent, deps: &Vec<PackageIdent>) -> PackageDeps {
+    fn package_deps(ident: PackageIdent, deps: &[PackageIdent]) -> PackageDeps {
         PackageDeps {
             ident: ident,
             deps: deps.to_vec(),
@@ -312,7 +303,7 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
         ];
 
         let graph = build(packages);
@@ -345,9 +336,9 @@ mod test {
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![a.clone()]),
-            package_deps(d.clone(), &vec![b.clone(), c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[a.clone()]),
+            package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
         let graph = build(packages);
@@ -367,9 +358,9 @@ mod test {
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![a.clone()]),
-            package_deps(d.clone(), &vec![b.clone(), c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[a.clone()]),
+            package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
         let graph = build(packages);
@@ -390,9 +381,9 @@ mod test {
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![a.clone()]),
-            package_deps(d.clone(), &vec![b.clone(), c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[a.clone()]),
+            package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
         let graph = build(packages);
@@ -415,9 +406,9 @@ mod test {
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![a.clone()]),
-            package_deps(d.clone(), &vec![b.clone(), c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[a.clone()]),
+            package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
         let graph = build(packages);
@@ -438,9 +429,9 @@ mod test {
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![a.clone()]),
-            package_deps(d.clone(), &vec![b.clone(), c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[a.clone()]),
+            package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
         let graph = build(packages);
@@ -463,9 +454,9 @@ mod test {
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![a.clone()]),
-            package_deps(d.clone(), &vec![b.clone(), c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[a.clone()]),
+            package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
         let mut graph = build(packages);
@@ -490,7 +481,7 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
         ];
 
         let mut graph = build(packages);
@@ -524,9 +515,9 @@ mod test {
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![a.clone()]),
-            package_deps(d.clone(), &vec![b.clone(), c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[a.clone()]),
+            package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
         let graph = build(packages);
@@ -546,9 +537,9 @@ mod test {
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![b.clone()]),
-            package_deps(d.clone(), &vec![c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[b.clone()]),
+            package_deps(d.clone(), &[c.clone()]),
         ];
 
         let graph = build(packages);
@@ -568,9 +559,9 @@ mod test {
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![b.clone()]),
-            package_deps(d.clone(), &vec![c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[b.clone()]),
+            package_deps(d.clone(), &[c.clone()]),
         ];
 
         let graph = build(packages);
@@ -602,9 +593,9 @@ mod test {
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
         let packages = vec![
             empty_package_deps(a.clone()),
-            package_deps(b.clone(), &vec![a.clone()]),
-            package_deps(c.clone(), &vec![b.clone()]),
-            package_deps(d.clone(), &vec![c.clone()]),
+            package_deps(b.clone(), &[a.clone()]),
+            package_deps(c.clone(), &[b.clone()]),
+            package_deps(d.clone(), &[c.clone()]),
         ];
 
         let graph = build(packages);

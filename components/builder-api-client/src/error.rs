@@ -51,7 +51,7 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
-            Error::APIError(ref c, ref m) if m.len() > 0 => format!("[{}] {}", c, m),
+            Error::APIError(ref c, ref m) if !m.is_empty() => format!("[{}] {}", c, m),
             Error::APIError(ref c, _) => format!("[{}]", c),
             Error::BadResponseBody(ref e) => format!("Failed to read response body, {}", e),
             Error::DownloadWrite(ref p, ref e) => format!("Failed to write contents of builder response, {}, {}", p.display(), e),
@@ -61,25 +61,13 @@ impl fmt::Display for Error {
             Error::IO(ref e) => format!("{}", e),
             Error::Json(ref e) => format!("{}", e),
             Error::KeyReadError(ref p, ref e) => format!("Failed to read origin key, {}, {}", p.display(), e),
-            Error::NoFilePart => {
-                format!(
-                    "An invalid path was passed - we needed a filename, and this path does \
-                         not have one"
-                )
-            }
+            Error::NoFilePart => "An invalid path was passed - we needed a filename, and this path does not have one".to_string(),
             Error::PackageReadError(ref p, ref e) => format!("Failed to read package artifact, {}, {}", p.display(), e),
             Error::ParseIntError(ref err) => format!("{}", err),
-            Error::IdentNotFullyQualified => {
-                format!(
-                    "Cannot perform the specified operation. \
-                    Specify a fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)"
-                )
-            }
+            Error::IdentNotFullyQualified => "Cannot perform the specified operation. Specify a fully qualifed package identifier (ex: core/busybox-static/1.42.2/20170513215502)".to_string(),
             Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
             Error::UrlParseError(ref e) => format!("{}", e),
-            Error::WriteSyncFailed => {
-                format!("Could not write to destination; perhaps the disk is full?")
-            }
+            Error::WriteSyncFailed => "Could not write to destination; perhaps the disk is full?".to_string(),
         };
         write!(f, "{}", msg)
     }

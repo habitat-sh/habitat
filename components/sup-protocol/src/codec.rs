@@ -67,14 +67,14 @@ use tokio_codec::{Decoder, Encoder, Framed};
 use crate::message::MessageStatic;
 use crate::net::{NetErr, NetResult};
 
-const BODY_LEN_MASK: u32 = 0xFFFFF;
+const BODY_LEN_MASK: u32 = 0xF_FFFF;
 const HEADER_LEN: usize = 4;
 const MESSAGE_ID_MASK: u32 = 0x3F;
 const MESSAGE_ID_OFFSET: u32 = 20;
 const TXN_LEN: usize = 4;
 const TXN_OFFSET: u32 = 31;
 
-const TXN_ID_MASK: u32 = 0x3FFFFFFF;
+const TXN_ID_MASK: u32 = 0x3FFF_FFFF;
 const RESPONSE_OFFSET: u32 = 31;
 const RESPONSE_MASK: u32 = 0x1;
 const COMPLETE_OFFSET: u32 = 30;
@@ -119,13 +119,13 @@ impl SrvTxn {
     /// Set the completion bit indicating that the message this transaction is associated with is
     /// the last reply to a transactional request.
     pub fn set_complete(&mut self) {
-        self.0 = self.0 | (1 << COMPLETE_OFFSET);
+        self.0 |= 1 << COMPLETE_OFFSET;
     }
 
     /// Set the response bit indicating that the message this transaction is associated with is
     /// a response to transactional request.
     pub fn set_response(&mut self) {
-        self.0 = self.0 | (1 << RESPONSE_OFFSET);
+        self.0 |= 1 << RESPONSE_OFFSET;
     }
 }
 
@@ -189,7 +189,7 @@ impl SrvHeader {
     /// Set the presence of the transaction frame of this message.
     #[inline]
     pub fn set_is_transaction(&mut self) {
-        self.0 = self.0 | (1 << TXN_OFFSET);
+        self.0 |= 1 << TXN_OFFSET;
     }
 }
 
@@ -380,15 +380,16 @@ impl Decoder for SrvCodec {
         let mut buf = Cursor::new(bytes);
         let header = SrvHeader(buf.get_u32_be());
         trace!("  -> SrvHeader: {:?}", header);
-        let mut txn: Option<SrvTxn> = None;
-        if header.is_transaction() {
+        let txn = if header.is_transaction() {
             if buf.remaining() < TXN_LEN {
                 return Ok(None);
             }
             let t = SrvTxn(buf.get_u32_be());
             trace!("  -> SrvTxn: {:?}", t);
-            txn = Some(t);
-        }
+            Some(t)
+        } else {
+            None
+        };
         if buf.remaining() < (header.message_id_len() + header.body_len()) {
             // Not enough bytes to read message_id and body
             return Ok(None);
@@ -433,7 +434,7 @@ mod test {
 
     #[test]
     fn test_header_pack_unpack() {
-        let body_value = 305888;
+        let body_value = 305_888;
         let message_id_value = 40;
         let header = SrvHeader::new(body_value, message_id_value, true);
         assert_eq!(header.body_len(), body_value as usize);

@@ -71,7 +71,7 @@ use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 
 // Name of file containing the CtlGateway secret key.
-const CTL_SECRET_FILENAME: &'static str = "CTL_SECRET";
+const CTL_SECRET_FILENAME: &str = "CTL_SECRET";
 /// Length of characters in CtlGateway secret key.
 const CTL_SECRET_LEN: usize = 64;
 
@@ -162,7 +162,7 @@ where
 /// If the Environment variable is empty or unparseable, returns the default as passed in.
 pub fn socket_addr_env_or_default(env_var: &str, default: SocketAddr) -> SocketAddr {
     henv::var(env_var)
-        .unwrap_or("".into())
+        .unwrap_or_default()
         .parse()
         .unwrap_or(default)
 }
@@ -190,7 +190,7 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        write!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==\n").unwrap();
+        writeln!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==").unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
         assert_eq!(out, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==");
@@ -201,7 +201,7 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        write!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==\r\n").unwrap();
+        writeln!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==\r").unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
         assert_eq!(out, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==");

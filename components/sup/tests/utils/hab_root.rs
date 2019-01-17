@@ -46,7 +46,7 @@ impl HabRoot {
         let t = Builder::new()
             .prefix(&s)
             .tempdir()
-            .expect(format!("Could not create temporary directory {}", s).as_str());
+            .unwrap_or_else(|_| panic!("Could not create temporary directory {}", s));
         HabRoot(t)
     }
 
@@ -180,9 +180,9 @@ impl HabRoot {
     {
         let mut buffer = String::new();
         let p = path.as_ref();
-        let mut f = File::open(&p).expect(format!("Couldn't open file {:?}", p).as_str());
+        let mut f = File::open(&p).unwrap_or_else(|_| panic!("Couldn't open file {:?}", p));
         f.read_to_string(&mut buffer)
-            .expect(format!("Couldn't read file {:?}", p).as_str());
+            .unwrap_or_else(|_| panic!("Couldn't read file {:?}", p));
         buffer
     }
 }
