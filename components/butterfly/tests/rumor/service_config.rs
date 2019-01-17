@@ -17,6 +17,7 @@ use habitat_butterfly::client::Client;
 use habitat_core::service::ServiceGroup;
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn two_members_share_service_config() {
     let mut net = btest::SwimNet::new(2);
     net.mesh();
@@ -28,6 +29,7 @@ fn two_members_share_service_config() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn service_config_via_client() {
     let mut net = btest::SwimNet::new(2);
     net.mesh();

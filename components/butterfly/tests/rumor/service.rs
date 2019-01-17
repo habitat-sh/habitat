@@ -15,6 +15,7 @@
 use crate::btest;
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn two_members_share_services() {
     let mut net = btest::SwimNet::new(2);
     net.mesh();

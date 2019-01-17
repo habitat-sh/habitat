@@ -23,6 +23,7 @@ mod rumor;
 use habitat_butterfly::member::Health;
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn two_members_meshed_confirm_one_member() {
     let mut net = btest::SwimNet::new(2);
     net.mesh();
@@ -36,6 +37,7 @@ fn two_members_meshed_confirm_one_member() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn six_members_meshed_confirm_one_member() {
     let mut net = btest::SwimNet::new(6);
     net.mesh();
@@ -45,6 +47,7 @@ fn six_members_meshed_confirm_one_member() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
     let mut net = btest::SwimNet::new(6);
     trace_it!(TEST_NET: net, "Mesh");
@@ -55,6 +58,7 @@ fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirmed() {
     let mut net = btest::SwimNet::new(6);
     net.mesh();
@@ -64,6 +68,7 @@ fn six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirm
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn six_members_unmeshed_become_fully_meshed_via_gossip() {
     let mut net = btest::SwimNet::new(6);
     net.connect(0, 1);
@@ -75,6 +80,7 @@ fn six_members_unmeshed_become_fully_meshed_via_gossip() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn six_members_unmeshed_confirm_one_member() {
     let mut net = btest::SwimNet::new(6);
     net.connect(0, 1);
@@ -88,6 +94,7 @@ fn six_members_unmeshed_confirm_one_member() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn six_members_unmeshed_partition_and_rejoin_no_persistent_peers() {
     let mut net = btest::SwimNet::new(6);
     net.connect(0, 1);
@@ -103,6 +110,7 @@ fn six_members_unmeshed_partition_and_rejoin_no_persistent_peers() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
     let mut net = btest::SwimNet::new(6);
     net[0]
@@ -128,6 +136,7 @@ fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn six_members_unmeshed_allows_graceful_departure() {
     let mut net = btest::SwimNet::new(6);
     net.connect(0, 1);
@@ -144,6 +153,7 @@ fn six_members_unmeshed_allows_graceful_departure() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn fifty_members_meshed_confirm_one_member() {
     let mut net = btest::SwimNet::new(50);
     net.mesh();

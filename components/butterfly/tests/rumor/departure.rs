@@ -17,6 +17,7 @@ use habitat_butterfly::client::Client;
 use habitat_butterfly::member::Health;
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn two_members_share_departures() {
     let mut net = btest::SwimNet::new(2);
     net.mesh();
@@ -28,6 +29,7 @@ fn two_members_share_departures() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 #[ignore]
 fn departure_via_client() {
     let mut net = btest::SwimNet::new(3);

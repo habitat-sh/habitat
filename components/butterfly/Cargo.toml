@@ -46,3 +46,4 @@ tempfile = "*"
 [features]
 default = ["protocols"]
 protocols = []
+integration_tests = []

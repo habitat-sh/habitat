@@ -18,6 +18,7 @@ use habitat_butterfly::rumor::election::ElectionStatus;
 use crate::btest;
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn three_members_run_election() {
     let mut net = btest::SwimNet::new(3);
     net.mesh();
@@ -34,6 +35,7 @@ fn three_members_run_election() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn three_members_run_election_from_one_starting_rumor() {
     let mut net = btest::SwimNet::new(3);
     net.mesh();
@@ -46,6 +48,7 @@ fn three_members_run_election_from_one_starting_rumor() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 #[ignore]
 fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     let mut net = btest::SwimNet::new(5);
@@ -111,6 +114,7 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
 }
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     let mut net = btest::SwimNet::new_with_suitability(vec![1, 0, 0, 0, 0]);
     net[0]

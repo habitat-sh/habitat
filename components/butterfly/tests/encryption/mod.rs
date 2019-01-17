@@ -18,6 +18,7 @@ use habitat_core::crypto::keys::sym_key::SymKey;
 use crate::btest;
 
 #[test]
+#[cfg_attr(not(feature = "integration_tests"), ignore)]
 fn symmetric_encryption_of_wire_payloads() {
     let ring_key = SymKey::generate_pair_for_ring("wolverine")
         .expect("Failed to generate an in memory symkey");
