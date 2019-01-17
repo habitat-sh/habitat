@@ -7,6 +7,7 @@
 - Improve butterfly Server::insert_service [#6053](https://github.com/habitat-sh/habitat/pull/6053) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- Fix &quot;uncontroversial&quot; clippy lints and start making them errors in TravisCI [#6065](https://github.com/habitat-sh/habitat/pull/6065) ([baumanj](https://github.com/baumanj))
 - Simplify insert_service [#6044](https://github.com/habitat-sh/habitat/pull/6044) ([baumanj](https://github.com/baumanj))
 - Only start services that are runnable [#6043](https://github.com/habitat-sh/habitat/pull/6043) ([jamesc](https://github.com/jamesc))
 - Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
