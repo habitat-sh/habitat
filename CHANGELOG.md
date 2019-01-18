@@ -13,6 +13,7 @@
 - Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
+- extract supervisor templating and execute an install hook when installing packages [#5866](https://github.com/habitat-sh/habitat/pull/5866) ([mwrock](https://github.com/mwrock))
 - Remove eventsrv. [#6069](https://github.com/habitat-sh/habitat/pull/6069) ([raskchanky](https://github.com/raskchanky))
 - Update docs after the latest release [#6063](https://github.com/habitat-sh/habitat/pull/6063) ([raskchanky](https://github.com/raskchanky))
 - split sections by custom token when generating cli docs [#6037](https://github.com/habitat-sh/habitat/pull/6037) ([mpeck](https://github.com/mpeck))
