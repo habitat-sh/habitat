@@ -55,6 +55,9 @@ pub mod service;
 pub mod url;
 pub mod util;
 
+use std::env::VarError;
+use std::ffi::OsStr;
+use std::fmt;
 use std::path::PathBuf;
 
 pub use crate::os::filesystem;
@@ -71,4 +74,64 @@ lazy_static::lazy_static! {
             .unwrap()
             .to_string()
     };
+}
+
+/// A Builder channel
+#[derive(Clone, Debug, PartialEq)]
+pub struct ChannelIdent(String);
+
+impl ChannelIdent {
+    const LEGACY_ENVVAR: &'static str = "HAB_DEPOT_CHANNEL";
+    pub const BLDR_ENVVAR: &'static str = "HAB_BLDR_CHANNEL";
+    const UNSTABLE: &'static str = "unstable";
+    const STABLE: &'static str = "stable";
+
+    pub fn from_env_var(key: impl AsRef<OsStr>) -> std::result::Result<Self, VarError> {
+        crate::env::var(key).map(ChannelIdent)
+    }
+
+    pub fn from(s: &str) -> Self {
+        ChannelIdent(s.to_string())
+    }
+
+    pub fn as_str(&self) -> &str {
+        self.0.as_str()
+    }
+
+    pub fn stable() -> Self {
+        Self::from(Self::STABLE)
+    }
+
+    pub fn unstable() -> Self {
+        Self::from(Self::UNSTABLE)
+    }
+
+    fn legacy_default() -> Self {
+        ChannelIdent(
+            env::var(Self::LEGACY_ENVVAR)
+                .ok()
+                .and_then(|c| Some(c.to_string()))
+                .unwrap_or(Self::STABLE.to_string()),
+        )
+    }
+
+    /// Helper function for Builder dynamic channels
+    pub fn bldr_name(id: u64) -> String {
+        format!("bldr-{}", id)
+    }
+}
+
+impl fmt::Display for ChannelIdent {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Default for ChannelIdent {
+    fn default() -> Self {
+        match env::var(ChannelIdent::BLDR_ENVVAR) {
+            Ok(value) => ChannelIdent(value.to_string()),
+            Err(_) => ChannelIdent::legacy_default(),
+        }
+    }
 }
