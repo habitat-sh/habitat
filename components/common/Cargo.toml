@@ -9,20 +9,37 @@ workspace = "../../"
 ansi_term = "*"
 bimap = "*"
 glob = "*"
+# The handlebars crate has a few issues that require us to lock at 0.28.3
+# until further notice.
+#
+# - 0.30.0 bumps to a version of the `pest` crate that fails to build
+#   on Windows.
+# - 0.29.0 makes a change to array processing that is incompatible
+#   with our templating syntax; we use "foo[0]", but it now requires
+#   "foo.[0]"
+#   See https://github.com/sunng87/handlebars-rust/commit/707f05442ef6f441a1cfc6b13ac180b78cb296db
+handlebars = { version = "= 0.28.3", default-features = false }
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
+json = "*"
 lazy_static = "*"
 libc = "*"
 log = "*"
 pbr = "*"
 petgraph = "*"
 regex = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+serde-transcode = "*"
+serde_yaml = "*"
 tempfile = "*"
 retry = "*"
 term = { git = "https://github.com/habitat-sh/term" }
 time = "*"
 toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }
+valico = "*"
 
 [dependencies.habitat_core]
 git = "https://github.com/habitat-sh/core.git"

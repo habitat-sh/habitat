@@ -63,6 +63,7 @@ features! {
     pub mod feat {
         const List           = 0b0000_0001,
         const OfflineInstall = 0b0000_0010,
-        const IgnoreLocal    = 0b0000_0100
+        const IgnoreLocal    = 0b0000_0100,
+        const InstallHook    = 0b0000_1000
     }
 }

@@ -28,9 +28,11 @@ use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::string::ToString;
+use std::time::SystemTime;
 
 use crate::hcore::fs::PKG_PATH;
 use crate::hcore::package::metadata::MetaFile;
+use crate::hcore::package::PackageIdent;
 use tempfile::Builder;
 use tempfile::TempDir;
 
@@ -59,13 +61,32 @@ impl HabRoot {
         S: AsRef<Path>,
         T: AsRef<Path>,
     {
+        let ident = self.pkg_ident(origin, pkg_name);
+
         self.0
             .path()
             .join(PKG_PATH)
-            .join(origin.as_ref())
-            .join(pkg_name.as_ref())
-            .join("1.0.0")
-            .join("20170721000000")
+            .join(ident.origin)
+            .join(ident.name)
+            .join(ident.version.as_ref().unwrap())
+            .join(ident.release.as_ref().unwrap())
+    }
+
+    /// Directory to which "expanded package" files should be placed.
+    ///
+    /// We assign a hard-coded version and release, because
+    /// they aren't important for the things we're currently testing
+    pub fn pkg_ident<S, T>(&self, origin: S, pkg_name: T) -> PackageIdent
+    where
+        S: AsRef<Path>,
+        T: AsRef<Path>,
+    {
+        PackageIdent::new(
+            origin.as_ref().to_str().unwrap(),
+            pkg_name.as_ref().to_str().unwrap(),
+            Some("1.0.0"),
+            Some("20170721000000"),
+        )
     }
 
     /// Returns the path to the service user metafile for a given package.
@@ -143,6 +164,33 @@ impl HabRoot {
         Self::file_content(self.svc_path(pkg_name.as_ref()).join("PID"))
             .parse::<u32>()
             .expect("Couldn't parse PID file content as u32!")
+    }
+
+    /// Read the INSTALL_HOOK_STATUS file for a package and return the status value
+    ///
+    /// Use this to determine if an install hook was run and determine its success
+    pub fn install_status_of<S, T>(&self, origin: S, pkg_name: T) -> u32
+    where
+        S: AsRef<Path>,
+        T: AsRef<Path>,
+    {
+        let path = self.pkg_path(origin, pkg_name).join("INSTALL_HOOK_STATUS");
+        Self::file_content(path)
+            .parse::<u32>()
+            .expect("Couldn't parse status file content as u32!")
+    }
+
+    /// Retrieve the last modification time of the INSTALL_HOOK_STATUS file for a package
+    ///
+    /// Use this to determine if an install hook was run a subsequent time
+    pub fn install_status_created<S, T>(&self, origin: S, pkg_name: T) -> SystemTime
+    where
+        S: AsRef<Path>,
+        T: AsRef<Path>,
+    {
+        let path = self.pkg_path(origin, pkg_name).join("INSTALL_HOOK_STATUS");
+        let f = File::open(&path).unwrap_or_else(|_| panic!("Couldn't open file {:?}", path));
+        f.metadata().unwrap().modified().unwrap()
     }
 
     /// Path to the service directory for a package

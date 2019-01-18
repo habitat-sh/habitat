@@ -24,6 +24,8 @@ use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::result;
 
+use crate::common::templating::package::Pkg;
+use crate::hcore::fs;
 use crate::hcore::os::process::{self, Pid};
 #[cfg(unix)]
 use crate::hcore::os::users;
@@ -36,10 +38,6 @@ use time::{self, Timespec};
 use super::ProcessState;
 use super::ShutdownReason;
 use crate::error::{Error, Result};
-use crate::fs;
-use crate::manager::service::Pkg;
-#[cfg(unix)]
-use crate::sys::abilities;
 
 static LOGKEY: &'static str = "SV";
 
@@ -110,7 +108,7 @@ impl Supervisor {
     // self.preamble, and even then only for Linux :/
     #[cfg(unix)]
     fn user_info(&self, pkg: &Pkg) -> Result<UserInfo> {
-        if abilities::can_run_services_as_svc_user() {
+        if users::can_run_services_as_svc_user() {
             // We have the ability to run services as a user / group other
             // than ourselves, so they better exist
             let uid = users::get_uid_by_name(&pkg.svc_user)

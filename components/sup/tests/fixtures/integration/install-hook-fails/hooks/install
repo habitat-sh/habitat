@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "I am a failure!"
+exit 1

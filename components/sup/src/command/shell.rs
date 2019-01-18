@@ -20,8 +20,8 @@ use std::ptr;
 use crate::hcore::fs::find_command;
 use libc;
 
+use crate::common::util::path;
 use crate::error::{Error, Result};
-use crate::util::path;
 
 /// Our output key
 static LOGKEY: &'static str = "SH";

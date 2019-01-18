@@ -46,9 +46,12 @@ use crate::butterfly;
 use crate::butterfly::member::Member;
 use crate::butterfly::server::{timing::Timing, ServerProxy, Suitability};
 use crate::butterfly::trace::Trace;
+use crate::common;
+pub use crate::common::templating::package::Pkg;
 use crate::common::types::{EnvConfig, ListenCtlAddr};
 use crate::hcore::crypto::SymKey;
 use crate::hcore::env;
+use crate::hcore::fs::FS_ROOT_PATH;
 use crate::hcore::os::process::{self, Pid, Signal};
 use crate::hcore::os::signals::{self, SignalEvent};
 use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
@@ -458,6 +461,21 @@ impl Manager {
                 return;
             }
         };
+
+        if feat::is_enabled(feat::InstallHook) {
+            if let Ok(package) =
+                PackageInstall::load(&service.pkg.ident, Some(Path::new(&*FS_ROOT_PATH)))
+            {
+                if let Err(err) = common::command::package::install::check_install_hooks(
+                    &mut common::ui::UI::with_sinks(),
+                    &package,
+                    Path::new(&*FS_ROOT_PATH),
+                ) {
+                    outputln!("Failed to run install hook for {}, {}", &spec.ident, err);
+                    return;
+                }
+            }
+        }
 
         if let Err(e) = service.create_svc_path() {
             outputln!(

@@ -424,6 +424,7 @@ pkg_svc_data_path="$pkg_svc_path/data"
 pkg_svc_files_path="$pkg_svc_path/files"
 pkg_svc_var_path="$pkg_svc_path/var"
 pkg_svc_config_path="$pkg_svc_path/config"
+pkg_svc_config_install_path="$pkg_svc_path/config_install"
 pkg_svc_static_path="$pkg_svc_path/static"
 
 # Used to handle if we received a signal, or failed based on a bad status code.
@@ -745,10 +746,10 @@ _install_dependency() {
               "${HAB_FEAT_IGNORE_LOCAL:-}" = "TRUE" ]]; then
         IGNORE_LOCAL="--ignore-local"
     fi
-    $HAB_BIN install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$dep" || {
+    $HAB_BIN install -u $HAB_BLDR_URL --channel $HAB_BLDR_CHANNEL ${IGNORE_LOCAL:-} "$@" || {
       if [[ "$HAB_BLDR_CHANNEL" != "$FALLBACK_CHANNEL" ]]; then
         build_line "Trying to install '$dep' from '$FALLBACK_CHANNEL'"
-        $HAB_BIN install -u $HAB_BLDR_URL --channel "$FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$dep" || true
+        $HAB_BIN install -u $HAB_BLDR_URL --channel "$FALLBACK_CHANNEL" ${IGNORE_LOCAL:-} "$@" || true
       fi
     }
   fi
@@ -1083,7 +1084,11 @@ _resolve_run_dependencies() {
 
   # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
   for dep in "${pkg_deps[@]}"; do
-    _install_dependency "$dep"
+    if [[ -n "${HAB_FEAT_INSTALL_HOOK:-}" ]]; then
+      _install_dependency "$dep" "--ignore-install-hook"
+    else
+      _install_dependency "$dep"
+    fi
     if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved dependency '$dep' to $resolved"
       pkg_deps_resolved+=($resolved)
@@ -1949,26 +1954,9 @@ do_build_config() {
 # Default implementation for the `do_build_config()` phase.
 do_default_build_config() {
   build_line "Writing configuration"
-  if [[ -d "$PLAN_CONTEXT/config" ]]; then
-    if [[ -z "${HAB_CONFIG_EXCLUDE:-}" ]]; then
-      # HAB_CONFIG_EXCLUDE not set, use defaults
-      config_exclude_exts=("*.sw?" "*~" "*.bak")
-    else
-      IFS=',' read -r -a config_exclude_exts <<< "$HAB_CONFIG_EXCLUDE"
-    fi
-    find_exclusions=""
-    for ext in "${config_exclude_exts[@]}"; do
-      find_exclusions+=" ! -name $ext"
-    done
-    find "$PLAN_CONTEXT/config" "$find_exclusions" | while read -r FILE
-    do
-      if [[ -d "$FILE" ]]; then
-        mkdir -p "$pkg_prefix${FILE#$PLAN_CONTEXT}"
-      else
-        cp "$FILE" "$pkg_prefix${FILE#$PLAN_CONTEXT}"
-      fi
-    done
-    chmod 755 "$pkg_prefix"/config
+  _do_copy_templates "config"
+  if [[ -n "${HAB_FEAT_INSTALL_HOOK:-}" ]]; then
+    _do_copy_templates "config_install"
   fi
   if [[ -d "$PLAN_CONTEXT/hooks" ]]; then
     cp -r "$PLAN_CONTEXT/hooks" "$pkg_prefix"
@@ -1978,6 +1966,31 @@ do_default_build_config() {
     cp "$PLAN_CONTEXT/default.toml" "$pkg_prefix"
   fi
   return 0
+}
+
+_do_copy_templates() {
+  if [[ -d "$PLAN_CONTEXT/$1" ]]; then
+    if [[ -z "${HAB_CONFIG_EXCLUDE:-}" ]]; then
+      # HAB_CONFIG_EXCLUDE not set, use defaults
+      config_exclude_exts=("*.sw?" "*~" "*.bak")
+    else
+      IFS=',' read -r -a config_exclude_exts <<< "$HAB_CONFIG_EXCLUDE"
+    fi
+    find_exclusions=()
+    for ext in "${config_exclude_exts[@]}"; do
+      find_exclusions+=(! -name "$ext")
+    done
+    find "$PLAN_CONTEXT/$1" "${find_exclusions[@]}" | while read -r FILE
+    do
+      local plan_context_relative_path="$pkg_prefix${FILE#$PLAN_CONTEXT}"
+      if [[ -d "$FILE" ]]; then
+        mkdir -p "$plan_context_relative_path"
+      else
+        cp "$FILE" "$plan_context_relative_path"
+      fi
+    done
+    chmod 755 "$pkg_prefix/$1"
+  fi
 }
 
 # Write out the `$pkg_prefix/run` file. If a file named `hooks/run`
@@ -2499,6 +2512,7 @@ pkg_svc_data_path="$pkg_svc_path/data"
 pkg_svc_files_path="$pkg_svc_path/files"
 pkg_svc_var_path="$pkg_svc_path/var"
 pkg_svc_config_path="$pkg_svc_path/config"
+pkg_svc_config_install_path="$pkg_svc_path/config_install"
 pkg_svc_static_path="$pkg_svc_path/static"
 
 pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-${pkg_release}-${pkg_target}.${_artifact_ext}"

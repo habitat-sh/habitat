@@ -26,10 +26,10 @@ use std::time::Duration;
 
 use super::file_watcher::{default_file_watcher_with_no_initial_event, Callbacks};
 
+use crate::common::templating::config::UserConfigPath;
 use crate::hcore::fs::USER_CONFIG_FILE;
 use crate::hcore::service::ServiceGroup;
 use crate::manager::service::Service;
-use crate::manager::service::UserConfigPath;
 
 static LOGKEY: &'static str = "UCW";
 

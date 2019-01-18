@@ -205,13 +205,18 @@ impl Credentials {
 /// * If additional Docker-related files cannot be created in the root file system
 /// * If building the Docker image fails
 /// * If destroying the temporary build root directory fails
-pub fn export(ui: &mut UI, build_spec: BuildSpec<'_>, naming: &Naming<'_>) -> Result<DockerImage> {
+pub fn export(
+    ui: &mut UI,
+    build_spec: BuildSpec,
+    naming: &Naming,
+    memory: Option<&str>,
+) -> Result<DockerImage> {
     ui.begin(format!(
         "Building a runnable Docker image with: {}",
         build_spec.idents_or_archives.join(", ")
     ))?;
     let build_root = DockerBuildRoot::from_build_root(build_spec.create(ui)?, ui)?;
-    let image = build_root.export(ui, naming)?;
+    let image = build_root.export(ui, naming, memory)?;
     build_root.destroy(ui)?;
     ui.end(format!(
         "Docker image '{}' created with tags: {}",
@@ -242,7 +247,7 @@ pub fn export_for_cli_matches(
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_channel, &default_url);
     let naming = Naming::new_from_cli_matches(&matches);
 
-    let docker_image = export(ui, spec, &naming)?;
+    let docker_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT"))?;
     docker_image.create_report(ui, env::current_dir()?.join("results"))?;
 
     if matches.is_present("PUSH_IMAGE") {
@@ -276,6 +281,7 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
         .add_builder_args()
         .add_tagging_args()
         .add_publishing_args()
+        .add_memory_arg()
         .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })
         .app
 }

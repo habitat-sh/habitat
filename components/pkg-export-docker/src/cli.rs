@@ -283,6 +283,18 @@ impl<'a, 'b> Cli<'a, 'b> {
 
         Cli { app: app }
     }
+
+    pub fn add_memory_arg(self) -> Self {
+        let app = self.app.arg(
+            Arg::with_name("MEMORY_LIMIT")
+                .value_name("MEMORY_LIMIT")
+                .long("memory")
+                .short("m")
+                .help("Memory limit passed to docker build's --memory arg (ex: 2bg)"),
+        );
+
+        Cli { app: app }
+    }
 }
 
 fn valid_ident_or_hart(val: String) -> result::Result<(), String> {

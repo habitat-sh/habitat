@@ -95,11 +95,8 @@ pub mod command;
 pub mod config;
 pub mod ctl_gateway;
 pub mod error;
-pub mod fs;
 pub mod http_gateway;
 pub mod manager;
-mod sys;
-pub mod templating;
 #[cfg(test)]
 pub mod test_helpers;
 pub mod util;
@@ -128,7 +125,8 @@ features! {
         const TestExit      = 0b0000_0010,
         const TestBootFail  = 0b0000_0100,
         const RedactHTTP    = 0b0000_1000,
-        const IgnoreSignals = 0b0001_0000
+        const IgnoreSignals = 0b0001_0000,
+        const InstallHook   = 0b0010_0000
     }
 }
 

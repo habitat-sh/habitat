@@ -808,6 +808,13 @@ fn sub_pkg_install() -> App<'static, 'static> {
                 .long("ignore-local"),
         );
     };
+    if feat::is_enabled(feat::InstallHook) {
+        sub = sub.arg(
+            Arg::with_name("IGNORE_INSTALL_HOOK")
+                .help("Do not run any install hooks")
+                .long("ignore-install-hook"),
+        );
+    };
     sub
 }
 

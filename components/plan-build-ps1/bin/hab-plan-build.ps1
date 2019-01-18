@@ -134,6 +134,7 @@ $script:pkg_svc_data_path="$pkg_svc_path\data"
 $script:pkg_svc_files_path="$pkg_svc_path\files"
 $script:pkg_svc_var_path="$pkg_svc_path\var"
 $script:pkg_svc_config_path="$pkg_svc_path\config"
+$script:pkg_svc_config_install_path="$pkg_svc_path\config_install"
 $script:pkg_svc_static_path="$pkg_svc_path\static"
 
 
@@ -384,14 +385,14 @@ function _Set-HabBin {
   Write-BuildLine "Using HAB_BIN=$HAB_BIN for installs, signing, and hashing"
 }
 
-function _install-dependency($dependency) {
+function _install-dependency($dependency, $install_args = $null) {
   if (!$env:NO_INSTALL_DEPS) {
-    $cmd = "$HAB_BIN install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency"
+    $cmd = "$HAB_BIN install -u $env:HAB_BLDR_URL --channel $env:HAB_BLDR_CHANNEL $dependency $install_args"
     if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
     Invoke-Expression $cmd
     if ($LASTEXITCODE -ne 0 -and ($env:HAB_BLDR_URL -ne $FALLBACK_CHANNEL)) {
       Write-BuildLine "Trying to install '$dependency' from '$FALLBACK_CHANNEL'"
-      $cmd = "$HAB_BIN install -u $env:HAB_BLDR_URL --channel $FALLBACK_CHANNEL $dependency"
+      $cmd = "$HAB_BIN install -u $env:HAB_BLDR_URL --channel $FALLBACK_CHANNEL $dependency $install_args"
       if($env:HAB_FEAT_IGNORE_LOCAL -eq "true") { $cmd += " --ignore-local" }
       Invoke-Expression $cmd
     }
@@ -876,7 +877,11 @@ function _Set_DependencyArrays {
   # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
   # dependencies.
   foreach($dep in $pkg_deps) {
-    _install-dependency $dep
+    if ($env:HAB_FEAT_INSTALL_HOOK) {
+      _install-dependency $dep "--ignore-install-hook"
+    } else {
+        _install-dependency $dep
+    }
     if ($resolved=(_resolve-dependency $dep)) {
       Write-BuildLine "Resolved dependency '$dep' to $resolved"
       $script:pkg_deps_resolved+=$resolved
@@ -1730,32 +1735,20 @@ function Invoke-BuildConfig {
 # Default implementation for the `Invoke-BuildConfig` phase.
 function Invoke-DefaultBuildConfig {
     Write-BuildLine "Writing configuration"
-    if(test-path "$PLAN_CONTEXT/config") {
-        if (!$HAB_CONFIG_EXCLUDE) {
-          # HAB_CONFIG_EXCLUDE not set, use defaults
-          $config_exclude_exts=@("*.sw?", "*~", "*.bak")
-        }
-        else {
-          $config_exclude_exts = $HAB_CONFIG_EXCLUDE -split " "
-        }
-        Get-ChildItem "$PLAN_CONTEXT/config" -Exclude $config_exclude_exts | foreach {
-          if (!(Test-Path "$pkg_prefix/config" )) {
-            mkdir "$pkg_prefix/config"
-          }
-          if($_.PSIsContainer) {
-            mkdir (Join-Path $pkg_prefix $_.FullName.Substring($PLAN_CONTEXT.Length))
-          }
-          else {
-            cp $_ (Join-Path $pkg_prefix $_.FullName.Substring($PLAN_CONTEXT.Length))
-          }
-        }
+    if (Test-Path "$PLAN_CONTEXT/config") {
+        Copy-Item "$PLAN_CONTEXT/config" $pkg_prefix -Recurse
     }
-
+    if ((Test-Path "$PLAN_CONTEXT/config_install") -and $env:HAB_FEAT_INSTALL_HOOK) {
+        Write-BuildLine "Writing install configuration"
+        Copy-Item "$PLAN_CONTEXT/config_install" $pkg_prefix -Recurse
+    }
     if (Test-Path "$PLAN_CONTEXT/hooks") {
-        cp "$PLAN_CONTEXT/hooks" $pkg_prefix -Recurse
+        Write-BuildLine "Writing hooks"
+        Copy-Item "$PLAN_CONTEXT/hooks" $pkg_prefix -Recurse
     }
     if (Test-Path "$PLAN_CONTEXT/default.toml") {
-        cp "$PLAN_CONTEXT/default.toml" $pkg_prefix
+        Write-BuildLine "Writing default.toml"
+        Copy-Item "$PLAN_CONTEXT/default.toml" $pkg_prefix
     }
 }
 
@@ -2204,6 +2197,7 @@ try {
     $script:pkg_svc_files_path="$pkg_svc_path\files"
     $script:pkg_svc_var_path="$pkg_svc_path\var"
     $script:pkg_svc_config_path="$pkg_svc_path\config"
+    $script:pkg_svc_config_install_path="$pkg_svc_path\config_install"
     $script:pkg_svc_static_path="$pkg_svc_path\static"
 
     # Set the package artifact name

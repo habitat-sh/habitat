@@ -1,0 +1,169 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Schema for all the data Habitat makes available in rendered templates",
+    "type": "object",
+    "definitions": {
+        "package_identifier": {
+            "type": "object",
+            "description": "A Habitat package identifier, split apart into its constituent components",
+            "properties": {
+                "origin": {
+                    "description": "The origin of the Habitat package",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of the Habitat package",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "The version of the Habitat package",
+                    "type": "string"
+                },
+                "release": {
+                    "description": "The release of the Habitat package",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "origin",
+                "name",
+                "version",
+                "release"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "properties": {
+        "pkg": {
+            "description": "Details about the package currently running the service",
+            "type": "object",
+            "properties": {
+                "ident": {
+                    "description": "The fully-qualified identifier of the running package, e.g., `core/redis/3.2.4/20170514150022`",
+                    "type": "string"
+                },
+                "origin": {
+                    "description": "The origin of the Habitat package",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of the Habitat package",
+                    "type": "string"
+                },
+                "version": {
+                    "description": "The version of the Habitat package",
+                    "type": "string"
+                },
+                "release": {
+                    "description": "The release of the Habitat package",
+                    "type": "string"
+                },
+                "deps": {
+                    "description": "An array of runtime dependencies for your package based on the `pkg_deps` setting in a plan",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/package_identifier"
+                    }
+                },
+                "env": {
+                    "description": "The runtime environment of your package, mirroring the contents of the `RUNTIME_ENVIRONMENT` metadata file. The `PATH` variable is set, containing all dependencies of your package, as well as any other runtime environment variables that have been set by the package. Individual variables can be accessed directly, like `{{pkg.env.PATH}}` (the keys are case sensitive).",
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
+                "exposes": {
+                    "description": "The array of ports to expose for an application or service. This value is pulled from the pkg_exposes setting in a plan.",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "exports": {
+                    "description": "A map of export key to internal configuration value key (i.e., the contents of `pkg_exports` in your plan). The key is what external services consume. The value is a key in your `default.toml` file that corresponds to the data being exported.",
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                },
+                "path" : {
+                    "description": "The location where the package is installed locally, e.g., `/hab/pkgs/core/redis/3.2.4/20170514150022`. Note that this is _not_ a `PATH` environment variable; for that, please see the `env` key above.",
+                    "type": "string"
+                },
+                "svc_path" : {
+                    "description": "The root location of the source files for the Habitat service, e.g., `/hab/svc/redis`.",
+                    "type": "string"
+                },
+                "svc_config_path" : {
+                    "description": "The location of any templated configuration files for the Habitat service, e.g., `/hab/svc/redis/config`.",
+                    "type": "string"
+                },
+                "svc_config_install_path" : {
+                    "description": "The location of any templated configuration files for the install hook, e.g., `/hab/svc/redis/config_install`.",
+                    "type": "string"
+                },
+                "svc_data_path" : {
+                    "description": "The location of any data files for the Habitat service, e.g., `/hab/svc/redis/data`.",
+                    "type": "string"
+                },
+                "svc_files_path" : {
+                    "description": "The location of any gossiped configuration files for the Habitat service, e.g., `/hab/svc/redis/files`.",
+                    "type": "string"
+                },
+                "svc_static_path" : {
+                    "description": "The location of any static content for the Habitat service, e.g., `/hab/svc/redis/static`.",
+                    "type": "string"
+                },
+                "svc_var_path" : {
+                    "description": "The location of any variable state data for the Habitat service, e.g., `/hab/svc/redis/var`.",
+                    "type": "string"
+                },
+                "svc_pid_file" : {
+                    "description": "The location of the Habitat service pid file, e.g., `/hab/svc/redis/PID`.",
+                    "type": "string"
+                },
+                "svc_run" : {
+                    "description": "The location of the rendered run hook for the Habitat service, e.g., `/hab/svc/redis/run`.",
+                    "type": "string"
+                },
+                "svc_user" : {
+                    "description": "The value of `pkg_svc_user` specified in a plan.",
+                    "type": "string"
+                },
+                "svc_group" : {
+                    "description": "The value of `pkg_svc_group` specified in a plan.",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "ident",
+                "origin",
+                "name",
+                "version",
+                "release",
+                "deps",
+                "env",
+                "exposes",
+                "exports",
+                "path",
+                "svc_path",
+                "svc_config_path",
+                "svc_config_install_path",
+                "svc_data_path",
+                "svc_files_path",
+                "svc_static_path",
+                "svc_var_path",
+                "svc_pid_file",
+                "svc_run",
+                "svc_user",
+                "svc_group"
+            ],
+            "additionalProperties": false
+        },
+        "cfg": {
+            "description": "These are settings defined in your templatized configuration file. The values for those settings are pulled from the `default.toml` file included in your package.",
+            "type": "object"
+        }
+    },
+    "required": [
+        "pkg",
+        "cfg"
+    ],
+    "additionalProperties": false
+}
