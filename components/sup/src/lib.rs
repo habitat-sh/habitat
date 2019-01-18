@@ -57,7 +57,6 @@ use habitat_common as common;
 #[macro_use]
 extern crate habitat_core as hcore;
 use habitat_api_client as api_client;
-use habitat_eventsrv_client as eventsrv_client;
 use habitat_launcher_client as launcher_client;
 use habitat_sup_protocol as protocol;
 #[macro_use]

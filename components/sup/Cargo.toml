@@ -30,7 +30,6 @@ habitat_butterfly = { path = "../butterfly", default-features = false }
 habitat_common = { path = "../common" }
 habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_api_client = { path = "../builder-api-client" }
-habitat-eventsrv-client = { path = "../eventsrv-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 # The handlebars crate has a few issues that require us to lock at 0.28.3
