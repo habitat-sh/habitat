@@ -20,7 +20,6 @@ extern crate habitat_core as hcore;
 
 #[macro_use]
 extern crate lazy_static;
-use rand;
 
 mod utils;
 
