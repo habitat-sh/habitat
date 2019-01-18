@@ -17,11 +17,11 @@ use std::path::{Path, PathBuf};
 use crate::common;
 use crate::common::command::package::install::{InstallHookMode, InstallMode, LocalPackageUsage};
 use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::env as henv;
+use crate::hcore;
 use crate::hcore::fs::{self, cache_artifact_path, FS_ROOT_PATH};
 use crate::hcore::package::{PackageIdent, PackageInstall, PackageTarget};
 use crate::hcore::url::default_bldr_url;
-use crate::hcore::{self, channel};
+use crate::hcore::ChannelIdent;
 
 use crate::error::{Error, Result};
 use crate::{PRODUCT, VERSION};
@@ -111,9 +111,9 @@ where
 
 /// Determine the channel from which to install Habitat-specific
 /// packages.
-fn internal_tooling_channel() -> String {
-    match henv::var(INTERNAL_TOOLING_CHANNEL_ENVVAR) {
+fn internal_tooling_channel() -> ChannelIdent {
+    match ChannelIdent::from_env_var(INTERNAL_TOOLING_CHANNEL_ENVVAR) {
         Ok(channel) => channel,
-        Err(_) => channel::STABLE_CHANNEL.to_string(),
+        Err(_) => ChannelIdent::stable(),
     }
 }

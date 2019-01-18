@@ -29,7 +29,12 @@ use crate::common::ui::{Status, UIWriter, UI};
 use crate::hcore::env;
 use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use crate::hcore::package::{PackageArchive, PackageIdent, PackageInstall};
+use crate::hcore::ChannelIdent;
 use crate::hcore::PROGRAM_NAME;
+use crate::hcore::{
+    fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
+    ChannelIdent,
+};
 use clap;
 #[cfg(unix)]
 use failure::SyncFailure;
@@ -373,7 +378,7 @@ impl<'a> BuildSpec<'a> {
         let package_install = common::command::package::install::start(
             ui,
             url,
-            Some(channel),
+            Some(&ChannelIdent::from(channel)),
             &install_source,
             &*PROGRAM_NAME,
             VERSION,

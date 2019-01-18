@@ -24,7 +24,10 @@ use time::{Duration as TimeDuration, SteadyTime};
 use crate::common::command::package::install::InstallSource;
 use crate::common::ui::UI;
 use crate::env;
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::{
+    package::{PackageIdent, PackageInstall},
+    ChannelIdent,
+};
 use crate::util;
 
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
@@ -35,14 +38,14 @@ pub struct SelfUpdater {
     rx: Receiver<PackageInstall>,
     current: PackageIdent,
     update_url: String,
-    update_channel: String,
+    update_channel: ChannelIdent,
 }
 
 // TODO (CM): Want to use the Periodic trait here, but can't due to
 // how things are currently structured (The service updater had a worker)
 
 impl SelfUpdater {
-    pub fn new(current: PackageIdent, update_url: String, update_channel: String) -> Self {
+    pub fn new(current: PackageIdent, update_url: String, update_channel: ChannelIdent) -> Self {
         let rx = Self::init(current.clone(), update_url.clone(), update_channel.clone());
         SelfUpdater {
             rx: rx,
@@ -56,7 +59,7 @@ impl SelfUpdater {
     fn init(
         current: PackageIdent,
         update_url: String,
-        update_channel: String,
+        update_channel: ChannelIdent,
     ) -> Receiver<PackageInstall> {
         let (tx, rx) = sync_channel(0);
         thread::Builder::new()
@@ -70,7 +73,7 @@ impl SelfUpdater {
         sender: SyncSender<PackageInstall>,
         current: PackageIdent,
         builder_url: String,
-        channel: String,
+        channel: ChannelIdent,
     ) {
         debug!("Self updater current package, {}", current);
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,

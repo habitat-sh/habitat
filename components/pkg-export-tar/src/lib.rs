@@ -17,9 +17,11 @@ mod rootfs;
 pub use crate::cli::Cli;
 use crate::common::ui::UI;
 pub use crate::error::{Error, Result};
-use crate::hcore::channel;
-use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::hcore::url as hurl;
+use crate::hcore::{
+    package::{PackageIdent, PackageInstall},
+    ChannelIdent,
+};
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use std::fs::File;
@@ -35,7 +37,7 @@ pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 const BUSYBOX_IDENT: &str = "core/busybox-static";
 
 pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result<()> {
-    let default_channel = channel::default();
+    let default_channel = ChannelIdent::default().to_string();
     let default_url = hurl::default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_channel, &default_url);
     export(ui, spec)?;

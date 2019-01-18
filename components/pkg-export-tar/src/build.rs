@@ -18,9 +18,12 @@ use crate::common::command::package::install::{
 };
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::Result;
-use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use crate::hcore::package::PackageIdent;
 use crate::hcore::PROGRAM_NAME;
+use crate::hcore::{
+    self,
+    fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
+};
 use clap;
 use std::fs as stdfs;
 #[cfg(unix)]
@@ -211,7 +214,7 @@ impl<'a> BuildSpec<'a> {
         let package_install = common::command::package::install::start(
             ui,
             url,
-            Some(channel),
+            Some(&hcore::ChannelIdent::from(channel)),
             &install_source,
             &*PROGRAM_NAME,
             VERSION,

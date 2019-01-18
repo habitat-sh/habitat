@@ -36,7 +36,10 @@ use std::io::{self, Read, Write};
 use std::path::{Path, PathBuf};
 use std::string::ToString;
 
-use crate::hab_core::package::{Identifiable, PackageArchive, PackageIdent, PackageTarget};
+use crate::hab_core::{
+    package::{Identifiable, PackageArchive, PackageIdent, PackageTarget},
+    ChannelIdent,
+};
 use crate::hab_http::util::decoded_response;
 use crate::hab_http::ApiClient;
 use broadcast::BroadcastWriter;
@@ -828,7 +831,7 @@ impl Client {
         &self,
         package: &PackageIdent,
         target: &PackageTarget,
-        channel: &str,
+        channel: &ChannelIdent,
         token: Option<&str>,
     ) -> Result<PackageIdent> {
         let mut url = channel_package_path(channel, package);
@@ -1253,7 +1256,7 @@ fn package_search(term: &str) -> String {
     format!("depot/pkgs/search/{}", encoded_term)
 }
 
-fn channel_package_path(channel: &str, package: &PackageIdent) -> String {
+fn channel_package_path(channel: &ChannelIdent, package: &PackageIdent) -> String {
     let mut path = format!(
         "depot/channels/{}/{}/pkgs/{}",
         package.origin(),

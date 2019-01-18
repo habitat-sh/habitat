@@ -19,6 +19,7 @@ use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
 use crate::hcore::url::DEFAULT_BLDR_URL;
 use crate::hcore::util::{deserialize_using_from_str, serialize_using_to_string};
+use crate::hcore::ChannelIdent;
 use crate::protocol;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -291,7 +292,7 @@ impl Default for ServiceSpec {
             group: DEFAULT_GROUP.to_string(),
             application_environment: None,
             bldr_url: DEFAULT_BLDR_URL.to_string(),
-            channel: STABLE_CHANNEL.to_string(),
+            channel: ChannelIdent::stable().to_string(),
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
             binds: Vec::default(),
