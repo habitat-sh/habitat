@@ -53,6 +53,8 @@ pub struct DockerBuilder<'a> {
     name: String,
     /// A list of tags for the image.
     tags: Vec<String>,
+    /// Optional memory limit to pass to pass to the docker build
+    memory: Option<&'a str>,
 }
 
 impl<'a> DockerBuilder<'a> {
@@ -64,12 +66,19 @@ impl<'a> DockerBuilder<'a> {
             workdir: workdir,
             name: name.into(),
             tags: Vec::new(),
+            memory: None,
         }
     }
 
     /// Adds a tag for the Docker image.
     pub fn tag<S: Into<String>>(mut self, tag: S) -> Self {
         self.tags.push(tag.into());
+        self
+    }
+
+    /// Specifies an amount of memory to allocate to build
+    pub fn memory(mut self, memory: &'a str) -> Self {
+        self.memory = Some(memory);
         self
     }
 
@@ -84,6 +93,9 @@ impl<'a> DockerBuilder<'a> {
             .arg("build")
             .arg("--force-rm")
             .arg("--no-cache");
+        if let Some(mem) = self.memory {
+            cmd.arg("--memory").arg(mem);
+        }
         if self.tags.is_empty() {
             cmd.arg("--tag").arg(&self.name);
         } else {
@@ -138,14 +150,6 @@ pub struct DockerImage {
 }
 
 impl<'a> DockerImage {
-    /// Returns a new `DockerBuilder` which is used to build the image.
-    pub fn new<S>(workdir: &'a Path, name: S) -> DockerBuilder<'a>
-    where
-        S: Into<String>,
-    {
-        DockerBuilder::new(workdir, name)
-    }
-
     /// Pushes the Docker image, with all tags, to a remote registry using the provided
     /// `Credentials`.
     ///
@@ -367,12 +371,22 @@ impl DockerBuildRoot {
     ///
     /// * If the Docker image cannot be created successfully
     #[cfg(unix)]
-    pub fn export(&self, ui: &mut UI, naming: &Naming<'_>) -> Result<DockerImage> {
-        self.build_docker_image(ui, naming)
+    pub fn export(
+        &self,
+        ui: &mut UI,
+        naming: &Naming,
+        memory: Option<&str>,
+    ) -> Result<DockerImage> {
+        self.build_docker_image(ui, naming, memory)
     }
 
     #[cfg(windows)]
-    pub fn export(&self, ui: &mut UI, naming: &Naming) -> Result<DockerImage> {
+    pub fn export(
+        &self,
+        ui: &mut UI,
+        naming: &Naming,
+        memory: Option<&str>,
+    ) -> Result<DockerImage> {
         let mut cmd = docker_cmd();
         cmd.arg("version").arg("--format='{{.Server.Os}}'");
         debug!("Running command: {:?}", cmd);
@@ -382,7 +396,7 @@ impl DockerBuildRoot {
             return Err(Error::DockerNotInWindowsMode(os.to_string()))?;
         }
 
-        self.build_docker_image(ui, naming)
+        self.build_docker_image(ui, naming, memory)
     }
 
     #[cfg(unix)]
@@ -464,6 +478,9 @@ impl DockerBuildRoot {
                 .replace("\\", "/"),
             "exposes": ctx.svc_exposes().join(" "),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
+            "installed_primary_svc_ident": ctx.installed_primary_svc_ident()?.to_string(),
+            "install_hook_feat": ctx.install_hook_feat(),
+            "environment": ctx.environment,
         });
         util::write_file(
             self.0.workdir().join("Dockerfile"),
@@ -474,7 +491,12 @@ impl DockerBuildRoot {
         Ok(())
     }
 
-    fn build_docker_image(&self, ui: &mut UI, naming: &Naming<'_>) -> Result<DockerImage> {
+    fn build_docker_image(
+        &self,
+        ui: &mut UI,
+        naming: &Naming,
+        memory: Option<&str>,
+    ) -> Result<DockerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
         let version = &ident.version.expect("version exists");
@@ -500,25 +522,28 @@ impl DockerBuildRoot {
         }
         .to_lowercase();
 
-        let mut image = DockerImage::new(self.0.workdir(), image_name);
+        let mut builder = DockerBuilder::new(self.0.workdir(), image_name);
         if naming.version_release_tag {
-            image = image.tag(format!("{}-{}", &version, &release));
+            builder = builder.tag(format!("{}-{}", &version, &release));
         }
         if naming.version_tag {
-            image = image.tag(version.clone());
+            builder = builder.tag(version.clone());
         }
         if naming.latest_tag {
-            image = image.tag("latest".to_string());
+            builder = builder.tag("latest".to_string());
+        }
+        if let Some(memory) = memory {
+            builder = builder.memory(memory);
         }
         if let Some(ref custom) = naming.custom_tag {
-            image = image.tag(
+            builder = builder.tag(
                 Handlebars::new()
                     .template_render(custom, &json)
                     .map_err(SyncFailure::new)?
                     .to_lowercase(),
             );
         }
-        image.build()
+        builder.build()
     }
 }
 

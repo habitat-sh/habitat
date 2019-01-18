@@ -27,6 +27,7 @@ use std::{
 use crate::common::cli_defaults::{
     LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
 };
+use crate::common::templating::hooks;
 use crate::common::types::EnvConfig;
 use crate::hcore::{crypto, env as henv, service::ServiceGroup};
 use actix;
@@ -41,7 +42,7 @@ use serde_json::{self, Value as Json};
 
 use crate::error::{Result, SupError};
 use crate::manager;
-use crate::manager::service::hooks::{self, HealthCheckHook};
+use crate::manager::service::hooks::HealthCheckHook;
 use crate::manager::service::HealthCheck;
 
 use crate::feat;

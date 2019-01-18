@@ -22,6 +22,7 @@ use std::thread;
 use std::time::Duration;
 
 use crate::hcore::os::users;
+use crate::hcore::package::PackageInstall;
 
 pub mod fixture_root;
 pub mod hab_root;
@@ -74,6 +75,24 @@ pub fn setup_package_files<O, P, S>(
     let hab_pkg_path = hab_root.pkg_path(&origin_name, &package_name);
     copy_dir(&expanded_fixture_dir, &hab_pkg_path);
     write_default_svc_user_and_group_metafiles(&hab_root, &origin_name, &package_name);
+
+    let install = PackageInstall::load(
+        &hab_root.pkg_ident(&origin_name, &package_name),
+        Some(hab_root.as_ref()),
+    )
+    .unwrap_or_else(|_| {
+        panic!(
+            "Could not load package {:?}/{:?}",
+            &origin_name, &package_name
+        )
+    });
+    if let Ok(tdeps) = install.tdeps() {
+        for dependency in tdeps.iter() {
+            let fixture_dir = fixture_root.expanded_package_dir(&dependency.name);
+            let pkg_path = hab_root.pkg_path(&dependency.origin, &dependency.name);
+            copy_dir(&fixture_dir, &pkg_path);
+        }
+    }
 }
 
 /// Recursively copy the contents of `source_dir` into `dest_dir`

@@ -15,7 +15,7 @@
 use std::path::{Path, PathBuf};
 
 use crate::common;
-use crate::common::command::package::install::{InstallMode, LocalPackageUsage};
+use crate::common::command::package::install::{InstallHookMode, InstallMode, LocalPackageUsage};
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::hcore::env as henv;
 use crate::hcore::fs::{self, cache_artifact_path, FS_ROOT_PATH};
@@ -101,6 +101,7 @@ where
                 &InstallMode::default(),
                 // TODO (CM): pass through and enable no-local-package mode
                 &LocalPackageUsage::default(),
+                InstallHookMode::default(),
             )?;
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }

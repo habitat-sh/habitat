@@ -13,7 +13,9 @@
 // limitations under the License.
 
 use crate::common;
-use crate::common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
+use crate::common::command::package::install::{
+    InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
+};
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::Result;
 use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
@@ -218,6 +220,7 @@ impl<'a> BuildSpec<'a> {
             &InstallMode::default(),
             // TODO (CM): pass through and enable ignore-local mode
             &LocalPackageUsage::default(),
+            InstallHookMode::Ignore,
         )?;
         Ok(package_install.into())
     }

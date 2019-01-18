@@ -1,5 +1,8 @@
 #!/bin/bash
 
+sudo mkdir -p /hab
+sudo chmod o+w /hab
+
 git log HEAD~1..HEAD | grep -q '!!! Temporary Commit !!!'
 is_tmp_commit=$?
 

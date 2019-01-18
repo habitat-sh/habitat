@@ -33,16 +33,6 @@ habitat_api_client = { path = "../builder-api-client" }
 habitat-eventsrv-client = { path = "../eventsrv-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
-# The handlebars crate has a few issues that require us to lock at 0.28.3
-# until further notice.
-#
-# - 0.30.0 bumps to a version of the `pest` crate that fails to build
-#   on Windows.
-# - 0.29.0 makes a change to array processing that is incompatible
-#   with our templating syntax; we use "foo[0]", but it now requires
-#   "foo.[0]"
-#   See https://github.com/sunng87/handlebars-rust/commit/707f05442ef6f441a1cfc6b13ac180b78cb296db
-handlebars = { version = "= 0.28.3", default-features = false }
 lazy_static = "*"
 libc = "*"
 log = "*"

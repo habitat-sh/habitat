@@ -1,0 +1,191 @@
+{
+  "pkg": {
+    "deps": [
+      {
+        "name": "acl",
+        "origin": "core",
+        "release": "20170513213108",
+        "version": "2.2.52"
+      },
+      {
+        "name": "attr",
+        "origin": "core",
+        "release": "20170513213059",
+        "version": "2.4.47"
+      },
+      {
+        "name": "bzip2",
+        "origin": "core",
+        "release": "20170513212938",
+        "version": "1.0.6"
+      },
+      {
+        "name": "cacerts",
+        "origin": "core",
+        "release": "20171014212239",
+        "version": "2017.09.20"
+      },
+      {
+        "name": "coreutils",
+        "origin": "core",
+        "release": "20170513213226",
+        "version": "8.25"
+      },
+      {
+        "name": "curl",
+        "origin": "core",
+        "release": "20171014214153",
+        "version": "7.54.1"
+      },
+      {
+        "name": "db",
+        "origin": "core",
+        "release": "20170513213734",
+        "version": "5.3.28"
+      },
+      {
+        "name": "expat",
+        "origin": "core",
+        "release": "20171015103808",
+        "version": "2.2.2"
+      },
+      {
+        "name": "gcc-libs",
+        "origin": "core",
+        "release": "20170513212920",
+        "version": "5.2.0"
+      },
+      {
+        "name": "gdbm",
+        "origin": "core",
+        "release": "20170513213716",
+        "version": "1.11"
+      },
+      {
+        "name": "gettext",
+        "origin": "core",
+        "release": "20170513214354",
+        "version": "0.19.6"
+      },
+      {
+        "name": "git",
+        "origin": "core",
+        "release": "20171016215544",
+        "version": "2.14.2"
+      },
+      {
+        "name": "glibc",
+        "origin": "core",
+        "release": "20170513201042",
+        "version": "2.22"
+      },
+      {
+        "name": "gmp",
+        "origin": "core",
+        "release": "20170513202112",
+        "version": "6.1.0"
+      },
+      {
+        "name": "less",
+        "origin": "core",
+        "release": "20170513213936",
+        "version": "481"
+      },
+      {
+        "name": "libcap",
+        "origin": "core",
+        "release": "20170513213120",
+        "version": "2.24"
+      },
+      {
+        "name": "linux-headers",
+        "origin": "core",
+        "release": "20170513200956",
+        "version": "4.3"
+      },
+      {
+        "name": "ncurses",
+        "origin": "core",
+        "release": "20170513213009",
+        "version": "6.0"
+      },
+      {
+        "name": "nghttp2",
+        "origin": "core",
+        "release": "20170830163632",
+        "version": "1.24.0"
+      },
+      {
+        "name": "openssh",
+        "origin": "core",
+        "release": "20171014214153",
+        "version": "7.5p1"
+      },
+      {
+        "name": "openssl",
+        "origin": "core",
+        "release": "20171014213633",
+        "version": "1.0.2l"
+      },
+      {
+        "name": "pcre",
+        "origin": "core",
+        "release": "20170513213423",
+        "version": "8.38"
+      },
+      {
+        "name": "perl",
+        "origin": "core",
+        "release": "20170513213942",
+        "version": "5.22.1"
+      },
+      {
+        "name": "xz",
+        "origin": "core",
+        "release": "20170513214327",
+        "version": "5.2.2"
+      },
+      {
+        "name": "zlib",
+        "origin": "core",
+        "release": "20170513201911",
+        "version": "1.2.8"
+      }
+    ],
+    "env": {
+      "BAZ": "QUUX",
+      "FOO": "BAR",
+      "PATH": "/hab/pkgs/core/git/2.14.2/20171016215544/bin:/hab/pkgs/core/xz/5.2.2/20170513214327/bin:/hab/pkgs/core/perl/5.22.1/20170513213942/bin:/hab/pkgs/core/pcre/8.38/20170513213423/bin:/hab/pkgs/core/openssl/1.0.2l/20171014213633/bin:/hab/pkgs/core/openssh/7.5p1/20171014214153/bin:/hab/pkgs/core/openssh/7.5p1/20171014214153/sbin:/hab/pkgs/core/openssh/7.5p1/20171014214153/libexec:/hab/pkgs/core/ncurses/6.0/20170513213009/bin:/hab/pkgs/core/libcap/2.24/20170513213120/bin:/hab/pkgs/core/less/481/20170513213936/bin:/hab/pkgs/core/glibc/2.22/20170513201042/bin:/hab/pkgs/core/gettext/0.19.6/20170513214354/bin:/hab/pkgs/core/gdbm/1.11/20170513213716/bin:/hab/pkgs/core/expat/2.2.2/20171015103808/bin:/hab/pkgs/core/db/5.3.28/20170513213734/bin:/hab/pkgs/core/curl/7.54.1/20171014214153/bin:/hab/pkgs/core/coreutils/8.25/20170513213226/bin:/hab/pkgs/core/bzip2/1.0.6/20170513212938/bin:/hab/pkgs/core/attr/2.4.47/20170513213059/bin:/hab/pkgs/core/acl/2.2.52/20170513213108/bin:/hab/pkgs/core/busybox-static/1.24.2/20170513215502/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin"
+    },
+    "exports": {
+      "blah": "stuff.thing",
+      "port": "test_port"
+    },
+    "exposes": [
+      "2112"
+    ],
+    "ident": "core/template-probe/0.1.0/20180315155739",
+    "name": "template-probe",
+    "origin": "core",
+    "path": "/hab/pkgs/core/template-probe/0.1.0/20180315155739",
+    "release": "20180315155739",
+    "svc_config_path": "/hab/svc/template-probe/config",
+    "svc_config_install_path": "/hab/svc/template-probe/config_install",
+    "svc_data_path": "/hab/svc/template-probe/data",
+    "svc_files_path": "/hab/svc/template-probe/files",
+    "svc_group": "hab",
+    "svc_path": "/hab/svc/template-probe",
+    "svc_pid_file": "/hab/svc/template-probe/PID",
+    "svc_run": "/hab/svc/template-probe/run",
+    "svc_static_path": "/hab/svc/template-probe/static",
+    "svc_user": "hab",
+    "svc_var_path": "/hab/svc/template-probe/var",
+    "version": "0.1.0"
+  },
+  "cfg": {
+    "stuff": {
+      "thing": "foo"
+    },
+    "test_port": 2112
+  }
+}

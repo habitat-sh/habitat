@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::HashMap;
 use std::fs as stdfs;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
@@ -21,8 +22,11 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
 use crate::common;
-use crate::common::command::package::install::{InstallMode, InstallSource, LocalPackageUsage};
+use crate::common::command::package::install::{
+    InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
+};
 use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::env;
 use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use crate::hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use crate::hcore::PROGRAM_NAME;
@@ -122,11 +126,10 @@ impl<'a> BuildSpec<'a> {
             format!("build root in {}", workdir.path().display()),
         )?;
         self.prepare_rootfs(ui, &rootfs)?;
-        let ctx = BuildRootContext::from_spec(&self, rootfs)?;
 
         Ok(BuildRoot {
             workdir: workdir,
-            ctx: ctx,
+            ctx: BuildRootContext::from_spec(&self, &rootfs)?,
         })
     }
 
@@ -381,6 +384,7 @@ impl<'a> BuildSpec<'a> {
             &InstallMode::default(),
             // TODO (CM): pass through and enable ignore-local mode
             &LocalPackageUsage::default(),
+            InstallHookMode::Ignore,
         )?;
         Ok(package_install.into())
     }
@@ -429,6 +433,8 @@ pub struct BuildRootContext {
     /// A list of all Habitat service and library packages which were determined from the original
     /// list in a `BuildSpec`.
     idents: Vec<PkgIdentType>,
+    /// List of environment variables that can overload configuration.
+    pub environment: HashMap<String, String>,
     /// The `bin` path which will be used for all program symlinking.
     bin_path: PathBuf,
     /// A string representation of the build root's `PATH` environment variable value (i.e. a
@@ -455,6 +461,7 @@ impl BuildRootContext {
     pub fn from_spec<P: Into<PathBuf>>(spec: &BuildSpec<'_>, rootfs: P) -> Result<Self> {
         let rootfs = rootfs.into();
         let mut idents = Vec::new();
+        let mut tdeps = Vec::new();
         for ident_or_archive in &spec.idents_or_archives {
             let ident = if Path::new(ident_or_archive).is_file() {
                 // We're going to use the `$pkg_origin/$pkg_name`, fuzzy form of a package
@@ -467,6 +474,10 @@ impl BuildRootContext {
                 PackageIdent::from_str(ident_or_archive)?
             };
             let pkg_install = PackageInstall::load(&ident, Some(&rootfs))?;
+            tdeps.push(ident.name.clone());
+            for dependency in pkg_install.tdeps()? {
+                tdeps.push(dependency.name);
+            }
             if pkg_install.is_runnable() {
                 idents.push(PkgIdentType::Svc(SvcIdent {
                     ident: ident,
@@ -476,10 +487,20 @@ impl BuildRootContext {
                 idents.push(PkgIdentType::Lib(ident));
             }
         }
+
+        tdeps.dedup();
+        let environment = tdeps
+            .into_iter()
+            .filter_map(|dep| {
+                let key = format!("HAB_{}", dep.to_uppercase());
+                env::var(&key).ok().map(|v| (key, v))
+            })
+            .collect();
         let bin_path = util::bin_path();
 
         let context = BuildRootContext {
             idents: idents,
+            environment: environment,
             bin_path: bin_path.into(),
             env_path: bin_path.to_string_lossy().into_owned(),
             channel: spec.channel.into(),
@@ -520,6 +541,11 @@ impl BuildRootContext {
     pub fn installed_primary_svc_ident(&self) -> Result<PackageIdent> {
         let pkg_install = self.primary_svc()?;
         Ok(pkg_install.ident().clone())
+    }
+
+    /// Returns true if the INSTALL_HOOK feature is toggled
+    pub fn install_hook_feat(&self) -> bool {
+        env::var("HAB_FEAT_INSTALL_HOOK").is_ok()
     }
 
     /// Returns the list of package port exposes over all service packages.

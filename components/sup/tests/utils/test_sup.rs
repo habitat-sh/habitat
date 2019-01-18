@@ -234,6 +234,7 @@ impl TestSup {
             fs_root.as_ref().to_string_lossy().as_ref(),
         )
         .env("HAB_SUP_BINARY", &sup_exe)
+        .env("HAB_FEAT_INSTALL_HOOK", "ON")
         .env(BLDR_URL_ENVVAR, "http://hab.sup.test")
         .arg("run")
         .arg("--listen-gossip")
@@ -273,6 +274,19 @@ impl TestSup {
         self.process = Some(child);
     }
 
+    /// Stop the Supervisor.
+    pub fn stop(&mut self) {
+        let mut ports = CLAIMED_PORTS.lock().unwrap();
+        ports.remove(&self.http_port);
+        ports.remove(&self.butterfly_port);
+        ports.remove(&self.control_port);
+        self.process
+            .take()
+            .expect("No process to kill!")
+            .kill()
+            .expect("Tried to kill Supervisor!");
+    }
+
     /// The equivalent of performing `hab apply` with the given
     /// configuration.
     pub fn apply_config<T>(&mut self, toml_config: T)
@@ -287,14 +301,6 @@ impl TestSup {
 // ports used by this Supervisor so other tests can use them.
 impl Drop for TestSup {
     fn drop(&mut self) {
-        let mut ports = CLAIMED_PORTS.lock().unwrap();
-        ports.remove(&self.http_port);
-        ports.remove(&self.butterfly_port);
-        ports.remove(&self.control_port);
-        self.process
-            .take()
-            .expect("No process to kill!")
-            .kill()
-            .expect("Tried to kill Supervisor!");
+        self.stop();
     }
 }
