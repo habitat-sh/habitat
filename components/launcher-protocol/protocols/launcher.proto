@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package launcher;
+package launcher.launcher;
 
 message Register {
   optional string pipe = 1;

@@ -203,8 +203,7 @@ UNEXAMINED_LINTS = clippy::cyclomatic_complexity \
                    clippy::redundant_field_names \
                    clippy::too_many_arguments \
                    clippy::trivially_copy_pass_by_ref \
-                   clippy::wrong_self_convention \
-                   renamed_and_removed_lints
+                   clippy::wrong_self_convention
 
 # Lints we disagree with and choose to keep in our code with no warning
 ALLOWED_LINTS =
@@ -260,7 +259,8 @@ DENIED_LINTS = clippy::assign_op_pattern \
                clippy::useless_format \
                clippy::useless_let_if_seq \
                clippy::useless_vec \
-               clippy::write_with_newline
+               clippy::write_with_newline \
+               renamed_and_removed_lints
 
 lint: image ## executes the $1 component's linter checks
 	$(run) cargo clippy --all-targets --tests $(CARGO_FLAGS) -- \

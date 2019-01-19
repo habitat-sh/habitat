@@ -85,21 +85,25 @@ impl Process {
 }
 
 pub fn run(msg: protocol::Spawn) -> Result<Service> {
-    debug!("launcher is spawning {}", msg.get_binary());
-    let mut cmd = Command::new(msg.get_binary());
+    debug!("launcher is spawning {}", msg.binary);
+    let mut cmd = Command::new(&msg.binary);
 
     // Favor explicitly set UID/GID over names when present
-    let uid = if msg.has_svc_user_id() {
-        msg.get_svc_user_id()
+    let uid = if let Some(suid) = msg.svc_user_id {
+        suid
+    } else if let Some(suser) = &msg.svc_user {
+        os::users::get_uid_by_name(&suser).ok_or_else(|| Error::UserNotFound(suser.to_string()))?
     } else {
-        os::users::get_uid_by_name(msg.get_svc_user())
-            .ok_or_else(|| Error::UserNotFound(msg.get_svc_user().to_string()))?
+        return Err(Error::UserNotFound(String::from("")));
     };
-    let gid = if msg.has_svc_group_id() {
-        msg.get_svc_group_id()
+
+    let gid = if let Some(sgid) = msg.svc_group_id {
+        sgid
+    } else if let Some(sgroup) = &msg.svc_group {
+        os::users::get_gid_by_name(&sgroup)
+            .ok_or_else(|| Error::GroupNotFound(sgroup.to_string()))?
     } else {
-        os::users::get_gid_by_name(msg.get_svc_group())
-            .ok_or_else(|| Error::GroupNotFound(msg.get_svc_group().to_string()))?
+        return Err(Error::GroupNotFound(String::from("")));
     };
 
     cmd.before_exec(owned_pgid);
@@ -108,7 +112,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
         .stderr(Stdio::piped())
         .uid(uid)
         .gid(gid);
-    for (key, val) in msg.get_env().iter() {
+    for (key, val) in msg.env.iter() {
         cmd.env(key, val);
     }
     let mut child = cmd.spawn().map_err(Error::Spawn)?;

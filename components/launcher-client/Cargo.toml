@@ -3,6 +3,7 @@ name = "habitat-launcher-client"
 version = "0.0.0"
 edition = "2018"
 authors = ["Jamie Winsor <reset@habitat.sh>"]
+workspace = "../../"
 
 [dependencies]
 bincode = "*"
@@ -12,5 +13,5 @@ habitat-launcher-protocol = { path = "../launcher-protocol" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
 log = "*"
-protobuf = "1.5.1"
+prost = "*"
 serde = "*"

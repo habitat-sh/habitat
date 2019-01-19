@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package net;
+package launcher.net;
 
 message Envelope {
   optional string message_id = 1;

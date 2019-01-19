@@ -135,36 +135,41 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     // former name.
     match spawn_pwsh("pwsh.exe", msg.clone()) {
         Ok(service) => Ok(service),
-        Err(err) => {
+        Err(Error::Spawn(err)) => {
             if err.raw_os_error() == Some(ERROR_FILE_NOT_FOUND as i32) {
-                spawn_pwsh("powershell.exe", msg).map_err(Error::Spawn)
+                spawn_pwsh("powershell.exe", msg)
             } else {
                 Err(Error::Spawn(err))
             }
         }
+        Err(err) => Err(err),
     }
 }
 
-fn spawn_pwsh(ps_binary_name: &str, mut msg: protocol::Spawn) -> io::Result<Service> {
-    debug!("launcher is spawning {}", msg.get_binary());
-    let ps_cmd = format!("iex $(gc {} | out-string)", msg.get_binary());
-    let password = if msg.get_svc_password().is_empty() {
-        None
-    } else {
-        Some(msg.take_svc_password())
+fn spawn_pwsh(ps_binary_name: &str, msg: protocol::Spawn) -> Result<Service> {
+    debug!("launcher is spawning {}", msg.binary);
+    let ps_cmd = format!("iex $(gc {} | out-string)", &msg.binary);
+    let password = msg.svc_password.clone();
+
+    let user = match msg.svc_user.as_ref() {
+        Some(u) => u.to_string(),
+        None => {
+            return Err(Error::UserNotFound(String::from("")));
+        }
     };
+
     match Child::spawn(
         ps_binary_name,
         vec!["-NonInteractive", "-command", ps_cmd.as_str()],
-        msg.get_env(),
-        msg.get_svc_user(),
+        &msg.env,
+        user,
         password,
     ) {
         Ok(child) => {
             let process = Process::new(child.handle);
             Ok(Service::new(msg, process, child.stdout, child.stderr))
         }
-        Err(_) => Err(io::Error::last_os_error()),
+        Err(_) => Err(Error::Spawn(io::Error::last_os_error())),
     }
 }
 

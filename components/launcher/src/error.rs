@@ -12,14 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::error;
-use std::fmt;
-use std::io;
-use std::result;
-
 use crate::protocol;
 use ipc_channel;
-use protobuf;
+use std::{error, fmt, io, result};
 
 use crate::{SUP_CMD, SUP_PACKAGE_IDENT};
 
@@ -27,12 +22,11 @@ use crate::{SUP_CMD, SUP_PACKAGE_IDENT};
 pub enum Error {
     AcceptConn,
     Connect(io::Error),
-    Deserialize(protobuf::ProtobufError),
     ExecWait(io::Error),
     GroupNotFound(String),
     OpenPipe(io::Error),
+    Protocol(protocol::Error),
     Send(ipc_channel::Error),
-    Serialize(protobuf::ProtobufError),
     Spawn(io::Error),
     SupBinaryVersion,
     SupBinaryNotFound,
@@ -51,14 +45,11 @@ impl fmt::Display for Error {
             Error::Connect(ref e) => {
                 format!("Unable to connect to Supervisor's comm channel, {}", e)
             }
-            Error::Deserialize(ref e) => {
-                format!("Unable to deserialize message from Supervisor, {}", e)
-            }
             Error::ExecWait(ref e) => format!("Error waiting on PID, {}", e),
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
             Error::OpenPipe(ref e) => format!("Unable to open Launcher's comm channel, {}", e),
+            Error::Protocol(ref e) => format!("{}", e),
             Error::Send(ref e) => format!("Unable to send to Launcher's comm channel, {}", e),
-            Error::Serialize(ref e) => format!("Unable to serialize message to Supervisor, {}", e),
             Error::Spawn(ref e) => format!("Unable to spawn process, {}", e),
             Error::SupBinaryVersion => "Unsupported Supervisor binary version".to_string(),
             Error::SupBinaryNotFound => {
@@ -80,12 +71,11 @@ impl error::Error for Error {
         match *self {
             Error::AcceptConn => "Unable to accept connection from Supervisor",
             Error::Connect(_) => "Unable to connect to Supervisor's pipe",
-            Error::Deserialize(_) => "Unable to deserialize message from Supervisor",
             Error::GroupNotFound(_) => "No matching GID for group found",
             Error::ExecWait(_) => "OS Error while waiting on PID",
             Error::OpenPipe(_) => "Unable to open Launcher's pipe",
+            Error::Protocol(_) => "Error with the Supervisor protocol",
             Error::Send(_) => "Unable to send to Launcher's pipe",
-            Error::Serialize(_) => "Unable to serialize message to Supervisor",
             Error::Spawn(_) => "Unable to spawn process",
             Error::SupBinaryVersion => "Unsupported Supervisor binary version",
             Error::SupBinaryNotFound => "Unable to locate Supervisor binary in package",
@@ -108,8 +98,14 @@ impl From<Error> for protocol::ErrCode {
     }
 }
 
+impl From<protocol::Error> for Error {
+    fn from(err: protocol::Error) -> Error {
+        Error::Protocol(err)
+    }
+}
+
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error {
-        Error::SupSpawn(err)
+        Error::Spawn(err)
     }
 }

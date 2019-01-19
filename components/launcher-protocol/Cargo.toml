@@ -4,14 +4,14 @@ version = "0.0.0"
 edition = "2018"
 authors = ["Jamie Winsor <reset@habitat.sh>"]
 build = "build.rs"
+workspace = "../../"
 
 [dependencies]
-protobuf = "1.5.1"
+bytes = "*"
+prost = "*"
+prost-derive = "*"
 serde = "*"
 serde_derive = "*"
 
 [build-dependencies]
-pkg-config = "*"
-
-[features]
-protocols = []
+prost-build = "*"
