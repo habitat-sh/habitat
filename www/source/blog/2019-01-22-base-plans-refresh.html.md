@@ -1,6 +1,6 @@
 ---
 title: Base Plans Refresh is Coming to Habitat Core Plans!
-date: 2019-01-16
+date: 2019-01-22
 author: Scott Macfarlane
 tags: Core Plans
 category: update
@@ -30,7 +30,13 @@ Any time one of these plans is updated (especially ones that are nearly universa
 
 ### Why are you refreshing them?
 
-In this release we are moving from GCC 7 to GCC 8. Any plan that depends on GCC 7 will be rebuilt with GCC 8. It is vital to update them - and consequently every plan that depends on them - to more recent stable versions.
+We perform periodic base plan refreshes to ensure that your applications built on Habitat are secure and performant. Many packages including GCC, OpenSSL, zlib, and glibc form the base cryptographic and security libraries that applications depend on.
+
+We also perform periodic base plan refreshes to make it easy for users of Habitat to receive the latest performance improvements, security patches, and bug fixes from the underlying software libraries that power your application. Our periodic base plan refresh means you will receive these updates automatically, and you will never worry about your application being tied to an aging Operating System version.
+
+This refresh contains OpenSSL version 1.0.2q and brings two significant improvements: the CRIME vulnerability is mitigated by default and FIPS mode is available to all users. FIPS mode is particularly interesting; although it is not enabled by default it can be activated at runtime simply by setting the environment variable `OPENSSL_FIPS=1` - this ensures that any application that is built on OpenSSL can automatically operate in a FIPS compliant manner.
+
+This base plan refresh upgrades GCC from version 7.3.0 to version 8.2.0. GGC 8 contains a number of performance improvements that affect every application built with the base plans. [https://gcc.gnu.org/gcc-8/changes.html](https://gcc.gnu.org/gcc-8/changes.html)
 
 ### What else does it affect?
 
