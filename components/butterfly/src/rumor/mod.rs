@@ -37,6 +37,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, RwLock};
 
 use bytes::BytesMut;
+use prometheus::IntCounterVec;
 use prost::Message as ProstMessage;
 use serde::ser::{SerializeMap, SerializeSeq, SerializeStruct};
 use serde::{Serialize, Serializer};
@@ -50,6 +51,15 @@ use crate::error::{Error, Result};
 use crate::member::Membership;
 pub use crate::protocol::newscast::{Rumor as ProtoRumor, RumorPayload, RumorType};
 use crate::protocol::{FromProto, Message};
+
+lazy_static! {
+    static ref IGNORED_RUMOR_COUNT: IntCounterVec = register_int_counter_vec!(
+        "hab_butterfly_ignored_rumor_total",
+        "How many rumors we ignore",
+        &["rumor"]
+    )
+    .unwrap();
+}
 
 #[derive(Debug, Clone, Serialize)]
 pub enum RumorKind {
@@ -372,6 +382,8 @@ where
         let rumors = list
             .entry(String::from(rumor.key()))
             .or_insert_with(HashMap::new);
+        let kind_ignored_count =
+            IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
         // Result reveals if there was a change so we can increment the counter if needed.
         let result = match rumors.entry(rumor.id().into()) {
             Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
@@ -382,6 +394,10 @@ where
         };
         if result {
             self.increment_update_counter();
+        } else {
+            // If we get here, it means nothing changed, which means we effectively ignored the
+            // rumor. Let's track that.
+            kind_ignored_count.inc();
         }
         result
     }
@@ -526,7 +542,7 @@ mod tests {
 
     use crate::error::Result;
     use crate::protocol::{self, newscast};
-    use crate::rumor::{Rumor, RumorType};
+    use crate::rumor::{Rumor, RumorKey, RumorType};
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
@@ -636,6 +652,16 @@ mod tests {
         fn write_to_bytes(&self) -> Result<Vec<u8>> {
             Ok(Vec::from(format!("{}-{}", self.id, self.key).as_bytes()))
         }
+    }
+
+    #[test]
+    fn rumor_keys_kind_can_be_represented_as_a_string() {
+        let r = RumorKey::new(
+            RumorType::Member,
+            String::from("my-sweet-id"),
+            String::from("my-sweet-key"),
+        );
+        assert_eq!(r.kind.to_string(), "member");
     }
 
     mod rumor_store {

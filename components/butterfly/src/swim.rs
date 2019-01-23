@@ -271,6 +271,23 @@ impl From<SwimKind> for SwimPayload {
     }
 }
 
+impl fmt::Display for SwimKind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let value = self.as_str();
+        write!(f, "{}", value)
+    }
+}
+
+impl SwimKind {
+    pub fn as_str(&self) -> &str {
+        match *self {
+            SwimKind::Ping(_) => "ping",
+            SwimKind::Ack(_) => "ack",
+            SwimKind::PingReq(_) => "pingreq",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct Swim {
     pub type_: SwimType,

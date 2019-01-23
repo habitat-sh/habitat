@@ -17,15 +17,32 @@
 //! This module handles all the inbound SWIM messages.
 
 use std::net::{SocketAddr, UdpSocket};
-use std::sync::atomic::Ordering;
 use std::thread;
 use std::time::Duration;
+
+use habitat_core::util::ToI64;
+use prometheus::{IntCounterVec, IntGaugeVec};
 
 use super::AckSender;
 use crate::member::Health;
 use crate::server::{outbound, Server};
 use crate::swim::{Ack, Ping, PingReq, Swim, SwimKind};
 use crate::trace::TraceKind;
+
+lazy_static! {
+    static ref SWIM_MESSAGES_RECEIVED: IntCounterVec = register_int_counter_vec!(
+        "hab_butterfly_swim_messages_received_total",
+        "Total number of SWIM messages received",
+        &["type", "mode"]
+    )
+    .unwrap();
+    static ref SWIM_BYTES_RECEIVED: IntGaugeVec = register_int_gauge_vec!(
+        "hab_butterfly_swim_received_bytes",
+        "SWIM message size received in bytes",
+        &["type", "mode"]
+    )
+    .unwrap();
+}
 
 /// Takes the Server and a channel to send received Acks to the outbound thread.
 pub struct Inbound {
@@ -47,11 +64,13 @@ impl Inbound {
     /// Run the thread. Listens for messages up to 1k in size, and then processes them accordingly.
     pub fn run(&self) {
         let mut recv_buffer: Vec<u8> = vec![0; 1024];
+
         loop {
-            if self.server.pause.load(Ordering::Relaxed) {
+            if self.server.paused() {
                 thread::sleep(Duration::from_millis(100));
                 continue;
             }
+
             match self.socket.recv_from(&mut recv_buffer[..]) {
                 Ok((length, addr)) => {
                     let swim_payload = match self.server.unwrap_wire(&recv_buffer[0..length]) {
@@ -60,18 +79,41 @@ impl Inbound {
                             // NOTE: In the future, we might want to block people who send us
                             // garbage all the time.
                             error!("Error unwrapping protocol message, {}", e);
+                            let label_values = &["unwrap_wire", "failure"];
+                            SWIM_BYTES_RECEIVED
+                                .with_label_values(label_values)
+                                .set(length.to_i64());
+                            SWIM_MESSAGES_RECEIVED.with_label_values(label_values).inc();
                             continue;
                         }
                     };
+
+                    let bytes_received = swim_payload.len();
                     let msg = match Swim::decode(&swim_payload) {
                         Ok(msg) => msg,
                         Err(e) => {
                             // NOTE: In the future, we might want to block people who send us
                             // garbage all the time.
                             error!("Error decoding protocol message, {}", e);
+                            let label_values = &["undecodable", "failure"];
+                            SWIM_BYTES_RECEIVED
+                                .with_label_values(label_values)
+                                .set(bytes_received.to_i64());
+                            SWIM_MESSAGES_RECEIVED.with_label_values(label_values).inc();
                             continue;
                         }
                     };
+
+                    // Setting a label_values variable here throws errors about moving borrowed
+                    // content that I couldn't solve w/o clones. Leaving this for now. I'm sure
+                    // there's a better way.
+                    SWIM_BYTES_RECEIVED
+                        .with_label_values(&[msg.kind.as_str(), "success"])
+                        .set(bytes_received.to_i64());
+                    SWIM_MESSAGES_RECEIVED
+                        .with_label_values(&[msg.kind.as_str(), "success"])
+                        .inc();
+
                     trace!("SWIM Message: {:?}", msg);
                     match msg.kind {
                         SwimKind::Ping(ping) => {

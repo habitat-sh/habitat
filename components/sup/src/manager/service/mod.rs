@@ -42,6 +42,7 @@ use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::hcore::service::{HealthCheckInterval, ServiceGroup};
 use crate::launcher_client::LauncherCli;
 pub use crate::protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
+use prometheus::{HistogramTimer, HistogramVec};
 use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use time::Timespec;
@@ -62,6 +63,15 @@ static LOGKEY: &'static str = "SR";
 
 #[cfg(not(windows))]
 pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
+
+lazy_static! {
+    static ref HOOK_DURATION: HistogramVec = register_histogram_vec!(
+        "hab_sup_hook_duration_seconds",
+        "The time it takes for a hook to run",
+        &["hook"]
+    )
+    .unwrap();
+}
 
 /// When evaluating whether a particular service group can satisfy a
 /// bind of the Service, there are several states it can be
@@ -282,6 +292,7 @@ impl Service {
 
     /// Runs the reconfigure hook if present, otherwise restarts the service.
     fn reload(&mut self, launcher: &LauncherCli) {
+        let _timer = hook_timer("reload");
         self.needs_reload = false;
         if self.process_down() || self.hooks.reload.is_none() {
             if let Some(err) = self
@@ -703,9 +714,13 @@ impl Service {
 
     /// Run initialization hook if present.
     fn initialize(&mut self) {
+        let timer = hook_timer("initialize");
+
         if self.initialized {
+            timer.observe_duration();
             return;
         }
+
         outputln!(preamble self.service_group, "Initializing");
         self.initialized = true;
         if let Some(ref hook) = self.hooks.init {
@@ -719,6 +734,8 @@ impl Service {
 
     /// Run reconfigure hook if present.
     fn reconfigure(&mut self) {
+        let _timer = hook_timer("reconfigure");
+
         self.needs_reconfiguration = false;
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(
@@ -730,6 +747,8 @@ impl Service {
     }
 
     fn post_run(&mut self) {
+        let _timer = hook_timer("post-run");
+
         if let Some(ref hook) = self.hooks.post_run {
             hook.run(
                 &self.service_group,
@@ -740,6 +759,8 @@ impl Service {
     }
 
     fn post_stop(&mut self) {
+        let _timer = hook_timer("post-stop");
+
         if let Some(ref hook) = self.hooks.post_stop {
             hook.run(
                 &self.service_group,
@@ -756,9 +777,12 @@ impl Service {
     }
 
     pub fn suitability(&self) -> Option<u64> {
+        let _timer = hook_timer("suitability");
+
         if !self.initialized {
             return None;
         }
+
         self.hooks.suitability.as_ref().and_then(|hook| {
             hook.run(
                 &self.service_group,
@@ -897,6 +921,8 @@ impl Service {
 
     /// Run file-updated hook if present.
     fn file_updated(&self) -> bool {
+        let _timer = hook_timer("file-updated");
+
         if self.initialized {
             if let Some(ref hook) = self.hooks.file_updated {
                 return hook.run(
@@ -906,6 +932,7 @@ impl Service {
                 );
             }
         }
+
         false
     }
 
@@ -947,6 +974,7 @@ impl Service {
     }
 
     fn run_health_check_hook(&mut self) {
+        let _timer = hook_timer("health-check");
         debug!("Running Health Check hook for ({})", self.spec_ident);
         let check_result = if let Some(ref hook) = self.hooks.health_check {
             hook.run(
@@ -1104,6 +1132,12 @@ impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{} [{}]", self.service_group, self.pkg.ident)
     }
+}
+
+// This returns a HistogramTimer that we can use to track how long hooks take to execute. Note that
+// times will get tracked automatically when the HistogramTimer goes out of scope.
+fn hook_timer(name: &str) -> HistogramTimer {
+    HOOK_DURATION.with_label_values(&[name]).start_timer()
 }
 
 /// This enum represents whether or not we want to render config information when we serialize this

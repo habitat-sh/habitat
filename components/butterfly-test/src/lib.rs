@@ -288,7 +288,7 @@ impl SwimNet {
             if self.check_gossip_rounds(&rounds_in) {
                 return;
             }
-            thread::sleep(Duration::from_millis(500));
+            thread::sleep(Duration::from_millis(1500));
         }
     }
 

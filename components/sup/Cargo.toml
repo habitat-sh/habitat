@@ -21,6 +21,7 @@ ansi_term = "*"
 bitflags = "*"
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
+cpu-time = "*"
 env_logger = "*"
 features = "*"
 futures = "*"
@@ -37,6 +38,7 @@ libc = "*"
 log = "*"
 notify = "*"
 num_cpus = "*"
+prometheus = "*"
 prost = "*"
 protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
@@ -58,6 +60,11 @@ valico = "*"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 caps = "*"
+
+[target.'cfg(target_family = "unix")'.dependencies]
+proc_self = "0.1.0" # pinning this explicitly because newer versions switched to a different crate that doesn't support stable rust
+jemallocator = "*"
+jemalloc-ctl = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
