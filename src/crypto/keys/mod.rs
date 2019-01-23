@@ -222,22 +222,11 @@ fn check_filename(
 
         let do_insert = match pair_type {
             Some(&PairType::Secret) => {
-                if suffix == SECRET_SIG_KEY_SUFFIX
+                suffix == SECRET_SIG_KEY_SUFFIX
                     || suffix == SECRET_BOX_KEY_SUFFIX
                     || suffix == SECRET_SYM_KEY_SUFFIX
-                {
-                    true
-                } else {
-                    false
-                }
             }
-            Some(&PairType::Public) => {
-                if suffix == PUBLIC_KEY_SUFFIX {
-                    true
-                } else {
-                    false
-                }
-            }
+            Some(&PairType::Public) => suffix == PUBLIC_KEY_SUFFIX,
             None => true,
         };
 

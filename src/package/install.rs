@@ -203,13 +203,8 @@ impl PackageInstall {
     pub fn is_runnable(&self) -> bool {
         // Currently, a runnable package can be determined by checking if a `run` hook exists in
         // package's hooks directory or directly in the package prefix.
-        if self.installed_path.join("hooks").join("run").is_file()
+        self.installed_path.join("hooks").join("run").is_file()
             || self.installed_path.join("run").is_file()
-        {
-            true
-        } else {
-            false
-        }
     }
 
     /// Determine what kind of package this is.

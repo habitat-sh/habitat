@@ -64,13 +64,7 @@ pub fn set_verbose(booly: bool) {
 
 /// True if color is enabled
 pub fn is_color() -> bool {
-    unsafe {
-        if NO_COLOR.load(Ordering::Relaxed) {
-            false
-        } else {
-            true
-        }
-    }
+    unsafe { !NO_COLOR.load(Ordering::Relaxed) }
 }
 
 /// Set to true if you want color to turn off.
