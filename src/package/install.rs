@@ -123,7 +123,7 @@ impl PackageInstall {
             if let Some(id) = latest {
                 Ok(PackageInstall {
                     installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
-                    fs_root_path: PathBuf::from(fs_root_path),
+                    fs_root_path: fs_root_path,
                     package_root_path: package_root_path,
                     ident: id.clone(),
                 })
