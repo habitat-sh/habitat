@@ -518,10 +518,9 @@ where
     U: AsRef<Path>,
 {
     for path in pkg_install.paths()? {
-        let stripped = path.strip_prefix("/").expect(&format!(
-            "Package path missing / prefix {}",
-            path.to_string_lossy()
-        ));
+        let stripped = path
+            .strip_prefix("/")
+            .unwrap_or_else(|_| panic!("Package path missing / prefix {}", path.to_string_lossy()));
         let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
         if candidate.is_file() {
             return Ok(Some(path.join(command.as_ref())));

@@ -83,6 +83,6 @@ pub mod test_support {
         );
 
         PackageInstall::load(&pkg_ident, Some(fs_root))
-            .expect(&format!("PackageInstall should load for {}", &pkg_ident))
+            .unwrap_or_else(|_| panic!("PackageInstall should load for {}", &pkg_ident))
     }
 }
