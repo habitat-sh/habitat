@@ -122,15 +122,10 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
     let current_user = current_user.unwrap();
     let current_group = current_group.unwrap();
 
-    if current_user == root_level_account() {
+    if current_user == root_level_account() || (current_user == user && current_group == group) {
         Ok(())
     } else {
-        if current_user == user && current_group == group {
-            // ok, sup is running as svc_user/svc_group already
-            Ok(())
-        } else {
-            let msg = format!("Package must run as {}:{} or root", user, &group);
-            return Err(Error::PermissionFailed(msg));
-        }
+        let msg = format!("Package must run as {}:{} or root", user, &group);
+        return Err(Error::PermissionFailed(msg));
     }
 }

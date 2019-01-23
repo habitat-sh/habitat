@@ -202,18 +202,16 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
                         self.preamble, self.logkey, self.file, self.line, self.column, self.content
                     )
                 }
+            } else if color {
+                write!(
+                    f,
+                    "{}({}): {}",
+                    preamble_color.paint(self.preamble),
+                    White.bold().paint(self.logkey),
+                    self.content
+                )
             } else {
-                if color {
-                    write!(
-                        f,
-                        "{}({}): {}",
-                        preamble_color.paint(self.preamble),
-                        White.bold().paint(self.logkey),
-                        self.content
-                    )
-                } else {
-                    write!(f, "{}({}): {}", self.preamble, self.logkey, self.content)
-                }
+                write!(f, "{}({}): {}", self.preamble, self.logkey, self.content)
             }
         }
     }
