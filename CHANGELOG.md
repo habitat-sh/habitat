@@ -13,6 +13,7 @@
 - Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
+- Instrument the supervisor with metrics [#5986](https://github.com/habitat-sh/habitat/pull/5986) ([raskchanky](https://github.com/raskchanky))
 - [blog] Add post detailing base plans refresh 2019-01-22 [#6064](https://github.com/habitat-sh/habitat/pull/6064) ([smacfarlane](https://github.com/smacfarlane))
 - Modify internal queue name [#6062](https://github.com/habitat-sh/habitat/pull/6062) ([scotthain](https://github.com/scotthain))
 - extract supervisor templating and execute an install hook when installing packages [#5866](https://github.com/habitat-sh/habitat/pull/5866) ([mwrock](https://github.com/mwrock))
