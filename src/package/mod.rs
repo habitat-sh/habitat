@@ -39,11 +39,10 @@ pub mod test_support {
     use time;
 
     pub fn fixture_path(name: &str) -> PathBuf {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("tests")
             .join("fixtures")
-            .join(name);
-        path
+            .join(name)
     }
 
     /// Creates a minimal installed package under an fs_root and return a corresponding loaded
