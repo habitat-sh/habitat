@@ -379,7 +379,7 @@ impl FromStr for HealthCheckInterval {
     type Err = ParseIntError;
     fn from_str(s: &str) -> result::Result<Self, Self::Err> {
         let raw = s.parse::<u32>()?;
-        Ok(Duration::from_secs(raw as u64).into())
+        Ok(Duration::from_secs(u64::from(raw)).into())
     }
 }
 
