@@ -15,11 +15,11 @@
 use crate::env;
 
 /// Default Builder URL environment variable
-pub const BLDR_URL_ENVVAR: &'static str = "HAB_BLDR_URL";
+pub const BLDR_URL_ENVVAR: &str = "HAB_BLDR_URL";
 /// Default Builder URL
-pub const DEFAULT_BLDR_URL: &'static str = "https://bldr.habitat.sh";
+pub const DEFAULT_BLDR_URL: &str = "https://bldr.habitat.sh";
 /// Legacy environment variable for defining a default Builder endpoint
-const LEGACY_BLDR_URL_ENVVAR: &'static str = "HAB_DEPOT_URL";
+const LEGACY_BLDR_URL_ENVVAR: &str = "HAB_DEPOT_URL";
 
 // Returns a Builder URL value if set in the environment. Does *not*
 // return any default value if the value was not found in the environment!

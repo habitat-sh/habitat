@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use std::ffi::OsStr;
-const INVALID_UTF8: &'static str = "unexpected invalid UTF-8 code point";
+const INVALID_UTF8: &str = "unexpected invalid UTF-8 code point";
 
 pub trait OsStrExt3 {
     fn from_bytes(b: &[u8]) -> &Self;

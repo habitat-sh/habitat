@@ -25,7 +25,7 @@ use crate::error::{Error, Result};
 use tempfile::Builder;
 use tempfile::TempDir;
 
-pub const INSTALL_TMP_PREFIX: &'static str = ".hab-pkg-install";
+pub const INSTALL_TMP_PREFIX: &str = ".hab-pkg-install";
 
 /// Return a directory which can be used as a temp dir during package install/
 /// uninstall

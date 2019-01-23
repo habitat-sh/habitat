@@ -256,11 +256,11 @@ pub static ANONYMOUS_BOX_FORMAT_VERSION: &'static str = "ANONYMOUS-BOX-1";
 #[cfg(not(windows))]
 static KEY_PERMISSIONS: u32 = 0o400;
 
-pub const PUBLIC_SIG_KEY_VERSION: &'static str = "SIG-PUB-1";
-pub const SECRET_SIG_KEY_VERSION: &'static str = "SIG-SEC-1";
-pub const PUBLIC_BOX_KEY_VERSION: &'static str = "BOX-PUB-1";
-pub const SECRET_BOX_KEY_VERSION: &'static str = "BOX-SEC-1";
-pub const SECRET_SYM_KEY_VERSION: &'static str = "SYM-SEC-1";
+pub const PUBLIC_SIG_KEY_VERSION: &str = "SIG-PUB-1";
+pub const SECRET_SIG_KEY_VERSION: &str = "SIG-SEC-1";
+pub const PUBLIC_BOX_KEY_VERSION: &str = "BOX-PUB-1";
+pub const SECRET_BOX_KEY_VERSION: &str = "BOX-SEC-1";
+pub const SECRET_SYM_KEY_VERSION: &str = "SYM-SEC-1";
 
 pub mod artifact;
 #[cfg(windows)]

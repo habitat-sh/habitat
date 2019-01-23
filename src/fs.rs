@@ -25,34 +25,34 @@ use crate::os::users::{self, assert_pkg_user_and_group};
 use crate::package::{Identifiable, PackageIdent, PackageInstall};
 
 /// The default root path of the Habitat filesystem
-pub const ROOT_PATH: &'static str = "hab";
+pub const ROOT_PATH: &str = "hab";
 /// The default path for any analytics related files
-pub const CACHE_ANALYTICS_PATH: &'static str = "hab/cache/analytics";
+pub const CACHE_ANALYTICS_PATH: &str = "hab/cache/analytics";
 /// The default download root path for package artifacts, used on package installation
-pub const CACHE_ARTIFACT_PATH: &'static str = "hab/cache/artifacts";
+pub const CACHE_ARTIFACT_PATH: &str = "hab/cache/artifacts";
 /// The default path where cryptographic keys are stored
-pub const CACHE_KEY_PATH: &'static str = "hab/cache/keys";
+pub const CACHE_KEY_PATH: &str = "hab/cache/keys";
 /// The default path where source artifacts are downloaded, extracted, & compiled
-pub const CACHE_SRC_PATH: &'static str = "hab/cache/src";
+pub const CACHE_SRC_PATH: &str = "hab/cache/src";
 /// The default path where SSL-related artifacts are placed
-pub const CACHE_SSL_PATH: &'static str = "hab/cache/ssl";
+pub const CACHE_SSL_PATH: &str = "hab/cache/ssl";
 /// The root path for the launcher runtime
-pub const LAUNCHER_ROOT_PATH: &'static str = "hab/launcher";
+pub const LAUNCHER_ROOT_PATH: &str = "hab/launcher";
 /// The root path containing all locally installed packages
 /// Because this value is used in template rendering, we
 /// use native directory separator
 #[cfg(not(target_os = "windows"))]
-pub const PKG_PATH: &'static str = "hab/pkgs";
+pub const PKG_PATH: &str = "hab/pkgs";
 #[cfg(target_os = "windows")]
-pub const PKG_PATH: &'static str = "hab\\pkgs";
+pub const PKG_PATH: &str = "hab\\pkgs";
 /// The environment variable pointing to the filesystem root. This exists for internal
 /// Habitat team usage and is not intended to be used by Habitat consumers.
 /// Using this variable could lead to broken Supervisor services and it should
 /// be used with extreme caution.
-pub const FS_ROOT_ENVVAR: &'static str = "FS_ROOT";
-pub const SYSTEMDRIVE_ENVVAR: &'static str = "SYSTEMDRIVE";
+pub const FS_ROOT_ENVVAR: &str = "FS_ROOT";
+pub const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 /// The file where user-defined configuration for each service is found.
-pub const USER_CONFIG_FILE: &'static str = "user.toml";
+pub const USER_CONFIG_FILE: &str = "user.toml";
 /// Permissions that service-owned service directories should
 /// have. The user and group will be `SVC_USER` / `SVC_GROUP`.
 #[cfg(not(windows))]

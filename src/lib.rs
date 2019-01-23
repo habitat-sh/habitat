@@ -60,7 +60,7 @@ use std::path::PathBuf;
 pub use crate::os::filesystem;
 pub use crate::os::users;
 
-pub const AUTH_TOKEN_ENVVAR: &'static str = "HAB_AUTH_TOKEN";
+pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
 lazy_static::lazy_static! {
     pub static ref PROGRAM_NAME: String = {

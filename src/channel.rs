@@ -14,12 +14,12 @@
 
 use crate::env;
 
-pub const UNSTABLE_CHANNEL: &'static str = "unstable";
-pub const STABLE_CHANNEL: &'static str = "stable";
+pub const UNSTABLE_CHANNEL: &str = "unstable";
+pub const STABLE_CHANNEL: &str = "stable";
 
 /// Default Builder Channel environment variable
-pub const BLDR_CHANNEL_ENVVAR: &'static str = "HAB_BLDR_CHANNEL";
-const LEGACY_CHANNEL_ENVVAR: &'static str = "HAB_DEPOT_CHANNEL";
+pub const BLDR_CHANNEL_ENVVAR: &str = "HAB_BLDR_CHANNEL";
+const LEGACY_CHANNEL_ENVVAR: &str = "HAB_DEPOT_CHANNEL";
 
 /// Helper function for Builder dynamic channels
 pub fn bldr_channel_name(id: u64) -> String {

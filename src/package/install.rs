@@ -35,8 +35,8 @@ use super::PackageTarget;
 #[cfg(test)]
 use std;
 
-pub const DEFAULT_CFG_FILE: &'static str = "default.toml";
-const PATH_KEY: &'static str = "PATH";
+pub const DEFAULT_CFG_FILE: &str = "default.toml";
+const PATH_KEY: &str = "PATH";
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PackageInstall {
