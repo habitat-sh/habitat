@@ -527,6 +527,6 @@ mod test {
         let (key_name, _rev) = parse_name_with_rev(&hart_header.key_name).unwrap();
         assert_eq!("unicorn", key_name);
         assert_eq!(SIG_HASH_TYPE, hart_header.hash_type);
-        assert!(hart_header.signature_raw.len() > 0);
+        assert!(!hart_header.signature_raw.is_empty());
     }
 }

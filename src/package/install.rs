@@ -625,7 +625,7 @@ impl PackageInstall {
 
         match self.read_metafile(file) {
             Ok(body) => {
-                if body.len() > 0 {
+                if !body.is_empty() {
                     for id in body.lines() {
                         let package = PackageIdent::from_str(id)?;
                         if !package.fully_qualified() && must_be_fully_qualified {
