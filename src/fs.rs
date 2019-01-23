@@ -339,6 +339,48 @@ impl<'a> SvcDir<'a> {
         Ok(())
     }
 
+    /// Remove all templated content (hooks and configuration) from a
+    /// service directory.
+    ///
+    /// Useful for removing rendered files that may be from older
+    /// versions of a service that have been removed from the current
+    /// version.
+    pub fn purge_templated_content(&self) -> Result<()> {
+        for dir_path in &[svc_config_path(&self.service_name),
+                          svc_hooks_path(&self.service_name)]
+        {
+            debug!("Purging any old templated content from {}",
+                   dir_path.display());
+            Self::purge_directory_content(dir_path)?;
+        }
+        Ok(())
+    }
+
+    /// Utility function that removes all files in `root`.
+    fn purge_directory_content<P>(root: P) -> Result<()>
+        where P: AsRef<Path>
+    {
+        for entry in fs::read_dir(root.as_ref())? {
+            let entry = entry?;
+            if let Ok(file_type) = entry.file_type() {
+                if file_type.is_file() {
+                    debug!("Purging file {:?}", entry.path().display());
+                    fs::remove_file(entry.path())?;
+                } else if file_type.is_dir() {
+                    debug!("Purging directory {:?}", entry.path().display());
+                    fs::remove_dir_all(entry.path())?;
+                } else if file_type.is_symlink() {
+                    debug!("Purging symlink {:?}", entry.path().display());
+                    fs::remove_file(entry.path())?;
+                }
+            } else {
+                warn!("Not purging {:?}; could not determine file type",
+                      entry.path().display());
+            }
+        }
+        Ok(())
+    }
+
     fn create_svc_root(&self) -> Result<()> { Self::create_dir_all(svc_path(&self.service_name)) }
 
     /// Creates all to sub-directories in a service directory that are
@@ -721,6 +763,54 @@ impl AtomicWriter {
 pub fn atomic_write(dest_path: &Path, data: impl AsRef<[u8]>) -> io::Result<()> {
     let w = AtomicWriter::new(dest_path)?;
     w.with_writer(|f| f.write_all(data.as_ref()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod svc_dir {
+        use super::*;
+        use std::fs::{self,
+                      File};
+        use tempfile::tempdir;
+
+        #[test]
+        fn purge_directory_removes_contents() {
+            let root = tempdir().expect("couldn't create tempdir");
+
+            let file_1 = root.path().join("file_1");
+            File::create(&file_1).expect("Couldn't create file");
+
+            let file_2 = root.path().join("file_2");
+            File::create(&file_2).expect("Couldn't create file");
+
+            let sub_dir = root.path().join("test_dir");
+            fs::create_dir(&sub_dir).expect("Couldn't create directory");
+
+            let sub_file_1 = sub_dir.join("sub_file_1");
+            File::create(&sub_file_1).expect("Couldn't create file");
+
+            let sub_file_2 = sub_dir.join("sub_file_2");
+            File::create(&sub_file_2).expect("Couldn't create file");
+
+            assert!(root.as_ref().exists());
+            assert!(file_1.exists());
+            assert!(file_2.exists());
+            assert!(sub_dir.exists());
+            assert!(sub_file_1.exists());
+            assert!(sub_file_2.exists());
+
+            SvcDir::purge_directory_content(&root).expect("Couldn't purge!");
+
+            assert!(root.as_ref().exists());
+            assert!(!file_1.exists());
+            assert!(!file_2.exists());
+            assert!(!sub_dir.exists());
+            assert!(!sub_file_1.exists());
+            assert!(!sub_file_2.exists());
+        }
+    }
 }
 
 #[cfg(test)]
