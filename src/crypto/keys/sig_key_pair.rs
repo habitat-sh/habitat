@@ -431,7 +431,7 @@ mod test {
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 1);
 
-        let _ = match wait_until_ok(|| {
+        match wait_until_ok(|| {
             let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
             p.to_pair_files(cache.path())?;
             Ok(())

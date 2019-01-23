@@ -337,7 +337,7 @@ impl SymKey {
         cache_key_path: &P,
     ) -> Result<(Self, PairType)> {
         let mut lines = content.lines();
-        let _ = match lines.next() {
+        match lines.next() {
             Some(val) => {
                 if val != SECRET_SYM_KEY_VERSION {
                     return Err(Error::CryptoError(format!(
@@ -499,7 +499,7 @@ mod test {
         let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
-        let _ = match wait_until_ok(|| {
+        match wait_until_ok(|| {
             let rpair = SymKey::generate_pair_for_ring("beyonce")?;
             rpair.to_pair_files(cache.path())?;
             Ok(())

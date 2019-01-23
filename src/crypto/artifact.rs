@@ -38,7 +38,7 @@ where
     let signature = sign::sign(&hash.as_bytes(), pair.secret()?);
     let output_file = File::create(dst)?;
     let mut writer = BufWriter::new(&output_file);
-    let () = write!(
+    write!(
         writer,
         "{}\n{}\n{}\n{}\n\n",
         HART_FORMAT_VERSION,
@@ -181,7 +181,7 @@ where
         }
         SigKeyPair::get_pair_for(buffer.trim(), cache_key_path)?
     };
-    let _ = {
+    {
         let mut buffer = String::new();
         match reader.read_line(&mut buffer) {
             Ok(0) => {
@@ -211,7 +211,7 @@ where
             Err(e) => return Err(Error::from(e)),
         }
     };
-    let _ = {
+    {
         let mut buffer = String::new();
         if reader.read_line(&mut buffer)? == 0 {
             return Err(Error::CryptoError(
