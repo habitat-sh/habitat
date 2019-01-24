@@ -488,11 +488,8 @@ where
                 let candidate = PathBuf::from(&path).join(command.as_ref());
                 if candidate.is_file() {
                     return Some(candidate);
-                } else {
-                    match find_command_with_pathext(&candidate) {
-                        Some(result) => return Some(result),
-                        None => {}
-                    }
+                } else if let Some(result) = find_command_with_pathext(&candidate) {
+                    return Some(result);
                 }
             }
             None
@@ -524,11 +521,8 @@ where
         let candidate = fs_root_path.as_ref().join(stripped).join(command.as_ref());
         if candidate.is_file() {
             return Ok(Some(path.join(command.as_ref())));
-        } else {
-            match find_command_with_pathext(&candidate) {
-                Some(result) => return Ok(Some(result)),
-                None => {}
-            }
+        } else if let Some(result) = find_command_with_pathext(&candidate) {
+            return Ok(Some(result));
         }
     }
     Ok(None)
@@ -582,19 +576,16 @@ pub fn resolve_cmd_in_pkg(program: &str, ident_str: &str) -> PathBuf {
 // We should only search with PATHEXT if the file does not already have an extension.
 fn find_command_with_pathext(candidate: &PathBuf) -> Option<PathBuf> {
     if candidate.extension().is_none() {
-        match henv::var_os("PATHEXT") {
-            Some(pathexts) => {
-                for pathext in env::split_paths(&pathexts) {
-                    let mut source_candidate = candidate.to_path_buf();
-                    let extension = pathext.to_str().unwrap().trim_matches('.');
-                    source_candidate.set_extension(extension);
-                    let current_candidate = source_candidate.to_path_buf();
-                    if current_candidate.is_file() {
-                        return Some(current_candidate);
-                    }
+        if let Some(pathexts) = henv::var_os("PATHEXT") {
+            for pathext in env::split_paths(&pathexts) {
+                let mut source_candidate = candidate.to_path_buf();
+                let extension = pathext.to_str().unwrap().trim_matches('.');
+                source_candidate.set_extension(extension);
+                let current_candidate = source_candidate.to_path_buf();
+                if current_candidate.is_file() {
+                    return Some(current_candidate);
                 }
             }
-            None => {}
         };
     }
     None

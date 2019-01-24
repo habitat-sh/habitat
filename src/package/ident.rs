@@ -704,9 +704,8 @@ mod tests {
 
     #[test]
     fn version_sort_error() {
-        match version_sort("1.0.0-alpha1", "undefined") {
-            Ok(compare) => panic!("unexpected {:?}", compare),
-            Err(_) => (),
+        if let Ok(compare) = version_sort("1.0.0-alpha1", "undefined") {
+            panic!("unexpected {:?}", compare);
         }
     }
 
