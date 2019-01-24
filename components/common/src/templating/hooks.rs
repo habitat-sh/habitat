@@ -756,11 +756,7 @@ echo "The message is Hola Mundo"
         assert_eq!(hook.compile(&service_group, &ctx).unwrap(), true);
 
         let post_change_content = file_content(&hook);
-        let expected = r#"#!/bin/bash
-
-echo "The message is Hello"
-"#;
-        assert_eq!(post_change_content, expected);
+        assert!(post_change_content.contains("The message is Hello"));
 
         // Compiling again should result in no changes
         assert_eq!(hook.compile(&service_group, &ctx).unwrap(), false);
