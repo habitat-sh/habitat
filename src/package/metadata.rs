@@ -275,7 +275,7 @@ impl FromStr for PackageType {
     type Err = Error;
 
     fn from_str(value: &str) -> Result<Self> {
-        match value.as_ref() {
+        match value {
             "standalone" => Ok(PackageType::Standalone),
             "composite" => Ok(PackageType::Composite),
             _ => Err(Error::InvalidPackageType(value.to_string())),
