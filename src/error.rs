@@ -255,8 +255,8 @@ impl fmt::Display for Error {
                 format!("Failure calling CreateProcessAsUserW: {:?}", e)
             }
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
-            Error::CryptProtectDataFailed(ref e) => format!("{}", e),
-            Error::CryptUnprotectDataFailed(ref e) => format!("{}", e),
+            Error::CryptProtectDataFailed(ref e) => e.to_string(),
+            Error::CryptUnprotectDataFailed(ref e) => e.to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FullyQualifiedPackageIdentRequired(ref ident) => format!(
                 "Fully-qualified package identifier was expected, but found: {:?}",
@@ -294,21 +294,24 @@ impl fmt::Display for Error {
             }
             Error::IO(ref err) => format!("{}", err),
             Error::JoinPathsError(ref err) => format!("{}", err),
-            Error::LogonTypeNotGranted => format!(
+            Error::LogonTypeNotGranted => {
                 "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' \
                  account right to be spawned as a service by the Supervisor"
-            ),
+                    .to_string()
+            }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
             Error::MetaFileBadBind => {
-                format!("Bad value parsed from BIND, BIND_OPTIONAL, or BIND_MAP")
+                "Bad value parsed from BIND, BIND_OPTIONAL, or BIND_MAP".to_string()
             }
             Error::MetaFileMalformed(ref e) => {
                 format!("MetaFile: {:?}, didn't contain a valid UTF-8 string", e)
             }
             Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
-            Error::NoOutboundAddr => format!("Failed to discover this hosts outbound IP address"),
-            Error::OpenDesktopFailed(ref e) => format!("{}", e),
+            Error::NoOutboundAddr => {
+                "Failed to discover this hosts outbound IP address".to_string()
+            }
+            Error::OpenDesktopFailed(ref e) => e.to_string(),
             Error::PackageNotFound(ref pkg) => {
                 if pkg.fully_qualified() {
                     format!("Cannot find package: {}", pkg)
@@ -318,25 +321,26 @@ impl fmt::Display for Error {
             }
             Error::PackageUnpackFailed(ref e) => format!("Package could not be unpacked. {}", e),
             Error::ParseIntError(ref e) => format!("{}", e),
-            Error::PlanMalformed => format!("Failed to read or parse contents of Plan file"),
-            Error::PermissionFailed(ref e) => format!("{}", e),
-            Error::PrivilegeNotHeld => format!(
+            Error::PlanMalformed => "Failed to read or parse contents of Plan file".to_string(),
+            Error::PermissionFailed(ref e) => e.to_string(),
+            Error::PrivilegeNotHeld => {
                 "Current user must possess the 'SE_INCREASE_QUOTA_NAME' and \
                  'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new process as a different \
                  user"
-            ),
+                    .to_string()
+            }
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
-            Error::TargetMatchError(ref e) => format!("{}", e),
-            Error::UnameFailed(ref e) => format!("{}", e),
-            Error::WaitpidFailed(ref e) => format!("{}", e),
+            Error::TargetMatchError(ref e) => e.to_string(),
+            Error::UnameFailed(ref e) => e.to_string(),
+            Error::WaitpidFailed(ref e) => e.to_string(),
             Error::SignalFailed(ref r, ref e) => {
                 format!("Failed to send a signal to the child process: {}, {}", r, e)
             }
-            Error::GetExitCodeProcessFailed(ref e) => format!("{}", e),
-            Error::CreateToolhelp32SnapshotFailed(ref e) => format!("{}", e),
-            Error::WaitForSingleObjectFailed(ref e) => format!("{}", e),
-            Error::TerminateProcessFailed(ref e) => format!("{}", e),
+            Error::GetExitCodeProcessFailed(ref e) => e.to_string(),
+            Error::CreateToolhelp32SnapshotFailed(ref e) => e.to_string(),
+            Error::WaitForSingleObjectFailed(ref e) => e.to_string(),
+            Error::TerminateProcessFailed(ref e) => e.to_string(),
             Error::Utf8Error(ref e) => format!("{}", e),
             Error::WrongActivePackageTarget(ref active, ref wrong) => format!(
                 "Package target '{}' is not supported as this system has a different \

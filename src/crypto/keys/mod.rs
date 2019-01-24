@@ -304,7 +304,9 @@ where
             Err(e) => {
                 // filename is still an OsString, so print it as debug output
                 debug!("Invalid filename {:?}", e);
-                return Err(Error::CryptoError(format!("Invalid filename in key path")));
+                return Err(Error::CryptoError(
+                    "Invalid filename in key path".to_string(),
+                ));
             }
         };
         debug!("checking file: {}", &filename);
@@ -494,7 +496,7 @@ fn read_key_bytes_from_str(key: &str) -> Result<Vec<u8>> {
                 .map_err(|e| Error::CryptoError(format!("Can't read raw key {}", e)))?;
             Ok(v)
         }
-        None => Err(Error::CryptoError(format!("Malformed key contents"))),
+        None => Err(Error::CryptoError("Malformed key contents".to_string())),
     }
 }
 

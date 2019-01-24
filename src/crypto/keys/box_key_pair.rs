@@ -390,9 +390,9 @@ impl BoxKeyPair {
         sk: &BoxSecretKey,
     ) -> Result<Vec<u8>> {
         box_::open(ciphertext, nonce, pk, sk).map_err(|_| {
-            Error::CryptoError(format!(
-                "Secret key, public key, and nonce could not decrypt ciphertext"
-            ))
+            Error::CryptoError(
+                "Secret key, public key, and nonce could not decrypt ciphertext".to_string(),
+            )
         })
     }
 
@@ -402,9 +402,7 @@ impl BoxKeyPair {
         sk: &BoxSecretKey,
     ) -> Result<Vec<u8>> {
         sealedbox::open(ciphertext, &pk, &sk).map_err(|_| {
-            Error::CryptoError(format!(
-                "Secret key and public key could not decrypt ciphertext"
-            ))
+            Error::CryptoError("Secret key and public key could not decrypt ciphertext".to_string())
         })
     }
 
@@ -416,9 +414,9 @@ impl BoxKeyPair {
         match BoxPublicKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!(
-                    "Can't convert key bytes to BoxPublicKey"
-                )))
+                return Err(Error::CryptoError(
+                    "Can't convert key bytes to BoxPublicKey".to_string(),
+                ))
             }
         }
     }
@@ -453,9 +451,9 @@ impl BoxKeyPair {
         match BoxSecretKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!(
-                    "Can't convert key bytes to BoxSecretKey"
-                )))
+                return Err(Error::CryptoError(
+                    "Can't convert key bytes to BoxSecretKey".to_string(),
+                ))
             }
         }
     }
