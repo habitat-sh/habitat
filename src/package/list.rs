@@ -71,7 +71,7 @@ pub fn all_packages(path: &Path) -> Result<Vec<PackageIdent>> {
 ///
 ///    /base/ORIGIN/NAME/VERSION/RELEASE/
 ///
-pub fn package_list_for_origin(base_pkg_path: &Path, origin: &String) -> Result<Vec<PackageIdent>> {
+pub fn package_list_for_origin(base_pkg_path: &Path, origin: &str) -> Result<Vec<PackageIdent>> {
     let mut package_list: Vec<PackageIdent> = vec![];
     let mut package_path = PathBuf::from(base_pkg_path);
     package_path.push(&origin);
@@ -164,7 +164,7 @@ fn walk_origins(path: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
 /// Helper function for walk_origins. Walks the direcotry at the given
 /// Path for name directories and recurses into them to find version
 /// and release directories.
-fn walk_names(origin: &String, dir: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
+fn walk_names(origin: &str, dir: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
     for entry in fs::read_dir(dir)? {
         let name_dir = entry?;
         let name_path = name_dir.path();
@@ -179,8 +179,8 @@ fn walk_names(origin: &String, dir: &Path, packages: &mut Vec<PackageIdent>) -> 
 /// Helper function for walk_names. Walks the directory at the given
 /// Path and recurses into them to find release directories.
 fn walk_versions(
-    origin: &String,
-    name: &String,
+    origin: &str,
+    name: &str,
     dir: &Path,
     packages: &mut Vec<PackageIdent>,
 ) -> Result<()> {
@@ -201,9 +201,9 @@ fn walk_versions(
 /// the given packages vector, assuming the given origin, name, and
 /// version.
 fn walk_releases(
-    origin: &String,
-    name: &String,
-    version: &String,
+    origin: &str,
+    name: &str,
+    version: &str,
     dir: &Path,
     packages: &mut Vec<PackageIdent>,
 ) -> Result<()> {
@@ -231,9 +231,9 @@ fn walk_releases(
 ///    - An error occurs reading the package target
 ///    - The package target doesn't match the given active target
 fn package_ident_from_dir(
-    origin: &String,
-    name: &String,
-    version: &String,
+    origin: &str,
+    name: &str,
+    version: &str,
     active_target: &PackageTarget,
     dir: &Path,
 ) -> Option<PackageIdent> {
@@ -286,9 +286,9 @@ fn package_ident_from_dir(
     // otherwise skip the candidate
     if active_target == &install_target {
         return Some(PackageIdent::new(
-            origin.clone(),
-            name.clone(),
-            Some(version.clone()),
+            origin.to_string(),
+            name.to_string(),
+            Some(version.to_string()),
             Some(release.to_owned()),
         ));
     } else {
