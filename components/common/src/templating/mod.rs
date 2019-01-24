@@ -118,6 +118,10 @@ fn never_escape(data: &str) -> String {
 
 #[cfg(test)]
 mod test {
+    use super::*;
+    use crate::hcore::fs::{pkg_root_path, FS_ROOT_PATH};
+    use crate::hcore::package::PackageIdent;
+    use crate::templating::test_helpers::*;
     use serde_json;
     use std::collections::BTreeMap;
     use std::env;
@@ -126,12 +130,6 @@ mod test {
     use std::path::PathBuf;
     use tempfile::TempDir;
     use toml;
-
-    use crate::hcore::fs::FS_ROOT_PATH;
-    use crate::hcore::package::PackageIdent;
-
-    use super::*;
-    use crate::templating::test_helpers::*;
 
     pub fn root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
@@ -309,7 +307,7 @@ test: something"#
         let rendered = renderer.render("t", &data).unwrap();
         assert_eq!(
             PathBuf::from(rendered),
-            (&*FS_ROOT_PATH).join("/hab/pkgs/core/acl/2.2.52/20161208223311",)
+            pkg_root_path(Some(&*FS_ROOT_PATH)).join("core/acl/2.2.52/20161208223311",)
         );
     }
 

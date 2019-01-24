@@ -1,5 +1,6 @@
 UNAME_S := $(shell uname -s)
 HAS_DOCKER := $(shell command -v docker 2> /dev/null)
+TESTING_FS_ROOT := $(shell mktemp -d /tmp/testing-fs-root-XXXXXX)
 ifneq (${IN_DOCKER},)
 	IN_DOCKER := ${IN_DOCKER}
 else ifeq ($(UNAME_S),Darwin)
@@ -186,7 +187,7 @@ $(foreach component,$(ALL),$(eval $(call BUILD,$(component))))
 
 define UNIT
 unit-$1: image ## executes the $1 component's unit test suite
-	$(run) sh -c 'cd components/$1 && cargo test $(CARGO_FLAGS)'
+	$(run) sh -c 'cd components/$1 && TESTING_FS_ROOT=$(TESTING_FS_ROOT) cargo test $(CARGO_FLAGS)'
 .PHONY: unit-$1
 endef
 $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))

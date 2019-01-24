@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use base64;
 use clap;
 use habitat_common as common;
 use habitat_core as hcore;
 use habitat_pkg_export_docker as export_docker;
-use handlebars;
 
 #[macro_use]
 extern crate serde_json;
