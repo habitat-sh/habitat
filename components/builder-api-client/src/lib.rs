@@ -329,21 +329,22 @@ impl Client {
     pub fn schedule_job(
         &self,
         ident: &PackageIdent,
+        target: &PackageTarget,
         package_only: bool,
         token: &str,
     ) -> Result<(String)> {
-        // TODO (SA): This API needs to be extended to support a target param.
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
-        let result = if package_only {
-            let custom = |url: &mut Url| {
-                url.query_pairs_mut().append_pair("package_only", "true");
-            };
-            self.add_authz(self.0.post_with_custom_url(&path, custom), token)
-                .send()
-        } else {
-            self.add_authz(self.0.post(&path), token).send()
+
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut()
+                .append_pair("package_only", &package_only.to_string())
+                .append_pair("target", &target.to_string());
         };
-        match result {
+
+        match self
+            .add_authz(self.0.post_with_custom_url(&path, custom), token)
+            .send()
+        {
             Ok(response) => {
                 if response.status == StatusCode::Created || response.status == StatusCode::Ok {
                     let sr: SchedulerResponse = decoded_response(response)?;

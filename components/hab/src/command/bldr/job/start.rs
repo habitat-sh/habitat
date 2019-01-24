@@ -14,7 +14,7 @@
 
 use crate::api_client::Client;
 use crate::common::ui::{Status, UIReader, UIWriter, UI};
-use crate::hcore::package::PackageIdent;
+use crate::hcore::package::{PackageIdent, PackageTarget};
 
 use crate::error::{Error, Result};
 use crate::{PRODUCT, VERSION};
@@ -23,6 +23,7 @@ pub fn start(
     ui: &mut UI,
     bldr_url: &str,
     ident: &PackageIdent,
+    target: &PackageTarget,
     token: &str,
     group: bool,
 ) -> Result<()> {
@@ -47,10 +48,13 @@ pub fn start(
         }
     }
 
-    ui.status(Status::Creating, format!("build job for {}", ident))?;
+    ui.status(
+        Status::Creating,
+        format!("build job for {} ({})", ident, target),
+    )?;
 
     let id = api_client
-        .schedule_job(ident, !group, token)
+        .schedule_job(ident, target, !group, token)
         .map_err(Error::APIClient)?;
 
     ui.status(Status::Created, format!("build job. The id is {}", id))?;
