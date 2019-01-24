@@ -244,7 +244,7 @@ impl PackageInstall {
 
         let joined = env::join_paths(paths)?
             .into_string()
-            .map_err(|s| Error::InvalidPathString(s))?;
+            .map_err(Error::InvalidPathString)?;
         // Only insert a PATH entry if the resulting path string is non-empty
         if !joined.is_empty() {
             env.insert(PATH_KEY.to_string(), joined);

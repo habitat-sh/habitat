@@ -64,7 +64,7 @@ pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
 lazy_static::lazy_static! {
     pub static ref PROGRAM_NAME: String = {
-        let arg0 = std::env::args().next().map(|p| PathBuf::from(p));
+        let arg0 = std::env::args().next().map(PathBuf::from);
         arg0.as_ref()
             .and_then(|p| p.file_stem())
             .and_then(|p| p.to_str())
