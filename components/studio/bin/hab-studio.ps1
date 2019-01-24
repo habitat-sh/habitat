@@ -320,8 +320,8 @@ function Enter-Studio {
         # Container studios run habitat as a service which logs to a 
         # configured file location
         $svcPath = Join-Path $env:SystemDrive "hab\svc\windows-service"
-        [xml]$configXml = Get-Content (Join-Path $svcPath HabService.exe.config)
-        $logPath = Join-Path $svcPath $configXml.configuration.log4net.appender.file.value
+        [xml]$configXml = Get-Content (Join-Path $svcPath log4net.xml)
+        $logPath = (Resolve-Path $configXml.log4net.appender.file.value).Path
 
         Get-Content $logPath -Tail 100 -Wait
       }
