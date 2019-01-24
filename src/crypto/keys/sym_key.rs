@@ -71,28 +71,24 @@ impl SymKey {
         cache_key_path: &P,
     ) -> Result<Self> {
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-        let pk = match Self::get_public_key(name_with_rev, cache_key_path.as_ref()) {
-            Ok(k) => Some(k),
-            Err(e) => {
-                // Not an error, just continue
+        let pk = Self::get_public_key(name_with_rev, cache_key_path.as_ref())
+            .map_err(|e| {
                 debug!(
                     "Can't find public key for name_with_rev {}: {}",
                     name_with_rev, e
                 );
-                None
-            }
-        };
-        let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
-            Ok(k) => Some(k),
-            Err(e) => {
-                // Not an error, just continue
+                e
+            })
+            .ok();
+        let sk = Self::get_secret_key(name_with_rev, cache_key_path.as_ref())
+            .map_err(|e| {
                 debug!(
                     "Can't find secret key for name_with_rev {}: {}",
                     name_with_rev, e
                 );
-                None
-            }
-        };
+                e
+            })
+            .ok();
         if pk == None && sk == None {
             let msg = format!(
                 "No public or secret keys found for name_with_rev {}",
