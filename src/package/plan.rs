@@ -38,7 +38,7 @@ impl Plan {
                 // or a plan file syntax that's in a different language that we do
                 // have a parser for (LUA!), but both of those things are beyond the
                 // scope of this task.
-                let parts: Vec<&str> = line.splitn(2, "=").map(|x| x.trim()).collect();
+                let parts: Vec<&str> = line.splitn(2, '=').map(|x| x.trim()).collect();
 
                 if parts.len() != 2 {
                     continue;

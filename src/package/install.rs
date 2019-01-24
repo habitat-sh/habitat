@@ -301,13 +301,13 @@ impl PackageInstall {
             Ok(body) => {
                 let mut bind_map = HashMap::new();
                 for line in body.lines() {
-                    let mut parts = line.split("=");
+                    let mut parts = line.split('=');
                     let package = match parts.next() {
                         Some(ident) => ident.parse()?,
                         None => return Err(Error::MetaFileBadBind),
                     };
                     let binds: Result<Vec<BindMapping>> = match parts.next() {
-                        Some(binds) => binds.split(" ").map(|b| b.parse()).collect(),
+                        Some(binds) => binds.split(' ').map(|b| b.parse()).collect(),
                         None => Err(Error::MetaFileBadBind),
                     };
                     bind_map.insert(package, binds?);
@@ -542,7 +542,7 @@ impl PackageInstall {
     fn parse_runtime_environment_metafile(body: &str) -> Result<HashMap<String, String>> {
         let mut env = HashMap::new();
         for line in body.lines() {
-            let parts: Vec<&str> = line.splitn(2, "=").collect();
+            let parts: Vec<&str> = line.splitn(2, '=').collect();
             if parts.len() != 2 {
                 return Err(Error::MetaFileMalformed(MetaFile::RuntimeEnvironment));
             }

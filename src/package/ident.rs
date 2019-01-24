@@ -237,7 +237,7 @@ impl FromStr for PackageIdent {
     type Err = Error;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
-        let items: Vec<&str> = value.split("/").collect();
+        let items: Vec<&str> = value.split('/').collect();
         let (origin, name, ver, rel) = match items.len() {
             2 => (items[0], items[1], None, None),
             3 => (items[0], items[1], Some(items[2]), None),
