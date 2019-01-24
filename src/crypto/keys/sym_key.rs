@@ -341,7 +341,6 @@ impl SymKey {
                         val
                     )));
                 }
-                ()
             }
             None => {
                 let msg = format!(
