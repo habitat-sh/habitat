@@ -95,7 +95,7 @@ impl PackageIdent {
         self.archive_name_impl(PackageTarget::active_target())
     }
 
-    pub fn archive_name_with_target(&self, ref target: &PackageTarget) -> Result<String> {
+    pub fn archive_name_with_target(&self, target: &PackageTarget) -> Result<String> {
         self.archive_name_impl(target)
     }
 
@@ -162,7 +162,7 @@ impl PackageIdent {
         }
     }
 
-    fn archive_name_impl(&self, ref target: &PackageTarget) -> Result<String> {
+    fn archive_name_impl(&self, target: &PackageTarget) -> Result<String> {
         if self.fully_qualified() {
             Ok(format!(
                 "{}-{}-{}-{}-{}.hart",
