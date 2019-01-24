@@ -706,10 +706,10 @@ mod test {
         user.to_pair_files(cache.path()).unwrap();
 
         let ciphertext = user
-            .encrypt("I wish to buy more rockets".as_bytes(), Some(&service))
+            .encrypt(b"I wish to buy more rockets", Some(&service))
             .unwrap();
         let message = BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
-        assert_eq!(message, "I wish to buy more rockets".as_bytes());
+        assert_eq!(message, b"I wish to buy more rockets");
     }
 
     #[test]
@@ -720,11 +720,9 @@ mod test {
         let user = BoxKeyPair::generate_pair_for_user("wecoyote").unwrap();
         user.to_pair_files(cache.path()).unwrap();
 
-        let ciphertext = service
-            .encrypt("Out of rockets".as_bytes(), Some(&user))
-            .unwrap();
+        let ciphertext = service.encrypt(b"Out of rockets", Some(&user)).unwrap();
         let message = BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
-        assert_eq!(message, "Out of rockets".as_bytes());
+        assert_eq!(message, b"Out of rockets");
     }
 
     #[test]
@@ -733,9 +731,9 @@ mod test {
         let sender = BoxKeyPair::generate_pair_for_user("wecoyote").unwrap();
         sender.to_pair_files(cache.path()).unwrap();
 
-        let ciphertext = sender.encrypt("Buy more rockets".as_bytes(), None).unwrap();
+        let ciphertext = sender.encrypt(b"Buy more rockets", None).unwrap();
         let message = BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
-        assert_eq!(message, "Buy more rockets".as_bytes());
+        assert_eq!(message, b"Buy more rockets");
     }
 
     #[test]
@@ -752,7 +750,7 @@ mod test {
         // Now reload the sender's pair which will be missing the secret key
         let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
 
-        let ciphertext = sender.encrypt("Nothing to see here".as_bytes(), None);
+        let ciphertext = sender.encrypt(b"Nothing to see here", None);
         assert!(ciphertext.is_ok());
     }
 
@@ -812,16 +810,14 @@ mod test {
             let sender = BoxKeyPair::get_latest_pair_for("wecoyote", sender_cache.path()).unwrap();
             let receiver =
                 BoxKeyPair::get_latest_pair_for("tnt.default@acme", sender_cache.path()).unwrap();
-            sender
-                .encrypt("Falling hurts".as_bytes(), Some(&receiver))
-                .unwrap()
+            sender.encrypt(b"Falling hurts", Some(&receiver)).unwrap()
         };
 
         // Decrypt unpacks the ciphertext payload to read nonce , determines which secret key to
         // load for the receiver and which public key to load for the sender. We're using the
         // receiver's cache for the decrypt.
         let message = BoxKeyPair::decrypt_with_path(&ciphertext, receiver_cache.path()).unwrap();
-        assert_eq!(message, "Falling hurts".as_bytes());
+        assert_eq!(message, b"Falling hurts");
     }
 
     #[test]
@@ -842,7 +838,7 @@ mod test {
         let sender = BoxKeyPair::get_latest_pair_for("wecoyote", cache.path()).unwrap();
 
         sender
-            .encrypt("not going to happen".as_bytes(), Some(&receiver))
+            .encrypt(b"not going to happen", Some(&receiver))
             .unwrap();
     }
 
@@ -864,7 +860,7 @@ mod test {
         let receiver = BoxKeyPair::get_latest_pair_for("tnt.default@acme", cache.path()).unwrap();
 
         sender
-            .encrypt("not going to happen".as_bytes(), Some(&receiver))
+            .encrypt(b"not going to happen", Some(&receiver))
             .unwrap();
     }
 
@@ -883,9 +879,7 @@ mod test {
         )
         .unwrap();
 
-        let ciphertext = sender
-            .encrypt("problems ahead".as_bytes(), Some(&receiver))
-            .unwrap();
+        let ciphertext = sender.encrypt(b"problems ahead", Some(&receiver)).unwrap();
         BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
     }
 
@@ -904,9 +898,7 @@ mod test {
         )
         .unwrap();
 
-        let ciphertext = sender
-            .encrypt("problems ahead".as_bytes(), Some(&receiver))
-            .unwrap();
+        let ciphertext = sender.encrypt(b"problems ahead", Some(&receiver)).unwrap();
         BoxKeyPair::decrypt_with_path(&ciphertext, cache.path()).unwrap();
     }
 
@@ -914,14 +906,14 @@ mod test {
     #[should_panic]
     fn decrypt_empty_sender_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        BoxKeyPair::decrypt_with_path("BOX-1\n\nuhoh".as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(b"BOX-1\n\nuhoh", cache.path()).unwrap();
     }
 
     #[test]
     #[should_panic]
     fn decrypt_invalid_sender_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        BoxKeyPair::decrypt_with_path("BOX-1\nnope-nope\nuhoh".as_bytes(), cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(b"BOX-1\nnope-nope\nuhoh", cache.path()).unwrap();
     }
 
     #[test]
@@ -989,9 +981,7 @@ mod test {
         let receiver = BoxKeyPair::generate_pair_for_service("acme", "tnt.default").unwrap();
         receiver.to_pair_files(cache.path()).unwrap();
 
-        let payload = sender
-            .encrypt("problems ahead".as_bytes(), Some(&receiver))
-            .unwrap();
+        let payload = sender.encrypt(b"problems ahead", Some(&receiver)).unwrap();
         let mut botched = String::new();
         let mut lines = str::from_utf8(payload.as_slice()).unwrap().lines();
         botched.push_str(lines.next().unwrap()); // version
@@ -1016,9 +1006,7 @@ mod test {
         let receiver = BoxKeyPair::generate_pair_for_service("acme", "tnt.default").unwrap();
         receiver.to_pair_files(cache.path()).unwrap();
 
-        let payload = sender
-            .encrypt("problems ahead".as_bytes(), Some(&receiver))
-            .unwrap();
+        let payload = sender.encrypt(b"problems ahead", Some(&receiver)).unwrap();
         let mut botched = String::new();
         let mut lines = str::from_utf8(payload.as_slice()).unwrap().lines();
         botched.push_str(lines.next().unwrap()); // version

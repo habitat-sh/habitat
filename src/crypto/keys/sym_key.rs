@@ -620,7 +620,7 @@ mod test {
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
-        let (nonce, ciphertext) = pair.encrypt("Ringonit".as_bytes()).unwrap();
+        let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
         let message = pair.decrypt(&nonce, &ciphertext).unwrap();
         assert_eq!(message, "Ringonit".to_string().into_bytes());
     }
@@ -630,7 +630,7 @@ mod test {
     fn encrypt_missing_secret_key() {
         let pair = SymKey::new("grohl".to_string(), "201604051449".to_string(), None, None);
 
-        pair.encrypt("Not going to go well".as_bytes()).unwrap();
+        pair.encrypt(b"Not going to go well").unwrap();
     }
 
     #[test]
@@ -639,7 +639,7 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
-        let (nonce, ciphertext) = pair.encrypt("Ringonit".as_bytes()).unwrap();
+        let (nonce, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
 
         let missing = SymKey::new("grohl".to_string(), "201604051449".to_string(), None, None);
         missing.decrypt(&nonce, &ciphertext).unwrap();
@@ -652,8 +652,8 @@ mod test {
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
-        let (_, ciphertext) = pair.encrypt("Ringonit".as_bytes()).unwrap();
-        pair.decrypt("crazyinlove".as_bytes(), &ciphertext).unwrap();
+        let (_, ciphertext) = pair.encrypt(b"Ringonit").unwrap();
+        pair.decrypt(b"crazyinlove", &ciphertext).unwrap();
     }
 
     #[test]
@@ -663,8 +663,8 @@ mod test {
         let pair = SymKey::generate_pair_for_ring("beyonce").unwrap();
         pair.to_pair_files(cache.path()).unwrap();
 
-        let (nonce, _) = pair.encrypt("Ringonit".as_bytes()).unwrap();
-        pair.decrypt(&nonce, "singleladies".as_bytes()).unwrap();
+        let (nonce, _) = pair.encrypt(b"Ringonit").unwrap();
+        pair.decrypt(&nonce, b"singleladies").unwrap();
     }
 
     #[test]

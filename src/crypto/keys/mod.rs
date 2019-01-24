@@ -669,7 +669,7 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join("missing-newlines");
         let mut f = File::create(&keyfile).unwrap();
-        f.write_all("SOMETHING\nELSE\n".as_bytes()).unwrap();
+        f.write_all(b"SOMETHING\nELSE\n").unwrap();
 
         super::read_key_bytes(keyfile.as_path()).unwrap();
     }
@@ -680,7 +680,7 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let keyfile = cache.path().join("missing-newlines");
         let mut f = File::create(&keyfile).unwrap();
-        f.write_all("header\nsomething\n\nI am not base64 content".as_bytes())
+        f.write_all(b"header\nsomething\n\nI am not base64 content")
             .unwrap();
 
         super::read_key_bytes(keyfile.as_path()).unwrap();

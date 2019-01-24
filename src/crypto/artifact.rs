@@ -341,7 +341,7 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all("".as_bytes()).unwrap();
+        f.write_all(b"").unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -352,7 +352,7 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all("SOME-VERSION\nuhoh".as_bytes()).unwrap();
+        f.write_all(b"SOME-VERSION\nuhoh").unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -363,7 +363,7 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all("HART-1\n\nuhoh".as_bytes()).unwrap();
+        f.write_all(b"HART-1\n\nuhoh").unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -374,7 +374,7 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let dst = cache.path().join("signed.dat");
         let mut f = File::create(&dst).unwrap();
-        f.write_all("HART-1\nnope-nope\nuhoh".as_bytes()).unwrap();
+        f.write_all(b"HART-1\nnope-nope\nuhoh").unwrap();
 
         verify(&dst, cache.path()).unwrap();
     }
@@ -474,21 +474,21 @@ mod test {
         corrupted
             .write_all(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // version
-        corrupted.write_all("\n".as_bytes()).unwrap();
+        corrupted.write_all(b"\n").unwrap();
         corrupted
             .write_all(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // key
-        corrupted.write_all("\n".as_bytes()).unwrap();
+        corrupted.write_all(b"\n").unwrap();
         corrupted
             .write_all(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // hash type
-        corrupted.write_all("\n".as_bytes()).unwrap();
+        corrupted.write_all(b"\n").unwrap();
         corrupted
             .write_all(lines.next().unwrap().unwrap().as_bytes())
             .unwrap(); // signature
-        corrupted.write_all("\n\n".as_bytes()).unwrap();
+        corrupted.write_all(b"\n\n").unwrap();
         corrupted
-            .write_all("payload-wont-match-signature".as_bytes())
+            .write_all(b"payload-wont-match-signature")
             .unwrap(); // archive
 
         verify(&dst_corrupted, cache.path()).unwrap();
@@ -502,13 +502,13 @@ mod test {
         let src = cache.path().join("src.in");
         let dst = cache.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
-        f.write_all("hearty goodness".as_bytes()).unwrap();
+        f.write_all(b"hearty goodness").unwrap();
         sign(&src, &dst, &pair).unwrap();
 
         let mut buffer = String::new();
         let mut reader = get_archive_reader(&dst).unwrap();
         reader.read_to_string(&mut buffer).unwrap();
-        assert_eq!(buffer.as_bytes(), "hearty goodness".as_bytes());
+        assert_eq!(buffer.as_bytes(), b"hearty goodness");
     }
 
     #[test]
@@ -519,7 +519,7 @@ mod test {
         let src = cache.path().join("src.in");
         let dst = cache.path().join("src.signed");
         let mut f = File::create(&src).unwrap();
-        f.write_all("hearty goodness".as_bytes()).unwrap();
+        f.write_all(b"hearty goodness").unwrap();
         sign(&src, &dst, &pair).unwrap();
 
         let hart_header = get_artifact_header(&dst).unwrap();
