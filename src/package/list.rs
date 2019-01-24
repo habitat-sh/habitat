@@ -33,17 +33,21 @@ pub const INSTALL_TMP_PREFIX: &str = ".hab-pkg-install";
 /// It returns a path which is in the same parent directory as `path`
 /// but with TempDir style randomization
 pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
-    let base = path.parent().ok_or(Error::PackageUnpackFailed(
-        "Could not determine parent directory for temporary package directory".to_owned(),
-    ))?;
+    let base = path.parent().ok_or_else(|| {
+        Error::PackageUnpackFailed(
+            "Could not determine parent directory for temporary package directory".to_owned(),
+        )
+    })?;
     fs::create_dir_all(base)?;
     let temp_install_prefix = path
         .file_name()
         .and_then(|f| f.to_str())
         .and_then(|dirname| Some(format!("{}-{}", INSTALL_TMP_PREFIX, dirname)))
-        .ok_or(Error::PackageUnpackFailed(
-            "Could not generate prefix for temporary package directory".to_owned(),
-        ))?;
+        .ok_or_else(|| {
+            Error::PackageUnpackFailed(
+                "Could not generate prefix for temporary package directory".to_owned(),
+            )
+        })?;
     Ok(Builder::new()
         .prefix(&temp_install_prefix)
         .tempdir_in(base)?)

@@ -130,7 +130,7 @@ impl ServiceGroup {
     pub fn validate(value: &str) -> Result<()> {
         let caps = SG_FROM_STR_RE
             .captures(value)
-            .ok_or(Error::InvalidServiceGroup(value.to_string()))?;
+            .ok_or_else(|| Error::InvalidServiceGroup(value.to_string()))?;
         if caps.name("service").is_none() {
             return Err(Error::InvalidServiceGroup(value.to_string()));
         }
@@ -276,7 +276,7 @@ impl ApplicationEnvironment {
     pub fn validate(value: &str) -> Result<()> {
         let caps = AE_FROM_STR_RE
             .captures(value)
-            .ok_or(Error::InvalidApplicationEnvironment(value.to_string()))?;
+            .ok_or_else(|| Error::InvalidApplicationEnvironment(value.to_string()))?;
         if caps.name("application").is_none() {
             return Err(Error::InvalidApplicationEnvironment(value.to_string()));
         }

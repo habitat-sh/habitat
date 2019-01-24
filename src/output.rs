@@ -135,7 +135,7 @@ impl<'a> Serialize for StructuredOutput<'a> {
     where
         S: Serializer,
     {
-        let verbose = self.verbose.unwrap_or(is_verbose());
+        let verbose = self.verbose.unwrap_or_else(is_verbose);
 
         // Focused on JSON serialization right now, so the length hint
         // isn't needed; it might be later if we target other formats.
@@ -159,7 +159,7 @@ impl<'a> Serialize for StructuredOutput<'a> {
 // function. Viola!
 impl<'a> fmt::Display for StructuredOutput<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.json.unwrap_or(is_json()) {
+        if self.json.unwrap_or_else(is_json) {
             // Our JSON serialization handles verbosity itself, and
             // color is ignored anyway, so there's no reason to check
             // those settings here.
@@ -168,8 +168,8 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
             let as_json = serde_json::to_string(&self).unwrap();
             write!(f, "{}", as_json)
         } else {
-            let verbose = self.verbose.unwrap_or(is_verbose());
-            let color = self.color.unwrap_or(is_color());
+            let verbose = self.verbose.unwrap_or_else(is_verbose);
+            let color = self.color.unwrap_or_else(is_color);
 
             let preamble_color = if self.preamble == PROGRAM_NAME.as_str() {
                 Cyan

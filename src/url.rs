@@ -30,5 +30,5 @@ pub fn bldr_url_from_env() -> Option<String> {
 }
 
 pub fn default_bldr_url() -> String {
-    bldr_url_from_env().unwrap_or(DEFAULT_BLDR_URL.to_string())
+    bldr_url_from_env().unwrap_or_else(|| DEFAULT_BLDR_URL.to_string())
 }

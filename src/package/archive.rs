@@ -338,7 +338,7 @@ impl PackageArchive {
     ///
     /// * If the package cannot be unpacked
     pub fn unpack(&self, fs_root_path: Option<&Path>) -> Result<()> {
-        let root = fs_root_path.unwrap_or(Path::new("/"));
+        let root = fs_root_path.unwrap_or_else(|| Path::new("/"));
         let tar_reader = artifact::get_archive_reader(&self.path)?;
         let mut builder = reader::Builder::new();
         builder.support_format(ReadFormat::Gnutar)?;
