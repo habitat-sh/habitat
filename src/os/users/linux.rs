@@ -91,13 +91,13 @@ pub fn root_level_account() -> String {
 ///     b) we are the specified user:group
 ///     c) fail otherwise
 pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
-    if let None = get_uid_by_name(user) {
+    if get_uid_by_name(user).is_none() {
         return Err(Error::PermissionFailed(format!(
             "Package requires user {} to exist, but it doesn't",
             user
         )));
     }
-    if let None = get_gid_by_name(&group) {
+    if get_gid_by_name(&group).is_none() {
         return Err(Error::PermissionFailed(format!(
             "Package requires group {} to exist, but it doesn't",
             group
@@ -107,13 +107,13 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
     let current_user = get_current_username();
     let current_group = get_current_groupname();
 
-    if let None = current_user {
+    if current_user.is_none() {
         return Err(Error::PermissionFailed(
             "Can't determine current user".to_string(),
         ));
     }
 
-    if let None = current_group {
+    if current_group.is_none() {
         return Err(Error::PermissionFailed(
             "Can't determine current group".to_string(),
         ));

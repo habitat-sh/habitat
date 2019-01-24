@@ -57,10 +57,10 @@ pub mod test_support {
 
         let mut pkg_ident = PackageIdent::from_str(ident).unwrap();
         if !pkg_ident.fully_qualified() {
-            if let None = pkg_ident.version {
+            if pkg_ident.version.is_none() {
                 pkg_ident.version = Some(String::from("1.0.0"));
             }
-            if let None = pkg_ident.release {
+            if pkg_ident.release.is_none() {
                 pkg_ident.release = Some(
                     time::now_utc()
                         .strftime("%Y%m%d%H%M%S")
