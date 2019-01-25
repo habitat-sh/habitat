@@ -73,7 +73,7 @@ matrix:
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
-        - make lint-$COMPONENTS
+        - make lint CARGO_FLAGS=--bins
 
 #
 # Job for testing Habitat Rust crate components
@@ -116,7 +116,7 @@ matrix:
       script:
         - ./support/ci/rust_tests.sh
         - ./support/ci/lint.sh
-        - make lint-$COMPONENTS
+        - make lint CARGO_FLAGS=--lib
 
 # Web Jobs
 ########################################################################
