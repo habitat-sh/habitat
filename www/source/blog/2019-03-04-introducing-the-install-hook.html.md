@@ -7,7 +7,7 @@ category: update
 classes: body-article
 ---
 
-This latest 0.74.0 release introduces a new `hook` to package authors: the `install` hook. The `install` hook runs when a package is first installed. This hook is unique in that it runs outside of a service or census context. With all other hooks, like `init` and `run` just to name a couple, the owning package must be loaded as a Supervisor service in order to execute the hook's behavior. The `install` hook can be packaged with any package regardless of whether it will run as a service and will execute when the package is installed. This installation may occur completely separate from any running Supervisor. For instance it could be triggered by a `hab pkg install` command but may also be triggered by a Supervisor's `hab svc load` if the package has not yet been installed. Further, it could be a dependency of another package being installed. Because the package does not need to run as a service, any uninstalled package with an `install` hook in the dependency tree of an installing package will have this hook executed as part of the parent installation.
+The 0.74.0 release introduces a new `hook` to package authors: the `install` hook. The `install` hook runs when a package is first installed. This hook is unique in that it runs outside of a service or census context. With all other hooks, like `init` and `run` just to name a couple, the owning package must be loaded as a Supervisor service in order to execute the hook's behavior. The `install` hook can be packaged with any package regardless of whether it will run as a service and will execute when the package is installed. This installation may occur completely separate from any running Supervisor. For instance it could be triggered by a `hab pkg install` command but may also be triggered by a Supervisor's `hab svc load` if the package has not yet been installed. Further, it could be a dependency of another package being installed. Because the package does not need to run as a service, any uninstalled package with an `install` hook in the dependency tree of an installing package will have this hook executed as part of the parent installation.
 
 ## Why a new hook?
 
@@ -19,13 +19,13 @@ With the `install` hook we can now break these applications up so that any insta
 
 ## An example install hook scenario
 
-To illustrate where an `install` hook may be convenient, I'll use a [legacy Windows web application](https://github.com/habitat-sh/sqlwebadmin) that we use in some Habitat demonstrations. This application requires IIS and ASP.Net 3.5 as well as a dependency on a COM library. Its `pkg_deps` looks like:
+To illustrate where an `install` hook may be convenient, I'll use a [legacy Windows web application](https://github.com/habitat-sh/sqlwebadmin) that we use in some Habitat demonstrations. This application requires IIS and ASP.Net 3.5 as well as a dependency on a COM library. Before leveraging the new `install` hook, its `pkg_deps` looked like:
 
 ```
 $pkg_deps=@("core/dsc-core", "core/sql-dmo")
 ```
 
-Its `init` hook registers the COM component packaged in the `sql-dmo` package:
+Its `init` hook registered the COM component packaged in the `sql-dmo` package:
 
 ```
 ."$env:SystemRoot\SysWow64\regsvr32.exe" /s "{{pkgPathFor "core/sql-dmo"}}\Program Files (x86)\Microsoft SQL Server\80\Tools\Binn\sqldmo.dll"
@@ -64,13 +64,13 @@ What if I wanted to install several applications that depended on the same .NET 
 
 Let's see how this works differently with the `install` hook.
 
-In this case my web application would not need an `install` hook, but if I could have dependencies with `install` hooks, my `pkg_deps` might look like this:
+In this case my web application does not need an `install` hook, but if I could have dependencies with `install` hooks, my `pkg_deps` looks like this:
 
 ```
-$pkg_deps=@("core/dsc-core", "mwrock/sql-dmo", "mwrock/iis-webserverrole", "mwrock/dotnet-35sp1-runtime", "mwrock/iis-aspnet35")
+$pkg_deps=@("core/dsc-core", "core/sql-dmo", "core/iis-webserverrole", "core/dotnet-35sp1-runtime", "core/iis-aspnet35")
 ```
 
-I'm not ready to commit these dependencies to our `core` origin so they find their home, for now, in my personal `mwrock` origin. I still need `dsc-core` to configure my app_pool with IIS, but that is fine since it is an application specific concern. I'm using a new `sql-dmo` package (in my own origin for now) that has an `install` hook which can register itself:
+I still need `dsc-core` to configure my app_pool with IIS, but that is fine since it is an application specific concern. I'm using a new `sql-dmo` release that has an `install` hook which can register itself:
 
 ```
 ."$env:SystemRoot\SysWow64\regsvr32.exe" /s "{{pkg.path}}\Program Files (x86)\Microsoft SQL Server\80\Tools\Binn\sqldmo.dll"
@@ -94,7 +94,8 @@ if (!(Test-Feature)) {
         Write-Host "IIS-WebServerRole was not enabled!"
         exit 1
     }
-}```
+}
+```
 
 This uses `dism` to check and enable our Windows feature. Not as elegant as DSC but I know this will work back to a vanilla 2008 R2 or Windows 7 OS. If for some reason, enabling the feature is not succesful, I make sure that the hook exits with a non `0` exit code. Depending on what went wrong, `dism` will often exit succesfully even if the feature enablement was not succesful. If the `install` hook returns a non `0` exit code, Habitat considers the `install` hook execution to be a failure and will retry whenever attempting to load the package or any other package that declares a dependency on this package.
 
@@ -103,6 +104,30 @@ This uses `dism` to check and enable our Windows feature. Not as elegant as DSC 
 One can use handlebar templating syntax in an `install` hook just like any other hook. However because the hook compilation occurs outside of any running Supervisor's census ring, the `install` hook and any configuration templates they reference will not have access to package `binds` or the `sys` namespace.
 
 Another important difference with the `install` hook is that it should not reference configuration files located in `{{pkg.svc_config_path}}` - those rendered from a plan's `config` folder. Instead, the `install` hook has access to a new `pkg` property: `{{pkg.svc_config_install_path}}` which is the destination of rendered templates located in a plan's `config_install` folder. This ensures that templates that are rerendered due to configuration changes in a running Supervisor will not trigger a service restart if they only impact the installation of a package.
+
+## Core plans supporting install hooks
+
+The following plans have been added that leverage an `install` hook:
+
+core/dotnet-35sp1-runtime
+core/dotnet-472-runtime
+core/iis-aspnet35
+core/iis-aspnet4
+core/iis-webserverrole
+
+These plans have been modified to support an `install` hook:
+
+core/sql-dmo
+core/sqlserver
+core/sqlserver2005
+
+The `sql-dmo` plan now adds its own COM registration as mentioned above and the `sqlserver` and `sqlserver2005` plans provide install hooks so that a `hab pkg export docker` can install SQL Server during the Docker image build as discussed below.
+
+## New windows-service package running .NET Core
+
+To support the installation of .NET 4.x runtimes in an `install` hook where you are running the Habitat Supervisor as a Windows service using the [`windows-service`](https://github.com/habitat-sh/windows-service) package, we have migrated this package to run on .NET Core. At the time it was initially written, .NET Core did not support Windows services. Running as a .NET 4 Full Framework application, .NET 4 runtimes cannot be updated while the service is running without requiring a reboot. Migrating to .NET Core allows .NET 4 runtime packages to install without this issue.
+
+In case you edit the service's configuration to adjust logging or debug settings, be aware that the logging configurations have been moved to `c:\hab\svc\windows-service\log4net.xml` and all other settings are now in `c:\hab\svc\windows-service\HabService.dll.config`.
 
 ## Docker exporter behavior
 
