@@ -90,10 +90,6 @@ impl ChannelIdent {
         crate::env::var(key).map(ChannelIdent)
     }
 
-    pub fn from(s: &str) -> Self {
-        ChannelIdent(s.to_string())
-    }
-
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
@@ -118,6 +114,18 @@ impl ChannelIdent {
     /// Helper function for Builder dynamic channels
     pub fn bldr_name(id: u64) -> String {
         format!("bldr-{}", id)
+    }
+}
+
+impl From<&str> for ChannelIdent {
+    fn from(s: &str) -> Self {
+        ChannelIdent(s.to_string())
+    }
+}
+
+impl From<String> for ChannelIdent {
+    fn from(s: String) -> Self {
+        ChannelIdent(s)
     }
 }
 
