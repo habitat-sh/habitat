@@ -21,8 +21,8 @@ use crate::error::Result;
 use crate::hcore::package::PackageIdent;
 use crate::hcore::PROGRAM_NAME;
 use crate::hcore::{
-    self,
     fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
+    ChannelIdent,
 };
 use clap;
 use std::fs as stdfs;
@@ -214,7 +214,7 @@ impl<'a> BuildSpec<'a> {
         let package_install = common::command::package::install::start(
             ui,
             url,
-            Some(&hcore::ChannelIdent::from(channel)),
+            Some(&ChannelIdent::from(channel)),
             &install_source,
             &*PROGRAM_NAME,
             VERSION,

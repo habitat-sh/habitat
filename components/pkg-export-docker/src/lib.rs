@@ -49,7 +49,7 @@ use std::str::FromStr;
 
 use crate::common::ui::{UIWriter, UI};
 use crate::hcore::url as hurl;
-use crate::hcore::PROGRAM_NAME;
+use crate::hcore::{ChannelIdent, PROGRAM_NAME};
 
 use crate::aws_creds::StaticProvider;
 use clap::App;
@@ -242,7 +242,7 @@ pub fn export_for_cli_matches(
     ui: &mut UI,
     matches: &clap::ArgMatches<'_>,
 ) -> Result<Option<DockerImage>> {
-    let default_channel = hcore::ChannelIdent::default().to_string();
+    let default_channel = ChannelIdent::default().to_string();
     let default_url = hurl::default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_channel, &default_url);
     let naming = Naming::new_from_cli_matches(&matches);

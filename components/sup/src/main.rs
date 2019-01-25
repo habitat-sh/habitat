@@ -179,8 +179,8 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                         .unwrap_or(&*protocol::DEFAULT_BLDR_URL),
                     &source,
                     &msg.bldr_channel
-                        .as_ref()
-                        .map(|s| ChannelIdent::from(s))
+                        .clone()
+                        .map(ChannelIdent::from)
                         .unwrap_or_default(),
                 )?;
                 install.ident.into()

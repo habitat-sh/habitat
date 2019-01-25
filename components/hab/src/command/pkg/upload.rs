@@ -41,10 +41,10 @@ use crate::api_client::{self, Client};
 use crate::common::command::package::install::{RETRIES, RETRY_WAIT};
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::{Error, Result};
-use crate::hcore;
 use crate::hcore::crypto::artifact::get_artifact_header;
 use crate::hcore::crypto::keys::parse_name_with_rev;
 use crate::hcore::package::{PackageArchive, PackageIdent, PackageTarget};
+use crate::hcore::ChannelIdent;
 use crate::{PRODUCT, VERSION};
 
 /// Upload a package from the cache to a Depot. The latest version/release of the package
@@ -78,24 +78,15 @@ where
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match api_client.show_package(
-        &ident,
-        &target,
-        &hcore::ChannelIdent::unstable(),
-        Some(token),
-    ) {
+    match api_client.show_package(&ident, &target, &ChannelIdent::unstable(), Some(token)) {
         Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
-                match api_client.show_package(
-                    &dep,
-                    &target,
-                    &hcore::ChannelIdent::unstable(),
-                    Some(token),
-                ) {
+                match api_client.show_package(&dep, &target, &ChannelIdent::unstable(), Some(token))
+                {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
                         let candidate_path = match archive_path.as_ref().parent() {
@@ -203,10 +194,10 @@ fn upload_into_depot(
 
     // Promote to additional_release_channel if specified
     if package_uploaded && additional_release_channel.is_some() {
-        let channel = hcore::ChannelIdent::from(additional_release_channel.unwrap());
+        let channel = ChannelIdent::from(additional_release_channel.unwrap());
         ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
-        if channel != hcore::ChannelIdent::stable() && channel != hcore::ChannelIdent::unstable() {
+        if channel != ChannelIdent::stable() && channel != ChannelIdent::unstable() {
             match api_client.create_channel(&ident.origin, &channel.to_string(), token) {
                 Ok(_) => (),
                 Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),

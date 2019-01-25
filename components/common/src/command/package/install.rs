@@ -1154,7 +1154,7 @@ impl<'a> InstallTask<'a> {
             }
         };
 
-        for channel in channels.iter().map(|s| ChannelIdent::from(s)) {
+        for channel in channels.into_iter().map(ChannelIdent::from) {
             if let Ok(pkg) =
                 self.fetch_latest_pkg_ident_in_channel_for(ident, target, &channel, token)
             {

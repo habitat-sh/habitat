@@ -416,7 +416,7 @@ impl Worker {
             current: service.pkg.ident.clone(),
             spec_ident: service.spec_ident.clone(),
             builder_url: service.bldr_url.clone(),
-            channel: ChannelIdent::from(&service.channel),
+            channel: ChannelIdent::from(service.channel.clone()),
         }
     }
 
