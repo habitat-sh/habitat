@@ -18,7 +18,7 @@ use std::result;
 use std::str::FromStr;
 
 use crate::hcore::package::ident;
-use crate::hcore::package::{Identifiable, PackageIdent};
+use crate::hcore::package::{Identifiable, PackageIdent, PackageTarget};
 use crate::hcore::{crypto::keys::PairType, service::HealthCheckInterval, service::ServiceGroup};
 use crate::protocol;
 use clap::{App, AppSettings, Arg};
@@ -111,6 +111,8 @@ pub fn get() -> App<'static, 'static> {
                     (aliases: &["s", "st", "sta", "star"])
                     (@arg PKG_IDENT: +required +takes_value {valid_ident}
                         "The origin and name of the package to schedule a job for (eg: core/redis)")
+                    (@arg PKG_TARGET: +takes_value {valid_target}
+                        "A package target (ex: x86_64-windows) (default: x86_64-linux)")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the cli.toml or HAB_BLDR_URL environment variable if defined. \
@@ -1169,6 +1171,13 @@ fn valid_ident(val: String) -> result::Result<(), String> {
             "'{}' is not valid. Package identifiers have the form origin/name[/version[/release]]",
             &val
         )),
+    }
+}
+
+fn valid_target(val: String) -> result::Result<(), String> {
+    match PackageTarget::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(format!("'{}' is not valid. A valid target is in the form architecture-platform (example: x86_64-linux)", &val)),
     }
 }
 

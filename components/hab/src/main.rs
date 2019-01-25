@@ -56,7 +56,7 @@ use crate::hcore::env as henv;
 use crate::hcore::fs::{
     cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path,
 };
-use crate::hcore::package::PackageIdent;
+use crate::hcore::package::{PackageIdent, PackageTarget};
 use clap::{ArgMatches, Shell};
 use futures::prelude::*;
 
@@ -576,9 +576,10 @@ fn sub_bldr_channel_list(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let url = bldr_url_from_matches(&m)?;
+    let target = target_from_matches(m)?;
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::job::start::start(ui, &url, &ident, &token, group)
+    command::bldr::job::start::start(ui, &url, &ident, &target, &token, group)
 }
 
 fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -1399,6 +1400,15 @@ fn channel_from_matches(matches: &ArgMatches<'_>) -> String {
         .value_of("CHANNEL")
         .map(str::to_string)
         .unwrap_or_else(channel::default)
+}
+
+/// Resolve a target. Default to x86_64-linux if none specified
+fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
+    matches
+        .value_of("PKG_TARGET")
+        .map(PackageTarget::from_str)
+        .unwrap_or_else(|| PackageTarget::from_str("x86_64-linux"))
+        .map_err(Error::HabitatCore)
 }
 
 fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
