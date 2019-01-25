@@ -845,23 +845,21 @@ mod tests {
 
         // Verify init hook
         let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
-        let expected_init_hook = "#!/bin/bash\n\necho \"The message is Hello\"\n";
-        let expected_run_hook = "#!/bin/bash\n\necho \"Running a program\"\n";
-        assert_eq!(init_hook_content, expected_init_hook);
+        assert!(init_hook_content.contains("The message is Hello"));
 
         // Verify run hook
         let run_hook_content = file_content(&hook_table.run.as_ref().expect("no run hook??"));
-        assert_eq!(run_hook_content, expected_run_hook);
+        assert!(run_hook_content.contains("Running a program"));
 
         // Recompiling again results in no changes
         assert_eq!(hook_table.compile(&service_group, &ctx), false);
 
         // Re-Verify init hook
         let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
-        assert_eq!(init_hook_content, expected_init_hook);
+        assert!(init_hook_content.contains("The message is Hello"));
 
         // Re-Verify run hook
         let run_hook_content = file_content(&hook_table.run.as_ref().expect("no run hook??"));
-        assert_eq!(run_hook_content, expected_run_hook);
+        assert!(run_hook_content.contains("Running a program"));
     }
 }
