@@ -25,6 +25,17 @@ section
      # with the Supervisor output. Its non critical so turn it off
      $ProgressPreference="SilentlyContinue"
 
+     # The svc_config_path lacks an ACL for the USERS group
+     # so we need to ensure the app pool user can access those files
+     $pool = "{{cfg.app_pool}}"
+     $access = New-Object System.Security.AccessControl.FileSystemAccessRule `
+       "IIS APPPOOL\$pool",`
+       "ReadAndExecute",`
+       "Allow"
+     $acl = Get-Acl "{{pkg.svc_config_path}}/Web.config"
+     $acl.SetAccessRule($access)
+     $acl | Set-Acl "{{pkg.svc_config_path}}/Web.config"
+
      # We need to install the xWebAdministration DSC resource.
      # Habitat runs its hooks inside of Powershell Core but DSC
      # configurations are applied in a hosted WMI process by
@@ -80,6 +91,6 @@ section
          Write-Host "{{pkg.name}} has stopped"
      }
 
- p This applies our DSC configuration which should complete with IIS running our application. The hook then spins endlessly in a loop as long as the application is responsive or until it is explicitly shut down via a <code>stop</code> or <code>unload</code> command.
+ p This applies our DSC configuration which should complete with IIS running our application. It also sets necessary permissions on our config file to ensure the IIS app pool user can access it. The hook then spins endlessly in a loop as long as the application is responsive or until it is explicitly shut down via a <code>stop</code> or <code>unload</code> command.
  
 = link_to 'Next: Build and Test', "/demo/windows/steps/8", class: 'button cta'
