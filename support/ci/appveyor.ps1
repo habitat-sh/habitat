@@ -127,11 +127,16 @@ if((Test-DocsOnlyChanged -eq $true) -and (Test-ReleaseBuild -eq $false)) {
                 & $habExe pkg build components/$component -R
                 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
-                $hart = (Get-Item "$(Get-RepoRoot)\components\$component\habitat\results\*.hart")[-1]
-                Write-Host "Copying $hart to artifacts directory..."
-                Copy-Item $hart.FullName results
+                $results = "$(Get-RepoRoot)\components\$component\habitat\results"
+                if(!(Test-Path $results)) { $results = "results" }
+                . "$results/last_build.ps1"
+                $hart = (Get-Item "$results/$pkg_artifact").FullName
+                if(!(Test-Path "results/$pkg_artifact")) {
+                    Write-Host "Copying $hart to artifacts directory..."
+                    Copy-Item $hart results
+                }
                 if(!($env:hab_components -eq "launcher" -and (Test-ReleaseBuild))) {
-                    & $habExe pkg install $hart.FullName
+                    & $habExe pkg install $hart
                     if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
 
                     if($env:HAB_AUTH_TOKEN -and (!(Test-PullRequest))) {
