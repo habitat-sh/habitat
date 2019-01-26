@@ -78,17 +78,11 @@ where
 ///
 /// Return the PackageInstall corresponding to the package that was
 /// installed, or was pre-existing.
-///
-/// JC: TODO: When composites are removed, we can remove the
-/// `must_be_runnable` parameter as then all invokers of this
-/// function will require runnable packages
-///
 pub fn satisfy_or_install<T>(
     ui: &mut T,
     install_source: &InstallSource,
     bldr_url: &str,
     channel: &str,
-    must_be_runnable: bool,
 ) -> Result<PackageInstall>
 where
     T: UIWriter,
@@ -98,13 +92,13 @@ where
         None => install(ui, bldr_url, install_source, channel),
     }
     .and_then(|installed| {
-        if must_be_runnable && !installed.is_runnable() {
+        if installed.is_runnable() {
+            Ok(installed)
+        } else {
             outputln!("Can't start non-runnable service: {}", installed.ident());
             Err(sup_error!(Error::PackageNotRunnable(
                 installed.ident().clone()
             )))
-        } else {
-            Ok(installed)
         }
     })
 }

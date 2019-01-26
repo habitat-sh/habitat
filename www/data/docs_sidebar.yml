@@ -22,8 +22,6 @@ sidebar_links:
       link: "/docs/developing-packages/#add-configuration"
     - title: Binds and Exports
       link: "/docs/developing-packages/#pkg-binds"
-    - title: Composite Packages
-      link: "/docs/developing-packages/#composite-pkgs"
     - title: Plan Builds
       link: "/docs/developing-packages/#plan-builds"
     - title: Troubleshooting Builds

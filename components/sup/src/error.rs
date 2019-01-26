@@ -106,7 +106,6 @@ impl SupError {
 pub enum Error {
     Departed,
     BadAddress(String),
-    BadCompositesPath(PathBuf, io::Error),
     BadDataFile(PathBuf, io::Error),
     BadDataPath(PathBuf, io::Error),
     BadDesiredState(String),
@@ -185,11 +184,6 @@ impl fmt::Display for SupError {
         let content = match self.err {
             Error::APIClient(ref err) => err.to_string(),
             Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),
-            Error::BadCompositesPath(ref path, ref err) => format!(
-                "Unable to create the composites directory '{}' ({})",
-                path.display(),
-                err
-            ),
             Error::Departed => {
                 "This Supervisor has been manually departed.\n\nFor the safety of the system, \
                  this Supervisor cannot be started (if we did, we would risk the services on \
@@ -242,10 +236,8 @@ impl fmt::Display for SupError {
             Error::FileWatcherFileIsRoot => "Watched file is root".to_string(),
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
             Error::InvalidBinding(ref binding) => format!(
-                "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> or \
-                    <SERVICE_NAME>:<NAME>:<SERVICE_GROUP> where <NAME> is a service name,
-                    <SERVICE_GROUP> is a valid service group, and <SERVICE_NAME> is the name of
-                    a service within a composite if the given bind is for a composite service.",
+                "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where <NAME> \
+                 is a service name, and <SERVICE_GROUP> is a valid service group",
                 binding
             ),
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
@@ -357,7 +349,6 @@ impl error::Error for SupError {
         match self.err {
             Error::APIClient(ref err) => err.description(),
             Error::BadAddress(_) => "Unable to bind to address",
-            Error::BadCompositesPath(_, _) => "Unable to create the composites directory",
             Error::Departed => "Supervisor has been manually departed",
             Error::BadDataFile(_, _) => "Unable to read or write to a data file",
             Error::BadDataPath(_, _) => "Unable to read or write to data directory",

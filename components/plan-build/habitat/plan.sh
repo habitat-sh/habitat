@@ -48,6 +48,5 @@ do_install() {
   install -D "$CACHE_PATH/$program" "$pkg_prefix"/bin/$program
   install -D "$SRC_PATH"/bin/shared.bash "$pkg_prefix"/bin/
   install -D "$SRC_PATH"/bin/public.bash "$pkg_prefix"/bin/
-  install -D "$SRC_PATH"/bin/composite_build_functions.bash "$pkg_prefix"/bin/
   install -D "$SRC_PATH"/bin/environment.bash "$pkg_prefix"/bin/
 }

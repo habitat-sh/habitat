@@ -60,9 +60,11 @@ message ProcessStatus {
 }
 
 message ServiceBind {
+  reserved 3;
+  reserved "service_name";
+
   required string name = 1;
   required ServiceGroup service_group = 2;
-  optional string service_name = 3;
 }
 
 message ServiceCfg {
@@ -84,10 +86,12 @@ message ServiceGroup {
 }
 
 message ServiceStatus {
+  reserved 4;
+  reserved "composite";
+
   required PackageIdent ident = 1;
   optional ProcessStatus process = 2;
   required ServiceGroup service_group = 3;
-  optional string composite = 4;
   optional DesiredState desired_state = 5;
 }
 

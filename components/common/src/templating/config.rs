@@ -1189,7 +1189,10 @@ mod test {
     }
 
     #[test]
+    #[cfg(target_os = "linux")]
     #[should_panic(expected = "Not a directory")]
+    #[cfg(target_os = "windows")]
+    #[should_panic(expected = "The directory name is invalid")]
     /// Check we get an error if we pass in a file to `load_templates`
     fn test_load_templates_file() {
         let tmp = TempDir::new().expect("create temp dir");
@@ -1197,8 +1200,7 @@ mod test {
         let file = tmp.path().join("bar.txt");
         create_with_content(&file, "Hello world!");
 
-        load_templates(&file, &PathBuf::new(), TemplateRenderer::new())
-            .expect("should fail on file");
+        load_templates(&file, &PathBuf::new(), TemplateRenderer::new())?;
     }
 
     #[test]

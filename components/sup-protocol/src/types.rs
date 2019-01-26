@@ -161,28 +161,21 @@ impl FromStr for ServiceBind {
 
     fn from_str(bind_str: &str) -> Result<Self, Self::Err> {
         let values: Vec<&str> = bind_str.split(':').collect();
-        if !(values.len() == 3 || values.len() == 2) {
-            return Err(net::err(
+        if values.len() == 2 {
+            Ok(ServiceBind {
+                name: values[0].to_string(),
+                service_group: ServiceGroup::from_str(values[1])?,
+            })
+        } else {
+            Err(net::err(
                 ErrCode::InvalidPayload,
                 format!(
-                    "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> or \
-                    <SERVICE_NAME>:<NAME>:<SERVICE_GROUP> where <NAME> is a service name,
-                    <SERVICE_GROUP> is a valid service group, and <SERVICE_NAME> is the name of
-                    a service within a composite if the given bind is for a composite service.",
+                    "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
+                     <NAME> is a service name and <SERVICE_GROUP> is a valid service group.",
                     bind_str
                 ),
-            ));
+            ))
         }
-        let mut bind = ServiceBind::default();
-        if values.len() == 3 {
-            bind.name = values[1].to_string();
-            bind.service_group = ServiceGroup::from_str(values[2])?;
-            bind.service_name = Some(values[0].to_string());
-        } else {
-            bind.name = values[0].to_string();
-            bind.service_group = ServiceGroup::from_str(values[1])?;
-        }
-        Ok(bind)
     }
 }
 

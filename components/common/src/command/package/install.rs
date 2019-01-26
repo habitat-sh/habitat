@@ -50,7 +50,6 @@ use crate::hcore::crypto::keys::parse_name_with_rev;
 use crate::hcore::crypto::{artifact, SigKeyPair};
 use crate::hcore::fs::{cache_key_path, pkg_install_path, svc_hooks_path};
 use crate::hcore::package::list::temp_package_directory;
-use crate::hcore::package::metadata::PackageType;
 use crate::hcore::package::{
     Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget,
 };
@@ -697,8 +696,7 @@ impl<'a> InstallTask<'a> {
 
     /// Given the identifier of an artifact, ensure that the artifact,
     /// as well as all its dependencies, have been cached and
-    /// installed. Handles both standalone and composite package
-    /// types.
+    /// installed.
     ///
     /// If the package is already present in the cache, it is not
     /// re-downloaded. Any dependencies of the package that are not
@@ -716,73 +714,55 @@ impl<'a> InstallTask<'a> {
         // TODO (CM): rename artifact to archive
         let mut artifact = self.get_cached_artifact(ui, ident, target, token)?;
 
-        match artifact.package_type()? {
-            PackageType::Standalone => {
-                // Ensure that all transitive dependencies, as well as the
-                // original package itself, are cached locally.
-                let dependencies = artifact.tdeps()?;
-                let mut artifacts_to_install = Vec::with_capacity(dependencies.len() + 1);
-                // TODO fn: I'd prefer this list to be a `Vec<FullyQualifiedPackageIdent>` but that
-                // requires a conversion that could fail (i.e. returns a `Result<...>`). Should be
-                // possible though.
-                for dependency in dependencies.iter() {
-                    if self
-                        .installed_package(&FullyQualifiedPackageIdent::from(dependency)?)
-                        .is_some()
-                    {
-                        ui.status(Status::Using, dependency)?;
-                        if self.install_hook_mode != InstallHookMode::Ignore {
-                            run_install_hook_unless_already_successful(
-                                ui,
-                                &PackageInstall::load(dependency, Some(self.fs_root_path))?,
-                            )?;
-                        }
-                    } else {
-                        artifacts_to_install.push(self.get_cached_artifact(
-                            ui,
-                            &FullyQualifiedPackageIdent::from(dependency)?,
-                            target,
-                            token,
-                        )?);
-                    }
+        // Ensure that all transitive dependencies, as well as the
+        // original package itself, are cached locally.
+        let dependencies = artifact.tdeps()?;
+        let mut artifacts_to_install = Vec::with_capacity(dependencies.len() + 1);
+        // TODO fn: I'd prefer this list to be a `Vec<FullyQualifiedPackageIdent>` but that
+        // requires a conversion that could fail (i.e. returns a `Result<...>`). Should be
+        // possible though.
+        for dependency in dependencies.iter() {
+            if self
+                .installed_package(&FullyQualifiedPackageIdent::from(dependency)?)
+                .is_some()
+            {
+                ui.status(Status::Using, dependency)?;
+                if self.install_hook_mode != InstallHookMode::Ignore {
+                    run_install_hook_unless_already_successful(
+                        ui,
+                        &PackageInstall::load(dependency, Some(self.fs_root_path))?,
+                    )?;
                 }
-                // The package we're actually trying to install goes last; we
-                // want to ensure that its dependencies get installed before
-                // it does.
-                artifacts_to_install.push(artifact);
-
-                // Ensure all uninstalled artifacts get installed
-                for artifact in artifacts_to_install.iter_mut() {
-                    self.unpack_artifact(ui, artifact)?;
-                    if self.install_hook_mode != InstallHookMode::Ignore {
-                        run_install_hook(
-                            ui,
-                            &PackageInstall::load(&artifact.ident()?, Some(self.fs_root_path))?,
-                        )?;
-                    }
-                }
-
-                ui.end(format!(
-                    "Install of {} complete with {} new packages installed.",
-                    ident,
-                    artifacts_to_install.len()
-                ))?;
-            }
-            PackageType::Composite => {
-                let services = artifact.resolved_services()?;
-                for service in services {
-                    // We don't track the transitive dependencies of
-                    // all services at the composite level, because
-                    // each service itself does that. Thus, we need to
-                    // install them just like we would if we weren't
-                    // in a composite.
-                    self.from_ident(ui, service, target, token)?;
-                }
-                // All the services have been unpacked; let's do the
-                // same with the composite package itself.
-                self.unpack_artifact(ui, &mut artifact)?;
+            } else {
+                artifacts_to_install.push(self.get_cached_artifact(
+                    ui,
+                    &FullyQualifiedPackageIdent::from(dependency)?,
+                    target,
+                    token,
+                )?);
             }
         }
+        // The package we're actually trying to install goes last; we
+        // want to ensure that its dependencies get installed before
+        // it does.
+        artifacts_to_install.push(artifact);
+
+        // Ensure all uninstalled artifacts get installed
+        for artifact in artifacts_to_install.iter_mut() {
+            self.unpack_artifact(ui, artifact)?;
+            if self.install_hook_mode != InstallHookMode::Ignore {
+                run_install_hook(
+                    ui,
+                    &PackageInstall::load(&artifact.ident()?, Some(self.fs_root_path))?,
+                )?;
+            }
+        }
+
+        ui.end(format!(
+            "Install of {} complete with {} new packages installed.",
+            ident,
+            artifacts_to_install.len()
+        ))?;
 
         // Return the thing we just installed
         PackageInstall::load(ident.as_ref(), Some(self.fs_root_path)).map_err(Error::from)

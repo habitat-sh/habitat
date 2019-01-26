@@ -1524,7 +1524,6 @@ where
             return Ok(());
         }
     };
-    let svc_type = status.composite.unwrap_or_else(|| "standalone".to_string());
     let svc_desired_state = status
         .desired_state
         .map_or("<none>".to_string(), |s| s.to_string());
@@ -1547,11 +1546,18 @@ where
     if print_header {
         writeln!(out, "{}", STATUS_HEADER.join("\t")).unwrap();
     }
+    // Composites were removed in 0.75 but people could be
+    // depending on the exact format of this output even if they
+    // never used composites. We don't want to break their tooling
+    // so we hardcode in 'standalone' as it's the only supported
+    // package type
+    //
+    // TODO: Remove this when we have a stable machine-readable alternative
+    // that scripts could depend on
     writeln!(
         out,
-        "{}\t{}\t{}\t{}\t{}\t{}\t{}",
+        "{}\tstandalone\t{}\t{}\t{}\t{}\t{}",
         status.ident,
-        svc_type,
         DesiredState::from_str(&svc_desired_state)?,
         ProcessState::from_str(&svc_state)?,
         svc_elapsed,

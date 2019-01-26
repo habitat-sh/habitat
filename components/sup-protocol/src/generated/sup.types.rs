@@ -39,8 +39,6 @@ pub struct ServiceBind {
     pub name: String,
     #[prost(message, required, tag="2")]
     pub service_group: ServiceGroup,
-    #[prost(string, optional, tag="3")]
-    pub service_name: ::std::option::Option<String>,
 }
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
@@ -85,8 +83,6 @@ pub struct ServiceStatus {
     pub process: ::std::option::Option<ProcessStatus>,
     #[prost(message, required, tag="3")]
     pub service_group: ServiceGroup,
-    #[prost(string, optional, tag="4")]
-    pub composite: ::std::option::Option<String>,
     #[prost(enumeration="DesiredState", optional, tag="5")]
     pub desired_state: ::std::option::Option<i32>,
 }

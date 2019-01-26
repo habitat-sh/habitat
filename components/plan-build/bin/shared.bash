@@ -1,5 +1,4 @@
-# These functions are intended for internal usage for building both individual
-# and composite plans.
+# These functions are intended for internal usage for building plans.
 #
 # End-users should not attempt to use these functions directly, as no guarantees
 # about their API are made.
@@ -253,12 +252,6 @@ _render_metadata_TARGET() {
 
 _render_metadata_TDEPS() {
   _render_dependency_metadata_file "${pkg_prefix}" TDEPS pkg_tdeps_resolved
-}
-
-_render_metadata_TYPE() {
-    debug "Rendering TYPE metadata file"
-    # shellcheck disable=2154
-    echo "$pkg_type" > "$pkg_prefix"/TYPE
 }
 
 # Metadata-rendering Helper Functions
