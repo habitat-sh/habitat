@@ -13,6 +13,7 @@
 - Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
 
 #### Merged Pull Requests
+- correct asp.net tutorial to comply with directory perm changes in previous release [#6083](https://github.com/habitat-sh/habitat/pull/6083) ([mwrock](https://github.com/mwrock))
 - update install hook blog to reflect new core plans and windows service [#6082](https://github.com/habitat-sh/habitat/pull/6082) ([mwrock](https://github.com/mwrock))
 - Add target param to bldr job start command [#6081](https://github.com/habitat-sh/habitat/pull/6081) ([chefsalim](https://github.com/chefsalim))
 - docker windows studio should read the sup log from the new path [#6078](https://github.com/habitat-sh/habitat/pull/6078) ([mwrock](https://github.com/mwrock))
