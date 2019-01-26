@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Behavioral Changes
+- set results folder in PWD not PLAN_CONTEXT [#6087](https://github.com/habitat-sh/habitat/pull/6087) ([mwrock](https://github.com/mwrock))
+
 #### New Features & Enhancements
 - Improve butterfly Server::insert_service [#6053](https://github.com/habitat-sh/habitat/pull/6053) ([baumanj](https://github.com/baumanj))
 
