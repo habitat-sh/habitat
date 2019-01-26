@@ -2188,7 +2188,7 @@ try {
     }
 
     # Determine the final output path for the package artifact
-    $script:pkg_output_path = "$(Get-Location)\results"
+    $script:pkg_output_path = "$((Get-Item $originalPath).FullName)\results"
 
     # Set $pkg_svc variables a second time, now that the Plan has been sourced and
     # we have access to `$pkg_name`.
