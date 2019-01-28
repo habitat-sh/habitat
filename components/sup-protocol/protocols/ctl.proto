@@ -82,7 +82,7 @@ message SvcLoad {
   // Remote http URL for the Builder service to receive package updates from.
   optional string bldr_url = 6;
   // Remote channel on the Builder service to receive package updates from.
-  optional string bldr_channel = 7;
+  optional sup.types.ChannelIdent bldr_channel = 7;
   // A filepath on disk which can be specified to override the package's configuration and hooks.
   // This is useful when testing services on a local Supervisor before packaging them.
   optional string config_from = 8;

@@ -222,7 +222,7 @@ pub fn service_load(
     let bldr_channel = opts
         .bldr_channel
         .clone()
-        .map(ChannelIdent::from)
+        .map(protocol::types::ChannelIdent::into)
         .unwrap_or_default();
     let force = opts.force.unwrap_or(false);
     let source = InstallSource::Ident(ident.clone(), *PackageTarget::active_target());

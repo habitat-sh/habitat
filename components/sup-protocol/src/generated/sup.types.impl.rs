@@ -6,6 +6,9 @@ impl message::MessageStatic for ApplicationEnvironment {
 impl message::MessageStatic for PackageIdent {
     const MESSAGE_ID: &'static str = "PackageIdent";
 }
+impl message::MessageStatic for ChannelIdent {
+    const MESSAGE_ID: &'static str = "ChannelIdent";
+}
 impl message::MessageStatic for ProcessStatus {
     const MESSAGE_ID: &'static str = "ProcessStatus";
 }

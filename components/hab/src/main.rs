@@ -1623,8 +1623,8 @@ fn bldr_url_from_input(m: &ArgMatches<'_>) -> Option<String> {
 }
 
 /// A channel name, but *only* if the user specified via CLI args.
-fn channel_from_input(m: &ArgMatches<'_>) -> Option<String> {
-    m.value_of("CHANNEL").and_then(|c| Some(c.to_string()))
+fn channel_from_input(m: &ArgMatches<'_>) -> Option<ChannelIdent> {
+    m.value_of("CHANNEL").map(ChannelIdent::from)
 }
 
 /// If the user provides both --application and --environment options,
@@ -1765,7 +1765,7 @@ fn ui() -> UI {
 /// populates all *shared* options between `run` and `load`.
 fn update_svc_load_from_input(m: &ArgMatches<'_>, msg: &mut protocol::ctl::SvcLoad) -> Result<()> {
     msg.bldr_url = bldr_url_from_input(m);
-    msg.bldr_channel = channel_from_input(m);
+    msg.bldr_channel = channel_from_input(m).map(ChannelIdent::into);
     msg.application_environment = get_app_env_from_input(m)?;
     msg.binds = get_binds_from_input(m)?;
     if m.is_present("FORCE") {

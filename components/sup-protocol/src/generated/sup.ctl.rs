@@ -120,8 +120,8 @@ pub struct SvcLoad {
     #[prost(string, optional, tag="6")]
     pub bldr_url: ::std::option::Option<String>,
     /// Remote channel on the Builder service to receive package updates from.
-    #[prost(string, optional, tag="7")]
-    pub bldr_channel: ::std::option::Option<String>,
+    #[prost(message, optional, tag="7")]
+    pub bldr_channel: ::std::option::Option<super::types::ChannelIdent>,
     /// A filepath on disk which can be specified to override the package's configuration and hooks.
     /// This is useful when testing services on a local Supervisor before packaging them.
     #[prost(string, optional, tag="8")]
