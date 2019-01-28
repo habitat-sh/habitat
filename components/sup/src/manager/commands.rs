@@ -218,7 +218,10 @@ pub fn service_load(
     opts: protocol::ctl::SvcLoad,
 ) -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
-    let bldr_url = opts.bldr_url.clone().unwrap_or_default();
+    let bldr_url = opts
+        .bldr_url
+        .clone()
+        .unwrap_or_else(|| protocol::DEFAULT_BLDR_URL.to_string());
     let bldr_channel = opts
         .bldr_channel
         .clone()
