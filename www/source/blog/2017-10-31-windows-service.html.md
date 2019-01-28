@@ -40,15 +40,15 @@ The Habitat Supervisor logs will be located in `$env:systemdrive\hab\svc\windows
 
 ## Configuring the Habitat service
 
-You may configure the Habitat service using its configuration file located at `$env:systemdrive\hab\svc\windows-service\HabService.exe.config`. Here you can configure settings for logging, arguments to be passed to `hab run`, and whether to include debug verbosity in the logs.
+You may configure the Habitat service using its configuration file located at `$env:systemdrive\hab\svc\windows-service\HabService.dll.config`. Here you can configure arguments to be passed to `hab run` and whether to include debug verbosity in the logs.
 
-The Habitat Windows service uses [log4net](https://logging.apache.org/log4net/) to control where logs are saved and how they are rotated. You likely do not want to change these settings but if you are familiar with `log4net` logging appenders, you can certainly change these settings.
-
-Other settings are located in the `appSettings` section of the configuration file. Here you can add or edit the following configuration keys:
+The settings located in the `appSettings` section of the configuration file may include:
 
 * `debug` - When any value other than `false`, this will cause the service logs to include very verbose debug logging. This is likely only helpful to a Habitat developer troubleshooting problems with the Habitat Supervisor.
 * `launcherArgs` - Arguments to forward on to `hab run`. You can see `hab run --help` for details but here you may pass peer information or override supervisor ports.
 * `launcherPath` - The absolute path of the `hab-launch.exe` to invoke which will start the supervisor. By default this will point to the latest version of the launcher installed. This is useful by Habitat developers for debugging the Habitat launcher.
+
+The Habitat Windows service uses [log4net](https://logging.apache.org/log4net/) to control where logs are saved and how they are rotated. You likely do not want to change these settings but if you are familiar with `log4net` logging appenders, you can certainly change these settings. All of the log4net configuration is located in `$env:systemdrive\hab\svc\windows-service\log4net.xml`.
 
 ## Considerations for setting the Habitat service identity
 
@@ -66,4 +66,4 @@ The last two assignments are necessary in order for the Habitat Windows service 
 
 ## Running the Service and a Windows Studio on the same machine
 
-You may encounter failures if you attempt to enter a Windows Studio using `hab studio enter -w` on a machine that is running the Habitat Windows service due to port conflicts. Currently this is not a supported scenario and it is recommended that you run the Windows service in non-development environments where you do not intend to use a Windows based Studio.
+You may encounter failures if you attempt to enter a Windows Studio using `hab studio enter` on a machine that is running the Habitat Windows service due to port conflicts. Currently this is not a supported scenario and it is recommended that you run the Windows service in non development environments where you do not intend to use a Windows based Studio or use a Docker based Studio via `hab studio enter -D` instead.
