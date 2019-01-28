@@ -71,32 +71,17 @@ impl SymKey {
         cache_key_path: &P,
     ) -> Result<Self> {
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-        let pk = Self::get_public_key(name_with_rev, cache_key_path.as_ref())
-            .map_err(|e| {
-                debug!(
-                    "Can't find public key for name_with_rev {}: {}",
+        let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
+            Ok(k) => Some(k),
+            Err(e) => {
+                let msg = format!(
+                    "No secret keys found for name_with_rev {}: {}",
                     name_with_rev, e
                 );
-                e
-            })
-            .ok();
-        let sk = Self::get_secret_key(name_with_rev, cache_key_path.as_ref())
-            .map_err(|e| {
-                debug!(
-                    "Can't find secret key for name_with_rev {}: {}",
-                    name_with_rev, e
-                );
-                e
-            })
-            .ok();
-        if pk == None && sk == None {
-            let msg = format!(
-                "No public or secret keys found for name_with_rev {}",
-                name_with_rev
-            );
-            return Err(Error::CryptoError(msg));
-        }
-        Ok(Self::new(name, rev, pk, sk))
+                return Err(Error::CryptoError(msg));
+            }
+        };
+        Ok(Self::new(name, rev, None, sk))
     }
 
     pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(
@@ -267,12 +252,6 @@ impl SymKey {
             Some(&secret_keyfile),
             Some(self.to_secret_string()?),
         )
-    }
-
-    fn get_public_key(_key_with_rev: &str, _cache_key_path: &Path) -> Result<()> {
-        Err(Error::CryptoError(
-            "SymKey never contains a public key".to_string(),
-        ))
     }
 
     fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
@@ -537,7 +516,7 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "No public or secret keys found for")]
+    #[should_panic(expected = "No secret keys found for name_with_rev")]
     fn get_pair_for_nonexistent() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         SymKey::get_pair_for("nope-nope-20160405144901", cache.path()).unwrap();
