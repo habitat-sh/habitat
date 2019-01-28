@@ -107,7 +107,7 @@ impl ChannelIdent {
             env::var(Self::LEGACY_ENVVAR)
                 .ok()
                 .and_then(|c| Some(c.to_string()))
-                .unwrap_or(Self::STABLE.to_string()),
+                .unwrap_or_else(|| Self::STABLE.to_string()),
         )
     }
 }
