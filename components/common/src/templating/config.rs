@@ -38,9 +38,9 @@ static ENV_VAR_PREFIX: &'static str = "HAB";
 /// is deeper than this value crosses into overly complex territory when describing configuration
 /// for a single service.
 static TOML_MAX_MERGE_DEPTH: u16 = 30;
-#[cfg(not(windows))]
+#[cfg(unix)]
 pub const CONFIG_PERMISSIONS: u32 = 0o740;
-#[cfg(not(windows))]
+#[cfg(unix)]
 pub const CONFIG_DIR_PERMISSIONS: u32 = 0o770;
 
 /// Describes the path to user configuration that is used by the
@@ -427,12 +427,22 @@ impl Serialize for Cfg {
 pub struct CfgRenderer(TemplateRenderer);
 
 impl CfgRenderer {
+    /// Create a new `CfgRenderer` and load template files from a
+    /// configuration directory, if it exists.
     pub fn new<T>(templates_path: T) -> Result<Self>
     where
         T: AsRef<Path>,
     {
-        let templates = load_templates(templates_path)?;
-        Ok(CfgRenderer(templates))
+        if templates_path.as_ref().is_dir() {
+            load_templates(
+                templates_path.as_ref(),
+                &PathBuf::new(),
+                TemplateRenderer::new(),
+            )
+            .map(CfgRenderer)
+        } else {
+            Ok(CfgRenderer(TemplateRenderer::new()))
+        }
     }
 
     /// Compile and write all configuration files to the configuration directory.
@@ -466,47 +476,46 @@ impl CfgRenderer {
                     String::new()
                 }
             };
-            if file_hash.is_empty() {
+            changed |= if file_hash.is_empty() {
                 debug!(
                     "Configuration {} does not exist; restarting",
                     cfg_dest.display()
                 );
 
-                create_directory_structure(
+                ensure_directory_structure(
                     render_path.as_ref(),
                     &cfg_dest,
                     &pkg.svc_user,
                     &pkg.svc_group,
                 )?;
-                write_templated_file(&cfg_dest, compiled, &pkg.svc_user, &pkg.svc_group)?;
+                write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
                 outputln!(
                     preamble service_group_name,
                     "Created configuration file {}",
                     cfg_dest.display()
                 );
 
-                changed = true
+                true
             } else if file_hash == compiled_hash {
                 debug!(
                     "Configuration {} {} has not changed; not restarting.",
                     cfg_dest.display(),
                     file_hash
                 );
-                continue;
+                false
             } else {
                 debug!(
                     "Configuration {} has changed; restarting",
                     cfg_dest.display()
                 );
-                write_templated_file(&cfg_dest, compiled, &pkg.svc_user, &pkg.svc_group)?;
+                write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
                 outputln!(
                     preamble service_group_name,
                     "Modified configuration file {}",
                     cfg_dest.display()
                 );
-
-                changed = true;
-            }
+                true
+            };
         }
         Ok(changed)
     }
@@ -564,138 +573,87 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
     }
 }
 
-#[cfg(not(windows))]
-fn set_permissions<T: AsRef<Path>>(path: T, user: &str, group: &str) -> hcore::error::Result<()> {
+#[cfg(unix)]
+fn set_permissions(path: &Path, user: &str, group: &str) -> hcore::error::Result<()> {
     use crate::hcore::os::users;
     use crate::hcore::util::posix_perm;
 
     if users::can_run_services_as_svc_user() {
-        posix_perm::set_owner(path.as_ref(), &user, &group)?;
+        posix_perm::set_owner(path, &user, &group)?;
     }
-    if path.as_ref().is_dir() {
-        posix_perm::set_permissions(path.as_ref(), CONFIG_DIR_PERMISSIONS)
+
+    let permissions = if path.is_dir() {
+        CONFIG_DIR_PERMISSIONS
     } else {
-        posix_perm::set_permissions(path.as_ref(), CONFIG_PERMISSIONS)
-    }
+        CONFIG_PERMISSIONS
+    };
+    posix_perm::set_permissions(&path, permissions)
 }
 
 #[cfg(windows)]
-fn set_permissions<T: AsRef<Path>>(path: T, _user: &str, _group: &str) -> hcore::error::Result<()> {
+fn set_permissions(path: &Path, _user: &str, _group: &str) -> hcore::error::Result<()> {
     use crate::hcore::util::win_perm;
 
-    win_perm::harden_path(path.as_ref())
+    win_perm::harden_path(path)
 }
 
-/// Entry point to recursively walk the configuration directory and subdirectories to
+/// Recursively walk the configuration directory and subdirectories to
 /// construct the list of template files
 ///
 /// `dir` should be a directory that exists.
-fn load_templates<T>(dir: T) -> Result<TemplateRenderer>
-where
-    T: AsRef<Path>,
-{
-    let mut template = TemplateRenderer::new();
-    if dir.as_ref().is_dir() {
-        load_templates_recurse(&dir, &PathBuf::new(), &mut template)?;
-    } else {
-        debug!(
-            "Configuration directory is not a directory: {:?}",
-            dir.as_ref()
-        );
-    }
-    Ok(template)
-}
-
-/// Helper function for `load_templates` to recurse into the directory structure.
-///
-/// `dir` should be a directory
-fn load_templates_recurse<T>(
-    dir: T,
-    context: &PathBuf,
-    mut template: &mut TemplateRenderer,
-) -> Result<()>
-where
-    T: AsRef<Path>,
-{
-    if let Ok(entries) = std::fs::read_dir(dir) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                // Skip any entries in the template directory which aren't files or directories
-                match entry.file_type() {
-                    Ok(file_type) => {
-                        if file_type.is_file() {
-                            // We're storing the pathname relative to the input config directory
-                            // as the identifier for the template
-                            let name = entry.file_name().to_string_lossy().into_owned();
-                            let relative_path = context.join(&name);
-
-                            // JW TODO: This error needs improvement. TemplateFileError is too generic.
-                            template
-                                .register_template_file(
-                                    &relative_path.to_string_lossy(),
-                                    &entry.path(),
-                                )
-                                .map_err(Error::TemplateFileError)?;
-                        } else if file_type.is_dir() {
-                            load_templates_recurse(
-                                &entry.path(),
-                                &subdir_path(&context, &entry),
-                                &mut template,
-                            )?;
-                        }
-                    }
-                    Err(e) => {
-                        debug!("Failed to get file metadata for {:?} : {}", entry, e);
-                        continue;
-                    }
-                }
+fn load_templates(
+    dir: &Path,
+    context: &Path,
+    mut template: TemplateRenderer,
+) -> Result<TemplateRenderer> {
+    for entry in std::fs::read_dir(dir)?.filter_map(|entry| entry.ok()) {
+        // We're storing the pathname relative to the input config directory
+        // as the identifier for the template
+        let relative_path = context.join(&entry.file_name());
+        match entry.file_type() {
+            Ok(file_type) if file_type.is_file() => {
+                // JW TODO: This error needs improvement. TemplateFileError is too generic.
+                template
+                    .register_template_file(&relative_path.to_string_lossy(), &entry.path())
+                    .map_err(Error::TemplateFileError)?;
             }
+            Ok(file_type) if file_type.is_dir() => {
+                template = load_templates(&entry.path(), &relative_path, template)?
+            }
+            Ok(file_type) => trace!("Skipping non file/directory entry: {:?}", file_type),
+            Err(e) => debug!("Failed to get file metadata for {:?} : {}", entry, e),
         }
     }
-    Ok(())
-}
-
-/// Helper function to construct a new PathBuf for each level of subdir we
-/// iterate into.
-fn subdir_path(context: &PathBuf, entry: &std::fs::DirEntry) -> PathBuf {
-    let mut subdir = context.clone();
-    subdir.push(entry.file_name());
-    subdir
+    Ok(template)
 }
 
 /// Create the appropriate directories between a `root` directory
 /// and a file within that directory structure that we're about
 /// to create.
 ///
-fn create_directory_structure<T>(root: T, file: T, user: &str, group: &str) -> Result<()>
-where
-    T: AsRef<Path>,
-{
+/// - `root` must be a directory
+/// - `file` must be contained within the `root` directory at an
+///   arbitrary depth
+fn ensure_directory_structure(root: &Path, file: &Path, user: &str, group: &str) -> Result<()> {
     // We check that `file` is below `root` in the directory structure and
     // that `root` exists, so that we don't create arbitrary directory
     // structures on disk
-    assert!(root.as_ref().is_dir());
-    assert!(file.as_ref().starts_with(root.as_ref()));
+    assert!(root.is_dir());
+    assert!(file.starts_with(&root));
 
-    let dir = file.as_ref().parent().unwrap();
+    let dir = file.parent().unwrap();
 
     if !dir.exists() {
         std::fs::create_dir_all(&dir)?;
-        for anc in dir.ancestors() {
-            if anc == root.as_ref() {
-                break;
-            }
+        for anc in dir.ancestors().take_while(|&d| d != root) {
             set_permissions(&anc, &user, &group)?;
         }
     }
     Ok(())
 }
 
-fn write_templated_file<T>(path: T, compiled: String, user: &str, group: &str) -> Result<()>
-where
-    T: AsRef<Path>,
-{
-    File::create(&path).and_then(|mut file| file.write_all(&compiled.into_bytes()))?;
+fn write_templated_file(path: &Path, compiled: &str, user: &str, group: &str) -> Result<()> {
+    File::create(path).and_then(|mut file| file.write_all(compiled.as_bytes()))?;
     set_permissions(&path, &user, &group)?;
     Ok(())
 }
@@ -1154,7 +1112,7 @@ mod test {
         let contents = "foo\nbar\n";
 
         assert_eq!(file.exists(), false);
-        write_templated_file(&file, contents.to_string(), &USER, &GROUP).expect("writes file");
+        write_templated_file(&file, &contents, &USER, &GROUP).expect("writes file");
         assert!(file.exists());
     }
 
@@ -1169,15 +1127,15 @@ mod test {
 
         assert_eq!(file.exists(), false);
 
-        create_directory_structure(&template_dir, &file, &USER, &GROUP)
+        ensure_directory_structure(&template_dir, &file, &USER, &GROUP)
             .expect("create output dir structure");
-        write_templated_file(&file, contents.to_string(), &USER, &GROUP).expect("writes file");
+        write_templated_file(&file, &contents, &USER, &GROUP).expect("writes file");
         assert!(file.exists());
         assert_eq!(file_content(file), contents);
     }
 
     #[test]
-    #[cfg(not(windows))]
+    #[cfg(unix)]
     #[should_panic(expected = "Permission denied")]
     fn write_template_file_no_perms() {
         use crate::hcore::util::posix_perm;
@@ -1192,8 +1150,7 @@ mod test {
         let contents = "foo\nbar\n";
 
         assert_eq!(file.exists(), false);
-        write_templated_file(&file, contents.to_string(), &USER, &GROUP)
-            .expect("should fail on permissions");
+        write_templated_file(&file, &contents, &USER, &GROUP).expect("should fail on permissions");
     }
 
     #[test]
@@ -1214,7 +1171,8 @@ mod test {
         create_with_content(&dir_b.join("bar.txt"), "Hello world!");
         create_with_content(&dir_c.join("baz.txt"), "Hello world!");
 
-        let renderer = load_templates(input_dir).expect("visit config dirs");
+        let renderer = load_templates(&input_dir, &PathBuf::new(), TemplateRenderer::new())
+            .expect("visit config dirs");
 
         let expected_keys = vec![
             PathBuf::from("dir_a").join("foo.txt"),
@@ -1228,6 +1186,19 @@ mod test {
             let str_key = key.to_string_lossy().into_owned();
             assert!(templates.contains_key(&str_key));
         }
+    }
+
+    #[test]
+    #[should_panic(expected = "Not a directory")]
+    /// Check we get an error if we pass in a file to `load_templates`
+    fn test_load_templates_file() {
+        let tmp = TempDir::new().expect("create temp dir");
+
+        let file = tmp.path().join("bar.txt");
+        create_with_content(&file, "Hello world!");
+
+        load_templates(&file, &PathBuf::new(), TemplateRenderer::new())
+            .expect("should fail on file");
     }
 
     #[test]
