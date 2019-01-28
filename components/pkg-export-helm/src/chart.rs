@@ -179,7 +179,7 @@ impl<'a> Chart<'a> {
         let mut write = self.create_file("Chart.yaml")?;
         let out = self.chartfile.into_string()?;
 
-        write.write(out.as_bytes())?;
+        write.write_all(out.as_bytes())?;
 
         Ok(())
     }
@@ -201,7 +201,7 @@ impl<'a> Chart<'a> {
             .expect("generate_manifest_template() called more than once")
             .into();
 
-        write.write(out.as_bytes())?;
+        write.write_all(out.as_bytes())?;
 
         Ok(())
     }

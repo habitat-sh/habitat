@@ -178,7 +178,7 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
 }
 
 fn valid_version(val: String) -> result::Result<(), String> {
-    let split: Vec<&str> = val.split(".").collect();
+    let split: Vec<&str> = val.split('.').collect();
     if split.len() != 3 {
         return Err(format!("Version '{}' is not valid", &val));
     }

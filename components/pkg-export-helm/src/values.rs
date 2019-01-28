@@ -44,7 +44,7 @@ impl Values {
                 );
         }
 
-        write.write(out.as_bytes())?;
+        write.write_all(out.as_bytes())?;
 
         Ok(())
     }

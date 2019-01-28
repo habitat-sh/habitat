@@ -476,6 +476,7 @@ fn dispatch(tx: &Sender, bytes: &[u8], services: &mut ServiceTable) {
     func(tx, msg, services);
 }
 
+#[allow(clippy::mutex_atomic)] // A Mutex is required for Condvar::wait_timeout
 fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Sender)> {
     let pair = Arc::new((Mutex::new(false), Condvar::new()));
     let pair2 = pair.clone();
@@ -505,7 +506,7 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
 
     let (ref lock, ref cvar) = *pair;
     let timeout_secs = core::env::var(IPC_CONNECT_TIMEOUT_SECS)
-        .unwrap_or("".to_string())
+        .unwrap_or_default()
         .parse()
         .unwrap_or(DEFAULT_IPC_CONNECT_TIMEOUT_SECS);
 
@@ -534,11 +535,11 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
 /// Example inputs (that is `hab-sup --version` outputs):
 /// hab-sup 0.59.0/20180712161546
 /// hab-sup 0.62.0-dev
-fn is_supported_supervisor_version(version_output: String) -> bool {
+fn is_supported_supervisor_version(version_output: &str) -> bool {
     if let Some(version_str) = version_output
-        .split(' ') // ["hab-sup", <version-number>]
-        .last() // drop "hab-sup", keep <version-number>
-        .unwrap() // split() always returns an 1+ element iterator
+        .split(' ') //                      ["hab-sup", <version-number>]
+        .last() //                          drop "hab-sup", keep <version-number>
+        .unwrap() //                        split() always returns an 1+ element iterator
         .split(|c| c == '/' || c == '-') // strip "-dev" or "/build"
         .next()
     {
@@ -578,7 +579,7 @@ fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
         debug!("Checking Supervisor {:?} version", binary);
         let version_check = Command::new(&binary).arg("--version").output()?;
         let sup_version = String::from_utf8_lossy(&version_check.stdout);
-        if !is_supported_supervisor_version(sup_version.trim().to_string()) {
+        if !is_supported_supervisor_version(&sup_version.trim()) {
             error!("This Launcher requires Habitat version {}", SUP_VERSION_REQ);
             error!("This check can be disabled by setting the {} environment variable to a non-empty string when starting the supervisor", SUP_VERSION_CHECK_DISABLE);
             error!("Disabling this check may result in undefined behavior; please update to a newer Habitat version");

@@ -70,16 +70,6 @@ unit-bin: $(addprefix unit-,$(BIN)) ## executes the binary components' unit test
 unit-lib: $(addprefix unit-,$(LIB)) ## executes the library components' unit test suites
 .PHONY: unit-lib
 
-lint: lint-bin lint-lib
-lint-all: lint
-.PHONY: lint lint-all
-
-lint-bin: $(addprefix lint-,$(BIN))
-.PHONY: lint-bin
-
-lint-lib: $(addprefix lint-,$(LIB))
-.PHONY: lint-lib
-
 functional: functional-bin functional-lib
 functional-all: functional
 test: functional ## executes all components' test suites
@@ -214,7 +204,7 @@ UNEXAMINED_LINTS = clippy::cyclomatic_complexity \
                    clippy::too_many_arguments \
                    clippy::trivially_copy_pass_by_ref \
                    clippy::wrong_self_convention \
-									 renamed_and_removed_lints
+                   renamed_and_removed_lints
 
 # Lints we disagree with and choose to keep in our code with no warning
 ALLOWED_LINTS =
@@ -272,16 +262,13 @@ DENIED_LINTS = clippy::assign_op_pattern \
                clippy::useless_vec \
                clippy::write_with_newline
 
-define LINT
-lint-$1: image ## executes the $1 component's linter checks
-	$(run) sh -c 'cd components/$1 && cargo clippy --all-targets --tests $(CARGO_FLAGS) -- \
-	                                               $(addprefix -A ,$(UNEXAMINED_LINTS)) \
-	                                               $(addprefix -A ,$(ALLOWED_LINTS)) \
-	                                               $(addprefix -W ,$(LINTS_TO_FIX)) \
-	                                               $(addprefix -D ,$(DENIED_LINTS))'
-.PHONY: lint-$1
-endef
-$(foreach component,$(ALL),$(eval $(call LINT,$(component))))
+lint: image ## executes the $1 component's linter checks
+	$(run) cargo clippy --all-targets --tests $(CARGO_FLAGS) -- \
+	                    $(addprefix -A ,$(UNEXAMINED_LINTS)) \
+	                    $(addprefix -A ,$(ALLOWED_LINTS)) \
+	                    $(addprefix -W ,$(LINTS_TO_FIX)) \
+	                    $(addprefix -D ,$(DENIED_LINTS))
+.PHONY: lint
 
 define FUNCTIONAL
 functional-$1: image ## executes the $1 component's functional test suite
