@@ -21,7 +21,6 @@ use crate::error::{Error, Result};
 use crate::hcore::{
     package::{Identifiable, PackageIdent, PackageTarget},
     service::ServiceGroup,
-    ChannelIdent,
 };
 use crate::manager::{
     service::{
