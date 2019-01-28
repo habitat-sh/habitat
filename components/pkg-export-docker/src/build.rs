@@ -31,10 +31,6 @@ use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH,
 use crate::hcore::package::{PackageArchive, PackageIdent, PackageInstall};
 use crate::hcore::ChannelIdent;
 use crate::hcore::PROGRAM_NAME;
-use crate::hcore::{
-    fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
-    ChannelIdent,
-};
 use clap;
 #[cfg(unix)]
 use failure::SyncFailure;
