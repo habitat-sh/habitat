@@ -110,11 +110,6 @@ impl ChannelIdent {
                 .unwrap_or(Self::STABLE.to_string()),
         )
     }
-
-    /// Helper function for Builder dynamic channels
-    pub fn bldr_name(id: u64) -> String {
-        format!("bldr-{}", id)
-    }
 }
 
 impl From<&str> for ChannelIdent {
