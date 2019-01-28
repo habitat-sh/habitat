@@ -506,7 +506,7 @@ impl DockerBuildRoot {
             "pkg_name": ident.name,
             "pkg_version": &version,
             "pkg_release": &release,
-            "channel": self.0.ctx().channel(),
+            "channel": self.0.ctx().channel().as_str(),
         });
         let image_name = match naming.custom_image_name {
             Some(ref custom) => Handlebars::new()
