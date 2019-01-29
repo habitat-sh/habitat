@@ -77,7 +77,7 @@ lazy_static::lazy_static! {
 }
 
 /// A Builder channel
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ChannelIdent(String);
 
 impl ChannelIdent {
