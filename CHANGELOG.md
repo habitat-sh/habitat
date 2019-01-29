@@ -3,19 +3,22 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+
+## [0.74.0](https://github.com/habitat-sh/habitat/tree/0.74.0) (2019-01-28)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.73.0...0.74.0)
+
 #### Behavioral Changes
 - set results folder in PWD not PLAN_CONTEXT [#6087](https://github.com/habitat-sh/habitat/pull/6087) ([mwrock](https://github.com/mwrock))
-
-#### New Features & Enhancements
-- Improve butterfly Server::insert_service [#6053](https://github.com/habitat-sh/habitat/pull/6053) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
 - install interpreter if not already installed [#6093](https://github.com/habitat-sh/habitat/pull/6093) ([mwrock](https://github.com/mwrock))
 - Fix some clippy lints that were missed due to `make lint` missing some files [#6068](https://github.com/habitat-sh/habitat/pull/6068) ([baumanj](https://github.com/baumanj))
 - Fix &quot;uncontroversial&quot; clippy lints and start making them errors in TravisCI [#6065](https://github.com/habitat-sh/habitat/pull/6065) ([baumanj](https://github.com/baumanj))
-- Simplify insert_service [#6044](https://github.com/habitat-sh/habitat/pull/6044) ([baumanj](https://github.com/baumanj))
-- Only start services that are runnable [#6043](https://github.com/habitat-sh/habitat/pull/6043) ([jamesc](https://github.com/jamesc))
-- Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
+
+#### New Features & Enhancements
+- extract supervisor templating and execute an install hook when installing packages [#5866](https://github.com/habitat-sh/habitat/pull/5866) ([mwrock](https://github.com/mwrock))
+- Improve butterfly Server::insert_service [#6053](https://github.com/habitat-sh/habitat/pull/6053) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
 - fix misplacement of tutorial fix [#6086](https://github.com/habitat-sh/habitat/pull/6086) ([mwrock](https://github.com/mwrock))
@@ -26,7 +29,6 @@
 - Instrument the supervisor with metrics [#5986](https://github.com/habitat-sh/habitat/pull/5986) ([raskchanky](https://github.com/raskchanky))
 - [blog] Add post detailing base plans refresh 2019-01-22 [#6064](https://github.com/habitat-sh/habitat/pull/6064) ([smacfarlane](https://github.com/smacfarlane))
 - Modify internal queue name [#6062](https://github.com/habitat-sh/habitat/pull/6062) ([scotthain](https://github.com/scotthain))
-- extract supervisor templating and execute an install hook when installing packages [#5866](https://github.com/habitat-sh/habitat/pull/5866) ([mwrock](https://github.com/mwrock))
 - Remove eventsrv. [#6069](https://github.com/habitat-sh/habitat/pull/6069) ([raskchanky](https://github.com/raskchanky))
 - Update docs after the latest release [#6063](https://github.com/habitat-sh/habitat/pull/6063) ([raskchanky](https://github.com/raskchanky))
 - split sections by custom token when generating cli docs [#6037](https://github.com/habitat-sh/habitat/pull/6037) ([mpeck](https://github.com/mpeck))
@@ -34,6 +36,16 @@
 - Update Cargo.lock for 0.73.0 [#6060](https://github.com/habitat-sh/habitat/pull/6060) ([raskchanky](https://github.com/raskchanky))
 - Bump to 0.74.0-dev [#6059](https://github.com/habitat-sh/habitat/pull/6059) ([raskchanky](https://github.com/raskchanky))
 - Add 0.73.0 blog post [#6057](https://github.com/habitat-sh/habitat/pull/6057) ([raskchanky](https://github.com/raskchanky))
+
+## [0.73.0](https://github.com/habitat-sh/habitat/tree/0.73.0) (2019-01-14)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.72.0...0.73.0)
+
+#### Bug Fixes
+- Simplify insert_service [#6044](https://github.com/habitat-sh/habitat/pull/6044) ([baumanj](https://github.com/baumanj))
+- Only start services that are runnable [#6043](https://github.com/habitat-sh/habitat/pull/6043) ([jamesc](https://github.com/jamesc))
+- Correctly serialize exports in service rumors [#5987](https://github.com/habitat-sh/habitat/pull/5987) ([jamesc](https://github.com/jamesc))
+
+#### Merged Pull Requests
 - Add jamesc to some code areas in CODEOWNERS [#6050](https://github.com/habitat-sh/habitat/pull/6050) ([jamesc](https://github.com/jamesc))
 - fixes problem when newlines exist in CTL_SECRET file [#6022](https://github.com/habitat-sh/habitat/pull/6022) ([jeremymv2](https://github.com/jeremymv2))
 - fix and clarify release issues found in 0.72.0 release [#6039](https://github.com/habitat-sh/habitat/pull/6039) ([mwrock](https://github.com/mwrock))
@@ -43,7 +55,6 @@
 - bump dev version for 0.73 [#6036](https://github.com/habitat-sh/habitat/pull/6036) ([mwrock](https://github.com/mwrock))
 - Parameterize the rumor sharing limit [#6032](https://github.com/habitat-sh/habitat/pull/6032) ([christophermaier](https://github.com/christophermaier))
 - adding 0.72.0 release blog post [#6030](https://github.com/habitat-sh/habitat/pull/6030) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [0.72.0](https://github.com/habitat-sh/habitat/tree/0.72.0) (2018-01-03)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.71.0...0.72.0)
