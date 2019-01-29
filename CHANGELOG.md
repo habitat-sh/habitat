@@ -10,6 +10,7 @@
 - Improve butterfly Server::insert_service [#6053](https://github.com/habitat-sh/habitat/pull/6053) ([baumanj](https://github.com/baumanj))
 
 #### Bug Fixes
+- install interpreter if not already installed [#6093](https://github.com/habitat-sh/habitat/pull/6093) ([mwrock](https://github.com/mwrock))
 - Fix some clippy lints that were missed due to `make lint` missing some files [#6068](https://github.com/habitat-sh/habitat/pull/6068) ([baumanj](https://github.com/baumanj))
 - Fix &quot;uncontroversial&quot; clippy lints and start making them errors in TravisCI [#6065](https://github.com/habitat-sh/habitat/pull/6065) ([baumanj](https://github.com/baumanj))
 - Simplify insert_service [#6044](https://github.com/habitat-sh/habitat/pull/6044) ([baumanj](https://github.com/baumanj))
