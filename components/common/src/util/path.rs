@@ -19,9 +19,16 @@ use std::io::BufReader;
 use std::path::PathBuf;
 use std::str::FromStr;
 
+use crate::command::package::install::{self, InstallHookMode, InstallMode, LocalPackageUsage};
 use crate::error::{Error, Result};
-use crate::hcore::fs::{find_command, FS_ROOT_PATH};
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::ui;
+use habitat_core::{
+    channel,
+    fs::{cache_artifact_path, find_command, FS_ROOT_PATH},
+    package::{PackageIdent, PackageInstall, PackageTarget},
+    url::default_bldr_url,
+    PROGRAM_NAME,
+};
 
 /// The package identifier for the OS specific interpreter which the Supervisor is built with,
 /// or which may be independently installed
@@ -33,7 +40,9 @@ const INTERPRETER_COMMAND: &str = "busybox";
 #[cfg(target_os = "windows")]
 const INTERPRETER_IDENT: &str = "core/powershell";
 #[cfg(target_os = "windows")]
-const INTERPRETER_COMMAND: &str = "powershell";
+const INTERPRETER_COMMAND: &str = "pwsh";
+
+const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 /// Returns a list of path entries, one of which should contain the interpreter binary.
 ///
@@ -113,17 +122,24 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                 return Err(Error::FileNotFound(path));
                             }
                         },
-                        // Well, we're not running out of a package, there is no interpreter package
-                        // installed, it's not on `PATH`, what more can we do. Time to give up the
-                        // chase. Too bad, we were really trying to be helpful here.
                         None => {
-                            println!(
-                                "A interpreter installation is required but could not be \
-                                 found. Please install '{}' or put the \
-                                 interpreter's command on your $PATH. Aborting...",
-                                INTERPRETER_IDENT
-                            );
-                            return Err(Error::PackageNotFound(ident.to_string()));
+                            install::start(
+                                &mut ui::UI::default_with_env(),
+                                &default_bldr_url(),
+                                Some(&channel::STABLE_CHANNEL.to_string()),
+                                &(ident.clone(), *PackageTarget::active_target()).into(),
+                                &*PROGRAM_NAME,
+                                VERSION,
+                                FS_ROOT_PATH.as_path(),
+                                &cache_artifact_path(None::<String>),
+                                None,
+                                &InstallMode::default(),
+                                &LocalPackageUsage::default(),
+                                InstallHookMode::default(),
+                            )?;
+                            let pkg_install =
+                                PackageInstall::load(&ident, Some(FS_ROOT_PATH.as_ref()))?;
+                            pkg_install.paths()?
                         }
                     }
                 }
