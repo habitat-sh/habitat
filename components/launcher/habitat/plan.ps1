@@ -5,7 +5,7 @@ $pkg_license = @("Apache-2.0")
 $pkg_source = "https://s3-us-west-2.amazonaws.com/habitat-win-deps/hab-win-deps.zip"
 $pkg_shasum = "00b34fb983ebc43bfff9e8e2220d23db200cb45494a4971a5e2e733f1d73d04b"
 $pkg_bin_dirs = @("bin")
-$pkg_build_deps = @("core/visual-cpp-redist-2013", "core/rust", "core/cacerts", "core/git")
+$pkg_build_deps = @("core/visual-cpp-redist-2015", "core/rust", "core/cacerts", "core/git")
 
 function Invoke-Prepare {
     if($env:HAB_CARGO_TARGET_DIR) {
@@ -55,5 +55,5 @@ function Invoke-Build {
 function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-launch.exe" "$pkg_prefix/bin/hab-launch.exe"
     Copy-Item "$HAB_CACHE_SRC_PATH/$pkg_dirname/bin/*" "$pkg_prefix/bin"
-    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2013")/bin/*" "$pkg_prefix/bin"
+    Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*" "$pkg_prefix/bin"
 }
