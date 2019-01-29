@@ -247,20 +247,6 @@ impl Into<package::PackageIdent> for PackageIdent {
     }
 }
 
-impl From<core::ChannelIdent> for ChannelIdent {
-    fn from(ident: core::ChannelIdent) -> Self {
-        ChannelIdent {
-            name: ident.to_string(),
-        }
-    }
-}
-
-impl Into<core::ChannelIdent> for ChannelIdent {
-    fn into(self) -> core::ChannelIdent {
-        core::ChannelIdent::from(self.name)
-    }
-}
-
 impl fmt::Display for service_cfg::Format {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let state = match *self {

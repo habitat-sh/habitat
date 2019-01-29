@@ -23,13 +23,6 @@ pub struct PackageIdent {
 #[derive(Clone, PartialEq, Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
-pub struct ChannelIdent {
-    #[prost(string, required, tag="1")]
-    pub name: String,
-}
-#[derive(Clone, PartialEq, Message)]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
 pub struct ProcessStatus {
     #[prost(int64, optional, tag="1")]
     pub elapsed: ::std::option::Option<i64>,

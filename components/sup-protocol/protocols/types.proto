@@ -53,10 +53,6 @@ message PackageIdent {
   optional string release = 4;
 }
 
-message ChannelIdent {
-  required string name = 1;
-}
-
 message ProcessStatus {
   optional int64 elapsed = 1;
   optional uint32 pid = 2;

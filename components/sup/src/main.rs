@@ -180,7 +180,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                     &source,
                     &msg.bldr_channel
                         .clone()
-                        .map(protocol::types::ChannelIdent::into)
+                        .map(ChannelIdent::from)
                         .unwrap_or_default(),
                 )?;
                 install.ident.into()
@@ -506,7 +506,7 @@ fn ui() -> UI {
 /// populates all *shared* options between `run` and `load`.
 fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) -> Result<()> {
     msg.bldr_url = Some(bldr_url(m));
-    msg.bldr_channel = Some(channel(m).into());
+    msg.bldr_channel = Some(channel(m).to_string());
     msg.application_environment = get_app_env_from_input(m)?;
     msg.binds = get_binds_from_input(m)?;
     msg.config_from = get_config_from_input(m);
