@@ -295,6 +295,19 @@ pub trait Hook: fmt::Debug + Sized + Send {
             );
         }
 
+        cmd.before_exec(|| {
+            // Run in your own process group! This prevents terminal
+            // signals (e.g. ^C) sent to a Supervisor running in the
+            // foreground from being passed down to any running hooks,
+            // which could cause them to terminate prematurely, among
+            // other things.
+            if unsafe { libc::setpgid(0, 0) } == 0 {
+                Ok(())
+            } else {
+                Err(io::Error::last_os_error())
+            }
+        });
+
         Ok(cmd.spawn()?)
     }
 
