@@ -28,7 +28,7 @@
 
 use crate::api_client::{self, Client};
 use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::package::PackageIdent;
+use crate::hcore::{package::PackageIdent, ChannelIdent};
 use hyper::status::StatusCode;
 
 use crate::error::{Error, Result};
@@ -43,14 +43,14 @@ pub fn start(
     ui: &mut UI,
     bldr_url: &str,
     ident: &PackageIdent,
-    channel: &str,
+    channel: &ChannelIdent,
     token: &str,
 ) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
-    if channel != "stable" && channel != "unstable" {
+    if channel != &ChannelIdent::stable() && channel != &ChannelIdent::unstable() {
         match api_client.create_channel(&ident.origin, channel, token) {
             Ok(_) => (),
             Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),

@@ -14,11 +14,18 @@
 
 use crate::api_client::Client;
 use crate::common::ui::{Status, UIWriter, UI};
+use crate::hcore::ChannelIdent;
 
 use crate::error::{Error, Result};
 use crate::{PRODUCT, VERSION};
 
-pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, channel: &str) -> Result<()> {
+pub fn start(
+    ui: &mut UI,
+    bldr_url: &str,
+    token: &str,
+    origin: &str,
+    channel: &ChannelIdent,
+) -> Result<()> {
     let bldr_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     ui.status(Status::Deleting, format!("channel {}.", channel))?;

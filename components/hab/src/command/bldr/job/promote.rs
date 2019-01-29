@@ -18,6 +18,7 @@ use std::str::FromStr;
 
 use crate::api_client;
 use crate::common::ui::{Status, UIReader, UIWriter, UI};
+use crate::hcore::ChannelIdent;
 
 use crate::error::{Error, Result};
 use crate::{PRODUCT, VERSION};
@@ -85,7 +86,7 @@ pub fn start(
     ui: &mut UI,
     bldr_url: &str,
     group_id: &str,
-    channel: &str,
+    channel: &ChannelIdent,
     origin: Option<&str>,
     interactive: bool,
     verbose: bool,

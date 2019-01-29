@@ -394,7 +394,7 @@ impl Client {
         &self,
         group_id: u64,
         idents: &[T],
-        channel: &str,
+        channel: &ChannelIdent,
         token: &str,
         promote: bool,
     ) -> Result<()> {
@@ -961,7 +961,12 @@ impl Client {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn promote_package(&self, ident: &PackageIdent, channel: &str, token: &str) -> Result<()> {
+    pub fn promote_package(
+        &self,
+        ident: &PackageIdent,
+        channel: &ChannelIdent,
+        token: &str,
+    ) -> Result<()> {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
@@ -987,7 +992,12 @@ impl Client {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn demote_package(&self, ident: &PackageIdent, channel: &str, token: &str) -> Result<()> {
+    pub fn demote_package(
+        &self,
+        ident: &PackageIdent,
+        channel: &ChannelIdent,
+        token: &str,
+    ) -> Result<()> {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
@@ -1008,7 +1018,7 @@ impl Client {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn create_channel(&self, origin: &str, channel: &str, token: &str) -> Result<()> {
+    pub fn create_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
         let path = format!("depot/channels/{}/{}", origin, channel);
         debug!("Creating channel, path: {:?}", path);
 
@@ -1026,7 +1036,7 @@ impl Client {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn delete_channel(&self, origin: &str, channel: &str, token: &str) -> Result<()> {
+    pub fn delete_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
         let path = format!("depot/channels/{}/{}", origin, channel);
         debug!("Deleting channel, path: {:?}", path);
 
@@ -1284,7 +1294,7 @@ fn package_channels_path(package: &PackageIdent) -> String {
     )
 }
 
-fn channel_package_promote(channel: &str, package: &PackageIdent) -> String {
+fn channel_package_promote(channel: &ChannelIdent, package: &PackageIdent) -> String {
     format!(
         "depot/channels/{}/{}/pkgs/{}/{}/{}/promote",
         package.origin(),
@@ -1295,7 +1305,7 @@ fn channel_package_promote(channel: &str, package: &PackageIdent) -> String {
     )
 }
 
-fn channel_package_demote(channel: &str, package: &PackageIdent) -> String {
+fn channel_package_demote(channel: &ChannelIdent, package: &PackageIdent) -> String {
     format!(
         "depot/channels/{}/{}/pkgs/{}/{}/{}/demote",
         package.origin(),

@@ -28,7 +28,7 @@
 
 use crate::api_client::Client;
 use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::package::PackageIdent;
+use crate::hcore::{package::PackageIdent, ChannelIdent};
 
 use crate::error::{Error, Result};
 use crate::{PRODUCT, VERSION};
@@ -44,17 +44,17 @@ pub fn start(
     ui: &mut UI,
     bldr_url: &str,
     ident: &PackageIdent,
-    channel: &str,
+    channel: &ChannelIdent,
     token: &str,
 ) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Demoting {} from {}", ident, channel))?;
 
-    if channel == "unstable" {
+    if channel == &ChannelIdent::unstable() {
         return Err(Error::CannotRemoveFromChannel((
             format!("{}", ident),
-            "unstable".to_string(),
+            channel.to_string(),
         )));
     }
 

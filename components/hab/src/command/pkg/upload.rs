@@ -58,7 +58,7 @@ use crate::{PRODUCT, VERSION};
 pub fn start<T, U>(
     ui: &mut UI,
     bldr_url: &str,
-    additional_release_channel: Option<&str>,
+    additional_release_channel: &Option<ChannelIdent>,
     token: &str,
     archive_path: T,
     force_upload: bool,
@@ -156,7 +156,7 @@ fn upload_into_depot(
     api_client: &Client,
     token: &str,
     ident: &PackageIdent,
-    additional_release_channel: Option<&str>,
+    additional_release_channel: &Option<ChannelIdent>,
     force_upload: bool,
     mut archive: &mut PackageArchive,
 ) -> Result<()> {
@@ -194,18 +194,18 @@ fn upload_into_depot(
 
     // Promote to additional_release_channel if specified
     if package_uploaded && additional_release_channel.is_some() {
-        let channel = ChannelIdent::from(additional_release_channel.unwrap());
+        let channel = additional_release_channel.clone().unwrap();
         ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
         if channel != ChannelIdent::stable() && channel != ChannelIdent::unstable() {
-            match api_client.create_channel(&ident.origin, &channel.to_string(), token) {
+            match api_client.create_channel(&ident.origin, &channel, token) {
                 Ok(_) => (),
                 Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),
                 Err(e) => return Err(Error::from(e)),
             };
         }
 
-        match api_client.promote_package(ident, &channel.to_string(), token) {
+        match api_client.promote_package(ident, &channel, token) {
             Ok(_) => (),
             Err(e) => return Err(Error::from(e)),
         };
@@ -221,7 +221,7 @@ fn attempt_upload_dep<T>(
     token: &str,
     ident: &PackageIdent,
     target: &PackageTarget,
-    additional_release_channel: Option<&str>,
+    additional_release_channel: &Option<ChannelIdent>,
     _force_upload: bool,
     archives_dir: &PathBuf,
     key_path: T,
