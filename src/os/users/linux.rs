@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use caps::{self, CapSet, Capability};
 use std::path::PathBuf;
 
 use crate::error::{Error, Result};
@@ -25,14 +24,20 @@ use crate::linux_users::os::unix::{GroupExt, UserExt};
 /// All capabilities must be present. If we can run processes as other
 /// users, but can't change ownership, then the processes won't be
 /// able to access their files. Similar logic holds for the reverse.
+#[cfg(target_os = "linux")]
 pub fn can_run_services_as_svc_user() -> bool {
+    use caps::{self, CapSet, Capability};
+
+    fn has(cap: Capability) -> bool {
+        caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false)
+    }
+
     has(Capability::CAP_SETUID) && has(Capability::CAP_SETGID) && has(Capability::CAP_CHOWN)
 }
 
-/// Helper function; does the current thread have `cap` in its
-/// effective capability set?
-fn has(cap: Capability) -> bool {
-    caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false)
+#[cfg(target_os = "macos")]
+pub fn can_run_services_as_svc_user() -> bool {
+    true
 }
 
 pub fn get_uid_by_name(owner: &str) -> Option<u32> {
