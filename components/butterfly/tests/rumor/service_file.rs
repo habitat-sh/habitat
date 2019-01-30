@@ -27,9 +27,9 @@ fn two_members_share_service_files() {
         "I like to have contents in my file",
     );
     net.wait_for_gossip_rounds(1);
-    net[1]
+    assert!(net[1]
         .service_file_store
-        .with_rumor("witcher.prod", "yeppers", |u| assert!(u.is_some()));
+        .contains_rumor("witcher.prod", "yeppers"));
 }
 
 #[test]
@@ -51,9 +51,7 @@ fn service_file_via_client() {
         )
         .expect("Cannot send the service file");
     net.wait_for_gossip_rounds(1);
-    net[1]
+    assert!(net[1]
         .service_file_store
-        .with_rumor("witcher.prod", "devil-wears-prada.txt", |u| {
-            assert!(u.is_some())
-        });
+        .contains_rumor("witcher.prod", "devil-wears-prada.txt"));
 }

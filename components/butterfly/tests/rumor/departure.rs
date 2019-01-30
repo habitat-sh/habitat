@@ -22,9 +22,9 @@ fn two_members_share_departures() {
     net.mesh();
     net.add_departure(0);
     net.wait_for_gossip_rounds(1);
-    net[1]
+    assert!(net[1]
         .departure_store
-        .with_rumor("departure", net[0].member_id(), |u| assert!(u.is_some()));
+        .contains_rumor("departure", net[0].member_id()));
 }
 
 #[test]
@@ -40,8 +40,8 @@ fn departure_via_client() {
         .send_departure(String::from(net[1].member_id()))
         .expect("Cannot send the departure");
     net.wait_for_gossip_rounds(1);
-    net[2]
+    assert!(net[2]
         .departure_store
-        .with_rumor("departure", net[1].member_id(), |u| assert!(u.is_some()));
+        .contains_rumor("departure", net[1].member_id()));
     assert_wait_for_health_of!(net, 1, Health::Departed);
 }

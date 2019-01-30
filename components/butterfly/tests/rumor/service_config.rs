@@ -22,9 +22,9 @@ fn two_members_share_service_config() {
     net.mesh();
     net.add_service_config(0, "witcher", "tcp-backlog = 128");
     net.wait_for_gossip_rounds(1);
-    net[1]
+    assert!(net[1]
         .service_config_store
-        .with_rumor("witcher.prod", "service_config", |u| assert!(u.is_some()));
+        .contains_rumor("witcher.prod", "service_config"));
 }
 
 #[test]
@@ -45,7 +45,7 @@ fn service_config_via_client() {
         )
         .expect("Cannot send the service configuration");
     net.wait_for_gossip_rounds(1);
-    net[1]
+    assert!(net[1]
         .service_config_store
-        .with_rumor("witcher.prod", "service_config", |u| assert!(u.is_some()));
+        .contains_rumor("witcher.prod", "service_config"));
 }
