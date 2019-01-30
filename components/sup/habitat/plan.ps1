@@ -17,7 +17,8 @@ $pkg_deps=@(
 $pkg_build_deps = @(
     "core/visual-cpp-build-tools-2015",
     "core/rust",
-    "core/cacerts"
+    "core/cacerts",
+    "core/raml2html"
 )
 
 function Invoke-Prepare {
@@ -51,7 +52,7 @@ function Invoke-Prepare {
 function Invoke-Build {
     Push-Location "$PLAN_CONTEXT"
     try {
-        cargo build --release --no-default-features
+        cargo build --release --no-default-features --features apidocs
         if($LASTEXITCODE -ne 0) {
             Write-Error "Cargo build failed!"
         }

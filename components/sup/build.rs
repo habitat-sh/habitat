@@ -3,9 +3,9 @@ include!("../libbuild.rs");
 
 use std::env;
 use std::fs::File;
-use std::io::Write;
-use std::path::Path;
-use std::process::Command;
+use std::io::{self, Write};
+use std::path::{Path, PathBuf};
+use std::process::{Command, ExitStatus};
 
 fn main() {
     habitat::common();
@@ -17,13 +17,7 @@ fn generate_apidocs() {
     match env::var("CARGO_FEATURE_APIDOCS") {
         Ok(_) => {
             let src = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap()).join("doc/api.raml");
-            let cmd = Command::new("raml2html")
-                .arg("-i")
-                .arg(src)
-                .arg("-o")
-                .arg(dst)
-                .status()
-                .expect("failed to compile html from raml");
+            let cmd = raml2html_cmd(dst, src).expect("failed to compile html from raml");
 
             assert!(cmd.success());
         }
@@ -32,4 +26,19 @@ fn generate_apidocs() {
             file.write_all(b"No API docs provided at build").unwrap();
         }
     };
+}
+
+fn raml2html_cmd(dst: PathBuf, src: PathBuf) -> io::Result<ExitStatus> {
+    let mut cmd = Command::new(if cfg!(windows) { "cmd" } else { "raml2html" });
+
+    let cmd = if cfg!(windows) {
+        // One would think we could directly call the .bat file
+        // see https://github.com/rust-lang/rust/issues/42791
+        // for why this does not work
+        cmd.arg("/c").arg("raml2html.bat")
+    } else {
+        &mut cmd
+    };
+
+    cmd.arg("-i").arg(src).arg("-o").arg(dst).status()
 }
