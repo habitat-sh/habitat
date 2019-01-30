@@ -145,7 +145,7 @@ steps:
 
   - label: "[unit] :linux: sup"
     command:
-      - ./test/run_cargo_test.sh --features "inconsistent_tests integration_tests"  sup
+      - ./test/run_cargo_test.sh --features "ignore_inconsistent_tests ignore_integration_tests"  sup
     agents:
       queue: 'docker-privileged'
     plugins:
@@ -155,6 +155,19 @@ steps:
     retry:
       automatic:
         limit: 1
+
+  - label: "[unit][inconsistent] :linux: sup"
+    command:
+      - ./test/run_cargo_test.sh --features "ignore_integration_tests"  sup
+    agents:
+      queue: 'docker-privileged'
+    plugins:
+      docker#v2.1.0:
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 10
 
   - label: "[unit] :linux: sup-client"
     command:
@@ -197,13 +210,23 @@ steps:
 
   - label: "[unit] :windows: butterfly"
     command:
-      - ./test/run_cargo_test.ps1 butterfly -Features "inconsistent_tests" -TestOptions "--test-threads=1"
+      - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
     agents:
       queue: 'windows-default'
     timeout_in_minutes: 30
     retry:
       automatic:
         limit: 1
+
+  - label: "[unit][inconsistent] :windows: butterfly"
+    command:
+      - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1"
+    agents:
+      queue: 'windows-default'
+    timeout_in_minutes: 30
+    retry:
+      automatic:
+        limit: 10
 
   - label: "[unit] :windows: common"
     command:

@@ -47,4 +47,4 @@ tempfile = "*"
 [features]
 default = ["protocols"]
 protocols = []
-inconsistent_tests = []
+ignore_inconsistent_tests = []
