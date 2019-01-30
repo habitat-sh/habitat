@@ -53,7 +53,7 @@ pub fn start(
 
     if channel == &ChannelIdent::unstable() {
         return Err(Error::CannotRemoveFromChannel((
-            format!("{}", ident),
+            ident.to_string(),
             channel.to_string(),
         )));
     }
