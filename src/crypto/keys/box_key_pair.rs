@@ -191,7 +191,7 @@ impl BoxKeyPair {
                 return Err(Error::CryptoError(format!(
                     "No public key present for {}",
                     self.name_with_rev()
-                )))
+                )));
             }
         }
     }
@@ -208,7 +208,7 @@ impl BoxKeyPair {
                 return Err(Error::CryptoError(format!(
                     "No secret key present for {}",
                     self.name_with_rev()
-                )))
+                )));
             }
         }
     }
@@ -416,7 +416,7 @@ impl BoxKeyPair {
             None => {
                 return Err(Error::CryptoError(
                     "Can't convert key bytes to BoxPublicKey".to_string(),
-                ))
+                ));
             }
         }
     }
@@ -453,7 +453,7 @@ impl BoxKeyPair {
             None => {
                 return Err(Error::CryptoError(
                     "Can't convert key bytes to BoxSecretKey".to_string(),
-                ))
+                ));
             }
         }
     }

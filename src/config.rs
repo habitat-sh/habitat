@@ -32,7 +32,7 @@ pub trait ConfigFile: DeserializeOwned + Sized {
                 return Err(Self::Error::from(Error::ConfigFileIO(
                     filepath.as_ref().to_path_buf(),
                     e,
-                )))
+                )));
             }
         };
         let mut raw = String::new();
@@ -42,7 +42,7 @@ pub trait ConfigFile: DeserializeOwned + Sized {
                 return Err(Self::Error::from(Error::ConfigFileIO(
                     filepath.as_ref().to_path_buf(),
                     e,
-                )))
+                )));
             }
         }
         Self::from_raw(&raw)

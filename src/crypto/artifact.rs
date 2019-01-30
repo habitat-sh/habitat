@@ -160,7 +160,7 @@ where
             Ok(0) => {
                 return Err(Error::CryptoError(
                     "Corrupt payload, can't read format version".to_string(),
-                ))
+                ));
             }
             Ok(_) => {
                 if buffer.trim() != HART_FORMAT_VERSION {
@@ -187,7 +187,7 @@ where
             Ok(0) => {
                 return Err(Error::CryptoError(
                     "Corrupt payload, can't read hash type".to_string(),
-                ))
+                ));
             }
             Ok(_) => {
                 if buffer.trim() != SIG_HASH_TYPE {
@@ -204,7 +204,7 @@ where
             Ok(0) => {
                 return Err(Error::CryptoError(
                     "Corrupt payload, can't read signature".to_string(),
-                ))
+                ));
             }
             Ok(_) => base64::decode(buffer.trim())
                 .map_err(|e| Error::CryptoError(format!("Can't decode signature: {}", e)))?,
@@ -247,7 +247,7 @@ pub fn artifact_signer<P: AsRef<Path>>(src: &P) -> Result<String> {
             Ok(0) => {
                 return Err(Error::CryptoError(
                     "Corrupt payload, can't read format version".to_string(),
-                ))
+                ));
             }
             Ok(_) => {
                 if buffer.trim() != HART_FORMAT_VERSION {

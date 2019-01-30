@@ -42,7 +42,7 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &Vec<PermissionEntry>) 
             return Err(Error::PermissionFailed(format!(
                 "Invalid path {:?}",
                 &path.as_ref()
-            )))
+            )));
         }
     };
 
@@ -71,7 +71,7 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &Vec<PermissionEntry>) 
                 "OS error {} retrieving ACLs from path path {:?}",
                 e,
                 &path.as_ref()
-            )))
+            )));
         }
     };
 

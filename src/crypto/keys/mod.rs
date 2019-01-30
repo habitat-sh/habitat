@@ -86,7 +86,7 @@ impl FromStr for PairType {
                 return Err(Error::CryptoError(format!(
                     "Invalid PairType conversion from {}",
                     value
-                )))
+                )));
             }
         }
     }
@@ -256,7 +256,7 @@ where
                 "Error reading key directory {}: {}",
                 cache_key_path.as_ref().display(),
                 e
-            )))
+            )));
         }
     };
     for result in dir_entries {
@@ -447,7 +447,7 @@ pub fn parse_key_str(content: &str) -> Result<(PairType, String, String)> {
                 return Err(Error::CryptoError(format!(
                     "Unsupported key version: {}",
                     val
-                )))
+                )));
             }
         },
         None => {

@@ -237,7 +237,7 @@ impl SymKey {
                 return Err(Error::CryptoError(format!(
                     "No secret key present for {}",
                     self.name_with_rev()
-                )))
+                )));
             }
         }
     }
@@ -263,7 +263,7 @@ impl SymKey {
                 return Err(Error::CryptoError(format!(
                     "Can't read sym secret key for {}",
                     key_with_rev
-                )))
+                )));
             }
         }
     }

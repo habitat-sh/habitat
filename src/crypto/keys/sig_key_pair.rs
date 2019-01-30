@@ -293,7 +293,7 @@ impl SigKeyPair {
                 return Err(Error::CryptoError(format!(
                     "No public key present for {}",
                     self.name_with_rev()
-                )))
+                )));
             }
         }
     }
@@ -310,7 +310,7 @@ impl SigKeyPair {
                 return Err(Error::CryptoError(format!(
                     "No secret key present for {}",
                     self.name_with_rev()
-                )))
+                )));
             }
         }
     }
@@ -338,7 +338,7 @@ impl SigKeyPair {
                 return Err(Error::CryptoError(format!(
                     "Can't read sig public key for {}",
                     key_with_rev
-                )))
+                )));
             }
         }
     }
@@ -352,7 +352,7 @@ impl SigKeyPair {
                 return Err(Error::CryptoError(format!(
                     "Can't read sig secret key for {}",
                     key_with_rev
-                )))
+                )));
             }
         }
     }
