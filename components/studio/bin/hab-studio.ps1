@@ -419,9 +419,14 @@ function Remove-Studio {
     Write-RmHelp
     return
   }
-  Write-HabInfo "Destroying Studio at $HAB_STUDIO_ROOT"
-
-  if(Test-Path $HAB_STUDIO_ROOT) { Remove-Item $HAB_STUDIO_ROOT -Recurse -Force }
+  if ($HAB_STUDIO_ROOT -eq "$env:SystemDrive\") {
+    Write-HabInfo "Studio is rooted in system drive. Skipping Studio removal."
+  } else {
+    if(Test-Path $HAB_STUDIO_ROOT) {
+      Write-HabInfo "Destroying Studio at $HAB_STUDIO_ROOT"
+      Remove-Item $HAB_STUDIO_ROOT -Recurse -Force
+    }
+  }
 }
 
 function Test-InContainer {
