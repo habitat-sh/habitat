@@ -59,7 +59,7 @@ steps:
       # they're also not being used by anyone else.
       queue: omnibus
       os: Darwin
-      "os:version": 10.11 # Build statically on the oldest thing we can
+      "os:version": 10.12 # Build statically on the oldest thing we can
 
   - wait
 
