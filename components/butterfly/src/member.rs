@@ -685,6 +685,14 @@ impl MemberList {
         }
     }
 
+    /// If an owned `Member` is required, use this. If a shared reference is
+    /// good enough, use `with_member`.
+    pub fn get_cloned(&self, member_id: &str) -> Option<Member> {
+        self.read_entries()
+            .get(member_id)
+            .map(|member_list::Entry { member, .. }| member.clone())
+    }
+
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
     pub fn with_member(&self, member_id: &str, mut with_closure: impl FnMut(Option<&Member>)) {
         with_closure(
