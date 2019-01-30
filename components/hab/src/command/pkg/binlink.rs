@@ -51,7 +51,7 @@ pub fn start(
             return Err(Error::CommandNotFoundInPkg((
                 pkg_install.ident().to_string(),
                 binary.to_string(),
-            )))
+            )));
         }
     };
     if cfg!(target_os = "windows") {

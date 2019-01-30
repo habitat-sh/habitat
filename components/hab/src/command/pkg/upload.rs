@@ -111,7 +111,7 @@ where
                                 return Err(Error::from(api_client::Error::UploadFailed(format!(
                                     "We tried {} times but could not upload {}. Giving up.",
                                     RETRIES, &dep
-                                ))))
+                                ))));
                             }
                         }
                     }
@@ -136,7 +136,7 @@ where
                     return Err(Error::from(api_client::Error::UploadFailed(format!(
                         "We tried {} times but could not upload {}. Giving up.",
                         RETRIES, &ident
-                    ))))
+                    ))));
                 }
             }
             ui.end(format!("Upload of {} complete.", &ident))?;

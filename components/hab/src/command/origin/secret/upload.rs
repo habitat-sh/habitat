@@ -48,7 +48,7 @@ pub fn start(
         Err(_) => {
             return Err(Error::ArgumentError(
                 "Failed to convert encrypted bytes to string",
-            ))
+            ));
         }
     };
     ui.status(Status::Encrypted, format!("{}=[REDACTED].", key))?;
