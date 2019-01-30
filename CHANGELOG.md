@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- uses the 2015 CPP redistributable and fixes some HAB_CACHE_SRC_PATH refs [#6095](https://github.com/habitat-sh/habitat/pull/6095) ([mwrock](https://github.com/mwrock))
+
 #### Merged Pull Requests
 - [ci/mac] Upgrade to macOS 10.12 for build workers. [#6099](https://github.com/habitat-sh/habitat/pull/6099) ([fnichol](https://github.com/fnichol))
 - Release 0.74.0. [#6091](https://github.com/habitat-sh/habitat/pull/6091) ([fnichol](https://github.com/fnichol))
