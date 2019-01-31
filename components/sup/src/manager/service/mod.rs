@@ -26,7 +26,7 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::sync::{Arc, RwLock};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use crate::butterfly::rumor::service::Service as ServiceRumor;
 use crate::common::templating::config::CfgRenderer;
@@ -210,7 +210,7 @@ impl Service {
             topology: spec.topology,
             update_strategy: spec.update_strategy,
             config_from: spec.config_from,
-            scheduled_health_check: None,
+            scheduled_health_check: Some(Instant::now()),
             svc_encrypted_password: spec.svc_encrypted_password,
             health_check_interval: spec.health_check_interval,
             defaults_updated: false,
@@ -397,7 +397,7 @@ impl Service {
             }
         }
         if svc_updated {
-            self.schedule_special_health_check();
+            self.schedule_health_check_at_next_tick();
         }
 
         svc_updated
@@ -643,8 +643,6 @@ impl Service {
                 outputln!(preamble self.service_group,
                             "Updating service {} to {}", self.pkg.ident, pkg.ident);
 
-                self.schedule_special_health_check();
-
                 match CfgRenderer::new(&Self::config_root(&pkg, self.config_from.as_ref())) {
                     Ok(renderer) => self.config_renderer = renderer,
                     Err(e) => {
@@ -682,6 +680,7 @@ impl Service {
         }
 
         self.initialized = false;
+        self.schedule_health_check_at_next_tick();
     }
 
     pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
@@ -1010,6 +1009,10 @@ impl Service {
 
     fn schedule_special_health_check(&mut self) {
         self.schedule_health_check(HealthCheckInterval::default());
+    }
+
+    fn schedule_health_check_at_next_tick(&mut self) {
+        self.schedule_health_check(HealthCheckInterval::from(Duration::from_secs(0)));
     }
 
     fn schedule_health_check(&mut self, interval: HealthCheckInterval) {
