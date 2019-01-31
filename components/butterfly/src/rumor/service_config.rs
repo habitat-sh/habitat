@@ -34,7 +34,7 @@ pub struct ServiceConfig {
     pub service_group: ServiceGroup,
     pub incarnation: u64,
     pub encrypted: bool,
-    pub config: Vec<u8>,
+    pub config: Vec<u8>, // TODO: make this a String
 }
 
 impl PartialOrd for ServiceConfig {
@@ -72,14 +72,19 @@ impl ServiceConfig {
     }
 
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.config = user_pair.encrypt(&self.config, Some(service_pair))?;
+        self.config = user_pair
+            .encrypt(&self.config, Some(service_pair))?
+            .into_bytes();
         self.encrypted = true;
         Ok(())
     }
 
     pub fn config(&self) -> Result<toml::value::Table> {
         let config = if self.encrypted {
-            let bytes = BoxKeyPair::decrypt_with_path(&self.config, &default_cache_key_path(None))?;
+            let bytes = BoxKeyPair::decrypt_with_path(
+                str::from_utf8(&self.config).expect("corrupt config"),
+                &default_cache_key_path(None),
+            )?;
             let encoded = str::from_utf8(&bytes)
                 .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
             self.parse_config(&encoded)?

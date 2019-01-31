@@ -42,15 +42,7 @@ pub fn start(
     };
 
     ui.status(Status::Encrypting, format!("value for key {}.", key))?;
-    let encrypted_secret_bytes = encryption_key.encrypt(secret.as_bytes(), None)?;
-    let encrypted_secret_string = match String::from_utf8(encrypted_secret_bytes) {
-        Ok(string_from_bytes) => string_from_bytes,
-        Err(_) => {
-            return Err(Error::ArgumentError(
-                "Failed to convert encrypted bytes to string",
-            ));
-        }
-    };
+    let encrypted_secret_string = encryption_key.encrypt(secret.as_bytes(), None)?;
     ui.status(Status::Encrypted, format!("{}=[REDACTED].", key))?;
 
     ui.status(Status::Uploading, format!("secret for key {}.", key))?;

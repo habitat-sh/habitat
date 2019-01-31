@@ -34,7 +34,7 @@ pub struct ServiceFile {
     pub incarnation: u64,
     pub encrypted: bool,
     pub filename: String,
-    pub body: Vec<u8>,
+    pub body: Vec<u8>, // TODO: make this a String
 }
 
 impl PartialOrd for ServiceFile {
@@ -81,7 +81,9 @@ impl ServiceFile {
 
     /// Encrypt the contents of the service file
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.body = user_pair.encrypt(&self.body, Some(service_pair))?;
+        self.body = user_pair
+            .encrypt(&self.body, Some(service_pair))?
+            .into_bytes();
         self.encrypted = true;
         Ok(())
     }
@@ -90,7 +92,10 @@ impl ServiceFile {
     /// the fact that we might be encrypted.
     pub fn body(&self) -> Result<Vec<u8>> {
         if self.encrypted {
-            let bytes = BoxKeyPair::decrypt_with_path(&self.body, &default_cache_key_path(None))?;
+            let bytes = BoxKeyPair::decrypt_with_path(
+                std::str::from_utf8(&self.body).expect("corrupt body"),
+                &default_cache_key_path(None),
+            )?;
             Ok(bytes)
         } else {
             Ok(self.body.to_vec())

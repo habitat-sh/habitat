@@ -44,6 +44,7 @@ pub struct SupDepart {
 pub struct SvcFilePut {
     #[prost(message, optional, tag="1")]
     pub service_group: ::std::option::Option<super::types::ServiceGroup>,
+    /// TODO: Make this a string
     #[prost(bytes, optional, tag="2")]
     pub content: ::std::option::Option<Vec<u8>>,
     #[prost(string, optional, tag="3")]
@@ -85,6 +86,8 @@ pub struct SvcSetCfg {
     #[prost(message, optional, tag="1")]
     pub service_group: ::std::option::Option<super::types::ServiceGroup>,
     /// Encrypted configuration to set.
+    ///
+    /// TODO: Make this a string
     #[prost(bytes, optional, tag="2")]
     pub cfg: ::std::option::Option<Vec<u8>>,
     /// Incarnation of this configuration.

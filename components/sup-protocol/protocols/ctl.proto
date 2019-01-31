@@ -32,7 +32,7 @@ message SupDepart {
 
 message SvcFilePut {
   optional sup.types.ServiceGroup service_group = 1;
-  optional bytes content = 2;
+  optional bytes content = 2; // TODO: Make this a string
   optional string filename = 3;
   optional uint64 version = 4;
   optional bool is_encrypted = 5 [default = false];
@@ -58,7 +58,7 @@ message SvcSetCfg {
   // Service group of a running service to set a new configuration for.
   optional sup.types.ServiceGroup service_group = 1;
   // Encrypted configuration to set.
-  optional bytes cfg = 2;
+  optional bytes cfg = 2; // TODO: Make this a string
   // Incarnation of this configuration.
   optional uint64 version = 3;
   // If the payload in `cfg` is encrypted with the remote Supervisor's Ring Key.
