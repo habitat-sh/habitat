@@ -21,6 +21,7 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use regex::Regex;
+use serde_derive::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
 

@@ -19,6 +19,7 @@ use std::result;
 use std::str::FromStr;
 
 use regex::Regex;
+use serde_derive::{Deserialize, Serialize};
 
 use crate::error::{Error, Result};
 use crate::package::PackageTarget;

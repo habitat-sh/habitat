@@ -12,31 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate ansi_term;
-extern crate base64;
-#[cfg(target_os = "linux")]
-extern crate caps;
-extern crate crypto as rust_crypto;
-#[cfg(windows)]
-extern crate ctrlc;
-
+// Convenience importing of `debug!`/`info!` macros for entire crate.
 #[macro_use]
 extern crate log;
-
-#[macro_use]
-extern crate serde_derive;
-
-#[cfg(not(windows))]
-extern crate users as linux_users;
-
-#[cfg(windows)]
-extern crate habitat_win_users;
-#[cfg(windows)]
-extern crate widestring;
-#[cfg(windows)]
-extern crate winapi;
-#[cfg(windows)]
-extern crate windows_acl;
 
 pub use self::error::{Error, Result};
 

@@ -224,7 +224,7 @@
 //! <symkey_base64>
 //! ```
 
-use crate::rust_crypto;
+use crypto;
 use std::path::{Path, PathBuf};
 
 use crate::env as henv;
@@ -284,7 +284,7 @@ where
     T: AsRef<[u8]>,
     U: AsRef<[u8]>,
 {
-    rust_crypto::util::fixed_time_eq(t.as_ref(), u.as_ref())
+    crypto::util::fixed_time_eq(t.as_ref(), u.as_ref())
 }
 
 #[cfg(test)]

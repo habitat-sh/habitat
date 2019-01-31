@@ -21,6 +21,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 
+use serde_derive::{Deserialize, Serialize};
 use toml;
 use toml::Value;
 

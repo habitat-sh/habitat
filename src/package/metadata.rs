@@ -23,6 +23,8 @@ use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::vec::IntoIter;
 
+use serde_derive::Serialize;
+
 use crate::error::{Error, Result};
 use crate::package::PackageIdent;
 

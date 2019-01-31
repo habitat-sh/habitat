@@ -538,6 +538,7 @@ impl<'a> Iterator for Iter<'a> {
 mod test {
     use super::*;
 
+    use serde_derive::{Deserialize, Serialize};
     use toml;
 
     // This test explicitly runs the function which returns the active `PackageTarget` for the

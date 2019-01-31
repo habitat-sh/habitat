@@ -14,6 +14,8 @@
 
 use std::io::BufRead;
 
+use serde_derive::{Deserialize, Serialize};
+
 use crate::error::{Error, Result};
 
 #[derive(Debug, Deserialize, Serialize)]
