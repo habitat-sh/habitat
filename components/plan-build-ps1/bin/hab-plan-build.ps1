@@ -1992,7 +1992,8 @@ function _Save-Artifact {
     # packages directory structure in a temp directory and taring that
     # entire tree, hab pkg install is able to successfully install the
     # generated hart file.
-    $tempBase = Join-Path $env:temp "hab"
+    $tempRoot = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
+    $tempBase = Join-Path $tempRoot "hab"
     $tempPkg = "$tempBase\pkgs\$pkg_origin\$pkg_name\$pkg_version"
     if (Test-Path $tempBase) { Remove-Item $tempBase -Recurse -Force }
     New-Item $tempPkg -ItemType Directory -Force | Out-Null
@@ -2002,7 +2003,7 @@ function _Save-Artifact {
     & "$_7z_cmd" a -txz "$xzf" "$tarf" | Out-Null
     & $HAB_BIN pkg sign --origin "$pkg_origin" "$xzf" "$pkg_artifact"
     Remove-Item "$tarf", "$xzf" -Force
-    Remove-Item $tempBase -Recurse -Force
+    Remove-Item $tempRoot -Recurse -Force
 }
 
 # **Internal** Copy the final package artifact to the `$pkg_output_path`
