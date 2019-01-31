@@ -255,7 +255,7 @@ fn default_user_and_group() -> Result<(String, String)> {
                 _ => {
                     return Err(Error::PermissionFailed(
                         "Can't determine current user:group".to_string(),
-                    ))
+                    ));
                 }
             }
         }

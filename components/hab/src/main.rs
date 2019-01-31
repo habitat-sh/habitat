@@ -1021,7 +1021,7 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
                         None => {
                             return Err(SrvClientError::from(io::Error::from(
                                 io::ErrorKind::UnexpectedEof,
-                            )))
+                            )));
                         }
                         Some(m) => print_svc_status(&mut out, m, true)?,
                     }

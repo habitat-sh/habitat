@@ -67,7 +67,7 @@ pub fn save(config: &Config) -> Result<()> {
         None => {
             return Err(Error::FileNotFound(
                 config_path.to_string_lossy().into_owned(),
-            ))
+            ));
         }
     };
     fs::create_dir_all(&parent_path)?;
