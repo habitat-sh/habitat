@@ -213,7 +213,7 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
     agents:
       queue: 'windows-default'
-    timeout_in_minutes: 30
+    timeout_in_minutes: 35
     retry:
       automatic:
         limit: 1
@@ -223,7 +223,7 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1"
     agents:
       queue: 'windows-default'
-    timeout_in_minutes: 30
+    timeout_in_minutes: 35
     retry:
       automatic:
         limit: 10
