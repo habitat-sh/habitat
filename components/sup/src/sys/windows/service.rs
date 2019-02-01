@@ -16,6 +16,7 @@ use crate::sys::ShutdownMethod;
 use habitat_core::os::process::{
     handle_from_pid,
     windows_child::{ExitStatus, Handle},
+    Pid,
 };
 use std::{collections::HashMap, io, mem};
 use time::{Duration, SteadyTime};
