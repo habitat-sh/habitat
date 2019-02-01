@@ -42,6 +42,36 @@ pub struct BoxSecret<'a> {
 
 pub type BoxKeyPair = KeyPair<BoxPublicKey, BoxSecretKey>;
 
+#[derive(Serialize, Deserialize)]
+pub struct WrappedSealedBox(String); // TODO make this a Cow
+
+impl WrappedSealedBox {
+    pub fn into_bytes(self) -> Vec<u8> {
+        self.0.into_bytes()
+    }
+
+    // Only needed by builder due to double-base64 encoding
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_bytes()
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> std::result::Result<Self, std::string::FromUtf8Error> {
+        String::from_utf8(bytes.to_vec()).map(Self)
+    }
+}
+
+impl From<String> for WrappedSealedBox {
+    fn from(payload: String) -> Self {
+        Self(payload)
+    }
+}
+
+impl From<&str> for WrappedSealedBox {
+    fn from(payload: &str) -> Self {
+        Self(payload.to_string())
+    }
+}
+
 impl BoxKeyPair {
     pub fn generate_pair_for_service<S1, S2>(org: S1, service_group: S2) -> Result<Self>
     where
@@ -175,11 +205,12 @@ impl BoxKeyPair {
     ///
     /// Since the returned string contains both plaintext metadata and ciphertext
     /// The ciphertext (and nonce, when present) is already base64-encoded.
-    pub fn encrypt(&self, data: &[u8], receiver: Option<&Self>) -> Result<String> {
+    pub fn encrypt(&self, data: &[u8], receiver: Option<&Self>) -> Result<WrappedSealedBox> {
         match receiver {
             Some(r) => self.encrypt_box(data, r),
             None => self.encrypt_anonymous_box(data),
         }
+        .map(WrappedSealedBox)
     }
 
     pub fn to_public_string(&self) -> Result<String> {
@@ -328,8 +359,8 @@ impl BoxKeyPair {
 
     // Return the metadata and encrypted text from a secret payload.
     // This is useful for services consuming an encrypted payload and need to decrypt it without having keys on disk
-    pub fn secret_metadata(payload: &str) -> Result<BoxSecret<'_>> {
-        let mut lines = payload.lines();
+    pub fn secret_metadata(payload: &WrappedSealedBox) -> Result<BoxSecret<'_>> {
+        let mut lines = payload.0.lines();
         let version = Self::box_key_format_version(lines.next())?;
         let sender = Self::box_key_sender(lines.next())?;
         let receiver = if Self::is_anonymous_box(version) {
@@ -354,7 +385,7 @@ impl BoxKeyPair {
     /// Decrypt data from a user that was received at a service
     /// Key names are embedded in the message payload which must
     /// be present while decrypting.
-    pub fn decrypt_with_path<P>(payload: &str, cache_key_path: P) -> Result<Vec<u8>>
+    pub fn decrypt_with_path<P>(payload: &WrappedSealedBox, cache_key_path: P) -> Result<Vec<u8>>
     where
         P: AsRef<Path>,
     {
@@ -903,14 +934,19 @@ mod test {
     #[should_panic]
     fn decrypt_empty_sender_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        BoxKeyPair::decrypt_with_path("BOX-1\n\nuhoh", cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&WrappedSealedBox::from("BOX-1\n\nuhoh"), cache.path())
+            .unwrap();
     }
 
     #[test]
     #[should_panic]
     fn decrypt_invalid_sender_key() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        BoxKeyPair::decrypt_with_path("BOX-1\nnope-nope\nuhoh", cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(
+            &WrappedSealedBox::from("BOX-1\nnope-nope\nuhoh"),
+            cache.path(),
+        )
+        .unwrap();
     }
 
     #[test]
@@ -921,7 +957,7 @@ mod test {
         sender.to_pair_files(cache.path()).unwrap();
 
         let payload = format!("BOX-1\n{}\n\nuhoh", sender.name_with_rev());
-        BoxKeyPair::decrypt_with_path(&payload, cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&WrappedSealedBox(payload), cache.path()).unwrap();
     }
 
     #[test]
@@ -932,7 +968,7 @@ mod test {
         sender.to_pair_files(cache.path()).unwrap();
 
         let payload = format!("BOX-1\n{}\nnope-nope\nuhoh", sender.name_with_rev());
-        BoxKeyPair::decrypt_with_path(&payload, cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&WrappedSealedBox(payload), cache.path()).unwrap();
     }
 
     #[test]
@@ -949,7 +985,7 @@ mod test {
             sender.name_with_rev(),
             receiver.name_with_rev()
         );
-        BoxKeyPair::decrypt_with_path(&payload, cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&WrappedSealedBox(payload), cache.path()).unwrap();
     }
 
     #[test]
@@ -966,7 +1002,7 @@ mod test {
             sender.name_with_rev(),
             receiver.name_with_rev()
         );
-        BoxKeyPair::decrypt_with_path(&payload, cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&WrappedSealedBox(payload), cache.path()).unwrap();
     }
 
     #[test]
@@ -980,7 +1016,7 @@ mod test {
 
         let payload = sender.encrypt(b"problems ahead", Some(&receiver)).unwrap();
         let mut botched = String::new();
-        let mut lines = payload.lines();
+        let mut lines = payload.0.lines();
         botched.push_str(lines.next().unwrap()); // version
         botched.push('\n');
         botched.push_str(lines.next().unwrap()); // sender
@@ -991,7 +1027,7 @@ mod test {
         botched.push('\n');
         botched.push_str("not:base64");
 
-        BoxKeyPair::decrypt_with_path(&botched, cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&WrappedSealedBox(botched), cache.path()).unwrap();
     }
 
     #[test]
@@ -1005,7 +1041,7 @@ mod test {
 
         let payload = sender.encrypt(b"problems ahead", Some(&receiver)).unwrap();
         let mut botched = String::new();
-        let mut lines = payload.lines();
+        let mut lines = payload.0.lines();
         botched.push_str(lines.next().unwrap()); // version
         botched.push('\n');
         botched.push_str(lines.next().unwrap()); // sender
@@ -1016,6 +1052,6 @@ mod test {
         botched.push('\n');
         botched.push_str("uhoh");
 
-        BoxKeyPair::decrypt_with_path(&botched, cache.path()).unwrap();
+        BoxKeyPair::decrypt_with_path(&WrappedSealedBox(botched), cache.path()).unwrap();
     }
 }
