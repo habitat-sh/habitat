@@ -20,7 +20,9 @@ use std::cmp::Ordering;
 use std::mem;
 use std::str::{self, FromStr};
 
-use habitat_core::crypto::{default_cache_key_path, BoxKeyPair};
+use habitat_core::crypto::{
+    default_cache_key_path, keys::box_key_pair::WrappedSealedBox, BoxKeyPair,
+};
 use habitat_core::service::ServiceGroup;
 use toml;
 
@@ -82,15 +84,19 @@ impl ServiceConfig {
     pub fn config(&self) -> Result<toml::value::Table> {
         let config = if self.encrypted {
             let bytes = BoxKeyPair::decrypt_with_path(
-                str::from_utf8(&self.config).expect("corrupt config"),
+                &WrappedSealedBox::from_bytes(&self.config).map_err(|e| {
+                    Error::ServiceConfigNotUtf8(self.service_group.to_string(), e.into())
+                })?,
                 &default_cache_key_path(None),
             )?;
-            let encoded = str::from_utf8(&bytes)
-                .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
+            let encoded = str::from_utf8(&bytes).map_err(|e| {
+                Error::ServiceConfigNotUtf8(self.service_group.to_string(), e.into())
+            })?;
             self.parse_config(&encoded)?
         } else {
-            let encoded = str::from_utf8(&self.config)
-                .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
+            let encoded = str::from_utf8(&self.config).map_err(|e| {
+                Error::ServiceConfigNotUtf8(self.service_group.to_string(), e.into())
+            })?;
             self.parse_config(&encoded)?
         };
         Ok(config)

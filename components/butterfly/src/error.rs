@@ -28,6 +28,24 @@ use zmq;
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
+pub enum Utf8Error {
+    Str(std::str::Utf8Error),
+    String(std::string::FromUtf8Error),
+}
+
+impl From<std::str::Utf8Error> for Utf8Error {
+    fn from(e: std::str::Utf8Error) -> Self {
+        Utf8Error::Str(e)
+    }
+}
+
+impl From<std::string::FromUtf8Error> for Utf8Error {
+    fn from(e: std::string::FromUtf8Error) -> Self {
+        Utf8Error::String(e)
+    }
+}
+
+#[derive(Debug)]
 pub enum Error {
     BadDataPath(PathBuf, io::Error),
     BadDatFile(PathBuf, io::Error),
@@ -43,7 +61,7 @@ pub enum Error {
     NonExistentRumor(String, String),
     ProtocolMismatch(&'static str),
     ServiceConfigDecode(String, toml::de::Error),
-    ServiceConfigNotUtf8(String, str::Utf8Error),
+    ServiceConfigNotUtf8(String, Utf8Error),
     SocketCloneError,
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
@@ -102,7 +120,7 @@ impl fmt::Display for Error {
                 format!("Cannot decode service config: group={}, {:?}", sg, err)
             }
             Error::ServiceConfigNotUtf8(ref sg, ref err) => {
-                format!("Cannot read service configuration: group={}, {}", sg, err)
+                format!("Cannot read service configuration: group={}, {:?}", sg, err)
             }
             Error::SocketCloneError => "Cannot clone the underlying UDP socket".to_string(),
             Error::SocketSetReadTimeout(ref err) => {

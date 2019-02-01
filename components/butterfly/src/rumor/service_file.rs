@@ -20,7 +20,9 @@ use std::cmp::Ordering;
 use std::mem;
 use std::str::FromStr;
 
-use habitat_core::crypto::{default_cache_key_path, BoxKeyPair};
+use habitat_core::crypto::{
+    default_cache_key_path, keys::box_key_pair::WrappedSealedBox, BoxKeyPair,
+};
 use habitat_core::service::ServiceGroup;
 
 use crate::error::{Error, Result};
@@ -93,7 +95,9 @@ impl ServiceFile {
     pub fn body(&self) -> Result<Vec<u8>> {
         if self.encrypted {
             let bytes = BoxKeyPair::decrypt_with_path(
-                std::str::from_utf8(&self.body).expect("corrupt body"),
+                &WrappedSealedBox::from_bytes(&self.body).map_err(|e| {
+                    Error::ServiceConfigNotUtf8(self.service_group.to_string(), e.into())
+                })?,
                 &default_cache_key_path(None),
             )?;
             Ok(bytes)
