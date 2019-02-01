@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    core::os::process::Pid,
-    error::{Error, Result},
-    protocol::{self, Error as ProtocolError},
-};
+use crate::error::{Error, Result};
+use habitat_core::os::process::Pid;
+use habitat_launcher_protocol::{self as protocol, Error as ProtocolError};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 use std::{collections::HashMap, fs, io, path::Path};
 
@@ -45,8 +43,9 @@ impl LauncherCli {
         let tx = IpcSender::connect(pipe_to_launcher).map_err(Error::Connect)?;
         let (ipc_srv, pipe_to_sup) = IpcServer::new().map_err(Error::BadPipe)?;
         debug!("IpcServer::new() returned pipe_to_sup: {}", pipe_to_sup);
-        let mut cmd = protocol::Register::default();
-        cmd.pipe = pipe_to_sup.clone();
+        let cmd = protocol::Register {
+            pipe: pipe_to_sup.clone(),
+        };
         Self::send(&tx, &cmd)?;
         let (rx, raw) = ipc_srv.accept().map_err(|_| Error::AcceptConn)?;
         Self::read::<protocol::NetOk>(&raw)?;
@@ -118,8 +117,7 @@ impl LauncherCli {
 
     /// Restart a running process with the same arguments
     pub fn restart(&self, pid: Pid) -> Result<Pid> {
-        let mut msg = protocol::Restart::default();
-        msg.pid = pid.into();
+        let msg = protocol::Restart { pid: pid.into() };
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;
         Ok(reply.pid as Pid)
@@ -148,43 +146,31 @@ impl LauncherCli {
         G: ToString,
         P: ToString,
     {
-        let mut msg = protocol::Spawn::default();
-        msg.binary = bin.as_ref().to_path_buf().to_string_lossy().into_owned();
-
         // On Windows, we only expect user to be Some.
         //
         // On Linux, we expect user_id and group_id to be Some, while
         // user and group may be either Some or None. Only the IDs are
         // used; names are only for backward compatibility with older
         // Launchers.
-        if let Some(name) = user {
-            msg.svc_user = Some(name.to_string());
-        }
-        if let Some(name) = group {
-            msg.svc_group = Some(name.to_string());
-        }
-        if let Some(uid) = user_id {
-            msg.svc_user_id = Some(uid);
-        }
-        if let Some(gid) = group_id {
-            msg.svc_group_id = Some(gid);
-        }
+        let msg = protocol::Spawn {
+            binary: bin.as_ref().to_path_buf().to_string_lossy().into_owned(),
+            svc_user: user.map(|u| u.to_string()),
+            svc_group: group.map(|g| g.to_string()),
+            svc_user_id: user_id,
+            svc_group_id: group_id,
+            svc_password: password.map(|p| p.to_string()),
+            env: env,
+            id: id.to_string(),
+            ..Default::default()
+        };
 
-        // This is only for Windows
-        if let Some(password) = password {
-            msg.svc_password = Some(password.to_string());
-        }
-
-        msg.env = env;
-        msg.id = id.to_string();
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;
         Ok(reply.pid as Pid)
     }
 
     pub fn terminate(&self, pid: Pid) -> Result<i32> {
-        let mut msg = protocol::Terminate::default();
-        msg.pid = pid.into();
+        let msg = protocol::Terminate { pid: pid.into() };
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::TerminateOk>(&self.rx)?;
         Ok(reply.exit_code)

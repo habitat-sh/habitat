@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use habitat_core as core;
-use habitat_launcher_protocol as protocol;
 #[macro_use]
 extern crate log;
 
 mod client;
 pub mod error;
 
-pub use crate::protocol::{
+pub use habitat_launcher_protocol::{
     ERR_NO_RETRY_EXCODE, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV, OK_NO_RETRY_EXCODE,
 };
 
@@ -28,5 +26,5 @@ pub use crate::client::LauncherCli;
 pub use crate::error::Error;
 
 pub fn env_pipe() -> Option<String> {
-    core::env::var(protocol::LAUNCHER_PIPE_ENV).ok()
+    habitat_core::env::var(habitat_launcher_protocol::LAUNCHER_PIPE_ENV).ok()
 }
