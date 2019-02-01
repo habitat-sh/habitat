@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- [sup] Add `core/make` as a build dependency. [#6111](https://github.com/habitat-sh/habitat/pull/6111) ([fnichol](https://github.com/fnichol))
 - uses the 2015 CPP redistributable and fixes some HAB_CACHE_SRC_PATH refs [#6095](https://github.com/habitat-sh/habitat/pull/6095) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
