@@ -177,7 +177,7 @@ $(foreach component,$(ALL),$(eval $(call BUILD,$(component))))
 
 define UNIT
 unit-$1: image ## executes the $1 component's unit test suite
-	$(run) sh -c 'cd components/$1 && TESTING_FS_ROOT=$(TESTING_FS_ROOT) cargo test $(CARGO_FLAGS)'
+	$(run) sh -c 'cd components/$1 && TESTING_FS_ROOT=$(TESTING_FS_ROOT) cargo test $(CARGO_FLAGS) -- --test-threads=1'
 .PHONY: unit-$1
 endef
 $(foreach component,$(ALL),$(eval $(call UNIT,$(component))))
