@@ -4,15 +4,8 @@
 ## Unreleased
 
 #### Bug Fixes
-- [sup] Add `core/make` as a build dependency. [#6111](https://github.com/habitat-sh/habitat/pull/6111) ([fnichol](https://github.com/fnichol))
-- uses the 2015 CPP redistributable and fixes some HAB_CACHE_SRC_PATH refs [#6095](https://github.com/habitat-sh/habitat/pull/6095) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
-- Remove the ProdPad and GH project tracker content. [#6033](https://github.com/habitat-sh/habitat/pull/6033) ([raskchanky](https://github.com/raskchanky))
-- [core] Bump core crates. [#6108](https://github.com/habitat-sh/habitat/pull/6108) ([fnichol](https://github.com/fnichol))
-- Rust 1.32.0 [#6103](https://github.com/habitat-sh/habitat/pull/6103) ([raskchanky](https://github.com/raskchanky))
-- [ci/mac] Upgrade to macOS 10.12 for build workers. [#6099](https://github.com/habitat-sh/habitat/pull/6099) ([fnichol](https://github.com/fnichol))
-- Release 0.74.0. [#6091](https://github.com/habitat-sh/habitat/pull/6091) ([fnichol](https://github.com/fnichol))
 <!-- latest_release -->
 
 ## [0.74.0](https://github.com/habitat-sh/habitat/tree/0.74.0) (2019-01-28)
@@ -22,6 +15,8 @@
 - set results folder in PWD not PLAN_CONTEXT [#6087](https://github.com/habitat-sh/habitat/pull/6087) ([mwrock](https://github.com/mwrock))
 
 #### Bug Fixes
+- [sup] Add `core/make` as a build dependency. [#6111](https://github.com/habitat-sh/habitat/pull/6111) ([fnichol](https://github.com/fnichol))
+- uses the 2015 CPP redistributable and fixes some HAB_CACHE_SRC_PATH refs [#6095](https://github.com/habitat-sh/habitat/pull/6095) ([mwrock](https://github.com/mwrock))
 - install interpreter if not already installed [#6093](https://github.com/habitat-sh/habitat/pull/6093) ([mwrock](https://github.com/mwrock))
 - Fix some clippy lints that were missed due to `make lint` missing some files [#6068](https://github.com/habitat-sh/habitat/pull/6068) ([baumanj](https://github.com/baumanj))
 - Fix &quot;uncontroversial&quot; clippy lints and start making them errors in TravisCI [#6065](https://github.com/habitat-sh/habitat/pull/6065) ([baumanj](https://github.com/baumanj))
@@ -29,14 +24,19 @@
 #### New Features & Enhancements
 - extract supervisor templating and execute an install hook when installing packages [#5866](https://github.com/habitat-sh/habitat/pull/5866) ([mwrock](https://github.com/mwrock))
 - Improve butterfly Server::insert_service [#6053](https://github.com/habitat-sh/habitat/pull/6053) ([baumanj](https://github.com/baumanj))
+- Instrument the supervisor with metrics [#5986](https://github.com/habitat-sh/habitat/pull/5986) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Remove the ProdPad and GH project tracker content. [#6033](https://github.com/habitat-sh/habitat/pull/6033) ([raskchanky](https://github.com/raskchanky))
+- [core] Bump core crates. [#6108](https://github.com/habitat-sh/habitat/pull/6108) ([fnichol](https://github.com/fnichol))
+- Rust 1.32.0 [#6103](https://github.com/habitat-sh/habitat/pull/6103) ([raskchanky](https://github.com/raskchanky))
+- [ci/mac] Upgrade to macOS 10.12 for build workers. [#6099](https://github.com/habitat-sh/habitat/pull/6099) ([fnichol](https://github.com/fnichol))
+- Release 0.74.0. [#6091](https://github.com/habitat-sh/habitat/pull/6091) ([fnichol](https://github.com/fnichol))
 - fix misplacement of tutorial fix [#6086](https://github.com/habitat-sh/habitat/pull/6086) ([mwrock](https://github.com/mwrock))
 - correct asp.net tutorial to comply with directory perm changes in previous release [#6083](https://github.com/habitat-sh/habitat/pull/6083) ([mwrock](https://github.com/mwrock))
 - update install hook blog to reflect new core plans and windows service [#6082](https://github.com/habitat-sh/habitat/pull/6082) ([mwrock](https://github.com/mwrock))
 - Add target param to bldr job start command [#6081](https://github.com/habitat-sh/habitat/pull/6081) ([chefsalim](https://github.com/chefsalim))
 - docker windows studio should read the sup log from the new path [#6078](https://github.com/habitat-sh/habitat/pull/6078) ([mwrock](https://github.com/mwrock))
-- Instrument the supervisor with metrics [#5986](https://github.com/habitat-sh/habitat/pull/5986) ([raskchanky](https://github.com/raskchanky))
 - [blog] Add post detailing base plans refresh 2019-01-22 [#6064](https://github.com/habitat-sh/habitat/pull/6064) ([smacfarlane](https://github.com/smacfarlane))
 - Modify internal queue name [#6062](https://github.com/habitat-sh/habitat/pull/6062) ([scotthain](https://github.com/scotthain))
 - Remove eventsrv. [#6069](https://github.com/habitat-sh/habitat/pull/6069) ([raskchanky](https://github.com/raskchanky))
