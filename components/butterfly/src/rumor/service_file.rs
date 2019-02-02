@@ -95,9 +95,8 @@ impl ServiceFile {
     pub fn body(&self) -> Result<Vec<u8>> {
         if self.encrypted {
             let bytes = BoxKeyPair::decrypt_with_path(
-                &WrappedSealedBox::from_bytes(&self.body).map_err(|e| {
-                    Error::ServiceConfigNotUtf8(self.service_group.to_string(), e.into())
-                })?,
+                &WrappedSealedBox::from_bytes(&self.body)
+                    .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
                 &default_cache_key_path(None),
             )?;
             Ok(bytes)

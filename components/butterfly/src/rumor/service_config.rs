@@ -84,19 +84,16 @@ impl ServiceConfig {
     pub fn config(&self) -> Result<toml::value::Table> {
         let config = if self.encrypted {
             let bytes = BoxKeyPair::decrypt_with_path(
-                &WrappedSealedBox::from_bytes(&self.config).map_err(|e| {
-                    Error::ServiceConfigNotUtf8(self.service_group.to_string(), e.into())
-                })?,
+                &WrappedSealedBox::from_bytes(&self.config)
+                    .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
                 &default_cache_key_path(None),
             )?;
-            let encoded = str::from_utf8(&bytes).map_err(|e| {
-                Error::ServiceConfigNotUtf8(self.service_group.to_string(), e.into())
-            })?;
+            let encoded = str::from_utf8(&bytes)
+                .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
             self.parse_config(&encoded)?
         } else {
-            let encoded = str::from_utf8(&self.config).map_err(|e| {
-                Error::ServiceConfigNotUtf8(self.service_group.to_string(), e.into())
-            })?;
+            let encoded = str::from_utf8(&self.config)
+                .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
             self.parse_config(&encoded)?
         };
         Ok(config)
