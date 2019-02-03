@@ -580,6 +580,14 @@ pub fn get() -> App<'static, 'static> {
                 (@arg SCAFFOLDING: --scaffolding -s +takes_value
                     "Specify explicit Scaffolding for your app (ex: node, ruby)")
             )
+            (@subcommand render =>
+                (about: "Renders plan config files")
+                (aliases: &["r", "re", "ren", "rend", "rende"])
+                (@arg TEMPLATE_PATH: +required +takes_value "Path to config to render")
+                (@arg DEFAULT_TOML: -d --("default-toml") +takes_value"Path to default.toml, defaults to ./default.toml")
+                (@arg MOCK_DATA: -m --("mock-data") +takes_value "Path to json file with mock data for template, defaults to none")
+                (@arg RENDER_DIR: -r --("render-dir") +takes_value"Path to render templates to, defaults to ./results/")
+            )
         )
         (@subcommand ring =>
             (about: "Commands relating to Habitat rings")

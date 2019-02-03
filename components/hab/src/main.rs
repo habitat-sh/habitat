@@ -280,6 +280,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("plan", Some(matches)) => {
             match matches.subcommand() {
                 ("init", Some(m)) => sub_plan_init(ui, m)?,
+                ("render", Some(m)) => sub_plan_render(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -700,6 +701,36 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                windows,
                                scaffolding_ident,
                                name)
+}
+
+fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let template_path = match m.value_of("TEMPLATE_PATH") {
+        Some(o) => o.to_string(),
+        None => return Err(Error::CryptoCLI("No config to render specified".to_string())),
+    };
+
+    let default_toml_path = match m.value_of("DEFAULT_TOML") {
+        Some(o) => o.to_string(),
+        None => "./default.toml".to_string(),
+    };
+
+    let mock_data_path = match m.value_of("MOCK_DATA") {
+        Some(o) => Some(o.to_string()),
+        None => None
+    };
+
+    let render_dir = match m.value_of("RENDER_DIR") {
+        Some(name) => name.to_string(),
+        None => "result".into(),
+    };
+
+    command::plan::render::start(
+      ui,
+      template_path,
+      default_toml_path,
+      mock_data_path,
+      render_dir,
+    )
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

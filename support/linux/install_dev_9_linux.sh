@@ -43,6 +43,6 @@ else
   sudo -E addgroup --system hab || true
 fi
 
-sudo sh /tmp/install.sh
+sudo bash /tmp/install.sh
 sudo hab install core/busybox-static core/hab-studio
-sudo rm -rf /tmp/install.sh
+sudo rm -f /tmp/install.sh
