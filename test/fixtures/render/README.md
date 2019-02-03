@@ -16,14 +16,14 @@ cargo run -- plan render ../../test/fixtures/render/consul/config/consul_config.
   --default-toml ../../test/fixtures/render/consul/default.toml \
   --user-toml ../../test/fixtures/render/consul/user.toml \
   --mock-data ../../test/fixtures/render/consul/override.json \
-  --render-dir result/config \
+  --render-dir ~/result/config \
   --print
 ```
 
 ```
 cargo run -- plan render ../../test/fixtures/render/consul/config/consul_config.json \
   --default-toml ../../test/fixtures/render/consul/default.toml \
-  --render-dir result/config \
+  --render-dir ~/result/config \
   --print
 ```
 
@@ -34,7 +34,7 @@ cargo run -- plan render ../../test/fixtures/render/consul/hooks/run \
   --default-toml ../../test/fixtures/render/consul/default.toml \
   --user-toml ../../test/fixtures/render/consul/user.toml \
   --mock-data ../../test/fixtures/render/consul/override.json \
-  --render-dir result/hooks \
+  --render-dir ~/result/hooks \
   --print
 ```
 
@@ -83,5 +83,10 @@ exec consul agent ${CONSUL_OPTS}
 
 # TODO:
 
-* Figure out how to load `svc` data for `eachAlive` helper
-* figure out how to load `pkg.` data. e.g. for `{{pkg.svc_config_path}}`
+* [x] ! ~~Figure out how to load `svc` data for `eachAlive` helper~~
+* [x] ! Figured out how to mock that data... helps to spell things right... ("alive" not "active") duh...
+* [ ] ? figure out how to load `pkg.` data. e.g. for `{{pkg.svc_config_path}}`
+* [x] ! figured out how to mock `pkg.` data, which I think "override.json" should override.
+* [ ] ? figure out how to have multiple `--mock-data` params.. e.g.: `--mock-data test/day00.json`,  `--mock-data test/day01-with-failed-member.json`
+* ~~[ ]~~ ~~I want to make it `ersatz_data` instead of `mock_data`.~~  that's dumb.
+

@@ -1,5 +1,6 @@
 {
   "cfg": {
+    "website": false,
     "server": {
       "datacenter": "IN_OVERRIDE_JSON"
     },
@@ -14,9 +15,12 @@
   }, 
   "svc": {
     "members": [
-      { "active": true, "sys": { "ip": "1.1.1.1" }},
-      { "properties": { "active": true}, "sys": { "ip": "2.2.2.2" }},
-      { "sys": { "ip": "3.3.3.3" }}
+      { "alive": true, "sys": { "ip": "1.1.1.1" }},
+      { "alive": true, "sys": { "ip": "2.2.2.2" }},
+      { "alive": true, "sys": { "ip": "3.3.3.3" }}
     ]
+  },
+  "pkg": {
+    "svc_config_path": "/home/foo/bar"
   }
 }

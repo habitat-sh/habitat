@@ -32,6 +32,7 @@ pub fn start(
     print: bool,
     no_render_dir: bool,
     render_dir: String,
+    quiet: bool,
 ) -> Result<()> {
     // Strip the file name out of our passed template
     let file_name = match Path::new(&template_path).file_name() {
@@ -39,8 +40,10 @@ pub fn start(
         None => panic!(format!("Something went wrong getting filename of {}", &template_path)),
     }; 
 
-    ui.begin(format!("Rendering: {} into: {}/ as: {}", template_path, render_dir, file_name))?;
-    ui.br()?;
+    if !(quiet) {
+      ui.begin(format!("Rendering: {} into: {}/ as: {}", template_path, render_dir, file_name))?;
+      ui.br()?;
+    }
 
     // read our template from file
     let template = read_to_string(&template_path)
@@ -49,8 +52,11 @@ pub fn start(
     // create a "data" json struct
     let mut data: Json = serde_json::from_str("{}").unwrap();
 
-    // import default.toml values, convert to JSON
-    ui.begin(format!("Importing default.toml: {}", &default_toml_path))?;
+    if !(quiet) {
+        // import default.toml values, convert to JSON
+        ui.begin(format!("Importing default.toml: {}", &default_toml_path))?;
+    }
+
     // we should always have a default.toml, would be nice to "autodiscover" based on package name,
     // for now assume we're working in the plan dir if --default-toml not passed
     let default_toml = read_to_string(&default_toml_path)
@@ -62,8 +68,10 @@ pub fn start(
     // ui.begin(format!("Importing user.toml: {}", &user_toml_path));
     let user_toml = match user_toml_path {
         Some(path) => {
-            // print helper message, maybe only print if '--verbose'? how?
-            ui.begin(format!("Importing user.toml: {}", path.to_string()))?;
+            if !(quiet) {
+              // print helper message, maybe only print if '--verbose'? how?
+              ui.begin(format!("Importing user.toml: {}", path.to_string()))?;
+            }
             read_to_string(path.to_string())
                 .expect(&format!("Something went wrong reading: {}", path.to_string()))
         },
@@ -75,8 +83,10 @@ pub fn start(
     // read mock data if provided
     let mock_data = match mock_data_path {
         Some(path) => {
-            // print helper message, maybe only print if '--verbose'? how?
-            ui.begin(format!("Importing override file: {}", path.to_string()))?;
+            if !(quiet) {
+                // print helper message, maybe only print if '--verbose'? how?
+                ui.begin(format!("Importing override file: {}", path.to_string()))?;
+            }
             read_to_string(path.to_string())
               .expect(&format!("Something went wrong reading: {}", path.to_string()))
         },
@@ -97,18 +107,27 @@ pub fn start(
     let rendered_template = renderer.render(&template_path, &data).ok().unwrap();
     
     if print {
-        ui.br()?;
-        ui.warn(format!("###======== Rendered template: {}", &template_path))?;
+        if !(quiet) {
+          ui.br()?;
+          ui.warn(format!("###======== Rendered template: {}", &template_path))?;
+        }
+
         println!("{}", rendered_template);
-        ui.warn(format!("========### End rendered template: {}", &template_path))?;
+
+        if !(quiet) {
+          ui.warn(format!("========### End rendered template: {}", &template_path))?;
+        }
     }
 
+    // if not no render dir (aka "unless no_render_dir == true")
     if !(no_render_dir) {
       // Render our template file
-      create_with_template(ui, &format!("{}/{}", render_dir, file_name), &rendered_template)?;
+      create_with_template(ui, &format!("{}/{}", render_dir, file_name), &rendered_template, quiet)?;
     }
 
-    ui.br()?;
+    if !(quiet) {
+      ui.br()?;
+    }
     // not really sure this is correct...
     Ok(())
 }
@@ -142,9 +161,11 @@ fn merge(a: &mut Json, b: Json) {
 
 // This is almost a dupe of the method in plan/init, except we don't care if the file exists and go
 // ahead and overwite it.  I feel like maybe a different name would be good?
-fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {
+fn create_with_template(ui: &mut UI, location: &str, template: &str, quiet: bool) -> Result<()> {
     let path = Path::new(&location);
-    ui.status(Status::Creating, format!("file: {}", location))?;
+    if !(quiet) {
+        ui.status(Status::Creating, format!("file: {}", location))?;
+    }
     // If the directory doesn't exist we need to make it.
     if let Some(directory) = path.parent() {
         create_dir_all(directory)?;
