@@ -30,6 +30,7 @@ pub fn start(
     user_toml_path: Option<String>,
     mock_data_path: Option<String>,
     print: bool,
+    no_render_dir: bool,
     render_dir: String,
 ) -> Result<()> {
     // Strip the file name out of our passed template
@@ -102,8 +103,11 @@ pub fn start(
         ui.warn(format!("========### End rendered template: {}", &template_path))?;
     }
 
-    // Render our template file
-    create_with_template(ui, &format!("{}/{}", render_dir, file_name), &rendered_template)?;
+    if !(no_render_dir) {
+      // Render our template file
+      create_with_template(ui, &format!("{}/{}", render_dir, file_name), &rendered_template)?;
+    }
+
     ui.br()?;
     // not really sure this is correct...
     Ok(())

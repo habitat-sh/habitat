@@ -589,6 +589,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg MOCK_DATA: -m --("mock-data") +takes_value "Path to json file with mock data for template, defaults to none")
                 (@arg PRINT: -p --("print") "Prints config to STDOUT")
                 (@arg RENDER_DIR: -r --("render-dir") +takes_value "Path to render templates to, defaults to ./results/")
+                (@arg NO_WRITE_FILE: -n --("no-render") --("no-render-dir") "Don't write anything to disk, ignores --render-dir")
             )
         )
         (@subcommand ring =>
