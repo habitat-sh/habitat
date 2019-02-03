@@ -73,7 +73,7 @@ pub fn start(
         .register_template_string("testing", &template)
         .expect("Could not register template content");
     renderer
-        .render("testing", &mock_data)
+        .render("testing", &json)
         .expect("Could not render template");
 
 
