@@ -1,0 +1,22 @@
+{
+  "cfg": {
+    "server": {
+      "datacenter": "fooo"
+    },
+    "ports": {
+      "dns": 6666,
+      "http": 6667,
+      "https": 6668
+    }
+  },
+  "sys": {
+    "ip": "9.9.9.9"
+  }, 
+  "svc": {
+    "members": [
+      { "active": true, "sys": { "ip": "1.1.1.1" }},
+      { "properties": { "active": true}, "sys": { "ip": "2.2.2.2" }},
+      { "sys": { "ip": "3.3.3.3" }}
+    ]
+  }
+}

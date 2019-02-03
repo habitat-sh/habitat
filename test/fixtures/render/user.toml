@@ -1,0 +1,3 @@
+[ports]
+serf_lan = 8888
+server = 9999

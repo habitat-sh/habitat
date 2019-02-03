@@ -714,6 +714,11 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         None => "./default.toml".to_string(),
     };
 
+    let user_toml_path = match m.value_of("USER_TOML") {
+        Some(o) => Some(o.to_string()),
+        None => None
+    };
+
     let mock_data_path = match m.value_of("MOCK_DATA") {
         Some(o) => Some(o.to_string()),
         None => None
@@ -730,6 +735,7 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
       ui,
       template_path,
       default_toml_path,
+      user_toml_path,
       mock_data_path,
       print,
       render_dir,
