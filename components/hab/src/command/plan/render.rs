@@ -50,6 +50,8 @@ pub fn start(
 
     // import default.toml values, convert to JSON
     ui.begin(format!("Importing default.toml: {}", &default_toml_path))?;
+    // we should always have a default.toml, would be nice to "autodiscover" based on package name,
+    // for now assume we're working in the plan dir if --default-toml not passed
     let default_toml = read_to_string(&default_toml_path)
         .expect(&format!("Something went wrong reading: {}", &default_toml_path));
     // merge default into data struct
@@ -59,6 +61,7 @@ pub fn start(
     // ui.begin(format!("Importing user.toml: {}", &user_toml_path));
     let user_toml = match user_toml_path {
         Some(path) => {
+            // print helper message, maybe only print if '--verbose'? how?
             ui.begin(format!("Importing user.toml: {}", path.to_string()))?;
             read_to_string(path.to_string())
                 .expect(&format!("Something went wrong reading: {}", path.to_string()))
@@ -69,13 +72,15 @@ pub fn start(
     merge(&mut data, toml_to_json(&user_toml));
 
     // read mock data if provided
-    // ui.begin(format!("Importing override: {}", &mock_data_path));
     let mock_data = match mock_data_path {
         Some(path) => {
+            // print helper message, maybe only print if '--verbose'? how?
             ui.begin(format!("Importing override file: {}", path.to_string()))?;
             read_to_string(path.to_string())
               .expect(&format!("Something went wrong reading: {}", path.to_string()))
         },
+        // return an empty json block if '--mock-data' isn't defined.
+        // this allows us to merge an empty JSON block
         None => "{}".to_string(),
     };
     // merge mock data into data
@@ -91,8 +96,10 @@ pub fn start(
     let rendered_template = renderer.render(&template_path, &data).ok().unwrap();
     
     if print {
-        ui.warn(format!("Rendered template: {}", &template_path))?;
+        ui.br()?;
+        ui.warn(format!("###======== Rendered template: {}", &template_path))?;
         println!("{}", rendered_template);
+        ui.warn(format!("========### End rendered template: {}", &template_path))?;
     }
 
     // Render our template file
@@ -129,6 +136,8 @@ fn merge(a: &mut Json, b: Json) {
     }
 }
 
+// This is almost a dupe of the method in plan/init, except we don't care if the file exists and go
+// ahead and overwite it.  I feel like maybe a different name would be good?
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {
     let path = Path::new(&location);
     ui.status(Status::Creating, format!("file: {}", location))?;
