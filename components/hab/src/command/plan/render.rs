@@ -52,12 +52,8 @@ pub fn start(
     ui.begin(format!("Importing default.toml: {}", &default_toml_path))?;
     let default_toml = read_to_string(&default_toml_path)
         .expect(&format!("Something went wrong reading: {}", &default_toml_path));
-    let default_toml_value = default_toml.parse::<Value>().expect("Error parsing TOML");
-    let default_toml_string = serde_json::to_string_pretty(&default_toml_value).expect("Error encoding JSON");
-    let default_toml_json: Json = serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &default_toml_string)).unwrap();
-
     // merge default into data struct
-    merge(&mut data, default_toml_json);
+    merge(&mut data, toml_to_json(&default_toml));
 
     // import default.toml values, convert to JSON
     // ui.begin(format!("Importing user.toml: {}", &user_toml_path));
@@ -69,13 +65,8 @@ pub fn start(
         },
         None => "".to_string(),
     };
-    // copy/paste ftw!  This could probably stand to be DRY'd up.../there's gotta be an easier way
-    let user_toml_value = user_toml.parse::<Value>().expect("Error parsing TOML");
-    let user_toml_string = serde_json::to_string_pretty(&user_toml_value).expect("Error encoding JSON");
-    let user_toml_json: Json = serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &user_toml_string)).unwrap();
-
     // merge default into data struct
-    merge(&mut data, user_toml_json);
+    merge(&mut data, toml_to_json(&user_toml));
 
     // read mock data if provided
     // ui.begin(format!("Importing override: {}", &mock_data_path));
@@ -87,12 +78,8 @@ pub fn start(
         },
         None => "{}".to_string(),
     };
-
-    // convert our mock_data into a json::Value
-    let mock_data_json: Json = serde_json::from_str(&mock_data).unwrap();
-
-    // merge mock data into
-    merge(&mut data, mock_data_json);
+    // merge mock data into data
+    merge(&mut data, serde_json::from_str(&mock_data).unwrap());
 
     // create a template renderer
     let mut renderer = TemplateRenderer::new();
@@ -115,14 +102,29 @@ pub fn start(
     Ok(())
 }
 
+fn toml_to_json(cfg: &str) -> Json {
+    // parse TOML string to Value
+    let toml_value = cfg.parse::<Value>().expect("Error parsing TOML");
+    // convert toml to json string
+    let toml_string = serde_json::to_string(&toml_value).expect("Error encoding JSON");
+    // convert to Json::Value
+    serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &toml_string)).unwrap()
+}
+
+// merge two Json structs
 fn merge(a: &mut Json, b: Json) {
     match (a, b) {
+        // not sure I understand this... 
         (a @ &mut Json::Object(_), Json::Object(b)) => {
+            // not sure I understand why we unwrap this
             let a = a.as_object_mut().unwrap();
+            // Iterate through key/values in Json object b, 
+            // merge with Json object b
             for (k, v) in b {
                 merge(a.entry(k).or_insert(Json::Null), v);
             }
         }
+        // or this...
         (a, b) => *a = b,
     }
 }

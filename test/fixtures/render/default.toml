@@ -7,7 +7,7 @@ website = true
 expect = "3"
 
 [server]
-data-dir = "/hab/svc/consul/data/consul"
+data-dir = "IN_DEFAULT_TOML"
 datacenter = "dc1"
 loglevel = "INFO"
 # Revert back to the Legacy UI
