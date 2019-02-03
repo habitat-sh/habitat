@@ -719,6 +719,8 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         None => None
     };
 
+    let print = m.is_present("PRINT");
+
     let render_dir = match m.value_of("RENDER_DIR") {
         Some(name) => name.to_string(),
         None => "result".into(),
@@ -729,6 +731,7 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
       template_path,
       default_toml_path,
       mock_data_path,
+      print,
       render_dir,
     )
 }
