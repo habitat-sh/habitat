@@ -27,10 +27,8 @@ if [[ "${FAKE_RELEASE_TAG:-}" || "${BUILDKITE_TAG}" ]]; then
     # other things into the Buildkite metadata, so it'll all be uniform.
     version=$(cat VERSION)
     set_version "${version}"
-
-    cat .buildkite/release_pipeline.yaml
 else
     echo "--- :sparkles: Preparing for a CI run! :sparkles:"
-    echo "TODO"
+    echo "We're just going to fail!"
     exit 1
 fi

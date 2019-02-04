@@ -1,5 +1,13 @@
 steps:
 
+  # Set up build metadata
+  - label: ":habicat: set build metadata"
+    command: .buildkite/scripts/setup_build_metadata.sh
+    agents:
+      queue: habitat-release
+
+  - wait
+
   # We do this to ensure a clean slate every time, just in case we had
   # a failed release process that left things behind.
   #
