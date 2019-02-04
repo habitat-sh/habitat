@@ -362,11 +362,15 @@ impl Client {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn fetch_rdeps(&self, ident: &PackageIdent) -> Result<Vec<String>> {
+    pub fn fetch_rdeps(&self, ident: &PackageIdent, target: &PackageTarget) -> Result<Vec<String>> {
         debug!("Fetching the reverse dependencies for {}", ident);
 
         let url = format!("rdeps/{}", ident);
-        let mut res = self.0.get(&url).send().map_err(Error::HyperError)?;
+
+        let mut res = self.0.get_with_custom_url(&url, |u| {
+            u.set_query(Some(&format!("target={}", &target.to_string())))
+        }).send().map_err(Error::HyperError)?;
+
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
         }
