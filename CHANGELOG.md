@@ -6,6 +6,7 @@
 #### Bug Fixes
 
 #### Merged Pull Requests
+- Modify script so we can use pipeline upload in the job [#6117](https://github.com/habitat-sh/habitat/pull/6117) ([scotthain](https://github.com/scotthain))
 - Upload backline to acceptance [#5966](https://github.com/habitat-sh/habitat/pull/5966) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
