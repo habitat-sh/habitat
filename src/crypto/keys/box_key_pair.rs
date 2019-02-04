@@ -17,6 +17,7 @@ use std::path::{Path, PathBuf};
 use std::str;
 
 use base64;
+use serde_derive::{Deserialize, Serialize};
 use sodiumoxide::crypto::box_;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::PublicKey as BoxPublicKey;
 use sodiumoxide::crypto::box_::curve25519xsalsa20poly1305::SecretKey as BoxSecretKey;
