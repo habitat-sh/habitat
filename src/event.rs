@@ -105,18 +105,13 @@ pub enum Event {
 }
 
 impl fmt::Display for Event {
-    // TODO fn: As of rustfmt 0.7.1 the following match block is not well understood. The tool puts
-    // all match arms on the same line which blows over the 100-column max which then fails the
-    // tool with a `"line exceeded maximum length"` error. This ignore should be removed when we
-    // upgrade rustfmt and retry.
-    #[cfg_attr(rustfmt, rustfmt_skip)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Event::ProjectCreate { .. } => "project-create",
-            Event::PackageUpload { .. } => { "package-upload" }
+            Event::PackageUpload { .. } => "package-upload",
             Event::OriginKeyUpload { .. } => "origin-key-upload",
-            Event::OriginSigningKeyUpload { .. } => { "origin-secret-key-upload" }
-            Event::OriginInvitationSend { .. } => { "origin-invitation-send" }
+            Event::OriginSigningKeyUpload { .. } => "origin-secret-key-upload",
+            Event::OriginInvitationSend { .. } => "origin-invitation-send",
             Event::OriginInvitationAccept { .. } => "origin-invitation-accept",
             Event::OriginInvitationIgnore { .. } => "origin-invitation-ignore",
             Event::JobCreate { .. } => "job-create",
