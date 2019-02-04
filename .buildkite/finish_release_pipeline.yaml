@@ -43,11 +43,19 @@ steps:
     agents:
       queue: habitat-release
 
-  - label: "Add core/backline to Acceptance Environment"
-    command: /bin/true
-    skip: Not implemented yet
+  - label: ":linux: Add core/backline to Acceptance Environment"
+    command: .buildkite/scripts/upload_backline_to_acceptance.sh
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+
+  - label: ":linux: :two: Add core/backline to Acceptance Environment"
+    command: .buildkite/scripts/upload_backline_to_acceptance.sh
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: "Rebuild and promote the worker"
     command: /bin/true

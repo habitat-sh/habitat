@@ -62,6 +62,11 @@ case "${component}" in
         # buildkite-agent artifact upload "results/${pkg_artifact}"
         set_studio_ident "${pkg_target:?}" "${pkg_ident:?}"
         ;;
+    "backline")
+        echo "--- :buildkite: Recording metadata for ${pkg_ident}"
+        set_backline_ident "${pkg_target}" "${pkg_ident}"
+        set_backline_artifact "${pkg_target}" "${pkg_artifact}"
+        ;;
     *)
         ;;
 esac
