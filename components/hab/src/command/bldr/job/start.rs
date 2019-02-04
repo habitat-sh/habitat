@@ -30,7 +30,9 @@ pub fn start(
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     if group {
-        let rdeps = api_client.fetch_rdeps(ident).map_err(Error::APIClient)?;
+        let rdeps = api_client
+            .fetch_rdeps(ident, target)
+            .map_err(Error::APIClient)?;
         if !rdeps.is_empty() {
             ui.warn("Found the following reverse dependencies:")?;
 
