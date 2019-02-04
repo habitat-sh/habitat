@@ -522,7 +522,27 @@ impl Client {
 
         let res = self.add_authz(self.0.delete(&path), token).send()?;
 
-        if res.status != StatusCode::Ok {
+        // We expect NoContent, because the origin must be empty to delete
+        if res.status == StatusCode::NoContent {
+            Ok(())
+        } else {
+            Err(err_from_response(res))
+        }
+    }
+
+    /// Delete an origin
+    ///
+    ///  # Failures
+    ///
+    ///  * Remote builder is not available
+    ///  * Origin is populated with > 0 packages
+    ///  * Submitted Origin is not found
+    pub fn delete_origin(&self, origin: &str, token: &str) -> Result<()> {
+        let path = format!("depot/origins/{}", origin);
+
+        let res = self.add_authz(self.0.delete(&path), token).send()?;
+
+        if res.status != StatusCode::NoContent {
             return Err(err_from_response(res));
         }
 

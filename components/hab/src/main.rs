@@ -188,6 +188,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("list", Some(sc)) => sub_origin_secret_list(ui, sc)?,
                 _ => unreachable!(),
             },
+            ("delete", Some(m)) => sub_origin_delete(ui, m)?,
             _ => unreachable!(),
         },
         ("bldr", Some(matches)) => match matches.subcommand() {
@@ -406,6 +407,13 @@ fn sub_origin_secret_list(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let token = auth_token_param_or_env(&m)?;
     let origin = origin_param_or_env(&m)?;
     command::origin::secret::list::start(ui, &url, &token, &origin)
+}
+
+fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let origin = origin_param_or_env(&m)?;
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    command::origin::delete::start(ui, &url, &token, &origin)
 }
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
