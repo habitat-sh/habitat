@@ -6,6 +6,7 @@
 #### Bug Fixes
 
 #### Merged Pull Requests
+- Upload backline to acceptance [#5966](https://github.com/habitat-sh/habitat/pull/5966) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 ## [0.74.0](https://github.com/habitat-sh/habitat/tree/0.74.0) (2019-01-28)
