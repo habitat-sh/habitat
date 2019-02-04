@@ -28,7 +28,7 @@ if [[ "${FAKE_RELEASE_TAG:-}" || "${BUILDKITE_TAG}" ]]; then
     version=$(cat VERSION)
     set_version "${version}"
 
-    buildkite-agent pipeline upload .buildkite/release_pipeline.yaml
+    cat .buildkite/release_pipeline.yaml
 else
     echo "--- :sparkles: Preparing for a CI run! :sparkles:"
     echo "TODO"
