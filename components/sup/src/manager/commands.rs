@@ -157,23 +157,10 @@ pub fn service_cfg_set(
         version,
         service_group,
     );
-    let mut client = match butterfly::client::Client::new(
-        mgr.cfg.gossip_listen.local_addr(),
-        mgr.cfg.ring_key.clone(),
-    ) {
-        Ok(client) => client,
-        Err(err) => {
-            outputln!("Failed to connect to own gossip server, {}", err);
-            return Err(net::err(ErrCode::Internal, err.to_string()));
-        }
-    };
-    match client.send_service_config(service_group, version, &cfg, is_encrypted) {
-        Ok(()) => {
-            req.reply_complete(net::ok());
-            return Ok(());
-        }
-        Err(e) => return Err(net::err(ErrCode::Internal, e.to_string())),
-    }
+    create_butterfly_client(mgr)?
+        .send_service_config(service_group, version, &cfg, is_encrypted)
+        .map(|_| req.reply_complete(net::ok()))
+        .map_err(|e| net::err(ErrCode::Internal, e.to_string()))
 }
 
 pub fn service_file_put(
@@ -195,22 +182,27 @@ pub fn service_file_put(
         filename,
         service_group,
     );
-    let mut client = match butterfly::client::Client::new(
-        mgr.cfg.gossip_listen.local_addr(),
-        mgr.cfg.ring_key.clone(),
-    ) {
-        Ok(client) => client,
-        Err(err) => {
-            outputln!("Failed to connect to own gossip server, {}", err);
-            return Err(net::err(ErrCode::Internal, err.to_string()));
+    create_butterfly_client(mgr)?
+        .send_service_file(service_group, filename, version, &content, is_encrypted)
+        .map(|_| req.reply_complete(net::ok()))
+        .map_err(|e| net::err(ErrCode::Internal, e.to_string()))
+}
+
+fn create_butterfly_client(mgr: &ManagerState) -> NetResult<butterfly::client::Client> {
+    if let Some(gossip_addr) = &mgr.cfg.gossip_listen {
+        match butterfly::client::Client::new(gossip_addr.local_addr(), mgr.cfg.ring_key.clone()) {
+            Ok(client) => Ok(client),
+            Err(err) => {
+                outputln!("Failed to connect to own gossip server, {}", err);
+                Err(net::err(ErrCode::Internal, err.to_string()))
+            }
         }
-    };
-    match client.send_service_file(service_group, filename, version, &content, is_encrypted) {
-        Ok(()) => {
-            req.reply_complete(net::ok());
-            return Ok(());
-        }
-        Err(e) => return Err(net::err(ErrCode::Internal, e.to_string())),
+    } else {
+        outputln!("Cannot execute command without a running gossip server.");
+        Err(net::err(
+            ErrCode::Internal,
+            "Gossip not started".to_string(),
+        ))
     }
 }
 
@@ -378,24 +370,11 @@ pub fn supervisor_depart(
     opts: protocol::ctl::SupDepart,
 ) -> NetResult<()> {
     let member_id = opts.member_id.ok_or_else(err_update_client)?;
-    let mut client = match butterfly::client::Client::new(
-        mgr.cfg.gossip_listen.local_addr(),
-        mgr.cfg.ring_key.clone(),
-    ) {
-        Ok(client) => client,
-        Err(err) => {
-            outputln!("Failed to connect to own gossip server, {}", err);
-            return Err(net::err(ErrCode::Internal, err.to_string()));
-        }
-    };
     outputln!("Attempting to depart member: {}", member_id);
-    match client.send_departure(member_id) {
-        Ok(()) => {
-            req.reply_complete(net::ok());
-            Ok(())
-        }
-        Err(e) => Err(net::err(ErrCode::Internal, e.to_string())),
-    }
+    create_butterfly_client(mgr)?
+        .send_departure(member_id)
+        .map(|_| req.reply_complete(net::ok()))
+        .map_err(|e| net::err(ErrCode::Internal, e.to_string()))
 }
 
 pub fn service_status(

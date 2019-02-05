@@ -34,8 +34,8 @@ pub struct Sys {
     pub member_id: String,
     pub ip: IpAddr,
     pub hostname: String,
-    pub gossip_ip: IpAddr,
-    pub gossip_port: u16,
+    pub gossip_ip: Option<IpAddr>,
+    pub gossip_port: Option<u16>,
     pub ctl_gateway_ip: IpAddr,
     pub ctl_gateway_port: u16,
     pub http_gateway_ip: IpAddr,
@@ -46,7 +46,7 @@ pub struct Sys {
 impl Sys {
     pub fn new(
         permanent: bool,
-        gossip: GossipListenAddr,
+        gossip: Option<GossipListenAddr>,
         ctl: ListenCtlAddr,
         http: http_gateway::ListenAddr,
     ) -> Sys {
@@ -66,13 +66,16 @@ impl Sys {
                 host
             }
         };
+        let (gossip_ip, gossip_port) = gossip
+            .map(|gsp| (Some(gsp.ip()), Some(gsp.port())))
+            .unwrap_or((None, None));
         Sys {
             version: VERSION.to_string(),
             member_id: "unloaded".to_string(),
             ip,
             hostname: host,
-            gossip_ip: gossip.ip(),
-            gossip_port: gossip.port(),
+            gossip_ip,
+            gossip_port,
             ctl_gateway_ip: ctl.ip(),
             ctl_gateway_port: ctl.port(),
             http_gateway_ip: http.ip(),
@@ -85,8 +88,11 @@ impl Sys {
         let mut sys_info = SysInfo::default();
         sys_info.ip = self.ip.to_string();
         sys_info.hostname = self.hostname.clone();
-        sys_info.gossip_ip = self.gossip_ip.to_string();
-        sys_info.gossip_port = u32::from(self.gossip_port);
+        sys_info.gossip_ip = self
+            .gossip_ip
+            .map(|ip| ip.to_string())
+            .unwrap_or(String::new());
+        sys_info.gossip_port = u32::from(self.gossip_port.unwrap_or(0));
         sys_info.ctl_gateway_ip = self.ctl_gateway_ip.to_string();
         sys_info.ctl_gateway_port = u32::from(self.ctl_gateway_port);
         sys_info.http_gateway_ip = self.http_gateway_ip.to_string();
@@ -98,8 +104,12 @@ impl Sys {
         SocketAddr::new(self.ctl_gateway_ip, self.ctl_gateway_port)
     }
 
-    pub fn gossip_listen(&self) -> SocketAddr {
-        SocketAddr::new(self.gossip_ip, self.gossip_port)
+    pub fn gossip_listen(&self) -> Option<SocketAddr> {
+        if let (Some(ip), Some(port)) = (self.gossip_ip, self.gossip_port) {
+            Some(SocketAddr::new(ip, port))
+        } else {
+            None
+        }
     }
 
     pub fn http_listen(&self) -> http_gateway::ListenAddr {

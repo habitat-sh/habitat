@@ -29,8 +29,8 @@ use crate::{
     command::studio,
     common::{
         cli_defaults::{
-            GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_CTL_DEFAULT_ADDR_STRING,
-            LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
+            LISTEN_CTL_DEFAULT_ADDR_STRING, LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_ADDR,
+            RING_ENVVAR, RING_KEY_ENVVAR,
         },
         types::{EnvConfig, ListenCtlAddr},
     },
@@ -887,9 +887,11 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     // set custom usage string, otherwise the binary
     // is displayed confusingly as `hab-sup`
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-    (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-          (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
-        "The listen address for the Gossip System Gateway.")
+    (@group GOSSIP =>
+     (@arg NO_LISTEN_GOSSIP: --("no-listen-gossip") "Don't startup the gossip listener.")
+     (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
+      "The listen address for the Gossip System Gateway.")
+    )
     (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the HTTP Gateway.")
     (@arg HTTP_DISABLE: --("http-disable") -D

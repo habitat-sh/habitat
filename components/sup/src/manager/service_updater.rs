@@ -88,11 +88,11 @@ enum FollowerState {
 /// To use an update strategy, the supervisor must be configured to watch a depot for new versions.
 pub struct ServiceUpdater {
     states: UpdaterStateList,
-    butterfly: butterfly::Server,
+    butterfly: Option<butterfly::Server>,
 }
 
 impl ServiceUpdater {
-    pub fn new(butterfly: butterfly::Server) -> Self {
+    pub fn new(butterfly: Option<butterfly::Server>) -> Self {
         ServiceUpdater {
             states: UpdaterStateList::default(),
             butterfly,
@@ -199,19 +199,22 @@ impl ServiceUpdater {
                                 } else {
                                     u64::max_value()
                                 };
-                                self.butterfly.start_update_election(
-                                    &service.service_group,
-                                    suitability,
-                                    0,
-                                );
+                                if let Some(butterfly) = &self.butterfly {
+                                    butterfly.start_update_election(
+                                        &service.service_group,
+                                        suitability,
+                                        0,
+                                    );
+                                }
                                 *st = RollingState::InElection
                             }
                             _ => return false,
                         }
                     } else {
-                        debug!("Rolling update, using default suitability");
-                        self.butterfly
-                            .start_update_election(&service.service_group, 0, 0);
+                        if let Some(butterfly) = &self.butterfly {
+                            debug!("Rolling update, using default suitability");
+                            butterfly.start_update_election(&service.service_group, 0, 0);
+                        }
                         *st = RollingState::InElection;
                     }
                 }

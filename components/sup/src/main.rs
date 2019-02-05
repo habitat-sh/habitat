@@ -52,6 +52,7 @@ use crate::{
     common::{
         cli_defaults::GOSSIP_DEFAULT_PORT,
         command::package::install::InstallSource,
+        types::EnvConfig,
         ui::{Coloring, NONINTERACTIVE_ENVVAR, UI},
     },
     hcore::{
@@ -228,6 +229,17 @@ fn sub_term() -> Result<()> {
 ////////////////////////////////////////////////////////////////////////
 
 fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
+    let gossip_listen = if m.is_present("NO_LISTEN_GOSSIP") {
+        None
+    } else {
+        Some(
+            m.value_of("LISTEN_GOSSIP")
+                .map_or(Ok(sup::config::GossipListenAddr::configured_value()), |v| {
+                    v.parse()
+                })?,
+        )
+    };
+
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
         update_url: bldr_url(m),
@@ -239,17 +251,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         gossip_peers: get_peers(m)?,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
         // TODO: Refactor this to remove the duplication
-        gossip_listen: m.value_of("LISTEN_GOSSIP").map_or_else(
-            || {
-                let default = sup::config::GossipListenAddr::default();
-                error!(
-                    "Value for LISTEN_GOSSIP has not been set. Using default: {}",
-                    default
-                );
-                Ok(default)
-            },
-            |v| v.parse(),
-        )?,
+        gossip_listen,
         ctl_listen: m.value_of("LISTEN_CTL").map_or_else(
             || {
                 let default = common::types::ListenCtlAddr::default();
@@ -601,14 +603,14 @@ mod test {
             let config = config_from_cmd_str("hab-sup run --listen-gossip 1.1.1.1:1111");
             let expected_addr = GossipListenAddr::from_str("1.1.1.1:1111")
                 .expect("Could not create GossipListenAddr");
-            assert_eq!(config.gossip_listen, expected_addr);
+            assert_eq!(config.gossip_listen, Some(expected_addr));
         }
 
         #[test]
         fn gossip_listen_is_set_to_default_when_not_specified() {
             let config = config_from_cmd_str("hab-sup run");
             let expected_addr = GossipListenAddr::default();
-            assert_eq!(config.gossip_listen, expected_addr);
+            assert_eq!(config.gossip_listen, Some(expected_addr));
         }
 
         #[test]

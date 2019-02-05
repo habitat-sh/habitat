@@ -1251,7 +1251,7 @@ mod tests {
         let http_addr = http_gateway::ListenAddr::default();
         let sys = Sys::new(
             false,
-            GossipListenAddr::default(),
+            Some(GossipListenAddr::default()),
             listen_ctl_addr,
             http_addr,
         );

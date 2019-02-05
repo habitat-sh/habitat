@@ -30,6 +30,7 @@ mod test {
 
     mod sup_run {
         use super::*;
+        use std::iter::FromIterator;
 
         assert_cli_cmd!(should_handle_multiple_peer_flags,
                         "hab-sup run --peer 1.1.1.1 --peer 2.2.2.2",
@@ -56,6 +57,20 @@ mod test {
                         "hab-sup run --bind service.group1 service.group2 -- core/redis",
                         "BIND" => ["service.group1", "service.group2"],
                         "PKG_IDENT_OR_ARTIFACT" => "core/redis");
+
+        #[test]
+        fn listen_gossip_and_no_listen_gossip_are_mutually_exclusive() {
+            let cmd_vec = Vec::from_iter(
+                "hab-sup run --no-listen-gossip --listen-gossip 1.1.1.1:1111".split_whitespace(),
+            );
+            let matches = cli().get_matches_from_safe(cmd_vec);
+
+            assert!(matches.is_err());
+
+            if let Err(clap::Error { kind, .. }) = matches {
+                assert_eq!(kind, ErrorKind::ArgumentConflict);
+            }
+        }
 
     }
 

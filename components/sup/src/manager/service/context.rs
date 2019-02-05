@@ -141,8 +141,8 @@ struct SystemInfo<'a> {
     member_id: Cow<'a, String>,
     ip: Cow<'a, IpAddr>,
     hostname: Cow<'a, String>,
-    gossip_ip: Cow<'a, IpAddr>,
-    gossip_port: Cow<'a, u16>,
+    gossip_ip: Option<Cow<'a, IpAddr>>,
+    gossip_port: Option<Cow<'a, u16>>,
     http_gateway_ip: Cow<'a, IpAddr>,
     http_gateway_port: Cow<'a, u16>,
     ctl_gateway_ip: Cow<'a, IpAddr>,
@@ -157,8 +157,14 @@ impl<'a> SystemInfo<'a> {
             member_id: Cow::Borrowed(&sys.member_id),
             ip: Cow::Borrowed(&sys.ip),
             hostname: Cow::Borrowed(&sys.hostname),
-            gossip_ip: Cow::Borrowed(&sys.gossip_ip),
-            gossip_port: Cow::Borrowed(&sys.gossip_port),
+            gossip_ip: sys
+                .gossip_ip
+                .as_ref()
+                .and_then(|ip| Some(Cow::Borrowed(ip))),
+            gossip_port: sys
+                .gossip_port
+                .as_ref()
+                .and_then(|port| Some(Cow::Borrowed(port))),
             http_gateway_ip: Cow::Borrowed(&sys.http_gateway_ip),
             http_gateway_port: Cow::Borrowed(&sys.http_gateway_port),
             ctl_gateway_ip: Cow::Borrowed(&sys.ctl_gateway_ip),
@@ -723,8 +729,8 @@ two = 2
             member_id: Cow::Owned("MEMBER_ID".into()),
             ip: Cow::Owned(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))),
             hostname: Cow::Owned("MY_HOSTNAME".into()),
-            gossip_ip: Cow::Owned(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))),
-            gossip_port: Cow::Owned(1234),
+            gossip_ip: None,
+            gossip_port: None,
             http_gateway_ip: Cow::Owned(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0))),
             http_gateway_port: Cow::Owned(5678),
             ctl_gateway_ip: Cow::Owned(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1))),

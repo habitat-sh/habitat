@@ -771,7 +771,7 @@ mod tests {
 
         let sys = Sys::new(
             true,
-            GossipListenAddr::default(),
+            Some(GossipListenAddr::default()),
             ListenCtlAddr::default(),
             http_gateway::ListenAddr::default(),
         );
