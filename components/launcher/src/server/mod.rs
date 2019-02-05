@@ -222,10 +222,10 @@ impl Server {
         }
 
         // With the Supervisor shutting down services, we need to
-        // ensure that the Launcher is able to reaping those main
-        // service processes as the Supervisor shuts them
-        // down... otherwise, the Supervisor can end up waiting a long
-        // time on zombie processes.
+        // ensure that the Launcher is able to reap those main service
+        // processes as the Supervisor shuts them down... otherwise,
+        // the Supervisor can end up waiting a long time on zombie
+        // processes.
         loop {
             self.services.reap_services();
             match self.supervisor.try_wait() {
