@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-pub use self::imp::*;
-
 #[cfg(unix)]
-#[path = "unix/mod.rs"]
-mod imp;
+mod unix;
+#[cfg(unix)]
+pub use self::unix::*;
 
 #[cfg(windows)]
-#[path = "windows/mod.rs"]
-mod imp;
+mod windows;
+#[cfg(windows)]
+pub use self::windows::*;
 
 #[derive(Debug)]
 pub enum ShutdownMethod {
