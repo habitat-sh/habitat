@@ -20,7 +20,7 @@
 use crate::sys::ShutdownMethod;
 use habitat_core::os::process::{is_alive, signal, Pid, Signal};
 use libc::{self, pid_t};
-use std::ops::Neg;
+use std::{ops::Neg, thread, time::Duration as StdDuration};
 use time::{Duration, SteadyTime};
 
 /// Kill a service process.
@@ -79,6 +79,7 @@ impl Process {
             if SteadyTime::now() >= stop_time {
                 break;
             }
+            thread::sleep(StdDuration::from_millis(5));
         }
 
         match signal(pid_to_kill, Signal::KILL) {

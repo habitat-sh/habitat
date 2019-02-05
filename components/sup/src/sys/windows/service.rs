@@ -18,7 +18,7 @@ use habitat_core::os::process::{
     windows_child::{ExitStatus, Handle},
     Pid,
 };
-use std::{collections::HashMap, io, mem};
+use std::{collections::HashMap, io, mem, time::Duration as StdDuration};
 use time::{Duration, SteadyTime};
 use winapi::{
     shared::minwindef::{DWORD, LPDWORD, MAX_PATH},
@@ -93,6 +93,7 @@ impl Process {
             if self.status().is_some() {
                 return ShutdownMethod::GracefulTermination;
             }
+            thread::sleep(StdDuration::from_millis(5));
         }
     }
 
