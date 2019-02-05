@@ -1226,6 +1226,7 @@ mod tests {
 
     use std::path::PathBuf;
     use std::str::FromStr;
+    use std::time::Instant;
 
     use crate::hcore::package::{ident::PackageIdent, PackageInstall};
     use serde_json;
@@ -1239,8 +1240,7 @@ mod tests {
     use crate::http_gateway;
     use crate::test_helpers::*;
 
-    #[test]
-    fn service_proxy_conforms_to_the_schema() {
+    fn initialize_test_service() -> Service {
         let listen_ctl_addr =
             ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let http_addr = http_gateway::ListenAddr::default();
@@ -1272,8 +1272,27 @@ mod tests {
         let fscfg = FsCfg::new("/tmp");
         let afs = Arc::new(fscfg);
         let gs = Arc::new(RwLock::new(manager::GatewayState::default()));
-        let service = Service::new(asys, install, spec, afs, Some("haha"), gs)
-            .expect("I wanted a service to load, but it didn't");
+
+        Service::new(asys, install, spec, afs, Some("haha"), gs)
+            .expect("I wanted a service to load, but it didn't")
+    }
+
+    #[test]
+    fn health_check_is_due_at_creation() {
+        let service = initialize_test_service();
+        assert!(
+            service.scheduled_health_check.is_some(),
+            "Expected a scheduled health check"
+        );
+        assert!(
+            service.scheduled_health_check.unwrap() < Instant::now(),
+            "Expected health check due at creation"
+        );
+    }
+
+    #[test]
+    fn service_proxy_conforms_to_the_schema() {
+        let service = initialize_test_service();
 
         // With config
         let proxy_with_config = ServiceProxy::new(&service, ConfigRendering::Full);
