@@ -25,7 +25,7 @@ use time::{Duration, SteadyTime};
 
 /// Kill a service process.
 pub fn kill(pid: Pid) -> ShutdownMethod {
-    let process = Process::new(pid as u32);
+    let process = Process::new(pid);
     process.kill()
 }
 
@@ -41,8 +41,8 @@ struct Process {
 }
 
 impl Process {
-    fn new(pid: u32) -> Self {
-        Process { pid: pid as pid_t }
+    fn new(pid: Pid) -> Self {
+        Process { pid: pid }
     }
 
     /// Attempt to gracefully terminate a proccess and then forcefully
