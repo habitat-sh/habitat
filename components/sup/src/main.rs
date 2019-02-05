@@ -221,6 +221,7 @@ fn sub_term() -> Result<()> {
 fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
+        no_listen_gossip: m.is_present("NO_LISTEN_GOSSIP"),
         update_url: bldr_url(m),
         update_channel: channel(m),
         http_disable: m.is_present("HTTP_DISABLE"),

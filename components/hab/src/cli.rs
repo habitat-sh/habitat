@@ -946,6 +946,7 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         Implies NO_COLOR")
     (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
         "The interval (seconds) on which to run health checks [default: 30]")
+    (@arg NO_LISTEN_GOSSIP: --("no-listen-gossip") "Don't startup the gossip listener.")
     )
 }
 
