@@ -49,6 +49,9 @@ use crate::{census::{CensusRing,
             error::{Error,
                     Result,
                     SupError},
+            events::{self,
+                     EventConnectionInfo,
+                     EventCore},
             feat,
             http_gateway,
             VERSION};
@@ -481,6 +484,17 @@ impl Manager {
 
         let spec_watcher = SpecWatcher::run(&spec_dir)?;
 
+        if feat::is_enabled(feat::EventStream) {
+            // Putting configuration of the stream behind a feature
+            // flag for now.  If the flag isn't set, just don't
+            // initialize the stream; everything else will turn into a
+            // no-op automatically.
+            let ec = EventCore { supervisor_id: sys.member_id.clone(), };
+            // TODO: Determine what the actual connection parameters
+            // should be, and process them at some point before here.
+            events::init_stream(EventConnectionInfo::default(), ec);
+        }
+
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
                                                     services,
                                                     gateway_state:
@@ -650,6 +664,11 @@ impl Manager {
             .lock()
             .expect("Updater lock poisoned")
             .add(&service);
+
+        events::event(events::ServiceStarted { ident:         &service.pkg.ident,
+                                               spec_ident:    &spec.ident,
+                                               service_group: &service.service_group, });
+
         self.state
             .services
             .write()
@@ -1168,6 +1187,11 @@ impl Manager {
         // TODO (CM): But only if we're not going down for a restart.
         let ident = service.spec_ident.clone();
         let stop_it = service.stop().then(move |_| {
+                                        events::event(events::ServiceStopped {
+                ident: &service.pkg.ident,
+                //                spec_ident: &service.spec.ident,
+                service_group: &service.service_group,
+            });
                                         user_config_watcher.write()
                                                            .expect("Watcher lock poisoned")
                                                            .remove(&service);
