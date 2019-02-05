@@ -16,7 +16,10 @@ use std::{fs::File, io::prelude::*, path::Path, str::FromStr};
 
 use crate::{
     common::ui::UI,
-    hcore::package::{PackageArchive, PackageIdent},
+    hcore::{
+        package::{PackageArchive, PackageIdent},
+        service::ServiceBind,
+    },
 };
 use base64;
 use clap::ArgMatches;
@@ -24,8 +27,8 @@ use clap::ArgMatches;
 use crate::export_docker::{DockerImage, Result};
 
 use crate::{
-    env::EnvironmentVariable, manifestjson::ManifestJson, service_bind::ServiceBind,
-    storage::PersistentStorage, topology::Topology,
+    env::EnvironmentVariable, manifestjson::ManifestJson, storage::PersistentStorage,
+    topology::Topology,
 };
 
 /// Represents a Kubernetes manifest.
@@ -121,7 +124,12 @@ impl Manifest {
             }
         };
 
-        let binds = ServiceBind::from_args(&matches)?;
+        let binds = matches
+            .values_of("BIND")
+            .unwrap_or_default()
+            .map(|b| ServiceBind::from_str(b).unwrap()) // unwrap ok as we've validated input
+            .collect();
+
         let persistent_storage = PersistentStorage::from_args(&matches)?;
         let environment = EnvironmentVariable::from_args(&matches)?;
 

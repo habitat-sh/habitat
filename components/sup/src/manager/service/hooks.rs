@@ -697,18 +697,15 @@ mod tests {
         common::templating::{config::Cfg, package::Pkg, test_helpers::*},
         hcore::{
             package::{PackageIdent, PackageInstall},
-            service::ServiceGroup,
+            service::{ServiceBind, ServiceGroup},
         },
     };
     use tempfile::TempDir;
 
     use super::{super::RenderContext, *};
     use crate::{
-        census::CensusRing,
-        common::types::ListenCtlAddr,
-        config::GossipListenAddr,
-        http_gateway,
-        manager::{service::spec::ServiceBind, sys::Sys},
+        census::CensusRing, common::types::ListenCtlAddr, config::GossipListenAddr, http_gateway,
+        manager::sys::Sys,
     };
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at

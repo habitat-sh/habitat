@@ -1,0 +1,53 @@
+# test-bind / test-bind
+
+
+* __Maintainer__: The Habitat Maintainers <humans@habitat.sh>
+* __Version__: 0.1.0
+* __Release__: 20190219230309
+* __Target__: x86_64-linux
+* __Upstream URL__: upstream project's website or home page is not defined
+* __License__: Apache-2.0 
+* __Source__: source URL not provided or required
+* __SHA__: SHA256 checksum not provided or required
+* __Path__: `/hab/pkgs/test-bind/test-bind/0.1.0/20190219230309`
+* __Build Dependencies__: no build dependencies or undefined
+* __Dependencies__: no runtime dependencies or undefined
+* __Interpreters__: no interpreters or undefined
+
+# Plan
+
+## Build Flags
+
+```bash
+CFLAGS: no CFLAGS
+CPPFLAGS: no CPPFLAGS
+CXXFLAGS: no CXXFLAGS
+LDFLAGS: no LDFLAGS
+LD_RUN_PATH: no LD_RUN_PATH
+```
+
+## Plan Source
+
+```bash
+pkg_name=test-bind
+pkg_origin=test-bind
+pkg_version="0.1.0"
+pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+pkg_license=("Apache-2.0")
+
+pkg_binds=(
+   [database]="port host"
+)
+
+pkg_binds_optional=(
+    [storage]="port host"
+)
+
+do_build() {
+  return 0
+}
+
+do_install() {
+  return 0
+}
+```

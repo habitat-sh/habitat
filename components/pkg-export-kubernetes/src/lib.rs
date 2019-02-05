@@ -37,7 +37,6 @@ pub mod error;
 pub mod hb;
 pub mod manifest;
 pub mod manifestjson;
-pub mod service_bind;
 pub mod storage;
 pub mod topology;
 

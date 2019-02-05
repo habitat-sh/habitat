@@ -44,10 +44,10 @@ where
     U: ToString,
 {
     fn from(value: (T, U)) -> ApplicationEnvironment {
-        let mut ae = ApplicationEnvironment::default();
-        ae.application = value.0.to_string();
-        ae.environment = value.1.to_string();
-        ae
+        Self {
+            application: value.0.to_string(),
+            environment: value.1.to_string(),
+        }
     }
 }
 
@@ -160,22 +160,18 @@ impl FromStr for DesiredState {
 impl FromStr for ServiceBind {
     type Err = NetErr;
 
-    fn from_str(bind_str: &str) -> Result<Self, Self::Err> {
-        let values: Vec<&str> = bind_str.split(':').collect();
-        if values.len() == 2 {
-            Ok(ServiceBind {
-                name: values[0].to_string(),
-                service_group: ServiceGroup::from_str(values[1])?,
-            })
-        } else {
-            Err(net::err(
-                ErrCode::InvalidPayload,
-                format!(
-                    "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where \
-                     <NAME> is a service name and <SERVICE_GROUP> is a valid service group.",
-                    bind_str
-                ),
-            ))
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        let sb = core::service::ServiceBind::from_str(value)
+            .map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
+        Ok(sb.into())
+    }
+}
+
+impl From<core::service::ServiceBind> for ServiceBind {
+    fn from(bind: core::service::ServiceBind) -> Self {
+        Self {
+            name: bind.name().to_string(),
+            service_group: ServiceGroup::from(bind.service_group().clone()),
         }
     }
 }
@@ -210,10 +206,10 @@ impl fmt::Display for ServiceGroup {
 
 impl From<core::service::ApplicationEnvironment> for ApplicationEnvironment {
     fn from(app_env: core::service::ApplicationEnvironment) -> Self {
-        let mut proto = ApplicationEnvironment::default();
-        proto.application = app_env.application().to_string();
-        proto.environment = app_env.environment().to_string();
-        proto
+        Self {
+            application: app_env.application().to_string(),
+            environment: app_env.environment().to_string(),
+        }
     }
 }
 
@@ -225,20 +221,20 @@ impl Into<core::service::ApplicationEnvironment> for ApplicationEnvironment {
 
 impl From<core::service::HealthCheckInterval> for HealthCheckInterval {
     fn from(h: core::service::HealthCheckInterval) -> Self {
-        let mut proto = HealthCheckInterval::default();
-        proto.seconds = h.as_ref().as_secs();
-        proto
+        Self {
+            seconds: h.as_ref().as_secs(),
+        }
     }
 }
 
 impl From<package::PackageIdent> for PackageIdent {
     fn from(ident: package::PackageIdent) -> Self {
-        let mut proto = PackageIdent::default();
-        proto.origin = ident.origin;
-        proto.name = ident.name;
-        proto.version = ident.version;
-        proto.release = ident.release;
-        proto
+        Self {
+            origin: ident.origin,
+            name: ident.name,
+            version: ident.version,
+            release: ident.release,
+        }
     }
 }
 

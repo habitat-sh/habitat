@@ -38,7 +38,7 @@ use crate::{
         crypto::hash,
         fs::{svc_hooks_path, SvcDir, FS_ROOT_PATH},
         package::{metadata::Bind, PackageIdent, PackageInstall},
-        service::{HealthCheckInterval, ServiceGroup},
+        service::{HealthCheckInterval, ServiceBind, ServiceGroup},
         ChannelIdent,
     },
     launcher_client::LauncherCli,
@@ -57,7 +57,7 @@ use time::Timespec;
 use self::{context::RenderContext, hooks::HookTable, supervisor::Supervisor};
 pub use self::{
     health::HealthCheck,
-    spec::{DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec},
+    spec::{DesiredState, IntoServiceSpec, ServiceSpec},
 };
 use super::{ShutdownReason, Sys};
 use crate::{
@@ -450,22 +450,22 @@ impl Service {
                     outputln!(preamble self.service_group,
                                   "The specified service group '{}' for binding '{}' is not (yet?) present \
                                    in the census data.",
-                                  bind.service_group,
-                                  bind.name);
+                                  bind.service_group(),
+                                  bind.name());
                 }
                 BindStatus::Empty => {
                     outputln!(preamble self.service_group,
                                   "The specified service group '{}' for binding '{}' is present in the \
                                    census, but currently has no active members.",
-                                  bind.service_group,
-                                  bind.name);
+                                  bind.service_group(),
+                                  bind.name());
                 }
                 BindStatus::Unsatisfied(ref unsatisfied) => {
                     outputln!(preamble self.service_group,
                                   "The group '{}' cannot satisfy the `{}` bind because it does not export \
                                    the following required fields: {:?}",
-                                  bind.service_group,
-                                  bind.name,
+                                  bind.service_group(),
+                                  bind.name(),
                                   unsatisfied);
                 }
                 BindStatus::Satisfied => {
@@ -480,8 +480,8 @@ impl Service {
                 BindStatus::Unknown(ref e) => {
                     outputln!(preamble self.service_group,
                                   "Error validating bind for {}=>{}: {}",
-                                  bind.name,
-                                  bind.service_group,
+                                  bind.name(),
+                                  bind.service_group(),
                                   e);
                 }
             };
@@ -494,8 +494,8 @@ impl Service {
                 // unsatisfied, but now it is satisfied.
                 outputln!(preamble self.service_group,
                               "The group '{}' satisfies the `{}` bind",
-                              bind.service_group,
-                              bind.name);
+                              bind.service_group(),
+                              bind.name());
                 true
             } else {
                 false
@@ -510,13 +510,13 @@ impl Service {
         census_ring: &'a CensusRing,
         service_bind: &'a ServiceBind,
     ) -> BindStatus<'a> {
-        match census_ring.census_group_for(&service_bind.service_group) {
+        match census_ring.census_group_for(service_bind.service_group()) {
             None => BindStatus::NotPresent,
             Some(group) => {
                 if group.active_members().count() == 0 {
                     BindStatus::Empty
                 } else {
-                    match self.unsatisfied_bind_exports(group, &service_bind.name) {
+                    match self.unsatisfied_bind_exports(group, service_bind.name()) {
                         Ok(unsatisfied) => {
                             if unsatisfied.is_empty() {
                                 BindStatus::Satisfied

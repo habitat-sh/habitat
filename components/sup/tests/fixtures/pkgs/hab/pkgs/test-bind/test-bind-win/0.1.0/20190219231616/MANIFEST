@@ -1,0 +1,34 @@
+# test-bind / test-bind-win
+
+
+* __Maintainer__: The Habitat Maintainers <humans@habitat.sh>
+* __Version__: 0.1.0
+* __Release__: 20190219231616
+* __Target__: x86_64-windows
+* __Upstream URL__: upstream project's website or home page is not defined
+* __License__: Apache-2.0
+* __Source__: []()
+* __SHA__: SHA256 checksum not provided or required
+* __Path__: `C:\hab\studios\pkgs\hab\pkgs\test-bind\test-bind-win\0.1.0\20190219231616`
+* __Build Dependencies__: no build dependencies or undefined
+* __Dependencies__: no runtime dependencies or undefined
+* __Interpreters__: no interpreters or undefined
+
+# Plan
+
+## Plan Source
+
+```ps1
+$pkg_name="test-bind-win"
+$pkg_origin="test-bind"
+$pkg_version="0.1.0"
+$pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+$pkg_license=@("Apache-2.0")
+$pkg_binds=@{
+  database="port host"
+}
+$pkg_binds_optional=@{
+  storage="port host"
+}
+```
+

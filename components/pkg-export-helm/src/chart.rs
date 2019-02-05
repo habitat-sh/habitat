@@ -116,9 +116,9 @@ impl<'a> Chart<'a> {
             let service_var = format!("bindService{}", i);
             let group_var = format!("bindGroup{}", i);
 
-            values.add_entry(&name_var, &bind.name);
-            values.add_entry(&service_var, &bind.service_group.service());
-            values.add_entry(&group_var, &bind.service_group.group());
+            values.add_entry(&name_var, bind.name());
+            values.add_entry(&service_var, bind.service_group().service());
+            values.add_entry(&group_var, bind.service_group().group());
 
             let json = json!({
                 "name": format!("{{{{.Values.{}}}}}", name_var),
