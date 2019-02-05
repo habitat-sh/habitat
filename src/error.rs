@@ -96,6 +96,8 @@ pub enum Error {
     FullyQualifiedPackageIdentRequired(String),
     /// Occurs when an application environment string cannot be successfully parsed.
     InvalidApplicationEnvironment(String),
+    /// Occurs when a service binding cannot be successfully parsed.
+    InvalidBinding(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
     /// Occurs when a package target string cannot be successfully parsed.
@@ -267,6 +269,11 @@ impl fmt::Display for Error {
                  is in the form application.environment (example: twitter.prod)",
                 e
             ),
+            Error::InvalidBinding(ref binding) => format!(
+                "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where <NAME> \
+                 is a service name, and <SERVICE_GROUP> is a valid service group",
+                binding
+            ),
             Error::InvalidPackageIdent(ref e) => format!(
                 "Invalid package identifier: {:?}. A valid identifier is in the form \
                  origin/name (example: acme/redis)",
@@ -430,6 +437,8 @@ impl error::Error for Error {
                 "Application environment strings must be in \
                  application.environment format (example: twitter.prod)"
             }
+            Error::InvalidBinding(_) => "Service Bind strings must be in \
+                name:service_group format (example cache:redis.cache@organization).",
             Error::InvalidPackageIdent(_) => {
                 "Package identifiers must be in origin/name format (example: acme/redis)"
             }

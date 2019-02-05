@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::error::{Error, Result};
+use regex::Regex;
+use serde_derive::{Deserialize, Serialize};
 use std::cmp::{Ordering, PartialOrd};
 use std::fmt;
 use std::num::ParseIntError;
@@ -19,11 +22,6 @@ use std::ops::{Deref, DerefMut};
 use std::result;
 use std::str::FromStr;
 use std::time::Duration;
-
-use regex::Regex;
-use serde_derive::{Deserialize, Serialize};
-
-use crate::error::{Error, Result};
 
 lazy_static::lazy_static! {
     static ref SG_FROM_STR_RE: Regex =
@@ -83,7 +81,75 @@ impl FromStr for BindingMode {
     }
 }
 
-////////////////////////////////////////////////////////////////////////
+/// A binding from a service name to a service group that provides that service
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub struct ServiceBind {
+    pub name: String,
+    pub service_group: ServiceGroup,
+}
+
+impl FromStr for ServiceBind {
+    type Err = Error;
+
+    fn from_str(bind_str: &str) -> result::Result<Self, Self::Err> {
+        let values: Vec<&str> = bind_str.split(':').collect();
+        if values.len() == 2 {
+            Ok(ServiceBind {
+                name: values[0].to_string(),
+                service_group: ServiceGroup::from_str(values[1])?,
+            })
+        } else {
+            Err(Error::InvalidBinding(bind_str.to_string()))
+        }
+    }
+}
+
+impl fmt::Display for ServiceBind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:{}", self.name, self.service_group)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for ServiceBind {
+    fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct ServiceBindVisitor;
+
+        impl<'de> serde::de::Visitor<'de> for ServiceBindVisitor {
+            type Value = ServiceBind;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                write!(
+                    formatter,
+                    "a service bind in name:service_group \
+                     format (example cache:redis.cache)"
+                )
+            }
+
+            fn visit_str<E>(self, s: &str) -> std::result::Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                ServiceBind::from_str(s).map_err(|_| {
+                    serde::de::Error::invalid_value(serde::de::Unexpected::Str(s), &self)
+                })
+            }
+        }
+
+        deserializer.deserialize_str(ServiceBindVisitor)
+    }
+}
+
+impl serde::Serialize for ServiceBind {
+    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Deserialize, Serialize)]
 pub struct ServiceGroup(String);
@@ -497,6 +563,108 @@ mod test {
     #[should_panic(expected = "oh-noes")]
     fn service_group_from_str_not_enough_periods() {
         ServiceGroup::from_str("oh-noes").unwrap();
+    }
+
+    #[test]
+    fn service_bind_from_str() {
+        let bind_str = "name:app.env#service.group@organization";
+        let bind = ServiceBind::from_str(bind_str).unwrap();
+
+        assert_eq!(bind.name, String::from("name"));
+        assert_eq!(
+            bind.service_group,
+            ServiceGroup::from_str("app.env#service.group@organization").unwrap()
+        );
+    }
+
+    #[test]
+    fn service_bind_from_str_simple() {
+        let bind_str = "name:service.group";
+        let bind = ServiceBind::from_str(bind_str).unwrap();
+
+        assert_eq!(bind.name, String::from("name"));
+        assert_eq!(
+            bind.service_group,
+            ServiceGroup::from_str("service.group").unwrap()
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "uhoh")]
+    fn service_bind_from_str_missing_colon() {
+        let bind_str = "uhoh";
+        ServiceBind::from_str(bind_str).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "uhoh:this:is:bad")]
+    fn service_bind_from_str_too_many_colons() {
+        let bind_str = "uhoh:this:is:bad";
+        ServiceBind::from_str(bind_str).unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "nosuchservicegroup@nope")]
+    fn service_bind_from_str_invalid_service_group() {
+        let bind_str = "uhoh:nosuchservicegroup@nope";
+        ServiceBind::from_str(bind_str).unwrap();
+    }
+
+    #[test]
+    fn service_bind_to_string() {
+        let bind = ServiceBind {
+            name: String::from("name"),
+            service_group: ServiceGroup::from_str("service.group").unwrap(),
+        };
+
+        assert_eq!("name:service.group", bind.to_string());
+    }
+
+    #[test]
+    fn service_bind_toml_deserialize() {
+        #[derive(Deserialize)]
+        struct Data {
+            key: ServiceBind,
+        }
+        let toml = r#"
+            key = "name:app.env#service.group@organization"
+            "#;
+        let data: Data = toml::from_str(toml).unwrap();
+
+        assert_eq!(
+            data.key,
+            ServiceBind::from_str("name:app.env#service.group@organization").unwrap()
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "invalid value")]
+    fn service_bind_toml_deserialize_bad_bind() {
+        #[derive(Deserialize)]
+        #[allow(dead_code)]
+        struct Data {
+            key: ServiceBind,
+        }
+        let toml = r#"
+            key = "name"
+            "#;
+        let _data: Data = toml::from_str(toml).unwrap();
+    }
+
+    #[test]
+    fn service_bind_toml_serialize() {
+        #[derive(Serialize)]
+        struct Data {
+            key: ServiceBind,
+        }
+        let data = Data {
+            key: ServiceBind {
+                name: String::from("name"),
+                service_group: ServiceGroup::from_str("service.group").unwrap(),
+            },
+        };
+        let toml = toml::to_string(&data).unwrap();
+        assert!(toml.starts_with(r#"key = "name:service.group""#));
     }
 
     #[test]
