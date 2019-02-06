@@ -904,7 +904,7 @@ impl Manager {
                     runtime.spawn(self.stop(svc));
                 }
             }
-        };
+        }
 
         // Allow all existing futures to run to completion.
         runtime
