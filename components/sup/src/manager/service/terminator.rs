@@ -32,17 +32,7 @@ pub fn terminate_service(pid: Pid, service_group: String) -> SpawnedFuture<Shutd
         .spawn(move || {
             outputln!(preamble service_group, "Terminating service (PID: {:?})", pid);
             let shutdown = service::kill(pid);
-            match shutdown {
-                ShutdownMethod::AlreadyExited => {
-                    outputln!(preamble service_group, "Service already exited (PID: {:?})", pid);
-                }
-                ShutdownMethod::GracefulTermination => {
-                    outputln!(preamble service_group, "Service gracefully terminated (PID: {:?})", pid);
-                }
-                ShutdownMethod::Killed => {
-                    outputln!(preamble service_group, "Service killed (PID: {:?})", pid);
-                }
-            }
+            outputln!(preamble service_group, "{} (PID: {:?})", shutdown, pid);
             tx.send(shutdown)
                 .expect("Couldn't send oneshot signal from terminate_service: receiver went away");
         });
