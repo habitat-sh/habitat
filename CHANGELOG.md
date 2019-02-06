@@ -1,11 +1,12 @@
 # Habitat CHANGELOG
 
-<!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release 0.75.0-dev -->
+## [0.75.0-dev](https://github.com/habitat-sh/habitat/tree/0.75.0-dev) (2019-02-06)
 
 #### Bug Fixes
 
 #### Merged Pull Requests
+- Bump VERSION to 0.75.0-dev. [#6126](https://github.com/habitat-sh/habitat/pull/6126) ([fnichol](https://github.com/fnichol))
 - Release 0.74.0 blog post! [#6124](https://github.com/habitat-sh/habitat/pull/6124) ([fnichol](https://github.com/fnichol))
 <!-- latest_release -->
 
