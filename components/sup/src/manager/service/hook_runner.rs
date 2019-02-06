@@ -34,7 +34,7 @@ use std::{
 
 pub struct HookRunner<H: Hook> {
     hook: Arc<Mutex<H>>,
-    sg: ServiceGroup,
+    service_group: ServiceGroup,
     pkg: Pkg,
     passwd: Option<String>,
 }
@@ -42,15 +42,15 @@ pub struct HookRunner<H: Hook> {
 impl<H: Hook> HookRunner<H> {
     pub fn new(
         hook: Arc<Mutex<H>>,
-        sg: ServiceGroup,
+        service_group: ServiceGroup,
         pkg: Pkg,
         passwd: Option<String>,
     ) -> HookRunner<H> {
         HookRunner {
-            hook: hook,
-            sg: sg,
-            pkg: pkg,
-            passwd: passwd,
+            hook,
+            service_group,
+            pkg,
+            passwd,
         }
     }
 }
@@ -69,11 +69,11 @@ impl<H: Hook + 'static> IntoFuture for HookRunner<H> {
         // TODO (CM): May want to consider adding a configurable
         // timeout to how long this hook is allowed to run.
         let handle_result = thread::Builder::new()
-            .name(format!("{}-{}", H::file_name(), self.sg))
+            .name(format!("{}-{}", H::file_name(), self.service_group))
             .spawn(move || {
                 let hook = self.hook.lock().expect("Hook lock poisoned");
                 let _timer = hook_timer(H::file_name());
-                let exit_value = hook.run(&self.sg, &self.pkg, self.passwd.as_ref());
+                let exit_value = hook.run(&self.service_group, &self.pkg, self.passwd.as_ref());
                 tx.send(exit_value)
                     .expect("Couldn't send oneshot signal from HookRunner: receiver went away");
             });
