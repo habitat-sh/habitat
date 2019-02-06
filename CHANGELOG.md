@@ -1,6 +1,12 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.75.0-dev -->
+<!-- latest_release unreleased -->
+## Unreleased
+
+#### New Features & Enhancements
+- Support for recursive subdirectories for config. [#6066](https://github.com/habitat-sh/habitat/pull/6066) ([jamesc](https://github.com/jamesc))
+<!-- latest_release -->
+
 ## [0.75.0-dev](https://github.com/habitat-sh/habitat/tree/0.75.0-dev) (2019-02-06)
 
 #### Bug Fixes
@@ -8,7 +14,6 @@
 #### Merged Pull Requests
 - Bump VERSION to 0.75.0-dev. [#6126](https://github.com/habitat-sh/habitat/pull/6126) ([fnichol](https://github.com/fnichol))
 - Release 0.74.0 blog post! [#6124](https://github.com/habitat-sh/habitat/pull/6124) ([fnichol](https://github.com/fnichol))
-<!-- latest_release -->
 
 ## [0.74.0](https://github.com/habitat-sh/habitat/tree/0.74.0) (2019-01-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.73.0...0.74.0)
