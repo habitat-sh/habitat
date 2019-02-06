@@ -6,6 +6,7 @@
 #### Bug Fixes
 
 #### Merged Pull Requests
+- Release 0.74.0 blog post! [#6124](https://github.com/habitat-sh/habitat/pull/6124) ([fnichol](https://github.com/fnichol))
 <!-- latest_release -->
 
 ## [0.74.0](https://github.com/habitat-sh/habitat/tree/0.74.0) (2019-01-28)
