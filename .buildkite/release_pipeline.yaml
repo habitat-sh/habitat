@@ -419,4 +419,4 @@ steps:
   - label: ":pipeline:"
     command: .buildkite/scripts/finish_release.sh
     agents:
-      queue: pipeline-trigger
+      queue: habitat-release
