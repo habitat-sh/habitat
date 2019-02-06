@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-use std::io::{self, BufRead, BufReader, Read, Write};
 #[cfg(unix)]
 use std::process::{ChildStderr, ChildStdout, ExitStatus};
-use std::thread;
+use std::{
+    fmt,
+    io::{self, BufRead, BufReader, Read, Write},
+    thread,
+};
 
 use crate::protocol;
 #[cfg(windows)]
@@ -37,16 +39,16 @@ impl Service {
         stderr: Option<ChildStderr>,
     ) -> Self {
         if let Some(stdout) = stdout {
-            let id = spawn.get_id().to_string();
+            let id = spawn.id.to_string();
             thread::Builder::new()
-                .name(format!("{}-out", spawn.get_id()))
+                .name(format!("{}-out", spawn.id))
                 .spawn(move || pipe_stdout(stdout, &id))
                 .ok();
         }
         if let Some(stderr) = stderr {
-            let id = spawn.get_id().to_string();
+            let id = spawn.id.to_string();
             thread::Builder::new()
-                .name(format!("{}-err", spawn.get_id()))
+                .name(format!("{}-err", spawn.id))
                 .spawn(move || pipe_stderr(stderr, &id))
                 .ok();
         }
@@ -71,7 +73,7 @@ impl Service {
     }
 
     pub fn name(&self) -> &str {
-        self.args.get_id()
+        &self.args.id
     }
 
     pub fn take_args(self) -> protocol::Spawn {

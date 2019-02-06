@@ -12,16 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod message;
+#[macro_use]
+extern crate prost_derive;
 
-use std::fmt;
+#[macro_use]
+extern crate serde_derive;
 
-use protobuf::Message;
+mod error;
+mod generated;
+mod types;
 
-pub use crate::message::error::*;
-pub use crate::message::launcher::*;
-use crate::message::net::*;
-pub use crate::message::supervisor::*;
+use crate::error::Result;
+pub use crate::{error::Error, types::*};
 
 pub const LAUNCHER_PIPE_ENV: &str = "HAB_LAUNCHER_PIPE";
 pub const LAUNCHER_PID_ENV: &str = "HAB_LAUNCHER_PID";
@@ -36,47 +38,47 @@ pub const OK_NO_RETRY_EXCODE: i32 = 84;
 /// exit code. The Launcher should exit immediately with a non-zero exit code.
 pub const ERR_NO_RETRY_EXCODE: i32 = 86;
 
+#[derive(Debug)]
 pub struct NetTxn(Envelope);
 
 impl NetTxn {
-    pub fn build<T>(message: &T) -> Result<Self, protobuf::ProtobufError>
+    pub fn build<T>(message: &T) -> Result<Self>
     where
-        T: protobuf::MessageStatic,
+        T: LauncherMessage,
     {
-        let mut env = Envelope::new();
-        env.set_message_id(message.descriptor().name().to_string());
-        env.set_payload(message.write_to_bytes()?);
+        let mut env = Envelope::default();
+        env.message_id = T::MESSAGE_ID.to_string();
+        env.payload = message.to_bytes()?;
         Ok(NetTxn(env))
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, protobuf::ProtobufError> {
-        let env = protobuf::parse_from_bytes::<Envelope>(bytes)?;
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self> {
+        let env = Envelope::from_bytes(bytes)?;
         Ok(NetTxn(env))
     }
 
-    pub fn build_reply<T>(&self, message: &T) -> Result<Self, protobuf::ProtobufError>
+    pub fn to_bytes(&self) -> Result<Vec<u8>> {
+        self.0.clone().to_bytes()
+    }
+
+    pub fn build_reply<T>(&self, message: &T) -> Result<Self>
     where
-        T: protobuf::MessageStatic,
+        T: LauncherMessage,
     {
         let mut env = Self::build(message)?;
-        env.0.set_txn_id(self.0.get_txn_id());
+        env.0.txn_id = self.0.txn_id;
         Ok(env)
     }
 
-    pub fn decode<T>(&self) -> Result<T, protobuf::ProtobufError>
+    pub fn decode<T>(&self) -> Result<T>
     where
-        T: protobuf::MessageStatic,
+        T: LauncherMessage,
     {
-        let msg = protobuf::parse_from_bytes::<T>(self.0.get_payload())?;
-        Ok(msg)
+        T::from_bytes(&self.0.payload)
     }
 
     pub fn message_id(&self) -> &str {
-        self.0.get_message_id()
-    }
-
-    pub fn to_bytes(&self) -> Result<Vec<u8>, protobuf::ProtobufError> {
-        self.0.write_to_bytes()
+        &self.0.message_id
     }
 }
 
@@ -84,25 +86,32 @@ pub fn error<T>(err: T) -> NetErr
 where
     T: ToString + Into<ErrCode>,
 {
-    let mut message = NetErr::new();
-    message.set_msg(err.to_string());
-    message.set_code(err.into());
-    message
-}
-
-impl fmt::Display for NetErr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}: {}", self.get_code(), self.get_msg())
+    NetErr {
+        msg: err.to_string(),
+        code: err.into(),
     }
 }
 
-impl fmt::Display for ShutdownMethod {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let printable = match *self {
-            ShutdownMethod::AlreadyExited => "Already Exited",
-            ShutdownMethod::GracefulTermination => "Graceful Termination",
-            ShutdownMethod::Killed => "Killed",
-        };
-        write!(f, "{}", printable)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn envelopes_should_always_have_a_txn_id() {
+        let msg = NetOk::default();
+        let txn = NetTxn::build(&msg).unwrap();
+        assert_eq!(txn.0.txn_id, 0);
+    }
+
+    #[test]
+    fn decoded_envelopes_should_also_have_a_txn_id() {
+        let msg = NetOk::default();
+        let txn = NetTxn::build(&msg).unwrap();
+        let bytes = txn.to_bytes().unwrap();
+        let decoded = NetTxn::from_bytes(&bytes).unwrap();
+        let decoded_payload = decoded.decode::<NetOk>().unwrap();
+        assert_eq!(decoded.message_id(), "NetOk");
+        assert_eq!(decoded.0.txn_id, 0);
+        assert_eq!(decoded_payload, msg);
     }
 }

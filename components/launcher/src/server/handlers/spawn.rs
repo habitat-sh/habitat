@@ -26,8 +26,8 @@ impl Handler for SpawnHandler {
     fn handle(msg: Self::Message, services: &mut ServiceTable) -> HandleResult<Self::Reply> {
         match service::run(msg) {
             Ok(service) => {
-                let mut reply = protocol::SpawnOk::new();
-                reply.set_pid(service.id().into());
+                let mut reply = protocol::SpawnOk::default();
+                reply.pid = service.id().into();
                 services.insert(service);
                 Ok(reply)
             }

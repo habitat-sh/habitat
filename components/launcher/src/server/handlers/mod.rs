@@ -21,15 +21,14 @@ pub use self::spawn::*;
 pub use self::terminate::*;
 
 use crate::protocol;
-use protobuf;
 
 use super::{Sender, ServiceTable};
 
 type HandleResult<T> = Result<T, protocol::NetErr>;
 
 pub trait Handler {
-    type Message: protobuf::MessageStatic;
-    type Reply: protobuf::MessageStatic;
+    type Message: protocol::LauncherMessage;
+    type Reply: protocol::LauncherMessage;
 
     fn handle(msg: Self::Message, services: &mut ServiceTable) -> HandleResult<Self::Reply>;
 

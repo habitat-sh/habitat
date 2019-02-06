@@ -12,17 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
-use std::fs;
-use std::io;
-use std::path::Path;
-
-use crate::core::os::process::Pid;
-use crate::protocol;
-use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
-use protobuf;
-
 use crate::error::{Error, Result};
+use habitat_core::os::process::Pid;
+use habitat_launcher_protocol::{self as protocol, Error as ProtocolError};
+use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
+use std::{collections::HashMap, fs, io, path::Path};
 
 type Env = HashMap<String, String>;
 type IpcServer = IpcOneShotServer<Vec<u8>>;
@@ -49,38 +43,37 @@ impl LauncherCli {
         let tx = IpcSender::connect(pipe_to_launcher).map_err(Error::Connect)?;
         let (ipc_srv, pipe_to_sup) = IpcServer::new().map_err(Error::BadPipe)?;
         debug!("IpcServer::new() returned pipe_to_sup: {}", pipe_to_sup);
-        let mut cmd = protocol::Register::new();
-        cmd.set_pipe(pipe_to_sup);
+        let cmd = protocol::Register {
+            pipe: pipe_to_sup.clone(),
+        };
         Self::send(&tx, &cmd)?;
         let (rx, raw) = ipc_srv.accept().map_err(|_| Error::AcceptConn)?;
         Self::read::<protocol::NetOk>(&raw)?;
         Ok(LauncherCli {
             tx: tx,
             rx: rx,
-            pipe: cmd.take_pipe(),
+            pipe: pipe_to_sup,
         })
     }
 
     /// Read a launcher protocol message from a byte array
     fn read<T>(bytes: &[u8]) -> Result<T>
     where
-        T: protobuf::MessageStatic,
+        T: protocol::LauncherMessage,
     {
-        let txn = protocol::NetTxn::from_bytes(bytes).map_err(Error::Deserialize)?;
+        let txn = protocol::NetTxn::from_bytes(bytes)?;
         if txn.message_id() == "NetErr" {
-            let err = txn
-                .decode::<protocol::NetErr>()
-                .map_err(Error::Deserialize)?;
-            return Err(Error::Protocol(err));
+            let err = txn.decode::<protocol::NetErr>()?;
+            return Err(Error::Protocol(ProtocolError::NetErr(err)));
         }
-        let msg = txn.decode::<T>().map_err(Error::Deserialize)?;
+        let msg = txn.decode::<T>()?;
         Ok(msg)
     }
 
     /// Receive and read protocol message from an IpcReceiver
     fn recv<T>(rx: &IpcReceiver<Vec<u8>>) -> Result<T>
     where
-        T: protobuf::MessageStatic,
+        T: protocol::LauncherMessage,
     {
         match rx.recv() {
             Ok(bytes) => Self::read(&bytes),
@@ -91,10 +84,10 @@ impl LauncherCli {
     /// Send a command to a Launcher
     fn send<T>(tx: &IpcSender<Vec<u8>>, message: &T) -> Result<()>
     where
-        T: protobuf::MessageStatic,
+        T: protocol::LauncherMessage,
     {
-        let txn = protocol::NetTxn::build(message).map_err(Error::Serialize)?;
-        let bytes = txn.to_bytes().map_err(Error::Serialize)?;
+        let txn = protocol::NetTxn::build(message)?;
+        let bytes = txn.to_bytes()?;
         tx.send(bytes).map_err(Error::Send)?;
         Ok(())
     }
@@ -102,7 +95,7 @@ impl LauncherCli {
     /// Receive and read protocol message from an IpcReceiver
     fn try_recv<T>(rx: &IpcReceiver<Vec<u8>>) -> Result<Option<T>>
     where
-        T: protobuf::MessageStatic,
+        T: protocol::LauncherMessage,
     {
         match rx.try_recv().map_err(|err| Error::from(*err)) {
             Ok(bytes) => {
@@ -124,11 +117,10 @@ impl LauncherCli {
 
     /// Restart a running process with the same arguments
     pub fn restart(&self, pid: Pid) -> Result<Pid> {
-        let mut msg = protocol::Restart::new();
-        msg.set_pid(pid.into());
+        let msg = protocol::Restart { pid: pid.into() };
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;
-        Ok(reply.get_pid() as Pid)
+        Ok(reply.pid as Pid)
     }
 
     /// Send a process spawn command to the connected Launcher
@@ -154,44 +146,33 @@ impl LauncherCli {
         G: ToString,
         P: ToString,
     {
-        let mut msg = protocol::Spawn::new();
-        msg.set_binary(bin.as_ref().to_path_buf().to_string_lossy().into_owned());
-
         // On Windows, we only expect user to be Some.
         //
         // On Linux, we expect user_id and group_id to be Some, while
         // user and group may be either Some or None. Only the IDs are
         // used; names are only for backward compatibility with older
         // Launchers.
-        if let Some(name) = user {
-            msg.set_svc_user(name.to_string());
-        }
-        if let Some(name) = group {
-            msg.set_svc_group(name.to_string());
-        }
-        if let Some(uid) = user_id {
-            msg.set_svc_user_id(uid);
-        }
-        if let Some(gid) = group_id {
-            msg.set_svc_group_id(gid);
-        }
+        let msg = protocol::Spawn {
+            binary: bin.as_ref().to_path_buf().to_string_lossy().into_owned(),
+            svc_user: user.map(|u| u.to_string()),
+            svc_group: group.map(|g| g.to_string()),
+            svc_user_id: user_id,
+            svc_group_id: group_id,
+            svc_password: password.map(|p| p.to_string()),
+            env: env,
+            id: id.to_string(),
+            ..Default::default()
+        };
 
-        // This is only for Windows
-        if let Some(password) = password {
-            msg.set_svc_password(password.to_string());
-        }
-        msg.set_env(env);
-        msg.set_id(id.to_string());
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;
-        Ok(reply.get_pid() as Pid)
+        Ok(reply.pid as Pid)
     }
 
     pub fn terminate(&self, pid: Pid) -> Result<i32> {
-        let mut msg = protocol::Terminate::new();
-        msg.set_pid(pid.into());
+        let msg = protocol::Terminate { pid: pid.into() };
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::TerminateOk>(&self.rx)?;
-        Ok(reply.get_exit_code())
+        Ok(reply.exit_code)
     }
 }

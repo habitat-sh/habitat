@@ -14,37 +14,43 @@
 
 mod handlers;
 
-use std::collections::HashMap;
-use std::fs;
-use std::io::Write;
-use std::path::PathBuf;
-use std::process::{Child, Command, Stdio};
-use std::str::FromStr;
-use std::sync::{Arc, Condvar, Mutex};
-use std::thread;
-use std::time::Duration;
+use std::{
+    collections::HashMap,
+    fs,
+    io::Write,
+    path::PathBuf,
+    process::{Child, Command, Stdio},
+    str::FromStr,
+    sync::{Arc, Condvar, Mutex},
+    thread,
+    time::Duration,
+};
 
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
 #[cfg(unix)]
 use std::process::ExitStatus;
 
-use crate::core;
-use crate::core::fs::{launcher_root_path, FS_ROOT_PATH};
-use crate::core::os::process::{self, Pid, Signal};
-use crate::core::os::signals::{self, SignalEvent};
-use crate::core::package::{PackageIdent, PackageInstall};
-use crate::protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE};
+use crate::{
+    core::{
+        self,
+        fs::{launcher_root_path, FS_ROOT_PATH},
+        os::{
+            process::{self, Pid, Signal},
+            signals::{self, SignalEvent},
+        },
+        package::{PackageIdent, PackageInstall},
+    },
+    error::{Error, Result},
+    protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE},
+    server::handlers::Handler,
+    service::Service,
+    SUP_CMD, SUP_PACKAGE_IDENT,
+};
 use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
 #[cfg(unix)]
 use libc;
-use protobuf;
 use semver::{Version, VersionReq};
-
-use self::handlers::Handler;
-use crate::error::{Error, Result};
-use crate::service::Service;
-use crate::{SUP_CMD, SUP_PACKAGE_IDENT};
 
 const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
@@ -198,7 +204,7 @@ impl Server {
 
     fn shutdown(&mut self) {
         debug!("Shutting down...");
-        if send(&self.tx, &protocol::Shutdown::new()).is_err() {
+        if send(&self.tx, &protocol::Shutdown::default()).is_err() {
             warn!("Forcefully stopping Supervisor: {}", self.supervisor.id());
             if let Err(err) = self.supervisor.kill() {
                 warn!(
@@ -411,13 +417,10 @@ impl ServiceTable {
 
 pub fn reply<T>(tx: &Sender, txn: &protocol::NetTxn, msg: &T) -> Result<()>
 where
-    T: protobuf::MessageStatic,
+    T: protocol::LauncherMessage,
 {
-    let bytes = txn
-        .build_reply(msg)
-        .map_err(Error::Serialize)?
-        .to_bytes()
-        .map_err(Error::Serialize)?;
+    let reply = txn.build_reply(msg)?;
+    let bytes = reply.to_bytes()?;
     tx.send(bytes).map_err(Error::Send)?;
     Ok(())
 }
@@ -442,12 +445,10 @@ pub fn run(args: Vec<String>) -> Result<i32> {
 
 pub fn send<T>(tx: &Sender, msg: &T) -> Result<()>
 where
-    T: protobuf::MessageStatic,
+    T: protocol::LauncherMessage,
 {
-    let bytes = protocol::NetTxn::build(msg)
-        .map_err(Error::Serialize)?
-        .to_bytes()
-        .map_err(Error::Serialize)?;
+    let msg = protocol::NetTxn::build(msg)?;
+    let bytes = msg.to_bytes()?;
     tx.send(bytes).map_err(Error::Send)?;
     Ok(())
 }
@@ -490,12 +491,10 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
             debug!("connect thread started");
         }
         let (rx, raw) = server.accept().map_err(|_| Error::AcceptConn)?;
-        let txn = protocol::NetTxn::from_bytes(&raw).map_err(Error::Deserialize)?;
-        let mut msg = txn
-            .decode::<protocol::Register>()
-            .map_err(Error::Deserialize)?;
-        let tx = IpcSender::connect(msg.take_pipe()).map_err(Error::Connect)?;
-        send(&tx, &protocol::NetOk::new())?;
+        let txn = protocol::NetTxn::from_bytes(&raw)?;
+        let msg = txn.decode::<protocol::Register>()?;
+        let tx = IpcSender::connect(msg.pipe).map_err(Error::Connect)?;
+        send(&tx, &protocol::NetOk::default())?;
         {
             let (_, ref cvar) = *pair2;
             debug!("Connect thread finished; notifying waiting thread");
