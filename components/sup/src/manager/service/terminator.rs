@@ -18,7 +18,7 @@ use futures::sync::oneshot;
 use habitat_core::{os::process::Pid, outputln};
 use std::thread;
 
-static LOGKEY: &'static str = "ST"; // "Service Terminator"
+static LOGKEY: &str = "ST"; // "Service Terminator"
 
 /// Shut a service process down.
 ///
