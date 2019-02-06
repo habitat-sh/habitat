@@ -6,10 +6,6 @@
 #### Bug Fixes
 
 #### Merged Pull Requests
-- Plumb in target into rdeps API [#6120](https://github.com/habitat-sh/habitat/pull/6120) ([chefsalim](https://github.com/chefsalim))
-- Move metadata setup into a build step, assume all builds are real [#6119](https://github.com/habitat-sh/habitat/pull/6119) ([scotthain](https://github.com/scotthain))
-- Modify script so we can use pipeline upload in the job [#6117](https://github.com/habitat-sh/habitat/pull/6117) ([scotthain](https://github.com/scotthain))
-- Upload backline to acceptance [#5966](https://github.com/habitat-sh/habitat/pull/5966) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 ## [0.74.0](https://github.com/habitat-sh/habitat/tree/0.74.0) (2019-01-28)
@@ -31,6 +27,10 @@
 - Instrument the supervisor with metrics [#5986](https://github.com/habitat-sh/habitat/pull/5986) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Plumb in target into rdeps API [#6120](https://github.com/habitat-sh/habitat/pull/6120) ([chefsalim](https://github.com/chefsalim))
+- Move metadata setup into a build step, assume all builds are real [#6119](https://github.com/habitat-sh/habitat/pull/6119) ([scotthain](https://github.com/scotthain))
+- Modify script so we can use pipeline upload in the job [#6117](https://github.com/habitat-sh/habitat/pull/6117) ([scotthain](https://github.com/scotthain))
+- Upload backline to acceptance [#5966](https://github.com/habitat-sh/habitat/pull/5966) ([smacfarlane](https://github.com/smacfarlane))
 - Remove the ProdPad and GH project tracker content. [#6033](https://github.com/habitat-sh/habitat/pull/6033) ([raskchanky](https://github.com/raskchanky))
 - [core] Bump core crates. [#6108](https://github.com/habitat-sh/habitat/pull/6108) ([fnichol](https://github.com/fnichol))
 - Rust 1.32.0 [#6103](https://github.com/habitat-sh/habitat/pull/6103) ([raskchanky](https://github.com/raskchanky))
