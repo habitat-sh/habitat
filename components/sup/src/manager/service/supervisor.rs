@@ -295,7 +295,7 @@ impl Supervisor {
         match self.pid {
             Some(pid) => {
                 debug!(
-                    "Creating PID file for child {} -> {:?}",
+                    "Creating PID file for child {} -> {}",
                     self.pid_file.display(),
                     pid
                 );
