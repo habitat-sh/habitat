@@ -270,7 +270,7 @@ impl fmt::Display for Error {
                 e
             ),
             Error::InvalidBinding(ref binding) => format!(
-                "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where <NAME> \
+                "Invalid binding '{}', must be of the form <NAME>:<SERVICE_GROUP> where <NAME> \
                  is a service name, and <SERVICE_GROUP> is a valid service group",
                 binding
             ),

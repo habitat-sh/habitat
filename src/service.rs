@@ -84,22 +84,35 @@ impl FromStr for BindingMode {
 /// A binding from a service name to a service group that provides that service
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ServiceBind {
-    pub name: String,
-    pub service_group: ServiceGroup,
+    name: String,
+    service_group: ServiceGroup,
+}
+
+impl ServiceBind {
+    pub fn new(name: &str, service_group: ServiceGroup) -> Self {
+        Self {
+            name: name.to_string(),
+            service_group: service_group,
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn service_group(&self) -> &ServiceGroup {
+        &self.service_group
+    }
 }
 
 impl FromStr for ServiceBind {
     type Err = Error;
 
     fn from_str(bind_str: &str) -> result::Result<Self, Self::Err> {
-        let values: Vec<&str> = bind_str.split(':').collect();
-        if values.len() == 2 {
-            Ok(ServiceBind {
-                name: values[0].to_string(),
-                service_group: ServiceGroup::from_str(values[1])?,
-            })
-        } else {
-            Err(Error::InvalidBinding(bind_str.to_string()))
+        let parts: Vec<_> = bind_str.split(':').collect();
+        match parts.as_slice() {
+            [name, sg_str] => ServiceGroup::from_str(sg_str).map(|sg| ServiceBind::new(name, sg)),
+            _ => Err(Error::InvalidBinding(bind_str.to_string())),
         }
     }
 }
@@ -524,45 +537,87 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "foo@baz")]
     fn service_group_from_str_no_group() {
-        ServiceGroup::from_str("foo@baz").unwrap();
+        let group = "foo@baz";
+        match ServiceGroup::from_str(group) {
+            Err(e) => match e {
+                Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
-    #[should_panic(expected = "not.allowed@")]
     fn service_group_from_str_ending_with_at() {
-        ServiceGroup::from_str("not.allowed@").unwrap();
+        let group = "not.allowed@";
+        match ServiceGroup::from_str(group) {
+            Err(e) => match e {
+                Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
-    #[should_panic(expected = "only.one.period@allowed")]
     fn service_group_from_str_too_many_periods() {
-        ServiceGroup::from_str("only.one.period@allowed").unwrap();
+        let group = "only.one.period@allowed";
+        match ServiceGroup::from_str(group) {
+            Err(e) => match e {
+                Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
-    #[should_panic(expected = "only#one#hash@allowed")]
     fn service_group_from_str_too_many_hashes() {
-        ServiceGroup::from_str("only#one#hash@allowed").unwrap();
+        let group = "only#one#hash@allowed";
+        match ServiceGroup::from_str(group) {
+            Err(e) => match e {
+                Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
-    #[should_panic(expected = "#cool.wings@")]
     fn service_group_from_str_start_with_hash_and_ending_with_at() {
-        ServiceGroup::from_str("#cool.wings@").unwrap();
+        let group = "#cool.wings@";
+        match ServiceGroup::from_str(group) {
+            Err(e) => match e {
+                Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
-    #[should_panic(expected = "#hash.tag")]
     fn service_group_from_str_starting_with_pound() {
-        ServiceGroup::from_str("#hash.tag").unwrap();
+        let group = "#hash.tag";
+        match ServiceGroup::from_str(group) {
+            Err(e) => match e {
+                Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
-    #[should_panic(expected = "oh-noes")]
     fn service_group_from_str_not_enough_periods() {
-        ServiceGroup::from_str("oh-noes").unwrap();
+        let group = "oh-noes";
+        match ServiceGroup::from_str(group) {
+            Err(e) => match e {
+                Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
@@ -590,33 +645,48 @@ mod test {
     }
 
     #[test]
-    #[should_panic(expected = "uhoh")]
     fn service_bind_from_str_missing_colon() {
         let bind_str = "uhoh";
-        ServiceBind::from_str(bind_str).unwrap();
+
+        match ServiceBind::from_str(bind_str) {
+            Err(e) => match e {
+                Error::InvalidBinding(val) => assert_eq!("uhoh", val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
-    #[should_panic(expected = "uhoh:this:is:bad")]
     fn service_bind_from_str_too_many_colons() {
         let bind_str = "uhoh:this:is:bad";
-        ServiceBind::from_str(bind_str).unwrap();
+
+        match ServiceBind::from_str(bind_str) {
+            Err(e) => match e {
+                Error::InvalidBinding(val) => assert_eq!("uhoh:this:is:bad", val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
-    #[should_panic(expected = "nosuchservicegroup@nope")]
     fn service_bind_from_str_invalid_service_group() {
         let bind_str = "uhoh:nosuchservicegroup@nope";
-        ServiceBind::from_str(bind_str).unwrap();
+
+        match ServiceBind::from_str(bind_str) {
+            Err(e) => match e {
+                Error::InvalidServiceGroup(val) => assert_eq!("nosuchservicegroup@nope", val),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("String should fail to parse"),
+        }
     }
 
     #[test]
     fn service_bind_to_string() {
-        let bind = ServiceBind {
-            name: String::from("name"),
-            service_group: ServiceGroup::from_str("service.group").unwrap(),
-        };
-
+        let sg = ServiceGroup::from_str("service.group").expect("valid service group");
+        let bind = ServiceBind::new("name", sg);
         assert_eq!("name:service.group", bind.to_string());
     }
 
@@ -627,14 +697,14 @@ mod test {
             key: ServiceBind,
         }
         let toml = r#"
-            key = "name:app.env#service.group@organization"
+            key = "redis:cache.redis#service.group@organization"
             "#;
         let data: Data = toml::from_str(toml).unwrap();
 
-        assert_eq!(
-            data.key,
-            ServiceBind::from_str("name:app.env#service.group@organization").unwrap()
-        );
+        assert_eq!("redis", data.key.name());
+        let sg = ServiceGroup::from_str("cache.redis#service.group@organization")
+            .expect("good service group");
+        assert_eq!(sg, *data.key.service_group());
     }
 
     #[test]
@@ -649,22 +719,6 @@ mod test {
             key = "name"
             "#;
         let _data: Data = toml::from_str(toml).unwrap();
-    }
-
-    #[test]
-    fn service_bind_toml_serialize() {
-        #[derive(Serialize)]
-        struct Data {
-            key: ServiceBind,
-        }
-        let data = Data {
-            key: ServiceBind {
-                name: String::from("name"),
-                service_group: ServiceGroup::from_str("service.group").unwrap(),
-            },
-        };
-        let toml = toml::to_string(&data).unwrap();
-        assert!(toml.starts_with(r#"key = "name:service.group""#));
     }
 
     #[test]
