@@ -22,6 +22,7 @@ use habitat_butterfly;
 use habitat_common::ui::UI;
 use habitat_core::{env as henv,
                    env::Config as EnvConfig,
+                   outputln,
                    package::{PackageIdent,
                              PackageInstall,
                              PackageTarget},

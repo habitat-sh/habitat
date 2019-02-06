@@ -13,6 +13,8 @@
 // limitations under the License.
 
 use super::health;
+#[cfg(windows)]
+use crate::hcore::os::process::windows_child::ExitStatus;
 use habitat_common::templating::{hooks::{self,
                                          ExitCode,
                                          Hook,
@@ -20,8 +22,7 @@ use habitat_common::templating::{hooks::{self,
                                          RenderPair},
                                  package::Pkg,
                                  TemplateRenderer};
-#[cfg(windows)]
-use habitat_core::os::process::windows_child::ExitStatus;
+use habitat_core::outputln;
 use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;

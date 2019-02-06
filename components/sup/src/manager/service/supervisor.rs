@@ -30,6 +30,7 @@ use habitat_core::os::users;
 use habitat_core::{fs,
                    os::process::{self,
                                  Pid},
+                   outputln,
                    service::ServiceGroup};
 use habitat_launcher_client::LauncherCli;
 use serde::{ser::SerializeStruct,
