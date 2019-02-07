@@ -662,6 +662,7 @@ fn write_templated_file(path: &Path, compiled: &str, user: &str, group: &str) ->
 mod test {
     use super::*;
     use crate::error::Error;
+    use crate::hcore::os::users;
     use crate::hcore::package::{PackageIdent, PackageInstall};
     use crate::templating::context::RenderContext;
     use crate::templating::test_helpers::*;
@@ -671,8 +672,13 @@ mod test {
     use tempfile::TempDir;
     use toml;
 
-    const USER: &str = "hab";
-    const GROUP: &str = "hab";
+    fn cur_username() -> String {
+        users::cur_username().expect("Can get current username")
+    }
+
+    fn cur_groupname() -> String {
+        users::get_current_groupname().expect("Can get current groupname")
+    }
 
     fn toml_from_str(content: &str) -> toml::value::Table {
         toml::from_str(content)
@@ -1112,7 +1118,8 @@ mod test {
         let contents = "foo\nbar\n";
 
         assert_eq!(file.exists(), false);
-        write_templated_file(&file, &contents, &USER, &GROUP).expect("writes file");
+        write_templated_file(&file, &contents, &cur_username(), &cur_groupname())
+            .expect("writes file");
         assert!(file.exists());
     }
 
@@ -1129,7 +1136,8 @@ mod test {
 
         ensure_directory_structure(&template_dir, &file, &USER, &GROUP)
             .expect("create output dir structure");
-        write_templated_file(&file, &contents, &USER, &GROUP).expect("writes file");
+        write_templated_file(&file, &contents, &cur_username(), &cur_groupname())
+            .expect("writes file");
         assert!(file.exists());
         assert_eq!(file_content(file), contents);
     }
@@ -1150,7 +1158,8 @@ mod test {
         let contents = "foo\nbar\n";
 
         assert_eq!(file.exists(), false);
-        write_templated_file(&file, &contents, &USER, &GROUP).expect("should fail on permissions");
+        write_templated_file(&file, &contents, &cur_username(), &cur_groupname())
+            .expect("should fail on permissions");
     }
 
     #[test]
