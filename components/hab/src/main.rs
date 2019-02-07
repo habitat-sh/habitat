@@ -1710,7 +1710,7 @@ fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
 
     listen_ctl_addr
         .to_socket_addrs()
-        .and_then(|mut addrs| {
+        .and_then(|addrs| {
             addrs
                 .filter(std::net::SocketAddr::is_ipv4)
                 .next()
