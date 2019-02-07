@@ -24,10 +24,6 @@ use crate::{ctl_gateway::CtlRequest,
                                 ProcessState},
                       ManagerConfig,
                       ManagerState},
-            protocol::{self,
-                       net::{self,
-                             ErrCode,
-                             NetResult}},
             util};
 use habitat_butterfly as butterfly;
 use habitat_common::{command::package::install::InstallSource,
@@ -38,6 +34,10 @@ use habitat_core::{outputln,
                              PackageTarget},
                    service::ServiceGroup,
                    ChannelIdent};
+use habitat_sup_protocol::{self as protocol,
+                           net::{self,
+                                 ErrCode,
+                                 NetResult}};
 use serde_json;
 use std::{fmt,
           fs,
