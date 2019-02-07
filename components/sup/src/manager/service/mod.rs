@@ -26,7 +26,7 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::result;
 use std::sync::{Arc, RwLock};
-use std::time::Instant;
+use std::time::{Duration, Instant};
 
 use crate::butterfly::rumor::service::Service as ServiceRumor;
 use crate::common::templating::config::CfgRenderer;
@@ -210,7 +210,7 @@ impl Service {
             topology: spec.topology,
             update_strategy: spec.update_strategy,
             config_from: spec.config_from,
-            scheduled_health_check: None,
+            scheduled_health_check: Some(Instant::now()),
             svc_encrypted_password: spec.svc_encrypted_password,
             health_check_interval: spec.health_check_interval,
             defaults_updated: false,
@@ -397,7 +397,7 @@ impl Service {
             }
         }
         if svc_updated {
-            self.schedule_special_health_check();
+            self.schedule_health_check_at_next_tick();
         }
 
         svc_updated
@@ -643,8 +643,6 @@ impl Service {
                 outputln!(preamble self.service_group,
                             "Updating service {} to {}", self.pkg.ident, pkg.ident);
 
-                self.schedule_special_health_check();
-
                 match CfgRenderer::new(&Self::config_root(&pkg, self.config_from.as_ref())) {
                     Ok(renderer) => self.config_renderer = renderer,
                     Err(e) => {
@@ -682,6 +680,7 @@ impl Service {
         }
 
         self.initialized = false;
+        self.schedule_health_check_at_next_tick();
     }
 
     pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
@@ -1012,6 +1011,10 @@ impl Service {
         self.schedule_health_check(HealthCheckInterval::default());
     }
 
+    fn schedule_health_check_at_next_tick(&mut self) {
+        self.schedule_health_check(HealthCheckInterval::from(Duration::from_secs(0)));
+    }
+
     fn schedule_health_check(&mut self, interval: HealthCheckInterval) {
         let instant_to_schedule = Instant::now() + interval.into();
         match self.scheduled_health_check {
@@ -1223,6 +1226,7 @@ mod tests {
 
     use std::path::PathBuf;
     use std::str::FromStr;
+    use std::time::Instant;
 
     use crate::hcore::package::{ident::PackageIdent, PackageInstall};
     use serde_json;
@@ -1236,8 +1240,7 @@ mod tests {
     use crate::http_gateway;
     use crate::test_helpers::*;
 
-    #[test]
-    fn service_proxy_conforms_to_the_schema() {
+    fn initialize_test_service() -> Service {
         let listen_ctl_addr =
             ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let http_addr = http_gateway::ListenAddr::default();
@@ -1269,8 +1272,27 @@ mod tests {
         let fscfg = FsCfg::new("/tmp");
         let afs = Arc::new(fscfg);
         let gs = Arc::new(RwLock::new(manager::GatewayState::default()));
-        let service = Service::new(asys, install, spec, afs, Some("haha"), gs)
-            .expect("I wanted a service to load, but it didn't");
+
+        Service::new(asys, install, spec, afs, Some("haha"), gs)
+            .expect("I wanted a service to load, but it didn't")
+    }
+
+    #[test]
+    fn health_check_is_due_at_creation() {
+        let service = initialize_test_service();
+        assert!(
+            service.scheduled_health_check.is_some(),
+            "Expected a scheduled health check"
+        );
+        assert!(
+            service.scheduled_health_check.unwrap() < Instant::now(),
+            "Expected health check due at creation"
+        );
+    }
+
+    #[test]
+    fn service_proxy_conforms_to_the_schema() {
+        let service = initialize_test_service();
 
         // With config
         let proxy_with_config = ServiceProxy::new(&service, ConfigRendering::Full);
