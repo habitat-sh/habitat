@@ -226,21 +226,20 @@ impl Server {
         // processes as the Supervisor shuts them down... otherwise,
         // the Supervisor can end up waiting a long time on zombie
         // processes.
-        loop {
+        //
+        // But see https://github.com/habitat-sh/habitat/issues/6131
+        // for a possible future where this isn't needed, and reaping
+        // could theoretically just take place at the very end of this
+        // shutdown process, rather than repeatedly.
+        while let Ok(None) = self.supervisor.try_wait() {
             self.services.reap_services();
-            match self.supervisor.try_wait() {
-                Ok(Some(status)) => {
-                    debug!("Supervisor exited with: {}", status);
-                    break;
-                }
-                Ok(None) => {
-                    // Still hasn't exited; try again later
-                }
-                Err(e) => {
-                    error!("Error waiting on supervisor: {:?}", e);
-                    break;
-                }
-            }
+            thread::sleep(Duration::from_millis(5));
+        }
+
+        match self.supervisor.try_wait() {
+            Ok(Some(status)) => debug!("Supervisor exited with: {}", status),
+            Err(e) => error!("Error waiting on supervisor: {:?}", e),
+            __ => unreachable!(),
         }
 
         // TODO (CM): Eventually this can go away... but we need to
