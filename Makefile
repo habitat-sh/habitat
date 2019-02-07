@@ -194,18 +194,18 @@ UNEXAMINED_LINTS =
 
 # Lints we disagree with and choose to keep in our code with no warning
 ALLOWED_LINTS = clippy::module_inception \
-                clippy::needless_return \
                 clippy::new_ret_no_self \
                 clippy::new_without_default \
-                clippy::new_without_default_derive \
-                clippy::redundant_field_names
+                clippy::new_without_default_derive
 
 # Known failing lints we want to receive warnings for, but not fail the build
 LINTS_TO_FIX = clippy::cyclomatic_complexity \
                clippy::large_enum_variant \
                clippy::len_without_is_empty \
                clippy::needless_pass_by_value \
+               clippy::needless_return \
                clippy::question_mark \
+               clippy::redundant_field_names \
                clippy::too_many_arguments \
                clippy::trivially_copy_pass_by_ref \
                clippy::wrong_self_convention
