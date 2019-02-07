@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Add buildkite based verification pipeline [#6085](https://github.com/habitat-sh/habitat/pull/6085) ([scotthain](https://github.com/scotthain))
 - [docs] Update CLI reference for 0.74.0 release. [#6127](https://github.com/habitat-sh/habitat/pull/6127) ([fnichol](https://github.com/fnichol))
 - Remove composites handing [#6088](https://github.com/habitat-sh/habitat/pull/6088) ([jamesc](https://github.com/jamesc))
 - update windows-service blog to reflect recent changes [#6089](https://github.com/habitat-sh/habitat/pull/6089) ([mwrock](https://github.com/mwrock))
