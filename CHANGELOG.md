@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- use temp dir scoped to current build to avoid failures when building multiple builds [#6106](https://github.com/habitat-sh/habitat/pull/6106) ([mwrock](https://github.com/mwrock))
 - generate api docs for windows http gateway [#6098](https://github.com/habitat-sh/habitat/pull/6098) ([mwrock](https://github.com/mwrock))
 
 #### New Features & Enhancements
