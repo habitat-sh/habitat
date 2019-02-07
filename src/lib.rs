@@ -38,6 +38,8 @@ use std::ffi::OsStr;
 use std::fmt;
 use std::path::PathBuf;
 
+use serde_derive::{Deserialize, Serialize};
+
 pub use crate::os::filesystem;
 pub use crate::os::users;
 
