@@ -431,10 +431,30 @@ where
 
     pub fn with_rumor<F>(&self, key: &str, member_id: &str, mut with_closure: F)
     where
-        F: FnMut(Option<&T>),
+        F: FnMut(&T),
     {
         let list = self.list.read().expect("Rumor store lock poisoned");
-        with_closure(list.get(key).and_then(|r| r.get(member_id)));
+        if let Some(sublist) = list.get(key) {
+            if let Some(rumor) = sublist.get(member_id) {
+                with_closure(rumor);
+            }
+        }
+    }
+
+    pub fn assert_rumor_is<P>(&self, key: &str, member_id: &str, mut predicate: P)
+    where
+        P: FnMut(&T) -> bool,
+    {
+        let list = self.list.read().expect("Rumor store lock poisoned");
+        if let Some(sublist) = list.get(key) {
+            if let Some(rumor) = sublist.get(member_id) {
+                assert!(predicate(rumor), "{} failed predicate", member_id);
+            } else {
+                panic!("member_id {} not present", member_id);
+            }
+        } else {
+            panic!("No rumors for {} present", key);
+        }
     }
 
     pub fn contains_rumor(&self, key: &str, id: &str) -> bool {
@@ -759,13 +779,13 @@ mod tests {
             let member_id = f1.id.clone();
             let key = f1.key.clone();
             rs.insert(f1);
-            rs.with_rumor(&key, &member_id, |o| assert_eq!(o.unwrap().id, member_id));
+            rs.assert_rumor_is(&key, &member_id, |o| o.id == member_id);
         }
 
         #[test]
         fn with_rumor_calls_closure_with_none_if_rumor_missing() {
             let rs = create_rumor_store();
-            rs.with_rumor("bar", "foo", |o| assert!(o.is_none()));
+            assert!(!rs.contains_rumor("bar", "foo"));
         }
     }
 }

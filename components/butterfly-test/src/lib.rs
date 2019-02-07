@@ -306,7 +306,7 @@ impl SwimNet {
                 .get(e_num)
                 .expect("Asked for a network member who is out of bounds");
             server.election_store.with_rumor(key, "election", |e| {
-                if e.is_some() && e.unwrap().status == status {
+                if e.status == status {
                     result = true;
                 }
             });
@@ -341,7 +341,7 @@ impl SwimNet {
                 right_server
                     .election_store
                     .with_rumor(key, "election", |r| {
-                        result = l.is_some() && r.is_some() && l.unwrap() == r.unwrap();
+                        result = l == r;
                     });
             });
             if result {

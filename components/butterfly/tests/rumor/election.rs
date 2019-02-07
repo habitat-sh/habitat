@@ -63,7 +63,7 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     net[0]
         .election_store
         .with_rumor("witcher.prod", "election", |e| {
-            leader_id = e.unwrap().member_id.to_string();
+            leader_id = e.member_id.to_string();
         });
 
     let mut paused = 0;
@@ -93,21 +93,11 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
         }
     }
 
-    if paused == 0 {
-        net[1]
-            .election_store
-            .with_rumor("witcher.prod", "election", |e| {
-                assert!(e.unwrap().term == 1);
-                assert!(e.unwrap().member_id != paused_id);
-            });
-    } else {
-        net[0]
-            .election_store
-            .with_rumor("witcher.prod", "election", |e| {
-                assert!(e.unwrap().term == 1);
-                assert!(e.unwrap().member_id != paused_id);
-            });
-    }
+    net[if paused == 0 { 1 } else { 0 }]
+        .election_store
+        .assert_rumor_is("witcher.prod", "election", |e| {
+            e.term == 1 && e.member_id != paused_id
+        });
 }
 
 #[test]
@@ -141,7 +131,7 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     net[0]
         .election_store
         .with_rumor("witcher.prod", "election", |e| {
-            leader_id = e.unwrap().member_id.to_string();
+            leader_id = e.member_id.to_string();
         });
 
     assert_eq!(leader_id, net[0].member_id());
@@ -168,13 +158,13 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
         .election_store
         .with_rumor("witcher.prod", "election", |e| {
             println!("OLD: {:#?}", e);
-            new_leader_id = e.unwrap().member_id.to_string();
+            new_leader_id = e.member_id.to_string();
         });
     net[2]
         .election_store
         .with_rumor("witcher.prod", "election", |e| {
             println!("NEW: {:#?}", e);
-            new_leader_id = e.unwrap().member_id.to_string();
+            new_leader_id = e.member_id.to_string();
         });
     assert!(leader_id != new_leader_id);
     println!("Leader {} New {}", leader_id, new_leader_id);
@@ -191,8 +181,8 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
 
     net[0]
         .election_store
-        .with_rumor("witcher.prod", "election", |e| {
+        .assert_rumor_is("witcher.prod", "election", |e| {
             println!("MINORITY: {:#?}", e);
-            assert_eq!(new_leader_id, e.unwrap().member_id.to_string());
+            new_leader_id == e.member_id
         });
 }

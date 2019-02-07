@@ -1040,7 +1040,7 @@ impl Server {
                 self.election_store
                     .with_rumor(election.key(), election.id(), |ce| {
                         trace!("election_store already contains {:?}", ce);
-                        new_term = election.term > ce.unwrap().term
+                        new_term = election.term > ce.term
                     });
                 if new_term {
                     debug!("removing old rumor and starting new election");
@@ -1139,7 +1139,7 @@ impl Server {
                 self.update_store
                     .with_rumor(election.key(), election.id(), |ce| {
                         trace!("election_store already contains {:?}", ce);
-                        new_term = election.term > ce.unwrap().term
+                        new_term = election.term > ce.term
                     });
                 if new_term {
                     debug!("removing old rumor and starting new election");
