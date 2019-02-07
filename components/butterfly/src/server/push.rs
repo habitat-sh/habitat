@@ -389,17 +389,9 @@ impl PushWorker {
 
     /// Given a rumorkey, creates a protobuf rumor for sharing.
     fn create_member_rumor(&self, rumor_key: &RumorKey) -> Option<RumorEnvelope> {
-        let mut member = None;
-        self.server.member_list.with_member(&rumor_key.key(), |m| {
-            if let Some(m) = m {
-                member = Some(m.clone());
-            }
-        });
-        if member.is_none() {
-            return None;
-        }
+        let member = self.server.member_list.get_cloned(&rumor_key.key())?;
         let payload = Membership {
-            member: member.unwrap(),
+            member: member,
             health: self
                 .server
                 .member_list
