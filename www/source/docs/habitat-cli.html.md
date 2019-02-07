@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.73.0/20190115004751 (linux) | 15 Jan 2019 |
+| hab 0.74.0/20190204222312 (linux) | 6 Feb 2019 |
 
 ## hab
 
@@ -366,7 +366,7 @@ Schedule a build job or group of jobs
 **USAGE**
 
 ```
-hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT>
+hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 ```
 
 **FLAGS**
@@ -387,7 +387,8 @@ hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT>
 **ARGS**
 
 ```
-<PKG_IDENT>    The origin and name of the package to schedule a job for (eg: core/redis)
+<PKG_IDENT>     The origin and name of the package to schedule a job for (eg: core/redis)
+<PKG_TARGET>    A package target (ex: x86_64-windows) (default: x86_64-linux)
 ```
 
 
@@ -2222,14 +2223,12 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --config-from <CONFIG_DIR> Use package config from this path, rather than the package itself
 
 -e, --environment <ENVIRONMENT>                        Environment name; [default: not set].
--n, --events <EVENTS> Name of the service group running a Habitat EventSrv to forward Supervisor and service event data to
-
     --group <GROUP> The service group; shared config and topology [default: default].
 
 -i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval (seconds) on which to run health checks [default: 30]
 
     --key <KEY_FILE> Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. This should be a RSA private key or PKCS8-encoded private key, in PEM format.
-    --listen-ctl <LISTEN_CTL> The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]
+    --listen-ctl <LISTEN_CTL> The listen address for the Control Gateway. If not specified, the value will be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632] [env: HAB_LISTEN_CTL=]  [default: 127.0.0.1:9632]
     --listen-gossip <LISTEN_GOSSIP> The listen address for the Gossip System Gateway. [env: HAB_LISTEN_GOSSIP=]  [default: 0.0.0.0:9638]
 
     --listen-http <LISTEN_HTTP> The listen address for the HTTP Gateway. [env: HAB_LISTEN_HTTP=]  [default: 0.0.0.0:9631]
