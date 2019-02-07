@@ -30,8 +30,7 @@ use std::{self,
           io::prelude::*,
           path::{Path,
                  PathBuf},
-          sync::{Arc,
-                 Mutex}};
+          sync::Arc};
 
 static LOGKEY: &'static str = "HK";
 
@@ -500,9 +499,9 @@ pub struct HookTable {
     pub suitability: Option<SuitabilityHook>,
     pub run: Option<RunHook>,
     pub post_run: Option<PostRunHook>,
-    // This Arc<Mutex<>> business is a possibly-temporary state while
+    // This Arc<> business is a possibly-temporary state while
     // we refactor hooks to be able to run asynchronously.
-    pub post_stop: Option<Arc<Mutex<PostStopHook>>>,
+    pub post_stop: Option<Arc<PostStopHook>>,
 }
 
 impl HookTable {
@@ -523,8 +522,8 @@ impl HookTable {
                 table.reconfigure = ReconfigureHook::load(package_name, &hooks_path, &templates);
                 table.run = RunHook::load(package_name, &hooks_path, &templates);
                 table.post_run = PostRunHook::load(package_name, &hooks_path, &templates);
-                table.post_stop = PostStopHook::load(package_name, &hooks_path, &templates)
-                    .map(|h| Arc::new(Mutex::new(h)));
+                table.post_stop =
+                    PostStopHook::load(package_name, &hooks_path, &templates).map(Arc::new);
             }
         }
         debug!(
@@ -571,8 +570,7 @@ impl HookTable {
             changed = self.compile_one(hook, service_group, ctx) || changed;
         }
         if let Some(ref hook) = self.post_stop {
-            let h = hook.lock().expect("post-stop hook lock poisoned");
-            changed = self.compile_one(&*h, service_group, ctx) || changed;
+            changed = self.compile_one(hook.as_ref(), service_group, ctx) || changed;
         }
         changed
     }

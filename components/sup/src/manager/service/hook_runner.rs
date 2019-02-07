@@ -27,21 +27,21 @@ use crate::error::SupError;
 use futures::{sync::oneshot, IntoFuture};
 use habitat_common::templating::hooks::Hook;
 use habitat_core::service::ServiceGroup;
-use std::{
-    sync::{Arc, Mutex},
-    thread,
-};
+use std::{sync::Arc, thread};
 
-pub struct HookRunner<H: Hook> {
-    hook: Arc<Mutex<H>>,
+pub struct HookRunner<H: Hook + Sync> {
+    hook: Arc<H>,
     service_group: ServiceGroup,
     pkg: Pkg,
     passwd: Option<String>,
 }
 
-impl<H: Hook> HookRunner<H> {
+impl<H> HookRunner<H>
+where
+    H: Hook + Sync,
+{
     pub fn new(
-        hook: Arc<Mutex<H>>,
+        hook: Arc<H>,
         service_group: ServiceGroup,
         pkg: Pkg,
         passwd: Option<String>,
@@ -54,7 +54,7 @@ impl<H: Hook> HookRunner<H> {
         }
     }
 }
-impl<H: Hook + 'static> IntoFuture for HookRunner<H> {
+impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
     type Item = H::ExitValue;
     type Error = SupError;
     type Future = SpawnedFuture<Self::Item>;
@@ -72,8 +72,9 @@ impl<H: Hook + 'static> IntoFuture for HookRunner<H> {
             .name(format!("{}-{}", H::file_name(), self.service_group))
             .spawn(move || {
                 let _timer = hook_timer(H::file_name());
-                let hook = self.hook.lock().expect("Hook lock poisoned");
-                let exit_value = hook.run(&self.service_group, &self.pkg, self.passwd.as_ref());
+                let exit_value =
+                    self.hook
+                        .run(&self.service_group, &self.pkg, self.passwd.as_ref());
                 tx.send(exit_value)
                     .expect("Couldn't send oneshot signal from HookRunner: receiver went away");
             });
