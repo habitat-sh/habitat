@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- generate api docs for windows http gateway [#6098](https://github.com/habitat-sh/habitat/pull/6098) ([mwrock](https://github.com/mwrock))
+
 #### New Features & Enhancements
 - Support for recursive subdirectories for config. [#6066](https://github.com/habitat-sh/habitat/pull/6066) ([jamesc](https://github.com/jamesc))
 <!-- latest_release -->
