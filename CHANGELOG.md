@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Remove composites handing [#6088](https://github.com/habitat-sh/habitat/pull/6088) ([jamesc](https://github.com/jamesc))
 - update windows-service blog to reflect recent changes [#6089](https://github.com/habitat-sh/habitat/pull/6089) ([mwrock](https://github.com/mwrock))
 
 #### Bug Fixes
