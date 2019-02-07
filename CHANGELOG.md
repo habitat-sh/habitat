@@ -8,6 +8,7 @@
 - update windows-service blog to reflect recent changes [#6089](https://github.com/habitat-sh/habitat/pull/6089) ([mwrock](https://github.com/mwrock))
 
 #### Bug Fixes
+- if the studio is rooted immediately under the system drive, do not try to delete it [#6102](https://github.com/habitat-sh/habitat/pull/6102) ([mwrock](https://github.com/mwrock))
 - use temp dir scoped to current build to avoid failures when building multiple builds [#6106](https://github.com/habitat-sh/habitat/pull/6106) ([mwrock](https://github.com/mwrock))
 - generate api docs for windows http gateway [#6098](https://github.com/habitat-sh/habitat/pull/6098) ([mwrock](https://github.com/mwrock))
 
