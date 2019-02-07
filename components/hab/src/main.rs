@@ -1711,12 +1711,15 @@ fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
     listen_ctl_addr
         .to_socket_addrs()
         .and_then(|mut addrs| {
-            addrs.next().ok_or_else(|| {
-                io::Error::new(
-                    io::ErrorKind::AddrNotAvailable,
-                    "Address could not be resolved.",
-                )
-            })
+            addrs
+                .filter(std::net::SocketAddr::is_ipv4)
+                .next()
+                .ok_or_else(|| {
+                    io::Error::new(
+                        io::ErrorKind::AddrNotAvailable,
+                        "Address could not be resolved.",
+                    )
+                })
         })
         .map(ListenCtlAddr::from)
         .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))

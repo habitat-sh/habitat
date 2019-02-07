@@ -81,4 +81,5 @@ git = "https://github.com/habitat-sh/core.git"
 [features]
 default = []
 apidocs = []
-
+ignore_inconsistent_tests = []
+ignore_integration_tests = []

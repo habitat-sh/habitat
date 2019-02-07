@@ -101,6 +101,7 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
 }
 
 #[test]
+#[cfg_attr(feature = "ignore_inconsistent_tests", ignore)]
 fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     let mut net = btest::SwimNet::new_with_suitability(vec![1, 0, 0, 0, 0]);
     net[0]
