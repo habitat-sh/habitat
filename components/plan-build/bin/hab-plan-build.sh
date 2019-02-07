@@ -1926,7 +1926,6 @@ _build_metadata() {
   _render_metadata_DEPS
   _render_metadata_TDEPS
   _render_metadata_TARGET
-  _render_metadata_TYPE
   _render_metadata_IDENT
   _render_metadata_RUNTIME_PATH
   _render_metadata_RUNTIME_ENVIRONMENT
@@ -2364,22 +2363,22 @@ SRC_PATH="$PLAN_CONTEXT"
 THIS_PROGRAM=$(abspath "$0")
 
 # Now to ensure a `plan.sh` exists where we expect it. There are 4 possible
-# candidate locations relative to the `$PLAN_CONTEXT` directory: 
+# candidate locations relative to the `$PLAN_CONTEXT` directory:
 #   `./plan.sh`
 #   `./habitat/plan.sh`
 #   `./$pkg_target/plan.sh`
 #   `./habitat/$pkg_target/plan.sh`
 # In most cases, Plan authors should use the default location of `./plan.sh`
-# or `./habitat/plan.sh`.  The exception to this is when the $pkg_target 
-# requires variations to the default `plan.sh`. Plan authors can create these 
-# variants by placing a plan file in the appropriate $pkg_target directory 
+# or `./habitat/plan.sh`.  The exception to this is when the $pkg_target
+# requires variations to the default `plan.sh`. Plan authors can create these
+# variants by placing a plan file in the appropriate $pkg_target directory
 # relative to the default plan.sh.
 
-# With plan variants, plans can exist in 4 places per $pkg_target relative to 
+# With plan variants, plans can exist in 4 places per $pkg_target relative to
 # the `$PLAN_CONTEXT` directory. Only two combinations are allowed:
 #
-#   `./plan.sh` AND `./$pkg_target/plan.sh` 
-#   OR 
+#   `./plan.sh` AND `./$pkg_target/plan.sh`
+#   OR
 #   `./habitat/plan.sh` AND `./habitat/$pkg_target/plan.sh`
 # Consider all other combination of two plans invalid and abort if found.
 
@@ -2391,34 +2390,26 @@ _check_for_plan_variant() {
   fi
 }
 
-# Look for a plan.sh relative to the $PLAN_CONTEXT. If we find an invalid 
-#   combination or are unable to find a plan.sh,  abort with a message to the 
-#   user with the failure case. 
+# Look for a plan.sh relative to the $PLAN_CONTEXT. If we find an invalid
+#   combination or are unable to find a plan.sh,  abort with a message to the
+#   user with the failure case.
 if [[ -f "$PLAN_CONTEXT/plan.sh" ]]; then
-  if [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then 
+  if [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then
     places="$PLAN_CONTEXT/plan.sh and $PLAN_CONTEXT/habitat/plan.sh"
     exit_with "A plan file was found at $places. Only one is allowed at a time" 42
   fi
   _check_for_plan_variant
-elif [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then 
+elif [[ -f "$PLAN_CONTEXT/habitat/plan.sh" ]]; then
   PLAN_CONTEXT="$PLAN_CONTEXT/habitat"
   _check_for_plan_variant
 else
   places="$PLAN_CONTEXT/plan.sh or $PLAN_CONTEXT/habitat/plan.sh"
   exit_with "Plan file not found at $places" 42
-fi 
+fi
 
 # Change into the `$PLAN_CONTEXT` directory for proper resolution of relative
 # paths in `plan.sh`
 cd "$PLAN_CONTEXT"
-
-# Setup global variables for composite plans that are expected to be
-# overridden in plan.sh
-#
-# pkg_type defaults to "standalone" to accommodate every Habitat
-# plan.sh in existence before composite plans were a thing :)
-declare -g pkg_type="standalone"
-declare -A -g pkg_bind_map
 
 # Load the Plan
 build_line "Loading $PLAN_CONTEXT/plan.sh"
@@ -2521,117 +2512,101 @@ pkg_artifact="$HAB_CACHE_ARTIFACT_PATH/${pkg_origin}-${pkg_name}-${pkg_version}-
 _find_system_commands
 _determine_hab_bin
 
-case "${pkg_type}" in
-    "composite")
-        source "${source_dir}/composite_build_functions.bash"
+# We removed support for composite plans in habitat 0.75.0.  Let's give a useful error message
+# if you happen to try and build one rather than create a useless package
+if [[ -n "${pkg_type:-}" && "${pkg_type}" == "composite" ]]; then
+     exit_with "Composite plans are no longer supported. For more details see https://www.habitat.sh/blog/2018/10/shelving-composites/" 1
+fi
 
-        mkdir -pv "$CACHE_PATH"
-        mkdir -pv "$pkg_prefix"
+# Run `do_begin`
+build_line "$_program setup"
+do_begin
 
-        # Preliminaries
-        _setup_composite_build_global_variables
+# Write out a prebuild file so workers can have some metadata about failed builds
+_write_pre_build_file
 
-        _validate_composite
-        _render_composite_metadata
-        ;;
-    "standalone")
-        # Non-composite ("normal") Habitat package
+# Ensure that the origin key is available for package signing
+_ensure_origin_key_present
 
-        # Run `do_begin`
-        build_line "$_program setup"
-        do_begin
+_resolve_dependencies
 
-        # Write out a prebuild file so workers can have some metadata about failed builds
-        _write_pre_build_file
+# Set up runtime and buildtime environments
+#
+# Alas, this does not actually do *all* the environment setup;
+# there are other places which must be accounted for. They
+# are:
+#
+# * before `do_prepare`, but generally in `do_before`
+#   This is where it is recommended that authors call
+#   `update_plan_version` if they have a dynamic version.
+# *_build_environment
+#   This is where CFLAGS & Co. are set. At the moment, we
+#   don't pull those into __runtime_environment and
+#   __buildtime_environment because they are dealt with as
+#   their own Special Thing (they've got their own metadata
+#   files, etc.)
+do_setup_environment_wrapper
 
-        # Ensure that the origin key is available for package signing
-        _ensure_origin_key_present
+# Set up the `PATH` environment variable so that commands will be found
+# for all subsequent phases
+_set_build_path
 
-        _resolve_dependencies
+mkdir -pv "$HAB_CACHE_SRC_PATH"
 
-        # Set up runtime and buildtime environments
-        #
-        # Alas, this does not actually do *all* the environment setup;
-        # there are other places which must be accounted for. They
-        # are:
-        #
-        # * before `do_prepare`, but generally in `do_before`
-        #   This is where it is recommended that authors call
-        #   `update_plan_version` if they have a dynamic version.
-        # *_build_environment
-        #   This is where CFLAGS & Co. are set. At the moment, we
-        #   don't pull those into __runtime_environment and
-        #   __buildtime_environment because they are dealt with as
-        #   their own Special Thing (they've got their own metadata
-        #   files, etc.)
-        do_setup_environment_wrapper
+# Run any code after the environment is set but before the build starts
+do_before
 
-        # Set up the `PATH` environment variable so that commands will be found
-        # for all subsequent phases
-        _set_build_path
+# Download the source
+do_download
 
-        mkdir -pv "$HAB_CACHE_SRC_PATH"
+# Verify the source
+do_verify
 
-        # Run any code after the environment is set but before the build starts
-        do_before
+# Clean the cache
+do_clean
 
-        # Download the source
-        do_download
+# Unpack the source
+do_unpack
 
-        # Verify the source
-        do_verify
+# Set up the build environment
+_build_environment
 
-        # Clean the cache
-        do_clean
+# Fix any libtool scripts in the source
+_fix_libtool
 
-        # Unpack the source
-        do_unpack
+# Make sure all required variables are set
+_verify_vars
 
-        # Set up the build environment
-        _build_environment
+# Check for invalid (CR+LF) line endings in hooks
+_verify_hook_line_endings
 
-        # Fix any libtool scripts in the source
-        _fix_libtool
+# Prepare the source
+do_prepare_wrapper
 
-        # Make sure all required variables are set
-        _verify_vars
+# Build the source
+do_build_wrapper
 
-        # Check for invalid (CR+LF) line endings in hooks
-        _verify_hook_line_endings
+# Check the source
+do_check_wrapper
 
-        # Prepare the source
-        do_prepare_wrapper
+# Install the source
+do_install_wrapper
 
-        # Build the source
-        do_build_wrapper
+# Copy the configuration
+do_build_config
 
-        # Check the source
-        do_check_wrapper
+# Copy the service management scripts
+do_build_service
 
-        # Install the source
-        do_install_wrapper
+# Strip the binaries
+do_strip
 
-        # Copy the configuration
-        do_build_config
+# Run any code after the package has finished building and installing, but
+# before the artifact metadata is generated and the artifact is signed.
+do_after
 
-        # Copy the service management scripts
-        do_build_service
-
-        # Strip the binaries
-        do_strip
-
-        # Run any code after the package has finished building and installing, but
-        # before the artifact metadata is generated and the artifact is signed.
-        do_after
-
-        # Render the linking and dependency files
-        _build_metadata
-        ;;
-    *)
-        exit_with "'${pkg_type}' is not a recognized package type"
-esac
-
-# Common processing for both composite and standalone packages
+# Render the linking and dependency files
+_build_metadata
 
 # The FILES file must be the last metadata file generated, as it lists
 # all the other metadata files within it.

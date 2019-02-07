@@ -163,13 +163,6 @@
         "description": "The channel this service updates itself from",
         "type": "string"
       },
-      "composite": {
-        "description": "The name of the composite this service is a part of",
-        "type": [
-          "null",
-          "string"
-        ]
-      },
       "config_from": {
         "description": "The path where the config is loaded from",
         "type": [
@@ -309,10 +302,6 @@
       "manager_fs_cfg": {
         "description": "The filesystem paths the supervisor uses to persist data to disk",
         "properties": {
-          "composites_path": {
-            "description": "The path for composites",
-            "type": "string"
-          },
           "data_path": {
             "description": "The path for data",
             "type": "string"
@@ -335,7 +324,6 @@
           }
         },
         "required": [
-          "composites_path",
           "data_path",
           "member_id_file",
           "proc_lock_file",

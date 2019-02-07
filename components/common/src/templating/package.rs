@@ -242,7 +242,7 @@ fn default_user_and_group() -> Result<(String, String)> {
     let uid = users::get_uid_by_name(DEFAULT_USER);
     let gid = users::get_gid_by_name(DEFAULT_GROUP);
     match (uid, gid) {
-        (Some(_), Some(_)) => return Ok((DEFAULT_USER.to_string(), DEFAULT_GROUP.to_string())),
+        (Some(_), Some(_)) => Ok((DEFAULT_USER.to_string(), DEFAULT_GROUP.to_string())),
         _ => {
             debug!("hab:hab does NOT exist");
             let user = users::get_current_username();
@@ -250,13 +250,11 @@ fn default_user_and_group() -> Result<(String, String)> {
             match (user, group) {
                 (Some(user), Some(group)) => {
                     debug!("Running as {}/{}", user, group);
-                    return Ok((user, group));
+                    Ok((user, group))
                 }
-                _ => {
-                    return Err(Error::PermissionFailed(
-                        "Can't determine current user:group".to_string(),
-                    ));
-                }
+                _ => Err(Error::PermissionFailed(
+                    "Can't determine current user:group".to_string(),
+                )),
             }
         }
     }

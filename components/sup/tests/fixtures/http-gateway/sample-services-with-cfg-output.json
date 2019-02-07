@@ -58,7 +58,6 @@
       }
     },
     "channel": "stable",
-    "composite": null,
     "config_from": null,
     "desired_state": "Up",
     "health_check": "Unknown",
@@ -80,7 +79,6 @@
     "initialized": true,
     "last_election_status": "None",
     "manager_fs_cfg": {
-      "composites_path": "/hab/sup/default/composites",
       "data_path": "/hab/sup/default/data",
       "member_id_file": "/hab/sup/default/MEMBER_ID",
       "proc_lock_file": "/hab/sup/default/LOCK",

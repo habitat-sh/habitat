@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod composite_spec;
 mod context;
 pub mod health;
 pub mod hooks;
@@ -47,11 +46,10 @@ use serde::ser::SerializeStruct;
 use serde::{Serialize, Serializer};
 use time::Timespec;
 
-pub use self::composite_spec::CompositeSpec;
 use self::context::RenderContext;
 pub use self::health::HealthCheck;
 use self::hooks::HookTable;
-pub use self::spec::{BindMap, DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec, Spec};
+pub use self::spec::{DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec};
 use self::supervisor::Supervisor;
 use super::ShutdownReason;
 use super::Sys;
@@ -151,7 +149,6 @@ pub struct Service {
     supervisor: Supervisor,
     svc_encrypted_password: Option<String>,
     health_check_interval: HealthCheckInterval,
-    composite: Option<String>,
 
     #[serde(skip_serializing)]
     /// Whether a service's default configuration changed on a package
@@ -216,7 +213,6 @@ impl Service {
             scheduled_health_check: None,
             svc_encrypted_password: spec.svc_encrypted_password,
             health_check_interval: spec.health_check_interval,
-            composite: spec.composite,
             defaults_updated: false,
             gateway_state: gateway_state,
         })
@@ -412,9 +408,6 @@ impl Service {
         spec.group = self.service_group.group().to_string();
         if let Some(appenv) = self.service_group.application_environment() {
             spec.application_environment = Some(appenv)
-        }
-        if let Some(ref composite) = self.composite {
-            spec.composite = Some(composite.clone())
         }
         spec.bldr_url = self.bldr_url.clone();
         spec.channel = self.channel.clone();
@@ -1179,9 +1172,9 @@ impl<'a> Serialize for ServiceProxy<'a> {
         S: Serializer,
     {
         let num_fields: usize = if self.config_rendering == ConfigRendering::Full {
-            28
-        } else {
             27
+        } else {
+            26
         };
 
         let s = &self.service;
@@ -1196,7 +1189,6 @@ impl<'a> Serialize for ServiceProxy<'a> {
         }
 
         strukt.serialize_field("channel", &s.channel)?;
-        strukt.serialize_field("composite", &s.composite)?;
         strukt.serialize_field("config_from", &s.config_from)?;
         strukt.serialize_field("desired_state", &s.desired_state)?;
         strukt.serialize_field("health_check", &s.health_check)?;

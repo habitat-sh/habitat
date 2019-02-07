@@ -76,8 +76,7 @@ use self::peer_watcher::PeerWatcher;
 use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
 use self::service::{health::HealthCheck, DesiredState};
 pub use self::service::{
-    CompositeSpec, ConfigRendering, Service, ServiceProxy, ServiceSpec, Spec, Topology,
-    UpdateStrategy,
+    ConfigRendering, Service, ServiceProxy, ServiceSpec, Topology, UpdateStrategy,
 };
 use self::service_updater::ServiceUpdater;
 use self::spec_dir::SpecDir;
@@ -144,7 +143,6 @@ pub struct FsCfg {
 
     data_path: PathBuf,
     specs_path: PathBuf,
-    composites_path: PathBuf,
     member_id_file: PathBuf,
     proc_lock_file: PathBuf,
 }
@@ -158,7 +156,6 @@ impl FsCfg {
         FsCfg {
             specs_path: sup_root.join("specs"),
             data_path: sup_root.join("data"),
-            composites_path: sup_root.join("composites"),
             member_id_file: sup_root.join(MEMBER_ID_FILE),
             proc_lock_file: sup_root.join(PROC_LOCK_FILE),
             sup_root: sup_root,
@@ -454,18 +451,6 @@ impl Manager {
         debug!("Creating specs directory: {}", specs_path.display());
         if let Some(err) = fs::create_dir_all(&specs_path).err() {
             return Err(sup_error!(Error::BadSpecsPath(specs_path.clone(), err)));
-        }
-
-        let composites_path = &fs_cfg.composites_path;
-        debug!(
-            "Creating composites directory: {}",
-            composites_path.display()
-        );
-        if let Some(err) = fs::create_dir_all(&composites_path).err() {
-            return Err(sup_error!(Error::BadCompositesPath(
-                composites_path.clone(),
-                err
-            )));
         }
 
         Ok(())
