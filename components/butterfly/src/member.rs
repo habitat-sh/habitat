@@ -16,7 +16,6 @@
 
 use std::collections::{hash_map, HashMap};
 use std::fmt;
-use std::iter::IntoIterator;
 use std::net::SocketAddr;
 use std::num::ParseIntError;
 use std::ops::Add;
@@ -27,7 +26,10 @@ use std::sync::RwLock;
 
 use habitat_core::util::ToI64;
 use prometheus::IntGaugeVec;
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{
+    seq::{IteratorRandom, SliceRandom},
+    thread_rng,
+};
 use serde::{
     de,
     ser::{SerializeMap, SerializeStruct},
@@ -667,19 +669,17 @@ impl MemberList {
         &self,
         sending_member_id: &str,
         target_member_id: &str,
-        mut with_closure: impl FnMut(Member),
+        mut with_closure: impl FnMut(&Member),
     ) {
-        // This will lead to nested read locks if you don't deal with making a copy
-        let mut entries: Vec<_> = self.read_entries().values().cloned().collect();
-        entries.shuffle(&mut thread_rng());
-        for member_list::Entry { member, .. } in entries
-            .into_iter()
+        for member_list::Entry { member, .. } in self
+            .read_entries()
+            .values()
             .filter(|member_list::Entry { member, health, .. }| {
                 member.id != sending_member_id
                     && member.id != target_member_id
                     && *health == Health::Alive
             })
-            .take(PINGREQ_TARGETS)
+            .choose_multiple(&mut thread_rng(), PINGREQ_TARGETS)
         {
             with_closure(member);
         }

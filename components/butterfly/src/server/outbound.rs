@@ -224,7 +224,7 @@ impl Outbound {
                         .with_label_values(&["pingreq/ack"])
                         .start_timer(),
                 );
-                pingreq(&self.server, &self.socket, &pingreq_target, &member);
+                pingreq(&self.server, &self.socket, pingreq_target, &member);
             },
         );
 
