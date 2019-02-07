@@ -14,7 +14,6 @@
 
 use super::{BindingMode, Topology, UpdateStrategy};
 use crate::error::{Error, Result, SupError};
-use crate::hcore::channel::STABLE_CHANNEL;
 use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
 use crate::hcore::url::DEFAULT_BLDR_URL;

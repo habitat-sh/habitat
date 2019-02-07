@@ -23,11 +23,10 @@ use crate::command::package::install::{self, InstallHookMode, InstallMode, Local
 use crate::error::{Error, Result};
 use crate::ui;
 use habitat_core::{
-    channel,
     fs::{cache_artifact_path, find_command, FS_ROOT_PATH},
     package::{PackageIdent, PackageInstall, PackageTarget},
     url::default_bldr_url,
-    PROGRAM_NAME,
+    ChannelIdent, PROGRAM_NAME,
 };
 
 /// The package identifier for the OS specific interpreter which the Supervisor is built with,
@@ -126,7 +125,7 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                             install::start(
                                 &mut ui::UI::default_with_env(),
                                 &default_bldr_url(),
-                                Some(&channel::STABLE_CHANNEL.to_string()),
+                                Some(&ChannelIdent::stable()),
                                 &(ident.clone(), *PackageTarget::active_target()).into(),
                                 &*PROGRAM_NAME,
                                 VERSION,
