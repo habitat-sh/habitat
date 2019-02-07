@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- update windows-service blog to reflect recent changes [#6089](https://github.com/habitat-sh/habitat/pull/6089) ([mwrock](https://github.com/mwrock))
+
 #### Bug Fixes
 - use temp dir scoped to current build to avoid failures when building multiple builds [#6106](https://github.com/habitat-sh/habitat/pull/6106) ([mwrock](https://github.com/mwrock))
 - generate api docs for windows http gateway [#6098](https://github.com/habitat-sh/habitat/pull/6098) ([mwrock](https://github.com/mwrock))
