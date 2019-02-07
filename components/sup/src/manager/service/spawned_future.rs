@@ -21,22 +21,19 @@
 
 use crate::error::SupError;
 use futures::{sync::oneshot, Future, Poll};
-use std::io;
+use std::{io, result};
 
-pub enum SpawnedFuture<T> {
-    Ok(oneshot::Receiver<T>),
-    Err(Option<io::Error>),
-}
+pub struct SpawnedFuture<T>(result::Result<oneshot::Receiver<T>, Option<io::Error>>);
 
 impl<T> From<oneshot::Receiver<T>> for SpawnedFuture<T> {
     fn from(r: oneshot::Receiver<T>) -> SpawnedFuture<T> {
-        SpawnedFuture::Ok(r)
+        SpawnedFuture(Ok(r))
     }
 }
 
 impl<T> From<io::Error> for SpawnedFuture<T> {
     fn from(e: io::Error) -> SpawnedFuture<T> {
-        SpawnedFuture::Err(Some(e))
+        SpawnedFuture(Err(Some(e)))
     }
 }
 
@@ -46,8 +43,8 @@ impl<T> Future for SpawnedFuture<T> {
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         match self {
-            SpawnedFuture::Ok(r) => r.poll().map_err(Into::into),
-            SpawnedFuture::Err(e) => Err(e
+            SpawnedFuture(Ok(r)) => r.poll().map_err(Into::into),
+            SpawnedFuture(Err(e)) => Err(e
                 .take()
                 .expect("Cannot poll SpawnedFuture::Err twice")
                 .into()),
