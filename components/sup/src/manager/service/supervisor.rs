@@ -307,28 +307,17 @@ impl Supervisor {
     /// Remove a pidfile for this package if it exists.
     /// Do NOT fail if there is an error removing the PIDFILE
     fn cleanup_pidfile(&self) {
-        debug!(
-            "Attempting to clean up pid file {}",
-            self.pid_file.display()
-        );
-        match std::fs::remove_file(&self.pid_file) {
-            Ok(_) => debug!("Removed pid file"),
-            Err(e) => debug!("Error removing pidfile: {}, continuing", e),
-        }
+        Self::cleanup_pidfile_future(self.pid_file.clone());
     }
 
     // This is just a different way to model `cleanup_pidfile` that's
     // amenable to use in a future. Hopefully these two can be
     // consolidated in the (ahem) future.
-    fn cleanup_pidfile_future<P>(pidfile: P)
-    where
-        P: AsRef<Path>,
-    {
-        let pidfile = pidfile.as_ref();
-        debug!("Attempting to clean up pid file {}", pidfile.display());
-        match std::fs::remove_file(pidfile) {
+    fn cleanup_pidfile_future(pid_file: PathBuf) {
+        debug!("Attempting to clean up pid file {}", pid_file.display());
+        match std::fs::remove_file(pid_file) {
             Ok(_) => debug!("Removed pid file"),
-            Err(e) => debug!("Error removing pidfile: {}, continuing", e),
+            Err(e) => debug!("Error removing pid file: {}, continuing", e),
         }
     }
 
