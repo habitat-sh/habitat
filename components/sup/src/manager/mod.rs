@@ -1119,7 +1119,8 @@ impl Manager {
 
     /// Create a future for stopping a Service. The Service is assumed
     /// to have been removed from the internal list of active services
-    /// already.
+    /// already (see, e.g., take_services_with_updates and
+    /// remove_service_from_state).
     fn stop(&self, service: Service) -> impl Future<Item = (), Error = ()> {
         Self::service_stop_future(
             service,
