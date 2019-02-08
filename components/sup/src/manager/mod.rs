@@ -1141,30 +1141,18 @@ impl Manager {
         // JW TODO: Update service rumor to remove service from
         // cluster
         // TODO (CM): But only if we're not going down for a restart.
-
         let ident = service.spec_ident.clone();
-
         let stop_it = service.stop().then(move |_| {
-            // We always want to do this cleanup, even if there
-            // was an error shutting down the service
-            if let Err(e) = user_config_watcher
+            user_config_watcher
                 .write()
                 .expect("Watcher lock poisoned")
-                .remove(&service)
-            {
-                debug!(
-                    "Error stopping user-config watcher thread for service {}: {:?}",
-                    service, e
-                )
-            }
-            // Remove service updater
+                .remove(&service);
             updater
                 .lock()
                 .expect("Updater lock poisoned")
                 .remove(&service);
             Ok(())
         });
-
         Self::wrap_async_service_operation(ident, busy_services, reconcile_services, stop_it)
     }
 

@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::file_watcher::{default_file_watcher_with_no_initial_event,
+                          Callbacks};
+use crate::manager::service::Service;
+use habitat_common::templating::config::UserConfigPath;
+use habitat_core::{fs::USER_CONFIG_FILE,
+                   service::ServiceGroup};
 use std::{collections::HashMap,
           io,
           path::{Path,
@@ -19,7 +25,6 @@ use std::{collections::HashMap,
           sync::{mpsc::{channel,
                         sync_channel,
                         Receiver,
-                        SendError,
                         Sender,
                         SyncSender,
                         TryRecvError,
@@ -29,14 +34,6 @@ use std::{collections::HashMap,
           thread::{self,
                    Builder as ThreadBuilder},
           time::Duration};
-
-use super::file_watcher::{default_file_watcher_with_no_initial_event,
-                          Callbacks};
-
-use crate::{common::templating::config::UserConfigPath,
-            hcore::{fs::USER_CONFIG_FILE,
-                    service::ServiceGroup},
-            manager::service::Service};
 
 static LOGKEY: &'static str = "UCW";
 
@@ -139,17 +136,21 @@ impl UserConfigWatcher {
 
     /// Removes a service from the User Config Watcher, and sends a message to the watcher thread
     /// to stop running.
-    pub fn remove<T: Serviceable>(&mut self, service: &T) -> Result<(), SendError<()>> {
+    pub fn remove<T: Serviceable>(&mut self, service: &T) {
         if let Some(state) = self
             .states
             .lock()
             .expect("states lock was poisoned")
             .remove(service.name())
         {
-            state.stop_running.send(())?;
+            if let Err(e) = state.stop_running.send(()) {
+                debug!(
+                    "Error stopping user-config watcher thread for service {}: {:?}",
+                    service.name(),
+                    e
+                );
+            }
         }
-
-        Ok(())
     }
 
     /// Checks whether the watcher for the specified service has observed any events.
