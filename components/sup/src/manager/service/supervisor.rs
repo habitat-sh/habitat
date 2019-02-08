@@ -243,22 +243,19 @@ impl Supervisor {
         // group around AS a service group
         let service_group = self.preamble.clone();
 
-        match self.pid {
-            Some(pid) => {
-                let pidfile = self.pid_file.clone();
+        if let Some(pid) = self.pid {
+            let pidfile = self.pid_file.clone();
 
-                future::Either::A(terminator::terminate_service(pid, service_group).and_then(
-                    |_shutdown_method| {
-                        Supervisor::cleanup_pidfile_future(pidfile);
-                        Ok(())
-                    },
-                ))
-            }
-            None => {
-                // Not quite sure how we'd get down here without a PID...
-                warn!("Attempted to stop {}, but we have no PID!", service_group);
-                future::Either::B(future::ok(()))
-            }
+            future::Either::A(terminator::terminate_service(pid, service_group).and_then(
+                |_shutdown_method| {
+                    Supervisor::cleanup_pidfile_future(pidfile);
+                    Ok(())
+                },
+            ))
+        } else {
+            // Not quite sure how we'd get down here without a PID...
+            warn!("Attempted to stop {}, but we have no PID!", service_group);
+            future::Either::B(future::ok(()))
         }
     }
 
