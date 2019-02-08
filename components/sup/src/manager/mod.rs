@@ -104,9 +104,7 @@ use std::{self,
                Read,
                Write},
           iter::IntoIterator,
-          mem,
           net::SocketAddr,
-          ops::DerefMut,
           path::{Path,
                  PathBuf},
           result,
@@ -931,33 +929,36 @@ impl Manager {
     /// Return the Services that currently have a newer package in
     /// Builder. These are removed from the internal `services` vec
     /// for further transformation into futures.
-    fn take_services_with_updates(&mut self) -> impl IntoIterator<Item = Service> {
+    fn take_services_with_updates(&mut self) -> Vec<Service> {
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
 
-        let mut working_set = HashMap::new();
         let mut state_services = self
             .state
             .services
             .write()
             .expect("Services lock is poisoned!");
-        mem::swap(state_services.deref_mut(), &mut working_set);
-
-        let (to_restart, mut no_action) =
-            working_set.drain().partition(|(current_ident, service)| {
-                match updater.check_for_updated_package(&service, &self.census_ring) {
-                    Some(new_package_ident) => {
-                        outputln!("Updating from {} to {}", current_ident, new_package_ident);
-                        true
-                    }
-                    None => {
-                        trace!("No update found for {}", current_ident);
-                        false
-                    }
+        let idents_to_restart: Vec<_> = state_services
+            .iter()
+            .filter_map(|(current_ident, service)| {
+                if let Some(new_ident) =
+                    updater.check_for_updated_package(&service, &self.census_ring)
+                {
+                    outputln!("Updating from {} to {}", current_ident, new_ident);
+                    Some(current_ident.clone())
+                } else {
+                    trace!("No update found for {}", current_ident);
+                    None
                 }
-            });
-        mem::swap(&mut no_action, state_services.deref_mut());
+            })
+            .collect();
 
-        to_restart.into_iter().map(|(_ident, service)| service)
+        let mut services_to_restart = Vec::with_capacity(idents_to_restart.len());
+        for current_ident in idents_to_restart {
+            // unwrap is safe because we've to the write lock, and we
+            // know there's a value present at this key.
+            services_to_restart.push(state_services.remove(&current_ident).unwrap());
+        }
+        services_to_restart
     }
 
     /// Returns a Vec of futures for shutting down those services that
