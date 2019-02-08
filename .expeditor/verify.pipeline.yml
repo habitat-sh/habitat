@@ -46,6 +46,8 @@ steps:
       queue: 'docker-privileged'
     plugins:
       docker#v2.1.0:
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
