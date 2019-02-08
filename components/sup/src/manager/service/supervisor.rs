@@ -244,11 +244,11 @@ impl Supervisor {
         let service_group = self.preamble.clone();
 
         if let Some(pid) = self.pid {
-            let pidfile = self.pid_file.clone();
+            let pid_file = self.pid_file.clone();
 
             future::Either::A(terminator::terminate_service(pid, service_group).and_then(
                 |_shutdown_method| {
-                    Supervisor::cleanup_pidfile_future(pidfile);
+                    Supervisor::cleanup_pidfile_future(pid_file);
                     Ok(())
                 },
             ))
