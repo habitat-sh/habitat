@@ -143,11 +143,11 @@ fn six_members_unmeshed_allows_graceful_departure() {
     assert_wait_for_health_of!(net, 0, Health::Departed);
 }
 
-#[test]
-#[cfg_attr(feature = "ignore_inconsistent_tests", ignore)]
-fn fifty_members_meshed_confirm_one_member() {
-    let mut net = btest::SwimNet::new(50);
-    net.mesh();
-    net[0].pause();
-    assert_wait_for_health_of!(net, 0, Health::Confirmed);
-}
+// #[test]
+// #[cfg_attr(feature = "ignore_inconsistent_tests", ignore)]
+// fn fifty_members_meshed_confirm_one_member() {
+//     let mut net = btest::SwimNet::new(50);
+//     net.mesh();
+//     net[0].pause();
+//     assert_wait_for_health_of!(net, 0, Health::Confirmed);
+// }
