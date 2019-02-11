@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::common::ui::UI;
-use crate::hcore::package::PackageIdent;
+use crate::hcore::{package::PackageIdent, ChannelIdent};
 
 use crate::error::Result;
 
@@ -45,7 +45,7 @@ impl ExportFormat {
 pub fn start(
     ui: &mut UI,
     url: &str,
-    channel: &str,
+    channel: &ChannelIdent,
     ident: &PackageIdent,
     format: &ExportFormat,
 ) -> Result<()> {
@@ -63,11 +63,11 @@ mod inner {
     use std::str::FromStr;
 
     use crate::common::ui::UI;
-    use crate::hcore::channel::BLDR_CHANNEL_ENVVAR;
     use crate::hcore::crypto::{default_cache_key_path, init};
     use crate::hcore::fs::find_command;
     use crate::hcore::package::PackageIdent;
     use crate::hcore::url::BLDR_URL_ENVVAR;
+    use crate::hcore::ChannelIdent;
 
     use super::ExportFormat;
     use crate::command;
@@ -102,7 +102,7 @@ mod inner {
     pub fn start(
         ui: &mut UI,
         url: &str,
-        channel: &str,
+        channel: &ChannelIdent,
         ident: &PackageIdent,
         format: &ExportFormat,
     ) -> Result<()> {
@@ -118,7 +118,7 @@ mod inner {
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             let pkg_arg = OsString::from(&ident.to_string());
             env::set_var(BLDR_URL_ENVVAR, url);
-            env::set_var(BLDR_CHANNEL_ENVVAR, channel);
+            env::set_var(ChannelIdent::BLDR_ENVVAR, channel.to_string());
             // TODO fn: Currently, the PATH-setting behavior of `hab pkg exec` is being used to put
             // dependent programs such as `docker` on `$PATH`. This is not ideal and we should be
             // using `hcore::os::process::become_command` but for the moment we'll continue to use
@@ -136,6 +136,7 @@ mod inner {
     use crate::common::ui::{UIWriter, UI};
     use crate::error::{Error, Result};
     use crate::hcore::package::PackageIdent;
+    use crate::hcore::ChannelIdent;
     use std::env;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
@@ -153,7 +154,7 @@ mod inner {
     pub fn start(
         ui: &mut UI,
         _url: &str,
-        _channel: &str,
+        _channel: &ChannelIdent,
         _ident: &PackageIdent,
         _format: &ExportFormat,
     ) -> Result<()> {

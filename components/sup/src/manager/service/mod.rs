@@ -39,6 +39,7 @@ use crate::hcore::fs::{svc_hooks_path, SvcDir, FS_ROOT_PATH};
 use crate::hcore::package::metadata::Bind;
 use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::hcore::service::{HealthCheckInterval, ServiceGroup};
+use crate::hcore::ChannelIdent;
 use crate::launcher_client::LauncherCli;
 pub use crate::protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
 use prometheus::{HistogramTimer, HistogramVec};
@@ -97,7 +98,7 @@ enum BindStatus<'a> {
 pub struct Service {
     pub service_group: ServiceGroup,
     pub bldr_url: String,
-    pub channel: String,
+    pub channel: ChannelIdent,
     pub desired_state: DesiredState,
     pub spec_file: PathBuf,
     pub spec_ident: PackageIdent,

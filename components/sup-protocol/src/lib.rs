@@ -83,10 +83,6 @@ lazy_static! {
     pub static ref DEFAULT_BLDR_URL: String = {
         core::url::default_bldr_url()
     };
-
-    pub static ref DEFAULT_BLDR_CHANNEL: String = {
-        core::channel::default()
-    };
 }
 
 /// Generate a new secret key used for authenticating clients to the `CtlGateway`.

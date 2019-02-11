@@ -22,6 +22,7 @@ use crate::common::ui::UIWriter;
 use crate::hcore::env as henv;
 use crate::hcore::fs::{self, FS_ROOT_PATH};
 use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::ChannelIdent;
 use crate::hcore::AUTH_TOKEN_ENVVAR;
 
 use crate::error::{Error, Result, SupError};
@@ -35,7 +36,7 @@ pub fn install<T>(
     ui: &mut T,
     url: &str,
     install_source: &InstallSource,
-    channel: &str,
+    channel: &ChannelIdent,
 ) -> Result<PackageInstall>
 where
     T: UIWriter,
@@ -54,7 +55,7 @@ where
         // function, though, should always have a channel. We should
         // push this "Option-ness" as far down the stack as we can,
         // with the ultimate goal of eliminating it altogether.
-        Some(channel),
+        Some(&channel),
         install_source,
         PRODUCT,
         VERSION,
@@ -82,7 +83,7 @@ pub fn satisfy_or_install<T>(
     ui: &mut T,
     install_source: &InstallSource,
     bldr_url: &str,
-    channel: &str,
+    channel: &ChannelIdent,
 ) -> Result<PackageInstall>
 where
     T: UIWriter,

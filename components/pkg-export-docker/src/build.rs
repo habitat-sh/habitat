@@ -29,6 +29,7 @@ use crate::common::ui::{Status, UIWriter, UI};
 use crate::hcore::env;
 use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use crate::hcore::package::{PackageArchive, PackageIdent, PackageInstall};
+use crate::hcore::ChannelIdent;
 use crate::hcore::PROGRAM_NAME;
 use clap;
 #[cfg(unix)]
@@ -73,11 +74,11 @@ pub struct BuildSpec<'a> {
     pub url: &'a str,
     /// The Habitat release channel which is used to install all service and extra Habitat
     /// packages.
-    pub channel: &'a str,
+    pub channel: ChannelIdent,
     /// The Builder URL which is used to install all base Habitat packages.
     pub base_pkgs_url: &'a str,
     /// The Habitat release channel which is used to install all base Habitat packages.
-    pub base_pkgs_channel: &'a str,
+    pub base_pkgs_channel: ChannelIdent,
     /// A list of either Habitat Package Identifiers or local paths to Habitat Artifact files which
     /// will be installed.
     pub idents_or_archives: Vec<&'a str>,
@@ -87,11 +88,7 @@ pub struct BuildSpec<'a> {
 
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
-    pub fn new_from_cli_matches(
-        m: &'a clap::ArgMatches<'_>,
-        default_channel: &'a str,
-        default_url: &'a str,
-    ) -> Self {
+    pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>, default_url: &'a str) -> Self {
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
             hab_launcher: m
@@ -99,9 +96,15 @@ impl<'a> BuildSpec<'a> {
                 .unwrap_or(DEFAULT_LAUNCHER_IDENT),
             hab_sup: m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
             url: m.value_of("BLDR_URL").unwrap_or(&default_url),
-            channel: m.value_of("CHANNEL").unwrap_or(&default_channel),
+            channel: m
+                .value_of("CHANNEL")
+                .map(ChannelIdent::from)
+                .unwrap_or_default(),
             base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
-            base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL").unwrap_or(&default_channel),
+            base_pkgs_channel: m
+                .value_of("BASE_PKGS_CHANNEL")
+                .map(ChannelIdent::from)
+                .unwrap_or_default(),
             auth: m.value_of("BLDR_AUTH_TOKEN"),
             idents_or_archives: m
                 .values_of("PKG_IDENT_OR_ARTIFACT")
@@ -338,7 +341,7 @@ impl<'a> BuildSpec<'a> {
             ui,
             ident_or_archive,
             self.base_pkgs_url,
-            self.base_pkgs_channel,
+            &self.base_pkgs_channel,
             fs_root_path,
             None,
         )
@@ -354,7 +357,7 @@ impl<'a> BuildSpec<'a> {
             ui,
             ident_or_archive,
             self.url,
-            self.channel,
+            &self.channel,
             fs_root_path,
             self.auth,
         )
@@ -365,7 +368,7 @@ impl<'a> BuildSpec<'a> {
         ui: &mut UI,
         ident_or_archive: &str,
         url: &str,
-        channel: &str,
+        channel: &ChannelIdent,
         fs_root_path: P,
         token: Option<&str>,
     ) -> Result<PackageIdent> {
@@ -442,7 +445,7 @@ pub struct BuildRootContext {
     env_path: String,
     /// The channel name which was used to install all user-provided Habitat service and library
     /// packages.
-    channel: String,
+    channel: ChannelIdent,
     /// The path to the root of the file system.
     rootfs: PathBuf,
 }
@@ -503,7 +506,7 @@ impl BuildRootContext {
             environment: environment,
             bin_path: bin_path.into(),
             env_path: bin_path.to_string_lossy().into_owned(),
-            channel: spec.channel.into(),
+            channel: spec.channel.clone(),
             rootfs: rootfs,
         };
         context.validate()?;
@@ -720,8 +723,8 @@ impl BuildRootContext {
     }
 
     /// Returns the release channel name used to install all provided Habitat packages.
-    pub fn channel(&self) -> &str {
-        self.channel.as_str()
+    pub fn channel(&self) -> &ChannelIdent {
+        &self.channel
     }
 
     /// Returns the root file system which is used to export an image.
@@ -808,9 +811,9 @@ mod test {
             hab_launcher: "hab_launcher",
             hab_sup: "hab_sup",
             url: "url",
-            channel: "channel",
+            channel: ChannelIdent::from("channel"),
             base_pkgs_url: "base_pkgs_url",
-            base_pkgs_channel: "base_pkgs_channel",
+            base_pkgs_channel: ChannelIdent::from("base_pkgs_channel"),
             idents_or_archives: Vec::new(),
             auth: Some("heresafakeauthtokenduh"),
         }
@@ -1119,7 +1122,7 @@ mod test {
             );
             assert_eq!(Path::new("/bin"), ctx.bin_path());
             assert_eq!("/bin", ctx.env_path());
-            assert_eq!(spec.channel, ctx.channel());
+            assert_eq!(&spec.channel, ctx.channel());
             assert_eq!(rootfs.path(), ctx.rootfs());
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
@@ -1143,8 +1146,7 @@ mod test {
                 .install();
 
             let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
-            let build_spec =
-                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+            let build_spec = BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh");
 
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
 
@@ -1166,8 +1168,7 @@ mod test {
                 .install();
 
             let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
-            let build_spec =
-                BuildSpec::new_from_cli_matches(&matches, "stable", "https://bldr.habitat.sh");
+            let build_spec = BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh");
 
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
 

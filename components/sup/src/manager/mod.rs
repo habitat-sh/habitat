@@ -57,6 +57,7 @@ use crate::hcore::os::signals::{self, SignalEvent};
 use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
 use crate::hcore::service::ServiceGroup;
 use crate::hcore::util::ToI64;
+use crate::hcore::ChannelIdent;
 use crate::launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
 use crate::protocol;
 use cpu_time::ProcessTime;
@@ -168,7 +169,7 @@ pub struct ManagerConfig {
     pub auto_update: bool,
     pub custom_state_path: Option<PathBuf>,
     pub update_url: String,
-    pub update_channel: String,
+    pub update_channel: ChannelIdent,
     pub gossip_listen: GossipListenAddr,
     pub ctl_listen: ListenCtlAddr,
     pub http_listen: http_gateway::ListenAddr,
@@ -193,7 +194,7 @@ impl Default for ManagerConfig {
             auto_update: false,
             custom_state_path: None,
             update_url: "".to_string(),
-            update_channel: "".to_string(),
+            update_channel: ChannelIdent::default(),
             gossip_listen: GossipListenAddr::default(),
             ctl_listen: ListenCtlAddr::default(),
             http_listen: http_gateway::ListenAddr::default(),

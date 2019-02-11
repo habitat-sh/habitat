@@ -21,6 +21,7 @@ use crate::error::{Error, Result};
 use crate::hcore::{
     package::{Identifiable, PackageIdent, PackageTarget},
     service::ServiceGroup,
+    ChannelIdent,
 };
 use crate::manager::{
     service::{
@@ -224,7 +225,8 @@ pub fn service_load(
     let bldr_channel = opts
         .bldr_channel
         .clone()
-        .unwrap_or_else(|| protocol::DEFAULT_BLDR_CHANNEL.to_string());
+        .map(ChannelIdent::from)
+        .unwrap_or_default();
     let force = opts.force.unwrap_or(false);
     let source = InstallSource::Ident(ident.clone(), *PackageTarget::active_target());
     match spec_for_ident(&mgr.cfg, source.as_ref()) {

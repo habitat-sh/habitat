@@ -28,6 +28,7 @@ use crate::common::ui::UI;
 use crate::hcore::env as henv;
 use crate::hcore::package::{PackageIdent, PackageInstall, PackageTarget};
 use crate::hcore::service::ServiceGroup;
+use crate::hcore::ChannelIdent;
 use crate::launcher_client::LauncherCli;
 
 use crate::census::CensusRing;
@@ -393,7 +394,7 @@ struct Worker {
     current: PackageIdent,
     spec_ident: PackageIdent,
     builder_url: String,
-    channel: String,
+    channel: ChannelIdent,
 }
 
 impl Periodic for Worker {
@@ -589,7 +590,7 @@ mod tests {
                 .expect("Can't parse ident!"),
             spec_ident: "core/testing".parse().expect("Can't parse ident!"),
             builder_url: String::from("https://bldr.habitat.sh"),
-            channel: String::from("stable"),
+            channel: ChannelIdent::stable(),
         }
     }
 

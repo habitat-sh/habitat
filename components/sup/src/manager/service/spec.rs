@@ -14,11 +14,11 @@
 
 use super::{BindingMode, Topology, UpdateStrategy};
 use crate::error::{Error, Result, SupError};
-use crate::hcore::channel::STABLE_CHANNEL;
 use crate::hcore::package::{PackageIdent, PackageInstall};
 use crate::hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
 use crate::hcore::url::DEFAULT_BLDR_URL;
 use crate::hcore::util::{deserialize_using_from_str, serialize_using_to_string};
+use crate::hcore::ChannelIdent;
 use crate::protocol;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -115,7 +115,7 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
             spec.bldr_url = bldr_url.to_string();
         }
         if let Some(ref channel) = self.bldr_channel {
-            spec.channel = channel.to_string();
+            spec.channel = channel.clone().into();
         }
         if let Some(topology) = self.topology {
             spec.topology = Topology::from_i32(topology).unwrap_or_default();
@@ -156,7 +156,7 @@ pub struct ServiceSpec {
     )]
     pub application_environment: Option<ApplicationEnvironment>,
     pub bldr_url: String,
-    pub channel: String,
+    pub channel: ChannelIdent,
     pub topology: Topology,
     pub update_strategy: UpdateStrategy,
     pub binds: Vec<ServiceBind>,
@@ -291,7 +291,7 @@ impl Default for ServiceSpec {
             group: DEFAULT_GROUP.to_string(),
             application_environment: None,
             bldr_url: DEFAULT_BLDR_URL.to_string(),
-            channel: STABLE_CHANNEL.to_string(),
+            channel: ChannelIdent::stable(),
             topology: Topology::default(),
             update_strategy: UpdateStrategy::default(),
             binds: Vec::default(),
@@ -520,7 +520,7 @@ mod test {
                 ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
             ),
             bldr_url: String::from("http://example.com/depot"),
-            channel: String::from("unstable"),
+            channel: ChannelIdent::unstable(),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![
@@ -607,7 +607,7 @@ mod test {
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ]
         );
-        assert_eq!(&spec.channel, "stable");
+        assert_eq!(spec.channel, ChannelIdent::stable());
         assert_eq!(
             spec.config_from,
             Some(PathBuf::from("/only/for/development"))
@@ -700,7 +700,7 @@ mod test {
                 ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
             ),
             bldr_url: String::from("http://example.com/depot"),
-            channel: String::from("unstable"),
+            channel: ChannelIdent::unstable(),
             topology: Topology::Leader,
             update_strategy: UpdateStrategy::AtOnce,
             binds: vec![

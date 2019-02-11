@@ -41,10 +41,10 @@ use crate::api_client::{self, Client};
 use crate::common::command::package::install::{RETRIES, RETRY_WAIT};
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::{Error, Result};
-use crate::hcore::channel::{STABLE_CHANNEL, UNSTABLE_CHANNEL};
 use crate::hcore::crypto::artifact::get_artifact_header;
 use crate::hcore::crypto::keys::parse_name_with_rev;
 use crate::hcore::package::{PackageArchive, PackageIdent, PackageTarget};
+use crate::hcore::ChannelIdent;
 use crate::{PRODUCT, VERSION};
 
 /// Upload a package from the cache to a Depot. The latest version/release of the package
@@ -58,7 +58,7 @@ use crate::{PRODUCT, VERSION};
 pub fn start<T, U>(
     ui: &mut UI,
     bldr_url: &str,
-    additional_release_channel: Option<&str>,
+    additional_release_channel: &Option<ChannelIdent>,
     token: &str,
     archive_path: T,
     force_upload: bool,
@@ -78,14 +78,15 @@ where
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match api_client.show_package(&ident, &target, UNSTABLE_CHANNEL, Some(token)) {
+    match api_client.show_package(&ident, &target, &ChannelIdent::unstable(), Some(token)) {
         Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
-                match api_client.show_package(&dep, &target, UNSTABLE_CHANNEL, Some(token)) {
+                match api_client.show_package(&dep, &target, &ChannelIdent::unstable(), Some(token))
+                {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
                         let candidate_path = match archive_path.as_ref().parent() {
@@ -155,7 +156,7 @@ fn upload_into_depot(
     api_client: &Client,
     token: &str,
     ident: &PackageIdent,
-    additional_release_channel: Option<&str>,
+    additional_release_channel: &Option<ChannelIdent>,
     force_upload: bool,
     mut archive: &mut PackageArchive,
 ) -> Result<()> {
@@ -193,18 +194,18 @@ fn upload_into_depot(
 
     // Promote to additional_release_channel if specified
     if package_uploaded && additional_release_channel.is_some() {
-        let channel_str = additional_release_channel.unwrap();
-        ui.begin(format!("Promoting {} to channel '{}'", ident, channel_str))?;
+        let channel = additional_release_channel.clone().unwrap();
+        ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
 
-        if channel_str != STABLE_CHANNEL && channel_str != UNSTABLE_CHANNEL {
-            match api_client.create_channel(&ident.origin, channel_str, token) {
+        if channel != ChannelIdent::stable() && channel != ChannelIdent::unstable() {
+            match api_client.create_channel(&ident.origin, &channel, token) {
                 Ok(_) => (),
                 Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),
                 Err(e) => return Err(Error::from(e)),
             };
         }
 
-        match api_client.promote_package(ident, channel_str, token) {
+        match api_client.promote_package(ident, &channel, token) {
             Ok(_) => (),
             Err(e) => return Err(Error::from(e)),
         };
@@ -220,7 +221,7 @@ fn attempt_upload_dep<T>(
     token: &str,
     ident: &PackageIdent,
     target: &PackageTarget,
-    additional_release_channel: Option<&str>,
+    additional_release_channel: &Option<ChannelIdent>,
     _force_upload: bool,
     archives_dir: &PathBuf,
     key_path: T,

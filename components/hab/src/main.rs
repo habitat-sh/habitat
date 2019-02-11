@@ -47,7 +47,6 @@ use crate::common::command::package::install::{
 use crate::common::types::ListenCtlAddr;
 use crate::common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
 use crate::hcore::binlink::default_binlink_dir;
-use crate::hcore::channel;
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
 use crate::hcore::crypto::keys::PairType;
@@ -57,6 +56,7 @@ use crate::hcore::fs::{
     cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path,
 };
 use crate::hcore::package::{PackageIdent, PackageTarget};
+use crate::hcore::ChannelIdent;
 use clap::{ArgMatches, Shell};
 use futures::prelude::*;
 
@@ -498,10 +498,7 @@ fn sub_pkg_export(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let format = &m.value_of("FORMAT").unwrap();
     let url = bldr_url_from_matches(&m)?;
-    let channel = m
-        .value_of("CHANNEL")
-        .map(str::to_string)
-        .unwrap_or_else(channel::default);
+    let channel = channel_from_matches_or_default(&m);
     let export_fmt = command::pkg::export::format_for(ui, &format)?;
     command::pkg::export::start(ui, &url, &channel, &ident, &export_fmt)
 }
@@ -554,7 +551,7 @@ fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
-    let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
+    let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     command::bldr::channel::create::start(ui, &url, &token, &origin, &channel)
 }
@@ -562,7 +559,7 @@ fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 fn sub_bldr_channel_destroy(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
-    let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
+    let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     command::bldr::channel::destroy::start(ui, &url, &token, &origin, &channel)
 }
@@ -593,7 +590,7 @@ fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 fn sub_bldr_job_promote_or_demote(ui: &mut UI, m: &ArgMatches<'_>, promote: bool) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let group_id = m.value_of("GROUP_ID").unwrap(); // Required via clap
-    let channel = m.value_of("CHANNEL").unwrap(); // Required via clap
+    let channel = required_channel_from_matches(&m);
     let origin = m.value_of("ORIGIN");
     let interactive = m.is_present("INTERACTIVE");
     let verbose = m.is_present("VERBOSE");
@@ -655,7 +652,7 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
-    let channel = channel_from_matches(m);
+    let channel = channel_from_matches_or_default(m);
     let install_sources = install_sources_from_matches(m)?;
     let token = maybe_auth_token(&m);
     let install_mode = if feat::is_enabled(feat::OfflineInstall) && m.is_present("OFFLINE") {
@@ -757,7 +754,7 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
     // When packages are uploaded, they *always* go to `unstable`;
     // they can optionally get added to another channel, too.
-    let additional_release_channel: Option<&str> = m.value_of("CHANNEL");
+    let additional_release_channel = channel_from_matches(&m);
 
     // When packages are uploaded we check if they exist in the db
     // before allowing a write to the backend, this bypasses the check
@@ -769,7 +766,7 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         command::pkg::upload::start(
             ui,
             &url,
-            additional_release_channel,
+            &additional_release_channel,
             &token,
             &artifact_path,
             force_upload,
@@ -803,7 +800,7 @@ fn sub_pkg_info(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
-    let channel = m.value_of("CHANNEL").unwrap();
+    let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     command::pkg::promote::start(ui, &url, &ident, &channel, &token)
@@ -811,7 +808,7 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
-    let channel = m.value_of("CHANNEL").unwrap();
+    let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     command::pkg::demote::start(ui, &url, &ident, &channel, &token)
@@ -1395,11 +1392,21 @@ fn bldr_url_from_matches(matches: &ArgMatches<'_>) -> Result<String> {
 
 /// Resolve a channel. Taken from the environment or from CLI args, if
 /// given.
-fn channel_from_matches(matches: &ArgMatches<'_>) -> String {
-    matches
-        .value_of("CHANNEL")
-        .map(str::to_string)
-        .unwrap_or_else(channel::default)
+fn channel_from_matches(matches: &ArgMatches<'_>) -> Option<ChannelIdent> {
+    matches.value_of("CHANNEL").map(ChannelIdent::from)
+}
+
+/// Resolve a channel. Taken from the environment or from CLI args. This
+/// should only be called when the argument is required by the CLAP config,
+/// otherwise this would panic.
+fn required_channel_from_matches(matches: &ArgMatches<'_>) -> ChannelIdent {
+    channel_from_matches(matches).unwrap()
+}
+
+/// Resolve a channel. Taken from the environment or from CLI args, if
+/// given or return the default channel value.
+fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {
+    channel_from_matches(matches).unwrap_or_default()
 }
 
 /// Resolve a target. Default to x86_64-linux if none specified
@@ -1622,11 +1629,6 @@ fn bldr_url_from_input(m: &ArgMatches<'_>) -> Option<String> {
         .or_else(bldr_url_from_env)
 }
 
-/// A channel name, but *only* if the user specified via CLI args.
-fn channel_from_input(m: &ArgMatches<'_>) -> Option<String> {
-    m.value_of("CHANNEL").and_then(|c| Some(c.to_string()))
-}
-
 /// If the user provides both --application and --environment options,
 /// parse and set the value on the spec.
 fn get_app_env_from_input(m: &ArgMatches<'_>) -> Result<Option<ApplicationEnvironment>> {
@@ -1765,7 +1767,7 @@ fn ui() -> UI {
 /// populates all *shared* options between `run` and `load`.
 fn update_svc_load_from_input(m: &ArgMatches<'_>, msg: &mut protocol::ctl::SvcLoad) -> Result<()> {
     msg.bldr_url = bldr_url_from_input(m);
-    msg.bldr_channel = channel_from_input(m);
+    msg.bldr_channel = channel_from_matches(m).map(|c| c.to_string());
     msg.application_environment = get_app_env_from_input(m)?;
     msg.binds = get_binds_from_input(m)?;
     if m.is_present("FORCE") {

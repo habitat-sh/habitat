@@ -18,9 +18,12 @@ use crate::common::command::package::install::{
 };
 use crate::common::ui::{Status, UIWriter, UI};
 use crate::error::Result;
-use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
 use crate::hcore::package::PackageIdent;
 use crate::hcore::PROGRAM_NAME;
+use crate::hcore::{
+    fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
+    ChannelIdent,
+};
 use clap;
 use std::fs as stdfs;
 #[cfg(unix)]
@@ -58,11 +61,11 @@ pub struct BuildSpec<'a> {
     pub url: &'a str,
     /// The Habitat release channel which is used to install all service and extra Habitat
     /// packages.
-    pub channel: &'a str,
+    pub channel: ChannelIdent,
     /// The Builder URL which is used to install all base Habitat packages.
     pub base_pkgs_url: &'a str,
     /// The Habitat release channel which is used to install all base Habitat packages.
-    pub base_pkgs_channel: &'a str,
+    pub base_pkgs_channel: ChannelIdent,
     /// A Habitat Package Identifer or local path to a Habitat Artifact file which
     /// will be installed.
     pub ident_or_archive: &'a str,
@@ -70,11 +73,7 @@ pub struct BuildSpec<'a> {
 
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
-    pub fn new_from_cli_matches(
-        m: &'a clap::ArgMatches<'_>,
-        default_channel: &'a str,
-        default_url: &'a str,
-    ) -> Self {
+    pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>, default_url: &'a str) -> Self {
         BuildSpec {
             hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
             hab_launcher: m
@@ -82,9 +81,15 @@ impl<'a> BuildSpec<'a> {
                 .unwrap_or(DEFAULT_LAUNCHER_IDENT),
             hab_sup: m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
             url: m.value_of("BLDR_URL").unwrap_or(&default_url),
-            channel: m.value_of("CHANNEL").unwrap_or(&default_channel),
+            channel: m
+                .value_of("CHANNEL")
+                .map(ChannelIdent::from)
+                .unwrap_or_default(),
             base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
-            base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL").unwrap_or(&default_channel),
+            base_pkgs_channel: m
+                .value_of("BASE_PKGS_CHANNEL")
+                .map(ChannelIdent::from)
+                .unwrap_or_default(),
             ident_or_archive: m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap(),
         }
     }
@@ -185,7 +190,7 @@ impl<'a> BuildSpec<'a> {
             ui,
             ident_or_archive,
             self.base_pkgs_url,
-            self.base_pkgs_channel,
+            &self.base_pkgs_channel,
             fs_root_path,
         )
     }
@@ -196,7 +201,7 @@ impl<'a> BuildSpec<'a> {
         ident_or_archive: &str,
         fs_root_path: P,
     ) -> Result<PackageIdent> {
-        self.install(ui, ident_or_archive, self.url, self.channel, fs_root_path)
+        self.install(ui, ident_or_archive, self.url, &self.channel, fs_root_path)
     }
 
     fn install<P: AsRef<Path>>(
@@ -204,7 +209,7 @@ impl<'a> BuildSpec<'a> {
         ui: &mut UI,
         ident_or_archive: &str,
         url: &str,
-        channel: &str,
+        channel: &ChannelIdent,
         fs_root_path: P,
     ) -> Result<PackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;

@@ -51,10 +51,10 @@ use std::{
 use crate::common::cli_defaults::GOSSIP_DEFAULT_PORT;
 use crate::common::command::package::install::InstallSource;
 use crate::common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
-use crate::hcore::channel;
 use crate::hcore::crypto::{self, default_cache_key_path, SymKey};
 use crate::hcore::env as henv;
 use crate::hcore::url::{bldr_url_from_env, default_bldr_url};
+use crate::hcore::ChannelIdent;
 use crate::launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE};
 use crate::protocol::{
     ctl::ServiceBindList,
@@ -178,9 +178,10 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                         .as_ref()
                         .unwrap_or(&*protocol::DEFAULT_BLDR_URL),
                     &source,
-                    msg.bldr_channel
-                        .as_ref()
-                        .unwrap_or(&*protocol::DEFAULT_BLDR_CHANNEL),
+                    &msg.bldr_channel
+                        .clone()
+                        .map(ChannelIdent::from)
+                        .unwrap_or_default(),
                 )?;
                 install.ident.into()
             }
@@ -348,13 +349,13 @@ fn bldr_url_from_input(m: &ArgMatches) -> Option<String> {
 
 /// Resolve a channel. Taken from CLI args, or (failing that), a
 /// default value.
-fn channel(matches: &ArgMatches) -> String {
-    channel_from_input(matches).unwrap_or_else(channel::default)
+fn channel(matches: &ArgMatches) -> ChannelIdent {
+    channel_from_input(matches).unwrap_or_default()
 }
 
 /// A channel name, but *only* if the user specified via CLI args.
-fn channel_from_input(m: &ArgMatches) -> Option<String> {
-    m.value_of("CHANNEL").and_then(|c| Some(c.to_string()))
+fn channel_from_input(m: &ArgMatches) -> Option<ChannelIdent> {
+    m.value_of("CHANNEL").map(ChannelIdent::from)
 }
 
 // ServiceSpec Modification Functions
@@ -505,7 +506,7 @@ fn ui() -> UI {
 /// populates all *shared* options between `run` and `load`.
 fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) -> Result<()> {
     msg.bldr_url = Some(bldr_url(m));
-    msg.bldr_channel = Some(channel(m));
+    msg.bldr_channel = Some(channel(m).to_string());
     msg.application_environment = get_app_env_from_input(m)?;
     msg.binds = get_binds_from_input(m)?;
     msg.config_from = get_config_from_input(m);
@@ -578,13 +579,13 @@ mod test {
         #[test]
         fn update_channel_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --channel unstable");
-            assert_eq!(config.update_channel, "unstable");
+            assert_eq!(config.update_channel, ChannelIdent::unstable());
         }
 
         #[test]
         fn update_channel_is_set_to_default_when_not_specified() {
             let config = config_from_cmd_str("hab-sup run");
-            assert_eq!(config.update_channel, "stable");
+            assert_eq!(config.update_channel, ChannelIdent::stable());
         }
 
         #[test]
