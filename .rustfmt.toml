@@ -1,0 +1,24 @@
+# stable options
+use_small_heuristics = "Default"
+force_explicit_abi = true
+hard_tabs = false
+max_width = 100
+merge_derives = false
+newline_style = "Auto"
+remove_nested_parens = true
+reorder_imports = true
+reorder_modules = true
+tab_spaces = 4
+use_field_init_shorthand = true
+use_try_shorthand = true
+edition = "2018"
+
+# unstable options (for one-off fixes and CI)
+merge_imports = true
+wrap_comments = true
+comment_width = 100
+condense_wildcard_suffixes = true
+format_strings = true
+normalize_comments = true
+reorder_impl_items = true
+format_doc_comments = true
