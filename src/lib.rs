@@ -19,7 +19,6 @@ extern crate log;
 pub use self::error::{Error, Result};
 
 pub mod binlink;
-pub mod channel;
 pub mod config;
 pub mod crypto;
 pub mod env;
