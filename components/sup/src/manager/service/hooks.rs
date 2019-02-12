@@ -546,31 +546,31 @@ impl HookTable {
         debug!("{:?}", self);
         let mut changed = false;
         if let Some(ref hook) = self.file_updated {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.health_check {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.init {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reload {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reconfigure {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.suitability {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.run {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_run {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_stop {
-            changed = self.compile_one(hook.as_ref(), service_group, ctx) || changed;
+            changed |= self.compile_one(hook.as_ref(), service_group, ctx);
         }
         changed
     }
