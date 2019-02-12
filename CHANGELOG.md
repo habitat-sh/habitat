@@ -11,6 +11,7 @@
 - update windows-service blog to reflect recent changes [#6089](https://github.com/habitat-sh/habitat/pull/6089) ([mwrock](https://github.com/mwrock))
 
 #### Bug Fixes
+- ensure install hooks do not run from cli if feature is not enabled [#6142](https://github.com/habitat-sh/habitat/pull/6142) ([mwrock](https://github.com/mwrock))
 - Fix BoxKeyPair::encrypt return type [#6116](https://github.com/habitat-sh/habitat/pull/6116) ([baumanj](https://github.com/baumanj))
 - include HAB_FEAT_INSTALL_HOOK in docker studio env_vars [#6138](https://github.com/habitat-sh/habitat/pull/6138) ([mwrock](https://github.com/mwrock))
 - Don&#39;t copy the entire member list when choosing PingReq values [#6097](https://github.com/habitat-sh/habitat/pull/6097) ([baumanj](https://github.com/baumanj))
