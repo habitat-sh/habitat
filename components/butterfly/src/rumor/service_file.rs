@@ -20,7 +20,9 @@ use std::cmp::Ordering;
 use std::mem;
 use std::str::FromStr;
 
-use habitat_core::crypto::{default_cache_key_path, BoxKeyPair};
+use habitat_core::crypto::{
+    default_cache_key_path, keys::box_key_pair::WrappedSealedBox, BoxKeyPair,
+};
 use habitat_core::service::ServiceGroup;
 
 use crate::error::{Error, Result};
@@ -34,7 +36,7 @@ pub struct ServiceFile {
     pub incarnation: u64,
     pub encrypted: bool,
     pub filename: String,
-    pub body: Vec<u8>,
+    pub body: Vec<u8>, // TODO: make this a String
 }
 
 impl PartialOrd for ServiceFile {
@@ -81,7 +83,9 @@ impl ServiceFile {
 
     /// Encrypt the contents of the service file
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.body = user_pair.encrypt(&self.body, Some(service_pair))?;
+        self.body = user_pair
+            .encrypt(&self.body, Some(service_pair))?
+            .into_bytes();
         self.encrypted = true;
         Ok(())
     }
@@ -90,7 +94,11 @@ impl ServiceFile {
     /// the fact that we might be encrypted.
     pub fn body(&self) -> Result<Vec<u8>> {
         if self.encrypted {
-            let bytes = BoxKeyPair::decrypt_with_path(&self.body, &default_cache_key_path(None))?;
+            let bytes = BoxKeyPair::decrypt_with_path(
+                &WrappedSealedBox::from_bytes(&self.body)
+                    .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
+                &default_cache_key_path(None),
+            )?;
             Ok(bytes)
         } else {
             Ok(self.body.to_vec())

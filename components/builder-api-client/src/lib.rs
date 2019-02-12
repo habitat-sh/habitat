@@ -37,6 +37,7 @@ use std::path::{Path, PathBuf};
 use std::string::ToString;
 
 use crate::hab_core::{
+    crypto::keys::box_key_pair::WrappedSealedBox,
     package::{Identifiable, PackageArchive, PackageIdent, PackageTarget},
     ChannelIdent,
 };
@@ -488,7 +489,7 @@ impl Client {
         origin: &str,
         token: &str,
         key: &str,
-        secret: &str,
+        secret: &WrappedSealedBox,
     ) -> Result<()> {
         let path = format!("depot/origins/{}/secret", origin);
         let body = json!({

@@ -860,7 +860,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                     service_pair.name_with_rev()
                 ),
             )?;
-            set.cfg = Some(user_pair.encrypt(&buf, Some(&service_pair))?);
+            set.cfg = Some(user_pair.encrypt(&buf, Some(&service_pair))?.into_bytes());
             set.is_encrypted = Some(true);
         }
         _ => set.cfg = Some(buf.to_vec()),
@@ -1098,7 +1098,7 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                     service_pair.name_with_rev()
                 ),
             )?;
-            msg.content = Some(user_pair.encrypt(&buf, Some(&service_pair))?);
+            msg.content = Some(user_pair.encrypt(&buf, Some(&service_pair))?.into_bytes());
             msg.is_encrypted = Some(true);
         }
         _ => msg.content = Some(buf.to_vec()),
