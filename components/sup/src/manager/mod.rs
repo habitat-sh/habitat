@@ -277,6 +277,67 @@ impl env::Config for GatewayAuthToken {
     const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
 }
 
+/// Once a formerly-busy service is no longer doing something
+/// asynchronously, we mark that we should take a look at the spec
+/// files on disk to ensure that we're still "in sync".
+///
+/// For example, a "restart" is achieved by stopping a service,
+/// and then restarting it when we see that its spec file says it
+/// should be up.
+///
+/// This flag behaves essentially the same as making an arbitrary
+/// change to a file in the specs directory, in that the latter
+/// provides a boolean condition on whether or not we need to
+/// reexamine our spec files.
+///
+/// Wrapping this up into a type consolidates the logic for
+/// manipulation of the signaling Boolean. In particular, all the
+/// atomic ordering information resides here, meaning that we don't
+/// have to scatter it throughout the code, which could lead to logic
+/// errors and drift over time.
+#[derive(Default, Clone)]
+struct ReconciliationFlag(Arc<AtomicBool>);
+
+impl ReconciliationFlag {
+    /// Called after a service has finished some asynchronous
+    /// operation to signal that we need to take a look at their spec
+    /// file again to potentially take action.
+    ///
+    /// See Manager::wrap_async_service_operation for additional details.
+    ///
+    /// We used `Ordering::Relaxed` here because there isn't a need to
+    /// sequence operations for multiple actors setting the value to
+    /// `true`.
+    fn set(&self) {
+        self.0.store(true, Ordering::Relaxed);
+    }
+
+    /// Returns whether or not we need to re-examine spec files in
+    /// response to some service having finished an asynchronous
+    /// action.
+    ///
+    /// This *does* change the value of the flag back to `false` if it
+    /// was `true`, so we don't have a strict CQRS-style separation of
+    /// read/write responsibilities, but this is needed to avoid
+    /// potential race conditions between separate check and load
+    /// operations.
+    ///
+    /// This also allows us to use `Ordering::Relaxed`... whether we
+    /// see that we need to reconcile before or after some service
+    /// signals that it has finished is ultimately unimportant, since
+    /// we'll just check again the next time through our supervision
+    /// loop.
+    ///
+    /// While this is all dependent on some of the inner workings of
+    /// the `Manager` right now, consolidating this "flag" logic in
+    /// one place seemed the prudent choice. In the long-term, we
+    /// should be able to dispense with this altogether once we're all
+    /// asynchronous.
+    fn toggle_if_set(&self) -> bool {
+        self.0.compare_and_swap(true, false, Ordering::Relaxed)
+    }
+}
+
 /// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's
 /// something you want the CtlGateway to be able to operate on, it needs to be put in here. This
 /// state gets shared with all the CtlGateway handlers.
@@ -336,20 +397,7 @@ pub struct Manager {
     // something else (maybe a HashMap?) in order to cleanly manage
     // the different operations.
     busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
-
-    /// Once a formerly-busy service is no longer doing something
-    /// asynchronously, we mark that we should take a look at the spec
-    /// files on disk to ensure that we're still "in sync".
-    ///
-    /// For example, a "restart" is achieved by stopping a service,
-    /// and then restarting it when we see that its spec file says it
-    /// should be up.
-    ///
-    /// This boolean behaves essentially the same as making an
-    /// arbitrary change to a file in the specs directory, in that the
-    /// latter provides a boolean condition on whether or not we need
-    /// to reexamine our spec files.
-    reconcile_services: Arc<AtomicBool>,
+    service_reconciliation_flag: ReconciliationFlag,
 }
 
 impl Manager {
@@ -464,7 +512,7 @@ impl Manager {
             sys: Arc::new(sys),
             http_disable: cfg.http_disable,
             busy_services: Arc::new(Mutex::new(HashSet::new())),
-            reconcile_services: Arc::new(AtomicBool::new(false)),
+            service_reconciliation_flag: ReconciliationFlag::default(),
         })
     }
 
@@ -1128,7 +1176,7 @@ impl Manager {
             Arc::clone(&self.user_config_watcher),
             Arc::clone(&self.updater),
             Arc::clone(&self.busy_services),
-            Arc::clone(&self.reconcile_services),
+            self.service_reconciliation_flag.clone(),
         )
     }
 
@@ -1138,7 +1186,7 @@ impl Manager {
         user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
         updater: Arc<Mutex<ServiceUpdater>>,
         busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
-        reconcile_services: Arc<AtomicBool>,
+        service_reconciliation_flag: ReconciliationFlag,
     ) -> impl Future<Item = (), Error = ()> {
         // JW TODO: Update service rumor to remove service from
         // cluster
@@ -1155,7 +1203,12 @@ impl Manager {
                 .remove(&service);
             Ok(())
         });
-        Self::wrap_async_service_operation(ident, busy_services, reconcile_services, stop_it)
+        Self::wrap_async_service_operation(
+            ident,
+            busy_services,
+            service_reconciliation_flag,
+            stop_it,
+        )
     }
 
     /// Wrap a future that starts, stops, or restarts a service with
@@ -1175,7 +1228,7 @@ impl Manager {
     fn wrap_async_service_operation<F>(
         ident: PackageIdent,
         busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
-        reconcile_services: Arc<AtomicBool>,
+        service_reconciliation_flag: ReconciliationFlag,
         fut: F,
     ) -> impl Future<Item = (), Error = ()>
     where
@@ -1206,7 +1259,7 @@ impl Manager {
                 .lock()
                 .expect("busy_services lock is poisoned")
                 .remove(&ident_2);
-            reconcile_services.store(true, Ordering::Relaxed);
+            service_reconciliation_flag.set();
             Ok(())
         })
     }
@@ -1218,10 +1271,7 @@ impl Manager {
     /// as well as whether or not we need to reexamine specs after
     /// finishing some asynchronous operation on a service.
     fn need_to_reconcile_spec_files(&mut self) -> bool {
-        self.spec_watcher.has_events()
-            || self
-                .reconcile_services
-                .compare_and_swap(true, false, Ordering::Relaxed)
+        self.spec_watcher.has_events() || self.service_reconciliation_flag.toggle_if_set()
     }
 
     /// Determine if our on-disk spec files indicate that we should
