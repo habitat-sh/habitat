@@ -6,7 +6,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -19,7 +22,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 20
     retry:
@@ -32,7 +38,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -45,7 +54,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -58,7 +70,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -71,7 +86,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -84,7 +102,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -97,7 +118,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -110,7 +134,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -123,7 +150,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -136,7 +166,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -149,7 +182,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -162,7 +198,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -175,7 +214,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -188,7 +230,10 @@ steps:
     agents:
       queue: 'docker-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -294,7 +339,7 @@ steps:
       - ./test/run_cargo_test.ps1 sup -TestOptions "--test-threads=1"
     agents:
       queue: 'windows-default'
-    timeout_in_minutes: 35
+    timeout_in_minutes: 40
     retry:
       automatic:
         limit: 1
