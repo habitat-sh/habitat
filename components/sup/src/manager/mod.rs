@@ -1182,7 +1182,7 @@ impl Manager {
         F: IntoFuture<Item = (), Error = ()>,
     {
         // TODO (CM): can't wait for the Pinning API :(
-        let busy_services_2 = busy_services.clone();
+        let busy_services_2 = Arc::clone(&busy_services);
         let ident_2 = ident.clone();
 
         future::lazy(move || {
