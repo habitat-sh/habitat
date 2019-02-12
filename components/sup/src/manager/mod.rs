@@ -1309,7 +1309,7 @@ impl Manager {
             .services
             .read()
             .expect("Services lock is poisoned");
-        let currently_running_specs = services.values().map(|s| s.to_spec());
+        let currently_running_specs = services.values().map(Service::to_spec);
 
         // Now, figure out what we should compare against, ignoring
         // any services that are currently doing something
