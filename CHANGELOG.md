@@ -3,12 +3,10 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
-#### Merged Pull Requests
-- Run health check in the first tick after service load [#6109](https://github.com/habitat-sh/habitat/pull/6109) ([jaym](https://github.com/jaym))
-- Add buildkite based verification pipeline [#6085](https://github.com/habitat-sh/habitat/pull/6085) ([scotthain](https://github.com/scotthain))
-- [docs] Update CLI reference for 0.74.0 release. [#6127](https://github.com/habitat-sh/habitat/pull/6127) ([fnichol](https://github.com/fnichol))
-- Remove composites handing [#6088](https://github.com/habitat-sh/habitat/pull/6088) ([jamesc](https://github.com/jamesc))
-- update windows-service blog to reflect recent changes [#6089](https://github.com/habitat-sh/habitat/pull/6089) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
+## [0.75.0](https://github.com/habitat-sh/habitat/tree/0.75.0) (2019-02-12)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.74.0...0.75.0)
 
 #### Bug Fixes
 - ensure install hooks do not run from cli if feature is not enabled [#6142](https://github.com/habitat-sh/habitat/pull/6142) ([mwrock](https://github.com/mwrock))
@@ -21,13 +19,13 @@
 
 #### New Features & Enhancements
 - Support for recursive subdirectories for config. [#6066](https://github.com/habitat-sh/habitat/pull/6066) ([jamesc](https://github.com/jamesc))
-<!-- latest_release -->
-
-## [0.75.0-dev](https://github.com/habitat-sh/habitat/tree/0.75.0-dev) (2019-02-06)
-
-#### Bug Fixes
+- Run health check in the first tick after service load [#6109](https://github.com/habitat-sh/habitat/pull/6109) ([jaym](https://github.com/jaym))
 
 #### Merged Pull Requests
+- Add buildkite based verification pipeline [#6085](https://github.com/habitat-sh/habitat/pull/6085) ([scotthain](https://github.com/scotthain))
+- [docs] Update CLI reference for 0.74.0 release. [#6127](https://github.com/habitat-sh/habitat/pull/6127) ([fnichol](https://github.com/fnichol))
+- Remove composites handing [#6088](https://github.com/habitat-sh/habitat/pull/6088) ([jamesc](https://github.com/jamesc))
+- update windows-service blog to reflect recent changes [#6089](https://github.com/habitat-sh/habitat/pull/6089) ([mwrock](https://github.com/mwrock))
 - Bump VERSION to 0.75.0-dev. [#6126](https://github.com/habitat-sh/habitat/pull/6126) ([fnichol](https://github.com/fnichol))
 - Release 0.74.0 blog post! [#6124](https://github.com/habitat-sh/habitat/pull/6124) ([fnichol](https://github.com/fnichol))
 
