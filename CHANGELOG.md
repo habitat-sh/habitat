@@ -4,7 +4,6 @@
 ## Unreleased
 
 #### Merged Pull Requests
-- Run health check in the first tick after service load [#6109](https://github.com/habitat-sh/habitat/pull/6109) ([jaym](https://github.com/jaym))
 - Add buildkite based verification pipeline [#6085](https://github.com/habitat-sh/habitat/pull/6085) ([scotthain](https://github.com/scotthain))
 - [docs] Update CLI reference for 0.74.0 release. [#6127](https://github.com/habitat-sh/habitat/pull/6127) ([fnichol](https://github.com/fnichol))
 - Remove composites handing [#6088](https://github.com/habitat-sh/habitat/pull/6088) ([jamesc](https://github.com/jamesc))
@@ -21,6 +20,7 @@
 
 #### New Features & Enhancements
 - Support for recursive subdirectories for config. [#6066](https://github.com/habitat-sh/habitat/pull/6066) ([jamesc](https://github.com/jamesc))
+- Run health check in the first tick after service load [#6109](https://github.com/habitat-sh/habitat/pull/6109) ([jaym](https://github.com/jaym))
 <!-- latest_release -->
 
 ## [0.75.0-dev](https://github.com/habitat-sh/habitat/tree/0.75.0-dev) (2019-02-06)
