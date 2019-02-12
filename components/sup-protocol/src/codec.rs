@@ -54,11 +54,9 @@
 //! Contains the actual payload of the message encoded using Google
 //! [Protobuf 2](https://developers.google.com/protocol-buffers/docs/reference/proto2-spec).
 
-use std::{fmt,
-          io::{self,
-               Cursor},
-          str};
-
+use crate::{message::MessageStatic,
+            net::{NetErr,
+                  NetResult}};
 use bytes::{Buf,
             BufMut,
             Bytes,
@@ -66,14 +64,14 @@ use bytes::{Buf,
 use futures;
 use prost::{self,
             Message};
+use std::{fmt,
+          io::{self,
+               Cursor},
+          str};
 use tokio::net::TcpStream;
 use tokio_codec::{Decoder,
                   Encoder,
                   Framed};
-
-use crate::{message::MessageStatic,
-            net::{NetErr,
-                  NetResult}};
 
 const BODY_LEN_MASK: u32 = 0xF_FFFF;
 const HEADER_LEN: usize = 4;
@@ -354,6 +352,7 @@ impl Decoder for SrvCodec {
 
     fn decode(&mut self, bytes: &mut BytesMut) -> Result<Option<Self::Item>, io::Error> {
         if bytes.len() < HEADER_LEN {
+            trace!("Got fewer than HEADER_LEN bytes: {}", bytes.len());
             return Ok(None);
         }
         trace!("Decoding SrvMessage\n  -> Bytes: {:?}", bytes);
@@ -371,12 +370,15 @@ impl Decoder for SrvCodec {
             None
         };
         if buf.remaining() < (header.message_id_len() + header.body_len()) {
-            // Not enough bytes to read message_id and body
+            trace!("  -> Not enough bytes to read message_id and body");
             return Ok(None);
         }
         buf.copy_to_slice(&mut self.recv_buf[0..header.message_id_len()]);
         let message_id = str::from_utf8(&self.recv_buf[0..header.message_id_len()])
-            .unwrap()
+            .map_err(|e| {
+                trace!("  -> Invalid message data: {}", e);
+                io::Error::new(io::ErrorKind::InvalidData, e)
+            })?
             .to_string();
         buf.copy_to_slice(&mut self.recv_buf[0..header.body_len()]);
         let position = buf.position() as usize;
