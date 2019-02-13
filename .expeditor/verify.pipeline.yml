@@ -4,7 +4,7 @@ steps:
     command:
       - ./test/shellcheck.sh
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -20,7 +20,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh builder-api-client
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -36,7 +36,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh --test-options "--test-threads=1" butterfly
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -52,7 +52,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh common
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -68,7 +68,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh hab
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -84,7 +84,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh launcher-client
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -100,7 +100,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh launcher-protocol
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -116,7 +116,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh pkg-export-docker
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -132,7 +132,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh pkg-export-helm
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -148,7 +148,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh pkg-export-kubernetes
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -164,7 +164,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh pkg-export-tar
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -180,7 +180,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh --features "ignore_inconsistent_tests ignore_integration_tests"  sup
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -196,7 +196,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh --features "ignore_integration_tests"  sup
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -212,7 +212,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh sup-client
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
@@ -228,7 +228,7 @@ steps:
     command:
       - ./test/run_cargo_test.sh sup-protocol
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
       docker#v3.0.1:
         always-pull: true
