@@ -17,7 +17,8 @@ pkg_build_deps=(core/coreutils
                 core/make
                 core/rust
                 core/gcc
-                core/raml2html)
+                core/raml2html
+                core/protobuf)
 pkg_bin_dirs=(bin)
 
 bin=$_pkg_distname
@@ -73,6 +74,15 @@ do_prepare() {
   # this used only at build time, we will use the version found in the gcc
   # package proper--it won't find its way into the final binaries.
   export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
+
+  # Prost (our Rust protobuf library) embeds a `protoc` binary, but
+  # it's dynamically linked, which means it won't work in a
+  # Studio. Prost does allow us to override that, though, so we can
+  # just use our Habitat package by setting these two environment
+  # variables.
+  export PROTOC="$(pkg_path_for protobuf)/bin/protoc"
+  export PROTOC_INCLUDE="$(pkg_path_for protobuf)/include"
+
   build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
 }
 

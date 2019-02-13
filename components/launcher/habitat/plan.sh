@@ -12,7 +12,8 @@ pkg_deps=(core/glibc
 pkg_build_deps=(core/coreutils
                 core/rust
                 core/gcc
-                core/git)
+                core/git
+                core/protobuf)
 pkg_bin_dirs=(bin)
 bin="hab-launch"
 
@@ -25,7 +26,15 @@ do_prepare() {
   export OPENSSL_LIB_DIR=$(pkg_path_for openssl)/lib
   export OPENSSL_INCLUDE_DIR=$(pkg_path_for openssl)/include
   export SODIUM_LIB_DIR=$(pkg_path_for libsodium)/lib
-  
+
+  # Prost (our Rust protobuf library) embeds a `protoc` binary, but
+  # it's dynamically linked, which means it won't work in a
+  # Studio. Prost does allow us to override that, though, so we can
+  # just use our Habitat package by setting these two environment
+  # variables.
+  export PROTOC="$(pkg_path_for protobuf)/bin/protoc"
+  export PROTOC_INCLUDE="$(pkg_path_for protobuf)/include"
+
   # Used to set the active package target for the binaries at build time
   export PLAN_PACKAGE_TARGET="$pkg_target"
   build_line "Setting PLAN_PACKAGE_TARGET=$PLAN_PACKAGE_TARGET"
