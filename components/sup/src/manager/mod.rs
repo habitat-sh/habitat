@@ -705,7 +705,7 @@ impl Manager {
 
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
-        self.maybe_spawn_service_futures(&mut runtime)?;
+        self.maybe_spawn_service_futures(&mut runtime);
 
         outputln!(
             "Starting gossip-listener on {}",
@@ -857,7 +857,7 @@ impl Manager {
             }
 
             if self.need_to_reconcile_spec_files() {
-                self.maybe_spawn_service_futures(&mut runtime)?;
+                self.maybe_spawn_service_futures(&mut runtime);
             }
 
             self.update_peers_from_watch_file()?;
@@ -1065,7 +1065,6 @@ impl Manager {
         for loaded in self
             .spec_dir
             .specs()
-            .unwrap()
             .iter()
             .filter(|s| !active_services.contains(&s.ident))
         {
@@ -1130,7 +1129,6 @@ impl Manager {
         let watched_services: Vec<Service> = self
             .spec_dir
             .specs()
-            .unwrap()
             .iter()
             .filter(|spec| !existing_idents.contains(&spec.ident))
             .flat_map(|spec| {
@@ -1282,12 +1280,11 @@ impl Manager {
     /// NOTE: Service start is currently synchronous, so any start
     /// operations will be performed directly as a consequence of
     /// calling this method.
-    fn maybe_spawn_service_futures(&mut self, runtime: &mut Runtime) -> Result<()> {
-        let ops = self.compute_service_operations()?;
+    fn maybe_spawn_service_futures(&mut self, runtime: &mut Runtime) {
+        let ops = self.compute_service_operations();
         for f in self.operations_into_futures(ops) {
             runtime.spawn(f);
         }
-        Ok(())
     }
 
     fn remove_service_from_state(&mut self, spec: &ServiceSpec) -> Option<Service> {
@@ -1352,7 +1349,7 @@ impl Manager {
     /// should be running.
     ///
     /// See `specs_to_operations` for the real logic.
-    fn compute_service_operations(&mut self) -> Result<Vec<ServiceOperation>> {
+    fn compute_service_operations(&mut self) -> Vec<ServiceOperation> {
         // First, figure out what's currently running.
         let services = self
             .state
@@ -1370,16 +1367,11 @@ impl Manager {
             .expect("busy_services lock is poisoned");
         let on_disk_specs = self
             .spec_dir
-            .specs()? // TODO (CM): this is the only way this function
-            // could fail; look for ways to make this more
-            // robust so we can just return a Vec.
+            .specs()
             .into_iter()
             .filter(|s| !busy_services.contains(&s.ident));
 
-        Ok(Self::specs_to_operations(
-            currently_running_specs,
-            on_disk_specs,
-        ))
+        Self::specs_to_operations(currently_running_specs, on_disk_specs)
     }
 
     /// Pure utility function to generate a list of operations to
