@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Fix verification pipeline [#6152](https://github.com/habitat-sh/habitat/pull/6152) ([scotthain](https://github.com/scotthain))
 <!-- latest_release -->
 
 ## [0.75.0](https://github.com/habitat-sh/habitat/tree/0.75.0) (2019-02-12)
