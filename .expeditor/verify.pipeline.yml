@@ -4,9 +4,12 @@ steps:
     command:
       - ./test/shellcheck.sh
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -17,9 +20,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh builder-api-client
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 20
     retry:
@@ -30,9 +36,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh --test-options "--test-threads=1" butterfly
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -43,9 +52,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh common
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -56,9 +68,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh hab
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -69,9 +84,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh launcher-client
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -82,9 +100,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh launcher-protocol
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -95,9 +116,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh pkg-export-docker
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -108,9 +132,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh pkg-export-helm
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -121,9 +148,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh pkg-export-kubernetes
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -134,9 +164,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh pkg-export-tar
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -147,9 +180,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh --features "ignore_inconsistent_tests ignore_integration_tests"  sup
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -160,9 +196,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh --features "ignore_integration_tests"  sup
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -173,9 +212,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh sup-client
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -186,9 +228,12 @@ steps:
     command:
       - ./test/run_cargo_test.sh sup-protocol
     agents:
-      queue: 'docker-privileged'
+      queue: 'default-privileged'
     plugins:
-      docker#v2.1.0:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
         image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
@@ -202,7 +247,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 builder-api-client
     agents:
-      queue: 'windows-default'
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 15
     retry:
       automatic:
@@ -212,8 +257,8 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
     agents:
-      queue: 'windows-default'
-    timeout_in_minutes: 35
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 15
     retry:
       automatic:
         limit: 1
@@ -222,8 +267,8 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1"
     agents:
-      queue: 'windows-default'
-    timeout_in_minutes: 35
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 15
     retry:
       automatic:
         limit: 10
@@ -232,7 +277,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
     agents:
-      queue: 'windows-default'
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -242,7 +287,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 hab
     agents:
-      queue: 'windows-default'
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -252,7 +297,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 launcher-client
     agents:
-      queue: 'windows-default'
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -262,7 +307,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 launcher-protocol
     agents:
-      queue: 'windows-default'
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -272,7 +317,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 pkg-export-docker
     agents:
-      queue: 'windows-default'
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -282,7 +327,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 pkg-export-tar
     agents:
-      queue: 'windows-default'
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -293,8 +338,8 @@ steps:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - ./test/run_cargo_test.ps1 sup -TestOptions "--test-threads=1"
     agents:
-      queue: 'windows-default'
-    timeout_in_minutes: 35
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 40
     retry:
       automatic:
         limit: 1
@@ -303,7 +348,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 sup-client
     agents:
-      queue: 'windows-default'
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -313,7 +358,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 sup-protocol
     agents:
-      queue: 'windows-default' 
+      queue: 'single-use-windows-privileged' 
     timeout_in_minutes: 20
     retry:
       automatic:
