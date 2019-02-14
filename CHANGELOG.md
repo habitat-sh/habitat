@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Adds printing of target in job status output [#6151](https://github.com/habitat-sh/habitat/pull/6151) ([eeyun](https://github.com/eeyun))
 - Remove txn_id from Launcher protocol [#6156](https://github.com/habitat-sh/habitat/pull/6156) ([christophermaier](https://github.com/christophermaier))
 - Fix verification pipeline [#6152](https://github.com/habitat-sh/habitat/pull/6152) ([scotthain](https://github.com/scotthain))
 <!-- latest_release -->
