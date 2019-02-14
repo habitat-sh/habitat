@@ -183,349 +183,350 @@ steps:
 # Unit Tests - Linux!
 #######################################################################
 
-#   - label: "[unit] :linux: builder-api-client"
-#     command:
-#       - ./test/run_cargo_test.sh builder-api-client
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 20
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: builder-api-client"
+    command:
+      - ./test/run_cargo_test.sh builder-api-client
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: butterfly"
-#     command:
-#       - ./test/run_cargo_test.sh --test-options "--test-threads=1" butterfly
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: butterfly"
+    command:
+      - ./test/run_cargo_test.sh --test-options "--test-threads=1" butterfly
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: common"
-#     command:
-#       - ./test/run_cargo_test.sh common
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: common"
+    command:
+      - ./test/run_cargo_test.sh common
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: hab"
-#     command:
-#       - ./test/run_cargo_test.sh hab
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: hab"
+    command:
+      - ./test/run_cargo_test.sh hab
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: launcher-client"
-#     command:
-#       - ./test/run_cargo_test.sh launcher-client
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: launcher-client"
+    command:
+      - ./test/run_cargo_test.sh launcher-client
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: launcher-protocol"
-#     command:
-#       - ./test/run_cargo_test.sh launcher-protocol
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: launcher-protocol"
+    command:
+      - ./test/run_cargo_test.sh launcher-protocol
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: pkg-export-docker"
-#     command:
-#       - ./test/run_cargo_test.sh pkg-export-docker
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: pkg-export-docker"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-docker
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: pkg-export-helm"
-#     command:
-#       - ./test/run_cargo_test.sh pkg-export-helm
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: pkg-export-helm"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-helm
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: pkg-export-kubernetes"
-#     command:
-#       - ./test/run_cargo_test.sh pkg-export-kubernetes
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: pkg-export-kubernetes"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-kubernetes
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: pkg-export-tar"
-#     command:
-#       - ./test/run_cargo_test.sh pkg-export-tar
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: pkg-export-tar"
+    command:
+      - ./test/run_cargo_test.sh pkg-export-tar
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: sup"
-#     command:
-#       - ./test/run_cargo_test.sh --features "ignore_inconsistent_tests ignore_integration_tests"  sup
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: sup"
+    command:
+      - ./test/run_cargo_test.sh --features "ignore_inconsistent_tests ignore_integration_tests"  sup
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit][inconsistent] :linux: sup"
-#     command:
-#       - ./test/run_cargo_test.sh --features "ignore_integration_tests"  sup
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 10
+  - label: "[unit][inconsistent] :linux: sup"
+    command:
+      - ./test/run_cargo_test.sh --features "ignore_integration_tests"  sup
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 10
 
-#   - label: "[unit] :linux: sup-client"
-#     command:
-#       - ./test/run_cargo_test.sh sup-client
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: sup-client"
+    command:
+      - ./test/run_cargo_test.sh sup-client
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :linux: sup-protocol"
-#     command:
-#       - ./test/run_cargo_test.sh sup-protocol
-#     agents:
-#       queue: 'default-privileged'
-#     plugins:
-#       docker#v3.0.1:
-#         always-pull: true
-#         user: "buildkite-agent"
-#         group: "buildkite-agent"
-#         image: "chefes/buildkite"
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :linux: sup-protocol"
+    command:
+      - ./test/run_cargo_test.sh sup-protocol
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#  #################################################################
+ #################################################################
 
-#   - label: "[unit] :windows: builder-api-client"
-#     command:
-#       - ./test/run_cargo_test.ps1 builder-api-client
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 15
-#     retry:
-#       automatic:
-#         limit: 1
 
-#   - label: "[unit] :windows: butterfly"
-#     command:
-#       - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 15
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: builder-api-client"
+    command:
+      - ./test/run_cargo_test.ps1 builder-api-client
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 15
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit][inconsistent] :windows: butterfly"
-#     command:
-#       - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1"
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 15
-#     retry:
-#       automatic:
-#         limit: 10
+  - label: "[unit] :windows: butterfly"
+    command:
+      - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 15
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :windows: common"
-#     command:
-#       - ./test/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 20
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit][inconsistent] :windows: butterfly"
+    command:
+      - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1"
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 15
+    retry:
+      automatic:
+        limit: 10
 
-#   - label: "[unit] :windows: hab"
-#     command:
-#       - ./test/run_cargo_test.ps1 hab
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 20
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: common"
+    command:
+      - ./test/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :windows: launcher-client"
-#     command:
-#       - ./test/run_cargo_test.ps1 launcher-client
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: hab"
+    command:
+      - ./test/run_cargo_test.ps1 hab
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :windows: launcher-protocol"
-#     command:
-#       - ./test/run_cargo_test.ps1 launcher-protocol
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 10
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: launcher-client"
+    command:
+      - ./test/run_cargo_test.ps1 launcher-client
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :windows: pkg-export-docker"
-#     command:
-#       - ./test/run_cargo_test.ps1 pkg-export-docker
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 20
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: launcher-protocol"
+    command:
+      - ./test/run_cargo_test.ps1 launcher-protocol
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :windows: pkg-export-tar"
-#     command:
-#       - ./test/run_cargo_test.ps1 pkg-export-tar
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 20
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: pkg-export-docker"
+    command:
+      - ./test/run_cargo_test.ps1 pkg-export-docker
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :windows: sup"
-#     command:
-#       # This test has test (not code) concurrency issues and will fail if we don't limit it
-#       - ./test/run_cargo_test.ps1 sup -TestOptions "--test-threads=1"
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 40
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: pkg-export-tar"
+    command:
+      - ./test/run_cargo_test.ps1 pkg-export-tar
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :windows: sup-client"
-#     command:
-#       - ./test/run_cargo_test.ps1 sup-client
-#     agents:
-#       queue: 'single-use-windows-privileged'
-#     timeout_in_minutes: 20
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: sup"
+    command:
+      # This test has test (not code) concurrency issues and will fail if we don't limit it
+      - ./test/run_cargo_test.ps1 sup -TestOptions "--test-threads=1"
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 40
+    retry:
+      automatic:
+        limit: 1
 
-#   - label: "[unit] :windows: sup-protocol"
-#     command:
-#       - ./test/run_cargo_test.ps1 sup-protocol
-#     agents:
-#       queue: 'single-use-windows-privileged' 
-#     timeout_in_minutes: 20
-#     retry:
-#       automatic:
-#         limit: 1
+  - label: "[unit] :windows: sup-client"
+    command:
+      - ./test/run_cargo_test.ps1 sup-client
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: sup-protocol"
+    command:
+      - ./test/run_cargo_test.ps1 sup-protocol
+    agents:
+      queue: 'single-use-windows-privileged' 
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
