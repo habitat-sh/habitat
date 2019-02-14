@@ -316,6 +316,10 @@ impl ReconciliationFlag {
         self.0.store(true, Ordering::Relaxed);
     }
 
+    fn is_set(&self) -> bool {
+        self.0.load(Ordering::Relaxed)
+    }
+
     /// Returns whether or not we need to re-examine spec files in
     /// response to some service having finished an asynchronous
     /// action.
@@ -860,7 +864,28 @@ impl Manager {
                 break ShutdownMode::Restarting;
             }
 
-            if self.need_to_reconcile_spec_files() {
+            // Indicates if we need to examine our on-disk specfiles
+            // in order to reconcile them with whatever we're
+            // currently running.
+            //
+            // Takes into account filesystem events in the specs
+            // directory, as well as whether or not we need to
+            // reexamine specs after finishing some asynchronous
+            // operation on a service.
+            if self.spec_watcher.has_events() || self.services_need_reconciliation.is_set() {
+                // This call *must* come first. If some other future
+                // happens to complete before we get done spawning our
+                // current batch of futures, it could set the flag to
+                // true, but we wouldn't have taken another look at
+                // its spec file to see if we needed to do anything
+                // else. Thus, we could "lose" that signal if we
+                // toggle *after* spawning these futures.
+                //
+                // This could mean, say, the "start" part of a service
+                // restart could be greatly delayed (until some file
+                // event in the specs directory is registered, or
+                // another service finishes shutting down).
+                self.services_need_reconciliation.toggle_if_set();
                 self.maybe_spawn_service_futures(&mut runtime);
             }
 
@@ -1264,16 +1289,6 @@ impl Manager {
             services_need_reconciliation.set();
             Ok(())
         })
-    }
-
-    /// Indicates if we need to examine our on-disk specfiles in order
-    /// to reconcile them with whatever we're currently running.
-    ///
-    /// Takes into account filesystem events in the specs directory,
-    /// as well as whether or not we need to reexamine specs after
-    /// finishing some asynchronous operation on a service.
-    fn need_to_reconcile_spec_files(&mut self) -> bool {
-        self.spec_watcher.has_events() || self.services_need_reconciliation.toggle_if_set()
     }
 
     /// Determine if our on-disk spec files indicate that we should
@@ -1816,6 +1831,7 @@ mod test {
         #[test]
         fn toggle_if_set_only_returns_true_if_previously_set() {
             let f = ReconciliationFlag::new(false);
+            assert!(!f.is_set());
             assert!(!f.toggle_if_set(), "Should not be set!");
             f.set();
             assert!(f.toggle_if_set(), "Should have been toggled, but wasn't!");
