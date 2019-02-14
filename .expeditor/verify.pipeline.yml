@@ -16,6 +16,22 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[lint] :linux: :bash: rustfmt"
+    command:
+      - ./support/ci/rustfmt.sh
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: builder-api-client"
     command:
       - ./test/run_cargo_test.sh builder-api-client
@@ -358,7 +374,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 sup-protocol
     agents:
-      queue: 'single-use-windows-privileged' 
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
