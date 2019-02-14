@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Remove txn_id from Launcher protocol [#6156](https://github.com/habitat-sh/habitat/pull/6156) ([christophermaier](https://github.com/christophermaier))
 - Fix verification pipeline [#6152](https://github.com/habitat-sh/habitat/pull/6152) ([scotthain](https://github.com/scotthain))
 <!-- latest_release -->
 
