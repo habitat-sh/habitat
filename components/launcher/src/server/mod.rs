@@ -415,16 +415,6 @@ impl ServiceTable {
 // Public Func
 //
 
-pub fn reply<T>(tx: &Sender, txn: &protocol::NetTxn, msg: &T) -> Result<()>
-where
-    T: protocol::LauncherMessage,
-{
-    let reply = txn.build_reply(msg)?;
-    let bytes = reply.to_bytes()?;
-    tx.send(bytes).map_err(Error::Send)?;
-    Ok(())
-}
-
 pub fn run(args: Vec<String>) -> Result<i32> {
     let mut server = Server::new(args)?;
     signals::init();

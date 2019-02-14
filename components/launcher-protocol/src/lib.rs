@@ -62,13 +62,6 @@ impl NetTxn {
         self.0.clone().to_bytes()
     }
 
-    pub fn build_reply<T>(&self, message: &T) -> Result<Self>
-    where
-        T: LauncherMessage,
-    {
-        Ok(Self::build(message)?)
-    }
-
     pub fn decode<T>(&self) -> Result<T>
     where
         T: LauncherMessage,
