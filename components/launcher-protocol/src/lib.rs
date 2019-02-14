@@ -46,9 +46,10 @@ impl NetTxn {
     where
         T: LauncherMessage,
     {
-        let mut env = Envelope::default();
-        env.message_id = T::MESSAGE_ID.to_string();
-        env.payload = message.to_bytes()?;
+        let env = Envelope {
+            message_id: T::MESSAGE_ID.to_string(),
+            payload: message.to_bytes()?,
+        };
         Ok(NetTxn(env))
     }
 
