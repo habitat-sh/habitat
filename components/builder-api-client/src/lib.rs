@@ -85,6 +85,7 @@ pub struct Project {
     pub ident: String,
     pub state: String,
     pub job_id: String,
+    pub target: String,
 }
 
 #[derive(Clone, Deserialize)]
@@ -117,6 +118,7 @@ pub struct SchedulerResponse {
     pub projects: Vec<Project>,
     pub created_at: String,
     pub project_name: String,
+    pub target: String,
 }
 
 impl fmt::Display for SchedulerResponse {

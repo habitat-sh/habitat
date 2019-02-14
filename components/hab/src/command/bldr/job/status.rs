@@ -63,11 +63,11 @@ fn do_job_group_status(
     match api_client.get_schedule(gid, show_jobs) {
         Ok(sr) => {
             let mut tw = TabWriter::new(vec![]);
-            writeln!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT").unwrap();
+            writeln!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\tTARGET").unwrap();
             writeln!(
                 &mut tw,
-                "{}\t{}\t{}\t{}",
-                sr.created_at, sr.id, sr.state, sr.project_name,
+                "{}\t{}\t{}\t{}\t{}",
+                sr.created_at, sr.id, sr.state, sr.project_name, sr.target
             )
             .unwrap();
             tw.flush().unwrap();
@@ -76,12 +76,17 @@ fn do_job_group_status(
 
             if show_jobs && !sr.projects.is_empty() {
                 tw = TabWriter::new(vec![]);
-                writeln!(&mut tw, "NAME\tSTATUS\tJOB ID\tIDENT").unwrap();
+                writeln!(&mut tw, "NAME\tSTATUS\tJOB ID\tIDENT\tTARGET").unwrap();
                 for p in sr.projects {
                     // Don't show ident if the build did not succeed
                     // TODO: This will be fixed at the API level eventually
                     let ident = if p.state == "Success" { &p.ident } else { "" };
-                    writeln!(&mut tw, "{}\t{}\t{}\t{}", p.name, p.state, p.job_id, ident,).unwrap();
+                    writeln!(
+                        &mut tw,
+                        "{}\t{}\t{}\t{}\t{}",
+                        p.name, p.state, p.job_id, ident, p.target
+                    )
+                    .unwrap();
                 }
                 written = String::from_utf8(tw.into_inner().unwrap()).unwrap();
                 println!("{}", written);
@@ -106,12 +111,12 @@ fn do_origin_status(
     match api_client.get_origin_schedule(origin, limit) {
         Ok(sr) => {
             let mut tw = TabWriter::new(vec![]);
-            writeln!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT").unwrap();
+            writeln!(&mut tw, "CREATED AT\tGROUP ID\tSTATUS\tIDENT\tTARGET").unwrap();
             for s in sr.iter() {
                 writeln!(
                     &mut tw,
-                    "{}\t{}\t{}\t{}",
-                    s.created_at, s.id, s.state, s.project_name,
+                    "{}\t{}\t{}\t{}\t{}",
+                    s.created_at, s.id, s.state, s.project_name, s.target,
                 )
                 .unwrap();
             }
