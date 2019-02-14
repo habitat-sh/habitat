@@ -217,6 +217,7 @@ _build_slim_release() {
   mkdir -p "$start_dir/results"
 
   if [[ $pkg_target == *"windows" ]]; then
+    # shellcheck disable=SC2231
     for file in $(dirname "$hab_binary")/*; do cp -p "$file" "$pkg_dir/";done
   else
     cp -p "$hab_binary" "$pkg_dir/$(basename "$hab_binary")"

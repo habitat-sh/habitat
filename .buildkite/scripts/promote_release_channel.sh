@@ -74,19 +74,19 @@ fi
 # atomically promote a set of packages, we can simplify all this to
 # just promote everything at once. Until that time, however, please
 # leave this arrangement "as is".
-non_supervisor_packages=($(echo "${channel_pkgs_json}" | \
+mapfile -t non_supervisor_packages < <(echo "${channel_pkgs_json}" | \
                            jq -r \
                              '.data |
                              map(select(.name != "hab-sup")) |
                              map(.origin + "/" + .name + "/" + .version + "/" + .release)
-                             | .[]'))
+                             | .[]')
 
-supervisor_packages=($(echo "${channel_pkgs_json}" | \
+mapfile -t  supervisor_packages < <(echo "${channel_pkgs_json}" | \
                        jq -r \
                          '.data |
                          map(select(.name == "hab-sup")) |
                          map(.origin + "/" + .name + "/" + .version + "/" + .release)
-                         | .[]'))
+                         | .[]')
 
 for pkg in "${non_supervisor_packages[@]}"; do
     echo "--- :habicat: Promoting '$pkg' to '$to_channel'"

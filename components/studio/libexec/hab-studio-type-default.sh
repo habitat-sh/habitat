@@ -29,6 +29,7 @@ finish_setup() {
     for key in $(echo "$HAB_ORIGIN_KEYS" | $bb tr ',' ' '); do
       # Import the secret origin key, required for signing packages
       info "Importing '$key' secret origin key"
+      # shellcheck disable=2154
       if key_text=$($hab origin key export --type secret "$key"); then
         printf -- "%s" "${key_text}" | _hab origin key import
       else

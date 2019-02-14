@@ -240,6 +240,8 @@ set_env(){
         case "${option}" in
             f) force=true
                ;;
+            *) echo "Warning - unknown option ${option} ignored!"
+               ;;
         esac
     done
     shift "$((OPTIND - 1))"

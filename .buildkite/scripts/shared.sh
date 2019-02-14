@@ -82,18 +82,18 @@ set_hab_binary() {
     local pkg_target
     case "${BUILD_PKG_TARGET}" in
         x86_64-linux)
-            hab_binary="$(which hab)"
+            hab_binary="$(command -v hab)"
             pkg_target="x86_64-linux"
             ;;
         x86_64-linux-kernel2)
             install_hab_kernel2_binary
-            hab_binary="$(which hab-x86_64-linux-kernel2)"
+            hab_binary="$(command -v hab-x86_64-linux-kernel2)"
             pkg_target="x86_64-linux-kernel2"
             ;;
         x86_64-windows)
             # We're going to use the existing hab binary here.
             # This is hella abusing this.
-            hab_binary="$(which hab)"
+            hab_binary="$(command -v hab)"
             pkg_target="x86_64-windows"
             ;;
         *) 
@@ -134,12 +134,12 @@ install_hab_kernel2_binary() {
     hab_src_url="http://s3-us-west-2.amazonaws.com/habitat-bootstrap-artifacts/x86_64-linux-kernel2/stage2/hab-stage2-x86_64-linux-kernel2-latest"
     tempdir=$(mktemp -d hab-kernel2-XXXX)
 
-    pushd "$tempdir" >/dev/null
+    pushd "$tempdir" || exit
     curl "$hab_src_url" -o hab-x86_64-linux-kernel2
     sudo mv hab-x86_64-linux-kernel2 /bin/hab-x86_64-linux-kernel2
     sudo chmod +x /bin/hab-x86_64-linux-kernel2
-    popd 
-    rm -rf "$tempdir" >/dev/null
+    popd || exit
+    rm -rf "$tempdir" || exit
 }
 
 # The following get/set functions abstract the meta-data key

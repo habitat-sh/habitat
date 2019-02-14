@@ -75,7 +75,7 @@ else
   CHANGED_AFFECTED_FILES=()
   for f in $CHANGED_FILES; do
     if check_affected "$f"; then
-      CHANGED_AFFECTED_FILES+=($f)
+      CHANGED_AFFECTED_FILES+=("$f")
     fi
   done
 

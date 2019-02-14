@@ -36,7 +36,7 @@ echo "--- :habicat: Using $(hab --version)"
 # Alternatively, consider implementing set_hab_binary with platform-awareness
 #
 # declare -g isn't in the bash that is currently on our mac builders
-hab_binary="$(which hab)"
+hab_binary="$(command -v hab)"
 import_keys
 
 echo "--- :key: :arrow_right: :desktop_computer: Moving keys to system-wide location"

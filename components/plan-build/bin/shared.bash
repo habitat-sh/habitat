@@ -84,7 +84,7 @@ _render_metadata_EXPOSES() {
 # is not in the resulting MANIFEST because MANIFEST is included!
 _render_metadata_FILES() {
 
-  pushd "$CACHE_PATH" > /dev/null
+  pushd "$CACHE_PATH" || exit
   build_line "Generating blake2b hashes of all files in the package"
 
   # shellcheck disable=2154
@@ -95,7 +95,7 @@ _render_metadata_FILES() {
   build_line "Generating signed metadata FILES"
   # shellcheck disable=2154
   $HAB_BIN pkg sign --origin "$pkg_origin" "${pkg_name}"_blake2bsums "$pkg_prefix"/FILES
-  popd > /dev/null
+  popd || exit
 }
 
 _render_metadata_IDENT() {
