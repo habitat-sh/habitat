@@ -43,12 +43,12 @@ pub trait Handler {
         trace!("{}, {:?}, {:?}", txn.message_id(), msg, services);
         match Self::handle(msg, services) {
             Ok(reply) => {
-                if let Err(err) = super::reply(tx, &txn, &reply) {
+                if let Err(err) = super::send(tx, &reply) {
                     error!("{}: replying, {}", txn.message_id(), err);
                 }
             }
             Err(reply) => {
-                if let Err(err) = super::reply(tx, &txn, &reply) {
+                if let Err(err) = super::send(tx, &reply) {
                     error!("{}: replying, {}", txn.message_id(), err);
                 }
             }

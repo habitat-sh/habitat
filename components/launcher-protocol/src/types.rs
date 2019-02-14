@@ -291,7 +291,6 @@ impl From<TerminateOk> for generated::TerminateOk {
 pub struct Envelope {
     pub message_id: String,
     pub payload: Vec<u8>,
-    pub txn_id: u64,
 }
 
 impl LauncherMessage for Envelope {
@@ -304,7 +303,6 @@ impl LauncherMessage for Envelope {
                 .message_id
                 .ok_or(Error::ProtocolMismatch("message_id"))?,
             payload: proto.payload.ok_or(Error::ProtocolMismatch("payload"))?,
-            txn_id: proto.txn_id.ok_or(Error::ProtocolMismatch("txn_id"))?,
         })
     }
 }
@@ -314,7 +312,6 @@ impl From<Envelope> for generated::Envelope {
         generated::Envelope {
             message_id: Some(value.message_id),
             payload: Some(value.payload),
-            txn_id: Some(value.txn_id),
         }
     }
 }
