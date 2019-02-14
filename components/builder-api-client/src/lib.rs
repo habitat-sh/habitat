@@ -41,6 +41,7 @@ use std::{
 use crate::{
     hab_core::{
         crypto::keys::box_key_pair::WrappedSealedBox,
+        fs::AtomicWriter,
         package::{Identifiable, PackageArchive, PackageIdent, PackageTarget},
         ChannelIdent,
     },
@@ -54,7 +55,6 @@ use hyper::{
     status::StatusCode,
     Url,
 };
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use tee::TeeReader;
 use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 
@@ -1163,18 +1163,9 @@ impl Client {
             .get::<XFileName>()
             .expect("XFileName missing from response")
             .to_string();
-        let tmp_file_path = dst_path.join(format!(
-            "{}.tmp-{}",
-            file_name,
-            thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(8)
-                .collect::<String>()
-        ));
         let dst_file_path = dst_path.join(file_name);
-        debug!("Writing to {}", &tmp_file_path.display());
-        let mut f = File::create(&tmp_file_path)?;
-        match progress {
+        let w = AtomicWriter::new(&dst_file_path)?;
+        w.with_writer(|mut f| match progress {
             Some(mut progress) => {
                 let size: u64 = res
                     .headers
@@ -1182,16 +1173,11 @@ impl Client {
                     .map_or(0, |v| **v);
                 progress.size(size);
                 let mut writer = BroadcastWriter::new(&mut f, progress);
-                io::copy(&mut res, &mut writer).map_err(Error::BadResponseBody)?
+                io::copy(&mut res, &mut writer)
             }
-            None => io::copy(&mut res, &mut f).map_err(Error::BadResponseBody)?,
-        };
-        debug!(
-            "Moving {} to {}",
-            &tmp_file_path.display(),
-            &dst_file_path.display()
-        );
-        fs::rename(&tmp_file_path, &dst_file_path)?;
+            None => io::copy(&mut res, &mut f),
+        })
+        .map_err(Error::BadResponseBody)?;
         Ok(dst_file_path)
     }
 
@@ -1213,24 +1199,9 @@ impl Client {
             .get::<XFileName>()
             .expect("XFileName missing from response")
             .to_string();
-        let tmp_file_path = dst_path.join(format!(
-            "{}.tmp-{}",
-            file_name,
-            thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(8)
-                .collect::<String>()
-        ));
         let dst_file_path = dst_path.join(file_name);
-        debug!("Writing to {}", &tmp_file_path.display());
-        let mut f = File::create(&tmp_file_path)?;
-        io::copy(&mut res, &mut f).map_err(Error::BadResponseBody)?;
-        debug!(
-            "Moving {} to {}",
-            &tmp_file_path.display(),
-            &dst_file_path.display()
-        );
-        fs::rename(&tmp_file_path, &dst_file_path)?;
+        let w = AtomicWriter::new(&dst_file_path)?;
+        w.with_writer(|mut w| io::copy(&mut res, &mut w).map_err(Error::BadResponseBody))?;
         Ok(dst_file_path)
     }
 }

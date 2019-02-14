@@ -43,6 +43,7 @@ pub enum Error {
     SocketSetWriteTimeout(io::Error),
     ZmqConnectError(zmq::Error),
     ZmqSendError(zmq::Error),
+    UnknownIOError(io::Error),
 }
 
 impl fmt::Display for Error {
@@ -64,6 +65,7 @@ impl fmt::Display for Error {
                 path.display(),
                 err
             ),
+            Error::UnknownIOError(ref err) => format!("Error reading or writing: {}", err),
             Error::DecodeError(ref err) => format!("Failed to decode protocol message: {}", err),
             Error::EncodeError(ref err) => format!("Failed to encode protocol message: {}", err),
             Error::HabitatCore(ref err) => format!("{}", err),
@@ -121,6 +123,7 @@ impl error::Error for Error {
             Error::BadDatFile(..) => "Unable to decode contents of DatFile",
             Error::CannotBind(_) => "Cannot bind to port",
             Error::DatFileIO(..) => "Error reading or writing to DatFile",
+            Error::UnknownIOError(_) => "Unknown I/O error",
             Error::DecodeError(ref err) => err.description(),
             Error::EncodeError(ref err) => err.description(),
             Error::HabitatCore(_) => "Habitat core error",
@@ -159,5 +162,10 @@ impl From<prost::EncodeError> for Error {
 impl From<habitat_core::error::Error> for Error {
     fn from(err: habitat_core::error::Error) -> Error {
         Error::HabitatCore(err)
+    }
+}
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::UnknownIOError(err)
     }
 }

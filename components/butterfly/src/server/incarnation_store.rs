@@ -16,8 +16,8 @@
 //! number across restarts.
 
 use std::{
-    fs::{self, File},
-    io::{BufWriter, Read, Write},
+    fs::File,
+    io::Read,
     path::{Path, PathBuf},
 };
 
@@ -25,6 +25,7 @@ use crate::{
     error::{Error, Result},
     member::Incarnation,
 };
+use habitat_core::fs::atomic_write;
 use std::{io, num};
 
 /// Provide storage of an incarnation number that can persist across
@@ -80,14 +81,7 @@ impl IncarnationStore {
     pub fn store(&mut self, new_incarnation: Incarnation) -> Result<()> {
         let into_err = |e: io::Error| Error::IncarnationIO(self.path.clone(), e);
 
-        let tmp = self.path.with_extension("tmp");
-        let f = File::create(&tmp).map_err(into_err)?;
-        let mut buf = BufWriter::new(f);
-        buf.write(new_incarnation.to_string().as_bytes())
-            .map_err(into_err)?;
-        buf.flush().map_err(into_err)?;
-        fs::rename(&tmp, &self.path).map_err(into_err)?;
-
+        atomic_write(&self.path, new_incarnation.to_string()).map_err(into_err)?;
         // TODO (CM): set appropriate file permissions here
         Ok(())
     }
@@ -96,6 +90,7 @@ impl IncarnationStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use io::Write;
     use mktemp::Temp;
     use std::path::Path;
 

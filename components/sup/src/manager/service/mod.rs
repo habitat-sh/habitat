@@ -22,8 +22,6 @@ use std::{
     self,
     collections::HashSet,
     fmt,
-    fs::File,
-    io::prelude::*,
     path::{Path, PathBuf},
     result,
     sync::{Arc, RwLock},
@@ -36,7 +34,7 @@ use crate::{
     hcore::{
         self,
         crypto::hash,
-        fs::{svc_hooks_path, SvcDir, FS_ROOT_PATH},
+        fs::{atomic_write, svc_hooks_path, SvcDir, FS_ROOT_PATH},
         package::{metadata::Bind, PackageIdent, PackageInstall},
         service::{HealthCheckInterval, ServiceGroup},
         ChannelIdent,
@@ -1068,26 +1066,11 @@ impl Service {
         if new_checksum == current_checksum {
             return false;
         }
-        let new_filename = format!("{}.write", file.as_ref().to_string_lossy());
-        let mut new_file = match File::create(&new_filename) {
-            Ok(new_file) => new_file,
-            Err(e) => {
-                outputln!(preamble self.service_group,
-                          "Failed to create cache file {}, {}",
-                          file.as_ref().display(), e);
-                return false;
-            }
-        };
-        if let Err(e) = new_file.write_all(contents) {
+        if let Err(e) = atomic_write(file.as_ref(), contents) {
             outputln!(preamble self.service_group,
-                      "Failed to write to cache file {}, {}",
-                      file.as_ref().display(), e);
-            return false;
-        }
-        if let Err(e) = std::fs::rename(&new_filename, &file) {
-            outputln!(preamble self.service_group,
-                      "Failed to move cache file {}, {}",
-                      file.as_ref().display(), e);
+                      "Failed to atomically write cache file {} {}",
+                      file.as_ref().display(), e
+            );
             return false;
         }
 
