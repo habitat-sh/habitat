@@ -65,9 +65,7 @@ impl NetTxn {
     where
         T: LauncherMessage,
     {
-        let mut env = Self::build(message)?;
-        env.0.txn_id = self.0.txn_id;
-        Ok(env)
+        Ok(Self::build(message)?)
     }
 
     pub fn decode<T>(&self) -> Result<T>
@@ -89,29 +87,5 @@ where
     NetErr {
         msg: err.to_string(),
         code: err.into(),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn envelopes_should_always_have_a_txn_id() {
-        let msg = NetOk::default();
-        let txn = NetTxn::build(&msg).unwrap();
-        assert_eq!(txn.0.txn_id, 0);
-    }
-
-    #[test]
-    fn decoded_envelopes_should_also_have_a_txn_id() {
-        let msg = NetOk::default();
-        let txn = NetTxn::build(&msg).unwrap();
-        let bytes = txn.to_bytes().unwrap();
-        let decoded = NetTxn::from_bytes(&bytes).unwrap();
-        let decoded_payload = decoded.decode::<NetOk>().unwrap();
-        assert_eq!(decoded.message_id(), "NetOk");
-        assert_eq!(decoded.0.txn_id, 0);
-        assert_eq!(decoded_payload, msg);
     }
 }
