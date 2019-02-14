@@ -295,13 +295,12 @@ impl env::Config for GatewayAuthToken {
 /// atomic ordering information resides here, meaning that we don't
 /// have to scatter it throughout the code, which could lead to logic
 /// errors and drift over time.
-#[derive(Default, Clone)]
+#[derive(Clone)]
 struct ReconciliationFlag(Arc<AtomicBool>);
 
 impl ReconciliationFlag {
-    /// Creates a new `ReconciliationFlag` set to `false`.
-    fn new() -> Self {
-        Self::default()
+    fn new(value: bool) -> Self {
+        ReconciliationFlag(Arc::new(AtomicBool::new(value)))
     }
 
     /// Called after a service has finished some asynchronous
@@ -517,7 +516,7 @@ impl Manager {
             sys: Arc::new(sys),
             http_disable: cfg.http_disable,
             busy_services: Arc::new(Mutex::new(HashSet::new())),
-            services_need_reconciliation: ReconciliationFlag::new(),
+            services_need_reconciliation: ReconciliationFlag::new(false),
         })
     }
 
@@ -1815,14 +1814,9 @@ mod test {
         use super::*;
 
         #[test]
-        fn new_flag_is_false() {
-            let f = ReconciliationFlag::new();
-            assert!(!f.toggle_if_set(), "Should have been initialized as false!");
-        }
-
-        #[test]
         fn toggle_if_set_only_returns_true_if_previously_set() {
-            let f = ReconciliationFlag::new();
+            let f = ReconciliationFlag::new(false);
+            assert!(!f.toggle_if_set(), "Should not be set!");
             f.set();
             assert!(f.toggle_if_set(), "Should have been toggled, but wasn't!");
             assert!(
