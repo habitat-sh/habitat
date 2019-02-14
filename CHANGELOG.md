@@ -3,10 +3,6 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
-#### Merged Pull Requests
-- Adds printing of target in job status output [#6151](https://github.com/habitat-sh/habitat/pull/6151) ([eeyun](https://github.com/eeyun))
-- Remove txn_id from Launcher protocol [#6156](https://github.com/habitat-sh/habitat/pull/6156) ([christophermaier](https://github.com/christophermaier))
-- Fix verification pipeline [#6152](https://github.com/habitat-sh/habitat/pull/6152) ([scotthain](https://github.com/scotthain))
 <!-- latest_release -->
 
 ## [0.75.0](https://github.com/habitat-sh/habitat/tree/0.75.0) (2019-02-12)
@@ -20,8 +16,10 @@
 - if the studio is rooted immediately under the system drive, do not try to delete it [#6102](https://github.com/habitat-sh/habitat/pull/6102) ([mwrock](https://github.com/mwrock))
 - use temp dir scoped to current build to avoid failures when building multiple builds [#6106](https://github.com/habitat-sh/habitat/pull/6106) ([mwrock](https://github.com/mwrock))
 - generate api docs for windows http gateway [#6098](https://github.com/habitat-sh/habitat/pull/6098) ([mwrock](https://github.com/mwrock))
+- Remove txn_id from Launcher protocol [#6156](https://github.com/habitat-sh/habitat/pull/6156) ([christophermaier](https://github.com/christophermaier))
 
 #### New Features & Enhancements
+- Adds printing of target in job status output [#6151](https://github.com/habitat-sh/habitat/pull/6151) ([eeyun](https://github.com/eeyun))
 - Support for recursive subdirectories for config. [#6066](https://github.com/habitat-sh/habitat/pull/6066) ([jamesc](https://github.com/jamesc))
 - Run health check in the first tick after service load [#6109](https://github.com/habitat-sh/habitat/pull/6109) ([jaym](https://github.com/jaym))
 
@@ -31,6 +29,7 @@
 - Remove composites handing [#6088](https://github.com/habitat-sh/habitat/pull/6088) ([jamesc](https://github.com/jamesc))
 - update windows-service blog to reflect recent changes [#6089](https://github.com/habitat-sh/habitat/pull/6089) ([mwrock](https://github.com/mwrock))
 - Bump VERSION to 0.75.0-dev. [#6126](https://github.com/habitat-sh/habitat/pull/6126) ([fnichol](https://github.com/fnichol))
+- Fix verification pipeline [#6152](https://github.com/habitat-sh/habitat/pull/6152) ([scotthain](https://github.com/scotthain))
 - Release 0.74.0 blog post! [#6124](https://github.com/habitat-sh/habitat/pull/6124) ([fnichol](https://github.com/fnichol))
 
 ## [0.74.0](https://github.com/habitat-sh/habitat/tree/0.74.0) (2019-01-28)
