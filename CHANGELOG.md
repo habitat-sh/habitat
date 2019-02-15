@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- s/instaled/installed/ in the Install hook docs [#6164](https://github.com/habitat-sh/habitat/pull/6164) ([jeremymv2](https://github.com/jeremymv2))
 - windows-service, welcome to the mono repo! [#6162](https://github.com/habitat-sh/habitat/pull/6162) ([mwrock](https://github.com/mwrock))
 - use native deps for windows launcher [#6161](https://github.com/habitat-sh/habitat/pull/6161) ([mwrock](https://github.com/mwrock))
 - Update changelog for 0.75.0 release [#6159](https://github.com/habitat-sh/habitat/pull/6159) ([smacfarlane](https://github.com/smacfarlane))
