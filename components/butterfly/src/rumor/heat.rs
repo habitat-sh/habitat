@@ -31,9 +31,11 @@ use std::{
 };
 
 // Internal Modules
-use crate::common::types::EnvConfig;
-use crate::error::Error;
-use crate::rumor::{RumorKey, RumorType};
+use crate::{
+    common::types::EnvConfig,
+    error::Error,
+    rumor::{RumorKey, RumorType},
+};
 
 // TODO (CM): Can we key by member instead? What do we do more frequently?
 // TODO (CM): Might want to type the member ID explicitly
@@ -64,6 +66,7 @@ impl Default for RumorShareLimit {
 
 impl FromStr for RumorShareLimit {
     type Err = Error;
+
     fn from_str(s: &str) -> result::Result<Self, Self::Err> {
         let raw = s
             .parse::<usize>()
@@ -157,8 +160,8 @@ impl RumorHeat {
                     }
                 } else {
                     debug!(
-                        "Rumor does not exist in map; was probably deleted between retrieval \
-                         and sending"
+                        "Rumor does not exist in map; was probably deleted between retrieval and \
+                         sending"
                     );
                 }
             }
@@ -212,16 +215,19 @@ impl Default for RumorHeat {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::locked_env_var;
-    use crate::error::Result;
-    use crate::protocol::{self, newscast};
-    use crate::rumor::{Rumor, RumorKey, RumorType};
+    use crate::{
+        common::locked_env_var,
+        error::Result,
+        protocol::{self, newscast},
+        rumor::{Rumor, RumorKey, RumorType},
+    };
     use uuid::Uuid;
 
-    use crate::member::Member;
-    use crate::rumor::service::{Service, SysInfo};
-    use habitat_core::package::PackageIdent;
-    use habitat_core::service::ServiceGroup;
+    use crate::{
+        member::Member,
+        rumor::service::{Service, SysInfo},
+    };
+    use habitat_core::{package::PackageIdent, service::ServiceGroup};
 
     // TODO (CM): This FakeRumor implementation is copied from
     // rumor.rs; factor this helper code better.

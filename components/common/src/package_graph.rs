@@ -12,16 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::error::Result;
-use crate::hcore::fs as hfs;
-use crate::hcore::package;
-use crate::hcore::package::ident::PackageIdent;
-use crate::hcore::package::PackageInstall;
+use crate::{
+    error::Result,
+    hcore::{
+        fs as hfs,
+        package::{self, ident::PackageIdent, PackageInstall},
+    },
+};
 use bimap::BiMap;
-use petgraph;
-use petgraph::graph::NodeIndex;
-use petgraph::stable_graph::StableGraph;
-use petgraph::visit::{Bfs, Reversed, Walker};
+use petgraph::{
+    self,
+    graph::NodeIndex,
+    stable_graph::StableGraph,
+    visit::{Bfs, Reversed, Walker},
+};
 
 use std::path::Path;
 
@@ -63,7 +67,6 @@ impl PackageGraph {
 
     /// Return (and possibly create) a NodeIndex for a given PackageIdent.
     /// Upon returning, the node will be guaranteed to be in the graph
-    ///
     fn node_idx(&mut self, package: &PackageIdent) -> NodeIndex {
         match self.nodes.get_by_left(package) {
             Some(&idx) => idx,
@@ -120,6 +123,7 @@ impl PackageGraph {
             .map(|&p| p.clone())
             .collect()
     }
+
     /// Return the reverse dependencies of a given Package Identifier
     pub fn ordered_reverse_deps(&self, package: &PackageIdent) -> Vec<&PackageIdent> {
         self.nodes
@@ -172,7 +176,6 @@ impl PackageGraph {
     }
 
     /// does a specific PackageIdent appear in the graph
-    ///
     pub fn has_package(&self, package: &PackageIdent) -> bool {
         self.nodes.contains_left(package)
     }
@@ -260,14 +263,14 @@ mod test {
 
     fn empty_package_deps(ident: PackageIdent) -> PackageDeps {
         PackageDeps {
-            ident: ident,
+            ident,
             deps: vec![],
         }
     }
 
     fn package_deps(ident: PackageIdent, deps: &[PackageIdent]) -> PackageDeps {
         PackageDeps {
-            ident: ident,
+            ident,
             deps: deps.to_vec(),
         }
     }
@@ -316,8 +319,8 @@ mod test {
 
     #[test]
     fn different_origins_graph() {
-        // We have non-standard implementations of `Ord`, `PartialOrd` for `PackageIdent`.  Make sure this
-        // doesn't mess with the requirements of `BiMap`
+        // We have non-standard implementations of `Ord`, `PartialOrd` for `PackageIdent`.  Make
+        // sure this doesn't mess with the requirements of `BiMap`
         let packages = vec![
             empty_package_deps(PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap()),
             empty_package_deps(PackageIdent::from_str("mine/redis/2.1.0/20180704142101").unwrap()),

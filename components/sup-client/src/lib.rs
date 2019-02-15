@@ -45,15 +45,10 @@ use habitat_sup_protocol as protocol;
 extern crate log;
 use habitat_common as common;
 
-use std::error;
-use std::fmt;
-use std::io;
-use std::path::PathBuf;
+use std::{error, fmt, io, path::PathBuf};
 
-use crate::protocol::codec::*;
-use crate::protocol::net::NetErr;
-use futures::prelude::*;
-use futures::sink;
+use crate::protocol::{codec::*, net::NetErr};
+use futures::{prelude::*, sink};
 use tokio::net::TcpStream;
 use tokio_codec::Framed;
 
@@ -93,19 +88,17 @@ impl fmt::Display for SrvClientError {
         let content = match *self {
             SrvClientError::ConnectionClosed => "Connection closed".to_string(),
             SrvClientError::CtlSecretNotFound(ref path) => format!(
-                "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
-                 `hab setup` or run the Supervisor for the first time before attempting to \
-                 command the Supervisor.",
+                "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run `hab \
+                 setup` or run the Supervisor for the first time before attempting to command the \
+                 Supervisor.",
                 path.display()
             ),
             SrvClientError::Decode(ref err) => format!("{}", err),
             SrvClientError::Io(ref err) => format!(
-                "Unable to contact the Supervisor.\n\n\
-                If the Supervisor you are contacting is local, this probably means it is not running. You can run a Supervisor in the foreground with:\n\n\
-                   hab sup run\n\n\
-                Or try restarting the Supervisor through your operating system's init process or Windows service.\n\n\
-                Original error is:\n\n\
-                   {}",
+                "Unable to contact the Supervisor.\n\nIf the Supervisor you are contacting is \
+                 local, this probably means it is not running. You can run a Supervisor in the \
+                 foreground with:\n\nhab sup run\n\nOr try restarting the Supervisor through your \
+                 operating system's init process or Windows service.\n\nOriginal error is:\n\n{}",
                 err
             ),
             SrvClientError::NetErr(ref err) => format!("{}", err),
@@ -228,9 +221,9 @@ pub struct SrvReply {
 impl SrvReply {
     fn new(io: sink::Send<SrvStream>, txn_id: SrvTxn) -> Self {
         SrvReply {
-            io: io,
+            io,
             state: SrvReplyState::Sending,
-            txn_id: txn_id,
+            txn_id,
         }
     }
 
@@ -246,8 +239,8 @@ impl SrvReply {
 }
 
 impl Stream for SrvReply {
-    type Item = SrvMessage;
     type Error = SrvClientError;
+    type Item = SrvMessage;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         loop {

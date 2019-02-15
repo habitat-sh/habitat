@@ -42,25 +42,24 @@ mod error;
 pub mod rootfs;
 mod util;
 
-use std::env;
-use std::fmt;
-use std::result;
-use std::str::FromStr;
+use std::{env, fmt, result, str::FromStr};
 
-use crate::common::ui::{UIWriter, UI};
-use crate::hcore::url as hurl;
-use crate::hcore::PROGRAM_NAME;
+use crate::{
+    common::ui::{UIWriter, UI},
+    hcore::{url as hurl, PROGRAM_NAME},
+};
 
 use crate::aws_creds::StaticProvider;
 use clap::App;
-use rusoto_core::request::*;
-use rusoto_core::Region;
+use rusoto_core::{request::*, Region};
 use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
 
-pub use crate::build::BuildSpec;
-pub use crate::cli::{Cli, PkgIdentArgOptions};
-pub use crate::docker::{DockerBuildRoot, DockerImage};
-pub use crate::error::{Error, Result};
+pub use crate::{
+    build::BuildSpec,
+    cli::{Cli, PkgIdentArgOptions},
+    docker::{DockerBuildRoot, DockerImage},
+    error::{Error, Result},
+};
 
 /// The version of this library and program when built.
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -107,8 +106,8 @@ impl<'a> Naming<'a> {
             version_tag: !m.is_present("NO_TAG_VERSION"),
             version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
             custom_tag: m.value_of("TAG_CUSTOM"),
-            registry_url: registry_url,
-            registry_type: registry_type,
+            registry_url,
+            registry_type,
         }
     }
 }
@@ -183,7 +182,7 @@ impl Credentials {
                             })
                     })?;
 
-                Ok(Credentials { token: token })
+                Ok(Credentials { token })
             }
             RegistryType::Docker | RegistryType::Azure => Ok(Credentials {
                 token: base64::encode(&format!(

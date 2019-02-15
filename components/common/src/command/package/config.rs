@@ -22,11 +22,12 @@
 //!
 //! Will show the `default.toml`.
 
-use std::io::{self, Write};
-use std::path::Path;
+use std::{
+    io::{self, Write},
+    path::Path,
+};
 
-use crate::hcore::package::install::DEFAULT_CFG_FILE;
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::package::{install::DEFAULT_CFG_FILE, PackageIdent, PackageInstall};
 use toml;
 
 use crate::error::Result;

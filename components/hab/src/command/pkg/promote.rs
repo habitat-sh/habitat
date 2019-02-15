@@ -19,20 +19,24 @@
 //! ```bash
 //! $ hab pkg promote acme/redis/2.0.7/2112010203120101 stable
 //! ```
-//!//! This will promote the acme package specified to the stable channel.
+//! //! This will promote the acme package specified to the stable channel.
 //!
 //! Notes:
 //!    The package should already have been uploaded to Builder.
 //!    If the specified channel does not exist, it will be created.
 //!
 
-use crate::api_client::{self, Client};
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::{package::PackageIdent, ChannelIdent};
+use crate::{
+    api_client::{self, Client},
+    common::ui::{Status, UIWriter, UI},
+    hcore::{package::PackageIdent, ChannelIdent},
+};
 use hyper::status::StatusCode;
 
-use crate::error::{Error, Result};
-use crate::{PRODUCT, VERSION};
+use crate::{
+    error::{Error, Result},
+    PRODUCT, VERSION,
+};
 
 /// Promote a package to the specified channel.
 ///

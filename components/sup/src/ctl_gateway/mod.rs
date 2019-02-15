@@ -22,18 +22,22 @@
 
 pub mod server;
 
-use std::borrow::Cow;
-use std::fmt;
-use std::fs::{self, File};
-use std::io::{self, Write};
-use std::path::Path;
+use std::{
+    borrow::Cow,
+    fmt,
+    fs::{self, File},
+    io::{self, Write},
+    path::Path,
+};
 
 use regex::Regex;
 
-use crate::api_client::DisplayProgress;
-use crate::common::ui::UIWriter;
-use crate::hcore::{self, output};
-use crate::protocol;
+use crate::{
+    api_client::DisplayProgress,
+    common::ui::UIWriter,
+    hcore::{self, output},
+    protocol,
+};
 use futures::prelude::*;
 
 use crate::error::{Error, Result};
@@ -79,10 +83,7 @@ impl CtlRequest {
         tx: Option<server::CtlSender>,
         transaction: Option<protocol::codec::SrvTxn>,
     ) -> Self {
-        CtlRequest {
-            tx: tx,
-            transaction: transaction,
-        }
+        CtlRequest { tx, transaction }
     }
 
     /// Reply to the transaction with the given message but indicate to the receiver that this is
@@ -227,7 +228,7 @@ impl NetProgressBar {
     pub fn new(req: CtlRequest) -> Self {
         NetProgressBar {
             inner: protocol::ctl::NetProgress::default(),
-            req: req,
+            req,
         }
     }
 }

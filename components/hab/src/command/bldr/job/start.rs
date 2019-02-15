@@ -12,12 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::api_client::Client;
-use crate::common::ui::{Status, UIReader, UIWriter, UI};
-use crate::hcore::package::{PackageIdent, PackageTarget};
+use crate::{
+    api_client::Client,
+    common::ui::{Status, UIReader, UIWriter, UI},
+    hcore::package::{PackageIdent, PackageTarget},
+};
 
-use crate::error::{Error, Result};
-use crate::{PRODUCT, VERSION};
+use crate::{
+    error::{Error, Result},
+    PRODUCT, VERSION,
+};
 
 pub fn start(
     ui: &mut UI,
@@ -40,8 +44,8 @@ pub fn start(
                 ui.warn(rdep.to_string())?;
             }
 
-            let question = "If you choose to start a group build for this package, \
-                            all of the above will be built as well. Is this what you want?";
+            let question = "If you choose to start a group build for this package, all of the \
+                            above will be built as well. Is this what you want?";
 
             if !ui.prompt_yes_no(question, Some(true))? {
                 ui.fatal("Aborted")?;

@@ -61,13 +61,17 @@ pub mod message;
 pub mod net;
 pub mod types;
 
-use crate::core::env as henv;
-use crate::net::{ErrCode, NetResult};
+use crate::{
+    core::env as henv,
+    net::{ErrCode, NetResult},
+};
 use rand::RngCore;
-use std::fs::File;
-use std::io::Read;
-use std::net::SocketAddr;
-use std::path::{Path, PathBuf};
+use std::{
+    fs::File,
+    io::Read,
+    net::SocketAddr,
+    path::{Path, PathBuf},
+};
 
 // Name of file containing the CtlGateway secret key.
 const CTL_SECRET_FILENAME: &str = "CTL_SECRET";
@@ -165,8 +169,7 @@ pub fn socket_addr_env_or_default(env_var: &str, default: SocketAddr) -> SocketA
 #[cfg(test)]
 mod ctl_secret {
     use super::*;
-    use std::fs::File;
-    use std::io::Write;
+    use std::{fs::File, io::Write};
     use tempfile::TempDir;
 
     #[test]

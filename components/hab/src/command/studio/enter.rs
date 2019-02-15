@@ -12,18 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::ffi::OsString;
-use std::fs as stdfs;
-use std::path::PathBuf;
+use std::{env, ffi::OsString, fs as stdfs, path::PathBuf};
 
-use crate::common::ui::UI;
-use crate::hcore::crypto::CACHE_KEY_PATH_ENV_VAR;
-use crate::hcore::env as henv;
-use crate::hcore::fs;
+use crate::{
+    common::ui::UI,
+    hcore::{crypto::CACHE_KEY_PATH_ENV_VAR, env as henv, fs},
+};
 
-use crate::config;
-use crate::error::Result;
+use crate::{config, error::Result};
 
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 
@@ -66,22 +62,24 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
 
 #[cfg(target_os = "linux")]
 mod inner {
-    use std::env;
-    use std::ffi::OsString;
-    use std::path::PathBuf;
-    use std::str::FromStr;
+    use std::{env, ffi::OsString, path::PathBuf, str::FromStr};
 
-    use crate::common::ui::{UIWriter, UI};
-    use crate::hcore::crypto::{default_cache_key_path, init};
-    use crate::hcore::env as henv;
-    use crate::hcore::fs::{am_i_root, find_command};
-    use crate::hcore::os::process;
-    use crate::hcore::package::PackageIdent;
-    use crate::hcore::users::linux as group;
+    use crate::{
+        common::ui::{UIWriter, UI},
+        hcore::{
+            crypto::{default_cache_key_path, init},
+            env as henv,
+            fs::{am_i_root, find_command},
+            os::process,
+            package::PackageIdent,
+            users::linux as group,
+        },
+    };
 
-    use crate::error::{Error, Result};
-    use crate::exec;
-    use crate::VERSION;
+    use crate::{
+        error::{Error, Result},
+        exec, VERSION,
+    };
 
     use crate::command::studio::docker;
 
@@ -167,9 +165,9 @@ mod inner {
                     SUDO_CMD
                 ))?;
                 ui.warn(
-                    "Running Habitat Studio requires root or administrator privileges. \
-                     Please retry this command as a super user or use a \
-                     privilege-granting facility such as sudo.",
+                    "Running Habitat Studio requires root or administrator privileges. Please \
+                     retry this command as a super user or use a privilege-granting facility such \
+                     as sudo.",
                 )?;
                 ui.br()?;
                 Err(Error::RootRequired)
@@ -180,21 +178,24 @@ mod inner {
 
 #[cfg(not(target_os = "linux"))]
 mod inner {
-    use std::ffi::OsString;
-    use std::path::PathBuf;
-    use std::str::FromStr;
+    use std::{ffi::OsString, path::PathBuf, str::FromStr};
 
-    use crate::common::ui::UI;
-    use crate::hcore::crypto::{default_cache_key_path, init};
-    use crate::hcore::env as henv;
-    use crate::hcore::fs::find_command;
-    use crate::hcore::os::process;
-    use crate::hcore::package::PackageIdent;
+    use crate::{
+        common::ui::UI,
+        hcore::{
+            crypto::{default_cache_key_path, init},
+            env as henv,
+            fs::find_command,
+            os::process,
+            package::PackageIdent,
+        },
+    };
 
-    use crate::command::studio::docker;
-    use crate::error::{Error, Result};
-    use crate::exec;
-    use crate::VERSION;
+    use crate::{
+        command::studio::docker,
+        error::{Error, Result},
+        exec, VERSION,
+    };
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {

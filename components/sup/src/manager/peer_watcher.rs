@@ -12,18 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::net::{SocketAddr, ToSocketAddrs};
-use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
-use std::thread::Builder as ThreadBuilder;
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+    net::{SocketAddr, ToSocketAddrs},
+    path::{Path, PathBuf},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    },
+    thread::Builder as ThreadBuilder,
+};
 
-use crate::butterfly::member::Member;
-use crate::common::cli_defaults::GOSSIP_DEFAULT_PORT;
-use crate::error::{Error, Result};
-use crate::manager::file_watcher::{default_file_watcher, Callbacks};
+use crate::{
+    butterfly::member::Member,
+    common::cli_defaults::GOSSIP_DEFAULT_PORT,
+    error::{Error, Result},
+    manager::file_watcher::{default_file_watcher, Callbacks},
+};
 
 static LOGKEY: &'static str = "PW";
 
@@ -58,10 +64,7 @@ impl PeerWatcher {
         let path = path.into();
         let have_events = Self::setup_watcher(path.clone())?;
 
-        Ok(PeerWatcher {
-            path: path,
-            have_events: have_events,
-        })
+        Ok(PeerWatcher { path, have_events })
     }
 
     fn setup_watcher(path: PathBuf) -> Result<Arc<AtomicBool>> {
@@ -71,7 +74,7 @@ impl PeerWatcher {
         ThreadBuilder::new()
             .name(format!("peer-watcher-[{}]", path.display()))
             .spawn(move || {
-                //debug!("PeerWatcher({}) thread starting", abs_path.display());
+                // debug!("PeerWatcher({}) thread starting", abs_path.display());
                 loop {
                     let have_events_for_loop = Arc::clone(&have_events_for_thread);
                     if Self::file_watcher_loop_body(&path, have_events_for_loop) {
@@ -83,9 +86,7 @@ impl PeerWatcher {
     }
 
     fn file_watcher_loop_body(path: &PathBuf, have_events: Arc<AtomicBool>) -> bool {
-        let callbacks = PeerCallbacks {
-            have_events: have_events,
-        };
+        let callbacks = PeerCallbacks { have_events };
         let mut file_watcher = match default_file_watcher(&path, callbacks) {
             Ok(w) => w,
             Err(sup_err) => match sup_err.err {
@@ -162,10 +163,11 @@ impl PeerWatcher {
 #[cfg(test)]
 mod tests {
     use super::PeerWatcher;
-    use crate::butterfly::member::Member;
-    use crate::common::cli_defaults::GOSSIP_DEFAULT_PORT;
-    use std::fs::{File, OpenOptions};
-    use std::io::Write;
+    use crate::{butterfly::member::Member, common::cli_defaults::GOSSIP_DEFAULT_PORT};
+    use std::{
+        fs::{File, OpenOptions},
+        io::Write,
+    };
     use tempfile::TempDir;
 
     #[test]

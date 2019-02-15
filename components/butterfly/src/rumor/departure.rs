@@ -20,9 +20,15 @@
 
 use std::cmp::Ordering;
 
-use crate::error::{Error, Result};
-use crate::protocol::{self, newscast, newscast::Rumor as ProtoRumor, FromProto};
-use crate::rumor::{Rumor, RumorPayload, RumorType};
+use crate::{
+    error::{Error, Result},
+    protocol::{
+        self,
+        newscast::{self, Rumor as ProtoRumor},
+        FromProto,
+    },
+    rumor::{Rumor, RumorPayload, RumorType},
+};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Departure {

@@ -30,27 +30,31 @@ extern crate serde_json;
 pub mod error;
 pub use crate::error::{Error, Result};
 
-use std::fmt;
-use std::fs::{self, File};
-use std::io::{self, Read, Write};
-use std::path::{Path, PathBuf};
-use std::string::ToString;
-
-use crate::hab_core::{
-    crypto::keys::box_key_pair::WrappedSealedBox,
-    package::{Identifiable, PackageArchive, PackageIdent, PackageTarget},
-    ChannelIdent,
+use std::{
+    fmt,
+    fs::{self, File},
+    io::{self, Read, Write},
+    path::{Path, PathBuf},
+    string::ToString,
 };
-use crate::hab_http::util::decoded_response;
-use crate::hab_http::ApiClient;
+
+use crate::{
+    hab_core::{
+        crypto::keys::box_key_pair::WrappedSealedBox,
+        package::{Identifiable, PackageArchive, PackageIdent, PackageTarget},
+        ChannelIdent,
+    },
+    hab_http::{util::decoded_response, ApiClient},
+};
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
-use hyper::client::{Body, IntoUrl, RequestBuilder, Response};
-use hyper::header::{Accept, Authorization, Bearer, ContentType};
-use hyper::status::StatusCode;
-use hyper::Url;
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
+use hyper::{
+    client::{Body, IntoUrl, RequestBuilder, Response},
+    header::{Accept, Authorization, Bearer, ContentType},
+    status::StatusCode,
+    Url,
+};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use tee::TeeReader;
 use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
 

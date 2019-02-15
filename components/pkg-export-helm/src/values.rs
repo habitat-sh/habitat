@@ -14,8 +14,7 @@
 
 use std::io::Write;
 
-use crate::export_docker::Result;
-use crate::export_k8s::QuoteHelper;
+use crate::{export_docker::Result, export_k8s::QuoteHelper};
 
 pub struct Values {
     values: Vec<ValuesEntry>,

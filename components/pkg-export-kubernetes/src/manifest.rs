@@ -12,23 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::Path;
-use std::str::FromStr;
+use std::{fs::File, io::prelude::*, path::Path, str::FromStr};
 
-use crate::common::ui::UI;
-use crate::hcore::package::{PackageArchive, PackageIdent};
+use crate::{
+    common::ui::UI,
+    hcore::package::{PackageArchive, PackageIdent},
+};
 use base64;
 use clap::ArgMatches;
 
 use crate::export_docker::{DockerImage, Result};
 
-use crate::env::EnvironmentVariable;
-use crate::manifestjson::ManifestJson;
-use crate::service_bind::ServiceBind;
-use crate::storage::PersistentStorage;
-use crate::topology::Topology;
+use crate::{
+    env::EnvironmentVariable, manifestjson::ManifestJson, service_bind::ServiceBind,
+    storage::PersistentStorage, topology::Topology,
+};
 
 /// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]
@@ -60,7 +58,6 @@ pub struct Manifest {
 }
 
 impl Manifest {
-    ///
     /// Create a Manifest instance from command-line arguments passed as [`clap::ArgMatches`].
     ///
     /// [`clap::ArgMatches`]: https://kbknapp.github.io/clap-rs/clap/struct.ArgMatches.html
@@ -139,17 +136,17 @@ impl Manifest {
         };
 
         Ok(Manifest {
-            pkg_ident: pkg_ident,
+            pkg_ident,
             metadata_name: name,
             image: image_name,
-            count: count,
+            count,
             service_topology: topology,
             service_group: group,
-            config: config,
-            ring_secret_name: ring_secret_name,
-            binds: binds,
-            persistent_storage: persistent_storage,
-            environment: environment,
+            config,
+            ring_secret_name,
+            binds,
+            persistent_storage,
+            environment,
         })
     }
 

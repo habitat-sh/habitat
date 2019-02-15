@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ffi::OsStr;
-use std::fmt;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
 #[cfg(unix)]
 use std::os::unix::process::{CommandExt, ExitStatusExt};
-use std::path::{Path, PathBuf};
 #[cfg(not(windows))]
 use std::process::{Child, Command, ExitStatus, Stdio};
-use std::result;
+use std::{
+    ffi::OsStr,
+    fmt,
+    fs::File,
+    io::{prelude::*, BufReader},
+    path::{Path, PathBuf},
+    result,
+};
 
 #[cfg(windows)]
 use crate::hcore::os::process::windows_child::{Child, ExitStatus};
 use crate::hcore::{self, crypto, fs, outputln};
 use serde::{Serialize, Serializer};
 
-use super::package::Pkg;
-use super::TemplateRenderer;
+use super::{package::Pkg, TemplateRenderer};
 use crate::error::{Error, Result};
 
 #[cfg(not(windows))]
@@ -185,7 +185,10 @@ pub trait Hook: fmt::Debug + Sized {
     /// See https://doc.rust-lang.org/1.30.1/std/process/struct.ExitStatus.html#method.code
     #[cfg(windows)]
     fn output_termination_message(_: &str, _: &ExitStatus) {
-        panic!("ExitStatus::code should never return None on Windows; please report this to the Habitat core developers");
+        panic!(
+            "ExitStatus::code should never return None on Windows; please report this to the \
+             Habitat core developers"
+        );
     }
 
     /// Run a compiled hook.
@@ -430,7 +433,7 @@ impl RenderPair {
         renderer.register_template_file(&name, template_path.as_ref())?;
         Ok(RenderPair {
             path: concrete_path.into(),
-            renderer: renderer,
+            renderer,
         })
     }
 }
@@ -513,15 +516,14 @@ impl<'a> HookOutput<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::hcore::package::{PackageIdent, PackageInstall};
-    use crate::hcore::service::ServiceGroup;
+    use crate::hcore::{
+        package::{PackageIdent, PackageInstall},
+        service::ServiceGroup,
+    };
     use tempfile::TempDir;
 
     use super::*;
-    use crate::templating::config::Cfg;
-    use crate::templating::context::RenderContext;
-    use crate::templating::package::Pkg;
-    use crate::templating::test_helpers::*;
+    use crate::templating::{config::Cfg, context::RenderContext, package::Pkg, test_helpers::*};
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use
@@ -773,9 +775,11 @@ echo "The message is Hello"
     #[test]
     #[cfg(not(windows))]
     fn hook_output() {
-        use std::fs as stdfs;
-        use std::fs::DirBuilder;
-        use std::process::{Command, Stdio};
+        use std::{
+            fs as stdfs,
+            fs::DirBuilder,
+            process::{Command, Stdio},
+        };
 
         let tmp_dir = TempDir::new().expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");

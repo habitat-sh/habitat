@@ -47,25 +47,24 @@
 //! their focused and single-use purpose; they shouldn't be used for
 //! anything else, and so, they _can't_ be used for anything else.
 
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::net::IpAddr;
-use std::path::PathBuf;
-use std::result;
+use std::{borrow::Cow, collections::HashMap, net::IpAddr, path::PathBuf, result};
 
-use serde::ser::SerializeMap;
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeMap, Serialize, Serializer};
 use toml;
 
-use crate::butterfly::rumor::service::SysInfo;
-use crate::common::templating::config::Cfg;
-use crate::common::templating::package::{Env, Pkg};
-use crate::hcore::package::PackageIdent;
-use crate::hcore::service::ServiceGroup;
+use crate::{
+    butterfly::rumor::service::SysInfo,
+    common::templating::{
+        config::Cfg,
+        package::{Env, Pkg},
+    },
+    hcore::{package::PackageIdent, service::ServiceGroup},
+};
 
-use crate::census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId};
-use crate::manager::service::ServiceBind;
-use crate::manager::Sys;
+use crate::{
+    census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId},
+    manager::{service::ServiceBind, Sys},
+};
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -597,22 +596,24 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
 mod tests {
     use super::*;
 
-    use std::collections::BTreeMap;
-    use std::fs;
-    use std::io::{Read, Write};
-    use std::net::{IpAddr, Ipv4Addr};
-    use std::path::PathBuf;
+    use std::{
+        collections::BTreeMap,
+        fs,
+        io::{Read, Write},
+        net::{IpAddr, Ipv4Addr},
+        path::PathBuf,
+    };
 
     use serde_json;
     use tempfile::TempDir;
 
-    use crate::butterfly::rumor::service::SysInfo;
-    use crate::common::templating::config::PackageConfigPaths;
-    use crate::common::templating::TemplateRenderer;
-    use crate::hcore::package::PackageIdent;
+    use crate::{
+        butterfly::rumor::service::SysInfo,
+        common::templating::{config::PackageConfigPaths, TemplateRenderer},
+        hcore::package::PackageIdent,
+    };
 
-    use crate::manager::service::Cfg;
-    use crate::test_helpers::*;
+    use crate::{manager::service::Cfg, test_helpers::*};
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -644,12 +645,15 @@ mod tests {
         fn name(&self) -> String {
             String::from("testing")
         }
+
         fn default_config_dir(&self) -> PathBuf {
             self.base_path.join("root")
         }
+
         fn recommended_user_config_dir(&self) -> PathBuf {
             self.base_path.join("user")
         }
+
         fn deprecated_user_config_dir(&self) -> PathBuf {
             self.base_path.join("svc")
         }
@@ -808,9 +812,9 @@ two = 2
 
         RenderContext {
             sys: system_info,
-            pkg: pkg,
+            pkg,
             cfg: Cow::Owned(cfg),
-            svc: svc,
+            svc,
             bind: binds,
         }
     }

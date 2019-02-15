@@ -22,11 +22,12 @@
 include!("generated/sup.types.rs");
 include!("generated/sup.types.impl.rs");
 
-use std::fmt;
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
-use crate::core;
-use crate::core::package::{self, Identifiable};
+use crate::core::{
+    self,
+    package::{self, Identifiable},
+};
 
 use crate::net::{self, ErrCode, NetErr};
 

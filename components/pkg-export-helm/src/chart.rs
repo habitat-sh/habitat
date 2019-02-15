@@ -13,18 +13,15 @@
 // limitations under the License.
 
 use clap;
-use std::fs;
-use std::io::Write;
-use std::path::PathBuf;
+use std::{fs, io::Write, path::PathBuf};
 
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::export_docker;
-use crate::export_docker::Result;
-use crate::export_k8s::{Manifest, ManifestJson, PersistentStorage};
+use crate::{
+    common::ui::{Status, UIWriter, UI},
+    export_docker::{self, Result},
+    export_k8s::{Manifest, ManifestJson, PersistentStorage},
+};
 
-use crate::chartfile::ChartFile;
-use crate::deps::Deps;
-use crate::values::Values;
+use crate::{chartfile::ChartFile, deps::Deps, values::Values};
 
 pub struct Chart<'a> {
     chartdir: PathBuf,
@@ -151,12 +148,12 @@ impl<'a> Chart<'a> {
         manifest_template.value["environment"] = json!(environment);
 
         Chart {
-            chartdir: chartdir,
-            chartfile: chartfile,
+            chartdir,
+            chartfile,
             manifest_template: Some(manifest_template),
-            values: values,
-            deps: deps,
-            ui: ui,
+            values,
+            deps,
+            ui,
         }
     }
 

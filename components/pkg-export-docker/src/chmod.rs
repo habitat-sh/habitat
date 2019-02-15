@@ -34,12 +34,9 @@
 //! permissions work differently over there, and we don't have
 //! non-root Habitat supervisors there either.
 
-use std::fs;
-use std::os::unix::fs::PermissionsExt;
-use std::path::Path;
+use std::{fs, os::unix::fs::PermissionsExt, path::Path};
 
-use crate::error::Result;
-use crate::hcore::util::posix_perm;
+use crate::{error::Result, hcore::util::posix_perm};
 
 /// Perform the equivalent of `chmod -R g=u path`.
 pub fn recursive_g_equal_u<P>(path: P) -> Result<()>

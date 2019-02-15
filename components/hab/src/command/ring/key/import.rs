@@ -14,8 +14,10 @@
 
 use std::path::Path;
 
-use crate::common::ui::{UIWriter, UI};
-use crate::hcore::crypto::SymKey;
+use crate::{
+    common::ui::{UIWriter, UI},
+    hcore::crypto::SymKey,
+};
 
 use crate::error::Result;
 

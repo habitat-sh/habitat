@@ -12,21 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs;
-use std::path::Path;
-use std::str::FromStr;
+use std::{fs, path::Path, str::FromStr};
 
 use super::{ExecutionStrategy, Scope};
-use crate::common::package_graph::PackageGraph;
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::error::{Error, Result};
-use crate::hcore::error as herror;
-use crate::hcore::fs as hfs;
-use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
+use crate::{
+    common::{
+        package_graph::PackageGraph,
+        ui::{Status, UIWriter, UI},
+    },
+    error::{Error, Result},
+    hcore::{
+        error as herror, fs as hfs,
+        package::{Identifiable, PackageIdent, PackageInstall},
+    },
+};
 
 use crate::hcore::package::list::temp_package_directory;
 
-///
 /// Delete a package and all dependencies which are not used by other packages.
 /// We do an ordered traverse of the dependencies, updating the graph as we delete a
 /// package. This lets us use simple logic where we continually check if the package
@@ -46,7 +48,6 @@ use crate::hcore::package::list::temp_package_directory;
 /// `excludes` is a list of user-supplied `PackageIdent`s.
 /// `services` is a list of fully-qualified `PackageIdent`s which are currently
 ///    running in a supervisor out of the `fs_root_path`.
-///
 pub fn start(
     ui: &mut UI,
     ident: &PackageIdent,
@@ -80,10 +81,15 @@ pub fn start(
     // 4.
     match graph.count_rdeps(&ident) {
         None => {
-            // package not in graph - this shouldn't happen but could be a race condition in Step 2 with another hab uninstall. We can
-            // continue as what we wanted (package to be removed) has already happened. We're going to continue and try and delete down through the
-            // dependency tree anyway
-            ui.warn(format!("Tried to find dependant packages of {} but it wasn't in graph.  Maybe another uninstall command was run at the same time?", &ident))?;
+            // package not in graph - this shouldn't happen but could be a race condition in Step 2
+            // with another hab uninstall. We can continue as what we wanted (package to
+            // be removed) has already happened. We're going to continue and try and delete down
+            // through the dependency tree anyway
+            ui.warn(format!(
+                "Tried to find dependant packages of {} but it wasn't in graph.  Maybe another \
+                 uninstall command was run at the same time?",
+                &ident
+            ))?;
         }
         Some(0) => {
             maybe_delete(
@@ -111,10 +117,16 @@ pub fn start(
             for p in &deps {
                 match graph.count_rdeps(&p) {
                     None => {
-                        // package not in graph - this shouldn't happen but could be a race condition in Step 2 with another hab uninstall. We can
-                        // continue as what we wanted (package to be removed) has already happened. We're going to continue and try and delete down through the
+                        // package not in graph - this shouldn't happen but could be a race
+                        // condition in Step 2 with another hab uninstall. We can
+                        // continue as what we wanted (package to be removed) has already happened.
+                        // We're going to continue and try and delete down through the
                         // dependency tree anyway
-                        ui.warn(format!("Tried to find dependant packages of {} but it wasn't in graph.  Maybe another uninstall command was run at the same time?", &p))?;
+                        ui.warn(format!(
+                            "Tried to find dependant packages of {} but it wasn't in graph.  \
+                             Maybe another uninstall command was run at the same time?",
+                            &p
+                        ))?;
                     }
                     Some(0) => {
                         let install = PackageInstall::load(&p, Some(fs_root_path))?;
@@ -193,9 +205,9 @@ fn maybe_delete(
         return Ok(false);
     }
 
-    // The excludes list could be looser than the fully qualified idents.  E.g. if core/redis is on the
-    // exclude list then we should exclude core/redis/1.1.0/20180608091936.  We use the `Identifiable`
-    // trait which supplies this logic for PackageIdents
+    // The excludes list could be looser than the fully qualified idents.  E.g. if core/redis is on
+    // the exclude list then we should exclude core/redis/1.1.0/20180608091936.  We use the
+    // `Identifiable` trait which supplies this logic for PackageIdents
     let should_exclude = excludes.iter().any(|i| i.satisfies(ident));
     if should_exclude {
         ui.status(

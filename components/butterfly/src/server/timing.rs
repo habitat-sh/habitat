@@ -58,11 +58,11 @@ impl Timing {
         departure_timeout_ms: i64,
     ) -> Timing {
         Timing {
-            ping_ms: ping_ms,
-            pingreq_ms: pingreq_ms,
-            gossip_period_ms: gossip_period_ms,
-            suspicion_timeout_protocol_periods: suspicion_timeout_protocol_periods,
-            departure_timeout_ms: departure_timeout_ms,
+            ping_ms,
+            pingreq_ms,
+            gossip_period_ms,
+            suspicion_timeout_protocol_periods,
+            departure_timeout_ms,
         }
     }
 

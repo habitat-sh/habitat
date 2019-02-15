@@ -14,19 +14,23 @@
 
 //! Encapsulate running the `hab-sup` executable for tests.
 
-use std::collections::HashSet;
-use std::env;
-use std::net::TcpListener;
-use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
-use std::string::ToString;
-use std::sync::Mutex;
-use std::thread;
-use std::time::Duration;
+use std::{
+    collections::HashSet,
+    env,
+    net::TcpListener,
+    path::{Path, PathBuf},
+    process::{Child, Command, Stdio},
+    string::ToString,
+    sync::Mutex,
+    thread,
+    time::Duration,
+};
 
 use crate::hcore::url::BLDR_URL_ENVVAR;
-use rand;
-use rand::distributions::{Distribution, Uniform};
+use rand::{
+    self,
+    distributions::{Distribution, Uniform},
+};
 
 use super::test_butterfly;
 
@@ -115,7 +119,6 @@ fn random_port() -> u16 {
 /// and we look for `hab-sup`, we'll find it at
 ///
 ///    /home/me/habitat/target/debug/hab-sup
-///
 fn find_exe<B>(binary_name: B) -> PathBuf
 where
     B: AsRef<Path>,
@@ -259,11 +262,11 @@ impl TestSup {
             origin_name: origin,
             package_name: pkg_name,
             service_group: service_group.to_string(),
-            http_port: http_port,
-            butterfly_port: butterfly_port,
-            control_port: control_port,
+            http_port,
+            butterfly_port,
+            control_port,
             butterfly_client: bc,
-            cmd: cmd,
+            cmd,
             process: None,
         }
     }

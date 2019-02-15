@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4};
-use std::result;
-use std::str::FromStr;
+use std::{
+    fmt,
+    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4},
+    result,
+    str::FromStr,
+};
 
 use super::env_config::EnvConfig;
 use crate::error::{Error, Result};

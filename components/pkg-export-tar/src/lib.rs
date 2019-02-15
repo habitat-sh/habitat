@@ -14,16 +14,23 @@ pub mod cli;
 mod error;
 mod rootfs;
 
-pub use crate::cli::Cli;
-use crate::common::ui::UI;
-pub use crate::error::{Error, Result};
-use crate::hcore::package::{PackageIdent, PackageInstall};
-use crate::hcore::url as hurl;
-use flate2::write::GzEncoder;
-use flate2::Compression;
-use std::fs::File;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
+pub use crate::{
+    cli::Cli,
+    error::{Error, Result},
+};
+use crate::{
+    common::ui::UI,
+    hcore::{
+        package::{PackageIdent, PackageInstall},
+        url as hurl,
+    },
+};
+use flate2::{write::GzEncoder, Compression};
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 use tar::Builder;
 
 pub use crate::build::BuildSpec;

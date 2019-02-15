@@ -15,15 +15,16 @@
 use std::path::Path;
 
 use super::{DependencyRelation, Scope};
-use crate::common::package_graph::PackageGraph;
-use crate::error::Result;
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::{
+    common::package_graph::PackageGraph,
+    error::Result,
+    hcore::package::{PackageIdent, PackageInstall},
+};
 
 /// Show the dependencies for an installed package.
 ///
-/// We can either show the dependencies of the package or show the packages that are dependent on the provided
-/// identifier
-///
+/// We can either show the dependencies of the package or show the packages that are dependent on
+/// the provided identifier
 pub fn start(
     ident: &PackageIdent,
     scope: &Scope,

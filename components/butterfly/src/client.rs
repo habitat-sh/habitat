@@ -16,17 +16,17 @@
 //!
 //! This will connect to a given butterfly members `Pull` thread, and inject a rumor.
 
-use habitat_core::crypto::SymKey;
-use habitat_core::service::ServiceGroup;
+use habitat_core::{crypto::SymKey, service::ServiceGroup};
 use zmq;
 
-use crate::error::{Error, Result};
-use crate::message;
-use crate::rumor::departure::Departure;
-use crate::rumor::service_config::ServiceConfig;
-use crate::rumor::service_file::ServiceFile;
-use crate::rumor::Rumor;
-use crate::ZMQ_CONTEXT;
+use crate::{
+    error::{Error, Result},
+    message,
+    rumor::{
+        departure::Departure, service_config::ServiceConfig, service_file::ServiceFile, Rumor,
+    },
+    ZMQ_CONTEXT,
+};
 
 /// Holds a ZMQ Push socket, and an optional ring encryption key.
 pub struct Client {
@@ -61,10 +61,7 @@ impl Client {
             .expect("Failure to set the ZMQ send timeout");
         let to_addr = format!("tcp://{}", addr.to_string());
         socket.connect(&to_addr).map_err(Error::ZmqConnectError)?;
-        Ok(Client {
-            socket: socket,
-            ring_key: ring_key,
-        })
+        Ok(Client { socket, ring_key })
     }
 
     /// Create a departure notification and send it to the server.

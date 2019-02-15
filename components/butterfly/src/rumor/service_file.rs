@@ -16,18 +16,22 @@
 //!
 //! Holds the toml configuration injected for a service.
 
-use std::cmp::Ordering;
-use std::mem;
-use std::str::FromStr;
+use std::{cmp::Ordering, mem, str::FromStr};
 
-use habitat_core::crypto::{
-    default_cache_key_path, keys::box_key_pair::WrappedSealedBox, BoxKeyPair,
+use habitat_core::{
+    crypto::{default_cache_key_path, keys::box_key_pair::WrappedSealedBox, BoxKeyPair},
+    service::ServiceGroup,
 };
-use habitat_core::service::ServiceGroup;
 
-use crate::error::{Error, Result};
-use crate::protocol::{self, newscast, newscast::Rumor as ProtoRumor, FromProto};
-use crate::rumor::{Rumor, RumorPayload, RumorType};
+use crate::{
+    error::{Error, Result},
+    protocol::{
+        self,
+        newscast::{self, Rumor as ProtoRumor},
+        FromProto,
+    },
+    rumor::{Rumor, RumorPayload, RumorType},
+};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceFile {
@@ -73,11 +77,11 @@ impl ServiceFile {
     {
         ServiceFile {
             from_id: member_id.into(),
-            service_group: service_group,
+            service_group,
             incarnation: 0,
             encrypted: false,
             filename: filename.into(),
-            body: body,
+            body,
         }
     }
 
@@ -169,8 +173,7 @@ impl Rumor for ServiceFile {
 
 #[cfg(test)]
 mod tests {
-    use std::cmp::Ordering;
-    use std::str::FromStr;
+    use std::{cmp::Ordering, str::FromStr};
 
     use habitat_core::service::ServiceGroup;
 

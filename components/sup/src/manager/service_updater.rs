@@ -12,30 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::cmp::{Ordering, PartialOrd};
-use std::collections::HashMap;
-use std::num::ParseIntError;
-use std::result;
-use std::str::FromStr;
-use std::sync::mpsc::{channel, Receiver, Sender, TryRecvError};
-use std::thread;
-use std::time;
+use std::{
+    cmp::{Ordering, PartialOrd},
+    collections::HashMap,
+    num::ParseIntError,
+    result,
+    str::FromStr,
+    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
+    thread, time,
+};
 
 use time_crate::Duration;
 
-use crate::butterfly;
-use crate::common::ui::UI;
-use crate::hcore::env as henv;
-use crate::hcore::package::{PackageIdent, PackageInstall, PackageTarget};
-use crate::hcore::service::ServiceGroup;
-use crate::hcore::ChannelIdent;
-use crate::launcher_client::LauncherCli;
+use crate::{
+    butterfly,
+    common::ui::UI,
+    hcore::{
+        env as henv,
+        package::{PackageIdent, PackageInstall, PackageTarget},
+        service::ServiceGroup,
+        ChannelIdent,
+    },
+    launcher_client::LauncherCli,
+};
 
-use crate::census::CensusRing;
-use crate::common::types::EnvConfig;
-use crate::manager::periodic::Periodic;
-use crate::manager::service::{Service, Topology, UpdateStrategy};
-use crate::util;
+use crate::{
+    census::CensusRing,
+    common::types::EnvConfig,
+    manager::{
+        periodic::Periodic,
+        service::{Service, Topology, UpdateStrategy},
+    },
+    util,
+};
 use time_crate::SteadyTime;
 
 static LOGKEY: &'static str = "SU";
@@ -86,7 +95,7 @@ impl ServiceUpdater {
     pub fn new(butterfly: butterfly::Server) -> Self {
         ServiceUpdater {
             states: UpdaterStateList::default(),
-            butterfly: butterfly,
+            butterfly,
         }
     }
 
@@ -180,8 +189,8 @@ impl ServiceUpdater {
                 if let Some(census_group) = census_ring.census_group_for(&service.service_group) {
                     if service.topology == Topology::Leader {
                         debug!(
-                            "Rolling Update, determining proper suitability because we're in \
-                             a leader topology"
+                            "Rolling Update, determining proper suitability because we're in a \
+                             leader topology"
                         );
                         match (census_group.me(), census_group.leader()) {
                             (Some(me), Some(leader)) => {
@@ -353,6 +362,7 @@ impl Default for ServiceUpdatePeriod {
 
 impl FromStr for ServiceUpdatePeriod {
     type Err = ParseIntError;
+
     fn from_str(s: &str) -> result::Result<Self, Self::Err> {
         // Parsing as a u32 gives us an effective range of 49+ days
         let raw = s.parse::<u32>()?;

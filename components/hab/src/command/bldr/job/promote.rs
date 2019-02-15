@@ -16,12 +16,16 @@ use crate::hcore::package::PackageIdent;
 use hyper::status::StatusCode;
 use std::str::FromStr;
 
-use crate::api_client;
-use crate::common::ui::{Status, UIReader, UIWriter, UI};
-use crate::hcore::ChannelIdent;
+use crate::{
+    api_client,
+    common::ui::{Status, UIReader, UIWriter, UI},
+    hcore::ChannelIdent,
+};
 
-use crate::error::{Error, Result};
-use crate::{PRODUCT, VERSION};
+use crate::{
+    error::{Error, Result},
+    PRODUCT, VERSION,
+};
 
 fn is_ident(s: &str) -> bool {
     PackageIdent::from_str(s).is_ok()
@@ -54,9 +58,9 @@ pub fn get_ident_list(
         return Ok(idents);
     }
 
-    let prelude = "# This is the list of package identifiers that will be processed.\n\
-                   # You may edit this file and remove any packages that you do\n\
-                   # not want to apply to the specified channel.\n"
+    let prelude = "# This is the list of package identifiers that will be processed.\n# You may \
+                   edit this file and remove any packages that you do\n# not want to apply to the \
+                   specified channel.\n"
         .to_string();
 
     idents.insert(0, prelude);
@@ -174,13 +178,17 @@ pub fn start(
 
 #[cfg(test)]
 mod test {
-    use std::env;
-    use std::io::{self, Cursor, Write};
-    use std::sync::{Arc, RwLock};
+    use std::{
+        env,
+        io::{self, Cursor, Write},
+        sync::{Arc, RwLock},
+    };
 
     use super::get_ident_list;
-    use crate::api_client::{Project, SchedulerResponse};
-    use crate::common::ui::{Coloring, UI};
+    use crate::{
+        api_client::{Project, SchedulerResponse},
+        common::ui::{Coloring, UI},
+    };
 
     fn sample_project_list() -> Vec<Project> {
         let project1 = Project {

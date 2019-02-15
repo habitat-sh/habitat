@@ -12,14 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::{self, File};
-use std::io::Write;
-use std::path::PathBuf;
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::PathBuf,
+};
 
 use dirs;
 
-use crate::hcore::config::ConfigFile;
-use crate::hcore::fs::{am_i_root, FS_ROOT_PATH};
+use crate::hcore::{
+    config::ConfigFile,
+    fs::{am_i_root, FS_ROOT_PATH},
+};
 use toml;
 
 use crate::error::{Error, Result};

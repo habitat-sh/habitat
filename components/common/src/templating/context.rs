@@ -47,16 +47,14 @@
 //! their focused and single-use purpose; they shouldn't be used for
 //! anything else, and so, they _can't_ be used for anything else.
 
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::path::PathBuf;
-use std::result;
+use std::{borrow::Cow, collections::HashMap, path::PathBuf, result};
 
-use serde::ser::SerializeMap;
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeMap, Serialize, Serializer};
 
-use super::config::Cfg;
-use super::package::{Env, Pkg};
+use super::{
+    config::Cfg,
+    package::{Env, Pkg},
+};
 use crate::hcore::package::PackageIdent;
 
 /// The context of a rendering call, exposing information on the
@@ -215,17 +213,21 @@ impl<'a> Serialize for Package<'a> {
 mod tests {
     use super::*;
 
-    use std::fs;
-    use std::io::{Read, Write};
-    use std::path::PathBuf;
+    use std::{
+        fs,
+        io::{Read, Write},
+        path::PathBuf,
+    };
 
     use crate::hcore::package::PackageIdent;
     use serde_json;
     use tempfile::TempDir;
 
-    use crate::templating::config::{Cfg, PackageConfigPaths};
-    use crate::templating::test_helpers::*;
-    use crate::templating::TemplateRenderer;
+    use crate::templating::{
+        config::{Cfg, PackageConfigPaths},
+        test_helpers::*,
+        TemplateRenderer,
+    };
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -257,12 +259,15 @@ mod tests {
         fn name(&self) -> String {
             String::from("testing")
         }
+
         fn default_config_dir(&self) -> PathBuf {
             self.base_path.join("root")
         }
+
         fn recommended_user_config_dir(&self) -> PathBuf {
             self.base_path.join("user")
         }
+
         fn deprecated_user_config_dir(&self) -> PathBuf {
             self.base_path.join("svc")
         }
@@ -346,7 +351,7 @@ two = 2
         let cfg = Cfg::new(&test_pkg, None).expect("create config");
 
         RenderContext {
-            pkg: pkg,
+            pkg,
             cfg: Cow::Owned(cfg),
         }
     }

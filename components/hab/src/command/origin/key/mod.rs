@@ -19,12 +19,16 @@ pub mod import;
 pub mod upload;
 pub mod upload_latest;
 
-use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::{
+    fs::File,
+    io::{BufRead, BufReader},
+    path::Path,
+};
 
-use crate::error::{Error, Result};
-use crate::hcore;
+use crate::{
+    error::{Error, Result},
+    hcore,
+};
 
 // shared between origin::key::upload and origin::key::upload_latest
 fn get_name_with_rev(keyfile: &Path, expected_vsn: &str) -> Result<String> {

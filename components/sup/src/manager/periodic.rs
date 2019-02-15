@@ -14,8 +14,7 @@
 
 // TODO (CM): Eventually this may move out to a common crate.
 
-use std::thread;
-use std::time::Duration as StdDuration;
+use std::{thread, time::Duration as StdDuration};
 use time::{Duration, SteadyTime};
 
 /// Encapsulate logic for carrying out periodic tasks (or at least

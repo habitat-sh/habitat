@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
-use std::env;
-use std::ops::Deref;
-use std::path::PathBuf;
-use std::result;
+use std::{collections::HashMap, env, ops::Deref, path::PathBuf, result};
 
-use crate::hcore::fs;
-use crate::hcore::os::users;
-use crate::hcore::package::{PackageIdent, PackageInstall};
-use crate::hcore::util::{deserialize_using_from_str, serialize_using_to_string};
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
+use crate::hcore::{
+    fs,
+    os::users,
+    package::{PackageIdent, PackageInstall},
+    util::{deserialize_using_from_str, serialize_using_to_string},
+};
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 
-use crate::error::{Error, Result};
-use crate::util::path;
+use crate::{
+    error::{Error, Result},
+    util::path,
+};
 
 const DEFAULT_USER: &str = "hab";
 const DEFAULT_GROUP: &str = "hab";
@@ -116,8 +115,8 @@ impl Pkg {
             svc_static_path: fs::svc_static_path(&package.ident.name),
             svc_var_path: fs::svc_var_path(&package.ident.name),
             svc_pid_file: fs::svc_pid_file(&package.ident.name),
-            svc_user: svc_user,
-            svc_group: svc_group,
+            svc_user,
+            svc_group,
             env: Env::new(&package)?,
             deps: package.tdeps()?,
             exposes: package.exposes()?,

@@ -98,13 +98,13 @@ impl Server {
 
         let ((rx, tx), supervisor, pipe) = Self::init(&args, false)?;
         Ok(Server {
-            pid_file_path: pid_file_path,
+            pid_file_path,
             services: ServiceTable::default(),
-            tx: tx,
-            rx: rx,
-            pipe: pipe,
-            supervisor: supervisor,
-            args: args,
+            tx,
+            rx,
+            pipe,
+            supervisor,
+            args,
         })
     }
 
@@ -339,7 +339,10 @@ impl Server {
                 // We should never get here; a Linux process either
                 // exits with a status code, or it was killed with a
                 // signal.
-                warn!("UNEXPECTED RESULT: Supervisor process ended, but neither exit status nor terminating signal are available");
+                warn!(
+                    "UNEXPECTED RESULT: Supervisor process ended, but neither exit status nor \
+                     terminating signal are available"
+                );
                 Some(self.handle_supervisor_exit(None))
             }
         } else {
@@ -570,8 +573,15 @@ fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
         let sup_version = String::from_utf8_lossy(&version_check.stdout);
         if !is_supported_supervisor_version(&sup_version.trim()) {
             error!("This Launcher requires Habitat version {}", SUP_VERSION_REQ);
-            error!("This check can be disabled by setting the {} environment variable to a non-empty string when starting the supervisor", SUP_VERSION_CHECK_DISABLE);
-            error!("Disabling this check may result in undefined behavior; please update to a newer Habitat version");
+            error!(
+                "This check can be disabled by setting the {} environment variable to a non-empty \
+                 string when starting the supervisor",
+                SUP_VERSION_CHECK_DISABLE
+            );
+            error!(
+                "Disabling this check may result in undefined behavior; please update to a newer \
+                 Habitat version"
+            );
             error!("For more information see https://github.com/habitat-sh/habitat/pull/5484");
             return Err(Error::SupBinaryVersion);
         }

@@ -12,21 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs;
-use std::path::{Path, PathBuf};
-use std::process::Command;
-use std::str::FromStr;
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+    str::FromStr,
+};
 
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::fs as hfs;
-use crate::hcore::package::PackageIdent;
+use crate::{
+    common::ui::{Status, UIWriter, UI},
+    hcore::{fs as hfs, package::PackageIdent},
+};
 use failure::SyncFailure;
 use handlebars::Handlebars;
 
 use super::{Credentials, Naming};
-use crate::build::BuildRoot;
-use crate::error::{Error, Result};
-use crate::util;
+use crate::{
+    build::BuildRoot,
+    error::{Error, Result},
+    util,
+};
 use serde_json;
 
 /// The `Dockerfile` template.
@@ -63,7 +68,7 @@ impl<'a> DockerBuilder<'a> {
         S: Into<String>,
     {
         DockerBuilder {
-            workdir: workdir,
+            workdir,
             name: name.into(),
             tags: Vec::new(),
             memory: None,
@@ -401,8 +406,7 @@ impl DockerBuildRoot {
 
     #[cfg(unix)]
     fn add_users_and_groups(&self, ui: &mut UI) -> Result<()> {
-        use std::fs::OpenOptions;
-        use std::io::Write;
+        use std::{fs::OpenOptions, io::Write};
 
         let ctx = self.0.ctx();
         let (users, groups) = ctx.svc_users_and_groups()?;

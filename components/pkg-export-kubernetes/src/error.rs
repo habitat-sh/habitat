@@ -35,12 +35,10 @@ pub enum Error {
     )]
     InvalidEnvironmentVariable(String),
     #[fail(
-        display = "Invalid persistent storage specification \"{}\", \
-                   must in the form <SIZE>:<PATH>:<STORAGE_CLASS_NAME> \
-                   where <SIZE> is a size in bytes \
-                   (with E, P, T, G, M, K or Ei, Pi, Ti, Gi, Mi, Ki suffixes, \
-                   or in 123e5 form, see K8s docs for more details), \
-                   <PATH> is an absolute path",
+        display = "Invalid persistent storage specification \"{}\", must in the form \
+                   <SIZE>:<PATH>:<STORAGE_CLASS_NAME> where <SIZE> is a size in bytes (with E, P, \
+                   T, G, M, K or Ei, Pi, Ti, Gi, Mi, Ki suffixes, or in 123e5 form, see K8s docs \
+                   for more details), <PATH> is an absolute path",
         _0
     )]
     InvalidPersistentStorageSpec(String),

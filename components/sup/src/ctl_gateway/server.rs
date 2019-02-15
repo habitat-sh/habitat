@@ -22,22 +22,21 @@
 //! mpsc channel, [`CtlSender`], to [`CtlReceiver`]. A new mpsc pair is created for each
 //! transactional request where the sending half is given to a [`ctl_gateway.CtlRequest`].
 
-use std::cell::RefCell;
-use std::error;
-use std::fmt;
-use std::io;
-use std::net::SocketAddr;
-use std::rc::Rc;
-use std::thread;
-use std::time::Duration;
+use std::{cell::RefCell, error, fmt, io, net::SocketAddr, rc::Rc, thread, time::Duration};
 
-use crate::hcore::crypto;
-use crate::protocol;
-use crate::protocol::codec::*;
-use crate::protocol::net::{self, ErrCode, NetErr, NetResult};
-use futures::future::{self, Either};
-use futures::prelude::*;
-use futures::sync::mpsc;
+use crate::{
+    hcore::crypto,
+    protocol::{
+        self,
+        codec::*,
+        net::{self, ErrCode, NetErr, NetResult},
+    },
+};
+use futures::{
+    future::{self, Either},
+    prelude::*,
+    sync::mpsc,
+};
 use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
 use prost;
 use tokio::net::TcpListener;
@@ -274,19 +273,19 @@ impl SrvHandler {
     fn new(io: SrvStream, mgr_tx: MgrSender) -> Self {
         let (tx, rx) = mpsc::unbounded();
         SrvHandler {
-            io: io,
+            io,
             state: SrvHandlerState::Receiving,
-            mgr_tx: mgr_tx,
-            rx: rx,
-            tx: tx,
+            mgr_tx,
+            rx,
+            tx,
             timer: None,
         }
     }
 }
 
 impl Future for SrvHandler {
-    type Item = ();
     type Error = HandlerError;
+    type Item = ();
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
         loop {
@@ -488,10 +487,7 @@ pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_tx: MgrSender) {
             let mut core = reactor::Core::new().unwrap();
             let handle = core.handle();
             let listener = TcpListener::bind(&listen_addr).unwrap();
-            let state = SrvState {
-                secret_key: secret_key,
-                mgr_tx: mgr_tx,
-            };
+            let state = SrvState { secret_key, mgr_tx };
             let state = Rc::new(RefCell::new(state));
             let clients = listener.incoming().map(|socket| {
                 let addr = socket.peer_addr().unwrap();

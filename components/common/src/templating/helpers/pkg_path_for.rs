@@ -14,8 +14,10 @@
 
 use std::str::FromStr;
 
-use crate::hcore::fs;
-use crate::hcore::package::{Identifiable, PackageIdent};
+use crate::hcore::{
+    fs,
+    package::{Identifiable, PackageIdent},
+};
 use handlebars::{Handlebars, Helper, HelperDef, RenderContext, RenderError};
 use serde_json;
 

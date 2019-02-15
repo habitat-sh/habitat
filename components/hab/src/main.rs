@@ -29,55 +29,58 @@ extern crate lazy_static;
 extern crate log;
 use pbr;
 
-use std::env;
-use std::ffi::OsString;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::{self, Read};
-use std::net::ToSocketAddrs;
-use std::path::{Path, PathBuf};
-use std::process;
-use std::result;
-use std::str::FromStr;
-use std::thread;
-
-use crate::common::command::package::install::{
-    InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
+use std::{
+    env,
+    ffi::OsString,
+    fs::File,
+    io::{self, prelude::*, Read},
+    net::ToSocketAddrs,
+    path::{Path, PathBuf},
+    process, result,
+    str::FromStr,
+    thread,
 };
-use crate::common::types::ListenCtlAddr;
-use crate::common::ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI};
-use crate::hcore::binlink::default_binlink_dir;
+
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
-use crate::hcore::crypto::keys::PairType;
-use crate::hcore::crypto::{default_cache_key_path, init, BoxKeyPair, SigKeyPair};
-use crate::hcore::env as henv;
-use crate::hcore::fs::{
-    cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path,
+use crate::{
+    common::{
+        command::package::install::{
+            InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
+        },
+        types::ListenCtlAddr,
+        ui::{Coloring, Status, UIWriter, NONINTERACTIVE_ENVVAR, UI},
+    },
+    hcore::{
+        binlink::default_binlink_dir,
+        crypto::{default_cache_key_path, init, keys::PairType, BoxKeyPair, SigKeyPair},
+        env as henv,
+        fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path},
+        package::{PackageIdent, PackageTarget},
+        ChannelIdent,
+    },
 };
-use crate::hcore::package::{PackageIdent, PackageTarget};
-use crate::hcore::ChannelIdent;
 use clap::{ArgMatches, Shell};
 use futures::prelude::*;
 
-use crate::hcore::service::{HealthCheckInterval, ServiceGroup};
-use crate::hcore::url::{bldr_url_from_env, default_bldr_url};
-use crate::protocol::codec::*;
-use crate::protocol::ctl::ServiceBindList;
-use crate::protocol::net::ErrCode;
-use crate::protocol::types::*;
-use crate::sup_client::{SrvClient, SrvClientError};
+use crate::{
+    hcore::{
+        service::{HealthCheckInterval, ServiceGroup},
+        url::{bldr_url_from_env, default_bldr_url},
+    },
+    protocol::{codec::*, ctl::ServiceBindList, net::ErrCode, types::*},
+    sup_client::{SrvClient, SrvClientError},
+};
 use tabwriter::TabWriter;
 
-use hab::analytics;
-use hab::cli;
-use hab::command;
-use hab::command::pkg::list::ListingType;
-use hab::config::{self, Config};
-use hab::error::{Error, Result};
-use hab::feat;
-use hab::scaffolding;
-use hab::{AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR, PRODUCT, VERSION};
+use hab::{
+    analytics, cli,
+    command::{self, pkg::list::ListingType},
+    config::{self, Config},
+    error::{Error, Result},
+    feat, scaffolding, AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR,
+    PRODUCT, VERSION,
+};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -1248,8 +1251,8 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         ("pkg", "export", "tar") => {
             command::pkg::export::tar::start(ui, env::args_os().skip(4).collect())
         }
-        ("run", _, _) => command::launcher::start(ui, env::args_os().skip(1).collect()),
-        ("stu", _, _) | ("stud", _, _) | ("studi", _, _) | ("studio", _, _) => {
+        ("run", ..) => command::launcher::start(ui, env::args_os().skip(1).collect()),
+        ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
             command::studio::enter::start(ui, env::args_os().skip(2).collect())
         }
         // Skip invoking the `hab-sup` binary for sup cli help messages;
@@ -1268,7 +1271,7 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         | ("sup", "sh", _)
         | ("sup", "-V", _)
         | ("sup", "--version", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("term", _, _) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        ("term", ..) => command::sup::start(ui, env::args_os().skip(1).collect()),
         // Delegate `hab sup run *` to the Launcher
         ("sup", "run", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
         _ => Ok(()),

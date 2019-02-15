@@ -16,8 +16,7 @@ use std::ffi::OsString;
 
 use crate::common::ui::UI;
 
-use crate::command::studio;
-use crate::error::Result;
+use crate::{command::studio, error::Result};
 
 pub fn start(
     ui: &mut UI,

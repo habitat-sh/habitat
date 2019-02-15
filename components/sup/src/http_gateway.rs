@@ -25,12 +25,16 @@ use std::{
     thread,
 };
 
-use crate::common::cli_defaults::{
-    LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
+use crate::{
+    common::{
+        cli_defaults::{
+            LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
+        },
+        templating::hooks,
+        types::EnvConfig,
+    },
+    hcore::{crypto, env as henv, service::ServiceGroup},
 };
-use crate::common::templating::hooks;
-use crate::common::types::EnvConfig;
-use crate::hcore::{crypto, env as henv, service::ServiceGroup};
 use actix;
 use actix_web::{
     http::{self, StatusCode},
@@ -42,10 +46,13 @@ use prometheus::{self, CounterVec, Encoder, HistogramTimer, HistogramVec, TextEn
 use rustls::ServerConfig;
 use serde_json::{self, Value as Json};
 
-use crate::error::{Result, SupError};
-use crate::manager;
-use crate::manager::service::hooks::HealthCheckHook;
-use crate::manager::service::HealthCheck;
+use crate::{
+    error::{Result, SupError},
+    manager::{
+        self,
+        service::{hooks::HealthCheckHook, HealthCheck},
+    },
+};
 
 use crate::feat;
 
@@ -176,8 +183,8 @@ impl Middleware<AppState> for Authentication {
 
         let current_token = match current_token.as_ref() {
             Some(t) => t,
-            // If there's no auth token in the state, just return. Everything will continue to function
-            // unauthenticated.
+            // If there's no auth token in the state, just return. Everything will continue to
+            // function unauthenticated.
             None => {
                 debug!("No auth token present. HTTP gateway starting in unauthenticated mode.");
                 return Ok(Started::Done);

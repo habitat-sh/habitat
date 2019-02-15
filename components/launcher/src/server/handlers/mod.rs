@@ -16,9 +16,7 @@ mod restart;
 mod spawn;
 mod terminate;
 
-pub use self::restart::*;
-pub use self::spawn::*;
-pub use self::terminate::*;
+pub use self::{restart::*, spawn::*, terminate::*};
 
 use crate::protocol;
 

@@ -45,9 +45,11 @@
 //! tests that need access to the locked variable will be serialized,
 //! leaving the rest of the tests to proceed in parallel.
 
-use std::env;
-use std::ffi::{OsStr, OsString};
-use std::sync::MutexGuard;
+use std::{
+    env,
+    ffi::{OsStr, OsString},
+    sync::MutexGuard,
+};
 
 /// Models an exclusive "honor system" lock on a single environment variable.
 pub struct LockedEnvVar {
@@ -74,7 +76,7 @@ impl LockedEnvVar {
             Err(env::VarError::NotUnicode(os_string)) => Some(os_string),
         };
         LockedEnvVar {
-            lock: lock,
+            lock,
             original_value: original,
         }
     }
@@ -142,8 +144,7 @@ macro_rules! locked_env_var {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::env::VarError;
-    use std::thread;
+    use std::{env::VarError, thread};
 
     #[test]
     fn initially_unset_value_is_unset_after_drop() {

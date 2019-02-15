@@ -14,15 +14,17 @@
 
 use std::fmt;
 
-use crate::rumor::departure::Departure as CDeparture;
-use crate::rumor::election::{Election as CElection, ElectionUpdate as CElectionUpdate};
-use crate::rumor::service::Service as CService;
-use crate::rumor::service_config::ServiceConfig as CServiceConfig;
-use crate::rumor::service_file::ServiceFile as CServiceFile;
+use crate::rumor::{
+    departure::Departure as CDeparture,
+    election::{Election as CElection, ElectionUpdate as CElectionUpdate},
+    service::Service as CService,
+    service_config::ServiceConfig as CServiceConfig,
+    service_file::ServiceFile as CServiceFile,
+};
 
 include!("../generated/butterfly.newscast.rs");
 
-pub use self::{rumor::Payload as RumorPayload, rumor::Type as RumorType};
+pub use self::rumor::{Payload as RumorPayload, Type as RumorType};
 
 impl fmt::Display for RumorType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -12,26 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::borrow::Cow;
-use std::collections::{BTreeMap, HashMap, HashSet};
-use std::fmt;
-use std::result;
-use std::str::FromStr;
+use std::{
+    borrow::Cow,
+    collections::{BTreeMap, HashMap, HashSet},
+    fmt, result,
+    str::FromStr,
+};
 
-use crate::butterfly::member::{Health, Member, MemberList};
-use crate::butterfly::rumor::election::Election as ElectionRumor;
-use crate::butterfly::rumor::election::ElectionStatus as ElectionStatusRumor;
-use crate::butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
-use crate::butterfly::rumor::service::Service as ServiceRumor;
-use crate::butterfly::rumor::service::SysInfo;
-use crate::butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-use crate::butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-use crate::butterfly::rumor::RumorStore;
-use crate::hcore;
-use crate::hcore::package::PackageIdent;
-use crate::hcore::service::ServiceGroup;
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
+use crate::{
+    butterfly::{
+        member::{Health, Member, MemberList},
+        rumor::{
+            election::{
+                Election as ElectionRumor, ElectionStatus as ElectionStatusRumor,
+                ElectionUpdate as ElectionUpdateRumor,
+            },
+            service::{Service as ServiceRumor, SysInfo},
+            service_config::ServiceConfig as ServiceConfigRumor,
+            service_file::ServiceFile as ServiceFileRumor,
+            RumorStore,
+        },
+    },
+    hcore::{self, package::PackageIdent, service::ServiceGroup},
+};
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 use toml;
 
 use crate::error::{Error, SupError};
@@ -767,8 +771,7 @@ impl<'a> Serialize for CensusMemberProxy<'a> {
 fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
     ServiceGroup::from_str(sg).map_err(|e| {
         outputln!(
-            "Malformed service group; cannot populate configuration data. \
-             Aborting.: {}",
+            "Malformed service group; cannot populate configuration data. Aborting.: {}",
             e
         );
         e
@@ -781,18 +784,22 @@ mod tests {
 
     use serde_json;
 
-    use crate::butterfly::member::{Health, MemberList};
-    use crate::butterfly::rumor::election;
-    use crate::butterfly::rumor::election::Election as ElectionRumor;
-    use crate::butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
-    use crate::butterfly::rumor::service::Service as ServiceRumor;
-    use crate::butterfly::rumor::service::SysInfo;
-    use crate::butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-    use crate::butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-    use crate::butterfly::rumor::RumorStore;
-    use crate::hcore::package::ident::PackageIdent;
-    use crate::hcore::service::ServiceGroup;
-    use crate::test_helpers::*;
+    use crate::{
+        butterfly::{
+            member::{Health, MemberList},
+            rumor::{
+                election::{
+                    self, Election as ElectionRumor, ElectionUpdate as ElectionUpdateRumor,
+                },
+                service::{Service as ServiceRumor, SysInfo},
+                service_config::ServiceConfig as ServiceConfigRumor,
+                service_file::ServiceFile as ServiceFileRumor,
+                RumorStore,
+            },
+        },
+        hcore::{package::ident::PackageIdent, service::ServiceGroup},
+        test_helpers::*,
+    };
 
     #[test]
     fn update_from_rumors() {
@@ -819,7 +826,7 @@ mod tests {
 
     #[test]
     fn census_ring_proxy_conforms_to_the_schema() {
-        let (ring, _, _) = test_census_ring();
+        let (ring, ..) = test_census_ring();
         let crp = CensusRingProxy::new(&ring);
         let json = serde_json::to_string(&crp).unwrap();
         assert_valid(&json, "http_gateway_census_schema.json");

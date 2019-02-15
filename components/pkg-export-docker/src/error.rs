@@ -14,9 +14,7 @@
 
 use base64::DecodeError;
 use rusoto_ecr::GetAuthorizationTokenError;
-use std::process::ExitStatus;
-use std::result;
-use std::string::FromUtf8Error;
+use std::{process::ExitStatus, result, string::FromUtf8Error};
 
 use failure;
 
@@ -31,8 +29,8 @@ pub enum Error {
     #[fail(display = "Could not determine Docker image ID for image: {}", _0)]
     DockerImageIdNotFound(String),
     #[fail(
-        display = "Switch to Windows containers to export Docker images on Windows. \
-                   Current Docker Server OS is set to: {}",
+        display = "Switch to Windows containers to export Docker images on Windows. Current \
+                   Docker Server OS is set to: {}",
         _0
     )]
     DockerNotInWindowsMode(String),
@@ -49,8 +47,8 @@ pub enum Error {
     #[fail(display = "{}", _0)]
     TokenFetchFailed(GetAuthorizationTokenError),
     #[fail(
-        display = "A primary service package could not be determined from: {:?}. \
-                   At least one package with a run hook must be provided.",
+        display = "A primary service package could not be determined from: {:?}. At least one \
+                   package with a run hook must be provided.",
         _0
     )]
     PrimaryServicePackageNotFound(Vec<String>),

@@ -24,13 +24,18 @@
 
 use std::ops::{Deref, DerefMut};
 
-use crate::error::{Error, Result};
-use crate::protocol::newscast::Rumor as ProtoRumor;
 pub use crate::protocol::newscast::{
     election::Status as ElectionStatus, Election as ProtoElection,
 };
-use crate::protocol::{self, newscast, FromProto};
-use crate::rumor::{Rumor, RumorPayload, RumorType};
+use crate::{
+    error::{Error, Result},
+    protocol::{
+        self,
+        newscast::{self, Rumor as ProtoRumor},
+        FromProto,
+    },
+    rumor::{Rumor, RumorPayload, RumorType},
+};
 
 pub trait ElectionRumor {
     fn member_id(&self) -> &str;
@@ -69,8 +74,8 @@ impl Election {
         Election {
             member_id: from_id.clone(),
             service_group: service_group.into(),
-            term: term,
-            suitability: suitability,
+            term,
+            suitability,
             status: if has_quorum {
                 ElectionStatus::Running
             } else {
@@ -197,7 +202,10 @@ impl Rumor for Election {
             self.steal_votes(&mut other);
             true
         } else if other.suitability > self.suitability {
-            debug!("received rumor is more suitable; take stored rumor's votes, replace stored and share");
+            debug!(
+                "received rumor is more suitable; take stored rumor's votes, replace stored and \
+                 share"
+            );
             other.steal_votes(self);
             *self = other;
             true
@@ -206,7 +214,10 @@ impl Rumor for Election {
             self.steal_votes(&mut other);
             true
         } else {
-            debug!("received rumor wins tie-breaker; take stored rumor's votes, replace stored and share");
+            debug!(
+                "received rumor wins tie-breaker; take stored rumor's votes, replace stored and \
+                 share"
+            );
             other.steal_votes(self);
             *self = other;
             true

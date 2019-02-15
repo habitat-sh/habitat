@@ -16,21 +16,18 @@
 //!
 //! Service rumors declare that a given `Server` is running this Service.
 
-use std::cmp::Ordering;
-use std::mem;
-use std::result;
-use std::str::FromStr;
+use std::{cmp::Ordering, mem, result, str::FromStr};
 
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 use toml;
 
-use habitat_core::package::Identifiable;
-use habitat_core::service::ServiceGroup;
+use habitat_core::{package::Identifiable, service::ServiceGroup};
 
-use crate::error::{Error, Result};
-use crate::protocol::{self, newscast, FromProto};
-use crate::rumor::{Rumor, RumorPayload, RumorType};
+use crate::{
+    error::{Error, Result},
+    protocol::{self, newscast, FromProto},
+    rumor::{Rumor, RumorPayload, RumorType},
+};
 
 #[derive(Debug, Clone)]
 pub struct Service {
@@ -100,16 +97,15 @@ impl Service {
         assert_eq!(
             service_group.service(),
             package.name(),
-            "Service constructor requires the given package name to match the service \
-             group's name"
+            "Service constructor requires the given package name to match the service group's name"
         );
         Service {
             member_id: member_id.into(),
-            service_group: service_group,
+            service_group,
             incarnation: 0,
             initialized: false,
             pkg: package.to_string(),
-            sys: sys,
+            sys,
             cfg: cfg
                 .map(|v| {
                     // Directly serializing a toml::value::Table can lead to an error
@@ -249,15 +245,15 @@ impl From<SysInfo> for newscast::SysInfo {
 
 #[cfg(test)]
 mod tests {
-    use std::cmp::Ordering;
-    use std::str::FromStr;
+    use std::{cmp::Ordering, str::FromStr};
 
-    use habitat_core::package::{Identifiable, PackageIdent};
-    use habitat_core::service::ServiceGroup;
+    use habitat_core::{
+        package::{Identifiable, PackageIdent},
+        service::ServiceGroup,
+    };
 
     use super::Service;
-    use crate::rumor::service::SysInfo;
-    use crate::rumor::Rumor;
+    use crate::rumor::{service::SysInfo, Rumor};
 
     fn create_service(member_id: &str) -> Service {
         let pkg = PackageIdent::from_str("core/neurosis/1.2.3/20161208121212").unwrap();

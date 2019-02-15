@@ -18,8 +18,7 @@ use habitat_launcher as launcher;
 #[macro_use]
 extern crate log;
 
-use std::env;
-use std::process;
+use std::{env, process};
 
 use crate::launcher::server;
 

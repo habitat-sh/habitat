@@ -1,8 +1,9 @@
-use std::error::Error as StdErr;
-use std::ffi::OsStr;
-use std::iter::IntoIterator;
-use std::path::Path;
-use std::path::PathBuf;
+use std::{
+    error::Error as StdErr,
+    ffi::OsStr,
+    iter::IntoIterator,
+    path::{Path, PathBuf},
+};
 
 use glob;
 
@@ -74,8 +75,8 @@ impl SpecDir {
                         // fail-safe is report and skip.
                         Error::ServiceSpecParse(_) | Error::MissingRequiredIdent => {
                             outputln!(
-                                "Error when loading service spec file '{}' ({}). \
-                                 This file will be skipped.",
+                                "Error when loading service spec file '{}' ({}). This file will \
+                                 be skipped.",
                                 spec_file.display(),
                                 e.description()
                             );
@@ -95,10 +96,9 @@ impl SpecDir {
                 Some(stem) if stem == spec.ident.name => spec,
                 Some(_) => {
                     outputln!(
-                        "Error when loading service spec file '{}' \
-                         (File name does not match ident name '{}' from ident = \"{}\", \
-                         it should be called '{}.{}'). \
-                         This file will be skipped.",
+                        "Error when loading service spec file '{}' (File name does not match \
+                         ident name '{}' from ident = \"{}\", it should be called '{}.{}'). This \
+                         file will be skipped.",
                         spec_file.display(),
                         &spec.ident.name,
                         &spec.ident,
@@ -109,9 +109,8 @@ impl SpecDir {
                 }
                 None => {
                     outputln!(
-                        "Error when loading service spec file '{}' \
-                         (File stem could not be determined). \
-                         This file will be skipped.",
+                        "Error when loading service spec file '{}' (File stem could not be \
+                         determined). This file will be skipped.",
                         spec_file.display()
                     );
                     continue;

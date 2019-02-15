@@ -12,13 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::error;
-use std::fmt;
-use std::io;
-use std::num;
-use std::path::PathBuf;
-use std::result;
-use std::str;
+use std::{error, fmt, io, num, path::PathBuf, result, str};
 
 use habitat_core;
 use prost;
@@ -123,27 +117,25 @@ impl fmt::Display for Error {
 impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::BadDataPath(_, _) => "Unable to read or write to data directory",
-            Error::BadDatFile(_, _) => "Unable to decode contents of DatFile",
+            Error::BadDataPath(..) => "Unable to read or write to data directory",
+            Error::BadDatFile(..) => "Unable to decode contents of DatFile",
             Error::CannotBind(_) => "Cannot bind to port",
-            Error::DatFileIO(_, _) => "Error reading or writing to DatFile",
+            Error::DatFileIO(..) => "Error reading or writing to DatFile",
             Error::DecodeError(ref err) => err.description(),
             Error::EncodeError(ref err) => err.description(),
             Error::HabitatCore(_) => "Habitat core error",
-            Error::IncarnationIO(_, _) => "Error reading or writing incarnation store file",
-            Error::IncarnationParse(_, _) => "Error parsing value from incarnation store file",
+            Error::IncarnationIO(..) => "Error reading or writing incarnation store file",
+            Error::IncarnationParse(..) => "Error parsing value from incarnation store file",
             Error::InvalidIncarnationSynchronization => {
                 "Tried to synchronize own member incarnation from non-existent incarnation store"
             }
             Error::InvalidRumorShareLimit => "Invalid rumor share limit",
-            Error::NonExistentRumor(_, _) => {
-                "Cannot write rumor to bytes because it does not exist"
-            }
+            Error::NonExistentRumor(..) => "Cannot write rumor to bytes because it does not exist",
             Error::ProtocolMismatch(_) => {
                 "Received an unprocessable wire message from another Supervisor"
             }
-            Error::ServiceConfigDecode(_, _) => "Cannot decode service config into TOML",
-            Error::ServiceConfigNotUtf8(_, _) => "Cannot read service config bytes to UTF-8",
+            Error::ServiceConfigDecode(..) => "Cannot decode service config into TOML",
+            Error::ServiceConfigNotUtf8(..) => "Cannot read service config bytes to UTF-8",
             Error::SocketCloneError => "Cannot clone the underlying UDP socket",
             Error::SocketSetReadTimeout(_) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(_) => "Cannot set UDP socket write timeout",

@@ -14,15 +14,19 @@
 
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
-use std::collections::{hash_map, HashMap};
-use std::fmt;
-use std::net::SocketAddr;
-use std::num::ParseIntError;
-use std::ops::Add;
-use std::result;
-use std::str::FromStr;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::RwLock;
+use std::{
+    collections::{hash_map, HashMap},
+    fmt,
+    net::SocketAddr,
+    num::ParseIntError,
+    ops::Add,
+    result,
+    str::FromStr,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        RwLock,
+    },
+};
 
 use habitat_core::util::ToI64;
 use prometheus::IntGaugeVec;
@@ -38,10 +42,12 @@ use serde::{
 use time::{Duration, SteadyTime};
 use uuid::Uuid;
 
-use crate::error::{Error, Result};
 pub use crate::protocol::swim::Health;
-use crate::protocol::{self, newscast, swim as proto, FromProto};
-use crate::rumor::{RumorKey, RumorPayload, RumorType};
+use crate::{
+    error::{Error, Result},
+    protocol::{self, newscast, swim as proto, FromProto},
+    rumor::{RumorKey, RumorPayload, RumorType},
+};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -525,7 +531,6 @@ impl MemberList {
     /// | Suspect   |       |           | propagate | propagate |
     /// | Confirmed |       |           |           | propagate |
     /// | Departed  |       |           |           |           |
-    ///
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
         self.insert_membership(Membership {
@@ -879,13 +884,15 @@ mod tests {
     }
 
     mod membership {
-        use crate::member::{Health, Member, Membership};
-        use crate::protocol::Message;
+        use crate::{
+            member::{Health, Member, Membership},
+            protocol::Message,
+        };
         #[test]
         fn encode_decode_roundtrip() {
             let member = Member::default();
             let membership = Membership {
-                member: member,
+                member,
                 health: Health::Suspect,
             };
 
@@ -1054,15 +1061,18 @@ mod tests {
                     to_health
                 );
                 assert_eq!(
-                ml.get_update_counter(),
-                update_counter_value_checkpoint_1,
-                "Update counter should not have been incremented after trying to insert a lower-incarnation-number rumor"
-            );
+                    ml.get_update_counter(),
+                    update_counter_value_checkpoint_1,
+                    "Update counter should not have been incremented after trying to insert a \
+                     lower-incarnation-number rumor"
+                );
                 assert_eq!(
-                ml.health_of(&member), Some(from_health),
-                "Member should have still have health {:?} following attempt to insert lower-incarnation-number rumor, but didn't",
-                from_health
-            );
+                    ml.health_of(&member),
+                    Some(from_health),
+                    "Member should have still have health {:?} following attempt to insert \
+                     lower-incarnation-number rumor, but didn't",
+                    from_health
+                );
             }
 
             macro_rules! lower_incarnation {
@@ -1136,21 +1146,25 @@ mod tests {
                 };
 
                 assert!(
-                ml.insert(member_with_higher_incarnation, to_health),
-                "Inserting with {:?}->{:?} should be always work with a higher incarnation number",
-                from_health,
-                to_health
-            );
+                    ml.insert(member_with_higher_incarnation, to_health),
+                    "Inserting with {:?}->{:?} should be always work with a higher incarnation \
+                     number",
+                    from_health,
+                    to_health
+                );
                 assert_eq!(
-                ml.get_update_counter(),
-                update_counter_value_checkpoint_1 + 1,
-                "Update counter should increment by 1 when inserting a higher-incarnation-number rumor"
-            );
+                    ml.get_update_counter(),
+                    update_counter_value_checkpoint_1 + 1,
+                    "Update counter should increment by 1 when inserting a \
+                     higher-incarnation-number rumor"
+                );
                 assert_eq!(
-                ml.health_of(&member), Some(to_health),
-                "Member should have health {:?} following insertion of higher-incarnation-number rumor",
-                to_health
-            );
+                    ml.health_of(&member),
+                    Some(to_health),
+                    "Member should have health {:?} following insertion of \
+                     higher-incarnation-number rumor",
+                    to_health
+                );
             }
 
             macro_rules! higher_incarnation {
@@ -1221,38 +1235,46 @@ mod tests {
 
                 if to_health > from_health {
                     assert!(
-                    ml.insert(member_with_same_incarnation, to_health),
-                    "Inserting with {:?}->{:?} should work with an identical incarnation number",
-                    from_health,
-                    to_health
-                );
+                        ml.insert(member_with_same_incarnation, to_health),
+                        "Inserting with {:?}->{:?} should work with an identical incarnation \
+                         number",
+                        from_health,
+                        to_health
+                    );
                     assert_eq!(
-                    ml.get_update_counter(),
-                    update_counter_value_checkpoint_1 + 1,
-                    "Update counter should increment by 1 when inserting a same-incarnation-number rumor with worse health"
-                );
+                        ml.get_update_counter(),
+                        update_counter_value_checkpoint_1 + 1,
+                        "Update counter should increment by 1 when inserting a \
+                         same-incarnation-number rumor with worse health"
+                    );
                     assert_eq!(
-                    ml.health_of(&member), Some(to_health),
-                    "Member should have health {:?} following insertion of same-incarnation-number rumor with worse health",
-                    to_health
-                );
+                        ml.health_of(&member),
+                        Some(to_health),
+                        "Member should have health {:?} following insertion of \
+                         same-incarnation-number rumor with worse health",
+                        to_health
+                    );
                 } else {
                     assert!(
-                    !ml.insert(member_with_same_incarnation, to_health),
-                    "Inserting with {from:?}->{to:?} should never work with an identical incarnation number, because {to:?} is not \"worse than\" {from:?}",
-                    from=from_health,
-                    to=to_health
-                );
+                        !ml.insert(member_with_same_incarnation, to_health),
+                        "Inserting with {from:?}->{to:?} should never work with an identical \
+                         incarnation number, because {to:?} is not \"worse than\" {from:?}",
+                        from = from_health,
+                        to = to_health
+                    );
                     assert_eq!(
-                    ml.get_update_counter(),
-                    update_counter_value_checkpoint_1,
-                    "Update counter should not increment when inserting a same-incarnation-number rumor without worse health"
-                );
+                        ml.get_update_counter(),
+                        update_counter_value_checkpoint_1,
+                        "Update counter should not increment when inserting a \
+                         same-incarnation-number rumor without worse health"
+                    );
                     assert_eq!(
-                    ml.health_of(&member), Some(from_health),
-                    "Member should still have health {:?} following insertion of same-incarnation-number rumor without worse health",
-                    from_health
-                );
+                        ml.health_of(&member),
+                        Some(from_health),
+                        "Member should still have health {:?} following insertion of \
+                         same-incarnation-number rumor without worse health",
+                        from_health
+                    );
                 }
             }
 
@@ -1318,10 +1340,14 @@ mod tests {
                         from_health,
                         to_health
                     );
-                    assert_eq!(ml.get_update_counter(), update_counter_before,
-                           "Transitioning from {:?} to {:?} (i.e., no change) should not increment update counter",
-                           from_health,
-                           to_health);
+                    assert_eq!(
+                        ml.get_update_counter(),
+                        update_counter_before,
+                        "Transitioning from {:?} to {:?} (i.e., no change) should not increment \
+                         update counter",
+                        from_health,
+                        to_health
+                    );
                     assert_eq!(
                         ml.health_of(&member_one).expect(
                             "Expected member to exist in health after update, but it didn't"
@@ -1332,14 +1358,19 @@ mod tests {
                     );
                 } else if to_health > from_health {
                     assert!(
-                    ml.insert(member_one.clone(), to_health),
-                    "Transitioning from {:?} to {:?} (i.e., worse health) should NOT be a no-op",
-                    from_health,
-                    to_health
+                        ml.insert(member_one.clone(), to_health),
+                        "Transitioning from {:?} to {:?} (i.e., worse health) should NOT be a \
+                         no-op",
+                        from_health,
+                        to_health
                     );
-                    assert_eq!(ml.get_update_counter(), update_counter_before + 1,
-                           "Transitioning from {:?} to {:?} (i.e., different health) should increment update counter by one",
-                           from_health, to_health
+                    assert_eq!(
+                        ml.get_update_counter(),
+                        update_counter_before + 1,
+                        "Transitioning from {:?} to {:?} (i.e., different health) should \
+                         increment update counter by one",
+                        from_health,
+                        to_health
                     );
                     assert_eq!(
                         ml.health_of(&member_one).expect(
@@ -1357,9 +1388,13 @@ mod tests {
                         from_health,
                         to_health
                     );
-                    assert_eq!(ml.get_update_counter(), update_counter_before,
-                           "Transitioning from {:?} to {:?} (i.e., no worse health) should not increment update counter",
-                           from_health, to_health
+                    assert_eq!(
+                        ml.get_update_counter(),
+                        update_counter_before,
+                        "Transitioning from {:?} to {:?} (i.e., no worse health) should not \
+                         increment update counter",
+                        from_health,
+                        to_health
                     );
                     assert_eq!(
                         ml.health_of(&member_one).expect(
@@ -1410,8 +1445,7 @@ mod tests {
         /// - MemberList::members_expired_to_departed
         mod timed_expiration {
             use crate::member::{Health, Member, MemberList};
-            use std::thread;
-            use std::time::Duration as StdDuration;
+            use std::{thread, time::Duration as StdDuration};
             use time::Duration;
 
             #[test]
@@ -1427,8 +1461,11 @@ mod tests {
                 let large_timeout =
                     Duration::from_std(StdDuration::from_secs(large_seconds)).unwrap();
 
-                assert!(ml.members_expired_to_confirmed(small_timeout).is_empty(),
-                        "An empty MemberList shouldn't have anything that's timing out to being Confirmed");
+                assert!(
+                    ml.members_expired_to_confirmed(small_timeout).is_empty(),
+                    "An empty MemberList shouldn't have anything that's timing out to being \
+                     Confirmed"
+                );
 
                 assert!(ml.insert(member_one.clone(), Health::Alive));
 
@@ -1473,8 +1510,11 @@ mod tests {
                 let large_timeout =
                     Duration::from_std(StdDuration::from_secs(large_seconds)).unwrap();
 
-                assert!(ml.members_expired_to_departed(small_timeout).is_empty(),
-                        "An empty MemberList shouldn't have anything that's timing out to being Departed");
+                assert!(
+                    ml.members_expired_to_departed(small_timeout).is_empty(),
+                    "An empty MemberList shouldn't have anything that's timing out to being \
+                     Departed"
+                );
 
                 assert!(ml.insert(member_one.clone(), Health::Alive));
                 assert!(
@@ -1556,8 +1596,10 @@ mod tests {
                     "Member 2 should have a health of Confirmed after timing out"
                 );
                 assert_eq!(
-                    ml.health_of(&member_3), Some(Health::Suspect),
-                    "Member 3 should still have a health of Suspect, because it hasn't timed out yet"
+                    ml.health_of(&member_3),
+                    Some(Health::Suspect),
+                    "Member 3 should still have a health of Suspect, because it hasn't timed out \
+                     yet"
                 );
             }
 
@@ -1601,8 +1643,10 @@ mod tests {
                     "Member 2 should have a health of Departed after timing out"
                 );
                 assert_eq!(
-                    ml.health_of(&member_3), Some(Health::Confirmed),
-                    "Member 3 should still have a health of Confirmed, because it hasn't timed out yet"
+                    ml.health_of(&member_3),
+                    Some(Health::Confirmed),
+                    "Member 3 should still have a health of Confirmed, because it hasn't timed \
+                     out yet"
                 );
             }
 

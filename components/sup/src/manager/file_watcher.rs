@@ -12,19 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::hash_map::Entry;
-use std::collections::{HashMap, HashSet, VecDeque};
-use std::env;
-use std::ffi::OsString;
-use std::mem::swap;
-use std::path::{Component, Path, PathBuf};
-use std::sync::mpsc::{channel, Receiver, TryRecvError};
-use std::thread;
-use std::time::Duration;
+use std::{
+    collections::{hash_map::Entry, HashMap, HashSet, VecDeque},
+    env,
+    ffi::OsString,
+    mem::swap,
+    path::{Component, Path, PathBuf},
+    sync::mpsc::{channel, Receiver, TryRecvError},
+    thread,
+    time::Duration,
+};
 
 use crate::error::{Error, Result};
-use notify;
-use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{self, DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
 use crate::manager::debug::{IndentedStructFormatter, IndentedToString};
 
@@ -245,7 +245,7 @@ impl Common {
         path_rest.extend(self.path_rest.iter().cloned());
         ProcessPathArgs {
             path: self.dir_file_name.directory.clone(),
-            path_rest: path_rest,
+            path_rest,
             index: self.index,
             prev: self.prev.clone(),
         }
@@ -325,7 +325,7 @@ impl CommonGenerator {
             prev: args.prev,
             old_prev: None,
             path: args.path,
-            split_path: split_path,
+            split_path,
             index: args.index,
             path_rest: args.path_rest,
         };
@@ -381,11 +381,11 @@ impl CommonGenerator {
             let index = self.index;
             self.index += 1;
             Some(Common {
-                path: path,
-                dir_file_name: dir_file_name,
-                prev: prev,
+                path,
+                dir_file_name,
+                prev,
                 next: None,
-                index: index,
+                index,
                 path_rest: self.path_rest.clone(),
             })
         } else {
@@ -742,8 +742,8 @@ impl Paths {
         }
 
         ProcessPathArgs {
-            path: path,
-            path_rest: path_rest,
+            path,
+            path_rest,
             index: 0,
             prev: None,
         }
@@ -1289,11 +1289,11 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         };
 
         Ok(Self {
-            callbacks: callbacks,
-            watcher: watcher,
-            rx: rx,
-            paths: paths,
-            initial_real_file: initial_real_file,
+            callbacks,
+            watcher,
+            rx,
+            paths,
+            initial_real_file,
         })
     }
 
@@ -1613,7 +1613,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                 return events;
             }
             DebouncedEvent::Rescan => EventAction::RestartWatching,
-            DebouncedEvent::Error(_, _) => EventAction::RestartWatching,
+            DebouncedEvent::Error(..) => EventAction::RestartWatching,
         };
         debug!("translated to single {}", dits!(event_action));
         vec![event_action]
@@ -1672,20 +1672,20 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 // scenario, that involves symlinks.
 #[cfg(all(unix, test))]
 mod tests {
-    use std::collections::{HashMap, HashSet, VecDeque};
-    use std::ffi::OsString;
-    use std::fmt::{Display, Error, Formatter};
-    use std::fs;
-    use std::fs::File;
-    use std::io::ErrorKind;
-    use std::os::unix::fs as unix_fs;
-    use std::path::{Component, Path, PathBuf};
-    use std::sync::mpsc::Sender;
-    use std::thread;
-    use std::time::Duration;
+    use std::{
+        collections::{HashMap, HashSet, VecDeque},
+        ffi::OsString,
+        fmt::{Display, Error, Formatter},
+        fs::{self, File},
+        io::ErrorKind,
+        os::unix::fs as unix_fs,
+        path::{Component, Path, PathBuf},
+        sync::mpsc::Sender,
+        thread,
+        time::Duration,
+    };
 
-    use notify;
-    use notify::{DebouncedEvent, RawEvent, RecommendedWatcher, RecursiveMode, Watcher};
+    use notify::{self, DebouncedEvent, RawEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
     use tempfile::TempDir;
 
@@ -2660,10 +2660,7 @@ mod tests {
 
     impl NotifyEvent {
         fn new(path: PathBuf, kind: NotifyEventKind) -> Self {
-            Self {
-                path: path,
-                kind: kind,
-            }
+            Self { path, kind }
         }
 
         fn appeared(path: PathBuf) -> Self {
@@ -3113,8 +3110,8 @@ mod tests {
             let root = tmp_dir.path().to_owned();
             Self {
                 debug_info: DebugInfo::new(),
-                tmp_dir: tmp_dir,
-                root: root,
+                tmp_dir,
+                root,
             }
         }
 
@@ -3144,10 +3141,7 @@ mod tests {
                     .unwrap_or_else(|_| {
                         panic!("failed to create watcher, debug info:\n{}", self.debug_info,)
                     });
-            WatcherSetup {
-                init_path: init_path,
-                watcher: watcher,
-            }
+            WatcherSetup { init_path, watcher }
         }
 
         fn run_steps(

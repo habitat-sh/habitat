@@ -12,17 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::fs;
 #[cfg(windows)]
 use std::fs::File;
 #[cfg(windows)]
 use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+};
 
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::fs as hfs;
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::{
+    common::ui::{Status, UIWriter, UI},
+    hcore::{
+        fs as hfs,
+        package::{PackageIdent, PackageInstall},
+    },
+};
 
 use crate::error::{Error, Result};
 
@@ -95,8 +100,8 @@ pub fn start(
 
     if cfg!(target_os = "windows") && !is_dest_on_path(&dst_path) {
         ui.warn(format!(
-            "Binlink destination '{}' is not on the PATH. \
-             Consider setting it manually or running 'hab setup' to add it to the machine PATH.",
+            "Binlink destination '{}' is not on the PATH. Consider setting it manually or running \
+             'hab setup' to add it to the machine PATH.",
             dst_path.display(),
         ))?;
     }
@@ -259,17 +264,23 @@ impl Binlink {
 #[cfg(test)]
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 mod test {
-    use std::collections::HashMap;
-    use std::env;
-    use std::fs::{self, File};
-    use std::io::{self, Cursor, Write};
-    use std::path::Path;
-    use std::str::{self, FromStr};
-    use std::sync::{Arc, RwLock};
+    use std::{
+        collections::HashMap,
+        env,
+        fs::{self, File},
+        io::{self, Cursor, Write},
+        path::Path,
+        str::{self, FromStr},
+        sync::{Arc, RwLock},
+    };
 
-    use crate::common::ui::{Coloring, UI};
-    use crate::hcore;
-    use crate::hcore::package::{PackageIdent, PackageTarget};
+    use crate::{
+        common::ui::{Coloring, UI},
+        hcore::{
+            self,
+            package::{PackageIdent, PackageTarget},
+        },
+    };
     use tempfile::TempDir;
 
     use super::{binlink_all_in_pkg, start, Binlink};

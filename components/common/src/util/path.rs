@@ -12,16 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::path::PathBuf;
-use std::str::FromStr;
+use std::{
+    env,
+    fs::File,
+    io::{prelude::*, BufReader},
+    path::PathBuf,
+    str::FromStr,
+};
 
-use crate::command::package::install::{self, InstallHookMode, InstallMode, LocalPackageUsage};
-use crate::error::{Error, Result};
-use crate::ui;
+use crate::{
+    command::package::install::{self, InstallHookMode, InstallMode, LocalPackageUsage},
+    error::{Error, Result},
+    ui,
+};
 use habitat_core::{
     fs::{cache_artifact_path, find_command, FS_ROOT_PATH},
     package::{PackageIdent, PackageInstall, PackageTarget},
@@ -113,9 +116,8 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                             None => {
                                 let path = bin.to_string_lossy().into_owned();
                                 println!(
-                                    "An unexpected error has occurred. {} was \
-                                     found at {}, yet the parent directory could not \
-                                     be computed. Aborting...",
+                                    "An unexpected error has occurred. {} was found at {}, yet \
+                                     the parent directory could not be computed. Aborting...",
                                     INTERPRETER_COMMAND, &path
                                 );
                                 return Err(Error::FileNotFound(path));

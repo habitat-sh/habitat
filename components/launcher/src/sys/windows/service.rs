@@ -12,25 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
-use std::io;
-use std::mem;
+use std::{collections::HashMap, io, mem};
 
 use crate::protocol::{self, ShutdownMethod};
-use core::os::process::handle_from_pid;
-use core::os::process::windows_child::{Child, ExitStatus, Handle};
+use core::os::process::{
+    handle_from_pid,
+    windows_child::{Child, ExitStatus, Handle},
+};
 use time::{Duration, SteadyTime};
-use winapi::shared::minwindef::{DWORD, LPDWORD, MAX_PATH};
-use winapi::shared::winerror::{ERROR_FILE_NOT_FOUND, WAIT_TIMEOUT};
-use winapi::um::handleapi::{self, INVALID_HANDLE_VALUE};
-use winapi::um::processthreadsapi;
-use winapi::um::synchapi;
-use winapi::um::tlhelp32::{self, LPPROCESSENTRY32W, PROCESSENTRY32W, TH32CS_SNAPPROCESS};
-use winapi::um::winbase::{INFINITE, WAIT_OBJECT_0};
-use winapi::um::wincon;
+use winapi::{
+    shared::{
+        minwindef::{DWORD, LPDWORD, MAX_PATH},
+        winerror::{ERROR_FILE_NOT_FOUND, WAIT_TIMEOUT},
+    },
+    um::{
+        handleapi::{self, INVALID_HANDLE_VALUE},
+        processthreadsapi, synchapi,
+        tlhelp32::{self, LPPROCESSENTRY32W, PROCESSENTRY32W, TH32CS_SNAPPROCESS},
+        winbase::{INFINITE, WAIT_OBJECT_0},
+        wincon,
+    },
+};
 
-use crate::error::{Error, Result};
-use crate::service::Service;
+use crate::{
+    error::{Error, Result},
+    service::Service,
+};
 
 const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
@@ -43,7 +50,7 @@ pub struct Process {
 impl Process {
     fn new(handle: Handle) -> Self {
         Process {
-            handle: handle,
+            handle,
             last_status: None,
         }
     }

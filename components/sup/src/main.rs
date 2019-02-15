@@ -48,29 +48,37 @@ use std::{
     str::{self, FromStr},
 };
 
-use crate::common::cli_defaults::GOSSIP_DEFAULT_PORT;
-use crate::common::command::package::install::InstallSource;
-use crate::common::ui::{Coloring, NONINTERACTIVE_ENVVAR, UI};
-use crate::hcore::crypto::{self, default_cache_key_path, SymKey};
-use crate::hcore::env as henv;
-use crate::hcore::url::{bldr_url_from_env, default_bldr_url};
-use crate::hcore::ChannelIdent;
-use crate::launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE};
-use crate::protocol::{
-    ctl::ServiceBindList,
-    types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
+use crate::{
+    common::{
+        cli_defaults::GOSSIP_DEFAULT_PORT,
+        command::package::install::InstallSource,
+        ui::{Coloring, NONINTERACTIVE_ENVVAR, UI},
+    },
+    hcore::{
+        crypto::{self, default_cache_key_path, SymKey},
+        env as henv,
+        url::{bldr_url_from_env, default_bldr_url},
+        ChannelIdent,
+    },
+    launcher_client::{LauncherCli, ERR_NO_RETRY_EXCODE},
+    protocol::{
+        ctl::ServiceBindList,
+        types::{ApplicationEnvironment, BindingMode, ServiceBind, Topology, UpdateStrategy},
+    },
 };
 use clap::ArgMatches;
 use habitat_common as common;
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 
-use crate::sup::cli::cli;
-use crate::sup::command;
-use crate::sup::error::{Error, Result, SupError};
-use crate::sup::feat;
-use crate::sup::manager::{Manager, ManagerConfig};
-use crate::sup::util;
+use crate::sup::{
+    cli::cli,
+    command,
+    error::{Error, Result, SupError},
+    feat,
+    manager::{Manager, ManagerConfig},
+    util,
+};
 
 #[cfg(test)]
 use tempfile::TempDir;
@@ -206,7 +214,7 @@ fn sub_term() -> Result<()> {
     let cfg = ManagerConfig::default();
     match Manager::term(&cfg) {
         Err(SupError {
-            err: Error::ProcessLockIO(_, _),
+            err: Error::ProcessLockIO(..),
             ..
         }) => {
             println!("Supervisor not started.");
@@ -273,8 +281,8 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
                 ),
             ))
         }),
-        // default is only included here for the custom_state_path field which will ideally eventually
-        // be removed, it only exists to manipulate test data.
+        // default is only included here for the custom_state_path field which will ideally
+        // eventually be removed, it only exists to manipulate test data.
         ..Default::default()
     };
 
@@ -311,9 +319,9 @@ fn get_peers(matches: &ArgMatches) -> Result<Vec<SocketAddr>> {
 }
 
 // TODO: Make this more testable.
-// The use of env variables here makes it difficult to unit test. Since tests are run in parallel, setting an env var in one test
-// can adversely effect the results in another test. We need some additional abstractions written around env vars in order to make
-// them more testable.
+// The use of env variables here makes it difficult to unit test. Since tests are run in parallel,
+// setting an env var in one test can adversely effect the results in another test. We need some
+// additional abstractions written around env vars in order to make them more testable.
 fn get_ring_key(m: &ArgMatches) -> Result<Option<SymKey>> {
     match m.value_of("RING") {
         Some(val) => {
@@ -524,10 +532,10 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::common::locked_env_var;
-    use crate::common::types::ListenCtlAddr;
-    use crate::sup::config::GossipListenAddr;
-    use crate::sup::http_gateway;
+    use crate::{
+        common::{locked_env_var, types::ListenCtlAddr},
+        sup::{config::GossipListenAddr, http_gateway},
+    };
 
     mod manager_config {
 

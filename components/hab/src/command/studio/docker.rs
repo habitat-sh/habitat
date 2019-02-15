@@ -12,21 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::ffi::{OsStr, OsString};
-use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::{
+    env,
+    ffi::{OsStr, OsString},
+    path::{Path, PathBuf},
+    process::{Command, Stdio},
+};
 
-use crate::command::studio::enter::ARTIFACT_PATH_ENVVAR;
-use crate::common::ui::UI;
-use crate::hcore::crypto::default_cache_key_path;
-use crate::hcore::env as henv;
-use crate::hcore::fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
-use crate::hcore::os::process;
-use crate::hcore::package::target;
+use crate::{
+    command::studio::enter::ARTIFACT_PATH_ENVVAR,
+    common::ui::UI,
+    hcore::{
+        crypto::default_cache_key_path,
+        env as henv,
+        fs::{find_command, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
+        os::process,
+        package::target,
+    },
+};
 
-use crate::error::{Error, Result};
-use crate::VERSION;
+use crate::{
+    error::{Error, Result},
+    VERSION,
+};
 
 const DOCKER_CMD: &str = "docker";
 const DOCKER_CMD_ENVVAR: &str = "HAB_DOCKER_BINARY";

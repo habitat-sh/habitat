@@ -14,20 +14,26 @@
 
 /// Collect all the configuration data that is exposed to users, and render it.
 use crate::error::{Error, Result};
-use crate::hcore::fs::{self, USER_CONFIG_FILE};
-use crate::hcore::{self, crypto, outputln};
-use crate::templating::package::Pkg;
-use crate::templating::TemplateRenderer;
+use crate::{
+    hcore::{
+        self, crypto,
+        fs::{self, USER_CONFIG_FILE},
+        outputln,
+    },
+    templating::{package::Pkg, TemplateRenderer},
+};
 use serde::{Serialize, Serializer};
 use serde_json;
 use serde_transcode;
-use std;
-use std::borrow::Cow;
-use std::env;
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::{Path, PathBuf};
-use std::result;
+use std::{
+    self,
+    borrow::Cow,
+    env,
+    fs::File,
+    io::prelude::*,
+    path::{Path, PathBuf},
+    result,
+};
 use toml;
 
 static LOGKEY: &'static str = "CF";
@@ -84,12 +90,15 @@ impl PackageConfigPaths for Pkg {
     fn name(&self) -> String {
         self.name.clone()
     }
+
     fn default_config_dir(&self) -> PathBuf {
         self.path.clone()
     }
+
     fn recommended_user_config_dir(&self) -> PathBuf {
         fs::user_config_path(&self.name)
     }
+
     fn deprecated_user_config_dir(&self) -> PathBuf {
         self.svc_path.clone()
     }
@@ -131,13 +140,13 @@ impl Cfg {
         let user = Self::load_user(user_config_path.get_path())?;
         let environment = Self::load_environment(&package.name())?;
         return Ok(Self {
-            default: default,
-            user: user,
+            default,
+            user,
             gossip: None,
-            environment: environment,
+            environment,
             gossip_incarnation: 0,
-            user_config_path: user_config_path,
-            override_config_dir: override_config_dir,
+            user_config_path,
+            override_config_dir,
         });
     }
 
@@ -211,7 +220,8 @@ impl Cfg {
         self.gossip = Some(gossip);
     }
 
-    /// Returns a subset of the overall configuration which intersects with the given package exports.
+    /// Returns a subset of the overall configuration which intersects with the given package
+    /// exports.
     pub fn to_exported(&self, pkg: &Pkg) -> Result<toml::value::Table> {
         let mut map = toml::value::Table::default();
         let cfg = toml::Value::try_from(&self).expect("Cfg -> TOML conversion");;
@@ -299,8 +309,7 @@ impl Cfg {
         let deprecated_path = deprecated_dir.join(USER_CONFIG_FILE);
         if deprecated_path.exists() {
             outputln!(
-                "The user configuration location at {} is deprecated, \
-                 consider putting it in {}",
+                "The user configuration location at {} is deprecated, consider putting it in {}",
                 deprecated_path.display(),
                 recommended_path.display(),
             );
@@ -575,8 +584,7 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 
 #[cfg(unix)]
 fn set_permissions(path: &Path, user: &str, group: &str) -> hcore::error::Result<()> {
-    use crate::hcore::os::users;
-    use crate::hcore::util::posix_perm;
+    use crate::hcore::{os::users, util::posix_perm};
 
     if users::can_run_services_as_svc_user() {
         posix_perm::set_owner(path, &user, &group)?;
@@ -632,8 +640,7 @@ fn load_templates(
 /// to create.
 ///
 /// - `root` must be a directory
-/// - `file` must be contained within the `root` directory at an
-///   arbitrary depth
+/// - `file` must be contained within the `root` directory at an arbitrary depth
 fn ensure_directory_structure(root: &Path, file: &Path, user: &str, group: &str) -> Result<()> {
     // We check that `file` is below `root` in the directory structure and
     // that `root` exists, so that we don't create arbitrary directory
@@ -661,13 +668,15 @@ fn write_templated_file(path: &Path, compiled: &str, user: &str, group: &str) ->
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::error::Error;
-    use crate::hcore::package::{PackageIdent, PackageInstall};
-    use crate::templating::context::RenderContext;
-    use crate::templating::test_helpers::*;
-    use std::env;
-    use std::fs;
-    use std::fs::OpenOptions;
+    use crate::{
+        error::Error,
+        hcore::package::{PackageIdent, PackageInstall},
+        templating::{context::RenderContext, test_helpers::*},
+    };
+    use std::{
+        env,
+        fs::{self, OpenOptions},
+    };
     use tempfile::TempDir;
     use toml;
 
@@ -879,12 +888,15 @@ mod test {
         fn name(&self) -> String {
             String::from("testing")
         }
+
         fn default_config_dir(&self) -> PathBuf {
             self.base_path.join("root")
         }
+
         fn recommended_user_config_dir(&self) -> PathBuf {
             self.base_path.join("user")
         }
+
         fn deprecated_user_config_dir(&self) -> PathBuf {
             self.base_path.join("svc")
         }
@@ -907,10 +919,10 @@ mod test {
             let rucp = pkg.recommended_user_config_dir().join(USER_CONFIG_FILE);
             let ducp = pkg.deprecated_user_config_dir().join(USER_CONFIG_FILE);
             Self {
-                tmp: tmp,
-                pkg: pkg,
-                rucp: rucp,
-                ducp: ducp,
+                tmp,
+                pkg,
+                rucp,
+                ducp,
             }
         }
     }
@@ -1012,11 +1024,8 @@ mod test {
         let concrete_path = TempDir::new().expect("create temp dir");
         let pkg = TestPkg::new(&concrete_path);
         let mut cfg = Cfg::new(&pkg, None).expect("Could not create config");
-        let default_toml = "shards = []\n\n\
-                            [datastore]\n\
-                            database = \"builder_originsrv\"\n\
-                            password = \"\"\n\
-                            user = \"hab\"\n";
+        let default_toml = "shards = []\n\n[datastore]\ndatabase = \
+                            \"builder_originsrv\"\npassword = \"\"\nuser = \"hab\"\n";
 
         cfg.default = Some(toml::from_str(default_toml).unwrap());
         assert_eq!(default_toml, toml::to_string(&cfg).unwrap());

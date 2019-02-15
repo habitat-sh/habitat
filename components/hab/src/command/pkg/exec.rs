@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::ffi::OsString;
-use std::path::PathBuf;
+use std::{env, ffi::OsString, path::PathBuf};
 
-use crate::hcore::fs::{find_command, FS_ROOT_PATH};
-use crate::hcore::os::process;
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::{
+    fs::{find_command, FS_ROOT_PATH},
+    os::process,
+    package::{PackageIdent, PackageInstall},
+};
 
 use crate::error::{Error, Result};
 

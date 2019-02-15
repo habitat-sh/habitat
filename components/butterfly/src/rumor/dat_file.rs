@@ -12,22 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::{self, File, OpenOptions};
-use std::io::{self, BufReader, BufWriter, Read, Seek, SeekFrom, Write};
-use std::mem;
-use std::path::{Path, PathBuf};
+use std::{
+    fs::{self, File, OpenOptions},
+    io::{self, BufReader, BufWriter, Read, Seek, SeekFrom, Write},
+    mem,
+    path::{Path, PathBuf},
+};
 
 use byteorder::{ByteOrder, LittleEndian};
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 
-use crate::error::{Error, Result};
-use crate::member::{MemberList, Membership};
-use crate::protocol::{newscast, Message};
-use crate::rumor::{
-    Departure, Election, ElectionUpdate, Rumor, RumorStore, Service, ServiceConfig, ServiceFile,
+use crate::{
+    error::{Error, Result},
+    member::{MemberList, Membership},
+    protocol::{newscast, Message},
+    rumor::{
+        Departure, Election, ElectionUpdate, Rumor, RumorStore, Service, ServiceConfig, ServiceFile,
+    },
+    server::Server,
 };
-use crate::server::Server;
 
 const HEADER_VERSION: u8 = 2;
 

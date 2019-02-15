@@ -15,28 +15,31 @@
 /// Supervise a service.
 ///
 /// The Supervisor is responsible for running any services we are asked to start. It handles
-/// spawning the new process, watching for failure, and ensuring the service is either up or down.
-/// If the process dies, the Supervisor will restart it.
+/// spawning the new process, watching for failure, and ensuring the service is either up or
+/// down. If the process dies, the Supervisor will restart it.
 use std;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
-use std::path::{Path, PathBuf};
-use std::result;
+use std::{
+    fs::File,
+    io::{prelude::*, BufReader},
+    path::{Path, PathBuf},
+    result,
+};
 
-use crate::common::templating::package::Pkg;
-use crate::hcore::fs;
-use crate::hcore::os::process::{self, Pid};
 #[cfg(unix)]
 use crate::hcore::os::users;
-use crate::hcore::service::ServiceGroup;
-use crate::launcher_client::LauncherCli;
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
+use crate::{
+    common::templating::package::Pkg,
+    hcore::{
+        fs,
+        os::process::{self, Pid},
+        service::ServiceGroup,
+    },
+    launcher_client::LauncherCli,
+};
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 use time::{self, Timespec};
 
-use super::ProcessState;
-use super::ShutdownReason;
+use super::{ProcessState, ShutdownReason};
 use crate::error::{Error, Result};
 
 static LOGKEY: &'static str = "SV";
@@ -138,9 +141,9 @@ impl Supervisor {
                 run services as a different user; running as self!", name_for_logging);
 
             Ok(UserInfo {
-                username: username,
+                username,
                 uid: Some(uid),
-                groupname: groupname,
+                groupname,
                 gid: Some(gid),
             })
         }

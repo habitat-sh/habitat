@@ -22,12 +22,15 @@
 //!
 //! Will show all available binds.
 
-use std::io::{self, Write};
-use std::path::Path;
+use std::{
+    io::{self, Write},
+    path::Path,
+};
 
-use crate::hcore;
-use crate::hcore::package::metadata::Bind;
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::{
+    self,
+    package::{metadata::Bind, PackageIdent, PackageInstall},
+};
 
 use crate::error::Result;
 

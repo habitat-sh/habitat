@@ -1,6 +1,5 @@
 use clap::{App, ArgMatches};
-use std::fmt;
-use std::iter::FromIterator;
+use std::{fmt, iter::FromIterator};
 
 #[derive(Debug)]
 pub enum Expectation<'a> {

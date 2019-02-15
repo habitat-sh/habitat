@@ -12,25 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::common;
-use crate::common::command::package::install::{
-    InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
-};
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::error::Result;
-use crate::hcore::package::PackageIdent;
-use crate::hcore::PROGRAM_NAME;
-use crate::hcore::{
-    fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
-    ChannelIdent,
+use crate::{
+    common::{
+        self,
+        command::package::install::{
+            InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
+        },
+        ui::{Status, UIWriter, UI},
+    },
+    error::Result,
+    hcore::{
+        fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
+        package::PackageIdent,
+        ChannelIdent, PROGRAM_NAME,
+    },
 };
 use clap;
-use std::fs as stdfs;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir as symlink;
-use std::path::Path;
+use std::{fs as stdfs, path::Path};
 use tempfile::TempDir;
 
 use super::{BUSYBOX_IDENT, VERSION};
