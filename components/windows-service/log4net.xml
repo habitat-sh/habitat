@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<log4net>
+    <root>
+        <level value="ALL" />
+        <appender-ref ref="RollingFileAppender" />
+    </root>
+    <appender name="RollingFileAppender" type="log4net.Appender.RollingFileAppender">
+        <file value="\hab\svc\windows-service\logs\Habitat.log" />
+        <appendToFile value="true" />
+        <rollingStyle value="Size" />
+        <maxSizeRollBackups value="10" />
+        <maximumFileSize value="100MB" />
+        <staticLogFileName value="true" />
+        <layout type="log4net.Layout.PatternLayout">
+        <conversionPattern value="%date - %message%newline" />
+        </layout>
+    </appender>
+</log4net>

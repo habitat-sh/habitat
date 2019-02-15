@@ -36,7 +36,7 @@ try {
         $InstallHarts = @(
             "core/hab-studio",
             "core/hab-sup",
-            "core/windows-service --channel stable"
+            "core/windows-service"
         )
     }
     $InstallHarts | % {
