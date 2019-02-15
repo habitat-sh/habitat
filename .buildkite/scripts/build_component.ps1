@@ -56,7 +56,8 @@ Push-Location "C:\build"
         Invoke-Expression "buildkite-agent meta-data set 'studio-version-x86_64-windows' $pkg_ident"       
     } Else {
         Write-Host "Not recording any metadata for $pkg_ident, none required."
-    } 
+    }
+    Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} (x86_64-windows)'"
 Pop-Location
 
 exit $LASTEXITCODE
