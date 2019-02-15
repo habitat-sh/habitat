@@ -41,10 +41,10 @@ Push-Location "C:\build"
 
     Write-Host "--- Running hab pkg build for $Component"
     Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
-    . "components\$Component\habitat\results\last_build.ps1"
+    . "results\last_build.ps1"
 
     Write-Host "Running hab pkg upload for $Component to channel $ReleaseChannel"
-    Invoke-Expression "$baseHabExe pkg upload components\$Component\habitat\results\$pkg_artifact --channel=$ReleaseChannel"
+    Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$ReleaseChannel"
 
     If ($Component -eq 'hab') {
         Write-Host "--- :buildkite: Recording metadata $pkg_ident"
