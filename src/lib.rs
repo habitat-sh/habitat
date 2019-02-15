@@ -32,8 +32,6 @@ pub mod service;
 pub mod url;
 pub mod util;
 
-use std::env::VarError;
-use std::ffi::OsStr;
 use std::fmt;
 use std::path::PathBuf;
 
@@ -55,39 +53,25 @@ lazy_static::lazy_static! {
     };
 }
 
-/// A Builder channel
+// A Builder channel
 #[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
 pub struct ChannelIdent(String);
 
+impl env::Config for ChannelIdent {
+    const ENVVAR: &'static str = "HAB_BLDR_CHANNEL";
+}
+
 impl ChannelIdent {
-    const LEGACY_ENVVAR: &'static str = "HAB_DEPOT_CHANNEL";
-    pub const BLDR_ENVVAR: &'static str = "HAB_BLDR_CHANNEL";
-    const UNSTABLE: &'static str = "unstable";
-    const STABLE: &'static str = "stable";
-
-    pub fn from_env_var(key: impl AsRef<OsStr>) -> std::result::Result<Self, VarError> {
-        crate::env::var(key).map(ChannelIdent)
-    }
-
     pub fn as_str(&self) -> &str {
         self.0.as_str()
     }
 
     pub fn stable() -> Self {
-        Self::from(Self::STABLE)
+        Self::from("stable")
     }
 
     pub fn unstable() -> Self {
-        Self::from(Self::UNSTABLE)
-    }
-
-    fn legacy_default() -> Self {
-        ChannelIdent(
-            env::var(Self::LEGACY_ENVVAR)
-                .ok()
-                .and_then(|c| Some(c.to_string()))
-                .unwrap_or_else(|| Self::STABLE.to_string()),
-        )
+        Self::from("unstable")
     }
 }
 
@@ -103,6 +87,13 @@ impl From<String> for ChannelIdent {
     }
 }
 
+impl std::str::FromStr for ChannelIdent {
+    type Err = ();
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        Ok(Self::from(s))
+    }
+}
+
 impl fmt::Display for ChannelIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
@@ -111,9 +102,6 @@ impl fmt::Display for ChannelIdent {
 
 impl Default for ChannelIdent {
     fn default() -> Self {
-        match env::var(ChannelIdent::BLDR_ENVVAR) {
-            Ok(value) => ChannelIdent(value.to_string()),
-            Err(_) => ChannelIdent::legacy_default(),
-        }
+        Self::stable()
     }
 }
