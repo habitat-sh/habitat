@@ -4,11 +4,7 @@
 
 param (
     # The name of the component to be built. Defaults to none
-    [string]$Component,
-    # The base hab version to run the build with. Defaults to latest
-    [string]$BaseHabVersion="latest",
-    # The builder channel to pull from. Defaults to stable
-    [string]$SourceChannel="stable"
+    [string]$Component
 )
 
 $ErrorActionPreference="stop" 
@@ -20,16 +16,14 @@ if($Component.Equals("")) {
     Write-Error "--- :error: Component to build not specified, please use the -Component flag"
 }
 
-Write-Host "--- Setting source package channel to $SourceChannel"
-$Env:HAB_BLDR_CHANNEL="$SourceChannel"
 
 # install buildkite agent because we are in a container :(
 Write-Host "--- Installing buildkite agent in container"
 $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
 Invoke-Expression (Invoke-WebRequest https://raw.githubusercontent.com/buildkite/agent/master/install.ps1 -UseBasicParsing).Content
-    
-Write-Host "--- Installing base habitat binary version: $BaseHabVersion"
-$baseHabExe = [HabShared]::install_base_habitat_binary($BaseHabVersion, $SourceChannel)
+
+Write-Host "--- Installing latest stable Habitat binary"
+$baseHabExe = [HabShared]::install_base_habitat_binary("latest", "stable")
 Write-Host "--- Using hab executable at $baseHabExe"
 
 Write-Host "--- Importing Keys"
@@ -40,11 +34,14 @@ New-Item -ItemType directory -Path C:\build
 Copy-Item -Path C:\workdir\* -Destination C:\build -Recurse
 
 Push-Location "C:\build"
+    $ReleaseChannel = & buildkite-agent meta-data get release-channel
+    Write-Host "--- Setting HAB_BLDR_CHANNEL channel to $ReleaseChannel"
+    $Env:HAB_BLDR_CHANNEL="$ReleaseChannel"
+
     Write-Host "--- Running hab pkg build for $Component"
     Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
     . "components\$Component\habitat\results\last_build.ps1"
-    
-    $ReleaseChannel = & buildkite-agent meta-data get release-channel
+
     Write-Host "Running hab pkg upload for $Component to channel $ReleaseChannel"
     Invoke-Expression "$baseHabExe pkg upload components\$Component\habitat\results\$pkg_artifact --channel=$ReleaseChannel"
 

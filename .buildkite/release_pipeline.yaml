@@ -68,7 +68,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab"
-    command: .buildkite/scripts/build_component.ps1 -Component hab -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    command: .buildkite/scripts/build_component.ps1 -Component hab
     agents:
       queue: windows-docker
     env:
@@ -118,7 +118,7 @@ steps:
 
 
   - label: ":windows: :habicat: :hammer_and_wrench: core/hab-plan-build-ps1"
-    command: .buildkite/scripts/build_component.ps1 -Component plan-build-ps1 -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    command: .buildkite/scripts/build_component.ps1 -Component plan-build-ps1
     agents:
       queue: windows-docker
     env:
@@ -149,7 +149,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-bintray-publish"
-    command: .buildkite/scripts/build_component.ps1 -Component bintray-publish -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    command: .buildkite/scripts/build_component.ps1 -Component bintray-publish
     agents:
       queue: windows-docker
     env:
@@ -199,7 +199,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-studio"
-    command: .buildkite/scripts/build_component.ps1 -Component studio -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    command: .buildkite/scripts/build_component.ps1 -Component studio
     agents:
       queue: windows-docker
     env:
@@ -231,7 +231,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :habicat: core/hab-sup"
-    command: .buildkite/scripts/build_component.ps1 -Component sup -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    command: .buildkite/scripts/build_component.ps1 -Component sup
     agents:
       queue: windows-docker
     env:
@@ -265,7 +265,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux"
 
   - label: ":windows: :docker: core/hab-pkg-export-docker"
-    command: .buildkite/scripts/build_component.ps1 -Component pkg-export-docker -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    command: .buildkite/scripts/build_component.ps1 -Component pkg-export-docker
     agents:
       queue: windows-docker
     env:
@@ -311,7 +311,7 @@ steps:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
   - label: ":windows: :package: core/hab-pkg-export-tar"
-    command: .buildkite/scripts/build_component.ps1 -Component pkg-export-tar -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    command: .buildkite/scripts/build_component.ps1 -Component pkg-export-tar
     agents:
       queue: windows-docker
     env:
