@@ -31,7 +31,8 @@ Write-Host "--- Importing Keys"
 
 Write-Host "--- Moving build folder to new location"
 New-Item -ItemType directory -Path C:\build
-Copy-Item -Path C:\workdir\* -Destination C:\build -Recurse
+# Adding -Force to ensure we take the .git directory over as well
+Copy-Item -Path C:\workdir\* -Destination C:\build -Recurse -Force
 
 Push-Location "C:\build"
     $ReleaseChannel = & buildkite-agent meta-data get release-channel
