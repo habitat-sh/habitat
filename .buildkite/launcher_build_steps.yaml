@@ -31,4 +31,18 @@ steps:
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
   - wait
-  # TODO: Build Windows Service after Windows Launcher is done
+  - label: ":windows: Build windows service"
+    command: .buildkite/scripts/build_component.ps1 -Component windows-service "
+    agents:
+      queue: windows-docker
+    env:
+      HAB_BLDR_CHANNEL: unstable
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
