@@ -1,0 +1,33 @@
+steps:
+  - label: ":linux: :habicat: core/hab-launcher"
+    command: .buildkite/scripts/build_component.sh launcher
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+
+  - label: ":linux: :two: :habicat: core/hab-launcher"
+    command: .buildkite/scripts/build_component.sh launcher
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+
+  - label: ":windows: :habicat: core/hab-launcher"
+    command: .buildkite/scripts/build_component.ps1 -Component launcher -SourceChannel unstable -BaseHabVersion "0.68.0/20181108152053"
+    agents:
+      queue: windows-docker
+    env:
+      HAB_BLDR_CHANNEL: unstable
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - wait
+  # TODO: Build Windows Service after Windows Launcher is done
