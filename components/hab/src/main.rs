@@ -1410,7 +1410,7 @@ fn required_channel_from_matches(matches: &ArgMatches<'_>) -> ChannelIdent {
 /// Resolve a channel. Taken from the environment or from CLI args, if
 /// given or return the default channel value.
 fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {
-    channel_from_matches(matches).unwrap_or_default()
+    channel_from_matches(matches).unwrap_or_default() // or configured_value?
 }
 
 /// Resolve a target. Default to x86_64-linux if none specified

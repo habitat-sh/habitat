@@ -189,7 +189,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                     &msg.bldr_channel
                         .clone()
                         .map(ChannelIdent::from)
-                        .unwrap_or_default(),
+                        .unwrap_or_default(), // or configured_value?
                 )?;
                 install.ident.into()
             }
@@ -358,7 +358,7 @@ fn bldr_url_from_input(m: &ArgMatches) -> Option<String> {
 /// Resolve a channel. Taken from CLI args, or (failing that), a
 /// default value.
 fn channel(matches: &ArgMatches) -> ChannelIdent {
-    channel_from_input(matches).unwrap_or_default()
+    channel_from_input(matches).unwrap_or_default() // or configured_value?
 }
 
 /// A channel name, but *only* if the user specified via CLI args.

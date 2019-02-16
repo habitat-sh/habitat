@@ -356,7 +356,7 @@ where
 
     let channel = match channel {
         Some(c) => Cow::Borrowed(c),
-        None => Cow::Owned(ChannelIdent::default()),
+        None => Cow::Owned(ChannelIdent::default()), // or configured_value?
     };
 
     let task = InstallTask::new(

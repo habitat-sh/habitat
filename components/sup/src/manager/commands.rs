@@ -228,7 +228,7 @@ pub fn service_load(
         .bldr_channel
         .clone()
         .map(ChannelIdent::from)
-        .unwrap_or_default();
+        .unwrap_or_default(); // or configured_value?
     let force = opts.force.unwrap_or(false);
     let source = InstallSource::Ident(ident.clone(), *PackageTarget::active_target());
     match spec_for_ident(&mgr.cfg, source.as_ref()) {
