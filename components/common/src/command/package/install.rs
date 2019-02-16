@@ -35,34 +35,42 @@
 //! * Unpack it
 //!
 
-use std::borrow::Cow;
-use std::fmt;
-use std::fs::{self, File};
-use std::io::{BufRead, BufReader};
-use std::path::{Path, PathBuf};
-use std::result::Result as StdResult;
-use std::str::FromStr;
-
-use crate::api_client::Error::APIError;
-use crate::api_client::{self, Client};
-use crate::hcore;
-use crate::hcore::crypto::keys::parse_name_with_rev;
-use crate::hcore::crypto::{artifact, SigKeyPair};
-use crate::hcore::fs::{cache_key_path, pkg_install_path, svc_hooks_path};
-use crate::hcore::package::list::temp_package_directory;
-use crate::hcore::package::{
-    Identifiable, PackageArchive, PackageIdent, PackageInstall, PackageTarget,
+use std::{
+    borrow::Cow,
+    fmt,
+    fs::{self, File},
+    io::{BufRead, BufReader},
+    path::{Path, PathBuf},
+    result::Result as StdResult,
+    str::FromStr,
 };
-use crate::hcore::ChannelIdent;
+
+use crate::{
+    api_client::{self, Client, Error::APIError},
+    hcore::{
+        self,
+        crypto::{artifact, keys::parse_name_with_rev, SigKeyPair},
+        fs::{cache_key_path, pkg_install_path, svc_hooks_path},
+        package::{
+            list::temp_package_directory, Identifiable, PackageArchive, PackageIdent,
+            PackageInstall, PackageTarget,
+        },
+        ChannelIdent,
+    },
+};
 use glob;
 use hyper::status::StatusCode;
 use retry::retry;
 
-use crate::error::{Error, Result};
-use crate::templating;
-use crate::templating::hooks::{Hook, InstallHook};
-use crate::templating::package::Pkg;
-use crate::ui::{Status, UIWriter};
+use crate::{
+    error::{Error, Result},
+    templating::{
+        self,
+        hooks::{Hook, InstallHook},
+        package::Pkg,
+    },
+    ui::{Status, UIWriter},
+};
 
 pub const RETRIES: u64 = 5;
 pub const RETRY_WAIT: u64 = 3000;
@@ -128,8 +136,8 @@ impl FromStr for InstallSource {
             let target = archive.target()?;
             match archive.ident() {
                 Ok(ident) => Ok(InstallSource::Archive(LocalArchive {
-                    ident: ident,
-                    target: target,
+                    ident,
+                    target,
                     path: path.to_path_buf(),
                 })),
                 Err(e) => Err(e),
@@ -468,14 +476,14 @@ impl<'a> InstallTask<'a> {
         install_hook_mode: InstallHookMode,
     ) -> Result<Self> {
         Ok(InstallTask {
-            install_mode: install_mode,
-            local_package_usage: local_package_usage,
+            install_mode,
+            local_package_usage,
             api_client: Client::new(bldr_url, product, version, Some(fs_root_path))?,
-            channel: channel,
-            fs_root_path: fs_root_path,
-            artifact_cache_path: artifact_cache_path,
-            key_cache_path: key_cache_path,
-            install_hook_mode: install_hook_mode,
+            channel,
+            fs_root_path,
+            artifact_cache_path,
+            key_cache_path,
+            install_hook_mode,
         })
     }
 
@@ -644,8 +652,8 @@ impl<'a> InstallTask<'a> {
                         // governed by the IGNORE_LOCAL feature-flag
                         self.recommend_channels(ui, &ident, target, token)?;
                         ui.warn(format!(
-                            "Locally-installed package '{}' would satisfy '{}', \
-                             but we are ignoring that as directed",
+                            "Locally-installed package '{}' would satisfy '{}', but we are \
+                             ignoring that as directed",
                             local.as_ref(),
                             &ident,
                         ))?;
@@ -654,8 +662,8 @@ impl<'a> InstallTask<'a> {
                         ui.status(
                             Status::Missing,
                             format!(
-                                "remote version of '{}' in the '{}' channel, but an \
-                                 installed version was found locally ({})",
+                                "remote version of '{}' in the '{}' channel, but an installed \
+                                 version was found locally ({})",
                                 &ident,
                                 self.channel,
                                 local.as_ref()
@@ -972,8 +980,7 @@ impl<'a> InstallTask<'a> {
             Ok(_) => Ok(()),
             Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
                 println!(
-                    "Host platform or architecture not supported by the targeted depot; \
-                     skipping."
+                    "Host platform or architecture not supported by the targeted depot; skipping."
                 );
                 Ok(())
             }

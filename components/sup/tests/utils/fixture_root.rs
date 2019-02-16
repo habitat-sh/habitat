@@ -55,8 +55,10 @@
 //!
 //! In general, each fixture should be used by a single test.
 
-use std::path::{Path, PathBuf};
-use std::string::ToString;
+use std::{
+    path::{Path, PathBuf},
+    string::ToString,
+};
 
 #[derive(Clone, Debug)]
 pub struct FixtureRoot(PathBuf);

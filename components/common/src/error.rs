@@ -12,20 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::error;
-use std::fmt;
-use std::io;
-use std::net;
-use std::path::PathBuf;
-use std::result;
-use std::str;
-use std::string;
+use std::{env, error, fmt, io, net, path::PathBuf, result, str, string};
 use toml;
 
-use crate::api_client;
-use crate::hcore;
-use crate::hcore::package::PackageIdent;
+use crate::{
+    api_client,
+    hcore::{self, package::PackageIdent},
+};
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -126,8 +119,8 @@ impl fmt::Display for Error {
                 name_with_rev
             ),
             Error::OfflinePackageNotFound(ref ident) => format!(
-                "No installed package or cached artifact could be found \
-                 locally in offline mode: {}",
+                "No installed package or cached artifact could be found locally in offline mode: \
+                 {}",
                 ident
             ),
             Error::PackageNotFound(ref e) => format!("Package not found. {}", e),
@@ -159,9 +152,7 @@ impl error::Error for Error {
     fn description(&self) -> &str {
         match *self {
             Error::APIClient(ref err) => err.description(),
-            Error::ArtifactIdentMismatch((_, _, _)) => {
-                "Artifact ident does not match expected ident"
-            }
+            Error::ArtifactIdentMismatch((..)) => "Artifact ident does not match expected ident",
             Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
             Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
             Error::ChannelNotFound => "Channel not found",

@@ -12,20 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::error;
-use std::ffi;
-use std::fmt;
-use std::io;
-use std::num;
-use std::path::{self, PathBuf};
-use std::result;
+use std::{
+    env, error, ffi, fmt, io, num,
+    path::{self, PathBuf},
+    result,
+};
 
-use crate::api_client;
-use crate::common;
-use crate::hcore;
-use crate::protocol::net;
-use crate::sup_client::SrvClientError;
+use crate::{api_client, common, hcore, protocol::net, sup_client::SrvClientError};
 use handlebars;
 use toml;
 
@@ -110,28 +103,25 @@ impl fmt::Display for Error {
             }
             #[cfg(not(windows))]
             Error::DockerFileSharingNotEnabled => {
-                "File Sharing must be enabled in order to enter a studio.\nPlease enable \
-                 it in the Docker preferences and share (at a minimum) your home \
-                 directory."
+                "File Sharing must be enabled in order to enter a studio.\nPlease enable it in the \
+                 Docker preferences and share (at a minimum) your home directory."
                     .to_string()
             }
             #[cfg(windows)]
-            Error::DockerFileSharingNotEnabled => {
-                "File Sharing must be enabled in order to enter a studio.\nPlease select \
-                 a drive to share in the Docker preferences."
-                    .to_string()
-            }
+            Error::DockerFileSharingNotEnabled => "File Sharing must be enabled in order to enter \
+                                                   a studio.\nPlease select a drive to share in \
+                                                   the Docker preferences."
+                .to_string(),
             Error::DockerImageNotFound(ref e) => format!(
-                "The Docker image {} was not found in the docker registry.\nYou can \
-                 specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
-                 environment variable.",
+                "The Docker image {} was not found in the docker registry.\nYou can specify your \
+                 own Docker image using the HAB_DOCKER_STUDIO_IMAGE environment variable.",
                 e
             ),
             Error::DockerNetworkDown(ref e) => format!(
-                "The Docker image {} is unreachable due to a network error.\nThe \
-                 image must be reachable to ensure the versions of hab inside and \
-                 outside the studio match.\nYou can specify your own Docker image using \
-                 the HAB_DOCKER_STUDIO_IMAGE environment variable.",
+                "The Docker image {} is unreachable due to a network error.\nThe image must be \
+                 reachable to ensure the versions of hab inside and outside the studio \
+                 match.\nYou can specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
+                 environment variable.",
                 e
             ),
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
@@ -200,7 +190,7 @@ impl error::Error for Error {
             Error::CannotRemoveDockerStudio => {
                 "Docker Studios are not persistent and cannot be removed"
             }
-            Error::CannotRemovePackage(_, _) => {
+            Error::CannotRemovePackage(..) => {
                 "A package can only be removed if it is not a dependency of any other package"
             }
             Error::CommandNotFoundInPkg(_) => {

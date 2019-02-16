@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::common::ui::UI;
-use crate::hcore::{package::PackageIdent, ChannelIdent};
+use crate::{
+    common::ui::UI,
+    hcore::{package::PackageIdent, ChannelIdent},
+};
 
 use crate::error::Result;
 
@@ -58,22 +60,25 @@ pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
 
 #[cfg(target_os = "linux")]
 mod inner {
-    use std::env;
-    use std::ffi::OsString;
-    use std::str::FromStr;
+    use std::{env, ffi::OsString, str::FromStr};
 
-    use crate::common::ui::UI;
-    use crate::hcore::crypto::{default_cache_key_path, init};
-    use crate::hcore::fs::find_command;
-    use crate::hcore::package::PackageIdent;
-    use crate::hcore::url::BLDR_URL_ENVVAR;
-    use crate::hcore::ChannelIdent;
+    use crate::{
+        common::ui::UI,
+        hcore::{
+            crypto::{default_cache_key_path, init},
+            fs::find_command,
+            package::PackageIdent,
+            url::BLDR_URL_ENVVAR,
+            ChannelIdent,
+        },
+    };
 
     use super::ExportFormat;
-    use crate::command;
-    use crate::error::{Error, Result};
-    use crate::exec;
-    use crate::VERSION;
+    use crate::{
+        command,
+        error::{Error, Result},
+        exec, VERSION,
+    };
 
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
         let version: Vec<_> = VERSION.split('/').collect();
@@ -133,10 +138,11 @@ mod inner {
 #[cfg(not(target_os = "linux"))]
 mod inner {
     use super::ExportFormat;
-    use crate::common::ui::{UIWriter, UI};
-    use crate::error::{Error, Result};
-    use crate::hcore::package::PackageIdent;
-    use crate::hcore::ChannelIdent;
+    use crate::{
+        common::ui::{UIWriter, UI},
+        error::{Error, Result},
+        hcore::{package::PackageIdent, ChannelIdent},
+    };
     use std::env;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
@@ -161,8 +167,8 @@ mod inner {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
         ui.warn(
-            "Exporting packages from this operating system is not yet supported. Try \
-             running this command again on a 64-bit Linux operating system.",
+            "Exporting packages from this operating system is not yet supported. Try running this \
+             command again on a 64-bit Linux operating system.",
         )?;
         ui.br()?;
         Err(Error::SubcommandNotSupported(format!(

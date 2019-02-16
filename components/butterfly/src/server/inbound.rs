@@ -16,18 +16,22 @@
 //!
 //! This module handles all the inbound SWIM messages.
 
-use std::net::{SocketAddr, UdpSocket};
-use std::thread;
-use std::time::Duration;
+use std::{
+    net::{SocketAddr, UdpSocket},
+    thread,
+    time::Duration,
+};
 
 use habitat_core::util::ToI64;
 use prometheus::{IntCounterVec, IntGaugeVec};
 
 use super::AckSender;
-use crate::member::Health;
-use crate::server::{outbound, Server};
-use crate::swim::{Ack, Ping, PingReq, Swim, SwimKind};
-use crate::trace::TraceKind;
+use crate::{
+    member::Health,
+    server::{outbound, Server},
+    swim::{Ack, Ping, PingReq, Swim, SwimKind},
+    trace::TraceKind,
+};
 
 lazy_static! {
     static ref SWIM_MESSAGES_RECEIVED: IntCounterVec = register_int_counter_vec!(
@@ -55,9 +59,9 @@ impl Inbound {
     /// Create a new Inbound.
     pub fn new(server: Server, socket: UdpSocket, tx_outbound: AckSender) -> Inbound {
         Inbound {
-            server: server,
-            socket: socket,
-            tx_outbound: tx_outbound,
+            server,
+            socket,
+            tx_outbound,
         }
     }
 

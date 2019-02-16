@@ -37,15 +37,20 @@ use hyper::status::StatusCode;
 use retry::retry;
 
 // Local Dependencies
-use crate::api_client::{self, Client};
-use crate::common::command::package::install::{RETRIES, RETRY_WAIT};
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::error::{Error, Result};
-use crate::hcore::crypto::artifact::get_artifact_header;
-use crate::hcore::crypto::keys::parse_name_with_rev;
-use crate::hcore::package::{PackageArchive, PackageIdent, PackageTarget};
-use crate::hcore::ChannelIdent;
-use crate::{PRODUCT, VERSION};
+use crate::{
+    api_client::{self, Client},
+    common::{
+        command::package::install::{RETRIES, RETRY_WAIT},
+        ui::{Status, UIWriter, UI},
+    },
+    error::{Error, Result},
+    hcore::{
+        crypto::{artifact::get_artifact_header, keys::parse_name_with_rev},
+        package::{PackageArchive, PackageIdent, PackageTarget},
+        ChannelIdent,
+    },
+    PRODUCT, VERSION,
+};
 
 /// Upload a package from the cache to a Depot. The latest version/release of the package
 /// will be uploaded if not specified.
@@ -176,15 +181,15 @@ fn upload_into_depot(
             }
             Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
                 println!(
-                    "Package platform or architecture not supported by the targeted \
-                     depot; skipping."
+                    "Package platform or architecture not supported by the targeted depot; \
+                     skipping."
                 );
                 false
             }
             Err(api_client::Error::APIError(StatusCode::FailedDependency, _)) => {
                 ui.fatal(
-                    "Package upload introduces a circular dependency - please check \
-                     pkg_deps; skipping.",
+                    "Package upload introduces a circular dependency - please check pkg_deps; \
+                     skipping.",
                 )?;
                 false
             }
@@ -249,9 +254,9 @@ where
         ui.status(
             Status::Missing,
             format!(
-                "artifact {}. It was not found in {}. Please make sure that all the \
-                 dependent artifacts are present in the same directory as the original \
-                 artifact that you are attemping to upload.",
+                "artifact {}. It was not found in {}. Please make sure that all the dependent \
+                 artifacts are present in the same directory as the original artifact that you \
+                 are attemping to upload.",
                 archive_name,
                 archives_dir.display()
             ),

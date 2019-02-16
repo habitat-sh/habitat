@@ -17,20 +17,20 @@
 //! This is the thread for distributing rumors to members. It distributes to `FANOUT` members, no
 //! more often than `Timing::GOSSIP_PERIOD_DEFAULT_MS`.
 
-use std::thread;
-use std::time::Duration;
+use std::{thread, time::Duration};
 
 use habitat_core::util::ToI64;
 use prometheus::{IntCounterVec, IntGaugeVec};
 use time::SteadyTime;
 use zmq;
 
-use crate::member::{Member, Membership};
-use crate::rumor::{RumorEnvelope, RumorKey, RumorKind, RumorType};
-use crate::server::timing::Timing;
-use crate::server::Server;
-use crate::trace::TraceKind;
-use crate::ZMQ_CONTEXT;
+use crate::{
+    member::{Member, Membership},
+    rumor::{RumorEnvelope, RumorKey, RumorKind, RumorType},
+    server::{timing::Timing, Server},
+    trace::TraceKind,
+    ZMQ_CONTEXT,
+};
 
 const FANOUT: usize = 5;
 
@@ -59,10 +59,7 @@ pub struct Push {
 impl Push {
     /// Creates a new Push instance from a Server and Timing
     pub fn new(server: Server, timing: Timing) -> Push {
-        Push {
-            server: server,
-            timing: timing,
-        }
+        Push { server, timing }
     }
 
     /// Executes the Push thread. Gets a list of members to talk to that are not Confirmed; then
@@ -154,7 +151,7 @@ struct PushWorker {
 impl PushWorker {
     /// Create a new PushWorker.
     pub fn new(server: Server) -> PushWorker {
-        PushWorker { server: server }
+        PushWorker { server }
     }
 
     /// Send the list of rumors to a given member. This method creates an outbound socket and then
@@ -207,8 +204,8 @@ impl PushWorker {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             error!(
-                                "Could not write our own rumor to bytes; abandoning \
-                                 sending rumor: {:?}",
+                                "Could not write our own rumor to bytes; abandoning sending \
+                                 rumor: {:?}",
                                 e
                             );
                             let label_values = &["member_rumor_encode", "failure"];
@@ -231,8 +228,8 @@ impl PushWorker {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             error!(
-                                "Could not write our own rumor to bytes; abandoning \
-                                 sending rumor: {:?}",
+                                "Could not write our own rumor to bytes; abandoning sending \
+                                 rumor: {:?}",
                                 e
                             );
                             let label_values = &["service_rumor_encode", "failure"];
@@ -255,8 +252,8 @@ impl PushWorker {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             error!(
-                                "Could not write our own rumor to bytes; abandoning \
-                                 sending rumor: {:?}",
+                                "Could not write our own rumor to bytes; abandoning sending \
+                                 rumor: {:?}",
                                 e
                             );
                             let label_values = &["service_config_rumor_encode", "failure"];
@@ -279,8 +276,8 @@ impl PushWorker {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             error!(
-                                "Could not write our own rumor to bytes; abandoning \
-                                 sending rumor: {:?}",
+                                "Could not write our own rumor to bytes; abandoning sending \
+                                 rumor: {:?}",
                                 e
                             );
                             let label_values = &["service_file_rumor_encode", "failure"];
@@ -298,8 +295,8 @@ impl PushWorker {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!(
-                            "Could not write our own rumor to bytes; abandoning \
-                             sending rumor: {:?}",
+                            "Could not write our own rumor to bytes; abandoning sending rumor: \
+                             {:?}",
                             e
                         );
                         let label_values = &["departure_rumor_encode", "failure"];
@@ -321,8 +318,8 @@ impl PushWorker {
                         Ok(bytes) => bytes,
                         Err(e) => {
                             error!(
-                                "Could not write our own rumor to bytes; abandoning \
-                                 sending rumor: {:?}",
+                                "Could not write our own rumor to bytes; abandoning sending \
+                                 rumor: {:?}",
                                 e
                             );
                             let label_values = &["election_rumor_encode", "failure"];
@@ -340,8 +337,8 @@ impl PushWorker {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!(
-                            "Could not write our own rumor to bytes; abandoning sending \
-                             rumor: {:?}",
+                            "Could not write our own rumor to bytes; abandoning sending rumor: \
+                             {:?}",
                             e
                         );
                         let label_values = &["election_update_rumor_encode", "failure"];
@@ -391,7 +388,7 @@ impl PushWorker {
     fn create_member_rumor(&self, rumor_key: &RumorKey) -> Option<RumorEnvelope> {
         let member = self.server.member_list.get_cloned(&rumor_key.key())?;
         let payload = Membership {
-            member: member,
+            member,
             health: self
                 .server
                 .member_list

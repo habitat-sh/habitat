@@ -34,8 +34,8 @@ impl EtcPasswdEntry {
     {
         Self {
             name: name.to_string(),
-            uid: uid,
-            gid: gid,
+            uid,
+            gid,
         }
     }
 }
@@ -68,6 +68,7 @@ impl EtcGroupEntry {
         let users: Vec<String> = vec![];
         Self::group_with_users(name, gid, users)
     }
+
     pub fn group_with_users<S, U>(name: S, gid: u32, users: Vec<U>) -> Self
     where
         S: ToString,
@@ -75,7 +76,7 @@ impl EtcGroupEntry {
     {
         Self {
             name: name.to_string(),
-            gid: gid,
+            gid,
             users: users.iter().map(|u| u.to_string()).collect(),
         }
     }

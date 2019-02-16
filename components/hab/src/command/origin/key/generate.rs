@@ -14,10 +14,10 @@
 
 use std::path::Path;
 
-use crate::common::ui::{UIWriter, UI};
-use crate::hcore::crypto::SigKeyPair;
-use crate::hcore::package::ident;
-use crate::hcore::Error::InvalidOrigin;
+use crate::{
+    common::ui::{UIWriter, UI},
+    hcore::{crypto::SigKeyPair, package::ident, Error::InvalidOrigin},
+};
 
 use crate::error::{Error, Result};
 

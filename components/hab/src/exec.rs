@@ -14,17 +14,25 @@
 
 use std::path::{Path, PathBuf};
 
-use crate::common;
-use crate::common::command::package::install::{InstallHookMode, InstallMode, LocalPackageUsage};
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore;
-use crate::hcore::fs::{self, cache_artifact_path, FS_ROOT_PATH};
-use crate::hcore::package::{PackageIdent, PackageInstall, PackageTarget};
-use crate::hcore::url::default_bldr_url;
-use crate::hcore::ChannelIdent;
+use crate::{
+    common::{
+        self,
+        command::package::install::{InstallHookMode, InstallMode, LocalPackageUsage},
+        ui::{Status, UIWriter, UI},
+    },
+    hcore::{
+        self,
+        fs::{self, cache_artifact_path, FS_ROOT_PATH},
+        package::{PackageIdent, PackageInstall, PackageTarget},
+        url::default_bldr_url,
+        ChannelIdent,
+    },
+};
 
-use crate::error::{Error, Result};
-use crate::{PRODUCT, VERSION};
+use crate::{
+    error::{Error, Result},
+    PRODUCT, VERSION,
+};
 
 const MAX_RETRIES: u8 = 4;
 const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
@@ -58,8 +66,7 @@ const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 ///
 /// # Failures
 ///
-/// * If the package is installed but the command cannot be found in
-///   the package
+/// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
 pub fn command_from_min_pkg<T>(

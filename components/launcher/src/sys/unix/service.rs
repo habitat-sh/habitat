@@ -12,20 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io;
-use std::ops::Neg;
-use std::os::unix::process::CommandExt;
-use std::process::{Child, Command, ExitStatus, Stdio};
-use std::result;
+use std::{
+    io,
+    ops::Neg,
+    os::unix::process::CommandExt,
+    process::{Child, Command, ExitStatus, Stdio},
+    result,
+};
 
-use crate::core::os;
-use crate::core::os::process::{signal, Signal};
-use crate::protocol::{self, ShutdownMethod};
+use crate::{
+    core::os::{
+        self,
+        process::{signal, Signal},
+    },
+    protocol::{self, ShutdownMethod},
+};
 use libc;
 use time::{Duration, SteadyTime};
 
-use crate::error::{Error, Result};
-use crate::service::Service;
+use crate::{
+    error::{Error, Result},
+    service::Service,
+};
 
 pub struct Process(Child);
 

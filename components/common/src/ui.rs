@@ -12,18 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::fmt;
-use std::fs::{self, File};
-use std::io::{self, BufRead, BufReader, Read, Stdout, Write};
-use std::process::{self, Command};
+use std::{
+    env, fmt,
+    fs::{self, File},
+    io::{self, BufRead, BufReader, Read, Stdout, Write},
+    process::{self, Command},
+};
 use uuid::Uuid;
 
 use crate::api_client::DisplayProgress;
 use ansi_term::Colour;
 use pbr;
-use term::terminfo::TermInfo;
-use term::{Terminal, TerminfoTerminal};
+use term::{terminfo::TermInfo, Terminal, TerminfoTerminal};
 
 use self::tty::StdStream;
 use crate::error::{Error, Result};
@@ -314,7 +314,7 @@ pub struct UI {
 impl UI {
     /// Creates a new `UI` from a `Shell`.
     pub fn new(shell: Shell) -> Self {
-        UI { shell: shell }
+        UI { shell }
     }
 
     /// Creates a new default `UI` with a coloring strategy and tty hinting.
@@ -556,11 +556,7 @@ pub struct Shell {
 
 impl Shell {
     pub fn new(input: InputStream, out: OutputStream, err: OutputStream) -> Self {
-        Shell {
-            input: input,
-            out: out,
-            err: err,
-        }
+        Shell { input, out, err }
     }
 
     pub fn default_with(coloring: Coloring, isatty: Option<bool>) -> Self {
@@ -603,10 +599,7 @@ pub struct InputStream {
 
 impl InputStream {
     pub fn new(inner: Box<dyn Read + Send>, isatty: bool) -> Self {
-        InputStream {
-            inner: inner,
-            isatty: isatty,
-        }
+        InputStream { inner, isatty }
     }
 
     pub fn from_stdin(isatty: Option<bool>) -> Self {
@@ -645,9 +638,9 @@ pub struct OutputStream {
 impl OutputStream {
     pub fn new(inner: WriteStream, coloring: Coloring, isatty: bool) -> Self {
         OutputStream {
-            inner: inner,
-            coloring: coloring,
-            isatty: isatty,
+            inner,
+            coloring,
+            isatty,
         }
     }
 
@@ -798,9 +791,7 @@ mod tty {
     }
     #[cfg(windows)]
     pub fn isatty(output: StdStream) -> bool {
-        use winapi::um::consoleapi;
-        use winapi::um::processenv;
-        use winapi::um::winbase;
+        use winapi::um::{consoleapi, processenv, winbase};
 
         let handle = match output {
             StdStream::Stdin => winbase::STD_INPUT_HANDLE,

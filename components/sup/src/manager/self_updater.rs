@@ -15,20 +15,23 @@
 //! Encapsulates logic required for updating the Habitat Supervisor
 //! itself.
 
-use std::sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError};
-use std::thread;
-use std::time::Duration;
+use std::{
+    sync::mpsc::{sync_channel, Receiver, SyncSender, TryRecvError},
+    thread,
+    time::Duration,
+};
 
 use time::{Duration as TimeDuration, SteadyTime};
 
-use crate::common::command::package::install::InstallSource;
-use crate::common::ui::UI;
-use crate::env;
-use crate::hcore::{
-    package::{PackageIdent, PackageInstall},
-    ChannelIdent,
+use crate::{
+    common::{command::package::install::InstallSource, ui::UI},
+    env,
+    hcore::{
+        package::{PackageIdent, PackageInstall},
+        ChannelIdent,
+    },
+    util,
 };
-use crate::util;
 
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
 const DEFAULT_FREQUENCY: i64 = 60_000;
@@ -48,10 +51,10 @@ impl SelfUpdater {
     pub fn new(current: PackageIdent, update_url: String, update_channel: ChannelIdent) -> Self {
         let rx = Self::init(current.clone(), update_url.clone(), update_channel.clone());
         SelfUpdater {
-            rx: rx,
-            current: current,
-            update_url: update_url,
-            update_channel: update_channel,
+            rx,
+            current,
+            update_url,
+            update_channel,
         }
     }
 

@@ -12,16 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 use bytes::BytesMut;
 use prost::Message as ProstMessage;
 
-use crate::error::{Error, Result};
-use crate::member::{Health, Member, Membership};
 pub use crate::protocol::swim::{SwimPayload, SwimType};
-use crate::protocol::{self, swim as proto, FromProto};
+use crate::{
+    error::{Error, Result},
+    member::{Health, Member, Membership},
+    protocol::{self, swim as proto, FromProto},
+};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Ack {
@@ -51,7 +52,7 @@ impl FromProto<proto::Swim> for Ack {
                 .from
                 .ok_or(Error::ProtocolMismatch("from"))
                 .and_then(Member::from_proto)?,
-            forward_to: forward_to,
+            forward_to,
         })
     }
 }
@@ -146,7 +147,7 @@ impl FromProto<proto::Swim> for Ping {
                 .from
                 .ok_or(Error::ProtocolMismatch("from"))
                 .and_then(Member::from_proto)?,
-            forward_to: forward_to,
+            forward_to,
         })
     }
 }
@@ -309,9 +310,9 @@ impl Swim {
             SwimType::Pingreq => SwimKind::PingReq(PingReq::from_proto(proto)?),
         };
         Ok(Swim {
-            type_: type_,
+            type_,
             membership: memberships,
-            kind: kind,
+            kind,
         })
     }
 

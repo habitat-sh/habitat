@@ -28,21 +28,24 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
-    use std::ffi::OsString;
-    use std::path::PathBuf;
-    use std::str::FromStr;
+    use std::{ffi::OsString, path::PathBuf, str::FromStr};
 
-    use crate::common::ui::UI;
-    use crate::hcore::crypto::{default_cache_key_path, init};
-    use crate::hcore::env as henv;
-    use crate::hcore::fs::find_command;
-    use crate::hcore::os::process;
-    use crate::hcore::package::PackageIdent;
+    use crate::{
+        common::ui::UI,
+        hcore::{
+            crypto::{default_cache_key_path, init},
+            env as henv,
+            fs::find_command,
+            os::process,
+            package::PackageIdent,
+        },
+    };
 
     use super::{SUP_CMD, SUP_CMD_ENVVAR, SUP_PKG_IDENT};
-    use crate::error::{Error, Result};
-    use crate::exec;
-    use crate::VERSION;
+    use crate::{
+        error::{Error, Result},
+        exec, VERSION,
+    };
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let command = match henv::var(SUP_CMD_ENVVAR) {
@@ -70,8 +73,7 @@ mod inner {
 
 #[cfg(target_os = "macos")]
 mod inner {
-    use std::env;
-    use std::ffi::OsString;
+    use std::{env, ffi::OsString};
 
     use crate::common::ui::{UIWriter, UI};
 
@@ -80,8 +82,8 @@ mod inner {
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         ui.warn(
-            "Launching a native Supervisor on this operating system is not yet supported. \
-             Try running this command again on 64-bit Linux or Windows.",
+            "Launching a native Supervisor on this operating system is not yet supported. Try \
+             running this command again on 64-bit Linux or Windows.",
         )?;
         ui.br()?;
         Err(Error::SubcommandNotSupported(subcmd))

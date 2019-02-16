@@ -24,17 +24,19 @@
 //! (e.g. verifying that templated files are changed when new
 //! configuration values are applied).
 
-use std::fs::File;
-use std::io::Read;
-use std::path::{Path, PathBuf};
-use std::string::ToString;
-use std::time::SystemTime;
+use std::{
+    fs::File,
+    io::Read,
+    path::{Path, PathBuf},
+    string::ToString,
+    time::SystemTime,
+};
 
-use crate::hcore::fs::PKG_PATH;
-use crate::hcore::package::metadata::MetaFile;
-use crate::hcore::package::PackageIdent;
-use tempfile::Builder;
-use tempfile::TempDir;
+use crate::hcore::{
+    fs::PKG_PATH,
+    package::{metadata::MetaFile, PackageIdent},
+};
+use tempfile::{Builder, TempDir};
 
 #[derive(Debug)]
 pub struct HabRoot(TempDir);

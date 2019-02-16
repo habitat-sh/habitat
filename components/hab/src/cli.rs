@@ -12,25 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::SocketAddr;
-use std::path::Path;
-use std::result;
-use std::str::FromStr;
+use std::{net::SocketAddr, path::Path, result, str::FromStr};
 
-use crate::hcore::package::ident;
-use crate::hcore::package::{Identifiable, PackageIdent, PackageTarget};
-use crate::hcore::{crypto::keys::PairType, service::HealthCheckInterval, service::ServiceGroup};
-use crate::protocol;
+use crate::{
+    hcore::{
+        crypto::keys::PairType,
+        package::{ident, Identifiable, PackageIdent, PackageTarget},
+        service::{HealthCheckInterval, ServiceGroup},
+    },
+    protocol,
+};
 use clap::{App, AppSettings, Arg};
 use url::Url;
 
-use crate::command::studio;
-use crate::common::cli_defaults::{
-    GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_CTL_DEFAULT_ADDR_STRING,
-    LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
+use crate::{
+    command::studio,
+    common::{
+        cli_defaults::{
+            GOSSIP_DEFAULT_ADDR, GOSSIP_LISTEN_ADDRESS_ENVVAR, LISTEN_CTL_DEFAULT_ADDR_STRING,
+            LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_ADDR, RING_ENVVAR, RING_KEY_ENVVAR,
+        },
+        types::{EnvConfig, ListenCtlAddr},
+    },
+    feat,
 };
-use crate::common::types::{EnvConfig, ListenCtlAddr};
-use crate::feat;
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
@@ -755,17 +760,22 @@ fn sub_pkg_build() -> App<'static, 'static> {
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
     if studio::native_studio_support() {
-        sub = sub.arg(
-            Arg::with_name("REUSE")
-                .help("Reuses a previous Studio for the build (default: clean up before building)")
-                .short("R")
-                .long("reuse"),
-        ).arg(
-            Arg::with_name("DOCKER")
-                .help("Uses a Dockerized Studio for the build")
-                .short("D")
-                .long("docker"),
-        );
+        sub = sub
+            .arg(
+                Arg::with_name("REUSE")
+                    .help(
+                        "Reuses a previous Studio for the build (default: clean up before \
+                         building)",
+                    )
+                    .short("R")
+                    .long("reuse"),
+            )
+            .arg(
+                Arg::with_name("DOCKER")
+                    .help("Uses a Dockerized Studio for the build")
+                    .short("D")
+                    .long("docker"),
+            );
     }
 
     if cfg!(target_os = "windows") {
@@ -806,7 +816,10 @@ fn sub_pkg_install() -> App<'static, 'static> {
     if feat::is_enabled(feat::IgnoreLocal) {
         sub = sub.arg(
             Arg::with_name("IGNORE_LOCAL")
-                .help("Do not use locally-installed packages when a corresponding package cannot be installed from Builder")
+                .help(
+                    "Do not use locally-installed packages when a corresponding package cannot be \
+                     installed from Builder",
+                )
                 .long("ignore-local"),
         );
     };
@@ -1177,17 +1190,20 @@ fn valid_ident(val: String) -> result::Result<(), String> {
 fn valid_target(val: String) -> result::Result<(), String> {
     match PackageTarget::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!("'{}' is not valid. A valid target is in the form architecture-platform (example: x86_64-linux)", &val)),
+        Err(_) => Err(format!(
+            "'{}' is not valid. A valid target is in the form architecture-platform (example: \
+             x86_64-linux)",
+            &val
+        )),
     }
 }
 
 fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
     match PackageIdent::from_str(&val) {
-        Ok(ref ident) if ident.fully_qualified() => {
-            Ok(())
-        }
+        Ok(ref ident) if ident.fully_qualified() => Ok(()),
         _ => Err(format!(
-            "'{}' is not valid. Fully qualified package identifiers have the form origin/name/version/release",
+            "'{}' is not valid. Fully qualified package identifiers have the form \
+             origin/name/version/release",
             &val
         )),
     }
@@ -1197,7 +1213,11 @@ fn valid_origin(val: String) -> result::Result<(), String> {
     if ident::is_valid_origin_name(&val) {
         Ok(())
     } else {
-        Err(format!("'{}' is not valid. A valid origin contains a-z, 0-9, and _ or - after the first character", &val))
+        Err(format!(
+            "'{}' is not valid. A valid origin contains a-z, 0-9, and _ or - after the first \
+             character",
+            &val
+        ))
     }
 }
 

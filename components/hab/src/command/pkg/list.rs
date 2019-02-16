@@ -12,20 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::error::Result;
-use crate::hcore::fs as hfs;
-use crate::hcore::package::list;
-use crate::hcore::package::PackageIdent;
+use crate::{
+    error::Result,
+    hcore::{
+        fs as hfs,
+        package::{list, PackageIdent},
+    },
+};
 
-use std::path::Path;
-use std::str::FromStr;
+use std::{path::Path, str::FromStr};
 
 use clap::ArgMatches;
 
 /// There are three options for what we can list:
 ///   - All packages (no prefix supplied)
 ///   - All packages in an origin (string with no '/')
-///   - A set of packages with a common package ident (e.g. /ORIGIN/NAME) with optionally version/release
+///   - A set of packages with a common package ident (e.g. /ORIGIN/NAME) with optionally
+///     version/release
 #[derive(Debug)]
 pub enum ListingType {
     AllPackages,

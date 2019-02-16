@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::str;
+use std::{
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    str,
+};
 
-use crate::butterfly::rumor::service::SysInfo;
-use crate::hcore;
+use crate::{butterfly::rumor::service::SysInfo, hcore};
 
-use crate::common::types::ListenCtlAddr;
-use crate::config::GossipListenAddr;
-use crate::error::{Error, Result};
-use crate::http_gateway;
-use crate::VERSION;
+use crate::{
+    common::types::ListenCtlAddr,
+    config::GossipListenAddr,
+    error::{Error, Result},
+    http_gateway, VERSION,
+};
 
 static LOGKEY: &'static str = "SY";
 
@@ -67,7 +69,7 @@ impl Sys {
         Sys {
             version: VERSION.to_string(),
             member_id: "unloaded".to_string(),
-            ip: ip,
+            ip,
             hostname: host,
             gossip_ip: gossip.ip(),
             gossip_port: gossip.port(),
@@ -75,7 +77,7 @@ impl Sys {
             ctl_gateway_port: ctl.port(),
             http_gateway_ip: http.ip(),
             http_gateway_port: http.port(),
-            permanent: permanent,
+            permanent,
         }
     }
 

@@ -14,9 +14,10 @@
 
 use std::path::Path;
 
-use crate::common::ui::{UIWriter, UI};
-use crate::hcore::crypto::BoxKeyPair;
-use crate::hcore::service::ServiceGroup;
+use crate::{
+    common::ui::{UIWriter, UI},
+    hcore::{crypto::BoxKeyPair, service::ServiceGroup},
+};
 
 use crate::error::Result;
 

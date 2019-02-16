@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::Path;
-use std::result;
-use std::str::FromStr;
+use std::{path::Path, result, str::FromStr};
 
 use crate::hcore::package::PackageIdent;
 use clap::{App, Arg};
@@ -54,7 +52,8 @@ impl<'a, 'b> Cli<'a, 'b> {
     }
 
     pub fn add_base_packages_args(self) -> Self {
-        let app = self.app
+        let app = self
+            .app
             .arg(
                 Arg::with_name("HAB_PKG")
                     .long("hab-pkg")
@@ -62,8 +61,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_ident_or_hart)
                     .help(
                         "Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat \
-                        artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) to \
-                        install (default: core/hab)",
+                         artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) \
+                         to install (default: core/hab)",
                     ),
             )
             .arg(
@@ -73,9 +72,9 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_ident_or_hart)
                     .help(
                         "Launcher package identifier (ex: core/hab-launcher) or filepath to a \
-                        Habitat artifact (ex: \
-                        /home/core-hab-launcher-6083-20171101045646-x86_64-linux.hart) to install \
-                        (default: core/hab-launcher)",
+                         Habitat artifact (ex: \
+                         /home/core-hab-launcher-6083-20171101045646-x86_64-linux.hart) to \
+                         install (default: core/hab-launcher)",
                     ),
             )
             .arg(
@@ -84,14 +83,14 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("HAB_SUP_PKG")
                     .validator(valid_ident_or_hart)
                     .help(
-                        "Supervisor package identifier (ex: core/hab-sup) or filepath to a Habitat \
-                        artifact (ex: \
-                        /home/ore-hab-sup-0.39.1-20171118011657-x86_64-linux.hart) to install \
-                        (default: core/hab-sup)",
+                        "Supervisor package identifier (ex: core/hab-sup) or filepath to a \
+                         Habitat artifact (ex: \
+                         /home/ore-hab-sup-0.39.1-20171118011657-x86_64-linux.hart) to install \
+                         (default: core/hab-sup)",
                     ),
             );
 
-        Cli { app: app }
+        Cli { app }
     }
 
     pub fn add_builder_args(self) -> Self {
@@ -142,7 +141,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .help("Provide a Builder auth token for private pkg export"),
             );
 
-        Cli { app: app }
+        Cli { app }
     }
 
     pub fn add_tagging_args(self) -> Self {
@@ -196,7 +195,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     ),
             );
 
-        Cli { app: app }
+        Cli { app }
     }
 
     pub fn add_publishing_args(self) -> Self {
@@ -261,7 +260,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .help("Remove local image from engine after build and/or push (default: no)"),
             );
 
-        Cli { app: app }
+        Cli { app }
     }
 
     pub fn add_pkg_ident_arg(self, options: PkgIdentArgOptions) -> Self {
@@ -281,7 +280,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                 .help(help),
         );
 
-        Cli { app: app }
+        Cli { app }
     }
 
     pub fn add_memory_arg(self) -> Self {
@@ -293,7 +292,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                 .help("Memory limit passed to docker build's --memory arg (ex: 2bg)"),
         );
 
-        Cli { app: app }
+        Cli { app }
     }
 }
 

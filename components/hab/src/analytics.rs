@@ -186,15 +186,19 @@
 //! hab/0.6.0/20160606153031 (x86_64-darwin; 14.5.0)
 //! ```
 
-use std::env;
-use std::fs::{self, File};
-use std::io::{Read, Write};
-use std::path::Path;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    env,
+    fs::{self, File},
+    io::{Read, Write},
+    path::Path,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore;
-use crate::http_client::ApiClient;
+use crate::{
+    common::ui::{Status, UIWriter, UI},
+    hcore,
+    http_client::ApiClient,
+};
 use clap;
 use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
 use uuid::Uuid;
@@ -258,7 +262,7 @@ pub fn instrument_subcommand() {
         // Match against any pre-selected subcommands that are 1 level deep and ignore any
         // potential arguments, options, or flags to that subcommand--these extras will not be
         // reported.
-        ("apply", _, _) => record_event(Event::Subcommand, &format!("{}--{}", PRODUCT, arg1)),
+        ("apply", ..) => record_event(Event::Subcommand, &format!("{}--{}", PRODUCT, arg1)),
         // Match against any pre-selected subcommands that are 2 levels deep and ignore any
         // potential arguments, options, or flags to that subcommand--these extras will not be
         // reported.
@@ -486,10 +490,10 @@ fn should_send() -> bool {
         args.next().unwrap_or_default().as_str(),
         args.next().unwrap_or_default().as_str(),
     ) {
-        ("apply", _, _)
+        ("apply", ..)
         | ("config", "apply", _)
         | ("file", "upload", _)
-        | ("install", _, _)
+        | ("install", ..)
         | ("origin", "key", "upload")
         | ("pkg", "install", _)
         | ("pkg", "upload", _) => true,

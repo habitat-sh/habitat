@@ -26,8 +26,10 @@ use habitat_core;
 
 use toml;
 
-use std::net::SocketAddr;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{
+    net::SocketAddr,
+    time::{SystemTime, UNIX_EPOCH},
+};
 
 pub struct Client {
     butterfly_client: ButterflyClient,

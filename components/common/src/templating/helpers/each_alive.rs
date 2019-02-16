@@ -17,8 +17,7 @@ use std::collections::BTreeMap;
 use handlebars::{Handlebars, Helper, HelperDef, RenderContext, RenderError, Renderable};
 use serde_json::Value as Json;
 
-use super::super::RenderResult;
-use super::{to_json, JsonTruthy};
+use super::{super::RenderResult, to_json, JsonTruthy};
 
 #[derive(Clone, Copy)]
 pub struct EachAliveHelper;

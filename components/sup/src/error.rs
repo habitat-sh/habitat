@@ -36,27 +36,18 @@
 //! Also included in this module is `Result<T>`, a type alias for `Result<T, SupError>`. Use
 //! it instead of the longer `Result` form.
 
-use std::env;
-use std::error;
-use std::ffi;
-use std::fmt;
-use std::io;
-use std::net;
-use std::path::PathBuf;
-use std::result;
-use std::str;
-use std::string;
-use std::sync::mpsc;
+use std::{env, error, ffi, fmt, io, net, path::PathBuf, result, str, string, sync::mpsc};
 
-use crate::api_client;
-use crate::butterfly;
-use crate::common;
-use crate::hcore;
-use crate::hcore::os::process::Pid;
-use crate::hcore::output::StructuredOutput;
-use crate::hcore::package::{self, Identifiable, PackageInstall};
-use crate::launcher_client;
-use crate::protocol;
+use crate::{
+    api_client, butterfly, common,
+    hcore::{
+        self,
+        os::process::Pid,
+        output::StructuredOutput,
+        package::{self, Identifiable, PackageInstall},
+    },
+    launcher_client, protocol,
+};
 use glob;
 use notify;
 use rustls;
@@ -92,11 +83,11 @@ impl SupError {
         column: u32,
     ) -> SupError {
         SupError {
-            err: err,
-            logkey: logkey,
-            file: file,
-            line: line,
-            column: column,
+            err,
+            logkey,
+            file,
+            line,
+            column,
         }
     }
 }
@@ -185,14 +176,13 @@ impl fmt::Display for SupError {
             Error::APIClient(ref err) => err.to_string(),
             Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),
             Error::Departed => {
-                "This Supervisor has been manually departed.\n\nFor the safety of the system, \
-                 this Supervisor cannot be started (if we did, we would risk the services on \
-                 this machine behaving badly without our knowledge.) If you know that the \
-                 services on this system are safe, and want them to rejoin the habitat ring, \
-                 you need to:\n\n  rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\n \
-                 This will cause the Supervisor to join the ring as a new member.\n\n \
-                 If you are in doubt, it is better to consider the services managed by this \
-                 Supervisor as unsafe to run."
+                "This Supervisor has been manually departed.\n\nFor the safety of the system, this \
+                 Supervisor cannot be started (if we did, we would risk the services on this \
+                 machine behaving badly without our knowledge.) If you know that the services on \
+                 this system are safe, and want them to rejoin the habitat ring, you need to:\n\n  \
+                 rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\n This will cause the \
+                 Supervisor to join the ring as a new member.\n\n If you are in doubt, it is \
+                 better to consider the services managed by this Supervisor as unsafe to run."
                     .to_string()
             }
             Error::BadDataFile(ref path, ref err) => format!(
@@ -286,13 +276,13 @@ impl fmt::Display for SupError {
             }
             Error::ProcessLockCorrupt => "Unable to decode contents of process lock".to_string(),
             Error::ProcessLocked(ref pid) => format!(
-                "Unable to start Habitat Supervisor because another instance is already \
-                 running with the pid {}.",
+                "Unable to start Habitat Supervisor because another instance is already running \
+                 with the pid {}.",
                 pid
             ),
             Error::ProcessLockIO(ref path, ref err) => format!(
-                "Unable to start Habitat Supervisor because we weren't able to write or \
-                 read to a process lock at {}, {}",
+                "Unable to start Habitat Supervisor because we weren't able to write or read to a \
+                 process lock at {}, {}",
                 path.display(),
                 err
             ),
@@ -350,18 +340,18 @@ impl error::Error for SupError {
             Error::APIClient(ref err) => err.description(),
             Error::BadAddress(_) => "Unable to bind to address",
             Error::Departed => "Supervisor has been manually departed",
-            Error::BadDataFile(_, _) => "Unable to read or write to a data file",
-            Error::BadDataPath(_, _) => "Unable to read or write to data directory",
+            Error::BadDataFile(..) => "Unable to read or write to a data file",
+            Error::BadDataPath(..) => "Unable to read or write to data directory",
             Error::BadElectionStatus(_) => "Unknown election status",
             Error::BadDesiredState(_) => "Unknown desired state in service spec",
-            Error::BadPackage(_, _) => "Package was malformed or contained malformed contents",
-            Error::BadSpecsPath(_, _) => "Unable to create the specs directory",
+            Error::BadPackage(..) => "Package was malformed or contained malformed contents",
+            Error::BadSpecsPath(..) => "Unable to create the specs directory",
             Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::BindTimeout(_) => "Timeout waiting to bind to an address",
             Error::LockPoisoned => "A mutex or read/write lock has failed",
             Error::TestBootFail => "Simulated boot failure",
             Error::ButterflyError(ref err) => err.description(),
-            Error::CtlSecretIo(_, _) => "IoError while reading ctl secret",
+            Error::CtlSecretIo(..) => "IoError while reading ctl secret",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
             Error::GroupNotFound(_) => "No matching GID for group found",
             Error::HabitatCommon(ref err) => err.description(),
@@ -404,17 +394,17 @@ impl error::Error for SupError {
             Error::PackageNotRunnable(_) => "The package is not runnable",
             Error::Permissions(_) => "File system permissions error",
             Error::PidFileCorrupt(_) => "Unable to decode contents of PID file",
-            Error::PidFileIO(_, _) => "Unable to read or write to PID file",
+            Error::PidFileIO(..) => "Unable to read or write to PID file",
             Error::ProcessLockCorrupt => "Unable to decode contents of process lock",
             Error::ProcessLocked(_) => {
                 "Another instance of the Habitat Supervisor is already running"
             }
-            Error::ProcessLockIO(_, _) => "Unable to read or write to a process lock",
+            Error::ProcessLockIO(..) => "Unable to read or write to a process lock",
             Error::RecvError(_) => "A channel failed to receive a response",
             Error::ServiceDeserializationError(_) => "Can't deserialize service status",
             Error::ServiceNotLoaded(_) => "Service status called when service not loaded",
             Error::ServiceSerializationError(_) => "Can't serialize service to file",
-            Error::ServiceSpecFileIO(_, _) => "Unable to write or read to a service spec file",
+            Error::ServiceSpecFileIO(..) => "Unable to write or read to a service spec file",
             Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
             Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",
             Error::SignalFailed => "Failed to send a signal to the child process",

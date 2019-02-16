@@ -27,39 +27,45 @@ mod pull;
 mod push;
 pub mod timing;
 
-use std::collections::{HashMap, HashSet};
-use std::ffi;
-use std::fmt::{self, Debug};
-use std::fs;
-use std::io;
-use std::net::{SocketAddr, ToSocketAddrs, UdpSocket};
-use std::path::PathBuf;
-use std::result;
-use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
-use std::sync::mpsc::{self, channel};
-use std::sync::{Arc, Mutex, RwLock};
-use std::thread;
-use std::time::{Duration, Instant};
+use std::{
+    collections::{HashMap, HashSet},
+    ffi,
+    fmt::{self, Debug},
+    fs, io,
+    net::{SocketAddr, ToSocketAddrs, UdpSocket},
+    path::PathBuf,
+    result,
+    sync::{
+        atomic::{AtomicBool, AtomicIsize, Ordering},
+        mpsc::{self, channel},
+        Arc, Mutex, RwLock,
+    },
+    thread,
+    time::{Duration, Instant},
+};
 
 use habitat_core::crypto::SymKey;
 use prometheus::{HistogramTimer, HistogramVec, IntGauge};
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 
 use self::incarnation_store::IncarnationStore;
-use crate::error::{Error, Result};
-use crate::member::{Health, Incarnation, Member, MemberList, MemberListProxy};
-use crate::message;
-use crate::rumor::dat_file::DatFile;
-use crate::rumor::departure::Departure;
-use crate::rumor::election::{Election, ElectionRumor, ElectionUpdate};
-use crate::rumor::heat::RumorHeat;
-use crate::rumor::service::Service;
-use crate::rumor::service_config::ServiceConfig;
-use crate::rumor::service_file::ServiceFile;
-use crate::rumor::{Rumor, RumorKey, RumorStore, RumorStoreProxy, RumorType};
-use crate::swim::Ack;
-use crate::trace::{Trace, TraceKind};
+use crate::{
+    error::{Error, Result},
+    member::{Health, Incarnation, Member, MemberList, MemberListProxy},
+    message,
+    rumor::{
+        dat_file::DatFile,
+        departure::Departure,
+        election::{Election, ElectionRumor, ElectionUpdate},
+        heat::RumorHeat,
+        service::Service,
+        service_config::ServiceConfig,
+        service_file::ServiceFile,
+        Rumor, RumorKey, RumorStore, RumorStoreProxy, RumorType,
+    },
+    swim::Ack,
+    trace::{Trace, TraceKind},
+};
 
 /// The maximum number of other members we should notify when we shut
 /// down and leave the ring.
@@ -123,7 +129,7 @@ impl Myself {
     /// signals a difference between testing and "real life".
     fn new(member: Member, store: Option<IncarnationStore>) -> Myself {
         Myself {
-            member: member,
+            member,
             incarnation_store: store,
         }
     }
@@ -392,8 +398,8 @@ impl Server {
             }
             None => {
                 debug!(
-                    "Exceeded an isize integer in swim-rounds. Congratulations, this is a \
-                     very long running Supervisor!"
+                    "Exceeded an isize integer in swim-rounds. Congratulations, this is a very \
+                     long running Supervisor!"
                 );
                 self.swim_rounds.store(0, Ordering::SeqCst);
             }
@@ -418,8 +424,8 @@ impl Server {
             }
             None => {
                 debug!(
-                    "Exceeded an isize integer in gossip-rounds. Congratulations, this is a \
-                     very long running Supervisor!"
+                    "Exceeded an isize integer in gossip-rounds. Congratulations, this is a very \
+                     long running Supervisor!"
                 );
                 self.gossip_rounds.store(0, Ordering::SeqCst);
             }
@@ -959,8 +965,8 @@ impl Server {
                     // If we are the leader, and we have lost quorum, we should restart the election
                     if !check_quorum(election.key()) {
                         warn!(
-                            "Restarting election with a new term as the leader has lost \
-                             quorum: {:?}",
+                            "Restarting election with a new term as the leader has lost quorum: \
+                             {:?}",
                             election
                         );
                         elections_to_restart
@@ -1624,14 +1630,12 @@ mod tests {
     }
 
     mod server {
-        use crate::member::Member;
-        use crate::server::timing::Timing;
-        use crate::server::{Server, Suitability};
-        use crate::trace::Trace;
-        use std::fs::File;
-        use std::io::prelude::*;
-        use std::path::PathBuf;
-        use std::sync::Mutex;
+        use crate::{
+            member::Member,
+            server::{timing::Timing, Server, Suitability},
+            trace::Trace,
+        };
+        use std::{fs::File, io::prelude::*, path::PathBuf, sync::Mutex};
         use tempfile::TempDir;
 
         lazy_static! {

@@ -21,8 +21,10 @@ use std::{num::ParseIntError, str::FromStr, sync::mpsc, thread::Builder, time::D
 use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
 
 use super::spec_dir::SpecDir;
-use crate::common::types::EnvConfig;
-use crate::error::{Error, Result};
+use crate::{
+    common::types::EnvConfig,
+    error::{Error, Result},
+};
 
 static LOGKEY: &'static str = "SW";
 
@@ -56,6 +58,7 @@ impl Default for SpecWatcherDelay {
 
 impl FromStr for SpecWatcherDelay {
     type Err = ParseIntError;
+
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
         Ok(Duration::from_millis(s.parse()?).into())
     }

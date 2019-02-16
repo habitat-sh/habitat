@@ -20,9 +20,7 @@
 include!("generated/sup.net.rs");
 include!("generated/sup.net.impl.rs");
 
-use std::error;
-use std::fmt;
-use std::io;
+use std::{error, fmt, io};
 
 use crate::core;
 
@@ -53,19 +51,23 @@ impl error::Error for NetErr {
             ErrCode::Unauthorized => "Client failed authorization with server",
             ErrCode::Conflict => "Entity exists or is unable to update with given parameters",
             ErrCode::NotSupported => {
-                "Request contained a valid payload but a detail of the request was not supported by the remote"
+                "Request contained a valid payload but a detail of the request was not supported \
+                 by the remote"
             }
             ErrCode::BadPayload => {
-                "Request contained a bad or unreadable value for one or more fields of one or more messages"
+                "Request contained a bad or unreadable value for one or more fields of one or more \
+                 messages"
             }
             ErrCode::InvalidPayload => {
-                "Request contained a well-formed payload but it was rejected as invalid by the remote"
+                "Request contained a well-formed payload but it was rejected as invalid by the \
+                 remote"
             }
             ErrCode::EntityTooLarge => {
                 "Requestor sent a well-formed payload but it exceeded an allowed limit."
             }
             ErrCode::UpdateClient => {
-                "Requestor sent a message which the server cannot process. The requestor should update their client before making the same request again."
+                "Requestor sent a message which the server cannot process. The requestor should \
+                 update their client before making the same request again."
             }
         }
     }

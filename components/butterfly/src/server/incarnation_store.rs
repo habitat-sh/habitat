@@ -15,14 +15,17 @@
 //! Provide the means to persist a Supervisor's own incarnation
 //! number across restarts.
 
-use std::fs::{self, File};
-use std::io::{BufWriter, Read, Write};
-use std::path::{Path, PathBuf};
+use std::{
+    fs::{self, File},
+    io::{BufWriter, Read, Write},
+    path::{Path, PathBuf},
+};
 
-use crate::error::{Error, Result};
-use crate::member::Incarnation;
-use std::io;
-use std::num;
+use crate::{
+    error::{Error, Result},
+    member::Incarnation,
+};
+use std::{io, num};
 
 /// Provide storage of an incarnation number that can persist across
 /// Supervisor restarts.

@@ -14,7 +14,10 @@
 
 include!("../generated/butterfly.swim.rs");
 
-pub use self::{membership::Health, swim::Payload as SwimPayload, swim::Type as SwimType};
+pub use self::{
+    membership::Health,
+    swim::{Payload as SwimPayload, Type as SwimType},
+};
 
 #[cfg(test)]
 mod tests {

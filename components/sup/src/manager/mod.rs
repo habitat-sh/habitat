@@ -26,43 +26,54 @@ mod spec_watcher;
 mod sys;
 mod user_config_watcher;
 
-use std;
-use std::collections::HashMap;
-use std::fs::{self, File, OpenOptions};
-use std::io::{BufRead, BufReader, Read, Write};
-use std::mem;
-use std::net::SocketAddr;
-use std::ops::DerefMut;
-use std::path::{Path, PathBuf};
-use std::result;
-use std::str::FromStr;
-use std::sync::{Arc, Condvar, Mutex, RwLock};
-use std::thread;
-use std::time::Duration;
+use std::{
+    self,
+    collections::HashMap,
+    fs::{self, File, OpenOptions},
+    io::{BufRead, BufReader, Read, Write},
+    mem,
+    net::SocketAddr,
+    ops::DerefMut,
+    path::{Path, PathBuf},
+    result,
+    str::FromStr,
+    sync::{Arc, Condvar, Mutex, RwLock},
+    thread,
+    time::Duration,
+};
 
 use num_cpus;
 
-use crate::butterfly;
-use crate::butterfly::member::Member;
-use crate::butterfly::server::{timing::Timing, ServerProxy, Suitability};
-use crate::butterfly::trace::Trace;
-use crate::common;
 pub use crate::common::templating::package::Pkg;
-use crate::common::types::{EnvConfig, ListenCtlAddr};
-use crate::hcore::crypto::SymKey;
-use crate::hcore::env;
-use crate::hcore::fs::FS_ROOT_PATH;
-use crate::hcore::os::process::{self, Pid, Signal};
-use crate::hcore::os::signals::{self, SignalEvent};
-use crate::hcore::package::{Identifiable, PackageIdent, PackageInstall};
-use crate::hcore::service::ServiceGroup;
-use crate::hcore::util::ToI64;
-use crate::hcore::ChannelIdent;
-use crate::launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV};
-use crate::protocol;
+use crate::{
+    butterfly::{
+        self,
+        member::Member,
+        server::{timing::Timing, ServerProxy, Suitability},
+        trace::Trace,
+    },
+    common::{
+        self,
+        types::{EnvConfig, ListenCtlAddr},
+    },
+    hcore::{
+        crypto::SymKey,
+        env,
+        fs::FS_ROOT_PATH,
+        os::{
+            process::{self, Pid, Signal},
+            signals::{self, SignalEvent},
+        },
+        package::{Identifiable, PackageIdent, PackageInstall},
+        service::ServiceGroup,
+        util::ToI64,
+        ChannelIdent,
+    },
+    launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV},
+    protocol,
+};
 use cpu_time::ProcessTime;
-use futures::prelude::*;
-use futures::sync::mpsc;
+use futures::{prelude::*, sync::mpsc};
 #[cfg(unix)]
 use proc_self;
 use prometheus::{HistogramVec, IntGauge, IntGaugeVec};
@@ -73,26 +84,28 @@ use tokio::{executor, runtime};
 #[cfg(windows)]
 use winapi::{shared::minwindef::PDWORD, um::processthreadsapi};
 
-use self::peer_watcher::PeerWatcher;
-use self::self_updater::{SelfUpdater, SUP_PKG_IDENT};
-use self::service::{health::HealthCheck, DesiredState};
 pub use self::service::{
     ConfigRendering, Service, ServiceProxy, ServiceSpec, Topology, UpdateStrategy,
 };
-use self::service_updater::ServiceUpdater;
-use self::spec_dir::SpecDir;
-use self::spec_watcher::SpecWatcher;
+use self::{
+    peer_watcher::PeerWatcher,
+    self_updater::{SelfUpdater, SUP_PKG_IDENT},
+    service::{health::HealthCheck, DesiredState},
+    service_updater::ServiceUpdater,
+    spec_dir::SpecDir,
+    spec_watcher::SpecWatcher,
+};
 
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use super::feat;
-use crate::census::{CensusRing, CensusRingProxy};
-use crate::config::GossipListenAddr;
-use crate::ctl_gateway::{self, CtlRequest};
-use crate::error::{Error, Result, SupError};
-use crate::http_gateway;
-use crate::ShutdownReason;
-use crate::VERSION;
+use crate::{
+    census::{CensusRing, CensusRingProxy},
+    config::GossipListenAddr,
+    ctl_gateway::{self, CtlRequest},
+    error::{Error, Result, SupError},
+    http_gateway, ShutdownReason, VERSION,
+};
 
 const MEMBER_ID_FILE: &str = "MEMBER_ID";
 const PROC_LOCK_FILE: &str = "LOCK";
@@ -159,7 +172,7 @@ impl FsCfg {
             data_path: sup_root.join("data"),
             member_id_file: sup_root.join(MEMBER_ID_FILE),
             proc_lock_file: sup_root.join(PROC_LOCK_FILE),
-            sup_root: sup_root,
+            sup_root,
         }
     }
 }
@@ -359,18 +372,18 @@ impl Manager {
         Ok(Manager {
             state: Arc::new(ManagerState {
                 cfg: cfg_static,
-                services: services,
+                services,
                 gateway_state: Arc::new(RwLock::new(gateway_state)),
             }),
-            self_updater: self_updater,
+            self_updater,
             updater: ServiceUpdater::new(server.clone()),
             census_ring: CensusRing::new(sys.member_id.clone()),
             butterfly: server,
-            launcher: launcher,
-            peer_watcher: peer_watcher,
-            spec_watcher: spec_watcher,
+            launcher,
+            peer_watcher,
+            spec_watcher,
             user_config_watcher: UserConfigWatcher::new(),
-            spec_dir: spec_dir,
+            spec_dir,
             fs_cfg: Arc::new(fs_cfg),
             organization: cfg.organization,
             service_states: HashMap::new(),
@@ -502,8 +515,8 @@ impl Manager {
                 e
             );
             outputln!(
-                "If this service is running as non-root, you'll need to create \
-                 {} and give the current user write access to it",
+                "If this service is running as non-root, you'll need to create {} and give the \
+                 current user write access to it",
                 service.pkg.svc_path.display()
             );
             outputln!("{} failed to start", &spec.ident);
@@ -1235,9 +1248,9 @@ where
     let key_file = &mut BufReader::new(File::open(&key_path)?);
     let cert_file = &mut BufReader::new(File::open(&cert_path)?);
 
-    // Note that we must explicitly map these errors because rustls returns () as the error from both
-    // pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return different errors
-    // for each.
+    // Note that we must explicitly map these errors because rustls returns () as the error from
+    // both pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return
+    // different errors for each.
     let cert_chain = pemfile::certs(cert_file)
         .and_then(|c| if c.is_empty() { Err(()) } else { Ok(c) })
         .map_err(|_| sup_error!(Error::InvalidCertFile(cert_path.as_ref().to_path_buf())))?;
@@ -1265,6 +1278,7 @@ impl Default for TokioThreadCount {
 
 impl FromStr for TokioThreadCount {
     type Err = Error;
+
     fn from_str(s: &str) -> result::Result<Self, Self::Err> {
         let raw = s
             .parse::<usize>()
@@ -1443,16 +1457,13 @@ struct CtlAcceptor {
 
 impl CtlAcceptor {
     fn new(state: Arc<ManagerState>, rx: ctl_gateway::server::MgrReceiver) -> Self {
-        CtlAcceptor {
-            state: state,
-            rx: rx,
-        }
+        CtlAcceptor { state, rx }
     }
 }
 
 impl Stream for CtlAcceptor {
-    type Item = CtlHandler;
     type Error = ();
+    type Item = CtlHandler;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         match self.rx.poll() {
@@ -1477,16 +1488,13 @@ struct CtlHandler {
 
 impl CtlHandler {
     fn new(cmd: ctl_gateway::server::CtlCommand, state: Arc<ManagerState>) -> Self {
-        CtlHandler {
-            cmd: cmd,
-            state: state,
-        }
+        CtlHandler { cmd, state }
     }
 }
 
 impl Future for CtlHandler {
-    type Item = ();
     type Error = ();
+    type Item = ();
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         match self.cmd.run(&self.state) {

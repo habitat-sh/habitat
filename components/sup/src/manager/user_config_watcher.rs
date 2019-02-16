@@ -12,24 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
-use std::io;
-use std::path::{Path, PathBuf};
-use std::sync::{
-    mpsc::{
-        channel, sync_channel, Receiver, SendError, Sender, SyncSender, TryRecvError, TrySendError,
+use std::{
+    collections::HashMap,
+    io,
+    path::{Path, PathBuf},
+    sync::{
+        mpsc::{
+            channel, sync_channel, Receiver, SendError, Sender, SyncSender, TryRecvError,
+            TrySendError,
+        },
+        Arc, Mutex,
     },
-    Arc, Mutex,
+    thread::{self, Builder as ThreadBuilder},
+    time::Duration,
 };
-use std::thread::{self, Builder as ThreadBuilder};
-use std::time::Duration;
 
 use super::file_watcher::{default_file_watcher_with_no_initial_event, Callbacks};
 
-use crate::common::templating::config::UserConfigPath;
-use crate::hcore::fs::USER_CONFIG_FILE;
-use crate::hcore::service::ServiceGroup;
-use crate::manager::service::Service;
+use crate::{
+    common::templating::config::UserConfigPath,
+    hcore::{fs::USER_CONFIG_FILE, service::ServiceGroup},
+    manager::service::Service,
+};
 
 static LOGKEY: &'static str = "UCW";
 
@@ -222,16 +226,14 @@ impl Worker {
                     "UserConfigWatcher({}) worker thread starting",
                     path.display(),
                 );
-                let callbacks = UserConfigCallbacks {
-                    have_events: have_events,
-                };
+                let callbacks = UserConfigCallbacks { have_events };
                 let mut file_watcher =
                     match default_file_watcher_with_no_initial_event(&path, callbacks) {
                         Ok(w) => w,
                         Err(e) => {
                             outputln!(
-                                "UserConfigWatcher({}) could not start notifier, \
-                                 ending thread ({})",
+                                "UserConfigWatcher({}) could not start notifier, ending thread \
+                                 ({})",
                                 path.display(),
                                 e,
                             );
@@ -249,8 +251,8 @@ impl Worker {
                         Err(TryRecvError::Empty) => {
                             if let Err(e) = file_watcher.single_iteration() {
                                 outputln!(
-                                    "UserConfigWatcher({}) could not run notifier, \
-                                     ending thread ({})",
+                                    "UserConfigWatcher({}) could not run notifier, ending thread \
+                                     ({})",
                                     path.display(),
                                     e,
                                 );
@@ -283,11 +285,13 @@ impl Worker {
 mod tests {
     use super::*;
 
-    use std::fs::{remove_file, File};
-    use std::io::Write;
-    use std::str::FromStr;
-    use std::thread;
-    use std::time::{Duration, Instant};
+    use std::{
+        fs::{remove_file, File},
+        io::Write,
+        str::FromStr,
+        thread,
+        time::{Duration, Instant},
+    };
 
     use crate::manager::file_watcher::WATCHER_DELAY_MS;
 
@@ -419,7 +423,7 @@ mod tests {
             let tmp = TempDir::new().expect("creating temp dir");
             let path = UserConfigPath::Recommended(tmp.path().to_path_buf());
             Self {
-                tmp: tmp,
+                tmp,
                 name: String::from("foo"),
                 user_config_path: path,
                 service_group: ServiceGroup::from_str("foo.bar@yoyodine").unwrap(),

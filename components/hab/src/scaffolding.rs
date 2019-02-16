@@ -11,16 +11,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::fs;
-use std::io;
-use std::path::Path;
-use std::str::FromStr;
+use std::{fs, io, path::Path, str::FromStr};
 
 use crate::error::Result;
 
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::crypto::init;
-use crate::hcore::package::PackageIdent;
+use crate::{
+    common::ui::{Status, UIWriter, UI},
+    hcore::{crypto::init, package::PackageIdent},
+};
 
 const SCAFFOLDING_GO_IDENT: &str = "core/scaffolding-go";
 const SCAFFOLDING_GRADLE_IDENT: &str = "core/scaffolding-gradle";
@@ -77,8 +75,8 @@ fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
     // one of our scaffoldings and use it by default
     ui.begin("Attempting autodiscovery ")?;
     ui.para(
-        "No scaffolding type was provided. Let's see if we can figure out \
-         what kind of application you're planning to package.",
+        "No scaffolding type was provided. Let's see if we can figure out what kind of \
+         application you're planning to package.",
     )?;
     let current_path = Path::new(".");
     if is_project_go(&current_path) {
@@ -109,8 +107,8 @@ fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
         ui.warn("Unable to determine the type of app in your current directory")?;
         ui.para(
             "For now, we'll generate a plan with all of the available plan variables and build \
-             phase callbacks. For more documentation on plan options try passing --withdocs \
-             or visit https://www.habitat.sh/docs/reference/plan-syntax/",
+             phase callbacks. For more documentation on plan options try passing --withdocs or \
+             visit https://www.habitat.sh/docs/reference/plan-syntax/",
         )?;
         Ok(None)
     }

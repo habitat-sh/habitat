@@ -13,25 +13,30 @@
 // limitations under the License.
 
 use super::{BindingMode, Topology, UpdateStrategy};
-use crate::error::{Error, Result, SupError};
-use crate::hcore::package::{PackageIdent, PackageInstall};
-use crate::hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
-use crate::hcore::url::DEFAULT_BLDR_URL;
-use crate::hcore::util::{deserialize_using_from_str, serialize_using_to_string};
-use crate::hcore::ChannelIdent;
-use crate::protocol;
-use rand::distributions::Alphanumeric;
-use rand::{thread_rng, Rng};
+use crate::{
+    error::{Error, Result, SupError},
+    hcore::{
+        package::{PackageIdent, PackageInstall},
+        service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup},
+        url::DEFAULT_BLDR_URL,
+        util::{deserialize_using_from_str, serialize_using_to_string},
+        ChannelIdent,
+    },
+    protocol,
+};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{self, Deserialize};
-use std::collections::HashSet;
-use std::fmt;
-use std::fs::{self, File};
-use std::io::{BufReader, Read, Write};
-use std::iter::FromIterator;
-use std::path::{Path, PathBuf};
-use std::result;
-use std::str::FromStr;
-use std::time::Duration;
+use std::{
+    collections::HashSet,
+    fmt,
+    fs::{self, File},
+    io::{BufReader, Read, Write},
+    iter::FromIterator,
+    path::{Path, PathBuf},
+    result,
+    str::FromStr,
+    time::Duration,
+};
 use toml;
 
 static LOGKEY: &str = "SS";
@@ -383,14 +388,18 @@ impl Into<ServiceBind> for protocol::types::ServiceBind {
 
 #[cfg(test)]
 mod test {
-    use std::fs::{self, File};
-    use std::io::{BufReader, Read, Write};
-    use std::path::{Path, PathBuf};
-    use std::str::FromStr;
+    use std::{
+        fs::{self, File},
+        io::{BufReader, Read, Write},
+        path::{Path, PathBuf},
+        str::FromStr,
+    };
 
-    use crate::hcore::error::Error as HError;
-    use crate::hcore::package::PackageIdent;
-    use crate::hcore::service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup};
+    use crate::hcore::{
+        error::Error as HError,
+        package::PackageIdent,
+        service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup},
+    };
     use tempfile::TempDir;
     use toml;
 

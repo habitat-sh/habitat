@@ -14,14 +14,20 @@
 
 use std::path::Path;
 
-use crate::api_client::Client;
-use crate::common;
-use crate::common::command::package::install::{RETRIES, RETRY_WAIT};
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::crypto::SigKeyPair;
+use crate::{
+    api_client::Client,
+    common::{
+        self,
+        command::package::install::{RETRIES, RETRY_WAIT},
+        ui::{Status, UIWriter, UI},
+    },
+    hcore::crypto::SigKeyPair,
+};
 
-use crate::error::{Error, Result};
-use crate::{PRODUCT, VERSION};
+use crate::{
+    error::{Error, Result},
+    PRODUCT, VERSION,
+};
 
 use retry::retry;
 
@@ -155,12 +161,7 @@ pub fn download_public_encryption_key(
 
     if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
         return Err(Error::from(common::error::Error::DownloadFailed(format!(
-            "We tried {} \
-             times but \
-             could not \
-             download the latest \
-             public encryption key. \
-             Giving up.",
+            "We tried {} times but could not download the latest public encryption key. Giving up.",
             RETRIES,
         ))));
     }
@@ -187,12 +188,7 @@ fn download_secret_key(
 
     if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
         return Err(Error::from(common::error::Error::DownloadFailed(format!(
-            "We tried {} \
-             times but \
-             could not \
-             download the latest \
-             secret origin key. \
-             Giving up.",
+            "We tried {} times but could not download the latest secret origin key. Giving up.",
             RETRIES,
         ))));
     }
@@ -220,12 +216,7 @@ fn download_key(
 
             if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
                 return Err(Error::from(common::error::Error::DownloadFailed(format!(
-                    "We tried {} \
-                     times but \
-                     could not \
-                     download {}/{} \
-                     origin key. \
-                     Giving up.",
+                    "We tried {} times but could not download {}/{} origin key. Giving up.",
                     RETRIES, &name, &rev
                 ))));
             }

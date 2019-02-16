@@ -15,17 +15,17 @@
 use clap;
 use failure::SyncFailure;
 use handlebars::Handlebars;
-use std::io::Write;
-use std::path::Path;
-use std::process::Command;
+use std::{io::Write, path::Path, process::Command};
 
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::error::Error;
-use crate::export_docker::Result;
+use crate::{
+    common::ui::{Status, UIWriter, UI},
+    error::Error,
+    export_docker::Result,
+};
 
 pub const DEFAULT_OPERATOR_VERSION: &str = "0.6.1";
-pub const OPERATOR_REPO_URL: &str = "https://habitat-sh.github.io/\
-                                     habitat-operator/helm/charts/stable/";
+pub const OPERATOR_REPO_URL: &str =
+    "https://habitat-sh.github.io/habitat-operator/helm/charts/stable/";
 
 // Helm requirements.yaml template
 const DEPSFILE: &str = include_str!("../defaults/HelmDeps.hbs");
@@ -53,7 +53,7 @@ impl Deps {
         //       https://github.com/kubernetes/helm/issues/3632
         //       https://github.com/kubernetes/helm/issues/2994
         //
-        //let out = self.into_string()?;
+        // let out = self.into_string()?;
         let out = String::new();
         write.write_all(out.as_bytes())?;
 

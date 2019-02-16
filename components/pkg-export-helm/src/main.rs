@@ -37,15 +37,16 @@ mod error;
 mod maintainer;
 mod values;
 
-use std::result;
-use std::str::FromStr;
+use std::{result, str::FromStr};
 
 use clap::Arg;
 
-use crate::common::ui::{UIWriter, UI};
-use crate::export_docker::Result;
-use crate::export_k8s::Cli;
-use crate::hcore::PROGRAM_NAME;
+use crate::{
+    common::ui::{UIWriter, UI},
+    export_docker::Result,
+    export_k8s::Cli,
+    hcore::PROGRAM_NAME,
+};
 use url::Url;
 
 use crate::chart::Chart;
@@ -78,8 +79,8 @@ lazy_static! {
 
 fn cli<'a, 'b>() -> clap::App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
-    let about = "Creates a Docker image and generates a Helm chart for the specified Habitat \
-                 package.";
+    let about =
+        "Creates a Docker image and generates a Helm chart for the specified Habitat package.";
 
     Cli::new(name, about)
         .add_docker_args()

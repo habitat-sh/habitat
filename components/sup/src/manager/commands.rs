@@ -14,27 +14,29 @@
 
 //! All the code for responding to Supervisor commands
 
-use crate::butterfly;
-use crate::common::{command::package::install::InstallSource, ui::UIWriter};
-use crate::ctl_gateway::CtlRequest;
-use crate::error::{Error, Result};
-use crate::hcore::{
-    package::{Identifiable, PackageIdent, PackageTarget},
-    service::ServiceGroup,
-    ChannelIdent,
-};
-use crate::manager::{
-    service::{
-        spec::{IntoServiceSpec, ServiceSpec},
-        DesiredState, Pkg, ProcessState,
+use crate::{
+    butterfly,
+    common::{command::package::install::InstallSource, ui::UIWriter},
+    ctl_gateway::CtlRequest,
+    error::{Error, Result},
+    hcore::{
+        package::{Identifiable, PackageIdent, PackageTarget},
+        service::ServiceGroup,
+        ChannelIdent,
     },
-    ManagerConfig, ManagerState,
+    manager::{
+        service::{
+            spec::{IntoServiceSpec, ServiceSpec},
+            DesiredState, Pkg, ProcessState,
+        },
+        ManagerConfig, ManagerState,
+    },
+    protocol::{
+        self,
+        net::{self, ErrCode, NetResult},
+    },
+    util,
 };
-use crate::protocol::{
-    self,
-    net::{self, ErrCode, NetResult},
-};
-use crate::util;
 use serde_json;
 use std::{fmt, fs, path::PathBuf, result};
 use time::{self, Duration as TimeDuration, Timespec};

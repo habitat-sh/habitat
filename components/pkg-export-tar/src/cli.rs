@@ -1,6 +1,5 @@
 use clap::{App, Arg};
-use std::result;
-use std::str::FromStr;
+use std::{result, str::FromStr};
 
 use crate::common::command::package::install::InstallSource;
 use url::Url;
@@ -29,7 +28,8 @@ impl<'a, 'b> Cli<'a, 'b> {
     }
 
     pub fn add_base_packages_args(self) -> Self {
-        let app = self.app
+        let app = self
+            .app
             .arg(
                 Arg::with_name("HAB_PKG")
                     .long("hab-pkg")
@@ -37,8 +37,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_ident_or_hart)
                     .help(
                         "Habitat CLI package identifier (ex: acme/redis) or filepath to a Habitat \
-                        artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) to \
-                        install (default: core/hab)",
+                         artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart) \
+                         to install (default: core/hab)",
                     ),
             )
             .arg(
@@ -48,9 +48,9 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .validator(valid_ident_or_hart)
                     .help(
                         "Launcher package identifier (ex: core/hab-launcher) or filepath to a \
-                        Habitat artifact (ex: \
-                        /home/core-hab-launcher-6083-20171101045646-x86_64-linux.hart) to install \
-                        (default: core/hab-launcher)",
+                         Habitat artifact (ex: \
+                         /home/core-hab-launcher-6083-20171101045646-x86_64-linux.hart) to \
+                         install (default: core/hab-launcher)",
                     ),
             )
             .arg(
@@ -59,14 +59,14 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .value_name("HAB_SUP_PKG")
                     .validator(valid_ident_or_hart)
                     .help(
-                        "Supervisor package identifier (ex: core/hab-sup) or filepath to a Habitat \
-                        artifact (ex: \
-                        /home/ore-hab-sup-0.39.1-20171118011657-x86_64-linux.hart) to install \
-                        (default: core/hab-sup)",
+                        "Supervisor package identifier (ex: core/hab-sup) or filepath to a \
+                         Habitat artifact (ex: \
+                         /home/ore-hab-sup-0.39.1-20171118011657-x86_64-linux.hart) to install \
+                         (default: core/hab-sup)",
                     ),
             );
 
-        Cli { app: app }
+        Cli { app }
     }
 
     pub fn add_builder_args(self) -> Self {
@@ -110,12 +110,12 @@ impl<'a, 'b> Cli<'a, 'b> {
                     ),
             );
 
-        Cli { app: app }
+        Cli { app }
     }
+
     pub fn add_pkg_ident_arg(self) -> Self {
-        let help =
-            "A Habitat package identifier (ex: acme/redis) and/or filepath to \
-             a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
+        let help = "A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat \
+                    Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
 
         let app = self.app.arg(
             Arg::with_name("PKG_IDENT_OR_ARTIFACT")
@@ -124,7 +124,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                 .help(help),
         );
 
-        Cli { app: app }
+        Cli { app }
     }
 }
 

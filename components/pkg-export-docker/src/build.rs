@@ -12,25 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
-use std::fs as stdfs;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir as symlink;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
-
-use crate::common;
-use crate::common::command::package::install::{
-    InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
+use std::{
+    collections::HashMap,
+    fs as stdfs,
+    path::{Path, PathBuf},
+    str::FromStr,
 };
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::env;
-use crate::hcore::fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH};
-use crate::hcore::package::{PackageArchive, PackageIdent, PackageInstall};
-use crate::hcore::ChannelIdent;
-use crate::hcore::PROGRAM_NAME;
+
+use crate::{
+    common::{
+        self,
+        command::package::install::{
+            InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
+        },
+        ui::{Status, UIWriter, UI},
+    },
+    hcore::{
+        env,
+        fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
+        package::{PackageArchive, PackageIdent, PackageInstall},
+        ChannelIdent, PROGRAM_NAME,
+    },
+};
 use clap;
 #[cfg(unix)]
 use failure::SyncFailure;
@@ -39,11 +46,13 @@ use hab;
 use tempfile::TempDir;
 
 use super::{BUSYBOX_IDENT, CACERTS_IDENT, VERSION};
-use crate::accounts::{EtcGroupEntry, EtcPasswdEntry};
-use crate::error::{Error, Result};
 #[cfg(unix)]
 use crate::rootfs;
-use crate::util;
+use crate::{
+    accounts::{EtcGroupEntry, EtcPasswdEntry},
+    error::{Error, Result},
+    util,
+};
 
 // Much of this functionality is duplicated (or slightly modified)
 // in the tar exporter. This needs to be abstacted out in
@@ -131,7 +140,7 @@ impl<'a> BuildSpec<'a> {
         self.prepare_rootfs(ui, &rootfs)?;
 
         Ok(BuildRoot {
-            workdir: workdir,
+            workdir,
             ctx: BuildRootContext::from_spec(&self, &rootfs)?,
         })
     }
@@ -483,7 +492,7 @@ impl BuildRootContext {
             }
             if pkg_install.is_runnable() {
                 idents.push(PkgIdentType::Svc(SvcIdent {
-                    ident: ident,
+                    ident,
                     exposes: pkg_install.exposes()?,
                 }));
             } else {
@@ -502,12 +511,12 @@ impl BuildRootContext {
         let bin_path = util::bin_path();
 
         let context = BuildRootContext {
-            idents: idents,
-            environment: environment,
+            idents,
+            environment,
             bin_path: bin_path.into(),
             env_path: bin_path.to_string_lossy().into_owned(),
             channel: spec.channel.clone(),
-            rootfs: rootfs,
+            rootfs,
         };
         context.validate()?;
 
@@ -691,7 +700,7 @@ impl BuildRootContext {
                     vec!["hab"],
                 ));
             }
-            (_, _) => {
+            (..) => {
                 // SVC_GROUP IS SVC_USER's primary group, because it
                 // has to go somewhere
                 users.push(EtcPasswdEntry::new(&user_name, uid, gid));
@@ -792,8 +801,7 @@ impl PkgIdentType {
 
 #[cfg(test)]
 mod test {
-    use crate::hcore;
-    use crate::hcore::package::PackageTarget;
+    use crate::hcore::{self, package::PackageTarget};
 
     use clap::ArgMatches;
 
@@ -908,21 +916,24 @@ mod test {
     }
 
     mod build_spec {
-        use std::io::{self, Cursor, Write};
-        use std::sync::{Arc, RwLock};
+        use std::{
+            io::{self, Cursor, Write},
+            sync::{Arc, RwLock},
+        };
 
-        use crate::common::ui::{Coloring, UI};
-        use crate::hcore;
+        use crate::{
+            common::ui::{Coloring, UI},
+            hcore,
+        };
 
         use tempfile::TempDir;
 
-        use super::super::*;
-        use super::*;
+        use super::{super::*, *};
 
         #[test]
         fn artifact_cache_symlink() {
             let rootfs = TempDir::new().unwrap();
-            let (mut ui, _, _) = ui();
+            let (mut ui, ..) = ui();
             build_spec()
                 .create_symlink_to_artifact_cache(&mut ui, rootfs.path())
                 .unwrap();
@@ -937,7 +948,7 @@ mod test {
         #[test]
         fn key_cache_symlink() {
             let rootfs = TempDir::new().unwrap();
-            let (mut ui, _, _) = ui();
+            let (mut ui, ..) = ui();
             build_spec()
                 .create_symlink_to_key_cache(&mut ui, rootfs.path())
                 .unwrap();
@@ -950,7 +961,7 @@ mod test {
         #[test]
         fn link_binaries() {
             let rootfs = TempDir::new().unwrap();
-            let (mut ui, _, _) = ui();
+            let (mut ui, ..) = ui();
             let base_pkgs = base_pkgs(rootfs.path());
             build_spec()
                 .link_binaries(&mut ui, rootfs.path(), &base_pkgs)
@@ -979,7 +990,7 @@ mod test {
         #[test]
         fn link_cacerts() {
             let rootfs = TempDir::new().unwrap();
-            let (mut ui, _, _) = ui();
+            let (mut ui, ..) = ui();
             let base_pkgs = base_pkgs(rootfs.path());
             build_spec()
                 .link_cacerts(&mut ui, rootfs.path(), &base_pkgs)
@@ -1085,8 +1096,7 @@ mod test {
 
         use crate::hcore::package::PackageIdent;
 
-        use super::super::*;
-        use super::*;
+        use super::{super::*, *};
 
         #[test]
         fn build_context_from_a_spec() {

@@ -14,14 +14,13 @@
 
 use env_logger;
 
-use std::env;
-use std::net::SocketAddr;
-use std::path::PathBuf;
-use std::thread;
-use std::time::Duration;
+use std::{env, net::SocketAddr, path::PathBuf, thread, time::Duration};
 
-use habitat_butterfly::server::Suitability;
-use habitat_butterfly::{member, server, trace};
+use habitat_butterfly::{
+    member,
+    server::{self, Suitability},
+    trace,
+};
 
 #[derive(Debug)]
 struct ZeroSuitability;

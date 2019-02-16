@@ -54,7 +54,7 @@ impl Service {
         }
         Service {
             args: spawn,
-            process: process,
+            process,
         }
     }
 

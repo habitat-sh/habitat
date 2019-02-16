@@ -16,17 +16,18 @@
 //!
 //! This module handles pulling all the pushed rumors from every member off a ZMQ socket.
 
-use std::thread;
-use std::time::Duration;
+use std::{thread, time::Duration};
 
 use habitat_core::util::ToI64;
 use prometheus::{IntCounterVec, IntGaugeVec};
 use zmq;
 
-use crate::rumor::{RumorEnvelope, RumorKind};
-use crate::server::Server;
-use crate::trace::TraceKind;
-use crate::ZMQ_CONTEXT;
+use crate::{
+    rumor::{RumorEnvelope, RumorKind},
+    server::Server,
+    trace::TraceKind,
+    ZMQ_CONTEXT,
+};
 
 lazy_static! {
     static ref GOSSIP_MESSAGES_RECEIVED: IntCounterVec = register_int_counter_vec!(
@@ -51,7 +52,7 @@ pub struct Pull {
 impl Pull {
     /// Create a new Pull
     pub fn new(server: Server) -> Pull {
-        Pull { server: server }
+        Pull { server }
     }
 
     /// Run this thread. Creates a socket, binds to the `gossip_addr`, then processes messages as

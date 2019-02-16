@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::{HashMap, HashSet};
-use std::ffi::OsString;
-use std::fmt::Debug;
-use std::path::PathBuf;
+use std::{
+    collections::{HashMap, HashSet},
+    ffi::OsString,
+    fmt::Debug,
+    path::PathBuf,
+};
 
 pub trait IndentedToString {
     fn indented_to_string(&self, spaces: &str, repeat: usize) -> String;
@@ -50,7 +52,7 @@ impl IndentedStructFormatter {
             name: name.to_string(),
             fields: Vec::new(),
             spaces: spaces.to_string(),
-            repeat: repeat,
+            repeat,
         }
     }
 
@@ -71,11 +73,11 @@ impl IndentedStructFormatter {
     pub fn fmt(&mut self) -> String {
         let indent = self.spaces.repeat(self.repeat);
         let field_indent = self.spaces.repeat(self.repeat + 1);
-        /* 5 - space between name and opening brace, opening brace, newline
-         * after opening brace, closing brace, terminating zero */
+        // 5 - space between name and opening brace, opening brace, newline
+        // after opening brace, closing brace, terminating zero
         let mut capacity = self.name.len() + 5 + indent.len();
         for pair in &self.fields {
-            /* 4 - colon after name, space, comma, newline after value */
+            // 4 - colon after name, space, comma, newline after value
             capacity += field_indent.len() + pair.0.len() + 4 + pair.1.len();
         }
         let mut str = String::with_capacity(capacity);

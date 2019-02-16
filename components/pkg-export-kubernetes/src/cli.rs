@@ -40,7 +40,7 @@ impl<'a, 'b> Cli<'a, 'b> {
     pub fn new(name: &str, about: &'a str) -> Self {
         let app = docker::Cli::new(name, about).app;
 
-        Cli { app: app }
+        Cli { app }
     }
 
     /// Convenient method to add all known arguments to the CLI.
@@ -71,7 +71,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     ),
             );
 
-        Cli { app: app }
+        Cli { app }
     }
 
     pub fn add_output_args(self) -> Self {
@@ -96,8 +96,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .value_name("K8S_NAME")
                         .long("k8s-name")
                         .help(
-                            "The Kubernetes resource name \
-                             (default: {{pkg_name}}-{{pkg_version}}-{{pkg_release}})",
+                            "The Kubernetes resource name (default: \
+                             {{pkg_name}}-{{pkg_version}}-{{pkg_release}})",
                         ),
                 )
                 .arg(
@@ -114,8 +114,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .short("t")
                         .possible_values(&["standalone", "leader"])
                         .help(
-                            "A topology describes the intended relationship between peers \
-                             within a Habitat service group. Specify either standalone or leader \
+                            "A topology describes the intended relationship between peers within \
+                             a Habitat service group. Specify either standalone or leader \
                              topology (default: standalone)",
                         ),
                 )
@@ -156,11 +156,10 @@ impl<'a, 'b> Cli<'a, 'b> {
                         .help(
                             "Storage specification in form of <size>:<path>:<storage class name>. \
                              <size> uses the same format as Kubernetes' size field (e.g. 10Gi). \
-                             <path> describes where the storage will be mounted. \
-                             <storage class name> is the name of the storage class \
-                             that will be used as a backing store; \
-                             it is a Kubernetes platform-specific thing \
-                             (GCE has its own classes, Azure - its own).",
+                             <path> describes where the storage will be mounted. <storage class \
+                             name> is the name of the storage class that will be used as a \
+                             backing store; it is a Kubernetes platform-specific thing (GCE has \
+                             its own classes, Azure - its own).",
                         ),
                 ),
         }
@@ -174,8 +173,8 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .long("ring-secret-name")
                     .short("r")
                     .help(
-                        "Name of the Kubernetes Secret that contains the ring key, which \
-                         encrypts the communication between Habitat supervisors",
+                        "Name of the Kubernetes Secret that contains the ring key, which encrypts \
+                         the communication between Habitat supervisors",
                     ),
             ),
         }

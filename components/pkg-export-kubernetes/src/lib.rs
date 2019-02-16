@@ -24,9 +24,10 @@ use failure;
 #[macro_use]
 extern crate failure_derive;
 
-use std::fs::File;
-use std::io;
-use std::io::prelude::*;
+use std::{
+    fs::File,
+    io::{self, prelude::*},
+};
 
 use crate::common::ui::{Status, UIWriter, UI};
 
@@ -42,12 +43,10 @@ pub mod topology;
 
 use crate::export_docker::Result;
 
-pub use crate::cli::Cli;
-pub use crate::error::Error;
-pub use crate::hb::QuoteHelper;
-pub use crate::manifest::Manifest;
-pub use crate::manifestjson::ManifestJson;
-pub use crate::storage::PersistentStorage;
+pub use crate::{
+    cli::Cli, error::Error, hb::QuoteHelper, manifest::Manifest, manifestjson::ManifestJson,
+    storage::PersistentStorage,
+};
 
 // Synced with the version of the Habitat operator.
 pub const VERSION: &str = "0.1.0";

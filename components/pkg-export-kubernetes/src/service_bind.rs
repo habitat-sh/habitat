@@ -14,11 +14,9 @@
 
 use clap::ArgMatches;
 use serde_json;
-use std::result;
-use std::str::FromStr;
+use std::{result, str::FromStr};
 
-use crate::export_docker::Result;
-use crate::hcore::service::ServiceGroup;
+use crate::{export_docker::Result, hcore::service::ServiceGroup};
 
 use crate::error::Error;
 

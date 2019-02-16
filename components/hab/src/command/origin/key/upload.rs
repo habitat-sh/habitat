@@ -14,17 +14,22 @@
 
 use std::path::Path;
 
-use crate::api_client::{self, Client};
-use crate::common::command::package::install::{RETRIES, RETRY_WAIT};
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::hcore::crypto::keys::parse_name_with_rev;
-use crate::hcore::crypto::{PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
+use crate::{
+    api_client::{self, Client},
+    common::{
+        command::package::install::{RETRIES, RETRY_WAIT},
+        ui::{Status, UIWriter, UI},
+    },
+    hcore::crypto::{keys::parse_name_with_rev, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION},
+};
 use hyper::status::StatusCode;
 use retry::retry;
 
 use super::get_name_with_rev;
-use crate::error::{Error, Result};
-use crate::{PRODUCT, VERSION};
+use crate::{
+    error::{Error, Result},
+    PRODUCT, VERSION,
+};
 
 pub fn start(
     ui: &mut UI,
@@ -51,8 +56,7 @@ pub fn start(
                     ui.status(
                         Status::Using,
                         format!(
-                            "public key revision {} which already exists in the \
-                             depot",
+                            "public key revision {} which already exists in the depot",
                             &name_with_rev
                         ),
                     )?;
@@ -64,14 +68,7 @@ pub fn start(
 
         if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
             return Err(Error::from(api_client::Error::UploadFailed(format!(
-                "We tried \
-                 {} times \
-                 but could \
-                 not upload \
-                 {}/{} public \
-                 origin key. \
-                 Giving up.\
-                 ",
+                "We tried {} times but could not upload {}/{} public origin key. Giving up.",
                 RETRIES, &name, &rev
             ))));
         }
@@ -109,14 +106,7 @@ pub fn start(
 
         if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
             return Err(Error::from(api_client::Error::UploadFailed(format!(
-                "We tried \
-                 {} times \
-                 but could \
-                 not upload \
-                 {}/{} secret \
-                 origin key. \
-                 Giving up.\
-                 ",
+                "We tried {} times but could not upload {}/{} secret origin key. Giving up.",
                 RETRIES, &name, &rev
             ))));
         }

@@ -12,18 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
-use std::env;
-use std::fs::create_dir_all;
-use std::fs::{canonicalize, File, OpenOptions};
-use std::io::{BufRead, BufReader, Write};
-use std::path::Path;
+use std::{
+    collections::HashMap,
+    env,
+    fs::{canonicalize, create_dir_all, File, OpenOptions},
+    io::{BufRead, BufReader, Write},
+    path::Path,
+};
 
 use crate::hcore::package::PackageIdent;
 use handlebars::Handlebars;
 
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::error::Result;
+use crate::{
+    common::ui::{Status, UIWriter, UI},
+    error::Result,
+};
 
 const DEFAULT_PLAN_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),
@@ -131,8 +134,8 @@ pub fn start(
         create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     }
     ui.para(
-        "`plan.sh` is the foundation of your new habitat. It contains \
-         metadata, dependencies, and tasks.",
+        "`plan.sh` is the foundation of your new habitat. It contains metadata, dependencies, and \
+         tasks.",
     )?;
     let rendered_default_toml = handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data)?;
     create_with_template(

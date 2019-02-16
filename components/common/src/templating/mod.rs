@@ -19,18 +19,21 @@ pub mod hooks;
 pub mod package;
 pub mod test_helpers;
 
-use std::fmt;
-use std::ops::{Deref, DerefMut};
-use std::result;
+use std::{
+    fmt,
+    ops::{Deref, DerefMut},
+    result,
+};
 
 use handlebars::{Handlebars, RenderError};
 use serde::Serialize;
 use serde_json;
 
-use crate::error::{Error, Result};
-use crate::hcore::fs;
-use crate::hcore::package::PackageInstall;
-use crate::templating::hooks::{Hook, InstallHook};
+use crate::{
+    error::{Error, Result},
+    hcore::{fs, package::PackageInstall},
+    templating::hooks::{Hook, InstallHook},
+};
 
 pub use self::context::RenderContext;
 
@@ -119,15 +122,15 @@ fn never_escape(data: &str) -> String {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::hcore::fs::{pkg_root_path, FS_ROOT_PATH};
-    use crate::hcore::package::PackageIdent;
-    use crate::templating::test_helpers::*;
+    use crate::{
+        hcore::{
+            fs::{pkg_root_path, FS_ROOT_PATH},
+            package::PackageIdent,
+        },
+        templating::test_helpers::*,
+    };
     use serde_json;
-    use std::collections::BTreeMap;
-    use std::env;
-    use std::fs::File;
-    use std::io::Read;
-    use std::path::PathBuf;
+    use std::{collections::BTreeMap, env, fs::File, io::Read, path::PathBuf};
     use tempfile::TempDir;
     use toml;
 

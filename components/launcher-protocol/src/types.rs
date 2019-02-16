@@ -62,6 +62,7 @@ pub struct NetErr {
 
 impl LauncherMessage for NetErr {
     type Generated = generated::NetErr;
+
     const MESSAGE_ID: &'static str = "NetErr";
 
     fn from_proto(proto: generated::NetErr) -> Result<Self> {
@@ -93,6 +94,7 @@ pub struct NetOk {}
 
 impl LauncherMessage for NetOk {
     type Generated = generated::NetOk;
+
     const MESSAGE_ID: &'static str = "NetOk";
 
     fn from_proto(_proto: generated::NetOk) -> Result<Self> {
@@ -119,6 +121,7 @@ impl Register {
 
 impl LauncherMessage for Register {
     type Generated = generated::Register;
+
     const MESSAGE_ID: &'static str = "Register";
 
     fn from_proto(proto: generated::Register) -> Result<Self> {
@@ -143,6 +146,7 @@ pub struct Restart {
 
 impl LauncherMessage for Restart {
     type Generated = generated::Restart;
+
     const MESSAGE_ID: &'static str = "Restart";
 
     fn from_proto(proto: generated::Restart) -> Result<Self> {
@@ -174,6 +178,7 @@ pub struct Spawn {
 
 impl LauncherMessage for Spawn {
     type Generated = generated::Spawn;
+
     const MESSAGE_ID: &'static str = "Spawn";
 
     fn from_proto(proto: generated::Spawn) -> Result<Self> {
@@ -212,6 +217,7 @@ pub struct SpawnOk {
 
 impl LauncherMessage for SpawnOk {
     type Generated = generated::SpawnOk;
+
     const MESSAGE_ID: &'static str = "SpawnOk";
 
     fn from_proto(proto: generated::SpawnOk) -> Result<Self> {
@@ -236,6 +242,7 @@ pub struct Terminate {
 
 impl LauncherMessage for Terminate {
     type Generated = generated::Terminate;
+
     const MESSAGE_ID: &'static str = "Terminate";
 
     fn from_proto(proto: generated::Terminate) -> Result<Self> {
@@ -261,6 +268,7 @@ pub struct TerminateOk {
 
 impl LauncherMessage for TerminateOk {
     type Generated = generated::TerminateOk;
+
     const MESSAGE_ID: &'static str = "TerminateOk";
 
     fn from_proto(proto: generated::TerminateOk) -> Result<Self> {
@@ -295,6 +303,7 @@ pub struct Envelope {
 
 impl LauncherMessage for Envelope {
     type Generated = generated::Envelope;
+
     const MESSAGE_ID: &'static str = "Envelope";
 
     fn from_proto(proto: generated::Envelope) -> Result<Self> {
@@ -321,6 +330,7 @@ pub struct Shutdown {}
 
 impl LauncherMessage for Shutdown {
     type Generated = generated::Shutdown;
+
     const MESSAGE_ID: &'static str = "Shutdown";
 
     fn from_proto(_proto: generated::Shutdown) -> Result<Self> {

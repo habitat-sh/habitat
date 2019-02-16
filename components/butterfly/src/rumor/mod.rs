@@ -28,29 +28,38 @@ pub mod service;
 pub mod service_config;
 pub mod service_file;
 
-use std::collections::hash_map::Entry;
-use std::collections::HashMap;
-use std::default::Default;
-use std::ops::Deref;
-use std::result;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::{Arc, RwLock};
+use std::{
+    collections::{hash_map::Entry, HashMap},
+    default::Default,
+    ops::Deref,
+    result,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc, RwLock,
+    },
+};
 
 use bytes::BytesMut;
 use prometheus::IntCounterVec;
 use prost::Message as ProstMessage;
-use serde::ser::{SerializeMap, SerializeSeq, SerializeStruct};
-use serde::{Serialize, Serializer};
+use serde::{
+    ser::{SerializeMap, SerializeSeq, SerializeStruct},
+    Serialize, Serializer,
+};
 
-pub use self::departure::Departure;
-pub use self::election::{Election, ElectionUpdate};
-pub use self::service::Service;
-pub use self::service_config::ServiceConfig;
-pub use self::service_file::ServiceFile;
-use crate::error::{Error, Result};
-use crate::member::Membership;
+pub use self::{
+    departure::Departure,
+    election::{Election, ElectionUpdate},
+    service::Service,
+    service_config::ServiceConfig,
+    service_file::ServiceFile,
+};
 pub use crate::protocol::newscast::{Rumor as ProtoRumor, RumorPayload, RumorType};
-use crate::protocol::{FromProto, Message};
+use crate::{
+    error::{Error, Result},
+    member::Membership,
+    protocol::{FromProto, Message},
+};
 
 lazy_static! {
     static ref IGNORED_RUMOR_COUNT: IntCounterVec = register_int_counter_vec!(
@@ -103,7 +112,7 @@ impl RumorKey {
         B: ToString,
     {
         RumorKey {
-            kind: kind,
+            kind,
             id: id.to_string(),
             key: key.to_string(),
         }
@@ -531,9 +540,9 @@ impl RumorEnvelope {
             RumorType::Fake | RumorType::Fake2 => panic!("fake rumor"),
         };
         Ok(RumorEnvelope {
-            type_: type_,
-            from_id: from_id,
-            kind: kind,
+            type_,
+            from_id,
+            kind,
         })
     }
 
@@ -560,9 +569,11 @@ impl From<RumorEnvelope> for ProtoRumor {
 mod tests {
     use uuid::Uuid;
 
-    use crate::error::Result;
-    use crate::protocol::{self, newscast};
-    use crate::rumor::{Rumor, RumorKey, RumorType};
+    use crate::{
+        error::Result,
+        protocol::{self, newscast},
+        rumor::{Rumor, RumorKey, RumorType},
+    };
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
@@ -686,8 +697,7 @@ mod tests {
 
     mod rumor_store {
         use super::FakeRumor;
-        use crate::rumor::Rumor;
-        use crate::rumor::RumorStore;
+        use crate::rumor::{Rumor, RumorStore};
         use std::usize;
 
         fn create_rumor_store() -> RumorStore<FakeRumor> {

@@ -20,19 +20,21 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
-use std::fmt;
-use std::io;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs};
-use std::ops::{Deref, DerefMut};
-use std::option;
-use std::result;
-use std::str::FromStr;
-
-use crate::common::{
-    cli_defaults::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR},
-    types::EnvConfig,
+use std::{
+    fmt, io,
+    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs},
+    ops::{Deref, DerefMut},
+    option, result,
+    str::FromStr,
 };
-use crate::error::{Result, SupError};
+
+use crate::{
+    common::{
+        cli_defaults::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR},
+        types::EnvConfig,
+    },
+    error::{Result, SupError},
+};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
@@ -137,10 +139,7 @@ mod tests {
     mod env_config {
         use super::*;
         use crate::common::locked_env_var;
-        use std::env;
-        use std::num::ParseIntError;
-        use std::result;
-        use std::str::FromStr;
+        use std::{env, num::ParseIntError, result, str::FromStr};
 
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
         struct Thingie(u64);
@@ -153,6 +152,7 @@ mod tests {
 
         impl FromStr for Thingie {
             type Err = ParseIntError;
+
             fn from_str(s: &str) -> result::Result<Self, Self::Err> {
                 let raw = s.parse::<u64>()?;
                 Ok(Thingie(raw))

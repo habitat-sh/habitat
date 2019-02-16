@@ -2,12 +2,13 @@ use prost_build;
 
 use tempfile;
 
-use std::collections::HashMap;
-use std::env;
-use std::fs;
-use std::io::{Error, ErrorKind, Read, Result, Write};
-use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::{
+    collections::HashMap,
+    env, fs,
+    io::{Error, ErrorKind, Read, Result, Write},
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 use heck::SnakeCase;
 use prost::Message;

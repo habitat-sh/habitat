@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::error::{Error, Result};
-use crate::hcore::fs::FS_ROOT_PATH;
-use crate::hcore::os::net::hostname;
+use crate::{
+    common::ui::{Status, UIWriter, UI},
+    error::{Error, Result},
+    hcore::{fs::FS_ROOT_PATH, os::net::hostname},
+};
 use chrono::Local;
-use flate2::write::GzEncoder;
-use flate2::Compression;
-use std::env;
-use std::error::Error as StdErr;
-use std::fs;
-use std::fs::File;
-use std::path::{Path, MAIN_SEPARATOR};
-use std::process;
+use flate2::{write::GzEncoder, Compression};
+use std::{
+    env,
+    error::Error as StdErr,
+    fs::{self, File},
+    path::{Path, MAIN_SEPARATOR},
+    process,
+};
 use tar;
 
 fn lookup_hostname() -> Result<String> {

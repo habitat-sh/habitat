@@ -38,20 +38,23 @@ pub fn start(
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
-    use std::ffi::OsString;
-    use std::path::PathBuf;
-    use std::str::FromStr;
+    use std::{ffi::OsString, path::PathBuf, str::FromStr};
 
-    use crate::common::ui::UI;
-    use crate::hcore::crypto::{default_cache_key_path, init};
-    use crate::hcore::env as henv;
-    use crate::hcore::fs::find_command;
-    use crate::hcore::os::process;
-    use crate::hcore::package::PackageIdent;
+    use crate::{
+        common::ui::UI,
+        hcore::{
+            crypto::{default_cache_key_path, init},
+            env as henv,
+            fs::find_command,
+            os::process,
+            package::PackageIdent,
+        },
+    };
 
-    use crate::error::{Error, Result};
-    use crate::exec;
-    use crate::VERSION;
+    use crate::{
+        error::{Error, Result},
+        exec, VERSION,
+    };
 
     pub fn start(
         ui: &mut UI,
@@ -108,8 +111,8 @@ mod inner {
     ) -> Result<()> {
         let cmd = export_cmd.replace("hab", "").replace("-", " ");
         ui.warn(format!(
-            "Running 'hab {}' on this operating system is not yet supported. \
-             Try running this command again on 64-bit Linux.",
+            "Running 'hab {}' on this operating system is not yet supported. Try running this \
+             command again on 64-bit Linux.",
             &cmd
         ))?;
         ui.br()?;

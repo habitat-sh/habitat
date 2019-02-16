@@ -23,8 +23,7 @@ pub enum Error {
     )]
     HelmNotSetup(String),
     #[fail(
-        display = "Invalid maintainer specification '{}', must be of the form \
-                   NAME[,EMAIL[,URL]]",
+        display = "Invalid maintainer specification '{}', must be of the form NAME[,EMAIL[,URL]]",
         _0
     )]
     InvalidMaintainer(String),

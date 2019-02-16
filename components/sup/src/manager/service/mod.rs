@@ -18,45 +18,53 @@ pub mod hooks;
 pub mod spec;
 mod supervisor;
 
-use std;
-use std::collections::HashSet;
-use std::fmt;
-use std::fs::File;
-use std::io::prelude::*;
-use std::path::{Path, PathBuf};
-use std::result;
-use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant};
+use std::{
+    self,
+    collections::HashSet,
+    fmt,
+    fs::File,
+    io::prelude::*,
+    path::{Path, PathBuf},
+    result,
+    sync::{Arc, RwLock},
+    time::{Duration, Instant},
+};
 
-use crate::butterfly::rumor::service::Service as ServiceRumor;
-use crate::common::templating::config::CfgRenderer;
-pub use crate::common::templating::config::{Cfg, UserConfigPath};
-use crate::common::templating::hooks::Hook;
-pub use crate::common::templating::package::{Env, Pkg, PkgProxy};
-use crate::hcore;
-use crate::hcore::crypto::hash;
-use crate::hcore::fs::{svc_hooks_path, SvcDir, FS_ROOT_PATH};
-use crate::hcore::package::metadata::Bind;
-use crate::hcore::package::{PackageIdent, PackageInstall};
-use crate::hcore::service::{HealthCheckInterval, ServiceGroup};
-use crate::hcore::ChannelIdent;
-use crate::launcher_client::LauncherCli;
-pub use crate::protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy};
+use crate::{
+    butterfly::rumor::service::Service as ServiceRumor,
+    common::templating::{config::CfgRenderer, hooks::Hook},
+    hcore::{
+        self,
+        crypto::hash,
+        fs::{svc_hooks_path, SvcDir, FS_ROOT_PATH},
+        package::{metadata::Bind, PackageIdent, PackageInstall},
+        service::{HealthCheckInterval, ServiceGroup},
+        ChannelIdent,
+    },
+    launcher_client::LauncherCli,
+};
+pub use crate::{
+    common::templating::{
+        config::{Cfg, UserConfigPath},
+        package::{Env, Pkg, PkgProxy},
+    },
+    protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy},
+};
 use prometheus::{HistogramTimer, HistogramVec};
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeStruct, Serialize, Serializer};
 use time::Timespec;
 
-use self::context::RenderContext;
-pub use self::health::HealthCheck;
-use self::hooks::HookTable;
-pub use self::spec::{DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec};
-use self::supervisor::Supervisor;
-use super::ShutdownReason;
-use super::Sys;
-use crate::census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile};
-use crate::error::{Error, Result, SupError};
-use crate::manager;
+use self::{context::RenderContext, hooks::HookTable, supervisor::Supervisor};
+pub use self::{
+    health::HealthCheck,
+    spec::{DesiredState, IntoServiceSpec, ServiceBind, ServiceSpec},
+};
+use super::{ShutdownReason, Sys};
+use crate::{
+    census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile},
+    error::{Error, Result, SupError},
+    manager,
+};
 
 static LOGKEY: &'static str = "SR";
 
@@ -181,7 +189,7 @@ impl Service {
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
         Ok(Service {
-            sys: sys,
+            sys,
             cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
             config_renderer: CfgRenderer::new(&config_root)?,
             bldr_url: spec.bldr_url,
@@ -198,16 +206,16 @@ impl Service {
             needs_reload: false,
             needs_reconfiguration: false,
             user_config_updated: false,
-            manager_fs_cfg: manager_fs_cfg,
+            manager_fs_cfg,
             supervisor: Supervisor::new(&service_group),
-            pkg: pkg,
-            service_group: service_group,
+            pkg,
+            service_group,
             binds: spec.binds,
-            all_pkg_binds: all_pkg_binds,
+            all_pkg_binds,
             unsatisfied_binds: HashSet::new(),
             binding_mode: spec.binding_mode,
             spec_ident: spec.ident,
-            spec_file: spec_file,
+            spec_file,
             topology: spec.topology,
             update_strategy: spec.update_strategy,
             config_from: spec.config_from,
@@ -215,7 +223,7 @@ impl Service {
             svc_encrypted_password: spec.svc_encrypted_password,
             health_check_interval: spec.health_check_interval,
             defaults_updated: false,
-            gateway_state: gateway_state,
+            gateway_state,
         })
     }
 
@@ -860,8 +868,7 @@ impl Service {
 
     #[cfg(not(windows))]
     fn set_hook_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-        use crate::common::templating::hooks::HOOK_PERMISSIONS;
-        use crate::hcore::util::posix_perm;
+        use crate::{common::templating::hooks::HOOK_PERMISSIONS, hcore::util::posix_perm};
 
         posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
     }
@@ -1021,10 +1028,11 @@ impl Service {
         match self.scheduled_health_check {
             Some(already_scheduled_instant) if instant_to_schedule > already_scheduled_instant => {
                 trace!(
-                        "Skipping health check schedule request for {:?}; there is already one scheduled sooner at {:?}",
-                        instant_to_schedule,
-                        already_scheduled_instant
-                    );
+                    "Skipping health check schedule request for {:?}; there is already one \
+                     scheduled sooner at {:?}",
+                    instant_to_schedule,
+                    already_scheduled_instant
+                );
             }
             _ => {
                 debug!(
@@ -1088,8 +1096,7 @@ impl Service {
 
     #[cfg(not(windows))]
     fn set_gossip_permissions<T: AsRef<Path>>(&self, path: T) -> bool {
-        use crate::hcore::os::users;
-        use crate::hcore::util::posix_perm;
+        use crate::hcore::{os::users, util::posix_perm};
 
         if users::can_run_services_as_svc_user() {
             let result =
@@ -1225,9 +1232,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
 mod tests {
     use super::*;
 
-    use std::path::PathBuf;
-    use std::str::FromStr;
-    use std::time::Instant;
+    use std::{path::PathBuf, str::FromStr, time::Instant};
 
     use crate::hcore::package::{ident::PackageIdent, PackageInstall};
     use serde_json;
@@ -1236,10 +1241,9 @@ mod tests {
         manager::{sys::Sys, FsCfg},
         ServiceSpec,
     };
-    use crate::common::types::ListenCtlAddr;
-    use crate::config::GossipListenAddr;
-    use crate::http_gateway;
-    use crate::test_helpers::*;
+    use crate::{
+        common::types::ListenCtlAddr, config::GossipListenAddr, http_gateway, test_helpers::*,
+    };
 
     fn initialize_test_service() -> Service {
         let listen_ctl_addr =

@@ -14,11 +14,14 @@
 
 use std::path::Path;
 
-use crate::api_client::{self, Client};
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::error::{Error, Result};
-use crate::hcore::crypto::keys::parse_name_with_rev;
-use crate::hcore::crypto::{SigKeyPair, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION};
+use crate::{
+    api_client::{self, Client},
+    common::ui::{Status, UIWriter, UI},
+    error::{Error, Result},
+    hcore::crypto::{
+        keys::parse_name_with_rev, SigKeyPair, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION,
+    },
+};
 use hyper::status::StatusCode;
 
 use super::get_name_with_rev;
@@ -46,8 +49,7 @@ pub fn start(
             ui.status(
                 Status::Using,
                 format!(
-                    "public key revision {} which already \
-                     exists in the depot",
+                    "public key revision {} which already exists in the depot",
                     &name_with_rev
                 ),
             )?;

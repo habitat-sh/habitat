@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::ffi::CString;
-use std::path::PathBuf;
-use std::ptr;
+use std::{env, ffi::CString, path::PathBuf, ptr};
 
 use crate::hcore::fs::find_command;
 use libc;
 
-use crate::common::util::path;
-use crate::error::{Error, Result};
+use crate::{
+    common::util::path,
+    error::{Error, Result},
+};
 
 /// Our output key
 static LOGKEY: &'static str = "SH";

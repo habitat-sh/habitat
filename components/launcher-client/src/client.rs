@@ -50,8 +50,8 @@ impl LauncherCli {
         let (rx, raw) = ipc_srv.accept().map_err(|_| Error::AcceptConn)?;
         Self::read::<protocol::NetOk>(&raw)?;
         Ok(LauncherCli {
-            tx: tx,
-            rx: rx,
+            tx,
+            rx,
             pipe: pipe_to_sup,
         })
     }
@@ -159,7 +159,7 @@ impl LauncherCli {
             svc_user_id: user_id,
             svc_group_id: group_id,
             svc_password: password.map(|p| p.to_string()),
-            env: env,
+            env,
             id: id.to_string(),
             ..Default::default()
         };

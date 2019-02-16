@@ -26,16 +26,11 @@ mod to_yaml;
 use serde::Serialize;
 use serde_json::{self, Value as Json};
 
-pub use self::each_alive::EACH_ALIVE;
-pub use self::pkg_path_for::PKG_PATH_FOR;
-pub use self::str_concat::STR_CONCAT;
-pub use self::str_join::STR_JOIN;
-pub use self::str_replace::STR_REPLACE;
-pub use self::to_json::TO_JSON;
-pub use self::to_lowercase::TO_LOWERCASE;
-pub use self::to_toml::TO_TOML;
-pub use self::to_uppercase::TO_UPPERCASE;
-pub use self::to_yaml::TO_YAML;
+pub use self::{
+    each_alive::EACH_ALIVE, pkg_path_for::PKG_PATH_FOR, str_concat::STR_CONCAT, str_join::STR_JOIN,
+    str_replace::STR_REPLACE, to_json::TO_JSON, to_lowercase::TO_LOWERCASE, to_toml::TO_TOML,
+    to_uppercase::TO_UPPERCASE, to_yaml::TO_YAML,
+};
 
 // Taken from `handlebars::context::JsonTruthy`. The trait is marked public but it's in a private
 // module. It's super useful so let's pull it into here.

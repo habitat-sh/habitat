@@ -12,15 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std;
-use std::io::prelude::*;
-use std::path::{Path, PathBuf};
 #[cfg(not(windows))]
 use std::process::ExitStatus;
+use std::{
+    self,
+    io::prelude::*,
+    path::{Path, PathBuf},
+};
 
-use crate::common::templating::hooks::{self, ExitCode, Hook, HookOutput, RenderPair};
-use crate::common::templating::package::Pkg;
-use crate::common::templating::TemplateRenderer;
+use crate::common::templating::{
+    hooks::{self, ExitCode, Hook, HookOutput, RenderPair},
+    package::Pkg,
+    TemplateRenderer,
+};
 #[cfg(windows)]
 use crate::hcore::os::process::windows_child::ExitStatus;
 use serde::Serialize;
@@ -223,8 +227,8 @@ impl Hook for RunHook {
         T: ToString,
     {
         panic!(
-            "The run hook is a an exception to the lifetime of a service. It should only be \
-             run by the Supervisor module!"
+            "The run hook is a an exception to the lifetime of a service. It should only be run \
+             by the Supervisor module!"
         );
     }
 
@@ -675,33 +679,37 @@ impl HookTable {
 
 #[cfg(test)]
 mod tests {
-    use std::fs;
-    use std::iter;
+    use std::{fs, iter};
 
-    use crate::butterfly::member::MemberList;
-    use crate::butterfly::rumor::election;
-    use crate::butterfly::rumor::election::Election as ElectionRumor;
-    use crate::butterfly::rumor::election::ElectionUpdate as ElectionUpdateRumor;
-    use crate::butterfly::rumor::service::Service as ServiceRumor;
-    use crate::butterfly::rumor::service::SysInfo;
-    use crate::butterfly::rumor::service_config::ServiceConfig as ServiceConfigRumor;
-    use crate::butterfly::rumor::service_file::ServiceFile as ServiceFileRumor;
-    use crate::butterfly::rumor::RumorStore;
-    use crate::common::templating::config::Cfg;
-    use crate::common::templating::package::Pkg;
-    use crate::common::templating::test_helpers::*;
-    use crate::hcore::package::{PackageIdent, PackageInstall};
-    use crate::hcore::service::ServiceGroup;
+    use crate::{
+        butterfly::{
+            member::MemberList,
+            rumor::{
+                election::{
+                    self, Election as ElectionRumor, ElectionUpdate as ElectionUpdateRumor,
+                },
+                service::{Service as ServiceRumor, SysInfo},
+                service_config::ServiceConfig as ServiceConfigRumor,
+                service_file::ServiceFile as ServiceFileRumor,
+                RumorStore,
+            },
+        },
+        common::templating::{config::Cfg, package::Pkg, test_helpers::*},
+        hcore::{
+            package::{PackageIdent, PackageInstall},
+            service::ServiceGroup,
+        },
+    };
     use tempfile::TempDir;
 
-    use super::super::RenderContext;
-    use super::*;
-    use crate::census::CensusRing;
-    use crate::common::types::ListenCtlAddr;
-    use crate::config::GossipListenAddr;
-    use crate::http_gateway;
-    use crate::manager::service::spec::ServiceBind;
-    use crate::manager::sys::Sys;
+    use super::{super::RenderContext, *};
+    use crate::{
+        census::CensusRing,
+        common::types::ListenCtlAddr,
+        config::GossipListenAddr,
+        http_gateway,
+        manager::{service::spec::ServiceBind, sys::Sys},
+    };
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use
@@ -754,7 +762,7 @@ mod tests {
 
         let service_group = service_group();
 
-        let concrete_path = hooks_path.clone(); //rendered_hooks_path();
+        let concrete_path = hooks_path.clone(); // rendered_hooks_path();
         let template_path = hook_templates_path();
 
         ////////////////////////////////////////////////////////////////////////

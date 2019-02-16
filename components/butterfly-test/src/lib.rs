@@ -18,27 +18,34 @@ extern crate habitat_butterfly;
 #[macro_use]
 extern crate lazy_static;
 
-use std::ops::{Deref, DerefMut, Range};
-use std::path::PathBuf;
-use std::str::FromStr;
-use std::sync::Mutex;
-use std::thread;
-use std::time::Duration;
+use std::{
+    ops::{Deref, DerefMut, Range},
+    path::PathBuf,
+    str::FromStr,
+    sync::Mutex,
+    thread,
+    time::Duration,
+};
 
 use time::SteadyTime;
 
-use habitat_butterfly::member::{Health, Member};
-use habitat_butterfly::rumor::departure::Departure;
-use habitat_butterfly::rumor::election::ElectionStatus;
-use habitat_butterfly::rumor::service::{Service, SysInfo};
-use habitat_butterfly::rumor::service_config::ServiceConfig;
-use habitat_butterfly::rumor::service_file::ServiceFile;
-use habitat_butterfly::server::timing::Timing;
-use habitat_butterfly::server::{Server, Suitability};
-use habitat_butterfly::trace::Trace;
-use habitat_core::crypto::keys::sym_key::SymKey;
-use habitat_core::package::{Identifiable, PackageIdent};
-use habitat_core::service::ServiceGroup;
+use habitat_butterfly::{
+    member::{Health, Member},
+    rumor::{
+        departure::Departure,
+        election::ElectionStatus,
+        service::{Service, SysInfo},
+        service_config::ServiceConfig,
+        service_file::ServiceFile,
+    },
+    server::{timing::Timing, Server, Suitability},
+    trace::Trace,
+};
+use habitat_core::{
+    crypto::keys::sym_key::SymKey,
+    package::{Identifiable, PackageIdent},
+    service::ServiceGroup,
+};
 
 lazy_static! {
     static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
@@ -142,7 +149,7 @@ impl SwimNet {
             let rk = ring_key.clone();
             members.push(start_server(&format!("{}", x), rk, 0));
         }
-        SwimNet { members: members }
+        SwimNet { members }
     }
 
     pub fn connect(&mut self, from_entry: usize, to_entry: usize) {

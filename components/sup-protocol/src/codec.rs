@@ -25,7 +25,7 @@
 //!
 //! * Header Segment (32-bit)
 //!     * is_txn (1-bit) - flag to determine if there is a transaction segment included in this
-//!                        message.
+//!       message.
 //!     * flags (5-bit) - reserved
 //!     * message_id_len (6-bit) - length of the message ID segment in bytes
 //!     * body_len (20-bits) - length of the message body segment in bytes
@@ -37,11 +37,11 @@
 //! transaction segment is a 32 bit integer in big-endian format and is packed as follows:
 //!
 //! * Transaction Segment (32-bit)
-//!     * is_response (1-bit) - flag to determine if the message is a response to a request. If
-//!                             not set it is a request, if set it is a reply.
+//!     * is_response (1-bit) - flag to determine if the message is a response to a request. If not
+//!       set it is a request, if set it is a reply.
 //!     * is_complete (1-bit) - flag to determine if the message is the last in a stream.
 //!     * txn_identifier (30-bit) - the actual transaction identifier. A number between 0 and
-//!                                 `TXN_ID_MASK` (2^30-1).
+//!       `TXN_ID_MASK` (2^30-1).
 //!
 //! # Message ID Segment
 //!
@@ -54,9 +54,11 @@
 //! Contains the actual payload of the message encoded using Google
 //! [Protobuf 2](https://developers.google.com/protocol-buffers/docs/reference/proto2-spec).
 
-use std::fmt;
-use std::io::{self, Cursor};
-use std::str;
+use std::{
+    fmt,
+    io::{self, Cursor},
+    str,
+};
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 use futures;
@@ -64,8 +66,10 @@ use prost::{self, Message};
 use tokio::net::TcpStream;
 use tokio_codec::{Decoder, Encoder, Framed};
 
-use crate::message::MessageStatic;
-use crate::net::{NetErr, NetResult};
+use crate::{
+    message::MessageStatic,
+    net::{NetErr, NetResult},
+};
 
 const BODY_LEN_MASK: u32 = 0xF_FFFF;
 const HEADER_LEN: usize = 4;
@@ -347,8 +351,8 @@ where
         SrvMessage {
             header: SrvHeader::new(body.len() as u32, message_id.len() as u32, false),
             transaction: None,
-            message_id: message_id,
-            body: body,
+            message_id,
+            body,
         }
     }
 }
@@ -369,8 +373,8 @@ impl SrvCodec {
 }
 
 impl Decoder for SrvCodec {
-    type Item = SrvMessage;
     type Error = io::Error;
+    type Item = SrvMessage;
 
     fn decode(&mut self, bytes: &mut BytesMut) -> Result<Option<Self::Item>, io::Error> {
         if bytes.len() < HEADER_LEN {
@@ -403,17 +407,17 @@ impl Decoder for SrvCodec {
         let bytes = buf.into_inner();
         bytes.split_to(position);
         Ok(Some(SrvMessage {
-            header: header,
+            header,
             transaction: txn,
-            message_id: message_id,
+            message_id,
             body: Bytes::from(&self.recv_buf[0..header.body_len()]),
         }))
     }
 }
 
 impl Encoder for SrvCodec {
-    type Item = SrvMessage;
     type Error = io::Error;
+    type Item = SrvMessage;
 
     fn encode(&mut self, msg: Self::Item, buf: &mut BytesMut) -> io::Result<()> {
         buf.reserve(msg.size());
