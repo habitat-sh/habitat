@@ -918,6 +918,9 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
          This should contain PEM-format certificates in the right order (the first certificate \
          should certify KEY_FILE, the last should be a root CA).")
+    (@arg CA_CERT_FILE: --("ca-certs") +takes_value {file_exists} requires[CERT_FILE] requires[KEY_FILE]
+        "Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. \
+         This should contain PEM-format certificate that can be used to validate client requests.")
     // === Optional arguments to additionally load an initial service for the Supervisor
     (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
         the Supervisor startup specified by a package identifier \
