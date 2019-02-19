@@ -70,7 +70,7 @@ steps:
   - label: ":windows: :habicat: core/hab"
     command: .buildkite/scripts/build_component.ps1 -Component hab
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -120,7 +120,7 @@ steps:
   - label: ":windows: :habicat: :hammer_and_wrench: core/hab-plan-build-ps1"
     command: .buildkite/scripts/build_component.ps1 -Component plan-build-ps1
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -151,7 +151,7 @@ steps:
   - label: ":windows: :habicat: core/hab-bintray-publish"
     command: .buildkite/scripts/build_component.ps1 -Component bintray-publish
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -201,7 +201,7 @@ steps:
   - label: ":windows: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.ps1 -Component studio
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -233,7 +233,7 @@ steps:
   - label: ":windows: :habicat: core/hab-sup"
     command: .buildkite/scripts/build_component.ps1 -Component sup
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -267,7 +267,7 @@ steps:
   - label: ":windows: :docker: core/hab-pkg-export-docker"
     command: .buildkite/scripts/build_component.ps1 -Component pkg-export-docker
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
       BUILD_PKG_TARGET: "x86_64-windows"
@@ -313,7 +313,7 @@ steps:
   - label: ":windows: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.ps1 -Component pkg-export-tar
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
       BUILD_PKG_TARGET: "x86_64-windows"
