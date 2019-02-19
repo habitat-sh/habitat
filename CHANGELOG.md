@@ -7,6 +7,7 @@
 - adding HAB_CRYPTO_KEY to hab build [#6166](https://github.com/habitat-sh/habitat/pull/6166) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Add build/publish of Windows Docker Studio to release pipeline [#6165](https://github.com/habitat-sh/habitat/pull/6165) ([smacfarlane](https://github.com/smacfarlane))
 - Add windows-service build to release pipeline. [#6167](https://github.com/habitat-sh/habitat/pull/6167) ([smacfarlane](https://github.com/smacfarlane))
 - Update release pipeline to new queue name for windows docker [#6154](https://github.com/habitat-sh/habitat/pull/6154) ([scotthain](https://github.com/scotthain))
 - Configure rustfmt [#6134](https://github.com/habitat-sh/habitat/pull/6134) ([raskchanky](https://github.com/raskchanky))
