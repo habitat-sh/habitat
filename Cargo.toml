@@ -2,7 +2,7 @@
 name = "habitat_core"
 version = "0.0.0"
 edition = "2018"
-authors = ["Adam Jacob <adam@chef.io>", "Jamie Winsor <reset@chef.io>", "Fletcher Nichol <fnichol@chef.io>", "Joshua Timberman <joshua@chef.io>", "Dave Parfitt <dparfitt@chef.io>", "Steven Murawski <smurawski@chef.io>"]
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 build = "build.rs"
 
