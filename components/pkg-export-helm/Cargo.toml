@@ -2,7 +2,7 @@
 name = "habitat_pkg_export_helm"
 version = "0.0.0"
 edition = "2018"
-authors = ["Zeeshan Ali <zeeshan@kinvolk.io>"]
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 build = "../build-habitat.rs"
 workspace = "../../"
 

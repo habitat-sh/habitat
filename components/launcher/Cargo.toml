@@ -2,7 +2,7 @@
 name = "habitat-launcher"
 version = "0.0.0"
 edition = "2018"
-authors = ["Jamie Winsor <reset@habitat.sh>"]
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [[bin]]

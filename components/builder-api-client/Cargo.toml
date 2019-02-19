@@ -2,7 +2,7 @@
 name = "habitat_api_client"
 version = "0.0.0"
 edition = "2018"
-authors = ["Josh Black <jblack@chef.io>"]
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]

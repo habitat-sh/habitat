@@ -2,7 +2,7 @@
 name = "habitat-sup-client"
 version = "0.0.0"
 edition = "2018"
-authors = ["Jamie Winsor <reset@chef.io>"]
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]

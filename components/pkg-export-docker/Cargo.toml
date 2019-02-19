@@ -2,7 +2,7 @@
 name = "habitat_pkg_export_docker"
 version = "0.0.0"
 edition = "2018"
-authors = ["Fletcher Nichol <fnichol@habitat.sh>"]
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 build = "build.rs"
 workspace = "../../"
 
