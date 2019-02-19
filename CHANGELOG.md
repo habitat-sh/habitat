@@ -3,18 +3,6 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
-#### Bug Fixes
-- adding HAB_CRYPTO_KEY to hab build [#6166](https://github.com/habitat-sh/habitat/pull/6166) ([mwrock](https://github.com/mwrock))
-
-#### Merged Pull Requests
-- Add build/publish of Windows Docker Studio to release pipeline [#6165](https://github.com/habitat-sh/habitat/pull/6165) ([smacfarlane](https://github.com/smacfarlane))
-- Add windows-service build to release pipeline. [#6167](https://github.com/habitat-sh/habitat/pull/6167) ([smacfarlane](https://github.com/smacfarlane))
-- Update release pipeline to new queue name for windows docker [#6154](https://github.com/habitat-sh/habitat/pull/6154) ([scotthain](https://github.com/scotthain))
-- Configure rustfmt [#6134](https://github.com/habitat-sh/habitat/pull/6134) ([raskchanky](https://github.com/raskchanky))
-- s/instaled/installed/ in the Install hook docs [#6164](https://github.com/habitat-sh/habitat/pull/6164) ([jeremymv2](https://github.com/jeremymv2))
-- windows-service, welcome to the mono repo! [#6162](https://github.com/habitat-sh/habitat/pull/6162) ([mwrock](https://github.com/mwrock))
-- use native deps for windows launcher [#6161](https://github.com/habitat-sh/habitat/pull/6161) ([mwrock](https://github.com/mwrock))
-- Update changelog for 0.75.0 release [#6159](https://github.com/habitat-sh/habitat/pull/6159) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 ## [0.75.0](https://github.com/habitat-sh/habitat/tree/0.75.0) (2019-02-12)
@@ -29,6 +17,7 @@
 - use temp dir scoped to current build to avoid failures when building multiple builds [#6106](https://github.com/habitat-sh/habitat/pull/6106) ([mwrock](https://github.com/mwrock))
 - generate api docs for windows http gateway [#6098](https://github.com/habitat-sh/habitat/pull/6098) ([mwrock](https://github.com/mwrock))
 - Remove txn_id from Launcher protocol [#6156](https://github.com/habitat-sh/habitat/pull/6156) ([christophermaier](https://github.com/christophermaier))
+- adding HAB_CRYPTO_KEY to hab build [#6166](https://github.com/habitat-sh/habitat/pull/6166) ([mwrock](https://github.com/mwrock))
 
 #### New Features & Enhancements
 - Adds printing of target in job status output [#6151](https://github.com/habitat-sh/habitat/pull/6151) ([eeyun](https://github.com/eeyun))
@@ -43,6 +32,14 @@
 - Bump VERSION to 0.75.0-dev. [#6126](https://github.com/habitat-sh/habitat/pull/6126) ([fnichol](https://github.com/fnichol))
 - Fix verification pipeline [#6152](https://github.com/habitat-sh/habitat/pull/6152) ([scotthain](https://github.com/scotthain))
 - Release 0.74.0 blog post! [#6124](https://github.com/habitat-sh/habitat/pull/6124) ([fnichol](https://github.com/fnichol))
+- Add build/publish of Windows Docker Studio to release pipeline [#6165](https://github.com/habitat-sh/habitat/pull/6165) ([smacfarlane](https://github.com/smacfarlane))
+- Add windows-service build to release pipeline. [#6167](https://github.com/habitat-sh/habitat/pull/6167) ([smacfarlane](https://github.com/smacfarlane))
+- Update release pipeline to new queue name for windows docker [#6154](https://github.com/habitat-sh/habitat/pull/6154) ([scotthain](https://github.com/scotthain))
+- Configure rustfmt [#6134](https://github.com/habitat-sh/habitat/pull/6134) ([raskchanky](https://github.com/raskchanky))
+- s/instaled/installed/ in the Install hook docs [#6164](https://github.com/habitat-sh/habitat/pull/6164) ([jeremymv2](https://github.com/jeremymv2))
+- windows-service, welcome to the mono repo! [#6162](https://github.com/habitat-sh/habitat/pull/6162) ([mwrock](https://github.com/mwrock))
+- use native deps for windows launcher [#6161](https://github.com/habitat-sh/habitat/pull/6161) ([mwrock](https://github.com/mwrock))
+- Update changelog for 0.75.0 release [#6159](https://github.com/habitat-sh/habitat/pull/6159) ([smacfarlane](https://github.com/smacfarlane))
 
 ## [0.74.0](https://github.com/habitat-sh/habitat/tree/0.74.0) (2019-01-28)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.73.0...0.74.0)
