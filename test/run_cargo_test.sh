@@ -29,6 +29,7 @@ export PATH=/opt/rust/bin:$PATH
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
 
+# TODO: these should be in a shared script?
 sudo hab pkg install core/bzip2
 sudo hab pkg install core/libarchive
 sudo hab pkg install core/libsodium

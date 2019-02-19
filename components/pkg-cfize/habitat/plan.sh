@@ -39,7 +39,7 @@ do_prepare() {
   p=()
   for tdep in "${pkg_tdeps_resolved[@]}"; do
     if [[ -f "$tdep/PATH" ]]; then
-      mapfile -t p < <(cat "$tdep/PATH")
+      p+=( "$(cat "$tdep/PATH")" )
     fi
   done
   _runtime_path="$(join_by : "${p[@]}")"

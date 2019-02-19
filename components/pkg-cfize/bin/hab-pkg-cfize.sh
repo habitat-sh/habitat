@@ -97,7 +97,7 @@ build_cf_image() {
   dockerize_out="${tmp_dir}/dockerize-out"
   hab-pkg-export-docker "${hab_package}" | tee "${dockerize_out}"
 
-  mapfile -t docker_tag_array < <(dockerize_tags "${dockerize_out}")
+  docker_tag_array=$(dockerize_tags "${dockerize_out}")
   cf_docker_tag_array=("${docker_tag_array[@]/:/:cf-}")
 
   DOCKER_CONTEXT=${tmp_dir}/docker

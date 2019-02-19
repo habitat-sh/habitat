@@ -27,6 +27,7 @@ $CargoTestCommand = "cargo test $FeatureString -- --nocapture $TestOptions"
 
 choco install habitat -y
 
+# TODO: these should be in a shared script?
 Write-Host "--- Installing required prerequisites"
 hab pkg install core/cacerts
 hab pkg install core/libarchive

@@ -35,137 +35,9 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[lint] :paperclip: clippy! builder-api-client"
+  - label: "[lint] :paperclip: clippy!"
     command:
-      - ./test/run_clippy.sh builder-api-client
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[lint] :paperclip: clippy! butterfly"
-    command:
-      - ./test/run_clippy.sh butterfly
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[lint] :paperclip: clippy! common"
-    command:
-      - ./test/run_clippy.sh common
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[lint] :paperclip: clippy! hab"
-    command:
-      - ./test/run_clippy.sh hab
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[lint] :paperclip: clippy! pkg-export-docker"
-    command:
-      - ./test/run_clippy.sh pkg-export-docker
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[lint] :paperclip: clippy! pkg-export-kubernetes"
-    command:
-      - ./test/run_clippy.sh pkg-export-kubernetes
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[lint] :paperclip: clippy! sup"
-    command:
-      - ./test/run_clippy.sh sup
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[lint] :paperclip: clippy! sup-client"
-    command:
-      - ./test/run_clippy.sh sup-client
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[lint] :paperclip: clippy! sup-protocol"
-    command:
-      - ./test/run_clippy.sh sup-protocol
+      - make lint
     agents:
       queue: 'default-privileged'
     plugins:
@@ -525,7 +397,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 sup-protocol
     agents:
-      queue: 'single-use-windows-privileged' 
+      queue: 'single-use-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:

@@ -16,7 +16,7 @@ promote_from_one_channel_to_another() {
     from_channel="${3}" # e.g. "stable"
     to_channel="${4}"   # e.g. "rc-0.75.0"
 
-    artifact="$(latest_from_builder "${target}" ${from_channel} ${package_name})"
+    artifact="$(latest_from_builder "${target}" $"{from_channel}" "${package_name}")"
     echo "--- Promoting ${artifact} (${target}) to ${to_channel}"
     hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${artifact}" "${to_channel}"
 }

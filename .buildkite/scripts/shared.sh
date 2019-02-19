@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eou pipefail
+
 # Download public and private keys for the "core" origin from Builder.
 #
 # Currently relies on a global variable `hab_binary` being set, since
