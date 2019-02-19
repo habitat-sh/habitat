@@ -583,7 +583,7 @@ pub fn get() -> App<'static, 'static> {
             (@subcommand render =>
                 (about: "Renders plan config files")
                 (aliases: &["r", "re", "ren", "rend", "rende"])
-                (@arg TEMPLATE_PATH: +required +takes_value "Path to config to render")
+                (@arg TEMPLATE_PATH: +required {file_exists} "Path to config to render")
                 (@arg DEFAULT_TOML: -d --("default-toml") +takes_value "Path to default.toml, defaults to ./default.toml")
                 (@arg USER_TOML: -u --("user-toml") +takes_value "Path to user.toml, defaults to none")
                 (@arg MOCK_DATA: -m --("mock-data") +takes_value "Path to json file with mock data for template, defaults to none")
