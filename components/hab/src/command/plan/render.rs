@@ -122,7 +122,7 @@ pub fn start(
     // if not no render dir (aka "unless no_render_dir == true")
     if !(no_render_dir) {
       // Render our template file
-      create_with_template(ui, &format!("{}/{}", render_dir, file_name), &rendered_template, quiet)?;
+      create_with_template(ui, &Path::new(render_dir).join(file_name), &rendered_template, quiet)?;
     }
 
     if !(quiet) {
