@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Update changelog for 0.75.0 release [#6180](https://github.com/habitat-sh/habitat/pull/6180) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 ## [0.75.0](https://github.com/habitat-sh/habitat/tree/0.75.0) (2019-02-12)
