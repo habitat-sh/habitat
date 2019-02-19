@@ -1,10 +1,10 @@
 # Contributing to Habitat
 
-Thank you for your interest in contributing to Habitat! There are many ways to contribute, and we appreciate all of them. 
+Thank you for your interest in contributing to Habitat! There are many ways to contribute, and we appreciate all of them.
 
-You are currently in the core Habitat repo, which is primarily written in Rust code and holds the core functionality of the Core Habitat, Habitat Builder Web Application, Habitat Builder, and Documentation. If you are interested in contributing a new plan to core plans (which is a great way to get started as a new contributor!), check out the [core-plans repo](https://github.com/habitat-sh/core-plans) instead. 
+You are currently in the core Habitat repo, which is primarily written in Rust code and holds the core functionality of the Core Habitat, Habitat Builder Web Application, Habitat Builder, and Documentation. If you are interested in contributing a new plan to core plans (which is a great way to get started as a new contributor!), check out the [core-plans repo](https://github.com/habitat-sh/core-plans) instead.
 
-If you have questions, join the [Habitat Slack Channel](http://slack.habitat.sh) to talk directly to the community and core maintainers. All experience levels of questions are welcome in the general channel. 
+If you have questions, join the [Habitat Slack Channel](http://slack.habitat.sh) to talk directly to the community and core maintainers. All experience levels of questions are welcome in the general channel.
 
 As a reminder, all participants are expected to follow the [Code of Conduct](https://github.com/habitat-sh/habitat/blob/master/CODE_OF_CONDUCT.md).
 
@@ -36,15 +36,15 @@ Before opening a new issue or submitting a new pull request, it's helpful to sea
 
 # Feature Requests
 
-To request a change to the way that Habitat works, please [open an issue](https://github.com/habitat-sh/habitat/issues). 
+To request a change to the way that Habitat works, please [open an issue](https://github.com/habitat-sh/habitat/issues).
 
 # Bug Reports
 
-Bugs are a reality in software. We can't fix what we don't know about, so please report liberally. If you're not sure if something's a bug or not, feel free to file a bug anyway. 
+Bugs are a reality in software. We can't fix what we don't know about, so please report liberally. If you're not sure if something's a bug or not, feel free to file a bug anyway.
 
 If you believe your bug represents a security issue for Habitat users, please follow our instructions for [reporting a security vulnerability.](#report-a-security-vulnerability)
 
-If you have the chance, before reporting a bug please [search existing issues](https://github.com/habitat-sh/habitat/issues), as it's possible someone has already reported your error. 
+If you have the chance, before reporting a bug please [search existing issues](https://github.com/habitat-sh/habitat/issues), as it's possible someone has already reported your error.
 
 Opening an issue is as easy as following [this link](https://github.com/habitat-sh/habitat/issues/new) and filling out the form with as much information as you have. It is not necessary to follow the template exactly.
 
@@ -54,13 +54,13 @@ Safety is one of the core principles of Habitat, and to that end, we would like 
 
 All security bugs in the distribution should be reported by email to security@habitat.sh. This list is delivered to a small security team. Your email will be acknowledged within 24 hours, and you'll receive a more detailed response to your email within 48 hours indicating the next steps in handling your report.
 
-This email address receives a large amount of spam, so be sure to use a descriptive subject line to avoid having your report be missed. After the initial reply to your report, the security team will endeavor to keep you informed of the progress being made towards a fix and full announcement. 
+This email address receives a large amount of spam, so be sure to use a descriptive subject line to avoid having your report be missed. After the initial reply to your report, the security team will endeavor to keep you informed of the progress being made towards a fix and full announcement.
 
 If you have not received a reply to your email within 48 hours, or have not heard from the security team for the past five days, there are a few steps you can take:
 
 * Contact the current security coordinator (Jamie Winsor) directly.
 * Contact the back-up contacts (Fletcher Nichol, Tasha Drew) directly.
-* Post on the [slack channel](http://slack.habitat.sh) requesting an update. 
+* Post on the [slack channel](http://slack.habitat.sh) requesting an update.
 
 Please note that the discussion forums and slack channel are public areas. When escalating in these venues, please do not discuss your issue. Simply say that you're trying to get a hold of someone from the security team.
 
@@ -72,17 +72,17 @@ Please make pull requests against the `master` branch.
 
 # Writing Documentation and Blogs
 
-Documentation improvements are very welcome. 
+Documentation improvements are very welcome.
 
 To find documentation-related issues, [search by the A-Documentation label](https://github.com/habitat-sh/habitat/issues?q=is%3Aissue+is%3Aopen+label%3AA-documentation).
 
 Blogs from community members are also very welcome. You can open a pull request to submit a blog for the website by [following these instructions](https://github.com/habitat-sh/habitat/tree/master/www/source/blog).
 
-# Issue Triage 
+# Issue Triage
 
-The Habitat core team does issue triage every Tuesday, at 10am Pacific time. A link to a public video is made available in the #general channel of Slack when triage occurs, and a recording is shared afterwards on the [Habitat youtube channel](https://www.youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg). 
+The Habitat core team does issue triage every Tuesday, at 10am Pacific time. A link to a public video is made available in the #general channel of Slack when triage occurs, and a recording is shared afterwards on the [Habitat youtube channel](https://www.youtube.com/channel/UC0wJZeP2dfPZaDUPgvpVpSg).
 
-You can also help triage by using the following labeling system adopted by the Habitat core team: 
+You can also help triage by using the following labeling system adopted by the Habitat core team:
 
 | *TAGS Groups*                     |               Meaning                             |
 |:----------------------------------|:--------------------------------------------------|
@@ -95,7 +95,7 @@ You can also help triage by using the following labeling system adopted by the H
 
 [Read more about issue triage here.](https://www.habitat.sh/blog/community/)
 
-# Related Articles 
+# Related Articles
 * [Current Habitat Maintainers](https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md)
 * [Maintainers Policy, how to become a Maintainers](https://github.com/habitat-sh/habitat/blob/master/maintenance-policy.md)
 * [ReadMe](https://github.com/habitat-sh/habitat/blob/master/README.md)
