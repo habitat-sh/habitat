@@ -1,18 +1,17 @@
-* @reset @fnichol @christophermaier @raskchanky
+* @fnichol @christophermaier @raskchanky
 .buildkite @christophermaier @fnichol @scotthain
 components/backline @fnichol @baumanj
-components/builder* @chefsalim @raskchanky
-components/butterfly* @christophermaier @reset @baumanj @fnichol @raskchanky @jamesc
+components/builder-api-client @chefsalim @raskchanky
+components/butterfly* @christophermaier @baumanj @fnichol @raskchanky @jamesc
 components/common @fnichol @baumanj @raskchanky @jamesc
-components/hab* @reset @fnichol @christophermaier @chefsalim @baumanj @raskchanky @eeyun @jamesc
-components/launcher* @christophermaier @reset @baumanj @raskchanky
+components/hab @fnichol @christophermaier @chefsalim @baumanj @raskchanky @eeyun @jamesc
+components/launcher* @christophermaier @baumanj @raskchanky
 components/pkg-* @fnichol @christophermaier @eeyun @jamesc
 components/plan-build @fnichol @christophermaier @scotthain
-components/rootless_studio
 components/studio @fnichol @baumanj @eeyun
-components/sup* @christophermaier @reset @fnichol @baumanj @raskchanky @jamesc
+components/sup* @christophermaier @fnichol @baumanj @raskchanky @jamesc
 support @fnichol @baumanj @raskchanky
 tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky @fnichol
-www @cnunciato @raskchanky
+www @raskchanky
 www/site/content/* @kagarmoe @mjingle
 UX_PRINCIPLES.md @apriofrost
