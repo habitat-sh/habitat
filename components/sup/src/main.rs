@@ -229,17 +229,6 @@ fn sub_term() -> Result<()> {
 ////////////////////////////////////////////////////////////////////////
 
 fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
-    let gossip_listen = if m.is_present("NO_LISTEN_GOSSIP") {
-        None
-    } else {
-        Some(
-            m.value_of("LISTEN_GOSSIP")
-                .map_or(Ok(sup::config::GossipListenAddr::configured_value()), |v| {
-                    v.parse()
-                })?,
-        )
-    };
-
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
         update_url: bldr_url(m),
@@ -251,7 +240,16 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         gossip_peers: get_peers(m)?,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
         // TODO: Refactor this to remove the duplication
-        gossip_listen,
+        gossip_listen: if m.is_present("NO_LISTEN_GOSSIP") {
+            None
+        } else {
+            Some(
+                m.value_of("LISTEN_GOSSIP")
+                    .map_or(Ok(sup::config::GossipListenAddr::configured_value()), |v| {
+                        v.parse()
+                    })?,
+            )
+        },
         ctl_listen: m.value_of("LISTEN_CTL").map_or_else(
             || {
                 let default = common::types::ListenCtlAddr::default();
