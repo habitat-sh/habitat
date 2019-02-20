@@ -58,6 +58,14 @@ mod test {
                         "BIND" => ["service.group1", "service.group2"],
                         "PKG_IDENT_OR_ARTIFACT" => "core/redis");
 
+        assert_cli_cmd!(should_handle_listen_gossip,
+                        "hab-sup run --listen-gossip 1.1.1.1:1111",
+                        "LISTEN_GOSSIP" => "1.1.1.1:1111");
+
+        assert_cli_cmd!(should_handle_no_listen_gossip,
+                        "hab-sup run --no-listen-gossip",
+                        "NO_LISTEN_GOSSIP" => true);
+
         #[test]
         fn listen_gossip_and_no_listen_gossip_are_mutually_exclusive() {
             let cmd_vec = Vec::from_iter(
