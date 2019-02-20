@@ -17,7 +17,7 @@ use crate::{
     error::{Error, Result, SupError},
     hcore::{
         package::{PackageIdent, PackageInstall},
-        service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup},
+        service::{ApplicationEnvironment, HealthCheckInterval, ServiceBind},
         url::DEFAULT_BLDR_URL,
         util::{deserialize_using_from_str, serialize_using_to_string},
         ChannelIdent,
@@ -129,7 +129,13 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
             spec.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
         }
         if let Some(ref list) = self.binds {
-            spec.binds = list.binds.clone().into_iter().map(Into::into).collect();
+            spec.binds = list
+                .binds
+                .iter()
+                .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
+                    hcore::service::ServiceBind::new(&pb.name, pb.service_group.clone().into())
+                })
+                .collect();
         }
         if let Some(binding_mode) = self.binding_mode {
             spec.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
@@ -240,30 +246,26 @@ impl ServiceSpec {
         format!("{}.{}", &self.ident.name, SPEC_FILE_EXT)
     }
 
-    pub fn validate(&self, package: &PackageInstall) -> Result<()> {
-        self.validate_binds(package)?;
-        Ok(())
-    }
-
     /// Validates that all required package binds are present in service binds and all remaining
     /// service binds are optional package binds.
     ///
     /// # Errors
     ///
-    /// * If any required required package binds are missing in service binds
+    /// * If any required package binds are missing in service binds
     /// * If any given service binds are in neither required nor optional package binds
-    fn validate_binds(&self, package: &PackageInstall) -> Result<()> {
-        let mut svc_binds: HashSet<String> =
-            HashSet::from_iter(self.binds.iter().cloned().map(|b| b.name));
-
+    pub fn validate(&self, package: &PackageInstall) -> Result<()> {
+        let mut svc_binds: HashSet<&str> =
+            HashSet::from_iter(self.binds.iter().map(ServiceBind::name));
         let mut missing_req_binds = Vec::new();
+
         // Remove each service bind that matches a required package bind. If a required package
         // bind is not found, add the bind to the missing list to return an `Err`.
-        for req_bind in package.binds()?.iter().map(|b| &b.service) {
+        let req_binds = package.binds()?;
+        for req_bind in req_binds.iter().map(|b| b.service.as_str()) {
             if svc_binds.contains(req_bind) {
                 svc_binds.remove(req_bind);
             } else {
-                missing_req_binds.push(req_bind.clone());
+                missing_req_binds.push(req_bind.to_string());
             }
         }
         // If we have missing required binds, return an `Err`.
@@ -272,7 +274,7 @@ impl ServiceSpec {
         }
 
         // Remove each service bind that matches an optional package bind.
-        for opt_bind in package.binds_optional()?.iter().map(|b| &b.service) {
+        for opt_bind in package.binds_optional()?.iter().map(|b| b.service.as_str()) {
             if svc_binds.contains(opt_bind) {
                 svc_binds.remove(opt_bind);
             }
@@ -281,7 +283,7 @@ impl ServiceSpec {
         // binds. In this case, return an `Err`.
         if !svc_binds.is_empty() {
             return Err(sup_error!(Error::InvalidBinds(
-                svc_binds.into_iter().collect()
+                svc_binds.into_iter().map(|b| b.to_string()).collect()
             )));
         }
 
@@ -322,70 +324,6 @@ impl FromStr for ServiceSpec {
     }
 }
 
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct ServiceBind {
-    pub name: String,
-    pub service_group: ServiceGroup,
-}
-
-impl FromStr for ServiceBind {
-    type Err = SupError;
-
-    fn from_str(bind_str: &str) -> result::Result<Self, Self::Err> {
-        let values: Vec<&str> = bind_str.split(':').collect();
-        if values.len() == 2 {
-            Ok(ServiceBind {
-                name: values[0].to_string(),
-                service_group: ServiceGroup::from_str(values[1])?,
-            })
-        } else {
-            Err(sup_error!(Error::InvalidBinding(bind_str.to_string())))
-        }
-    }
-}
-
-impl fmt::Display for ServiceBind {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{}", self.name, self.service_group)
-    }
-}
-
-impl<'de> serde::Deserialize<'de> for ServiceBind {
-    fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        deserialize_using_from_str(deserializer)
-    }
-}
-
-impl serde::Serialize for ServiceBind {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-impl From<ServiceBind> for protocol::types::ServiceBind {
-    fn from(bind: ServiceBind) -> Self {
-        let mut proto = protocol::types::ServiceBind::default();
-        proto.name = bind.name;
-        proto.service_group = bind.service_group.into();
-        proto
-    }
-}
-
-impl Into<ServiceBind> for protocol::types::ServiceBind {
-    fn into(self) -> ServiceBind {
-        ServiceBind {
-            name: self.name,
-            service_group: self.service_group.into(),
-        }
-    }
-}
-
 #[cfg(test)]
 mod test {
     use std::{
@@ -396,12 +334,10 @@ mod test {
     };
 
     use crate::hcore::{
-        error::Error as HError,
         package::PackageIdent,
-        service::{ApplicationEnvironment, HealthCheckInterval, ServiceGroup},
+        service::{ApplicationEnvironment, HealthCheckInterval},
     };
     use tempfile::TempDir;
-    use toml;
 
     use super::*;
     use crate::error::Error::*;
@@ -766,112 +702,99 @@ mod test {
         assert_eq!(String::from("hoopa.spec"), spec.file_name());
     }
 
-    #[test]
-    fn service_bind_from_str() {
-        let bind_str = "name:app.env#service.group@organization";
-        let bind = ServiceBind::from_str(bind_str).unwrap();
-
-        assert_eq!(bind.name, String::from("name"));
-        assert_eq!(
-            bind.service_group,
-            ServiceGroup::from_str("app.env#service.group@organization").unwrap()
-        );
-    }
-
-    #[test]
-    fn service_bind_from_str_simple() {
-        let bind_str = "name:service.group";
-        let bind = ServiceBind::from_str(bind_str).unwrap();
-
-        assert_eq!(bind.name, String::from("name"));
-        assert_eq!(
-            bind.service_group,
-            ServiceGroup::from_str("service.group").unwrap()
-        );
-    }
-
-    #[test]
-    fn service_bind_from_str_missing_colon() {
-        let bind_str = "uhoh";
-
-        match ServiceBind::from_str(bind_str) {
-            Err(e) => match e.err {
-                InvalidBinding(val) => assert_eq!("uhoh", val),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
-            Ok(_) => panic!("String should fail to parse"),
-        }
-    }
-
-    #[test]
-    fn service_bind_from_str_too_many_colons() {
-        let bind_str = "uhoh:this:is:bad";
-
-        match ServiceBind::from_str(bind_str) {
-            Err(e) => match e.err {
-                InvalidBinding(val) => assert_eq!("uhoh:this:is:bad", val),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
-            Ok(_) => panic!("String should fail to parse"),
-        }
-    }
-
-    #[test]
-    fn service_bind_from_str_invalid_service_group() {
-        let bind_str = "uhoh:nosuchservicegroup@nope";
-
-        match ServiceBind::from_str(bind_str) {
-            Err(e) => match e.err {
-                HabitatCore(HError::InvalidServiceGroup(val)) => {
-                    assert_eq!("nosuchservicegroup@nope", val)
-                }
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
-            Ok(_) => panic!("String should fail to parse"),
-        }
-    }
-
-    #[test]
-    fn service_bind_to_string() {
-        let bind = ServiceBind {
-            name: String::from("name"),
-            service_group: ServiceGroup::from_str("service.group").unwrap(),
+    fn testing_package_install() -> PackageInstall {
+        let ident = if cfg!(target_os = "linux") {
+            PackageIdent::new(
+                "test-bind",
+                "test-bind",
+                Some("0.1.0"),
+                Some("20190219230309"),
+            )
+        } else if cfg!(target_os = "windows") {
+            PackageIdent::new(
+                "test-bind",
+                "test-bind-win",
+                Some("0.1.0"),
+                Some("20190219231616"),
+            )
+        } else {
+            panic!("This is being run on a platform that's not currently supported");
         };
 
-        assert_eq!("name:service.group", bind.to_string());
+        let spec = ServiceSpec::default_for(ident);
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("pkgs");
+
+        PackageInstall::load(&spec.ident, Some(&path))
+            .expect("PackageInstall should've loaded my spec, but it didn't")
     }
 
     #[test]
-    fn service_bind_toml_deserialize() {
-        #[derive(Deserialize)]
-        struct Data {
-            key: ServiceBind,
-        }
-        let toml = r#"
-            key = "name:app.env#service.group@organization"
-            "#;
-        let data: Data = toml::from_str(toml).unwrap();
+    fn service_spec_bind_present() {
+        let package = testing_package_install();
 
-        assert_eq!(
-            data.key,
-            ServiceBind::from_str("name:app.env#service.group@organization").unwrap()
-        );
-    }
-
-    #[test]
-    fn service_bind_toml_serialize() {
-        #[derive(Serialize)]
-        struct Data {
-            key: ServiceBind,
-        }
-        let data = Data {
-            key: ServiceBind {
-                name: String::from("name"),
-                service_group: ServiceGroup::from_str("service.group").unwrap(),
+        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap()];
+        match spec.validate(&package) {
+            Err(e) => match e.err {
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
             },
-        };
-        let toml = toml::to_string(&data).unwrap();
+            Ok(_) => assert!(true),
+        }
+    }
 
-        assert!(toml.starts_with(r#"key = "name:service.group""#));
+    #[test]
+    fn service_spec_with_optional_bind() {
+        let package = testing_package_install();
+
+        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        spec.binds = vec![
+            ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
+            ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),
+        ];
+        match spec.validate(&package) {
+            Err(e) => match e.err {
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => assert!(true),
+        }
+    }
+
+    #[test]
+    /// Test when we're missing the required bind (backend)
+    fn service_spec_error_missing_bind() {
+        let package = testing_package_install();
+
+        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        spec.binds = vec![];
+        match spec.validate(&package) {
+            Err(e) => match e.err {
+                MissingRequiredBind(b) => assert_eq!(vec!["database".to_string()], b),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("Spec should not validate"),
+        }
+    }
+
+    #[test]
+    /// Test when we're asking for a bind (backend) that isn't provided by the
+    /// package
+    fn service_spec_error_invalid_bind() {
+        let package = testing_package_install();
+
+        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        spec.binds = vec![
+            ServiceBind::from_str("backend:tomcat.app@acmecorp").unwrap(),
+            ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),
+        ];
+        match spec.validate(&package) {
+            Err(e) => match e.err {
+                InvalidBinds(b) => assert_eq!(vec!["backend".to_string()], b),
+                wrong => panic!("Unexpected error returned: {:?}", wrong),
+            },
+            Ok(_) => panic!("Spec should not validate"),
+        }
     }
 }

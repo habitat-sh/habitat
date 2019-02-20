@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{export_docker as docker, hcore::service::ServiceBind};
 use clap::{App, Arg};
-use std::result;
-
-use crate::export_docker as docker;
+use std::{result, str::FromStr};
 
 /// A Kubernetes-specific clap:App wrapper
 ///
@@ -189,6 +188,7 @@ impl<'a, 'b> Cli<'a, 'b> {
                     .short("b")
                     .multiple(true)
                     .number_of_values(1)
+                    .validator(valid_bind)
                     .help(
                         "Bind to another service to form a producer/consumer relationship, \
                          specified as name:service.group",
@@ -205,6 +205,16 @@ fn valid_natural_number(val: String) -> result::Result<(), String> {
     }
 }
 
+// TODO (JC) This might be worth moving to core if it could be used
+// elsewhere.  `ServiceGroup` already has a similar `validate` fn
+fn valid_bind(val: String) -> result::Result<(), String> {
+    if let Err(e) = ServiceBind::from_str(&val) {
+        Err(e.to_string())
+    } else {
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -216,5 +226,15 @@ mod tests {
         for &s in ["x", "", "#####", "0x11", "ab"].iter() {
             assert!(valid_natural_number(s.to_owned()).is_err());
         }
+    }
+
+    #[test]
+    fn test_valid_bind_ok() {
+        assert!(valid_bind("foo:service.group".to_owned()).is_ok());
+    }
+
+    #[test]
+    fn test_valid_bind_err() {
+        assert!(valid_bind("foo:service".to_owned()).is_err());
     }
 }

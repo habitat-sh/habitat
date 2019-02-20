@@ -58,12 +58,15 @@ use crate::{
         config::Cfg,
         package::{Env, Pkg},
     },
-    hcore::{package::PackageIdent, service::ServiceGroup},
+    hcore::{
+        package::PackageIdent,
+        service::{ServiceBind, ServiceGroup},
+    },
 };
 
 use crate::{
     census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId},
-    manager::{service::ServiceBind, Sys},
+    manager::Sys,
 };
 
 /// The context of a rendering call, exposing information on the
@@ -394,8 +397,8 @@ impl<'a> Binds<'a> {
     {
         let mut map = HashMap::default();
         for bind in bindings {
-            if let Some(group) = census.census_group_for(&bind.service_group) {
-                map.insert(bind.name.to_string(), BindGroup::new(group));
+            if let Some(group) = census.census_group_for(&bind.service_group()) {
+                map.insert(bind.name().to_string(), BindGroup::new(group));
             }
         }
         Binds(map)

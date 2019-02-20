@@ -14,7 +14,7 @@
 
 use serde_json::Value;
 
-use crate::{hb, manifest::Manifest};
+use crate::{hb, hcore::service::ServiceBind, manifest::Manifest};
 
 /// Represents the [`Manifest`] in JSON format. This is an intermediate type that can be converted
 /// to the final manifest YAML file content, ready for consumption by a Kubernetes cluster.
@@ -31,11 +31,7 @@ pub struct ManifestJson {
 impl ManifestJson {
     /// Create a `ManifestJson` from `manifest`.
     pub fn new(manifest: &Manifest) -> Self {
-        let binds = manifest
-            .binds
-            .iter()
-            .map(|bind| bind.to_json())
-            .collect::<Vec<_>>();
+        let binds = manifest.binds.iter().map(to_json).collect::<Vec<_>>();
         let environment = manifest
             .environment
             .iter()
@@ -59,6 +55,14 @@ impl ManifestJson {
             }),
         }
     }
+}
+
+fn to_json(bind: &ServiceBind) -> serde_json::Value {
+    json!({
+        "name": bind.name(),
+        "service": bind.service_group().service(),
+        "group": bind.service_group().group(),
+    })
 }
 
 impl Into<String> for ManifestJson {

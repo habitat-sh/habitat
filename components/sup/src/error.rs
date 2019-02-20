@@ -117,7 +117,6 @@ pub enum Error {
     GroupNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
-    InvalidBinding(String),
     InvalidBinds(Vec<String>),
     InvalidCertFile(PathBuf),
     InvalidKeyFile(PathBuf),
@@ -225,11 +224,6 @@ impl fmt::Display for SupError {
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FileWatcherFileIsRoot => "Watched file is root".to_string(),
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
-            Error::InvalidBinding(ref binding) => format!(
-                "Invalid binding \"{}\", must be of the form <NAME>:<SERVICE_GROUP> where <NAME> \
-                 is a service name, and <SERVICE_GROUP> is a valid service group",
-                binding
-            ),
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
             Error::InvalidCertFile(ref path) => format!("Invalid cert file: {}", path.display()),
             Error::InvalidKeyFile(ref path) => format!("Invalid key file: {}", path.display()),
@@ -359,7 +353,6 @@ impl error::Error for SupError {
             Error::EnvJoinPathsError(ref err) => err.description(),
             Error::FileNotFound(_) => "File not found",
             Error::FileWatcherFileIsRoot => "Watched file is root",
-            Error::InvalidBinding(_) => "Invalid binding parameter",
             Error::InvalidBinds(_) => {
                 "Service binds detected that are neither required nor optional package binds"
             }
