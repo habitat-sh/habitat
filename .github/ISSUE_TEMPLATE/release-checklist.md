@@ -31,7 +31,8 @@ Here are all the steps for the release process. Create a new issue at the beginn
 - [ ] [Update docs](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-docs)
 - [ ] [Bump version](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#bump-version) to new `-dev` version
 - [ ] [Update `hab-backline` to new `-dev` version in acceptance environment](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline-1)
-- [ ] [Promote builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confrm build uses new version
+- [ ] [Promote Linux builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confirm build uses new version
+- [ ] [Promote Windows builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confirm build uses new version
 - [ ] Post announcement in [Chef discourse](https://discourse.chef.io/c/habitat)
 - [ ] Post announcement in [Habitat forums](https://forums.habitat.sh/c/announcements)
 - [ ] Tweet announcement from `@habitatsh`

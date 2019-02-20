@@ -261,6 +261,8 @@ Now that the release is stable, we need to build a new version of builder-worker
 If it is, just wait for it to finish and promote it. If it's not, click the
 `Build Latest Version` button to kick off a build, and promote when it's done.  Wait for a few minutes so that supervisors on all the workers can update to the newly promoted version, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
 
+With the addition of Windows builder workers, you will also need to build and promote the builder-worker package for x86_64-windows.  In order to build the Windows package, you will need to use the hab cli and issue `hab bldr job start habitat/builder-worker x86_64-windows` in order to create the package.  
+
 # Release Notification
 
 1. Create new posts in [Habitat Announcements](https://discourse.chef.io/c/habitat) on the Chef discourse as well as [Announcements](https://forums.habitat.sh/c/announcements) in the Habitat forums.
