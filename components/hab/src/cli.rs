@@ -886,8 +886,11 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     (about: "Run the Habitat Supervisor")
     (@group GOSSIP =>
      (@arg NO_LISTEN_GOSSIP: --("no-listen-gossip") "Don't startup the gossip listener.")
+     // We have to hardcode the env and default bits in the usage string here because setting them with them
+     // env and default_value functions causes the exclusivity rule between NO_LISTEN_GOSSIP and LISTEN_GOSSIP
+     // to fail. https://github.com/clap-rs/clap/issues/1205
      (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
-      "The listen address for the Gossip System Gateway.")
+      "The listen address for the Gossip System Gateway. [env: HAB_LISTEN_GOSSIP] [default: 0.0.0.0:9638]")
     )
     (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the HTTP Gateway.")
