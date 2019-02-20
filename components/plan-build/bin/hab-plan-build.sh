@@ -2046,12 +2046,21 @@ do_strip() {
 }
 
 # Default implementation for the `do_strip()` phase.
+# TODO(SM): Previous versions of the `find` utility reported x-pie-exectuable
+# as x-sharedlib. This means that while the intent was to `--strip-all` for 
+# x-executable, in reality we have been running `--strip-unneeded`. In order to 
+# be consistant with past behavior we will pass `--strip-unneeded` when stripping
+# x-pie-executable. In the future, we will need to make a decision as to the behavior 
+# we want and introduce it at an appropriate time, such as a core-plans refresh.
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81498
+# https://bugs.launchpad.net/ubuntu/+source/file/+bug/1747711
 do_default_strip() {
   build_line "Stripping unneeded symbols from binaries and libraries"
   find "$pkg_prefix" -type f -perm -u+w -print0 2> /dev/null \
     | while read -rd '' f; do
       case "$(file -bi "$f")" in
         *application/x-executable*) strip --strip-all "$f";;
+        *application/x-pie-executable*) strip --strip-unneeded "$f";;
         *application/x-sharedlib*) strip --strip-unneeded "$f";;
         *application/x-archive*) strip --strip-debug "$f";;
         *) continue;;
