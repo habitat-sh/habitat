@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Update CODEOWNERS to remove stale contributors [#6174](https://github.com/habitat-sh/habitat/pull/6174) ([raskchanky](https://github.com/raskchanky))
 - Add 0.75.0 release blog post [#6150](https://github.com/habitat-sh/habitat/pull/6150) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
