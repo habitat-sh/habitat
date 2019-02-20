@@ -1,12 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.76.0-dev -->
+<!-- latest_release unreleased -->
+## Unreleased
+
+#### Merged Pull Requests
+- Add 0.75.0 release blog post [#6150](https://github.com/habitat-sh/habitat/pull/6150) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [0.76.0-dev](https://github.com/habitat-sh/habitat/tree/0.76.0-dev) (2019-02-20)
 
 #### Merged Pull Requests
 - Update to -dev version [#6184](https://github.com/habitat-sh/habitat/pull/6184) ([smacfarlane](https://github.com/smacfarlane))
 - Update changelog for 0.75.0 release [#6180](https://github.com/habitat-sh/habitat/pull/6180) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [0.75.0](https://github.com/habitat-sh/habitat/tree/0.75.0) (2019-02-12)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.74.0...0.75.0)
