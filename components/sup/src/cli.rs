@@ -63,13 +63,7 @@ mod test {
             let cmd_vec = Vec::from_iter(
                 "hab-sup run --no-listen-gossip --listen-gossip 1.1.1.1:1111".split_whitespace(),
             );
-            let matches = cli().get_matches_from_safe(cmd_vec);
-
-            assert!(matches.is_err());
-
-            if let Err(clap::Error { kind, .. }) = matches {
-                assert_eq!(kind, ErrorKind::ArgumentConflict);
-            }
+            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
 
     }
