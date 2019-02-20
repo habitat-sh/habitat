@@ -707,7 +707,7 @@ pub fn sup_commands() -> App<'static, 'static> {
     // set custom usage string, otherwise the binary
     // is displayed as the clap_app name, which may or may not be different.
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-    (usage: "hab sup <SUBCOMMAND>")
+    (bin_name: "hab sup")
     (@setting VersionlessSubcommands)
     (@setting SubcommandRequiredElseHelp)
     (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
@@ -884,9 +884,6 @@ pub fn sub_sup_bash() -> App<'static, 'static> {
 pub fn sub_sup_run() -> App<'static, 'static> {
     clap_app!(@subcommand run =>
     (about: "Run the Habitat Supervisor")
-    // set custom usage string, otherwise the binary
-    // is displayed confusingly as `hab-sup`
-    // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
     (@group GOSSIP =>
      (@arg NO_LISTEN_GOSSIP: --("no-listen-gossip") "Don't startup the gossip listener.")
      (@arg LISTEN_GOSSIP: --("listen-gossip") +takes_value {valid_socket_addr}
