@@ -97,7 +97,7 @@ where
             common::command::package::install::start(
                 ui,
                 &default_bldr_url(),
-                Some(&internal_tooling_channel()),
+                &internal_tooling_channel(),
                 &(ident.clone(), *PackageTarget::active_target()).into(),
                 PRODUCT,
                 VERSION,
@@ -121,5 +121,5 @@ where
 fn internal_tooling_channel() -> ChannelIdent {
     hcore::env::var(INTERNAL_TOOLING_CHANNEL_ENVVAR)
         .map(ChannelIdent::from)
-        .unwrap_or_else(|_| ChannelIdent::stable()) // or default or configured_value?
+        .unwrap_or_default()
 }

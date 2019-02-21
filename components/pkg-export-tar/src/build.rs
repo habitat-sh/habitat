@@ -86,12 +86,12 @@ impl<'a> BuildSpec<'a> {
             channel: m
                 .value_of("CHANNEL")
                 .map(ChannelIdent::from)
-                .unwrap_or_default(), // or configured_value?
+                .unwrap_or_default(),
             base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
             base_pkgs_channel: m
                 .value_of("BASE_PKGS_CHANNEL")
                 .map(ChannelIdent::from)
-                .unwrap_or_default(), // or configured_value?
+                .unwrap_or_default(),
             ident_or_archive: m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap(),
         }
     }
@@ -218,7 +218,7 @@ impl<'a> BuildSpec<'a> {
         let package_install = common::command::package::install::start(
             ui,
             url,
-            Some(channel),
+            channel,
             &install_source,
             &*PROGRAM_NAME,
             VERSION,

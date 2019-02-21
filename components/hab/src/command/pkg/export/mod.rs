@@ -66,6 +66,7 @@ mod inner {
         common::ui::UI,
         hcore::{
             crypto::{default_cache_key_path, init},
+            env::Config,
             fs::find_command,
             package::PackageIdent,
             url::BLDR_URL_ENVVAR,

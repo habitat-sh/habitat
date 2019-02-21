@@ -333,7 +333,7 @@ impl<'a> fmt::Display for FullyQualifiedPackageIdent<'a> {
 pub fn start<U, P1, P2>(
     ui: &mut U,
     url: &str,
-    channel: Option<&ChannelIdent>,
+    channel: &ChannelIdent,
     install_source: &InstallSource,
     product: &str,
     version: &str,
@@ -354,16 +354,11 @@ where
     let key_cache_path = cache_key_path(Some(fs_root_path.as_ref()));
     debug!("install key_cache_path: {}", key_cache_path.display());
 
-    let channel = match channel {
-        Some(c) => Cow::Borrowed(c),
-        None => Cow::Owned(ChannelIdent::default()), // or configured_value?
-    };
-
     let task = InstallTask::new(
         install_mode,
         local_package_usage,
         url,
-        &channel,
+        channel,
         product,
         version,
         fs_root_path.as_ref(),

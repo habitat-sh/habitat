@@ -207,7 +207,7 @@ impl Default for ManagerConfig {
             auto_update: false,
             custom_state_path: None,
             update_url: "".to_string(),
-            update_channel: ChannelIdent::default(), // or configured_value?
+            update_channel: ChannelIdent::default(),
             gossip_listen: GossipListenAddr::default(),
             ctl_listen: ListenCtlAddr::default(),
             http_listen: http_gateway::ListenAddr::default(),
