@@ -2,7 +2,7 @@
 name = "habitat_butterfly"
 version = "0.1.0"
 edition = "2018"
-authors = ["Adam Jacob <adam@chef.io>"]
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 build = "build.rs"
 workspace = "../../"
 

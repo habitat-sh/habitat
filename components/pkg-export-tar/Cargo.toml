@@ -2,7 +2,7 @@
 name = "habitat_pkg_export_tar"
 version = "0.0.0"
 edition = "2018"
-authors = ["Nell Shamrell <nellshamrell@gmail.com>"]
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [lib]
