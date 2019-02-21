@@ -13,14 +13,14 @@
 // limitations under the License.
 
 use std::{
-    fs::{self, File, OpenOptions},
+    fs::File,
     io::{self, BufReader, BufWriter, Read, Seek, SeekFrom, Write},
     mem,
     path::{Path, PathBuf},
 };
 
 use byteorder::{ByteOrder, LittleEndian};
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
+use habitat_core::fs::AtomicWriter;
 
 use crate::{
     error::{Error, Result},
@@ -238,20 +238,10 @@ impl DatFile {
 
     pub fn write(&self, server: &Server) -> Result<usize> {
         let mut header = Header::default();
-        let tmp_path = self.path.with_extension(
-            thread_rng()
-                .sample_iter(&Alphanumeric)
-                .take(8)
-                .collect::<String>(),
-        );
-        {
-            let file = OpenOptions::new()
-                .create(true)
-                .write(true)
-                .truncate(true)
-                .open(&tmp_path)
-                .map_err(|err| Error::DatFileIO(tmp_path.clone(), err))?;
-            let mut writer = BufWriter::new(&file);
+        let w = AtomicWriter::new(&self.path)
+            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        w.with_writer(|mut f| {
+            let mut writer = BufWriter::new(&mut f);
             self.init(&mut writer)?;
             header.member_len = self.write_member_list(&mut writer, &server.member_list)?;
             header.service_len = self.write_rumor_store(&mut writer, &server.service_store)?;
@@ -262,45 +252,15 @@ impl DatFile {
             header.election_len = self.write_rumor_store(&mut writer, &server.election_store)?;
             header.update_len = self.write_rumor_store(&mut writer, &server.update_store)?;
             header.departure_len = self.write_rumor_store(&mut writer, &server.departure_store)?;
-            writer
-                .seek(SeekFrom::Start(1))
-                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+            writer.seek(SeekFrom::Start(1))?;
             self.write_header(&mut writer, &header)?;
-            writer
-                .flush()
-                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-
-            file.sync_all()
-                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-        }
-        fs::rename(&tmp_path, &self.path)
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-        self.sync_parent_dir()?;
-        Ok(0)
-    }
-
-    /// sync_parent_dir calls sync_all (fsync) on the parent directory
-    /// of the dat_file. The goal of this function is to ensure file
-    /// operations such as rename are persisted to disk.
-    ///
-    /// On windows this function does nothing.
-    #[cfg(unix)]
-    fn sync_parent_dir(&self) -> Result<()> {
-        let parent = self.path.parent().ok_or_else(|| {
-            Error::DatFileIO(
-                self.path.clone(),
-                io::Error::new(io::ErrorKind::Other, "Dat file has no parent directory"),
-            )
-        })?;
-        fs::File::open(parent)
-            .and_then(|f| f.sync_all())
-            .map_err(|err| Error::DatFileIO(parent.to_path_buf(), err))?;
-        Ok(())
-    }
-
-    #[cfg(not(unix))]
-    fn sync_parent_dir(&self) -> Result<()> {
-        Ok(())
+            writer.flush()?;
+            Ok(0)
+        })
+        .map_err(|err| match err {
+            Error::UnknownIOError(e) => Error::DatFileIO(self.path.clone(), e),
+            e => e,
+        })
     }
 
     fn init<W>(&self, writer: &mut W) -> Result<usize>
