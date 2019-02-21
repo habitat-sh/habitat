@@ -2046,7 +2046,7 @@ do_strip() {
 }
 
 # Default implementation for the `do_strip()` phase.
-# TODO(SM): Previous versions of the `find` utility reported x-pie-exectuable
+# TODO(SM): Previous versions of the `file` utility reported x-pie-exectuable
 # as x-sharedlib. This means that while the intent was to `--strip-all` for 
 # x-executable, in reality we have been running `--strip-unneeded`. In order to 
 # be consistant with past behavior we will pass `--strip-unneeded` when stripping
