@@ -888,21 +888,20 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     // is displayed confusingly as `hab-sup`
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
     (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-          (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
+    (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the Gossip System Gateway.")
     (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the HTTP Gateway.")
     (@arg HTTP_DISABLE: --("http-disable") -D
         "Disable the HTTP Gateway completely [default: false]")
     (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(&LISTEN_CTL_DEFAULT_ADDR_STRING) {valid_socket_addr}
-        "The listen address for the Control Gateway. If not specified, the value will \
-        be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
+        "The listen address for the Control Gateway.")
     (@arg ORGANIZATION: --org +takes_value
         "The organization that the Supervisor and its subsequent services are part of.")
     (@arg PEER: --peer +takes_value +multiple
         "The listen address of one or more initial peers (IP[:PORT])")
     (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-    (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+    (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
         "Watch this file for connecting to the ring"
     )
     (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY")
@@ -917,10 +916,9 @@ pub fn sub_sup_run() -> App<'static, 'static> {
                   GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
     (@arg CHANNEL: --channel +takes_value
         "Receive Supervisor updates from the specified release channel [default: stable]")
-    (@arg BLDR_URL: -u --url +takes_value {valid_url}
+    (@arg BLDR_URL: -u --url default_value("https://bldr.habitat.sh") {valid_url}
         "Specify an alternate Builder endpoint. If not specified, the value will \
-         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-         https://bldr.habitat.sh)")
+         be taken from the HAB_BLDR_URL environment variable if defined.")
 
     (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
         "Use package config from this path, rather than the package itself")
@@ -942,23 +940,23 @@ pub fn sub_sup_run() -> App<'static, 'static> {
         "Application name; [default: not set].")
     (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
         "Environment name; [default: not set].")
-    (@arg GROUP: --group +takes_value
-        "The service group; shared config and topology [default: default].")
+    (@arg GROUP: --group default_value("default")
+        "The service group; shared config and topology.")
     (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
         "Service topology; [default: none]")
-    (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-        "The update strategy; [default: none] [values: none, at-once, rolling]")
+    (@arg STRATEGY: --strategy -s default_value("none") {valid_update_strategy}
+        "The update strategy; [values: none, at-once, rolling]")
     (@arg BIND: --bind +takes_value +multiple
         "One or more service groups to bind to a configuration")
-    (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+    (@arg BINDING_MODE: --("binding-mode") default_value("strict") {valid_binding_mode}
         "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-         startup until all binds are present. [default: strict] [values: relaxed, strict]")
+         startup until all binds are present. [values: relaxed, strict]")
     (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
     (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
     (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
         Implies NO_COLOR")
-    (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-        "The interval (seconds) on which to run health checks [default: 30]")
+    (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i default_value("30") {valid_health_check_interval}
+        "The interval (seconds) on which to run health checks.")
     )
 }
 
