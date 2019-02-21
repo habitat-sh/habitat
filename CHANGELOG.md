@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Use AtomicWriter from habitat core [#5803](https://github.com/habitat-sh/habitat/pull/5803) ([stevendanna](https://github.com/stevendanna))
 - Re-add Travis jobs for publishing the website [#6190](https://github.com/habitat-sh/habitat/pull/6190) ([smacfarlane](https://github.com/smacfarlane))
 - Automate the installation of nightly rustfmt in CI [#6181](https://github.com/habitat-sh/habitat/pull/6181) ([raskchanky](https://github.com/raskchanky))
 - Update CODEOWNERS to remove stale contributors [#6174](https://github.com/habitat-sh/habitat/pull/6174) ([raskchanky](https://github.com/raskchanky))
