@@ -14,7 +14,7 @@
 
 use dirs;
 use std::env;
-use std::fs as stdfs;
+use std::fs;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -397,7 +397,7 @@ impl<'a> SvcDir<'a> {
 
     fn create_dir_all<P: AsRef<Path>>(path: P) -> Result<()> {
         debug!("Creating dir with subdirs: {:?}", &path.as_ref());
-        if let Err(e) = stdfs::create_dir_all(&path) {
+        if let Err(e) = fs::create_dir_all(&path) {
             Err(Error::PermissionFailed(format!(
                 "Can't create {:?}, {}",
                 &path.as_ref(),
@@ -720,10 +720,38 @@ impl AtomicWriter {
             self.tempfile.path().to_string_lossy(),
             &self.dest.to_string_lossy()
         );
-        stdfs::rename(self.tempfile.path(), &self.dest)
-        // NOTE(ssd) 2018-11-01: On some filesystems we should fsync
-        // the parent directory here if we wanted this file to also
-        // provide a durability guarantee.
+        fs::rename(self.tempfile.path(), &self.dest)?;
+
+        #[cfg(unix)]
+        self.sync_parent()?;
+
+        Ok(())
+    }
+
+    /// sync_parent syncs the parent directory. This is required on
+    /// some filesystems to ensure that rename(), create(), and
+    /// unlink() operations have been persisted to disk. sync_parent
+    /// ensures the durability of AtomicWriter but is not required for
+    /// the atomocity guarantee.
+    fn sync_parent(&self) -> io::Result<()> {
+        let parent = parent(&self.dest)?;
+        let f = fs::File::open(parent)?;
+        if let Err(e) = f.sync_all() {
+            // sync_all() calls libc::fsync() which will return EINVAL
+            // if the filesystem does not support calling fsync() on
+            // directories. libc's EINVAL is mapped to InvalidInput.
+            if e.kind() == std::io::ErrorKind::InvalidInput {
+                info!(
+                    "Ignoring InvalidInput from sync_all on {}",
+                    parent.to_string_lossy()
+                );
+                Ok(())
+            } else {
+                Err(e)
+            }
+        } else {
+            Ok(())
+        }
     }
 }
 
