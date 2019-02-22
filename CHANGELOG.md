@@ -7,6 +7,7 @@
 - Update ChannelIdent to use env::Config::configured_value where appropriate [#6169](https://github.com/habitat-sh/habitat/pull/6169) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Refactor the date logic for nightly rust in CI [#6193](https://github.com/habitat-sh/habitat/pull/6193) ([raskchanky](https://github.com/raskchanky))
 - Remove test verify branch [#6155](https://github.com/habitat-sh/habitat/pull/6155) ([scotthain](https://github.com/scotthain))
 - Correct 0.75.0 release blog date [#6194](https://github.com/habitat-sh/habitat/pull/6194) ([smacfarlane](https://github.com/smacfarlane))
 - Update plan-build default_strip behavior [#6189](https://github.com/habitat-sh/habitat/pull/6189) ([smacfarlane](https://github.com/smacfarlane))
