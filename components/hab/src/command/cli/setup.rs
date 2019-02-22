@@ -14,7 +14,8 @@
 
 #[cfg(windows)]
 use std::env;
-use std::{path::Path, result};
+use std::{path::Path,
+          result};
 
 #[cfg(windows)]
 use std::ptr;
@@ -23,22 +24,34 @@ use widestring::WideCString;
 #[cfg(windows)]
 use winapi::shared::minwindef::LPARAM;
 #[cfg(windows)]
-use winapi::um::winuser::{self, HWND_BROADCAST, SMTO_ABORTIFHUNG, WM_SETTINGCHANGE};
+use winapi::um::winuser::{self,
+                          HWND_BROADCAST,
+                          SMTO_ABORTIFHUNG,
+                          WM_SETTINGCHANGE};
 #[cfg(windows)]
-use winreg::enums::{HKEY_LOCAL_MACHINE, KEY_ALL_ACCESS, KEY_READ};
+use winreg::enums::{HKEY_LOCAL_MACHINE,
+                    KEY_ALL_ACCESS,
+                    KEY_READ};
 #[cfg(windows)]
 use winreg::RegKey;
 
-use crate::{
-    common::ui::{UIReader, UIWriter, UI},
-    hcore::{crypto::SigKeyPair, env as henv, package::ident, Error::InvalidOrigin},
-};
+use crate::{common::ui::{UIReader,
+                         UIWriter,
+                         UI},
+            hcore::{crypto::SigKeyPair,
+                    env as henv,
+                    package::ident,
+                    Error::InvalidOrigin}};
 use url::Url;
 
-use crate::{
-    analytics, command, config, error::Result, AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR,
-    CTL_SECRET_ENVVAR, ORIGIN_ENVVAR,
-};
+use crate::{analytics,
+            command,
+            config,
+            error::Result,
+            AUTH_TOKEN_ENVVAR,
+            BLDR_URL_ENVVAR,
+            CTL_SECRET_ENVVAR,
+            ORIGIN_ENVVAR};
 
 pub fn start(
     ui: &mut UI,
@@ -464,6 +477,4 @@ fn set_binlink_path(binlink_path: &Path) -> Result<()> {
 }
 
 #[cfg(not(windows))]
-fn set_binlink_path(_binlink_path: &Path) -> Result<()> {
-    unreachable!()
-}
+fn set_binlink_path(_binlink_path: &Path) -> Result<()> { unreachable!() }

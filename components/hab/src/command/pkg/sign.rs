@@ -14,10 +14,11 @@
 
 use std::path::Path;
 
-use crate::{
-    common::ui::{Status, UIWriter, UI},
-    hcore::crypto::{artifact, SigKeyPair},
-};
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            hcore::crypto::{artifact,
+                            SigKeyPair}};
 
 use crate::error::Result;
 

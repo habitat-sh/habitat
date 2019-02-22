@@ -12,13 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{env, error, fmt, io, net, path::PathBuf, result, str, string};
+use std::{env,
+          error,
+          fmt,
+          io,
+          net,
+          path::PathBuf,
+          result,
+          str,
+          string};
 use toml;
 
-use crate::{
-    api_client,
-    hcore::{self, package::PackageIdent},
-};
+use crate::{api_client,
+            hcore::{self,
+                    package::PackageIdent}};
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -196,55 +203,37 @@ impl error::Error for Error {
 }
 
 impl From<api_client::Error> for Error {
-    fn from(err: api_client::Error) -> Self {
-        Error::APIClient(err)
-    }
+    fn from(err: api_client::Error) -> Self { Error::APIClient(err) }
 }
 
 impl From<handlebars::TemplateFileError> for Error {
-    fn from(err: handlebars::TemplateFileError) -> Self {
-        Error::TemplateFileError(err)
-    }
+    fn from(err: handlebars::TemplateFileError) -> Self { Error::TemplateFileError(err) }
 }
 
 impl From<hcore::Error> for Error {
-    fn from(err: hcore::Error) -> Self {
-        Error::HabitatCore(err)
-    }
+    fn from(err: hcore::Error) -> Self { Error::HabitatCore(err) }
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IO(err)
-    }
+    fn from(err: io::Error) -> Self { Error::IO(err) }
 }
 
 impl From<env::JoinPathsError> for Error {
-    fn from(err: env::JoinPathsError) -> Self {
-        Error::JoinPathsError(err)
-    }
+    fn from(err: env::JoinPathsError) -> Self { Error::JoinPathsError(err) }
 }
 
 impl From<str::Utf8Error> for Error {
-    fn from(err: str::Utf8Error) -> Self {
-        Error::StrFromUtf8Error(err)
-    }
+    fn from(err: str::Utf8Error) -> Self { Error::StrFromUtf8Error(err) }
 }
 
 impl From<string::FromUtf8Error> for Error {
-    fn from(err: string::FromUtf8Error) -> Self {
-        Error::StringFromUtf8Error(err)
-    }
+    fn from(err: string::FromUtf8Error) -> Self { Error::StringFromUtf8Error(err) }
 }
 
 impl From<toml::ser::Error> for Error {
-    fn from(err: toml::ser::Error) -> Self {
-        Error::TomlSerializeError(err)
-    }
+    fn from(err: toml::ser::Error) -> Self { Error::TomlSerializeError(err) }
 }
 
 impl From<net::AddrParseError> for Error {
-    fn from(err: net::AddrParseError) -> Self {
-        Error::NetParseError(err)
-    }
+    fn from(err: net::AddrParseError) -> Self { Error::NetParseError(err) }
 }

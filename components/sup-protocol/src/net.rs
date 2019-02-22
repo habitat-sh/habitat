@@ -20,7 +20,9 @@
 include!("generated/sup.net.rs");
 include!("generated/sup.net.impl.rs");
 
-use std::{error, fmt, io};
+use std::{error,
+          fmt,
+          io};
 
 use crate::core;
 
@@ -38,9 +40,7 @@ where
 }
 
 /// Helper function for quickly generating a `NetOk` message.
-pub fn ok() -> NetOk {
-    NetOk::default()
-}
+pub fn ok() -> NetOk { NetOk::default() }
 
 impl error::Error for NetErr {
     fn description(&self) -> &str {
@@ -80,13 +80,9 @@ impl fmt::Display for NetErr {
 }
 
 impl From<io::Error> for NetErr {
-    fn from(other: io::Error) -> Self {
-        err(ErrCode::Io, other)
-    }
+    fn from(other: io::Error) -> Self { err(ErrCode::Io, other) }
 }
 
 impl From<core::Error> for NetErr {
-    fn from(other: core::Error) -> Self {
-        err(ErrCode::Internal, other)
-    }
+    fn from(other: core::Error) -> Self { err(ErrCode::Internal, other) }
 }

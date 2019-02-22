@@ -14,20 +14,19 @@
 
 use std::path::Path;
 
-use crate::{
-    api_client::Client,
-    common::{
-        self,
-        command::package::install::{RETRIES, RETRY_WAIT},
-        ui::{Status, UIWriter, UI},
-    },
-    hcore::crypto::SigKeyPair,
-};
+use crate::{api_client::Client,
+            common::{self,
+                     command::package::install::{RETRIES,
+                                                 RETRY_WAIT},
+                     ui::{Status,
+                          UIWriter,
+                          UI}},
+            hcore::crypto::SigKeyPair};
 
-use crate::{
-    error::{Error, Result},
-    PRODUCT, VERSION,
-};
+use crate::{error::{Error,
+                    Result},
+            PRODUCT,
+            VERSION};
 
 use retry::retry;
 

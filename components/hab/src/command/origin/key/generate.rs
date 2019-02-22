@@ -14,12 +14,14 @@
 
 use std::path::Path;
 
-use crate::{
-    common::ui::{UIWriter, UI},
-    hcore::{crypto::SigKeyPair, package::ident, Error::InvalidOrigin},
-};
+use crate::{common::ui::{UIWriter,
+                         UI},
+            hcore::{crypto::SigKeyPair,
+                    package::ident,
+                    Error::InvalidOrigin}};
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 pub fn start(ui: &mut UI, origin: &str, cache: &Path) -> Result<()> {
     if ident::is_valid_origin_name(origin) {

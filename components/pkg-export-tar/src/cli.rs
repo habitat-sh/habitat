@@ -1,5 +1,7 @@
-use clap::{App, Arg};
-use std::{result, str::FromStr};
+use clap::{App,
+           Arg};
+use std::{result,
+          str::FromStr};
 
 use crate::common::command::package::install::InstallSource;
 use url::Url;

@@ -14,7 +14,10 @@
 
 use habitat_launcher_protocol as protocol;
 use ipc_channel;
-use std::{error, fmt, io, result};
+use std::{error,
+          fmt,
+          io,
+          result};
 
 #[derive(Debug)]
 pub enum Error {
@@ -70,7 +73,5 @@ impl From<ipc_channel::ErrorKind> for Error {
 }
 
 impl From<protocol::Error> for Error {
-    fn from(err: protocol::Error) -> Error {
-        Error::Protocol(err)
-    }
+    fn from(err: protocol::Error) -> Error { Error::Protocol(err) }
 }

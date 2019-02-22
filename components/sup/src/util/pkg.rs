@@ -14,26 +14,25 @@
 
 use std::path::Path;
 
-use crate::{
-    common::{
-        self,
-        command::package::install::{
-            InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
-        },
-        ui::UIWriter,
-    },
-    hcore::{
-        env as henv,
-        fs::{self, FS_ROOT_PATH},
-        package::{PackageIdent, PackageInstall},
-        ChannelIdent, AUTH_TOKEN_ENVVAR,
-    },
-};
+use crate::{common::{self,
+                     command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 InstallSource,
+                                                 LocalPackageUsage},
+                     ui::UIWriter},
+            hcore::{env as henv,
+                    fs::{self,
+                         FS_ROOT_PATH},
+                    package::{PackageIdent,
+                              PackageInstall},
+                    ChannelIdent,
+                    AUTH_TOKEN_ENVVAR}};
 
-use crate::{
-    error::{Error, Result, SupError},
-    PRODUCT, VERSION,
-};
+use crate::{error::{Error,
+                    Result,
+                    SupError},
+            PRODUCT,
+            VERSION};
 
 static LOGKEY: &'static str = "UT";
 

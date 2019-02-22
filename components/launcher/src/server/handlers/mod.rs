@@ -16,11 +16,14 @@ mod restart;
 mod spawn;
 mod terminate;
 
-pub use self::{restart::*, spawn::*, terminate::*};
+pub use self::{restart::*,
+               spawn::*,
+               terminate::*};
 
 use crate::protocol;
 
-use super::{Sender, ServiceTable};
+use super::{Sender,
+            ServiceTable};
 
 type HandleResult<T> = Result<T, protocol::NetErr>;
 

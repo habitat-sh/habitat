@@ -23,9 +23,7 @@ pub enum HealthCheck {
 }
 
 impl Default for HealthCheck {
-    fn default() -> HealthCheck {
-        HealthCheck::Unknown
-    }
+    fn default() -> HealthCheck { HealthCheck::Unknown }
 }
 
 impl From<i8> for HealthCheck {

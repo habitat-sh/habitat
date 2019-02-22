@@ -2,18 +2,25 @@ use prost_build;
 
 use tempfile;
 
-use std::{
-    collections::HashMap,
-    env, fs,
-    io::{Error, ErrorKind, Read, Result, Write},
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::{collections::HashMap,
+          env,
+          fs,
+          io::{Error,
+               ErrorKind,
+               Read,
+               Result,
+               Write},
+          path::{Path,
+                 PathBuf},
+          process::Command};
 
 use heck::SnakeCase;
 use prost::Message;
-use prost_build::{protoc, protoc_include};
-use prost_types::{DescriptorProto, FileDescriptorProto, FileDescriptorSet};
+use prost_build::{protoc,
+                  protoc_include};
+use prost_types::{DescriptorProto,
+                  FileDescriptorProto,
+                  FileDescriptorSet};
 
 type Module = Vec<String>;
 
@@ -71,9 +78,7 @@ fn protocol_files() -> Vec<String> {
     files
 }
 
-fn protocol_includes() -> Vec<String> {
-    vec!["protocols".to_string()]
-}
+fn protocol_includes() -> Vec<String> { vec!["protocols".to_string()] }
 
 fn compile_proto_impls<P>(protos: &[P], includes: &[P]) -> Result<()>
 where

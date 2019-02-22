@@ -28,35 +28,43 @@ extern crate serde_derive;
 extern crate serde_json;
 
 pub mod error;
-pub use crate::error::{Error, Result};
+pub use crate::error::{Error,
+                       Result};
 
-use std::{
-    fmt,
-    fs::{self, File},
-    io::{self, Read, Write},
-    path::{Path, PathBuf},
-    string::ToString,
-};
+use std::{fmt,
+          fs::{self,
+               File},
+          io::{self,
+               Read,
+               Write},
+          path::{Path,
+                 PathBuf},
+          string::ToString};
 
-use crate::{
-    hab_core::{
-        crypto::keys::box_key_pair::WrappedSealedBox,
-        fs::AtomicWriter,
-        package::{Identifiable, PackageArchive, PackageIdent, PackageTarget},
-        ChannelIdent,
-    },
-    hab_http::{util::decoded_response, ApiClient},
-};
+use crate::{hab_core::{crypto::keys::box_key_pair::WrappedSealedBox,
+                       fs::AtomicWriter,
+                       package::{Identifiable,
+                                 PackageArchive,
+                                 PackageIdent,
+                                 PackageTarget},
+                       ChannelIdent},
+            hab_http::{util::decoded_response,
+                       ApiClient}};
 use broadcast::BroadcastWriter;
 use chrono::DateTime;
-use hyper::{
-    client::{Body, IntoUrl, RequestBuilder, Response},
-    header::{Accept, Authorization, Bearer, ContentType},
-    status::StatusCode,
-    Url,
-};
+use hyper::{client::{Body,
+                     IntoUrl,
+                     RequestBuilder,
+                     Response},
+            header::{Accept,
+                     Authorization,
+                     Bearer,
+                     ContentType},
+            status::StatusCode,
+            Url};
 use tee::TeeReader;
-use url::percent_encoding::{percent_encode, PATH_SEGMENT_ENCODE_SET};
+use url::percent_encoding::{percent_encode,
+                            PATH_SEGMENT_ENCODE_SET};
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
@@ -171,7 +179,10 @@ pub struct JobGroupPromoteResponse {
 /// To use it, add `#[serde(with = "json_u64")]` to any `u64`-typed struct
 /// fields.
 mod json_u64 {
-    use serde::{self, Deserialize, Deserializer, Serializer};
+    use serde::{self,
+                Deserialize,
+                Deserializer,
+                Serializer};
 
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn serialize<S>(num: &u64, serializer: S) -> Result<S::Ok, S::Error>
@@ -1227,9 +1238,7 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
     }
 }
 
-fn origin_keys_path(origin: &str) -> String {
-    format!("depot/origins/{}/keys", origin)
-}
+fn origin_keys_path(origin: &str) -> String { format!("depot/origins/{}/keys", origin) }
 
 fn origin_secret_keys_latest(origin: &str) -> String {
     format!("depot/origins/{}/secret_keys/latest", origin)
@@ -1239,9 +1248,7 @@ fn package_download(package: &PackageIdent) -> String {
     format!("{}/download", package_path(package))
 }
 
-fn package_path(package: &PackageIdent) -> String {
-    format!("depot/pkgs/{}", package)
-}
+fn package_path(package: &PackageIdent) -> String { format!("depot/pkgs/{}", package) }
 
 fn package_search(term: &str) -> String {
     let encoded_term = percent_encode(term.as_bytes(), PATH_SEGMENT_ENCODE_SET);

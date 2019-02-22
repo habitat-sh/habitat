@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{env::VarError, str::FromStr};
+use std::{env::VarError,
+          str::FromStr};
 
 use crate::hcore::env as henv;
 

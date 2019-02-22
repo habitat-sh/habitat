@@ -13,16 +13,16 @@
 // limitations under the License.
 
 use super::super::key::download::download_public_encryption_key;
-use crate::{
-    api_client::Client,
-    common::ui::{Status, UIWriter, UI},
-};
+use crate::{api_client::Client,
+            common::ui::{Status,
+                         UIWriter,
+                         UI}};
 
-use crate::{
-    error::{Error, Result},
-    hcore::crypto::BoxKeyPair,
-    PRODUCT, VERSION,
-};
+use crate::{error::{Error,
+                    Result},
+            hcore::crypto::BoxKeyPair,
+            PRODUCT,
+            VERSION};
 use std::path::Path;
 
 pub fn start(

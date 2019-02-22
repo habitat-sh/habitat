@@ -36,18 +36,29 @@
 //! Also included in this module is `Result<T>`, a type alias for `Result<T, SupError>`. Use
 //! it instead of the longer `Result` form.
 
-use std::{env, error, ffi, fmt, io, net, path::PathBuf, result, str, string, sync::mpsc};
+use std::{env,
+          error,
+          ffi,
+          fmt,
+          io,
+          net,
+          path::PathBuf,
+          result,
+          str,
+          string,
+          sync::mpsc};
 
-use crate::{
-    api_client, butterfly, common,
-    hcore::{
-        self,
-        os::process::Pid,
-        output::StructuredOutput,
-        package::{self, Identifiable, PackageInstall},
-    },
-    launcher_client, protocol,
-};
+use crate::{api_client,
+            butterfly,
+            common,
+            hcore::{self,
+                    os::process::Pid,
+                    output::StructuredOutput,
+                    package::{self,
+                              Identifiable,
+                              PackageInstall}},
+            launcher_client,
+            protocol};
 use glob;
 use notify;
 use rustls;
@@ -416,15 +427,11 @@ impl error::Error for SupError {
 }
 
 impl From<rustls::TLSError> for SupError {
-    fn from(err: rustls::TLSError) -> SupError {
-        sup_error!(Error::TLSError(err))
-    }
+    fn from(err: rustls::TLSError) -> SupError { sup_error!(Error::TLSError(err)) }
 }
 
 impl From<api_client::Error> for SupError {
-    fn from(err: api_client::Error) -> SupError {
-        sup_error!(Error::APIClient(err))
-    }
+    fn from(err: api_client::Error) -> SupError { sup_error!(Error::APIClient(err)) }
 }
 
 impl From<SupError> for protocol::net::NetErr {
@@ -434,97 +441,65 @@ impl From<SupError> for protocol::net::NetErr {
 }
 
 impl From<net::AddrParseError> for SupError {
-    fn from(err: net::AddrParseError) -> SupError {
-        sup_error!(Error::NetParseError(err))
-    }
+    fn from(err: net::AddrParseError) -> SupError { sup_error!(Error::NetParseError(err)) }
 }
 
 impl From<butterfly::error::Error> for SupError {
-    fn from(err: butterfly::error::Error) -> SupError {
-        sup_error!(Error::ButterflyError(err))
-    }
+    fn from(err: butterfly::error::Error) -> SupError { sup_error!(Error::ButterflyError(err)) }
 }
 
 impl From<common::Error> for SupError {
-    fn from(err: common::Error) -> SupError {
-        sup_error!(Error::HabitatCommon(err))
-    }
+    fn from(err: common::Error) -> SupError { sup_error!(Error::HabitatCommon(err)) }
 }
 
 impl From<glob::PatternError> for SupError {
-    fn from(err: glob::PatternError) -> SupError {
-        sup_error!(Error::SpecWatcherGlob(err))
-    }
+    fn from(err: glob::PatternError) -> SupError { sup_error!(Error::SpecWatcherGlob(err)) }
 }
 
 impl From<hcore::Error> for SupError {
-    fn from(err: hcore::Error) -> SupError {
-        sup_error!(Error::HabitatCore(err))
-    }
+    fn from(err: hcore::Error) -> SupError { sup_error!(Error::HabitatCore(err)) }
 }
 
 impl From<ffi::NulError> for SupError {
-    fn from(err: ffi::NulError) -> SupError {
-        sup_error!(Error::NulError(err))
-    }
+    fn from(err: ffi::NulError) -> SupError { sup_error!(Error::NulError(err)) }
 }
 
 impl From<io::Error> for SupError {
-    fn from(err: io::Error) -> SupError {
-        sup_error!(Error::Io(err))
-    }
+    fn from(err: io::Error) -> SupError { sup_error!(Error::Io(err)) }
 }
 
 impl From<env::JoinPathsError> for SupError {
-    fn from(err: env::JoinPathsError) -> SupError {
-        sup_error!(Error::EnvJoinPathsError(err))
-    }
+    fn from(err: env::JoinPathsError) -> SupError { sup_error!(Error::EnvJoinPathsError(err)) }
 }
 
 impl From<launcher_client::Error> for SupError {
-    fn from(err: launcher_client::Error) -> SupError {
-        sup_error!(Error::Launcher(err))
-    }
+    fn from(err: launcher_client::Error) -> SupError { sup_error!(Error::Launcher(err)) }
 }
 
 impl From<string::FromUtf8Error> for SupError {
-    fn from(err: string::FromUtf8Error) -> SupError {
-        sup_error!(Error::StringFromUtf8Error(err))
-    }
+    fn from(err: string::FromUtf8Error) -> SupError { sup_error!(Error::StringFromUtf8Error(err)) }
 }
 
 impl From<str::Utf8Error> for SupError {
-    fn from(err: str::Utf8Error) -> SupError {
-        sup_error!(Error::StrFromUtf8Error(err))
-    }
+    fn from(err: str::Utf8Error) -> SupError { sup_error!(Error::StrFromUtf8Error(err)) }
 }
 
 impl From<mpsc::RecvError> for SupError {
-    fn from(err: mpsc::RecvError) -> SupError {
-        sup_error!(Error::RecvError(err))
-    }
+    fn from(err: mpsc::RecvError) -> SupError { sup_error!(Error::RecvError(err)) }
 }
 
 impl From<mpsc::TryRecvError> for SupError {
-    fn from(err: mpsc::TryRecvError) -> SupError {
-        sup_error!(Error::TryRecvError(err))
-    }
+    fn from(err: mpsc::TryRecvError) -> SupError { sup_error!(Error::TryRecvError(err)) }
 }
 
 impl From<notify::Error> for SupError {
-    fn from(err: notify::Error) -> SupError {
-        sup_error!(Error::NotifyError(err))
-    }
+    fn from(err: notify::Error) -> SupError { sup_error!(Error::NotifyError(err)) }
 }
 
 impl From<toml::ser::Error> for SupError {
-    fn from(err: toml::ser::Error) -> Self {
-        sup_error!(Error::TomlEncode(err))
-    }
+    fn from(err: toml::ser::Error) -> Self { sup_error!(Error::TomlEncode(err)) }
 }
 
 impl From<protocol::net::NetErr> for SupError {
-    fn from(err: protocol::net::NetErr) -> Self {
-        sup_error!(Error::NetErr(err))
-    }
+    fn from(err: protocol::net::NetErr) -> Self { sup_error!(Error::NetErr(err)) }
 }

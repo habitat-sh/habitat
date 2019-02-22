@@ -180,12 +180,15 @@ installing the Rust language isn't strictly necessary, you might want a local
 copy of Rust on your workstation (some editors' language support require an
 installed version). To [install stable
 Rust](https://www.rust-lang.org/install.html), run: `curl -sSf
-https://sh.rustup.rs | sh`. Additionally, the project maintainers use
-[rustfmt](https://github.com/rust-lang-nursery/rustfmt) for code formatting. If
-you are submitting changes, please ensure that your work has been run through
-the latest version of rustfmt. An easy way to install it (assuming you have
-Rust installed as above), is to run `cargo install rustfmt` and adding
-`$HOME/.cargo/bin` to your `PATH`.
+https://sh.rustup.rs | sh`. Additionally, the project maintainers use the
+nightly version of [rustfmt](https://github.com/rust-lang-nursery/rustfmt)
+for code formatting. If you are submitting changes, please ensure that your
+work has been run through a nightly version of rustfmt. The recommended way to
+install it (assuming you have Rust installed as above), is to run
+`rustup component add --toolchain nightly rustfmt` and adding `$HOME/.cargo/bin`
+to your `PATH`. Actually running it would look something like `cargo +nightly fmt --all`
+from the root of the project. The actual toolchain name can vary, depending on which
+version of nightly rust you have installed.
 
 **Note2:** While this Docker container will work well for getting started with Habitat development, [you may want to consider using a VM](#vm-vs-docker-development) as you start compiling Habitat components.  To do this, create a VM with your preferred flavor of Linux and follow the appropriate instructions for that flavor below.
 

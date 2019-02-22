@@ -26,17 +26,19 @@
 //!    If the specified channel does not exist, it will be created.
 //!
 
-use crate::{
-    api_client::{self, Client},
-    common::ui::{Status, UIWriter, UI},
-    hcore::{package::PackageIdent, ChannelIdent},
-};
+use crate::{api_client::{self,
+                         Client},
+            common::ui::{Status,
+                         UIWriter,
+                         UI},
+            hcore::{package::PackageIdent,
+                    ChannelIdent}};
 use hyper::status::StatusCode;
 
-use crate::{
-    error::{Error, Result},
-    PRODUCT, VERSION,
-};
+use crate::{error::{Error,
+                    Result},
+            PRODUCT,
+            VERSION};
 
 /// Promote a package to the specified channel.
 ///

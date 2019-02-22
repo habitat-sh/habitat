@@ -12,24 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fs::File, io::prelude::*, path::Path, str::FromStr};
+use std::{fs::File,
+          io::prelude::*,
+          path::Path,
+          str::FromStr};
 
-use crate::{
-    common::ui::UI,
-    hcore::{
-        package::{PackageArchive, PackageIdent},
-        service::ServiceBind,
-    },
-};
+use crate::{common::ui::UI,
+            hcore::{package::{PackageArchive,
+                              PackageIdent},
+                    service::ServiceBind}};
 use base64;
 use clap::ArgMatches;
 
-use crate::export_docker::{DockerImage, Result};
+use crate::export_docker::{DockerImage,
+                           Result};
 
-use crate::{
-    env::EnvironmentVariable, manifestjson::ManifestJson, storage::PersistentStorage,
-    topology::Topology,
-};
+use crate::{env::EnvironmentVariable,
+            manifestjson::ManifestJson,
+            storage::PersistentStorage,
+            topology::Topology};
 
 /// Represents a Kubernetes manifest.
 #[derive(Debug, Clone)]

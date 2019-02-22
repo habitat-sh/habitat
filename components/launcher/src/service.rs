@@ -13,16 +13,22 @@
 // limitations under the License.
 
 #[cfg(unix)]
-use std::process::{ChildStderr, ChildStdout, ExitStatus};
-use std::{
-    fmt,
-    io::{self, BufRead, BufReader, Read, Write},
-    thread,
-};
+use std::process::{ChildStderr,
+                   ChildStdout,
+                   ExitStatus};
+use std::{fmt,
+          io::{self,
+               BufRead,
+               BufReader,
+               Read,
+               Write},
+          thread};
 
 use crate::protocol;
 #[cfg(windows)]
-use core::os::process::windows_child::{ChildStderr, ChildStdout, ExitStatus};
+use core::os::process::windows_child::{ChildStderr,
+                                       ChildStdout,
+                                       ExitStatus};
 
 pub use crate::sys::service::*;
 
@@ -58,35 +64,21 @@ impl Service {
         }
     }
 
-    pub fn args(&self) -> &protocol::Spawn {
-        &self.args
-    }
+    pub fn args(&self) -> &protocol::Spawn { &self.args }
 
-    pub fn id(&self) -> u32 {
-        self.process.id()
-    }
+    pub fn id(&self) -> u32 { self.process.id() }
 
     /// Attempt to gracefully terminate a proccess and then forcefully kill it after
     /// 8 seconds if it has not terminated.
-    pub fn kill(&mut self) -> protocol::ShutdownMethod {
-        self.process.kill()
-    }
+    pub fn kill(&mut self) -> protocol::ShutdownMethod { self.process.kill() }
 
-    pub fn name(&self) -> &str {
-        &self.args.id
-    }
+    pub fn name(&self) -> &str { &self.args.id }
 
-    pub fn take_args(self) -> protocol::Spawn {
-        self.args
-    }
+    pub fn take_args(self) -> protocol::Spawn { self.args }
 
-    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
-        self.process.try_wait()
-    }
+    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> { self.process.try_wait() }
 
-    pub fn wait(&mut self) -> io::Result<ExitStatus> {
-        self.process.wait()
-    }
+    pub fn wait(&mut self) -> io::Result<ExitStatus> { self.process.wait() }
 }
 
 impl fmt::Debug for Service {

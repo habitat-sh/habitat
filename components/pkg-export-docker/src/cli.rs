@@ -12,10 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{path::Path, result, str::FromStr};
+use std::{path::Path,
+          result,
+          str::FromStr};
 
 use crate::hcore::package::PackageIdent;
-use clap::{App, Arg};
+use clap::{App,
+           Arg};
 use url::Url;
 
 use crate::RegistryType;

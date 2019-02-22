@@ -12,27 +12,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::{Path, PathBuf};
+use std::path::{Path,
+                PathBuf};
 
-use crate::{
-    common::{
-        self,
-        command::package::install::{InstallHookMode, InstallMode, LocalPackageUsage},
-        ui::{Status, UIWriter, UI},
-    },
-    hcore::{
-        self,
-        fs::{self, cache_artifact_path, FS_ROOT_PATH},
-        package::{PackageIdent, PackageInstall, PackageTarget},
-        url::default_bldr_url,
-        ChannelIdent,
-    },
-};
+use crate::{common::{self,
+                     command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 LocalPackageUsage},
+                     ui::{Status,
+                          UIWriter,
+                          UI}},
+            hcore::{self,
+                    fs::{self,
+                         cache_artifact_path,
+                         FS_ROOT_PATH},
+                    package::{PackageIdent,
+                              PackageInstall,
+                              PackageTarget},
+                    url::default_bldr_url,
+                    ChannelIdent}};
 
-use crate::{
-    error::{Error, Result},
-    PRODUCT, VERSION,
-};
+use crate::{error::{Error,
+                    Result},
+            PRODUCT,
+            VERSION};
 
 const MAX_RETRIES: u8 = 4;
 const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";

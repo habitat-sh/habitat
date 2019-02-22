@@ -13,25 +13,36 @@
 // limitations under the License.
 
 #[cfg(unix)]
-use std::os::unix::process::{CommandExt, ExitStatusExt};
+use std::os::unix::process::{CommandExt,
+                             ExitStatusExt};
 #[cfg(not(windows))]
-use std::process::{Child, Command, ExitStatus, Stdio};
-use std::{
-    ffi::OsStr,
-    fmt,
-    fs::File,
-    io::{prelude::*, BufReader},
-    path::{Path, PathBuf},
-    result,
-};
+use std::process::{Child,
+                   Command,
+                   ExitStatus,
+                   Stdio};
+use std::{ffi::OsStr,
+          fmt,
+          fs::File,
+          io::{prelude::*,
+               BufReader},
+          path::{Path,
+                 PathBuf},
+          result};
 
 #[cfg(windows)]
-use crate::hcore::os::process::windows_child::{Child, ExitStatus};
-use crate::hcore::{self, crypto, fs, outputln};
-use serde::{Serialize, Serializer};
+use crate::hcore::os::process::windows_child::{Child,
+                                               ExitStatus};
+use crate::hcore::{self,
+                   crypto,
+                   fs,
+                   outputln};
+use serde::{Serialize,
+            Serializer};
 
-use super::{package::Pkg, TemplateRenderer};
-use crate::error::{Error, Result};
+use super::{package::Pkg,
+            TemplateRenderer};
+use crate::error::{Error,
+                   Result};
 
 #[cfg(not(windows))]
 pub const HOOK_PERMISSIONS: u32 = 0o755;
@@ -55,9 +66,7 @@ where
 pub struct ExitCode(pub i32);
 
 impl Default for ExitCode {
-    fn default() -> ExitCode {
-        ExitCode(-1)
-    }
+    fn default() -> ExitCode { ExitCode(-1) }
 }
 
 pub trait Hook: fmt::Debug + Sized {
@@ -313,9 +322,7 @@ impl InstallHook {
 impl Hook for InstallHook {
     type ExitValue = bool;
 
-    fn file_name() -> &'static str {
-        "install"
-    }
+    fn file_name() -> &'static str { "install" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         InstallHook {
@@ -370,21 +377,13 @@ impl Hook for InstallHook {
         }
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 /// Cryptographically hash the contents of the compiled hook
@@ -516,14 +515,16 @@ impl<'a> HookOutput<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::hcore::{
-        package::{PackageIdent, PackageInstall},
-        service::ServiceGroup,
-    };
+    use crate::hcore::{package::{PackageIdent,
+                                 PackageInstall},
+                       service::ServiceGroup};
     use tempfile::TempDir;
 
     use super::*;
-    use crate::templating::{config::Cfg, context::RenderContext, package::Pkg, test_helpers::*};
+    use crate::templating::{config::Cfg,
+                            context::RenderContext,
+                            package::Pkg,
+                            test_helpers::*};
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use
@@ -557,9 +558,7 @@ mod tests {
             .join("hook_templates")
     }
 
-    fn rendered_hooks_path() -> TempDir {
-        TempDir::new().expect("create temp dir")
-    }
+    fn rendered_hooks_path() -> TempDir { TempDir::new().expect("create temp dir") }
 
     fn service_group() -> ServiceGroup {
         ServiceGroup::new(None, "test_service", "test_group", None)
@@ -775,11 +774,10 @@ echo "The message is Hello"
     #[test]
     #[cfg(not(windows))]
     fn hook_output() {
-        use std::{
-            fs as stdfs,
-            fs::DirBuilder,
-            process::{Command, Stdio},
-        };
+        use std::{fs as stdfs,
+                  fs::DirBuilder,
+                  process::{Command,
+                            Stdio}};
 
         let tmp_dir = TempDir::new().expect("create temp dir");
         let logs_dir = tmp_dir.path().join("logs");

@@ -35,42 +35,46 @@
 //! * Unpack it
 //!
 
-use std::{
-    borrow::Cow,
-    fmt,
-    fs::{self, File},
-    io::{BufRead, BufReader},
-    path::{Path, PathBuf},
-    result::Result as StdResult,
-    str::FromStr,
-};
+use std::{borrow::Cow,
+          fmt,
+          fs::{self,
+               File},
+          io::{BufRead,
+               BufReader},
+          path::{Path,
+                 PathBuf},
+          result::Result as StdResult,
+          str::FromStr};
 
-use crate::{
-    api_client::{self, Client, Error::APIError},
-    hcore::{
-        self,
-        crypto::{artifact, keys::parse_name_with_rev, SigKeyPair},
-        fs::{cache_key_path, pkg_install_path, svc_hooks_path},
-        package::{
-            list::temp_package_directory, Identifiable, PackageArchive, PackageIdent,
-            PackageInstall, PackageTarget,
-        },
-        ChannelIdent,
-    },
-};
+use crate::{api_client::{self,
+                         Client,
+                         Error::APIError},
+            hcore::{self,
+                    crypto::{artifact,
+                             keys::parse_name_with_rev,
+                             SigKeyPair},
+                    fs::{cache_key_path,
+                         pkg_install_path,
+                         svc_hooks_path},
+                    package::{list::temp_package_directory,
+                              Identifiable,
+                              PackageArchive,
+                              PackageIdent,
+                              PackageInstall,
+                              PackageTarget},
+                    ChannelIdent}};
 use glob;
 use hyper::status::StatusCode;
 use retry::retry;
 
-use crate::{
-    error::{Error, Result},
-    templating::{
-        self,
-        hooks::{Hook, InstallHook},
-        package::Pkg,
-    },
-    ui::{Status, UIWriter},
-};
+use crate::{error::{Error,
+                    Result},
+            templating::{self,
+                         hooks::{Hook,
+                                 InstallHook},
+                         package::Pkg},
+            ui::{Status,
+                 UIWriter}};
 
 pub const RETRIES: u64 = 5;
 pub const RETRY_WAIT: u64 = 3000;
@@ -201,9 +205,7 @@ pub enum InstallMode {
 }
 
 impl Default for InstallMode {
-    fn default() -> Self {
-        InstallMode::Online
-    }
+    fn default() -> Self { InstallMode::Online }
 }
 
 /// Governs how install hooks behave when loading packages
@@ -217,9 +219,7 @@ pub enum InstallHookMode {
 }
 
 impl Default for InstallHookMode {
-    fn default() -> Self {
-        InstallHookMode::Run
-    }
+    fn default() -> Self { InstallHookMode::Run }
 }
 
 /// When querying Builder, we may not find a package that satisfies
@@ -254,9 +254,7 @@ impl Default for LocalPackageUsage {
     /// The default behavior is to use locally-installed packages if
     /// they can satisfy the desired identifier, and if no more
     /// suitable package could not be found in Builder.
-    fn default() -> Self {
-        LocalPackageUsage::Prefer
-    }
+    fn default() -> Self { LocalPackageUsage::Prefer }
 }
 
 /// Represents a fully-qualified Package Identifier, meaning that the normally optional version and
@@ -298,15 +296,11 @@ impl<'a> FullyQualifiedPackageIdent<'a> {
 }
 
 impl<'a> AsRef<PackageIdent> for FullyQualifiedPackageIdent<'a> {
-    fn as_ref(&self) -> &PackageIdent {
-        self.ident.as_ref()
-    }
+    fn as_ref(&self) -> &PackageIdent { self.ident.as_ref() }
 }
 
 impl<'a> fmt::Display for FullyQualifiedPackageIdent<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.ident.as_ref().fmt(f)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { self.ident.as_ref().fmt(f) }
 }
 
 /// Install a Habitat package.
@@ -1088,9 +1082,7 @@ impl<'a> InstallTask<'a> {
         Ok(())
     }
 
-    fn is_offline(&self) -> bool {
-        self.install_mode == &InstallMode::Offline
-    }
+    fn is_offline(&self) -> bool { self.install_mode == &InstallMode::Offline }
 
     /// We may not want to use currently-installed packages if one
     /// can't be found in Builder in the given channel.

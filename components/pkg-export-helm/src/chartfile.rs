@@ -17,7 +17,8 @@ use failure::SyncFailure;
 use handlebars::Handlebars;
 use serde_json;
 
-use crate::{export_docker::Result, hcore::package::PackageIdent};
+use crate::{export_docker::Result,
+            hcore::package::PackageIdent};
 
 use crate::maintainer::Maintainer;
 

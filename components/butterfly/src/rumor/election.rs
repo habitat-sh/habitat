@@ -22,20 +22,20 @@
 //! devolve to a single, universal rumor, which when it is received by the winner will result in
 //! the election finishing. There can, in the end, be only one.
 
-use std::ops::{Deref, DerefMut};
+use std::ops::{Deref,
+               DerefMut};
 
-pub use crate::protocol::newscast::{
-    election::Status as ElectionStatus, Election as ProtoElection,
-};
-use crate::{
-    error::{Error, Result},
-    protocol::{
-        self,
-        newscast::{self, Rumor as ProtoRumor},
-        FromProto,
-    },
-    rumor::{Rumor, RumorPayload, RumorType},
-};
+pub use crate::protocol::newscast::{election::Status as ElectionStatus,
+                                    Election as ProtoElection};
+use crate::{error::{Error,
+                    Result},
+            protocol::{self,
+                       newscast::{self,
+                                  Rumor as ProtoRumor},
+                       FromProto},
+            rumor::{Rumor,
+                    RumorPayload,
+                    RumorType}};
 
 pub trait ElectionRumor {
     fn member_id(&self) -> &str;
@@ -100,33 +100,21 @@ impl Election {
     }
 
     /// Sets the status of the election to "running".
-    pub fn running(&mut self) {
-        self.status = ElectionStatus::Running;
-    }
+    pub fn running(&mut self) { self.status = ElectionStatus::Running; }
 
     /// Sets the status of the election to "finished"
-    pub fn finish(&mut self) {
-        self.status = ElectionStatus::Finished;
-    }
+    pub fn finish(&mut self) { self.status = ElectionStatus::Finished; }
 
     /// Sets the status of the election to "NoQuorum"
-    pub fn no_quorum(&mut self) {
-        self.status = ElectionStatus::NoQuorum;
-    }
+    pub fn no_quorum(&mut self) { self.status = ElectionStatus::NoQuorum; }
 }
 
 impl ElectionRumor for Election {
-    fn member_id(&self) -> &str {
-        &self.member_id
-    }
+    fn member_id(&self) -> &str { &self.member_id }
 
-    fn is_finished(&self) -> bool {
-        self.status == ElectionStatus::Finished
-    }
+    fn is_finished(&self) -> bool { self.status == ElectionStatus::Finished }
 
-    fn term(&self) -> u64 {
-        self.term
-    }
+    fn term(&self) -> u64 { self.term }
 }
 
 impl PartialEq for Election {
@@ -225,18 +213,12 @@ impl Rumor for Election {
     }
 
     /// We are the Election rumor!
-    fn kind(&self) -> RumorType {
-        RumorType::Election
-    }
+    fn kind(&self) -> RumorType { RumorType::Election }
 
     /// There can be only
-    fn id(&self) -> &str {
-        "election"
-    }
+    fn id(&self) -> &str { "election" }
 
-    fn key(&self) -> &str {
-        self.service_group.as_ref()
-    }
+    fn key(&self) -> &str { self.service_group.as_ref() }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -259,37 +241,25 @@ impl ElectionUpdate {
 }
 
 impl ElectionRumor for ElectionUpdate {
-    fn member_id(&self) -> &str {
-        &self.member_id
-    }
+    fn member_id(&self) -> &str { &self.member_id }
 
-    fn is_finished(&self) -> bool {
-        self.status == ElectionStatus::Finished
-    }
+    fn is_finished(&self) -> bool { self.status == ElectionStatus::Finished }
 
-    fn term(&self) -> u64 {
-        self.term
-    }
+    fn term(&self) -> u64 { self.term }
 }
 
 impl Deref for ElectionUpdate {
     type Target = Election;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+    fn deref(&self) -> &Self::Target { &self.0 }
 }
 
 impl DerefMut for ElectionUpdate {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.0 }
 }
 
 impl From<Election> for ElectionUpdate {
-    fn from(other: Election) -> Self {
-        ElectionUpdate(other)
-    }
+    fn from(other: Election) -> Self { ElectionUpdate(other) }
 }
 
 impl protocol::Message<ProtoRumor> for ElectionUpdate {}
@@ -301,44 +271,31 @@ impl FromProto<ProtoRumor> for ElectionUpdate {
 }
 
 impl From<ElectionUpdate> for newscast::Election {
-    fn from(value: ElectionUpdate) -> Self {
-        value.0.into()
-    }
+    fn from(value: ElectionUpdate) -> Self { value.0.into() }
 }
 
 impl Rumor for ElectionUpdate {
-    fn merge(&mut self, other: ElectionUpdate) -> bool {
-        self.0.merge(other.0)
-    }
+    fn merge(&mut self, other: ElectionUpdate) -> bool { self.0.merge(other.0) }
 
-    fn kind(&self) -> RumorType {
-        RumorType::ElectionUpdate
-    }
+    fn kind(&self) -> RumorType { RumorType::ElectionUpdate }
 
-    fn id(&self) -> &str {
-        "election"
-    }
+    fn id(&self) -> &str { "election" }
 
-    fn key(&self) -> &str {
-        self.0.key()
-    }
+    fn key(&self) -> &str { self.0.key() }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::rumor::{
-        election::{Election, ElectionUpdate, Term},
-        Rumor, RumorStore,
-    };
+    use crate::rumor::{election::{Election,
+                                  ElectionUpdate,
+                                  Term},
+                       Rumor,
+                       RumorStore};
     use habitat_core::service::ServiceGroup;
 
-    fn create_election_rumor_store() -> RumorStore<Election> {
-        RumorStore::default()
-    }
+    fn create_election_rumor_store() -> RumorStore<Election> { RumorStore::default() }
 
-    fn create_election_update_rumor_store() -> RumorStore<ElectionUpdate> {
-        RumorStore::default()
-    }
+    fn create_election_update_rumor_store() -> RumorStore<ElectionUpdate> { RumorStore::default() }
 
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(

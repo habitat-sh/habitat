@@ -22,14 +22,16 @@
 include!("generated/sup.types.rs");
 include!("generated/sup.types.impl.rs");
 
-use std::{fmt, str::FromStr};
+use std::{fmt,
+          str::FromStr};
 
-use crate::core::{
-    self,
-    package::{self, Identifiable},
-};
+use crate::core::{self,
+                  package::{self,
+                            Identifiable}};
 
-use crate::net::{self, ErrCode, NetErr};
+use crate::net::{self,
+                 ErrCode,
+                 NetErr};
 
 impl ServiceGroup {
     pub fn validate(value: &str) -> core::Result<()> {
@@ -310,21 +312,13 @@ impl Into<core::service::ServiceGroup> for ServiceGroup {
 }
 
 impl Identifiable for PackageIdent {
-    fn origin(&self) -> &str {
-        &self.origin
-    }
+    fn origin(&self) -> &str { &self.origin }
 
-    fn name(&self) -> &str {
-        &self.name
-    }
+    fn name(&self) -> &str { &self.name }
 
-    fn version(&self) -> Option<&str> {
-        self.version.as_ref().map(String::as_str)
-    }
+    fn version(&self) -> Option<&str> { self.version.as_ref().map(String::as_str) }
 
-    fn release(&self) -> Option<&str> {
-        self.release.as_ref().map(String::as_str)
-    }
+    fn release(&self) -> Option<&str> { self.release.as_ref().map(String::as_str) }
 }
 
 impl Topology {
@@ -349,9 +343,7 @@ impl FromStr for Topology {
 }
 
 impl fmt::Display for Topology {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
 impl UpdateStrategy {
@@ -381,9 +373,7 @@ impl FromStr for UpdateStrategy {
 }
 
 impl fmt::Display for UpdateStrategy {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
 #[cfg(test)]

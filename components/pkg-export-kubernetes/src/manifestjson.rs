@@ -14,7 +14,9 @@
 
 use serde_json::Value;
 
-use crate::{hb, hcore::service::ServiceBind, manifest::Manifest};
+use crate::{hb,
+            hcore::service::ServiceBind,
+            manifest::Manifest};
 
 /// Represents the [`Manifest`] in JSON format. This is an intermediate type that can be converted
 /// to the final manifest YAML file content, ready for consumption by a Kubernetes cluster.
@@ -68,7 +70,5 @@ fn to_json(bind: &ServiceBind) -> serde_json::Value {
 impl Into<String> for ManifestJson {
     /// Convert into a string. The returned string is the final manifest YAML file content, ready
     /// for consumption by a Kubernetes cluster.
-    fn into(self) -> String {
-        hb::render(&self.value)
-    }
+    fn into(self) -> String { hb::render(&self.value) }
 }

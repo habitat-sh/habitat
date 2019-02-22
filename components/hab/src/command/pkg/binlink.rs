@@ -15,21 +15,22 @@
 #[cfg(windows)]
 use std::fs::File;
 #[cfg(windows)]
-use std::io::{BufRead, BufReader};
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-};
+use std::io::{BufRead,
+              BufReader};
+use std::{env,
+          fs,
+          path::{Path,
+                 PathBuf}};
 
-use crate::{
-    common::ui::{Status, UIWriter, UI},
-    hcore::{
-        fs as hfs,
-        package::{PackageIdent, PackageInstall},
-    },
-};
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            hcore::{fs as hfs,
+                    package::{PackageIdent,
+                              PackageInstall}}};
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 #[cfg(windows)]
 const BAT_COMMENT_MARKER: &str = "REM";
@@ -264,26 +265,29 @@ impl Binlink {
 #[cfg(test)]
 #[cfg(any(target_os = "linux", target_os = "windows"))]
 mod test {
-    use std::{
-        collections::HashMap,
-        env,
-        fs::{self, File},
-        io::{self, Cursor, Write},
-        path::Path,
-        str::{self, FromStr},
-        sync::{Arc, RwLock},
-    };
+    use std::{collections::HashMap,
+              env,
+              fs::{self,
+                   File},
+              io::{self,
+                   Cursor,
+                   Write},
+              path::Path,
+              str::{self,
+                    FromStr},
+              sync::{Arc,
+                     RwLock}};
 
-    use crate::{
-        common::ui::{Coloring, UI},
-        hcore::{
-            self,
-            package::{PackageIdent, PackageTarget},
-        },
-    };
+    use crate::{common::ui::{Coloring,
+                             UI},
+                hcore::{self,
+                        package::{PackageIdent,
+                                  PackageTarget}}};
     use tempfile::TempDir;
 
-    use super::{binlink_all_in_pkg, start, Binlink};
+    use super::{binlink_all_in_pkg,
+                start,
+                Binlink};
 
     #[test]
     fn start_symlinks_binaries() {

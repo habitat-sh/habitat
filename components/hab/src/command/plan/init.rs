@@ -12,21 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    collections::HashMap,
-    env,
-    fs::{canonicalize, create_dir_all, File, OpenOptions},
-    io::{BufRead, BufReader, Write},
-    path::Path,
-};
+use std::{collections::HashMap,
+          env,
+          fs::{canonicalize,
+               create_dir_all,
+               File,
+               OpenOptions},
+          io::{BufRead,
+               BufReader,
+               Write},
+          path::Path};
 
 use crate::hcore::package::PackageIdent;
 use handlebars::Handlebars;
 
-use crate::{
-    common::ui::{Status, UIWriter, UI},
-    error::Result,
-};
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            error::Result};
 
 const DEFAULT_PLAN_TEMPLATE: &str = include_str!(concat!(
     env!("CARGO_MANIFEST_DIR"),

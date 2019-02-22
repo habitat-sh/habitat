@@ -18,34 +18,33 @@ extern crate habitat_butterfly;
 #[macro_use]
 extern crate lazy_static;
 
-use std::{
-    ops::{Deref, DerefMut, Range},
-    path::PathBuf,
-    str::FromStr,
-    sync::Mutex,
-    thread,
-    time::Duration,
-};
+use std::{ops::{Deref,
+                DerefMut,
+                Range},
+          path::PathBuf,
+          str::FromStr,
+          sync::Mutex,
+          thread,
+          time::Duration};
 
 use time::SteadyTime;
 
-use habitat_butterfly::{
-    member::{Health, Member},
-    rumor::{
-        departure::Departure,
-        election::ElectionStatus,
-        service::{Service, SysInfo},
-        service_config::ServiceConfig,
-        service_file::ServiceFile,
-    },
-    server::{timing::Timing, Server, Suitability},
-    trace::Trace,
-};
-use habitat_core::{
-    crypto::keys::sym_key::SymKey,
-    package::{Identifiable, PackageIdent},
-    service::ServiceGroup,
-};
+use habitat_butterfly::{member::{Health,
+                                 Member},
+                        rumor::{departure::Departure,
+                                election::ElectionStatus,
+                                service::{Service,
+                                          SysInfo},
+                                service_config::ServiceConfig,
+                                service_file::ServiceFile},
+                        server::{timing::Timing,
+                                 Server,
+                                 Suitability},
+                        trace::Trace};
+use habitat_core::{crypto::keys::sym_key::SymKey,
+                   package::{Identifiable,
+                             PackageIdent},
+                   service::ServiceGroup};
 
 lazy_static! {
     static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
@@ -54,9 +53,7 @@ lazy_static! {
 #[derive(Debug)]
 struct NSuitability(u64);
 impl Suitability for NSuitability {
-    fn get(&self, _service_group: &str) -> u64 {
-        self.0
-    }
+    fn get(&self, _service_group: &str) -> u64 { self.0 }
 }
 
 pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
@@ -116,15 +113,11 @@ pub struct SwimNet {
 impl Deref for SwimNet {
     type Target = Vec<Server>;
 
-    fn deref(&self) -> &Vec<Server> {
-        &self.members
-    }
+    fn deref(&self) -> &Vec<Server> { &self.members }
 }
 
 impl DerefMut for SwimNet {
-    fn deref_mut(&mut self) -> &mut Vec<Server> {
-        &mut self.members
-    }
+    fn deref_mut(&mut self) -> &mut Vec<Server> { &mut self.members }
 }
 
 impl SwimNet {
@@ -232,17 +225,11 @@ impl SwimNet {
         health_summary
     }
 
-    pub fn max_rounds(&self) -> isize {
-        4
-    }
+    pub fn max_rounds(&self) -> isize { 4 }
 
-    pub fn max_gossip_rounds(&self) -> isize {
-        5
-    }
+    pub fn max_gossip_rounds(&self) -> isize { 5 }
 
-    pub fn rounds(&self) -> Vec<isize> {
-        self.members.iter().map(|m| m.swim_rounds()).collect()
-    }
+    pub fn rounds(&self) -> Vec<isize> { self.members.iter().map(|m| m.swim_rounds()).collect() }
 
     pub fn rounds_in(&self, count: isize) -> Vec<isize> {
         self.rounds().iter().map(|r| r + count).collect()

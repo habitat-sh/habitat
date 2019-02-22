@@ -47,7 +47,5 @@ pub enum Error {
 }
 
 impl From<hcore::Error> for Error {
-    fn from(err: hcore::Error) -> Error {
-        Error::HabitatCore(err)
-    }
+    fn from(err: hcore::Error) -> Error { Error::HabitatCore(err) }
 }

@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{api_client::Client, error::Result, PRODUCT, VERSION};
+use crate::{api_client::Client,
+            error::Result,
+            PRODUCT,
+            VERSION};
 
 pub fn start(st: &str, bldr_url: &str, token: Option<&str>) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;

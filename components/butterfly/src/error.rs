@@ -12,7 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{error, fmt, io, num, path::PathBuf, result, str};
+use std::{error,
+          fmt,
+          io,
+          num,
+          path::PathBuf,
+          result,
+          str};
 
 use habitat_core;
 use prost;
@@ -149,23 +155,15 @@ impl error::Error for Error {
 }
 
 impl From<prost::DecodeError> for Error {
-    fn from(err: prost::DecodeError) -> Error {
-        Error::DecodeError(err)
-    }
+    fn from(err: prost::DecodeError) -> Error { Error::DecodeError(err) }
 }
 
 impl From<prost::EncodeError> for Error {
-    fn from(err: prost::EncodeError) -> Error {
-        Error::EncodeError(err)
-    }
+    fn from(err: prost::EncodeError) -> Error { Error::EncodeError(err) }
 }
 impl From<habitat_core::error::Error> for Error {
-    fn from(err: habitat_core::error::Error) -> Error {
-        Error::HabitatCore(err)
-    }
+    fn from(err: habitat_core::error::Error) -> Error { Error::HabitatCore(err) }
 }
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::UnknownIOError(err)
-    }
+    fn from(err: io::Error) -> Error { Error::UnknownIOError(err) }
 }

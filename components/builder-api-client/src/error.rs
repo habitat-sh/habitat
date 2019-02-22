@@ -12,13 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{error, fmt, io, num, path::PathBuf, result};
+use std::{error,
+          fmt,
+          io,
+          num,
+          path::PathBuf,
+          result};
 
 use hyper;
 use serde_json;
 use url;
 
-use crate::{hab_core, hab_http};
+use crate::{hab_core,
+            hab_http};
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -113,37 +119,25 @@ impl error::Error for Error {
 }
 
 impl From<hab_core::Error> for Error {
-    fn from(err: hab_core::Error) -> Error {
-        Error::HabitatCore(err)
-    }
+    fn from(err: hab_core::Error) -> Error { Error::HabitatCore(err) }
 }
 
 impl From<hab_http::Error> for Error {
-    fn from(err: hab_http::Error) -> Error {
-        Error::HabitatHttpClient(err)
-    }
+    fn from(err: hab_http::Error) -> Error { Error::HabitatHttpClient(err) }
 }
 
 impl From<hyper::error::Error> for Error {
-    fn from(err: hyper::error::Error) -> Error {
-        Error::HyperError(err)
-    }
+    fn from(err: hyper::error::Error) -> Error { Error::HyperError(err) }
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::IO(err)
-    }
+    fn from(err: io::Error) -> Error { Error::IO(err) }
 }
 
 impl From<serde_json::Error> for Error {
-    fn from(err: serde_json::Error) -> Error {
-        Error::Json(err)
-    }
+    fn from(err: serde_json::Error) -> Error { Error::Json(err) }
 }
 
 impl From<url::ParseError> for Error {
-    fn from(err: url::ParseError) -> Error {
-        Error::UrlParseError(err)
-    }
+    fn from(err: url::ParseError) -> Error { Error::UrlParseError(err) }
 }

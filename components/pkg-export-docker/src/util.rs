@@ -12,22 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    fs::{self, File},
-    io::Write,
-    path::{Path, PathBuf},
-};
+use std::{fs::{self,
+               File},
+          io::Write,
+          path::{Path,
+                 PathBuf}};
 
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::package::{PackageIdent,
+                            PackageInstall};
 
 use crate::error::Result;
 
 const BIN_PATH: &str = "/bin";
 
 /// Returns the `bin` path used for symlinking programs.
-pub fn bin_path() -> &'static Path {
-    Path::new(BIN_PATH)
-}
+pub fn bin_path() -> &'static Path { Path::new(BIN_PATH) }
 
 /// Returns the Package Identifier for a Busybox package.
 #[cfg(unix)]

@@ -14,11 +14,14 @@
 
 use std::str::FromStr;
 
-use crate::hcore::{
-    fs,
-    package::{Identifiable, PackageIdent},
-};
-use handlebars::{Handlebars, Helper, HelperDef, RenderContext, RenderError};
+use crate::hcore::{fs,
+                   package::{Identifiable,
+                             PackageIdent}};
+use handlebars::{Handlebars,
+                 Helper,
+                 HelperDef,
+                 RenderContext,
+                 RenderError};
 use serde_json;
 
 use super::super::RenderResult;

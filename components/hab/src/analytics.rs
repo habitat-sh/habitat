@@ -186,21 +186,23 @@
 //! hab/0.6.0/20160606153031 (x86_64-darwin; 14.5.0)
 //! ```
 
-use std::{
-    env,
-    fs::{self, File},
-    io::{Read, Write},
-    path::Path,
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::{env,
+          fs::{self,
+               File},
+          io::{Read,
+               Write},
+          path::Path,
+          time::{SystemTime,
+                 UNIX_EPOCH}};
 
-use crate::{
-    common::ui::{Status, UIWriter, UI},
-    hcore,
-    http_client::ApiClient,
-};
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            hcore,
+            http_client::ApiClient};
 use clap;
-use url::percent_encoding::{utf8_percent_encode, PATH_SEGMENT_ENCODE_SET};
+use url::percent_encoding::{utf8_percent_encode,
+                            PATH_SEGMENT_ENCODE_SET};
 use uuid::Uuid;
 
 use crate::error::Result;

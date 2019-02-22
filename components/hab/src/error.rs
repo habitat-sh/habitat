@@ -12,13 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    env, error, ffi, fmt, io, num,
-    path::{self, PathBuf},
-    result,
-};
+use std::{env,
+          error,
+          ffi,
+          fmt,
+          io,
+          num,
+          path::{self,
+                 PathBuf},
+          result};
 
-use crate::{api_client, common, hcore, protocol::net, sup_client::SrvClientError};
+use crate::{api_client,
+            common,
+            hcore,
+            protocol::net,
+            sup_client::SrvClientError};
 use handlebars;
 use toml;
 
@@ -243,27 +251,19 @@ impl error::Error for Error {
 }
 
 impl From<api_client::Error> for Error {
-    fn from(err: api_client::Error) -> Error {
-        Error::APIClient(err)
-    }
+    fn from(err: api_client::Error) -> Error { Error::APIClient(err) }
 }
 
 impl From<common::Error> for Error {
-    fn from(err: common::Error) -> Error {
-        Error::HabitatCommon(err)
-    }
+    fn from(err: common::Error) -> Error { Error::HabitatCommon(err) }
 }
 
 impl From<ffi::NulError> for Error {
-    fn from(err: ffi::NulError) -> Error {
-        Error::FFINulError(err)
-    }
+    fn from(err: ffi::NulError) -> Error { Error::FFINulError(err) }
 }
 
 impl From<hcore::Error> for Error {
-    fn from(err: hcore::Error) -> Error {
-        Error::HabitatCore(err)
-    }
+    fn from(err: hcore::Error) -> Error { Error::HabitatCore(err) }
 }
 
 impl From<handlebars::TemplateRenderError> for Error {
@@ -273,42 +273,28 @@ impl From<handlebars::TemplateRenderError> for Error {
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Error {
-        Error::IO(err)
-    }
+    fn from(err: io::Error) -> Error { Error::IO(err) }
 }
 
 impl From<path::StripPrefixError> for Error {
-    fn from(err: path::StripPrefixError) -> Error {
-        Error::PathPrefixError(err)
-    }
+    fn from(err: path::StripPrefixError) -> Error { Error::PathPrefixError(err) }
 }
 
 impl From<toml::de::Error> for Error {
-    fn from(err: toml::de::Error) -> Self {
-        Error::TomlDeserializeError(err)
-    }
+    fn from(err: toml::de::Error) -> Self { Error::TomlDeserializeError(err) }
 }
 impl From<toml::ser::Error> for Error {
-    fn from(err: toml::ser::Error) -> Self {
-        Error::TomlSerializeError(err)
-    }
+    fn from(err: toml::ser::Error) -> Self { Error::TomlSerializeError(err) }
 }
 
 impl From<env::JoinPathsError> for Error {
-    fn from(err: env::JoinPathsError) -> Self {
-        Error::EnvJoinPathsError(err)
-    }
+    fn from(err: env::JoinPathsError) -> Self { Error::EnvJoinPathsError(err) }
 }
 
 impl From<SrvClientError> for Error {
-    fn from(err: SrvClientError) -> Self {
-        Error::CtlClient(err)
-    }
+    fn from(err: SrvClientError) -> Self { Error::CtlClient(err) }
 }
 
 impl From<net::NetErr> for Error {
-    fn from(err: net::NetErr) -> Self {
-        Error::NetErr(err)
-    }
+    fn from(err: net::NetErr) -> Self { Error::NetErr(err) }
 }

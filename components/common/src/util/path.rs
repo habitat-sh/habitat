@@ -12,25 +12,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    env,
-    fs::File,
-    io::{prelude::*, BufReader},
-    path::PathBuf,
-    str::FromStr,
-};
+use std::{env,
+          fs::File,
+          io::{prelude::*,
+               BufReader},
+          path::PathBuf,
+          str::FromStr};
 
-use crate::{
-    command::package::install::{self, InstallHookMode, InstallMode, LocalPackageUsage},
-    error::{Error, Result},
-    ui,
-};
-use habitat_core::{
-    fs::{cache_artifact_path, find_command, FS_ROOT_PATH},
-    package::{PackageIdent, PackageInstall, PackageTarget},
-    url::default_bldr_url,
-    ChannelIdent, PROGRAM_NAME,
-};
+use crate::{command::package::install::{self,
+                                        InstallHookMode,
+                                        InstallMode,
+                                        LocalPackageUsage},
+            error::{Error,
+                    Result},
+            ui};
+use habitat_core::{fs::{cache_artifact_path,
+                        find_command,
+                        FS_ROOT_PATH},
+                   package::{PackageIdent,
+                             PackageInstall,
+                             PackageTarget},
+                   url::default_bldr_url,
+                   ChannelIdent,
+                   PROGRAM_NAME};
 
 /// The package identifier for the OS specific interpreter which the Supervisor is built with,
 /// or which may be independently installed

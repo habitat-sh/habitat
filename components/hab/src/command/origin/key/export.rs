@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fs::File, io, path::Path};
+use std::{fs::File,
+          io,
+          path::Path};
 
-use crate::hcore::crypto::{keys::PairType, SigKeyPair};
+use crate::hcore::crypto::{keys::PairType,
+                           SigKeyPair};
 
 use crate::error::Result;
 

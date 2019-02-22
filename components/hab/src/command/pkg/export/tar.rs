@@ -20,30 +20,27 @@ use crate::error::Result;
 
 const EXPORT_CMD: &str = "hab-pkg-export-tar";
 
-pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-    inner::start(ui, args)
-}
+pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> { inner::start(ui, args) }
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
-    use std::{ffi::OsString, path::PathBuf, str::FromStr};
+    use std::{ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
-    use crate::{
-        common::ui::UI,
-        hcore::{
-            crypto::{default_cache_key_path, init},
-            env as henv,
-            fs::find_command,
-            os::process,
-            package::PackageIdent,
-        },
-    };
+    use crate::{common::ui::UI,
+                hcore::{crypto::{default_cache_key_path,
+                                 init},
+                        env as henv,
+                        fs::find_command,
+                        os::process,
+                        package::PackageIdent}};
 
     use super::EXPORT_CMD;
-    use crate::{
-        error::{Error, Result},
-        exec, VERSION,
-    };
+    use crate::{error::{Error,
+                        Result},
+                exec,
+                VERSION};
 
     const EXPORT_CMD_ENVVAR: &str = "HAB_PKG_EXPORT_TAR_BINARY";
     const EXPORT_PKG_IDENT: &str = "core/hab-pkg-export-tar";
@@ -83,10 +80,12 @@ mod inner {
 mod inner {
     use std::ffi::OsString;
 
-    use crate::common::ui::{UIWriter, UI};
+    use crate::common::ui::{UIWriter,
+                            UI};
 
     use super::EXPORT_CMD;
-    use crate::error::{Error, Result};
+    use crate::error::{Error,
+                       Result};
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let cmd = EXPORT_CMD.replace("hab", "").replace("-", " ");

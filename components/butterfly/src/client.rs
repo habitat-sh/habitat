@@ -16,17 +16,18 @@
 //!
 //! This will connect to a given butterfly members `Pull` thread, and inject a rumor.
 
-use habitat_core::{crypto::SymKey, service::ServiceGroup};
+use habitat_core::{crypto::SymKey,
+                   service::ServiceGroup};
 use zmq;
 
-use crate::{
-    error::{Error, Result},
-    message,
-    rumor::{
-        departure::Departure, service_config::ServiceConfig, service_file::ServiceFile, Rumor,
-    },
-    ZMQ_CONTEXT,
-};
+use crate::{error::{Error,
+                    Result},
+            message,
+            rumor::{departure::Departure,
+                    service_config::ServiceConfig,
+                    service_file::ServiceFile,
+                    Rumor},
+            ZMQ_CONTEXT};
 
 /// Holds a ZMQ Push socket, and an optional ring encryption key.
 pub struct Client {

@@ -14,17 +14,17 @@
 
 // TODO (CM): Eventually this may move out to a common crate.
 
-use std::{thread, time::Duration as StdDuration};
-use time::{Duration, SteadyTime};
+use std::{thread,
+          time::Duration as StdDuration};
+use time::{Duration,
+           SteadyTime};
 
 /// Encapsulate logic for carrying out periodic tasks (or at least
 /// managing the timing of such).
 pub trait Periodic {
     /// When is the next time we should start a new task, given that
     /// we're going to start one right now?
-    fn next_period_start(&self) -> SteadyTime {
-        SteadyTime::now() + self.update_period()
-    }
+    fn next_period_start(&self) -> SteadyTime { SteadyTime::now() + self.update_period() }
 
     /// Given the time we should start the next task, sleep as long as
     /// we need to until that time.

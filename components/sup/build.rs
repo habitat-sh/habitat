@@ -1,13 +1,14 @@
 // Inline common build behavior
 include!("../libbuild.rs");
 
-use std::{
-    env,
-    fs::File,
-    io::{self, Write},
-    path::{Path, PathBuf},
-    process::{Command, ExitStatus},
-};
+use std::{env,
+          fs::File,
+          io::{self,
+               Write},
+          path::{Path,
+                 PathBuf},
+          process::{Command,
+                    ExitStatus}};
 
 fn main() {
     habitat::common();

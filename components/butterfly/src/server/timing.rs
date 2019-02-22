@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use time::{Duration as TimeDuration, SteadyTime};
+use time::{Duration as TimeDuration,
+           SteadyTime};
 
 /// How long to wait for an Ack after we ping
 const PING_TIMING_DEFAULT_MS: i64 = 1000;
@@ -72,9 +73,7 @@ impl Timing {
     }
 
     /// How long is a protocol period, in millis.
-    pub fn protocol_period_ms(&self) -> i64 {
-        self.ping_ms + self.pingreq_ms
-    }
+    pub fn protocol_period_ms(&self) -> i64 { self.ping_ms + self.pingreq_ms }
 
     /// When should this ping record time out?
     pub fn ping_timeout(&self) -> SteadyTime {

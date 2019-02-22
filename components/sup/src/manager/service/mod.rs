@@ -18,51 +18,67 @@ pub mod hooks;
 pub mod spec;
 mod supervisor;
 
-use std::{
-    self,
-    collections::HashSet,
-    fmt,
-    path::{Path, PathBuf},
-    result,
-    sync::{Arc, RwLock},
-    time::{Duration, Instant},
-};
+use std::{self,
+          collections::HashSet,
+          fmt,
+          path::{Path,
+                 PathBuf},
+          result,
+          sync::{Arc,
+                 RwLock},
+          time::{Duration,
+                 Instant}};
 
-use crate::{
-    butterfly::rumor::service::Service as ServiceRumor,
-    common::templating::{config::CfgRenderer, hooks::Hook},
-    hcore::{
-        self,
-        crypto::hash,
-        fs::{atomic_write, svc_hooks_path, SvcDir, FS_ROOT_PATH},
-        package::{metadata::Bind, PackageIdent, PackageInstall},
-        service::{HealthCheckInterval, ServiceBind, ServiceGroup},
-        ChannelIdent,
-    },
-    launcher_client::LauncherCli,
-};
-pub use crate::{
-    common::templating::{
-        config::{Cfg, UserConfigPath},
-        package::{Env, Pkg, PkgProxy},
-    },
-    protocol::types::{BindingMode, ProcessState, Topology, UpdateStrategy},
-};
-use prometheus::{HistogramTimer, HistogramVec};
-use serde::{ser::SerializeStruct, Serialize, Serializer};
+use crate::{butterfly::rumor::service::Service as ServiceRumor,
+            common::templating::{config::CfgRenderer,
+                                 hooks::Hook},
+            hcore::{self,
+                    crypto::hash,
+                    fs::{atomic_write,
+                         svc_hooks_path,
+                         SvcDir,
+                         FS_ROOT_PATH},
+                    package::{metadata::Bind,
+                              PackageIdent,
+                              PackageInstall},
+                    service::{HealthCheckInterval,
+                              ServiceBind,
+                              ServiceGroup},
+                    ChannelIdent},
+            launcher_client::LauncherCli};
+pub use crate::{common::templating::{config::{Cfg,
+                                              UserConfigPath},
+                                     package::{Env,
+                                               Pkg,
+                                               PkgProxy}},
+                protocol::types::{BindingMode,
+                                  ProcessState,
+                                  Topology,
+                                  UpdateStrategy}};
+use prometheus::{HistogramTimer,
+                 HistogramVec};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
 use time::Timespec;
 
-use self::{context::RenderContext, hooks::HookTable, supervisor::Supervisor};
-pub use self::{
-    health::HealthCheck,
-    spec::{DesiredState, IntoServiceSpec, ServiceSpec},
-};
-use super::{ShutdownReason, Sys};
-use crate::{
-    census::{CensusGroup, CensusRing, ElectionStatus, ServiceFile},
-    error::{Error, Result, SupError},
-    manager,
-};
+use self::{context::RenderContext,
+           hooks::HookTable,
+           supervisor::Supervisor};
+pub use self::{health::HealthCheck,
+               spec::{DesiredState,
+                      IntoServiceSpec,
+                      ServiceSpec}};
+use super::{ShutdownReason,
+            Sys};
+use crate::{census::{CensusGroup,
+                     CensusRing,
+                     ElectionStatus,
+                     ServiceFile},
+            error::{Error,
+                    Result,
+                    SupError},
+            manager};
 
 static LOGKEY: &'static str = "SR";
 
@@ -320,9 +336,7 @@ impl Service {
         }
     }
 
-    pub fn last_state_change(&self) -> Timespec {
-        self.supervisor.state_entered
-    }
+    pub fn last_state_change(&self) -> Timespec { self.supervisor.state_entered }
 
     /// Performs updates and executes hooks.
     ///
@@ -570,13 +584,9 @@ impl Service {
     }
 
     /// Updates the process state of the service's supervisor
-    fn check_process(&mut self) -> bool {
-        self.supervisor.check_process()
-    }
+    fn check_process(&mut self) -> bool { self.supervisor.check_process() }
 
-    fn process_down(&self) -> bool {
-        self.supervisor.state == ProcessState::Down
-    }
+    fn process_down(&self) -> bool { self.supervisor.state == ProcessState::Down }
 
     /// Updates the service configuration with data from a census group if the census group has
     /// newer data than the current configuration.
@@ -866,7 +876,8 @@ impl Service {
 
     #[cfg(not(windows))]
     fn set_hook_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-        use crate::{common::templating::hooks::HOOK_PERMISSIONS, hcore::util::posix_perm};
+        use crate::{common::templating::hooks::HOOK_PERMISSIONS,
+                    hcore::util::posix_perm};
 
         posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
     }
@@ -1079,7 +1090,8 @@ impl Service {
 
     #[cfg(not(windows))]
     fn set_gossip_permissions<T: AsRef<Path>>(&self, path: T) -> bool {
-        use crate::hcore::{os::users, util::posix_perm};
+        use crate::hcore::{os::users,
+                           util::posix_perm};
 
         if users::can_run_services_as_svc_user() {
             let result =
@@ -1215,18 +1227,21 @@ impl<'a> Serialize for ServiceProxy<'a> {
 mod tests {
     use super::*;
 
-    use std::{path::PathBuf, str::FromStr, time::Instant};
+    use std::{path::PathBuf,
+              str::FromStr,
+              time::Instant};
 
-    use crate::hcore::package::{ident::PackageIdent, PackageInstall};
+    use crate::hcore::package::{ident::PackageIdent,
+                                PackageInstall};
     use serde_json;
 
-    use self::{
-        manager::{sys::Sys, FsCfg},
-        ServiceSpec,
-    };
-    use crate::{
-        common::types::ListenCtlAddr, config::GossipListenAddr, http_gateway, test_helpers::*,
-    };
+    use self::{manager::{sys::Sys,
+                         FsCfg},
+               ServiceSpec};
+    use crate::{common::types::ListenCtlAddr,
+                config::GossipListenAddr,
+                http_gateway,
+                test_helpers::*};
 
     fn initialize_test_service() -> Service {
         let listen_ctl_addr =

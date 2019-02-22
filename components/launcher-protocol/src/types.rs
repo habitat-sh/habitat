@@ -12,12 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    error::{Error, Result},
-    generated,
-};
-use prost::{self, Message};
-use std::{collections::HashMap, fmt};
+use crate::{error::{Error,
+                    Result},
+            generated};
+use prost::{self,
+            Message};
+use std::{collections::HashMap,
+          fmt};
 
 pub trait MessageStatic {
     const MESSAGE_ID: &'static str;
@@ -49,7 +50,8 @@ where
     }
 }
 
-pub use generated::{ErrCode, ShutdownMethod};
+pub use generated::{ErrCode,
+                    ShutdownMethod};
 
 // Now we're going to define our own set of structs to use internally, as well as conversion
 // facilities to and from the corresponding protobuf types. It'd be rad if there was a way to
@@ -97,15 +99,11 @@ impl LauncherMessage for NetOk {
 
     const MESSAGE_ID: &'static str = "NetOk";
 
-    fn from_proto(_proto: generated::NetOk) -> Result<Self> {
-        Ok(NetOk {})
-    }
+    fn from_proto(_proto: generated::NetOk) -> Result<Self> { Ok(NetOk {}) }
 }
 
 impl From<NetOk> for generated::NetOk {
-    fn from(_value: NetOk) -> Self {
-        generated::NetOk {}
-    }
+    fn from(_value: NetOk) -> Self { generated::NetOk {} }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -114,9 +112,7 @@ pub struct Register {
 }
 
 impl Register {
-    pub fn new(pipe: String) -> Self {
-        Register { pipe }
-    }
+    pub fn new(pipe: String) -> Self { Register { pipe } }
 }
 
 impl LauncherMessage for Register {
@@ -333,13 +329,9 @@ impl LauncherMessage for Shutdown {
 
     const MESSAGE_ID: &'static str = "Shutdown";
 
-    fn from_proto(_proto: generated::Shutdown) -> Result<Self> {
-        Ok(Shutdown {})
-    }
+    fn from_proto(_proto: generated::Shutdown) -> Result<Self> { Ok(Shutdown {}) }
 }
 
 impl From<Shutdown> for generated::Shutdown {
-    fn from(_value: Shutdown) -> Self {
-        generated::Shutdown {}
-    }
+    fn from(_value: Shutdown) -> Self { generated::Shutdown {} }
 }

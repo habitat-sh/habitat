@@ -27,45 +27,64 @@ mod pull;
 mod push;
 pub mod timing;
 
-use std::{
-    collections::{HashMap, HashSet},
-    ffi,
-    fmt::{self, Debug},
-    fs, io,
-    net::{SocketAddr, ToSocketAddrs, UdpSocket},
-    path::PathBuf,
-    result,
-    sync::{
-        atomic::{AtomicBool, AtomicIsize, Ordering},
-        mpsc::{self, channel},
-        Arc, Mutex, RwLock,
-    },
-    thread,
-    time::{Duration, Instant},
-};
+use std::{collections::{HashMap,
+                        HashSet},
+          ffi,
+          fmt::{self,
+                Debug},
+          fs,
+          io,
+          net::{SocketAddr,
+                ToSocketAddrs,
+                UdpSocket},
+          path::PathBuf,
+          result,
+          sync::{atomic::{AtomicBool,
+                          AtomicIsize,
+                          Ordering},
+                 mpsc::{self,
+                        channel},
+                 Arc,
+                 Mutex,
+                 RwLock},
+          thread,
+          time::{Duration,
+                 Instant}};
 
 use habitat_core::crypto::SymKey;
-use prometheus::{HistogramTimer, HistogramVec, IntGauge};
-use serde::{ser::SerializeStruct, Serialize, Serializer};
+use prometheus::{HistogramTimer,
+                 HistogramVec,
+                 IntGauge};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
 
 use self::incarnation_store::IncarnationStore;
-use crate::{
-    error::{Error, Result},
-    member::{Health, Incarnation, Member, MemberList, MemberListProxy},
-    message,
-    rumor::{
-        dat_file::DatFile,
-        departure::Departure,
-        election::{Election, ElectionRumor, ElectionUpdate},
-        heat::RumorHeat,
-        service::Service,
-        service_config::ServiceConfig,
-        service_file::ServiceFile,
-        Rumor, RumorKey, RumorStore, RumorStoreProxy, RumorType,
-    },
-    swim::Ack,
-    trace::{Trace, TraceKind},
-};
+use crate::{error::{Error,
+                    Result},
+            member::{Health,
+                     Incarnation,
+                     Member,
+                     MemberList,
+                     MemberListProxy},
+            message,
+            rumor::{dat_file::DatFile,
+                    departure::Departure,
+                    election::{Election,
+                               ElectionRumor,
+                               ElectionUpdate},
+                    heat::RumorHeat,
+                    service::Service,
+                    service_config::ServiceConfig,
+                    service_file::ServiceFile,
+                    Rumor,
+                    RumorKey,
+                    RumorStore,
+                    RumorStoreProxy,
+                    RumorType},
+            swim::Ack,
+            trace::{Trace,
+                    TraceKind}};
 
 /// The maximum number of other members we should notify when we shut
 /// down and leave the ring.
@@ -91,9 +110,7 @@ lazy_static! {
 struct ElectionTimer(HistogramTimer);
 
 impl fmt::Debug for ElectionTimer {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "An election timer!")
-    }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "An election timer!") }
 }
 
 type AckReceiver = mpsc::Receiver<(SocketAddr, Ack)>;
@@ -215,27 +232,19 @@ impl Myself {
     }
 
     /// Returns the current incarnation number.
-    pub fn incarnation(&self) -> Incarnation {
-        self.member.incarnation
-    }
+    pub fn incarnation(&self) -> Incarnation { self.member.incarnation }
 
-    pub fn mark_departed(&mut self) {
-        self.member.departed = true
-    }
+    pub fn mark_departed(&mut self) { self.member.departed = true }
 
     /// Return a copy of the underlying `Member`.
-    pub fn as_member(&self) -> Member {
-        self.member.clone()
-    }
+    pub fn as_member(&self) -> Member { self.member.clone() }
 
     // This is ONLY provided for some integration tests that currently
     // depend on being able to mutate the member. Ideally, the only
     // thing that should be mutable, once you actually have a fully
     // set-up Butterfly server, is the incarnation number, which is
     // accounted for in `Myself::increment_incarnation`.
-    pub fn set_persistent(&mut self) {
-        self.member.persistent = true;
-    }
+    pub fn set_persistent(&mut self) { self.member.persistent = true; }
 }
 
 /// The server struct. Is thread-safe.
@@ -385,9 +394,7 @@ impl Server {
     ///
     /// This is useful in integration testing, to allow tests to time out after a worst-case
     /// boundary in rounds.
-    pub fn swim_rounds(&self) -> isize {
-        self.swim_rounds.load(Ordering::SeqCst)
-    }
+    pub fn swim_rounds(&self) -> isize { self.swim_rounds.load(Ordering::SeqCst) }
 
     /// Adds 1 to the current round, atomically.
     fn update_swim_round(&self) {
@@ -411,9 +418,7 @@ impl Server {
     ///
     /// This is useful in integration testing, to allow tests to time out after a worst-case
     /// boundary in rounds.
-    pub fn gossip_rounds(&self) -> isize {
-        self.gossip_rounds.load(Ordering::SeqCst)
-    }
+    pub fn gossip_rounds(&self) -> isize { self.gossip_rounds.load(Ordering::SeqCst) }
 
     /// Adds 1 to the current round, atomically.
     fn update_gossip_round(&self) {
@@ -553,9 +558,7 @@ impl Server {
         Ok(())
     }
 
-    pub fn need_peer_seeding(&self) -> bool {
-        self.member_list.is_empty()
-    }
+    pub fn need_peer_seeding(&self) -> bool { self.member_list.is_empty() }
 
     /// Persistently block a given address, causing no traffic to be seen.
     pub fn add_to_block_list(&self, member_id: String) {
@@ -585,44 +588,28 @@ impl Server {
     }
 
     /// Stop the outbound and inbound threads from processing work.
-    pub fn pause(&mut self) {
-        self.pause.compare_and_swap(false, true, Ordering::Relaxed);
-    }
+    pub fn pause(&mut self) { self.pause.compare_and_swap(false, true, Ordering::Relaxed); }
 
     /// Whether this server is currently paused.
-    pub fn paused(&self) -> bool {
-        self.pause.load(Ordering::Relaxed)
-    }
+    pub fn paused(&self) -> bool { self.pause.load(Ordering::Relaxed) }
 
     /// Return the swim address we are bound to
-    fn swim_addr(&self) -> &SocketAddr {
-        &self.swim_addr
-    }
+    fn swim_addr(&self) -> &SocketAddr { &self.swim_addr }
 
     /// Return the port number of the swim socket we are bound to.
-    fn swim_port(&self) -> u16 {
-        self.swim_addr.port()
-    }
+    fn swim_port(&self) -> u16 { self.swim_addr.port() }
 
     /// Return the gossip address we are bound to
-    pub fn gossip_addr(&self) -> &SocketAddr {
-        &self.gossip_addr
-    }
+    pub fn gossip_addr(&self) -> &SocketAddr { &self.gossip_addr }
 
     /// Return the port number of the gossip socket we are bound to.
-    fn gossip_port(&self) -> u16 {
-        self.gossip_addr.port()
-    }
+    fn gossip_port(&self) -> u16 { self.gossip_addr.port() }
 
     /// Return the member ID of this server.
-    pub fn member_id(&self) -> &str {
-        &self.member_id
-    }
+    pub fn member_id(&self) -> &str { &self.member_id }
 
     /// Return the name of this server.
-    pub fn name(&self) -> &str {
-        &self.name
-    }
+    pub fn name(&self) -> &str { &self.name }
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
     pub fn insert_member(&self, member: Member, health: Health) {
@@ -1217,9 +1204,7 @@ impl Server {
     }
 
     #[allow(dead_code)]
-    pub fn is_departed(&self) -> bool {
-        self.departed.load(Ordering::Relaxed)
-    }
+    pub fn is_departed(&self) -> bool { self.departed.load(Ordering::Relaxed) }
 }
 
 impl Serialize for Server {
@@ -1278,9 +1263,7 @@ fn persist_loop(server: Server) {
 pub struct ServerProxy<'a>(&'a Server);
 
 impl<'a> ServerProxy<'a> {
-    pub fn new(s: &'a Server) -> Self {
-        ServerProxy(&s)
-    }
+    pub fn new(s: &'a Server) -> Self { ServerProxy(&s) }
 }
 
 impl<'a> Serialize for ServerProxy<'a> {
@@ -1322,9 +1305,7 @@ mod tests {
     use habitat_core::service::ServiceGroup;
     use std::str::FromStr;
 
-    fn check_quorum_returns(val: bool) -> impl Fn(&str) -> bool {
-        move |_: &str| val
-    }
+    fn check_quorum_returns(val: bool) -> impl Fn(&str) -> bool { move |_: &str| val }
 
     fn mock_service(member: &Member) -> Service {
         Service {
@@ -1630,12 +1611,15 @@ mod tests {
     }
 
     mod server {
-        use crate::{
-            member::Member,
-            server::{timing::Timing, Server, Suitability},
-            trace::Trace,
-        };
-        use std::{fs::File, io::prelude::*, path::PathBuf, sync::Mutex};
+        use crate::{member::Member,
+                    server::{timing::Timing,
+                             Server,
+                             Suitability},
+                    trace::Trace};
+        use std::{fs::File,
+                  io::prelude::*,
+                  path::PathBuf,
+                  sync::Mutex};
         use tempfile::TempDir;
 
         lazy_static! {
@@ -1646,9 +1630,7 @@ mod tests {
         #[derive(Debug)]
         struct ZeroSuitability;
         impl Suitability for ZeroSuitability {
-            fn get(&self, _service_group: &str) -> u64 {
-                0
-            }
+            fn get(&self, _service_group: &str) -> u64 { 0 }
         }
 
         fn start_server() -> Server {
@@ -1718,9 +1700,7 @@ mod tests {
         }
 
         #[test]
-        fn new() {
-            start_server();
-        }
+        fn new() { start_server(); }
 
         #[test]
         fn new_with_corrupt_rumor_file() {

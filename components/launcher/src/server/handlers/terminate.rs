@@ -14,7 +14,8 @@
 
 use crate::protocol;
 
-use super::{HandleResult, Handler};
+use super::{HandleResult,
+            Handler};
 use crate::server::ServiceTable;
 
 pub struct TerminateHandler;

@@ -14,12 +14,12 @@
 
 use std::path::Path;
 
-use super::{DependencyRelation, Scope};
-use crate::{
-    common::package_graph::PackageGraph,
-    error::Result,
-    hcore::package::{PackageIdent, PackageInstall},
-};
+use super::{DependencyRelation,
+            Scope};
+use crate::{common::package_graph::PackageGraph,
+            error::Result,
+            hcore::package::{PackageIdent,
+                             PackageInstall}};
 
 /// Show the dependencies for an installed package.
 ///

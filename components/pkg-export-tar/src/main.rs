@@ -5,11 +5,11 @@ use habitat_pkg_export_tar as export_tar;
 #[macro_use]
 extern crate log;
 
-use crate::{
-    common::ui::{UIWriter, UI},
-    export_tar::{Cli, Result},
-    hcore::PROGRAM_NAME,
-};
+use crate::{common::ui::{UIWriter,
+                         UI},
+            export_tar::{Cli,
+                         Result},
+            hcore::PROGRAM_NAME};
 use clap::App;
 
 fn main() {

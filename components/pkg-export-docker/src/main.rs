@@ -19,7 +19,8 @@ use habitat_pkg_export_docker as export_docker;
 #[macro_use]
 extern crate log;
 
-use crate::common::ui::{UIWriter, UI};
+use crate::common::ui::{UIWriter,
+                        UI};
 
 use crate::export_docker::Result;
 

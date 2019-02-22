@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    fs::File,
-    io::{Read, Write},
-    path::{Path, PathBuf},
-};
+use std::{fs::File,
+          io::{Read,
+               Write},
+          path::{Path,
+                 PathBuf}};
 
 use crate::json;
 use serde_json;

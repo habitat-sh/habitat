@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use handlebars::{Handlebars, Helper, HelperDef, RenderContext, RenderError};
+use handlebars::{Handlebars,
+                 Helper,
+                 HelperDef,
+                 RenderContext,
+                 RenderError};
 use serde_json;
 
 use super::super::RenderResult;

@@ -14,16 +14,16 @@
 
 use std::io::Write;
 
-use crate::{
-    api_client,
-    common::ui::{Status, UIWriter, UI},
-};
+use crate::{api_client,
+            common::ui::{Status,
+                         UIWriter,
+                         UI}};
 use tabwriter::TabWriter;
 
-use crate::{
-    error::{Error, Result},
-    PRODUCT, VERSION,
-};
+use crate::{error::{Error,
+                    Result},
+            PRODUCT,
+            VERSION};
 
 pub fn start(
     ui: &mut UI,

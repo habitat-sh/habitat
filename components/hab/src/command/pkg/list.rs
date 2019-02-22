@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    error::Result,
-    hcore::{
-        fs as hfs,
-        package::{list, PackageIdent},
-    },
-};
+use crate::{error::Result,
+            hcore::{fs as hfs,
+                    package::{list,
+                              PackageIdent}}};
 
-use std::{path::Path, str::FromStr};
+use std::{path::Path,
+          str::FromStr};
 
 use clap::ArgMatches;
 

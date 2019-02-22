@@ -16,15 +16,21 @@
 //! on disk. This is how we know when to start, stop, or restart
 //! services in response to the various `hab svc` commands.
 
-use std::{num::ParseIntError, str::FromStr, sync::mpsc, thread::Builder, time::Duration};
+use std::{num::ParseIntError,
+          str::FromStr,
+          sync::mpsc,
+          thread::Builder,
+          time::Duration};
 
-use notify::{DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
+use notify::{DebouncedEvent,
+             RecommendedWatcher,
+             RecursiveMode,
+             Watcher};
 
 use super::spec_dir::SpecDir;
-use crate::{
-    common::types::EnvConfig,
-    error::{Error, Result},
-};
+use crate::{common::types::EnvConfig,
+            error::{Error,
+                    Result}};
 
 static LOGKEY: &'static str = "SW";
 
@@ -37,9 +43,7 @@ static LOGKEY: &'static str = "SW";
 struct SpecWatcherDelay(Duration);
 
 impl From<Duration> for SpecWatcherDelay {
-    fn from(d: Duration) -> SpecWatcherDelay {
-        SpecWatcherDelay(d)
-    }
+    fn from(d: Duration) -> SpecWatcherDelay { SpecWatcherDelay(d) }
 }
 
 impl Default for SpecWatcherDelay {
@@ -174,12 +178,11 @@ impl SpecWatcher {
 mod tests {
     use super::*;
     use crate::common::locked_env_var;
-    use std::{
-        fs::File,
-        io::{Error as IoError, Write},
-        result::Result as StdResult,
-        thread,
-    };
+    use std::{fs::File,
+              io::{Error as IoError,
+                   Write},
+              result::Result as StdResult,
+              thread};
     use tempfile::TempDir;
 
     locked_env_var!(HAB_SPEC_WATCHER_DELAY_MS, lock_delay_var);

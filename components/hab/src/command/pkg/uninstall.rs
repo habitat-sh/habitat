@@ -12,20 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fs, path::Path, str::FromStr};
+use std::{fs,
+          path::Path,
+          str::FromStr};
 
-use super::{ExecutionStrategy, Scope};
-use crate::{
-    common::{
-        package_graph::PackageGraph,
-        ui::{Status, UIWriter, UI},
-    },
-    error::{Error, Result},
-    hcore::{
-        error as herror, fs as hfs,
-        package::{Identifiable, PackageIdent, PackageInstall},
-    },
-};
+use super::{ExecutionStrategy,
+            Scope};
+use crate::{common::{package_graph::PackageGraph,
+                     ui::{Status,
+                          UIWriter,
+                          UI}},
+            error::{Error,
+                    Result},
+            hcore::{error as herror,
+                    fs as hfs,
+                    package::{Identifiable,
+                              PackageIdent,
+                              PackageInstall}}};
 
 use crate::hcore::package::list::temp_package_directory;
 

@@ -17,20 +17,25 @@
 //! This is the thread for distributing rumors to members. It distributes to `FANOUT` members, no
 //! more often than `Timing::GOSSIP_PERIOD_DEFAULT_MS`.
 
-use std::{thread, time::Duration};
+use std::{thread,
+          time::Duration};
 
 use habitat_core::util::ToI64;
-use prometheus::{IntCounterVec, IntGaugeVec};
+use prometheus::{IntCounterVec,
+                 IntGaugeVec};
 use time::SteadyTime;
 use zmq;
 
-use crate::{
-    member::{Member, Membership},
-    rumor::{RumorEnvelope, RumorKey, RumorKind, RumorType},
-    server::{timing::Timing, Server},
-    trace::TraceKind,
-    ZMQ_CONTEXT,
-};
+use crate::{member::{Member,
+                     Membership},
+            rumor::{RumorEnvelope,
+                    RumorKey,
+                    RumorKind,
+                    RumorType},
+            server::{timing::Timing,
+                     Server},
+            trace::TraceKind,
+            ZMQ_CONTEXT};
 
 const FANOUT: usize = 5;
 
@@ -58,9 +63,7 @@ pub struct Push {
 
 impl Push {
     /// Creates a new Push instance from a Server and Timing
-    pub fn new(server: Server, timing: Timing) -> Push {
-        Push { server, timing }
-    }
+    pub fn new(server: Server, timing: Timing) -> Push { Push { server, timing } }
 
     /// Executes the Push thread. Gets a list of members to talk to that are not Confirmed; then
     /// proceeds to process the list in `FANOUT` sized chunks. If we finish sending the messages to
@@ -150,9 +153,7 @@ struct PushWorker {
 
 impl PushWorker {
     /// Create a new PushWorker.
-    pub fn new(server: Server) -> PushWorker {
-        PushWorker { server }
-    }
+    pub fn new(server: Server) -> PushWorker { PushWorker { server } }
 
     /// Send the list of rumors to a given member. This method creates an outbound socket and then
     /// closes the connection as soon as we are done sending rumors. ZeroMQ may choose to keep the

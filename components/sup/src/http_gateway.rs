@@ -12,47 +12,63 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    cell::Cell,
-    fmt,
-    fs::File,
-    io::{self, Read},
-    net::{IpAddr, SocketAddr, SocketAddrV4, ToSocketAddrs},
-    ops::{Deref, DerefMut},
-    option, result,
-    str::FromStr,
-    sync::{Arc, Condvar, Mutex, RwLock},
-    thread,
-};
+use std::{cell::Cell,
+          fmt,
+          fs::File,
+          io::{self,
+               Read},
+          net::{IpAddr,
+                SocketAddr,
+                SocketAddrV4,
+                ToSocketAddrs},
+          ops::{Deref,
+                DerefMut},
+          option,
+          result,
+          str::FromStr,
+          sync::{Arc,
+                 Condvar,
+                 Mutex,
+                 RwLock},
+          thread};
 
-use crate::{
-    common::{
-        cli_defaults::{
-            LISTEN_HTTP_ADDRESS_ENVVAR, LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT,
-        },
-        templating::hooks,
-        types::EnvConfig,
-    },
-    hcore::{crypto, env as henv, service::ServiceGroup},
-};
+use crate::{common::{cli_defaults::{LISTEN_HTTP_ADDRESS_ENVVAR,
+                                    LISTEN_HTTP_DEFAULT_IP,
+                                    LISTEN_HTTP_DEFAULT_PORT},
+                     templating::hooks,
+                     types::EnvConfig},
+            hcore::{crypto,
+                    env as henv,
+                    service::ServiceGroup}};
 use actix;
-use actix_web::{
-    http::{self, StatusCode},
-    middleware::{Finished, Middleware, Started},
-    pred::Predicate,
-    server, App, FromRequest, HttpRequest, HttpResponse, Path, Request,
-};
-use prometheus::{self, CounterVec, Encoder, HistogramTimer, HistogramVec, TextEncoder};
+use actix_web::{http::{self,
+                       StatusCode},
+                middleware::{Finished,
+                             Middleware,
+                             Started},
+                pred::Predicate,
+                server,
+                App,
+                FromRequest,
+                HttpRequest,
+                HttpResponse,
+                Path,
+                Request};
+use prometheus::{self,
+                 CounterVec,
+                 Encoder,
+                 HistogramTimer,
+                 HistogramVec,
+                 TextEncoder};
 use rustls::ServerConfig;
-use serde_json::{self, Value as Json};
+use serde_json::{self,
+                 Value as Json};
 
-use crate::{
-    error::{Result, SupError},
-    manager::{
-        self,
-        service::{hooks::HealthCheckHook, HealthCheck},
-    },
-};
+use crate::{error::{Result,
+                    SupError},
+            manager::{self,
+                      service::{hooks::HealthCheckHook,
+                                HealthCheck}}};
 
 use crate::feat;
 
@@ -82,9 +98,7 @@ lazy_static! {
 pub struct ListenAddr(SocketAddr);
 
 impl ListenAddr {
-    pub fn new(ip: IpAddr, port: u16) -> ListenAddr {
-        ListenAddr(SocketAddr::new(ip, port))
-    }
+    pub fn new(ip: IpAddr, port: u16) -> ListenAddr { ListenAddr(SocketAddr::new(ip, port)) }
 }
 
 impl Default for ListenAddr {
@@ -105,31 +119,23 @@ impl EnvConfig for ListenAddr {
 impl Deref for ListenAddr {
     type Target = SocketAddr;
 
-    fn deref(&self) -> &SocketAddr {
-        &self.0
-    }
+    fn deref(&self) -> &SocketAddr { &self.0 }
 }
 
 impl DerefMut for ListenAddr {
-    fn deref_mut(&mut self) -> &mut SocketAddr {
-        &mut self.0
-    }
+    fn deref_mut(&mut self) -> &mut SocketAddr { &mut self.0 }
 }
 
 impl FromStr for ListenAddr {
     type Err = SupError;
 
-    fn from_str(val: &str) -> Result<Self> {
-        Ok(ListenAddr(SocketAddr::from_str(val)?))
-    }
+    fn from_str(val: &str) -> Result<Self> { Ok(ListenAddr(SocketAddr::from_str(val)?)) }
 }
 
 impl ToSocketAddrs for ListenAddr {
     type Iter = option::IntoIter<SocketAddr>;
 
-    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
-        self.0.to_socket_addrs()
-    }
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
 }
 
 impl fmt::Display for ListenAddr {
@@ -321,9 +327,7 @@ impl Server {
 struct RedactHTTP;
 
 impl<S: 'static> Predicate<S> for RedactHTTP {
-    fn check(&self, _req: &Request, _state: &S) -> bool {
-        !feat::is_enabled(feat::RedactHTTP)
-    }
+    fn check(&self, _req: &Request, _state: &S) -> bool { !feat::is_enabled(feat::RedactHTTP) }
 }
 
 fn routes(app: App<AppState>) -> App<AppState> {
@@ -559,13 +563,16 @@ fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> O
 
 #[cfg(test)]
 mod tests {
-    use std::{fs::File, io::Read, path::PathBuf, sync::Mutex};
+    use std::{fs::File,
+              io::Read,
+              path::PathBuf,
+              sync::Mutex};
 
-    use crate::butterfly::{
-        member::Member,
-        server::{Server, ServerProxy, Suitability},
-        trace::Trace,
-    };
+    use crate::butterfly::{member::Member,
+                           server::{Server,
+                                    ServerProxy,
+                                    Suitability},
+                           trace::Trace};
     use serde_json;
 
     use crate::test_helpers::*;
@@ -632,9 +639,7 @@ mod tests {
         #[derive(Debug)]
         struct ZeroSuitability;
         impl Suitability for ZeroSuitability {
-            fn get(&self, _service_group: &str) -> u64 {
-                0
-            }
+            fn get(&self, _service_group: &str) -> u64 { 0 }
         }
 
         fn start_server() -> Server {

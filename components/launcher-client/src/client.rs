@@ -12,11 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 use habitat_core::os::process::Pid;
-use habitat_launcher_protocol::{self as protocol, Error as ProtocolError};
-use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
-use std::{collections::HashMap, fs, io, path::Path};
+use habitat_launcher_protocol::{self as protocol,
+                                Error as ProtocolError};
+use ipc_channel::ipc::{IpcOneShotServer,
+                       IpcReceiver,
+                       IpcSender};
+use std::{collections::HashMap,
+          fs,
+          io,
+          path::Path};
 
 type Env = HashMap<String, String>;
 type IpcServer = IpcOneShotServer<Vec<u8>>;

@@ -15,18 +15,17 @@
 //! Provide the means to persist a Supervisor's own incarnation
 //! number across restarts.
 
-use std::{
-    fs::File,
-    io::Read,
-    path::{Path, PathBuf},
-};
+use std::{fs::File,
+          io::Read,
+          path::{Path,
+                 PathBuf}};
 
-use crate::{
-    error::{Error, Result},
-    member::Incarnation,
-};
+use crate::{error::{Error,
+                    Result},
+            member::Incarnation};
 use habitat_core::fs::atomic_write;
-use std::{io, num};
+use std::{io,
+          num};
 
 /// Provide storage of an incarnation number that can persist across
 /// Supervisor restarts.

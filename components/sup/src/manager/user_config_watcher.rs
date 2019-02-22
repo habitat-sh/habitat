@@ -12,28 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    collections::HashMap,
-    io,
-    path::{Path, PathBuf},
-    sync::{
-        mpsc::{
-            channel, sync_channel, Receiver, SendError, Sender, SyncSender, TryRecvError,
-            TrySendError,
-        },
-        Arc, Mutex,
-    },
-    thread::{self, Builder as ThreadBuilder},
-    time::Duration,
-};
+use std::{collections::HashMap,
+          io,
+          path::{Path,
+                 PathBuf},
+          sync::{mpsc::{channel,
+                        sync_channel,
+                        Receiver,
+                        SendError,
+                        Sender,
+                        SyncSender,
+                        TryRecvError,
+                        TrySendError},
+                 Arc,
+                 Mutex},
+          thread::{self,
+                   Builder as ThreadBuilder},
+          time::Duration};
 
-use super::file_watcher::{default_file_watcher_with_no_initial_event, Callbacks};
+use super::file_watcher::{default_file_watcher_with_no_initial_event,
+                          Callbacks};
 
-use crate::{
-    common::templating::config::UserConfigPath,
-    hcore::{fs::USER_CONFIG_FILE, service::ServiceGroup},
-    manager::service::Service,
-};
+use crate::{common::templating::config::UserConfigPath,
+            hcore::{fs::USER_CONFIG_FILE,
+                    service::ServiceGroup},
+            manager::service::Service};
 
 static LOGKEY: &'static str = "UCW";
 
@@ -46,17 +49,11 @@ pub trait Serviceable {
 }
 
 impl Serviceable for Service {
-    fn name(&self) -> &str {
-        &self.pkg.name
-    }
+    fn name(&self) -> &str { &self.pkg.name }
 
-    fn user_config_path(&self) -> &UserConfigPath {
-        &self.cfg.user_config_path
-    }
+    fn user_config_path(&self) -> &UserConfigPath { &self.cfg.user_config_path }
 
-    fn service_group(&self) -> &ServiceGroup {
-        &self.service_group
-    }
+    fn service_group(&self) -> &ServiceGroup { &self.service_group }
 }
 
 // WorkerState contains the channels the worker uses to communicate
@@ -188,17 +185,11 @@ struct UserConfigCallbacks {
 }
 
 impl Callbacks for UserConfigCallbacks {
-    fn file_appeared(&mut self, _: &Path) {
-        self.perform();
-    }
+    fn file_appeared(&mut self, _: &Path) { self.perform(); }
 
-    fn file_modified(&mut self, _: &Path) {
-        self.perform();
-    }
+    fn file_modified(&mut self, _: &Path) { self.perform(); }
 
-    fn file_disappeared(&mut self, _: &Path) {
-        self.perform();
-    }
+    fn file_disappeared(&mut self, _: &Path) { self.perform(); }
 }
 
 impl UserConfigCallbacks {
@@ -285,13 +276,13 @@ impl Worker {
 mod tests {
     use super::*;
 
-    use std::{
-        fs::{remove_file, File},
-        io::Write,
-        str::FromStr,
-        thread,
-        time::{Duration, Instant},
-    };
+    use std::{fs::{remove_file,
+                   File},
+              io::Write,
+              str::FromStr,
+              thread,
+              time::{Duration,
+                     Instant}};
 
     use crate::manager::file_watcher::WATCHER_DELAY_MS;
 
@@ -405,17 +396,11 @@ mod tests {
     }
 
     impl Serviceable for TestService {
-        fn name(&self) -> &str {
-            &self.name
-        }
+        fn name(&self) -> &str { &self.name }
 
-        fn user_config_path(&self) -> &UserConfigPath {
-            &self.user_config_path
-        }
+        fn user_config_path(&self) -> &UserConfigPath { &self.user_config_path }
 
-        fn service_group(&self) -> &ServiceGroup {
-            &self.service_group
-        }
+        fn service_group(&self) -> &ServiceGroup { &self.service_group }
     }
 
     impl Default for TestService {

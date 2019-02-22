@@ -14,23 +14,23 @@
 
 //! Encapsulate running the `hab-sup` executable for tests.
 
-use std::{
-    collections::HashSet,
-    env,
-    net::TcpListener,
-    path::{Path, PathBuf},
-    process::{Child, Command, Stdio},
-    string::ToString,
-    sync::Mutex,
-    thread,
-    time::Duration,
-};
+use std::{collections::HashSet,
+          env,
+          net::TcpListener,
+          path::{Path,
+                 PathBuf},
+          process::{Child,
+                    Command,
+                    Stdio},
+          string::ToString,
+          sync::Mutex,
+          thread,
+          time::Duration};
 
 use crate::hcore::url::BLDR_URL_ENVVAR;
-use rand::{
-    self,
-    distributions::{Distribution, Uniform},
-};
+use rand::{self,
+           distributions::{Distribution,
+                           Uniform}};
 
 use super::test_butterfly;
 
@@ -303,7 +303,5 @@ impl TestSup {
 // We kill the Supervisor so you don't have to! We also free up the
 // ports used by this Supervisor so other tests can use them.
 impl Drop for TestSup {
-    fn drop(&mut self) {
-        self.stop();
-    }
+    fn drop(&mut self) { self.stop(); }
 }

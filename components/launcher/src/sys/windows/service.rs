@@ -12,32 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{collections::HashMap, io, mem};
+use std::{collections::HashMap,
+          io,
+          mem};
 
-use crate::protocol::{self, ShutdownMethod};
-use core::os::process::{
-    handle_from_pid,
-    windows_child::{Child, ExitStatus, Handle},
-};
-use time::{Duration, SteadyTime};
-use winapi::{
-    shared::{
-        minwindef::{DWORD, LPDWORD, MAX_PATH},
-        winerror::{ERROR_FILE_NOT_FOUND, WAIT_TIMEOUT},
-    },
-    um::{
-        handleapi::{self, INVALID_HANDLE_VALUE},
-        processthreadsapi, synchapi,
-        tlhelp32::{self, LPPROCESSENTRY32W, PROCESSENTRY32W, TH32CS_SNAPPROCESS},
-        winbase::{INFINITE, WAIT_OBJECT_0},
-        wincon,
-    },
-};
+use crate::protocol::{self,
+                      ShutdownMethod};
+use core::os::process::{handle_from_pid,
+                        windows_child::{Child,
+                                        ExitStatus,
+                                        Handle}};
+use time::{Duration,
+           SteadyTime};
+use winapi::{shared::{minwindef::{DWORD,
+                                  LPDWORD,
+                                  MAX_PATH},
+                      winerror::{ERROR_FILE_NOT_FOUND,
+                                 WAIT_TIMEOUT}},
+             um::{handleapi::{self,
+                              INVALID_HANDLE_VALUE},
+                  processthreadsapi,
+                  synchapi,
+                  tlhelp32::{self,
+                             LPPROCESSENTRY32W,
+                             PROCESSENTRY32W,
+                             TH32CS_SNAPPROCESS},
+                  winbase::{INFINITE,
+                            WAIT_OBJECT_0},
+                  wincon}};
 
-use crate::{
-    error::{Error, Result},
-    service::Service,
-};
+use crate::{error::{Error,
+                    Result},
+            service::Service};
 
 const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
@@ -55,9 +61,7 @@ impl Process {
         }
     }
 
-    pub fn id(&self) -> u32 {
-        unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 }
-    }
+    pub fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 } }
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.

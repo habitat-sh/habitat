@@ -11,14 +11,18 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-use std::{fs, io, path::Path, str::FromStr};
+use std::{fs,
+          io,
+          path::Path,
+          str::FromStr};
 
 use crate::error::Result;
 
-use crate::{
-    common::ui::{Status, UIWriter, UI},
-    hcore::{crypto::init, package::PackageIdent},
-};
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            hcore::{crypto::init,
+                    package::PackageIdent}};
 
 const SCAFFOLDING_GO_IDENT: &str = "core/scaffolding-go";
 const SCAFFOLDING_GRADLE_IDENT: &str = "core/scaffolding-gradle";

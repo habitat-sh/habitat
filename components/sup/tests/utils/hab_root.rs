@@ -24,19 +24,18 @@
 //! (e.g. verifying that templated files are changed when new
 //! configuration values are applied).
 
-use std::{
-    fs::File,
-    io::Read,
-    path::{Path, PathBuf},
-    string::ToString,
-    time::SystemTime,
-};
+use std::{fs::File,
+          io::Read,
+          path::{Path,
+                 PathBuf},
+          string::ToString,
+          time::SystemTime};
 
-use crate::hcore::{
-    fs::PKG_PATH,
-    package::{metadata::MetaFile, PackageIdent},
-};
-use tempfile::{Builder, TempDir};
+use crate::hcore::{fs::PKG_PATH,
+                   package::{metadata::MetaFile,
+                             PackageIdent}};
+use tempfile::{Builder,
+               TempDir};
 
 #[derive(Debug)]
 pub struct HabRoot(TempDir);
@@ -238,7 +237,5 @@ impl HabRoot {
 }
 
 impl AsRef<Path> for HabRoot {
-    fn as_ref(&self) -> &Path {
-        &self.0.path()
-    }
+    fn as_ref(&self) -> &Path { &self.0.path() }
 }
