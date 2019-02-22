@@ -34,3 +34,6 @@ pipelines:
   - verify:
       # Adding a comment to do a thing
       description: Pull Request validation tests
+  - website:
+      description: Deploy the website
+      definition: .expeditor/website.pipeline.yml
