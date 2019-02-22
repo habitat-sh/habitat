@@ -37,16 +37,16 @@ mod error;
 mod maintainer;
 mod values;
 
-use std::{result, str::FromStr};
+use std::{result,
+          str::FromStr};
 
 use clap::Arg;
 
-use crate::{
-    common::ui::{UIWriter, UI},
-    export_docker::Result,
-    export_k8s::Cli,
-    hcore::PROGRAM_NAME,
-};
+use crate::{common::ui::{UIWriter,
+                         UI},
+            export_docker::Result,
+            export_k8s::Cli,
+            hcore::PROGRAM_NAME};
 use url::Url;
 
 use crate::chart::Chart;

@@ -113,7 +113,8 @@ pub mod manager;
 pub mod test_helpers;
 pub mod util;
 
-use std::{env, path::PathBuf};
+use std::{env,
+          path::PathBuf};
 
 lazy_static! {
     pub static ref PROGRAM_NAME: String = {

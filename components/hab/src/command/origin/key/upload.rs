@@ -14,22 +14,24 @@
 
 use std::path::Path;
 
-use crate::{
-    api_client::{self, Client},
-    common::{
-        command::package::install::{RETRIES, RETRY_WAIT},
-        ui::{Status, UIWriter, UI},
-    },
-    hcore::crypto::{keys::parse_name_with_rev, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION},
-};
+use crate::{api_client::{self,
+                         Client},
+            common::{command::package::install::{RETRIES,
+                                                 RETRY_WAIT},
+                     ui::{Status,
+                          UIWriter,
+                          UI}},
+            hcore::crypto::{keys::parse_name_with_rev,
+                            PUBLIC_SIG_KEY_VERSION,
+                            SECRET_SIG_KEY_VERSION}};
 use hyper::status::StatusCode;
 use retry::retry;
 
 use super::get_name_with_rev;
-use crate::{
-    error::{Error, Result},
-    PRODUCT, VERSION,
-};
+use crate::{error::{Error,
+                    Result},
+            PRODUCT,
+            VERSION};
 
 pub fn start(
     ui: &mut UI,

@@ -22,30 +22,29 @@ pub const SUP_CMD: &str = "hab-sup";
 pub const SUP_CMD_ENVVAR: &str = "HAB_SUP_BINARY";
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
 
-pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
-    inner::start(ui, args)
-}
+pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> { inner::start(ui, args) }
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
-    use std::{ffi::OsString, path::PathBuf, str::FromStr};
+    use std::{ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
-    use crate::{
-        common::ui::UI,
-        hcore::{
-            crypto::{default_cache_key_path, init},
-            env as henv,
-            fs::find_command,
-            os::process,
-            package::PackageIdent,
-        },
-    };
+    use crate::{common::ui::UI,
+                hcore::{crypto::{default_cache_key_path,
+                                 init},
+                        env as henv,
+                        fs::find_command,
+                        os::process,
+                        package::PackageIdent}};
 
-    use super::{SUP_CMD, SUP_CMD_ENVVAR, SUP_PKG_IDENT};
-    use crate::{
-        error::{Error, Result},
-        exec, VERSION,
-    };
+    use super::{SUP_CMD,
+                SUP_CMD_ENVVAR,
+                SUP_PKG_IDENT};
+    use crate::{error::{Error,
+                        Result},
+                exec,
+                VERSION};
 
     pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         let command = match henv::var(SUP_CMD_ENVVAR) {
@@ -73,11 +72,14 @@ mod inner {
 
 #[cfg(target_os = "macos")]
 mod inner {
-    use std::{env, ffi::OsString};
+    use std::{env,
+              ffi::OsString};
 
-    use crate::common::ui::{UIWriter, UI};
+    use crate::common::ui::{UIWriter,
+                            UI};
 
-    use crate::error::{Error, Result};
+    use crate::error::{Error,
+                       Result};
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());

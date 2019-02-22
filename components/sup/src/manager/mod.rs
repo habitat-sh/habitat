@@ -26,86 +26,110 @@ mod spec_watcher;
 mod sys;
 mod user_config_watcher;
 
-use std::{
-    self,
-    collections::HashMap,
-    fs::{self, File, OpenOptions},
-    io::{BufRead, BufReader, Read, Write},
-    mem,
-    net::SocketAddr,
-    ops::DerefMut,
-    path::{Path, PathBuf},
-    result,
-    str::FromStr,
-    sync::{Arc, Condvar, Mutex, RwLock},
-    thread,
-    time::Duration,
-};
+use std::{self,
+          collections::HashMap,
+          fs::{self,
+               File,
+               OpenOptions},
+          io::{BufRead,
+               BufReader,
+               Read,
+               Write},
+          mem,
+          net::SocketAddr,
+          ops::DerefMut,
+          path::{Path,
+                 PathBuf},
+          result,
+          str::FromStr,
+          sync::{Arc,
+                 Condvar,
+                 Mutex,
+                 RwLock},
+          thread,
+          time::Duration};
 
 use num_cpus;
 
 pub use crate::common::templating::package::Pkg;
-use crate::{
-    butterfly::{
-        self,
-        member::Member,
-        server::{timing::Timing, ServerProxy, Suitability},
-        trace::Trace,
-    },
-    common::{
-        self,
-        types::{EnvConfig, ListenCtlAddr},
-    },
-    hcore::{
-        crypto::SymKey,
-        env,
-        fs::FS_ROOT_PATH,
-        os::{
-            process::{self, Pid, Signal},
-            signals::{self, SignalEvent},
-        },
-        package::{Identifiable, PackageIdent, PackageInstall},
-        service::ServiceGroup,
-        util::ToI64,
-        ChannelIdent,
-    },
-    launcher_client::{LauncherCli, LAUNCHER_LOCK_CLEAN_ENV, LAUNCHER_PID_ENV},
-    protocol,
-};
+use crate::{butterfly::{self,
+                        member::Member,
+                        server::{timing::Timing,
+                                 ServerProxy,
+                                 Suitability},
+                        trace::Trace},
+            common::{self,
+                     types::{EnvConfig,
+                             ListenCtlAddr}},
+            hcore::{crypto::SymKey,
+                    env,
+                    fs::FS_ROOT_PATH,
+                    os::{process::{self,
+                                   Pid,
+                                   Signal},
+                         signals::{self,
+                                   SignalEvent}},
+                    package::{Identifiable,
+                              PackageIdent,
+                              PackageInstall},
+                    service::ServiceGroup,
+                    util::ToI64,
+                    ChannelIdent},
+            launcher_client::{LauncherCli,
+                              LAUNCHER_LOCK_CLEAN_ENV,
+                              LAUNCHER_PID_ENV},
+            protocol};
 use cpu_time::ProcessTime;
-use futures::{prelude::*, sync::mpsc};
+use futures::{prelude::*,
+              sync::mpsc};
 #[cfg(unix)]
 use proc_self;
-use prometheus::{HistogramVec, IntGauge, IntGaugeVec};
-use rustls::{internal::pemfile, NoClientAuth, ServerConfig};
+use prometheus::{HistogramVec,
+                 IntGauge,
+                 IntGaugeVec};
+use rustls::{internal::pemfile,
+             NoClientAuth,
+             ServerConfig};
 use serde_json;
-use time::{self, Duration as TimeDuration, SteadyTime, Timespec};
-use tokio::{executor, runtime};
+use time::{self,
+           Duration as TimeDuration,
+           SteadyTime,
+           Timespec};
+use tokio::{executor,
+            runtime};
 #[cfg(windows)]
-use winapi::{shared::minwindef::PDWORD, um::processthreadsapi};
+use winapi::{shared::minwindef::PDWORD,
+             um::processthreadsapi};
 
-pub use self::service::{
-    ConfigRendering, Service, ServiceProxy, ServiceSpec, Topology, UpdateStrategy,
-};
-use self::{
-    peer_watcher::PeerWatcher,
-    self_updater::{SelfUpdater, SUP_PKG_IDENT},
-    service::{health::HealthCheck, DesiredState},
-    service_updater::ServiceUpdater,
-    spec_dir::SpecDir,
-    spec_watcher::SpecWatcher,
-};
+pub use self::service::{ConfigRendering,
+                        Service,
+                        ServiceProxy,
+                        ServiceSpec,
+                        Topology,
+                        UpdateStrategy};
+use self::{peer_watcher::PeerWatcher,
+           self_updater::{SelfUpdater,
+                          SUP_PKG_IDENT},
+           service::{health::HealthCheck,
+                     DesiredState},
+           service_updater::ServiceUpdater,
+           spec_dir::SpecDir,
+           spec_watcher::SpecWatcher};
 
 pub use self::sys::Sys;
 use self::user_config_watcher::UserConfigWatcher;
 use super::feat;
-use crate::{
-    census::{CensusRing, CensusRingProxy},
-    config::GossipListenAddr,
-    ctl_gateway::{self, CtlRequest},
-    error::{Error, Result, SupError},
-    http_gateway, ShutdownReason, VERSION,
-};
+use crate::{census::{CensusRing,
+                     CensusRingProxy},
+            config::GossipListenAddr,
+            ctl_gateway::{self,
+                          CtlRequest},
+            error::{Error,
+                    Result,
+                    SupError},
+            http_gateway,
+            ShutdownReason,
+            VERSION};
 
 const MEMBER_ID_FILE: &str = "MEMBER_ID";
 const PROC_LOCK_FILE: &str = "LOCK";
@@ -196,9 +220,7 @@ pub struct ManagerConfig {
 }
 
 impl ManagerConfig {
-    pub fn sup_root(&self) -> PathBuf {
-        protocol::sup_root(self.custom_state_path.as_ref())
-    }
+    pub fn sup_root(&self) -> PathBuf { protocol::sup_root(self.custom_state_path.as_ref()) }
 }
 
 impl Default for ManagerConfig {
@@ -829,9 +851,7 @@ impl Manager {
         self.butterfly.insert_service(service.to_rumor(incarnation));
     }
 
-    fn check_for_departure(&self) -> bool {
-        self.butterfly.is_departed()
-    }
+    fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }
 
     fn check_for_changed_services(&mut self) -> bool {
         let mut service_states = HashMap::new();
@@ -976,9 +996,7 @@ impl Manager {
     }
 
     /// Check if any elections need restarting.
-    fn restart_elections(&mut self) {
-        self.butterfly.restart_elections();
-    }
+    fn restart_elections(&mut self) { self.butterfly.restart_elections(); }
 
     fn shutdown(&mut self, cause: ShutdownReason) {
         match cause {
@@ -1296,9 +1314,7 @@ impl EnvConfig for TokioThreadCount {
 }
 
 impl Into<usize> for TokioThreadCount {
-    fn into(self) -> usize {
-        self.0
-    }
+    fn into(self) -> usize { self.0 }
 }
 
 #[derive(Debug)]
@@ -1416,9 +1432,7 @@ fn get_fd_count() -> std::io::Result<usize> {
 }
 
 #[cfg(unix)]
-fn get_fd_count() -> std::io::Result<usize> {
-    proc_self::FdIter::new().map(|f| f.count())
-}
+fn get_fd_count() -> std::io::Result<usize> { proc_self::FdIter::new().map(|f| f.count()) }
 
 #[cfg(unix)]
 fn track_memory_stats() {

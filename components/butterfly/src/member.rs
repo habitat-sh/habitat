@@ -14,40 +14,44 @@
 
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
-use std::{
-    collections::{hash_map, HashMap},
-    fmt,
-    net::SocketAddr,
-    num::ParseIntError,
-    ops::Add,
-    result,
-    str::FromStr,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        RwLock,
-    },
-};
+use std::{collections::{hash_map,
+                        HashMap},
+          fmt,
+          net::SocketAddr,
+          num::ParseIntError,
+          ops::Add,
+          result,
+          str::FromStr,
+          sync::{atomic::{AtomicUsize,
+                          Ordering},
+                 RwLock}};
 
 use habitat_core::util::ToI64;
 use prometheus::IntGaugeVec;
-use rand::{
-    seq::{IteratorRandom, SliceRandom},
-    thread_rng,
-};
-use serde::{
-    de,
-    ser::{SerializeMap, SerializeStruct},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
-use time::{Duration, SteadyTime};
+use rand::{seq::{IteratorRandom,
+                 SliceRandom},
+           thread_rng};
+use serde::{de,
+            ser::{SerializeMap,
+                  SerializeStruct},
+            Deserialize,
+            Deserializer,
+            Serialize,
+            Serializer};
+use time::{Duration,
+           SteadyTime};
 use uuid::Uuid;
 
 pub use crate::protocol::swim::Health;
-use crate::{
-    error::{Error, Result},
-    protocol::{self, newscast, swim as proto, FromProto},
-    rumor::{RumorKey, RumorPayload, RumorType},
-};
+use crate::{error::{Error,
+                    Result},
+            protocol::{self,
+                       newscast,
+                       swim as proto,
+                       FromProto},
+            rumor::{RumorKey,
+                    RumorPayload,
+                    RumorType}};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -70,39 +74,27 @@ lazy_static! {
 pub struct Incarnation(u64);
 
 impl Default for Incarnation {
-    fn default() -> Self {
-        Incarnation(0)
-    }
+    fn default() -> Self { Incarnation(0) }
 }
 
 impl From<u64> for Incarnation {
-    fn from(num: u64) -> Self {
-        Incarnation(num)
-    }
+    fn from(num: u64) -> Self { Incarnation(num) }
 }
 
 impl Incarnation {
-    pub fn to_u64(&self) -> u64 {
-        self.0
-    }
+    pub fn to_u64(&self) -> u64 { self.0 }
 
-    pub fn to_i64(&self) -> i64 {
-        self.0.to_i64()
-    }
+    pub fn to_i64(&self) -> i64 { self.0.to_i64() }
 }
 
 impl fmt::Display for Incarnation {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
 impl Add<u64> for Incarnation {
     type Output = Incarnation;
 
-    fn add(self, other: u64) -> Incarnation {
-        Incarnation(self.0 + other)
-    }
+    fn add(self, other: u64) -> Incarnation { Incarnation(self.0 + other) }
 }
 
 impl Serialize for Incarnation {
@@ -203,21 +195,15 @@ impl Default for Member {
 }
 
 impl From<Member> for RumorKey {
-    fn from(member: Member) -> RumorKey {
-        RumorKey::new(RumorType::Member, &member.id, "")
-    }
+    fn from(member: Member) -> RumorKey { RumorKey::new(RumorType::Member, &member.id, "") }
 }
 
 impl<'a> From<&'a Member> for RumorKey {
-    fn from(member: &'a Member) -> RumorKey {
-        RumorKey::new(RumorType::Member, &member.id, "")
-    }
+    fn from(member: &'a Member) -> RumorKey { RumorKey::new(RumorType::Member, &member.id, "") }
 }
 
 impl<'a> From<&'a &'a Member> for RumorKey {
-    fn from(member: &'a &'a Member) -> RumorKey {
-        RumorKey::new(RumorType::Member, &member.id, "")
-    }
+    fn from(member: &'a &'a Member) -> RumorKey { RumorKey::new(RumorType::Member, &member.id, "") }
 }
 
 impl From<Member> for proto::Member {
@@ -442,21 +428,13 @@ impl MemberList {
 
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
-    fn increment_update_counter(&self) {
-        self.update_counter.fetch_add(1, Ordering::Relaxed);
-    }
+    fn increment_update_counter(&self) { self.update_counter.fetch_add(1, Ordering::Relaxed); }
 
-    pub fn get_update_counter(&self) -> usize {
-        self.update_counter.load(Ordering::Relaxed)
-    }
+    pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
 
-    pub fn len_initial_members(&self) -> usize {
-        self.initial_members_read().len()
-    }
+    pub fn len_initial_members(&self) -> usize { self.initial_members_read().len() }
 
-    pub fn add_initial_member(&self, member: Member) {
-        self.initial_members_write().push(member);
-    }
+    pub fn add_initial_member(&self, member: Member) { self.initial_members_write().push(member); }
 
     pub fn set_initial_members(&self, members: Vec<Member>) {
         *self.initial_members_write() = members;
@@ -612,9 +590,7 @@ impl MemberList {
     }
 
     /// Returns the health of the member, if the member exists.
-    pub fn health_of(&self, member: &Member) -> Option<Health> {
-        self.health_of_by_id(&member.id)
-    }
+    pub fn health_of(&self, member: &Member) -> Option<Health> { self.health_of_by_id(&member.id) }
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
@@ -652,13 +628,9 @@ impl MemberList {
     }
 
     /// Returns the number of entries.
-    pub fn len(&self) -> usize {
-        self.read_entries().len()
-    }
+    pub fn len(&self) -> usize { self.read_entries().len() }
 
-    pub fn is_empty(&self) -> bool {
-        self.read_entries().is_empty()
-    }
+    pub fn is_empty(&self) -> bool { self.read_entries().is_empty() }
 
     /// A randomized list of members to check.
     pub fn check_list(&self, exclude_id: &str) -> Vec<Member> {
@@ -807,9 +779,7 @@ impl MemberList {
 pub struct MemberListProxy<'a>(&'a MemberList);
 
 impl<'a> MemberListProxy<'a> {
-    pub fn new(m: &'a MemberList) -> Self {
-        MemberListProxy(&m)
-    }
+    pub fn new(m: &'a MemberList) -> Self { MemberListProxy(&m) }
 }
 
 impl<'a> Serialize for MemberListProxy<'a> {
@@ -834,9 +804,7 @@ impl<'a> Serialize for MemberListProxy<'a> {
 pub struct MemberProxy<'a>(&'a Member, &'a Health);
 
 impl<'a> MemberProxy<'a> {
-    pub fn new(m: &'a Member, h: &'a Health) -> Self {
-        MemberProxy(&m, &h)
-    }
+    pub fn new(m: &'a Member, h: &'a Health) -> Self { MemberProxy(&m, &h) }
 }
 
 impl<'a> Serialize for MemberProxy<'a> {
@@ -876,7 +844,8 @@ mod tests {
     }
 
     mod member {
-        use crate::member::{Incarnation, Member};
+        use crate::member::{Incarnation,
+                            Member};
 
         // Sets the uuid to simple, and the incarnation to the default.
         #[test]
@@ -888,10 +857,10 @@ mod tests {
     }
 
     mod membership {
-        use crate::{
-            member::{Health, Member, Membership},
-            protocol::Message,
-        };
+        use crate::{member::{Health,
+                             Member,
+                             Membership},
+                    protocol::Message};
         #[test]
         fn encode_decode_roundtrip() {
             let member = Member::default();
@@ -913,7 +882,10 @@ mod tests {
     }
 
     mod member_list {
-        use crate::member::{Health, Member, MemberList, PINGREQ_TARGETS};
+        use crate::member::{Health,
+                            Member,
+                            MemberList,
+                            PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
             let ml = MemberList::new();
@@ -1017,7 +989,10 @@ mod tests {
 
         /// Tests of MemberList::insert
         mod insert {
-            use crate::member::{Health, Incarnation, Member, MemberList};
+            use crate::member::{Health,
+                                Incarnation,
+                                Member,
+                                MemberList};
 
             fn assert_cannot_insert_member_rumor_of_lower_incarnation(
                 from_health: Health,
@@ -1416,9 +1391,7 @@ mod tests {
                 // the name of a function, so we have to provide one :(
                 ($fn_name:ident, $from:expr, $to:expr) => {
                     #[test]
-                    fn $fn_name() {
-                        assert_insert_health_by_id_transition($from, $to);
-                    }
+                    fn $fn_name() { assert_insert_health_by_id_transition($from, $to); }
                 };
             }
 
@@ -1448,8 +1421,11 @@ mod tests {
         /// - MemberList::members_expired_to_confirmed
         /// - MemberList::members_expired_to_departed
         mod timed_expiration {
-            use crate::member::{Health, Member, MemberList};
-            use std::{thread, time::Duration as StdDuration};
+            use crate::member::{Health,
+                                Member,
+                                MemberList};
+            use std::{thread,
+                      time::Duration as StdDuration};
             use time::Duration;
 
             #[test]

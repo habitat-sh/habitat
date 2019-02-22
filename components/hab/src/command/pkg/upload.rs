@@ -30,27 +30,31 @@
 //!
 
 // Standard Library
-use std::path::{Path, PathBuf};
+use std::path::{Path,
+                PathBuf};
 
 // External Libraries
 use hyper::status::StatusCode;
 use retry::retry;
 
 // Local Dependencies
-use crate::{
-    api_client::{self, Client},
-    common::{
-        command::package::install::{RETRIES, RETRY_WAIT},
-        ui::{Status, UIWriter, UI},
-    },
-    error::{Error, Result},
-    hcore::{
-        crypto::{artifact::get_artifact_header, keys::parse_name_with_rev},
-        package::{PackageArchive, PackageIdent, PackageTarget},
-        ChannelIdent,
-    },
-    PRODUCT, VERSION,
-};
+use crate::{api_client::{self,
+                         Client},
+            common::{command::package::install::{RETRIES,
+                                                 RETRY_WAIT},
+                     ui::{Status,
+                          UIWriter,
+                          UI}},
+            error::{Error,
+                    Result},
+            hcore::{crypto::{artifact::get_artifact_header,
+                             keys::parse_name_with_rev},
+                    package::{PackageArchive,
+                              PackageIdent,
+                              PackageTarget},
+                    ChannelIdent},
+            PRODUCT,
+            VERSION};
 
 /// Upload a package from the cache to a Depot. The latest version/release of the package
 /// will be uploaded if not specified.

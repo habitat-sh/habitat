@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    common::ui::{UIWriter, UI},
-    error::Result,
-    hcore::package::PackageArchive,
-};
+use crate::{common::ui::{UIWriter,
+                         UI},
+            error::Result,
+            hcore::package::PackageArchive};
 use serde::Serialize;
-use serde_json::{self, Value as Json};
+use serde_json::{self,
+                 Value as Json};
 use std::path::Path;
 
 fn convert_to_json<T>(src: &T) -> Json

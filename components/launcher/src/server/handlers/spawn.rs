@@ -14,8 +14,10 @@
 
 use crate::protocol;
 
-use super::{HandleResult, Handler};
-use crate::{server::ServiceTable, service};
+use super::{HandleResult,
+            Handler};
+use crate::{server::ServiceTable,
+            service};
 
 pub struct SpawnHandler;
 impl Handler for SpawnHandler {

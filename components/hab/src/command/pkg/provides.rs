@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{collections::HashSet, path::Path};
+use std::{collections::HashSet,
+          path::Path};
 
 use walkdir::WalkDir;
 
-use crate::{
-    error::{Error, Result},
-    hcore::fs::PKG_PATH,
-};
+use crate::{error::{Error,
+                    Result},
+            hcore::fs::PKG_PATH};
 
 pub fn start(
     filename: &str,

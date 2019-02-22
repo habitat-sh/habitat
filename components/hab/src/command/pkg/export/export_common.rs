@@ -38,23 +38,22 @@ pub fn start(
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
-    use std::{ffi::OsString, path::PathBuf, str::FromStr};
+    use std::{ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
-    use crate::{
-        common::ui::UI,
-        hcore::{
-            crypto::{default_cache_key_path, init},
-            env as henv,
-            fs::find_command,
-            os::process,
-            package::PackageIdent,
-        },
-    };
+    use crate::{common::ui::UI,
+                hcore::{crypto::{default_cache_key_path,
+                                 init},
+                        env as henv,
+                        fs::find_command,
+                        os::process,
+                        package::PackageIdent}};
 
-    use crate::{
-        error::{Error, Result},
-        exec, VERSION,
-    };
+    use crate::{error::{Error,
+                        Result},
+                exec,
+                VERSION};
 
     pub fn start(
         ui: &mut UI,
@@ -97,9 +96,11 @@ mod inner {
 mod inner {
     use std::ffi::OsString;
 
-    use crate::common::ui::{UIWriter, UI};
+    use crate::common::ui::{UIWriter,
+                            UI};
 
-    use crate::error::{Error, Result};
+    use crate::error::{Error,
+                       Result};
 
     pub fn start(
         ui: &mut UI,

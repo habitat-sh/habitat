@@ -42,24 +42,31 @@ mod error;
 pub mod rootfs;
 mod util;
 
-use std::{env, fmt, result, str::FromStr};
+use std::{env,
+          fmt,
+          result,
+          str::FromStr};
 
-use crate::{
-    common::ui::{UIWriter, UI},
-    hcore::{url as hurl, PROGRAM_NAME},
-};
+use crate::{common::ui::{UIWriter,
+                         UI},
+            hcore::{url as hurl,
+                    PROGRAM_NAME}};
 
 use crate::aws_creds::StaticProvider;
 use clap::App;
-use rusoto_core::{request::*, Region};
-use rusoto_ecr::{Ecr, EcrClient, GetAuthorizationTokenRequest};
+use rusoto_core::{request::*,
+                  Region};
+use rusoto_ecr::{Ecr,
+                 EcrClient,
+                 GetAuthorizationTokenRequest};
 
-pub use crate::{
-    build::BuildSpec,
-    cli::{Cli, PkgIdentArgOptions},
-    docker::{DockerBuildRoot, DockerImage},
-    error::{Error, Result},
-};
+pub use crate::{build::BuildSpec,
+                cli::{Cli,
+                      PkgIdentArgOptions},
+                docker::{DockerBuildRoot,
+                         DockerImage},
+                error::{Error,
+                        Result}};
 
 /// The version of this library and program when built.
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -120,9 +127,7 @@ pub enum RegistryType {
 }
 
 impl RegistryType {
-    fn variants() -> &'static [&'static str] {
-        &["amazon", "azure", "docker"]
-    }
+    fn variants() -> &'static [&'static str] { &["amazon", "azure", "docker"] }
 }
 
 impl FromStr for RegistryType {

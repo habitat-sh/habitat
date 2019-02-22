@@ -12,19 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    net::{IpAddr, Ipv4Addr, SocketAddr},
-    str,
-};
+use std::{net::{IpAddr,
+                Ipv4Addr,
+                SocketAddr},
+          str};
 
-use crate::{butterfly::rumor::service::SysInfo, hcore};
+use crate::{butterfly::rumor::service::SysInfo,
+            hcore};
 
-use crate::{
-    common::types::ListenCtlAddr,
-    config::GossipListenAddr,
-    error::{Error, Result},
-    http_gateway, VERSION,
-};
+use crate::{common::types::ListenCtlAddr,
+            config::GossipListenAddr,
+            error::{Error,
+                    Result},
+            http_gateway,
+            VERSION};
 
 static LOGKEY: &'static str = "SY";
 
@@ -98,9 +99,7 @@ impl Sys {
         SocketAddr::new(self.ctl_gateway_ip, self.ctl_gateway_port)
     }
 
-    pub fn gossip_listen(&self) -> SocketAddr {
-        SocketAddr::new(self.gossip_ip, self.gossip_port)
-    }
+    pub fn gossip_listen(&self) -> SocketAddr { SocketAddr::new(self.gossip_ip, self.gossip_port) }
 
     pub fn http_listen(&self) -> http_gateway::ListenAddr {
         http_gateway::ListenAddr::new(self.http_gateway_ip, self.http_gateway_port)

@@ -12,33 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    borrow::Cow,
-    collections::{BTreeMap, HashMap, HashSet},
-    fmt, result,
-    str::FromStr,
-};
+use std::{borrow::Cow,
+          collections::{BTreeMap,
+                        HashMap,
+                        HashSet},
+          fmt,
+          result,
+          str::FromStr};
 
-use crate::{
-    butterfly::{
-        member::{Health, Member, MemberList},
-        rumor::{
-            election::{
-                Election as ElectionRumor, ElectionStatus as ElectionStatusRumor,
-                ElectionUpdate as ElectionUpdateRumor,
-            },
-            service::{Service as ServiceRumor, SysInfo},
-            service_config::ServiceConfig as ServiceConfigRumor,
-            service_file::ServiceFile as ServiceFileRumor,
-            RumorStore,
-        },
-    },
-    hcore::{self, package::PackageIdent, service::ServiceGroup},
-};
-use serde::{ser::SerializeStruct, Serialize, Serializer};
+use crate::{butterfly::{member::{Health,
+                                 Member,
+                                 MemberList},
+                        rumor::{election::{Election as ElectionRumor,
+                                           ElectionStatus as ElectionStatusRumor,
+                                           ElectionUpdate as ElectionUpdateRumor},
+                                service::{Service as ServiceRumor,
+                                          SysInfo},
+                                service_config::ServiceConfig as ServiceConfigRumor,
+                                service_file::ServiceFile as ServiceFileRumor,
+                                RumorStore}},
+            hcore::{self,
+                    package::PackageIdent,
+                    service::ServiceGroup}};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
 use toml;
 
-use crate::error::{Error, SupError};
+use crate::error::{Error,
+                   SupError};
 
 static LOGKEY: &'static str = "CE";
 
@@ -60,9 +62,7 @@ pub struct CensusRing {
 impl CensusRing {
     /// Indicates whether the census has changed since the last time
     /// we looked at rumors.
-    pub fn changed(&self) -> bool {
-        self.changed
-    }
+    pub fn changed(&self) -> bool { self.changed }
 
     pub fn new<I>(local_member_id: I) -> Self
     where
@@ -123,9 +123,7 @@ impl CensusRing {
         self.census_groups.get(sg)
     }
 
-    pub fn groups(&self) -> Vec<&CensusGroup> {
-        self.census_groups.values().map(|cg| cg).collect()
-    }
+    pub fn groups(&self) -> Vec<&CensusGroup> { self.census_groups.values().map(|cg| cg).collect() }
 
     /// Populates the census from `ServiceRumor`s and Butterfly-level
     /// membership lists.
@@ -230,9 +228,7 @@ impl CensusRing {
 pub struct CensusRingProxy<'a>(&'a CensusRing);
 
 impl<'a> CensusRingProxy<'a> {
-    pub fn new(c: &'a CensusRing) -> Self {
-        CensusRingProxy(&c)
-    }
+    pub fn new(c: &'a CensusRing) -> Self { CensusRingProxy(&c) }
 }
 
 impl<'a> Serialize for CensusRingProxy<'a> {
@@ -272,9 +268,7 @@ pub enum ElectionStatus {
 }
 
 impl Default for ElectionStatus {
-    fn default() -> ElectionStatus {
-        ElectionStatus::None
-    }
+    fn default() -> ElectionStatus { ElectionStatus::None }
 }
 
 impl fmt::Display for ElectionStatus {
@@ -358,9 +352,7 @@ impl CensusGroup {
     }
 
     /// Returns the census member in the census ring for the running Supervisor.
-    pub fn me(&self) -> Option<&CensusMember> {
-        self.population.get(&self.local_member_id)
-    }
+    pub fn me(&self) -> Option<&CensusMember> { self.population.get(&self.local_member_id) }
 
     pub fn leader(&self) -> Option<&CensusMember> {
         match self.leader_id {
@@ -377,9 +369,7 @@ impl CensusGroup {
     }
 
     /// Returns a list of all members in the census ring.
-    pub fn members(&self) -> impl Iterator<Item = &CensusMember> {
-        self.population.values()
-    }
+    pub fn members(&self) -> impl Iterator<Item = &CensusMember> { self.population.values() }
 
     /// Same as `members`, but only returns members that are either
     /// alive or suspect, i.e., nothing that is confirmed dead or
@@ -692,30 +682,20 @@ impl CensusMember {
     }
 
     /// Is this member currently considered to be alive or not?
-    pub fn alive(&self) -> bool {
-        self.alive
-    }
+    pub fn alive(&self) -> bool { self.alive }
 
-    pub fn suspect(&self) -> bool {
-        self.suspect
-    }
+    pub fn suspect(&self) -> bool { self.suspect }
 
-    pub fn confirmed(&self) -> bool {
-        self.confirmed
-    }
+    pub fn confirmed(&self) -> bool { self.confirmed }
 
-    pub fn departed(&self) -> bool {
-        self.departed
-    }
+    pub fn departed(&self) -> bool { self.departed }
 }
 
 /// This data structure just wraps the CensusMember and allows us to tweak the serialization logic.
 pub struct CensusMemberProxy<'a>(&'a CensusMember);
 
 impl<'a> CensusMemberProxy<'a> {
-    pub fn new(c: &'a CensusMember) -> Self {
-        CensusMemberProxy(&c)
-    }
+    pub fn new(c: &'a CensusMember) -> Self { CensusMemberProxy(&c) }
 }
 
 impl<'a> Serialize for CensusMemberProxy<'a> {
@@ -784,22 +764,19 @@ mod tests {
 
     use serde_json;
 
-    use crate::{
-        butterfly::{
-            member::{Health, MemberList},
-            rumor::{
-                election::{
-                    self, Election as ElectionRumor, ElectionUpdate as ElectionUpdateRumor,
-                },
-                service::{Service as ServiceRumor, SysInfo},
-                service_config::ServiceConfig as ServiceConfigRumor,
-                service_file::ServiceFile as ServiceFileRumor,
-                RumorStore,
-            },
-        },
-        hcore::{package::ident::PackageIdent, service::ServiceGroup},
-        test_helpers::*,
-    };
+    use crate::{butterfly::{member::{Health,
+                                     MemberList},
+                            rumor::{election::{self,
+                                               Election as ElectionRumor,
+                                               ElectionUpdate as ElectionUpdateRumor},
+                                    service::{Service as ServiceRumor,
+                                              SysInfo},
+                                    service_config::ServiceConfig as ServiceConfigRumor,
+                                    service_file::ServiceFile as ServiceFileRumor,
+                                    RumorStore}},
+                hcore::{package::ident::PackageIdent,
+                        service::ServiceGroup},
+                test_helpers::*};
 
     #[test]
     fn update_from_rumors() {

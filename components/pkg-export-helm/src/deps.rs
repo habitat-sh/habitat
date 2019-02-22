@@ -15,13 +15,15 @@
 use clap;
 use failure::SyncFailure;
 use handlebars::Handlebars;
-use std::{io::Write, path::Path, process::Command};
+use std::{io::Write,
+          path::Path,
+          process::Command};
 
-use crate::{
-    common::ui::{Status, UIWriter, UI},
-    error::Error,
-    export_docker::Result,
-};
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            error::Error,
+            export_docker::Result};
 
 pub const DEFAULT_OPERATOR_VERSION: &str = "0.6.1";
 pub const OPERATOR_REPO_URL: &str =

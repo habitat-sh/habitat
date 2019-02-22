@@ -55,10 +55,9 @@
 //!
 //! In general, each fixture should be used by a single test.
 
-use std::{
-    path::{Path, PathBuf},
-    string::ToString,
-};
+use std::{path::{Path,
+                 PathBuf},
+          string::ToString};
 
 #[derive(Clone, Debug)]
 pub struct FixtureRoot(PathBuf);
@@ -96,7 +95,5 @@ impl FixtureRoot {
 }
 
 impl AsRef<Path> for FixtureRoot {
-    fn as_ref(&self) -> &Path {
-        &self.0.as_path()
-    }
+    fn as_ref(&self) -> &Path { &self.0.as_path() }
 }

@@ -22,29 +22,38 @@
 //! mpsc channel, [`CtlSender`], to [`CtlReceiver`]. A new mpsc pair is created for each
 //! transactional request where the sending half is given to a [`ctl_gateway.CtlRequest`].
 
-use std::{cell::RefCell, error, fmt, io, net::SocketAddr, rc::Rc, thread, time::Duration};
+use std::{cell::RefCell,
+          error,
+          fmt,
+          io,
+          net::SocketAddr,
+          rc::Rc,
+          thread,
+          time::Duration};
 
-use crate::{
-    hcore::crypto,
-    protocol::{
-        self,
-        codec::*,
-        net::{self, ErrCode, NetErr, NetResult},
-    },
-};
-use futures::{
-    future::{self, Either},
-    prelude::*,
-    sync::mpsc,
-};
-use prometheus::{HistogramTimer, HistogramVec, IntCounterVec};
+use crate::{hcore::crypto,
+            protocol::{self,
+                       codec::*,
+                       net::{self,
+                             ErrCode,
+                             NetErr,
+                             NetResult}}};
+use futures::{future::{self,
+                       Either},
+              prelude::*,
+              sync::mpsc};
+use prometheus::{HistogramTimer,
+                 HistogramVec,
+                 IntCounterVec};
 use prost;
 use tokio::net::TcpListener;
 use tokio_codec::Framed;
 use tokio_core::reactor;
 
-use super::{CtlRequest, REQ_TIMEOUT};
-use crate::manager::{commands, ManagerState};
+use super::{CtlRequest,
+            REQ_TIMEOUT};
+use crate::manager::{commands,
+                     ManagerState};
 
 lazy_static! {
     static ref RPC_CALLS: IntCounterVec = register_int_counter_vec!(
@@ -106,27 +115,19 @@ impl fmt::Display for HandlerError {
 }
 
 impl From<NetErr> for HandlerError {
-    fn from(err: NetErr) -> Self {
-        HandlerError::NetErr(err)
-    }
+    fn from(err: NetErr) -> Self { HandlerError::NetErr(err) }
 }
 
 impl From<io::Error> for HandlerError {
-    fn from(err: io::Error) -> Self {
-        HandlerError::Io(err)
-    }
+    fn from(err: io::Error) -> Self { HandlerError::Io(err) }
 }
 
 impl From<prost::DecodeError> for HandlerError {
-    fn from(err: prost::DecodeError) -> Self {
-        HandlerError::Decode(err)
-    }
+    fn from(err: prost::DecodeError) -> Self { HandlerError::Decode(err) }
 }
 
 impl From<mpsc::SendError<CtlCommand>> for HandlerError {
-    fn from(err: mpsc::SendError<CtlCommand>) -> Self {
-        HandlerError::SendError(err)
-    }
+    fn from(err: mpsc::SendError<CtlCommand>) -> Self { HandlerError::SendError(err) }
 }
 
 /// A wrapper around a [`ctl_gateway.CtlRequest`] and a closure for the main thread to execute.

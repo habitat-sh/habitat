@@ -12,14 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{env, ffi::OsString, fs as stdfs, path::PathBuf};
+use std::{env,
+          ffi::OsString,
+          fs as stdfs,
+          path::PathBuf};
 
-use crate::{
-    common::ui::UI,
-    hcore::{crypto::CACHE_KEY_PATH_ENV_VAR, env as henv, fs},
-};
+use crate::{common::ui::UI,
+            hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
+                    env as henv,
+                    fs}};
 
-use crate::{config, error::Result};
+use crate::{config,
+            error::Result};
 
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 
@@ -62,24 +66,26 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
 
 #[cfg(target_os = "linux")]
 mod inner {
-    use std::{env, ffi::OsString, path::PathBuf, str::FromStr};
+    use std::{env,
+              ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
-    use crate::{
-        common::ui::{UIWriter, UI},
-        hcore::{
-            crypto::{default_cache_key_path, init},
-            env as henv,
-            fs::{am_i_root, find_command},
-            os::process,
-            package::PackageIdent,
-            users::linux as group,
-        },
-    };
+    use crate::{common::ui::{UIWriter,
+                             UI},
+                hcore::{crypto::{default_cache_key_path,
+                                 init},
+                        env as henv,
+                        fs::{am_i_root,
+                             find_command},
+                        os::process,
+                        package::PackageIdent,
+                        users::linux as group}};
 
-    use crate::{
-        error::{Error, Result},
-        exec, VERSION,
-    };
+    use crate::{error::{Error,
+                        Result},
+                exec,
+                VERSION};
 
     use crate::command::studio::docker;
 
@@ -178,24 +184,23 @@ mod inner {
 
 #[cfg(not(target_os = "linux"))]
 mod inner {
-    use std::{ffi::OsString, path::PathBuf, str::FromStr};
+    use std::{ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
-    use crate::{
-        common::ui::UI,
-        hcore::{
-            crypto::{default_cache_key_path, init},
-            env as henv,
-            fs::find_command,
-            os::process,
-            package::PackageIdent,
-        },
-    };
+    use crate::{common::ui::UI,
+                hcore::{crypto::{default_cache_key_path,
+                                 init},
+                        env as henv,
+                        fs::find_command,
+                        os::process,
+                        package::PackageIdent}};
 
-    use crate::{
-        command::studio::docker,
-        error::{Error, Result},
-        exec, VERSION,
-    };
+    use crate::{command::studio::docker,
+                error::{Error,
+                        Result},
+                exec,
+                VERSION};
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {

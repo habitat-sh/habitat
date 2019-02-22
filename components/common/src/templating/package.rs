@@ -12,20 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{collections::HashMap, env, ops::Deref, path::PathBuf, result};
+use std::{collections::HashMap,
+          env,
+          ops::Deref,
+          path::PathBuf,
+          result};
 
-use crate::hcore::{
-    fs,
-    os::users,
-    package::{PackageIdent, PackageInstall},
-    util::{deserialize_using_from_str, serialize_using_to_string},
-};
-use serde::{ser::SerializeStruct, Serialize, Serializer};
+use crate::hcore::{fs,
+                   os::users,
+                   package::{PackageIdent,
+                             PackageInstall},
+                   util::{deserialize_using_from_str,
+                          serialize_using_to_string}};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
 
-use crate::{
-    error::{Error, Result},
-    util::path,
-};
+use crate::{error::{Error,
+                    Result},
+            util::path};
 
 const DEFAULT_USER: &str = "hab";
 const DEFAULT_GROUP: &str = "hab";
@@ -38,15 +43,11 @@ pub struct Env(HashMap<String, String>);
 impl Deref for Env {
     type Target = HashMap<String, String>;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+    fn deref(&self) -> &Self::Target { &self.0 }
 }
 
 impl From<HashMap<String, String>> for Env {
-    fn from(inner_map: HashMap<String, String>) -> Self {
-        Env(inner_map)
-    }
+    fn from(inner_map: HashMap<String, String>) -> Self { Env(inner_map) }
 }
 
 impl Env {
@@ -147,9 +148,7 @@ pub struct PkgProxy<'a> {
 }
 
 impl<'a> PkgProxy<'a> {
-    pub fn new(p: &'a Pkg) -> Self {
-        PkgProxy { pkg: &p }
-    }
+    pub fn new(p: &'a Pkg) -> Self { PkgProxy { pkg: &p } }
 
     pub fn dependencies(&self) -> Vec<String> {
         self.pkg.deps.iter().map(|m| m.to_string()).collect()

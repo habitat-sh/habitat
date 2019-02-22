@@ -16,20 +16,19 @@ use crate::hcore::package::PackageIdent;
 use hyper::status::StatusCode;
 use std::str::FromStr;
 
-use crate::{
-    api_client,
-    common::ui::{Status, UIReader, UIWriter, UI},
-    hcore::ChannelIdent,
-};
+use crate::{api_client,
+            common::ui::{Status,
+                         UIReader,
+                         UIWriter,
+                         UI},
+            hcore::ChannelIdent};
 
-use crate::{
-    error::{Error, Result},
-    PRODUCT, VERSION,
-};
+use crate::{error::{Error,
+                    Result},
+            PRODUCT,
+            VERSION};
 
-fn is_ident(s: &str) -> bool {
-    PackageIdent::from_str(s).is_ok()
-}
+fn is_ident(s: &str) -> bool { PackageIdent::from_str(s).is_ok() }
 
 fn in_origin(ident: &str, origin: Option<&str>) -> bool {
     if origin.is_some() {
@@ -178,17 +177,18 @@ pub fn start(
 
 #[cfg(test)]
 mod test {
-    use std::{
-        env,
-        io::{self, Cursor, Write},
-        sync::{Arc, RwLock},
-    };
+    use std::{env,
+              io::{self,
+                   Cursor,
+                   Write},
+              sync::{Arc,
+                     RwLock}};
 
     use super::get_ident_list;
-    use crate::{
-        api_client::{Project, SchedulerResponse},
-        common::ui::{Coloring, UI},
-    };
+    use crate::{api_client::{Project,
+                             SchedulerResponse},
+                common::ui::{Coloring,
+                             UI}};
 
     fn sample_project_list() -> Vec<Project> {
         let project1 = Project {

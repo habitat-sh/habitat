@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    collections::{HashMap, HashSet},
-    ffi::OsString,
-    fmt::Debug,
-    path::PathBuf,
-};
+use std::{collections::{HashMap,
+                        HashSet},
+          ffi::OsString,
+          fmt::Debug,
+          path::PathBuf};
 
 pub trait IndentedToString {
     fn indented_to_string(&self, spaces: &str, repeat: usize) -> String;
@@ -91,21 +90,15 @@ impl IndentedStructFormatter {
 }
 
 impl IndentedToString for u32 {
-    fn indented_to_string(&self, _: &str, _: usize) -> String {
-        self.to_string()
-    }
+    fn indented_to_string(&self, _: &str, _: usize) -> String { self.to_string() }
 }
 
 impl IndentedToString for PathBuf {
-    fn indented_to_string(&self, _: &str, _: usize) -> String {
-        self.display().to_string()
-    }
+    fn indented_to_string(&self, _: &str, _: usize) -> String { self.display().to_string() }
 }
 
 impl IndentedToString for OsString {
-    fn indented_to_string(&self, _: &str, _: usize) -> String {
-        self.to_string_lossy().to_string()
-    }
+    fn indented_to_string(&self, _: &str, _: usize) -> String { self.to_string_lossy().to_string() }
 }
 
 impl<T: IndentedToString> IndentedToString for Option<T> {

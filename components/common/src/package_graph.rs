@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    error::Result,
-    hcore::{
-        fs as hfs,
-        package::{self, ident::PackageIdent, PackageInstall},
-    },
-};
+use crate::{error::Result,
+            hcore::{fs as hfs,
+                    package::{self,
+                              ident::PackageIdent,
+                              PackageInstall}}};
 use bimap::BiMap;
-use petgraph::{
-    self,
-    graph::NodeIndex,
-    stable_graph::StableGraph,
-    visit::{Bfs, Reversed, Walker},
-};
+use petgraph::{self,
+               graph::NodeIndex,
+               stable_graph::StableGraph,
+               visit::{Bfs,
+                       Reversed,
+                       Walker}};
 
 use std::path::Path;
 
@@ -176,9 +174,7 @@ impl PackageGraph {
     }
 
     /// does a specific PackageIdent appear in the graph
-    pub fn has_package(&self, package: &PackageIdent) -> bool {
-        self.nodes.contains_left(package)
-    }
+    pub fn has_package(&self, package: &PackageIdent) -> bool { self.nodes.contains_left(package) }
 
     fn count_edges(&self, package: &PackageIdent, direction: petgraph::Direction) -> Option<usize> {
         self.nodes
@@ -238,14 +234,10 @@ mod test {
         }
 
         /// Returns the number of packages in the package graph
-        fn node_count(&self) -> usize {
-            self.graph.node_count()
-        }
+        fn node_count(&self) -> usize { self.graph.node_count() }
 
         /// Returns the number of edges (dependencies) in the package graph
-        fn edge_count(&self) -> usize {
-            self.graph.edge_count()
-        }
+        fn edge_count(&self) -> usize { self.graph.edge_count() }
     }
 
     struct PackageDeps {
@@ -275,9 +267,7 @@ mod test {
         }
     }
 
-    fn empty_vec() -> Vec<&'static PackageIdent> {
-        vec![]
-    }
+    fn empty_vec() -> Vec<&'static PackageIdent> { vec![] }
 
     #[test]
     fn empty_graph() {

@@ -14,7 +14,9 @@
 
 use base64::DecodeError;
 use rusoto_ecr::GetAuthorizationTokenError;
-use std::{process::ExitStatus, result, string::FromUtf8Error};
+use std::{process::ExitStatus,
+          result,
+          string::FromUtf8Error};
 
 use failure;
 

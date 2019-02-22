@@ -12,26 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    fs,
-    path::{Path, PathBuf},
-    process::Command,
-    str::FromStr,
-};
+use std::{fs,
+          path::{Path,
+                 PathBuf},
+          process::Command,
+          str::FromStr};
 
-use crate::{
-    common::ui::{Status, UIWriter, UI},
-    hcore::{fs as hfs, package::PackageIdent},
-};
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            hcore::{fs as hfs,
+                    package::PackageIdent}};
 use failure::SyncFailure;
 use handlebars::Handlebars;
 
-use super::{Credentials, Naming};
-use crate::{
-    build::BuildRoot,
-    error::{Error, Result},
-    util,
-};
+use super::{Credentials,
+            Naming};
+use crate::{build::BuildRoot,
+            error::{Error,
+                    Result},
+            util};
 use serde_json;
 
 /// The `Dockerfile` template.
@@ -218,19 +218,13 @@ impl<'a> DockerImage {
     }
 
     /// Returns the ID of this image.
-    pub fn id(&self) -> &str {
-        self.id.as_str()
-    }
+    pub fn id(&self) -> &str { self.id.as_str() }
 
     /// Returns the name of this image.
-    pub fn name(&self) -> &str {
-        self.name.as_str()
-    }
+    pub fn name(&self) -> &str { self.name.as_str() }
 
     /// Returns the list of tags for this image.
-    pub fn tags(&self) -> &[String] {
-        &self.tags
-    }
+    pub fn tags(&self) -> &[String] { &self.tags }
 
     /// Create a build report with image metadata in the given path.
     ///
@@ -366,9 +360,7 @@ impl DockerBuildRoot {
     /// # Errors
     ///
     /// * If the temporary work directory cannot be removed
-    pub fn destroy(self, ui: &mut UI) -> Result<()> {
-        self.0.destroy(ui)
-    }
+    pub fn destroy(self, ui: &mut UI) -> Result<()> { self.0.destroy(ui) }
 
     /// Build the Docker image locally using the provided naming policy.
     ///
@@ -406,7 +398,8 @@ impl DockerBuildRoot {
 
     #[cfg(unix)]
     fn add_users_and_groups(&self, ui: &mut UI) -> Result<()> {
-        use std::{fs::OpenOptions, io::Write};
+        use std::{fs::OpenOptions,
+                  io::Write};
 
         let ctx = self.0.ctx();
         let (users, groups) = ctx.svc_users_and_groups()?;
@@ -552,6 +545,4 @@ impl DockerBuildRoot {
 }
 
 /// Returns a `Command` for the Docker program.
-fn docker_cmd() -> Command {
-    Command::new(&*DOCKER_PROGRAM)
-}
+fn docker_cmd() -> Command { Command::new(&*DOCKER_PROGRAM) }

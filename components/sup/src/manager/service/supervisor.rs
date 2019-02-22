@@ -18,29 +18,31 @@
 /// spawning the new process, watching for failure, and ensuring the service is either up or
 /// down. If the process dies, the Supervisor will restart it.
 use std;
-use std::{
-    fs::File,
-    io::{prelude::*, BufReader},
-    path::{Path, PathBuf},
-    result,
-};
+use std::{fs::File,
+          io::{prelude::*,
+               BufReader},
+          path::{Path,
+                 PathBuf},
+          result};
 
 #[cfg(unix)]
 use crate::hcore::os::users;
-use crate::{
-    common::templating::package::Pkg,
-    hcore::{
-        fs,
-        os::process::{self, Pid},
-        service::ServiceGroup,
-    },
-    launcher_client::LauncherCli,
-};
-use serde::{ser::SerializeStruct, Serialize, Serializer};
-use time::{self, Timespec};
+use crate::{common::templating::package::Pkg,
+            hcore::{fs,
+                    os::process::{self,
+                                  Pid},
+                    service::ServiceGroup},
+            launcher_client::LauncherCli};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
+use time::{self,
+           Timespec};
 
-use super::{ProcessState, ShutdownReason};
-use crate::error::{Error, Result};
+use super::{ProcessState,
+            ShutdownReason};
+use crate::error::{Error,
+                   Result};
 
 static LOGKEY: &'static str = "SV";
 

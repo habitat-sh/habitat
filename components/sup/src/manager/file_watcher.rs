@@ -12,21 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    collections::{hash_map::Entry, HashMap, HashSet, VecDeque},
-    env,
-    ffi::OsString,
-    mem::swap,
-    path::{Component, Path, PathBuf},
-    sync::mpsc::{channel, Receiver, TryRecvError},
-    thread,
-    time::Duration,
-};
+use std::{collections::{hash_map::Entry,
+                        HashMap,
+                        HashSet,
+                        VecDeque},
+          env,
+          ffi::OsString,
+          mem::swap,
+          path::{Component,
+                 Path,
+                 PathBuf},
+          sync::mpsc::{channel,
+                       Receiver,
+                       TryRecvError},
+          thread,
+          time::Duration};
 
-use crate::error::{Error, Result};
-use notify::{self, DebouncedEvent, RecommendedWatcher, RecursiveMode, Watcher};
+use crate::error::{Error,
+                   Result};
+use notify::{self,
+             DebouncedEvent,
+             RecommendedWatcher,
+             RecursiveMode,
+             Watcher};
 
-use crate::manager::debug::{IndentedStructFormatter, IndentedToString};
+use crate::manager::debug::{IndentedStructFormatter,
+                            IndentedToString};
 
 pub const WATCHER_DELAY_MS: u64 = 2_000;
 static LOGKEY: &'static str = "FW";
@@ -93,9 +104,7 @@ impl DirFileName {
         })
     }
 
-    fn as_path(&self) -> PathBuf {
-        self.directory.join(&self.file_name)
-    }
+    fn as_path(&self) -> PathBuf { self.directory.join(&self.file_name) }
 }
 
 impl IndentedToString for DirFileName {
@@ -268,9 +277,7 @@ impl Common {
     // The path is at the end of the chain, which means we expect it
     // to be a file. This is because we always expect the watcher to
     // be started on a file.
-    fn is_leaf(&self) -> bool {
-        self.path_rest.is_empty()
-    }
+    fn is_leaf(&self) -> bool { self.path_rest.is_empty() }
 }
 
 impl IndentedToString for Common {
@@ -333,9 +340,7 @@ impl CommonGenerator {
         s
     }
 
-    fn revert_previous(&mut self) {
-        self.prev = self.old_prev.clone();
-    }
+    fn revert_previous(&mut self) { self.prev = self.old_prev.clone(); }
 
     fn set_path(&mut self, path: PathBuf) {
         self.path = path;
@@ -968,21 +973,15 @@ impl Paths {
     }
 
     // Checks whether the path is present in the list of watched paths.
-    fn get_watched_file(&self, path: &PathBuf) -> Option<&WatchedFile> {
-        self.paths.get(path)
-    }
+    fn get_watched_file(&self, path: &PathBuf) -> Option<&WatchedFile> { self.paths.get(path) }
 
     fn get_mut_watched_file(&mut self, path: &PathBuf) -> Option<&mut WatchedFile> {
         self.paths.get_mut(path)
     }
 
-    fn get_directory(&self, path: &PathBuf) -> Option<&u32> {
-        self.dirs.get(path)
-    }
+    fn get_directory(&self, path: &PathBuf) -> Option<&u32> { self.dirs.get(path) }
 
-    fn get_mut_directory(&mut self, path: &PathBuf) -> Option<&mut u32> {
-        self.dirs.get_mut(path)
-    }
+    fn get_mut_directory(&mut self, path: &PathBuf) -> Option<&mut u32> { self.dirs.get_mut(path) }
 
     fn drop_watch(&mut self, path: &PathBuf) -> Option<PathBuf> {
         if let Some(watched_file) = self.paths.remove(path) {
@@ -1127,13 +1126,9 @@ impl Paths {
         }
     }
 
-    fn add_path_to_settle(&mut self, path: PathBuf) {
-        self.paths_to_settle.insert(path);
-    }
+    fn add_path_to_settle(&mut self, path: PathBuf) { self.paths_to_settle.insert(path); }
 
-    fn settle_path(&mut self, path: PathBuf) {
-        self.paths_to_settle.remove(&path);
-    }
+    fn settle_path(&mut self, path: PathBuf) { self.paths_to_settle.remove(&path); }
 
     fn set_process_args(&mut self, args: ProcessPathArgs) {
         if match self.process_args_after_settle {
@@ -1299,27 +1294,19 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 
     /// Get the reference to callbacks.
     #[allow(dead_code)]
-    pub fn get_callbacks(&self) -> &C {
-        &self.callbacks
-    }
+    pub fn get_callbacks(&self) -> &C { &self.callbacks }
 
     /// Get the mutable reference to callbacks.
     #[allow(dead_code)]
-    pub fn get_mut_callbacks(&mut self) -> &mut C {
-        &mut self.callbacks
-    }
+    pub fn get_mut_callbacks(&mut self) -> &mut C { &mut self.callbacks }
 
     /// Get the reference to the underlying watcher.
     #[allow(dead_code)]
-    pub fn get_underlying_watcher(&self) -> &W {
-        &self.watcher
-    }
+    pub fn get_underlying_watcher(&self) -> &W { &self.watcher }
 
     /// Get the mutable reference to the underlying watcher.
     #[allow(dead_code)]
-    pub fn get_mut_underlying_watcher(&mut self) -> &mut W {
-        &mut self.watcher
-    }
+    pub fn get_mut_underlying_watcher(&mut self) -> &mut W { &mut self.watcher }
 
     // Turns given path to a simplified absolute path.
     //
@@ -1672,24 +1659,38 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 // scenario, that involves symlinks.
 #[cfg(all(unix, test))]
 mod tests {
-    use std::{
-        collections::{HashMap, HashSet, VecDeque},
-        ffi::OsString,
-        fmt::{Display, Error, Formatter},
-        fs::{self, File},
-        io::ErrorKind,
-        os::unix::fs as unix_fs,
-        path::{Component, Path, PathBuf},
-        sync::mpsc::Sender,
-        thread,
-        time::Duration,
-    };
+    use std::{collections::{HashMap,
+                            HashSet,
+                            VecDeque},
+              ffi::OsString,
+              fmt::{Display,
+                    Error,
+                    Formatter},
+              fs::{self,
+                   File},
+              io::ErrorKind,
+              os::unix::fs as unix_fs,
+              path::{Component,
+                     Path,
+                     PathBuf},
+              sync::mpsc::Sender,
+              thread,
+              time::Duration};
 
-    use notify::{self, DebouncedEvent, RawEvent, RecommendedWatcher, RecursiveMode, Watcher};
+    use notify::{self,
+                 DebouncedEvent,
+                 RawEvent,
+                 RecommendedWatcher,
+                 RecursiveMode,
+                 Watcher};
 
     use tempfile::TempDir;
 
-    use super::{Callbacks, FileWatcher, IndentedStructFormatter, IndentedToString, WatchedFile};
+    use super::{Callbacks,
+                FileWatcher,
+                IndentedStructFormatter,
+                IndentedToString,
+                WatchedFile};
 
     // Convenient macro for inline creation of hashmaps.
     macro_rules! hm(
@@ -2659,21 +2660,13 @@ mod tests {
     }
 
     impl NotifyEvent {
-        fn new(path: PathBuf, kind: NotifyEventKind) -> Self {
-            Self { path, kind }
-        }
+        fn new(path: PathBuf, kind: NotifyEventKind) -> Self { Self { path, kind } }
 
-        fn appeared(path: PathBuf) -> Self {
-            Self::new(path, NotifyEventKind::Appeared)
-        }
+        fn appeared(path: PathBuf) -> Self { Self::new(path, NotifyEventKind::Appeared) }
 
-        fn modified(path: PathBuf) -> Self {
-            Self::new(path, NotifyEventKind::Modified)
-        }
+        fn modified(path: PathBuf) -> Self { Self::new(path, NotifyEventKind::Modified) }
 
-        fn disappeared(path: PathBuf) -> Self {
-            Self::new(path, NotifyEventKind::Disappeared)
-        }
+        fn disappeared(path: PathBuf) -> Self { Self::new(path, NotifyEventKind::Disappeared) }
     }
 
     // A description of the single step in the test case.
@@ -2821,9 +2814,7 @@ mod tests {
             }
         }
 
-        fn push_level(&mut self) {
-            self.logs_per_level.push(Vec::new());
-        }
+        fn push_level(&mut self) { self.logs_per_level.push(Vec::new()); }
 
         fn pop_level(&mut self) {
             self.logs_per_level.pop();
@@ -2833,9 +2824,7 @@ mod tests {
             );
         }
 
-        fn add(&mut self, str: String) {
-            self.logs_per_level.last_mut().unwrap().push(str);
-        }
+        fn add(&mut self, str: String) { self.logs_per_level.last_mut().unwrap().push(str); }
     }
 
     impl Display for DebugInfo {

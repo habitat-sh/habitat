@@ -12,31 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::{BindingMode, Topology, UpdateStrategy};
-use crate::{
-    error::{Error, Result, SupError},
-    hcore::{
-        fs::atomic_write,
-        package::{PackageIdent, PackageInstall},
-        service::{ApplicationEnvironment, HealthCheckInterval, ServiceBind},
-        url::DEFAULT_BLDR_URL,
-        util::{deserialize_using_from_str, serialize_using_to_string},
-        ChannelIdent,
-    },
-    protocol,
-};
-use serde::{self, Deserialize};
-use std::{
-    collections::HashSet,
-    fmt,
-    fs::{self, File},
-    io::{BufReader, Read},
-    iter::FromIterator,
-    path::{Path, PathBuf},
-    result,
-    str::FromStr,
-    time::Duration,
-};
+use super::{BindingMode,
+            Topology,
+            UpdateStrategy};
+use crate::{error::{Error,
+                    Result,
+                    SupError},
+            hcore::{fs::atomic_write,
+                    package::{PackageIdent,
+                              PackageInstall},
+                    service::{ApplicationEnvironment,
+                              HealthCheckInterval,
+                              ServiceBind},
+                    url::DEFAULT_BLDR_URL,
+                    util::{deserialize_using_from_str,
+                           serialize_using_to_string},
+                    ChannelIdent},
+            protocol};
+use serde::{self,
+            Deserialize};
+use std::{collections::HashSet,
+          fmt,
+          fs::{self,
+               File},
+          io::{BufReader,
+               Read},
+          iter::FromIterator,
+          path::{Path,
+                 PathBuf},
+          result,
+          str::FromStr,
+          time::Duration};
 use toml;
 
 static LOGKEY: &str = "SS";
@@ -50,9 +56,7 @@ pub enum DesiredState {
 }
 
 impl Default for DesiredState {
-    fn default() -> DesiredState {
-        DesiredState::Up
-    }
+    fn default() -> DesiredState { DesiredState::Up }
 }
 
 impl fmt::Display for DesiredState {
@@ -228,9 +232,7 @@ impl ServiceSpec {
         Ok(())
     }
 
-    pub fn file_name(&self) -> String {
-        format!("{}.{}", &self.ident.name, SPEC_FILE_EXT)
-    }
+    pub fn file_name(&self) -> String { format!("{}.{}", &self.ident.name, SPEC_FILE_EXT) }
 
     /// Validates that all required package binds are present in service binds and all remaining
     /// service binds are optional package binds.
@@ -312,17 +314,18 @@ impl FromStr for ServiceSpec {
 
 #[cfg(test)]
 mod test {
-    use std::{
-        fs::{self, File},
-        io::{BufReader, Read, Write},
-        path::{Path, PathBuf},
-        str::FromStr,
-    };
+    use std::{fs::{self,
+                   File},
+              io::{BufReader,
+                   Read,
+                   Write},
+              path::{Path,
+                     PathBuf},
+              str::FromStr};
 
-    use crate::hcore::{
-        package::PackageIdent,
-        service::{ApplicationEnvironment, HealthCheckInterval},
-    };
+    use crate::hcore::{package::PackageIdent,
+                       service::{ApplicationEnvironment,
+                                 HealthCheckInterval}};
     use tempfile::TempDir;
 
     use super::*;

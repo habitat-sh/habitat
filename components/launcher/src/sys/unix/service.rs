@@ -12,35 +12,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    io,
-    ops::Neg,
-    os::unix::process::CommandExt,
-    process::{Child, Command, ExitStatus, Stdio},
-    result,
-};
+use std::{io,
+          ops::Neg,
+          os::unix::process::CommandExt,
+          process::{Child,
+                    Command,
+                    ExitStatus,
+                    Stdio},
+          result};
 
-use crate::{
-    core::os::{
-        self,
-        process::{signal, Signal},
-    },
-    protocol::{self, ShutdownMethod},
-};
+use crate::{core::os::{self,
+                       process::{signal,
+                                 Signal}},
+            protocol::{self,
+                       ShutdownMethod}};
 use libc;
-use time::{Duration, SteadyTime};
+use time::{Duration,
+           SteadyTime};
 
-use crate::{
-    error::{Error, Result},
-    service::Service,
-};
+use crate::{error::{Error,
+                    Result},
+            service::Service};
 
 pub struct Process(Child);
 
 impl Process {
-    pub fn id(&self) -> u32 {
-        self.0.id()
-    }
+    pub fn id(&self) -> u32 { self.0.id() }
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.
@@ -83,13 +80,9 @@ impl Process {
         }
     }
 
-    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
-        self.0.try_wait()
-    }
+    pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> { self.0.try_wait() }
 
-    pub fn wait(&mut self) -> io::Result<ExitStatus> {
-        self.0.wait()
-    }
+    pub fn wait(&mut self) -> io::Result<ExitStatus> { self.0.wait() }
 }
 
 pub fn run(msg: protocol::Spawn) -> Result<Service> {

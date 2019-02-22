@@ -20,21 +20,25 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
-use std::{
-    fmt, io,
-    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4, ToSocketAddrs},
-    ops::{Deref, DerefMut},
-    option, result,
-    str::FromStr,
-};
+use std::{fmt,
+          io,
+          net::{IpAddr,
+                Ipv4Addr,
+                SocketAddr,
+                SocketAddrV4,
+                ToSocketAddrs},
+          ops::{Deref,
+                DerefMut},
+          option,
+          result,
+          str::FromStr};
 
-use crate::{
-    common::{
-        cli_defaults::{GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT, GOSSIP_LISTEN_ADDRESS_ENVVAR},
-        types::EnvConfig,
-    },
-    error::{Result, SupError},
-};
+use crate::{common::{cli_defaults::{GOSSIP_DEFAULT_IP,
+                                    GOSSIP_DEFAULT_PORT,
+                                    GOSSIP_LISTEN_ADDRESS_ENVVAR},
+                     types::EnvConfig},
+            error::{Result,
+                    SupError}};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
@@ -75,31 +79,23 @@ impl EnvConfig for GossipListenAddr {
 impl Deref for GossipListenAddr {
     type Target = SocketAddr;
 
-    fn deref(&self) -> &SocketAddr {
-        &self.0
-    }
+    fn deref(&self) -> &SocketAddr { &self.0 }
 }
 
 impl DerefMut for GossipListenAddr {
-    fn deref_mut(&mut self) -> &mut SocketAddr {
-        &mut self.0
-    }
+    fn deref_mut(&mut self) -> &mut SocketAddr { &mut self.0 }
 }
 
 impl FromStr for GossipListenAddr {
     type Err = SupError;
 
-    fn from_str(val: &str) -> Result<Self> {
-        Ok(GossipListenAddr(SocketAddr::from_str(val)?))
-    }
+    fn from_str(val: &str) -> Result<Self> { Ok(GossipListenAddr(SocketAddr::from_str(val)?)) }
 }
 
 impl ToSocketAddrs for GossipListenAddr {
     type Iter = option::IntoIter<SocketAddr>;
 
-    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
-        self.0.to_socket_addrs()
-    }
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
 }
 
 impl fmt::Display for GossipListenAddr {
@@ -139,15 +135,16 @@ mod tests {
     mod env_config {
         use super::*;
         use crate::common::locked_env_var;
-        use std::{env, num::ParseIntError, result, str::FromStr};
+        use std::{env,
+                  num::ParseIntError,
+                  result,
+                  str::FromStr};
 
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
         struct Thingie(u64);
 
         impl Default for Thingie {
-            fn default() -> Self {
-                Thingie(2112)
-            }
+            fn default() -> Self { Thingie(2112) }
         }
 
         impl FromStr for Thingie {

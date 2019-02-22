@@ -23,19 +23,17 @@
 //! not global.
 
 // Standard Library
-use std::{
-    collections::HashMap,
-    result,
-    str::FromStr,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap,
+          result,
+          str::FromStr,
+          sync::{Arc,
+                 RwLock}};
 
 // Internal Modules
-use crate::{
-    common::types::EnvConfig,
-    error::Error,
-    rumor::{RumorKey, RumorType},
-};
+use crate::{common::types::EnvConfig,
+            error::Error,
+            rumor::{RumorKey,
+                    RumorType}};
 
 // TODO (CM): Can we key by member instead? What do we do more frequently?
 // TODO (CM): Might want to type the member ID explicitly
@@ -59,9 +57,7 @@ struct RumorShareLimit(usize);
 
 impl Default for RumorShareLimit {
     /// Share a rumor with a member twice.
-    fn default() -> Self {
-        RumorShareLimit(2)
-    }
+    fn default() -> Self { RumorShareLimit(2) }
 }
 
 impl FromStr for RumorShareLimit {
@@ -207,27 +203,26 @@ impl RumorHeat {
 }
 
 impl Default for RumorHeat {
-    fn default() -> RumorHeat {
-        RumorHeat(Arc::new(RwLock::new(HashMap::new())))
-    }
+    fn default() -> RumorHeat { RumorHeat(Arc::new(RwLock::new(HashMap::new()))) }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        common::locked_env_var,
-        error::Result,
-        protocol::{self, newscast},
-        rumor::{Rumor, RumorKey, RumorType},
-    };
+    use crate::{common::locked_env_var,
+                error::Result,
+                protocol::{self,
+                           newscast},
+                rumor::{Rumor,
+                        RumorKey,
+                        RumorType}};
     use uuid::Uuid;
 
-    use crate::{
-        member::Member,
-        rumor::service::{Service, SysInfo},
-    };
-    use habitat_core::{package::PackageIdent, service::ServiceGroup};
+    use crate::{member::Member,
+                rumor::service::{Service,
+                                 SysInfo}};
+    use habitat_core::{package::PackageIdent,
+                       service::ServiceGroup};
 
     // TODO (CM): This FakeRumor implementation is copied from
     // rumor.rs; factor this helper code better.
@@ -248,39 +243,25 @@ mod tests {
     }
 
     impl Rumor for FakeRumor {
-        fn kind(&self) -> RumorType {
-            RumorType::Fake
-        }
+        fn kind(&self) -> RumorType { RumorType::Fake }
 
-        fn key(&self) -> &str {
-            &self.key
-        }
+        fn key(&self) -> &str { &self.key }
 
-        fn id(&self) -> &str {
-            &self.id
-        }
+        fn id(&self) -> &str { &self.id }
 
-        fn merge(&mut self, mut _other: FakeRumor) -> bool {
-            false
-        }
+        fn merge(&mut self, mut _other: FakeRumor) -> bool { false }
     }
 
     impl protocol::FromProto<newscast::Rumor> for FakeRumor {
-        fn from_proto(_other: newscast::Rumor) -> Result<Self> {
-            Ok(FakeRumor::default())
-        }
+        fn from_proto(_other: newscast::Rumor) -> Result<Self> { Ok(FakeRumor::default()) }
     }
 
     impl From<FakeRumor> for newscast::Rumor {
-        fn from(_other: FakeRumor) -> newscast::Rumor {
-            newscast::Rumor::default()
-        }
+        fn from(_other: FakeRumor) -> newscast::Rumor { newscast::Rumor::default() }
     }
 
     impl protocol::Message<newscast::Rumor> for FakeRumor {
-        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
-            Ok(FakeRumor::default())
-        }
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> { Ok(FakeRumor::default()) }
 
         fn write_to_bytes(&self) -> Result<Vec<u8>> {
             Ok(Vec::from(format!("{}-{}", self.id, self.key).as_bytes()))

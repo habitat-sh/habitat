@@ -12,24 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-    net::{SocketAddr, ToSocketAddrs},
-    path::{Path, PathBuf},
-    sync::{
-        atomic::{AtomicBool, Ordering},
-        Arc,
-    },
-    thread::Builder as ThreadBuilder,
-};
+use std::{fs::File,
+          io::{BufRead,
+               BufReader},
+          net::{SocketAddr,
+                ToSocketAddrs},
+          path::{Path,
+                 PathBuf},
+          sync::{atomic::{AtomicBool,
+                          Ordering},
+                 Arc},
+          thread::Builder as ThreadBuilder};
 
-use crate::{
-    butterfly::member::Member,
-    common::cli_defaults::GOSSIP_DEFAULT_PORT,
-    error::{Error, Result},
-    manager::file_watcher::{default_file_watcher, Callbacks},
-};
+use crate::{butterfly::member::Member,
+            common::cli_defaults::GOSSIP_DEFAULT_PORT,
+            error::{Error,
+                    Result},
+            manager::file_watcher::{default_file_watcher,
+                                    Callbacks}};
 
 static LOGKEY: &'static str = "PW";
 
@@ -38,17 +38,11 @@ pub struct PeerCallbacks {
 }
 
 impl Callbacks for PeerCallbacks {
-    fn file_appeared(&mut self, _: &Path) {
-        self.have_events.store(true, Ordering::Relaxed);
-    }
+    fn file_appeared(&mut self, _: &Path) { self.have_events.store(true, Ordering::Relaxed); }
 
-    fn file_modified(&mut self, _: &Path) {
-        self.have_events.store(true, Ordering::Relaxed)
-    }
+    fn file_modified(&mut self, _: &Path) { self.have_events.store(true, Ordering::Relaxed) }
 
-    fn file_disappeared(&mut self, _: &Path) {
-        self.have_events.store(true, Ordering::Relaxed)
-    }
+    fn file_disappeared(&mut self, _: &Path) { self.have_events.store(true, Ordering::Relaxed) }
 }
 
 pub struct PeerWatcher {
@@ -119,9 +113,7 @@ impl PeerWatcher {
         false
     }
 
-    pub fn has_fs_events(&self) -> bool {
-        self.have_events.load(Ordering::Relaxed)
-    }
+    pub fn has_fs_events(&self) -> bool { self.have_events.load(Ordering::Relaxed) }
 
     pub fn get_members(&self) -> Result<Vec<Member>> {
         if !self.path.is_file() {
@@ -163,11 +155,11 @@ impl PeerWatcher {
 #[cfg(test)]
 mod tests {
     use super::PeerWatcher;
-    use crate::{butterfly::member::Member, common::cli_defaults::GOSSIP_DEFAULT_PORT};
-    use std::{
-        fs::{File, OpenOptions},
-        io::Write,
-    };
+    use crate::{butterfly::member::Member,
+                common::cli_defaults::GOSSIP_DEFAULT_PORT};
+    use std::{fs::{File,
+                   OpenOptions},
+              io::Write};
     use tempfile::TempDir;
 
     #[test]

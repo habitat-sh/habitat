@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{export_docker as docker, hcore::service::ServiceBind};
-use clap::{App, Arg};
-use std::{result, str::FromStr};
+use crate::{export_docker as docker,
+            hcore::service::ServiceBind};
+use clap::{App,
+           Arg};
+use std::{result,
+          str::FromStr};
 
 /// A Kubernetes-specific clap:App wrapper
 ///

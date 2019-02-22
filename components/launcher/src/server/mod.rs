@@ -14,43 +14,51 @@
 
 mod handlers;
 
-use std::{
-    collections::HashMap,
-    fs,
-    io::Write,
-    path::PathBuf,
-    process::{Child, Command, Stdio},
-    str::FromStr,
-    sync::{Arc, Condvar, Mutex},
-    thread,
-    time::Duration,
-};
+use std::{collections::HashMap,
+          fs,
+          io::Write,
+          path::PathBuf,
+          process::{Child,
+                    Command,
+                    Stdio},
+          str::FromStr,
+          sync::{Arc,
+                 Condvar,
+                 Mutex},
+          thread,
+          time::Duration};
 
 #[cfg(unix)]
 use std::os::unix::process::ExitStatusExt;
 #[cfg(unix)]
 use std::process::ExitStatus;
 
-use crate::{
-    core::{
-        self,
-        fs::{launcher_root_path, FS_ROOT_PATH},
-        os::{
-            process::{self, Pid, Signal},
-            signals::{self, SignalEvent},
-        },
-        package::{PackageIdent, PackageInstall},
-    },
-    error::{Error, Result},
-    protocol::{self, ERR_NO_RETRY_EXCODE, OK_NO_RETRY_EXCODE},
-    server::handlers::Handler,
-    service::Service,
-    SUP_CMD, SUP_PACKAGE_IDENT,
-};
-use ipc_channel::ipc::{IpcOneShotServer, IpcReceiver, IpcSender};
+use crate::{core::{self,
+                   fs::{launcher_root_path,
+                        FS_ROOT_PATH},
+                   os::{process::{self,
+                                  Pid,
+                                  Signal},
+                        signals::{self,
+                                  SignalEvent}},
+                   package::{PackageIdent,
+                             PackageInstall}},
+            error::{Error,
+                    Result},
+            protocol::{self,
+                       ERR_NO_RETRY_EXCODE,
+                       OK_NO_RETRY_EXCODE},
+            server::handlers::Handler,
+            service::Service,
+            SUP_CMD,
+            SUP_PACKAGE_IDENT};
+use ipc_channel::ipc::{IpcOneShotServer,
+                       IpcReceiver,
+                       IpcSender};
 #[cfg(unix)]
 use libc;
-use semver::{Version, VersionReq};
+use semver::{Version,
+             VersionReq};
 
 const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
@@ -198,9 +206,7 @@ impl Server {
         }
     }
 
-    fn reap_services(&mut self) {
-        self.services.reap_services()
-    }
+    fn reap_services(&mut self) { self.services.reap_services() }
 
     fn shutdown(&mut self) {
         debug!("Shutting down...");
@@ -355,30 +361,20 @@ impl Server {
     /// returning `None` means that there's nothing special that needs
     /// to be done.
     #[cfg(windows)]
-    fn reap_zombie_orphans(&mut self) -> Option<Result<TickState>> {
-        None
-    }
+    fn reap_zombie_orphans(&mut self) -> Option<Result<TickState>> { None }
 }
 
 #[derive(Debug, Default)]
 pub struct ServiceTable(HashMap<u32, Service>);
 
 impl ServiceTable {
-    pub fn get(&self, pid: u32) -> Option<&Service> {
-        self.0.get(&pid)
-    }
+    pub fn get(&self, pid: u32) -> Option<&Service> { self.0.get(&pid) }
 
-    pub fn get_mut(&mut self, pid: u32) -> Option<&mut Service> {
-        self.0.get_mut(&pid)
-    }
+    pub fn get_mut(&mut self, pid: u32) -> Option<&mut Service> { self.0.get_mut(&pid) }
 
-    pub fn insert(&mut self, service: Service) {
-        self.0.insert(service.id(), service);
-    }
+    pub fn insert(&mut self, service: Service) { self.0.insert(service.id(), service); }
 
-    pub fn remove(&mut self, pid: u32) -> Option<Service> {
-        self.0.remove(&pid)
-    }
+    pub fn remove(&mut self, pid: u32) -> Option<Service> { self.0.remove(&pid) }
 
     fn kill_all(&mut self) {
         for service in self.0.values_mut() {

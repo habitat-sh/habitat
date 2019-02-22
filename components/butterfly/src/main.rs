@@ -14,20 +14,21 @@
 
 use env_logger;
 
-use std::{env, net::SocketAddr, path::PathBuf, thread, time::Duration};
+use std::{env,
+          net::SocketAddr,
+          path::PathBuf,
+          thread,
+          time::Duration};
 
-use habitat_butterfly::{
-    member,
-    server::{self, Suitability},
-    trace,
-};
+use habitat_butterfly::{member,
+                        server::{self,
+                                 Suitability},
+                        trace};
 
 #[derive(Debug)]
 struct ZeroSuitability;
 impl Suitability for ZeroSuitability {
-    fn get(&self, _service_group: &str) -> u64 {
-        0
-    }
+    fn get(&self, _service_group: &str) -> u64 { 0 }
 }
 
 fn main() {

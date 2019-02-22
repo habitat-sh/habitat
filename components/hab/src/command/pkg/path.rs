@@ -14,7 +14,8 @@
 
 use std::path::Path;
 
-use crate::hcore::package::{PackageIdent, PackageInstall};
+use crate::hcore::package::{PackageIdent,
+                            PackageInstall};
 
 use crate::error::Result;
 

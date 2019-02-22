@@ -12,15 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    fmt,
-    net::{IpAddr, Ipv4Addr, SocketAddr, SocketAddrV4},
-    result,
-    str::FromStr,
-};
+use std::{fmt,
+          net::{IpAddr,
+                Ipv4Addr,
+                SocketAddr,
+                SocketAddrV4},
+          result,
+          str::FromStr};
 
 use super::env_config::EnvConfig;
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);
@@ -32,13 +34,9 @@ impl ListenCtlAddr {
         ListenCtlAddr(SocketAddr::V4(SocketAddrV4::new(ip, port)))
     }
 
-    pub fn ip(&self) -> IpAddr {
-        self.0.ip()
-    }
+    pub fn ip(&self) -> IpAddr { self.0.ip() }
 
-    pub fn port(&self) -> u16 {
-        self.0.port()
-    }
+    pub fn port(&self) -> u16 { self.0.port() }
 }
 
 impl Default for ListenCtlAddr {
@@ -54,9 +52,7 @@ impl EnvConfig for ListenCtlAddr {
 impl FromStr for ListenCtlAddr {
     type Err = Error;
 
-    fn from_str(val: &str) -> Result<Self> {
-        Ok(val.parse::<SocketAddr>()?.into())
-    }
+    fn from_str(val: &str) -> Result<Self> { Ok(val.parse::<SocketAddr>()?.into()) }
 }
 
 impl fmt::Display for ListenCtlAddr {
@@ -66,13 +62,9 @@ impl fmt::Display for ListenCtlAddr {
 }
 
 impl From<SocketAddr> for ListenCtlAddr {
-    fn from(socket_addr: SocketAddr) -> Self {
-        ListenCtlAddr(socket_addr)
-    }
+    fn from(socket_addr: SocketAddr) -> Self { ListenCtlAddr(socket_addr) }
 }
 
 impl AsRef<SocketAddr> for ListenCtlAddr {
-    fn as_ref(&self) -> &SocketAddr {
-        &self.0
-    }
+    fn as_ref(&self) -> &SocketAddr { &self.0 }
 }

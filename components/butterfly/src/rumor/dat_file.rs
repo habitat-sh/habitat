@@ -12,25 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    fs::File,
-    io::{self, BufReader, BufWriter, Read, Seek, SeekFrom, Write},
-    mem,
-    path::{Path, PathBuf},
-};
+use std::{fs::File,
+          io::{self,
+               BufReader,
+               BufWriter,
+               Read,
+               Seek,
+               SeekFrom,
+               Write},
+          mem,
+          path::{Path,
+                 PathBuf}};
 
-use byteorder::{ByteOrder, LittleEndian};
+use byteorder::{ByteOrder,
+                LittleEndian};
 use habitat_core::fs::AtomicWriter;
 
-use crate::{
-    error::{Error, Result},
-    member::{MemberList, Membership},
-    protocol::{newscast, Message},
-    rumor::{
-        Departure, Election, ElectionUpdate, Rumor, RumorStore, Service, ServiceConfig, ServiceFile,
-    },
-    server::Server,
-};
+use crate::{error::{Error,
+                    Result},
+            member::{MemberList,
+                     Membership},
+            protocol::{newscast,
+                       Message},
+            rumor::{Departure,
+                    Election,
+                    ElectionUpdate,
+                    Rumor,
+                    RumorStore,
+                    Service,
+                    ServiceConfig,
+                    ServiceFile},
+            server::Server};
 
 const HEADER_VERSION: u8 = 2;
 
@@ -59,9 +71,7 @@ impl DatFile {
         }
     }
 
-    pub fn path(&self) -> &Path {
-        &self.path
-    }
+    pub fn path(&self) -> &Path { &self.path }
 
     pub fn read_into(&mut self, server: &Server) -> Result<()> {
         let mut version = [0; 1];
@@ -278,19 +288,13 @@ impl DatFile {
         Ok(total)
     }
 
-    fn member_offset(&self) -> u64 {
-        1 + self.header_size
-    }
+    fn member_offset(&self) -> u64 { 1 + self.header_size }
 
     #[allow(dead_code)]
-    fn service_offset(&self) -> u64 {
-        self.member_offset() + self.header.member_len
-    }
+    fn service_offset(&self) -> u64 { self.member_offset() + self.header.member_len }
 
     #[allow(dead_code)]
-    fn service_config_offset(&self) -> u64 {
-        self.service_offset() + self.header.service_len
-    }
+    fn service_config_offset(&self) -> u64 { self.service_offset() + self.header.service_len }
 
     #[allow(dead_code)]
     fn service_file_offset(&self) -> u64 {
@@ -298,19 +302,13 @@ impl DatFile {
     }
 
     #[allow(dead_code)]
-    fn election_offset(&self) -> u64 {
-        self.service_file_offset() + self.header.service_file_len
-    }
+    fn election_offset(&self) -> u64 { self.service_file_offset() + self.header.service_file_len }
 
     #[allow(dead_code)]
-    fn update_offset(&self) -> u64 {
-        self.election_offset() + self.header.election_len
-    }
+    fn update_offset(&self) -> u64 { self.election_offset() + self.header.election_len }
 
     #[allow(dead_code)]
-    fn departure_offset(&self) -> u64 {
-        self.update_offset() + self.header.update_len
-    }
+    fn departure_offset(&self) -> u64 { self.update_offset() + self.header.update_len }
 
     fn write_header<W>(&self, writer: &mut W, header: &Header) -> Result<usize>
     where

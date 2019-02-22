@@ -13,15 +13,22 @@
 // limitations under the License.
 
 use clap;
-use std::{fs, io::Write, path::PathBuf};
+use std::{fs,
+          io::Write,
+          path::PathBuf};
 
-use crate::{
-    common::ui::{Status, UIWriter, UI},
-    export_docker::{self, Result},
-    export_k8s::{Manifest, ManifestJson, PersistentStorage},
-};
+use crate::{common::ui::{Status,
+                         UIWriter,
+                         UI},
+            export_docker::{self,
+                            Result},
+            export_k8s::{Manifest,
+                         ManifestJson,
+                         PersistentStorage}};
 
-use crate::{chartfile::ChartFile, deps::Deps, values::Values};
+use crate::{chartfile::ChartFile,
+            deps::Deps,
+            values::Values};
 
 pub struct Chart<'a> {
     chartdir: PathBuf,
@@ -217,9 +224,7 @@ impl<'a> Chart<'a> {
         Ok(())
     }
 
-    fn download_deps(&mut self) -> Result<()> {
-        self.deps.download(&self.chartdir, self.ui)
-    }
+    fn download_deps(&mut self) -> Result<()> { self.deps.download(&self.chartdir, self.ui) }
 
     fn create_file(&mut self, name: &str) -> Result<fs::File> {
         let mut path = self.chartdir.clone();

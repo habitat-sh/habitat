@@ -14,17 +14,18 @@
 
 #[cfg(not(windows))]
 use std::process::ExitStatus;
-use std::{
-    self,
-    io::prelude::*,
-    path::{Path, PathBuf},
-};
+use std::{self,
+          io::prelude::*,
+          path::{Path,
+                 PathBuf}};
 
-use crate::common::templating::{
-    hooks::{self, ExitCode, Hook, HookOutput, RenderPair},
-    package::Pkg,
-    TemplateRenderer,
-};
+use crate::common::templating::{hooks::{self,
+                                        ExitCode,
+                                        Hook,
+                                        HookOutput,
+                                        RenderPair},
+                                package::Pkg,
+                                TemplateRenderer};
 #[cfg(windows)]
 use crate::hcore::os::process::windows_child::ExitStatus;
 use serde::Serialize;
@@ -43,9 +44,7 @@ pub struct FileUpdatedHook {
 impl Hook for FileUpdatedHook {
     type ExitValue = bool;
 
-    fn file_name() -> &'static str {
-        "file-updated"
-    }
+    fn file_name() -> &'static str { "file-updated" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         FileUpdatedHook {
@@ -59,21 +58,13 @@ impl Hook for FileUpdatedHook {
         status.success()
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Serialize)]
@@ -86,9 +77,7 @@ pub struct HealthCheckHook {
 impl Hook for HealthCheckHook {
     type ExitValue = health::HealthCheck;
 
-    fn file_name() -> &'static str {
-        "health-check"
-    }
+    fn file_name() -> &'static str { "health-check" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         HealthCheckHook {
@@ -122,21 +111,13 @@ impl Hook for HealthCheckHook {
         }
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Serialize)]
@@ -149,9 +130,7 @@ pub struct InitHook {
 impl Hook for InitHook {
     type ExitValue = bool;
 
-    fn file_name() -> &'static str {
-        "init"
-    }
+    fn file_name() -> &'static str { "init" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         InitHook {
@@ -183,21 +162,13 @@ impl Hook for InitHook {
         }
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Serialize)]
@@ -210,9 +181,7 @@ pub struct RunHook {
 impl Hook for RunHook {
     type ExitValue = ExitCode;
 
-    fn file_name() -> &'static str {
-        "run"
-    }
+    fn file_name() -> &'static str { "run" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         RunHook {
@@ -247,21 +216,13 @@ impl Hook for RunHook {
         }
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Serialize)]
@@ -274,9 +235,7 @@ pub struct PostRunHook {
 impl Hook for PostRunHook {
     type ExitValue = ExitCode;
 
-    fn file_name() -> &'static str {
-        "post-run"
-    }
+    fn file_name() -> &'static str { "post-run" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         PostRunHook {
@@ -301,21 +260,13 @@ impl Hook for PostRunHook {
         }
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Serialize)]
@@ -328,9 +279,7 @@ pub struct ReloadHook {
 impl Hook for ReloadHook {
     type ExitValue = ExitCode;
 
-    fn file_name() -> &'static str {
-        "reload"
-    }
+    fn file_name() -> &'static str { "reload" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         ReloadHook {
@@ -361,21 +310,13 @@ impl Hook for ReloadHook {
         }
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Serialize)]
@@ -388,9 +329,7 @@ pub struct ReconfigureHook {
 impl Hook for ReconfigureHook {
     type ExitValue = ExitCode;
 
-    fn file_name() -> &'static str {
-        "reconfigure"
-    }
+    fn file_name() -> &'static str { "reconfigure" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         ReconfigureHook {
@@ -415,21 +354,13 @@ impl Hook for ReconfigureHook {
         }
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Serialize)]
@@ -442,9 +373,7 @@ pub struct SuitabilityHook {
 impl Hook for SuitabilityHook {
     type ExitValue = Option<u64>;
 
-    fn file_name() -> &'static str {
-        "suitability"
-    }
+    fn file_name() -> &'static str { "suitability" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         SuitabilityHook {
@@ -501,21 +430,13 @@ impl Hook for SuitabilityHook {
         None
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Serialize)]
@@ -528,9 +449,7 @@ pub struct PostStopHook {
 impl Hook for PostStopHook {
     type ExitValue = bool;
 
-    fn file_name() -> &'static str {
-        "post-stop"
-    }
+    fn file_name() -> &'static str { "post-stop" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
         PostStopHook {
@@ -561,21 +480,13 @@ impl Hook for PostStopHook {
         }
     }
 
-    fn path(&self) -> &Path {
-        &self.render_pair.path
-    }
+    fn path(&self) -> &Path { &self.render_pair.path }
 
-    fn renderer(&self) -> &TemplateRenderer {
-        &self.render_pair.renderer
-    }
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
 
-    fn stdout_log_path(&self) -> &Path {
-        &self.stdout_log_path
-    }
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
 
-    fn stderr_log_path(&self) -> &Path {
-        &self.stderr_log_path
-    }
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
 #[derive(Debug, Default, Serialize)]
@@ -679,34 +590,34 @@ impl HookTable {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs, iter};
+    use std::{fs,
+              iter};
 
-    use crate::{
-        butterfly::{
-            member::MemberList,
-            rumor::{
-                election::{
-                    self, Election as ElectionRumor, ElectionUpdate as ElectionUpdateRumor,
-                },
-                service::{Service as ServiceRumor, SysInfo},
-                service_config::ServiceConfig as ServiceConfigRumor,
-                service_file::ServiceFile as ServiceFileRumor,
-                RumorStore,
-            },
-        },
-        common::templating::{config::Cfg, package::Pkg, test_helpers::*},
-        hcore::{
-            package::{PackageIdent, PackageInstall},
-            service::{ServiceBind, ServiceGroup},
-        },
-    };
+    use crate::{butterfly::{member::MemberList,
+                            rumor::{election::{self,
+                                               Election as ElectionRumor,
+                                               ElectionUpdate as ElectionUpdateRumor},
+                                    service::{Service as ServiceRumor,
+                                              SysInfo},
+                                    service_config::ServiceConfig as ServiceConfigRumor,
+                                    service_file::ServiceFile as ServiceFileRumor,
+                                    RumorStore}},
+                common::templating::{config::Cfg,
+                                     package::Pkg,
+                                     test_helpers::*},
+                hcore::{package::{PackageIdent,
+                                  PackageInstall},
+                        service::{ServiceBind,
+                                  ServiceGroup}}};
     use tempfile::TempDir;
 
-    use super::{super::RenderContext, *};
-    use crate::{
-        census::CensusRing, common::types::ListenCtlAddr, config::GossipListenAddr, http_gateway,
-        manager::sys::Sys,
-    };
+    use super::{super::RenderContext,
+                *};
+    use crate::{census::CensusRing,
+                common::types::ListenCtlAddr,
+                config::GossipListenAddr,
+                http_gateway,
+                manager::sys::Sys};
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use
@@ -740,9 +651,7 @@ mod tests {
             .join("hook_templates")
     }
 
-    fn rendered_hooks_path() -> TempDir {
-        TempDir::new().expect("create temp dir")
-    }
+    fn rendered_hooks_path() -> TempDir { TempDir::new().expect("create temp dir") }
 
     fn service_group() -> ServiceGroup {
         ServiceGroup::new(None, "test_service", "test_group", None)

@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    fs::{self, File},
-    io::Write,
-    path::PathBuf,
-};
+use std::{fs::{self,
+               File},
+          io::Write,
+          path::PathBuf};
 
 use dirs;
 
-use crate::hcore::{
-    config::ConfigFile,
-    fs::{am_i_root, FS_ROOT_PATH},
-};
+use crate::hcore::{config::ConfigFile,
+                   fs::{am_i_root,
+                        FS_ROOT_PATH}};
 use toml;
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 const CLI_CONFIG_PATH: &str = "hab/etc/cli.toml";
 

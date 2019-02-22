@@ -1,14 +1,14 @@
-use std::{
-    error::Error as StdErr,
-    ffi::OsStr,
-    iter::IntoIterator,
-    path::{Path, PathBuf},
-};
+use std::{error::Error as StdErr,
+          ffi::OsStr,
+          iter::IntoIterator,
+          path::{Path,
+                 PathBuf}};
 
 use glob;
 
 use super::service::spec::ServiceSpec;
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 static LOGKEY: &str = "SD";
 const SPEC_FILE_EXT: &str = "spec";
@@ -18,9 +18,7 @@ const SPEC_FILE_GLOB: &str = "*.spec";
 pub struct SpecDir(PathBuf);
 
 impl AsRef<Path> for SpecDir {
-    fn as_ref(&self) -> &Path {
-        self.0.as_ref()
-    }
+    fn as_ref(&self) -> &Path { self.0.as_ref() }
 }
 
 impl SpecDir {

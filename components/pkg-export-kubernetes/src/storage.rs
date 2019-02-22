@@ -14,7 +14,9 @@
 
 use clap::ArgMatches;
 use serde_json;
-use std::{path::Path, result::Result as StdResult, str::FromStr};
+use std::{path::Path,
+          result::Result as StdResult,
+          str::FromStr};
 
 use crate::export_docker::Result;
 

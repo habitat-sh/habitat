@@ -16,12 +16,13 @@
 //! `Suspect` rumors to `Confirmed`, and `Confirmed` rumors to
 //! `Departed`.
 
-use std::{thread, time::Duration};
+use std::{thread,
+          time::Duration};
 
-use crate::{
-    rumor::{RumorKey, RumorType},
-    server::{timing::Timing, Server},
-};
+use crate::{rumor::{RumorKey,
+                    RumorType},
+            server::{timing::Timing,
+                     Server}};
 
 const LOOP_DELAY_MS: u64 = 500;
 
@@ -31,9 +32,7 @@ pub struct Expire {
 }
 
 impl Expire {
-    pub fn new(server: Server, timing: Timing) -> Expire {
-        Expire { server, timing }
-    }
+    pub fn new(server: Server, timing: Timing) -> Expire { Expire { server, timing } }
 
     pub fn run(&self) {
         loop {

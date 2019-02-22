@@ -28,38 +28,39 @@ pub mod service;
 pub mod service_config;
 pub mod service_file;
 
-use std::{
-    collections::{hash_map::Entry, HashMap},
-    default::Default,
-    ops::Deref,
-    result,
-    sync::{
-        atomic::{AtomicUsize, Ordering},
-        Arc, RwLock,
-    },
-};
+use std::{collections::{hash_map::Entry,
+                        HashMap},
+          default::Default,
+          ops::Deref,
+          result,
+          sync::{atomic::{AtomicUsize,
+                          Ordering},
+                 Arc,
+                 RwLock}};
 
 use bytes::BytesMut;
 use prometheus::IntCounterVec;
 use prost::Message as ProstMessage;
-use serde::{
-    ser::{SerializeMap, SerializeSeq, SerializeStruct},
-    Serialize, Serializer,
-};
+use serde::{ser::{SerializeMap,
+                  SerializeSeq,
+                  SerializeStruct},
+            Serialize,
+            Serializer};
 
-pub use self::{
-    departure::Departure,
-    election::{Election, ElectionUpdate},
-    service::Service,
-    service_config::ServiceConfig,
-    service_file::ServiceFile,
-};
-pub use crate::protocol::newscast::{Rumor as ProtoRumor, RumorPayload, RumorType};
-use crate::{
-    error::{Error, Result},
-    member::Membership,
-    protocol::{FromProto, Message},
-};
+pub use self::{departure::Departure,
+               election::{Election,
+                          ElectionUpdate},
+               service::Service,
+               service_config::ServiceConfig,
+               service_file::ServiceFile};
+pub use crate::protocol::newscast::{Rumor as ProtoRumor,
+                                    RumorPayload,
+                                    RumorType};
+use crate::{error::{Error,
+                    Result},
+            member::Membership,
+            protocol::{FromProto,
+                       Message}};
 
 lazy_static! {
     static ref IGNORED_RUMOR_COUNT: IntCounterVec = register_int_counter_vec!(
@@ -137,9 +138,7 @@ pub trait Rumor: Message<ProtoRumor> + Sized {
 }
 
 impl<'a, T: Rumor> From<&'a T> for RumorKey {
-    fn from(rumor: &'a T) -> RumorKey {
-        RumorKey::new(rumor.kind(), rumor.id(), rumor.key())
-    }
+    fn from(rumor: &'a T) -> RumorKey { RumorKey::new(rumor.kind(), rumor.id(), rumor.key()) }
 }
 
 /// Storage for Rumors. It takes a rumor and stores it according to the member that produced it,
@@ -170,9 +169,7 @@ where
 {
     type Target = RwLock<HashMap<String, HashMap<String, T>>>;
 
-    fn deref(&self) -> &Self::Target {
-        &*self.list
-    }
+    fn deref(&self) -> &Self::Target { &*self.list }
 }
 
 impl<T> Serialize for RumorStore<T>
@@ -201,9 +198,7 @@ impl<'a, T> RumorStoreProxy<'a, T>
 where
     T: Rumor,
 {
-    pub fn new(r: &'a RumorStore<T>) -> Self {
-        RumorStoreProxy(r)
-    }
+    pub fn new(r: &'a RumorStore<T>) -> Self { RumorStoreProxy(r) }
 }
 
 impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
@@ -364,9 +359,7 @@ where
         }
     }
 
-    pub fn get_update_counter(&self) -> usize {
-        self.update_counter.load(Ordering::Relaxed)
-    }
+    pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
 
     /// Returns the count of all rumors in the rumor store for the given member's key.
     pub fn len_for_key(&self, key: &str) -> usize {
@@ -465,9 +458,7 @@ where
     ///
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
-    fn increment_update_counter(&self) {
-        self.update_counter.fetch_add(1, Ordering::Relaxed);
-    }
+    fn increment_update_counter(&self) { self.update_counter.fetch_add(1, Ordering::Relaxed); }
 }
 
 impl RumorStore<Service> {
@@ -559,11 +550,12 @@ impl From<RumorEnvelope> for ProtoRumor {
 mod tests {
     use uuid::Uuid;
 
-    use crate::{
-        error::Result,
-        protocol::{self, newscast},
-        rumor::{Rumor, RumorKey, RumorType},
-    };
+    use crate::{error::Result,
+                protocol::{self,
+                           newscast},
+                rumor::{Rumor,
+                        RumorKey,
+                        RumorType}};
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
@@ -587,39 +579,25 @@ mod tests {
     }
 
     impl Rumor for FakeRumor {
-        fn kind(&self) -> RumorType {
-            RumorType::Fake
-        }
+        fn kind(&self) -> RumorType { RumorType::Fake }
 
-        fn key(&self) -> &str {
-            &self.key
-        }
+        fn key(&self) -> &str { &self.key }
 
-        fn id(&self) -> &str {
-            &self.id
-        }
+        fn id(&self) -> &str { &self.id }
 
-        fn merge(&mut self, mut _other: FakeRumor) -> bool {
-            false
-        }
+        fn merge(&mut self, mut _other: FakeRumor) -> bool { false }
     }
 
     impl protocol::FromProto<newscast::Rumor> for FakeRumor {
-        fn from_proto(_other: newscast::Rumor) -> Result<Self> {
-            Ok(FakeRumor::default())
-        }
+        fn from_proto(_other: newscast::Rumor) -> Result<Self> { Ok(FakeRumor::default()) }
     }
 
     impl From<FakeRumor> for newscast::Rumor {
-        fn from(_other: FakeRumor) -> newscast::Rumor {
-            newscast::Rumor::default()
-        }
+        fn from(_other: FakeRumor) -> newscast::Rumor { newscast::Rumor::default() }
     }
 
     impl protocol::Message<newscast::Rumor> for FakeRumor {
-        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
-            Ok(FakeRumor::default())
-        }
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> { Ok(FakeRumor::default()) }
 
         fn write_to_bytes(&self) -> Result<Vec<u8>> {
             Ok(Vec::from(format!("{}-{}", self.id, self.key).as_bytes()))
@@ -636,39 +614,25 @@ mod tests {
     }
 
     impl Rumor for TrumpRumor {
-        fn kind(&self) -> RumorType {
-            RumorType::Fake2
-        }
+        fn kind(&self) -> RumorType { RumorType::Fake2 }
 
-        fn key(&self) -> &str {
-            &self.key
-        }
+        fn key(&self) -> &str { &self.key }
 
-        fn id(&self) -> &str {
-            &self.id
-        }
+        fn id(&self) -> &str { &self.id }
 
-        fn merge(&mut self, mut _other: TrumpRumor) -> bool {
-            false
-        }
+        fn merge(&mut self, mut _other: TrumpRumor) -> bool { false }
     }
 
     impl protocol::FromProto<newscast::Rumor> for TrumpRumor {
-        fn from_proto(_other: newscast::Rumor) -> Result<Self> {
-            Ok(TrumpRumor::default())
-        }
+        fn from_proto(_other: newscast::Rumor) -> Result<Self> { Ok(TrumpRumor::default()) }
     }
 
     impl From<TrumpRumor> for newscast::Rumor {
-        fn from(_other: TrumpRumor) -> newscast::Rumor {
-            newscast::Rumor::default()
-        }
+        fn from(_other: TrumpRumor) -> newscast::Rumor { newscast::Rumor::default() }
     }
 
     impl protocol::Message<newscast::Rumor> for TrumpRumor {
-        fn from_bytes(_bytes: &[u8]) -> Result<Self> {
-            Ok(TrumpRumor::default())
-        }
+        fn from_bytes(_bytes: &[u8]) -> Result<Self> { Ok(TrumpRumor::default()) }
 
         fn write_to_bytes(&self) -> Result<Vec<u8>> {
             Ok(Vec::from(format!("{}-{}", self.id, self.key).as_bytes()))
@@ -687,12 +651,11 @@ mod tests {
 
     mod rumor_store {
         use super::FakeRumor;
-        use crate::rumor::{Rumor, RumorStore};
+        use crate::rumor::{Rumor,
+                           RumorStore};
         use std::usize;
 
-        fn create_rumor_store() -> RumorStore<FakeRumor> {
-            RumorStore::default()
-        }
+        fn create_rumor_store() -> RumorStore<FakeRumor> { RumorStore::default() }
 
         #[test]
         fn update_counter() {

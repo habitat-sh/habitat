@@ -14,32 +14,37 @@
 
 //! All the code for responding to Supervisor commands
 
-use crate::{
-    butterfly,
-    common::{command::package::install::InstallSource, ui::UIWriter},
-    ctl_gateway::CtlRequest,
-    error::{Error, Result},
-    hcore::{
-        package::{Identifiable, PackageIdent, PackageTarget},
-        service::ServiceGroup,
-        ChannelIdent,
-    },
-    manager::{
-        service::{
-            spec::{IntoServiceSpec, ServiceSpec},
-            DesiredState, Pkg, ProcessState,
-        },
-        ManagerConfig, ManagerState,
-    },
-    protocol::{
-        self,
-        net::{self, ErrCode, NetResult},
-    },
-    util,
-};
+use crate::{butterfly,
+            common::{command::package::install::InstallSource,
+                     ui::UIWriter},
+            ctl_gateway::CtlRequest,
+            error::{Error,
+                    Result},
+            hcore::{package::{Identifiable,
+                              PackageIdent,
+                              PackageTarget},
+                    service::ServiceGroup,
+                    ChannelIdent},
+            manager::{service::{spec::{IntoServiceSpec,
+                                       ServiceSpec},
+                                DesiredState,
+                                Pkg,
+                                ProcessState},
+                      ManagerConfig,
+                      ManagerState},
+            protocol::{self,
+                       net::{self,
+                             ErrCode,
+                             NetResult}},
+            util};
 use serde_json;
-use std::{fmt, fs, path::PathBuf, result};
-use time::{self, Duration as TimeDuration, Timespec};
+use std::{fmt,
+          fs,
+          path::PathBuf,
+          result};
+use time::{self,
+           Duration as TimeDuration,
+           Timespec};
 use toml;
 
 static LOGKEY: &'static str = "CMD";
@@ -444,9 +449,7 @@ pub fn service_status(
 
 ////////////////////////////////////////////////////////////////////////
 // Private helper functions
-fn err_update_client() -> net::NetErr {
-    net::err(ErrCode::UpdateClient, "client out of date")
-}
+fn err_update_client() -> net::NetErr { net::err(ErrCode::UpdateClient, "client out of date") }
 
 fn spec_path_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> PathBuf {
     cfg.sup_root().join("specs").join(spec.file_name())

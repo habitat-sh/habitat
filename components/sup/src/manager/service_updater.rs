@@ -12,39 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{
-    cmp::{Ordering, PartialOrd},
-    collections::HashMap,
-    num::ParseIntError,
-    result,
-    str::FromStr,
-    sync::mpsc::{channel, Receiver, Sender, TryRecvError},
-    thread, time,
-};
+use std::{cmp::{Ordering,
+                PartialOrd},
+          collections::HashMap,
+          num::ParseIntError,
+          result,
+          str::FromStr,
+          sync::mpsc::{channel,
+                       Receiver,
+                       Sender,
+                       TryRecvError},
+          thread,
+          time};
 
 use time_crate::Duration;
 
-use crate::{
-    butterfly,
-    common::ui::UI,
-    hcore::{
-        env as henv,
-        package::{PackageIdent, PackageInstall, PackageTarget},
-        service::ServiceGroup,
-        ChannelIdent,
-    },
-    launcher_client::LauncherCli,
-};
+use crate::{butterfly,
+            common::ui::UI,
+            hcore::{env as henv,
+                    package::{PackageIdent,
+                              PackageInstall,
+                              PackageTarget},
+                    service::ServiceGroup,
+                    ChannelIdent},
+            launcher_client::LauncherCli};
 
-use crate::{
-    census::CensusRing,
-    common::types::EnvConfig,
-    manager::{
-        periodic::Periodic,
-        service::{Service, Topology, UpdateStrategy},
-    },
-    util,
-};
+use crate::{census::CensusRing,
+            common::types::EnvConfig,
+            manager::{periodic::Periodic,
+                      service::{Service,
+                                Topology,
+                                UpdateStrategy}},
+            util};
 use time_crate::SteadyTime;
 
 static LOGKEY: &'static str = "SU";
@@ -355,9 +354,7 @@ impl ServiceUpdater {
 struct ServiceUpdatePeriod(Duration);
 
 impl Default for ServiceUpdatePeriod {
-    fn default() -> Self {
-        ServiceUpdatePeriod(*MIN_ALLOWED_PERIOD)
-    }
+    fn default() -> Self { ServiceUpdatePeriod(*MIN_ALLOWED_PERIOD) }
 }
 
 impl FromStr for ServiceUpdatePeriod {
@@ -371,27 +368,19 @@ impl FromStr for ServiceUpdatePeriod {
 }
 
 impl From<Duration> for ServiceUpdatePeriod {
-    fn from(d: Duration) -> Self {
-        ServiceUpdatePeriod(d)
-    }
+    fn from(d: Duration) -> Self { ServiceUpdatePeriod(d) }
 }
 
 impl Into<Duration> for ServiceUpdatePeriod {
-    fn into(self) -> Duration {
-        self.0
-    }
+    fn into(self) -> Duration { self.0 }
 }
 
 impl PartialOrd<Duration> for ServiceUpdatePeriod {
-    fn partial_cmp(&self, other: &Duration) -> Option<Ordering> {
-        Some(self.0.cmp(other))
-    }
+    fn partial_cmp(&self, other: &Duration) -> Option<Ordering> { Some(self.0.cmp(other)) }
 }
 
 impl PartialEq<Duration> for ServiceUpdatePeriod {
-    fn eq(&self, other: &Duration) -> bool {
-        self.0 == *other
-    }
+    fn eq(&self, other: &Duration) -> bool { self.0 == *other }
 }
 
 impl EnvConfig for ServiceUpdatePeriod {

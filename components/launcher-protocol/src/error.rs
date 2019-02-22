@@ -14,7 +14,8 @@
 
 use crate::types::NetErr;
 use prost;
-use std::{fmt, result};
+use std::{fmt,
+          result};
 
 #[derive(Debug)]
 pub enum Error {
@@ -42,13 +43,9 @@ impl fmt::Display for Error {
 }
 
 impl From<prost::DecodeError> for Error {
-    fn from(err: prost::DecodeError) -> Error {
-        Error::Deserialize(err)
-    }
+    fn from(err: prost::DecodeError) -> Error { Error::Deserialize(err) }
 }
 
 impl From<prost::EncodeError> for Error {
-    fn from(err: prost::EncodeError) -> Error {
-        Error::Serialize(err)
-    }
+    fn from(err: prost::EncodeError) -> Error { Error::Serialize(err) }
 }

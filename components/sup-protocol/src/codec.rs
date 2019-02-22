@@ -54,22 +54,26 @@
 //! Contains the actual payload of the message encoded using Google
 //! [Protobuf 2](https://developers.google.com/protocol-buffers/docs/reference/proto2-spec).
 
-use std::{
-    fmt,
-    io::{self, Cursor},
-    str,
-};
+use std::{fmt,
+          io::{self,
+               Cursor},
+          str};
 
-use bytes::{Buf, BufMut, Bytes, BytesMut};
+use bytes::{Buf,
+            BufMut,
+            Bytes,
+            BytesMut};
 use futures;
-use prost::{self, Message};
+use prost::{self,
+            Message};
 use tokio::net::TcpStream;
-use tokio_codec::{Decoder, Encoder, Framed};
+use tokio_codec::{Decoder,
+                  Encoder,
+                  Framed};
 
-use crate::{
-    message::MessageStatic,
-    net::{NetErr, NetResult},
-};
+use crate::{message::MessageStatic,
+            net::{NetErr,
+                  NetResult}};
 
 const BODY_LEN_MASK: u32 = 0xF_FFFF;
 const HEADER_LEN: usize = 4;
@@ -98,9 +102,7 @@ pub struct SrvTxn(u32);
 
 impl SrvTxn {
     /// The contained transaction ID.
-    pub fn id(&self) -> u32 {
-        self.0 & TXN_ID_MASK
-    }
+    pub fn id(&self) -> u32 { self.0 & TXN_ID_MASK }
 
     /// Update the transaction ID to the next valid value.
     pub fn increment(&mut self) {
@@ -111,32 +113,22 @@ impl SrvTxn {
     }
 
     /// Check if this transaction represents the last message in a transaction.
-    pub fn is_complete(&self) -> bool {
-        ((self.0 >> COMPLETE_OFFSET) & COMPLETE_MASK) == 1
-    }
+    pub fn is_complete(&self) -> bool { ((self.0 >> COMPLETE_OFFSET) & COMPLETE_MASK) == 1 }
 
     /// Check if this transaction represents a reply to a request.
-    pub fn is_response(&self) -> bool {
-        ((self.0 >> RESPONSE_OFFSET) & RESPONSE_MASK) == 1
-    }
+    pub fn is_response(&self) -> bool { ((self.0 >> RESPONSE_OFFSET) & RESPONSE_MASK) == 1 }
 
     /// Set the completion bit indicating that the message this transaction is associated with is
     /// the last reply to a transactional request.
-    pub fn set_complete(&mut self) {
-        self.0 |= 1 << COMPLETE_OFFSET;
-    }
+    pub fn set_complete(&mut self) { self.0 |= 1 << COMPLETE_OFFSET; }
 
     /// Set the response bit indicating that the message this transaction is associated with is
     /// a response to transactional request.
-    pub fn set_response(&mut self) {
-        self.0 |= 1 << RESPONSE_OFFSET;
-    }
+    pub fn set_response(&mut self) { self.0 |= 1 << RESPONSE_OFFSET; }
 }
 
 impl From<u32> for SrvTxn {
-    fn from(value: u32) -> Self {
-        SrvTxn(value)
-    }
+    fn from(value: u32) -> Self { SrvTxn(value) }
 }
 
 impl fmt::Debug for SrvTxn {
@@ -172,9 +164,7 @@ impl SrvHeader {
     }
 
     #[inline]
-    pub fn body_len(&self) -> usize {
-        (self.0 & BODY_LEN_MASK) as usize
-    }
+    pub fn body_len(&self) -> usize { (self.0 & BODY_LEN_MASK) as usize }
 
     #[inline]
     pub fn message_id_len(&self) -> usize {
@@ -192,15 +182,11 @@ impl SrvHeader {
 
     /// Set the presence of the transaction frame of this message.
     #[inline]
-    pub fn set_is_transaction(&mut self) {
-        self.0 |= 1 << TXN_OFFSET;
-    }
+    pub fn set_is_transaction(&mut self) { self.0 |= 1 << TXN_OFFSET; }
 }
 
 impl From<u32> for SrvHeader {
-    fn from(value: u32) -> Self {
-        SrvHeader(value)
-    }
+    fn from(value: u32) -> Self { SrvHeader(value) }
 }
 
 impl fmt::Debug for SrvHeader {
@@ -227,14 +213,10 @@ pub struct SrvMessage {
 
 impl SrvMessage {
     /// Returns a reference to the encoded bytes of the protocol message.
-    pub fn body(&self) -> &Bytes {
-        &self.body
-    }
+    pub fn body(&self) -> &Bytes { &self.body }
 
     /// Returns the header frame of the protocol message.
-    pub fn header(&self) -> SrvHeader {
-        self.header
-    }
+    pub fn header(&self) -> SrvHeader { self.header }
 
     /// Returns true if the message is non-transactional or if the message is transactional and
     /// if this message is the last in a message stream. Returns false if this is not the last
@@ -255,14 +237,10 @@ impl SrvMessage {
     }
 
     /// Returns true if the message is transactional.
-    pub fn is_transaction(&self) -> bool {
-        self.transaction.is_some()
-    }
+    pub fn is_transaction(&self) -> bool { self.transaction.is_some() }
 
     /// Returns a reference to the message ID of the encoded protobuf for this protocol message.
-    pub fn message_id(&self) -> &str {
-        &self.message_id
-    }
+    pub fn message_id(&self) -> &str { &self.message_id }
 
     /// Attempts to parse the message as the given type `T`. You can use `message_id()` as a hint
     /// to which type to use as type `T`.
@@ -307,9 +285,7 @@ impl SrvMessage {
     }
 
     /// Returns the transaction.
-    pub fn transaction(&self) -> Option<SrvTxn> {
-        self.transaction
-    }
+    pub fn transaction(&self) -> Option<SrvTxn> { self.transaction }
 
     /// Set a transaction to the given message.
     pub fn set_transaction(&mut self, txn: SrvTxn) {
@@ -484,15 +460,11 @@ mod test {
 
     #[test]
     #[should_panic]
-    fn test_body_len_overflow() {
-        SrvHeader::new(BODY_LEN_MASK + 1, 0, true);
-    }
+    fn test_body_len_overflow() { SrvHeader::new(BODY_LEN_MASK + 1, 0, true); }
 
     #[test]
     #[should_panic]
-    fn test_message_id_len_overflow() {
-        SrvHeader::new(0, MESSAGE_ID_MASK + 1, true);
-    }
+    fn test_message_id_len_overflow() { SrvHeader::new(0, MESSAGE_ID_MASK + 1, true); }
 
     #[test]
     fn test_codec() {

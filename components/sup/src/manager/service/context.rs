@@ -47,27 +47,31 @@
 //! their focused and single-use purpose; they shouldn't be used for
 //! anything else, and so, they _can't_ be used for anything else.
 
-use std::{borrow::Cow, collections::HashMap, net::IpAddr, path::PathBuf, result};
+use std::{borrow::Cow,
+          collections::HashMap,
+          net::IpAddr,
+          path::PathBuf,
+          result};
 
-use serde::{ser::SerializeMap, Serialize, Serializer};
+use serde::{ser::SerializeMap,
+            Serialize,
+            Serializer};
 use toml;
 
-use crate::{
-    butterfly::rumor::service::SysInfo,
-    common::templating::{
-        config::Cfg,
-        package::{Env, Pkg},
-    },
-    hcore::{
-        package::PackageIdent,
-        service::{ServiceBind, ServiceGroup},
-    },
-};
+use crate::{butterfly::rumor::service::SysInfo,
+            common::templating::{config::Cfg,
+                                 package::{Env,
+                                           Pkg}},
+            hcore::{package::PackageIdent,
+                    service::{ServiceBind,
+                              ServiceGroup}}};
 
-use crate::{
-    census::{CensusGroup, CensusMember, CensusRing, ElectionStatus, MemberId},
-    manager::Sys,
-};
+use crate::{census::{CensusGroup,
+                     CensusMember,
+                     CensusRing,
+                     ElectionStatus,
+                     MemberId},
+            manager::Sys};
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -124,9 +128,7 @@ impl<'a> RenderContext<'a> {
     }
 
     // Exposed only for logging... can probably do this another way.
-    pub fn service_group_name(&self) -> String {
-        format!("{}", self.svc.service_group)
-    }
+    pub fn service_group_name(&self) -> String { format!("{}", self.svc.service_group) }
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -599,24 +601,24 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
 mod tests {
     use super::*;
 
-    use std::{
-        collections::BTreeMap,
-        fs,
-        io::{Read, Write},
-        net::{IpAddr, Ipv4Addr},
-        path::PathBuf,
-    };
+    use std::{collections::BTreeMap,
+              fs,
+              io::{Read,
+                   Write},
+              net::{IpAddr,
+                    Ipv4Addr},
+              path::PathBuf};
 
     use serde_json;
     use tempfile::TempDir;
 
-    use crate::{
-        butterfly::rumor::service::SysInfo,
-        common::templating::{config::PackageConfigPaths, TemplateRenderer},
-        hcore::package::PackageIdent,
-    };
+    use crate::{butterfly::rumor::service::SysInfo,
+                common::templating::{config::PackageConfigPaths,
+                                     TemplateRenderer},
+                hcore::package::PackageIdent};
 
-    use crate::{manager::service::Cfg, test_helpers::*};
+    use crate::{manager::service::Cfg,
+                test_helpers::*};
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -645,21 +647,13 @@ mod tests {
     }
 
     impl PackageConfigPaths for TestPkg {
-        fn name(&self) -> String {
-            String::from("testing")
-        }
+        fn name(&self) -> String { String::from("testing") }
 
-        fn default_config_dir(&self) -> PathBuf {
-            self.base_path.join("root")
-        }
+        fn default_config_dir(&self) -> PathBuf { self.base_path.join("root") }
 
-        fn recommended_user_config_dir(&self) -> PathBuf {
-            self.base_path.join("user")
-        }
+        fn recommended_user_config_dir(&self) -> PathBuf { self.base_path.join("user") }
 
-        fn deprecated_user_config_dir(&self) -> PathBuf {
-            self.base_path.join("svc")
-        }
+        fn deprecated_user_config_dir(&self) -> PathBuf { self.base_path.join("svc") }
     }
 
     fn new_test_pkg() -> (TempDir, TestPkg) {

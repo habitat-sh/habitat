@@ -30,7 +30,8 @@ extern crate serde_json;
 #[cfg(windows)]
 extern crate winapi;
 
-pub use self::error::{Error, Result};
+pub use self::error::{Error,
+                      Result};
 
 pub mod cli_defaults;
 pub mod command;

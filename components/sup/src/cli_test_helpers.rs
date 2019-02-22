@@ -1,5 +1,7 @@
-use clap::{App, ArgMatches};
-use std::{fmt, iter::FromIterator};
+use clap::{App,
+           ArgMatches};
+use std::{fmt,
+          iter::FromIterator};
 
 #[derive(Debug)]
 pub enum Expectation<'a> {
@@ -8,7 +10,9 @@ pub enum Expectation<'a> {
     Boolean(bool),
 }
 
-use self::Expectation::{Boolean, Value, Values};
+use self::Expectation::{Boolean,
+                        Value,
+                        Values};
 
 #[derive(Debug)]
 enum CliTestError {

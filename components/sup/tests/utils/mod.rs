@@ -14,16 +14,16 @@
 
 //! Utility functions for testing a Supervisor
 
-use std::{
-    fs::{self, File},
-    io::Write,
-    path::Path,
-    string::ToString,
-    thread,
-    time::Duration,
-};
+use std::{fs::{self,
+               File},
+          io::Write,
+          path::Path,
+          string::ToString,
+          thread,
+          time::Duration};
 
-use crate::hcore::{os::users, package::PackageInstall};
+use crate::hcore::{os::users,
+                   package::PackageInstall};
 
 pub mod fixture_root;
 pub mod hab_root;
@@ -31,12 +31,12 @@ pub mod test_butterfly;
 pub mod test_sup;
 
 // Re-export the key structs of this package for ergonomics.
-pub use self::{fixture_root::FixtureRoot, hab_root::HabRoot, test_sup::TestSup};
+pub use self::{fixture_root::FixtureRoot,
+               hab_root::HabRoot,
+               test_sup::TestSup};
 
 /// Sleep for the specified number of seconds!
-pub fn sleep_seconds(seconds: u64) {
-    thread::sleep(Duration::from_secs(seconds))
-}
+pub fn sleep_seconds(seconds: u64) { thread::sleep(Duration::from_secs(seconds)) }
 
 /// Copy fixture package files from `fixture_root` over to `hab_root`
 /// in the appropriate places for the Supervisor to find them.

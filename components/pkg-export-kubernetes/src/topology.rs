@@ -12,7 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fmt, result, str::FromStr};
+use std::{fmt,
+          result,
+          str::FromStr};
 
 use crate::error::Error;
 
@@ -32,9 +34,7 @@ impl Topology {
 }
 
 impl fmt::Display for Topology {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.as_str()) }
 }
 
 impl FromStr for Topology {
@@ -50,7 +50,5 @@ impl FromStr for Topology {
 }
 
 impl Default for Topology {
-    fn default() -> Topology {
-        Topology::Standalone
-    }
+    fn default() -> Topology { Topology::Standalone }
 }

@@ -2,7 +2,9 @@ extern crate pkg_config;
 extern crate prost;
 extern crate prost_build;
 
-use std::{env, fs, path::PathBuf};
+use std::{env,
+          fs,
+          path::PathBuf};
 
 fn main() {
     if env::var("CARGO_FEATURE_PROTOCOLS").is_ok() {
@@ -43,9 +45,7 @@ fn generated_files() -> Vec<PathBuf> {
     files
 }
 
-fn protocol_includes() -> Vec<String> {
-    vec!["protocols".to_string()]
-}
+fn protocol_includes() -> Vec<String> { vec!["protocols".to_string()] }
 
 fn protocol_files() -> Vec<String> {
     let mut files = vec![];

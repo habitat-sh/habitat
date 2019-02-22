@@ -12,10 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    common::ui::UI,
-    hcore::{package::PackageIdent, ChannelIdent},
-};
+use crate::{common::ui::UI,
+            hcore::{package::PackageIdent,
+                    ChannelIdent}};
 
 use crate::error::Result;
 
@@ -35,13 +34,9 @@ pub struct ExportFormat {
 
 #[allow(dead_code)]
 impl ExportFormat {
-    pub fn pkg_ident(&self) -> &PackageIdent {
-        &self.pkg_ident
-    }
+    pub fn pkg_ident(&self) -> &PackageIdent { &self.pkg_ident }
 
-    pub fn cmd(&self) -> &str {
-        &self.cmd
-    }
+    pub fn cmd(&self) -> &str { &self.cmd }
 }
 
 pub fn start(
@@ -54,32 +49,29 @@ pub fn start(
     inner::start(ui, url, channel, ident, format)
 }
 
-pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
-    inner::format_for(ui, value)
-}
+pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> { inner::format_for(ui, value) }
 
 #[cfg(target_os = "linux")]
 mod inner {
-    use std::{env, ffi::OsString, str::FromStr};
+    use std::{env,
+              ffi::OsString,
+              str::FromStr};
 
-    use crate::{
-        common::ui::UI,
-        hcore::{
-            crypto::{default_cache_key_path, init},
-            env::Config,
-            fs::find_command,
-            package::PackageIdent,
-            url::BLDR_URL_ENVVAR,
-            ChannelIdent,
-        },
-    };
+    use crate::{common::ui::UI,
+                hcore::{crypto::{default_cache_key_path,
+                                 init},
+                        env::Config,
+                        fs::find_command,
+                        package::PackageIdent,
+                        url::BLDR_URL_ENVVAR,
+                        ChannelIdent}};
 
     use super::ExportFormat;
-    use crate::{
-        command,
-        error::{Error, Result},
-        exec, VERSION,
-    };
+    use crate::{command,
+                error::{Error,
+                        Result},
+                exec,
+                VERSION};
 
     pub fn format_for(_ui: &mut UI, value: &str) -> Result<ExportFormat> {
         let version: Vec<_> = VERSION.split('/').collect();
@@ -139,11 +131,12 @@ mod inner {
 #[cfg(not(target_os = "linux"))]
 mod inner {
     use super::ExportFormat;
-    use crate::{
-        common::ui::{UIWriter, UI},
-        error::{Error, Result},
-        hcore::{package::PackageIdent, ChannelIdent},
-    };
+    use crate::{common::ui::{UIWriter,
+                             UI},
+                error::{Error,
+                        Result},
+                hcore::{package::PackageIdent,
+                        ChannelIdent}};
     use std::env;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {

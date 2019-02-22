@@ -13,27 +13,27 @@
 // limitations under the License.
 
 /// Collect all the configuration data that is exposed to users, and render it.
-use crate::error::{Error, Result};
-use crate::{
-    hcore::{
-        self, crypto,
-        fs::{self, USER_CONFIG_FILE},
-        outputln,
-    },
-    templating::{package::Pkg, TemplateRenderer},
-};
-use serde::{Serialize, Serializer};
+use crate::error::{Error,
+                   Result};
+use crate::{hcore::{self,
+                    crypto,
+                    fs::{self,
+                         USER_CONFIG_FILE},
+                    outputln},
+            templating::{package::Pkg,
+                         TemplateRenderer}};
+use serde::{Serialize,
+            Serializer};
 use serde_json;
 use serde_transcode;
-use std::{
-    self,
-    borrow::Cow,
-    env,
-    fs::File,
-    io::prelude::*,
-    path::{Path, PathBuf},
-    result,
-};
+use std::{self,
+          borrow::Cow,
+          env,
+          fs::File,
+          io::prelude::*,
+          path::{Path,
+                 PathBuf},
+          result};
 use toml;
 
 static LOGKEY: &'static str = "CF";
@@ -87,21 +87,13 @@ pub trait PackageConfigPaths {
 }
 
 impl PackageConfigPaths for Pkg {
-    fn name(&self) -> String {
-        self.name.clone()
-    }
+    fn name(&self) -> String { self.name.clone() }
 
-    fn default_config_dir(&self) -> PathBuf {
-        self.path.clone()
-    }
+    fn default_config_dir(&self) -> PathBuf { self.path.clone() }
 
-    fn recommended_user_config_dir(&self) -> PathBuf {
-        fs::user_config_path(&self.name)
-    }
+    fn recommended_user_config_dir(&self) -> PathBuf { fs::user_config_path(&self.name) }
 
-    fn deprecated_user_config_dir(&self) -> PathBuf {
-        self.svc_path.clone()
-    }
+    fn deprecated_user_config_dir(&self) -> PathBuf { self.svc_path.clone() }
 }
 
 #[derive(Clone, Debug)]
@@ -584,7 +576,8 @@ fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
 
 #[cfg(unix)]
 fn set_permissions(path: &Path, user: &str, group: &str) -> hcore::error::Result<()> {
-    use crate::hcore::{os::users, util::posix_perm};
+    use crate::hcore::{os::users,
+                       util::posix_perm};
 
     if users::can_run_services_as_svc_user() {
         posix_perm::set_owner(path, &user, &group)?;
@@ -669,18 +662,15 @@ fn write_templated_file(path: &Path, compiled: &str, user: &str, group: &str) ->
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{
-        error::Error,
-        hcore::{
-            os::users,
-            package::{PackageIdent, PackageInstall},
-        },
-        templating::{context::RenderContext, test_helpers::*},
-    };
-    use std::{
-        env,
-        fs::{self, OpenOptions},
-    };
+    use crate::{error::Error,
+                hcore::{os::users,
+                        package::{PackageIdent,
+                                  PackageInstall}},
+                templating::{context::RenderContext,
+                             test_helpers::*}};
+    use std::{env,
+              fs::{self,
+                   OpenOptions}};
     use tempfile::TempDir;
     use toml;
 
@@ -894,21 +884,13 @@ mod test {
     }
 
     impl PackageConfigPaths for TestPkg {
-        fn name(&self) -> String {
-            String::from("testing")
-        }
+        fn name(&self) -> String { String::from("testing") }
 
-        fn default_config_dir(&self) -> PathBuf {
-            self.base_path.join("root")
-        }
+        fn default_config_dir(&self) -> PathBuf { self.base_path.join("root") }
 
-        fn recommended_user_config_dir(&self) -> PathBuf {
-            self.base_path.join("user")
-        }
+        fn recommended_user_config_dir(&self) -> PathBuf { self.base_path.join("user") }
 
-        fn deprecated_user_config_dir(&self) -> PathBuf {
-            self.base_path.join("svc")
-        }
+        fn deprecated_user_config_dir(&self) -> PathBuf { self.base_path.join("svc") }
     }
 
     struct CfgTestData {

@@ -14,18 +14,22 @@
 
 use std::path::Path;
 
-use crate::{
-    api_client::{self, Client},
-    common::ui::{Status, UIWriter, UI},
-    error::{Error, Result},
-    hcore::crypto::{
-        keys::parse_name_with_rev, SigKeyPair, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_VERSION,
-    },
-};
+use crate::{api_client::{self,
+                         Client},
+            common::ui::{Status,
+                         UIWriter,
+                         UI},
+            error::{Error,
+                    Result},
+            hcore::crypto::{keys::parse_name_with_rev,
+                            SigKeyPair,
+                            PUBLIC_SIG_KEY_VERSION,
+                            SECRET_SIG_KEY_VERSION}};
 use hyper::status::StatusCode;
 
 use super::get_name_with_rev;
-use crate::{PRODUCT, VERSION};
+use crate::{PRODUCT,
+            VERSION};
 
 pub fn start(
     ui: &mut UI,

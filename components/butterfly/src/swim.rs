@@ -12,17 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fmt, str::FromStr};
+use std::{fmt,
+          str::FromStr};
 
 use bytes::BytesMut;
 use prost::Message as ProstMessage;
 
-pub use crate::protocol::swim::{SwimPayload, SwimType};
-use crate::{
-    error::{Error, Result},
-    member::{Health, Member, Membership},
-    protocol::{self, swim as proto, FromProto},
-};
+pub use crate::protocol::swim::{SwimPayload,
+                                SwimType};
+use crate::{error::{Error,
+                    Result},
+            member::{Health,
+                     Member,
+                     Membership},
+            protocol::{self,
+                       swim as proto,
+                       FromProto}};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Ack {

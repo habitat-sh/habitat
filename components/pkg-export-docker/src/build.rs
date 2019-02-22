@@ -16,28 +16,30 @@
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_dir as symlink;
-use std::{
-    collections::HashMap,
-    fs as stdfs,
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+use std::{collections::HashMap,
+          fs as stdfs,
+          path::{Path,
+                 PathBuf},
+          str::FromStr};
 
-use crate::{
-    common::{
-        self,
-        command::package::install::{
-            InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
-        },
-        ui::{Status, UIWriter, UI},
-    },
-    hcore::{
-        env,
-        fs::{cache_artifact_path, cache_key_path, CACHE_ARTIFACT_PATH, CACHE_KEY_PATH},
-        package::{PackageArchive, PackageIdent, PackageInstall},
-        ChannelIdent, PROGRAM_NAME,
-    },
-};
+use crate::{common::{self,
+                     command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 InstallSource,
+                                                 LocalPackageUsage},
+                     ui::{Status,
+                          UIWriter,
+                          UI}},
+            hcore::{env,
+                    fs::{cache_artifact_path,
+                         cache_key_path,
+                         CACHE_ARTIFACT_PATH,
+                         CACHE_KEY_PATH},
+                    package::{PackageArchive,
+                              PackageIdent,
+                              PackageInstall},
+                    ChannelIdent,
+                    PROGRAM_NAME}};
 use clap;
 #[cfg(unix)]
 use failure::SyncFailure;
@@ -45,14 +47,16 @@ use failure::SyncFailure;
 use hab;
 use tempfile::TempDir;
 
-use super::{BUSYBOX_IDENT, CACERTS_IDENT, VERSION};
+use super::{BUSYBOX_IDENT,
+            CACERTS_IDENT,
+            VERSION};
 #[cfg(unix)]
 use crate::rootfs;
-use crate::{
-    accounts::{EtcGroupEntry, EtcPasswdEntry},
-    error::{Error, Result},
-    util,
-};
+use crate::{accounts::{EtcGroupEntry,
+                       EtcPasswdEntry},
+            error::{Error,
+                    Result},
+            util};
 
 // Much of this functionality is duplicated (or slightly modified)
 // in the tar exporter. This needs to be abstacted out in
@@ -413,14 +417,10 @@ pub struct BuildRoot {
 
 impl BuildRoot {
     /// Returns the temporary work directory under which a root file system has been created.
-    pub fn workdir(&self) -> &Path {
-        self.workdir.path()
-    }
+    pub fn workdir(&self) -> &Path { self.workdir.path() }
 
     /// Returns the `BuildRootContext` for this build root.
-    pub fn ctx(&self) -> &BuildRootContext {
-        &self.ctx
-    }
+    pub fn ctx(&self) -> &BuildRootContext { &self.ctx }
 
     /// Destroys the temporary build root.
     ///
@@ -556,9 +556,7 @@ impl BuildRootContext {
     }
 
     /// Returns true if the INSTALL_HOOK feature is toggled
-    pub fn install_hook_feat(&self) -> bool {
-        env::var("HAB_FEAT_INSTALL_HOOK").is_ok()
-    }
+    pub fn install_hook_feat(&self) -> bool { env::var("HAB_FEAT_INSTALL_HOOK").is_ok() }
 
     /// Returns the list of package port exposes over all service packages.
     pub fn svc_exposes(&self) -> Vec<&str> {
@@ -722,24 +720,16 @@ impl BuildRootContext {
     }
 
     /// Returns the `bin` path which is used for all program symlinking.
-    pub fn bin_path(&self) -> &Path {
-        self.bin_path.as_ref()
-    }
+    pub fn bin_path(&self) -> &Path { self.bin_path.as_ref() }
 
     /// Returns a colon-delimited `PATH` string containing all important program paths.
-    pub fn env_path(&self) -> &str {
-        self.env_path.as_str()
-    }
+    pub fn env_path(&self) -> &str { self.env_path.as_str() }
 
     /// Returns the release channel name used to install all provided Habitat packages.
-    pub fn channel(&self) -> &ChannelIdent {
-        &self.channel
-    }
+    pub fn channel(&self) -> &ChannelIdent { &self.channel }
 
     /// Returns the root file system which is used to export an image.
-    pub fn rootfs(&self) -> &Path {
-        self.rootfs.as_ref()
-    }
+    pub fn rootfs(&self) -> &Path { self.rootfs.as_ref() }
 
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
@@ -801,7 +791,8 @@ impl PkgIdentType {
 
 #[cfg(test)]
 mod test {
-    use crate::hcore::{self, package::PackageTarget};
+    use crate::hcore::{self,
+                       package::PackageTarget};
 
     use clap::ArgMatches;
 
@@ -916,19 +907,20 @@ mod test {
     }
 
     mod build_spec {
-        use std::{
-            io::{self, Cursor, Write},
-            sync::{Arc, RwLock},
-        };
+        use std::{io::{self,
+                       Cursor,
+                       Write},
+                  sync::{Arc,
+                         RwLock}};
 
-        use crate::{
-            common::ui::{Coloring, UI},
-            hcore,
-        };
+        use crate::{common::ui::{Coloring,
+                                 UI},
+                    hcore};
 
         use tempfile::TempDir;
 
-        use super::{super::*, *};
+        use super::{super::*,
+                    *};
 
         #[test]
         fn artifact_cache_symlink() {
@@ -1096,7 +1088,8 @@ mod test {
 
         use crate::hcore::package::PackageIdent;
 
-        use super::{super::*, *};
+        use super::{super::*,
+                    *};
 
         #[test]
         fn build_context_from_a_spec() {

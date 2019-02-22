@@ -14,23 +14,19 @@ pub mod cli;
 mod error;
 mod rootfs;
 
-pub use crate::{
-    cli::Cli,
-    error::{Error, Result},
-};
-use crate::{
-    common::ui::UI,
-    hcore::{
-        package::{PackageIdent, PackageInstall},
-        url as hurl,
-    },
-};
-use flate2::{write::GzEncoder, Compression};
-use std::{
-    fs::File,
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+pub use crate::{cli::Cli,
+                error::{Error,
+                        Result}};
+use crate::{common::ui::UI,
+            hcore::{package::{PackageIdent,
+                              PackageInstall},
+                    url as hurl}};
+use flate2::{write::GzEncoder,
+             Compression};
+use std::{fs::File,
+          path::{Path,
+                 PathBuf},
+          str::FromStr};
 use tar::Builder;
 
 pub use crate::build::BuildSpec;
@@ -98,9 +94,7 @@ fn format_tar_name(ident: PackageIdent) -> String {
     )
 }
 
-fn hab_package_ident(hab_pkg: &str) -> PackageIdent {
-    PackageIdent::from_str(hab_pkg).unwrap()
-}
+fn hab_package_ident(hab_pkg: &str) -> PackageIdent { PackageIdent::from_str(hab_pkg).unwrap() }
 
 fn hab_install_path(hab_ident: PackageIdent, root_fs_path: PathBuf) -> PathBuf {
     let root_fs_path = Path::new(&root_fs_path);

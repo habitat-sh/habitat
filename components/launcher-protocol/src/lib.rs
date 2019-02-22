@@ -23,7 +23,8 @@ mod generated;
 mod types;
 
 use crate::error::Result;
-pub use crate::{error::Error, types::*};
+pub use crate::{error::Error,
+                types::*};
 
 pub const LAUNCHER_PIPE_ENV: &str = "HAB_LAUNCHER_PIPE";
 pub const LAUNCHER_PID_ENV: &str = "HAB_LAUNCHER_PID";
@@ -58,9 +59,7 @@ impl NetTxn {
         Ok(NetTxn(env))
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>> {
-        self.0.clone().to_bytes()
-    }
+    pub fn to_bytes(&self) -> Result<Vec<u8>> { self.0.clone().to_bytes() }
 
     pub fn decode<T>(&self) -> Result<T>
     where
@@ -69,9 +68,7 @@ impl NetTxn {
         T::from_bytes(&self.0.payload)
     }
 
-    pub fn message_id(&self) -> &str {
-        &self.0.message_id
-    }
+    pub fn message_id(&self) -> &str { &self.0.message_id }
 }
 
 pub fn error<T>(err: T) -> NetErr

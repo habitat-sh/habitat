@@ -12,15 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{env, ffi::OsString, path::PathBuf};
+use std::{env,
+          ffi::OsString,
+          path::PathBuf};
 
-use crate::hcore::{
-    fs::{find_command, FS_ROOT_PATH},
-    os::process,
-    package::{PackageIdent, PackageInstall},
-};
+use crate::hcore::{fs::{find_command,
+                        FS_ROOT_PATH},
+                   os::process,
+                   package::{PackageIdent,
+                             PackageInstall}};
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 pub fn start<T>(ident: &PackageIdent, command: T, args: Vec<OsString>) -> Result<()>
 where

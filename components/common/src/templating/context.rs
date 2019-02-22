@@ -47,14 +47,18 @@
 //! their focused and single-use purpose; they shouldn't be used for
 //! anything else, and so, they _can't_ be used for anything else.
 
-use std::{borrow::Cow, collections::HashMap, path::PathBuf, result};
+use std::{borrow::Cow,
+          collections::HashMap,
+          path::PathBuf,
+          result};
 
-use serde::{ser::SerializeMap, Serialize, Serializer};
+use serde::{ser::SerializeMap,
+            Serialize,
+            Serializer};
 
-use super::{
-    config::Cfg,
-    package::{Env, Pkg},
-};
+use super::{config::Cfg,
+            package::{Env,
+                      Pkg}};
 use crate::hcore::package::PackageIdent;
 
 /// The context of a rendering call, exposing information on the
@@ -213,21 +217,19 @@ impl<'a> Serialize for Package<'a> {
 mod tests {
     use super::*;
 
-    use std::{
-        fs,
-        io::{Read, Write},
-        path::PathBuf,
-    };
+    use std::{fs,
+              io::{Read,
+                   Write},
+              path::PathBuf};
 
     use crate::hcore::package::PackageIdent;
     use serde_json;
     use tempfile::TempDir;
 
-    use crate::templating::{
-        config::{Cfg, PackageConfigPaths},
-        test_helpers::*,
-        TemplateRenderer,
-    };
+    use crate::templating::{config::{Cfg,
+                                     PackageConfigPaths},
+                            test_helpers::*,
+                            TemplateRenderer};
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -256,21 +258,13 @@ mod tests {
     }
 
     impl PackageConfigPaths for TestPkg {
-        fn name(&self) -> String {
-            String::from("testing")
-        }
+        fn name(&self) -> String { String::from("testing") }
 
-        fn default_config_dir(&self) -> PathBuf {
-            self.base_path.join("root")
-        }
+        fn default_config_dir(&self) -> PathBuf { self.base_path.join("root") }
 
-        fn recommended_user_config_dir(&self) -> PathBuf {
-            self.base_path.join("user")
-        }
+        fn recommended_user_config_dir(&self) -> PathBuf { self.base_path.join("user") }
 
-        fn deprecated_user_config_dir(&self) -> PathBuf {
-            self.base_path.join("svc")
-        }
+        fn deprecated_user_config_dir(&self) -> PathBuf { self.base_path.join("svc") }
     }
 
     fn new_test_pkg() -> (TempDir, TestPkg) {

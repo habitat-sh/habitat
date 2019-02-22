@@ -17,7 +17,11 @@
 
 use time;
 
-use std::{env, fmt, fs, io::Write, path::PathBuf};
+use std::{env,
+          fmt,
+          fs,
+          io::Write,
+          path::PathBuf};
 
 use crate::server::Server;
 
@@ -212,7 +216,8 @@ macro_rules! trace_it {
     (TEST: $server:expr, $payload:expr) => {{
         let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
         if trace_on {
-            use habitat_butterfly::trace::{TraceKind, TraceWrite};
+            use habitat_butterfly::trace::{TraceKind,
+                                           TraceWrite};
             use std::thread;
             let mut trace = $server.trace.write().expect("Trace lock is poisoned");
             trace.init($server);
@@ -234,7 +239,8 @@ macro_rules! trace_it {
         for x in $net.members.iter() {
             let trace_on = x.trace.read().expect("Trace lock is poisoned").on();
             if trace_on {
-                use habitat_butterfly::trace::{TraceKind, TraceWrite};
+                use habitat_butterfly::trace::{TraceKind,
+                                               TraceWrite};
                 use std::thread;
                 let mut trace = x.trace.write().expect("Trace lock is poisoned");
                 trace.init(x);
@@ -333,7 +339,8 @@ macro_rules! trace_it {
         let trace_on = $server.trace.read().expect("Trace lock is poisoned").on();
         if trace_on {
             let mut trace = $server.trace.write().expect("Trace lock is poisoned");
-            use crate::{rumor, trace::TraceWrite};
+            use crate::{rumor,
+                        trace::TraceWrite};
             trace.init($server);
             let thread = thread::current();
             let thread_name = thread.name().unwrap_or("undefined");

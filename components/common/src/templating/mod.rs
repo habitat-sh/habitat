@@ -19,21 +19,22 @@ pub mod hooks;
 pub mod package;
 pub mod test_helpers;
 
-use std::{
-    fmt,
-    ops::{Deref, DerefMut},
-    result,
-};
+use std::{fmt,
+          ops::{Deref,
+                DerefMut},
+          result};
 
-use handlebars::{Handlebars, RenderError};
+use handlebars::{Handlebars,
+                 RenderError};
 use serde::Serialize;
 use serde_json;
 
-use crate::{
-    error::{Error, Result},
-    hcore::{fs, package::PackageInstall},
-    templating::hooks::{Hook, InstallHook},
-};
+use crate::{error::{Error,
+                    Result},
+            hcore::{fs,
+                    package::PackageInstall},
+            templating::hooks::{Hook,
+                                InstallHook}};
 
 pub use self::context::RenderContext;
 
@@ -103,52 +104,39 @@ impl fmt::Debug for TemplateRenderer {
 impl Deref for TemplateRenderer {
     type Target = Handlebars;
 
-    fn deref(&self) -> &Handlebars {
-        &self.0
-    }
+    fn deref(&self) -> &Handlebars { &self.0 }
 }
 
 impl DerefMut for TemplateRenderer {
-    fn deref_mut(&mut self) -> &mut Handlebars {
-        &mut self.0
-    }
+    fn deref_mut(&mut self) -> &mut Handlebars { &mut self.0 }
 }
 
 /// Disables HTML escaping which is enabled by default in Handlebars.
-fn never_escape(data: &str) -> String {
-    String::from(data)
-}
+fn never_escape(data: &str) -> String { String::from(data) }
 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{
-        hcore::{
-            fs::{pkg_root_path, FS_ROOT_PATH},
-            package::PackageIdent,
-        },
-        templating::test_helpers::*,
-    };
+    use crate::{hcore::{fs::{pkg_root_path,
+                             FS_ROOT_PATH},
+                        package::PackageIdent},
+                templating::test_helpers::*};
     use serde_json;
-    use std::{collections::BTreeMap, env, fs::File, io::Read, path::PathBuf};
+    use std::{collections::BTreeMap,
+              env,
+              fs::File,
+              io::Read,
+              path::PathBuf};
     use tempfile::TempDir;
     use toml;
 
-    pub fn root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-    }
+    pub fn root() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests") }
 
-    pub fn fixtures() -> PathBuf {
-        root().join("fixtures")
-    }
+    pub fn fixtures() -> PathBuf { root().join("fixtures") }
 
-    pub fn templates() -> PathBuf {
-        fixtures().join("templates")
-    }
+    pub fn templates() -> PathBuf { fixtures().join("templates") }
 
-    pub fn sample_configs() -> PathBuf {
-        fixtures().join("sample_configs")
-    }
+    pub fn sample_configs() -> PathBuf { fixtures().join("sample_configs") }
 
     pub fn service_config_json_from_toml_file(filename: &str) -> serde_json::Value {
         let mut file = File::open(sample_configs().join(filename)).unwrap();

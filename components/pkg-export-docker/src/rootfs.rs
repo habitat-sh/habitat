@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fs, path::Path};
+use std::{fs,
+          path::Path};
 
 use crate::hcore::util;
 
-use crate::{error::Result, util::write_file};
+use crate::{error::Result,
+            util::write_file};
 
 /// The default password file contents.
 const ETC_PASSWD: &str = include_str!("../defaults/etc/passwd");
@@ -60,7 +62,9 @@ where
 #[cfg(unix)]
 #[cfg(test)]
 mod test {
-    use std::{fs::File, io::Read, os::unix::fs::MetadataExt};
+    use std::{fs::File,
+              io::Read,
+              os::unix::fs::MetadataExt};
 
     use tempfile::TempDir;
 
