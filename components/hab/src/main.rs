@@ -55,6 +55,7 @@ use crate::{
         binlink::default_binlink_dir,
         crypto::{default_cache_key_path, init, keys::PairType, BoxKeyPair, SigKeyPair},
         env as henv,
+        env::Config as EnvConfig,
         fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path},
         package::{PackageIdent, PackageTarget},
         ChannelIdent,
@@ -684,7 +685,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         let pkg_install = common::command::package::install::start(
             ui,
             &url,
-            Some(&channel),
+            &channel,
             install_source,
             PRODUCT,
             VERSION,
@@ -1410,7 +1411,7 @@ fn required_channel_from_matches(matches: &ArgMatches<'_>) -> ChannelIdent {
 /// Resolve a channel. Taken from the environment or from CLI args, if
 /// given or return the default channel value.
 fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {
-    channel_from_matches(matches).unwrap_or_default()
+    channel_from_matches(matches).unwrap_or_else(|| ChannelIdent::configured_value())
 }
 
 /// Resolve a target. Default to x86_64-linux if none specified

@@ -218,7 +218,7 @@ impl<'a> BuildSpec<'a> {
         let package_install = common::command::package::install::start(
             ui,
             url,
-            Some(channel),
+            channel,
             &install_source,
             &*PROGRAM_NAME,
             VERSION,

@@ -97,7 +97,7 @@ where
             common::command::package::install::start(
                 ui,
                 &default_bldr_url(),
-                Some(&internal_tooling_channel()),
+                &internal_tooling_channel(),
                 &(ident.clone(), *PackageTarget::active_target()).into(),
                 PRODUCT,
                 VERSION,
@@ -119,8 +119,7 @@ where
 /// Determine the channel from which to install Habitat-specific
 /// packages.
 fn internal_tooling_channel() -> ChannelIdent {
-    match ChannelIdent::from_env_var(INTERNAL_TOOLING_CHANNEL_ENVVAR) {
-        Ok(channel) => channel,
-        Err(_) => ChannelIdent::stable(),
-    }
+    hcore::env::var(INTERNAL_TOOLING_CHANNEL_ENVVAR)
+        .map(ChannelIdent::from)
+        .unwrap_or_default()
 }

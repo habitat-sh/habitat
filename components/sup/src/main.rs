@@ -189,7 +189,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                     &msg.bldr_channel
                         .clone()
                         .map(ChannelIdent::from)
-                        .unwrap_or_default(),
+                        .expect("update_svc_load_from_input to always set to Some"),
                 )?;
                 install.ident.into()
             }

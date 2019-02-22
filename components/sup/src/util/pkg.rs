@@ -62,7 +62,7 @@ where
         // function, though, should always have a channel. We should
         // push this "Option-ness" as far down the stack as we can,
         // with the ultimate goal of eliminating it altogether.
-        Some(&channel),
+        channel,
         install_source,
         PRODUCT,
         VERSION,

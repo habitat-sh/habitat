@@ -127,7 +127,7 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                             install::start(
                                 &mut ui::UI::default_with_env(),
                                 &default_bldr_url(),
-                                Some(&ChannelIdent::stable()),
+                                &ChannelIdent::stable(),
                                 &(ident.clone(), *PackageTarget::active_target()).into(),
                                 &*PROGRAM_NAME,
                                 VERSION,
