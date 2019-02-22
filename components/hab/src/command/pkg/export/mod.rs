@@ -147,9 +147,8 @@ mod inner {
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {
         ui.warn(format!(
-            "∅ Exporting {} packages from this operating system is not yet \
-             supported. Try running this command again on a 64-bit Linux \
-             operating system.\n",
+            "∅ Exporting {} packages from this operating system is not yet supported. Try running \
+             this command again on a 64-bit Linux operating system.\n",
             value
         ))?;
         ui.br()?;

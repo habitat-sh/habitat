@@ -368,16 +368,6 @@ where
         self.update_counter.load(Ordering::Relaxed)
     }
 
-    /// Returns the count of all rumors in this RumorStore.
-    pub fn len(&self) -> usize {
-        self.list
-            .read()
-            .expect("Rumor store lock poisoned")
-            .values()
-            .map(|member| member.len())
-            .sum()
-    }
-
     /// Returns the count of all rumors in the rumor store for the given member's key.
     pub fn len_for_key(&self, key: &str) -> usize {
         let list = self.list.read().expect("Rumor store lock poisoned");

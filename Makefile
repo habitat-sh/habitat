@@ -201,7 +201,6 @@ ALLOWED_LINTS = clippy::module_inception \
 # Known failing lints we want to receive warnings for, but not fail the build
 LINTS_TO_FIX = clippy::cyclomatic_complexity \
                clippy::large_enum_variant \
-               clippy::len_without_is_empty \
                clippy::needless_pass_by_value \
                clippy::needless_return \
                clippy::question_mark \
@@ -228,6 +227,7 @@ DENIED_LINTS = clippy::assign_op_pattern \
                clippy::get_unwrap \
                clippy::identity_conversion \
                clippy::if_let_some_result \
+               clippy::len_without_is_empty \
                clippy::len_zero \
                clippy::let_and_return \
                clippy::let_unit_value \
