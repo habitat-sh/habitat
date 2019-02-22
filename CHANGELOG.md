@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Behavioral Changes
+- Update ChannelIdent to use env::Config::configured_value where appropriate [#6169](https://github.com/habitat-sh/habitat/pull/6169) ([baumanj](https://github.com/baumanj))
+
 #### Merged Pull Requests
 - Remove test verify branch [#6155](https://github.com/habitat-sh/habitat/pull/6155) ([scotthain](https://github.com/scotthain))
 - Correct 0.75.0 release blog date [#6194](https://github.com/habitat-sh/habitat/pull/6194) ([smacfarlane](https://github.com/smacfarlane))
