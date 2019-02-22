@@ -29,9 +29,6 @@ github:
     - master:
         # Version constraint at this point is arbitrary but represents 1.0.0
         version_constraint: 1*
-    - release_forever:
-        # This version constraint is also arbitrary and will be used for a test branch
-        version_constraint: 42*
 
 pipelines:
   - verify:
