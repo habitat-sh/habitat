@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Remove test verify branch [#6155](https://github.com/habitat-sh/habitat/pull/6155) ([scotthain](https://github.com/scotthain))
 - Correct 0.75.0 release blog date [#6194](https://github.com/habitat-sh/habitat/pull/6194) ([smacfarlane](https://github.com/smacfarlane))
 - Update plan-build default_strip behavior [#6189](https://github.com/habitat-sh/habitat/pull/6189) ([smacfarlane](https://github.com/smacfarlane))
 - Use AtomicWriter from habitat core [#5803](https://github.com/habitat-sh/habitat/pull/5803) ([stevendanna](https://github.com/stevendanna))
