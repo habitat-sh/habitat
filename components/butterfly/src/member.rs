@@ -656,6 +656,10 @@ impl MemberList {
         self.read_entries().len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.read_entries().is_empty()
+    }
+
     /// A randomized list of members to check.
     pub fn check_list(&self, exclude_id: &str) -> Vec<Member> {
         let mut members: Vec<_> = self
@@ -923,7 +927,7 @@ mod tests {
         #[test]
         fn new() {
             let ml = MemberList::new();
-            assert_eq!(ml.len(), 0);
+            assert!(ml.is_empty());
         }
 
         #[test]

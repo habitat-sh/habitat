@@ -554,7 +554,7 @@ impl Server {
     }
 
     pub fn need_peer_seeding(&self) -> bool {
-        self.member_list.len() == 0
+        self.member_list.is_empty()
     }
 
     /// Persistently block a given address, causing no traffic to be seen.
