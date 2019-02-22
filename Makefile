@@ -203,7 +203,6 @@ LINTS_TO_FIX = clippy::cyclomatic_complexity \
                clippy::large_enum_variant \
                clippy::needless_pass_by_value \
                clippy::needless_return \
-               clippy::question_mark \
                clippy::redundant_field_names \
                clippy::too_many_arguments \
                clippy::trivially_copy_pass_by_ref \
@@ -243,6 +242,7 @@ DENIED_LINTS = clippy::assign_op_pattern \
                clippy::or_fun_call \
                clippy::println_empty_string \
                clippy::ptr_arg \
+               clippy::question_mark \
                clippy::redundant_closure \
                clippy::redundant_pattern_matching \
                clippy::single_char_pattern \
