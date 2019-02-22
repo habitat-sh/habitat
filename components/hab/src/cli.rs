@@ -943,14 +943,14 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     (@arg GROUP: --group default_value("default")
         "The service group; shared config and topology.")
     (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-        "Service topology; [default: none]")
-    (@arg STRATEGY: --strategy -s default_value("none") {valid_update_strategy}
-        "The update strategy; [values: none, at-once, rolling]")
+        "Service topology.")
+    (@arg STRATEGY: --strategy -s possible_value("none") possible_value("at-once") possible_value("rolling") default_value("none")
+        "The update strategy.")
     (@arg BIND: --bind +takes_value +multiple
         "One or more service groups to bind to a configuration")
-    (@arg BINDING_MODE: --("binding-mode") default_value("strict") {valid_binding_mode}
+    (@arg BINDING_MODE: --("binding-mode") default_value("strict") possible_value[relaxed strict]
         "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-         startup until all binds are present. [values: relaxed, strict]")
+         startup until all binds are present.")
     (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
     (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
     (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \

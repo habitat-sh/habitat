@@ -36,6 +36,8 @@ mod test {
         use std::iter::FromIterator;
         use tempfile::{NamedTempFile, TempDir};
 
+        const BAD_ADDRS: [&str; 3] = ["1.1.1:1111", "1.1.1.256:1111", "1.1.1.1.1:1111"];
+
         assert_cli_cmd!(should_handle_listen_gossip_with_value,
                         "hab-sup run --listen-gossip 1.1.1.1:1111",
                         "LISTEN_GOSSIP" => "1.1.1.1:1111");
@@ -46,9 +48,11 @@ mod test {
 
         #[test]
         fn invalid_listen_gossip_address_should_fail() {
-            let cmd_vec =
-                Vec::from_iter("hab-sup run --listen-gossip bad-address".split_whitespace());
-            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            for addr in BAD_ADDRS.iter() {
+                let cmd_str = format!("hab-sup run --listen-gossip {}", addr);
+                let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+                assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            }
         }
 
         assert_cli_cmd!(should_handle_listen_http,
@@ -61,9 +65,11 @@ mod test {
 
         #[test]
         fn invalid_listen_http_address_should_fail() {
-            let cmd_vec =
-                Vec::from_iter("hab-sup run --listen-http bad-address".split_whitespace());
-            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            for addr in BAD_ADDRS.iter() {
+                let cmd_str = format!("hab-sup run --listen-http {}", addr);
+                let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+                assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            }
         }
 
         assert_cli_cmd!(should_handle_http_disable,
@@ -84,8 +90,11 @@ mod test {
 
         #[test]
         fn invalid_listen_ctl_address_should_fail() {
-            let cmd_vec = Vec::from_iter("hab-sup run --listen-ctl bad-address".split_whitespace());
-            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            for addr in BAD_ADDRS.iter() {
+                let cmd_str = format!("hab-sup run --listen-ctl {}", addr);
+                let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+                assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            }
         }
 
         assert_cli_cmd!(should_handle_org,
@@ -293,8 +302,11 @@ mod test {
 
         #[test]
         fn topology_should_fail_when_a_bad_value_is_passed() {
-            let cmd_vec = Vec::from_iter("hab-sup run --topology foobar".split_whitespace());
-            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            for bad_topo in ["none", "at-once", "rolling", "foobar"].iter() {
+                let cmd_str = format!("hab-sup run --topology {}", bad_topo);
+                let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+                assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            }
         }
 
         assert_cli_cmd!(should_handle_none_strategy,
@@ -319,8 +331,11 @@ mod test {
 
         #[test]
         fn strategy_should_fail_when_a_bad_value_is_passed() {
-            let cmd_vec = Vec::from_iter("hab-sup run --strategy foobar".split_whitespace());
-            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            for bad_strat in ["standalone", "leader", "foobar"].iter() {
+                let cmd_str = format!("hab-sup run --strategy {}", bad_strat);
+                let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+                assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+            }
         }
 
         assert_cli_cmd!(should_handle_multiple_bind_flags,
