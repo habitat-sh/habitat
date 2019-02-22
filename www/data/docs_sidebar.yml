@@ -156,6 +156,8 @@ sidebar_links:
       link: "/docs/glossary/#glossary-hab"
     - title: Supervisor
       link: "/docs/glossary/#glossary-supervisor"
+    - title: Launcher
+      link: "/docs/glossary/#glossary-launcher"
     - title: Plans
       link: "/docs/glossary/#glossary-plan"
     - title: Application Lifecycle Hooks
