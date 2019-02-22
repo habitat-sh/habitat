@@ -177,10 +177,19 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        write!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==").unwrap();
+        write!(
+            secret_file,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
+             w=="
+        )
+        .unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(out, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==");
+        assert_eq!(
+            out,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
+             w=="
+        );
     }
 
     #[test]
@@ -188,10 +197,19 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        writeln!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==").unwrap();
+        writeln!(
+            secret_file,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
+             w=="
+        )
+        .unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(out, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==");
+        assert_eq!(
+            out,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
+             w=="
+        );
     }
 
     #[test]
@@ -199,10 +217,19 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        writeln!(secret_file, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==\r").unwrap();
+        writeln!(
+            secret_file,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
+             w==\r"
+        )
+        .unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(out, "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/w==");
+        assert_eq!(
+            out,
+            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
+             w=="
+        );
     }
 
     #[test]
