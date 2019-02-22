@@ -38,10 +38,6 @@ mod test {
 
         const BAD_ADDRS: [&str; 3] = ["1.1.1:1111", "1.1.1.256:1111", "1.1.1.1.1:1111"];
 
-        assert_cli_cmd!(should_handle_listen_gossip_with_value,
-                        "hab-sup run --listen-gossip 1.1.1.1:1111",
-                        "LISTEN_GOSSIP" => "1.1.1.1:1111");
-
         assert_cli_cmd!(listen_gossip_should_have_default_value,
                         "hab-sup run",
                         "LISTEN_GOSSIP" => (&GOSSIP_DEFAULT_ADDR));
@@ -54,10 +50,6 @@ mod test {
                 assert!(cli().get_matches_from_safe(cmd_vec).is_err());
             }
         }
-
-        assert_cli_cmd!(should_handle_listen_http,
-                        "hab-sup run --listen-http 1.1.1.1:1111",
-                        "LISTEN_HTTP" => "1.1.1.1:1111");
 
         assert_cli_cmd!(listen_http_should_have_default_value,
                         "hab-sup run",
@@ -72,18 +64,6 @@ mod test {
             }
         }
 
-        assert_cli_cmd!(should_handle_http_disable,
-                        "hab-sup run --http-disable",
-                        "HTTP_DISABLE" => true);
-
-        assert_cli_cmd!(http_disable_should_have_short_flag,
-                        "hab-sup run -D",
-                        "HTTP_DISABLE" => true);
-
-        assert_cli_cmd!(should_handle_listen_ctl,
-                        "hab-sup run --listen-ctl 1.1.1.1:1111",
-                        "LISTEN_CTL" => "1.1.1.1:1111");
-
         assert_cli_cmd!(listen_ctl_should_have_a_default_value,
                         "hab-sup run",
                         "LISTEN_CTL" => (&LISTEN_CTL_DEFAULT_ADDR_STRING));
@@ -96,10 +76,6 @@ mod test {
                 assert!(cli().get_matches_from_safe(cmd_vec).is_err());
             }
         }
-
-        assert_cli_cmd!(should_handle_org,
-                        "hab-sup run --org monkeypants",
-                        "ORGANIZATION" => "monkeypants");
 
         assert_cli_cmd!(should_handle_multiple_peer_flags,
                         "hab-sup run --peer 1.1.1.1 --peer 2.2.2.2",
@@ -114,18 +90,6 @@ mod test {
                         "PEER" => ["1.1.1.1", "2.2.2.2"],
                         "PKG_IDENT_OR_ARTIFACT" => "core/redis");
 
-        assert_cli_cmd!(should_handle_permanent_peer,
-                        "hab-sup run --permanent-peer",
-                        "PERMANENT_PEER" => true);
-
-        assert_cli_cmd!(permanent_peer_should_have_short_flag,
-                        "hab-sup run -I",
-                        "PERMANENT_PEER" => true);
-
-        assert_cli_cmd!(should_handle_peer_watch_file,
-                        "hab-sup run --peer-watch-file foobar",
-                        "PEER_WATCH_FILE" => "foobar");
-
         #[test]
         fn peer_watch_file_conflicts_with_peer() {
             let cmd_vec = Vec::from_iter(
@@ -134,36 +98,12 @@ mod test {
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
 
-        assert_cli_cmd!(should_handle_ring,
-                        "hab-sup run --ring fizbang",
-                        "RING" => "fizbang");
-
-        assert_cli_cmd!(ring_should_have_short_flag,
-                        "hab-sup run -r flippitygibbit",
-                        "RING" => "flippitygibbit");
-
         #[test]
         fn ring_conflicts_with_ring_key() {
             let cmd_vec =
                 Vec::from_iter("hab-sup run --ring myring --ring-key foobar".split_whitespace());
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
-
-        assert_cli_cmd!(should_handle_ring_key,
-                        "hab-sup run --ring-key secrit",
-                        "RING_KEY" => "secrit");
-
-        assert_cli_cmd!(should_handle_channel,
-                        "hab-sup run --channel dev",
-                        "CHANNEL" => "dev");
-
-        assert_cli_cmd!(should_handle_bldr_url,
-                        "hab-sup run --url http://not.a.real.com",
-                        "BLDR_URL" => "http://not.a.real.com");
-
-        assert_cli_cmd!(bldr_url_should_have_a_short_flag,
-                        "hab-sup run -u http://not.a.real.com",
-                        "BLDR_URL" => "http://not.a.real.com");
 
         assert_cli_cmd!(bldr_url_should_have_a_default_value,
                         "hab-sup run",
@@ -258,16 +198,6 @@ mod test {
                         "hab-sup run core/redis",
                         "PKG_IDENT_OR_ARTIFACT" => "core/redis");
 
-        assert_cli_cmd!(should_handle_application_and_environment,
-                        "hab-sup run --application foobar --environment fizbang",
-                        "APPLICATION" => "foobar",
-                        "ENVIRONMENT" => "fizbang");
-
-        assert_cli_cmd!(application_and_environment_should_have_short_flags,
-                        "hab-sup run -a foobar -e fizbang",
-                        "APPLICATION" => "foobar",
-                        "ENVIRONMENT" => "fizbang");
-
         #[test]
         fn application_requires_environment() {
             let cmd_vec = Vec::from_iter("hab-sup run -a foobar".split_whitespace());
@@ -280,10 +210,6 @@ mod test {
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
 
-        assert_cli_cmd!(should_handle_group,
-                        "hab-sup run --group groupy",
-                        "GROUP" => "groupy");
-
         assert_cli_cmd!(group_should_have_default_value,
                         "hab-sup run",
                         "GROUP" => "default");
@@ -295,10 +221,6 @@ mod test {
         assert_cli_cmd!(should_handle_leader_topology,
                         "hab-sup run --topology leader",
                         "TOPOLOGY" => "leader");
-
-        assert_cli_cmd!(topology_should_have_a_short_flag,
-                        "hab-sup run -t standalone",
-                        "TOPOLOGY" => "standalone");
 
         #[test]
         fn topology_should_fail_when_a_bad_value_is_passed() {
@@ -319,10 +241,6 @@ mod test {
 
         assert_cli_cmd!(should_handle_rolling_strategy,
                         "hab-sup run --strategy rolling",
-                        "STRATEGY" => "rolling");
-
-        assert_cli_cmd!(strategy_should_have_short_flag,
-                        "hab-sup run -s rolling",
                         "STRATEGY" => "rolling");
 
         assert_cli_cmd!(strategy_should_have_a_default_value,
@@ -368,26 +286,6 @@ mod test {
             let cmd_vec = Vec::from_iter("hab-sup run --binding-mode foobar".split_whitespace());
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
-
-        assert_cli_cmd!(should_handle_verbose,
-                        "hab-sup run -v",
-                        "VERBOSE" => true);
-
-        assert_cli_cmd!(should_handle_no_color,
-                        "hab-sup run --no-color",
-                        "NO_COLOR" => true);
-
-        assert_cli_cmd!(should_handle_json_logging,
-                        "hab-sup run --json-logging",
-                        "JSON" => true);
-
-        assert_cli_cmd!(should_handle_health_check_interval,
-                        "hab-sup run --health-check-interval 10",
-                        "HEALTH_CHECK_INTERVAL" => "10");
-
-        assert_cli_cmd!(health_check_interval_should_have_short_flag,
-                        "hab-sup run -i 10",
-                        "HEALTH_CHECK_INTERVAL" => "10");
 
         assert_cli_cmd!(health_check_interval_should_have_a_default_value,
                         "hab-sup run",
