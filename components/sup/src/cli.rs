@@ -34,6 +34,7 @@ mod test {
             GOSSIP_DEFAULT_ADDR, LISTEN_CTL_DEFAULT_ADDR_STRING, LISTEN_HTTP_DEFAULT_ADDR,
         };
         use std::iter::FromIterator;
+        use tempfile::{NamedTempFile, TempDir};
 
         assert_cli_cmd!(should_handle_listen_gossip_with_value,
                         "hab-sup run --listen-gossip 1.1.1.1:1111",
@@ -165,9 +166,29 @@ mod test {
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
 
-        // TODO: config dir test
+        #[test]
+        fn should_handle_valid_config_dir() {
+            let config_dir = TempDir::new().expect("Could not create tempdir");
+            let path_str = config_dir.path().to_str().unwrap();
+            let cmd_str = format!("hab-sup run --config-from {}", path_str);
+            let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+            let matches = cli()
+                .get_matches_from_safe(cmd_vec)
+                .expect("Could not get ArgMatches");
+            let subcommand = matches
+                .subcommand_matches("run")
+                .expect("Failed to get matches for sup run");
+            assert_eq!(subcommand.value_of("CONFIG_DIR"), Some(path_str));
+        }
 
-        // TODO: bad config dir test
+        #[test]
+        fn config_dir_should_fail_when_dir_does_not_exist() {
+            let cmd_vec = Vec::from_iter(
+                "hab-sup run --config-from really-fake/not-real/directory/no-really/go-away"
+                    .split_whitespace(),
+            );
+            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+        }
 
         assert_cli_cmd!(should_handle_auto_update,
                         "hab-sup run --auto-update",
@@ -177,11 +198,52 @@ mod test {
                         "hab-sup run -A",
                         "AUTO_UPDATE" => true);
 
-        // TODO: key file cert file test
+        #[test]
+        fn should_take_cert_file_and_key_file() {
+            let key_file = NamedTempFile::new()
+                .expect("Failed to create temporary key_file")
+                .into_temp_path();
+            let cert_file = NamedTempFile::new()
+                .expect("Failed to create temporary cert_file")
+                .into_temp_path();
+            let key_file_str = key_file.to_str().unwrap();
+            let cert_file_str = cert_file.to_str().unwrap();
+            let cmd_str = format!(
+                "hab-sup run --key {} --certs {}",
+                key_file_str, cert_file_str
+            );
+            let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+            let matches = cli()
+                .get_matches_from_safe(cmd_vec)
+                .expect("Could not get ArgMatches");
+            let subcommand = matches
+                .subcommand_matches("run")
+                .expect("Failed to get matches for sup run");
+            assert_eq!(subcommand.value_of("KEY_FILE"), Some(key_file_str));
+            assert_eq!(subcommand.value_of("CERT_FILE"), Some(cert_file_str));
+        }
 
-        // TODO: key file requires test
+        #[test]
+        fn key_file_requires_cert_file() {
+            let key_file = NamedTempFile::new()
+                .expect("Failed to create temporary key_file")
+                .into_temp_path();
+            let key_file_str = key_file.to_str().unwrap();
+            let cmd_str = format!("hab-sup run --key {}", key_file_str);
+            let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+        }
 
-        // TODO: cert file requires test
+        #[test]
+        fn cert_file_requires_key_file() {
+            let cert_file = NamedTempFile::new()
+                .expect("Failed to create temporary cert_file")
+                .into_temp_path();
+            let cert_file_str = cert_file.to_str().unwrap();
+            let cmd_str = format!("hab-sup run --certs {}", cert_file_str);
+            let cmd_vec = Vec::from_iter(cmd_str.split_whitespace());
+            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+        }
 
         assert_cli_cmd!(should_take_pkg_or_artifact_as_arg,
                         "hab-sup run core/redis",
