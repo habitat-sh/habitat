@@ -190,4 +190,8 @@ pub struct SvcStatus {
 pub struct ConsoleLine {
     #[prost(string, required, tag="1")]
     pub line: String,
+    #[prost(string, optional, tag="2")]
+    pub color: ::std::option::Option<String>,
+    #[prost(bool, required, tag="3")]
+    pub bold: bool,
 }

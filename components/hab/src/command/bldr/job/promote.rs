@@ -183,6 +183,7 @@ mod test {
                    Write},
               sync::{Arc,
                      RwLock}};
+    use termcolor::ColorChoice;
 
     use super::get_ident_list;
     use crate::{api_client::{Project,
@@ -217,7 +218,7 @@ mod test {
             Box::new(io::empty()),
             || Box::new(stdout_buf.clone()),
             || Box::new(stderr_buf.clone()),
-            Coloring::Never,
+            ColorChoice::Never,
             false,
         );
 

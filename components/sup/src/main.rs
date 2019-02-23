@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate ansi_term;
 extern crate clap;
 extern crate env_logger;
 extern crate hab;
@@ -48,11 +47,11 @@ use std::{env,
           process,
           str::{self,
                 FromStr}};
+use termcolor::ColorChoice;
 
 use crate::{common::{cli_defaults::GOSSIP_DEFAULT_PORT,
                      command::package::install::InstallSource,
-                     ui::{Coloring,
-                          NONINTERACTIVE_ENVVAR,
+                     ui::{NONINTERACTIVE_ENVVAR,
                           UI}},
             hcore::{crypto::{self,
                              default_cache_key_path,
@@ -491,9 +490,9 @@ fn set_supervisor_logging_options(m: &ArgMatches) {
 // the scope of change contained.
 fn ui() -> UI {
     let coloring = if hcore::output::is_color() {
-        Coloring::Auto
+        ColorChoice::Auto
     } else {
-        Coloring::Never
+        ColorChoice::Never
     };
     let isatty = if env::var(NONINTERACTIVE_ENVVAR)
         .map(|val| val == "1" || val == "true")

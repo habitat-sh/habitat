@@ -13,7 +13,6 @@ doc = false
 [dependencies]
 bitflags = "*"
 base64 = "*"
-ansi_term = "*"
 dirs = "*"
 env_logger = "*"
 features = "*"
@@ -34,6 +33,7 @@ serde = "*"
 serde_json = "*"
 serde_derive = "*"
 tabwriter = "*"
+termcolor = "*"
 toml = { version = "*", default-features = false }
 url = "*"
 walkdir = "*"

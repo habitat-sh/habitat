@@ -277,6 +277,7 @@ mod test {
                     FromStr},
               sync::{Arc,
                      RwLock}};
+    use termcolor::ColorChoice;
 
     use crate::{common::ui::{Coloring,
                              UI},
@@ -492,7 +493,7 @@ mod test {
             Box::new(io::empty()),
             || Box::new(stdout_buf.clone()),
             || Box::new(stderr_buf.clone()),
-            Coloring::Never,
+            ColorChoice::Never,
             false,
         );
 

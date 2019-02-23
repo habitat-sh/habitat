@@ -7,7 +7,6 @@ build = "../build-habitat.rs"
 workspace = "../../"
 
 [dependencies]
-ansi_term = "*"
 bimap = "*"
 glob = "*"
 # The handlebars crate has a few issues that require us to lock at 0.28.3
@@ -36,7 +35,7 @@ serde-transcode = "*"
 serde_yaml = "*"
 tempfile = "*"
 retry = "*"
-term = { git = "https://github.com/habitat-sh/term" }
+termcolor = "*"
 time = "*"
 toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }

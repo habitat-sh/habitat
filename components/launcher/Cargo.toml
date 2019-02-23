@@ -11,7 +11,6 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-ansi_term = "*"
 env_logger = "*"
 # JW TODO: core has external deps that we don't want, libarchive/libsodium. We should either
 # put these things behind a feature flag so we can statically compile the launcher.
