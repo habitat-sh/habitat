@@ -39,7 +39,8 @@ use std::{borrow::Cow,
           fmt,
           fs::{self,
                File},
-          io::{BufRead,
+          io::{self,
+               BufRead,
                BufReader},
           path::{Path,
                  PathBuf},
@@ -55,7 +56,8 @@ use crate::{api_client::{self,
                              SigKeyPair},
                     fs::{cache_key_path,
                          pkg_install_path,
-                         svc_hooks_path},
+                         svc_hooks_path,
+                         AtomicWriter},
                     package::{list::temp_package_directory,
                               Identifiable,
                               PackageArchive,
@@ -1036,7 +1038,11 @@ impl<'a> InstallTask<'a> {
                 artifact_path.display(),
                 cache_path.display()
             );
-            fs::copy(artifact_path, cache_path)?;
+            let w = AtomicWriter::new(&cache_path)?;
+            w.with_writer(|mut w| {
+                let mut f = File::open(artifact_path)?;
+                io::copy(&mut f, &mut w)
+            })?;
         }
         Ok(())
     }
