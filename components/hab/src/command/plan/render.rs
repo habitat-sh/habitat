@@ -36,7 +36,7 @@ pub fn start(
 ) -> Result<()> {
     // Strip the file name out of our passed template
     let file_name = match Path::new(&template_path).file_name() {
-        Some(name) => name.to_str().clone().unwrap(),
+        Some(name) => Path::new(name),
         None => panic!(format!("Something went wrong getting filename of {:?}", &template_path)),
     }; 
 
@@ -118,7 +118,7 @@ pub fn start(
     // if not no render dir (aka "unless no_render_dir == true")
     if !(no_render_dir) {
       // Render our template file
-      create_with_template(ui, &Path::new(render_dir).join(file_name), &rendered_template, quiet)?;
+      create_with_template(ui, &render_dir, &file_name, &rendered_template, quiet)?;
     }
 
     if !(quiet) {
@@ -151,15 +151,14 @@ fn merge(a: &mut Json, b: Json) {
     }
 }
 
-fn create_with_template(ui: &mut UI, location: &std::path::PathBuf, template: &str, quiet: bool) -> Result<()> {
-    let path = Path::new(&location);
+fn create_with_template(ui: &mut UI, render_dir: &std::path::Path, file_name: &std::path::Path, template: &str, quiet: bool) -> Result<()> {
+    let path = Path::new(&render_dir).join(&file_name);
     if !(quiet) {
-        ui.status(Status::Creating, format!("file: {:?}", location))?;
+        ui.status(Status::Creating, format!("file: {:?}", path))?;
     }
-    // If the directory doesn't exist we need to make it.
-    if let Some(directory) = path.parent() {
-        create_dir_all(directory)?;
-    }
+
+    create_dir_all(render_dir)?;
+
     // Write file to disk
     File::create(path).and_then(|mut file| file.write(template.as_bytes()))?;
     Ok(())
