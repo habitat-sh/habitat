@@ -124,7 +124,6 @@ pub fn start(
     if !(quiet) {
       ui.br()?;
     }
-    // not really sure this is correct...
     Ok(())
 }
 
@@ -152,8 +151,6 @@ fn merge(a: &mut Json, b: Json) {
     }
 }
 
-// This is almost a dupe of the method in plan/init, except we don't care if the file exists and go
-// ahead and overwite it.  I feel like maybe a different name would be good?
 fn create_with_template(ui: &mut UI, location: &std::path::PathBuf, template: &str, quiet: bool) -> Result<()> {
     let path = Path::new(&location);
     if !(quiet) {
