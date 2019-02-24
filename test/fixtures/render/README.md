@@ -80,13 +80,3 @@ fi
 
 exec consul agent ${CONSUL_OPTS}
 ```
-
-# TODO:
-
-* [x] ! ~~Figure out how to load `svc` data for `eachAlive` helper~~
-* [x] ! Figured out how to mock that data... helps to spell things right... ("alive" not "active") duh...
-* [ ] ? figure out how to load `pkg.` data. e.g. for `{{pkg.svc_config_path}}`
-* [x] ! figured out how to mock `pkg.` data, which I think "override.json" should override.
-* [ ] ? figure out how to have multiple `--mock-data` params.. e.g.: `--mock-data test/day00.json`,  `--mock-data test/day01-with-failed-member.json`
-* ~~[ ]~~ ~~I want to make it `ersatz_data` instead of `mock_data`.~~  that's dumb.
-
