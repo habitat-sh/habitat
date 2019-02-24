@@ -97,7 +97,7 @@ pub fn start(
         None => "{}".to_string(),
     };
     // merge mock data into data
-    merge(&mut data, serde_json::from_str(&mock_data)?);
+    merge(&mut data, serde_json::from_str(&mock_data).unwrap());
 
     // create a template renderer
     let mut renderer = TemplateRenderer::new();
