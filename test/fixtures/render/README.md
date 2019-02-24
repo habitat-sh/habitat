@@ -6,23 +6,21 @@ see `hab plan render --help` for full usage instructions.
 
 # Usage
 
-`cd` to `habitat/components/hab`
-
 Try:
 
 
 ```
-cargo run -- plan render ../../test/fixtures/render/consul/config/consul_config.json \
-  --default-toml ../../test/fixtures/render/consul/default.toml \
-  --user-toml ../../test/fixtures/render/consul/user.toml \
-  --mock-data ../../test/fixtures/render/consul/override.json \
+cargo run -p hab plan render ./test/fixtures/render/consul/config/consul_config.json \
+  --default-toml ./test/fixtures/render/consul/default.toml \
+  --user-toml ./test/fixtures/render/consul/user.toml \
+  --mock-data ./test/fixtures/render/consul/override.json \
   --render-dir ~/result/config \
   --print
 ```
 
 ```
-cargo run -- plan render ../../test/fixtures/render/consul/config/consul_config.json \
-  --default-toml ../../test/fixtures/render/consul/default.toml \
+cargo run -p hab plan render ./test/fixtures/render/consul/config/consul_config.json \
+  --default-toml ./test/fixtures/render/consul/default.toml \
   --render-dir ~/result/config \
   --print
 ```
@@ -30,10 +28,10 @@ cargo run -- plan render ../../test/fixtures/render/consul/config/consul_config.
 or
 
 ```
-cargo run -- plan render ../../test/fixtures/render/consul/hooks/run \
-  --default-toml ../../test/fixtures/render/consul/default.toml \
-  --user-toml ../../test/fixtures/render/consul/user.toml \
-  --mock-data ../../test/fixtures/render/consul/override.json \
+cargo run -p hab plan render ./test/fixtures/render/consul/hooks/run \
+  --default-toml ./test/fixtures/render/consul/default.toml \
+  --user-toml ./test/fixtures/render/consul/user.toml \
+  --mock-data ./test/fixtures/render/consul/override.json \
   --render-dir ~/result/hooks \
   --print
 ```
