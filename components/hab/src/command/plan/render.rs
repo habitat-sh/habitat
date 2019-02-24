@@ -12,11 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::create_dir_all;
-use std::fs::{File, read_to_string};
-use std::io::{Write};
-use std::path::Path;
 use serde_json::{self, json, Value as Json};
+use std::fs::create_dir_all;
+use std::fs::{read_to_string, File};
+use std::io::Write;
+use std::path::Path;
 use toml::Value;
 
 use crate::common::templating::TemplateRenderer;
@@ -37,12 +37,18 @@ pub fn start(
     // Strip the file name out of our passed template
     let file_name = match Path::new(&template_path).file_name() {
         Some(name) => Path::new(name),
-        None => panic!(format!("Something went wrong getting filename of {:?}", &template_path)),
-    }; 
+        None => panic!(format!(
+            "Something went wrong getting filename of {:?}",
+            &template_path
+        )),
+    };
 
     if !(quiet) {
-      ui.begin(format!("Rendering: {:?} into: {:?} as: {:?}", template_path, render_dir, file_name))?;
-      ui.br()?;
+        ui.begin(format!(
+            "Rendering: {:?} into: {:?} as: {:?}",
+            template_path, render_dir, file_name
+        ))?;
+        ui.br()?;
     }
 
     // read our template from file
@@ -67,11 +73,11 @@ pub fn start(
     let user_toml = match user_toml_path {
         Some(path) => {
             if !(quiet) {
-              // print helper message, maybe only print if '--verbose'? how?
-              ui.begin(format!("Importing user.toml: {:?}", path))?;
+                // print helper message, maybe only print if '--verbose'? how?
+                ui.begin(format!("Importing user.toml: {:?}", path))?;
             }
             read_to_string(path)?
-        },
+        }
         None => String::new(),
     };
     // merge default into data struct
@@ -85,7 +91,7 @@ pub fn start(
                 ui.begin(format!("Importing override file: {:?}", path))?;
             }
             read_to_string(path)?
-        },
+        }
         // return an empty json block if '--mock-data' isn't defined.
         // this allows us to merge an empty JSON block
         None => "{}".to_string(),
@@ -95,34 +101,40 @@ pub fn start(
 
     // create a template renderer
     let mut renderer = TemplateRenderer::new();
-    // register our template 
+    // register our template
     renderer
         .register_template_string(&template, &template)
         .expect("Could not register template content");
     // render our JSON override in our template.
     let rendered_template = renderer.render(&template, &data).ok().unwrap();
-    
+
     if print {
         if !(quiet) {
-          ui.br()?;
-          ui.warn(format!("###======== Rendered template: {:?}", &template_path))?;
+            ui.br()?;
+            ui.warn(format!(
+                "###======== Rendered template: {:?}",
+                &template_path
+            ))?;
         }
 
         println!("{}", rendered_template);
 
         if !(quiet) {
-          ui.warn(format!("========### End rendered template: {:?}", &template_path))?;
+            ui.warn(format!(
+                "========### End rendered template: {:?}",
+                &template_path
+            ))?;
         }
     }
 
     // if not no render dir (aka "unless no_render == true")
     if !(no_render) {
-      // Render our template file
-      create_with_template(ui, &render_dir, &file_name, &rendered_template, quiet)?;
+        // Render our template file
+        create_with_template(ui, &render_dir, &file_name, &rendered_template, quiet)?;
     }
 
     if !(quiet) {
-      ui.br()?;
+        ui.br()?;
     }
     Ok(())
 }
@@ -136,11 +148,11 @@ fn toml_to_json(cfg: &str) -> Json {
 // merge two Json structs
 fn merge(a: &mut Json, b: Json) {
     match (a, b) {
-        // not sure I understand this... 
+        // not sure I understand this...
         (a @ &mut Json::Object(_), Json::Object(b)) => {
             // not sure I understand why we unwrap this
             let a = a.as_object_mut().unwrap();
-            // Iterate through key/values in Json object b, 
+            // Iterate through key/values in Json object b,
             // merge with Json object b
             for (k, v) in b {
                 merge(a.entry(k).or_insert(Json::Null), v);
@@ -151,7 +163,13 @@ fn merge(a: &mut Json, b: Json) {
     }
 }
 
-fn create_with_template(ui: &mut UI, render_dir: &std::path::Path, file_name: &std::path::Path, template: &str, quiet: bool) -> Result<()> {
+fn create_with_template(
+    ui: &mut UI,
+    render_dir: &std::path::Path,
+    file_name: &std::path::Path,
+    template: &str,
+    quiet: bool,
+) -> Result<()> {
     let path = Path::new(&render_dir).join(&file_name);
     if !(quiet) {
         ui.status(Status::Creating, format!("file: {:?}", path))?;
