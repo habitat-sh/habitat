@@ -97,7 +97,7 @@ pub fn start(
         None => "{}".to_string(),
     };
     // merge mock data into data
-    merge(&mut data, serde_json::from_str(&mock_data).unwrap());
+    merge(&mut data, serde_json::from_str(&mock_data)?);
 
     // create a template renderer
     let mut renderer = TemplateRenderer::new();
@@ -147,20 +147,15 @@ fn toml_to_json(cfg: &str) -> Json {
 
 // merge two Json structs
 fn merge(a: &mut Json, b: Json) {
-    match (a, b) {
-        // not sure I understand this...
-        (a @ &mut Json::Object(_), Json::Object(b)) => {
-            // not sure I understand why we unwrap this
-            let a = a.as_object_mut().unwrap();
-            // Iterate through key/values in Json object b,
-            // merge with Json object b
-            for (k, v) in b {
-                merge(a.entry(k).or_insert(Json::Null), v);
+    if let Json::Object(a_map) = a {
+        if let Json::Object(b_map) = b {
+            for (k, v) in b_map {
+                merge(a_map.entry(k).or_insert(Json::Null), v);
             }
+            return;
         }
-        // or this...
-        (a, b) => *a = b,
     }
+    *a = b;
 }
 
 fn create_with_template(
