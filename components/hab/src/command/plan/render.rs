@@ -129,11 +129,8 @@ pub fn start(
 }
 
 fn toml_to_json(cfg: &str) -> Json {
-    // parse TOML string to Value
     let toml_value = cfg.parse::<Value>().expect("Error parsing TOML");
-    // convert toml to json string
     let toml_string = serde_json::to_string(&toml_value).expect("Error encoding JSON");
-    // convert to Json::Value
     serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &toml_string)).unwrap()
 }
 
