@@ -16,7 +16,7 @@ use std::fs::create_dir_all;
 use std::fs::{File, read_to_string};
 use std::io::{Write};
 use std::path::Path;
-use serde_json::{self, Value as Json};
+use serde_json::{self, json, Value as Json};
 use toml::Value;
 
 use crate::common::templating::TemplateRenderer;
@@ -25,55 +25,54 @@ use crate::error::Result;
 
 pub fn start(
     ui: &mut UI,
-    template_path: String,
-    default_toml_path: String,
-    user_toml_path: Option<String>,
-    mock_data_path: Option<String>,
+    template_path: &Path,
+    default_toml_path: &Path,
+    user_toml_path: Option<&Path>,
+    mock_data_path: Option<&Path>,
     print: bool,
     no_render_dir: bool,
-    render_dir: String,
+    render_dir: &Path,
     quiet: bool,
 ) -> Result<()> {
     // Strip the file name out of our passed template
     let file_name = match Path::new(&template_path).file_name() {
         Some(name) => name.to_str().clone().unwrap(),
-        None => panic!(format!("Something went wrong getting filename of {}", &template_path)),
+        None => panic!(format!("Something went wrong getting filename of {:?}", &template_path)),
     }; 
 
     if !(quiet) {
-      ui.begin(format!("Rendering: {} into: {}/ as: {}", template_path, render_dir, file_name))?;
+      ui.begin(format!("Rendering: {:?} into: {:?} as: {:?}", template_path, render_dir, file_name))?;
       ui.br()?;
     }
 
     // read our template from file
     let template = read_to_string(&template_path)
-        .expect(&format!("something went wrong reading: {}", template_path)); 
+        .expect(&format!("something went wrong reading: {:?}", template_path)); 
 
     // create a "data" json struct
-    let mut data: Json = serde_json::from_str("{}").unwrap();
+    let mut data = json!({});
 
     if !(quiet) {
         // import default.toml values, convert to JSON
-        ui.begin(format!("Importing default.toml: {}", &default_toml_path))?;
+        ui.begin(format!("Importing default.toml: {:?}", &default_toml_path))?;
     }
 
     // we should always have a default.toml, would be nice to "autodiscover" based on package name,
     // for now assume we're working in the plan dir if --default-toml not passed
     let default_toml = read_to_string(&default_toml_path)
-        .expect(&format!("Something went wrong reading: {}", &default_toml_path));
+        .expect(&format!("Something went wrong reading: {:?}", &default_toml_path));
     // merge default into data struct
     merge(&mut data, toml_to_json(&default_toml));
 
     // import default.toml values, convert to JSON
-    // ui.begin(format!("Importing user.toml: {}", &user_toml_path));
     let user_toml = match user_toml_path {
         Some(path) => {
             if !(quiet) {
               // print helper message, maybe only print if '--verbose'? how?
-              ui.begin(format!("Importing user.toml: {}", path.to_string()))?;
+              ui.begin(format!("Importing user.toml: {:?}", path))?;
             }
-            read_to_string(path.to_string())
-                .expect(&format!("Something went wrong reading: {}", path.to_string()))
+            read_to_string(path)
+                .expect(&format!("Something went wrong reading: {:?}", path))
         },
         None => "".to_string(),
     };
@@ -85,10 +84,10 @@ pub fn start(
         Some(path) => {
             if !(quiet) {
                 // print helper message, maybe only print if '--verbose'? how?
-                ui.begin(format!("Importing override file: {}", path.to_string()))?;
+                ui.begin(format!("Importing override file: {:?}", path))?;
             }
-            read_to_string(path.to_string())
-              .expect(&format!("Something went wrong reading: {}", path.to_string()))
+            read_to_string(path)
+              .expect(&format!("Something went wrong reading: {:?}", path))
         },
         // return an empty json block if '--mock-data' isn't defined.
         // this allows us to merge an empty JSON block
@@ -101,21 +100,21 @@ pub fn start(
     let mut renderer = TemplateRenderer::new();
     // register our template 
     renderer
-        .register_template_string(&template_path, &template)
+        .register_template_string(&template, &template)
         .expect("Could not register template content");
     // render our JSON override in our template.
-    let rendered_template = renderer.render(&template_path, &data).ok().unwrap();
+    let rendered_template = renderer.render(&template, &data).ok().unwrap();
     
     if print {
         if !(quiet) {
           ui.br()?;
-          ui.warn(format!("###======== Rendered template: {}", &template_path))?;
+          ui.warn(format!("###======== Rendered template: {:?}", &template_path))?;
         }
 
         println!("{}", rendered_template);
 
         if !(quiet) {
-          ui.warn(format!("========### End rendered template: {}", &template_path))?;
+          ui.warn(format!("========### End rendered template: {:?}", &template_path))?;
         }
     }
 
@@ -161,10 +160,10 @@ fn merge(a: &mut Json, b: Json) {
 
 // This is almost a dupe of the method in plan/init, except we don't care if the file exists and go
 // ahead and overwite it.  I feel like maybe a different name would be good?
-fn create_with_template(ui: &mut UI, location: &str, template: &str, quiet: bool) -> Result<()> {
+fn create_with_template(ui: &mut UI, location: &std::path::PathBuf, template: &str, quiet: bool) -> Result<()> {
     let path = Path::new(&location);
     if !(quiet) {
-        ui.status(Status::Creating, format!("file: {}", location))?;
+        ui.status(Status::Creating, format!("file: {:?}", location))?;
     }
     // If the directory doesn't exist we need to make it.
     if let Some(directory) = path.parent() {

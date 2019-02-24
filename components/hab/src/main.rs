@@ -705,22 +705,22 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let template_path = match m.value_of("TEMPLATE_PATH") {
-        Some(o) => o.to_string(),
+        Some(o) => Path::new(o),
         None => return Err(Error::CryptoCLI("No config to render specified".to_string())),
     };
 
     let default_toml_path = match m.value_of("DEFAULT_TOML") {
-        Some(o) => o.to_string(),
-        None => "./default.toml".to_string(),
+        Some(o) => Path::new(o),
+        None => Path::new("./default.toml")
     };
 
     let user_toml_path = match m.value_of("USER_TOML") {
-        Some(o) => Some(o.to_string()),
+        Some(o) => Some(Path::new(o)),
         None => None
     };
 
     let mock_data_path = match m.value_of("MOCK_DATA") {
-        Some(o) => Some(o.to_string()),
+        Some(o) => Some(Path::new(o)),
         None => None
     };
 
@@ -729,8 +729,8 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let quiet = m.is_present("QUIET");
 
     let render_dir = match m.value_of("RENDER_DIR") {
-        Some(name) => name.to_string(),
-        None => "result".into(),
+        Some(name) => Path::new(name),
+        None => Path::new("result"),
     };
 
     command::plan::render::start(
