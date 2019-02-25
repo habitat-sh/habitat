@@ -53,13 +53,13 @@ use futures::{future,
               Future,
               IntoFuture};
 use habitat_butterfly::rumor::service::Service as ServiceRumor;
-pub use habitat_common::templating::{config::UserConfigPath,
+use habitat_common::templating::{config::CfgRenderer,
+                                 hooks::Hook};
+pub use habitat_common::templating::{config::{Cfg,
+                                              UserConfigPath},
                                      package::{Env,
-                                               Pkg}};
-use habitat_common::templating::{config::{Cfg,
-                                          CfgRenderer},
-                                 hooks::Hook,
-                                 package::PkgProxy};
+                                               Pkg,
+                                               PkgProxy}};
 use habitat_core::{crypto::hash,
                    fs::{atomic_write,
                         svc_hooks_path,
@@ -1208,20 +1208,13 @@ impl<'a> Serialize for ServiceProxy<'a> {
 
 #[cfg(test)]
 mod tests {
-    use self::{manager::{sys::Sys,
-                         FsCfg},
-               ServiceSpec};
     use super::*;
     use crate::{config::GossipListenAddr,
-                hcore::package::{ident::PackageIdent,
-                                 PackageInstall},
                 http_gateway,
                 test_helpers::*};
     use habitat_common::types::ListenCtlAddr;
     use serde_json;
-    use std::{path::PathBuf,
-              str::FromStr,
-              time::Instant};
+    use std::str::FromStr;
 
     fn initialize_test_service() -> Service {
         let listen_ctl_addr =

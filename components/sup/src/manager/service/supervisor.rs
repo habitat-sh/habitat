@@ -306,9 +306,7 @@ impl Supervisor {
 
     /// Remove a pidfile for this package if it exists.
     /// Do NOT fail if there is an error removing the PIDFILE
-    fn cleanup_pidfile(&self) {
-        Self::cleanup_pidfile_future(self.pid_file.clone());
-    }
+    fn cleanup_pidfile(&self) { Self::cleanup_pidfile_future(self.pid_file.clone()); }
 
     // This is just a different way to model `cleanup_pidfile` that's
     // amenable to use in a future. Hopefully these two can be
