@@ -24,7 +24,7 @@ use habitat_common::{cli_defaults::{GOSSIP_DEFAULT_ADDR,
                                     LISTEN_HTTP_DEFAULT_ADDR,
                                     RING_ENVVAR,
                                     RING_KEY_ENVVAR},
-                     types::ListenCtlAddr};
+                     types::{EnvConfig, ListenCtlAddr}};
 use habitat_core::{crypto::keys::PairType,
                    env::Config,
                    package::{ident,
@@ -900,8 +900,9 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     // is displayed confusingly as `hab-sup`
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
     (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-          (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
+    (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the Gossip System Gateway.")
+    (@arg LOCAL_MODE: --("local-mode") "Start the supervisor in local mode. This sets the gossip listen address to 127.0.0.2 effectively scoping it to only the local node. This is equivalent to using 127.0.0.2 as the ip for --listen-gossip. Note: Setting local mode will override values for --listen-gossip, including values set via the env variable.")
     (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the HTTP Gateway.")
     (@arg HTTP_DISABLE: --("http-disable") -D

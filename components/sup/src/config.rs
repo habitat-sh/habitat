@@ -22,9 +22,12 @@
 
 use crate::error::{Result,
                    SupError};
-use habitat_common::cli_defaults::{GOSSIP_DEFAULT_IP,
+use habitat_common::{
+    cli_defaults::{GOSSIP_DEFAULT_IP,
                                    GOSSIP_DEFAULT_PORT,
-                                   GOSSIP_LISTEN_ADDRESS_ENVVAR};
+                                   GOSSIP_LISTEN_ADDRESS_ENVVAR}
+    types::EnvConfig
+} ;
 use habitat_core::env::Config as EnvConfig;
 use std::{fmt,
           io,
@@ -39,10 +42,15 @@ use std::{fmt,
           result,
           str::FromStr};
 
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
 
 impl GossipListenAddr {
+    pub fn new(ip: Ipv4Addr, port: u16) -> Self {
+        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(ip, port)))
+    }
+
     /// Generate an address at which a server configured with this
     /// GossipListenAddr can communicate with itself.
     ///
@@ -62,12 +70,12 @@ impl GossipListenAddr {
 
 impl Default for GossipListenAddr {
     fn default() -> GossipListenAddr {
-        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
+        GossipListenAddr::new(
             GOSSIP_DEFAULT_IP
                 .parse()
                 .expect("GOSSIP_DEFAULT_IP can not be parsed."),
             GOSSIP_DEFAULT_PORT,
-        )))
+        )
     }
 }
 
@@ -78,23 +86,31 @@ impl EnvConfig for GossipListenAddr {
 impl Deref for GossipListenAddr {
     type Target = SocketAddr;
 
-    fn deref(&self) -> &SocketAddr { &self.0 }
+    fn deref(&self) -> &SocketAddr {
+        &self.0
+    }
 }
 
 impl DerefMut for GossipListenAddr {
-    fn deref_mut(&mut self) -> &mut SocketAddr { &mut self.0 }
+    fn deref_mut(&mut self) -> &mut SocketAddr {
+        &mut self.0
+    }
 }
 
 impl FromStr for GossipListenAddr {
     type Err = SupError;
 
-    fn from_str(val: &str) -> Result<Self> { Ok(GossipListenAddr(SocketAddr::from_str(val)?)) }
+    fn from_str(val: &str) -> Result<Self> {
+        Ok(GossipListenAddr(SocketAddr::from_str(val)?))
+    }
 }
 
 impl ToSocketAddrs for GossipListenAddr {
     type Iter = option::IntoIter<SocketAddr>;
 
-    fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> {
+        self.0.to_socket_addrs()
+    }
 }
 
 impl fmt::Display for GossipListenAddr {
@@ -133,17 +149,24 @@ mod tests {
 
     mod env_config {
         use super::*;
+<<<<<<< HEAD
         use habitat_common::locked_env_var;
         use std::{env,
                   num::ParseIntError,
                   result,
                   str::FromStr};
+=======
+        use crate::common::locked_env_var;
+        use std::{env, num::ParseIntError, result, str::FromStr};
+>>>>>>> add local mode option
 
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
         struct Thingie(u64);
 
         impl Default for Thingie {
-            fn default() -> Self { Thingie(2112) }
+            fn default() -> Self {
+                Thingie(2112)
+            }
         }
 
         impl FromStr for Thingie {
