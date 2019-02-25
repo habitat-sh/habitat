@@ -7,6 +7,7 @@
 - Update ChannelIdent to use env::Config::configured_value where appropriate [#6169](https://github.com/habitat-sh/habitat/pull/6169) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Enable clippy and shellcheck linting  [#6160](https://github.com/habitat-sh/habitat/pull/6160) ([scotthain](https://github.com/scotthain))
 - Add additional nightly rustfmt options [#6175](https://github.com/habitat-sh/habitat/pull/6175) ([raskchanky](https://github.com/raskchanky))
 - Refactor the date logic for nightly rust in CI [#6193](https://github.com/habitat-sh/habitat/pull/6193) ([raskchanky](https://github.com/raskchanky))
 - Remove test verify branch [#6155](https://github.com/habitat-sh/habitat/pull/6155) ([scotthain](https://github.com/scotthain))
