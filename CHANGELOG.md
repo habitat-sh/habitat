@@ -7,6 +7,7 @@
 - Update ChannelIdent to use env::Config::configured_value where appropriate [#6169](https://github.com/habitat-sh/habitat/pull/6169) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Fix shellcheck thta was missed somehow [#6216](https://github.com/habitat-sh/habitat/pull/6216) ([scotthain](https://github.com/scotthain))
 - Enable build verification steps for native hab builds [#6195](https://github.com/habitat-sh/habitat/pull/6195) ([scotthain](https://github.com/scotthain))
 - Enable clippy and shellcheck linting  [#6160](https://github.com/habitat-sh/habitat/pull/6160) ([scotthain](https://github.com/scotthain))
 - Add additional nightly rustfmt options [#6175](https://github.com/habitat-sh/habitat/pull/6175) ([raskchanky](https://github.com/raskchanky))
