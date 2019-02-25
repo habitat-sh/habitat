@@ -22,26 +22,30 @@
 
 pub mod server;
 
-use std::{
-    borrow::Cow,
-    fmt,
-    fs::{self, File},
-    io::{self, Write},
-    path::Path,
-};
+use std::{borrow::Cow,
+          fmt,
+          fs::{self,
+               File},
+          io::{self,
+               Write},
+          path::Path};
 
 use regex::Regex;
-use termcolor::{Buffer, Color, ColorSpec, WriteColor};
+use termcolor::{Buffer,
+                Color,
+                ColorSpec,
+                WriteColor};
 
-use crate::{
-    api_client::DisplayProgress,
-    common::ui::{ColorPrinter, UIWriter},
-    hcore::{self, output},
-    protocol,
-};
+use crate::{api_client::DisplayProgress,
+            common::ui::{ColorPrinter,
+                         UIWriter},
+            hcore::{self,
+                    output},
+            protocol};
 use futures::prelude::*;
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 lazy_static! {
     /// Shamelessly stolen from https://github.com/chalk/ansi-regex/blob/master/index.js
@@ -106,9 +110,7 @@ impl CtlRequest {
     }
 
     /// Returns true if the request is transactional and false if not.
-    pub fn transactional(&self) -> bool {
-        self.transaction.is_some() && self.tx.is_some()
-    }
+    pub fn transactional(&self) -> bool { self.transaction.is_some() && self.tx.is_some() }
 
     fn send_msg<T>(&mut self, msg: T, complete: bool)
     where
@@ -130,21 +132,13 @@ impl CtlRequest {
 impl UIWriter for CtlRequest {
     type ProgressBar = NetProgressBar;
 
-    fn out(&mut self) -> &mut dyn ColorPrinter {
-        self
-    }
+    fn out(&mut self) -> &mut dyn ColorPrinter { self }
 
-    fn err(&mut self) -> &mut dyn ColorPrinter {
-        self
-    }
+    fn err(&mut self) -> &mut dyn ColorPrinter { self }
 
-    fn is_out_a_terminal(&self) -> bool {
-        true
-    }
+    fn is_out_a_terminal(&self) -> bool { true }
 
-    fn is_err_a_terminal(&self) -> bool {
-        true
-    }
+    fn is_err_a_terminal(&self) -> bool { true }
 
     fn progress(&self) -> Option<Self::ProgressBar> {
         if self.is_out_a_terminal() {
@@ -227,9 +221,7 @@ impl NetProgressBar {
 }
 
 impl DisplayProgress for NetProgressBar {
-    fn size(&mut self, size: u64) {
-        self.inner.total = size;
-    }
+    fn size(&mut self, size: u64) { self.inner.total = size; }
 
     fn finish(&mut self) {}
 }
@@ -241,9 +233,7 @@ impl io::Write for NetProgressBar {
         Ok(buf.len())
     }
 
-    fn flush(&mut self) -> io::Result<()> {
-        Ok(())
-    }
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
 }
 
 /// First attempts to read the secret key used to authenticate with the `CtlGateway` from disk

@@ -29,60 +29,81 @@ extern crate lazy_static;
 extern crate log;
 use pbr;
 
-use std::{
-    env,
-    ffi::OsString,
-    fs::File,
-    io::{self, prelude::*, Read},
-    net::ToSocketAddrs,
-    path::{Path, PathBuf},
-    process, result,
-    str::FromStr,
-    thread,
-};
-use termcolor::{self, Color, ColorChoice};
+use std::{env,
+          ffi::OsString,
+          fs::File,
+          io::{self,
+               prelude::*,
+               Read},
+          net::ToSocketAddrs,
+          path::{Path,
+                 PathBuf},
+          process,
+          result,
+          str::FromStr,
+          thread};
+use termcolor::{self,
+                Color,
+                ColorChoice};
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
-use crate::{
-    common::{
-        command::package::install::{
-            InstallHookMode, InstallMode, InstallSource, LocalPackageUsage,
-        },
-        types::ListenCtlAddr,
-        ui::{Status, UIWriter, NONINTERACTIVE_ENVVAR, UI},
-    },
-    hcore::{
-        binlink::default_binlink_dir,
-        crypto::{default_cache_key_path, init, keys::PairType, BoxKeyPair, SigKeyPair},
-        env as henv,
-        env::Config as EnvConfig,
-        fs::{cache_analytics_path, cache_artifact_path, cache_key_path, launcher_root_path},
-        package::{PackageIdent, PackageTarget},
-        ChannelIdent,
-    },
-};
-use clap::{ArgMatches, Shell};
+use crate::{common::{command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 InstallSource,
+                                                 LocalPackageUsage},
+                     types::ListenCtlAddr,
+                     ui::{Status,
+                          UIWriter,
+                          NONINTERACTIVE_ENVVAR,
+                          UI}},
+            hcore::{binlink::default_binlink_dir,
+                    crypto::{default_cache_key_path,
+                             init,
+                             keys::PairType,
+                             BoxKeyPair,
+                             SigKeyPair},
+                    env as henv,
+                    env::Config as EnvConfig,
+                    fs::{cache_analytics_path,
+                         cache_artifact_path,
+                         cache_key_path,
+                         launcher_root_path},
+                    package::{PackageIdent,
+                              PackageTarget},
+                    ChannelIdent}};
+use clap::{ArgMatches,
+           Shell};
 use futures::prelude::*;
 
-use crate::{
-    hcore::{
-        service::{HealthCheckInterval, ServiceGroup},
-        url::{bldr_url_from_env, default_bldr_url},
-    },
-    protocol::{codec::*, ctl::ServiceBindList, net::ErrCode, types::*},
-    sup_client::{SrvClient, SrvClientError},
-};
+use crate::{hcore::{service::{HealthCheckInterval,
+                              ServiceGroup},
+                    url::{bldr_url_from_env,
+                          default_bldr_url}},
+            protocol::{codec::*,
+                       ctl::ServiceBindList,
+                       net::ErrCode,
+                       types::*},
+            sup_client::{SrvClient,
+                         SrvClientError}};
 use tabwriter::TabWriter;
 
-use hab::{
-    analytics, cli,
-    command::{self, pkg::list::ListingType},
-    config::{self, Config},
-    error::{Error, Result},
-    feat, scaffolding, AUTH_TOKEN_ENVVAR, BLDR_URL_ENVVAR, CTL_SECRET_ENVVAR, ORIGIN_ENVVAR,
-    PRODUCT, VERSION,
-};
+use hab::{analytics,
+          cli,
+          command::{self,
+                    pkg::list::ListingType},
+          config::{self,
+                   Config},
+          error::{Error,
+                  Result},
+          feat,
+          scaffolding,
+          AUTH_TOKEN_ENVVAR,
+          BLDR_URL_ENVVAR,
+          CTL_SECRET_ENVVAR,
+          ORIGIN_ENVVAR,
+          PRODUCT,
+          VERSION};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -1696,9 +1717,7 @@ fn get_password_from_input(m: &ArgMatches) -> Result<Option<String>> {
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn get_password_from_input(_m: &ArgMatches<'_>) -> Result<Option<String>> {
-    Ok(None)
-}
+fn get_password_from_input(_m: &ArgMatches<'_>) -> Result<Option<String>> { Ok(None) }
 
 fn get_topology_from_input(m: &ArgMatches<'_>) -> Option<Topology> {
     m.value_of("TOPOLOGY")
