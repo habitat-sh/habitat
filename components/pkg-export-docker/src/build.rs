@@ -914,8 +914,7 @@ mod test {
                          RwLock}};
         use termcolor::ColorChoice;
 
-        use crate::{common::ui::{Coloring,
-                                 UI},
+        use crate::{common::ui::UI,
                     hcore};
 
         use tempfile::TempDir;
