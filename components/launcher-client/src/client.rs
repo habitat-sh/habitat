@@ -168,7 +168,6 @@ impl LauncherCli {
             svc_password: password.map(|p| p.to_string()),
             env,
             id: id.to_string(),
-            ..Default::default()
         };
 
         Self::send(&self.tx, &msg)?;
