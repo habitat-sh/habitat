@@ -12,32 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{env,
-          fmt,
-          fs::{self,
-               File},
-          io::{self,
-               BufRead,
-               BufReader,
-               Read,
-               Stdout,
-               Write},
-          process::{self,
-                    Command}};
+use std::{
+    env, fmt,
+    fs::{self, File},
+    io::{self, BufRead, BufReader, Read, Stdout, Write},
+    process::{self, Command},
+};
 use uuid::Uuid;
 
 use crate::api_client::DisplayProgress;
 use pbr;
-use termcolor::{self,
-                Color,
-                ColorChoice,
-                ColorSpec,
-                StandardStream,
-                WriteColor};
+use termcolor::{self, Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 
 use self::tty::StdStream;
-use crate::error::{Error,
-                   Result};
+use crate::error::{Error, Result};
 
 pub const NONINTERACTIVE_ENVVAR: &str = "HAB_NONINTERACTIVE";
 
@@ -171,8 +159,11 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '★';
-        self.out()
-            .print(format!("{} {}\n", symbol, message).as_bytes(), Some(Color::Magenta), true)
+        self.out().print(
+            format!("{} {}\n", symbol, message).as_bytes(),
+            Some(Color::Magenta),
+            true,
+        )
     }
 
     /// Write a message formatted with `status`.
@@ -181,9 +172,13 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let (symbol, status_str, color) = status.parts();
+        self.out().print(
+            format!("{} {}", symbol, status_str).as_bytes(),
+            Some(color),
+            true,
+        )?;
         self.out()
-            .print(format!("{} {}", symbol, status_str).as_bytes(), Some(color), true)?;
-        self.out().print(format!(" {}\n", message).as_bytes(), None, false)
+            .print(format!(" {}\n", message).as_bytes(), None, false)
     }
 
     /// Write a message formatted with `info`.
@@ -191,7 +186,8 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.out().print(format!("{}\n", text).as_bytes(), None, false)
+        self.out()
+            .print(format!("{}\n", text).as_bytes(), None, false)
     }
 
     /// Write a message formatted with `warn`.
@@ -199,8 +195,11 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.err()
-            .print(format!("∅ {}\n", message).as_bytes(), Some(Color::Yellow), true)
+        self.err().print(
+            format!("∅ {}\n", message).as_bytes(),
+            Some(Color::Yellow),
+            true,
+        )
     }
 
     /// Write a message formatted with `fatal`.
@@ -208,12 +207,17 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.err().print("✗✗✗\n".as_bytes(), Some(Color::Red), true)?;
+        self.err()
+            .print("✗✗✗\n".as_bytes(), Some(Color::Red), true)?;
         for line in message.to_string().lines() {
-            self.err()
-                .print(format!("✗✗✗ {}\n", line).as_bytes(), Some(Color::Red), true)?;
+            self.err().print(
+                format!("✗✗✗ {}\n", line).as_bytes(),
+                Some(Color::Red),
+                true,
+            )?;
         }
-        self.err().print("✗✗✗\n".as_bytes(), Some(Color::Red), true)
+        self.err()
+            .print("✗✗✗\n".as_bytes(), Some(Color::Red), true)
     }
 
     /// Write a message formatted with `title`.
@@ -227,7 +231,8 @@ pub trait UIWriter {
                 text.as_ref(),
                 "",
                 width = text.as_ref().chars().count()
-            ).as_bytes(),
+            )
+            .as_bytes(),
             Some(Color::Green),
             true,
         )
@@ -238,12 +243,17 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        self.out()
-            .print(format!("{}\n\n", text.as_ref()).as_bytes(), Some(Color::Green), true)
+        self.out().print(
+            format!("{}\n\n", text.as_ref()).as_bytes(),
+            Some(Color::Green),
+            true,
+        )
     }
 
     /// Write a message formatted with `para`.
-    fn para(&mut self, text: &str) -> io::Result<()> { print_wrapped(self.out(), text, 75, 2) }
+    fn para(&mut self, text: &str) -> io::Result<()> {
+        print_wrapped(self.out(), text, 75, 2)
+    }
 
     /// Write a line break message`.
     fn br(&mut self) -> io::Result<()> {
@@ -259,7 +269,9 @@ pub struct UI {
 
 impl UI {
     /// Creates a new `UI` from a `Shell`.
-    pub fn new(shell: Shell) -> Self { UI { shell } }
+    pub fn new(shell: Shell) -> Self {
+        UI { shell }
+    }
 
     /// Creates a new default `UI` with a coloring strategy and tty hinting.
     pub fn default_with(coloring: ColorChoice, isatty: Option<bool>) -> Self {
@@ -327,19 +339,29 @@ impl UI {
 }
 
 impl Default for UI {
-    fn default() -> Self { UI::default_with(ColorChoice::Auto, None) }
+    fn default() -> Self {
+        UI::default_with(ColorChoice::Auto, None)
+    }
 }
 
 impl UIWriter for UI {
     type ProgressBar = ConsoleProgressBar;
 
-    fn out(&mut self) -> &mut dyn ColorPrinter { &mut self.shell.out }
+    fn out(&mut self) -> &mut dyn ColorPrinter {
+        &mut self.shell.out
+    }
 
-    fn err(&mut self) -> &mut dyn ColorPrinter { &mut self.shell.err }
+    fn err(&mut self) -> &mut dyn ColorPrinter {
+        &mut self.shell.err
+    }
 
-    fn is_out_a_terminal(&self) -> bool { self.shell.out.is_a_terminal() }
+    fn is_out_a_terminal(&self) -> bool {
+        self.shell.out.is_a_terminal()
+    }
 
-    fn is_err_a_terminal(&self) -> bool { self.shell.err.is_a_terminal() }
+    fn is_err_a_terminal(&self) -> bool {
+        self.shell.err.is_a_terminal()
+    }
 
     fn progress(&self) -> Option<Self::ProgressBar> {
         if self.is_out_a_terminal() {
@@ -466,15 +488,23 @@ impl Shell {
         Shell::new(stdin, stdout, stderr)
     }
 
-    pub fn input(&mut self) -> &mut InputStream { &mut self.input }
+    pub fn input(&mut self) -> &mut InputStream {
+        &mut self.input
+    }
 
-    pub fn out(&mut self) -> &mut OutputStream { &mut self.out }
+    pub fn out(&mut self) -> &mut OutputStream {
+        &mut self.out
+    }
 
-    pub fn err(&mut self) -> &mut OutputStream { &mut self.err }
+    pub fn err(&mut self) -> &mut OutputStream {
+        &mut self.err
+    }
 }
 
 impl Default for Shell {
-    fn default() -> Self { Shell::default_with(ColorChoice::Auto, None) }
+    fn default() -> Self {
+        Shell::default_with(ColorChoice::Auto, None)
+    }
 }
 
 pub struct InputStream {
@@ -483,7 +513,9 @@ pub struct InputStream {
 }
 
 impl InputStream {
-    pub fn new(inner: Box<dyn Read + Send>, isatty: bool) -> Self { InputStream { inner, isatty } }
+    pub fn new(inner: Box<dyn Read + Send>, isatty: bool) -> Self {
+        InputStream { inner, isatty }
+    }
 
     pub fn from_stdin(isatty: Option<bool>) -> Self {
         Self::new(
@@ -495,11 +527,15 @@ impl InputStream {
         )
     }
 
-    pub fn is_a_terminal(&self) -> bool { self.isatty }
+    pub fn is_a_terminal(&self) -> bool {
+        self.isatty
+    }
 }
 
 impl Read for InputStream {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> { self.inner.read(buf) }
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        self.inner.read(buf)
+    }
 }
 
 impl fmt::Debug for InputStream {
@@ -545,12 +581,13 @@ impl OutputStream {
         )
     }
 
-    pub fn is_a_terminal(&self) -> bool { self.isatty }
+    pub fn is_a_terminal(&self) -> bool {
+        self.isatty
+    }
 }
 
 impl ColorPrinter for OutputStream {
-    fn print(&mut self, buf: &[u8], color: Option<Color>, bold: bool) -> io::Result<()>
-    {
+    fn print(&mut self, buf: &[u8], color: Option<Color>, bold: bool) -> io::Result<()> {
         match self.inner {
             WriteStream::Stream(ref mut stream) => {
                 stream.reset()?;
@@ -624,9 +661,7 @@ mod tty {
     }
     #[cfg(windows)]
     pub fn isatty(output: StdStream) -> bool {
-        use winapi::um::{consoleapi,
-                         processenv,
-                         winbase};
+        use winapi::um::{consoleapi, processenv, winbase};
 
         let handle = match output {
             StdStream::Stdin => winbase::STD_INPUT_HANDLE,
@@ -693,7 +728,9 @@ impl Write for ConsoleProgressBar {
         }
     }
 
-    fn flush(&mut self) -> io::Result<()> { self.bar.flush() }
+    fn flush(&mut self) -> io::Result<()> {
+        self.bar.flush()
+    }
 }
 
 pub fn print_wrapped<U>(

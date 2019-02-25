@@ -45,15 +45,10 @@ use habitat_sup_protocol as protocol;
 extern crate log;
 use habitat_common as common;
 
-use std::{error,
-          fmt,
-          io,
-          path::PathBuf};
+use std::{error, fmt, io, path::PathBuf};
 
-use crate::protocol::{codec::*,
-                      net::NetErr};
-use futures::{prelude::*,
-              sink};
+use crate::protocol::{codec::*, net::NetErr};
+use futures::{prelude::*, sink};
 use tokio::net::TcpStream;
 use tokio_codec::Framed;
 
@@ -117,15 +112,21 @@ impl fmt::Display for SrvClientError {
 }
 
 impl From<NetErr> for SrvClientError {
-    fn from(err: NetErr) -> Self { SrvClientError::NetErr(err) }
+    fn from(err: NetErr) -> Self {
+        SrvClientError::NetErr(err)
+    }
 }
 
 impl From<io::Error> for SrvClientError {
-    fn from(err: io::Error) -> Self { SrvClientError::Io(err) }
+    fn from(err: io::Error) -> Self {
+        SrvClientError::Io(err)
+    }
 }
 
 impl From<prost::DecodeError> for SrvClientError {
-    fn from(err: prost::DecodeError) -> Self { SrvClientError::Decode(err) }
+    fn from(err: prost::DecodeError) -> Self {
+        SrvClientError::Decode(err)
+    }
 }
 
 impl From<termcolor::ParseColorError> for SrvClientError {
