@@ -2,14 +2,7 @@
 
 set -euo pipefail
 
-export RUSTUP_HOME="/opt/rust"
-export CARGO_HOME="/home/buildkite-agent/.cargo"
-export PATH="/opt/rust/bin:$PATH"
-
-rustup="/opt/rust/bin/rustup"
-
-# NOTE: this line should be deleted after the Docker container gets updated
-sudo chown -R buildkite-agent /home/buildkite-agent
+source ./support/ci/shared.sh
 
 # Due to the nature of nightly rust, sometimes changes will break rustfmt's
 # usage of rustc. If this happens, nightly rust won't include rustfmt,
@@ -21,12 +14,11 @@ max_days=90
 for days_ago in $(seq 1 1 $max_days)
 do
   date=$(date -d "$days_ago days ago" +%Y-%m-%d)
-  toolchain="nightly-$date"
-  echo "Installing rust $toolchain"
-  sudo -E $rustup toolchain install "$toolchain"
+  echo "Installing rust nightly-$date"
+  install_rust_toolchain "nightly-$date"
 
-  if sudo -E $rustup component add --toolchain "$toolchain" rustfmt; then
-    cargo_fmt="$rustup run $toolchain cargo fmt --all -- --check"
+  if rustup component add --toolchain "$toolchain" rustfmt; then
+    cargo_fmt="cargo +$toolchain fmt --all -- --check"
     echo "Running cargo fmt command: $cargo_fmt"
     $cargo_fmt
     exit

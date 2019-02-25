@@ -2,14 +2,19 @@
 
 set -eou pipefail
 
+source ./support/ci/shared.sh
+
+toolchain="${1:-stable}"
+install_rust_toolchain "$toolchain"
+
 # TODO: these should be in a shared script?
-sudo hab pkg install core/bzip2
-sudo hab pkg install core/libarchive
-sudo hab pkg install core/libsodium
-sudo hab pkg install core/openssl
-sudo hab pkg install core/xz
-sudo hab pkg install core/zeromq
-sudo hab pkg install core/protobuf --binlink
+hab pkg install core/bzip2
+hab pkg install core/libarchive
+hab pkg install core/libsodium
+hab pkg install core/openssl
+hab pkg install core/xz
+hab pkg install core/zeromq
+hab pkg install core/protobuf
 export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
 export OPENSSL_DIR # so the openssl crate knows what to build against
@@ -27,23 +32,20 @@ LIBRARY_PATH="$(hab pkg path core/bzip2)/lib:$(hab pkg path core/libsodium)/lib:
 export PKG_CONFIG_PATH
 PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path core/libsodium)/lib/pkgconfig:$(hab pkg path core/openssl)/lib/pkgconfig"
 
-# TODO: fix this upstream so it's already on the path and set up
-export RUSTUP_HOME=/opt/rust
-export CARGO_HOME=/home/buildkite-agent/.cargo
-export PATH=/opt/rust/bin:$PATH
-# TODO: fix this upstream, it looks like it's not saving correctly.
-sudo chown -R buildkite-agent /home/buildkite-agent
+# Install clippy
+echo "--- :rust: Installing clippy"
+rustup component add clippy
 
- # Lints we need to work through and decide as a team whether to allow or fix
+# Lints we need to work through and decide as a team whether to allow or fix
 unexamined_lints=()
 
- # Lints we disagree with and choose to keep in our code with no warning
+# Lints we disagree with and choose to keep in our code with no warning
 allowed_lints=(clippy::module_inception \
                clippy::new_ret_no_self \
                clippy::new_without_default \
                clippy::new_without_default_derive)
 
- # Known failing lints we want to receive warnings for, but not fail the build
+# Known failing lints we want to receive warnings for, but not fail the build
 lints_to_fix=(clippy::cyclomatic_complexity \
                clippy::large_enum_variant \
                clippy::needless_pass_by_value \
@@ -52,7 +54,7 @@ lints_to_fix=(clippy::cyclomatic_complexity \
                clippy::trivially_copy_pass_by_ref \
                clippy::wrong_self_convention)
 
- # Lints we don't expect to have in our code at all and want to avoid adding
+# Lints we don't expect to have in our code at all and want to avoid adding
 # even at the cost of failing the build
 denied_lints=(clippy::assign_op_pattern \
                clippy::blacklisted_name \
@@ -118,11 +120,13 @@ add_lints_to_clippy_args() {
   done
 }
 
+set +u # See https://stackoverflow.com/questions/7577052/bash-empty-array-expansion-with-set-u/39687362#39687362
 add_lints_to_clippy_args -A "${unexamined_lints[@]}"
 add_lints_to_clippy_args -A "${allowed_lints[@]}"
 add_lints_to_clippy_args -W "${lints_to_fix[@]}"
 add_lints_to_clippy_args -D "${denied_lints[@]}"
+set -u
 
 echo "--- Running clippy!"
 echo "Clippy rules: cargo clippy --all-targets --tests -- ${clippy_args[*]}"
-cargo clippy --all-targets --tests -- "${clippy_args[@]}"
+cargo +"$toolchain" clippy --all-targets --tests -- "${clippy_args[@]}"

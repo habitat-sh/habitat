@@ -29,12 +29,6 @@ steps:
       - ./support/ci/rustfmt.sh
     agents:
       queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -42,15 +36,11 @@ steps:
 
   - label: "[lint] :paperclip: clippy!"
     command:
+      - sudo yum install gcc -y # install GCC since it's required for the cargo build
+      - sudo yum update bash # make sure we have 4.4 or later
       - make lint
     agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+      queue: 'single-use-privileged'
     timeout_in_minutes: 10
     retry:
       automatic:
