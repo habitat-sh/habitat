@@ -1,6 +1,9 @@
 steps:
-  - label: "Shellcheck :linux: :bash:"
-    skip: "Need to update the tests to pass"
+#######################################################################
+# Linting!
+#######################################################################
+
+  - label: "[lint] :linux: :bash: Shellcheck"
     command:
       - ./test/shellcheck.sh
     agents:
@@ -31,6 +34,26 @@ steps:
     retry:
       automatic:
         limit: 1
+
+  - label: "[lint] :paperclip: clippy!"
+    command:
+      - make lint
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+#######################################################################
+# Unit Tests - Linux!
+#######################################################################
 
   - label: "[unit] :linux: builder-api-client"
     command:

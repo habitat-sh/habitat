@@ -570,7 +570,7 @@ _assemble_runtime_path() {
       data="$(cat "$dep_prefix/PATH")"
       data="$(trim "$data")"
       while read -r entry; do
-        paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
+        read -r -a paths <<< "$(_return_or_append_to_set "$entry" "${paths[@]}")"
       done <<< "$(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")"
     fi
   done
@@ -953,30 +953,27 @@ _resolve_scaffolding_dependencies() {
   scaff_build_deps=()
   scaff_build_deps_resolved=()
 
-  # shellcheck disable=2066
-  for dep in "${pkg_scaffolding}"; do
-    _install_dependency "$dep"
-    # Add scaffolding package to the list of scaffolding build deps
-    scaff_build_deps+=($dep)
-    if resolved="$(_resolve_dependency "$dep")"; then
-      build_line "Resolved scaffolding dependency '$dep' to $resolved"
-      scaff_build_deps_resolved+=($resolved)
-      # Add each (fully qualified) direct run dependency of the scaffolding
-      # package.
-      sdeps=($(_get_deps_for "$resolved"))
-      for sdep in "${sdeps[@]}"; do
-        scaff_build_deps+=($sdep)
-        scaff_build_deps_resolved+=($HAB_PKG_PATH/$sdep)
-      done
-    else
-      exit_with "Resolving '$dep' failed, should this be built first?" 1
-    fi
-  done
+  _install_dependency "$pkg_scaffolding"
+  # Add scaffolding package to the list of scaffolding build deps
+  scaff_build_deps+=("$pkg_scaffolding")
+  if resolved="$(_resolve_dependency "$pkg_scaffolding")"; then
+    build_line "Resolved scaffolding dependency '$pkg_scaffolding' to $resolved"
+    scaff_build_deps_resolved+=("$resolved")
+    # Add each (fully qualified) direct run dependency of the scaffolding
+    # package.
+    read -r -a sdeps <<< "$(_get_deps_for "$resolved")"
+    for sdep in "${sdeps[@]}"; do
+      scaff_build_deps+=("$sdep")
+      scaff_build_deps_resolved+=("$HAB_PKG_PATH/$sdep")
+    done
+  else
+    exit_with "Resolving '$pkg_scaffolding' failed, should this be built first?" 1
+  fi
 
   # Add all of the ordered scaffolding dependencies to the start of
   # `${pkg_build_deps[@]}` to make sure they could be overridden by a Plan
   # author if required.
-  pkg_build_deps=(${scaff_build_deps[@]} ${pkg_build_deps[@]})
+  pkg_build_deps=("${scaff_build_deps[@]}" "${pkg_build_deps[@]}")
   debug "Updating pkg_build_deps=(${pkg_build_deps[*]}) from Scaffolding deps"
 
   # Set `pkg_build_deps_resolved[@]}` to all resolved scaffolding dependencies.
@@ -1016,7 +1013,7 @@ _resolve_build_dependencies() {
     _install_dependency "$dep"
     if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved build dependency '$dep' to $resolved"
-      pkg_build_deps_resolved+=($resolved)
+      pkg_build_deps_resolved+=("$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
@@ -1038,12 +1035,10 @@ _set_build_tdeps_resolved() {
   # dependency could pull in `acme/binutils` for us, as an example. Any
   # duplicate entries are dropped to produce a proper set.
   for dep in "${pkg_build_deps_resolved[@]}"; do
-    tdeps=($(_get_tdeps_for "$dep"))
+    read -r -a tdeps <<< "$(_get_tdeps_for "$dep")"
     for tdep in "${tdeps[@]}"; do
       tdep="$HAB_PKG_PATH/$tdep"
-      pkg_build_tdeps_resolved=(
-        $(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")
-      )
+      read -r -a pkg_build_tdeps_resolved <<< "$(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")"
     done
   done
 }
@@ -1091,7 +1086,7 @@ _resolve_run_dependencies() {
     fi
     if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved dependency '$dep' to $resolved"
-      pkg_deps_resolved+=($resolved)
+      pkg_deps_resolved+=("$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
@@ -1105,12 +1100,10 @@ _resolve_run_dependencies() {
   # Append all non-direct (transitive) run dependencies for each direct run
   # dependency. Any duplicate entries are dropped to produce a proper set.
   for dep in "${pkg_deps_resolved[@]}"; do
-    tdeps=($(_get_tdeps_for "$dep"))
+    read -r -a tdeps <<< "$(_get_tdeps_for "$dep")"
     for tdep in "${tdeps[@]}"; do
       tdep="$HAB_PKG_PATH/$tdep"
-      pkg_tdeps_resolved=(
-        $(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")
-      )
+      read -r -a pkg_tdeps_resolved <<< "$(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")"
     done
   done
 }
@@ -1141,9 +1134,7 @@ _populate_dependency_arrays() {
     "${pkg_build_deps_resolved[@]}"
   )
   for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
-    pkg_all_tdeps_resolved=(
-      $(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")
-    )
+    read -r -a pkg_all_tdeps_resolved <<< "$(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")"
   done
 }
 
@@ -1486,7 +1477,7 @@ _set_build_path() {
       data="$(cat "$dep_prefix/PATH")"
       data="$(trim "$data")"
       while read -r entry; do
-        paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
+        read -r -a paths <<< "$(_return_or_append_to_set "$entry" "${paths[@]}")"
       done <<< "$(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")"
     fi
   done

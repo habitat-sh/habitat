@@ -291,7 +291,9 @@ install_hab() {
       ;;
     linux)
       local _ident="core/hab"
-      if [ ! -z "${version-}" ]; then _ident="${_ident}/$version"; fi
+      if [ -n "${version-}" ]; then
+        _ident+="/$version";
+      fi
       info "Installing Habitat package using temporarily downloaded hab"
       # Install hab release using the extracted version and add/update symlink
       "${archive_dir}/hab" install --channel "$channel" "$_ident"

@@ -81,9 +81,9 @@ do_prepare() {
 }
 
 do_build() {
-  pushd "$PLAN_CONTEXT" > /dev/null
+  pushd "$PLAN_CONTEXT" || exit
   cargo build ${build_type#--debug} --target=$rustc_target --verbose
-  popd > /dev/null
+  popd || exit
 }
 
 do_install() {

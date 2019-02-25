@@ -25,7 +25,7 @@ pkg_deps=(core/coreutils
           core/docker)
 pkg_bin_dirs=(bin)
 
-_bins=($pkg_name)
+_bins=("$pkg_name")
 
 # TODO fn: use `pkg_version()` form
 pkg_version=$(cat "$SRC_PATH/../../VERSION")
@@ -39,7 +39,7 @@ do_prepare() {
   p=()
   for tdep in "${pkg_tdeps_resolved[@]}"; do
     if [[ -f "$tdep/PATH" ]]; then
-      p+=($(cat "$tdep/PATH"))
+      p+=( "$(cat "$tdep/PATH")" )
     fi
   done
   _runtime_path="$(join_by : "${p[@]}")"

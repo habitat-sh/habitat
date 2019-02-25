@@ -33,7 +33,7 @@
 
 # Fail if there are any unset variables and whenever a command returns a
 # non-zero exit code.
-set -eu
+set -euo
 
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then
@@ -217,7 +217,9 @@ _build_slim_release() {
   mkdir -p "$start_dir/results"
 
   if [[ $pkg_target == *"windows" ]]; then
-    for file in $(dirname "$hab_binary")/*; do cp -p "$file" "$pkg_dir/";done
+    for file in "$(dirname "$hab_binary")"/*; do 
+      cp -p "$file" "$pkg_dir/"
+    done
   else
     cp -p "$hab_binary" "$pkg_dir/$(basename "$hab_binary")"
   fi

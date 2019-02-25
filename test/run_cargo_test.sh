@@ -29,6 +29,7 @@ export PATH=/opt/rust/bin:$PATH
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
 
+# TODO: these should be in a shared script?
 sudo hab pkg install core/bzip2
 sudo hab pkg install core/libarchive
 sudo hab pkg install core/libsodium
@@ -54,7 +55,8 @@ export PKG_CONFIG_PATH
 PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path core/libsodium)/lib/pkgconfig:$(hab pkg path core/openssl)/lib/pkgconfig"
 
 # Set testing filesystem root
-export TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
+export TESTING_FS_ROOT
+TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 echo "--- Running cargo test on $component with command: '$cargo_test_command'"
  cd "components/$component"
 $cargo_test_command
