@@ -188,8 +188,7 @@ mod test {
     use super::get_ident_list;
     use crate::{api_client::{Project,
                              SchedulerResponse},
-                common::ui::{Coloring,
-                             UI}};
+                common::ui::UI};
 
     fn sample_project_list() -> Vec<Project> {
         let project1 = Project {
