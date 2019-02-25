@@ -1,3 +1,8 @@
+expeditor:
+  defaults:
+    buildkite:
+      timeout_in_minutes: 30
+
 steps:
 #######################################################################
 # Linting!
@@ -402,3 +407,230 @@ steps:
     retry:
       automatic:
         limit: 1
+
+#######################################################################
+# Things that have no tests but should be built to make sure they
+# still build. - Linux
+#######################################################################
+
+  - label: "[build] :linux: backline"
+    command:
+      - ./support/ci/build_component.sh backline
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: bintray-publish"
+    command:
+      - ./support/ci/build_component.sh bintray-publish
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: hab"
+    command:
+      - ./support/ci/build_component.sh hab
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: launcher"
+    command:
+      - ./support/ci/build_component.sh launcher
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: pkg-aci"
+    command:
+      - ./support/ci/build_component.sh pkg-aci
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: pkg-cfize"
+    command:
+      - ./support/ci/build_component.sh pkg-cfize
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: pkg-dockerize"
+    command:
+      - ./support/ci/build_component.sh pkg-dockerize
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: pkg-export-docker"
+    command:
+      - ./support/ci/build_component.sh pkg-export-docker
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: pkg-export-helm"
+    command:
+      - ./support/ci/build_component.sh pkg-export-helm
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: pkg-export-kubernetes"
+    command:
+      - ./support/ci/build_component.sh pkg-export-kubernetes
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: pkg-export-tar"
+    command:
+      - ./support/ci/build_component.sh pkg-export-tar
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: pkg-mesosize"
+    command:
+      - ./support/ci/build_component.sh pkg-mesosize
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: plan-build"
+    command:
+      - ./support/ci/build_component.sh plan-build
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: studio"
+    command:
+      - ./support/ci/build_component.sh studio
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :linux: sup"
+    command:
+      - ./support/ci/build_component.sh sup
+    agents:
+      queue: 'default-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+#######################################################################
+# Things that have no tests but should be built to make sure they
+# still build. - Windows
+#######################################################################
+
+  - label: "[build] :windows: bintray-publish"
+    command:
+      - ./support/ci/build_component.ps1 bintray-publish
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :windows: hab"
+    command:
+      - ./support/ci/build_component.ps1 hab
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :windows: launcher"
+    command:
+      - ./support/ci/build_component.ps1 launcher
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :windows: pkg-export-docker"
+    command:
+      - ./support/ci/build_component.ps1 pkg-export-docker
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :windows: pkg-export-tar"
+    command:
+      - ./support/ci/build_component.ps1 pkg-export-tar
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :windows: plan-build-ps1"
+    command:
+      - ./support/ci/build_component.ps1 plan-build-ps1
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :windows: studio"
+    command:
+      - ./support/ci/build_component.ps1 studio
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :windows: sup"
+    command:
+      - ./support/ci/build_component.ps1 sup
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[build] :windows: windows-service"
+    command:
+      - ./support/ci/build_component.ps1 windows-service
+    agents:
+      queue: 'single-use-windows-privileged'
+    retry:
+      automatic:
+        limit: 1
+
