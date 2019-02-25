@@ -173,7 +173,7 @@ impl ColorPrinter for CtlRequest {
         // that CtlRequest is sending output to two destinations with
         // different formatting requirements complicates things a bit.
         //
-        // TODO (MW): For `han sup run` scenarios, it would be nice to
+        // TODO (MW): For `hab sup run` scenarios, it would be nice to
         // support color on older versions of Windows. We could refactor
         // outputln! to support a cross platform ColorWriter similar to
         // what we use in common::UI.
