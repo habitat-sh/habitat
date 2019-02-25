@@ -41,7 +41,8 @@ extern crate url;
 use std::{env,
           io::{self,
                Write},
-          net::{SocketAddr,
+          net::{Ipv4Addr,
+                SocketAddr,
                 ToSocketAddrs},
           path::PathBuf,
           process,
@@ -73,14 +74,15 @@ use habitat_common as common;
 #[cfg(windows)]
 use hcore::crypto::dpapi::encrypt;
 
-use crate::sup::{
-    cli::cli,
-    command,
-    error::{Error, Result, SupError},
-    feat,
-    manager::{Manager, ManagerConfig},
-    util,
-};
+use crate::sup::{cli::cli,
+                 command,
+                 error::{Error,
+                         Result,
+                         SupError},
+                 feat,
+                 manager::{Manager,
+                           ManagerConfig},
+                 util};
 
 #[cfg(test)]
 use tempfile::TempDir;
@@ -159,9 +161,7 @@ fn start() -> Result<()> {
     }
 }
 
-fn sub_bash() -> Result<()> {
-    command::shell::bash()
-}
+fn sub_bash() -> Result<()> { command::shell::bash() }
 
 fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     set_supervisor_logging_options(m);
@@ -205,9 +205,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
     manager.run(svc)
 }
 
-fn sub_sh() -> Result<()> {
-    command::shell::sh()
-}
+fn sub_sh() -> Result<()> { command::shell::sh() }
 
 fn sub_term() -> Result<()> {
     // We were generating a ManagerConfig from matches here, but 'hab sup term' takes no options.
@@ -363,9 +361,7 @@ fn bldr_url_from_input(m: &ArgMatches) -> Option<String> {
 
 /// Resolve a channel. Taken from CLI args, or (failing that), a
 /// default value.
-fn channel(matches: &ArgMatches) -> ChannelIdent {
-    channel_from_input(matches).unwrap_or_default()
-}
+fn channel(matches: &ArgMatches) -> ChannelIdent { channel_from_input(matches).unwrap_or_default() }
 
 /// A channel name, but *only* if the user specified via CLI args.
 fn channel_from_input(m: &ArgMatches) -> Option<ChannelIdent> {
@@ -444,9 +440,7 @@ fn get_password_from_input(m: &ArgMatches) -> Result<Option<String>> {
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-fn get_password_from_input(_m: &ArgMatches) -> Result<Option<String>> {
-    Ok(None)
-}
+fn get_password_from_input(_m: &ArgMatches) -> Result<Option<String>> { Ok(None) }
 
 fn enable_features_from_env() {
     let features = vec![
@@ -538,10 +532,10 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{
-        common::{locked_env_var, types::ListenCtlAddr},
-        sup::{config::GossipListenAddr, http_gateway},
-    };
+    use crate::{common::{locked_env_var,
+                         types::ListenCtlAddr},
+                sup::{config::GossipListenAddr,
+                      http_gateway}};
 
     mod manager_config {
 
@@ -555,9 +549,7 @@ mod test {
             config_from_cmd_vec(cmd_vec)
         }
 
-        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> {
-            Vec::from_iter(cmd.split_whitespace())
-        }
+        fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { Vec::from_iter(cmd.split_whitespace()) }
 
         fn config_from_cmd_vec(cmd_vec: Vec<&str>) -> ManagerConfig {
             let matches = cli()
