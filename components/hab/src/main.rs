@@ -1431,7 +1431,7 @@ fn required_channel_from_matches(matches: &ArgMatches<'_>) -> ChannelIdent {
 /// Resolve a channel. Taken from the environment or from CLI args, if
 /// given or return the default channel value.
 fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {
-    channel_from_matches(matches).unwrap_or_else(|| ChannelIdent::configured_value())
+    channel_from_matches(matches).unwrap_or_else(ChannelIdent::configured_value)
 }
 
 /// Resolve a target. Default to x86_64-linux if none specified
@@ -1735,16 +1735,13 @@ fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
 
     listen_ctl_addr
         .to_socket_addrs()
-        .and_then(|addrs| {
-            addrs
-                .filter(std::net::SocketAddr::is_ipv4)
-                .next()
-                .ok_or_else(|| {
-                    io::Error::new(
-                        io::ErrorKind::AddrNotAvailable,
-                        "Address could not be resolved.",
-                    )
-                })
+        .and_then(|mut addrs| {
+            addrs.find(std::net::SocketAddr::is_ipv4).ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::AddrNotAvailable,
+                    "Address could not be resolved.",
+                )
+            })
         })
         .map(ListenCtlAddr::from)
         .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))
