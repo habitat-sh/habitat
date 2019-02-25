@@ -18,10 +18,17 @@
 // perhaps refactoring some of this a bit.
 
 use crate::sys::ShutdownMethod;
-use habitat_core::os::process::{is_alive, signal, Pid, Signal};
-use libc::{self, pid_t};
-use std::{ops::Neg, thread, time::Duration as StdDuration};
-use time::{Duration, SteadyTime};
+use habitat_core::os::process::{is_alive,
+                                signal,
+                                Pid,
+                                Signal};
+use libc::{self,
+           pid_t};
+use std::{ops::Neg,
+          thread,
+          time::Duration as StdDuration};
+use time::{Duration,
+           SteadyTime};
 
 /// Kill a service process.
 pub fn kill(pid: Pid) -> ShutdownMethod {
@@ -41,9 +48,7 @@ struct Process {
 }
 
 impl Process {
-    fn new(pid: Pid) -> Self {
-        Process { pid: pid }
-    }
+    fn new(pid: Pid) -> Self { Process { pid } }
 
     /// Attempt to gracefully terminate a proccess and then forcefully
     /// kill it after 8 seconds if it has not terminated.

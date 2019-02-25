@@ -13,22 +13,28 @@
 // limitations under the License.
 
 use crate::sys::ShutdownMethod;
-use habitat_core::os::process::{
-    handle_from_pid,
-    windows_child::{ExitStatus, Handle},
-    Pid,
-};
-use std::{collections::HashMap, io, mem, thread, time::Duration as StdDuration};
-use time::{Duration, SteadyTime};
-use winapi::{
-    shared::minwindef::{DWORD, LPDWORD, MAX_PATH},
-    um::{
-        handleapi::{self, INVALID_HANDLE_VALUE},
-        processthreadsapi,
-        tlhelp32::{self, LPPROCESSENTRY32W, PROCESSENTRY32W, TH32CS_SNAPPROCESS},
-        wincon,
-    },
-};
+use habitat_core::os::process::{handle_from_pid,
+                                windows_child::{ExitStatus,
+                                                Handle},
+                                Pid};
+use std::{collections::HashMap,
+          io,
+          mem,
+          thread,
+          time::Duration as StdDuration};
+use time::{Duration,
+           SteadyTime};
+use winapi::{shared::minwindef::{DWORD,
+                                 LPDWORD,
+                                 MAX_PATH},
+             um::{handleapi::{self,
+                              INVALID_HANDLE_VALUE},
+                  processthreadsapi,
+                  tlhelp32::{self,
+                             LPPROCESSENTRY32W,
+                             PROCESSENTRY32W,
+                             TH32CS_SNAPPROCESS},
+                  wincon}};
 
 const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
@@ -58,14 +64,12 @@ struct Process {
 impl Process {
     fn new(handle: Handle) -> Self {
         Process {
-            handle: handle,
+            handle,
             last_status: None,
         }
     }
 
-    fn id(&self) -> u32 {
-        unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 }
-    }
+    fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 } }
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.

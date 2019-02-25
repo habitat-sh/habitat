@@ -299,9 +299,7 @@ impl env::Config for GatewayAuthToken {
 struct ReconciliationFlag(Arc<AtomicBool>);
 
 impl ReconciliationFlag {
-    fn new(value: bool) -> Self {
-        ReconciliationFlag(Arc::new(AtomicBool::new(value)))
-    }
+    fn new(value: bool) -> Self { ReconciliationFlag(Arc::new(AtomicBool::new(value))) }
 
     /// Called after a service has finished some asynchronous
     /// operation to signal that we need to take a look at their spec
@@ -312,13 +310,9 @@ impl ReconciliationFlag {
     /// We used `Ordering::Relaxed` here because there isn't a need to
     /// sequence operations for multiple actors setting the value to
     /// `true`.
-    fn set(&self) {
-        self.0.store(true, Ordering::Relaxed);
-    }
+    fn set(&self) { self.0.store(true, Ordering::Relaxed); }
 
-    fn is_set(&self) -> bool {
-        self.0.load(Ordering::Relaxed)
-    }
+    fn is_set(&self) -> bool { self.0.load(Ordering::Relaxed) }
 
     /// Returns whether or not we need to re-examine spec files in
     /// response to some service having finished an asynchronous
@@ -341,9 +335,7 @@ impl ReconciliationFlag {
     /// one place seemed the prudent choice. In the long-term, we
     /// should be able to dispense with this altogether once we're all
     /// asynchronous.
-    fn toggle_if_set(&self) -> bool {
-        self.0.compare_and_swap(true, false, Ordering::Relaxed)
-    }
+    fn toggle_if_set(&self) -> bool { self.0.compare_and_swap(true, false, Ordering::Relaxed) }
 }
 
 /// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's

@@ -22,12 +22,16 @@
 //! `std::process::Command`, we could consider it. In the meantime,
 //! this seems to do the trick.
 
-use super::{hook_timer, spawned_future::SpawnedFuture, Pkg};
+use super::{hook_timer,
+            spawned_future::SpawnedFuture,
+            Pkg};
 use crate::error::SupError;
-use futures::{sync::oneshot, IntoFuture};
+use futures::{sync::oneshot,
+              IntoFuture};
 use habitat_common::templating::hooks::Hook;
 use habitat_core::service::ServiceGroup;
-use std::{sync::Arc, thread};
+use std::{sync::Arc,
+          thread};
 
 pub struct HookRunner<H: Hook + Sync> {
     hook: Arc<H>,
@@ -55,9 +59,9 @@ where
     }
 }
 impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
-    type Item = H::ExitValue;
     type Error = SupError;
     type Future = SpawnedFuture<Self::Item>;
+    type Item = H::ExitValue;
 
     fn into_future(self) -> Self::Future {
         let (tx, rx) = oneshot::channel();
