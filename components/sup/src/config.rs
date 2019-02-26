@@ -37,8 +37,8 @@ use crate::{common::cli_defaults::{GOSSIP_DEFAULT_IP,
                                    GOSSIP_DEFAULT_PORT,
                                    GOSSIP_LISTEN_ADDRESS_ENVVAR},
             error::{Result,
-                    SupError},
-            hcore::env::Config as EnvConfig};
+                    SupError}};
+use habitat_core::env::Config as EnvConfig;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);

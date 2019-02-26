@@ -20,9 +20,9 @@ use std::{fmt,
           result,
           str::FromStr};
 
-use crate::{error::{Error,
-                    Result},
-            hcore::env::Config as EnvConfig};
+use crate::error::{Error,
+                   Result};
+use habitat_core::env;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);
@@ -45,7 +45,7 @@ impl Default for ListenCtlAddr {
     }
 }
 
-impl EnvConfig for ListenCtlAddr {
+impl env::Config for ListenCtlAddr {
     const ENVVAR: &'static str = "HAB_LISTEN_CTL";
 }
 

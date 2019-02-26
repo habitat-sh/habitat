@@ -32,14 +32,10 @@ use std::{cell::Cell,
                  RwLock},
           thread};
 
-use crate::{common::{cli_defaults::{LISTEN_HTTP_ADDRESS_ENVVAR,
-                                    LISTEN_HTTP_DEFAULT_IP,
-                                    LISTEN_HTTP_DEFAULT_PORT},
-                     templating::hooks},
-            hcore::{crypto,
-                    env as henv,
-                    env::Config as EnvConfig,
-                    service::ServiceGroup}};
+use crate::common::{cli_defaults::{LISTEN_HTTP_ADDRESS_ENVVAR,
+                                   LISTEN_HTTP_DEFAULT_IP,
+                                   LISTEN_HTTP_DEFAULT_PORT},
+                    templating::hooks};
 use actix;
 use actix_web::{http::{self,
                        StatusCode},
@@ -54,6 +50,10 @@ use actix_web::{http::{self,
                 HttpResponse,
                 Path,
                 Request};
+use habitat_core::{crypto,
+                   env as henv,
+                   env::Config as EnvConfig,
+                   service::ServiceGroup};
 use prometheus::{self,
                  CounterVec,
                  Encoder,

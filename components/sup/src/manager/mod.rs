@@ -60,21 +60,6 @@ use crate::{butterfly::{self,
                         trace::Trace},
             common::{self,
                      types::ListenCtlAddr},
-            hcore::{crypto::SymKey,
-                    env::{self,
-                          Config as EnvConfig},
-                    fs::FS_ROOT_PATH,
-                    os::{process::{self,
-                                   Pid,
-                                   Signal},
-                         signals::{self,
-                                   SignalEvent}},
-                    package::{Identifiable,
-                              PackageIdent,
-                              PackageInstall},
-                    service::ServiceGroup,
-                    util::ToI64,
-                    ChannelIdent},
             launcher_client::{LauncherCli,
                               LAUNCHER_LOCK_CLEAN_ENV,
                               LAUNCHER_PID_ENV},
@@ -82,6 +67,21 @@ use crate::{butterfly::{self,
 use cpu_time::ProcessTime;
 use futures::{prelude::*,
               sync::mpsc};
+use habitat_core::{crypto::SymKey,
+                   env::{self,
+                         Config},
+                   fs::FS_ROOT_PATH,
+                   os::{process::{self,
+                                  Pid,
+                                  Signal},
+                        signals::{self,
+                                  SignalEvent}},
+                   package::{Identifiable,
+                             PackageIdent,
+                             PackageInstall},
+                   service::ServiceGroup,
+                   util::ToI64,
+                   ChannelIdent};
 #[cfg(unix)]
 use proc_self;
 use prometheus::{HistogramVec,
@@ -259,7 +259,7 @@ impl FromStr for GatewayAuthToken {
     }
 }
 
-impl EnvConfig for GatewayAuthToken {
+impl env::Config for GatewayAuthToken {
     const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
 }
 
@@ -1309,7 +1309,7 @@ impl FromStr for TokioThreadCount {
     }
 }
 
-impl EnvConfig for TokioThreadCount {
+impl env::Config for TokioThreadCount {
     const ENVVAR: &'static str = "HAB_TOKIO_THREAD_COUNT";
 }
 

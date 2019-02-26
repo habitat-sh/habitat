@@ -38,12 +38,12 @@ use crate::{butterfly,
             launcher_client::LauncherCli};
 
 use crate::{census::CensusRing,
-            hcore::env::Config as EnvConfig,
             manager::{periodic::Periodic,
                       service::{Service,
                                 Topology,
                                 UpdateStrategy}},
             util};
+use habitat_core::env::Config as EnvConfig;
 use time_crate::SteadyTime;
 
 static LOGKEY: &'static str = "SU";

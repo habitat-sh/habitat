@@ -17,18 +17,18 @@ use std::{net::SocketAddr,
           result,
           str::FromStr};
 
-use crate::{hcore::{crypto::keys::PairType,
-                    env::Config as EnvConfig,
-                    package::{ident,
-                              Identifiable,
-                              PackageIdent,
-                              PackageTarget},
-                    service::{HealthCheckInterval,
-                              ServiceGroup}},
-            protocol};
+use crate::protocol;
 use clap::{App,
            AppSettings,
            Arg};
+use habitat_core::{crypto::keys::PairType,
+                   env::Config,
+                   package::{ident,
+                             Identifiable,
+                             PackageIdent,
+                             PackageTarget},
+                   service::{HealthCheckInterval,
+                             ServiceGroup}};
 use url::Url;
 
 use crate::{command::studio,

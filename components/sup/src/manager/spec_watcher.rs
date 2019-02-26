@@ -28,9 +28,9 @@ use notify::{DebouncedEvent,
              Watcher};
 
 use super::spec_dir::SpecDir;
-use crate::{error::{Error,
-                    Result},
-            hcore::env::Config as EnvConfig};
+use crate::error::{Error,
+                   Result};
+use habitat_core::env::Config as EnvConfig;
 
 static LOGKEY: &'static str = "SW";
 
