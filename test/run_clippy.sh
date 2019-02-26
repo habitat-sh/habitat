@@ -46,11 +46,8 @@ allowed_lints=(clippy::module_inception \
  # Known failing lints we want to receive warnings for, but not fail the build
 lints_to_fix=(clippy::cyclomatic_complexity \
                clippy::large_enum_variant \
-               clippy::len_without_is_empty \
                clippy::needless_pass_by_value \
                clippy::needless_return \
-               clippy::question_mark \
-               clippy::redundant_field_names \
                clippy::too_many_arguments \
                clippy::trivially_copy_pass_by_ref \
                clippy::wrong_self_convention)
@@ -73,6 +70,7 @@ denied_lints=(clippy::assign_op_pattern \
                clippy::get_unwrap \
                clippy::identity_conversion \
                clippy::if_let_some_result \
+               clippy::len_without_is_empty \
                clippy::len_zero \
                clippy::let_and_return \
                clippy::let_unit_value \
@@ -82,13 +80,16 @@ denied_lints=(clippy::assign_op_pattern \
                clippy::needless_bool \
                clippy::needless_collect \
                clippy::needless_range_loop \
+               clippy::needless_update \
                clippy::ok_expect \
                clippy::op_ref \
                clippy::option_map_unit_fn \
                clippy::or_fun_call \
                clippy::println_empty_string \
                clippy::ptr_arg \
+               clippy::question_mark \
                clippy::redundant_closure \
+               clippy::redundant_field_names \
                clippy::redundant_pattern_matching \
                clippy::single_char_pattern \
                clippy::single_match \
