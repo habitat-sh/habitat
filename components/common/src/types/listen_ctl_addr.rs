@@ -20,9 +20,9 @@ use std::{fmt,
           result,
           str::FromStr};
 
-use super::env_config::EnvConfig;
-use crate::error::{Error,
-                   Result};
+use crate::{error::{Error,
+                    Result},
+            hcore::env::Config as EnvConfig};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);

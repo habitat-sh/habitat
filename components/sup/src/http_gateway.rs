@@ -35,10 +35,10 @@ use std::{cell::Cell,
 use crate::{common::{cli_defaults::{LISTEN_HTTP_ADDRESS_ENVVAR,
                                     LISTEN_HTTP_DEFAULT_IP,
                                     LISTEN_HTTP_DEFAULT_PORT},
-                     templating::hooks,
-                     types::EnvConfig},
+                     templating::hooks},
             hcore::{crypto,
                     env as henv,
+                    env::Config as EnvConfig,
                     service::ServiceGroup}};
 use actix;
 use actix_web::{http::{self,

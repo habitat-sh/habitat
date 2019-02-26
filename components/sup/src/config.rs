@@ -33,12 +33,12 @@ use std::{fmt,
           result,
           str::FromStr};
 
-use crate::{common::{cli_defaults::{GOSSIP_DEFAULT_IP,
-                                    GOSSIP_DEFAULT_PORT,
-                                    GOSSIP_LISTEN_ADDRESS_ENVVAR},
-                     types::EnvConfig},
+use crate::{common::cli_defaults::{GOSSIP_DEFAULT_IP,
+                                   GOSSIP_DEFAULT_PORT,
+                                   GOSSIP_LISTEN_ADDRESS_ENVVAR},
             error::{Result,
-                    SupError}};
+                    SupError},
+            hcore::env::Config as EnvConfig};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);

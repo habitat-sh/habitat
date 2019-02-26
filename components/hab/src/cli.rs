@@ -18,6 +18,7 @@ use std::{net::SocketAddr,
           str::FromStr};
 
 use crate::{hcore::{crypto::keys::PairType,
+                    env::Config as EnvConfig,
                     package::{ident,
                               Identifiable,
                               PackageIdent,
@@ -38,8 +39,7 @@ use crate::{command::studio,
                                     LISTEN_HTTP_DEFAULT_ADDR,
                                     RING_ENVVAR,
                                     RING_KEY_ENVVAR},
-                     types::{EnvConfig,
-                             ListenCtlAddr}},
+                     types::ListenCtlAddr},
             feat};
 
 pub fn get() -> App<'static, 'static> {

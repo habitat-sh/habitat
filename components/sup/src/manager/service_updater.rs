@@ -38,7 +38,7 @@ use crate::{butterfly,
             launcher_client::LauncherCli};
 
 use crate::{census::CensusRing,
-            common::types::EnvConfig,
+            hcore::env::Config as EnvConfig,
             manager::{periodic::Periodic,
                       service::{Service,
                                 Topology,
