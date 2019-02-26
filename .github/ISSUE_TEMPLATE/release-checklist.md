@@ -14,7 +14,6 @@ Here are all the steps for the release process. Create a new issue at the beginn
 - [ ] [Merge PR](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#prepare-master-branch-for-release) to update [`VERSION`](https://github.com/habitat-sh/habitat/blob/master/VERSION)
 - [ ] [Create blog announcement PR](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#submit-a-release-notes-blog-post-pr) and solicit team member input
 - [ ] [Buildkite](https://buildkite.com/chef/habitat-sh-habitat-master-release) run success
-- [ ] [Build Windows Docker Studio](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#build-the-windows-docker-studio-image)
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [darwin binaries](https://bintray.com/habitat/stable/hab-x86_64-darwin)
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [linux binaries](https://bintray.com/habitat/stable/hab-x86_64-linux)
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [linux-kernel2 binaries](https://bintray.com/habitat/stable/hab-x86_64-linux-kernel2)

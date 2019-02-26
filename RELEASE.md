@@ -112,19 +112,6 @@ Create a PR and ask all team members (especially those with changes in the relea
 
 Don't actually merge the PR until the release is complete.
 
-## Build the Windows Docker Studio image
-
-Until this is integrated into Builfkite, it needs to be performed manually on a Windows Docker host after Buildkite has uploaded all of the release candidate binaries:
-
-```
-$env:BINTRAY_USER="YOUR_USER_NAME"
-$env:BINTRAY_KEY="YOUR_API_KEY"
-$env:HAB_BLDR_CHANNEL="RC_CHANNEL"
-hab pkg exec core/hab-bintray-publish publish-studio
-```
-
-This will build the Docker Studio image for Windows and push it to our bintray registry.
-
 ## Validate the Release
 
 For each platform ([darwin](https://bintray.com/habitat/stable/hab-x86_64-darwin), [linux](https://bintray.com/habitat/stable/hab-x86_64-linux), [linux-kernel2](https://bintray.com/habitat/stable/hab-x86_64-linux-kernel2), [windows](https://bintray.com/habitat/stable/hab-x86_64-windows)), download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable) (you will need to be signed into Bintray and a member of the "Habitat" organization). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, do the following basic tests.
