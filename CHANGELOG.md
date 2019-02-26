@@ -1,7 +1,9 @@
 # Habitat CHANGELOG
 
 <!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release -->
+## [0.76.0](https://github.com/habitat-sh/habitat/tree/0.76.0) (2019-02-25)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.75.0...0.76.0)
 
 #### Behavioral Changes
 - Update ChannelIdent to use env::Config::configured_value where appropriate [#6169](https://github.com/habitat-sh/habitat/pull/6169) ([baumanj](https://github.com/baumanj))
@@ -20,11 +22,6 @@
 - Automate the installation of nightly rustfmt in CI [#6181](https://github.com/habitat-sh/habitat/pull/6181) ([raskchanky](https://github.com/raskchanky))
 - Update CODEOWNERS to remove stale contributors [#6174](https://github.com/habitat-sh/habitat/pull/6174) ([raskchanky](https://github.com/raskchanky))
 - Add 0.75.0 release blog post [#6150](https://github.com/habitat-sh/habitat/pull/6150) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
-
-## [0.76.0-dev](https://github.com/habitat-sh/habitat/tree/0.76.0-dev) (2019-02-20)
-
-#### Merged Pull Requests
 - Update to -dev version [#6184](https://github.com/habitat-sh/habitat/pull/6184) ([smacfarlane](https://github.com/smacfarlane))
 - Update changelog for 0.75.0 release [#6180](https://github.com/habitat-sh/habitat/pull/6180) ([smacfarlane](https://github.com/smacfarlane))
 
