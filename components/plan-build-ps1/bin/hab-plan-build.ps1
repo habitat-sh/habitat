@@ -778,10 +778,10 @@ function _init-Dependencies {
   $script:pkg_tdeps_resolved=@()
 }
 
-Write-BuildLine "Resolving scaffolding dependencies"
-$scaff_build_deps = @()
-$scaff_build_deps_resolved = @()
-foreach($dep in $pkg_scaffolding) {
+function _Resolve-ScaffoldingDependencies {
+  Write-BuildLine "Resolving scaffolding dependencies"
+  $scaff_build_deps = @()
+  $scaff_build_deps_resolved = @()
   _install-dependency $pkg_scaffolding
   # Add scaffolding package to the list of scaffolding build deps
   $scaff_build_deps += $pkg_scaffolding
