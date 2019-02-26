@@ -1,7 +1,13 @@
 # Habitat CHANGELOG
 
 <!-- latest_release unreleased -->
+## Unreleased
+
+#### Merged Pull Requests
+- Add scaffolding function back, remove correct loop [#6223](https://github.com/habitat-sh/habitat/pull/6223) ([scotthain](https://github.com/scotthain))
 <!-- latest_release -->
+
+
 ## [0.76.0](https://github.com/habitat-sh/habitat/tree/0.76.0) (2019-02-25)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.75.0...0.76.0)
 
