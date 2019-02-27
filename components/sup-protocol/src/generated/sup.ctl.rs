@@ -192,14 +192,6 @@ pub struct ConsoleLine {
     pub line: String,
     #[prost(string, optional, tag="2")]
     pub color: ::std::option::Option<String>,
-    #[prost(enumeration="Weight", required, tag="3")]
-    pub weight: i32,
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
-#[derive(Serialize, Deserialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum Weight {
-    /// The weight of rendered text
-    Normal = 0,
-    Bold = 1,
+    #[prost(bool, required, tag="3")]
+    pub bold: bool,
 }

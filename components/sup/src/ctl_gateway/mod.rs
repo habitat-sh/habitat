@@ -37,8 +37,7 @@ use termcolor::{Buffer,
                 WriteColor};
 
 use crate::{api_client::DisplayProgress,
-            common::ui::{UIWriter,
-                         Weight},
+            common::ui::UIWriter,
             hcore::{self,
                     output},
             protocol};
@@ -181,14 +180,11 @@ impl Write for CtlRequest {
         match self.current_color_spec {
             Some(ref spec) => {
                 msg.color = color_to_string(spec.fg());
-                msg.weight = match spec.bold() {
-                    true => Weight::Bold as i32,
-                    false => Weight::Normal as i32,
-                }
+                msg.bold = spec.bold();
             }
             None => {
                 msg.color = None;
-                msg.weight = Weight::Normal as i32;
+                msg.bold = false;
             }
         }
         self.reply_partial(msg);

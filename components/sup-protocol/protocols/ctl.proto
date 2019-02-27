@@ -123,15 +123,9 @@ message SvcStatus {
   optional sup.types.PackageIdent ident = 1;
 }
 
-enum Weight {
-  // The weight of rendered text
-  Normal = 0;
-  Bold = 1;
-}
-
 // A reply to various requests which contains a pre-formatted console line.
 message ConsoleLine {
   required string line = 1;
   optional string color = 2;
-  required Weight weight = 3;
+  required bool bold = 3;
 }

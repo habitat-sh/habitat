@@ -44,7 +44,8 @@ use std::{env,
           thread};
 use termcolor::{self,
                 Color,
-                ColorChoice};
+                ColorChoice,
+                ColorSpec};
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
@@ -55,7 +56,6 @@ use crate::{common::{command::package::install::{InstallHookMode,
                      types::ListenCtlAddr,
                      ui::{Status,
                           UIWriter,
-                          Weight,
                           NONINTERACTIVE_ENVVAR,
                           UI}},
             hcore::{binlink::default_binlink_dir,
@@ -1510,16 +1510,14 @@ fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
             let m = reply
                 .parse::<protocol::ctl::ConsoleLine>()
                 .map_err(SrvClientError::Decode)?;
-            let c = match m.color {
-                Some(color) => Some(Color::from_str(&color)?),
-                None => None,
+            let mut new_spec = ColorSpec::new();
+            let msg_spec = match m.color {
+                Some(color) => new_spec
+                    .set_fg(Some(Color::from_str(&color)?))
+                    .set_bold(m.bold),
+                None => new_spec.set_bold(m.bold),
             };
-            common::ui::print(
-                UI::default_with_env().out(),
-                m.line.as_bytes(),
-                c,
-                Weight::from_i32(m.weight)?,
-            )?;
+            common::ui::print(UI::default_with_env().out(), m.line.as_bytes(), msg_spec)?;
         }
         "NetProgress" => {
             let m = reply

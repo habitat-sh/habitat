@@ -158,8 +158,7 @@ pub trait UIWriter {
         print(
             self.out(),
             format!("{} {}\n", symbol, message).as_bytes(),
-            Some(Color::Yellow),
-            Weight::Bold,
+            ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true),
         )
     }
 
@@ -172,8 +171,7 @@ pub trait UIWriter {
         print(
             self.out(),
             format!("{} {}\n", symbol, message).as_bytes(),
-            Some(Color::Magenta),
-            Weight::Bold,
+            ColorSpec::new().set_fg(Some(Color::Magenta)).set_bold(true),
         )
     }
 
@@ -186,14 +184,12 @@ pub trait UIWriter {
         print(
             self.out(),
             format!("{} {}", symbol, status_str).as_bytes(),
-            Some(color),
-            Weight::Bold,
+            ColorSpec::new().set_fg(Some(color)).set_bold(true),
         )?;
         print(
             self.out(),
             format!(" {}\n", message).as_bytes(),
-            None,
-            Weight::Normal,
+            &ColorSpec::new(),
         )
     }
 
@@ -205,8 +201,7 @@ pub trait UIWriter {
         print(
             self.out(),
             format!("{}\n", text).as_bytes(),
-            None,
-            Weight::Normal,
+            &ColorSpec::new(),
         )
     }
 
@@ -218,8 +213,7 @@ pub trait UIWriter {
         print(
             self.err(),
             format!("∅ {}\n", message).as_bytes(),
-            Some(Color::Yellow),
-            Weight::Bold,
+            ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true),
         )
     }
 
@@ -231,22 +225,19 @@ pub trait UIWriter {
         print(
             self.err(),
             "✗✗✗\n".as_bytes(),
-            Some(Color::Red),
-            Weight::Bold,
+            ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
         )?;
         for line in message.to_string().lines() {
             print(
                 self.err(),
                 format!("✗✗✗ {}\n", line).as_bytes(),
-                Some(Color::Red),
-                Weight::Bold,
+                ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
             )?;
         }
         print(
             self.err(),
             "✗✗✗\n".as_bytes(),
-            Some(Color::Red),
-            Weight::Bold,
+            ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
         )
     }
 
@@ -264,8 +255,7 @@ pub trait UIWriter {
                 width = text.as_ref().chars().count()
             )
             .as_bytes(),
-            Some(Color::Green),
-            Weight::Bold,
+            ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true),
         )
     }
 
@@ -277,8 +267,7 @@ pub trait UIWriter {
         print(
             self.out(),
             format!("{}\n\n", text.as_ref()).as_bytes(),
-            Some(Color::Green),
-            Weight::Bold,
+            ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true),
         )
     }
 
@@ -286,7 +275,7 @@ pub trait UIWriter {
     fn para(&mut self, text: &str) -> io::Result<()> { print_wrapped(self.out(), text, 75, 2) }
 
     /// Write a line break message`.
-    fn br(&mut self) -> io::Result<()> { print(self.out(), b"\n", None, Weight::Normal) }
+    fn br(&mut self) -> io::Result<()> { print(self.out(), b"\n", &ColorSpec::new()) }
 }
 
 /// Console (shell) backed UI.
@@ -404,26 +393,22 @@ impl UIReader for UI {
             print(
                 stream,
                 question.as_bytes(),
-                Some(Color::Cyan),
-                Weight::Normal,
+                ColorSpec::new().set_fg(Some(Color::Cyan)),
             )?;
             print(
                 stream,
                 format!(" {}", prefix).as_bytes(),
-                Some(Color::White),
-                Weight::Normal,
+                ColorSpec::new().set_fg(Some(Color::White)),
             )?;
             print(
                 stream,
                 default_text.as_bytes(),
-                Some(Color::White),
-                Weight::Bold,
+                ColorSpec::new().set_fg(Some(Color::White)).set_bold(true),
             )?;
             print(
                 stream,
                 format!("{} ", suffix).as_bytes(),
-                Some(Color::White),
-                Weight::Normal,
+                ColorSpec::new().set_fg(Some(Color::White)),
             )?;
             let mut response = String::new();
             {
@@ -449,16 +434,23 @@ impl UIReader for UI {
             print(
                 stream,
                 question.as_bytes(),
-                Some(Color::Cyan),
-                Weight::Normal,
+                ColorSpec::new().set_fg(Some(Color::Cyan)),
             )?;
-            print(stream, b": ", None, Weight::Normal)?;
+            print(stream, b": ", &ColorSpec::new())?;
             if let Some(d) = default {
-                print(stream, b"[default: ", Some(Color::White), Weight::Normal)?;
-                print(stream, d.as_bytes(), Some(Color::White), Weight::Bold)?;
-                print(stream, b"]", Some(Color::White), Weight::Normal)?;
+                print(
+                    stream,
+                    b"[default: ",
+                    ColorSpec::new().set_fg(Some(Color::White)),
+                )?;
+                print(
+                    stream,
+                    d.as_bytes(),
+                    ColorSpec::new().set_fg(Some(Color::White)).set_bold(true),
+                )?;
+                print(stream, b"]", ColorSpec::new().set_fg(Some(Color::White)))?;
             }
-            print(stream, b" ", None, Weight::Normal)?;
+            print(stream, b" ", &ColorSpec::new())?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
@@ -538,22 +530,6 @@ impl Shell {
 
 impl Default for Shell {
     fn default() -> Self { Shell::default_with(ColorChoice::Auto, None) }
-}
-
-#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub enum Weight {
-    Normal,
-    Bold,
-}
-
-impl Weight {
-    pub fn from_i32(value: i32) -> Result<Self> {
-        match value {
-            0 => Ok(Weight::Normal),
-            1 => Ok(Weight::Bold),
-            _ => Err(Error::BadWeight(value.to_string())),
-        }
-    }
 }
 
 pub struct InputStream {
@@ -813,8 +789,7 @@ where
                 print(
                     stream,
                     format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
-                    None,
-                    Weight::Normal,
+                    &ColorSpec::new(),
                 )?;
                 buffer.clear();
                 width = 0;
@@ -827,27 +802,17 @@ where
             print(
                 stream,
                 format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
-                None,
-                Weight::Normal,
+                &ColorSpec::new(),
             )?;
         }
-        print(stream, b"\n", None, Weight::Normal)?;
+        print(stream, b"\n", &ColorSpec::new())?;
     }
     Ok(())
 }
 
-pub fn print(
-    writer: &mut WriteColor,
-    buf: &[u8],
-    color: Option<Color>,
-    weight: Weight,
-) -> io::Result<()> {
+pub fn print(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
     writer.reset()?;
-    writer.set_color(
-        ColorSpec::new()
-            .set_bold(weight == Weight::Bold)
-            .set_fg(color),
-    )?;
+    writer.set_color(color_spec)?;
     writer.write_all(buf)?;
     writer.flush()?;
     writer.reset()
