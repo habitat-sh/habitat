@@ -64,6 +64,8 @@ pub type SrvSend = sink::Send<SrvStream>;
 /// Error types returned by a [`SrvClient`].
 #[derive(Debug)]
 pub enum SrvClientError {
+    // An error from the common crate
+    CommonError(habitat_common::error::Error),
     /// The remote server unexpectedly closed the connection.
     ConnectionClosed,
     /// Unable to locate a secret key on disk.
@@ -81,6 +83,7 @@ pub enum SrvClientError {
 impl error::Error for SrvClientError {
     fn description(&self) -> &str {
         match *self {
+            SrvClientError::CommonError(ref err) => err.description(),
             SrvClientError::ConnectionClosed => "Connection closed",
             SrvClientError::CtlSecretNotFound(_) => "Ctl secret key not found",
             SrvClientError::Decode(ref err) => err.description(),
@@ -94,6 +97,7 @@ impl error::Error for SrvClientError {
 impl fmt::Display for SrvClientError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match *self {
+            SrvClientError::CommonError(ref err) => format!("{}", err),
             SrvClientError::ConnectionClosed => "Connection closed".to_string(),
             SrvClientError::CtlSecretNotFound(ref path) => format!(
                 "No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run `hab \
@@ -130,6 +134,10 @@ impl From<prost::DecodeError> for SrvClientError {
 
 impl From<termcolor::ParseColorError> for SrvClientError {
     fn from(err: termcolor::ParseColorError) -> Self { SrvClientError::ParseColor(err) }
+}
+
+impl From<habitat_common::error::Error> for SrvClientError {
+    fn from(err: habitat_common::error::Error) -> Self { SrvClientError::CommonError(err) }
 }
 
 /// Client for connecting and communicating with a server listener which speaks SrvProtocol.

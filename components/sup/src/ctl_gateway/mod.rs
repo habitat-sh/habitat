@@ -37,8 +37,8 @@ use termcolor::{Buffer,
                 WriteColor};
 
 use crate::{api_client::DisplayProgress,
-            common::ui::{ColorPrinter,
-                         UIWriter},
+            common::ui::{UIWriter,
+                         Weight},
             hcore::{self,
                     output},
             protocol};
@@ -79,6 +79,7 @@ pub struct CtlRequest {
     tx: Option<server::CtlSender>,
     /// Transaction for the given request.
     transaction: Option<protocol::codec::SrvTxn>,
+    current_color_spec: Option<ColorSpec>,
 }
 
 impl CtlRequest {
@@ -88,7 +89,11 @@ impl CtlRequest {
         tx: Option<server::CtlSender>,
         transaction: Option<protocol::codec::SrvTxn>,
     ) -> Self {
-        CtlRequest { tx, transaction }
+        CtlRequest {
+            tx,
+            transaction,
+            current_color_spec: None,
+        }
     }
 
     /// Reply to the transaction with the given message but indicate to the receiver that this is
@@ -132,9 +137,9 @@ impl CtlRequest {
 impl UIWriter for CtlRequest {
     type ProgressBar = NetProgressBar;
 
-    fn out(&mut self) -> &mut dyn ColorPrinter { self }
+    fn out(&mut self) -> &mut dyn WriteColor { self }
 
-    fn err(&mut self) -> &mut dyn ColorPrinter { self }
+    fn err(&mut self) -> &mut dyn WriteColor { self }
 
     fn is_out_a_terminal(&self) -> bool { true }
 
@@ -149,16 +154,43 @@ impl UIWriter for CtlRequest {
     }
 }
 
-impl ColorPrinter for CtlRequest {
-    fn print(&mut self, buf: &[u8], color: Option<Color>, bold: bool) -> io::Result<()> {
+impl WriteColor for CtlRequest {
+    fn supports_color(&self) -> bool { true }
+
+    fn reset(&mut self) -> io::Result<()> {
+        self.current_color_spec = None;
+        Ok(())
+    }
+
+    fn set_color(&mut self, spec: &ColorSpec) -> io::Result<()> {
+        self.current_color_spec = Some(spec.clone());
+        Ok(())
+    }
+}
+
+impl Write for CtlRequest {
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
+
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // The protocol reply is destined for the client, so (for now,
         // at least), we'll apply colored output.
         //
         // `line` will also have a newline character at the end, FYI.
         let mut msg = protocol::ctl::ConsoleLine::default();
         msg.line = String::from_utf8_lossy(buf).to_string();
-        msg.color = color_to_string(color);
-        msg.bold = bold;
+        match self.current_color_spec {
+            Some(ref spec) => {
+                msg.color = color_to_string(spec.fg());
+                msg.weight = match spec.bold() {
+                    true => Weight::Bold as i32,
+                    false => Weight::Normal as i32,
+                }
+            }
+            None => {
+                msg.color = None;
+                msg.weight = Weight::Normal as i32;
+            }
+        }
         self.reply_partial(msg);
 
         // Down here, however, we're doing double-duty by *also*
@@ -178,7 +210,9 @@ impl ColorPrinter for CtlRequest {
         // outputln! to support a cross platform ColorWriter similar to
         // what we use in common::UI.
         let mut ansi_buffer = Buffer::ansi();
-        ansi_buffer.set_color(ColorSpec::new().set_bold(bold).set_fg(color))?;
+        if let Some(spec) = &self.current_color_spec {
+            ansi_buffer.set_color(&spec)?;
+        }
         ansi_buffer.write_all(buf)?;
         ansi_buffer.flush()?;
         let line = String::from_utf8_lossy(ansi_buffer.as_slice()).to_string();
@@ -192,11 +226,12 @@ impl ColorPrinter for CtlRequest {
         // the macro
         outputln!("{}", maybe_stripped.trim_right_matches('\n'));
 
-        Ok(())
+        self.reset()?;
+        Ok(buf.len())
     }
 }
 
-fn color_to_string(color: Option<Color>) -> Option<String> {
+fn color_to_string(color: Option<&Color>) -> Option<String> {
     match color {
         Some(c) => Some(format!("{:?}", c).to_string()),
         None => None,

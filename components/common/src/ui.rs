@@ -132,18 +132,15 @@ pub trait UIReader {
     fn prompt_yes_no(&mut self, question: &str, default: Option<bool>) -> Result<bool>;
 }
 
-pub trait ColorPrinter {
-    fn print(&mut self, buf: &[u8], color: Option<Color>, bold: bool) -> io::Result<()>;
-}
-
 /// Functions applied to an IO stream for sending information to a UI.
 pub trait UIWriter {
     type ProgressBar: DisplayProgress;
 
     /// IO Stream for sending error messages to.
-    fn err(&mut self) -> &mut dyn ColorPrinter;
+    fn err(&mut self) -> &mut dyn WriteColor;
     /// IO Stream for sending normal or informational messages to.
-    fn out(&mut self) -> &mut dyn ColorPrinter;
+    fn out(&mut self) -> &mut dyn WriteColor;
+
     /// Messages sent to the normal or informational IO stream will be formatted for a terminal if
     /// true.
     fn is_out_a_terminal(&self) -> bool;
@@ -158,10 +155,11 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '»';
-        self.out().print(
+        print(
+            self.out(),
             format!("{} {}\n", symbol, message).as_bytes(),
             Some(Color::Yellow),
-            true,
+            Weight::Bold,
         )
     }
 
@@ -171,10 +169,11 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '★';
-        self.out().print(
+        print(
+            self.out(),
             format!("{} {}\n", symbol, message).as_bytes(),
             Some(Color::Magenta),
-            true,
+            Weight::Bold,
         )
     }
 
@@ -184,13 +183,18 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let (symbol, status_str, color) = status.parts();
-        self.out().print(
+        print(
+            self.out(),
             format!("{} {}", symbol, status_str).as_bytes(),
             Some(color),
-            true,
+            Weight::Bold,
         )?;
-        self.out()
-            .print(format!(" {}\n", message).as_bytes(), None, false)
+        print(
+            self.out(),
+            format!(" {}\n", message).as_bytes(),
+            None,
+            Weight::Normal,
+        )
     }
 
     /// Write a message formatted with `info`.
@@ -198,8 +202,12 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.out()
-            .print(format!("{}\n", text).as_bytes(), None, false)
+        print(
+            self.out(),
+            format!("{}\n", text).as_bytes(),
+            None,
+            Weight::Normal,
+        )
     }
 
     /// Write a message formatted with `warn`.
@@ -207,10 +215,11 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.err().print(
+        print(
+            self.err(),
             format!("∅ {}\n", message).as_bytes(),
             Some(Color::Yellow),
-            true,
+            Weight::Bold,
         )
     }
 
@@ -219,16 +228,26 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.err()
-            .print("✗✗✗\n".as_bytes(), Some(Color::Red), true)?;
+        print(
+            self.err(),
+            "✗✗✗\n".as_bytes(),
+            Some(Color::Red),
+            Weight::Bold,
+        )?;
         for line in message.to_string().lines() {
-            self.err().print(
+            print(
+                self.err(),
                 format!("✗✗✗ {}\n", line).as_bytes(),
                 Some(Color::Red),
-                true,
+                Weight::Bold,
             )?;
         }
-        self.err().print("✗✗✗\n".as_bytes(), Some(Color::Red), true)
+        print(
+            self.err(),
+            "✗✗✗\n".as_bytes(),
+            Some(Color::Red),
+            Weight::Bold,
+        )
     }
 
     /// Write a message formatted with `title`.
@@ -236,7 +255,8 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        self.out().print(
+        print(
+            self.out(),
             format!(
                 "{}\n{:=<width$}\n\n",
                 text.as_ref(),
@@ -245,7 +265,7 @@ pub trait UIWriter {
             )
             .as_bytes(),
             Some(Color::Green),
-            true,
+            Weight::Bold,
         )
     }
 
@@ -254,10 +274,11 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        self.out().print(
+        print(
+            self.out(),
             format!("{}\n\n", text.as_ref()).as_bytes(),
             Some(Color::Green),
-            true,
+            Weight::Bold,
         )
     }
 
@@ -265,7 +286,7 @@ pub trait UIWriter {
     fn para(&mut self, text: &str) -> io::Result<()> { print_wrapped(self.out(), text, 75, 2) }
 
     /// Write a line break message`.
-    fn br(&mut self) -> io::Result<()> { self.out().print(b"\n", None, false) }
+    fn br(&mut self) -> io::Result<()> { print(self.out(), b"\n", None, Weight::Normal) }
 }
 
 /// Console (shell) backed UI.
@@ -350,9 +371,9 @@ impl Default for UI {
 impl UIWriter for UI {
     type ProgressBar = ConsoleProgressBar;
 
-    fn out(&mut self) -> &mut dyn ColorPrinter { &mut self.shell.out }
+    fn out(&mut self) -> &mut dyn WriteColor { &mut self.shell.out }
 
-    fn err(&mut self) -> &mut dyn ColorPrinter { &mut self.shell.err }
+    fn err(&mut self) -> &mut dyn WriteColor { &mut self.shell.err }
 
     fn is_out_a_terminal(&self) -> bool { self.shell.out.is_a_terminal() }
 
@@ -380,10 +401,30 @@ impl UIReader for UI {
             None => ("[yes/no/quit]", "", ""),
         };
         loop {
-            stream.print(question.as_bytes(), Some(Color::Cyan), false)?;
-            stream.print(format!(" {}", prefix).as_bytes(), Some(Color::White), false)?;
-            stream.print(default_text.as_bytes(), Some(Color::White), true)?;
-            stream.print(format!("{} ", suffix).as_bytes(), Some(Color::White), false)?;
+            print(
+                stream,
+                question.as_bytes(),
+                Some(Color::Cyan),
+                Weight::Normal,
+            )?;
+            print(
+                stream,
+                format!(" {}", prefix).as_bytes(),
+                Some(Color::White),
+                Weight::Normal,
+            )?;
+            print(
+                stream,
+                default_text.as_bytes(),
+                Some(Color::White),
+                Weight::Bold,
+            )?;
+            print(
+                stream,
+                format!("{} ", suffix).as_bytes(),
+                Some(Color::White),
+                Weight::Normal,
+            )?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
@@ -405,14 +446,19 @@ impl UIReader for UI {
     fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
         let stream = &mut self.shell.out;
         loop {
-            stream.print(question.as_bytes(), Some(Color::Cyan), false)?;
-            stream.print(b": ", None, false)?;
+            print(
+                stream,
+                question.as_bytes(),
+                Some(Color::Cyan),
+                Weight::Normal,
+            )?;
+            print(stream, b": ", None, Weight::Normal)?;
             if let Some(d) = default {
-                stream.print(b"[default: ", Some(Color::White), false)?;
-                stream.print(d.as_bytes(), Some(Color::White), true)?;
-                stream.print(b"]", Some(Color::White), false)?;
+                print(stream, b"[default: ", Some(Color::White), Weight::Normal)?;
+                print(stream, d.as_bytes(), Some(Color::White), Weight::Bold)?;
+                print(stream, b"]", Some(Color::White), Weight::Normal)?;
             }
-            stream.print(b" ", None, false)?;
+            print(stream, b" ", None, Weight::Normal)?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
@@ -494,6 +540,22 @@ impl Default for Shell {
     fn default() -> Self { Shell::default_with(ColorChoice::Auto, None) }
 }
 
+#[derive(Copy, Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub enum Weight {
+    Normal,
+    Bold,
+}
+
+impl Weight {
+    pub fn from_i32(value: i32) -> Result<Self> {
+        match value {
+            0 => Ok(Weight::Normal),
+            1 => Ok(Weight::Bold),
+            _ => Err(Error::BadWeight(value.to_string())),
+        }
+    }
+}
+
 pub struct InputStream {
     inner: Box<dyn Read + Send>,
     isatty: bool,
@@ -565,20 +627,41 @@ impl OutputStream {
     pub fn is_a_terminal(&self) -> bool { self.isatty }
 }
 
-impl ColorPrinter for OutputStream {
-    fn print(&mut self, buf: &[u8], color: Option<Color>, bold: bool) -> io::Result<()> {
+impl WriteColor for OutputStream {
+    fn supports_color(&self) -> bool {
         match self.inner {
-            WriteStream::Stream(ref mut stream) => {
-                stream.reset()?;
-                stream.set_color(ColorSpec::new().set_bold(bold).set_fg(color))?;
-                stream.write_all(buf)?;
-                stream.flush()?;
-                stream.reset()
-            }
-            WriteStream::Write(ref mut w) => {
-                w.write(buf)?;
-                w.flush()
-            }
+            WriteStream::Stream(ref stream) => stream.supports_color(),
+            _ => false,
+        }
+    }
+
+    fn reset(&mut self) -> io::Result<()> {
+        match self.inner {
+            WriteStream::Stream(ref mut stream) => stream.reset(),
+            _ => Ok(()),
+        }
+    }
+
+    fn set_color(&mut self, spec: &ColorSpec) -> io::Result<()> {
+        match self.inner {
+            WriteStream::Stream(ref mut stream) => stream.set_color(spec),
+            _ => Ok(()),
+        }
+    }
+}
+
+impl Write for OutputStream {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        match self.inner {
+            WriteStream::Stream(ref mut stream) => stream.write(buf),
+            WriteStream::Write(ref mut w) => w.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        match self.inner {
+            WriteStream::Stream(ref mut stream) => stream.flush(),
+            WriteStream::Write(ref mut w) => w.flush(),
         }
     }
 }
@@ -713,7 +796,7 @@ impl Write for ConsoleProgressBar {
 }
 
 pub fn print_wrapped<U>(
-    stream: &mut dyn ColorPrinter,
+    stream: &mut dyn WriteColor,
     text: U,
     wrap_width: usize,
     left_indent: usize,
@@ -727,10 +810,11 @@ where
         for word in line.split_whitespace() {
             let wl = word.chars().count();
             if (width + wl + 1) > (wrap_width - left_indent) {
-                stream.print(
+                print(
+                    stream,
                     format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
                     None,
-                    false,
+                    Weight::Normal,
                 )?;
                 buffer.clear();
                 width = 0;
@@ -740,13 +824,31 @@ where
             buffer.push(' ');
         }
         if !buffer.is_empty() {
-            stream.print(
+            print(
+                stream,
                 format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
                 None,
-                false,
+                Weight::Normal,
             )?;
         }
-        stream.print(b"\n", None, false)?;
+        print(stream, b"\n", None, Weight::Normal)?;
     }
     Ok(())
+}
+
+pub fn print(
+    writer: &mut WriteColor,
+    buf: &[u8],
+    color: Option<Color>,
+    weight: Weight,
+) -> io::Result<()> {
+    writer.reset()?;
+    writer.set_color(
+        ColorSpec::new()
+            .set_bold(weight == Weight::Bold)
+            .set_fg(color),
+    )?;
+    writer.write_all(buf)?;
+    writer.flush()?;
+    writer.reset()
 }

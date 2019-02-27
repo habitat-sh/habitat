@@ -55,6 +55,7 @@ use crate::{common::{command::package::install::{InstallHookMode,
                      types::ListenCtlAddr,
                      ui::{Status,
                           UIWriter,
+                          Weight,
                           NONINTERACTIVE_ENVVAR,
                           UI}},
             hcore::{binlink::default_binlink_dir,
@@ -1513,9 +1514,12 @@ fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
                 Some(color) => Some(Color::from_str(&color)?),
                 None => None,
             };
-            UI::default_with_env()
-                .out()
-                .print(m.line.as_bytes(), c, m.bold)?;
+            common::ui::print(
+                UI::default_with_env().out(),
+                m.line.as_bytes(),
+                c,
+                Weight::from_i32(m.weight)?,
+            )?;
         }
         "NetProgress" => {
             let m = reply
