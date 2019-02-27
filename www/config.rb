@@ -16,13 +16,11 @@ activate :vegas
 page '/*.xml', layout: false
 page '/*.json', layout: false
 page '/*.txt', layout: false
-page '/blog/feed.xml', layout: false
 
 # With alternative layout
 page 'about/*', layout: :sidebar, locals: { sidebar_layout: 'about' }
 page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
-page '/blog/index.html', layout: :blog_index
 page '/demo/packaging-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_packaging_system'}
 page '/demo/build-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_build_system'}
 page '/demo/process-supervisor/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_process_supervisor'}
@@ -118,6 +116,7 @@ end
 ###
 # Redirects
 ###
+redirect 'blog/index.html', to: "http://blog.chef.io"
 redirect 'about/index.html', to: '/about/announcement/'
 redirect 'docs/build-packages-overview/index.html', to: '/docs/developing-packages#plan-builds/'
 redirect 'docs/get-habitat/index.html', to: '/learn/'
