@@ -49,8 +49,7 @@ lints_to_fix=(clippy::cyclomatic_complexity \
                clippy::needless_pass_by_value \
                clippy::needless_return \
                clippy::too_many_arguments \
-               clippy::trivially_copy_pass_by_ref \
-               clippy::wrong_self_convention)
+               clippy::trivially_copy_pass_by_ref)
 
  # Lints we don't expect to have in our code at all and want to avoid adding
 # even at the cost of failing the build
@@ -105,6 +104,7 @@ denied_lints=(clippy::assign_op_pattern \
                clippy::useless_let_if_seq \
                clippy::useless_vec \
                clippy::write_with_newline \
+               clippy::wrong_self_convention \
                renamed_and_removed_lints)
 
 clippy_args=()

@@ -181,7 +181,7 @@ impl<'a> Chart<'a> {
 
     fn generate_chartfile(&mut self) -> Result<()> {
         let mut write = self.create_file("Chart.yaml")?;
-        let out = self.chartfile.into_string()?;
+        let out = self.chartfile.to_string()?;
 
         write.write_all(out.as_bytes())?;
 

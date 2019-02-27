@@ -33,7 +33,6 @@
 //! * Download the artifact
 //! * Verify it is un-altered
 //! * Unpack it
-//!
 
 use std::{borrow::Cow,
           fmt,
@@ -363,9 +362,9 @@ where
 
     match *install_source {
         InstallSource::Ident(ref ident, ref target) => {
-            task.from_ident(ui, ident.clone(), target, token)
+            task.with_ident(ui, ident.clone(), target, token)
         }
-        InstallSource::Archive(ref local_archive) => task.from_archive(ui, local_archive, token),
+        InstallSource::Archive(ref local_archive) => task.with_archive(ui, local_archive, token),
     }
 }
 
@@ -489,7 +488,7 @@ impl<'a> InstallTask<'a> {
     /// fully-qualified identifier of package that was infstalled
     /// (which, as we have seen, may not be the same as the identifier
     /// that was passed in).
-    fn from_ident<T>(
+    fn with_ident<T>(
         &self,
         ui: &mut T,
         ident: PackageIdent,
@@ -524,7 +523,7 @@ impl<'a> InstallTask<'a> {
 
     /// Given an archive on disk, ensure that it is properly installed
     /// and return the package's identifier.
-    fn from_archive<T>(
+    fn with_archive<T>(
         &self,
         ui: &mut T,
         local_archive: &LocalArchive,

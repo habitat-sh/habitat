@@ -91,7 +91,7 @@ impl ChartFile {
     }
 
     // TODO: Implement TryInto trait instead when it's in stable std crate
-    pub fn into_string(&self) -> Result<String> {
+    pub fn to_string(&self) -> Result<String> {
         let mut maintainers: Vec<serde_json::Value> = vec![];
         for maintainer in &self.maintainers {
             maintainers.push(maintainer.to_json());
