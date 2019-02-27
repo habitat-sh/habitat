@@ -186,7 +186,7 @@ pub trait UIWriter {
             format!("{} {}", symbol, status_str).as_bytes(),
             ColorSpec::new().set_fg(Some(color)).set_bold(true),
         )?;
-        self.out().write(format!(" {}\n", message).as_bytes())?;
+        self.out().write_all(format!(" {}\n", message).as_bytes())?;
         self.out().flush()
     }
 
@@ -195,7 +195,7 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        self.out().write(format!("{}\n", text).as_bytes())?;
+        self.out().write_all(format!("{}\n", text).as_bytes())?;
         self.out().flush()
     }
 
@@ -270,7 +270,7 @@ pub trait UIWriter {
 
     /// Write a line break message`.
     fn br(&mut self) -> io::Result<()> {
-        self.out().write(b"\n")?;
+        self.out().write_all(b"\n")?;
         self.out().flush()
     }
 }
@@ -433,7 +433,7 @@ impl UIReader for UI {
                 question.as_bytes(),
                 ColorSpec::new().set_fg(Some(Color::Cyan)),
             )?;
-            stream.write(b": ")?;
+            stream.write_all(b": ")?;
             if let Some(d) = default {
                 print(
                     stream,
@@ -447,7 +447,7 @@ impl UIReader for UI {
                 )?;
                 print(stream, b"]", ColorSpec::new().set_fg(Some(Color::White)))?;
             }
-            stream.write(b" ")?;
+            stream.write_all(b" ")?;
             stream.flush()?;
             let mut response = String::new();
             {
@@ -784,7 +784,7 @@ where
         for word in line.split_whitespace() {
             let wl = word.chars().count();
             if (width + wl + 1) > (wrap_width - left_indent) {
-                stream.write(
+                stream.write_all(
                     format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
                 )?;
                 buffer.clear();
@@ -795,9 +795,11 @@ where
             buffer.push(' ');
         }
         if !buffer.is_empty() {
-            stream.write(format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes())?;
+            stream.write_all(
+                format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
+            )?;
         }
-        stream.write(b"\n")?;
+        stream.write_all(b"\n")?;
     }
     stream.flush()
 }
@@ -812,6 +814,6 @@ pub fn print(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io:
 
 pub fn println(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
     print(writer, buf, color_spec)?;
-    writer.write(b"\n")?;
+    writer.write_all(b"\n")?;
     writer.flush()
 }
