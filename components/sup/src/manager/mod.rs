@@ -26,6 +26,75 @@ mod spec_watcher;
 mod sys;
 mod user_config_watcher;
 
+use self::{peer_watcher::PeerWatcher,
+           self_updater::{SelfUpdater,
+                          SUP_PKG_IDENT},
+           service::{health::HealthCheck,
+                     DesiredState},
+           service_updater::ServiceUpdater,
+           spec_dir::SpecDir,
+           spec_watcher::SpecWatcher,
+           user_config_watcher::UserConfigWatcher};
+pub use self::{service::{ConfigRendering,
+                         Service,
+                         ServiceProxy,
+                         ServiceSpec,
+                         Topology,
+                         UpdateStrategy},
+               sys::Sys};
+use super::feat;
+use crate::{census::{CensusRing,
+                     CensusRingProxy},
+            config::GossipListenAddr,
+            ctl_gateway::{self,
+                          CtlRequest},
+            error::{Error,
+                    Result,
+                    SupError},
+            http_gateway,
+            ShutdownReason,
+            VERSION};
+use cpu_time::ProcessTime;
+use futures::{prelude::*,
+              sync::mpsc};
+use habitat_butterfly::{self,
+                        member::Member,
+                        server::{timing::Timing,
+                                 ServerProxy,
+                                 Suitability},
+                        trace::Trace};
+pub use habitat_common::templating::package::Pkg;
+use habitat_common::{self,
+                     types::ListenCtlAddr};
+use habitat_core::{crypto::SymKey,
+                   env::{self,
+                         Config},
+                   fs::FS_ROOT_PATH,
+                   os::{process::{self,
+                                  Pid,
+                                  Signal},
+                        signals::{self,
+                                  SignalEvent}},
+                   package::{Identifiable,
+                             PackageIdent,
+                             PackageInstall},
+                   service::ServiceGroup,
+                   util::ToI64,
+                   ChannelIdent};
+use habitat_launcher_client::{LauncherCli,
+                              LAUNCHER_LOCK_CLEAN_ENV,
+                              LAUNCHER_PID_ENV};
+use habitat_sup_protocol;
+use num_cpus;
+#[cfg(unix)]
+use proc_self;
+use prometheus::{HistogramVec,
+                 IntGauge,
+                 IntGaugeVec};
+use rustls::{internal::pemfile,
+             NoClientAuth,
+             ServerConfig};
+use serde_json;
 use std::{self,
           collections::HashMap,
           fs::{self,
@@ -48,49 +117,6 @@ use std::{self,
                  RwLock},
           thread,
           time::Duration};
-
-use num_cpus;
-
-pub use crate::common::templating::package::Pkg;
-use crate::{butterfly::{self,
-                        member::Member,
-                        server::{timing::Timing,
-                                 ServerProxy,
-                                 Suitability},
-                        trace::Trace},
-            common::{self,
-                     types::ListenCtlAddr},
-            launcher_client::{LauncherCli,
-                              LAUNCHER_LOCK_CLEAN_ENV,
-                              LAUNCHER_PID_ENV},
-            protocol};
-use cpu_time::ProcessTime;
-use futures::{prelude::*,
-              sync::mpsc};
-use habitat_core::{crypto::SymKey,
-                   env::{self,
-                         Config},
-                   fs::FS_ROOT_PATH,
-                   os::{process::{self,
-                                  Pid,
-                                  Signal},
-                        signals::{self,
-                                  SignalEvent}},
-                   package::{Identifiable,
-                             PackageIdent,
-                             PackageInstall},
-                   service::ServiceGroup,
-                   util::ToI64,
-                   ChannelIdent};
-#[cfg(unix)]
-use proc_self;
-use prometheus::{HistogramVec,
-                 IntGauge,
-                 IntGaugeVec};
-use rustls::{internal::pemfile,
-             NoClientAuth,
-             ServerConfig};
-use serde_json;
 use time::{self,
            Duration as TimeDuration,
            SteadyTime,
@@ -100,36 +126,6 @@ use tokio::{executor,
 #[cfg(windows)]
 use winapi::{shared::minwindef::PDWORD,
              um::processthreadsapi};
-
-pub use self::service::{ConfigRendering,
-                        Service,
-                        ServiceProxy,
-                        ServiceSpec,
-                        Topology,
-                        UpdateStrategy};
-use self::{peer_watcher::PeerWatcher,
-           self_updater::{SelfUpdater,
-                          SUP_PKG_IDENT},
-           service::{health::HealthCheck,
-                     DesiredState},
-           service_updater::ServiceUpdater,
-           spec_dir::SpecDir,
-           spec_watcher::SpecWatcher};
-
-pub use self::sys::Sys;
-use self::user_config_watcher::UserConfigWatcher;
-use super::feat;
-use crate::{census::{CensusRing,
-                     CensusRingProxy},
-            config::GossipListenAddr,
-            ctl_gateway::{self,
-                          CtlRequest},
-            error::{Error,
-                    Result,
-                    SupError},
-            http_gateway,
-            ShutdownReason,
-            VERSION};
 
 const MEMBER_ID_FILE: &str = "MEMBER_ID";
 const PROC_LOCK_FILE: &str = "LOCK";
@@ -220,7 +216,9 @@ pub struct ManagerConfig {
 }
 
 impl ManagerConfig {
-    pub fn sup_root(&self) -> PathBuf { protocol::sup_root(self.custom_state_path.as_ref()) }
+    pub fn sup_root(&self) -> PathBuf {
+        habitat_sup_protocol::sup_root(self.custom_state_path.as_ref())
+    }
 }
 
 impl Default for ManagerConfig {
@@ -284,7 +282,7 @@ pub struct GatewayState {
 
 pub struct Manager {
     pub state: Arc<ManagerState>,
-    butterfly: butterfly::Server,
+    butterfly: habitat_butterfly::Server,
     census_ring: CensusRing,
     fs_cfg: Arc<FsCfg>,
     launcher: LauncherCli,
@@ -361,7 +359,7 @@ impl Manager {
         let mut gateway_state = GatewayState::default();
         gateway_state.auth_token = gateway_auth_token.0;
 
-        let server = butterfly::Server::new(
+        let server = habitat_butterfly::Server::new(
             sys.gossip_listen(),
             sys.gossip_listen(),
             member,
@@ -519,8 +517,8 @@ impl Manager {
             if let Ok(package) =
                 PackageInstall::load(&service.pkg.ident, Some(Path::new(&*FS_ROOT_PATH)))
             {
-                if let Err(err) = common::command::package::install::check_install_hooks(
-                    &mut common::ui::UI::with_sinks(),
+                if let Err(err) = habitat_common::command::package::install::check_install_hooks(
+                    &mut habitat_common::ui::UI::with_sinks(),
                     &package,
                     Path::new(&*FS_ROOT_PATH),
                 ) {
@@ -567,7 +565,7 @@ impl Manager {
             .insert(service.spec_ident.clone(), service);
     }
 
-    pub fn run(mut self, svc: Option<protocol::ctl::SvcLoad>) -> Result<()> {
+    pub fn run(mut self, svc: Option<habitat_sup_protocol::ctl::SvcLoad>) -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
         let mut next_cpu_measurement = SteadyTime::now();
@@ -1527,7 +1525,7 @@ impl Future for CtlHandler {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::protocol::STATE_PATH_PREFIX;
+    use habitat_sup_protocol::STATE_PATH_PREFIX;
     use std::path::PathBuf;
 
     #[test]
@@ -1561,7 +1559,7 @@ mod test {
 
     mod tokio_thread_count {
         use super::*;
-        use crate::common::locked_env_var;
+        use habitat_common::locked_env_var;
 
         locked_env_var!(HAB_TOKIO_THREAD_COUNT, lock_thread_count);
 

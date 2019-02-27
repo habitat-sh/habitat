@@ -20,6 +20,12 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use crate::error::{Result,
+                   SupError};
+use habitat_common::cli_defaults::{GOSSIP_DEFAULT_IP,
+                                   GOSSIP_DEFAULT_PORT,
+                                   GOSSIP_LISTEN_ADDRESS_ENVVAR};
+use habitat_core::env::Config as EnvConfig;
 use std::{fmt,
           io,
           net::{IpAddr,
@@ -32,13 +38,6 @@ use std::{fmt,
           option,
           result,
           str::FromStr};
-
-use crate::{common::cli_defaults::{GOSSIP_DEFAULT_IP,
-                                   GOSSIP_DEFAULT_PORT,
-                                   GOSSIP_LISTEN_ADDRESS_ENVVAR},
-            error::{Result,
-                    SupError}};
-use habitat_core::env::Config as EnvConfig;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
@@ -134,7 +133,7 @@ mod tests {
 
     mod env_config {
         use super::*;
-        use crate::common::locked_env_var;
+        use habitat_common::locked_env_var;
         use std::{env,
                   num::ParseIntError,
                   result,

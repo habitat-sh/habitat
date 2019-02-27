@@ -16,21 +16,19 @@
 //! on disk. This is how we know when to start, stop, or restart
 //! services in response to the various `hab svc` commands.
 
+use super::spec_dir::SpecDir;
+use crate::error::{Error,
+                   Result};
+use habitat_core::env::Config as EnvConfig;
+use notify::{DebouncedEvent,
+             RecommendedWatcher,
+             RecursiveMode,
+             Watcher};
 use std::{num::ParseIntError,
           str::FromStr,
           sync::mpsc,
           thread::Builder,
           time::Duration};
-
-use notify::{DebouncedEvent,
-             RecommendedWatcher,
-             RecursiveMode,
-             Watcher};
-
-use super::spec_dir::SpecDir;
-use crate::error::{Error,
-                   Result};
-use habitat_core::env::Config as EnvConfig;
 
 static LOGKEY: &'static str = "SW";
 
@@ -177,7 +175,7 @@ impl SpecWatcher {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::locked_env_var;
+    use habitat_common::locked_env_var;
     use std::{fs::File,
               io::{Error as IoError,
                    Write},

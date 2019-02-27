@@ -64,9 +64,8 @@ pub mod rumor;
 pub mod server;
 pub mod swim;
 
-use std::cell::UnsafeCell;
-
 pub use crate::server::Server;
+use std::cell::UnsafeCell;
 
 lazy_static! {
     /// A threadsafe shared ZMQ context for consuming services.

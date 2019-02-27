@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::error::{Error,
+                   Result};
+use habitat_core::env;
 use std::{fmt,
           net::{IpAddr,
                 Ipv4Addr,
@@ -19,10 +22,6 @@ use std::{fmt,
                 SocketAddrV4},
           result,
           str::FromStr};
-
-use crate::error::{Error,
-                   Result};
-use habitat_core::env;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);

@@ -22,18 +22,15 @@
 //! Note that the "heat" of a rumor is tracked *per member*, and is
 //! not global.
 
-// Standard Library
+use crate::{error::Error,
+            rumor::{RumorKey,
+                    RumorType}};
+use habitat_core::env::Config as EnvConfig;
 use std::{collections::HashMap,
           result,
           str::FromStr,
           sync::{Arc,
                  RwLock}};
-
-// Internal Modules
-use crate::{error::Error,
-            rumor::{RumorKey,
-                    RumorType}};
-use habitat_core::env::Config as EnvConfig;
 
 // TODO (CM): Can we key by member instead? What do we do more frequently?
 // TODO (CM): Might want to type the member ID explicitly

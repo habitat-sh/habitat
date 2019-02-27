@@ -12,6 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{error::{Result,
+                    SupError},
+            feat,
+            manager::{self,
+                      service::{hooks::HealthCheckHook,
+                                HealthCheck}}};
+use actix;
+use actix_web::{http::{self,
+                       StatusCode},
+                middleware::{Finished,
+                             Middleware,
+                             Started},
+                pred::Predicate,
+                server,
+                App,
+                FromRequest,
+                HttpRequest,
+                HttpResponse,
+                Path,
+                Request};
+use habitat_common::{cli_defaults::{LISTEN_HTTP_ADDRESS_ENVVAR,
+                                    LISTEN_HTTP_DEFAULT_IP,
+                                    LISTEN_HTTP_DEFAULT_PORT},
+                     templating::hooks};
+use habitat_core::{crypto,
+                   env as henv,
+                   env::Config as EnvConfig,
+                   service::ServiceGroup};
+use prometheus::{self,
+                 CounterVec,
+                 Encoder,
+                 HistogramTimer,
+                 HistogramVec,
+                 TextEncoder};
+use rustls::ServerConfig;
+use serde_json::{self,
+                 Value as Json};
 use std::{cell::Cell,
           fmt,
           fs::File,
@@ -31,46 +68,6 @@ use std::{cell::Cell,
                  Mutex,
                  RwLock},
           thread};
-
-use crate::common::{cli_defaults::{LISTEN_HTTP_ADDRESS_ENVVAR,
-                                   LISTEN_HTTP_DEFAULT_IP,
-                                   LISTEN_HTTP_DEFAULT_PORT},
-                    templating::hooks};
-use actix;
-use actix_web::{http::{self,
-                       StatusCode},
-                middleware::{Finished,
-                             Middleware,
-                             Started},
-                pred::Predicate,
-                server,
-                App,
-                FromRequest,
-                HttpRequest,
-                HttpResponse,
-                Path,
-                Request};
-use habitat_core::{crypto,
-                   env as henv,
-                   env::Config as EnvConfig,
-                   service::ServiceGroup};
-use prometheus::{self,
-                 CounterVec,
-                 Encoder,
-                 HistogramTimer,
-                 HistogramVec,
-                 TextEncoder};
-use rustls::ServerConfig;
-use serde_json::{self,
-                 Value as Json};
-
-use crate::{error::{Result,
-                    SupError},
-            manager::{self,
-                      service::{hooks::HealthCheckHook,
-                                HealthCheck}}};
-
-use crate::feat;
 
 const APIDOCS: &str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
 pub const HTTP_THREADS_ENVVAR: &str = "HAB_SUP_HTTP_THREADS";
@@ -563,19 +560,17 @@ fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> O
 
 #[cfg(test)]
 mod tests {
+    use crate::test_helpers::*;
+    use habitat_butterfly::{member::Member,
+                            server::{Server,
+                                     ServerProxy,
+                                     Suitability},
+                            trace::Trace};
+    use serde_json;
     use std::{fs::File,
               io::Read,
               path::PathBuf,
               sync::Mutex};
-
-    use crate::butterfly::{member::Member,
-                           server::{Server,
-                                    ServerProxy,
-                                    Suitability},
-                           trace::Trace};
-    use serde_json;
-
-    use crate::test_helpers::*;
 
     fn validate_sample_file_against_schema(name: &str, schema: &str) {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
