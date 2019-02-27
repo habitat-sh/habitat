@@ -783,13 +783,17 @@ function _Resolve-ScaffoldingDependencies {
   $scaff_build_deps = @()
   $scaff_build_deps_resolved = @()
   
-  if($pkg_scaffolding.count -gt 0) {
-    $dep = $pkg_scaffolding[0]
-     _install-dependency $dep
+  if($pkg_scaffolding.count -gt 1) {
+    _Exit-With "More than one scaffolding detected. Please specify only one" 1
+  }
+
+  if($pkg_scaffolding) {
+    $pkg_scaffolding = @($pkg_scaffolding)[0]
+     _install-dependency $pkg_scaffolding
       # Add scaffolding package to the list of scaffolding build deps
-     $scaff_build_deps += $dep
-     if($resolved=(_resolve-dependency $dep)) {
-       Write-BuildLine "Resolved scaffolding dependency '$dep' to $resolved"
+     $scaff_build_deps += $pkg_scaffolding
+     if($resolved=(_resolve-dependency $pkg_scaffolding)) {
+       Write-BuildLine "Resolved scaffolding dependency '$pkg_scaffolding' to $resolved"
         $scaff_build_deps_resolved+=($resolved)
         $sdeps=(@(_Get-DepsFor $resolved) + @(_Get-BuildDepsFor $resolved))
       foreach($sdep in $sdeps) {
@@ -798,11 +802,8 @@ function _Resolve-ScaffoldingDependencies {
         }
      }
      else {
-        _Exit-With "Resolving '$dep' failed, should this be built first?" 1
+        _Exit-With "Resolving '$pkg_scaffolding' failed, should this be built first?" 1
     }
-  }
-  elseif($pkg_scaffolding.count -gt 1) {
-    _Exit-With "More than one scaffolding detected. Please specify only one" 1
   }
   else {
     Write-BuildLine "No scaffolding present"
