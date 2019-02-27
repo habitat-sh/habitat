@@ -155,9 +155,9 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '»';
-        print(
+        println(
             self.out(),
-            format!("{} {}\n", symbol, message).as_bytes(),
+            format!("{} {}", symbol, message).as_bytes(),
             ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true),
         )
     }
@@ -168,9 +168,9 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '★';
-        print(
+        println(
             self.out(),
-            format!("{} {}\n", symbol, message).as_bytes(),
+            format!("{} {}", symbol, message).as_bytes(),
             ColorSpec::new().set_fg(Some(Color::Magenta)).set_bold(true),
         )
     }
@@ -186,11 +186,8 @@ pub trait UIWriter {
             format!("{} {}", symbol, status_str).as_bytes(),
             ColorSpec::new().set_fg(Some(color)).set_bold(true),
         )?;
-        print(
-            self.out(),
-            format!(" {}\n", message).as_bytes(),
-            &ColorSpec::new(),
-        )
+        self.out().write(format!(" {}\n", message).as_bytes())?;
+        self.out().flush()
     }
 
     /// Write a message formatted with `info`.
@@ -198,11 +195,8 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        print(
-            self.out(),
-            format!("{}\n", text).as_bytes(),
-            &ColorSpec::new(),
-        )
+        self.out().write(format!("{}\n", text).as_bytes())?;
+        self.out().flush()
     }
 
     /// Write a message formatted with `warn`.
@@ -210,9 +204,9 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        print(
+        println(
             self.err(),
-            format!("∅ {}\n", message).as_bytes(),
+            format!("∅ {}", message).as_bytes(),
             ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true),
         )
     }
@@ -222,21 +216,21 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        print(
+        println(
             self.err(),
-            "✗✗✗\n".as_bytes(),
+            "✗✗✗".as_bytes(),
             ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
         )?;
         for line in message.to_string().lines() {
-            print(
+            println(
                 self.err(),
-                format!("✗✗✗ {}\n", line).as_bytes(),
+                format!("✗✗✗ {}", line).as_bytes(),
                 ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
             )?;
         }
-        print(
+        println(
             self.err(),
-            "✗✗✗\n".as_bytes(),
+            "✗✗✗".as_bytes(),
             ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
         )
     }
@@ -246,10 +240,10 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        print(
+        println(
             self.out(),
             format!(
-                "{}\n{:=<width$}\n\n",
+                "{}\n{:=<width$}\n",
                 text.as_ref(),
                 "",
                 width = text.as_ref().chars().count()
@@ -264,9 +258,9 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        print(
+        println(
             self.out(),
-            format!("{}\n\n", text.as_ref()).as_bytes(),
+            format!("{}\n", text.as_ref()).as_bytes(),
             ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true),
         )
     }
@@ -275,7 +269,10 @@ pub trait UIWriter {
     fn para(&mut self, text: &str) -> io::Result<()> { print_wrapped(self.out(), text, 75, 2) }
 
     /// Write a line break message`.
-    fn br(&mut self) -> io::Result<()> { print(self.out(), b"\n", &ColorSpec::new()) }
+    fn br(&mut self) -> io::Result<()> {
+        self.out().write(b"\n")?;
+        self.out().flush()
+    }
 }
 
 /// Console (shell) backed UI.
@@ -436,7 +433,7 @@ impl UIReader for UI {
                 question.as_bytes(),
                 ColorSpec::new().set_fg(Some(Color::Cyan)),
             )?;
-            print(stream, b": ", &ColorSpec::new())?;
+            stream.write(b": ")?;
             if let Some(d) = default {
                 print(
                     stream,
@@ -450,7 +447,8 @@ impl UIReader for UI {
                 )?;
                 print(stream, b"]", ColorSpec::new().set_fg(Some(Color::White)))?;
             }
-            print(stream, b" ", &ColorSpec::new())?;
+            stream.write(b" ")?;
+            stream.flush()?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
@@ -786,10 +784,8 @@ where
         for word in line.split_whitespace() {
             let wl = word.chars().count();
             if (width + wl + 1) > (wrap_width - left_indent) {
-                print(
-                    stream,
+                stream.write(
                     format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
-                    &ColorSpec::new(),
                 )?;
                 buffer.clear();
                 width = 0;
@@ -799,15 +795,11 @@ where
             buffer.push(' ');
         }
         if !buffer.is_empty() {
-            print(
-                stream,
-                format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
-                &ColorSpec::new(),
-            )?;
+            stream.write(format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes())?;
         }
-        print(stream, b"\n", &ColorSpec::new())?;
+        stream.write(b"\n")?;
     }
-    Ok(())
+    stream.flush()
 }
 
 pub fn print(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
@@ -816,4 +808,10 @@ pub fn print(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io:
     writer.write_all(buf)?;
     writer.flush()?;
     writer.reset()
+}
+
+pub fn println(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
+    print(writer, buf, color_spec)?;
+    writer.write(b"\n")?;
+    writer.flush()
 }
