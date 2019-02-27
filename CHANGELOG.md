@@ -1,20 +1,19 @@
 # Habitat CHANGELOG
 
 <!-- latest_release unreleased -->
-## Unreleased
-
-#### Merged Pull Requests
-- fix array handling on windows scaffolding [#6228](https://github.com/habitat-sh/habitat/pull/6228) ([mwrock](https://github.com/mwrock))
-- Fix scaffolding detection for windows. [#6226](https://github.com/habitat-sh/habitat/pull/6226) ([scotthain](https://github.com/scotthain))
-- Add scaffolding function back, remove correct loop [#6223](https://github.com/habitat-sh/habitat/pull/6223) ([scotthain](https://github.com/scotthain))
 <!-- latest_release -->
-
 
 ## [0.76.0](https://github.com/habitat-sh/habitat/tree/0.76.0) (2019-02-25)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.75.0...0.76.0)
 
 #### Behavioral Changes
 - Update ChannelIdent to use env::Config::configured_value where appropriate [#6169](https://github.com/habitat-sh/habitat/pull/6169) ([baumanj](https://github.com/baumanj))
+
+#### Bug Fixes
+- fix array handling on windows scaffolding [#6228](https://github.com/habitat-sh/habitat/pull/6228) ([mwrock](https://github.com/mwrock))
+  Note: This change to windows scaffolding is to align it with implementation of the Linux scaffolding.  The expectation is that scaffolding should be a single item, however in windows it is currently implemented as an array. This will be a breaking change if you are using windows scaffolding with more than one package in `$pkg_scaffodling()`,  as we now only take into account the first item in that array.
+- Fix scaffolding detection for windows. [#6226](https://github.com/habitat-sh/habitat/pull/6226) ([scotthain](https://github.com/scotthain))
+- Add scaffolding function back, remove correct loop [#6223](https://github.com/habitat-sh/habitat/pull/6223) ([scotthain](https://github.com/scotthain))
 
 #### Merged Pull Requests
 - Fix shellcheck thta was missed somehow [#6216](https://github.com/habitat-sh/habitat/pull/6216) ([scotthain](https://github.com/scotthain))
