@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Fix scaffolding detection for windows. [#6226](https://github.com/habitat-sh/habitat/pull/6226) ([scotthain](https://github.com/scotthain))
 - Add scaffolding function back, remove correct loop [#6223](https://github.com/habitat-sh/habitat/pull/6223) ([scotthain](https://github.com/scotthain))
 <!-- latest_release -->
 
