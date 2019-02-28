@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Migrate clippy and rustfmt tests to be more friendly and remove worka… [#6222](https://github.com/habitat-sh/habitat/pull/6222) ([scotthain](https://github.com/scotthain))
 - Fix concurrent install of local harts [#6208](https://github.com/habitat-sh/habitat/pull/6208) ([stevendanna](https://github.com/stevendanna))
 <!-- latest_release -->
 
