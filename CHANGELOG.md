@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- use console api instead of ansi codes on windows [#6203](https://github.com/habitat-sh/habitat/pull/6203) ([mwrock](https://github.com/mwrock))
+
 #### Merged Pull Requests
 - Add windows builder-worker promotion step to release [#6187](https://github.com/habitat-sh/habitat/pull/6187) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
