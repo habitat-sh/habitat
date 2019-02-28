@@ -11,6 +11,7 @@ habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 habitat_common = { path = "../common" }
 log = "*"
 prost = "*"
+termcolor = "*"
 tokio = "*"
 tokio-core = "*"
 tokio-codec = "*"

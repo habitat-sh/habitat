@@ -183,12 +183,12 @@ mod test {
                    Write},
               sync::{Arc,
                      RwLock}};
+    use termcolor::ColorChoice;
 
     use super::get_ident_list;
     use crate::{api_client::{Project,
                              SchedulerResponse},
-                common::ui::{Coloring,
-                             UI}};
+                common::ui::UI};
 
     fn sample_project_list() -> Vec<Project> {
         let project1 = Project {
@@ -217,7 +217,7 @@ mod test {
             Box::new(io::empty()),
             || Box::new(stdout_buf.clone()),
             || Box::new(stderr_buf.clone()),
-            Coloring::Never,
+            ColorChoice::Never,
             false,
         );
 

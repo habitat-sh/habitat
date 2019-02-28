@@ -74,6 +74,8 @@ pub enum SrvClientError {
     Io(io::Error),
     /// An RPC call to the remote was received but failed.
     NetErr(NetErr),
+    /// A parse error from an Invalid Color string
+    ParseColor(termcolor::ParseColorError),
 }
 
 impl error::Error for SrvClientError {
@@ -84,6 +86,7 @@ impl error::Error for SrvClientError {
             SrvClientError::Decode(ref err) => err.description(),
             SrvClientError::Io(ref err) => err.description(),
             SrvClientError::NetErr(ref err) => err.description(),
+            SrvClientError::ParseColor(ref err) => err.description(),
         }
     }
 }
@@ -107,6 +110,7 @@ impl fmt::Display for SrvClientError {
                 err
             ),
             SrvClientError::NetErr(ref err) => format!("{}", err),
+            SrvClientError::ParseColor(ref err) => format!("{}", err),
         };
         write!(f, "{}", content)
     }
@@ -122,6 +126,10 @@ impl From<io::Error> for SrvClientError {
 
 impl From<prost::DecodeError> for SrvClientError {
     fn from(err: prost::DecodeError) -> Self { SrvClientError::Decode(err) }
+}
+
+impl From<termcolor::ParseColorError> for SrvClientError {
+    fn from(err: termcolor::ParseColorError) -> Self { SrvClientError::ParseColor(err) }
 }
 
 /// Client for connecting and communicating with a server listener which speaks SrvProtocol.

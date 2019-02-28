@@ -42,6 +42,10 @@ use std::{env,
           result,
           str::FromStr,
           thread};
+use termcolor::{self,
+                Color,
+                ColorChoice,
+                ColorSpec};
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
@@ -50,8 +54,7 @@ use crate::{common::{command::package::install::{InstallHookMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
                      types::ListenCtlAddr,
-                     ui::{Coloring,
-                          Status,
+                     ui::{Status,
                           UIWriter,
                           NONINTERACTIVE_ENVVAR,
                           UI}},
@@ -1507,7 +1510,14 @@ fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
             let m = reply
                 .parse::<protocol::ctl::ConsoleLine>()
                 .map_err(SrvClientError::Decode)?;
-            print!("{}", m);
+            let mut new_spec = ColorSpec::new();
+            let msg_spec = match m.color {
+                Some(color) => new_spec
+                    .set_fg(Some(Color::from_str(&color)?))
+                    .set_bold(m.bold),
+                None => new_spec.set_bold(m.bold),
+            };
+            common::ui::print(UI::default_with_env().out(), m.line.as_bytes(), msg_spec)?;
         }
         "NetProgress" => {
             let m = reply
@@ -1768,9 +1778,9 @@ fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
 // the scope of change contained.
 fn ui() -> UI {
     let coloring = if hcore::output::is_color() {
-        Coloring::Auto
+        ColorChoice::Auto
     } else {
-        Coloring::Never
+        ColorChoice::Never
     };
     let isatty = if env::var(NONINTERACTIVE_ENVVAR)
         .map(|val| val == "1" || val == "true")

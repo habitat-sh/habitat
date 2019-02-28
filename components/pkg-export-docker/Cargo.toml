@@ -32,6 +32,7 @@ rusoto_ecr = "*"
 serde = { version = "*", features = ["rc"] }
 serde_json = "*"
 tempfile = "*"
+termcolor = "*"
 url = "*"
 failure = "*"
 failure_derive = "*"

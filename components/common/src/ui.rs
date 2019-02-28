@@ -27,11 +27,13 @@ use std::{env,
 use uuid::Uuid;
 
 use crate::api_client::DisplayProgress;
-use ansi_term::Colour;
 use pbr;
-use term::{terminfo::TermInfo,
-           Terminal,
-           TerminfoTerminal};
+use termcolor::{self,
+                Color,
+                ColorChoice,
+                ColorSpec,
+                StandardStream,
+                WriteColor};
 
 use self::tty::StdStream;
 use crate::error::{Error,
@@ -79,42 +81,42 @@ pub enum Status {
 }
 
 impl Status {
-    pub fn parts(&self) -> (char, String, Colour) {
+    pub fn parts(&self) -> (char, String, Color) {
         match *self {
-            Status::Applying => ('↑', "Applying".into(), Colour::Green),
-            Status::Added => ('↑', "Added".into(), Colour::Green),
-            Status::Adding => ('☛', "Adding".into(), Colour::Green),
-            Status::Canceled => ('✓', "Canceled".into(), Colour::Green),
-            Status::Canceling => ('☛', "Canceling".into(), Colour::Green),
-            Status::Cached => ('☑', "Cached".into(), Colour::Green),
-            Status::Created => ('✓', "Created".into(), Colour::Green),
-            Status::Creating => ('Ω', "Creating".into(), Colour::Green),
-            Status::Deleted => ('✓', "Deleted".into(), Colour::Green),
-            Status::Deleting => ('☒', "Deleting".into(), Colour::Green),
-            Status::Demoted => ('✓', "Demoted".into(), Colour::Green),
-            Status::Demoting => ('→', "Demoting".into(), Colour::Green),
-            Status::Determining => ('☁', "Determining".into(), Colour::Green),
-            Status::Downloading => ('↓', "Downloading".into(), Colour::Green),
-            Status::DryRunDeleting => ('☒', "Would be deleted (Dry run)".into(), Colour::Red),
-            Status::Encrypting => ('☛', "Encrypting".into(), Colour::Green),
-            Status::Encrypted => ('✓', "Encrypted".into(), Colour::Green),
-            Status::Executing => ('☛', "Executing".into(), Colour::Green),
-            Status::Found => ('→', "Found".into(), Colour::Cyan),
-            Status::Generated => ('→', "Generated".into(), Colour::Cyan),
-            Status::Generating => ('☛', "Generating".into(), Colour::Green),
-            Status::Installed => ('✓', "Installed".into(), Colour::Green),
-            Status::Missing => ('∵', "Missing".into(), Colour::Red),
-            Status::Promoted => ('✓', "Promoted".into(), Colour::Green),
-            Status::Promoting => ('→', "Promoting".into(), Colour::Green),
-            Status::Signed => ('✓', "Signed".into(), Colour::Cyan),
-            Status::Signing => ('☛', "Signing".into(), Colour::Cyan),
-            Status::Skipping => ('…', "Skipping".into(), Colour::Green),
-            Status::Uploaded => ('✓', "Uploaded".into(), Colour::Green),
-            Status::Uploading => ('↑', "Uploading".into(), Colour::Green),
-            Status::Using => ('→', "Using".into(), Colour::Green),
-            Status::Verified => ('✓', "Verified".into(), Colour::Green),
-            Status::Verifying => ('☛', "Verifying".into(), Colour::Green),
-            Status::Custom(c, ref s) => (c, s.to_string(), Colour::Green),
+            Status::Applying => ('↑', "Applying".into(), Color::Green),
+            Status::Added => ('↑', "Added".into(), Color::Green),
+            Status::Adding => ('☛', "Adding".into(), Color::Green),
+            Status::Canceled => ('✓', "Canceled".into(), Color::Green),
+            Status::Canceling => ('☛', "Canceling".into(), Color::Green),
+            Status::Cached => ('☑', "Cached".into(), Color::Green),
+            Status::Created => ('✓', "Created".into(), Color::Green),
+            Status::Creating => ('Ω', "Creating".into(), Color::Green),
+            Status::Deleted => ('✓', "Deleted".into(), Color::Green),
+            Status::Deleting => ('☒', "Deleting".into(), Color::Green),
+            Status::Demoted => ('✓', "Demoted".into(), Color::Green),
+            Status::Demoting => ('→', "Demoting".into(), Color::Green),
+            Status::Determining => ('☁', "Determining".into(), Color::Green),
+            Status::Downloading => ('↓', "Downloading".into(), Color::Green),
+            Status::DryRunDeleting => ('☒', "Would be deleted (Dry run)".into(), Color::Red),
+            Status::Encrypting => ('☛', "Encrypting".into(), Color::Green),
+            Status::Encrypted => ('✓', "Encrypted".into(), Color::Green),
+            Status::Executing => ('☛', "Executing".into(), Color::Green),
+            Status::Found => ('→', "Found".into(), Color::Cyan),
+            Status::Generated => ('→', "Generated".into(), Color::Cyan),
+            Status::Generating => ('☛', "Generating".into(), Color::Green),
+            Status::Installed => ('✓', "Installed".into(), Color::Green),
+            Status::Missing => ('∵', "Missing".into(), Color::Red),
+            Status::Promoted => ('✓', "Promoted".into(), Color::Green),
+            Status::Promoting => ('→', "Promoting".into(), Color::Green),
+            Status::Signed => ('✓', "Signed".into(), Color::Cyan),
+            Status::Signing => ('☛', "Signing".into(), Color::Cyan),
+            Status::Skipping => ('…', "Skipping".into(), Color::Green),
+            Status::Uploaded => ('✓', "Uploaded".into(), Color::Green),
+            Status::Uploading => ('↑', "Uploading".into(), Color::Green),
+            Status::Using => ('→', "Using".into(), Color::Green),
+            Status::Verified => ('✓', "Verified".into(), Color::Green),
+            Status::Verifying => ('☛', "Verifying".into(), Color::Green),
+            Status::Custom(c, ref s) => (c, s.to_string(), Color::Green),
         }
     }
 }
@@ -135,13 +137,10 @@ pub trait UIWriter {
     type ProgressBar: DisplayProgress;
 
     /// IO Stream for sending error messages to.
-    fn err(&mut self) -> &mut dyn io::Write;
+    fn err(&mut self) -> &mut dyn WriteColor;
     /// IO Stream for sending normal or informational messages to.
-    fn out(&mut self) -> &mut dyn io::Write;
-    /// Messages sent to the normal or informational IO stream will be formatted in color if true.
-    fn is_out_colored(&self) -> bool;
-    /// Messages sent to the error IO stream will be formatted in color if true.
-    fn is_err_colored(&self) -> bool;
+    fn out(&mut self) -> &mut dyn WriteColor;
+
     /// Messages sent to the normal or informational IO stream will be formatted for a terminal if
     /// true.
     fn is_out_a_terminal(&self) -> bool;
@@ -156,18 +155,11 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '»';
-        let formatted = if self.is_out_colored() {
-            format!(
-                "{}\n",
-                Colour::Yellow
-                    .bold()
-                    .paint(format!("{} {}", symbol, message))
-            )
-        } else {
-            format!("{} {}\n", symbol, message)
-        };
-        self.out().write_all(formatted.as_bytes())?;
-        self.out().flush()
+        println(
+            self.out(),
+            format!("{} {}", symbol, message).as_bytes(),
+            ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true),
+        )
     }
 
     /// Write a message formatted with `end`.
@@ -176,16 +168,11 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let symbol = '★';
-        let formatted = if self.is_out_colored() {
-            format!(
-                "{}\n",
-                Colour::Blue.bold().paint(format!("{} {}", symbol, message))
-            )
-        } else {
-            format!("{} {}\n", symbol, message)
-        };
-        self.out().write_all(formatted.as_bytes())?;
-        self.out().flush()
+        println(
+            self.out(),
+            format!("{} {}", symbol, message).as_bytes(),
+            ColorSpec::new().set_fg(Some(Color::Magenta)).set_bold(true),
+        )
     }
 
     /// Write a message formatted with `status`.
@@ -194,16 +181,12 @@ pub trait UIWriter {
         T: fmt::Display,
     {
         let (symbol, status_str, color) = status.parts();
-        let formatted = if self.is_out_colored() {
-            format!(
-                "{} {}\n",
-                color.bold().paint(format!("{} {}", symbol, status_str)),
-                message
-            )
-        } else {
-            format!("{} {} {}\n", symbol, status_str, message)
-        };
-        self.out().write_all(formatted.as_bytes())?;
+        print(
+            self.out(),
+            format!("{} {}", symbol, status_str).as_bytes(),
+            ColorSpec::new().set_fg(Some(color)).set_bold(true),
+        )?;
+        self.out().write_all(format!(" {}\n", message).as_bytes())?;
         self.out().flush()
     }
 
@@ -221,16 +204,11 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        let formatted = if self.is_err_colored() {
-            format!(
-                "{}\n",
-                Colour::Yellow.bold().paint(format!("∅ {}", message))
-            )
-        } else {
-            format!("∅ {}\n", message)
-        };
-        self.err().write_all(formatted.as_bytes())?;
-        self.err().flush()
+        println(
+            self.err(),
+            format!("∅ {}", message).as_bytes(),
+            ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true),
+        )
     }
 
     /// Write a message formatted with `fatal`.
@@ -238,27 +216,23 @@ pub trait UIWriter {
     where
         T: fmt::Display,
     {
-        let color = Colour::Red;
-        let formatted = if self.is_err_colored() {
-            let mut buf = format!("{}\n", color.bold().paint("✗✗✗"));
-            for line in message.to_string().lines() {
-                buf.push_str(&format!(
-                    "{}\n",
-                    color.bold().paint(format!("✗✗✗ {}", line))
-                ));
-            }
-            buf.push_str(&format!("{}\n", color.bold().paint("✗✗✗")));
-            buf
-        } else {
-            let mut buf = "✗✗✗\n".to_string();
-            for line in message.to_string().lines() {
-                buf.push_str(&format!("✗✗✗ {}\n", line));
-            }
-            buf.push_str("✗✗✗\n");
-            buf
-        };
-        self.err().write_all(formatted.as_bytes())?;
-        self.err().flush()
+        println(
+            self.err(),
+            "✗✗✗".as_bytes(),
+            ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
+        )?;
+        for line in message.to_string().lines() {
+            println(
+                self.err(),
+                format!("✗✗✗ {}", line).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
+            )?;
+        }
+        println(
+            self.err(),
+            "✗✗✗".as_bytes(),
+            ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
+        )
     }
 
     /// Write a message formatted with `title`.
@@ -266,26 +240,17 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        if self.is_out_colored() {
-            writeln!(self.out(), "{}", Colour::Green.bold().paint(text.as_ref()))?;
-            write!(
-                self.out(),
-                "{}\n\n",
-                Colour::Green.bold().paint(format!(
-                    "{:=<width$}",
-                    "",
-                    width = text.as_ref().chars().count()
-                ))
-            )?;
-        } else {
-            writeln!(self.out(), "{}", text.as_ref())?;
-            write!(
-                self.out(),
-                "{}\n\n",
-                format!("{:=<width$}", "", width = text.as_ref().chars().count())
-            )?;
-        }
-        self.out().flush()
+        println(
+            self.out(),
+            format!(
+                "{}\n{:=<width$}\n",
+                text.as_ref(),
+                "",
+                width = text.as_ref().chars().count()
+            )
+            .as_bytes(),
+            ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true),
+        )
     }
 
     /// Write a message formatted with `heading`.
@@ -293,13 +258,11 @@ pub trait UIWriter {
     where
         T: AsRef<str>,
     {
-        let formatted = if self.is_out_colored() {
-            format!("{}\n\n", Colour::Green.bold().paint(text.as_ref()))
-        } else {
-            format!("{}\n\n", text.as_ref())
-        };
-        self.out().write_all(formatted.as_bytes())?;
-        self.out().flush()
+        println(
+            self.out(),
+            format!("{}\n", text.as_ref()).as_bytes(),
+            ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true),
+        )
     }
 
     /// Write a message formatted with `para`.
@@ -323,7 +286,7 @@ impl UI {
     pub fn new(shell: Shell) -> Self { UI { shell } }
 
     /// Creates a new default `UI` with a coloring strategy and tty hinting.
-    pub fn default_with(coloring: Coloring, isatty: Option<bool>) -> Self {
+    pub fn default_with(coloring: ColorChoice, isatty: Option<bool>) -> Self {
         Self::new(Shell::default_with(coloring, isatty))
     }
 
@@ -342,9 +305,9 @@ impl UI {
             .map(|val| val == "1" || val == "true")
             .unwrap_or(false)
         {
-            Coloring::Never
+            ColorChoice::Never
         } else {
-            Coloring::Auto
+            ColorChoice::Auto
         };
 
         let ui = UI::default_with(coloring, isatty);
@@ -360,7 +323,7 @@ impl UI {
         stdin: Box<dyn Read + Send>,
         stdout_fn: O,
         stderr_fn: E,
-        coloring: Coloring,
+        coloring: ColorChoice,
         isatty: bool,
     ) -> Self
     where
@@ -369,8 +332,8 @@ impl UI {
     {
         Self::new(Shell::new(
             InputStream::new(stdin, isatty),
-            OutputStream::new(WriteStream::create(stdout_fn), coloring, isatty),
-            OutputStream::new(WriteStream::create(stderr_fn), coloring, isatty),
+            OutputStream::new(WriteStream::from_write(stdout_fn), coloring, isatty),
+            OutputStream::new(WriteStream::from_write(stderr_fn), coloring, isatty),
         ))
     }
 
@@ -381,26 +344,22 @@ impl UI {
             Box::new(io::empty()),
             || Box::new(io::sink()),
             || Box::new(io::sink()),
-            Coloring::Never,
+            ColorChoice::Never,
             false,
         )
     }
 }
 
 impl Default for UI {
-    fn default() -> Self { UI::default_with(Coloring::Auto, None) }
+    fn default() -> Self { UI::default_with(ColorChoice::Auto, None) }
 }
 
 impl UIWriter for UI {
     type ProgressBar = ConsoleProgressBar;
 
-    fn out(&mut self) -> &mut dyn io::Write { &mut self.shell.out }
+    fn out(&mut self) -> &mut dyn WriteColor { &mut self.shell.out }
 
-    fn err(&mut self) -> &mut dyn io::Write { &mut self.shell.err }
-
-    fn is_out_colored(&self) -> bool { self.shell.out.is_colored() }
-
-    fn is_err_colored(&self) -> bool { self.shell.err.is_colored() }
+    fn err(&mut self) -> &mut dyn WriteColor { &mut self.shell.err }
 
     fn is_out_a_terminal(&self) -> bool { self.shell.out.is_a_terminal() }
 
@@ -422,32 +381,32 @@ impl UIReader for UI {
 
     fn prompt_yes_no(&mut self, question: &str, default: Option<bool>) -> Result<bool> {
         let stream = &mut self.shell.out;
-        let choice = {
-            let (prefix, default_text, suffix) = match default {
-                Some(true) => ("[", "Yes", "/no/quit]"),
-                Some(false) => ("[yes/", "No", "/quit]"),
-                None => ("[yes/no/quit]", "", ""),
-            };
-            if stream.is_colored() {
-                format!(
-                    "{}{}{}",
-                    Colour::White.paint(prefix),
-                    Colour::White.bold().paint(default_text),
-                    Colour::White.paint(suffix)
-                )
-            } else {
-                format!("{}{}{}", prefix, default_text, suffix)
-            }
-        };
-        let question = if stream.is_colored() {
-            Colour::Cyan.paint(question).to_string()
-        } else {
-            question.to_string()
+        let (prefix, default_text, suffix) = match default {
+            Some(true) => ("[", "Yes", "/no/quit]"),
+            Some(false) => ("[yes/", "No", "/quit]"),
+            None => ("[yes/no/quit]", "", ""),
         };
         loop {
-            stream.flush()?;
-            write!(stream, "{} {} ", question, choice)?;
-            stream.flush()?;
+            print(
+                stream,
+                question.as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Cyan)),
+            )?;
+            print(
+                stream,
+                format!(" {}", prefix).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::White)),
+            )?;
+            print(
+                stream,
+                default_text.as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::White)).set_bold(true),
+            )?;
+            print(
+                stream,
+                format!("{} ", suffix).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::White)),
+            )?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
@@ -468,24 +427,27 @@ impl UIReader for UI {
 
     fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
         let stream = &mut self.shell.out;
-        let choice = match default {
-            Some(d) if stream.is_colored() => format!(
-                "{}{}{}",
-                Colour::White.paint("[default: "),
-                Colour::White.bold().paint(d),
-                Colour::White.paint("]")
-            ),
-            Some(d) => format!("[default: {}]", d),
-            None => "".to_string(),
-        };
-        let question = if stream.is_colored() {
-            Colour::Cyan.paint(question).to_string()
-        } else {
-            question.to_string()
-        };
         loop {
-            stream.flush()?;
-            write!(stream, "{}: {} ", question, choice)?;
+            print(
+                stream,
+                question.as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Cyan)),
+            )?;
+            stream.write_all(b": ")?;
+            if let Some(d) = default {
+                print(
+                    stream,
+                    b"[default: ",
+                    ColorSpec::new().set_fg(Some(Color::White)),
+                )?;
+                print(
+                    stream,
+                    d.as_bytes(),
+                    ColorSpec::new().set_fg(Some(Color::White)).set_bold(true),
+                )?;
+                print(stream, b"]", ColorSpec::new().set_fg(Some(Color::White)))?;
+            }
+            stream.write_all(b" ")?;
             stream.flush()?;
             let mut response = String::new();
             {
@@ -550,7 +512,7 @@ impl Shell {
         Shell { input, out, err }
     }
 
-    pub fn default_with(coloring: Coloring, isatty: Option<bool>) -> Self {
+    pub fn default_with(coloring: ColorChoice, isatty: Option<bool>) -> Self {
         let stdin = InputStream::from_stdin(isatty);
         let stdout = OutputStream::from_stdout(coloring, isatty);
         let stderr = OutputStream::from_stderr(coloring, isatty);
@@ -565,14 +527,7 @@ impl Shell {
 }
 
 impl Default for Shell {
-    fn default() -> Self { Shell::default_with(Coloring::Auto, None) }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum Coloring {
-    Auto,
-    Always,
-    Never,
+    fn default() -> Self { Shell::default_with(ColorChoice::Auto, None) }
 }
 
 pub struct InputStream {
@@ -608,12 +563,12 @@ impl fmt::Debug for InputStream {
 
 pub struct OutputStream {
     inner: WriteStream,
-    coloring: Coloring,
+    coloring: ColorChoice,
     isatty: bool,
 }
 
 impl OutputStream {
-    pub fn new(inner: WriteStream, coloring: Coloring, isatty: bool) -> Self {
+    pub fn new(inner: WriteStream, coloring: ColorChoice, isatty: bool) -> Self {
         OutputStream {
             inner,
             coloring,
@@ -621,9 +576,9 @@ impl OutputStream {
         }
     }
 
-    pub fn from_stdout(coloring: Coloring, isatty: Option<bool>) -> Self {
+    pub fn from_stdout(coloring: ColorChoice, isatty: Option<bool>) -> Self {
         Self::new(
-            WriteStream::create(|| Box::new(io::stdout())),
+            WriteStream::from_stdout(coloring),
             coloring,
             match isatty {
                 Some(val) => val,
@@ -632,9 +587,9 @@ impl OutputStream {
         )
     }
 
-    pub fn from_stderr(coloring: Coloring, isatty: Option<bool>) -> Self {
+    pub fn from_stderr(coloring: ColorChoice, isatty: Option<bool>) -> Self {
         Self::new(
-            WriteStream::create(|| Box::new(io::stderr())),
+            WriteStream::from_stderr(coloring),
             coloring,
             match isatty {
                 Some(val) => val,
@@ -643,33 +598,44 @@ impl OutputStream {
         )
     }
 
-    pub fn supports_color(&self) -> bool {
+    pub fn is_a_terminal(&self) -> bool { self.isatty }
+}
+
+impl WriteColor for OutputStream {
+    fn supports_color(&self) -> bool {
         match self.inner {
-            WriteStream::Color(_) => true,
-            WriteStream::NoColor(_) => false,
+            WriteStream::Stream(ref stream) => stream.supports_color(),
+            _ => false,
         }
     }
 
-    pub fn is_colored(&self) -> bool {
-        self.supports_color()
-            && (Coloring::Auto == self.coloring || Coloring::Always == self.coloring)
+    fn reset(&mut self) -> io::Result<()> {
+        match self.inner {
+            WriteStream::Stream(ref mut stream) => stream.reset(),
+            _ => Ok(()),
+        }
     }
 
-    pub fn is_a_terminal(&self) -> bool { self.isatty }
+    fn set_color(&mut self, spec: &ColorSpec) -> io::Result<()> {
+        match self.inner {
+            WriteStream::Stream(ref mut stream) => stream.set_color(spec),
+            _ => Ok(()),
+        }
+    }
 }
 
 impl Write for OutputStream {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         match self.inner {
-            WriteStream::Color(ref mut io) => io.write(buf),
-            WriteStream::NoColor(ref mut io) => io.write(buf),
+            WriteStream::Stream(ref mut stream) => stream.write(buf),
+            WriteStream::Write(ref mut w) => w.write(buf),
         }
     }
 
     fn flush(&mut self) -> io::Result<()> {
         match self.inner {
-            WriteStream::Color(ref mut io) => io.flush(),
-            WriteStream::NoColor(ref mut io) => io.flush(),
+            WriteStream::Stream(ref mut stream) => stream.flush(),
+            WriteStream::Write(ref mut w) => w.flush(),
         }
     }
 }
@@ -678,70 +644,35 @@ impl fmt::Debug for OutputStream {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "OutputStream {{ coloring: {:?}, isatty: {}, is_colored(): {}, supports_color(): {} }}",
-            self.coloring,
-            self.isatty,
-            self.is_colored(),
-            self.supports_color(),
+            "OutputStream {{ coloring: {:?}, isatty: {} }}",
+            self.coloring, self.isatty,
         )
     }
 }
 
 pub enum WriteStream {
-    NoColor(Box<dyn Write + Send>),
-    Color(Box<dyn Terminal<Output = Box<dyn Write + Send>> + Send>),
+    /// A plain write object without color support
+    Write(Box<dyn Write + Send>),
+    /// Color-enabled stdio, with information on whether color should be used
+    Stream(StandardStream),
 }
 
 impl WriteStream {
     // Implementation heavily inspired and based on the Cargo `shell.rs` implementation. Source:
-    // https://github.com/rust-lang/cargo/blob/d05ba53afec82308edcfeb778446010bf18e71ae/
+    // https://github.com/rust-lang/cargo/blob/5c6aa46e6f28661270979696e7b4c2f0dff8628f/
     // src/cargo/core/shell.rs
 
-    pub fn create<T: FnMut() -> Box<dyn Write + Send>>(mut writable_fn: T) -> Self {
-        match Self::get_term(writable_fn()) {
-            Ok(t) => t,
-            Err(_) => WriteStream::NoColor(writable_fn()),
-        }
+    pub fn from_stdout(coloring: ColorChoice) -> Self {
+        WriteStream::Stream(StandardStream::stdout(coloring))
     }
 
-    #[cfg(any(windows))]
-    fn get_term(writeable: Box<Write + Send>) -> Result<Self> {
-        // Check if the creation of a console will succeed
-        if ::term::WinConsole::new(vec![0u8; 0]).is_ok() {
-            let term = ::term::WinConsole::new(writeable)?;
-            if !term.supports_color() {
-                Ok(WriteStream::NoColor(Box::new(term)))
-            } else {
-                Ok(WriteStream::Color(Box::new(term)))
-            }
-        } else {
-            // If we fail to get a windows console, we try to get a `TermInfo` one
-            Ok(Self::get_terminfo_term(writeable))
-        }
+    pub fn from_stderr(coloring: ColorChoice) -> Self {
+        WriteStream::Stream(StandardStream::stderr(coloring))
     }
 
-    #[cfg(any(unix))]
-    fn get_term(writeable: Box<dyn Write + Send>) -> Result<Self> {
-        Ok(Self::get_terminfo_term(writeable))
-    }
-
-    fn get_terminfo_term(writeable: Box<dyn Write + Send>) -> Self {
-        // Use `TermInfo::from_env()` and `TerminfoTerminal::supports_color()` to determine if
-        // creation of a TerminfoTerminal is possible regardless of the tty status. --color options
-        // are parsed after Shell creation so always try to create a terminal that supports color
-        // output. Fall back to a no-color terminal regardless of whether or not a tty is present
-        // and if color output is not possible.
-        match TermInfo::from_env() {
-            Ok(info) => {
-                let term = TerminfoTerminal::new_with_terminfo(writeable, info);
-                if !term.supports_color() {
-                    WriteStream::NoColor(term.into_inner())
-                } else {
-                    WriteStream::Color(Box::new(term))
-                }
-            }
-            Err(_) => WriteStream::NoColor(writeable),
-        }
+    /// Create a shell from a plain writable object, with no color, and max verbosity.
+    pub fn from_write<T: FnMut() -> Box<dyn Write + Send>>(mut writable_fn: T) -> Self {
+        WriteStream::Write(writable_fn())
     }
 }
 
@@ -838,14 +769,13 @@ impl Write for ConsoleProgressBar {
     fn flush(&mut self) -> io::Result<()> { self.bar.flush() }
 }
 
-pub fn print_wrapped<T, U>(
-    mut stream: T,
+pub fn print_wrapped<U>(
+    stream: &mut dyn WriteColor,
     text: U,
     wrap_width: usize,
     left_indent: usize,
 ) -> io::Result<()>
 where
-    T: io::Write,
     U: AsRef<str>,
 {
     for line in text.as_ref().split("\n\n") {
@@ -854,7 +784,9 @@ where
         for word in line.split_whitespace() {
             let wl = word.chars().count();
             if (width + wl + 1) > (wrap_width - left_indent) {
-                writeln!(stream, "{:<width$}{}", " ", buffer, width = left_indent)?;
+                stream.write_all(
+                    format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
+                )?;
                 buffer.clear();
                 width = 0;
             }
@@ -863,9 +795,25 @@ where
             buffer.push(' ');
         }
         if !buffer.is_empty() {
-            writeln!(stream, "{:<width$}{}", " ", buffer, width = left_indent)?;
+            stream.write_all(
+                format!("{:<width$}{}\n", " ", buffer, width = left_indent).as_bytes(),
+            )?;
         }
-        writeln!(stream)?;
+        stream.write_all(b"\n")?;
     }
     stream.flush()
+}
+
+pub fn print(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
+    writer.reset()?;
+    writer.set_color(color_spec)?;
+    writer.write_all(buf)?;
+    writer.flush()?;
+    writer.reset()
+}
+
+pub fn println(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
+    print(writer, buf, color_spec)?;
+    writer.write_all(b"\n")?;
+    writer.flush()
 }

@@ -17,7 +17,6 @@ doc = false
 [dependencies]
 actix = "*"
 actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
-ansi_term = "*"
 bitflags = "*"
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
@@ -50,6 +49,7 @@ serde_json = "*"
 serde_yaml = "*"
 serde-transcode = "*"
 tempfile = "*"
+termcolor = "*"
 time = "*"
 toml = { version = "*", default-features = false }
 tokio = "*"

@@ -31,6 +31,10 @@ use std::{borrow::Cow,
           path::Path};
 
 use regex::Regex;
+use termcolor::{Buffer,
+                Color,
+                ColorSpec,
+                WriteColor};
 
 use crate::{api_client::DisplayProgress,
             common::ui::UIWriter,
@@ -74,6 +78,7 @@ pub struct CtlRequest {
     tx: Option<server::CtlSender>,
     /// Transaction for the given request.
     transaction: Option<protocol::codec::SrvTxn>,
+    current_color_spec: Option<ColorSpec>,
 }
 
 impl CtlRequest {
@@ -83,7 +88,11 @@ impl CtlRequest {
         tx: Option<server::CtlSender>,
         transaction: Option<protocol::codec::SrvTxn>,
     ) -> Self {
-        CtlRequest { tx, transaction }
+        CtlRequest {
+            tx,
+            transaction,
+            current_color_spec: None,
+        }
     }
 
     /// Reply to the transaction with the given message but indicate to the receiver that this is
@@ -127,27 +136,9 @@ impl CtlRequest {
 impl UIWriter for CtlRequest {
     type ProgressBar = NetProgressBar;
 
-    fn out(&mut self) -> &mut dyn io::Write { self }
+    fn out(&mut self) -> &mut dyn WriteColor { self }
 
-    fn err(&mut self) -> &mut dyn io::Write { self }
-
-    // Whether output is colored, or the output is a terminal is,
-    // technically, a bit more complicated than simply `true`, since
-    // output from the CtlRequest ends up being streamed back to the
-    // client (which may or may not be an interactive terminal, by the
-    // way), as well as being rendered into the Supervisor's output
-    // streams, which have their own, possibly opposing, formatting
-    // constraints.
-    //
-    // For the time being, this is mostly addressed manually down in
-    // the `io::Write` implementation. Furthermore, this is currently
-    // the only implementation of UIWriter subject to these
-    // constraints, so it's not clear that adding additional
-    // complexity at the type / trait modeling level is worthwhile.
-
-    fn is_out_colored(&self) -> bool { true }
-
-    fn is_err_colored(&self) -> bool { true }
+    fn err(&mut self) -> &mut dyn WriteColor { self }
 
     fn is_out_a_terminal(&self) -> bool { true }
 
@@ -162,16 +153,40 @@ impl UIWriter for CtlRequest {
     }
 }
 
-impl io::Write for CtlRequest {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let line = String::from_utf8_lossy(buf).into_owned();
+impl WriteColor for CtlRequest {
+    fn supports_color(&self) -> bool { true }
 
+    fn reset(&mut self) -> io::Result<()> {
+        self.current_color_spec = None;
+        Ok(())
+    }
+
+    fn set_color(&mut self, spec: &ColorSpec) -> io::Result<()> {
+        self.current_color_spec = Some(spec.clone());
+        Ok(())
+    }
+}
+
+impl Write for CtlRequest {
+    fn flush(&mut self) -> io::Result<()> { Ok(()) }
+
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         // The protocol reply is destined for the client, so (for now,
-        // at least), we'll retain any colored output.
+        // at least), we'll apply colored output.
         //
         // `line` will also have a newline character at the end, FYI.
         let mut msg = protocol::ctl::ConsoleLine::default();
-        msg.line = line.clone();
+        msg.line = String::from_utf8_lossy(buf).to_string();
+        match self.current_color_spec {
+            Some(ref spec) => {
+                msg.color = color_to_string(spec.fg());
+                msg.bold = spec.bold();
+            }
+            None => {
+                msg.color = None;
+                msg.bold = false;
+            }
+        }
         self.reply_partial(msg);
 
         // Down here, however, we're doing double-duty by *also*
@@ -185,6 +200,19 @@ impl io::Write for CtlRequest {
         // be nice to find a cleaner way to model this, but the fact
         // that CtlRequest is sending output to two destinations with
         // different formatting requirements complicates things a bit.
+        //
+        // TODO (MW): For `hab sup run` scenarios, it would be nice to
+        // support color on older versions of Windows. We could refactor
+        // outputln! to support a cross platform ColorWriter similar to
+        // what we use in common::UI.
+        let mut ansi_buffer = Buffer::ansi();
+        if let Some(spec) = &self.current_color_spec {
+            ansi_buffer.set_color(&spec)?;
+        }
+        ansi_buffer.write_all(buf)?;
+        ansi_buffer.flush()?;
+        let line = String::from_utf8_lossy(ansi_buffer.as_slice()).to_string();
+
         let maybe_stripped = if output::is_json() || !output::is_color() {
             STRIP_ANSI_CODES.replace_all(&line, "")
         } else {
@@ -194,10 +222,16 @@ impl io::Write for CtlRequest {
         // the macro
         outputln!("{}", maybe_stripped.trim_right_matches('\n'));
 
+        self.reset()?;
         Ok(buf.len())
     }
+}
 
-    fn flush(&mut self) -> io::Result<()> { Ok(()) }
+fn color_to_string(color: Option<&Color>) -> Option<String> {
+    match color {
+        Some(c) => Some(format!("{:?}", c).to_string()),
+        None => None,
+    }
 }
 
 /// A wrapper around a [`protocol.ctl.NetProgress`] and [`CtlRequest`]. This type implements

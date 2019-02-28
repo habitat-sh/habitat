@@ -126,5 +126,6 @@ message SvcStatus {
 // A reply to various requests which contains a pre-formatted console line.
 message ConsoleLine {
   required string line = 1;
+  optional string color = 2;
+  required bool bold = 3;
 }
-
