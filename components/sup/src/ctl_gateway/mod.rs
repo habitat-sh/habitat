@@ -220,7 +220,7 @@ impl Write for CtlRequest {
         };
         // TODO (CM): Consider pulling this newline trimming up into
         // the macro
-        outputln!("{}", maybe_stripped.trim_right_matches('\n'));
+        outputln!("{}", maybe_stripped.trim_end_matches('\n'));
 
         self.reset()?;
         Ok(buf.len())

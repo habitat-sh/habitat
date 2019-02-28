@@ -550,7 +550,7 @@ fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
             let stdin = io::stdin();
             for line in stdin.lock().lines() {
                 let file = line?;
-                command::pkg::hash::start(file.trim_right())?;
+                command::pkg::hash::start(file.trim_end())?;
             }
             Ok(())
         }
