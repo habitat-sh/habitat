@@ -1,7 +1,13 @@
 # Habitat CHANGELOG
 
 <!-- latest_release unreleased -->
+## Unreleased
+
+#### Merged Pull Requests
+- Add windows builder-worker promotion step to release [#6187](https://github.com/habitat-sh/habitat/pull/6187) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
+
+
 
 ## [0.76.0](https://github.com/habitat-sh/habitat/tree/0.76.0) (2019-02-25)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.75.0...0.76.0)
