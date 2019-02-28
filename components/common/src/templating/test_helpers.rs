@@ -22,13 +22,12 @@ use crate::json;
 use serde_json;
 use valico::json_schema;
 
-pub fn create_with_content<P, C>(path: P, content: C)
+pub fn create_with_content<P>(path: P, content: &str)
 where
     P: AsRef<Path>,
-    C: ToString,
 {
     let mut file = File::create(path).expect("Cannot create file");
-    file.write_all(content.to_string().as_bytes())
+    file.write_all(content.as_bytes())
         .expect("Cannot write to file");
 }
 

@@ -57,12 +57,12 @@ impl<'a> Chart<'a> {
         chartdir.push(&chartfile.name);
 
         Ok(Self::new_for_manifest(
-            manifest, chartdir, chartfile, deps, ui,
+            &manifest, chartdir, chartfile, deps, ui,
         ))
     }
 
     fn new_for_manifest(
-        manifest: Manifest,
+        manifest: &Manifest,
         chartdir: PathBuf,
         chartfile: ChartFile,
         deps: Deps,

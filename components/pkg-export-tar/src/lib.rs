@@ -77,7 +77,7 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str) {
     tar_builder.append_dir_all("hab", hab_pkgs_path);
 
     // Find the path to the hab binary
-    let mut hab_pkg_binary_path = hab_install_path(hab_package_ident(hab_pkg), root_fs);
+    let mut hab_pkg_binary_path = hab_install_path(&hab_package_ident(hab_pkg), &root_fs);
     hab_pkg_binary_path.push("bin");
 
     // Append the hab binary to the tar ball
@@ -96,7 +96,7 @@ fn format_tar_name(ident: PackageIdent) -> String {
 
 fn hab_package_ident(hab_pkg: &str) -> PackageIdent { PackageIdent::from_str(hab_pkg).unwrap() }
 
-fn hab_install_path(hab_ident: PackageIdent, root_fs_path: PathBuf) -> PathBuf {
+fn hab_install_path(hab_ident: &PackageIdent, root_fs_path: &Path) -> PathBuf {
     let root_fs_path = Path::new(&root_fs_path);
     PackageInstall::load(&hab_ident, Some(root_fs_path))
         .unwrap()

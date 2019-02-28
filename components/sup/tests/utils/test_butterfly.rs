@@ -37,15 +37,11 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new<T, U>(package_name: T, service_group: U, port: u16) -> Client
-    where
-        T: ToString,
-        U: ToString,
-    {
+    pub fn new(package_name: &str, service_group: &str, port: u16) -> Client {
         let gossip_addr = format!("127.0.0.1:{}", port)
             .parse::<SocketAddr>()
             .expect("Could not parse Butterfly gossip address!");
-        let c = ButterflyClient::new(&gossip_addr, None)
+        let c = ButterflyClient::new(&gossip_addr.to_string(), None)
             .expect("Could not create Butterfly Client for test!");
         Client {
             butterfly_client: c,
@@ -60,10 +56,7 @@ impl Client {
     ///
     /// A time-based incarnation value is automatically used,
     /// resulting in less clutter in your tests.
-    pub fn apply<T>(&mut self, config: T)
-    where
-        T: ToString,
-    {
+    pub fn apply(&mut self, config: &str) {
         let config = config.to_string();
         let config = config.as_bytes();
 

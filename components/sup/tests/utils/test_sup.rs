@@ -161,17 +161,14 @@ impl TestSup {
     /// parallel don't step on each other.
     ///
     /// See also `new`.
-    pub fn new_with_random_ports<R, O, P, S>(
+    pub fn new_with_random_ports<R>(
         fs_root: R,
-        origin: O,
-        pkg_name: P,
-        service_group: S,
+        origin: &str,
+        pkg_name: &str,
+        service_group: &str,
     ) -> TestSup
     where
         R: AsRef<Path>,
-        O: ToString,
-        P: ToString,
-        S: ToString,
     {
         // We'll give 10 tries to find a free port number
         let http_port = unclaimed_port(10);
@@ -207,20 +204,17 @@ impl TestSup {
     ///
     /// (No HTTP interaction with the Supervisor is currently called
     /// for, so we don't have a HTTP client.)
-    pub fn new<R, O, P, S>(
+    pub fn new<R>(
         fs_root: R,
-        origin: O,
-        pkg_name: P,
-        service_group: S,
+        origin: &str,
+        pkg_name: &str,
+        service_group: &str,
         http_port: u16,
         butterfly_port: u16,
         control_port: u16,
     ) -> TestSup
     where
         R: AsRef<Path>,
-        O: ToString,
-        P: ToString,
-        S: ToString,
     {
         let sup_exe = find_exe("hab-sup");
         let launcher_exe = find_exe("hab-launch");
@@ -292,12 +286,7 @@ impl TestSup {
 
     /// The equivalent of performing `hab apply` with the given
     /// configuration.
-    pub fn apply_config<T>(&mut self, toml_config: T)
-    where
-        T: ToString,
-    {
-        self.butterfly_client.apply(toml_config.to_string())
-    }
+    pub fn apply_config(&mut self, toml_config: &str) { self.butterfly_client.apply(toml_config) }
 }
 
 // We kill the Supervisor so you don't have to! We also free up the

@@ -119,7 +119,7 @@ impl<'a> Naming<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum RegistryType {
     Amazon,
     Azure,

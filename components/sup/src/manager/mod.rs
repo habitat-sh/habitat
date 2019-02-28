@@ -594,7 +594,7 @@ impl Manager {
         Ok(())
     }
 
-    fn add_service(&mut self, spec: ServiceSpec) {
+    fn add_service(&mut self, spec: &ServiceSpec) {
         // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
         // want is the service to hold the spec and, on failure, return an error with the spec
         // back to us. Since we consume and deconstruct the spec in `Service::new()` which
@@ -700,7 +700,7 @@ impl Manager {
         runtime.spawn(ctl_handler);
 
         if let Some(svc_load) = svc {
-            commands::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
+            commands::service_load(&self.state, &mut CtlRequest::default(), &svc_load)?;
         }
 
         // This serves to start up any services that need starting
@@ -746,7 +746,7 @@ impl Manager {
 
             outputln!("Starting http-gateway on {}", &http_listen_addr);
             http_gateway::Server::run(
-                http_listen_addr.clone(),
+                http_listen_addr,
                 tls_server_config,
                 self.state.gateway_state.clone(),
                 pair.clone(),

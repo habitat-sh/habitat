@@ -40,17 +40,13 @@ pub fn sleep_seconds(seconds: u64) { thread::sleep(Duration::from_secs(seconds))
 
 /// Copy fixture package files from `fixture_root` over to `hab_root`
 /// in the appropriate places for the Supervisor to find them.
-pub fn setup_package_files<O, P, S>(
-    origin_name: O,
-    package_name: P,
-    service_group: S,
+pub fn setup_package_files(
+    origin_name: &str,
+    package_name: &str,
+    service_group: &str,
     fixture_root: &FixtureRoot,
     hab_root: &HabRoot,
-) where
-    O: ToString,
-    P: ToString,
-    S: ToString,
-{
+) {
     let origin_name = origin_name.to_string();
     let package_name = package_name.to_string();
     let service_group = service_group.to_string();

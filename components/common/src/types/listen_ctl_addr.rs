@@ -23,7 +23,11 @@ use std::{fmt,
           result,
           str::FromStr};
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+use super::env_config::EnvConfig;
+use crate::error::{Error,
+                   Result};
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);
 
 impl ListenCtlAddr {

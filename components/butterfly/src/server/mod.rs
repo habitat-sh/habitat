@@ -29,7 +29,6 @@ pub mod timing;
 
 use std::{collections::{HashMap,
                         HashSet},
-          ffi,
           fmt::{self,
                 Debug},
           fs,
@@ -37,7 +36,8 @@ use std::{collections::{HashMap,
           net::{SocketAddr,
                 ToSocketAddrs,
                 UdpSocket},
-          path::PathBuf,
+          path::{Path,
+                 PathBuf},
           result,
           sync::{atomic::{AtomicBool,
                           AtomicIsize,
@@ -315,7 +315,7 @@ impl Clone for Server {
 impl Server {
     /// Create a new server, bound to the `addr`, hosting a particular `member`, and with a
     /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
-    pub fn new<T, U, P>(
+    pub fn new<T, U>(
         swim_addr: T,
         gossip_addr: U,
         mut member: Member,
@@ -326,13 +326,12 @@ impl Server {
         // that's used in testing, but it cascades outward and
         // complicates other parts of this code. We should find a way
         // to remove the optionality.
-        data_path: Option<P>,
+        data_path: Option<&Path>,
         suitability_lookup: Box<dyn Suitability>,
     ) -> Result<Server>
     where
         T: ToSocketAddrs,
         U: ToSocketAddrs,
-        P: Into<PathBuf> + AsRef<ffi::OsStr>,
     {
         let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
         let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
@@ -550,7 +549,7 @@ impl Server {
             let _ = thread::Builder::new()
                 .name(format!("persist-{}", self.name()))
                 .spawn(move || {
-                    persist_loop(server_f);
+                    persist_loop(&server_f);
                     panic!("Data persistence loop unexpectedly quit!");
                 });
         }
@@ -668,11 +667,8 @@ impl Server {
 
             // NOT calling RumorHeat::purge here because we'll be
             // shutting down soon anyway.
-            self.rumor_heat.start_hot_rumor(RumorKey::new(
-                RumorType::Member,
-                self.member_id.clone(),
-                "",
-            ));
+            self.rumor_heat
+                .start_hot_rumor(RumorKey::new(RumorType::Member, &self.member_id, ""));
 
             let check_list = self.member_list.check_list(&self.member_id);
 
@@ -774,7 +770,7 @@ impl Server {
                     rumor_heat.purge(&member_id_to_depart);
                     rumor_heat.start_hot_rumor(RumorKey::new(
                         RumorType::Member,
-                        member_id_to_depart,
+                        &member_id_to_depart,
                         "",
                     ));
                 }
@@ -810,11 +806,8 @@ impl Server {
         self.member_list.set_departed(&departure.member_id);
 
         self.rumor_heat.purge(&departure.member_id);
-        self.rumor_heat.start_hot_rumor(RumorKey::new(
-            RumorType::Member,
-            departure.member_id.clone(),
-            "",
-        ));
+        self.rumor_heat
+            .start_hot_rumor(RumorKey::new(RumorType::Member, &departure.member_id, ""));
 
         if self.departure_store.insert(departure) {
             self.rumor_heat.start_hot_rumor(rk);
@@ -1236,7 +1229,7 @@ impl fmt::Display for Server {
     }
 }
 
-fn persist_loop(server: Server) {
+fn persist_loop(server: &Server) {
     // TODO: Make this configurable with EnvConfig. That trait needs to move
     // to common or core first
     const MIN_LOOP_PERIOD: Duration = Duration::from_secs(30);
@@ -1618,7 +1611,6 @@ mod tests {
                     trace::Trace};
         use std::{fs::File,
                   io::prelude::*,
-                  path::PathBuf,
                   sync::Mutex};
         use tempfile::TempDir;
 
@@ -1658,7 +1650,7 @@ mod tests {
                 Trace::default(),
                 None,
                 None,
-                None::<PathBuf>,
+                None,
                 Box::new(ZeroSuitability),
             )
             .unwrap()
@@ -1723,7 +1715,7 @@ mod tests {
                 Trace::default(),
                 None,
                 None,
-                None::<PathBuf>,
+                None,
                 Box::new(ZeroSuitability),
             )
             .is_err())

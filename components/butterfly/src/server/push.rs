@@ -111,7 +111,7 @@ impl Push {
                             let guard = match thread::Builder::new()
                                 .name(String::from("push-worker"))
                                 .spawn(move || {
-                                    PushWorker::new(sc).send_rumors(member, rumors);
+                                    PushWorker::new(sc).send_rumors(&member, &rumors);
                                 }) {
                                 Ok(guard) => guard,
                                 Err(e) => {
@@ -159,7 +159,7 @@ impl PushWorker {
     /// closes the connection as soon as we are done sending rumors. ZeroMQ may choose to keep the
     /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
     /// method can lose messages.
-    fn send_rumors(&self, member: Member, rumors: Vec<RumorKey>) {
+    fn send_rumors(&self, member: &Member, rumors: &[RumorKey]) {
         let socket = (**ZMQ_CONTEXT)
             .as_mut()
             .socket(zmq::PUSH)

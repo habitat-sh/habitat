@@ -1128,7 +1128,7 @@ impl Paths {
 
     fn add_path_to_settle(&mut self, path: PathBuf) { self.paths_to_settle.insert(path); }
 
-    fn settle_path(&mut self, path: PathBuf) { self.paths_to_settle.remove(&path); }
+    fn settle_path(&mut self, path: &Path) { self.paths_to_settle.remove(path); }
 
     fn set_process_args(&mut self, args: ProcessPathArgs) {
         if match self.process_args_after_settle {
@@ -1388,7 +1388,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                     self.paths.add_path_to_settle(p);
                 }
                 PathsAction::SettlePath(p) => {
-                    self.paths.settle_path(p);
+                    self.paths.settle_path(&p);
                     actions.extend(self.handle_process_path()?);
                 }
                 PathsAction::ProcessPathAfterSettle(args) => {

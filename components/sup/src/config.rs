@@ -20,6 +20,11 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use crate::{common::cli_defaults::{GOSSIP_DEFAULT_IP,
+                                   GOSSIP_DEFAULT_PORT,
+                                   GOSSIP_LISTEN_ADDRESS_ENVVAR},
+            error::{Result,
+                    SupError}};
 use habitat_core::env::Config as EnvConfig;
 use std::{fmt,
           io,
@@ -34,13 +39,7 @@ use std::{fmt,
           result,
           str::FromStr};
 
-use crate::{common::cli_defaults::{GOSSIP_DEFAULT_IP,
-                                   GOSSIP_DEFAULT_PORT,
-                                   GOSSIP_LISTEN_ADDRESS_ENVVAR},
-            error::{Result,
-                    SupError}};
-
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
 
 impl GossipListenAddr {
@@ -55,7 +54,7 @@ impl GossipListenAddr {
     /// `192.168.1.1` should be contacted via `127.0.0.1` in the
     /// former case, but `192.168.1.1` in the latter.
     pub fn local_addr(&self) -> Self {
-        let mut addr = self.clone();
+        let mut addr = *self;
         if addr.0.ip().is_unspecified() {
             // TODO (CM): Use Ipv4Addr::loopback() when it's no longer experimental
             // TODO (CM): Support IPV6, once we do that more broadly

@@ -21,7 +21,6 @@ extern crate lazy_static;
 use std::{ops::{Deref,
                 DerefMut,
                 Range},
-          path::PathBuf,
           str::FromStr,
           sync::Mutex,
           thread,
@@ -78,7 +77,7 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
         Trace::default(),
         ring_key,
         Some(String::from(name)),
-        None::<PathBuf>,
+        None,
         Box::new(NSuitability(suitability)),
     )
     .unwrap();
@@ -136,11 +135,11 @@ impl SwimNet {
         SwimNet::new_with_suitability(suitabilities)
     }
 
-    pub fn new_ring_encryption(count: usize, ring_key: Option<SymKey>) -> SwimNet {
+    pub fn new_ring_encryption(count: usize, ring_key: &SymKey) -> SwimNet {
         let mut members = Vec::with_capacity(count);
         for x in 0..count {
             let rk = ring_key.clone();
-            members.push(start_server(&format!("{}", x), rk, 0));
+            members.push(start_server(&format!("{}", x), Some(rk), 0));
         }
         SwimNet { members }
     }

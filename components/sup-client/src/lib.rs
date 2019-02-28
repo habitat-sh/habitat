@@ -152,13 +152,10 @@ pub struct SrvClient {
 
 impl SrvClient {
     /// Connect to the given remote server and authenticate with the given secret_key.
-    pub fn connect<S>(
+    pub fn connect(
         addr: &ListenCtlAddr,
-        secret_key: S,
-    ) -> Box<dyn Future<Item = SrvClient, Error = SrvClientError> + 'static>
-    where
-        S: ToString,
-    {
+        secret_key: &str,
+    ) -> Box<dyn Future<Item = SrvClient, Error = SrvClientError> + 'static> {
         let secret_key = secret_key.to_string();
         let conn = TcpStream::connect(addr.as_ref())
             .map_err(SrvClientError::from)
@@ -186,7 +183,7 @@ impl SrvClient {
 
     pub fn read_secret_key() -> Result<String, SrvClientError> {
         let mut buf = String::new();
-        protocol::read_secret_key(protocol::sup_root(None::<String>), &mut buf)
+        protocol::read_secret_key(protocol::sup_root(None), &mut buf)
             .map_err(SrvClientError::from)?;
         Ok(buf)
     }

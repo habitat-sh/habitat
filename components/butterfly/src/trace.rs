@@ -193,7 +193,7 @@ impl Trace {
     }
 
     /// Write a line to the trace file.
-    pub fn write(&mut self, trace_write: TraceWrite<'_>) {
+    pub fn write(&mut self, trace_write: &TraceWrite<'_>) {
         let dump = format!("{:#?}", self);
         match self.file.as_mut() {
             Some(file) => match write!(file, "{}", trace_write) {
@@ -231,7 +231,7 @@ macro_rules! trace_it {
             tw.server_name = Some(&server_name);
             tw.member_id = Some(member_id);
             tw.rumor = Some(&payload);
-            trace.write(tw);
+            trace.write(&tw);
         }
     }};
 
@@ -255,7 +255,7 @@ macro_rules! trace_it {
                 tw.server_name = Some(&server_name);
                 tw.member_id = Some(member_id);
                 tw.rumor = Some(&payload);
-                trace.write(tw);
+                trace.write(&tw);
             }
         }
     }};
@@ -276,7 +276,7 @@ macro_rules! trace_it {
             tw.server_name = Some(&server_name);
             tw.member_id = Some(member_id);
             tw.rumor = Some(&rumor_text);
-            trace.write(tw);
+            trace.write(&tw);
         }
     }};
 
@@ -301,7 +301,7 @@ macro_rules! trace_it {
             tw.to_addr = Some(&to_addr);
             tw.swim = None;
             tw.rumor = None;
-            trace.write(tw);
+            trace.write(&tw);
         }
     }};
     (SWIM: $server:expr, $msg_type:expr, $to_member_id:expr, $to_addr:expr, $payload:expr) => {{
@@ -332,7 +332,7 @@ macro_rules! trace_it {
             tw.to_addr = Some(&to_addr);
             tw.swim = Some(&swim_str);
             tw.rumor = None;
-            trace.write(tw);
+            trace.write(&tw);
         }
     }};
     (GOSSIP: $server:expr, $msg_type:expr, $to_member_id:expr, $payload:expr) => {{
@@ -397,7 +397,7 @@ macro_rules! trace_it {
             tw.listening = Some(&listening);
             tw.swim = None;
             tw.rumor = Some(&rp);
-            trace.write(tw);
+            trace.write(&tw);
         }
     }};
 }

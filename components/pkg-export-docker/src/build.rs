@@ -644,7 +644,7 @@ impl BuildRootContext {
 
                 // Just create a hab user in a hab group for safety
                 users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, &["hab"]));
             }
             ("root", "hab") => {
                 // SVC_GROUP is NOT SVC_USER's primary group
@@ -653,7 +653,7 @@ impl BuildRootContext {
                 // and httpd packages... the lower-privileged hab user
                 // needs to be in the hab group for things to work.
                 users.push(EtcPasswdEntry::new("hab", hab_uid, gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", gid, vec!["hab"]));
+                groups.push(EtcGroupEntry::group_with_users("hab", gid, &["hab"]));
             }
             ("root", _) => {
                 // SVC_GROUP is NOT SVC_USER's primary group
@@ -664,7 +664,7 @@ impl BuildRootContext {
 
                 // Just create a hab user in a hab group for safety
                 users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, &["hab"]));
             }
             ("hab", "hab") => {
                 // If the user explicitly called for hab/hab, give it
@@ -674,7 +674,7 @@ impl BuildRootContext {
                 // SVC_GROUP, but if we're making a user, we need to
                 // put them in *some* group.
                 users.push(EtcPasswdEntry::new("hab", uid, gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", gid, vec!["hab"]));
+                groups.push(EtcGroupEntry::group_with_users("hab", gid, &["hab"]));
             }
             ("hab", "root") => {
                 // SVC_GROUP is NOT SVC_USER's primary group
@@ -683,7 +683,7 @@ impl BuildRootContext {
                 // we'll just add the hab user to the hab group to put
                 // them someplace.
                 users.push(EtcPasswdEntry::new("hab", uid, hab_gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, &["hab"]));
             }
             ("hab", _) => {
                 // SVC_GROUP IS SVC_USER's primary group, and there is
@@ -692,11 +692,7 @@ impl BuildRootContext {
                 // Again, sticking the hab user into the group because
                 // it needs to go somewhere
                 users.push(EtcPasswdEntry::new("hab", uid, gid));
-                groups.push(EtcGroupEntry::group_with_users(
-                    &group_name,
-                    gid,
-                    vec!["hab"],
-                ));
+                groups.push(EtcGroupEntry::group_with_users(&group_name, gid, &["hab"]));
             }
             (..) => {
                 // SVC_GROUP IS SVC_USER's primary group, because it
@@ -705,12 +701,12 @@ impl BuildRootContext {
                 groups.push(EtcGroupEntry::group_with_users(
                     &group_name,
                     gid,
-                    vec![&user_name],
+                    &[&user_name],
                 ));
 
                 // Just create a hab user in a hab group for safety
                 users.push(EtcPasswdEntry::new("hab", hab_uid, hab_gid));
-                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, vec!["hab"]));
+                groups.push(EtcGroupEntry::group_with_users("hab", hab_gid, &["hab"]));
             }
         }
 
@@ -799,9 +795,9 @@ mod test {
     use super::*;
 
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
-    fn arg_matches<'a>(args: Vec<&str>) -> ArgMatches<'a> {
+    fn arg_matches<'a>(args: &[&str]) -> ArgMatches<'a> {
         let app = crate::cli();
-        app.get_matches_from(&args)
+        app.get_matches_from(args)
     }
 
     fn build_spec<'a>() -> BuildSpec<'a> {
@@ -827,9 +823,8 @@ mod test {
         svc_group: String,
     }
     impl FakePkg {
-        pub fn new<I, P>(ident: I, rootfs: P) -> FakePkg
+        pub fn new<P>(ident: &str, rootfs: P) -> FakePkg
         where
-            I: ToString,
             P: AsRef<Path>,
         {
             FakePkg {
@@ -842,10 +837,7 @@ mod test {
             }
         }
 
-        pub fn add_bin<S>(&mut self, bin: S) -> &mut FakePkg
-        where
-            S: ToString,
-        {
+        pub fn add_bin(&mut self, bin: &str) -> &mut FakePkg {
             self.bins.push(bin.to_string());
             self
         }
@@ -855,18 +847,12 @@ mod test {
             self
         }
 
-        pub fn set_svc_user<S>(&mut self, svc_user: S) -> &mut FakePkg
-        where
-            S: ToString,
-        {
+        pub fn set_svc_user(&mut self, svc_user: &str) -> &mut FakePkg {
             self.svc_user = svc_user.to_string();
             self
         }
 
-        pub fn set_svc_group<S>(&mut self, svc_group: S) -> &mut FakePkg
-        where
-            S: ToString,
-        {
+        pub fn set_svc_group(&mut self, svc_group: &str) -> &mut FakePkg {
             self.svc_group = svc_group.to_string();
             self
         }
@@ -1148,7 +1134,7 @@ mod test {
                 .set_svc_group("root")
                 .install();
 
-            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
+            let matches = arg_matches(&[&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
             let build_spec = BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh");
 
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
@@ -1170,7 +1156,7 @@ mod test {
                 .set_svc_group("some_other_group")
                 .install();
 
-            let matches = arg_matches(vec![&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
+            let matches = arg_matches(&[&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
             let build_spec = BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh");
 
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();

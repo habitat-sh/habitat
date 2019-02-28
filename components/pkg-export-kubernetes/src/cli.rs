@@ -201,6 +201,7 @@ impl<'a, 'b> Cli<'a, 'b> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_natural_number(val: String) -> result::Result<(), String> {
     match val.parse::<u32>() {
         Ok(_) => Ok(()),
@@ -210,6 +211,7 @@ fn valid_natural_number(val: String) -> result::Result<(), String> {
 
 // TODO (JC) This might be worth moving to core if it could be used
 // elsewhere.  `ServiceGroup` already has a similar `validate` fn
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_bind(val: String) -> result::Result<(), String> {
     if let Err(e) = ServiceBind::from_str(&val) {
         Err(e.to_string())

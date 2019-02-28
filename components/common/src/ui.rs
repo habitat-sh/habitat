@@ -677,6 +677,7 @@ impl WriteStream {
 }
 
 mod tty {
+    #[derive(Clone, Copy)]
     pub enum StdStream {
         Stdin,
         Stdout,

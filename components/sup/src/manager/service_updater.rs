@@ -434,8 +434,8 @@ impl Worker {
         thread::Builder::new()
             .name(format!("SU-{}", sg))
             .spawn(move || match ident {
-                Some(latest) => self.run_once(tx, latest, kill_rx),
-                None => self.run_poll(tx, kill_rx),
+                Some(latest) => self.run_once(&tx, latest, &kill_rx),
+                None => self.run_poll(&tx, &kill_rx),
             })
             .expect("unable to start service-updater thread");
         rx
@@ -466,9 +466,9 @@ impl Worker {
     /// the function exits.
     fn run_once(
         &mut self,
-        sender: Sender<PackageInstall>,
+        sender: &Sender<PackageInstall>,
         ident: PackageIdent,
-        kill_rx: Receiver<()>,
+        kill_rx: &Receiver<()>,
     ) {
         // Fairly certain that this only gets called in a rolling update
         // scenario, where `ident` is always a fully-qualified identifier
@@ -514,7 +514,7 @@ impl Worker {
 
     /// Continually poll for a new version of a package, installing it
     /// when found.
-    fn run_poll(&mut self, sender: Sender<PackageInstall>, kill_rx: Receiver<()>) {
+    fn run_poll(&mut self, sender: &Sender<PackageInstall>, kill_rx: &Receiver<()>) {
         let install_source = (self.spec_ident.clone(), *PackageTarget::active_target()).into();
         let mut next_time = SteadyTime::now();
 

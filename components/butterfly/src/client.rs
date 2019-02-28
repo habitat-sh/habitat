@@ -37,10 +37,7 @@ pub struct Client {
 
 impl Client {
     /// Connect this client to the address, and optionally encrypt the traffic.
-    pub fn new<A>(addr: A, ring_key: Option<SymKey>) -> Result<Client>
-    where
-        A: ToString,
-    {
+    pub fn new(addr: &str, ring_key: Option<SymKey>) -> Result<Client> {
         let socket = (**ZMQ_CONTEXT)
             .as_mut()
             .socket(zmq::PUSH)
@@ -60,18 +57,15 @@ impl Client {
         socket
             .set_sndtimeo(500)
             .expect("Failure to set the ZMQ send timeout");
-        let to_addr = format!("tcp://{}", addr.to_string());
+        let to_addr = format!("tcp://{}", addr);
         socket.connect(&to_addr).map_err(Error::ZmqConnectError)?;
         Ok(Client { socket, ring_key })
     }
 
     /// Create a departure notification and send it to the server.
-    pub fn send_departure<T>(&mut self, member_id: T) -> Result<()>
-    where
-        T: ToString,
-    {
+    pub fn send_departure(&mut self, member_id: &str) -> Result<()> {
         let departure = Departure::new(member_id);
-        self.send(departure)
+        self.send(&departure)
     }
 
     /// Create a service configuration and send it to the server.
@@ -85,7 +79,7 @@ impl Client {
         let mut sc = ServiceConfig::new("butterflyclient", service_group, config.to_vec());
         sc.incarnation = incarnation;
         sc.encrypted = encrypted;
-        self.send(sc)
+        self.send(&sc)
     }
 
     /// Create a service file and send it to the server.
@@ -103,11 +97,11 @@ impl Client {
         let mut sf = ServiceFile::new("butterflyclient", service_group, filename, body.to_vec());
         sf.incarnation = incarnation;
         sf.encrypted = encrypted;
-        self.send(sf)
+        self.send(&sf)
     }
 
     /// Send any `Rumor` to the server.
-    pub fn send<T>(&mut self, rumor: T) -> Result<()>
+    pub fn send<T>(&mut self, rumor: &T) -> Result<()>
     where
         T: Rumor,
     {

@@ -178,6 +178,7 @@ fn cli<'a, 'b>() -> clap::App<'a, 'b> {
         ))
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_version(val: String) -> result::Result<(), String> {
     let split: Vec<&str> = val.split('.').collect();
     if split.len() != 3 {
@@ -195,6 +196,7 @@ fn valid_version(val: String) -> result::Result<(), String> {
     Ok(())
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_url(val: String) -> result::Result<(), String> {
     match Url::parse(&val) {
         Ok(_) => Ok(()),
@@ -202,6 +204,7 @@ fn valid_url(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_maintainer(val: String) -> result::Result<(), String> {
     maintainer::Maintainer::from_str(&val)
         .map(|_| ())
