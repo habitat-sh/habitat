@@ -350,7 +350,7 @@ impl Client {
     pub fn schedule_job(
         &self,
         ident: &PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         package_only: bool,
         token: &str,
     ) -> Result<(String)> {
@@ -383,7 +383,7 @@ impl Client {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn fetch_rdeps(&self, ident: &PackageIdent, target: &PackageTarget) -> Result<Vec<String>> {
+    pub fn fetch_rdeps(&self, ident: &PackageIdent, target: PackageTarget) -> Result<Vec<String>> {
         debug!("Fetching the reverse dependencies for {}", ident);
 
         let url = format!("rdeps/{}", ident);
@@ -833,7 +833,7 @@ impl Client {
     pub fn fetch_package<D, P>(
         &self,
         ident: &PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
         dst_path: &P,
         progress: Option<D>,
@@ -872,7 +872,7 @@ impl Client {
     pub fn show_package(
         &self,
         package: &PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         channel: &ChannelIdent,
         token: Option<&str>,
     ) -> Result<PackageIdent> {

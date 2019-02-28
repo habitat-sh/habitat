@@ -47,8 +47,7 @@ lints_to_fix=(clippy::cyclomatic_complexity \
                clippy::large_enum_variant \
                clippy::needless_pass_by_value \
                clippy::needless_return \
-               clippy::too_many_arguments \
-               clippy::trivially_copy_pass_by_ref)
+               clippy::too_many_arguments)
 
 # Lints we don't expect to have in our code at all and want to avoid adding
 # even at the cost of failing the build
@@ -93,6 +92,7 @@ denied_lints=(clippy::assign_op_pattern \
                clippy::single_match \
                clippy::string_lit_as_bytes \
                clippy::toplevel_ref_arg \
+               clippy::trivially_copy_pass_by_ref \
                clippy::unit_arg \
                clippy::unnecessary_operation \
                clippy::unreadable_literal \

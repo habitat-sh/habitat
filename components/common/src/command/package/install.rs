@@ -363,7 +363,7 @@ where
     )?;
 
     match *install_source {
-        InstallSource::Ident(ref ident, ref target) => {
+        InstallSource::Ident(ref ident, target) => {
             task.with_ident(ui, ident.clone(), target, token)
         }
         InstallSource::Archive(ref local_archive) => task.with_archive(ui, local_archive, token),
@@ -494,7 +494,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
     ) -> Result<PackageInstall>
     where
@@ -552,7 +552,7 @@ impl<'a> InstallTask<'a> {
             None => {
                 // No installed package was found
                 self.store_artifact_in_cache(&target_ident, &local_archive.path)?;
-                self.install_package(ui, &target_ident, &local_archive.target, token)
+                self.install_package(ui, &target_ident, local_archive.target, token)
             }
         }
     }
@@ -561,7 +561,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent<'_>>
     where
@@ -682,7 +682,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: &FullyQualifiedPackageIdent<'_>,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
     ) -> Result<PackageInstall>
     where
@@ -751,7 +751,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: &FullyQualifiedPackageIdent<'_>,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
     ) -> Result<PackageArchive>
     where
@@ -928,7 +928,7 @@ impl<'a> InstallTask<'a> {
     fn fetch_latest_pkg_ident_for(
         &self,
         ident: &PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent<'_>> {
         self.fetch_latest_pkg_ident_in_channel_for(ident, target, &self.channel, token)
@@ -937,7 +937,7 @@ impl<'a> InstallTask<'a> {
     fn fetch_latest_pkg_ident_in_channel_for(
         &self,
         ident: &PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         channel: &ChannelIdent,
         token: Option<&str>,
     ) -> Result<FullyQualifiedPackageIdent<'_>> {
@@ -953,7 +953,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: &FullyQualifiedPackageIdent<'_>,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
     ) -> Result<()>
     where
@@ -1111,7 +1111,7 @@ impl<'a> InstallTask<'a> {
         &self,
         ui: &mut T,
         ident: &PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
     ) -> Result<()>
     where
@@ -1140,7 +1140,7 @@ impl<'a> InstallTask<'a> {
     fn get_channel_recommendations(
         &self,
         ident: &PackageIdent,
-        target: &PackageTarget,
+        target: PackageTarget,
         token: Option<&str>,
     ) -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();

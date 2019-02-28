@@ -611,7 +611,7 @@ fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let target = target_from_matches(m)?;
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::job::start::start(ui, &url, &ident, &target, &token, group)
+    command::bldr::job::start::start(ui, &url, &ident, target, &token, group)
 }
 
 fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
