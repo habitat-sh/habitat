@@ -1,12 +1,13 @@
 # Habitat CHANGELOG
 
-<!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release 0.77.0-dev -->
+## [0.77.0-dev](https://github.com/habitat-sh/habitat/tree/0.77.0-dev) (2019-02-28)
 
 #### Bug Fixes
 - use console api instead of ansi codes on windows [#6203](https://github.com/habitat-sh/habitat/pull/6203) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- bump dev version to 0.77.0-dev [#6237](https://github.com/habitat-sh/habitat/pull/6237) ([mpeck](https://github.com/mpeck))
 - Add windows builder-worker promotion step to release [#6187](https://github.com/habitat-sh/habitat/pull/6187) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
