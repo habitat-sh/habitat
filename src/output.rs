@@ -273,7 +273,7 @@ macro_rules! outputln {
 macro_rules! output_format {
     (preamble $preamble:expr,logkey $logkey:expr, $content:expr) => {{
         use $crate::output::StructuredOutput;
-        let trimmed_content = &$content.trim_right_matches('\n');
+        let trimmed_content = &$content.trim_end_matches('\n');
         let so = StructuredOutput::new(
             &$preamble,
             $logkey,

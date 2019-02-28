@@ -375,7 +375,7 @@ impl PackageInstall {
             Ok(body) => {
                 let v: Vec<String> = body
                     .split(' ')
-                    .map(|x| String::from(x.trim_right_matches('\n')))
+                    .map(|x| String::from(x.trim_end_matches('\n')))
                     .collect();
                 Ok(v)
             }
