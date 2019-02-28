@@ -5,6 +5,7 @@ set -eou pipefail
 source ./support/ci/shared.sh
 
 toolchain="${1:-stable}"
+maybe_install_rustup
 install_rust_toolchain "$toolchain"
 
 # TODO: these should be in a shared script?
