@@ -1,6 +1,12 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.77.0-dev -->
+<!-- latest_release unreleased -->
+## Unreleased
+
+#### Merged Pull Requests
+- Fix concurrent install of local harts [#6208](https://github.com/habitat-sh/habitat/pull/6208) ([stevendanna](https://github.com/stevendanna))
+<!-- latest_release -->
+
 ## [0.77.0-dev](https://github.com/habitat-sh/habitat/tree/0.77.0-dev) (2019-02-28)
 
 #### Bug Fixes
@@ -9,7 +15,6 @@
 #### Merged Pull Requests
 - bump dev version to 0.77.0-dev [#6237](https://github.com/habitat-sh/habitat/pull/6237) ([mpeck](https://github.com/mpeck))
 - Add windows builder-worker promotion step to release [#6187](https://github.com/habitat-sh/habitat/pull/6187) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 
 
