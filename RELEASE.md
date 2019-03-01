@@ -211,6 +211,33 @@ make template_reference
 
 Verify the diff looks reasonable and matches the newly released version, then submit your PR.
 
+## Update the Changelog
+
+We currently use Expeditor (an internal tool) to _partially_ manage our changelog. It adds items to `CHANGELOG.md` for every PR that is merged, based on certain labels that are attached to the PR. This is all well and good.
+
+However, due to our versioning scheme (specifically, the use of the `-dev` suffix), we can't yet take advantage of Expeditor's built-in version bumping capabilities. This will change soon, but in the meantime, this means that we must manually add the release header to the changelog and do some re-arranging of additional headers.
+
+In a nutshell, the top of the `CHANGELOG.md` file should be modified to look something like this:
+
+```
+# Habitat CHANGELOG
+
+<!-- latest_release unreleased -->
+
+## Unreleased
+
+// Any merges after the release tag should be in this section
+
+<!-- latest_release -->
+
+## [<JUST_RELEASED_VERSION>](https://github.com/habitat-sh/habitat/tree/<JUST_RELEASED_VERSION>) (YYYY-MM-DD)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/LAST_VERSION...<JUST_RELEASED_VERSION>)
+```
+
+These are the only places in the file that the `latest_release unreleased` and `latest_release` comment lines should be.
+
+For additional background, please consult [Expeditor's CHANGELOG documentation](https://expeditor.chef.io/docs/reference/changelog/).
+
 # Drink. It. In.
 
 ## Bump Version
@@ -240,7 +267,7 @@ Now that the release is stable, we need to build a new version of builder-worker
 If it is, just wait for it to finish and promote it. If it's not, click the
 `Build Latest Version` button to kick off a build, and promote when it's done.  Wait for a few minutes so that supervisors on all the workers can update to the newly promoted version, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
 
-With the addition of Windows builder workers, you will also need to build and promote the builder-worker package for x86_64-windows.  In order to build the Windows package, you will need to use the hab cli and issue `hab bldr job start habitat/builder-worker x86_64-windows` in order to create the package.  
+With the addition of Windows builder workers, you will also need to build and promote the builder-worker package for x86_64-windows.  In order to build the Windows package, you will need to use the hab cli and issue `hab bldr job start habitat/builder-worker x86_64-windows` in order to create the package.
 
 # Release Notification
 
