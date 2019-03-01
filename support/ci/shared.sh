@@ -55,3 +55,15 @@ maybe_install_rustfmt() {
   echo "We couldn't find a release of nightly rust in the past $max_days days that includes rustfmt. Giving up entirely."
   exit 1
 }
+
+install_hab_pkg() {
+  for ident; do
+    installed_pkgs=$(hab pkg list "$ident")
+
+    if [[ -z $installed_pkgs ]]; then
+      sudo hab pkg install "$ident"
+    else
+      echo "$ident already installed"
+    fi
+  done
+}

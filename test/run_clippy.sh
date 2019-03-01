@@ -9,13 +9,7 @@ maybe_install_rustup
 install_rust_toolchain "$toolchain"
 
 # TODO: these should be in a shared script?
-sudo hab pkg install core/bzip2
-sudo hab pkg install core/libarchive
-sudo hab pkg install core/libsodium
-sudo hab pkg install core/openssl
-sudo hab pkg install core/xz
-sudo hab pkg install core/zeromq
-sudo hab pkg install core/protobuf
+install_hab_pkg core/bzip2 core/libarchive core/libsodium core/openssl core/xz core/zeromq core/protobuf
 export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
 export OPENSSL_DIR # so the openssl crate knows what to build against
