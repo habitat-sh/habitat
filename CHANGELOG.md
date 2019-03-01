@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- Prevent a crash in Supervisor protocol processing [#6144](https://github.com/habitat-sh/habitat/pull/6144) ([christophermaier](https://github.com/christophermaier))
+
 #### Merged Pull Requests
 - add launcher doc [#6197](https://github.com/habitat-sh/habitat/pull/6197) ([echohack](https://github.com/echohack))
 - Migrate clippy and rustfmt tests to be more friendly and remove worka… [#6222](https://github.com/habitat-sh/habitat/pull/6222) ([scotthain](https://github.com/scotthain))
