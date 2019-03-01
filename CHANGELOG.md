@@ -9,13 +9,13 @@
 - Fix concurrent install of local harts [#6208](https://github.com/habitat-sh/habitat/pull/6208) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
+- Reverts 65a1f9 and a03510 for hab-plan-build.sh [#6248](https://github.com/habitat-sh/habitat/pull/6248) ([eeyun](https://github.com/eeyun))
 - remove unnecessary sections from release docs [#6212](https://github.com/habitat-sh/habitat/pull/6212) ([mpeck](https://github.com/mpeck))
 - replace docker-privileged queue with default-privileged [#6234](https://github.com/habitat-sh/habitat/pull/6234) ([mpeck](https://github.com/mpeck))
 - add launcher doc [#6197](https://github.com/habitat-sh/habitat/pull/6197) ([echohack](https://github.com/echohack))
 - Migrate clippy and rustfmt tests to be more friendly and remove worka… [#6222](https://github.com/habitat-sh/habitat/pull/6222) ([scotthain](https://github.com/scotthain))
 - bump dev version to 0.77.0-dev [#6237](https://github.com/habitat-sh/habitat/pull/6237) ([mpeck](https://github.com/mpeck))
 - Add windows builder-worker promotion step to release [#6187](https://github.com/habitat-sh/habitat/pull/6187) ([smacfarlane](https://github.com/smacfarlane))
-
 <!-- latest_release -->
 
 ## [0.76.0](https://github.com/habitat-sh/habitat/tree/0.76.0) (2019-02-25)
