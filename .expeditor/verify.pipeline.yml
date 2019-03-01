@@ -38,7 +38,7 @@ steps:
     command:
       - sudo yum install gcc -y # install GCC since it's required for the cargo build
       - sudo yum update bash # make sure we have 4.4 or later
-      - make lint
+      - sudo make lint
     agents:
       queue: 'single-use-privileged'
     timeout_in_minutes: 10
