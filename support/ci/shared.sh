@@ -3,7 +3,7 @@
 set -euo pipefail
 
 maybe_install_rustup() {
-  if command -v rustup >/dev/null 2>&1; then
+  if command -v rustup && command -v cargo &>/dev/null; then
     echo "--- :rust: rustup is currently installed."
   else
     echo "--- :rust: Installing rustup."
