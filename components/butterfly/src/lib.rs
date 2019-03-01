@@ -40,8 +40,6 @@
 //!
 //! Start exploring the code base by following the thread of execution in the `server` module.
 
-use habitat_common as common;
-
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -66,9 +64,8 @@ pub mod rumor;
 pub mod server;
 pub mod swim;
 
-use std::cell::UnsafeCell;
-
 pub use crate::server::Server;
+use std::cell::UnsafeCell;
 
 lazy_static! {
     /// A threadsafe shared ZMQ context for consuming services.

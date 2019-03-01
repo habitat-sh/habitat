@@ -12,6 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{census::CensusRing,
+            manager::{periodic::Periodic,
+                      service::{Service,
+                                Topology,
+                                UpdateStrategy}},
+            util};
+use habitat_butterfly;
+use habitat_common::ui::UI;
+use habitat_core::{env as henv,
+                   env::Config as EnvConfig,
+                   package::{PackageIdent,
+                             PackageInstall,
+                             PackageTarget},
+                   service::ServiceGroup,
+                   ChannelIdent};
+use habitat_launcher_client::LauncherCli;
 use std::{cmp::{Ordering,
                 PartialOrd},
           collections::HashMap,
@@ -24,27 +40,8 @@ use std::{cmp::{Ordering,
                        TryRecvError},
           thread,
           time};
-
-use time_crate::Duration;
-
-use crate::{butterfly,
-            common::ui::UI,
-            hcore::{env as henv,
-                    package::{PackageIdent,
-                              PackageInstall,
-                              PackageTarget},
-                    service::ServiceGroup,
-                    ChannelIdent},
-            launcher_client::LauncherCli};
-
-use crate::{census::CensusRing,
-            common::types::EnvConfig,
-            manager::{periodic::Periodic,
-                      service::{Service,
-                                Topology,
-                                UpdateStrategy}},
-            util};
-use time_crate::SteadyTime;
+use time_crate::{Duration,
+                 SteadyTime};
 
 static LOGKEY: &'static str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not
@@ -87,11 +84,11 @@ enum FollowerState {
 /// To use an update strategy, the supervisor must be configured to watch a depot for new versions.
 pub struct ServiceUpdater {
     states: UpdaterStateList,
-    butterfly: butterfly::Server,
+    butterfly: habitat_butterfly::Server,
 }
 
 impl ServiceUpdater {
-    pub fn new(butterfly: butterfly::Server) -> Self {
+    pub fn new(butterfly: habitat_butterfly::Server) -> Self {
         ServiceUpdater {
             states: UpdaterStateList::default(),
             butterfly,
@@ -572,7 +569,7 @@ impl Worker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::common::locked_env_var;
+    use habitat_common::locked_env_var;
 
     #[test]
     fn default_update_period_is_equal_to_minimum_allowed_value() {

@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-mod env_config;
 mod listen_ctl_addr;
 
-pub use self::{env_config::EnvConfig,
-               listen_ctl_addr::ListenCtlAddr};
+pub use self::listen_ctl_addr::ListenCtlAddr;

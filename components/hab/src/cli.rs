@@ -12,35 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{net::SocketAddr,
-          path::Path,
-          result,
-          str::FromStr};
-
-use crate::{hcore::{crypto::keys::PairType,
-                    package::{ident,
-                              Identifiable,
-                              PackageIdent,
-                              PackageTarget},
-                    service::{HealthCheckInterval,
-                              ServiceGroup}},
-            protocol};
+use crate::{command::studio,
+            feat};
 use clap::{App,
            AppSettings,
            Arg};
-use url::Url;
-
-use crate::{command::studio,
-            common::{cli_defaults::{GOSSIP_DEFAULT_ADDR,
+use habitat_common::{cli_defaults::{GOSSIP_DEFAULT_ADDR,
                                     GOSSIP_LISTEN_ADDRESS_ENVVAR,
                                     LISTEN_CTL_DEFAULT_ADDR_STRING,
                                     LISTEN_HTTP_ADDRESS_ENVVAR,
                                     LISTEN_HTTP_DEFAULT_ADDR,
                                     RING_ENVVAR,
                                     RING_KEY_ENVVAR},
-                     types::{EnvConfig,
-                             ListenCtlAddr}},
-            feat};
+                     types::ListenCtlAddr};
+use habitat_core::{crypto::keys::PairType,
+                   env::Config,
+                   package::{ident,
+                             Identifiable,
+                             PackageIdent,
+                             PackageTarget},
+                   service::{HealthCheckInterval,
+                             ServiceGroup}};
+use habitat_sup_protocol;
+use std::{net::SocketAddr,
+          path::Path,
+          result,
+          str::FromStr};
+use url::Url;
 
 pub fn get() -> App<'static, 'static> {
     let alias_apply = sub_config_apply()
@@ -1098,7 +1096,7 @@ fn sub_svc_load() -> App<'static, 'static> {
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
 fn valid_binding_mode(val: String) -> result::Result<(), String> {
-    match protocol::types::BindingMode::from_str(&val) {
+    match habitat_sup_protocol::types::BindingMode::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("Binding mode: '{}' is not valid", &val)),
     }
@@ -1176,7 +1174,7 @@ fn valid_health_check_interval(val: String) -> result::Result<(), String> {
 }
 
 fn valid_update_strategy(val: String) -> result::Result<(), String> {
-    match protocol::types::UpdateStrategy::from_str(&val) {
+    match habitat_sup_protocol::types::UpdateStrategy::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => Err(format!("Update strategy: '{}' is not valid", &val)),
     }

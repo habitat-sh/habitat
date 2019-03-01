@@ -22,18 +22,15 @@
 //! Note that the "heat" of a rumor is tracked *per member*, and is
 //! not global.
 
-// Standard Library
+use crate::{error::Error,
+            rumor::{RumorKey,
+                    RumorType}};
+use habitat_core::env::Config as EnvConfig;
 use std::{collections::HashMap,
           result,
           str::FromStr,
           sync::{Arc,
                  RwLock}};
-
-// Internal Modules
-use crate::{common::types::EnvConfig,
-            error::Error,
-            rumor::{RumorKey,
-                    RumorType}};
 
 // TODO (CM): Can we key by member instead? What do we do more frequently?
 // TODO (CM): Might want to type the member ID explicitly
@@ -209,13 +206,13 @@ impl Default for RumorHeat {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{common::locked_env_var,
-                error::Result,
+    use crate::{error::Result,
                 protocol::{self,
                            newscast},
                 rumor::{Rumor,
                         RumorKey,
                         RumorType}};
+    use habitat_common::locked_env_var;
     use uuid::Uuid;
 
     use crate::{member::Member,
