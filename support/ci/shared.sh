@@ -12,7 +12,7 @@ maybe_install_rustup() {
   fi
 }
 
-install_rust_toolchain() {
+maybe_install_rust_toolchain() {
   local toolchain="${1?toolchain argument required}"
 
   if rustup component list --toolchain "$toolchain" >/dev/null 2>&1; then
@@ -26,7 +26,7 @@ install_rust_toolchain() {
 # Due to the nature of nightly rust, sometimes changes will break rustfmt's
 # usage of rustc. If this happens, nightly rust won't include rustfmt,
 # and we need to automatically fall back to a version that does include it.
-install_rustfmt() {
+maybe_install_rustfmt() {
   local max_days=90
 
   for days_ago in $(seq 0 1 $max_days)
@@ -35,7 +35,7 @@ install_rustfmt() {
     date=$(date -d "$days_ago days ago" +%Y-%m-%d)
     toolchain="nightly-$date"
 
-    if install_rust_toolchain "$toolchain"; then
+    if maybe_install_rust_toolchain "$toolchain"; then
       echo "--- :rust: Installation of $toolchain succeeded, or it was already installed."
     else
       next_days=$((days_ago + 1))

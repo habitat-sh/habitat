@@ -11,7 +11,7 @@ source "$d/shared.sh"
 toolchain="stable"
 
 maybe_install_rustup
-install_rustfmt
+maybe_install_rustfmt
 cargo_fmt="cargo +$toolchain fmt --all -- --check"
 echo "--- :rust: Running cargo fmt command: $cargo_fmt"
 $cargo_fmt
