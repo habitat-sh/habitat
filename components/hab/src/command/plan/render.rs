@@ -97,7 +97,7 @@ pub fn start(
         None => "{}".to_string(),
     };
     // merge mock data into data
-    merge(&mut data, serde_json::from_str(&mock_data).unwrap());
+    merge(&mut data, serde_json::from_str(&mock_data)?);
 
     // create a template renderer
     let mut renderer = TemplateRenderer::new();
@@ -106,7 +106,7 @@ pub fn start(
         .register_template_string(&template, &template)
         .expect("Could not register template content");
     // render our JSON override in our template.
-    let rendered_template = renderer.render(&template, &data).ok().unwrap();
+    let rendered_template = renderer.render(&template, &data)?;
 
     if print {
         if !(quiet) {
@@ -140,8 +140,8 @@ pub fn start(
 }
 
 fn toml_to_json(cfg: &str) -> Result<Json> {
-    let toml_value = cfg.parse::<Value>().expect("Error parsing TOML");
-    let toml_string = serde_json::to_string(&toml_value).expect("Error encoding JSON");
+    let toml_value = cfg.parse::<Value>()?;
+    let toml_string = serde_json::to_string(&toml_value)?;
     let json = serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &toml_string))?;
     Ok(json)
 }
