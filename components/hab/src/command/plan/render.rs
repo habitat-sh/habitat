@@ -67,7 +67,7 @@ pub fn start(
     let default_toml = read_to_string(&default_toml_path)?;
 
     // merge default into data struct
-    merge(&mut data, toml_to_json(&default_toml));
+    merge(&mut data, toml_to_json(&default_toml)?);
 
     // import default.toml values, convert to JSON
     let user_toml = match user_toml_path {
@@ -81,7 +81,7 @@ pub fn start(
         None => String::new(),
     };
     // merge default into data struct
-    merge(&mut data, toml_to_json(&user_toml));
+    merge(&mut data, toml_to_json(&user_toml)?);
 
     // read mock data if provided
     let mock_data = match mock_data_path {
@@ -139,10 +139,11 @@ pub fn start(
     Ok(())
 }
 
-fn toml_to_json(cfg: &str) -> Json {
+fn toml_to_json(cfg: &str) -> Result<Json> {
     let toml_value = cfg.parse::<Value>().expect("Error parsing TOML");
     let toml_string = serde_json::to_string(&toml_value).expect("Error encoding JSON");
-    serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &toml_string)).unwrap()
+    let json = serde_json::from_str(&format!(r#"{{ "cfg": {} }}"#, &toml_string))?;
+    Ok(json)
 }
 
 // merge two Json structs
