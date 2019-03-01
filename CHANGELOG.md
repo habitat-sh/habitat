@@ -5,25 +5,18 @@
 
 #### Bug Fixes
 - Prevent a crash in Supervisor protocol processing [#6144](https://github.com/habitat-sh/habitat/pull/6144) ([christophermaier](https://github.com/christophermaier))
+- use console api instead of ansi codes on windows [#6203](https://github.com/habitat-sh/habitat/pull/6203) ([mwrock](https://github.com/mwrock))
+- Fix concurrent install of local harts [#6208](https://github.com/habitat-sh/habitat/pull/6208) ([stevendanna](https://github.com/stevendanna))
 
 #### Merged Pull Requests
 - remove unnecessary sections from release docs [#6212](https://github.com/habitat-sh/habitat/pull/6212) ([mpeck](https://github.com/mpeck))
 - replace docker-privileged queue with default-privileged [#6234](https://github.com/habitat-sh/habitat/pull/6234) ([mpeck](https://github.com/mpeck))
 - add launcher doc [#6197](https://github.com/habitat-sh/habitat/pull/6197) ([echohack](https://github.com/echohack))
 - Migrate clippy and rustfmt tests to be more friendly and remove worka… [#6222](https://github.com/habitat-sh/habitat/pull/6222) ([scotthain](https://github.com/scotthain))
-- Fix concurrent install of local harts [#6208](https://github.com/habitat-sh/habitat/pull/6208) ([stevendanna](https://github.com/stevendanna))
-<!-- latest_release -->
-
-## [0.77.0-dev](https://github.com/habitat-sh/habitat/tree/0.77.0-dev) (2019-02-28)
-
-#### Bug Fixes
-- use console api instead of ansi codes on windows [#6203](https://github.com/habitat-sh/habitat/pull/6203) ([mwrock](https://github.com/mwrock))
-
-#### Merged Pull Requests
 - bump dev version to 0.77.0-dev [#6237](https://github.com/habitat-sh/habitat/pull/6237) ([mpeck](https://github.com/mpeck))
 - Add windows builder-worker promotion step to release [#6187](https://github.com/habitat-sh/habitat/pull/6187) ([smacfarlane](https://github.com/smacfarlane))
 
-
+<!-- latest_release -->
 
 ## [0.76.0](https://github.com/habitat-sh/habitat/tree/0.76.0) (2019-02-25)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.75.0...0.76.0)
