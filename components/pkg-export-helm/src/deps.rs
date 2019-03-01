@@ -13,8 +13,6 @@
 // limitations under the License.
 
 use clap;
-use failure::SyncFailure;
-use handlebars::Handlebars;
 use std::{io::Write,
           path::Path,
           process::Command};
@@ -29,18 +27,15 @@ pub const DEFAULT_OPERATOR_VERSION: &str = "0.6.1";
 pub const OPERATOR_REPO_URL: &str =
     "https://habitat-sh.github.io/habitat-operator/helm/charts/stable/";
 
-// Helm requirements.yaml template
-const DEPSFILE: &str = include_str!("../defaults/HelmDeps.hbs");
-
 pub struct Deps {
-    operator_version: String,
+    _operator_version: String,
     update: bool,
 }
 
 impl Deps {
     pub fn new_for_cli_matches(matches: &clap::ArgMatches<'_>) -> Self {
         Deps {
-            operator_version: matches
+            _operator_version: matches
                 .value_of("OPERATOR_VERSION")
                 .unwrap_or(DEFAULT_OPERATOR_VERSION)
                 .to_owned(),
@@ -93,20 +88,6 @@ impl Deps {
             .spawn()?
             .wait()
             .map(|_| ())
-            .map_err(From::from)
-    }
-
-    // TODO: Implement TryInto trait instead when it's in stable std crate
-    #[allow(dead_code)]
-    fn into_string(&self) -> Result<String> {
-        let json = json!({
-            "operator_version": self.operator_version,
-            "operator_repo_url": OPERATOR_REPO_URL,
-        });
-
-        Handlebars::new()
-            .template_render(DEPSFILE, &json)
-            .map_err(SyncFailure::new)
             .map_err(From::from)
     }
 }
