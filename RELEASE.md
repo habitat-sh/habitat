@@ -9,14 +9,6 @@ from the master branch on a bi-weekly schedule occurring every other Monday.
 1. Check off the items in the list as you go.
 1. If you make any changes to the release automation or documentation to include in the next release, you can mark those PRs as resolving the issue. Otherwise, just close it when the release is done.
 
-# If your Release is going to cause downtime (highly unlikely)
-
-1. Put a scheduled maintenance window into PagerDuty so the on-call doesn't go off.
-1. Pre-announce outage on Twitter & Slack #general channel. There is no hard rule for a length of time you need to do this ahead of a release outage.
-1. When your release begins, post announcement in our statuspage.io with outage information.
-1. You are responsible for updating status changes in statuspage.io as the downtime proceeds. You are not responsible for regular minutes or responding in any other venue.
-1. When the downtime is over, announce the end of the outage via statuspage.io. It will automatically post an announcement to #general and twitter.
-
 ## Releasing Launcher
 
 The [`core/hab-launcher` package](https://bldr.habitat.sh/#/pkgs/core/hab-launcher), which contains
@@ -119,19 +111,6 @@ Create a PR and ask all team members (especially those with changes in the relea
 2. Add a sentence or two explaining how the change was tested/validated
 
 Don't actually merge the PR until the release is complete.
-
-## Build the Windows Docker Studio image
-
-Until this is integrated into Builfkite, it needs to be performed manually on a Windows Docker host after Buildkite has uploaded all of the release candidate binaries:
-
-```
-$env:BINTRAY_USER="YOUR_USER_NAME"
-$env:BINTRAY_KEY="YOUR_API_KEY"
-$env:HAB_BLDR_CHANNEL="RC_CHANNEL"
-hab pkg exec core/hab-bintray-publish publish-studio
-```
-
-This will build the Docker Studio image for Windows and push it to our bintray registry.
 
 ## Validate the Release
 
