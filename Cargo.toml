@@ -14,5 +14,5 @@ gcc = "0.3"
 log = "*"
 
 [target.'cfg(windows)'.dependencies]
-widestring = "*"
+widestring = "0.3.0"
 winapi = { version = "*", features = ["winbase", "winerror", "handleapi"] }
