@@ -245,6 +245,16 @@ pub fn get() -> App<'static, 'static> {
             (about: "Commands relating to Habitat origin keys")
             (aliases: &["o", "or", "ori", "orig", "origi"])
             (@setting ArgRequiredElseHelp)
+            (@subcommand delete =>
+                (about: "Removes an unused/empty origin")
+                (aliases: &["del", "dele"])
+                (@arg ORIGIN: +required {valid_origin} "The origin name")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                     "Specify an alternate Builder endpoint. If not specified, the value will \
+                     be taken from the `HAB_BLDR_URL environment variable if defined. (default: \
+                     https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+            )
             (@subcommand key =>
                 (about: "Commands relating to Habitat origin key maintenance")
                 (aliases: &["k", "ke"])
@@ -430,7 +440,6 @@ pub fn get() -> App<'static, 'static> {
                             "An origin to list")
                     (@arg PKG_IDENT: +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2).")
-
                 )
 
             )
