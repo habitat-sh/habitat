@@ -1,9 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release 0.78.0-dev -->
+## [0.78.0-dev](https://github.com/habitat-sh/habitat/tree/0.78.0-dev) (2019-03-02)
 
 #### Merged Pull Requests
+- Bump version post release [#6255](https://github.com/habitat-sh/habitat/pull/6255) ([eeyun](https://github.com/eeyun))
 - Adds blog post for release 0.77.0 [#6254](https://github.com/habitat-sh/habitat/pull/6254) ([eeyun](https://github.com/eeyun))
 - Adds origin deletion tool to hab binary [#6121](https://github.com/habitat-sh/habitat/pull/6121) ([eeyun](https://github.com/eeyun))
 <!-- latest_release -->
