@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Adds blog post for release 0.77.0 [#6254](https://github.com/habitat-sh/habitat/pull/6254) ([eeyun](https://github.com/eeyun))
 - Adds origin deletion tool to hab binary [#6121](https://github.com/habitat-sh/habitat/pull/6121) ([eeyun](https://github.com/eeyun))
 <!-- latest_release -->
 
