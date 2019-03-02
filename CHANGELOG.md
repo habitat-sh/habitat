@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Adds origin deletion tool to hab binary [#6121](https://github.com/habitat-sh/habitat/pull/6121) ([eeyun](https://github.com/eeyun))
 <!-- latest_release -->
 
 ## [0.77.0](https://github.com/habitat-sh/habitat/tree/0.77.0) (2019-03-01)
