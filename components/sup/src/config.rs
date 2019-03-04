@@ -20,6 +20,7 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
+use habitat_core::env::Config as EnvConfig;
 use std::{fmt,
           io,
           net::{IpAddr,
@@ -33,10 +34,9 @@ use std::{fmt,
           result,
           str::FromStr};
 
-use crate::{common::{cli_defaults::{GOSSIP_DEFAULT_IP,
-                                    GOSSIP_DEFAULT_PORT,
-                                    GOSSIP_LISTEN_ADDRESS_ENVVAR},
-                     types::EnvConfig},
+use crate::{common::cli_defaults::{GOSSIP_DEFAULT_IP,
+                                   GOSSIP_DEFAULT_PORT,
+                                   GOSSIP_LISTEN_ADDRESS_ENVVAR},
             error::{Result,
                     SupError}};
 
@@ -138,23 +138,11 @@ mod tests {
 
     mod env_config {
         use super::*;
-<<<<<<< HEAD
         use habitat_common::locked_env_var;
         use std::{env,
                   num::ParseIntError,
                   result,
                   str::FromStr};
-=======
-        use crate::common::locked_env_var;
-<<<<<<< HEAD
-        use std::{env, num::ParseIntError, result, str::FromStr};
->>>>>>> add local mode option
-=======
-        use std::{env,
-                  num::ParseIntError,
-                  result,
-                  str::FromStr};
->>>>>>> reformat with nightly rustfmt
 
         #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
         struct Thingie(u64);

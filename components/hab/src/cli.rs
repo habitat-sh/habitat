@@ -24,7 +24,7 @@ use habitat_common::{cli_defaults::{GOSSIP_DEFAULT_ADDR,
                                     LISTEN_HTTP_DEFAULT_ADDR,
                                     RING_ENVVAR,
                                     RING_KEY_ENVVAR},
-                     types::{EnvConfig, ListenCtlAddr}};
+                     types::ListenCtlAddr};
 use habitat_core::{crypto::keys::PairType,
                    env::Config,
                    package::{ident,
