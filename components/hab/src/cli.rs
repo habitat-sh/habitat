@@ -902,7 +902,7 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
     (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the Gossip System Gateway.")
-    (@arg LOCAL_MODE: --("local-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") "Start the supervisor in local mode.")
+    (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") "Start the supervisor in local mode.")
     (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the HTTP Gateway.")
     (@arg HTTP_DISABLE: --("http-disable") -D

@@ -239,7 +239,9 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         gossip_peers: get_peers(m)?,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
         // TODO: Refactor this to remove the duplication
-        gossip_listen: if m.is_present("LOCAL_MODE") {
+        gossip_listen: if m.is_present("LOCAL_GOSSIP_MODE") {
+            // When local gossip mode is used we still startup the gossip layer but set
+            // it to listen on 127.0.0.2 to scope it to the local node.
             sup::config::GossipListenAddr::new(Ipv4Addr::new(127, 0, 0, 2), GOSSIP_DEFAULT_PORT)
         } else {
             m.value_of("LISTEN_GOSSIP").map_or_else(
