@@ -2059,9 +2059,9 @@ do_default_strip() {
   find "$pkg_prefix" -type f -perm -u+w -print0 2> /dev/null \
     | while read -rd '' f; do
       case "$(file -bi "$f")" in
-        *application/x-executable*) strip --strip-all "$f";;
-        *application/x-pie-executable*) strip --strip-unneeded "$f";;
-        *application/x-sharedlib*) strip --strip-unneeded "$f";;
+        *application/x-executable*) strip --strip-debug "$f";;
+        *application/x-pie-executable*) strip --strip-debug "$f";;
+        *application/x-sharedlib*) strip --strip-debug "$f";;
         *application/x-archive*) strip --strip-debug "$f";;
         *) continue;;
       esac
