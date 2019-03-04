@@ -1,11 +1,13 @@
 #!/bin/bash
 
-set -eou pipefail
+set -euo pipefail
 
+# This is problematic if you want to be able to run this script from anywhere other than the root of the project,
+# but changing it to an idiom like we have in rustfmt.sh breaks BK, so I dunno?
 source ./support/ci/shared.sh
 
 toolchain="${1:-stable}"
-maybe_install_rustup
+install_rustup
 install_rust_toolchain "$toolchain"
 
 # TODO: these should be in a shared script?

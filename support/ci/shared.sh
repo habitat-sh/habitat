@@ -2,20 +2,35 @@
 
 set -euo pipefail
 
-maybe_install_rustup() {
+get_current_toolchain() {
+  # It turns out that every nightly version of rustfmt has slight tweaks from the previous version.
+  # This means that if we're always using the latest version, then we're going to have enormous
+  # churn. Even PRs that don't touch rust code will likely fail CI, since master will have been
+  # formatted with a different version than is running in CI. Because of this, we're going to pin
+  # the version of nightly that's used to run rustfmt and bump it when we do a new release.
+  #
+  # Note that not every nightly version of rust includes rustfmt. Sometimes changes are made that
+  # break the way rustfmt uses rustc. Therefore, before updating the pin below, double check
+  # that the nightly version you're going to update it to includes rustfmt. You can do that
+  # using https://mexus.github.io/rustup-components-history/x86_64-unknown-linux-gnu.html
+  echo "nightly-2019-03-04"
+}
+
+install_rustup() {
   if command -v rustup && command -v cargo &>/dev/null; then
     echo "--- :rust: rustup is currently installed."
   else
     echo "--- :rust: Installing rustup."
     curl https://sh.rustup.rs -sSf | sh -s -- --no-modify-path -y
+    # shellcheck disable=SC1090
     source "$HOME"/.cargo/env
   fi
 }
 
-maybe_install_rust_toolchain() {
+install_rust_toolchain() {
   local toolchain="${1?toolchain argument required}"
 
-  if rustup component list --toolchain "$toolchain" >/dev/null 2>&1; then
+  if rustup component list --toolchain "$toolchain" &>/dev/null; then
     echo "--- :rust: Rust $toolchain is already installed."
   else
     echo "--- :rust: Installing rust $toolchain."
@@ -23,37 +38,10 @@ maybe_install_rust_toolchain() {
   fi
 }
 
-# Due to the nature of nightly rust, sometimes changes will break rustfmt's
-# usage of rustc. If this happens, nightly rust won't include rustfmt,
-# and we need to automatically fall back to a version that does include it.
-maybe_install_rustfmt() {
-  local max_days=90
-
-  for days_ago in $(seq 0 1 $max_days)
-  do
-    local date
-    date=$(date -d "$days_ago days ago" +%Y-%m-%d)
-    toolchain="nightly-$date"
-
-    if maybe_install_rust_toolchain "$toolchain"; then
-      echo "--- :rust: Installation of $toolchain succeeded, or it was already installed."
-    else
-      next_days=$((days_ago + 1))
-      echo "--- :rust: Rust $toolchain doesn't exist. Let's try $next_days days(s) ago."
-      continue
-    fi
-
-    if rustup component add --toolchain "$toolchain" rustfmt; then
-      echo "--- :rust: Installation of rustfmt for $toolchain succeeded, or it was already up to date."
-      return
-    else
-      next_days=$((days_ago + 1))
-      echo "--- :rust: Rust $toolchain did not include rustfmt. Let's try $next_days day(s) ago."
-    fi
-  done
-
-  echo "We couldn't find a release of nightly rust in the past $max_days days that includes rustfmt. Giving up entirely."
-  exit 1
+install_rustfmt() {
+  local toolchain="${1?toolchain argument required}"
+  install_rust_toolchain "$toolchain"
+  rustup component add --toolchain "$toolchain" rustfmt
 }
 
 install_hab_pkg() {
