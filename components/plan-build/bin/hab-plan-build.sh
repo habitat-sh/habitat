@@ -570,7 +570,7 @@ _assemble_runtime_path() {
       data="$(cat "$dep_prefix/PATH")"
       data="$(trim "$data")"
       while read -r entry; do
-        paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
+        read -r -a paths <<< "$(_return_or_append_to_set "$entry" "${paths[@]}")" # See syntax note @ _return_or_append_to_set
       done <<< "$(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")"
     fi
   done
@@ -758,9 +758,9 @@ _install_dependency() {
 
 # **Internal** Returns (on stdout) the `TDEPS` file contents of another locally
 # installed package which contain the set of all direct and transitive run
-# dependencies. An empty set could be returned as whitespace and/or newlines.
-# The lack of a `TDEPS` file in the desired package will be considered an
-# unset, or empty set.
+# dependencies. An empty set generates no output. The lack of a `TDEPS` file or
+# a TDEPS file of zero bytes in the desired package will be considered an unset,
+# or empty set.
 #
 # ```
 # _get_tdeps_for /hab/pkgs/acme/a/4.2.2/20160113044458
@@ -773,21 +773,38 @@ _install_dependency() {
 # ```
 #
 # Will return 0 in any case and the contents of `TDEPS` if the file exists.
+#
+# Syntax note:
+#
+# This function outputs package identifiers separated by newlines. To read this
+# output into an array where each element is a package identifier, the proper
+# syntax is
+# ```
+# mapfile -t array_of_pkg_idents < <(_get_tdeps_for "$pkg_path")
+# ```
+# The <(...) syntax is process substitution, which is necessary for mapfile
+# to operate on the output this function generates as though it were a file.
+# See https://www.gnu.org/software/bash/manual/html_node/Process-Substitution.html.
+# The < beforehand is regular input redirection.
+#
+# See also https://github.com/koalaman/shellcheck/wiki/SC2207#prefer-mapfile-or-read--a-to-split-command-output-or-quote-to-avoid-splitting
+# for why `mapfile` is necessary and why
+# ```
+# array_of_pkg_idents=($(_get_tdeps_for "$pkg_path"))
+# ```
+# Should be avoided.
 _get_tdeps_for() {
-  local pkg_path="$1"
-  if [[ -f "$pkg_path/TDEPS" ]]; then
+  local pkg_path="${1?_get_tdeps_for requires a pkg_path argument}"
+  if [[ -s "$pkg_path/TDEPS" ]]; then
     cat "$pkg_path"/TDEPS
-  else
-    # No file, meaning an empty set
-    echo
   fi
-  return 0
 }
 
 # **Internal** Returns (on stdout) the `DEPS` file contents of another locally
 # installed package which contain the set of all direct run dependencies. An
-# empty set could be returned as whitespace and/or newlines.  The lack of a
-# `DEPS` file in the desired package will be considered an unset, or empty set.
+# empty set could be returned as whitespace and/or newlines. An empty set
+# generates no output. The lack of a `DEPS` file or a DEPS file of zero bytes in
+# the desired package will be considered an unset, or empty set.
 #
 # ```
 # _get_deps_for /hab/pkgs/acme/a/4.2.2/20160113044458
@@ -800,15 +817,30 @@ _get_tdeps_for() {
 # ```
 #
 # Will return 0 in any case and the contents of `DEPS` if the file exists.
+#
+# Syntax note:
+# This function outputs package identifiers separated by newlines. To read this
+# output into an array where each element is a package identifier, the proper
+# syntax is
+# ```
+# mapfile -t array_of_pkg_idents < <(_get_deps_for "$pkg_path")
+# ```
+# The <(...) syntax is process substitution, which is necessary for mapfile
+# to operate on the output this function generates as though it were a file.
+# See https://www.gnu.org/software/bash/manual/html_node/Process-Substitution.html.
+# The < beforehand is regular input redirection.
+#
+# See also https://github.com/koalaman/shellcheck/wiki/SC2207#prefer-mapfile-or-read--a-to-split-command-output-or-quote-to-avoid-splitting
+# for why `mapfile` is necessary and why
+# ```
+# array_of_pkg_idents=($(_get_deps_for "$pkg_path"))
+# ```
+# Should be avoided.
 _get_deps_for() {
-  local pkg_path="$1"
-  if [[ -f "$pkg_path/DEPS" ]]; then
+  local pkg_path="${1?_get_deps_for requires a pkg_path argument}"
+  if [[ -s "$pkg_path/DEPS" ]]; then
     cat "$pkg_path"/DEPS
-  else
-    # No file, meaning an empty set
-    echo
   fi
-  return 0
 }
 
 # **Internal** Appends an entry to the given array only if the entry is not
@@ -818,15 +850,35 @@ _get_deps_for() {
 #
 # ```
 # arr=(a b c)
-# arr=($(_return_or_append_to_set "b" "${arr[@]}"))
+# read -r -a arr <<< "$(_return_or_append_to_set "b" "${arr[@]}")"
 # echo ${arr[@]}
 # # a b c
-# arr=($(_return_or_append_to_set "z" "${arr[@]}"))
+# read -r -a arr <<< "$(_return_or_append_to_set "z" "${arr[@]}")"
 # echo ${arr[@]}
 # # a b c z
 # ```
 #
 # Will return 0 in any case.
+#
+# Syntax note:
+#
+# This function outputs array elements separated by whitespace. To read this
+# output into an updated array where the new element is added only if it did
+# not previous exist in the array, the syntax is
+# ```
+# read -r -a output_array <<< "$(_return_or_append_to_set "$new_element" "${input_array[@]}")"
+# ```
+# The <<< syntax is a here string, which is necessary to treat the output of
+# the function as a single line of input on stdin from the perspective of
+# the `read` built-in.
+# See https://www.gnu.org/software/bash/manual/html_node/Redirections.html#Here-Strings
+#
+# See also https://github.com/koalaman/shellcheck/wiki/SC2207#prefer-mapfile-or-read--a-to-split-command-output-or-quote-to-avoid-splitting
+# for why `read` is necessary and why
+# ```
+# output_array=($(_return_or_append_to_set "new_element" "${input_array[@]}"))
+# ```
+# Should be avoided.
 _return_or_append_to_set() {
   local appended_set
   if _array_contains "$1" "${@:2}"; then
@@ -953,30 +1005,27 @@ _resolve_scaffolding_dependencies() {
   scaff_build_deps=()
   scaff_build_deps_resolved=()
 
-  # shellcheck disable=2066
-  for dep in "${pkg_scaffolding}"; do
-    _install_dependency "$dep"
-    # Add scaffolding package to the list of scaffolding build deps
-    scaff_build_deps+=($dep)
-    if resolved="$(_resolve_dependency "$dep")"; then
-      build_line "Resolved scaffolding dependency '$dep' to $resolved"
-      scaff_build_deps_resolved+=($resolved)
-      # Add each (fully qualified) direct run dependency of the scaffolding
-      # package.
-      sdeps=($(_get_deps_for "$resolved"))
-      for sdep in "${sdeps[@]}"; do
-        scaff_build_deps+=($sdep)
-        scaff_build_deps_resolved+=($HAB_PKG_PATH/$sdep)
-      done
-    else
-      exit_with "Resolving '$dep' failed, should this be built first?" 1
-    fi
-  done
+  _install_dependency "$pkg_scaffolding"
+  # Add scaffolding package to the list of scaffolding build deps
+  scaff_build_deps+=("$pkg_scaffolding")
+  if resolved="$(_resolve_dependency "$pkg_scaffolding")"; then
+    build_line "Resolved scaffolding dependency '$pkg_scaffolding' to $resolved"
+    scaff_build_deps_resolved+=("$resolved")
+    # Add each (fully qualified) direct run dependency of the scaffolding
+    # package.
+    mapfile -t sdeps < <(_get_deps_for "$resolved") # See syntax note @ _get_deps_for
+    for sdep in "${sdeps[@]}"; do
+      scaff_build_deps+=("$sdep")
+      scaff_build_deps_resolved+=("$HAB_PKG_PATH/$sdep")
+    done
+  else
+    exit_with "Resolving '$pkg_scaffolding' failed, should this be built first?" 1
+  fi
 
   # Add all of the ordered scaffolding dependencies to the start of
   # `${pkg_build_deps[@]}` to make sure they could be overridden by a Plan
   # author if required.
-  pkg_build_deps=(${scaff_build_deps[@]} ${pkg_build_deps[@]})
+  pkg_build_deps=("${scaff_build_deps[@]}" "${pkg_build_deps[@]}")
   debug "Updating pkg_build_deps=(${pkg_build_deps[*]}) from Scaffolding deps"
 
   # Set `pkg_build_deps_resolved[@]}` to all resolved scaffolding dependencies.
@@ -1016,7 +1065,7 @@ _resolve_build_dependencies() {
     _install_dependency "$dep"
     if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved build dependency '$dep' to $resolved"
-      pkg_build_deps_resolved+=($resolved)
+      pkg_build_deps_resolved+=("$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
@@ -1038,12 +1087,10 @@ _set_build_tdeps_resolved() {
   # dependency could pull in `acme/binutils` for us, as an example. Any
   # duplicate entries are dropped to produce a proper set.
   for dep in "${pkg_build_deps_resolved[@]}"; do
-    tdeps=($(_get_tdeps_for "$dep"))
+    mapfile -t tdeps < <(_get_tdeps_for "$dep") # See syntax note @ _get_tdeps_for
     for tdep in "${tdeps[@]}"; do
       tdep="$HAB_PKG_PATH/$tdep"
-      pkg_build_tdeps_resolved=(
-        $(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")
-      )
+      read -r -a pkg_build_tdeps_resolved <<< "$(_return_or_append_to_set "$tdep" "${pkg_build_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
     done
   done
 }
@@ -1091,7 +1138,7 @@ _resolve_run_dependencies() {
     fi
     if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved dependency '$dep' to $resolved"
-      pkg_deps_resolved+=($resolved)
+      pkg_deps_resolved+=("$resolved")
     else
       exit_with "Resolving '$dep' failed, should this be built first?" 1
     fi
@@ -1105,12 +1152,10 @@ _resolve_run_dependencies() {
   # Append all non-direct (transitive) run dependencies for each direct run
   # dependency. Any duplicate entries are dropped to produce a proper set.
   for dep in "${pkg_deps_resolved[@]}"; do
-    tdeps=($(_get_tdeps_for "$dep"))
+    mapfile -t tdeps < <(_get_tdeps_for "$dep") # See syntax note @ _get_tdeps_for
     for tdep in "${tdeps[@]}"; do
       tdep="$HAB_PKG_PATH/$tdep"
-      pkg_tdeps_resolved=(
-        $(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")
-      )
+      read -r -a pkg_tdeps_resolved <<< "$(_return_or_append_to_set "$tdep" "${pkg_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
     done
   done
 }
@@ -1141,9 +1186,7 @@ _populate_dependency_arrays() {
     "${pkg_build_deps_resolved[@]}"
   )
   for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
-    pkg_all_tdeps_resolved=(
-      $(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")
-    )
+    read -r -a pkg_all_tdeps_resolved <<< "$(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
   done
 }
 
@@ -1486,7 +1529,7 @@ _set_build_path() {
       data="$(cat "$dep_prefix/PATH")"
       data="$(trim "$data")"
       while read -r entry; do
-        paths=($(_return_or_append_to_set "$entry" "${paths[@]}"))
+        read -r -a paths <<< "$(_return_or_append_to_set "$entry" "${paths[@]}")" # See syntax note @ _return_or_append_to_set
       done <<< "$(echo "$data" | tr ':' '\n' | grep "^$dep_prefix")"
     fi
   done
