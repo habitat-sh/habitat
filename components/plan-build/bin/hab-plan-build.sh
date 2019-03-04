@@ -758,9 +758,9 @@ _install_dependency() {
 
 # **Internal** Returns (on stdout) the `TDEPS` file contents of another locally
 # installed package which contain the set of all direct and transitive run
-# dependencies. An empty set could be returned as whitespace and/or newlines.
-# The lack of a `TDEPS` file in the desired package will be considered an
-# unset, or empty set.
+# dependencies. An empty set generates no output. The lack of a `TDEPS` file or
+# a TDEPS file of zero bytes in the desired package will be considered an unset,
+# or empty set.
 #
 # ```
 # _get_tdeps_for /hab/pkgs/acme/a/4.2.2/20160113044458
@@ -774,20 +774,17 @@ _install_dependency() {
 #
 # Will return 0 in any case and the contents of `TDEPS` if the file exists.
 _get_tdeps_for() {
-  local pkg_path="$1"
-  if [[ -f "$pkg_path/TDEPS" ]]; then
+  local pkg_path="${1?_get_tdeps_for requires a pkg_path argument}"
+  if [[ -s "$pkg_path/TDEPS" ]]; then
     cat "$pkg_path"/TDEPS
-  else
-    # No file, meaning an empty set
-    echo
   fi
-  return 0
 }
 
 # **Internal** Returns (on stdout) the `DEPS` file contents of another locally
 # installed package which contain the set of all direct run dependencies. An
-# empty set could be returned as whitespace and/or newlines.  The lack of a
-# `DEPS` file in the desired package will be considered an unset, or empty set.
+# empty set could be returned as whitespace and/or newlines. An empty set
+# generates no output. The lack of a `DEPS` file or a DEPS file of zero bytes in
+# the desired package will be considered an unset, or empty set.
 #
 # ```
 # _get_deps_for /hab/pkgs/acme/a/4.2.2/20160113044458
@@ -801,14 +798,10 @@ _get_tdeps_for() {
 #
 # Will return 0 in any case and the contents of `DEPS` if the file exists.
 _get_deps_for() {
-  local pkg_path="$1"
-  if [[ -f "$pkg_path/DEPS" ]]; then
+  local pkg_path="${1?_get_deps_for requires a pkg_path argument}"
+  if [[ -s "$pkg_path/DEPS" ]]; then
     cat "$pkg_path"/DEPS
-  else
-    # No file, meaning an empty set
-    echo
   fi
-  return 0
 }
 
 # **Internal** Appends an entry to the given array only if the entry is not
