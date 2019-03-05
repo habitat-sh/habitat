@@ -23,7 +23,7 @@ use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct EnvironmentVariable {
-    pub name: String,
+    pub name:  String,
     pub value: String,
 }
 
@@ -59,10 +59,8 @@ impl FromStr for EnvironmentVariable {
             return Err(Error::InvalidEnvironmentVariable(env_str.to_string()));
         }
 
-        Ok(EnvironmentVariable {
-            name: values[0].to_string(),
-            value: values[1].to_string(),
-        })
+        Ok(EnvironmentVariable { name:  values[0].to_string(),
+                                 value: values[1].to_string(), })
     }
 }
 
@@ -72,11 +70,9 @@ mod tests {
 
     #[test]
     fn test_env_var_from_str() {
-        let valid = vec![
-            ("foo=bar", "foo", "bar"),
-            ("foo=", "foo", ""),
-            ("foo=bar=baz", "foo", "bar=baz"),
-        ];
+        let valid = vec![("foo=bar", "foo", "bar"),
+                         ("foo=", "foo", ""),
+                         ("foo=bar=baz", "foo", "bar=baz"),];
         let invalid = vec!["foo", "=bar"];
 
         for (raw, name, value) in valid {
@@ -88,11 +84,9 @@ mod tests {
         }
 
         for raw in invalid {
-            assert!(
-                raw.parse::<EnvironmentVariable>().is_err(),
-                "invalid raw string '{}' parsed successfully to EnvironmentVariable",
-                raw
-            );
+            assert!(raw.parse::<EnvironmentVariable>().is_err(),
+                    "invalid raw string '{}' parsed successfully to EnvironmentVariable",
+                    raw);
         }
     }
 }

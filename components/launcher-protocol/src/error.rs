@@ -32,10 +32,10 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::Deserialize(ref e) => format!("Unable to deserialize message: {}", e),
             Error::NetErr(ref e) => format!("Net error: {}", e),
-            Error::ProtocolMismatch(ref field) => format!(
-                "Received an unsupported or bad protocol message. Missing field: {}",
-                field
-            ),
+            Error::ProtocolMismatch(ref field) => {
+                format!("Received an unsupported or bad protocol message. Missing field: {}",
+                        field)
+            }
             Error::Serialize(ref e) => format!("Unable to serialize message: {}", e),
         };
         write!(f, "{}", msg)

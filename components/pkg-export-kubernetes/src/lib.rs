@@ -60,10 +60,8 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Re
     let image = if !matches.is_present("NO_DOCKER_IMAGE") {
         export_docker::export_for_cli_matches(ui, &matches)?
     } else {
-        ui.status(
-            Status::Custom('☛', String::from("Skipping")),
-            "Docker image generation",
-        )?;
+        ui.status(Status::Custom('☛', String::from("Skipping")),
+                  "Docker image generation")?;
         None
     };
     let mut manifest = Manifest::new_from_cli_matches(ui, &matches, image)?;
@@ -78,10 +76,8 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Re
         }
         _ => {
             let stdout = Box::new(io::stdout());
-            ui.status(
-                Status::Custom('→', String::from("Writing")),
-                "Kubernetes manifest to stdout",
-            )?;
+            ui.status(Status::Custom('→', String::from("Writing")),
+                      "Kubernetes manifest to stdout")?;
 
             stdout
         }

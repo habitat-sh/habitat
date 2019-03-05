@@ -30,11 +30,9 @@ pub enum Error {
     BuildFailed(ExitStatus),
     #[fail(display = "Could not determine Docker image ID for image: {}", _0)]
     DockerImageIdNotFound(String),
-    #[fail(
-        display = "Switch to Windows containers to export Docker images on Windows. Current \
-                   Docker Server OS is set to: {}",
-        _0
-    )]
+    #[fail(display = "Switch to Windows containers to export Docker images on Windows. Current \
+                      Docker Server OS is set to: {}",
+           _0)]
     DockerNotInWindowsMode(String),
     #[fail(display = "Invalid registry type: {}", _0)]
     InvalidRegistryType(String),
@@ -48,11 +46,9 @@ pub enum Error {
     NoECRTokensReturned,
     #[fail(display = "{}", _0)]
     TokenFetchFailed(GetAuthorizationTokenError),
-    #[fail(
-        display = "A primary service package could not be determined from: {:?}. At least one \
-                   package with a run hook must be provided.",
-        _0
-    )]
+    #[fail(display = "A primary service package could not be determined from: {:?}. At least \
+                      one package with a run hook must be provided.",
+           _0)]
     PrimaryServicePackageNotFound(Vec<String>),
     #[fail(display = "Docker image push failed with exit code: {}", _0)]
     PushImageFailed(ExitStatus),

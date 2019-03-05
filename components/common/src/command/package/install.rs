@@ -110,9 +110,9 @@ pub struct LocalArchive {
     // private to ensure that this module has full control over the
     // creation of instances of the struct, and can thus ensure that
     // the ident and path are mutually consistent and valid.
-    ident: PackageIdent,
+    ident:  PackageIdent,
     target: PackageTarget,
-    path: PathBuf,
+    path:   PathBuf,
 }
 
 /// Encapsulate all possible sources we can install packages from.
@@ -140,11 +140,12 @@ impl FromStr for InstallSource {
             let mut archive = PackageArchive::new(path);
             let target = archive.target()?;
             match archive.ident() {
-                Ok(ident) => Ok(InstallSource::Archive(LocalArchive {
-                    ident,
-                    target,
-                    path: path.to_path_buf(),
-                })),
+                Ok(ident) => {
+                    Ok(InstallSource::Archive(LocalArchive { ident,
+                                                             target,
+                                                             path:
+                                                                 path.to_path_buf() }))
+                }
                 Err(e) => Err(e),
             }
         } else {
@@ -273,8 +274,7 @@ impl<'a> FullyQualifiedPackageIdent<'a> {
     // the API has stabilzed and is released in Rust stable. Here's hoping!
     // Ref: https://doc.rust-lang.org/std/convert/trait.TryFrom.html
     fn from<I>(ident: I) -> Result<Self>
-    where
-        I: Into<Cow<'a, PackageIdent>>,
+        where I: Into<Cow<'a, PackageIdent>>
     {
         let ident = ident.into();
         if ident.as_ref().fully_qualified() {
@@ -288,11 +288,9 @@ impl<'a> FullyQualifiedPackageIdent<'a> {
 
     fn archive_name(&self) -> String {
         self.ident.as_ref().archive_name().unwrap_or_else(|_| {
-            panic!(
-                "PackageIdent {} should be fully qualified",
-                self.ident.as_ref()
-            )
-        })
+                                              panic!("PackageIdent {} should be fully qualified",
+                                                     self.ident.as_ref())
+                                          })
     }
 }
 
@@ -325,42 +323,38 @@ impl<'a> fmt::Display for FullyQualifiedPackageIdent<'a> {
 // TODO (CM): Consider passing in a configured depot client instead of
 // product / version... That might make it easier to share with the
 // `sup` crate
-pub fn start<U, P1, P2>(
-    ui: &mut U,
-    url: &str,
-    channel: &ChannelIdent,
-    install_source: &InstallSource,
-    product: &str,
-    version: &str,
-    fs_root_path: P1,
-    artifact_cache_path: P2,
-    token: Option<&str>,
-    install_mode: &InstallMode,
-    local_package_usage: &LocalPackageUsage,
-    install_hook_mode: InstallHookMode,
-) -> Result<PackageInstall>
-where
-    U: UIWriter,
-    P1: AsRef<Path>,
-    P2: AsRef<Path>,
+pub fn start<U, P1, P2>(ui: &mut U,
+                        url: &str,
+                        channel: &ChannelIdent,
+                        install_source: &InstallSource,
+                        product: &str,
+                        version: &str,
+                        fs_root_path: P1,
+                        artifact_cache_path: P2,
+                        token: Option<&str>,
+                        install_mode: &InstallMode,
+                        local_package_usage: &LocalPackageUsage,
+                        install_hook_mode: InstallHookMode)
+                        -> Result<PackageInstall>
+    where U: UIWriter,
+          P1: AsRef<Path>,
+          P2: AsRef<Path>
 {
     // TODO (CM): rename fs::cache_key_path so the naming is
     // consistent and flows better.
     let key_cache_path = cache_key_path(Some(fs_root_path.as_ref()));
     debug!("install key_cache_path: {}", key_cache_path.display());
 
-    let task = InstallTask::new(
-        install_mode,
-        local_package_usage,
-        url,
-        channel,
-        product,
-        version,
-        fs_root_path.as_ref(),
-        artifact_cache_path.as_ref(),
-        &key_cache_path,
-        install_hook_mode,
-    )?;
+    let task = InstallTask::new(install_mode,
+                                local_package_usage,
+                                url,
+                                channel,
+                                product,
+                                version,
+                                fs_root_path.as_ref(),
+                                artifact_cache_path.as_ref(),
+                                &key_cache_path,
+                                install_hook_mode)?;
 
     match *install_source {
         InstallSource::Ident(ref ident, target) => {
@@ -370,14 +364,12 @@ where
     }
 }
 
-pub fn check_install_hooks<T, P>(
-    ui: &mut T,
-    package: &PackageInstall,
-    fs_root_path: P,
-) -> Result<()>
-where
-    T: UIWriter,
-    P: AsRef<Path>,
+pub fn check_install_hooks<T, P>(ui: &mut T,
+                                 package: &PackageInstall,
+                                 fs_root_path: P)
+                                 -> Result<()>
+    where T: UIWriter,
+          P: AsRef<Path>
 {
     for dependency in package.tdeps()? {
         run_install_hook_unless_already_successful(
@@ -390,8 +382,7 @@ where
 }
 
 fn run_install_hook_unless_already_successful<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
-where
-    T: UIWriter,
+    where T: UIWriter
 {
     match read_install_hook_status(package.installed_path.join(InstallHook::STATUS_FILE))? {
         Some(0) => Ok(()),
@@ -404,10 +395,12 @@ fn read_install_hook_status(path: PathBuf) -> Result<Option<i32>> {
         Ok(file) => {
             let reader = BufReader::new(file);
             match reader.lines().next() {
-                Some(Ok(line)) => match line.parse::<i32>() {
-                    Ok(status) => Ok(Some(status)),
-                    Err(_) => Err(Error::StatusFileCorrupt(path)),
-                },
+                Some(Ok(line)) => {
+                    match line.parse::<i32>() {
+                        Ok(status) => Ok(Some(status)),
+                        Err(_) => Err(Error::StatusFileCorrupt(path)),
+                    }
+                }
                 _ => Err(Error::StatusFileCorrupt(path)),
             }
         }
@@ -416,24 +409,19 @@ fn read_install_hook_status(path: PathBuf) -> Result<Option<i32>> {
 }
 
 fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
-where
-    T: UIWriter,
+    where T: UIWriter
 {
-    if let Some(ref hook) = InstallHook::load(
-        &package.ident.name,
-        &svc_hooks_path(package.ident.name.clone()),
-        &package.installed_path.join("hooks"),
-    ) {
-        ui.status(
-            Status::Executing,
-            format!("install hook for '{}'", &package.ident(),),
-        )?;
+    if let Some(ref hook) = InstallHook::load(&package.ident.name,
+                                              &svc_hooks_path(package.ident.name.clone()),
+                                              &package.installed_path.join("hooks"))
+    {
+        ui.status(Status::Executing,
+                  format!("install hook for '{}'", &package.ident(),))?;
         templating::compile_for_package_install(package)?;
-        if !hook.run(
-            &package.ident().name,
-            &Pkg::from_install(package)?,
-            None::<String>,
-        ) {
+        if !hook.run(&package.ident().name,
+                     &Pkg::from_install(package)?,
+                     None::<String>)
+        {
             return Err(Error::InstallHookFailed(package.ident().clone()));
         }
     }
@@ -453,28 +441,28 @@ struct InstallTask<'a> {
 }
 
 impl<'a> InstallTask<'a> {
-    fn new(
-        install_mode: &'a InstallMode,
-        local_package_usage: &'a LocalPackageUsage,
-        bldr_url: &str,
-        channel: &'a ChannelIdent,
-        product: &str,
-        version: &str,
-        fs_root_path: &'a Path,
-        artifact_cache_path: &'a Path,
-        key_cache_path: &'a Path,
-        install_hook_mode: InstallHookMode,
-    ) -> Result<Self> {
-        Ok(InstallTask {
-            install_mode,
-            local_package_usage,
-            api_client: Client::new(bldr_url, product, version, Some(fs_root_path))?,
-            channel,
-            fs_root_path,
-            artifact_cache_path,
-            key_cache_path,
-            install_hook_mode,
-        })
+    fn new(install_mode: &'a InstallMode,
+           local_package_usage: &'a LocalPackageUsage,
+           bldr_url: &str,
+           channel: &'a ChannelIdent,
+           product: &str,
+           version: &str,
+           fs_root_path: &'a Path,
+           artifact_cache_path: &'a Path,
+           key_cache_path: &'a Path,
+           install_hook_mode: InstallHookMode)
+           -> Result<Self> {
+        Ok(InstallTask { install_mode,
+                         local_package_usage,
+                         api_client: Client::new(bldr_url,
+                                                 product,
+                                                 version,
+                                                 Some(fs_root_path))?,
+                         channel,
+                         fs_root_path,
+                         artifact_cache_path,
+                         key_cache_path,
+                         install_hook_mode })
     }
 
     /// Install a package from the Depot, based on a given identifier.
@@ -490,15 +478,13 @@ impl<'a> InstallTask<'a> {
     /// fully-qualified identifier of package that was infstalled
     /// (which, as we have seen, may not be the same as the identifier
     /// that was passed in).
-    fn with_ident<T>(
-        &self,
-        ui: &mut T,
-        ident: PackageIdent,
-        target: PackageTarget,
-        token: Option<&str>,
-    ) -> Result<PackageInstall>
-    where
-        T: UIWriter,
+    fn with_ident<T>(&self,
+                     ui: &mut T,
+                     ident: PackageIdent,
+                     target: PackageTarget,
+                     token: Option<&str>)
+                     -> Result<PackageInstall>
+        where T: UIWriter
     {
         ui.begin(format!("Installing {}", &ident))?;
         let target_ident = self.determine_latest_from_ident(ui, ident, target, token)?;
@@ -510,10 +496,8 @@ impl<'a> InstallTask<'a> {
                 if self.install_hook_mode != InstallHookMode::Ignore {
                     check_install_hooks(ui, &package_install, self.fs_root_path)?;
                 }
-                ui.end(format!(
-                    "Install of {} complete with {} new packages installed.",
-                    &target_ident, 0
-                ))?;
+                ui.end(format!("Install of {} complete with {} new packages installed.",
+                               &target_ident, 0))?;
                 Ok(package_install)
             }
             None => {
@@ -525,14 +509,12 @@ impl<'a> InstallTask<'a> {
 
     /// Given an archive on disk, ensure that it is properly installed
     /// and return the package's identifier.
-    fn with_archive<T>(
-        &self,
-        ui: &mut T,
-        local_archive: &LocalArchive,
-        token: Option<&str>,
-    ) -> Result<PackageInstall>
-    where
-        T: UIWriter,
+    fn with_archive<T>(&self,
+                       ui: &mut T,
+                       local_archive: &LocalArchive,
+                       token: Option<&str>)
+                       -> Result<PackageInstall>
+        where T: UIWriter
     {
         ui.begin(format!("Installing {}", local_archive.path.display()))?;
         let target_ident = FullyQualifiedPackageIdent::from(&local_archive.ident)?;
@@ -543,10 +525,8 @@ impl<'a> InstallTask<'a> {
                 if self.install_hook_mode != InstallHookMode::Ignore {
                     check_install_hooks(ui, &package_install, self.fs_root_path)?;
                 }
-                ui.end(format!(
-                    "Install of {} complete with {} new packages installed.",
-                    &target_ident, 0
-                ))?;
+                ui.end(format!("Install of {} complete with {} new packages installed.",
+                               &target_ident, 0))?;
                 Ok(package_install)
             }
             None => {
@@ -557,15 +537,13 @@ impl<'a> InstallTask<'a> {
         }
     }
 
-    fn determine_latest_from_ident<T>(
-        &self,
-        ui: &mut T,
-        ident: PackageIdent,
-        target: PackageTarget,
-        token: Option<&str>,
-    ) -> Result<FullyQualifiedPackageIdent<'_>>
-    where
-        T: UIWriter,
+    fn determine_latest_from_ident<T>(&self,
+                                      ui: &mut T,
+                                      ident: PackageIdent,
+                                      target: PackageTarget,
+                                      token: Option<&str>)
+                                      -> Result<FullyQualifiedPackageIdent<'_>>
+        where T: UIWriter
     {
         if ident.fully_qualified() {
             // If we have a fully qualified package identifier, then our work is done--there can
@@ -576,13 +554,9 @@ impl<'a> InstallTask<'a> {
             // If we can't contact a Builder API, then we'll find the latest installed package or
             // cached artifact that satisfies the fuzzy package identifier.
 
-            ui.status(
-                Status::Determining,
-                format!(
-                    "latest version of {} locally installed or cached (offline)",
-                    &ident
-                ),
-            )?;
+            ui.status(Status::Determining,
+                      format!("latest version of {} locally installed or cached (offline)",
+                              &ident))?;
             match self.latest_installed_or_cached(&ident) {
                 Ok(i) => Ok(i),
                 Err(Error::PackageNotFound(_)) => {
@@ -601,13 +575,9 @@ impl<'a> InstallTask<'a> {
 
             let latest_local = self.latest_installed_ident(&ident);
 
-            ui.status(
-                Status::Determining,
-                format!(
-                    "latest version of {} in the '{}' channel",
-                    &ident, self.channel
-                ),
-            )?;
+            ui.status(Status::Determining,
+                      format!("latest version of {} in the '{}' channel",
+                              &ident, self.channel))?;
             let latest_remote = match self.fetch_latest_pkg_ident_for(&ident, target, token) {
                 Ok(latest_ident) => Some(latest_ident),
                 Err(Error::APIClient(APIError(StatusCode::NotFound, _))) => None,
@@ -623,14 +593,11 @@ impl<'a> InstallTask<'a> {
                         // Return the latest identifier reported by
                         // the Builder API *unless* there is a newer
                         // version found installed locally.
-                        ui.status(
-                            Status::Found,
-                            format!(
-                                "newer installed version ({}) than remote version ({})",
-                                &local,
-                                remote.as_ref()
-                            ),
-                        )?;
+                        ui.status(Status::Found,
+                                  format!("newer installed version ({}) than remote version \
+                                           ({})",
+                                          &local,
+                                          remote.as_ref()))?;
                         Ok(local)
                     } else {
                         Ok(remote)
@@ -641,24 +608,18 @@ impl<'a> InstallTask<'a> {
                         // This is the behavior that is currently
                         // governed by the IGNORE_LOCAL feature-flag
                         self.recommend_channels(ui, &ident, target, token)?;
-                        ui.warn(format!(
-                            "Locally-installed package '{}' would satisfy '{}', but we are \
-                             ignoring that as directed",
-                            local.as_ref(),
-                            &ident,
-                        ))?;
+                        ui.warn(format!("Locally-installed package '{}' would satisfy '{}', \
+                                         but we are ignoring that as directed",
+                                        local.as_ref(),
+                                        &ident,))?;
                         Err(Error::PackageNotFound("".to_string()))
                     } else {
-                        ui.status(
-                            Status::Missing,
-                            format!(
-                                "remote version of '{}' in the '{}' channel, but an installed \
-                                 version was found locally ({})",
-                                &ident,
-                                self.channel,
-                                local.as_ref()
-                            ),
-                        )?;
+                        ui.status(Status::Missing,
+                                  format!("remote version of '{}' in the '{}' channel, but an \
+                                           installed version was found locally ({})",
+                                          &ident,
+                                          self.channel,
+                                          local.as_ref()))?;
                         FullyQualifiedPackageIdent::from(local.as_ref().clone())
                     }
                 }
@@ -678,15 +639,13 @@ impl<'a> InstallTask<'a> {
     /// If the package is already present in the cache, it is not
     /// re-downloaded. Any dependencies of the package that are not
     /// installed will be re-cached (as needed) and installed.
-    fn install_package<T>(
-        &self,
-        ui: &mut T,
-        ident: &FullyQualifiedPackageIdent<'_>,
-        target: PackageTarget,
-        token: Option<&str>,
-    ) -> Result<PackageInstall>
-    where
-        T: UIWriter,
+    fn install_package<T>(&self,
+                          ui: &mut T,
+                          ident: &FullyQualifiedPackageIdent<'_>,
+                          target: PackageTarget,
+                          token: Option<&str>)
+                          -> Result<PackageInstall>
+        where T: UIWriter
     {
         // TODO (CM): rename artifact to archive
         let mut artifact = self.get_cached_artifact(ui, ident, target, token)?;
@@ -699,9 +658,8 @@ impl<'a> InstallTask<'a> {
         // requires a conversion that could fail (i.e. returns a `Result<...>`). Should be
         // possible though.
         for dependency in dependencies.iter() {
-            if self
-                .installed_package(&FullyQualifiedPackageIdent::from(dependency)?)
-                .is_some()
+            if self.installed_package(&FullyQualifiedPackageIdent::from(dependency)?)
+                   .is_some()
             {
                 ui.status(Status::Using, dependency)?;
                 if self.install_hook_mode != InstallHookMode::Ignore {
@@ -728,18 +686,15 @@ impl<'a> InstallTask<'a> {
         for artifact in artifacts_to_install.iter_mut() {
             self.unpack_artifact(ui, artifact)?;
             if self.install_hook_mode != InstallHookMode::Ignore {
-                run_install_hook(
-                    ui,
-                    &PackageInstall::load(&artifact.ident()?, Some(self.fs_root_path))?,
-                )?;
+                run_install_hook(ui,
+                                 &PackageInstall::load(&artifact.ident()?,
+                                                       Some(self.fs_root_path))?)?;
             }
         }
 
-        ui.end(format!(
-            "Install of {} complete with {} new packages installed.",
-            ident,
-            artifacts_to_install.len()
-        ))?;
+        ui.end(format!("Install of {} complete with {} new packages installed.",
+                       ident,
+                       artifacts_to_install.len()))?;
 
         // Return the thing we just installed
         PackageInstall::load(ident.as_ref(), Some(self.fs_root_path)).map_err(Error::from)
@@ -747,35 +702,28 @@ impl<'a> InstallTask<'a> {
 
     /// This ensures the identified package is in the local cache,
     /// verifies it, and returns a handle to the package's metadata.
-    fn get_cached_artifact<T>(
-        &self,
-        ui: &mut T,
-        ident: &FullyQualifiedPackageIdent<'_>,
-        target: PackageTarget,
-        token: Option<&str>,
-    ) -> Result<PackageArchive>
-    where
-        T: UIWriter,
+    fn get_cached_artifact<T>(&self,
+                              ui: &mut T,
+                              ident: &FullyQualifiedPackageIdent<'_>,
+                              target: PackageTarget,
+                              token: Option<&str>)
+                              -> Result<PackageArchive>
+        where T: UIWriter
     {
         if self.is_artifact_cached(&ident) {
-            debug!(
-                "Found {} in artifact cache, skipping remote download",
-                ident
-            );
+            debug!("Found {} in artifact cache, skipping remote download",
+                   ident);
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
-        } else if retry(
-            RETRIES,
-            RETRY_WAIT,
-            || self.fetch_artifact(ui, ident, target, token),
-            |res| res.is_ok(),
-        )
-        .is_err()
+        } else if retry(RETRIES,
+                        RETRY_WAIT,
+                        || self.fetch_artifact(ui, ident, target, token),
+                        |res| res.is_ok()).is_err()
         {
-            return Err(Error::DownloadFailed(format!(
-                "We tried {} times but could not download {}. Giving up.",
-                RETRIES, ident
-            )));
+            return Err(Error::DownloadFailed(format!("We tried {} times but \
+                                                      could not download {}. \
+                                                      Giving up.",
+                                                     RETRIES, ident)));
         }
 
         let mut artifact = PackageArchive::new(self.cached_artifact_path(ident));
@@ -786,8 +734,7 @@ impl<'a> InstallTask<'a> {
 
     /// Adapter function wrapping `PackageArchive::unpack`
     fn unpack_artifact<T>(&self, ui: &mut T, artifact: &mut PackageArchive) -> Result<()>
-    where
-        T: UIWriter,
+        where T: UIWriter
     {
         let ident = &artifact.ident()?;
         let real_install_path = &pkg_install_path(ident, Some(self.fs_root_path));
@@ -829,16 +776,13 @@ impl<'a> InstallTask<'a> {
 
     /// Checks for the latest installed package or cached artifact that matches a given package
     /// identifier and returns a fully qualified package identifier if a match exists.
-    fn latest_installed_or_cached(
-        &self,
-        ident: &PackageIdent,
-    ) -> Result<FullyQualifiedPackageIdent<'_>> {
+    fn latest_installed_or_cached(&self,
+                                  ident: &PackageIdent)
+                                  -> Result<FullyQualifiedPackageIdent<'_>> {
         let latest_installed = self.latest_installed_ident(&ident);
         let latest_cached = self.latest_cached_ident(&ident);
-        debug!(
-            "latest installed: {:?}, latest_cached: {:?}",
-            &latest_installed, &latest_cached,
-        );
+        debug!("latest installed: {:?}, latest_cached: {:?}",
+               &latest_installed, &latest_cached,);
         let latest = match (latest_installed, latest_cached) {
             (Ok(pkg_install), Err(_)) => pkg_install,
             (Err(_), Ok(pkg_artifact)) => pkg_artifact,
@@ -856,10 +800,9 @@ impl<'a> InstallTask<'a> {
         Ok(latest)
     }
 
-    fn latest_installed_ident(
-        &self,
-        ident: &PackageIdent,
-    ) -> Result<FullyQualifiedPackageIdent<'_>> {
+    fn latest_installed_ident(&self,
+                              ident: &PackageIdent)
+                              -> Result<FullyQualifiedPackageIdent<'_>> {
         match PackageInstall::load(ident, Some(self.fs_root_path)) {
             Ok(pi) => FullyQualifiedPackageIdent::from(pi.ident().clone()),
             Err(_) => Err(Error::PackageNotFound("".to_string())),
@@ -885,9 +828,8 @@ impl<'a> InstallTask<'a> {
         debug!("looking for cached artifacts, glob={}", glob_path.as_ref());
 
         let mut latest: Vec<(PackageIdent, PackageArchive)> = Vec::with_capacity(1);
-        for file in glob::glob(glob_path.as_ref())
-            .expect("glob pattern should compile")
-            .filter_map(StdResult::ok)
+        for file in glob::glob(glob_path.as_ref()).expect("glob pattern should compile")
+                                                  .filter_map(StdResult::ok)
         {
             let mut artifact = PackageArchive::new(&file);
             let artifact_ident = artifact.ident().ok();
@@ -908,9 +850,10 @@ impl<'a> InstallTask<'a> {
         if latest.is_empty() {
             Err(Error::PackageNotFound("".to_string()))
         } else {
-            Ok(FullyQualifiedPackageIdent::from(
-                latest.pop().unwrap().1.ident()?,
-            )?)
+            Ok(FullyQualifiedPackageIdent::from(latest.pop()
+                                                      .unwrap()
+                                                      .1
+                                                      .ident()?)?)
         }
     }
 
@@ -925,53 +868,46 @@ impl<'a> InstallTask<'a> {
         self.artifact_cache_path.join(ident.archive_name())
     }
 
-    fn fetch_latest_pkg_ident_for(
-        &self,
-        ident: &PackageIdent,
-        target: PackageTarget,
-        token: Option<&str>,
-    ) -> Result<FullyQualifiedPackageIdent<'_>> {
+    fn fetch_latest_pkg_ident_for(&self,
+                                  ident: &PackageIdent,
+                                  target: PackageTarget,
+                                  token: Option<&str>)
+                                  -> Result<FullyQualifiedPackageIdent<'_>> {
         self.fetch_latest_pkg_ident_in_channel_for(ident, target, &self.channel, token)
     }
 
-    fn fetch_latest_pkg_ident_in_channel_for(
-        &self,
-        ident: &PackageIdent,
-        target: PackageTarget,
-        channel: &ChannelIdent,
-        token: Option<&str>,
-    ) -> Result<FullyQualifiedPackageIdent<'_>> {
-        let origin_package = self
-            .api_client
-            .show_package(ident, target, channel, token)?;
+    fn fetch_latest_pkg_ident_in_channel_for(&self,
+                                             ident: &PackageIdent,
+                                             target: PackageTarget,
+                                             channel: &ChannelIdent,
+                                             token: Option<&str>)
+                                             -> Result<FullyQualifiedPackageIdent<'_>> {
+        let origin_package = self.api_client
+                                 .show_package(ident, target, channel, token)?;
         FullyQualifiedPackageIdent::from(origin_package)
     }
 
     /// Retrieve the identified package from the depot, ensuring that
     /// the artifact is cached locally.
-    fn fetch_artifact<T>(
-        &self,
-        ui: &mut T,
-        ident: &FullyQualifiedPackageIdent<'_>,
-        target: PackageTarget,
-        token: Option<&str>,
-    ) -> Result<()>
-    where
-        T: UIWriter,
+    fn fetch_artifact<T>(&self,
+                         ui: &mut T,
+                         ident: &FullyQualifiedPackageIdent<'_>,
+                         target: PackageTarget,
+                         token: Option<&str>)
+                         -> Result<()>
+        where T: UIWriter
     {
         ui.status(Status::Downloading, ident)?;
-        match self.api_client.fetch_package(
-            ident.as_ref(),
-            target,
-            token,
-            self.artifact_cache_path,
-            ui.progress(),
-        ) {
+        match self.api_client.fetch_package(ident.as_ref(),
+                                            target,
+                                            token,
+                                            self.artifact_cache_path,
+                                            ui.progress())
+        {
             Ok(_) => Ok(()),
             Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
-                println!(
-                    "Host platform or architecture not supported by the targeted depot; skipping."
-                );
+                println!("Host platform or architecture not supported by the targeted depot; \
+                          skipping.");
                 Ok(())
             }
             Err(e) => Err(Error::from(e)),
@@ -979,89 +915,73 @@ impl<'a> InstallTask<'a> {
     }
 
     fn fetch_origin_key<T>(&self, ui: &mut T, name_with_rev: &str) -> Result<()>
-    where
-        T: UIWriter,
+        where T: UIWriter
     {
         if self.is_offline() {
             return Err(Error::OfflineOriginKeyNotFound(name_with_rev.to_string()));
         } else {
-            ui.status(
-                Status::Downloading,
-                format!("{} public origin key", &name_with_rev),
-            )?;
+            ui.status(Status::Downloading,
+                      format!("{} public origin key", &name_with_rev))?;
             let (name, rev) = parse_name_with_rev(&name_with_rev)?;
             self.api_client
                 .fetch_origin_key(&name, &rev, self.key_cache_path, ui.progress())?;
-            ui.status(
-                Status::Cached,
-                format!("{} public origin key", &name_with_rev),
-            )?;
+            ui.status(Status::Cached,
+                      format!("{} public origin key", &name_with_rev))?;
             Ok(())
         }
     }
 
     /// Copies the artifact to the local artifact cache directory
     // TODO (CM): Oh, we could just pass in the LocalArchive
-    fn store_artifact_in_cache(
-        &self,
-        ident: &FullyQualifiedPackageIdent<'_>,
-        artifact_path: &Path,
-    ) -> Result<()> {
+    fn store_artifact_in_cache(&self,
+                               ident: &FullyQualifiedPackageIdent<'_>,
+                               artifact_path: &Path)
+                               -> Result<()> {
         // Canonicalize both paths to ensure that there aren't any symlinks when comparing them
         // later. These calls can fail under certain circumstances, so we warn, allow failure and
         // try to continue.
-        let artifact_path = artifact_path
-            .canonicalize()
-            .unwrap_or_else(|_| artifact_path.to_path_buf());
+        let artifact_path = artifact_path.canonicalize()
+                                         .unwrap_or_else(|_| artifact_path.to_path_buf());
         fs::create_dir_all(self.artifact_cache_path)?;
-        let cache_path = self
-            .artifact_cache_path
-            .canonicalize()
-            .unwrap_or_else(|_| self.artifact_cache_path.to_path_buf())
-            .join(ident.archive_name());
+        let cache_path = self.artifact_cache_path
+                             .canonicalize()
+                             .unwrap_or_else(|_| self.artifact_cache_path.to_path_buf())
+                             .join(ident.archive_name());
 
         // Handle the pathological case where you're trying to install
         // an artifact file directly from the cache. Otherwise, you'd
         // end up with a 0-byte file in the cache and wouldn't be able
         // to subsequently verify it.
         if artifact_path == cache_path {
-            debug!(
-                "skipping artifact copy, it is being referenced directly from cache, \
-                 artifact_path={}, cache_path={}",
-                artifact_path.display(),
-                cache_path.display()
-            );
+            debug!("skipping artifact copy, it is being referenced directly from cache, \
+                    artifact_path={}, cache_path={}",
+                   artifact_path.display(),
+                   cache_path.display());
         } else {
-            debug!(
-                "copying artifact to cache, artifact_path={}, cached_path={}",
-                artifact_path.display(),
-                cache_path.display()
-            );
+            debug!("copying artifact to cache, artifact_path={}, cached_path={}",
+                   artifact_path.display(),
+                   cache_path.display());
             let w = AtomicWriter::new(&cache_path)?;
             w.with_writer(|mut w| {
-                let mut f = File::open(artifact_path)?;
-                io::copy(&mut f, &mut w)
-            })?;
+                 let mut f = File::open(artifact_path)?;
+                 io::copy(&mut f, &mut w)
+             })?;
         }
         Ok(())
     }
 
-    fn verify_artifact<T>(
-        &self,
-        ui: &mut T,
-        ident: &FullyQualifiedPackageIdent<'_>,
-        artifact: &mut PackageArchive,
-    ) -> Result<()>
-    where
-        T: UIWriter,
+    fn verify_artifact<T>(&self,
+                          ui: &mut T,
+                          ident: &FullyQualifiedPackageIdent<'_>,
+                          artifact: &mut PackageArchive)
+                          -> Result<()>
+        where T: UIWriter
     {
         let artifact_ident = artifact.ident()?;
         if ident.as_ref() != &artifact_ident {
-            return Err(Error::ArtifactIdentMismatch((
-                artifact.file_name(),
-                artifact_ident.to_string(),
-                ident.to_string(),
-            )));
+            return Err(Error::ArtifactIdentMismatch((artifact.file_name(),
+                                                     artifact_ident.to_string(),
+                                                     ident.to_string())));
         }
 
         // TODO fn: this un-alterable target behavior that's piggybacking off `verify_artifact()`
@@ -1107,22 +1027,18 @@ impl<'a> InstallTask<'a> {
     // TODO fn: I'm skeptical as to whether we want these warnings all the time. Perhaps it's
     // better to warn that nothing is found and redirect a user to run another standalone
     // `hab pkg ...` subcommand to get more information.
-    fn recommend_channels<T>(
-        &self,
-        ui: &mut T,
-        ident: &PackageIdent,
-        target: PackageTarget,
-        token: Option<&str>,
-    ) -> Result<()>
-    where
-        T: UIWriter,
+    fn recommend_channels<T>(&self,
+                             ui: &mut T,
+                             ident: &PackageIdent,
+                             target: PackageTarget,
+                             token: Option<&str>)
+                             -> Result<()>
+        where T: UIWriter
     {
         if let Ok(recommendations) = self.get_channel_recommendations(&ident, target, token) {
             if !recommendations.is_empty() {
-                ui.warn(format!(
-                    "No releases of {} exist in the '{}' channel",
-                    &ident, self.channel
-                ))?;
+                ui.warn(format!("No releases of {} exist in the '{}' channel",
+                                &ident, self.channel))?;
                 ui.warn("The following releases were found:")?;
                 for r in recommendations {
                     ui.warn(format!("  {} in the '{}' channel", r.1, r.0))?;
@@ -1137,12 +1053,11 @@ impl<'a> InstallTask<'a> {
     /// channels. This is used to generate actionable user feedback
     /// when the desired package was not found in the specified
     /// channel.
-    fn get_channel_recommendations(
-        &self,
-        ident: &PackageIdent,
-        target: PackageTarget,
-        token: Option<&str>,
-    ) -> Result<Vec<(String, String)>> {
+    fn get_channel_recommendations(&self,
+                                   ident: &PackageIdent,
+                                   target: PackageTarget,
+                                   token: Option<&str>)
+                                   -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
 
         let channels = match self.api_client.list_channels(ident.origin(), false) {

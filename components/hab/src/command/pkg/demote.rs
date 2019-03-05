@@ -45,22 +45,18 @@ use crate::{error::{Error,
 /// * Fails if it cannot find the specified package in Builder.
 /// * Fails if the channel specified does not exist.
 /// * Fails if "unstable" is the channel specified.
-pub fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    ident: &PackageIdent,
-    channel: &ChannelIdent,
-    token: &str,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             ident: &PackageIdent,
+             channel: &ChannelIdent,
+             token: &str)
+             -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Demoting {} from {}", ident, channel))?;
 
     if channel == &ChannelIdent::unstable() {
-        return Err(Error::CannotRemoveFromChannel((
-            ident.to_string(),
-            channel.to_string(),
-        )));
+        return Err(Error::CannotRemoveFromChannel((ident.to_string(), channel.to_string())));
     }
 
     match api_client.demote_package(ident, channel, token) {

@@ -63,50 +63,40 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
     } else {
         ""
     };
-    let mut volumes = vec![
-        format!(
-            "{}:{}{}",
-            env::current_dir().unwrap().to_string_lossy(),
-            mnt_prefix,
-            "/src"
-        ),
-        format!(
-            "{}:{}/{}",
-            default_cache_key_path(None).to_string_lossy(),
-            mnt_prefix,
-            CACHE_KEY_PATH
-        ),
-    ];
+    let mut volumes = vec![format!("{}:{}{}",
+                                   env::current_dir().unwrap().to_string_lossy(),
+                                   mnt_prefix,
+                                   "/src"),
+                           format!("{}:{}/{}",
+                                   default_cache_key_path(None).to_string_lossy(),
+                                   mnt_prefix,
+                                   CACHE_KEY_PATH),];
     if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
-        volumes.push(format!(
-            "{}:{}/{}",
-            cache_artifact_path, mnt_prefix, CACHE_ARTIFACT_PATH
-        ));
+        volumes.push(format!("{}:{}/{}",
+                             cache_artifact_path, mnt_prefix, CACHE_ARTIFACT_PATH));
     }
     if !is_serving_windows_containers(&docker_cmd)
-        && (Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows"))
+       && (Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows"))
     {
         volumes.push(format!("{}:{}", DOCKER_SOCKET, DOCKER_SOCKET));
     }
 
-    let mut env_vars = vec![
-        String::from("DEBUG"),
-        String::from("DO_CHECK"),
-        String::from("HAB_AUTH_TOKEN"),
-        String::from("HAB_BLDR_URL"),
-        String::from("HAB_BLDR_CHANNEL"),
-        String::from("HAB_FEAT_INSTALL_HOOK"),
-        String::from("HAB_NOCOLORING"),
-        String::from("HAB_ORIGIN"),
-        String::from("HAB_ORIGIN_KEYS"),
-        String::from("HAB_STUDIO_BACKLINE_PKG"),
-        String::from("HAB_STUDIO_NOSTUDIORC"),
-        String::from("HAB_STUDIO_SUP"),
-        String::from("HAB_UPDATE_STRATEGY_FREQUENCY_MS"),
-        String::from("http_proxy"),
-        String::from("https_proxy"),
-        String::from("RUST_LOG"),
-    ];
+    let mut env_vars = vec![String::from("DEBUG"),
+                            String::from("DO_CHECK"),
+                            String::from("HAB_AUTH_TOKEN"),
+                            String::from("HAB_BLDR_URL"),
+                            String::from("HAB_BLDR_CHANNEL"),
+                            String::from("HAB_FEAT_INSTALL_HOOK"),
+                            String::from("HAB_NOCOLORING"),
+                            String::from("HAB_ORIGIN"),
+                            String::from("HAB_ORIGIN_KEYS"),
+                            String::from("HAB_STUDIO_BACKLINE_PKG"),
+                            String::from("HAB_STUDIO_NOSTUDIORC"),
+                            String::from("HAB_STUDIO_SUP"),
+                            String::from("HAB_UPDATE_STRATEGY_FREQUENCY_MS"),
+                            String::from("http_proxy"),
+                            String::from("https_proxy"),
+                            String::from("RUST_LOG"),];
 
     for (key, _) in env::vars() {
         if key.starts_with(HAB_STUDIO_SECRET) {
@@ -161,23 +151,20 @@ fn pull_image(docker_cmd: &Path) -> Result<()> {
     let image = image_identifier_for_active_target(&docker_cmd);
     let mut cmd = Command::new(docker_cmd);
     cmd.arg("pull")
-        .arg(&image)
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit());
+       .arg(&image)
+       .stdout(Stdio::inherit())
+       .stderr(Stdio::inherit());
     debug!("Running command: {:?}", cmd);
-    let result = cmd
-        .spawn()
-        .expect("Docker command failed to spawn")
-        .wait_with_output()
-        .expect("Failed to wait on child process");
+    let result = cmd.spawn()
+                    .expect("Docker command failed to spawn")
+                    .wait_with_output()
+                    .expect("Failed to wait on child process");
 
     if result.status.success() {
         debug!("Docker image '{}' is present locally.", &image);
     } else {
-        debug!(
-            "Pulling Docker image '{}' failed with exit code: {:?}",
-            &image, result.status
-        );
+        debug!("Pulling Docker image '{}' failed with exit code: {:?}",
+               &image, result.status);
 
         let err_output = String::from_utf8_lossy(&result.stderr);
 
@@ -200,9 +187,8 @@ fn pull_image(docker_cmd: &Path) -> Result<()> {
 /// we check the studio version. This will cause Docker to go through the mounting steps, so we
 /// can watch stderr for failure, but has the advantage of not requiring a TTY.
 fn check_mounts<I, S>(docker_cmd: &Path, volumes: I) -> Result<()>
-where
-    I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
+    where I: IntoIterator<Item = S>,
+          S: AsRef<OsStr>
 {
     let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
     let image = image_identifier_for_active_target(&docker_cmd);
@@ -213,32 +199,29 @@ where
     }
     cmd_args.push(image.into());
     cmd_args.push("-V".into());
-    let version_output = Command::new(docker_cmd)
-        .args(&cmd_args)
-        .output()
-        .expect("docker failed to start");
+    let version_output = Command::new(docker_cmd).args(&cmd_args)
+                                                 .output()
+                                                 .expect("docker failed to start");
 
     let stderr = String::from_utf8(version_output.stderr).unwrap();
     if !stderr.is_empty()
-        && (stderr.as_str().contains("Mounts denied")
-            || stderr.as_str().contains("drive is not shared"))
+       && (stderr.as_str().contains("Mounts denied")
+           || stderr.as_str().contains("drive is not shared"))
     {
         return Err(Error::DockerFileSharingNotEnabled);
     }
     Ok(())
 }
 
-fn run_container<I, J, S, T>(
-    docker_cmd: PathBuf,
-    args: &[OsString],
-    volumes: I,
-    env_vars: J,
-) -> Result<()>
-where
-    I: IntoIterator<Item = S>,
-    J: IntoIterator<Item = T>,
-    S: AsRef<OsStr>,
-    T: AsRef<str>,
+fn run_container<I, J, S, T>(docker_cmd: PathBuf,
+                             args: &[OsString],
+                             volumes: I,
+                             env_vars: J)
+                             -> Result<()>
+    where I: IntoIterator<Item = S>,
+          J: IntoIterator<Item = T>,
+          S: AsRef<OsStr>,
+          T: AsRef<str>
 {
     let using_windows_containers = is_serving_windows_containers(&docker_cmd);
     let image = image_identifier_for_active_target(&docker_cmd);
@@ -261,10 +244,8 @@ where
             .filter(|v| !cmd_args.contains(v))
             .collect::<Vec<_>>();
         if !opts.is_empty() {
-            debug!(
-                "Adding extra Docker options from {} = {:?}",
-                DOCKER_OPTS_ENVVAR, opts
-            );
+            debug!("Adding extra Docker options from {} = {:?}",
+                   DOCKER_OPTS_ENVVAR, opts);
             cmd_args.extend_from_slice(opts.as_slice());
         }
     }
@@ -301,10 +282,8 @@ fn unset_proxy_env_vars() {
 }
 
 fn image_identifier_for_active_target(docker_cmd: &Path) -> String {
-    image_identifier(
-        is_serving_windows_containers(docker_cmd),
-        *target::PackageTarget::active_target(),
-    )
+    image_identifier(is_serving_windows_containers(docker_cmd),
+                     *target::PackageTarget::active_target())
 }
 
 /// Returns the Docker Studio image with tag for the desired version which corresponds to the
@@ -321,8 +300,9 @@ fn image_identifier(using_windows_containers: bool, target: target::PackageTarge
         (DOCKER_IMAGE, t)
     };
 
-    henv::var(DOCKER_IMAGE_ENVVAR)
-        .unwrap_or_else(|_| format!("{}-{}:{}", img, studio_target, version[0]))
+    henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or_else(|_| {
+                                      format!("{}-{}:{}", img, studio_target, version[0])
+                                  })
 }
 
 #[cfg(test)]
@@ -337,29 +317,17 @@ mod tests {
     #[test]
     fn retrieve_image_identifier() {
         let windows_container = true;
-        assert_eq!(
-            image_identifier(!windows_container, target::X86_64_DARWIN),
-            format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
-        );
-        assert_eq!(
-            image_identifier(!windows_container, target::X86_64_LINUX),
-            format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
-        );
-        assert_eq!(
-            image_identifier(!windows_container, target::X86_64_LINUX_KERNEL2),
-            format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux-kernel2", VERSION)
-        );
-        assert_eq!(
-            image_identifier(!windows_container, target::X86_64_WINDOWS),
-            format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
-        );
-        assert_eq!(
-            image_identifier(windows_container, target::X86_64_WINDOWS),
-            format!("{}-{}:{}", DOCKER_WINDOWS_IMAGE, "x86_64-windows", VERSION)
-        );
-        assert_eq!(
-            image_identifier(windows_container, target::X86_64_LINUX),
-            format!("{}-{}:{}", DOCKER_WINDOWS_IMAGE, "x86_64-windows", VERSION)
-        );
+        assert_eq!(image_identifier(!windows_container, target::X86_64_DARWIN),
+                   format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
+        assert_eq!(image_identifier(!windows_container, target::X86_64_LINUX),
+                   format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
+        assert_eq!(image_identifier(!windows_container, target::X86_64_LINUX_KERNEL2),
+                   format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux-kernel2", VERSION));
+        assert_eq!(image_identifier(!windows_container, target::X86_64_WINDOWS),
+                   format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
+        assert_eq!(image_identifier(windows_container, target::X86_64_WINDOWS),
+                   format!("{}-{}:{}", DOCKER_WINDOWS_IMAGE, "x86_64-windows", VERSION));
+        assert_eq!(image_identifier(windows_container, target::X86_64_LINUX),
+                   format!("{}-{}:{}", DOCKER_WINDOWS_IMAGE, "x86_64-windows", VERSION));
     }
 }

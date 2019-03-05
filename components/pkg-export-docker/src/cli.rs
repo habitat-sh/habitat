@@ -29,8 +29,7 @@ pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 /// A Docker-specific clap:App wrapper
 #[derive(Clone)]
 pub struct Cli<'a, 'b>
-where
-    'a: 'b,
+    where 'a: 'b
 {
     pub app: App<'a, 'b>,
 }
@@ -42,17 +41,15 @@ pub struct PkgIdentArgOptions {
 
 impl<'a, 'b> Cli<'a, 'b> {
     pub fn new(name: &str, about: &'a str) -> Self {
-        Cli {
-            app: clap_app!(
-            (name) =>
-            (about: about)
-            (version: VERSION)
-            (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n\n")
-            (@arg IMAGE_NAME: --("image-name") -i +takes_value
-                "Image name (default: \"{{pkg_origin}}/{{pkg_name}}\" supports: \
-                 {{pkg_origin}}, {{pkg_name}}, {{pkg_version}}, {{pkg_release}}, {{channel}})")
-            ),
-        }
+        Cli { app: clap_app!(
+              (name) =>
+              (about: about)
+              (version: VERSION)
+              (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n\n")
+              (@arg IMAGE_NAME: --("image-name") -i +takes_value
+                  "Image name (default: \"{{pkg_origin}}/{{pkg_name}}\" supports: \
+                   {{pkg_origin}}, {{pkg_name}}, {{pkg_version}}, {{pkg_release}}, {{channel}})")
+              ), }
     }
 
     pub fn add_base_packages_args(self) -> Self {
@@ -276,25 +273,23 @@ impl<'a, 'b> Cli<'a, 'b> {
              (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)"
         };
 
-        let app = self.app.arg(
-            Arg::with_name("PKG_IDENT_OR_ARTIFACT")
-                .value_name("PKG_IDENT_OR_ARTIFACT")
-                .required(true)
-                .multiple(options.multiple)
-                .help(help),
-        );
+        let app =
+            self.app
+                .arg(Arg::with_name("PKG_IDENT_OR_ARTIFACT").value_name("PKG_IDENT_OR_ARTIFACT")
+                                                            .required(true)
+                                                            .multiple(options.multiple)
+                                                            .help(help));
 
         Cli { app }
     }
 
     pub fn add_memory_arg(self) -> Self {
-        let app = self.app.arg(
-            Arg::with_name("MEMORY_LIMIT")
-                .value_name("MEMORY_LIMIT")
-                .long("memory")
-                .short("m")
-                .help("Memory limit passed to docker build's --memory arg (ex: 2bg)"),
-        );
+        let app = self.app
+                      .arg(Arg::with_name("MEMORY_LIMIT").value_name("MEMORY_LIMIT")
+                                                         .long("memory")
+                                                         .short("m")
+                                                         .help("Memory limit passed to docker \
+                                                                build's --memory arg (ex: 2bg)"));
 
         Cli { app }
     }

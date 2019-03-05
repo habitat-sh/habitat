@@ -79,24 +79,19 @@ pub struct BuildSpec<'a> {
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
     pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>, default_url: &'a str) -> Self {
-        BuildSpec {
-            hab: m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
-            hab_launcher: m
-                .value_of("HAB_LAUNCHER_PKG")
-                .unwrap_or(DEFAULT_LAUNCHER_IDENT),
-            hab_sup: m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
-            url: m.value_of("BLDR_URL").unwrap_or(&default_url),
-            channel: m
-                .value_of("CHANNEL")
-                .map(ChannelIdent::from)
-                .unwrap_or_default(),
-            base_pkgs_url: m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
-            base_pkgs_channel: m
-                .value_of("BASE_PKGS_CHANNEL")
-                .map(ChannelIdent::from)
-                .unwrap_or_default(),
-            ident_or_archive: m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap(),
-        }
+        BuildSpec { hab:               m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
+                    hab_launcher:      m.value_of("HAB_LAUNCHER_PKG")
+                                        .unwrap_or(DEFAULT_LAUNCHER_IDENT),
+                    hab_sup:           m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
+                    url:               m.value_of("BLDR_URL").unwrap_or(&default_url),
+                    channel:           m.value_of("CHANNEL")
+                                        .map(ChannelIdent::from)
+                                        .unwrap_or_default(),
+                    base_pkgs_url:     m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
+                    base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL")
+                                        .map(ChannelIdent::from)
+                                        .unwrap_or_default(),
+                    ident_or_archive:  m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap(), }
     }
 
     /// Creates a `BuildRoot` for the given specification.
@@ -110,10 +105,8 @@ impl<'a> BuildSpec<'a> {
         let workdir = TempDir::new()?;
         let rootfs = workdir.path().join("rootfs");
 
-        ui.status(
-            Status::Creating,
-            format!("build root in {}", workdir.path().display()),
-        )?;
+        ui.status(Status::Creating,
+                  format!("build root in {}", workdir.path().display()))?;
 
         let created_ident = self.prepare_rootfs(ui, &rootfs)?;
 
@@ -133,20 +126,17 @@ impl<'a> BuildSpec<'a> {
         Ok(ident)
     }
 
-    fn create_symlink_to_artifact_cache<P: AsRef<Path>>(
-        &self,
-        ui: &mut UI,
-        rootfs: P,
-    ) -> Result<()> {
+    fn create_symlink_to_artifact_cache<P: AsRef<Path>>(&self,
+                                                        ui: &mut UI,
+                                                        rootfs: P)
+                                                        -> Result<()> {
         ui.status(Status::Creating, "artifact cache symlink")?;
         let src = cache_artifact_path(None::<P>);
         let dst = rootfs.as_ref().join(CACHE_ARTIFACT_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!(
-            "Symlinking src: {} to dst: {}",
-            src.display(),
-            dst.display()
-        );
+        debug!("Symlinking src: {} to dst: {}",
+               src.display(),
+               dst.display());
 
         symlink(src, dst)?;
         Ok(())
@@ -157,11 +147,9 @@ impl<'a> BuildSpec<'a> {
         let src = cache_key_path(None::<P>);
         let dst = rootfs.as_ref().join(CACHE_KEY_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
-        debug!(
-            "Symlinking src: {} to dst: {}",
-            src.display(),
-            dst.display()
-        );
+        debug!("Symlinking src: {} to dst: {}",
+               src.display(),
+               dst.display());
 
         symlink(src, dst)?;
         Ok(())
@@ -177,71 +165,64 @@ impl<'a> BuildSpec<'a> {
             None
         };
 
-        Ok(BasePkgIdents {
-            hab,
-            sup,
-            launcher,
-            busybox,
-        })
+        Ok(BasePkgIdents { hab,
+                           sup,
+                           launcher,
+                           busybox })
     }
 
-    fn install_base_pkg<P: AsRef<Path>>(
-        &self,
-        ui: &mut UI,
-        ident_or_archive: &str,
-        fs_root_path: P,
-    ) -> Result<PackageIdent> {
-        self.install(
-            ui,
-            ident_or_archive,
-            self.base_pkgs_url,
-            &self.base_pkgs_channel,
-            fs_root_path,
-        )
+    fn install_base_pkg<P: AsRef<Path>>(&self,
+                                        ui: &mut UI,
+                                        ident_or_archive: &str,
+                                        fs_root_path: P)
+                                        -> Result<PackageIdent> {
+        self.install(ui,
+                     ident_or_archive,
+                     self.base_pkgs_url,
+                     &self.base_pkgs_channel,
+                     fs_root_path)
     }
 
-    fn install_user_pkg<P: AsRef<Path>>(
-        &self,
-        ui: &mut UI,
-        ident_or_archive: &str,
-        fs_root_path: P,
-    ) -> Result<PackageIdent> {
+    fn install_user_pkg<P: AsRef<Path>>(&self,
+                                        ui: &mut UI,
+                                        ident_or_archive: &str,
+                                        fs_root_path: P)
+                                        -> Result<PackageIdent> {
         self.install(ui, ident_or_archive, self.url, &self.channel, fs_root_path)
     }
 
-    fn install<P: AsRef<Path>>(
-        &self,
-        ui: &mut UI,
-        ident_or_archive: &str,
-        url: &str,
-        channel: &ChannelIdent,
-        fs_root_path: P,
-    ) -> Result<PackageIdent> {
+    fn install<P: AsRef<Path>>(&self,
+                               ui: &mut UI,
+                               ident_or_archive: &str,
+                               url: &str,
+                               channel: &ChannelIdent,
+                               fs_root_path: P)
+                               -> Result<PackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
-        let package_install = common::command::package::install::start(
-            ui,
-            url,
-            channel,
-            &install_source,
-            &*PROGRAM_NAME,
-            VERSION,
-            &fs_root_path,
-            &cache_artifact_path(Some(&fs_root_path)),
-            None,
-            // TODO fn: pass through and enable offline install mode
-            &InstallMode::default(),
-            // TODO (CM): pass through and enable ignore-local mode
-            &LocalPackageUsage::default(),
-            InstallHookMode::Ignore,
-        )?;
+        let package_install =
+            common::command::package::install::start(ui,
+                                                     url,
+                                                     channel,
+                                                     &install_source,
+                                                     &*PROGRAM_NAME,
+                                                     VERSION,
+                                                     &fs_root_path,
+                                                     &cache_artifact_path(Some(&fs_root_path)),
+                                                     None,
+                                                     // TODO fn: pass through and enable offline
+                                                     // install mode
+                                                     &InstallMode::default(),
+                                                     // TODO (CM): pass through and enable
+                                                     // ignore-local mode
+                                                     &LocalPackageUsage::default(),
+                                                     InstallHookMode::Ignore)?;
         Ok(package_install.into())
     }
 
-    fn remove_symlink_to_artifact_cache<P: AsRef<Path>>(
-        &self,
-        ui: &mut UI,
-        rootfs: P,
-    ) -> Result<()> {
+    fn remove_symlink_to_artifact_cache<P: AsRef<Path>>(&self,
+                                                        ui: &mut UI,
+                                                        rootfs: P)
+                                                        -> Result<()> {
         ui.status(Status::Deleting, "artifact cache symlink")?;
         stdfs::remove_dir_all(rootfs.as_ref().join(CACHE_ARTIFACT_PATH))?;
         Ok(())

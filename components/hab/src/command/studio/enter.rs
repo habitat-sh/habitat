@@ -101,18 +101,14 @@ mod inner {
                 Err(_) => {
                     init();
                     let version: Vec<&str> = VERSION.split('/').collect();
-                    let ident = PackageIdent::from_str(&format!(
-                        "{}/{}",
-                        super::STUDIO_PACKAGE_IDENT,
-                        version[0]
-                    ))?;
-                    exec::command_from_min_pkg(
-                        ui,
-                        super::STUDIO_CMD,
-                        &ident,
-                        &default_cache_key_path(None),
-                        0,
-                    )?
+                    let ident = PackageIdent::from_str(&format!("{}/{}",
+                                                                super::STUDIO_PACKAGE_IDENT,
+                                                                version[0]))?;
+                    exec::command_from_min_pkg(ui,
+                                               super::STUDIO_CMD,
+                                               &ident,
+                                               &default_cache_key_path(None),
+                                               0)?
                 }
             };
 
@@ -156,25 +152,19 @@ mod inner {
         // Otherwise we will try to re-run this program using `sudo`
         match find_command(SUDO_CMD) {
             Some(sudo_prog) => {
-                let mut args: Vec<OsString> = vec![
-                    "-p".into(),
-                    "[sudo hab-studio] password for %u: ".into(),
-                    "-E".into(),
-                ];
+                let mut args: Vec<OsString> = vec!["-p".into(),
+                                                   "[sudo hab-studio] password for %u: ".into(),
+                                                   "-E".into(),];
                 args.append(&mut env::args_os().collect());
                 process::become_command(sudo_prog, args)?;
                 Ok(())
             }
             None => {
-                ui.warn(format!(
-                    "Could not find the `{}' command, is it in your PATH?",
-                    SUDO_CMD
-                ))?;
-                ui.warn(
-                    "Running Habitat Studio requires root or administrator privileges. Please \
-                     retry this command as a super user or use a privilege-granting facility such \
-                     as sudo.",
-                )?;
+                ui.warn(format!("Could not find the `{}' command, is it in your PATH?",
+                                SUDO_CMD))?;
+                ui.warn("Running Habitat Studio requires root or administrator privileges. \
+                         Please retry this command as a super user or use a privilege-granting \
+                         facility such as sudo.")?;
                 ui.br()?;
                 Err(Error::RootRequired)
             }
@@ -216,18 +206,14 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split("/").collect();
-                let ident = PackageIdent::from_str(&format!(
-                    "{}/{}",
-                    super::STUDIO_PACKAGE_IDENT,
-                    version[0]
-                ))?;
-                exec::command_from_min_pkg(
-                    ui,
-                    super::STUDIO_CMD,
-                    &ident,
-                    &default_cache_key_path(None),
-                    0,
-                )?
+                let ident = PackageIdent::from_str(&format!("{}/{}",
+                                                            super::STUDIO_PACKAGE_IDENT,
+                                                            version[0]))?;
+                exec::command_from_min_pkg(ui,
+                                           super::STUDIO_CMD,
+                                           &ident,
+                                           &default_cache_key_path(None),
+                                           0)?
             }
         };
 

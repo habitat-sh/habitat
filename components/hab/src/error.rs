@@ -96,14 +96,14 @@ impl fmt::Display for Error {
             Error::CannotRemoveFromChannel((ref p, ref c)) => {
                 format!("{} cannot be removed from the {} channel.", p, c)
             }
-            Error::CannotRemovePackage(ref p, ref c) => format!(
-                "Can't remove package: {}. It is a dependency of {} packages",
-                p, c
-            ),
-            Error::CommandNotFoundInPkg((ref p, ref c)) => format!(
-                "`{}' was not found under any 'PATH' directories in the {} package",
-                c, p
-            ),
+            Error::CannotRemovePackage(ref p, ref c) => {
+                format!("Can't remove package: {}. It is a dependency of {} packages",
+                        p, c)
+            }
+            Error::CommandNotFoundInPkg((ref p, ref c)) => {
+                format!("`{}' was not found under any 'PATH' directories in the {} package",
+                        c, p)
+            }
             Error::CryptoCLI(ref e) => e.to_string(),
             Error::CtlClient(ref e) => e.to_string(),
             Error::DockerDaemonDown => {
@@ -113,30 +113,32 @@ impl fmt::Display for Error {
             Error::DockerFileSharingNotEnabled => {
                 "File Sharing must be enabled in order to enter a studio.\nPlease enable it in the \
                  Docker preferences and share (at a minimum) your home directory."
-                    .to_string()
+                                                                                  .to_string()
             }
             #[cfg(windows)]
-            Error::DockerFileSharingNotEnabled => "File Sharing must be enabled in order to enter \
-                                                   a studio.\nPlease select a drive to share in \
-                                                   the Docker preferences."
-                .to_string(),
-            Error::DockerImageNotFound(ref e) => format!(
-                "The Docker image {} was not found in the docker registry.\nYou can specify your \
-                 own Docker image using the HAB_DOCKER_STUDIO_IMAGE environment variable.",
-                e
-            ),
-            Error::DockerNetworkDown(ref e) => format!(
-                "The Docker image {} is unreachable due to a network error.\nThe image must be \
-                 reachable to ensure the versions of hab inside and outside the studio \
-                 match.\nYou can specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
-                 environment variable.",
-                e
-            ),
+            Error::DockerFileSharingNotEnabled => {
+                "File Sharing must be enabled in order to enter a studio.\nPlease select a drive \
+                 to share in the Docker preferences."
+                                                     .to_string()
+            }
+            Error::DockerImageNotFound(ref e) => {
+                format!("The Docker image {} was not found in the docker registry.\nYou can \
+                         specify your own Docker image using the HAB_DOCKER_STUDIO_IMAGE \
+                         environment variable.",
+                        e)
+            }
+            Error::DockerNetworkDown(ref e) => {
+                format!("The Docker image {} is unreachable due to a network error.\nThe image \
+                         must be reachable to ensure the versions of hab inside and outside the \
+                         studio match.\nYou can specify your own Docker image using the \
+                         HAB_DOCKER_STUDIO_IMAGE environment variable.",
+                        e)
+            }
             Error::EnvJoinPathsError(ref err) => format!("{}", err),
-            Error::ExecCommandNotFound(ref c) => format!(
-                "`{}' was not found on the filesystem or in PATH",
-                c.display()
-            ),
+            Error::ExecCommandNotFound(ref c) => {
+                format!("`{}' was not found on the filesystem or in PATH",
+                        c.display())
+            }
             Error::FFINulError(ref e) => e.to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::HabitatCommon(ref e) => e.to_string(),
@@ -149,25 +151,25 @@ impl fmt::Display for Error {
             Error::JobGroupPromoteOrDemoteUnprocessable(false) => {
                 "Failed to demote job group, the build job is still in progress".to_string()
             }
-            Error::JobGroupPromoteOrDemote(ref e, promote) => format!(
-                "Failed to {} job group: {:?}",
-                if promote { "promote" } else { "demote" },
-                e
-            ),
+            Error::JobGroupPromoteOrDemote(ref e, promote) => {
+                format!("Failed to {} job group: {:?}",
+                        if promote { "promote" } else { "demote" },
+                        e)
+            }
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
             Error::NameLookup => "Error resolving a name or IP address".to_string(),
             Error::NetErr(ref e) => e.to_string(),
-            Error::PackageArchiveMalformed(ref e) => format!(
-                "Package archive was unreadable or contained unexpected contents: {:?}",
-                e
-            ),
+            Error::PackageArchiveMalformed(ref e) => {
+                format!("Package archive was unreadable or contained unexpected contents: {:?}",
+                        e)
+            }
             Error::ParseIntError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),
             Error::ProvidesError(ref err) => format!("Can't find {}", err),
-            Error::RemoteSupResolutionError(ref sup_addr, ref err) => format!(
-                "Failed to resolve remote supervisor '{}': {}",
-                sup_addr, err,
-            ),
+            Error::RemoteSupResolutionError(ref sup_addr, ref err) => {
+                format!("Failed to resolve remote supervisor '{}': {}",
+                        sup_addr, err,)
+            }
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }

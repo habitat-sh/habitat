@@ -37,35 +37,29 @@ use crate::{member::Health,
             trace::TraceKind};
 
 lazy_static! {
-    static ref SWIM_MESSAGES_RECEIVED: IntCounterVec = register_int_counter_vec!(
-        "hab_butterfly_swim_messages_received_total",
-        "Total number of SWIM messages received",
-        &["type", "mode"]
-    )
-    .unwrap();
-    static ref SWIM_BYTES_RECEIVED: IntGaugeVec = register_int_gauge_vec!(
-        "hab_butterfly_swim_received_bytes",
-        "SWIM message size received in bytes",
-        &["type", "mode"]
-    )
-    .unwrap();
+    static ref SWIM_MESSAGES_RECEIVED: IntCounterVec =
+        register_int_counter_vec!("hab_butterfly_swim_messages_received_total",
+                                  "Total number of SWIM messages received",
+                                  &["type", "mode"]).unwrap();
+    static ref SWIM_BYTES_RECEIVED: IntGaugeVec =
+        register_int_gauge_vec!("hab_butterfly_swim_received_bytes",
+                                "SWIM message size received in bytes",
+                                &["type", "mode"]).unwrap();
 }
 
 /// Takes the Server and a channel to send received Acks to the outbound thread.
 pub struct Inbound {
-    pub server: Server,
-    pub socket: UdpSocket,
+    pub server:      Server,
+    pub socket:      UdpSocket,
     pub tx_outbound: AckSender,
 }
 
 impl Inbound {
     /// Create a new Inbound.
     pub fn new(server: Server, socket: UdpSocket, tx_outbound: AckSender) -> Inbound {
-        Inbound {
-            server,
-            socket,
-            tx_outbound,
-        }
+        Inbound { server,
+                  socket,
+                  tx_outbound }
     }
 
     /// Run the thread. Listens for messages up to 1k in size, and then processes them accordingly.
@@ -87,9 +81,8 @@ impl Inbound {
                             // garbage all the time.
                             error!("Error unwrapping protocol message, {}", e);
                             let label_values = &["unwrap_wire", "failure"];
-                            SWIM_BYTES_RECEIVED
-                                .with_label_values(label_values)
-                                .set(length.to_i64());
+                            SWIM_BYTES_RECEIVED.with_label_values(label_values)
+                                               .set(length.to_i64());
                             SWIM_MESSAGES_RECEIVED.with_label_values(label_values).inc();
                             continue;
                         }
@@ -103,9 +96,8 @@ impl Inbound {
                             // garbage all the time.
                             error!("Error decoding protocol message, {}", e);
                             let label_values = &["undecodable", "failure"];
-                            SWIM_BYTES_RECEIVED
-                                .with_label_values(label_values)
-                                .set(bytes_received.to_i64());
+                            SWIM_BYTES_RECEIVED.with_label_values(label_values)
+                                               .set(bytes_received.to_i64());
                             SWIM_MESSAGES_RECEIVED.with_label_values(label_values).inc();
                             continue;
                         }
@@ -114,43 +106,35 @@ impl Inbound {
                     // Setting a label_values variable here throws errors about moving borrowed
                     // content that I couldn't solve w/o clones. Leaving this for now. I'm sure
                     // there's a better way.
-                    SWIM_BYTES_RECEIVED
-                        .with_label_values(&[msg.kind.as_str(), "success"])
-                        .set(bytes_received.to_i64());
-                    SWIM_MESSAGES_RECEIVED
-                        .with_label_values(&[msg.kind.as_str(), "success"])
-                        .inc();
+                    SWIM_BYTES_RECEIVED.with_label_values(&[msg.kind.as_str(), "success"])
+                                       .set(bytes_received.to_i64());
+                    SWIM_MESSAGES_RECEIVED.with_label_values(&[msg.kind.as_str(), "success"])
+                                          .inc();
 
                     trace!("SWIM Message: {:?}", msg);
                     match msg.kind {
                         SwimKind::Ping(ping) => {
                             if self.server.is_member_blocked(&ping.from.id) {
-                                debug!(
-                                    "Not processing message from {} - it is blocked",
-                                    ping.from.id
-                                );
+                                debug!("Not processing message from {} - it is blocked",
+                                       ping.from.id);
                                 continue;
                             }
                             self.process_ping(addr, ping);
                         }
                         SwimKind::Ack(ack) => {
                             if self.server.is_member_blocked(&ack.from.id)
-                                && ack.forward_to.is_none()
+                               && ack.forward_to.is_none()
                             {
-                                debug!(
-                                    "Not processing message from {} - it is blocked",
-                                    ack.from.id
-                                );
+                                debug!("Not processing message from {} - it is blocked",
+                                       ack.from.id);
                                 continue;
                             }
                             self.process_ack(addr, ack);
                         }
                         SwimKind::PingReq(pingreq) => {
                             if self.server.is_member_blocked(&pingreq.from.id) {
-                                debug!(
-                                    "Not processing message from {} - it is blocked",
-                                    pingreq.from.id
-                                );
+                                debug!("Not processing message from {} - it is blocked",
+                                       pingreq.from.id);
                                 continue;
                             }
                             self.process_pingreq(addr, pingreq);
@@ -184,19 +168,18 @@ impl Inbound {
         msg.from.address = addr.ip().to_string();
         let id = msg.target.id.clone(); // TODO: see if we can eliminate this clone
         self.server.member_list.with_member(&id, |target| {
-            if let Some(target) = target {
-                // Set the route-back address to the one we received the pingreq from
-                outbound::ping(
-                    &self.server,
-                    &self.socket,
-                    target,
-                    target.swim_socket_address(),
-                    Some(&msg.from),
-                );
-            } else {
-                error!("PingReq request {:?} for invalid target", msg);
-            }
-        });
+                                   if let Some(target) = target {
+                                       // Set the route-back address to the one we received the
+                                       // pingreq from
+                                       outbound::ping(&self.server,
+                                                      &self.socket,
+                                                      target,
+                                                      target.swim_socket_address(),
+                                                      Some(&msg.from));
+                                   } else {
+                                       error!("PingReq request {:?} for invalid target", msg);
+                                   }
+                               });
     }
 
     /// Process ack messages; forwards to the outbound thread.
@@ -211,20 +194,16 @@ impl Inbound {
                 let forward_to_addr = match forward_addr_str.parse() {
                     Ok(addr) => addr,
                     Err(e) => {
-                        error!(
-                            "Abandoning Ack forward: cannot parse member address: {}:{}, {}",
-                            forward_to.address, forward_to.swim_port, e
-                        );
+                        error!("Abandoning Ack forward: cannot parse member address: {}:{}, {}",
+                               forward_to.address, forward_to.swim_port, e);
                         return;
                     }
                 };
-                trace!(
-                    "Forwarding Ack from {}@{} to {}@{}",
-                    msg.from.id,
-                    addr,
-                    forward_to.id,
-                    forward_to.address,
-                );
+                trace!("Forwarding Ack from {}@{} to {}@{}",
+                       msg.from.id,
+                       addr,
+                       forward_to.id,
+                       forward_to.address,);
                 (forward_to_addr, addr.ip().to_string())
             };
             msg.from.address = from_addr;

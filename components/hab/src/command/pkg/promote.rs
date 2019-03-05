@@ -45,13 +45,12 @@ use crate::{error::{Error,
 /// # Failures
 ///
 /// * Fails if it cannot find the specified package in Builder
-pub fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    ident: &PackageIdent,
-    channel: &ChannelIdent,
-    token: &str,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             ident: &PackageIdent,
+             channel: &ChannelIdent,
+             token: &str)
+             -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;

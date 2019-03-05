@@ -41,15 +41,12 @@ impl ServiceGroup {
 }
 
 impl<T, U> From<(T, U)> for ApplicationEnvironment
-where
-    T: ToString,
-    U: ToString,
+    where T: ToString,
+          U: ToString
 {
     fn from(value: (T, U)) -> ApplicationEnvironment {
-        Self {
-            application: value.0.to_string(),
-            environment: value.1.to_string(),
-        }
+        Self { application: value.0.to_string(),
+               environment: value.1.to_string(), }
     }
 }
 
@@ -109,13 +106,12 @@ impl FromStr for BindingMode {
         match value.to_lowercase().as_ref() {
             "relaxed" => Ok(BindingMode::Relaxed),
             "strict" => Ok(BindingMode::Strict),
-            _ => Err(net::err(
-                ErrCode::InvalidPayload,
-                format!(
-                    "Invalid binding mode \"{}\", must be `relaxed` or `strict`.",
-                    value
-                ),
-            )),
+            _ => {
+                Err(net::err(ErrCode::InvalidPayload,
+                             format!("Invalid binding mode \"{}\", must be \
+                                      `relaxed` or `strict`.",
+                                     value)))
+            }
         }
     }
 }
@@ -127,13 +123,12 @@ impl FromStr for ProcessState {
         match value.to_lowercase().as_ref() {
             "0" => Ok(ProcessState::Down),
             "1" => Ok(ProcessState::Up),
-            _ => Err(net::err(
-                ErrCode::InvalidPayload,
-                format!(
-                    "Invalid process state \"{:?}\", must be `up` or `down`.",
-                    value
-                ),
-            )),
+            _ => {
+                Err(net::err(ErrCode::InvalidPayload,
+                             format!("Invalid process state \"{:?}\", must \
+                                      be `up` or `down`.",
+                                     value)))
+            }
         }
     }
 }
@@ -148,13 +143,12 @@ impl FromStr for DesiredState {
             // The DesiredNone variant allows for backwards compatibility with < 0.61 Supervisors,
             // prior to when DesiredState was introduced.
             "<none>" => Ok(DesiredState::DesiredNone),
-            _ => Err(net::err(
-                ErrCode::InvalidPayload,
-                format!(
-                    "Invalid desired state \"{:?}\", must be `up`, `down` or `<none>`.",
-                    value
-                ),
-            )),
+            _ => {
+                Err(net::err(ErrCode::InvalidPayload,
+                             format!("Invalid desired state \"{:?}\", must \
+                                      be `up`, `down` or `<none>`.",
+                                     value)))
+            }
         }
     }
 }
@@ -163,18 +157,17 @@ impl FromStr for ServiceBind {
     type Err = NetErr;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        let sb = core::service::ServiceBind::from_str(value)
-            .map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
+        let sb = core::service::ServiceBind::from_str(value).map_err(|e| {
+                                                                net::err(ErrCode::InvalidPayload, e)
+                                                            })?;
         Ok(sb.into())
     }
 }
 
 impl From<core::service::ServiceBind> for ServiceBind {
     fn from(bind: core::service::ServiceBind) -> Self {
-        Self {
-            name: bind.name().to_string(),
-            service_group: ServiceGroup::from(bind.service_group().clone()),
-        }
+        Self { name:          bind.name().to_string(),
+               service_group: ServiceGroup::from(bind.service_group().clone()), }
     }
 }
 
@@ -182,8 +175,10 @@ impl FromStr for ServiceGroup {
     type Err = NetErr;
 
     fn from_str(value: &str) -> Result<ServiceGroup, Self::Err> {
-        let sg = core::service::ServiceGroup::from_str(value)
-            .map_err(|e| net::err(ErrCode::InvalidPayload, e))?;
+        let sg = core::service::ServiceGroup::from_str(value).map_err(|e| {
+                                                                 net::err(ErrCode::InvalidPayload,
+                                                                          e)
+                                                             })?;
         Ok(sg.into())
     }
 }
@@ -208,10 +203,8 @@ impl fmt::Display for ServiceGroup {
 
 impl From<core::service::ApplicationEnvironment> for ApplicationEnvironment {
     fn from(app_env: core::service::ApplicationEnvironment) -> Self {
-        Self {
-            application: app_env.application().to_string(),
-            environment: app_env.environment().to_string(),
-        }
+        Self { application: app_env.application().to_string(),
+               environment: app_env.environment().to_string(), }
     }
 }
 
@@ -223,20 +216,16 @@ impl Into<core::service::ApplicationEnvironment> for ApplicationEnvironment {
 
 impl From<core::service::HealthCheckInterval> for HealthCheckInterval {
     fn from(h: core::service::HealthCheckInterval) -> Self {
-        Self {
-            seconds: h.as_ref().as_secs(),
-        }
+        Self { seconds: h.as_ref().as_secs(), }
     }
 }
 
 impl From<package::PackageIdent> for PackageIdent {
     fn from(ident: package::PackageIdent) -> Self {
-        Self {
-            origin: ident.origin,
-            name: ident.name,
-            version: ident.version,
-            release: ident.release,
-        }
+        Self { origin:  ident.origin,
+               name:    ident.name,
+               version: ident.version,
+               release: ident.release, }
     }
 }
 
@@ -291,23 +280,15 @@ impl From<core::service::ServiceGroup> for ServiceGroup {
 impl Into<core::service::ServiceGroup> for ServiceGroup {
     fn into(self) -> core::service::ServiceGroup {
         let app_env = if let Some(app_env) = self.application_environment {
-            Some(
-                core::service::ApplicationEnvironment::new(
-                    app_env.application,
-                    app_env.environment,
-                )
-                .unwrap(),
-            )
+            Some(core::service::ApplicationEnvironment::new(app_env.application,
+                                                            app_env.environment).unwrap())
         } else {
             None
         };
-        core::service::ServiceGroup::new(
-            app_env.as_ref(),
-            self.service,
-            self.group,
-            self.organization.as_ref().map(String::as_str),
-        )
-        .unwrap()
+        core::service::ServiceGroup::new(app_env.as_ref(),
+                                         self.service,
+                                         self.group,
+                                         self.organization.as_ref().map(String::as_str)).unwrap()
     }
 }
 
@@ -364,10 +345,7 @@ impl FromStr for UpdateStrategy {
             "none" => Ok(UpdateStrategy::None),
             "at-once" => Ok(UpdateStrategy::AtOnce),
             "rolling" => Ok(UpdateStrategy::Rolling),
-            _ => Err(net::err(
-                ErrCode::InvalidPayload,
-                "Invalid update strategy.",
-            )),
+            _ => Err(net::err(ErrCode::InvalidPayload, "Invalid update strategy.")),
         }
     }
 }
@@ -394,10 +372,8 @@ mod test {
     #[test]
     fn topology_from_str() {
         assert_eq!(Topology::from_str("leader").unwrap(), Topology::Leader);
-        assert_eq!(
-            Topology::from_str("standalone").unwrap(),
-            Topology::Standalone
-        );
+        assert_eq!(Topology::from_str("standalone").unwrap(),
+                   Topology::Standalone);
     }
 
     #[test]
@@ -433,9 +409,7 @@ mod test {
         struct Data {
             key: Topology,
         }
-        let data = Data {
-            key: Topology::Leader,
-        };
+        let data = Data { key: Topology::Leader, };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"key = "leader""#))
@@ -490,9 +464,7 @@ mod test {
         struct Data {
             key: UpdateStrategy,
         }
-        let data = Data {
-            key: UpdateStrategy::AtOnce,
-        };
+        let data = Data { key: UpdateStrategy::AtOnce, };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"key = "at-once""#));

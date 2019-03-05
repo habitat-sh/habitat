@@ -32,9 +32,8 @@ fn start(ui: &mut UI) -> Result<()> {
 fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates a tar package from a Habitat package";
-    Cli::new(name, about)
-        .add_base_packages_args()
-        .add_builder_args()
-        .add_pkg_ident_arg()
-        .app
+    Cli::new(name, about).add_base_packages_args()
+                         .add_builder_args()
+                         .add_pkg_ident_arg()
+                         .app
 }

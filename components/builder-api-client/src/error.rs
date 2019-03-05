@@ -54,11 +54,11 @@ impl fmt::Display for Error {
             Error::APIError(ref c, ref m) if !m.is_empty() => format!("[{}] {}", c, m),
             Error::APIError(ref c, _) => format!("[{}]", c),
             Error::BadResponseBody(ref e) => format!("Failed to read response body, {}", e),
-            Error::DownloadWrite(ref p, ref e) => format!(
-                "Failed to write contents of builder response, {}, {}",
-                p.display(),
-                e
-            ),
+            Error::DownloadWrite(ref p, ref e) => {
+                format!("Failed to write contents of builder response, {}, {}",
+                        p.display(),
+                        e)
+            }
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HabitatHttpClient(ref e) => format!("{}", e),
             Error::HyperError(ref err) => format!("{}", err),
@@ -69,15 +69,16 @@ impl fmt::Display for Error {
             }
             Error::NoFilePart => "An invalid path was passed - we needed a filename, and this \
                                   path does not have one"
-                .to_string(),
+                                                         .to_string(),
             Error::PackageReadError(ref p, ref e) => {
                 format!("Failed to read package artifact, {}, {}", p.display(), e)
             }
             Error::ParseIntError(ref err) => format!("{}", err),
-            Error::IdentNotFullyQualified => "Cannot perform the specified operation. Specify a \
-                                              fully qualifed package identifier (ex: \
-                                              core/busybox-static/1.42.2/20170513215502)"
-                .to_string(),
+            Error::IdentNotFullyQualified => {
+                "Cannot perform the specified operation. Specify a fully qualifed package \
+                 identifier (ex: core/busybox-static/1.42.2/20170513215502)"
+                                                                            .to_string()
+            }
             Error::UploadFailed(ref s) => format!("Upload failed: {}", s),
             Error::UrlParseError(ref e) => format!("{}", e),
             Error::WriteSyncFailed => {

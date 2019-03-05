@@ -29,8 +29,7 @@ pub trait FromProto<T: prost::Message + Default>: Sized {
 }
 
 pub trait LauncherMessage
-where
-    Self: Clone + fmt::Debug,
+    where Self: Clone + fmt::Debug
 {
     type Generated: prost::Message + Default + From<Self>;
     const MESSAGE_ID: &'static str;
@@ -59,7 +58,7 @@ pub use generated::{ErrCode,
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct NetErr {
     pub code: generated::ErrCode,
-    pub msg: String,
+    pub msg:  String,
 }
 
 impl LauncherMessage for NetErr {
@@ -78,10 +77,8 @@ impl LauncherMessage for NetErr {
 
 impl From<NetErr> for generated::NetErr {
     fn from(value: NetErr) -> Self {
-        generated::NetErr {
-            code: Some(value.code as i32),
-            msg: Some(value.msg),
-        }
+        generated::NetErr { code: Some(value.code as i32),
+                            msg:  Some(value.msg), }
     }
 }
 
@@ -121,18 +118,12 @@ impl LauncherMessage for Register {
     const MESSAGE_ID: &'static str = "Register";
 
     fn from_proto(proto: generated::Register) -> Result<Self> {
-        Ok(Register {
-            pipe: proto.pipe.ok_or(Error::ProtocolMismatch("pipe"))?,
-        })
+        Ok(Register { pipe: proto.pipe.ok_or(Error::ProtocolMismatch("pipe"))?, })
     }
 }
 
 impl From<Register> for generated::Register {
-    fn from(value: Register) -> Self {
-        generated::Register {
-            pipe: Some(value.pipe),
-        }
-    }
+    fn from(value: Register) -> Self { generated::Register { pipe: Some(value.pipe), } }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -146,29 +137,23 @@ impl LauncherMessage for Restart {
     const MESSAGE_ID: &'static str = "Restart";
 
     fn from_proto(proto: generated::Restart) -> Result<Self> {
-        Ok(Restart {
-            pid: proto.pid.ok_or(Error::ProtocolMismatch("pid"))?,
-        })
+        Ok(Restart { pid: proto.pid.ok_or(Error::ProtocolMismatch("pid"))?, })
     }
 }
 
 impl From<Restart> for generated::Restart {
-    fn from(value: Restart) -> Self {
-        generated::Restart {
-            pid: Some(value.pid),
-        }
-    }
+    fn from(value: Restart) -> Self { generated::Restart { pid: Some(value.pid), } }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Spawn {
-    pub id: String,
-    pub binary: String,
-    pub svc_user: Option<String>,
-    pub svc_group: Option<String>,
+    pub id:           String,
+    pub binary:       String,
+    pub svc_user:     Option<String>,
+    pub svc_group:    Option<String>,
     pub svc_password: Option<String>,
-    pub env: HashMap<String, String>,
-    pub svc_user_id: Option<u32>,
+    pub env:          HashMap<String, String>,
+    pub svc_user_id:  Option<u32>,
     pub svc_group_id: Option<u32>,
 }
 
@@ -178,31 +163,27 @@ impl LauncherMessage for Spawn {
     const MESSAGE_ID: &'static str = "Spawn";
 
     fn from_proto(proto: generated::Spawn) -> Result<Self> {
-        Ok(Spawn {
-            id: proto.id.ok_or(Error::ProtocolMismatch("id"))?,
-            binary: proto.binary.ok_or(Error::ProtocolMismatch("binary"))?,
-            svc_user: proto.svc_user,
-            svc_group: proto.svc_group,
-            svc_password: proto.svc_password,
-            env: proto.env,
-            svc_user_id: proto.svc_user_id,
-            svc_group_id: proto.svc_group_id,
-        })
+        Ok(Spawn { id:           proto.id.ok_or(Error::ProtocolMismatch("id"))?,
+                   binary:       proto.binary.ok_or(Error::ProtocolMismatch("binary"))?,
+                   svc_user:     proto.svc_user,
+                   svc_group:    proto.svc_group,
+                   svc_password: proto.svc_password,
+                   env:          proto.env,
+                   svc_user_id:  proto.svc_user_id,
+                   svc_group_id: proto.svc_group_id, })
     }
 }
 
 impl From<Spawn> for generated::Spawn {
     fn from(value: Spawn) -> Self {
-        generated::Spawn {
-            id: Some(value.id),
-            binary: Some(value.binary),
-            svc_user: value.svc_user,
-            svc_group: value.svc_group,
-            svc_password: value.svc_password,
-            env: value.env,
-            svc_user_id: value.svc_user_id,
-            svc_group_id: value.svc_group_id,
-        }
+        generated::Spawn { id:           Some(value.id),
+                           binary:       Some(value.binary),
+                           svc_user:     value.svc_user,
+                           svc_group:    value.svc_group,
+                           svc_password: value.svc_password,
+                           env:          value.env,
+                           svc_user_id:  value.svc_user_id,
+                           svc_group_id: value.svc_group_id, }
     }
 }
 
@@ -217,18 +198,12 @@ impl LauncherMessage for SpawnOk {
     const MESSAGE_ID: &'static str = "SpawnOk";
 
     fn from_proto(proto: generated::SpawnOk) -> Result<Self> {
-        Ok(SpawnOk {
-            pid: proto.pid.ok_or(Error::ProtocolMismatch("pid"))?,
-        })
+        Ok(SpawnOk { pid: proto.pid.ok_or(Error::ProtocolMismatch("pid"))?, })
     }
 }
 
 impl From<SpawnOk> for generated::SpawnOk {
-    fn from(value: SpawnOk) -> Self {
-        generated::SpawnOk {
-            pid: Some(value.pid),
-        }
-    }
+    fn from(value: SpawnOk) -> Self { generated::SpawnOk { pid: Some(value.pid), } }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -242,23 +217,17 @@ impl LauncherMessage for Terminate {
     const MESSAGE_ID: &'static str = "Terminate";
 
     fn from_proto(proto: generated::Terminate) -> Result<Self> {
-        Ok(Terminate {
-            pid: proto.pid.ok_or(Error::ProtocolMismatch("pid"))?,
-        })
+        Ok(Terminate { pid: proto.pid.ok_or(Error::ProtocolMismatch("pid"))?, })
     }
 }
 
 impl From<Terminate> for generated::Terminate {
-    fn from(value: Terminate) -> Self {
-        generated::Terminate {
-            pid: Some(value.pid),
-        }
-    }
+    fn from(value: Terminate) -> Self { generated::Terminate { pid: Some(value.pid), } }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct TerminateOk {
-    pub exit_code: i32,
+    pub exit_code:       i32,
     pub shutdown_method: generated::ShutdownMethod,
 }
 
@@ -284,17 +253,15 @@ impl LauncherMessage for TerminateOk {
 
 impl From<TerminateOk> for generated::TerminateOk {
     fn from(value: TerminateOk) -> Self {
-        generated::TerminateOk {
-            exit_code: Some(value.exit_code),
-            shutdown_method: Some(value.shutdown_method as i32),
-        }
+        generated::TerminateOk { exit_code:       Some(value.exit_code),
+                                 shutdown_method: Some(value.shutdown_method as i32), }
     }
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Envelope {
     pub message_id: String,
-    pub payload: Vec<u8>,
+    pub payload:    Vec<u8>,
 }
 
 impl LauncherMessage for Envelope {
@@ -303,21 +270,16 @@ impl LauncherMessage for Envelope {
     const MESSAGE_ID: &'static str = "Envelope";
 
     fn from_proto(proto: generated::Envelope) -> Result<Self> {
-        Ok(Envelope {
-            message_id: proto
-                .message_id
-                .ok_or(Error::ProtocolMismatch("message_id"))?,
-            payload: proto.payload.ok_or(Error::ProtocolMismatch("payload"))?,
-        })
+        Ok(Envelope { message_id: proto.message_id
+                                       .ok_or(Error::ProtocolMismatch("message_id"))?,
+                      payload:    proto.payload.ok_or(Error::ProtocolMismatch("payload"))?, })
     }
 }
 
 impl From<Envelope> for generated::Envelope {
     fn from(value: Envelope) -> Self {
-        generated::Envelope {
-            message_id: Some(value.message_id),
-            payload: Some(value.payload),
-        }
+        generated::Envelope { message_id: Some(value.message_id),
+                              payload:    Some(value.payload), }
     }
 }
 

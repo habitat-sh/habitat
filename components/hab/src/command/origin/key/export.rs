@@ -29,11 +29,9 @@ pub fn start(origin: &str, pair_type: PairType, cache: &Path) -> Result<()> {
         PairType::Secret => SigKeyPair::get_secret_key_path(&latest.name_with_rev(), cache)?,
     };
     let mut file = File::open(&path)?;
-    debug!(
-        "Streaming file contents of {} {} to standard out",
-        &pair_type,
-        &path.display()
-    );
+    debug!("Streaming file contents of {} {} to standard out",
+           &pair_type,
+           &path.display());
     io::copy(&mut file, &mut io::stdout())?;
     Ok(())
 }

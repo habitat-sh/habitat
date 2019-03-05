@@ -34,10 +34,8 @@ pub struct PackageGraph {
 
 impl PackageGraph {
     fn empty() -> Self {
-        PackageGraph {
-            nodes: BiMap::new(),
-            graph: StableGraph::new(),
-        }
+        PackageGraph { nodes: BiMap::new(),
+                       graph: StableGraph::new(), }
     }
 
     /// Construct a `PackageGraph` from all the packages stored in in the habitat `pkgs`
@@ -107,7 +105,7 @@ impl PackageGraph {
                 let bfs = Bfs::new(&self.graph, idx).iter(&self.graph).skip(1);
 
                 bfs.map(|child| self.graph.node_weight(child).unwrap())
-                    .collect()
+                   .collect()
             })
             .unwrap_or_default()
     }
@@ -129,12 +127,11 @@ impl PackageGraph {
             .map(|&idx| {
                 // BFS returns the original node as the first node
                 // `skip` it here so it's not in the result Vec
-                let bfs = Bfs::new(&self.graph, idx)
-                    .iter(Reversed(&self.graph))
-                    .skip(1);
+                let bfs = Bfs::new(&self.graph, idx).iter(Reversed(&self.graph))
+                                                    .skip(1);
 
                 bfs.map(|child| self.graph.node_weight(child).unwrap())
-                    .collect()
+                   .collect()
             })
             .unwrap_or_default()
     }
@@ -163,10 +160,10 @@ impl PackageGraph {
             .map(|(_, idx)| {
                 match self.graph.remove_node(idx) {
                     Some(ident) => assert_eq!(&ident, package),
-                    None => panic!(
-                        "removed node from map but it wasn't in the graph: {}",
-                        package
-                    ),
+                    None => {
+                        panic!("removed node from map but it wasn't in the graph: {}",
+                               package)
+                    }
                 }
                 true
             })
@@ -189,11 +186,10 @@ impl PackageGraph {
         self.count_edges(ident, petgraph::Incoming)
     }
 
-    fn neighbours(
-        &self,
-        package: &PackageIdent,
-        direction: petgraph::Direction,
-    ) -> Vec<&PackageIdent> {
+    fn neighbours(&self,
+                  package: &PackageIdent,
+                  direction: petgraph::Direction)
+                  -> Vec<&PackageIdent> {
         self.nodes
             .get_by_left(package)
             .map(|&idx| {
@@ -242,7 +238,7 @@ mod test {
 
     struct PackageDeps {
         ident: PackageIdent,
-        deps: Vec<PackageIdent>,
+        deps:  Vec<PackageIdent>,
     }
 
     fn build(packages: &[PackageDeps]) -> PackageGraph {
@@ -254,17 +250,13 @@ mod test {
     }
 
     fn empty_package_deps(ident: PackageIdent) -> PackageDeps {
-        PackageDeps {
-            ident,
-            deps: vec![],
-        }
+        PackageDeps { ident,
+                      deps: vec![] }
     }
 
     fn package_deps(ident: PackageIdent, deps: &[PackageIdent]) -> PackageDeps {
-        PackageDeps {
-            ident,
-            deps: deps.to_vec(),
-        }
+        PackageDeps { ident,
+                      deps: deps.to_vec() }
     }
 
     fn empty_vec() -> Vec<&'static PackageIdent> { vec![] }
@@ -280,10 +272,10 @@ mod test {
 
     #[test]
     fn no_deps_graph() {
-        let packages = vec![
-            empty_package_deps(PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap()),
-            empty_package_deps(PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap()),
-        ];
+        let packages = vec![empty_package_deps(PackageIdent::from_str("core/redis/2.1.0/\
+                                                                       20180704142101").unwrap()),
+                            empty_package_deps(PackageIdent::from_str("core/foo/1.0/\
+                                                                       20180704142702").unwrap()),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 2);
@@ -294,10 +286,8 @@ mod test {
     fn simplest_graph() {
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),];
 
         let graph = build(&packages);
         assert!(graph.has_package(&a));
@@ -311,10 +301,10 @@ mod test {
     fn different_origins_graph() {
         // We have non-standard implementations of `Ord`, `PartialOrd` for `PackageIdent`.  Make
         // sure this doesn't mess with the requirements of `BiMap`
-        let packages = vec![
-            empty_package_deps(PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap()),
-            empty_package_deps(PackageIdent::from_str("mine/redis/2.1.0/20180704142101").unwrap()),
-        ];
+        let packages = vec![empty_package_deps(PackageIdent::from_str("core/redis/2.1.0/\
+                                                                       20180704142101").unwrap()),
+                            empty_package_deps(PackageIdent::from_str("mine/redis/2.1.0/\
+                                                                       20180704142101").unwrap()),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 2);
@@ -327,12 +317,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[a.clone()]),
-            package_deps(d.clone(), &[b.clone(), c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -349,12 +337,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[a.clone()]),
-            package_deps(d.clone(), &[b.clone(), c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -372,12 +358,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[a.clone()]),
-            package_deps(d.clone(), &[b.clone(), c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -397,12 +381,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[a.clone()]),
-            package_deps(d.clone(), &[b.clone(), c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -420,12 +402,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[a.clone()]),
-            package_deps(d.clone(), &[b.clone(), c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -445,12 +425,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[a.clone()]),
-            package_deps(d.clone(), &[b.clone(), c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let mut graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -472,10 +450,8 @@ mod test {
     fn cant_remove_package_with_rdeps() {
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),];
 
         let mut graph = build(&packages);
         assert_eq!(graph.node_count(), 2);
@@ -506,12 +482,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/foo/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[a.clone()]),
-            package_deps(d.clone(), &[b.clone(), c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[a.clone()]),
+                            package_deps(d.clone(), &[b.clone(), c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -528,12 +502,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[b.clone()]),
-            package_deps(d.clone(), &[c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[b.clone()]),
+                            package_deps(d.clone(), &[c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -550,12 +522,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[b.clone()]),
-            package_deps(d.clone(), &[c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[b.clone()]),
+                            package_deps(d.clone(), &[c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
@@ -584,12 +554,10 @@ mod test {
         let b = PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap();
         let c = PackageIdent::from_str("core/bar/1.0/20180704142805").unwrap();
         let d = PackageIdent::from_str("core/baz/1.0/20180704142805").unwrap();
-        let packages = vec![
-            empty_package_deps(a.clone()),
-            package_deps(b.clone(), &[a.clone()]),
-            package_deps(c.clone(), &[b.clone()]),
-            package_deps(d.clone(), &[c.clone()]),
-        ];
+        let packages = vec![empty_package_deps(a.clone()),
+                            package_deps(b.clone(), &[a.clone()]),
+                            package_deps(c.clone(), &[b.clone()]),
+                            package_deps(d.clone(), &[c.clone()]),];
 
         let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);

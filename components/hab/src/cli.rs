@@ -41,26 +41,21 @@ use std::{net::SocketAddr,
 use url::Url;
 
 pub fn get() -> App<'static, 'static> {
-    let alias_apply = sub_config_apply()
-        .about("Alias for 'config apply'")
-        .aliases(&["ap", "app", "appl"])
-        .setting(AppSettings::Hidden);
-    let alias_install = sub_pkg_install()
-        .about("Alias for 'pkg install'")
-        .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
-        .setting(AppSettings::Hidden);
-    let alias_setup = sub_cli_setup()
-        .about("Alias for 'cli setup'")
-        .aliases(&["set", "setu"])
-        .setting(AppSettings::Hidden);
-    let alias_start = sub_svc_start()
-        .about("Alias for 'svc start'")
-        .aliases(&["sta", "star"])
-        .setting(AppSettings::Hidden);
-    let alias_stop = sub_svc_stop()
-        .about("Alias for 'svc stop'")
-        .aliases(&["sto"])
-        .setting(AppSettings::Hidden);
+    let alias_apply = sub_config_apply().about("Alias for 'config apply'")
+                                        .aliases(&["ap", "app", "appl"])
+                                        .setting(AppSettings::Hidden);
+    let alias_install = sub_pkg_install().about("Alias for 'pkg install'")
+                                         .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
+                                         .setting(AppSettings::Hidden);
+    let alias_setup = sub_cli_setup().about("Alias for 'cli setup'")
+                                     .aliases(&["set", "setu"])
+                                     .setting(AppSettings::Hidden);
+    let alias_start = sub_svc_start().about("Alias for 'svc start'")
+                                     .aliases(&["sta", "star"])
+                                     .setting(AppSettings::Hidden);
+    let alias_stop = sub_svc_stop().about("Alias for 'svc stop'")
+                                   .aliases(&["sto"])
+                                   .setting(AppSettings::Hidden);
 
     clap_app!(hab =>
         (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
@@ -742,18 +737,14 @@ fn sub_cli_completers() -> App<'static, 'static> {
     // possible values. We wanted to fail here with an unsupported shell instead of pushing off a
     // bad value to clap.
 
-    sub.arg(
-        Arg::with_name("SHELL")
-            .help(
-                "The name of the shell you want to generate the command-completion. Supported \
-                 Shells: bash, fish, zsh, powershell",
-            )
-            .short("s")
-            .long("shell")
-            .required(true)
-            .takes_value(true)
-            .possible_values(&supported_shells),
-    )
+    sub.arg(Arg::with_name("SHELL").help("The name of the shell you want to generate the \
+                                          command-completion. Supported Shells: bash, fish, zsh, \
+                                          powershell")
+                                   .short("s")
+                                   .long("shell")
+                                   .required(true)
+                                   .takes_value(true)
+                                   .possible_values(&supported_shells))
 }
 
 fn sub_pkg_build() -> App<'static, 'static> {
@@ -772,31 +763,20 @@ fn sub_pkg_build() -> App<'static, 'static> {
     // Only a truly native/local Studio can be reused--the Docker implementation will always be
     // ephemeral
     if studio::native_studio_support() {
-        sub = sub
-            .arg(
-                Arg::with_name("REUSE")
-                    .help(
-                        "Reuses a previous Studio for the build (default: clean up before \
-                         building)",
-                    )
-                    .short("R")
-                    .long("reuse"),
-            )
-            .arg(
-                Arg::with_name("DOCKER")
-                    .help("Uses a Dockerized Studio for the build")
-                    .short("D")
-                    .long("docker"),
-            );
+        sub = sub.arg(Arg::with_name("REUSE").help("Reuses a previous Studio for the build \
+                                                    (default: clean up before building)")
+                                             .short("R")
+                                             .long("reuse"))
+                 .arg(Arg::with_name("DOCKER").help("Uses a Dockerized Studio for the build")
+                                              .short("D")
+                                              .long("docker"));
     }
 
     if cfg!(target_os = "windows") {
-        sub.arg(
-            Arg::with_name("WINDOWS")
-                .help("Use a local Windows Studio instead of a Docker Studio")
-                .short("w")
-                .long("windows"),
-        )
+        sub.arg(Arg::with_name("WINDOWS").help("Use a local Windows Studio instead of a Docker \
+                                                Studio")
+                                         .short("w")
+                                         .long("windows"))
     } else {
         sub
     }
@@ -819,28 +799,19 @@ fn sub_pkg_install() -> App<'static, 'static> {
         (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
     );
     if feat::is_enabled(feat::OfflineInstall) {
-        sub = sub.arg(
-            Arg::with_name("OFFLINE")
-                .help("Install packages in offline mode")
-                .long("offline"),
-        );
+        sub = sub.arg(Arg::with_name("OFFLINE").help("Install packages in offline mode")
+                                               .long("offline"));
     };
     if feat::is_enabled(feat::IgnoreLocal) {
-        sub = sub.arg(
-            Arg::with_name("IGNORE_LOCAL")
-                .help(
-                    "Do not use locally-installed packages when a corresponding package cannot be \
-                     installed from Builder",
-                )
-                .long("ignore-local"),
-        );
+        sub = sub.arg(Arg::with_name("IGNORE_LOCAL").help("Do not use locally-installed \
+                                                           packages when a corresponding \
+                                                           package cannot be installed from \
+                                                           Builder")
+                                                    .long("ignore-local"));
     };
     if feat::is_enabled(feat::InstallHook) {
-        sub = sub.arg(
-            Arg::with_name("IGNORE_INSTALL_HOOK")
-                .help("Do not run any install hooks")
-                .long("ignore-install-hook"),
-        );
+        sub = sub.arg(Arg::with_name("IGNORE_INSTALL_HOOK").help("Do not run any install hooks")
+                                                           .long("ignore-install-hook"));
     };
     sub
 }
@@ -1119,10 +1090,11 @@ fn valid_binding_mode(val: String) -> result::Result<(), String> {
 fn valid_pair_type(val: String) -> result::Result<(), String> {
     match PairType::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!(
-            "PAIR_TYPE: {} is invalid, must be one of (public, secret)",
-            &val
-        )),
+        Err(_) => {
+            Err(format!("PAIR_TYPE: {} is invalid, must be one of \
+                         (public, secret)",
+                        &val))
+        }
     }
 }
 
@@ -1187,10 +1159,11 @@ fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
 fn valid_health_check_interval(val: String) -> result::Result<(), String> {
     match HealthCheckInterval::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(e) => Err(format!(
-            "'{}' is not a valid value for health check interval: {}",
-            val, e
-        )),
+        Err(e) => {
+            Err(format!("'{}' is not a valid value for health check \
+                         interval: {}",
+                        val, e))
+        }
     }
 }
 
@@ -1206,10 +1179,11 @@ fn valid_update_strategy(val: String) -> result::Result<(), String> {
 fn valid_ident(val: String) -> result::Result<(), String> {
     match PackageIdent::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!(
-            "'{}' is not valid. Package identifiers have the form origin/name[/version[/release]]",
-            &val
-        )),
+        Err(_) => {
+            Err(format!("'{}' is not valid. Package identifiers have the \
+                         form origin/name[/version[/release]]",
+                        &val))
+        }
     }
 }
 
@@ -1217,11 +1191,11 @@ fn valid_ident(val: String) -> result::Result<(), String> {
 fn valid_target(val: String) -> result::Result<(), String> {
     match PackageTarget::from_str(&val) {
         Ok(_) => Ok(()),
-        Err(_) => Err(format!(
-            "'{}' is not valid. A valid target is in the form architecture-platform (example: \
-             x86_64-linux)",
-            &val
-        )),
+        Err(_) => {
+            Err(format!("'{}' is not valid. A valid target is in the form \
+                         architecture-platform (example: x86_64-linux)",
+                        &val))
+        }
     }
 }
 
@@ -1229,11 +1203,12 @@ fn valid_target(val: String) -> result::Result<(), String> {
 fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
     match PackageIdent::from_str(&val) {
         Ok(ref ident) if ident.fully_qualified() => Ok(()),
-        _ => Err(format!(
-            "'{}' is not valid. Fully qualified package identifiers have the form \
-             origin/name/version/release",
-            &val
-        )),
+        _ => {
+            Err(format!("'{}' is not valid. Fully qualified package \
+                         identifiers have the form \
+                         origin/name/version/release",
+                        &val))
+        }
     }
 }
 
@@ -1242,11 +1217,9 @@ fn valid_origin(val: String) -> result::Result<(), String> {
     if ident::is_valid_origin_name(&val) {
         Ok(())
     } else {
-        Err(format!(
-            "'{}' is not valid. A valid origin contains a-z, 0-9, and _ or - after the first \
-             character",
-            &val
-        ))
+        Err(format!("'{}' is not valid. A valid origin contains a-z, \
+                     0-9, and _ or - after the first character",
+                    &val))
     }
 }
 

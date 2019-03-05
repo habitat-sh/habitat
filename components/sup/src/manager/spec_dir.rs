@@ -23,16 +23,13 @@ impl AsRef<Path> for SpecDir {
 
 impl SpecDir {
     pub fn new<P>(path: P) -> Result<SpecDir>
-    where
-        P: AsRef<Path>,
+        where P: AsRef<Path>
     {
         let path: PathBuf = path.as_ref().into();
         if path.is_dir() {
             Ok(SpecDir(path))
         } else {
-            Err(sup_error!(Error::SpecDirNotFound(
-                path.display().to_string()
-            )))
+            Err(sup_error!(Error::SpecDirNotFound(path.display().to_string())))
         }
     }
 
@@ -49,11 +46,9 @@ impl SpecDir {
             match ServiceSpec::from_file(&spec_file).map(|spec| spec.to_file(&spec_file)) {
                 Ok(_) => debug!("migrated {:?}", spec_file),
                 Err(err) => {
-                    outputln!(
-                        "Unable to migrate service spec, {}, {}",
-                        spec_file.display(),
-                        err
-                    );
+                    outputln!("Unable to migrate service spec, {}, {}",
+                              spec_file.display(),
+                              err);
                 }
             }
         }
@@ -67,40 +62,34 @@ impl SpecDir {
             let spec = match ServiceSpec::from_file(&spec_file) {
                 Ok(s) => s,
                 Err(e) => {
-                    outputln!(
-                        "Error when loading service spec file '{}' ({}). This file will be \
-                         skipped.",
-                        spec_file.display(),
-                        e.description()
-                    );
+                    outputln!("Error when loading service spec file '{}' ({}). This file will be \
+                               skipped.",
+                              spec_file.display(),
+                              e.description());
                     continue;
                 }
             };
 
             specs.push(match spec_file.file_stem().and_then(OsStr::to_str) {
-                Some(stem) if stem == spec.ident.name => spec,
-                Some(_) => {
-                    outputln!(
-                        "Error when loading service spec file '{}' (File name does not match \
-                         ident name '{}' from ident = \"{}\", it should be called '{}.{}'). This \
-                         file will be skipped.",
-                        spec_file.display(),
-                        &spec.ident.name,
-                        &spec.ident,
-                        &spec.ident.name,
-                        SPEC_FILE_EXT
-                    );
-                    continue;
-                }
-                None => {
-                    outputln!(
-                        "Error when loading service spec file '{}' (File stem could not be \
-                         determined). This file will be skipped.",
-                        spec_file.display()
-                    );
-                    continue;
-                }
-            });
+                           Some(stem) if stem == spec.ident.name => spec,
+                           Some(_) => {
+                               outputln!("Error when loading service spec file '{}' (File name \
+                                          does not match ident name '{}' from ident = \"{}\", it \
+                                          should be called '{}.{}'). This file will be skipped.",
+                                         spec_file.display(),
+                                         &spec.ident.name,
+                                         &spec.ident,
+                                         &spec.ident.name,
+                                         SPEC_FILE_EXT);
+                               continue;
+                           }
+                           None => {
+                               outputln!("Error when loading service spec file '{}' (File stem \
+                                          could not be determined). This file will be skipped.",
+                                         spec_file.display());
+                               continue;
+                           }
+                       });
         }
 
         specs

@@ -63,12 +63,10 @@ use crate::{error::{Error,
                        Message}};
 
 lazy_static! {
-    static ref IGNORED_RUMOR_COUNT: IntCounterVec = register_int_counter_vec!(
-        "hab_butterfly_ignored_rumor_total",
-        "How many rumors we ignore",
-        &["rumor"]
-    )
-    .unwrap();
+    static ref IGNORED_RUMOR_COUNT: IntCounterVec =
+        register_int_counter_vec!("hab_butterfly_ignored_rumor_total",
+                                  "How many rumors we ignore",
+                                  &["rumor"]).unwrap();
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -102,17 +100,15 @@ impl From<RumorKind> for RumorPayload {
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct RumorKey {
     pub kind: RumorType,
-    pub id: String,
-    pub key: String,
+    pub id:   String,
+    pub key:  String,
 }
 
 impl RumorKey {
     pub fn new(kind: RumorType, id: &str, key: &str) -> RumorKey {
-        RumorKey {
-            kind,
-            id: id.to_string(),
-            key: key.to_string(),
-        }
+        RumorKey { kind,
+                   id: id.to_string(),
+                   key: key.to_string() }
     }
 
     pub fn key(&self) -> String {
@@ -143,38 +139,29 @@ impl<'a, T: Rumor> From<&'a T> for RumorKey {
 /// Generic over the type of rumor it stores.
 #[derive(Debug, Clone)]
 pub struct RumorStore<T: Rumor> {
-    pub list: Arc<RwLock<HashMap<String, HashMap<String, T>>>>,
+    pub list:       Arc<RwLock<HashMap<String, HashMap<String, T>>>>,
     update_counter: Arc<AtomicUsize>,
 }
 
-impl<T> Default for RumorStore<T>
-where
-    T: Rumor,
+impl<T> Default for RumorStore<T> where T: Rumor
 {
     fn default() -> RumorStore<T> {
-        RumorStore {
-            list: Arc::new(RwLock::new(HashMap::new())),
-            update_counter: Arc::new(AtomicUsize::new(0)),
-        }
+        RumorStore { list:           Arc::new(RwLock::new(HashMap::new())),
+                     update_counter: Arc::new(AtomicUsize::new(0)), }
     }
 }
 
-impl<T> Deref for RumorStore<T>
-where
-    T: Rumor,
+impl<T> Deref for RumorStore<T> where T: Rumor
 {
     type Target = RwLock<HashMap<String, HashMap<String, T>>>;
 
     fn deref(&self) -> &Self::Target { &*self.list }
 }
 
-impl<T> Serialize for RumorStore<T>
-where
-    T: Rumor,
+impl<T> Serialize for RumorStore<T> where T: Rumor
 {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let mut strukt = serializer.serialize_struct("rumor_store", 2)?;
         strukt.serialize_field("list", &*(self.list.read().unwrap()))?;
@@ -190,17 +177,14 @@ where
 /// JSON output.
 pub struct RumorStoreProxy<'a, T: Rumor>(&'a RumorStore<T>);
 
-impl<'a, T> RumorStoreProxy<'a, T>
-where
-    T: Rumor,
+impl<'a, T> RumorStoreProxy<'a, T> where T: Rumor
 {
     pub fn new(r: &'a RumorStore<T>) -> Self { RumorStoreProxy(r) }
 }
 
 impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let map = self.0.list.read().expect("Rumor store lock poisoned");
         let inner_map = map.get("departure");
@@ -224,8 +208,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
 
 impl<'a> Serialize for RumorStoreProxy<'a, Election> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let map = self.0.list.read().expect("Rumor store lock poisoned");
         let mut new_map = HashMap::new();
@@ -248,8 +231,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, Election> {
 // This is the same as Election =/
 impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let map = self.0.list.read().expect("Rumor store lock poisoned");
         let mut new_map = HashMap::new();
@@ -271,8 +253,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
 
 impl<'a> Serialize for RumorStoreProxy<'a, Service> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let map = self.0.list.read().expect("Rumor store lock poisoned");
         let mut m = serializer.serialize_map(Some(map.len()))?;
@@ -287,8 +268,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, Service> {
 
 impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let map = self.0.list.read().expect("Rumor store lock poisoned");
         let mut new_map = HashMap::new();
@@ -310,8 +290,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
 
 impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let map = self.0.list.read().expect("Rumor store lock poisoned");
         let mut m = serializer.serialize_map(Some(map.len()))?;
@@ -324,17 +303,13 @@ impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
     }
 }
 
-impl<T> RumorStore<T>
-where
-    T: Rumor,
+impl<T> RumorStore<T> where T: Rumor
 {
     /// Create a new RumorStore for the given type. Allows you to initialize the counter to a
     /// pre-set value. Useful mainly in testing.
     pub fn new(counter: usize) -> RumorStore<T> {
-        RumorStore {
-            update_counter: Arc::new(AtomicUsize::new(counter)),
-            ..Default::default()
-        }
+        RumorStore { update_counter: Arc::new(AtomicUsize::new(counter)),
+                     ..Default::default() }
     }
 
     /// Clear all rumors and reset update counter of RumorStore.
@@ -348,10 +323,7 @@ where
         let list = self.list.read().expect("Rumor store lock poisoned");
         match list.get(key).and_then(|l| l.get(member_id)) {
             Some(rumor) => rumor.clone().write_to_bytes(),
-            None => Err(Error::NonExistentRumor(
-                String::from(member_id),
-                String::from(key),
-            )),
+            None => Err(Error::NonExistentRumor(String::from(member_id), String::from(key))),
         }
     }
 
@@ -367,9 +339,8 @@ where
     /// mutated; if nothing changed, returns false.
     pub fn insert(&self, rumor: T) -> bool {
         let mut list = self.list.write().expect("Rumor store lock poisoned");
-        let rumors = list
-            .entry(String::from(rumor.key()))
-            .or_insert_with(HashMap::new);
+        let rumors = list.entry(String::from(rumor.key()))
+                         .or_insert_with(HashMap::new);
         let kind_ignored_count =
             IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
         // Result reveals if there was a change so we can increment the counter if needed.
@@ -396,8 +367,7 @@ where
     }
 
     pub fn with_keys<F>(&self, mut with_closure: F)
-    where
-        F: FnMut((&String, &HashMap<String, T>)),
+        where F: FnMut((&String, &HashMap<String, T>))
     {
         let list = self.list.read().expect("Rumor store lock poisoned");
         for x in list.iter() {
@@ -406,8 +376,7 @@ where
     }
 
     pub fn with_rumors<F>(&self, key: &str, mut with_closure: F)
-    where
-        F: FnMut(&T),
+        where F: FnMut(&T)
     {
         let list = self.list.read().expect("Rumor store lock poisoned");
         if list.contains_key(key) {
@@ -418,8 +387,7 @@ where
     }
 
     pub fn with_rumor<F>(&self, key: &str, member_id: &str, mut with_closure: F)
-    where
-        F: FnMut(&T),
+        where F: FnMut(&T)
     {
         let list = self.list.read().expect("Rumor store lock poisoned");
         if let Some(sublist) = list.get(key) {
@@ -430,8 +398,7 @@ where
     }
 
     pub fn assert_rumor_is<P>(&self, key: &str, member_id: &str, mut predicate: P)
-    where
-        P: FnMut(&T) -> bool,
+        where P: FnMut(&T) -> bool
     {
         let list = self.list.read().expect("Rumor store lock poisoned");
         if let Some(sublist) = list.get(key) {
@@ -461,11 +428,10 @@ impl RumorStore<Service> {
     /// Returns true if there exist rumors for the given service's service
     /// group, but none containing the given member.
     pub fn contains_group_without_member(&self, service_group: &str, member_id: &str) -> bool {
-        match self
-            .list
-            .read()
-            .expect("Rumor store lock poisoned")
-            .get(service_group)
+        match self.list
+                  .read()
+                  .expect("Rumor store lock poisoned")
+                  .get(service_group)
         {
             Some(group_rumors) => !group_rumors.contains_key(member_id),
             None => false,
@@ -478,11 +444,10 @@ impl RumorStore<Service> {
     /// The weird &&String argument is due to the item type generated by the
     /// Keys iterator, but deref coercion means the provided closure doesn't
     /// need to really care.
-    pub fn min_member_id_with(
-        &self,
-        service_group: &str,
-        predicate: impl FnMut(&&String) -> bool,
-    ) -> Option<String> {
+    pub fn min_member_id_with(&self,
+                              service_group: &str,
+                              predicate: impl FnMut(&&String) -> bool)
+                              -> Option<String> {
         let list = self.list.read().expect("Rumor store lock poisoned");
         list.get(service_group)
             .and_then(|rumor_map| rumor_map.keys().filter(predicate).min().cloned())
@@ -491,19 +456,18 @@ impl RumorStore<Service> {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct RumorEnvelope {
-    pub type_: RumorType,
+    pub type_:   RumorType,
     pub from_id: String,
-    pub kind: RumorKind,
+    pub kind:    RumorKind,
 }
 
 impl RumorEnvelope {
     pub fn decode(bytes: &[u8]) -> Result<Self> {
         let proto = ProtoRumor::decode(bytes)?;
         let type_ = RumorType::from_i32(proto.type_).ok_or(Error::ProtocolMismatch("type"))?;
-        let from_id = proto
-            .from_id
-            .clone()
-            .ok_or(Error::ProtocolMismatch("from-id"))?;
+        let from_id = proto.from_id
+                           .clone()
+                           .ok_or(Error::ProtocolMismatch("from-id"))?;
         let kind = match type_ {
             RumorType::Departure => RumorKind::Departure(Departure::from_proto(proto)?),
             RumorType::Election => RumorKind::Election(Election::from_proto(proto)?),
@@ -516,11 +480,9 @@ impl RumorEnvelope {
             RumorType::ServiceFile => RumorKind::ServiceFile(ServiceFile::from_proto(proto)?),
             RumorType::Fake | RumorType::Fake2 => panic!("fake rumor"),
         };
-        Ok(RumorEnvelope {
-            type_,
-            from_id,
-            kind,
-        })
+        Ok(RumorEnvelope { type_,
+                           from_id,
+                           kind })
     }
 
     pub fn encode(self) -> Result<Vec<u8>> {
@@ -533,12 +495,10 @@ impl RumorEnvelope {
 
 impl From<RumorEnvelope> for ProtoRumor {
     fn from(value: RumorEnvelope) -> ProtoRumor {
-        ProtoRumor {
-            type_: value.type_ as i32,
-            tag: vec![],
-            from_id: Some(value.from_id),
-            payload: Some(value.kind.into()),
-        }
+        ProtoRumor { type_:   value.type_ as i32,
+                     tag:     vec![],
+                     from_id: Some(value.from_id),
+                     payload: Some(value.kind.into()), }
     }
 }
 
@@ -555,22 +515,20 @@ mod tests {
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
-        pub id: String,
+        pub id:  String,
         pub key: String,
     }
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
-            FakeRumor {
-                id: format!("{}", Uuid::new_v4().to_simple_ref()),
-                key: String::from("fakerton"),
-            }
+            FakeRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
+                        key: String::from("fakerton"), }
         }
     }
 
     #[derive(Clone, Debug, Serialize)]
     struct TrumpRumor {
-        pub id: String,
+        pub id:  String,
         pub key: String,
     }
 
@@ -602,10 +560,8 @@ mod tests {
 
     impl Default for TrumpRumor {
         fn default() -> TrumpRumor {
-            TrumpRumor {
-                id: format!("{}", Uuid::new_v4().to_simple_ref()),
-                key: String::from("fakerton"),
-            }
+            TrumpRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
+                         key: String::from("fakerton"), }
         }
     }
 
@@ -683,28 +639,24 @@ mod tests {
             assert!(rs.insert(f1));
             assert!(rs.insert(f2));
             assert_eq!(rs.list.read().unwrap().len(), 1);
-            assert_eq!(
-                rs.list
-                    .read()
-                    .unwrap()
-                    .get(&key)
-                    .unwrap()
-                    .get(&f1_id)
-                    .unwrap()
-                    .id,
-                f1_id
-            );
-            assert_eq!(
-                rs.list
-                    .read()
-                    .unwrap()
-                    .get(&key)
-                    .unwrap()
-                    .get(&f2_id)
-                    .unwrap()
-                    .id,
-                f2_id
-            );
+            assert_eq!(rs.list
+                         .read()
+                         .unwrap()
+                         .get(&key)
+                         .unwrap()
+                         .get(&f1_id)
+                         .unwrap()
+                         .id,
+                       f1_id);
+            assert_eq!(rs.list
+                         .read()
+                         .unwrap()
+                         .get(&key)
+                         .unwrap()
+                         .get(&f2_id)
+                         .unwrap()
+                         .id,
+                       f2_id);
         }
 
         #[test]

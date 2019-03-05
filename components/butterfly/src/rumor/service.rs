@@ -40,20 +40,19 @@ use crate::{error::{Error,
 
 #[derive(Debug, Clone)]
 pub struct Service {
-    pub member_id: String,
+    pub member_id:     String,
     pub service_group: ServiceGroup,
-    pub incarnation: u64,
-    pub initialized: bool,
-    pub pkg: String,
-    pub cfg: Vec<u8>,
-    pub sys: SysInfo,
+    pub incarnation:   u64,
+    pub initialized:   bool,
+    pub pkg:           String,
+    pub cfg:           Vec<u8>,
+    pub sys:           SysInfo,
 }
 
 // Ensures that `cfg` is rendered as a map, and not an array of bytes
 impl Serialize for Service {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let mut strukt = serializer.serialize_struct("service", 7)?;
         let cfg: toml::value::Table = toml::from_slice(&self.cfg).unwrap_or_default();
@@ -81,50 +80,42 @@ impl PartialOrd for Service {
 impl PartialEq for Service {
     fn eq(&self, other: &Service) -> bool {
         self.member_id == other.member_id
-            && self.service_group == other.service_group
-            && self.incarnation == other.incarnation
+        && self.service_group == other.service_group
+        && self.incarnation == other.incarnation
     }
 }
 
 impl Service {
     /// Creates a new Service.
-    pub fn new<T, U>(
-        member_id: U,
-        package: &T,
-        service_group: ServiceGroup,
-        sys: SysInfo,
-        cfg: Option<toml::value::Table>,
-    ) -> Self
-    where
-        T: Identifiable,
-        U: Into<String>,
+    pub fn new<T, U>(member_id: U,
+                     package: &T,
+                     service_group: ServiceGroup,
+                     sys: SysInfo,
+                     cfg: Option<toml::value::Table>)
+                     -> Self
+        where T: Identifiable,
+              U: Into<String>
     {
-        assert!(
-            package.fully_qualified(),
-            "Service constructor requires a fully qualified package identifier"
-        );
-        assert_eq!(
-            service_group.service(),
-            package.name(),
-            "Service constructor requires the given package name to match the service group's name"
-        );
-        Service {
-            member_id: member_id.into(),
-            service_group,
-            incarnation: 0,
-            initialized: false,
-            pkg: package.to_string(),
-            sys,
-            cfg: cfg
-                .map(|v| {
-                    // Directly serializing a toml::value::Table can lead to an error
-                    // Wrapping it in a toml::value::Value makes this operation safe
-                    // See https://github.com/alexcrichton/toml-rs/issues/142
-                    toml::ser::to_vec(&toml::value::Value::Table(v))
+        assert!(package.fully_qualified(),
+                "Service constructor requires a fully qualified package identifier");
+        assert_eq!(service_group.service(),
+                   package.name(),
+                   "Service constructor requires the given package name to match the service \
+                    group's name");
+        Service { member_id: member_id.into(),
+                  service_group,
+                  incarnation: 0,
+                  initialized: false,
+                  pkg: package.to_string(),
+                  sys,
+                  cfg: cfg.map(|v| {
+                              // Directly serializing a toml::value::Table can lead to an error
+                              // Wrapping it in a toml::value::Value makes this operation safe
+                              // See https://github.com/alexcrichton/toml-rs/issues/142
+                              toml::ser::to_vec(&toml::value::Value::Table(v))
                         .expect("Struct should serialize to bytes")
-                })
-                .unwrap_or_default(),
-        }
+                          })
+                          .unwrap_or_default() }
     }
 }
 
@@ -136,37 +127,31 @@ impl FromProto<newscast::Rumor> for Service {
             RumorPayload::Service(payload) => payload,
             _ => panic!("from-bytes service"),
         };
-        Ok(Service {
-            member_id: payload
-                .member_id
-                .ok_or(Error::ProtocolMismatch("member-id"))?,
-            service_group: payload
-                .service_group
-                .ok_or(Error::ProtocolMismatch("service-group"))
-                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
-            incarnation: payload.incarnation.unwrap_or(0),
-            initialized: payload.initialized.unwrap_or(false),
-            pkg: payload.pkg.ok_or(Error::ProtocolMismatch("pkg"))?,
-            cfg: payload.cfg.unwrap_or_default(),
-            sys: payload
-                .sys
-                .ok_or(Error::ProtocolMismatch("sys"))
-                .and_then(SysInfo::from_proto)?,
-        })
+        Ok(Service { member_id:     payload.member_id
+                                           .ok_or(Error::ProtocolMismatch("member-id"))?,
+                     service_group:
+                         payload.service_group
+                                .ok_or(Error::ProtocolMismatch("service-group"))
+                                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
+                     incarnation:   payload.incarnation.unwrap_or(0),
+                     initialized:   payload.initialized.unwrap_or(false),
+                     pkg:           payload.pkg.ok_or(Error::ProtocolMismatch("pkg"))?,
+                     cfg:           payload.cfg.unwrap_or_default(),
+                     sys:           payload.sys
+                                           .ok_or(Error::ProtocolMismatch("sys"))
+                                           .and_then(SysInfo::from_proto)?, })
     }
 }
 
 impl From<Service> for newscast::Service {
     fn from(value: Service) -> Self {
-        newscast::Service {
-            member_id: Some(value.member_id),
-            service_group: Some(value.service_group.to_string()),
-            incarnation: Some(value.incarnation),
-            initialized: Some(value.initialized),
-            pkg: Some(value.pkg),
-            cfg: Some(value.cfg),
-            sys: Some(value.sys.into()),
-        }
+        newscast::Service { member_id:     Some(value.member_id),
+                            service_group: Some(value.service_group.to_string()),
+                            incarnation:   Some(value.incarnation),
+                            initialized:   Some(value.initialized),
+                            pkg:           Some(value.pkg),
+                            cfg:           Some(value.cfg),
+                            sys:           Some(value.sys.into()), }
     }
 }
 
@@ -191,58 +176,53 @@ impl Rumor for Service {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SysInfo {
-    pub ip: String,
-    pub hostname: String,
-    pub gossip_ip: String,
-    pub gossip_port: u32,
-    pub http_gateway_ip: String,
+    pub ip:                String,
+    pub hostname:          String,
+    pub gossip_ip:         String,
+    pub gossip_port:       u32,
+    pub http_gateway_ip:   String,
     pub http_gateway_port: u32,
-    pub ctl_gateway_ip: String,
-    pub ctl_gateway_port: u32,
+    pub ctl_gateway_ip:    String,
+    pub ctl_gateway_port:  u32,
 }
 
 impl Default for SysInfo {
     fn default() -> Self {
-        SysInfo {
-            ip: "127.0.0.1".to_string(),
-            hostname: "localhost".to_string(),
-            gossip_ip: "127.0.0.1".to_string(),
-            gossip_port: 0,
-            http_gateway_ip: "127.0.0.1".to_string(),
-            http_gateway_port: 0,
-            ctl_gateway_ip: "127.0.0.1".to_string(),
-            ctl_gateway_port: 0,
-        }
+        SysInfo { ip:                "127.0.0.1".to_string(),
+                  hostname:          "localhost".to_string(),
+                  gossip_ip:         "127.0.0.1".to_string(),
+                  gossip_port:       0,
+                  http_gateway_ip:   "127.0.0.1".to_string(),
+                  http_gateway_port: 0,
+                  ctl_gateway_ip:    "127.0.0.1".to_string(),
+                  ctl_gateway_port:  0, }
     }
 }
 
 impl FromProto<newscast::SysInfo> for SysInfo {
     fn from_proto(proto: newscast::SysInfo) -> Result<Self> {
-        Ok(SysInfo {
-            ip: proto.ip.ok_or(Error::ProtocolMismatch("ip"))?,
-            hostname: proto.hostname.ok_or(Error::ProtocolMismatch("hostname"))?,
-            gossip_ip: proto.gossip_ip.unwrap_or_default(),
-            gossip_port: proto.gossip_port.unwrap_or_default(),
-            http_gateway_ip: proto.http_gateway_ip.unwrap_or_default(),
-            http_gateway_port: proto.http_gateway_port.unwrap_or_default(),
-            ctl_gateway_ip: proto.ctl_gateway_ip.unwrap_or_default(),
-            ctl_gateway_port: proto.ctl_gateway_port.unwrap_or_default(),
-        })
+        Ok(SysInfo { ip:                proto.ip.ok_or(Error::ProtocolMismatch("ip"))?,
+                     hostname:          proto.hostname
+                                             .ok_or(Error::ProtocolMismatch("hostname"))?,
+                     gossip_ip:         proto.gossip_ip.unwrap_or_default(),
+                     gossip_port:       proto.gossip_port.unwrap_or_default(),
+                     http_gateway_ip:   proto.http_gateway_ip.unwrap_or_default(),
+                     http_gateway_port: proto.http_gateway_port.unwrap_or_default(),
+                     ctl_gateway_ip:    proto.ctl_gateway_ip.unwrap_or_default(),
+                     ctl_gateway_port:  proto.ctl_gateway_port.unwrap_or_default(), })
     }
 }
 
 impl From<SysInfo> for newscast::SysInfo {
     fn from(value: SysInfo) -> Self {
-        newscast::SysInfo {
-            ip: Some(value.ip),
-            hostname: Some(value.hostname),
-            gossip_ip: Some(value.gossip_ip),
-            gossip_port: Some(value.gossip_port),
-            http_gateway_ip: Some(value.http_gateway_ip),
-            http_gateway_port: Some(value.http_gateway_port),
-            ctl_gateway_ip: Some(value.ctl_gateway_ip),
-            ctl_gateway_port: Some(value.ctl_gateway_port),
-        }
+        newscast::SysInfo { ip:                Some(value.ip),
+                            hostname:          Some(value.hostname),
+                            gossip_ip:         Some(value.gossip_ip),
+                            gossip_port:       Some(value.gossip_port),
+                            http_gateway_ip:   Some(value.http_gateway_ip),
+                            http_gateway_port: Some(value.http_gateway_port),
+                            ctl_gateway_ip:    Some(value.ctl_gateway_ip),
+                            ctl_gateway_port:  Some(value.ctl_gateway_port), }
     }
 }
 
@@ -348,13 +328,11 @@ mod tests {
     fn service_package_name_mismatch() {
         let ident = PackageIdent::from_str("core/overwatch/1.2.3/20161208121212").unwrap();
         let sg = ServiceGroup::new(None, "counter-strike", "times", Some("ofgrace")).unwrap();
-        Service::new(
-            "bad-member".to_string(),
-            &ident,
-            sg,
-            SysInfo::default(),
-            None,
-        );
+        Service::new("bad-member".to_string(),
+                     &ident,
+                     sg,
+                     SysInfo::default(),
+                     None);
     }
 
     #[test]

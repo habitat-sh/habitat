@@ -38,9 +38,9 @@ const DEFAULT_FREQUENCY: i64 = 60_000;
 const FREQUENCY_ENVVAR: &str = "HAB_SUP_UPDATE_MS";
 
 pub struct SelfUpdater {
-    rx: Receiver<PackageInstall>,
-    current: PackageIdent,
-    update_url: String,
+    rx:             Receiver<PackageInstall>,
+    current:        PackageIdent,
+    update_url:     String,
     update_channel: ChannelIdent,
 }
 
@@ -50,34 +50,28 @@ pub struct SelfUpdater {
 impl SelfUpdater {
     pub fn new(current: PackageIdent, update_url: String, update_channel: ChannelIdent) -> Self {
         let rx = Self::init(current.clone(), update_url.clone(), update_channel.clone());
-        SelfUpdater {
-            rx,
-            current,
-            update_url,
-            update_channel,
-        }
+        SelfUpdater { rx,
+                      current,
+                      update_url,
+                      update_channel }
     }
 
     /// Spawn a new Supervisor updater thread.
-    fn init(
-        current: PackageIdent,
-        update_url: String,
-        update_channel: ChannelIdent,
-    ) -> Receiver<PackageInstall> {
+    fn init(current: PackageIdent,
+            update_url: String,
+            update_channel: ChannelIdent)
+            -> Receiver<PackageInstall> {
         let (tx, rx) = sync_channel(0);
-        thread::Builder::new()
-            .name("self-updater".to_string())
-            .spawn(move || Self::run(&tx, &current, &update_url, &update_channel))
-            .expect("Unable to start self-updater thread");
+        thread::Builder::new().name("self-updater".to_string())
+                              .spawn(move || Self::run(&tx, &current, &update_url, &update_channel))
+                              .expect("Unable to start self-updater thread");
         rx
     }
 
-    fn run(
-        sender: &SyncSender<PackageInstall>,
-        current: &PackageIdent,
-        builder_url: &str,
-        channel: &ChannelIdent,
-    ) {
+    fn run(sender: &SyncSender<PackageInstall>,
+           current: &PackageIdent,
+           builder_url: &str,
+           channel: &ChannelIdent) {
         debug!("Self updater current package, {}", current);
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,
         // and thus a valid InstallSource
@@ -85,19 +79,16 @@ impl SelfUpdater {
         loop {
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
 
-            match util::pkg::install(
-                // We don't want anything in here to print
-                &mut UI::with_sinks(),
-                builder_url,
-                &install_source,
-                channel,
-            ) {
+            match util::pkg::install(// We don't want anything in here to print
+                                     &mut UI::with_sinks(),
+                                     builder_url,
+                                     &install_source,
+                                     channel)
+            {
                 Ok(package) => {
                     if current < package.ident() {
-                        debug!(
-                            "Self updater installing newer Supervisor, {}",
-                            package.ident()
-                        );
+                        debug!("Self updater installing newer Supervisor, {}",
+                               package.ident());
                         sender.send(package).expect("Main thread has gone away!");
                         break;
                     } else {
@@ -122,11 +113,9 @@ impl SelfUpdater {
             Err(TryRecvError::Empty) => None,
             Err(TryRecvError::Disconnected) => {
                 debug!("Self updater has died, restarting...");
-                self.rx = Self::init(
-                    self.current.clone(),
-                    self.update_url.clone(),
-                    self.update_channel.clone(),
-                );
+                self.rx = Self::init(self.current.clone(),
+                                     self.update_url.clone(),
+                                     self.update_channel.clone());
                 None
             }
         }

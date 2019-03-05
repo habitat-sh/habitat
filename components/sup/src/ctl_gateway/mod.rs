@@ -84,22 +84,18 @@ pub struct CtlRequest {
 impl CtlRequest {
     /// Create a new CtlRequest from an optional [`server.CtlSender`] and
     /// [`protocol.codec.SrvTxn`].
-    pub fn new(
-        tx: Option<server::CtlSender>,
-        transaction: Option<protocol::codec::SrvTxn>,
-    ) -> Self {
-        CtlRequest {
-            tx,
-            transaction,
-            current_color_spec: None,
-        }
+    pub fn new(tx: Option<server::CtlSender>,
+               transaction: Option<protocol::codec::SrvTxn>)
+               -> Self {
+        CtlRequest { tx,
+                     transaction,
+                     current_color_spec: None }
     }
 
     /// Reply to the transaction with the given message but indicate to the receiver that this is
     /// not the final message for the transaction.
     pub fn reply_partial<T>(&mut self, msg: T)
-    where
-        T: Into<protocol::codec::SrvMessage> + fmt::Debug,
+        where T: Into<protocol::codec::SrvMessage> + fmt::Debug
     {
         self.send_msg(msg, false);
     }
@@ -107,8 +103,7 @@ impl CtlRequest {
     /// Reply to the transaction with the given message and indicate to the receiver that this is
     /// the final message for the transaction.
     pub fn reply_complete<T>(&mut self, msg: T)
-    where
-        T: Into<protocol::codec::SrvMessage> + fmt::Debug,
+        where T: Into<protocol::codec::SrvMessage> + fmt::Debug
     {
         self.send_msg(msg, true);
     }
@@ -117,14 +112,11 @@ impl CtlRequest {
     pub fn transactional(&self) -> bool { self.transaction.is_some() && self.tx.is_some() }
 
     fn send_msg<T>(&mut self, msg: T, complete: bool)
-    where
-        T: Into<protocol::codec::SrvMessage> + fmt::Debug,
+        where T: Into<protocol::codec::SrvMessage> + fmt::Debug
     {
         if !self.transactional() {
-            warn!(
-                "Attempted to reply to a non-transactional message with {:?}",
-                msg
-            );
+            warn!("Attempted to reply to a non-transactional message with {:?}",
+                  msg);
             return;
         }
         let mut wire: protocol::codec::SrvMessage = msg.into();
@@ -238,16 +230,14 @@ fn color_to_string(color: Option<&Color>) -> Option<String> {
 /// traits for writing it's progress to the console.
 pub struct NetProgressBar {
     inner: protocol::ctl::NetProgress,
-    req: CtlRequest,
+    req:   CtlRequest,
 }
 
 impl NetProgressBar {
     /// Create a new progress bar.
     pub fn new(req: CtlRequest) -> Self {
-        NetProgressBar {
-            inner: protocol::ctl::NetProgress::default(),
-            req,
-        }
+        NetProgressBar { inner: protocol::ctl::NetProgress::default(),
+                         req }
     }
 }
 
@@ -270,15 +260,15 @@ impl io::Write for NetProgressBar {
 /// First attempts to read the secret key used to authenticate with the `CtlGateway` from disk
 /// and, if not found, will generate a new key and write it to disk.
 pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     let mut out = String::new();
-    fs::create_dir_all(&sup_root)
-        .map_err(|e| sup_error!(Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e)))?;
-    if protocol::read_secret_key(&sup_root, &mut out)
-        .ok()
-        .unwrap_or(false)
+    fs::create_dir_all(&sup_root).map_err(|e| {
+                                     sup_error!(Error::CtlSecretIo(sup_root.as_ref().to_path_buf(),
+                                                                   e))
+                                 })?;
+    if protocol::read_secret_key(&sup_root, &mut out).ok()
+                                                     .unwrap_or(false)
     {
         Ok(out)
     } else {

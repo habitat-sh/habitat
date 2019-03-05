@@ -65,24 +65,21 @@ impl Manifest {
     /// Create a Manifest instance from command-line arguments passed as [`clap::ArgMatches`].
     ///
     /// [`clap::ArgMatches`]: https://kbknapp.github.io/clap-rs/clap/struct.ArgMatches.html
-    pub fn new_from_cli_matches(
-        _ui: &mut UI,
-        matches: &ArgMatches<'_>,
-        image: Option<DockerImage>,
-    ) -> Result<Self> {
+    pub fn new_from_cli_matches(_ui: &mut UI,
+                                matches: &ArgMatches<'_>,
+                                image: Option<DockerImage>)
+                                -> Result<Self> {
         let count = matches.value_of("COUNT").unwrap_or("1").parse()?;
-        let topology: Topology = matches
-            .value_of("TOPOLOGY")
-            .unwrap_or("standalone")
-            .parse()
-            .unwrap_or_default();
+        let topology: Topology = matches.value_of("TOPOLOGY")
+                                        .unwrap_or("standalone")
+                                        .parse()
+                                        .unwrap_or_default();
         let group = matches.value_of("GROUP").map(|s| s.to_string());
         let config_file = matches.value_of("CONFIG");
         let ring_secret_name = matches.value_of("RING_SECRET_NAME").map(|s| s.to_string());
         // clap ensures that we do have the mandatory args so unwrap() is fine here
-        let pkg_ident_str = matches
-            .value_of("PKG_IDENT_OR_ARTIFACT")
-            .expect("No package specified");
+        let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT")
+                                   .expect("No package specified");
         let pkg_ident = if Path::new(pkg_ident_str).is_file() {
             // We're going to use the `$pkg_origin/$pkg_name`, fuzzy form of a package
             // identifier to ensure that update strategies will work if desired
@@ -92,33 +89,30 @@ impl Manifest {
         };
 
         let version_suffix = match pkg_ident.version {
-            Some(ref v) => pkg_ident
-                .release
-                .as_ref()
-                .map(|r| format!("{}-{}", v, r))
-                .unwrap_or_else(|| v.to_string()),
+            Some(ref v) => {
+                pkg_ident.release
+                         .as_ref()
+                         .map(|r| format!("{}-{}", v, r))
+                         .unwrap_or_else(|| v.to_string())
+            }
             None => "latest".to_owned(),
         };
-        let name = matches
-            .value_of("K8S_NAME")
-            .map(|s| s.to_string())
-            .unwrap_or_else(|| format!("{}-{}", pkg_ident.name, version_suffix));
+        let name = matches.value_of("K8S_NAME")
+                          .map(|s| s.to_string())
+                          .unwrap_or_else(|| format!("{}-{}", pkg_ident.name, version_suffix));
 
         let image_name = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
             None => {
                 let (image_name, tag) = match image {
-                    Some(i) => (
-                        i.name().to_owned(),
-                        i.tags()
-                            .get(0)
-                            .cloned()
-                            .unwrap_or_else(|| "latest".to_owned()),
-                    ),
-                    None => (
-                        format!("{}/{}", pkg_ident.origin, pkg_ident.name),
-                        version_suffix,
-                    ),
+                    Some(i) => {
+                        (i.name().to_owned(),
+                         i.tags()
+                          .get(0)
+                          .cloned()
+                          .unwrap_or_else(|| "latest".to_owned()))
+                    }
+                    None => (format!("{}/{}", pkg_ident.origin, pkg_ident.name), version_suffix),
                 };
 
                 format!("{}:{}", image_name, tag)
@@ -144,19 +138,17 @@ impl Manifest {
             }
         };
 
-        Ok(Manifest {
-            pkg_ident,
-            metadata_name: name,
-            image: image_name,
-            count,
-            service_topology: topology,
-            service_group: group,
-            config,
-            ring_secret_name,
-            binds,
-            persistent_storage,
-            environment,
-        })
+        Ok(Manifest { pkg_ident,
+                      metadata_name: name,
+                      image: image_name,
+                      count,
+                      service_topology: topology,
+                      service_group: group,
+                      config,
+                      ring_secret_name,
+                      binds,
+                      persistent_storage,
+                      environment })
     }
 
     /// Generates the manifest as a string and writes it to `write`.
@@ -174,19 +166,17 @@ mod tests {
 
     #[test]
     fn test_manifest_generation() {
-        let mut m = Manifest {
-            pkg_ident: PackageIdent::from_str("core/nginx").unwrap(),
-            metadata_name: "nginx-latest".to_owned(),
-            image: "core/nginx:latest".to_owned(),
-            count: 3,
-            service_topology: Default::default(),
-            service_group: Some("group1".to_owned()),
-            config: Some(base64::encode(&"port = 4444")),
-            ring_secret_name: Some("deltaechofoxtrot".to_owned()),
-            binds: vec![],
-            persistent_storage: None,
-            environment: vec![],
-        };
+        let mut m = Manifest { pkg_ident:          PackageIdent::from_str("core/nginx").unwrap(),
+                               metadata_name:      "nginx-latest".to_owned(),
+                               image:              "core/nginx:latest".to_owned(),
+                               count:              3,
+                               service_topology:   Default::default(),
+                               service_group:      Some("group1".to_owned()),
+                               config:             Some(base64::encode(&"port = 4444")),
+                               ring_secret_name:   Some("deltaechofoxtrot".to_owned()),
+                               binds:              vec![],
+                               persistent_storage: None,
+                               environment:        vec![], };
 
         let expected = include_str!("../tests/KubernetesManifestTest.yaml");
 
@@ -200,19 +190,17 @@ mod tests {
 
     #[test]
     fn test_manifest_generation_binds() {
-        let mut m = Manifest {
-            pkg_ident: PackageIdent::from_str("core/nginx").unwrap(),
-            metadata_name: "nginx-latest".to_owned(),
-            image: "core/nginx:latest".to_owned(),
-            count: 3,
-            service_topology: Default::default(),
-            service_group: Some("group1".to_owned()),
-            config: None,
-            ring_secret_name: Some("deltaechofoxtrot".to_owned()),
-            binds: vec!["name1:service1.group1".parse().unwrap()],
-            persistent_storage: None,
-            environment: vec![],
-        };
+        let mut m = Manifest { pkg_ident:          PackageIdent::from_str("core/nginx").unwrap(),
+                               metadata_name:      "nginx-latest".to_owned(),
+                               image:              "core/nginx:latest".to_owned(),
+                               count:              3,
+                               service_topology:   Default::default(),
+                               service_group:      Some("group1".to_owned()),
+                               config:             None,
+                               ring_secret_name:   Some("deltaechofoxtrot".to_owned()),
+                               binds:              vec!["name1:service1.group1".parse().unwrap()],
+                               persistent_storage: None,
+                               environment:        vec![], };
 
         let expected = include_str!("../tests/KubernetesManifestTestBinds.yaml");
 
@@ -226,19 +214,17 @@ mod tests {
 
     #[test]
     fn test_manifest_generation_persistent_storage() {
-        let mut m = Manifest {
-            pkg_ident: PackageIdent::from_str("core/nginx").unwrap(),
-            metadata_name: "nginx-latest".to_owned(),
-            image: "core/nginx:latest".to_owned(),
-            count: 3,
-            service_topology: Default::default(),
-            service_group: Some("group1".to_owned()),
-            config: None,
-            ring_secret_name: Some("deltaechofoxtrot".to_owned()),
-            binds: vec![],
-            persistent_storage: Some("10Gi:/foo/bar:standard".parse().unwrap()),
-            environment: vec![],
-        };
+        let mut m = Manifest { pkg_ident:          PackageIdent::from_str("core/nginx").unwrap(),
+                               metadata_name:      "nginx-latest".to_owned(),
+                               image:              "core/nginx:latest".to_owned(),
+                               count:              3,
+                               service_topology:   Default::default(),
+                               service_group:      Some("group1".to_owned()),
+                               config:             None,
+                               ring_secret_name:   Some("deltaechofoxtrot".to_owned()),
+                               binds:              vec![],
+                               persistent_storage: Some("10Gi:/foo/bar:standard".parse().unwrap()),
+                               environment:        vec![], };
 
         let expected = include_str!("../tests/KubernetesManifestTestPersistentStorage.yaml");
 
@@ -252,22 +238,18 @@ mod tests {
 
     #[test]
     fn test_manifest_generation_environment() {
-        let mut m = Manifest {
-            pkg_ident: PackageIdent::from_str("core/nginx").unwrap(),
-            metadata_name: "nginx-latest".to_owned(),
-            image: "core/nginx:latest".to_owned(),
-            count: 3,
-            service_topology: Default::default(),
-            service_group: Some("group1".to_owned()),
-            config: None,
-            ring_secret_name: Some("deltaechofoxtrot".to_owned()),
-            binds: vec![],
-            persistent_storage: None,
-            environment: vec![
-                "FOO=bar".parse().unwrap(),
-                "QUOTES=quo\"te".parse().unwrap(),
-            ],
-        };
+        let mut m = Manifest { pkg_ident:          PackageIdent::from_str("core/nginx").unwrap(),
+                               metadata_name:      "nginx-latest".to_owned(),
+                               image:              "core/nginx:latest".to_owned(),
+                               count:              3,
+                               service_topology:   Default::default(),
+                               service_group:      Some("group1".to_owned()),
+                               config:             None,
+                               ring_secret_name:   Some("deltaechofoxtrot".to_owned()),
+                               binds:              vec![],
+                               persistent_storage: None,
+                               environment:        vec!["FOO=bar".parse().unwrap(),
+                                                        "QUOTES=quo\"te".parse().unwrap(),], };
 
         let expected = include_str!("../tests/KubernetesManifestTestEnvironment.yaml");
 

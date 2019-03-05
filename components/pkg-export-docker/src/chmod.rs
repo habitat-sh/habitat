@@ -43,8 +43,7 @@ use crate::{error::Result,
 
 /// Perform the equivalent of `chmod -R g=u path`.
 pub fn recursive_g_equal_u<P>(path: P) -> Result<()>
-where
-    P: AsRef<Path>,
+    where P: AsRef<Path>
 {
     let path = path.as_ref().to_path_buf();
     let metadata = fs::symlink_metadata(&path)?;
@@ -67,9 +66,8 @@ where
 
 /// Set the group permissions of `path` equal to the user permissions.
 fn set_g_equal_u<P, Q>(path: P, permissions: &Q) -> Result<()>
-where
-    P: AsRef<Path>,
-    Q: PermissionsExt,
+    where P: AsRef<Path>,
+          Q: PermissionsExt
 {
     let current = permissions.mode();
     let new_permissions = g_equals_u(current);
@@ -110,28 +108,24 @@ fn g_equals_u(perms: u32) -> u32 {
 
 #[test]
 fn test_g_equals_u() {
-    let test_cases = vec![
-        (0o00750, 0o00770),
-        (0o00150, 0o00110),
-        (0o00753, 0o00773),
-        (0o40753, 0o40773),
-        (0o02753, 0o02773),
-        (0o42753, 0o42773),
-        (0o00000, 0o00000),
-        (0o00007, 0o00007),
-        (0o00070, 0o00000),
-        (0o00770, 0o00770),
-        (0o00700, 0o00770),
-    ];
+    let test_cases = vec![(0o00750, 0o00770),
+                          (0o00150, 0o00110),
+                          (0o00753, 0o00773),
+                          (0o40753, 0o40773),
+                          (0o02753, 0o02773),
+                          (0o42753, 0o42773),
+                          (0o00000, 0o00000),
+                          (0o00007, 0o00007),
+                          (0o00070, 0o00000),
+                          (0o00770, 0o00770),
+                          (0o00700, 0o00770),];
 
     for (input, expected) in test_cases {
         let actual = g_equals_u(input);
-        assert!(
-            actual == expected,
-            "input = {:#o}, expected = {:#o}, actual = {:#o}",
-            input,
-            expected,
-            actual
-        );
+        assert!(actual == expected,
+                "input = {:#o}, expected = {:#o}, actual = {:#o}",
+                input,
+                expected,
+                actual);
     }
 }

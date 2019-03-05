@@ -50,21 +50,19 @@ use toml;
 
 static LOGKEY: &'static str = "CMD";
 
-pub fn service_cfg(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcGetDefaultCfg,
-) -> NetResult<()> {
+pub fn service_cfg(mgr: &ManagerState,
+                   req: &mut CtlRequest,
+                   opts: protocol::ctl::SvcGetDefaultCfg)
+                   -> NetResult<()> {
     let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
-    let mut msg = protocol::types::ServiceCfg {
-        format: Some(protocol::types::service_cfg::Format::Toml as i32),
-        default: None,
-    };
-    for service in mgr
-        .services
-        .read()
-        .expect("Services lock is poisoned")
-        .values()
+    let mut msg = protocol::types::ServiceCfg { format:
+                                                    Some(protocol::types::service_cfg::Format::Toml
+                                                         as i32),
+                                                default: None, };
+    for service in mgr.services
+                      .read()
+                      .expect("Services lock is poisoned")
+                      .values()
     {
         if service.pkg.ident.satisfies(&ident) {
             if let Some(ref cfg) = service.cfg.default {
@@ -75,40 +73,31 @@ pub fn service_cfg(
             return Ok(());
         }
     }
-    Err(net::err(
-        ErrCode::NotFound,
-        format!("Service not loaded, {}", ident),
-    ))
+    Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident)))
 }
 
-pub fn service_cfg_validate(
-    _mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcValidateCfg,
-) -> NetResult<()> {
+pub fn service_cfg_validate(_mgr: &ManagerState,
+                            req: &mut CtlRequest,
+                            opts: protocol::ctl::SvcValidateCfg)
+                            -> NetResult<()> {
     let cfg = opts.cfg.ok_or_else(err_update_client)?;
-    let format = opts
-        .format
-        .and_then(protocol::types::service_cfg::Format::from_i32)
-        .unwrap_or_default();
+    let format = opts.format
+                     .and_then(protocol::types::service_cfg::Format::from_i32)
+                     .unwrap_or_default();
     if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
-        return Err(net::err(
-            ErrCode::EntityTooLarge,
-            "Configuration too large.",
-        ));
+        return Err(net::err(ErrCode::EntityTooLarge, "Configuration too large."));
     }
     if format != protocol::types::service_cfg::Format::Toml {
-        return Err(net::err(
-            ErrCode::NotSupported,
-            format!("Configuration format {} not available.", format),
-        ));
+        return Err(net::err(ErrCode::NotSupported,
+                            format!("Configuration format {} not available.",
+                                    format)));
     }
     let _new_cfg: toml::value::Table = toml::from_slice(&cfg).map_err(|e| {
-        net::err(
+                                                                 net::err(
             ErrCode::BadPayload,
             format!("Unable to decode configuration as {}, {}", format, e),
         )
-    })?;
+                                                             })?;
     req.reply_complete(net::ok());
     Ok(())
     // JW TODO: Hold off on validation until we can validate services which aren't currently
@@ -143,36 +132,30 @@ pub fn service_cfg_validate(
     // ))
 }
 
-pub fn service_cfg_set(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcSetCfg,
-) -> NetResult<()> {
+pub fn service_cfg_set(mgr: &ManagerState,
+                       req: &mut CtlRequest,
+                       opts: protocol::ctl::SvcSetCfg)
+                       -> NetResult<()> {
     let cfg = opts.cfg.ok_or_else(err_update_client)?;
     let is_encrypted = opts.is_encrypted.unwrap_or(false);
     let version = opts.version.ok_or_else(err_update_client)?;
     let service_group: ServiceGroup = opts.service_group.ok_or_else(err_update_client)?.into();
     if cfg.len() > protocol::butterfly::MAX_SVC_CFG_SIZE {
-        return Err(net::err(
-            ErrCode::EntityTooLarge,
-            "Configuration too large.",
-        ));
+        return Err(net::err(ErrCode::EntityTooLarge, "Configuration too large."));
     }
-    outputln!(
-        "Setting new configuration version {} for {}",
-        version,
-        service_group,
-    );
-    let mut client = match butterfly::client::Client::new(
-        &mgr.cfg.gossip_listen.local_addr().to_string(),
-        mgr.cfg.ring_key.clone(),
-    ) {
-        Ok(client) => client,
-        Err(err) => {
-            outputln!("Failed to connect to own gossip server, {}", err);
-            return Err(net::err(ErrCode::Internal, err.to_string()));
-        }
-    };
+    outputln!("Setting new configuration version {} for {}",
+              version,
+              service_group,);
+    let mut client =
+        match butterfly::client::Client::new(&mgr.cfg.gossip_listen.local_addr().to_string(),
+                                             mgr.cfg.ring_key.clone())
+        {
+            Ok(client) => client,
+            Err(err) => {
+                outputln!("Failed to connect to own gossip server, {}", err);
+                return Err(net::err(ErrCode::Internal, err.to_string()));
+            }
+        };
     match client.send_service_config(service_group, version, &cfg, is_encrypted) {
         Ok(()) => {
             req.reply_complete(net::ok());
@@ -182,11 +165,10 @@ pub fn service_cfg_set(
     }
 }
 
-pub fn service_file_put(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcFilePut,
-) -> NetResult<()> {
+pub fn service_file_put(mgr: &ManagerState,
+                        req: &mut CtlRequest,
+                        opts: protocol::ctl::SvcFilePut)
+                        -> NetResult<()> {
     let content = opts.content.ok_or_else(err_update_client)?;
     let filename = opts.filename.ok_or_else(err_update_client)?;
     let is_encrypted = opts.is_encrypted.unwrap_or(false);
@@ -195,22 +177,20 @@ pub fn service_file_put(
     if content.len() > protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES {
         return Err(net::err(ErrCode::EntityTooLarge, "File content too large."));
     }
-    outputln!(
-        "Receiving new version {} of file {} for {}",
-        version,
-        filename,
-        service_group,
-    );
-    let mut client = match butterfly::client::Client::new(
-        &mgr.cfg.gossip_listen.local_addr().to_string(),
-        mgr.cfg.ring_key.clone(),
-    ) {
-        Ok(client) => client,
-        Err(err) => {
-            outputln!("Failed to connect to own gossip server, {}", err);
-            return Err(net::err(ErrCode::Internal, err.to_string()));
-        }
-    };
+    outputln!("Receiving new version {} of file {} for {}",
+              version,
+              filename,
+              service_group,);
+    let mut client =
+        match butterfly::client::Client::new(&mgr.cfg.gossip_listen.local_addr().to_string(),
+                                             mgr.cfg.ring_key.clone())
+        {
+            Ok(client) => client,
+            Err(err) => {
+                outputln!("Failed to connect to own gossip server, {}", err);
+                return Err(net::err(ErrCode::Internal, err.to_string()));
+            }
+        };
     match client.send_service_file(service_group, filename, version, &content, is_encrypted) {
         Ok(()) => {
             req.reply_complete(net::ok());
@@ -220,21 +200,18 @@ pub fn service_file_put(
     }
 }
 
-pub fn service_load(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: &protocol::ctl::SvcLoad,
-) -> NetResult<()> {
+pub fn service_load(mgr: &ManagerState,
+                    req: &mut CtlRequest,
+                    opts: &protocol::ctl::SvcLoad)
+                    -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
-    let bldr_url = opts
-        .bldr_url
-        .clone()
-        .unwrap_or_else(|| protocol::DEFAULT_BLDR_URL.to_string());
-    let bldr_channel = opts
-        .bldr_channel
-        .clone()
-        .map(ChannelIdent::from)
-        .unwrap_or_default();
+    let bldr_url = opts.bldr_url
+                       .clone()
+                       .unwrap_or_else(|| protocol::DEFAULT_BLDR_URL.to_string());
+    let bldr_channel = opts.bldr_channel
+                           .clone()
+                           .map(ChannelIdent::from)
+                           .unwrap_or_default();
     let force = opts.force.unwrap_or(false);
     let source = InstallSource::Ident(ident.clone(), *PackageTarget::active_target());
     match spec_for_ident(&mgr.cfg, source.as_ref()) {
@@ -251,10 +228,7 @@ pub fn service_load(
             util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel)?;
 
             save_spec_for(&mgr.cfg, &spec)?;
-            req.info(format!(
-                "The {} service was successfully loaded",
-                spec.ident
-            ))?;
+            req.info(format!("The {} service was successfully loaded", spec.ident))?;
         }
         Some(mut spec) => {
             // We've seen this service  before. Thus `load`
@@ -265,10 +239,10 @@ pub fn service_load(
             // in question
 
             if !force {
-                return Err(net::err(
-                    ErrCode::Conflict,
-                    format!("Service already loaded, unload '{}' and try again", ident),
-                ));
+                return Err(net::err(ErrCode::Conflict,
+                                    format!("Service already loaded, unload '{}' \
+                                             and try again",
+                                            ident)));
             }
 
             opts.into_spec(&mut spec);
@@ -282,30 +256,24 @@ pub fn service_load(
             util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
 
             save_spec_for(&mgr.cfg, &spec)?;
-            req.info(format!(
-                "The {} service was successfully loaded",
-                spec.ident
-            ))?;
+            req.info(format!("The {} service was successfully loaded", spec.ident))?;
         }
     }
     req.reply_complete(net::ok());
     Ok(())
 }
 
-pub fn service_unload(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcUnload,
-) -> NetResult<()> {
+pub fn service_unload(mgr: &ManagerState,
+                      req: &mut CtlRequest,
+                      opts: protocol::ctl::SvcUnload)
+                      -> NetResult<()> {
     let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
 
     if let Some(spec) = spec_for_ident(&mgr.cfg, &ident) {
         let file = spec_path_for(&mgr.cfg, &spec);
         if let Err(err) = fs::remove_file(&file) {
-            return Err(net::err(
-                ErrCode::Internal,
-                format!("{}", sup_error!(Error::ServiceSpecFileIO(file, err))),
-            ));
+            return Err(net::err(ErrCode::Internal,
+                                format!("{}", sup_error!(Error::ServiceSpecFileIO(file, err)))));
         };
         // JW TODO: Change this to unloaded from unloading when the Supervisor waits for
         // the work to complete.
@@ -315,11 +283,10 @@ pub fn service_unload(
     Ok(())
 }
 
-pub fn service_start(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcStart,
-) -> NetResult<()> {
+pub fn service_start(mgr: &ManagerState,
+                     req: &mut CtlRequest,
+                     opts: protocol::ctl::SvcStart)
+                     -> NetResult<()> {
     let ident = opts.ident.ok_or_else(err_update_client)?.into();
     match spec_for_ident(&mgr.cfg, &ident) {
         Some(mut spec) => {
@@ -329,28 +296,23 @@ pub fn service_start(
 
                 // JW TODO: Change the language of the message below to "started" when we actually
                 // synchronously control services from the ctl gateway.
-                req.info(format!(
-                    "Supervisor starting {}. See the Supervisor output for more details.",
-                    &ident
-                ))?;
+                req.info(format!("Supervisor starting {}. See the Supervisor output for more \
+                                  details.",
+                                 &ident))?;
             }
         }
         None => {
-            return Err(net::err(
-                ErrCode::NotFound,
-                format!("Service not loaded, {}", &ident),
-            ));
+            return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", &ident)));
         }
     };
     req.reply_complete(net::ok());
     Ok(())
 }
 
-pub fn service_stop(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcStop,
-) -> NetResult<()> {
+pub fn service_stop(mgr: &ManagerState,
+                    req: &mut CtlRequest,
+                    opts: protocol::ctl::SvcStop)
+                    -> NetResult<()> {
     let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
     match spec_for_ident(&mgr.cfg, &ident) {
         Some(mut spec) => {
@@ -360,17 +322,13 @@ pub fn service_stop(
 
                 // JW TODO: Change the langauge of the message below to "stopped" when we actually
                 // synchronously control services from the ctl gateway.
-                req.info(format!(
-                    "Supervisor stopping {}. See the Supervisor output for more details.",
-                    &ident
-                ))?;
+                req.info(format!("Supervisor stopping {}. See the Supervisor output for more \
+                                  details.",
+                                 &ident))?;
             }
         }
         None => {
-            return Err(net::err(
-                ErrCode::NotFound,
-                format!("Service not loaded, {}", &ident),
-            ));
+            return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", &ident)));
         }
     };
 
@@ -378,22 +336,21 @@ pub fn service_stop(
     Ok(())
 }
 
-pub fn supervisor_depart(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SupDepart,
-) -> NetResult<()> {
+pub fn supervisor_depart(mgr: &ManagerState,
+                         req: &mut CtlRequest,
+                         opts: protocol::ctl::SupDepart)
+                         -> NetResult<()> {
     let member_id = opts.member_id.ok_or_else(err_update_client)?;
-    let mut client = match butterfly::client::Client::new(
-        &mgr.cfg.gossip_listen.local_addr().to_string(),
-        mgr.cfg.ring_key.clone(),
-    ) {
-        Ok(client) => client,
-        Err(err) => {
-            outputln!("Failed to connect to own gossip server, {}", err);
-            return Err(net::err(ErrCode::Internal, err.to_string()));
-        }
-    };
+    let mut client =
+        match butterfly::client::Client::new(&mgr.cfg.gossip_listen.local_addr().to_string(),
+                                             mgr.cfg.ring_key.clone())
+        {
+            Ok(client) => client,
+            Err(err) => {
+                outputln!("Failed to connect to own gossip server, {}", err);
+                return Err(net::err(ErrCode::Internal, err.to_string()));
+            }
+        };
     outputln!("Attempting to depart member: {}", member_id);
     match client.send_departure(&member_id) {
         Ok(()) => {
@@ -404,18 +361,17 @@ pub fn supervisor_depart(
     }
 }
 
-pub fn service_status(
-    mgr: &ManagerState,
-    req: &mut CtlRequest,
-    opts: protocol::ctl::SvcStatus,
-) -> NetResult<()> {
-    let services_data = &mgr
-        .gateway_state
-        .read()
-        .expect("GatewayState lock is poisoned")
-        .services_data;
-    let statuses: Vec<ServiceStatus> = serde_json::from_str(&services_data)
-        .map_err(|e| sup_error!(Error::ServiceDeserializationError(e)))?;
+pub fn service_status(mgr: &ManagerState,
+                      req: &mut CtlRequest,
+                      opts: protocol::ctl::SvcStatus)
+                      -> NetResult<()> {
+    let services_data = &mgr.gateway_state
+                            .read()
+                            .expect("GatewayState lock is poisoned")
+                            .services_data;
+    let statuses: Vec<ServiceStatus> = serde_json::from_str(&services_data).map_err(|e| {
+                                           sup_error!(Error::ServiceDeserializationError(e))
+                                       })?;
 
     if let Some(ident) = opts.ident {
         for status in statuses {
@@ -425,10 +381,7 @@ pub fn service_status(
                 return Ok(());
             }
         }
-        return Err(net::err(
-            ErrCode::NotFound,
-            format!("Service not loaded, {}", ident),
-        ));
+        return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident)));
     }
 
     // We're not dealing with a single service, but with all of them.
@@ -472,19 +425,17 @@ fn spec_for_ident(cfg: &ManagerConfig, ident: &PackageIdent) -> Option<ServiceSp
 
 #[derive(Deserialize)]
 struct ServiceStatus {
-    pkg: Pkg,
-    process: ProcessStatus,
+    pkg:           Pkg,
+    process:       ProcessStatus,
     service_group: ServiceGroup,
     desired_state: DesiredState,
 }
 
 impl fmt::Display for ServiceStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{}, {}, group:{}",
-            self.pkg.ident, self.process, self.service_group,
-        )
+        write!(f,
+               "{}, {}, group:{}",
+               self.pkg.ident, self.process, self.service_group,)
     }
 }
 
@@ -510,11 +461,11 @@ struct ProcessStatus {
 impl fmt::Display for ProcessStatus {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self.pid {
-            Some(pid) => write!(
-                f,
-                "state:{}, time:{}, pid:{}",
-                self.state, self.elapsed, pid
-            ),
+            Some(pid) => {
+                write!(f,
+                       "state:{}, time:{}, pid:{}",
+                       self.state, self.elapsed, pid)
+            }
             None => write!(f, "state:{}, time:{}", self.state, self.elapsed),
         }
     }
@@ -533,8 +484,7 @@ impl From<ProcessStatus> for protocol::types::ProcessStatus {
 }
 
 fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
-where
-    D: serde::Deserializer<'de>,
+    where D: serde::Deserializer<'de>
 {
     struct FromTimespec;
 
@@ -546,13 +496,10 @@ where
         }
 
         fn visit_u64<R>(self, value: u64) -> result::Result<TimeDuration, R>
-        where
-            R: serde::de::Error,
+            where R: serde::de::Error
         {
-            let tspec = Timespec {
-                sec: (value as i64),
-                nsec: 0,
-            };
+            let tspec = Timespec { sec:  (value as i64),
+                                   nsec: 0, };
             Ok(time::get_time() - tspec)
         }
     }

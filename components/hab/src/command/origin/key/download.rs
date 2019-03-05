@@ -30,16 +30,15 @@ use crate::{error::{Error,
 
 use retry::retry;
 
-pub fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    origin: &str,
-    revision: Option<&str>,
-    secret: bool,
-    encryption: bool,
-    token: Option<&str>,
-    cache: &Path,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             origin: &str,
+             revision: Option<&str>,
+             secret: bool,
+             encryption: bool,
+             token: Option<&str>,
+             cache: &Path)
+             -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     if secret {
@@ -51,13 +50,12 @@ pub fn start(
     }
 }
 
-fn handle_public(
-    ui: &mut UI,
-    api_client: &Client,
-    origin: &str,
-    revision: Option<&str>,
-    cache: &Path,
-) -> Result<()> {
+fn handle_public(ui: &mut UI,
+                 api_client: &Client,
+                 origin: &str,
+                 revision: Option<&str>,
+                 cache: &Path)
+                 -> Result<()> {
     match revision {
         Some(revision) => {
             let nwr = format!("{}-{}", origin, revision);
@@ -83,10 +81,7 @@ fn handle_public(
                         let nwr = format!("{}-{}", key.origin, key.revision);
                         download_key(ui, api_client, &nwr, &key.origin, &key.revision, cache)?;
                     }
-                    ui.end(format!(
-                        "Download of {} public origin keys completed.",
-                        &origin
-                    ))?;
+                    ui.end(format!("Download of {} public origin keys completed.", &origin))?;
                     Ok(())
                 }
                 Err(e) => Err(Error::from(e)),
@@ -95,13 +90,12 @@ fn handle_public(
     }
 }
 
-fn handle_secret(
-    ui: &mut UI,
-    api_client: &Client,
-    origin: &str,
-    token: Option<&str>,
-    cache: &Path,
-) -> Result<()> {
+fn handle_secret(ui: &mut UI,
+                 api_client: &Client,
+                 origin: &str,
+                 token: Option<&str>,
+                 cache: &Path)
+                 -> Result<()> {
     if token.is_none() {
         ui.end("No auth token found. You must pass a token to download secret keys.")?;
         return Ok(());
@@ -109,52 +103,39 @@ fn handle_secret(
 
     ui.begin(format!("Downloading secret origin keys for {}", origin))?;
     download_secret_key(ui, &api_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
-    ui.end(format!(
-        "Download of {} public origin keys completed.",
-        &origin
-    ))?;
+    ui.end(format!("Download of {} public origin keys completed.", &origin))?;
     Ok(())
 }
 
-fn handle_encryption(
-    ui: &mut UI,
-    api_client: &Client,
-    origin: &str,
-    token: Option<&str>,
-    cache: &Path,
-) -> Result<()> {
+fn handle_encryption(ui: &mut UI,
+                     api_client: &Client,
+                     origin: &str,
+                     token: Option<&str>,
+                     cache: &Path)
+                     -> Result<()> {
     if token.is_none() {
         ui.end("No auth token found. You must pass a token to download secret keys.")?;
         return Ok(());
     }
 
-    ui.begin(format!(
-        "Downloading public encryption origin key for {}",
-        origin
-    ))?;
+    ui.begin(format!("Downloading public encryption origin key for {}", origin))?;
     download_public_encryption_key(ui, &api_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
-    ui.end(format!(
-        "Download of {} public encryption keys completed.",
-        &origin
-    ))?;
+    ui.end(format!("Download of {} public encryption keys completed.", &origin))?;
     Ok(())
 }
 
-pub fn download_public_encryption_key(
-    ui: &mut UI,
-    api_client: &Client,
-    name: &str,
-    token: &str,
-    cache: &Path,
-) -> Result<()> {
+pub fn download_public_encryption_key(ui: &mut UI,
+                                      api_client: &Client,
+                                      name: &str,
+                                      token: &str,
+                                      cache: &Path)
+                                      -> Result<()> {
     let download_fn = || -> Result<()> {
         ui.status(Status::Downloading, "latest public encryption key")?;
         let key_path =
             api_client.fetch_origin_public_encryption_key(name, token, cache, ui.progress())?;
-        ui.status(
-            Status::Cached,
-            key_path.file_name().unwrap().to_str().unwrap(), // lol
-        )?;
+        ui.status(Status::Cached,
+                  key_path.file_name().unwrap().to_str().unwrap() /* lol */)?;
         Ok(())
     };
 
@@ -168,20 +149,17 @@ pub fn download_public_encryption_key(
     Ok(())
 }
 
-fn download_secret_key(
-    ui: &mut UI,
-    api_client: &Client,
-    name: &str,
-    token: &str,
-    cache: &Path,
-) -> Result<()> {
+fn download_secret_key(ui: &mut UI,
+                       api_client: &Client,
+                       name: &str,
+                       token: &str,
+                       cache: &Path)
+                       -> Result<()> {
     let download_fn = || -> Result<()> {
         ui.status(Status::Downloading, "latest secret key")?;
         let key_path = api_client.fetch_secret_origin_key(name, token, cache, ui.progress())?;
-        ui.status(
-            Status::Cached,
-            key_path.file_name().unwrap().to_str().unwrap(), // lol
-        )?;
+        ui.status(Status::Cached,
+                  key_path.file_name().unwrap().to_str().unwrap() /* lol */)?;
         Ok(())
     };
 
@@ -195,14 +173,13 @@ fn download_secret_key(
     Ok(())
 }
 
-fn download_key(
-    ui: &mut UI,
-    api_client: &Client,
-    nwr: &str,
-    name: &str,
-    rev: &str,
-    cache: &Path,
-) -> Result<()> {
+fn download_key(ui: &mut UI,
+                api_client: &Client,
+                nwr: &str,
+                name: &str,
+                rev: &str,
+                cache: &Path)
+                -> Result<()> {
     match SigKeyPair::get_public_key_path(&nwr, &cache) {
         Ok(_) => ui.status(Status::Using, &nwr)?,
         Err(_) => {

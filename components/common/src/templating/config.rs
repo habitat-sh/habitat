@@ -117,8 +117,7 @@ pub struct Cfg {
 
 impl Cfg {
     pub fn new<P>(package: &P, config_from: Option<&PathBuf>) -> Result<Cfg>
-    where
-        P: PackageConfigPaths,
+        where P: PackageConfigPaths
     {
         let override_config_dir = config_from.and_then(|c| Some(c.clone()));
         let default = {
@@ -131,24 +130,21 @@ impl Cfg {
         let user_config_path = Self::determine_user_config_path(package);
         let user = Self::load_user(user_config_path.get_path())?;
         let environment = Self::load_environment(&package.name())?;
-        return Ok(Self {
-            default,
-            user,
-            gossip: None,
-            environment,
-            gossip_incarnation: 0,
-            user_config_path,
-            override_config_dir,
-        });
+        return Ok(Self { default,
+                         user,
+                         gossip: None,
+                         environment,
+                         gossip_incarnation: 0,
+                         user_config_path,
+                         override_config_dir });
     }
 
     /// Validates a service configuration against a configuration interface.
     ///
     /// Returns `None` if valid and `Some` containing a list of errors if invalid.
-    pub fn validate(
-        interface: &toml::value::Table,
-        cfg: &toml::value::Table,
-    ) -> Option<Vec<String>> {
+    pub fn validate(interface: &toml::value::Table,
+                    cfg: &toml::value::Table)
+                    -> Option<Vec<String>> {
         let mut errors = vec![];
         for key in cfg.keys() {
             if !interface.contains_key(key) {
@@ -187,8 +183,7 @@ impl Cfg {
     /// Note that if you're using `config_from`, then changes in the
     /// incoming packages won't be reflected.
     pub fn update_defaults_from_package<P>(&mut self, package: &P) -> Result<bool>
-    where
-        P: PackageConfigPaths,
+        where P: PackageConfigPaths
     {
         let incoming_defaults = {
             let pkg_root = match self.override_config_dir {
@@ -243,21 +238,18 @@ impl Cfg {
     }
 
     fn load_toml_file<T1, T2>(dir: T1, file: T2) -> Result<Option<toml::value::Table>>
-    where
-        T1: AsRef<Path>,
-        T2: AsRef<Path>,
+        where T1: AsRef<Path>,
+              T2: AsRef<Path>
     {
         let filename = file.as_ref();
         let path = dir.as_ref().join(&filename);
         let mut file = match File::open(&path) {
             Ok(file) => file,
             Err(e) => {
-                debug!(
-                    "Failed to open '{}', {}, {}",
-                    filename.display(),
-                    path.display(),
-                    e
-                );
+                debug!("Failed to open '{}', {}, {}",
+                       filename.display(),
+                       path.display(),
+                       e);
                 return Ok(None);
             }
         };
@@ -268,20 +260,17 @@ impl Cfg {
                 Ok(Some(toml))
             }
             Err(e) => {
-                outputln!(
-                    "Failed to read '{}', {}, {}",
-                    filename.display(),
-                    path.display(),
-                    e
-                );
+                outputln!("Failed to read '{}', {}, {}",
+                          filename.display(),
+                          path.display(),
+                          e);
                 Ok(None)
             }
         }
     }
 
     fn load_default<T>(config_from: T) -> Result<Option<toml::value::Table>>
-    where
-        T: AsRef<Path>,
+        where T: AsRef<Path>
     {
         Self::load_toml_file(config_from, "default.toml")
     }
@@ -292,32 +281,26 @@ impl Cfg {
         if recommended_path.exists() {
             return UserConfigPath::Recommended(recommended_dir);
         }
-        debug!(
-            "'{}' at {} does not exist",
-            USER_CONFIG_FILE,
-            recommended_path.display()
-        );
+        debug!("'{}' at {} does not exist",
+               USER_CONFIG_FILE,
+               recommended_path.display());
         let deprecated_dir = package.deprecated_user_config_dir();
         let deprecated_path = deprecated_dir.join(USER_CONFIG_FILE);
         if deprecated_path.exists() {
-            outputln!(
-                "The user configuration location at {} is deprecated, consider putting it in {}",
-                deprecated_path.display(),
-                recommended_path.display(),
-            );
+            outputln!("The user configuration location at {} is deprecated, consider putting it \
+                       in {}",
+                      deprecated_path.display(),
+                      recommended_path.display(),);
             return UserConfigPath::Deprecated(deprecated_dir);
         }
-        debug!(
-            "'{}' at {} does not exist",
-            USER_CONFIG_FILE,
-            deprecated_path.display()
-        );
+        debug!("'{}' at {} does not exist",
+               USER_CONFIG_FILE,
+               deprecated_path.display());
         UserConfigPath::Recommended(recommended_dir)
     }
 
     fn load_user<T>(path: T) -> Result<Option<toml::value::Table>>
-    where
-        T: AsRef<Path>,
+        where T: AsRef<Path>
     {
         Self::load_toml_file(path, USER_CONFIG_FILE)
     }
@@ -330,9 +313,8 @@ impl Cfg {
     }
 
     fn load_environment(package_name: &str) -> Result<Option<toml::value::Table>> {
-        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package_name)
-            .to_ascii_uppercase()
-            .replace("-", "_");
+        let var_name = format!("{}_{}", ENV_VAR_PREFIX, package_name).to_ascii_uppercase()
+                                                                     .replace("-", "_");
         match env::var(&var_name) {
             Ok(config) => {
                 // If we've got an environment variable, we'll parsing
@@ -382,10 +364,8 @@ impl Cfg {
                 Err(Error::BadEnvConfig(var_name))
             }
             Err(e) => {
-                debug!(
-                    "Looking up environment variable {} failed: {:?}",
-                    var_name, e
-                );
+                debug!("Looking up environment variable {} failed: {:?}",
+                       var_name, e);
                 Ok(None)
             }
         }
@@ -394,8 +374,7 @@ impl Cfg {
 
 impl Serialize for Cfg {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let mut table = toml::value::Table::new();
         if let Some(ref default_cfg) = self.default {
@@ -431,16 +410,12 @@ impl CfgRenderer {
     /// Create a new `CfgRenderer` and load template files from a
     /// configuration directory, if it exists.
     pub fn new<T>(templates_path: T) -> Result<Self>
-    where
-        T: AsRef<Path>,
+        where T: AsRef<Path>
     {
         if templates_path.as_ref().is_dir() {
-            load_templates(
-                templates_path.as_ref(),
-                &PathBuf::new(),
-                TemplateRenderer::new(),
-            )
-            .map(CfgRenderer)
+            load_templates(templates_path.as_ref(),
+                           &PathBuf::new(),
+                           TemplateRenderer::new()).map(CfgRenderer)
         } else {
             Ok(CfgRenderer(TemplateRenderer::new()))
         }
@@ -449,16 +424,14 @@ impl CfgRenderer {
     /// Compile and write all configuration files to the configuration directory.
     ///
     /// Returns `true` if the configuration has changed.
-    pub fn compile<P, T>(
-        &self,
-        service_group_name: &str,
-        pkg: &Pkg,
-        render_path: P,
-        ctx: &T,
-    ) -> Result<bool>
-    where
-        P: AsRef<Path>,
-        T: Serialize,
+    pub fn compile<P, T>(&self,
+                         service_group_name: &str,
+                         pkg: &Pkg,
+                         render_path: P,
+                         ctx: &T)
+                         -> Result<bool>
+        where P: AsRef<Path>,
+              T: Serialize
     {
         // JW TODO: This function is loaded with IO errors that will be converted a Supervisor
         // error resulting in the end-user not knowing what the fuck happned at all. We need to go
@@ -478,17 +451,13 @@ impl CfgRenderer {
                 }
             };
             changed |= if file_hash.is_empty() {
-                debug!(
-                    "Configuration {} does not exist; restarting",
-                    cfg_dest.display()
-                );
+                debug!("Configuration {} does not exist; restarting",
+                       cfg_dest.display());
 
-                ensure_directory_structure(
-                    render_path.as_ref(),
-                    &cfg_dest,
-                    &pkg.svc_user,
-                    &pkg.svc_group,
-                )?;
+                ensure_directory_structure(render_path.as_ref(),
+                                           &cfg_dest,
+                                           &pkg.svc_user,
+                                           &pkg.svc_group)?;
                 write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
                 outputln!(
                     preamble service_group_name,
@@ -498,17 +467,13 @@ impl CfgRenderer {
 
                 true
             } else if file_hash == compiled_hash {
-                debug!(
-                    "Configuration {} {} has not changed; not restarting.",
-                    cfg_dest.display(),
-                    file_hash
-                );
+                debug!("Configuration {} {} has not changed; not restarting.",
+                       cfg_dest.display(),
+                       file_hash);
                 false
             } else {
-                debug!(
-                    "Configuration {} has changed; restarting",
-                    cfg_dest.display()
-                );
+                debug!("Configuration {} has changed; restarting",
+                       cfg_dest.display());
                 write_templated_file(&cfg_dest, &compiled, &pkg.svc_user, &pkg.svc_group)?;
                 outputln!(
                     preamble service_group_name,
@@ -527,16 +492,14 @@ fn toml_merge(me: &mut toml::value::Table, other: &toml::value::Table) -> Result
     toml_merge_recurse(me, other, 0)
 }
 
-fn toml_merge_recurse(
-    me: &mut toml::value::Table,
-    other: &toml::value::Table,
-    depth: u16,
-) -> Result<()> {
+fn toml_merge_recurse(me: &mut toml::value::Table,
+                      other: &toml::value::Table,
+                      depth: u16)
+                      -> Result<()> {
     if depth > TOML_MAX_MERGE_DEPTH {
-        return Err(Error::TomlMergeError(format!(
-            "Max recursive merge depth of {} exceeded.",
-            TOML_MAX_MERGE_DEPTH
-        )));
+        return Err(Error::TomlMergeError(format!("Max recursive merge depth \
+                                                  of {} exceeded.",
+                                                 TOML_MAX_MERGE_DEPTH)));
     }
 
     for (key, other_value) in other.iter() {
@@ -544,19 +507,15 @@ fn toml_merge_recurse(
             let mut me_at_key = match *(me.get_mut(key).expect("Key should exist in Table")) {
                 toml::Value::Table(ref mut t) => t,
                 _ => {
-                    return Err(Error::TomlMergeError(format!(
-                        "Value at key {} should be a Table",
-                        &key
-                    )));
+                    return Err(Error::TomlMergeError(format!("Value at key {} should be \
+                                                              a Table",
+                                                             &key)));
                 }
             };
-            toml_merge_recurse(
-                &mut me_at_key,
-                other_value
-                    .as_table()
-                    .expect("TOML Value should be a Table"),
-                depth + 1,
-            )?;
+            toml_merge_recurse(&mut me_at_key,
+                               other_value.as_table()
+                                          .expect("TOML Value should be a Table"),
+                               depth + 1)?;
         } else {
             me.insert(key.clone(), other_value.clone());
         }
@@ -567,10 +526,12 @@ fn toml_merge_recurse(
 fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
     match table.get(key) {
         None => return false,
-        Some(value) => match value.as_table() {
-            Some(_) => return true,
-            None => return false,
-        },
+        Some(value) => {
+            match value.as_table() {
+                Some(_) => return true,
+                None => return false,
+            }
+        }
     }
 }
 
@@ -602,11 +563,10 @@ fn set_permissions(path: &Path, _user: &str, _group: &str) -> hcore::error::Resu
 /// construct the list of template files
 ///
 /// `dir` should be a directory that exists.
-fn load_templates(
-    dir: &Path,
-    context: &Path,
-    mut template: TemplateRenderer,
-) -> Result<TemplateRenderer> {
+fn load_templates(dir: &Path,
+                  context: &Path,
+                  mut template: TemplateRenderer)
+                  -> Result<TemplateRenderer> {
     for entry in std::fs::read_dir(dir)?.filter_map(|entry| entry.ok()) {
         // We're storing the pathname relative to the input config directory
         // as the identifier for the template
@@ -614,9 +574,8 @@ fn load_templates(
         match entry.file_type() {
             Ok(file_type) if file_type.is_file() => {
                 // JW TODO: This error needs improvement. TemplateFileError is too generic.
-                template
-                    .register_template_file(&relative_path.to_string_lossy(), &entry.path())
-                    .map_err(Error::TemplateFileError)?;
+                template.register_template_file(&relative_path.to_string_lossy(), &entry.path())
+                        .map_err(Error::TemplateFileError)?;
             }
             Ok(file_type) if file_type.is_dir() => {
                 template = load_templates(&entry.path(), &relative_path, template)?
@@ -683,15 +642,16 @@ mod test {
     }
 
     fn toml_from_str(content: &str) -> toml::value::Table {
-        toml::from_str(content)
-            .unwrap_or_else(|_| panic!("Content should parse as TOML: {}", content))
+        toml::from_str(content).unwrap_or_else(|_| {
+                                   panic!("Content should parse as TOML: {}", content)
+                               })
     }
 
     #[test]
     fn merge_with_empty_me_table() {
         let mut me = toml_from_str("");
         let other = toml_from_str(
-            r#"
+                                  r#"
             fruit = "apple"
             veggie = "carrot"
             "#,
@@ -705,7 +665,7 @@ mod test {
     #[test]
     fn merge_with_empty_other_table() {
         let mut me = toml_from_str(
-            r#"
+                                   r#"
             fruit = "apple"
             veggie = "carrot"
             "#,
@@ -720,20 +680,20 @@ mod test {
     #[test]
     fn merge_with_shallow_tables() {
         let mut me = toml_from_str(
-            r#"
+                                   r#"
             fruit = "apple"
             veggie = "carrot"
             awesomeness = 10
             "#,
         );
         let other = toml_from_str(
-            r#"
+                                  r#"
             fruit = "orange"
             awesomeness = 99
             "#,
         );
         let expected = toml_from_str(
-            r#"
+                                     r#"
             fruit = "orange"
             veggie = "carrot"
             awesomeness = 99
@@ -747,7 +707,7 @@ mod test {
     #[test]
     fn merge_with_differing_value_types() {
         let mut me = toml_from_str(
-            r#"
+                                   r#"
             fruit = "apple"
             veggie = "carrot"
             awesome_things = ["carrots", "kitties", "unicorns"]
@@ -755,13 +715,13 @@ mod test {
             "#,
         );
         let other = toml_from_str(
-            r#"
+                                  r#"
             heat = "hothothot"
             awesome_things = "habitat"
             "#,
         );
         let expected = toml_from_str(
-            r#"
+                                     r#"
             heat = "hothothot"
             fruit = "apple"
             veggie = "carrot"
@@ -776,7 +736,7 @@ mod test {
     #[test]
     fn merge_with_table_values() {
         let mut me = toml_from_str(
-            r#"
+                                   r#"
             frubnub = "foobar"
 
             [server]
@@ -785,14 +745,14 @@ mod test {
             "#,
         );
         let other = toml_from_str(
-            r#"
+                                  r#"
             [server]
             port = 5000
             more-details = "yep"
             "#,
         );
         let expected = toml_from_str(
-            r#"
+                                     r#"
             frubnub = "foobar"
 
             [server]
@@ -809,7 +769,7 @@ mod test {
     #[test]
     fn merge_with_deep_table_values() {
         let mut me = toml_from_str(
-            r#"
+                                   r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
             stew = "carrot"
             [a.b.c.d.e.f.foxtrot]
@@ -817,7 +777,7 @@ mod test {
             "#,
         );
         let other = toml_from_str(
-            r#"
+                                  r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad]
             stew = "beef"
             [a.b.c.d.e.f.foxtrot]
@@ -826,7 +786,7 @@ mod test {
             "#,
         );
         let expected = toml_from_str(
-            r#"
+                                     r#"
             [a.b.c.d.e.f.foxtrot]
             funny = "farm"
             fancy = "feast"
@@ -842,23 +802,25 @@ mod test {
     #[test]
     fn merge_with_dangerously_deep_table_values() {
         let mut me = toml_from_str(
-            r#"
+                                   r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad.ae.af]
             stew = "carrot"
             "#,
         );
         let other = toml_from_str(
-            r#"
+                                  r#"
             [a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.aa.ab.ac.ad.ae.af]
             stew = "beef"
             "#,
         );
 
         match toml_merge(&mut me, &other) {
-            Err(e) => match e {
-                Error::TomlMergeError(_) => assert!(true),
-                _ => panic!("Should fail with Error::TomlMergeError"),
-            },
+            Err(e) => {
+                match e {
+                    Error::TomlMergeError(_) => assert!(true),
+                    _ => panic!("Should fail with Error::TomlMergeError"),
+                }
+            }
             Ok(_) => panic!("Should not complete successfully"),
         }
     }
@@ -869,16 +831,14 @@ mod test {
 
     impl TestPkg {
         fn new(tmp: &TempDir) -> Self {
-            let pkg = Self {
-                base_path: tmp.path().to_owned(),
-            };
+            let pkg = Self { base_path: tmp.path().to_owned(), };
 
-            fs::create_dir_all(pkg.default_config_dir())
-                .expect("create deprecated user config dir");
-            fs::create_dir_all(pkg.recommended_user_config_dir())
-                .expect("create recommended user config dir");
-            fs::create_dir_all(pkg.deprecated_user_config_dir())
-                .expect("create default config dir");
+            fs::create_dir_all(pkg.default_config_dir()).expect("create deprecated user config \
+                                                                 dir");
+            fs::create_dir_all(pkg.recommended_user_config_dir()).expect("create recommended \
+                                                                          user config dir");
+            fs::create_dir_all(pkg.deprecated_user_config_dir()).expect("create default config \
+                                                                         dir");
             pkg
         }
     }
@@ -909,22 +869,19 @@ mod test {
             let pkg = TestPkg::new(&tmp);
             let rucp = pkg.recommended_user_config_dir().join(USER_CONFIG_FILE);
             let ducp = pkg.deprecated_user_config_dir().join(USER_CONFIG_FILE);
-            Self {
-                tmp,
-                pkg,
-                rucp,
-                ducp,
-            }
+            Self { tmp,
+                   pkg,
+                   rucp,
+                   ducp }
         }
     }
 
     fn write_toml<P: AsRef<Path>>(path: &P, text: &str) {
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(path)
-            .expect("create toml file");
+        let mut file = OpenOptions::new().write(true)
+                                         .create(true)
+                                         .truncate(true)
+                                         .open(path)
+                                         .expect("create toml file");
         file.write_all(text.as_bytes())
             .expect("write raw toml value");
         file.flush().expect("flush changes in toml file");
@@ -935,10 +892,8 @@ mod test {
         let cfg_data = CfgTestData::new();
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
-        assert_eq!(
-            cfg.user_config_path,
-            UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir())
-        );
+        assert_eq!(cfg.user_config_path,
+                   UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir()));
         assert!(cfg.user.is_none());
     }
 
@@ -949,10 +904,8 @@ mod test {
         write_toml(&cfg_data.ducp, toml);
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
-        assert_eq!(
-            cfg.user_config_path,
-            UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
-        );
+        assert_eq!(cfg.user_config_path,
+                   UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir()));
         assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
@@ -963,10 +916,8 @@ mod test {
         write_toml(&cfg_data.rucp, toml);
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
-        assert_eq!(
-            cfg.user_config_path,
-            UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir())
-        );
+        assert_eq!(cfg.user_config_path,
+                   UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir()));
         assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
@@ -978,10 +929,8 @@ mod test {
         write_toml(&cfg_data.ducp, "foo = 13");
         let cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
-        assert_eq!(
-            cfg.user_config_path,
-            UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir())
-        );
+        assert_eq!(cfg.user_config_path,
+                   UserConfigPath::Recommended(cfg_data.pkg.recommended_user_config_dir()));
         assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
@@ -992,10 +941,8 @@ mod test {
         write_toml(&cfg_data.ducp, toml);
         let mut cfg = Cfg::new(&cfg_data.pkg, None).expect("create config");
 
-        assert_eq!(
-            cfg.user_config_path,
-            UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
-        );
+        assert_eq!(cfg.user_config_path,
+                   UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir()));
         assert_eq!(cfg.user, Some(toml_from_str(toml)));
 
         toml = "foo = 85";
@@ -1003,10 +950,8 @@ mod test {
         write_toml(&cfg_data.rucp, "foo = 42");
         cfg.reload_user().expect("reload user config");
 
-        assert_eq!(
-            cfg.user_config_path,
-            UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir())
-        );
+        assert_eq!(cfg.user_config_path,
+                   UserConfigPath::Deprecated(cfg_data.pkg.deprecated_user_config_dir()));
         assert_eq!(cfg.user, Some(toml_from_str(toml)));
     }
 
@@ -1031,12 +976,10 @@ mod test {
     // expected_config_as_toml: for validation purposes; this should
     //     be the TOML version of `input_config`, since we always read to
     //     TOML, regardless of the input format.
-    fn test_expected_successful_environment_parsing(
-        env_key: &str,
-        package_name: &str,
-        input_config: &str,
-        expected_config_as_toml: &str,
-    ) {
+    fn test_expected_successful_environment_parsing(env_key: &str,
+                                                    package_name: &str,
+                                                    input_config: &str,
+                                                    expected_config_as_toml: &str) {
         env::set_var(env_key, &input_config);
 
         let expected = toml_from_str(expected_config_as_toml);
@@ -1057,22 +1000,18 @@ mod test {
 
     #[test]
     fn can_parse_toml_environment_config() {
-        test_expected_successful_environment_parsing(
-            "HAB_TESTING_TOML",
-            "testing-toml",
-            "port = 1234",
-            "port = 1234",
-        );
+        test_expected_successful_environment_parsing("HAB_TESTING_TOML",
+                                                     "testing-toml",
+                                                     "port = 1234",
+                                                     "port = 1234");
     }
 
     #[test]
     fn can_parse_json_environment_config() {
-        test_expected_successful_environment_parsing(
-            "HAB_TESTING_JSON",
-            "testing-json",
-            "{\"port\": 1234}",
-            "port = 1234",
-        );
+        test_expected_successful_environment_parsing("HAB_TESTING_JSON",
+                                                     "testing-json",
+                                                     "{\"port\": 1234}",
+                                                     "port = 1234");
     }
 
     #[test]
@@ -1177,11 +1116,9 @@ mod test {
         let renderer = load_templates(&input_dir, &PathBuf::new(), TemplateRenderer::new())
             .expect("visit config dirs");
 
-        let expected_keys = vec![
-            PathBuf::from("dir_a").join("foo.txt"),
-            PathBuf::from("dir_b").join("bar.txt"),
-            PathBuf::from("dir_b").join("dir_c").join("baz.txt"),
-        ];
+        let expected_keys = vec![PathBuf::from("dir_a").join("foo.txt"),
+                                 PathBuf::from("dir_b").join("bar.txt"),
+                                 PathBuf::from("dir_b").join("dir_c").join("baz.txt"),];
         let templates = renderer.get_templates();
         assert_eq!(templates.len(), 3);
 
@@ -1215,22 +1152,18 @@ mod test {
         let pkg_dir = root.join("pkg/testing/test");
         fs::create_dir_all(&pkg_dir).expect("create pkg dir");
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
-        let pkg_install = PackageInstall::new_from_parts(
-            pg_id.clone(),
-            pkg_dir.clone(),
-            pkg_dir.clone(),
-            pkg_dir.clone(),
-        );
+        let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),
+                                                         pkg_dir.clone(),
+                                                         pkg_dir.clone(),
+                                                         pkg_dir.clone());
         let toml_path = pkg_dir.join("default.toml");
         create_with_content(toml_path, "message = \"Hello\"");
 
         let config_dir = pkg_dir.join("config");
         let deep_config_dir = config_dir.join("dir_a").join("dir_b");
         fs::create_dir_all(&deep_config_dir).expect("create config/dir_a/dir_b");
-        create_with_content(
-            deep_config_dir.join("config.txt"),
-            "config message is {{cfg.message}}",
-        );
+        create_with_content(deep_config_dir.join("config.txt"),
+                            "config message is {{cfg.message}}");
 
         // Setup context for loading and compiling templates
         let output_dir = root.join("output");
@@ -1243,14 +1176,11 @@ mod test {
         // Load templates from pkg config dir, and compile then into
         // the output directory
         let renderer = CfgRenderer::new(&config_dir).expect("create cfg renderer");
-        renderer
-            .compile("test", &pkg, &output_dir, &ctx)
-            .expect("compile");
+        renderer.compile("test", &pkg, &output_dir, &ctx)
+                .expect("compile");
         let deep_output_dir = output_dir.join("dir_a").join("dir_b");
 
-        assert_eq!(
-            file_content(deep_output_dir.join("config.txt")),
-            "config message is Hello"
-        );
+        assert_eq!(file_content(deep_output_dir.join("config.txt")),
+                   "config message is Hello");
     }
 }

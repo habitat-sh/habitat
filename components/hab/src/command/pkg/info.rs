@@ -22,8 +22,7 @@ use serde_json::{self,
 use std::path::Path;
 
 fn convert_to_json<T>(src: &T) -> Json
-where
-    T: Serialize,
+    where T: Serialize
 {
     serde_json::to_value(src).unwrap_or(Json::Null)
 }

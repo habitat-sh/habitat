@@ -24,13 +24,12 @@ pub struct StrConcatHelper;
 
 impl HelperDef for StrConcatHelper {
     fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
-        let list: Vec<String> = h
-            .params()
-            .iter()
-            .map(|v| v.value())
-            .filter(|v| !v.is_object())
-            .map(|v| v.to_string().replace("\"", ""))
-            .collect();
+        let list: Vec<String> = h.params()
+                                 .iter()
+                                 .map(|v| v.value())
+                                 .filter(|v| !v.is_object())
+                                 .map(|v| v.to_string().replace("\"", ""))
+                                 .collect();
 
         rc.writer.write_all(list.concat().into_bytes().as_ref())?;
         Ok(())
@@ -48,11 +47,8 @@ mod test {
         let mut handlebars = Handlebars::new();
         handlebars.register_helper("strConcat", Box::new(STR_CONCAT));
         let expected = "foobarbaz";
-        assert_eq!(
-            expected,
-            handlebars
-                .template_render("{{strConcat \"foo\" \"bar\" \"baz\"}}", &json!({}))
-                .unwrap()
-        );
+        assert_eq!(expected,
+                   handlebars.template_render("{{strConcat \"foo\" \"bar\" \"baz\"}}", &json!({}))
+                             .unwrap());
     }
 }

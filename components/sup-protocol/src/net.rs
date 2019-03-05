@@ -30,13 +30,10 @@ pub type NetResult<T> = Result<T, NetErr>;
 
 /// Helper function for quickly generating a `NetErr` from an `ErrCode` and message.
 pub fn err<T>(code: ErrCode, msg: T) -> NetErr
-where
-    T: fmt::Display,
+    where T: fmt::Display
 {
-    NetErr {
-        code: code as i32,
-        msg: msg.to_string(),
-    }
+    NetErr { code: code as i32,
+             msg:  msg.to_string(), }
 }
 
 /// Helper function for quickly generating a `NetOk` message.

@@ -39,32 +39,27 @@ pub struct Timing {
 
 impl Default for Timing {
     fn default() -> Timing {
-        Timing {
-            ping_ms: PING_TIMING_DEFAULT_MS,
-            pingreq_ms: PINGREQ_TIMING_DEFAULT_MS,
-            gossip_period_ms: GOSSIP_PERIOD_DEFAULT_MS,
-            suspicion_timeout_protocol_periods: SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS,
-            departure_timeout_ms: DEPARTURE_TIMEOUT_DEFAULT_MS,
-        }
+        Timing { ping_ms: PING_TIMING_DEFAULT_MS,
+                 pingreq_ms: PINGREQ_TIMING_DEFAULT_MS,
+                 gossip_period_ms: GOSSIP_PERIOD_DEFAULT_MS,
+                 suspicion_timeout_protocol_periods: SUSPICION_TIMEOUT_DEFAULT_PROTOCOL_PERIODS,
+                 departure_timeout_ms: DEPARTURE_TIMEOUT_DEFAULT_MS, }
     }
 }
 
 impl Timing {
     /// Set up a new Timing
-    pub fn new(
-        ping_ms: i64,
-        pingreq_ms: i64,
-        gossip_period_ms: i64,
-        suspicion_timeout_protocol_periods: i64,
-        departure_timeout_ms: i64,
-    ) -> Timing {
-        Timing {
-            ping_ms,
-            pingreq_ms,
-            gossip_period_ms,
-            suspicion_timeout_protocol_periods,
-            departure_timeout_ms,
-        }
+    pub fn new(ping_ms: i64,
+               pingreq_ms: i64,
+               gossip_period_ms: i64,
+               suspicion_timeout_protocol_periods: i64,
+               departure_timeout_ms: i64)
+               -> Timing {
+        Timing { ping_ms,
+                 pingreq_ms,
+                 gossip_period_ms,
+                 suspicion_timeout_protocol_periods,
+                 departure_timeout_ms }
     }
 
     /// When should this gossip period expire
@@ -92,9 +87,8 @@ impl Timing {
 
     /// How long before this suspect entry times out
     pub fn suspicion_timeout_duration(&self) -> TimeDuration {
-        TimeDuration::milliseconds(
-            self.protocol_period_ms() * self.suspicion_timeout_protocol_periods,
-        )
+        TimeDuration::milliseconds(self.protocol_period_ms()
+                                   * self.suspicion_timeout_protocol_periods)
     }
 
     pub fn departure_timeout_duration(&self) -> TimeDuration {

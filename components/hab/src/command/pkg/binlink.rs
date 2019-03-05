@@ -35,48 +35,40 @@ use crate::error::{Error,
 #[cfg(windows)]
 const BAT_COMMENT_MARKER: &str = "REM";
 
-pub fn start(
-    ui: &mut UI,
-    ident: &PackageIdent,
-    binary: &str,
-    dest_path: &Path,
-    fs_root_path: &Path,
-    force: bool,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             ident: &PackageIdent,
+             binary: &str,
+             dest_path: &Path,
+             fs_root_path: &Path,
+             force: bool)
+             -> Result<()> {
     let dst_path = fs_root_path.join(dest_path.strip_prefix("/")?);
-    ui.begin(format!(
-        "Binlinking {} from {} into {}",
-        &binary,
-        &ident,
-        dst_path.display()
-    ))?;
+    ui.begin(format!("Binlinking {} from {} into {}",
+                     &binary,
+                     &ident,
+                     dst_path.display()))?;
     let pkg_install = PackageInstall::load(&ident, Some(fs_root_path))?;
     let mut src = match hfs::find_command_in_pkg(binary, &pkg_install, fs_root_path)? {
         Some(c) => c,
         None => {
-            return Err(Error::CommandNotFoundInPkg((
-                pkg_install.ident().to_string(),
-                binary.to_string(),
-            )));
+            return Err(Error::CommandNotFoundInPkg((pkg_install.ident()
+                                                               .to_string(),
+                                                    binary.to_string())));
         }
     };
     if cfg!(target_os = "windows") {
         src = fs_root_path.join(src.strip_prefix("/")?);
     }
     if !dst_path.is_dir() {
-        ui.status(
-            Status::Creating,
-            format!("parent directory {}", dst_path.display()),
-        )?;
+        ui.status(Status::Creating,
+                  format!("parent directory {}", dst_path.display()))?;
         fs::create_dir_all(&dst_path)?
     }
     let binlink = Binlink::new(&src, &dst_path)?;
-    let ui_binlinked = format!(
-        "Binlinked {} from {} to {}",
-        &binary,
-        &pkg_install.ident(),
-        &binlink.dest.display(),
-    );
+    let ui_binlinked = format!("Binlinked {} from {} to {}",
+                               &binary,
+                               &pkg_install.ident(),
+                               &binlink.dest.display(),);
     match Binlink::from_file(&binlink.dest) {
         Ok(link) => {
             if force && link.src != src {
@@ -84,11 +76,10 @@ pub fn start(
                 binlink.link()?;
                 ui.end(&ui_binlinked)?;
             } else if link.src != src {
-                ui.warn(format!(
-                    "Skipping binlink because {} already exists at {}. Use --force to overwrite",
-                    &binary,
-                    &link.dest.display(),
-                ))?;
+                ui.warn(format!("Skipping binlink because {} already exists at {}. Use --force \
+                                 to overwrite",
+                                &binary,
+                                &link.dest.display(),))?;
             } else {
                 ui.end(&ui_binlinked)?;
             }
@@ -100,26 +91,22 @@ pub fn start(
     }
 
     if cfg!(target_os = "windows") && !is_dest_on_path(&dst_path) {
-        ui.warn(format!(
-            "Binlink destination '{}' is not on the PATH. Consider setting it manually or running \
-             'hab setup' to add it to the machine PATH.",
-            dst_path.display(),
-        ))?;
+        ui.warn(format!("Binlink destination '{}' is not on the PATH. Consider setting it \
+                         manually or running 'hab setup' to add it to the machine PATH.",
+                        dst_path.display(),))?;
     }
 
     Ok(())
 }
 
-pub fn binlink_all_in_pkg<F, D>(
-    ui: &mut UI,
-    pkg_ident: &PackageIdent,
-    dest_path: D,
-    fs_root_path: F,
-    force: bool,
-) -> Result<()>
-where
-    D: AsRef<Path>,
-    F: AsRef<Path>,
+pub fn binlink_all_in_pkg<F, D>(ui: &mut UI,
+                                pkg_ident: &PackageIdent,
+                                dest_path: D,
+                                fs_root_path: F,
+                                force: bool)
+                                -> Result<()>
+    where D: AsRef<Path>,
+          F: AsRef<Path>
 {
     let fs_root_path = fs_root_path.as_ref();
 
@@ -133,22 +120,24 @@ where
             }
             if cfg!(target_os = "windows") {
                 match bin_file.path().extension() {
-                    Some(executable_extensions) => match env::var_os("PATHEXT") {
-                        Some(val) => {
-                            let any_matches =
-                                env::split_paths(&val.to_string_lossy().to_uppercase()).any(|e| {
-                                    e.to_string_lossy()
-                                        == format!(
+                    Some(executable_extensions) => {
+                        match env::var_os("PATHEXT") {
+                            Some(val) => {
+                                let any_matches = env::split_paths(&val.to_string_lossy()
+                                                                       .to_uppercase()).any(|e| {
+                                                      e.to_string_lossy()
+                                                      == format!(
                                             ".{}",
                                             executable_extensions.to_string_lossy().to_uppercase()
                                         )
-                                });
-                            if !any_matches {
-                                continue;
+                                                  });
+                                if !any_matches {
+                                    continue;
+                                }
                             }
+                            None => continue,
                         }
-                        None => continue,
-                    },
+                    }
                     None => continue,
                 }
             }
@@ -159,14 +148,12 @@ where
                     continue;
                 }
             };
-            self::start(
-                ui,
-                &pkg_ident,
-                &bin_name,
-                dest_path.as_ref(),
-                &fs_root_path,
-                force,
-            )?;
+            self::start(ui,
+                        &pkg_ident,
+                        &bin_name,
+                        dest_path.as_ref(),
+                        &fs_root_path,
+                        force)?;
         }
     }
     Ok(())
@@ -182,7 +169,7 @@ fn is_dest_on_path<T: AsRef<Path>>(dest_dir: T) -> bool {
 
 struct Binlink {
     dest: PathBuf,
-    src: PathBuf,
+    src:  PathBuf,
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -193,17 +180,13 @@ impl Binlink {
             None => return Err(Error::CannotParseBinlinkSource(src.as_ref().to_path_buf())),
         };
 
-        Ok(Self {
-            dest: dest_dir.as_ref().join(bin_name),
-            src: src.as_ref().to_path_buf(),
-        })
+        Ok(Self { dest: dest_dir.as_ref().join(bin_name),
+                  src:  src.as_ref().to_path_buf(), })
     }
 
     pub fn from_file<T: AsRef<Path>>(dest: T) -> Result<Self> {
-        Ok(Binlink {
-            dest: dest.as_ref().to_path_buf(),
-            src: fs::read_link(&dest)?,
-        })
+        Ok(Binlink { dest: dest.as_ref().to_path_buf(),
+                     src:  fs::read_link(&dest)?, })
     }
 
     pub fn link(&self) -> Result<()> {
@@ -224,10 +207,8 @@ impl Binlink {
         let mut path = dest_dir.as_ref().join(bin_name);
         path.set_extension("bat");
 
-        Ok(Binlink {
-            dest: path,
-            src: src.as_ref().to_path_buf(),
-        })
+        Ok(Binlink { dest: path,
+                     src:  src.as_ref().to_path_buf(), })
     }
 
     pub fn from_file<T: AsRef<Path>>(path: T) -> Result<Self> {
@@ -241,10 +222,8 @@ impl Binlink {
                 if let Ok(Table(toml_exp)) = rest.parse() {
                     if let Some(src) = toml_exp.get("source") {
                         if let Some(val) = src.as_str() {
-                            return Ok(Binlink {
-                                dest: path.as_ref().to_path_buf(),
-                                src: PathBuf::from(val),
-                            });
+                            return Ok(Binlink { dest: path.as_ref().to_path_buf(),
+                                                src:  PathBuf::from(val), });
                         }
                     }
                 }
@@ -254,10 +233,8 @@ impl Binlink {
     }
 
     pub fn link(&self) -> Result<()> {
-        let template = format!(
-            "@echo off\nREM source='{0}'\n\"{0}\" %*",
-            self.src.display()
-        );
+        let template = format!("@echo off\nREM source='{0}'\n\"{0}\" %*",
+                               self.src.display());
         Ok(fs::write(&self.dest, template)?)
     }
 }
@@ -299,9 +276,8 @@ mod test {
 
         let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>).join("bin");
         if cfg!(target_os = "windows") {
-            rootfs_src_dir = rootfs
-                .path()
-                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+            rootfs_src_dir = rootfs.path()
+                                   .join(rootfs_src_dir.strip_prefix("/").unwrap());
         }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
@@ -317,37 +293,25 @@ mod test {
         #[cfg(target_os = "windows")]
         let hypnoanalyze_link = "hypnoanalyze.bat";
 
-        start(
-            &mut ui,
-            &ident,
-            "magicate.exe",
-            &dst_path,
-            rootfs.path(),
-            force,
-        )
-        .unwrap();
-        assert_eq!(
-            rootfs_src_dir.join("magicate.exe"),
-            Binlink::from_file(rootfs_bin_dir.join(magicate_link))
-                .unwrap()
-                .src
-        );
+        start(&mut ui,
+              &ident,
+              "magicate.exe",
+              &dst_path,
+              rootfs.path(),
+              force).unwrap();
+        assert_eq!(rootfs_src_dir.join("magicate.exe"),
+                   Binlink::from_file(rootfs_bin_dir.join(magicate_link)).unwrap()
+                                                                         .src);
 
-        start(
-            &mut ui,
-            &ident,
-            "hypnoanalyze.exe",
-            &dst_path,
-            rootfs.path(),
-            force,
-        )
-        .unwrap();
-        assert_eq!(
-            rootfs_src_dir.join("hypnoanalyze.exe"),
-            Binlink::from_file(rootfs_bin_dir.join(hypnoanalyze_link))
-                .unwrap()
-                .src
-        );
+        start(&mut ui,
+              &ident,
+              "hypnoanalyze.exe",
+              &dst_path,
+              rootfs.path(),
+              force).unwrap();
+        assert_eq!(rootfs_src_dir.join("hypnoanalyze.exe"),
+                   Binlink::from_file(rootfs_bin_dir.join(hypnoanalyze_link)).unwrap()
+                                                                             .src);
     }
 
     #[test]
@@ -361,9 +325,8 @@ mod test {
 
         let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>);
         if cfg!(target_os = "windows") {
-            rootfs_src_dir = rootfs
-                .path()
-                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+            rootfs_src_dir = rootfs.path()
+                                   .join(rootfs_src_dir.strip_prefix("/").unwrap());
         }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
@@ -384,24 +347,15 @@ mod test {
         let (mut ui, _stdout, _stderr) = ui();
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
-        assert_eq!(
-            rootfs_src_dir.join("bin/magicate.exe"),
-            Binlink::from_file(rootfs_bin_dir.join(magicate_link))
-                .unwrap()
-                .src
-        );
-        assert_eq!(
-            rootfs_src_dir.join("bin/hypnoanalyze.exe"),
-            Binlink::from_file(rootfs_bin_dir.join(hypnoanalyze_link))
-                .unwrap()
-                .src
-        );
-        assert_eq!(
-            rootfs_src_dir.join("sbin/securitize.exe"),
-            Binlink::from_file(rootfs_bin_dir.join(securitize_link))
-                .unwrap()
-                .src
-        );
+        assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
+                   Binlink::from_file(rootfs_bin_dir.join(magicate_link)).unwrap()
+                                                                         .src);
+        assert_eq!(rootfs_src_dir.join("bin/hypnoanalyze.exe"),
+                   Binlink::from_file(rootfs_bin_dir.join(hypnoanalyze_link)).unwrap()
+                                                                             .src);
+        assert_eq!(rootfs_src_dir.join("sbin/securitize.exe"),
+                   Binlink::from_file(rootfs_bin_dir.join(securitize_link)).unwrap()
+                                                                           .src);
     }
 
     #[test]
@@ -413,23 +367,19 @@ mod test {
         let ident = fake_bin_pkg_install("acme/securetools", tools, rootfs.path());
         let dst_path = Path::new("/opt/bin");
 
-        let rootfs_src_dir = rootfs.path().join(
-            hcore::fs::pkg_install_path(&ident, None::<&Path>)
-                .strip_prefix("/")
-                .unwrap(),
-        );
+        let rootfs_src_dir =
+            rootfs.path()
+                  .join(hcore::fs::pkg_install_path(&ident, None::<&Path>).strip_prefix("/")
+                                                                          .unwrap());
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
 
         let (mut ui, _stdout, _stderr) = ui();
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
-        assert_eq!(
-            rootfs_src_dir.join("bin/magicate.exe"),
-            Binlink::from_file(rootfs_bin_dir.join("magicate.bat"))
-                .unwrap()
-                .src
-        );
+        assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
+                   Binlink::from_file(rootfs_bin_dir.join("magicate.bat")).unwrap()
+                                                                          .src);
         assert!(Binlink::from_file(rootfs_bin_dir.join("hypnoanalyze.bat")).is_err());
     }
 
@@ -444,9 +394,8 @@ mod test {
 
         let mut rootfs_src_dir = hcore::fs::pkg_install_path(&ident, None::<&Path>);
         if cfg!(target_os = "windows") {
-            rootfs_src_dir = rootfs
-                .path()
-                .join(rootfs_src_dir.strip_prefix("/").unwrap());
+            rootfs_src_dir = rootfs.path()
+                                   .join(rootfs_src_dir.strip_prefix("/").unwrap());
         }
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
@@ -470,42 +419,32 @@ mod test {
         let (mut ui, _stdout, _stderr) = ui();
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
-        assert_eq!(
-            rootfs_src_dir.join("bin/magicate.exe"),
-            Binlink::from_file(rootfs_bin_dir.join(magicate_link))
-                .unwrap()
-                .src
-        );
-        assert_eq!(
-            rootfs_src_dir.join("bin/moar/bonus-round.exe"),
-            Binlink::from_file(rootfs_bin_dir.join(bonus_round_link))
-                .unwrap()
-                .src
-        );
+        assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
+                   Binlink::from_file(rootfs_bin_dir.join(magicate_link)).unwrap()
+                                                                         .src);
+        assert_eq!(rootfs_src_dir.join("bin/moar/bonus-round.exe"),
+                   Binlink::from_file(rootfs_bin_dir.join(bonus_round_link)).unwrap()
+                                                                            .src);
     }
 
     fn ui() -> (UI, OutputBuffer, OutputBuffer) {
         let stdout_buf = OutputBuffer::new();
         let stderr_buf = OutputBuffer::new();
 
-        let ui = UI::with_streams(
-            Box::new(io::empty()),
-            || Box::new(stdout_buf.clone()),
-            || Box::new(stderr_buf.clone()),
-            ColorChoice::Never,
-            false,
-        );
+        let ui = UI::with_streams(Box::new(io::empty()),
+                                  || Box::new(stdout_buf.clone()),
+                                  || Box::new(stderr_buf.clone()),
+                                  ColorChoice::Never,
+                                  false);
 
         (ui, stdout_buf, stderr_buf)
     }
 
-    fn fake_bin_pkg_install<P>(
-        ident: &str,
-        binaries: HashMap<&str, Vec<&str>>,
-        rootfs: P,
-    ) -> PackageIdent
-    where
-        P: AsRef<Path>,
+    fn fake_bin_pkg_install<P>(ident: &str,
+                               binaries: HashMap<&str, Vec<&str>>,
+                               rootfs: P)
+                               -> PackageIdent
+        where P: AsRef<Path>
     {
         let mut ident = PackageIdent::from_str(ident).unwrap();
         if ident.version.is_none() {
@@ -525,10 +464,8 @@ mod test {
                 write_file(prefix.join(path).join(bin), "");
             }
         }
-        write_file(
-            prefix.join("PATH"),
-            env::join_paths(paths).unwrap().to_str().unwrap(),
-        );
+        write_file(prefix.join("PATH"),
+                   env::join_paths(paths).unwrap().to_str().unwrap());
         ident
     }
 
@@ -541,7 +478,7 @@ mod test {
         .expect("Failed to create parent directory");
         let mut f = File::create(file).expect("File is not created");
         f.write_all(content.as_bytes())
-            .expect("Bytes not written to file");
+         .expect("Bytes not written to file");
     }
 
     #[derive(Clone)]
@@ -551,9 +488,7 @@ mod test {
 
     impl OutputBuffer {
         fn new() -> Self {
-            OutputBuffer {
-                cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))),
-            }
+            OutputBuffer { cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))), }
         }
     }
 

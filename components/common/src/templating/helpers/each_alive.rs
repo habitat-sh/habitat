@@ -31,28 +31,25 @@ pub struct EachAliveHelper;
 
 impl HelperDef for EachAliveHelper {
     fn call(&self, h: &Helper<'_>, r: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
-        let value = h
-            .param(0)
-            .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\""))?;
+        let value = h.param(0)
+                     .ok_or_else(|| RenderError::new("Param not found for helper \"eachAlive\""))?;
         if let Some(template) = h.template() {
             rc.promote_local_vars();
-            let local_path_root = value
-                .path_root()
-                .map(|p| format!("{}/{}", rc.get_path(), p));
+            let local_path_root = value.path_root()
+                                       .map(|p| format!("{}/{}", rc.get_path(), p));
             let rendered = match (value.value().is_truthy(), value.value()) {
                 (true, &Json::Array(ref list)) => {
-                    let alive_members: Vec<Json> = list
-                        .iter()
-                        .filter_map(|m| {
-                            m.as_object().and_then(|m| {
+                    let alive_members: Vec<Json> = list.iter()
+                                                       .filter_map(|m| {
+                                                           m.as_object().and_then(|m| {
                                 if m.contains_key("alive") && m["alive"].as_bool().unwrap() {
                                     Some(to_json(&m))
                                 } else {
                                     None
                                 }
                             })
-                        })
-                        .collect();
+                                                       })
+                                                       .collect();
                     let len = alive_members.len();
                     for (i, alive_member) in alive_members.iter().enumerate() {
                         let mut local_rc = rc.derive();
@@ -122,10 +119,11 @@ impl HelperDef for EachAliveHelper {
                     }
                     Ok(())
                 }
-                _ => Err(RenderError::new(format!(
-                    "Param type is not iterable: {:?}",
-                    template
-                ))),
+                _ => {
+                    Err(RenderError::new(format!("Param type is not iterable: \
+                                                  {:?}",
+                                                 template)))
+                }
             };
 
             rc.demote_local_vars();

@@ -59,8 +59,7 @@ impl JsonTruthy for Json {
 
 /// Helper which will serialize to Json the given reference or return `Json::Null`
 fn to_json<T>(src: &T) -> Json
-where
-    T: Serialize,
+    where T: Serialize
 {
     serde_json::to_value(src).unwrap_or(Json::Null)
 }

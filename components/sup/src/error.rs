@@ -77,29 +77,26 @@ pub type Result<T> = result::Result<T, SupError>;
 /// for every type of error we produce. It also stores the location the error was created.
 pub struct SupError {
     pub err: Error,
-    logkey: &'static str,
-    file: &'static str,
-    line: u32,
-    column: u32,
+    logkey:  &'static str,
+    file:    &'static str,
+    line:    u32,
+    column:  u32,
 }
 
 impl SupError {
     /// Create a new `SupError`. Usually accessed through the `sup_error!` macro, rather than
     /// called directly.
-    pub fn new(
-        err: Error,
-        logkey: &'static str,
-        file: &'static str,
-        line: u32,
-        column: u32,
-    ) -> SupError {
-        SupError {
-            err,
-            logkey,
-            file,
-            line,
-            column,
-        }
+    pub fn new(err: Error,
+               logkey: &'static str,
+               file: &'static str,
+               line: u32,
+               column: u32)
+               -> SupError {
+        SupError { err,
+                   logkey,
+                   file,
+                   line,
+                   column }
     }
 }
 
@@ -186,46 +183,46 @@ impl fmt::Display for SupError {
         let content = match self.err {
             Error::APIClient(ref err) => err.to_string(),
             Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),
-            Error::Departed => {
-                "This Supervisor has been manually departed.\n\nFor the safety of the system, this \
-                 Supervisor cannot be started (if we did, we would risk the services on this \
-                 machine behaving badly without our knowledge.) If you know that the services on \
-                 this system are safe, and want them to rejoin the habitat ring, you need to:\n\n  \
-                 rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\n This will cause the \
-                 Supervisor to join the ring as a new member.\n\n If you are in doubt, it is \
-                 better to consider the services managed by this Supervisor as unsafe to run."
-                    .to_string()
+            Error::Departed => "This Supervisor has been manually departed.\n\nFor the safety of \
+                                the system, this Supervisor cannot be started (if we did, we \
+                                would risk the services on this machine behaving badly without \
+                                our knowledge.) If you know that the services on this system are \
+                                safe, and want them to rejoin the habitat ring, you need to:\n\n  \
+                                rm -rf /hab/sup/default/MEMBER_ID /hab/sup/default/data\n\n This \
+                                will cause the Supervisor to join the ring as a new member.\n\n \
+                                If you are in doubt, it is better to consider the services \
+                                managed by this Supervisor as unsafe to run."
+                                                                             .to_string(),
+            Error::BadDataFile(ref path, ref err) => {
+                format!("Unable to read or write to data file, {}, {}",
+                        path.display(),
+                        err)
             }
-            Error::BadDataFile(ref path, ref err) => format!(
-                "Unable to read or write to data file, {}, {}",
-                path.display(),
-                err
-            ),
-            Error::BadDataPath(ref path, ref err) => format!(
-                "Unable to read or write to data directory, {}, {}",
-                path.display(),
-                err
-            ),
+            Error::BadDataPath(ref path, ref err) => {
+                format!("Unable to read or write to data directory, {}, {}",
+                        path.display(),
+                        err)
+            }
             Error::BadDesiredState(ref state) => {
                 format!("Unknown service desired state style '{}'", state)
             }
             Error::BadElectionStatus(ref status) => format!("Unknown election status '{}'", status),
             Error::BadPackage(ref pkg, ref err) => format!("Bad package, {}, {}", pkg, err),
-            Error::BadSpecsPath(ref path, ref err) => format!(
-                "Unable to create the specs directory '{}' ({})",
-                path.display(),
-                err
-            ),
+            Error::BadSpecsPath(ref path, ref err) => {
+                format!("Unable to create the specs directory '{}' ({})",
+                        path.display(),
+                        err)
+            }
             Error::BadStartStyle(ref style) => format!("Unknown service start style '{}'", style),
             Error::BindTimeout(ref err) => format!("Timeout waiting to bind to {}", err),
             Error::LockPoisoned => "A mutex or read/write lock has failed.".to_string(),
             Error::TestBootFail => "Simulated boot failure".to_string(),
             Error::ButterflyError(ref err) => format!("Butterfly error: {}", err),
-            Error::CtlSecretIo(ref path, ref err) => format!(
-                "IoError while reading or writing ctl secret, {}, {}",
-                path.display(),
-                err
-            ),
+            Error::CtlSecretIo(ref path, ref err) => {
+                format!("IoError while reading or writing ctl secret, {}, {}",
+                        path.display(),
+                        err)
+            }
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
@@ -282,17 +279,17 @@ impl fmt::Display for SupError {
                 format!("Unable to read PID file, {}, {}", path.display(), err)
             }
             Error::ProcessLockCorrupt => "Unable to decode contents of process lock".to_string(),
-            Error::ProcessLocked(ref pid) => format!(
-                "Unable to start Habitat Supervisor because another instance is already running \
-                 with the pid {}.",
-                pid
-            ),
-            Error::ProcessLockIO(ref path, ref err) => format!(
-                "Unable to start Habitat Supervisor because we weren't able to write or read to a \
-                 process lock at {}, {}",
-                path.display(),
-                err
-            ),
+            Error::ProcessLocked(ref pid) => {
+                format!("Unable to start Habitat Supervisor because another instance is already \
+                         running with the pid {}.",
+                        pid)
+            }
+            Error::ProcessLockIO(ref path, ref err) => {
+                format!("Unable to start Habitat Supervisor because we weren't able to write or \
+                         read to a process lock at {}, {}",
+                        path.display(),
+                        err)
+            }
             Error::RecvError(ref err) => err.to_string(),
             Error::ServiceDeserializationError(ref e) => {
                 format!("Can't deserialize service status: {}", e)
@@ -301,11 +298,11 @@ impl fmt::Display for SupError {
             Error::ServiceSerializationError(ref e) => {
                 format!("Can't serialize service to file: {}", e)
             }
-            Error::ServiceSpecFileIO(ref path, ref err) => format!(
-                "Unable to write or read to a service spec file at {}, {}",
-                path.display(),
-                err
-            ),
+            Error::ServiceSpecFileIO(ref path, ref err) => {
+                format!("Unable to write or read to a service spec file at {}, {}",
+                        path.display(),
+                        err)
+            }
             Error::ServiceSpecParse(ref err) => {
                 format!("Unable to parse contents of service spec file, {}", err)
             }
@@ -314,10 +311,10 @@ impl fmt::Display for SupError {
             }
             Error::SignalFailed => "Failed to send a signal to the child process".to_string(),
             Error::SpecWatcherNotCreated => "Failed to create a SpecWatcher".to_string(),
-            Error::SpecDirNotFound(ref path) => format!(
-                "Spec directory '{}' not created or is not a directory",
-                path
-            ),
+            Error::SpecDirNotFound(ref path) => {
+                format!("Spec directory '{}' not created or is not a directory",
+                        path)
+            }
             Error::SpecWatcherGlob(ref e) => e.to_string(),
             Error::StrFromUtf8Error(ref e) => e.to_string(),
             Error::StringFromUtf8Error(ref e) => e.to_string(),
@@ -328,14 +325,12 @@ impl fmt::Display for SupError {
             Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
         };
         let progname = PROGRAM_NAME.as_str();
-        let mut so = StructuredOutput::new(
-            progname,
-            self.logkey,
-            self.line,
-            self.file,
-            self.column,
-            &content,
-        );
+        let mut so = StructuredOutput::new(progname,
+                                           self.logkey,
+                                           self.line,
+                                           self.file,
+                                           self.column,
+                                           &content);
         so.verbose = Some(true);
         write!(f, "{}", so)
     }

@@ -70,29 +70,24 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
     let mut member = Member::default();
     member.swim_port = swim_port;
     member.gossip_port = gossip_port;
-    let mut server = Server::new(
-        &listen_swim[..],
-        &listen_gossip[..],
-        member,
-        Trace::default(),
-        ring_key,
-        Some(String::from(name)),
-        None,
-        Box::new(NSuitability(suitability)),
-    )
-    .unwrap();
-    server
-        .start(Timing::default())
-        .expect("Cannot start server");
+    let mut server = Server::new(&listen_swim[..],
+                                 &listen_gossip[..],
+                                 member,
+                                 Trace::default(),
+                                 ring_key,
+                                 Some(String::from(name)),
+                                 None,
+                                 Box::new(NSuitability(suitability))).unwrap();
+    server.start(Timing::default())
+          .expect("Cannot start server");
     server
 }
 
 pub fn member_from_server(server: &Server) -> Member {
-    let mut member = server
-        .member
-        .read()
-        .expect("Member lock is poisoned")
-        .as_member();
+    let mut member = server.member
+                           .read()
+                           .expect("Member lock is poisoned")
+                           .as_member();
     // AAAAAAARGH... we currently have to do this because otherwise we
     // have no notion of where we're coming from... in "real life",
     // other Supervisors would discover this from the networking stack
@@ -121,13 +116,12 @@ impl DerefMut for SwimNet {
 
 impl SwimNet {
     pub fn new_with_suitability(suitabilities: Vec<u64>) -> SwimNet {
-        SwimNet {
-            members: suitabilities
-                .into_iter()
-                .enumerate()
-                .map(|(x, suitability)| start_server(&format!("{}", x), None, suitability))
-                .collect(),
-        }
+        SwimNet { members: suitabilities.into_iter()
+                                        .enumerate()
+                                        .map(|(x, suitability)| {
+                                            start_server(&format!("{}", x), None, suitability)
+                                        })
+                                        .collect(), }
     }
 
     pub fn new(count: usize) -> SwimNet {
@@ -174,41 +168,35 @@ impl SwimNet {
     }
 
     pub fn block(&self, from_entry: usize, to_entry: usize) {
-        let from = self
-            .members
-            .get(from_entry)
-            .expect("Asked for a network member who is out of bounds");
-        let to = self
-            .members
-            .get(to_entry)
-            .expect("Asked for a network member who is out of bounds");
+        let from = self.members
+                       .get(from_entry)
+                       .expect("Asked for a network member who is out of bounds");
+        let to = self.members
+                     .get(to_entry)
+                     .expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Blocked {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.add_to_block_list(String::from(to.member_id()));
     }
 
     pub fn unblock(&self, from_entry: usize, to_entry: usize) {
-        let from = self
-            .members
-            .get(from_entry)
-            .expect("Asked for a network member who is out of bounds");
-        let to = self
-            .members
-            .get(to_entry)
-            .expect("Asked for a network member who is out of bounds");
+        let from = self.members
+                       .get(from_entry)
+                       .expect("Asked for a network member who is out of bounds");
+        let to = self.members
+                     .get(to_entry)
+                     .expect("Asked for a network member who is out of bounds");
         trace_it!(TEST: &self.members[from_entry], format!("Unblocked {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.remove_from_block_list(to.member_id());
     }
 
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
-        let from = self
-            .members
-            .get(from_entry)
-            .expect("Asked for a network member who is out of bounds");
+        let from = self.members
+                       .get(from_entry)
+                       .expect("Asked for a network member who is out of bounds");
 
-        let to = self
-            .members
-            .get(to_entry)
-            .expect("Asked for a network member who is out of bounds");
+        let to = self.members
+                     .get(to_entry)
+                     .expect("Asked for a network member who is out of bounds");
         from.member_list.health_of_by_id(to.member_id())
     }
 
@@ -242,11 +230,10 @@ impl SwimNet {
         self.gossip_rounds().iter().map(|r| r + count).collect()
     }
 
-    fn check_rounds_impl(
-        &self,
-        rounds_in: &[isize],
-        get_rounds: impl Fn(&Server) -> isize,
-    ) -> bool {
+    fn check_rounds_impl(&self,
+                         rounds_in: &[isize],
+                         get_rounds: impl Fn(&Server) -> isize)
+                         -> bool {
         for (member, round) in self.members.iter().zip(rounds_in) {
             if !member.paused() && get_rounds(member) <= *round {
                 return false;
@@ -285,32 +272,28 @@ impl SwimNet {
         }
     }
 
-    pub fn wait_for_election_status(
-        &self,
-        e_num: usize,
-        key: &str,
-        status: ElectionStatus,
-    ) -> bool {
+    pub fn wait_for_election_status(&self,
+                                    e_num: usize,
+                                    key: &str,
+                                    status: ElectionStatus)
+                                    -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
             let mut result = false;
-            let server = self
-                .members
-                .get(e_num)
-                .expect("Asked for a network member who is out of bounds");
+            let server = self.members
+                             .get(e_num)
+                             .expect("Asked for a network member who is out of bounds");
             server.election_store.with_rumor(key, "election", |e| {
-                if e.status == status {
-                    result = true;
-                }
-            });
+                                     if e.status == status {
+                                         result = true;
+                                     }
+                                 });
             if result {
                 return true;
             }
             if self.check_gossip_rounds(&rounds_in) {
-                println!(
-                    "Failed election check for status {:?}: {:#?}",
-                    status, self.members[e_num].election_store
-                );
+                println!("Failed election check for status {:?}: {:#?}",
+                         status, self.members[e_num].election_store);
                 return false;
             }
         }
@@ -321,30 +304,27 @@ impl SwimNet {
         loop {
             let mut result = false;
 
-            let left_server = self
-                .members
-                .get(left)
-                .expect("Asked for a network member who is out of bounds");
-            let right_server = self
-                .members
-                .get(right)
-                .expect("Asked for a network member who is out of bounds");
+            let left_server = self.members
+                                  .get(left)
+                                  .expect("Asked for a network member who is out of bounds");
+            let right_server = self.members
+                                   .get(right)
+                                   .expect("Asked for a network member who is out of bounds");
 
             left_server.election_store.with_rumor(key, "election", |l| {
-                right_server
-                    .election_store
-                    .with_rumor(key, "election", |r| {
-                        result = l == r;
-                    });
-            });
+                                          right_server.election_store.with_rumor(key,
+                                                                                 "election",
+                                                                                 |r| {
+                                                                                     result =
+                                                                                         l == r;
+                                                                                 });
+                                      });
             if result {
                 return true;
             }
             if self.check_gossip_rounds(&rounds_in) {
-                println!(
-                    "Failed election check for equality:\nL: {:#?}\n\nR: {:#?}",
-                    self.members[left].election_store, self.members[right].election_store,
-                );
+                println!("Failed election check for equality:\nL: {:#?}\n\nR: {:#?}",
+                         self.members[left].election_store, self.members[right].election_store,);
                 return false;
             }
         }
@@ -389,10 +369,8 @@ impl SwimNet {
             if self.check_rounds(&rounds_in) {
                 trace_it!(TEST: &self.members[from_entry], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                 println!("MEMBERS: {:#?}", self.members);
-                println!(
-                    "Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
-                    self.members[from_entry], self.members[to_check]
-                );
+                println!("Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
+                         self.members[from_entry], self.members[to_check]);
                 return false;
             }
         }
@@ -403,15 +381,11 @@ impl SwimNet {
         loop {
             let network_health = self.network_health_of(to_check);
             if network_health.iter().all(|&x| x == Some(health)) {
-                trace_it!(
-                    TEST_NET: self,
-                    format!(
-                        "Health {} {} as {}",
-                        self.members[to_check].name(),
-                        self.members[to_check].member_id(),
-                        health
-                    )
-                );
+                trace_it!(TEST_NET: self,
+                          format!("Health {} {} as {}",
+                                  self.members[to_check].name(),
+                                  self.members[to_check].member_id(),
+                                  health));
                 return true;
             } else if self.check_rounds(&rounds_in) {
                 for (i, some_health) in network_health.iter().enumerate() {
@@ -443,37 +417,31 @@ impl SwimNet {
     }
 
     pub fn add_service(&mut self, member: usize, package: &str) {
-        let ident = PackageIdent::from_str(package)
-            .expect("package needs to be a fully qualified package identifier");
+        let ident = PackageIdent::from_str(package).expect("package needs to be a fully \
+                                                            qualified package identifier");
         let sg = ServiceGroup::new(None, ident.name(), "prod", None).unwrap();
-        let s = Service::new(
-            self[member].member_id().to_string(),
-            &ident,
-            sg,
-            SysInfo::default(),
-            None,
-        );
+        let s = Service::new(self[member].member_id().to_string(),
+                             &ident,
+                             sg,
+                             SysInfo::default(),
+                             None);
         self[member].insert_service(s);
     }
 
     pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
         let config_bytes: Vec<u8> = Vec::from(config);
-        let s = ServiceConfig::new(
-            self[member].member_id(),
-            ServiceGroup::new(None, service, "prod", None).unwrap(),
-            config_bytes,
-        );
+        let s = ServiceConfig::new(self[member].member_id(),
+                                   ServiceGroup::new(None, service, "prod", None).unwrap(),
+                                   config_bytes);
         self[member].insert_service_config(s);
     }
 
     pub fn add_service_file(&mut self, member: usize, service: &str, filename: &str, body: &str) {
         let body_bytes: Vec<u8> = Vec::from(body);
-        let s = ServiceFile::new(
-            self[member].member_id(),
-            ServiceGroup::new(None, service, "prod", None).unwrap(),
-            filename,
-            body_bytes,
-        );
+        let s = ServiceFile::new(self[member].member_id(),
+                                 ServiceGroup::new(None, service, "prod", None).unwrap(),
+                                 filename,
+                                 body_bytes);
         self[member].insert_service_file(s);
     }
 
@@ -490,24 +458,19 @@ impl SwimNet {
 #[macro_export]
 macro_rules! assert_health_of {
     ($network:expr, $to:expr, $health:expr) => {
-        assert!(
-            $network
-                .network_health_of($to)
-                .into_iter()
-                .all(|x| x == $health),
-            "Member {} does not always have health {}",
-            $to,
-            $health
-        )
+        assert!($network.network_health_of($to)
+                        .into_iter()
+                        .all(|x| x == $health),
+                "Member {} does not always have health {}",
+                $to,
+                $health)
     };
     ($network:expr, $from:expr, $to:expr, $health:expr) => {
-        assert!(
-            $network.health_of($from, $to) == $health,
-            "Member {} does not see {} as {}",
-            $from,
-            $to,
-            $health
-        )
+        assert!($network.health_of($from, $to) == $health,
+                "Member {} does not see {} as {}",
+                $from,
+                $to,
+                $health)
     };
 }
 
@@ -521,39 +484,31 @@ macro_rules! assert_wait_for_health_of {
                 if l == r {
                     continue;
                 }
-                assert!(
-                    $network.wait_for_health_of(*l, *r, $health),
-                    "Member {} does not see {} as {}",
-                    l,
-                    r,
-                    $health
-                );
-                assert!(
-                    $network.wait_for_health_of(*r, *l, $health),
-                    "Member {} does not see {} as {}",
-                    r,
-                    l,
-                    $health
-                );
+                assert!($network.wait_for_health_of(*l, *r, $health),
+                        "Member {} does not see {} as {}",
+                        l,
+                        r,
+                        $health);
+                assert!($network.wait_for_health_of(*r, *l, $health),
+                        "Member {} does not see {} as {}",
+                        r,
+                        l,
+                        $health);
             }
         }
     };
     ($network:expr, $to:expr, $health:expr) => {
-        assert!(
-            $network.wait_for_network_health_of($to, $health),
-            "Member {} does not always have health {}",
-            $to,
-            $health
-        );
+        assert!($network.wait_for_network_health_of($to, $health),
+                "Member {} does not always have health {}",
+                $to,
+                $health);
     };
     ($network:expr, $from:expr, $to:expr, $health:expr) => {
-        assert!(
-            $network.wait_for_health_of($from, $to, $health),
-            "Member {} does not see {} as {}",
-            $from,
-            $to,
-            $health
-        );
+        assert!($network.wait_for_health_of($from, $to, $health),
+                "Member {} does not see {} as {}",
+                $from,
+                $to,
+                $health);
     };
 }
 
@@ -582,12 +537,10 @@ macro_rules! assert_wait_for_equal_election {
                 if l == r {
                     continue;
                 }
-                assert!(
-                    $network.wait_for_equal_election(*l, *r, $key),
-                    "Member {} is not equal to {}",
-                    l,
-                    r
-                );
+                assert!($network.wait_for_equal_election(*l, *r, $key),
+                        "Member {} is not equal to {}",
+                        l,
+                        r);
             }
         }
     };

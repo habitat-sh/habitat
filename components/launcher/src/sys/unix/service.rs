@@ -49,10 +49,8 @@ impl Process {
         // to prevent orphaned processes.
         let pgid = unsafe { libc::getpgid(pid_to_kill) };
         if pid_to_kill == pgid {
-            debug!(
-                "pid to kill {} is the process group root. Sending signal to process group.",
-                pid_to_kill
-            );
+            debug!("pid to kill {} is the process group root. Sending signal to process group.",
+                   pid_to_kill);
             // sending a signal to the negative pid sends it to the
             // entire process group instead just the single pid
             pid_to_kill = pid_to_kill.neg();
@@ -101,18 +99,17 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     let gid = if let Some(sgid) = msg.svc_group_id {
         sgid
     } else if let Some(sgroup) = &msg.svc_group {
-        os::users::get_gid_by_name(&sgroup)
-            .ok_or_else(|| Error::GroupNotFound(sgroup.to_string()))?
+        os::users::get_gid_by_name(&sgroup).ok_or_else(|| Error::GroupNotFound(sgroup.to_string()))?
     } else {
         return Err(Error::GroupNotFound(String::from("")));
     };
 
     cmd.before_exec(owned_pgid);
     cmd.stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .uid(uid)
-        .gid(gid);
+       .stdout(Stdio::piped())
+       .stderr(Stdio::piped())
+       .uid(uid)
+       .gid(gid);
     for (key, val) in msg.env.iter() {
         cmd.env(key, val);
     }

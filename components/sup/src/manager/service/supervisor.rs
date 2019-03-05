@@ -58,30 +58,28 @@ static LOGKEY: &'static str = "SV";
 /// and `gid` should always be `Some`.
 #[derive(Debug, Default)]
 struct UserInfo {
-    username: Option<String>,
-    uid: Option<u32>,
+    username:  Option<String>,
+    uid:       Option<u32>,
     groupname: Option<String>,
-    gid: Option<u32>,
+    gid:       Option<u32>,
 }
 
 #[derive(Debug)]
 pub struct Supervisor {
-    pub preamble: String,
-    pub state: ProcessState,
+    pub preamble:      String,
+    pub state:         ProcessState,
     pub state_entered: Timespec,
-    pid: Option<Pid>,
-    pid_file: PathBuf,
+    pid:               Option<Pid>,
+    pid_file:          PathBuf,
 }
 
 impl Supervisor {
     pub fn new(service_group: &ServiceGroup) -> Supervisor {
-        Supervisor {
-            preamble: service_group.to_string(),
-            state: ProcessState::Down,
-            state_entered: time::get_time(),
-            pid: None,
-            pid_file: fs::svc_pid_file(service_group.service()),
-        }
+        Supervisor { preamble:      service_group.to_string(),
+                     state:         ProcessState::Down,
+                     state_entered: time::get_time(),
+                     pid:           None,
+                     pid_file:      fs::svc_pid_file(service_group.service()), }
     }
 
     /// Check if the child process is running
@@ -122,12 +120,10 @@ impl Supervisor {
             let gid = users::get_gid_by_name(&pkg.svc_group)
                 .ok_or(sup_error!(Error::GroupNotFound(pkg.svc_group.to_string(),)))?;
 
-            Ok(UserInfo {
-                username: Some(pkg.svc_user.clone()),
-                uid: Some(uid),
-                groupname: Some(pkg.svc_group.clone()),
-                gid: Some(gid),
-            })
+            Ok(UserInfo { username:  Some(pkg.svc_user.clone()),
+                          uid:       Some(uid),
+                          groupname: Some(pkg.svc_group.clone()),
+                          gid:       Some(gid), })
         } else {
             // We DO NOT have the ability to run as other users!  Also
             // note that we legitimately may not have a username or
@@ -137,18 +133,15 @@ impl Supervisor {
             let groupname = users::get_effective_groupname();
             let gid = users::get_effective_gid();
 
-            let name_for_logging = username
-                .clone()
-                .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
+            let name_for_logging = username.clone()
+                                           .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
             outputln!(preamble self.preamble, "Current user ({}) lacks sufficient capabilites to \
                 run services as a different user; running as self!", name_for_logging);
 
-            Ok(UserInfo {
-                username,
-                uid: Some(uid),
-                groupname,
-                gid: Some(gid),
-            })
+            Ok(UserInfo { username,
+                          uid: Some(uid),
+                          groupname,
+                          gid: Some(gid) })
         }
     }
 
@@ -160,28 +153,22 @@ impl Supervisor {
         // Note that the Windows Supervisor does not yet have a
         // corresponding "non-root" behavior, as the Linux version
         // does; services run as the service user.
-        Ok(UserInfo {
-            username: Some(pkg.svc_user.clone()),
-            ..Default::default()
-        })
+        Ok(UserInfo { username: Some(pkg.svc_user.clone()),
+                      ..Default::default() })
     }
 
-    pub fn start<T>(
-        &mut self,
-        pkg: &Pkg,
-        group: &ServiceGroup,
-        launcher: &LauncherCli,
-        svc_password: Option<T>,
-    ) -> Result<()>
-    where
-        T: ToString,
+    pub fn start<T>(&mut self,
+                    pkg: &Pkg,
+                    group: &ServiceGroup,
+                    launcher: &LauncherCli,
+                    svc_password: Option<T>)
+                    -> Result<()>
+        where T: ToString
     {
-        let UserInfo {
-            username: service_user,
-            uid: service_user_id,
-            groupname: service_group,
-            gid: service_group_id,
-        } = self.user_info(&pkg)?;
+        let UserInfo { username: service_user,
+                       uid: service_user_id,
+                       groupname: service_group,
+                       gid: service_group_id, } = self.user_info(&pkg)?;
 
         outputln!(preamble self.preamble,
                   "Starting service as user={}, group={}",
@@ -207,16 +194,14 @@ impl Supervisor {
         // Launcher versions on Linux (and current Windows versions)
         // will use these, while newer versions will prefer the UID
         // and GID, ignoring the names.
-        let pid = launcher.spawn(
-            &group.to_string(),
-            &pkg.svc_run,
-            service_user,     // Windows required, Linux optional
-            service_group,    // Linux optional
-            service_user_id,  // Linux preferred
-            service_group_id, // Linux preferred
-            svc_password,     // Windows optional
-            (*pkg.env).clone(),
-        )?;
+        let pid = launcher.spawn(&group.to_string(),
+                                 &pkg.svc_run,
+                                 service_user,     // Windows required, Linux optional
+                                 service_group,    // Linux optional
+                                 service_user_id,  // Linux preferred
+                                 service_group_id, // Linux preferred
+                                 svc_password,     // Windows optional
+                                 (*pkg.env).clone())?;
         self.pid = Some(pid);
         self.create_pidfile()?;
         self.change_state(ProcessState::Up);
@@ -224,12 +209,10 @@ impl Supervisor {
     }
 
     pub fn status(&self) -> (bool, String) {
-        let status = format!(
-            "{}: {} for {}",
-            self.preamble,
-            self.state,
-            time::get_time() - self.state_entered
-        );
+        let status = format!("{}: {} for {}",
+                             self.preamble,
+                             self.state,
+                             time::get_time() - self.state_entered);
         let healthy = match self.state {
             ProcessState::Up => true,
             ProcessState::Down => false,
@@ -259,30 +242,30 @@ impl Supervisor {
         }
     }
 
-    pub fn restart<T>(
-        &mut self,
-        pkg: &Pkg,
-        group: &ServiceGroup,
-        launcher: &LauncherCli,
-        svc_password: Option<T>,
-    ) -> Result<()>
-    where
-        T: ToString,
+    pub fn restart<T>(&mut self,
+                      pkg: &Pkg,
+                      group: &ServiceGroup,
+                      launcher: &LauncherCli,
+                      svc_password: Option<T>)
+                      -> Result<()>
+        where T: ToString
     {
         match self.pid {
-            Some(pid) => match launcher.restart(pid) {
-                Ok(pid) => {
-                    self.pid = Some(pid);
-                    self.create_pidfile()?;
-                    self.change_state(ProcessState::Up);
-                    Ok(())
+            Some(pid) => {
+                match launcher.restart(pid) {
+                    Ok(pid) => {
+                        self.pid = Some(pid);
+                        self.create_pidfile()?;
+                        self.change_state(ProcessState::Up);
+                        Ok(())
+                    }
+                    Err(err) => {
+                        self.cleanup_pidfile();
+                        self.change_state(ProcessState::Down);
+                        Err(sup_error!(Error::Launcher(err)))
+                    }
                 }
-                Err(err) => {
-                    self.cleanup_pidfile();
-                    self.change_state(ProcessState::Down);
-                    Err(sup_error!(Error::Launcher(err)))
-                }
-            },
+            }
             None => self.start(pkg, group, launcher, svc_password),
         }
     }
@@ -291,11 +274,9 @@ impl Supervisor {
     fn create_pidfile(&self) -> Result<()> {
         match self.pid {
             Some(pid) => {
-                debug!(
-                    "Creating PID file for child {} -> {}",
-                    self.pid_file.display(),
-                    pid
-                );
+                debug!("Creating PID file for child {} -> {}",
+                       self.pid_file.display(),
+                       pid);
                 let mut f = File::create(&self.pid_file)?;
                 write!(f, "{}", pid)?;
                 Ok(())
@@ -330,8 +311,7 @@ impl Supervisor {
 
 impl Serialize for Supervisor {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let mut strukt = serializer.serialize_struct("supervisor", 5)?;
         strukt.serialize_field("pid", &self.pid)?;
@@ -342,27 +322,27 @@ impl Serialize for Supervisor {
 }
 
 fn read_pid<T>(pid_file: T) -> Result<Pid>
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     match File::open(pid_file.as_ref()) {
         Ok(file) => {
             let reader = BufReader::new(file);
             match reader.lines().next() {
-                Some(Ok(line)) => match line.parse::<Pid>() {
-                    Ok(pid) => Ok(pid),
-                    Err(_) => Err(sup_error!(Error::PidFileCorrupt(
-                        pid_file.as_ref().to_path_buf()
-                    ))),
-                },
-                _ => Err(sup_error!(Error::PidFileCorrupt(
-                    pid_file.as_ref().to_path_buf()
-                ))),
+                Some(Ok(line)) => {
+                    match line.parse::<Pid>() {
+                        Ok(pid) => Ok(pid),
+                        Err(_) => {
+                            Err(sup_error!(Error::PidFileCorrupt(pid_file.as_ref().to_path_buf())))
+                        }
+                    }
+                }
+                _ => Err(sup_error!(Error::PidFileCorrupt(pid_file.as_ref().to_path_buf()))),
             }
         }
-        Err(err) => Err(sup_error!(Error::PidFileIO(
-            pid_file.as_ref().to_path_buf(),
-            err
-        ))),
+        Err(err) => {
+            Err(sup_error!(Error::PidFileIO(pid_file.as_ref()
+                                                    .to_path_buf(),
+                                            err)))
+        }
     }
 }

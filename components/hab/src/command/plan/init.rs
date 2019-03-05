@@ -31,47 +31,32 @@ use crate::{common::ui::{Status,
                          UI},
             error::Result};
 
-const DEFAULT_PLAN_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/default_template_plan.sh"
-));
-const FULL_PLAN_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/full_template_plan.sh"
-));
-const DEFAULT_PLAN_PS1_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/default_template_plan.ps1"
-));
-const FULL_PLAN_PS1_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/full_template_plan.ps1"
-));
-const DEFAULT_TOML_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/template_default.toml"
-));
-const GITIGNORE_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/template_gitignore"
-));
-const README_TEMPLATE: &str = include_str!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/static/template_README.md"
-));
+const DEFAULT_PLAN_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
+                                                         "/static/default_template_plan.sh"));
+const FULL_PLAN_TEMPLATE: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/full_template_plan.sh"));
+const DEFAULT_PLAN_PS1_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
+                                                             "/static/default_template_plan.ps1"));
+const FULL_PLAN_PS1_TEMPLATE: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/full_template_plan.ps1"));
+const DEFAULT_TOML_TEMPLATE: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_default.toml"));
+const GITIGNORE_TEMPLATE: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_gitignore"));
+const README_TEMPLATE: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_README.md"));
 
 const DEFAULT_PKG_VERSION: &str = "0.1.0";
 
-pub fn start(
-    ui: &mut UI,
-    origin: String,
-    with_docs: bool,
-    with_callbacks: bool,
-    with_all: bool,
-    windows: bool,
-    scaffolding_ident: Option<PackageIdent>,
-    maybe_name: Option<String>,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             origin: String,
+             with_docs: bool,
+             with_callbacks: bool,
+             with_all: bool,
+             windows: bool,
+             scaffolding_ident: Option<PackageIdent>,
+             maybe_name: Option<String>)
+             -> Result<()> {
     ui.begin("Constructing a cozy habitat for your app...")?;
     ui.br()?;
 
@@ -79,18 +64,18 @@ pub fn start(
         Some(name) => (name.clone(), name.clone()),
         // The name of the current working directory.
         None => {
-            (
-                "habitat".into(),
-                canonicalize(".")
-                    .ok()
-                    .and_then(|path| {
-                        path.components().last().and_then(|val| {
-                            // Type gymnastics!
-                            val.as_os_str().to_os_string().into_string().ok()
-                        })
-                    })
-                    .unwrap_or_else(|| "unnamed".into()),
-            )
+            ("habitat".into(),
+             canonicalize(".").ok()
+                              .and_then(|path| {
+                                  path.components().last().and_then(|val| {
+                                                              // Type gymnastics!
+                                                              val.as_os_str()
+                                                                 .to_os_string()
+                                                                 .into_string()
+                                                                 .ok()
+                                                          })
+                              })
+                              .unwrap_or_else(|| "unnamed".into()))
         }
     };
 
@@ -136,16 +121,12 @@ pub fn start(
         let rendered_plan = handlebars.template_render(DEFAULT_PLAN_TEMPLATE, &data)?;
         create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     }
-    ui.para(
-        "`plan.sh` is the foundation of your new habitat. It contains metadata, dependencies, and \
-         tasks.",
-    )?;
+    ui.para("`plan.sh` is the foundation of your new habitat. It contains metadata, \
+             dependencies, and tasks.")?;
     let rendered_default_toml = handlebars.template_render(DEFAULT_TOML_TEMPLATE, &data)?;
-    create_with_template(
-        ui,
-        &format!("{}/default.toml", root),
-        &rendered_default_toml,
-    )?;
+    create_with_template(ui,
+                         &format!("{}/default.toml", root),
+                         &rendered_default_toml)?;
     ui.para("`default.toml` contains default values for `cfg` prefixed variables.")?;
 
     let rendered_readme_md = handlebars.template_render(README_TEMPLATE, &data)?;
@@ -154,10 +135,8 @@ pub fn start(
 
     let config_path = format!("{}/config/", root);
     if Path::new(&config_path).exists() {
-        ui.status(
-            Status::Using,
-            format!("existing directory: {}", config_path),
-        )?;
+        ui.status(Status::Using,
+                  format!("existing directory: {}", config_path))?;
     } else {
         ui.status(Status::Creating, format!("directory: {}", config_path))?;
         create_dir_all(&config_path)?;
@@ -196,15 +175,14 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
         if !target_path.exists() {
             create_with_template(ui, &target, GITIGNORE_TEMPLATE)?
         } else {
-            let file = OpenOptions::new()
-                .read(true)
-                .append(true)
-                .open(target_path)?;
+            let file = OpenOptions::new().read(true)
+                                         .append(true)
+                                         .open(target_path)?;
 
-            let entries: Vec<String> = BufReader::new(&file)
-                .lines()
-                .map(|l| l.expect("Failed to parse line"))
-                .collect();
+            let entries: Vec<String> =
+                BufReader::new(&file).lines()
+                                     .map(|l| l.expect("Failed to parse line"))
+                                     .collect();
 
             let mut appended = 0;
 
@@ -217,10 +195,8 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
                 }
             }
 
-            ui.status(
-                Status::Using,
-                format!("existing file: {} ({} lines appended)", &target, appended),
-            )?;
+            ui.status(Status::Using,
+                      format!("existing file: {} ({} lines appended)", &target, appended))?;
         }
     }
     Ok(())
@@ -228,9 +204,8 @@ fn render_ignorefile(ui: &mut UI, root: &str) -> Result<()> {
 
 fn is_git_managed(path: &Path) -> bool {
     path.join(".git").is_dir()
-        || path
-            .parent()
-            .map_or(false, |parent| is_git_managed(&parent))
+    || path.parent()
+           .map_or(false, |parent| is_git_managed(&parent))
 }
 
 fn create_with_template(ui: &mut UI, location: &str, template: &str) -> Result<()> {

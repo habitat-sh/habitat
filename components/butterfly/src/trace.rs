@@ -74,52 +74,47 @@ impl fmt::Display for TraceKind {
 
 #[derive(Debug)]
 pub struct TraceWrite<'a> {
-    pub kind: TraceKind,
-    pub time: String,
-    pub module_path: &'a str,
-    pub line: u32,
-    pub thread_name: &'a str,
-    pub server_name: Option<&'a str>,
-    pub member_id: Option<&'a str>,
+    pub kind:         TraceKind,
+    pub time:         String,
+    pub module_path:  &'a str,
+    pub line:         u32,
+    pub thread_name:  &'a str,
+    pub server_name:  Option<&'a str>,
+    pub member_id:    Option<&'a str>,
     pub to_member_id: Option<&'a str>,
-    pub listening: Option<&'a str>,
-    pub to_addr: Option<&'a str>,
-    pub swim: Option<&'a str>,
-    pub rumor: Option<&'a str>,
+    pub listening:    Option<&'a str>,
+    pub to_addr:      Option<&'a str>,
+    pub swim:         Option<&'a str>,
+    pub rumor:        Option<&'a str>,
 }
 
 impl<'a> TraceWrite<'a> {
-    pub fn new(
-        kind: TraceKind,
-        module_path: &'a str,
-        line: u32,
-        thread_name: &'a str,
-    ) -> TraceWrite<'a> {
+    pub fn new(kind: TraceKind,
+               module_path: &'a str,
+               line: u32,
+               thread_name: &'a str)
+               -> TraceWrite<'a> {
         let now = time::now_utc();
-        let time_string = format!(
-            "{}-{}-{}-{}-{}-{}-{}",
-            1900 + now.tm_year,
-            now.tm_mon + 1,
-            now.tm_mday,
-            now.tm_hour,
-            now.tm_min,
-            now.tm_sec,
-            now.tm_nsec
-        );
-        TraceWrite {
-            kind,
-            time: time_string,
-            module_path,
-            line,
-            thread_name,
-            server_name: None,
-            member_id: None,
-            to_member_id: None,
-            listening: None,
-            to_addr: None,
-            swim: None,
-            rumor: None,
-        }
+        let time_string = format!("{}-{}-{}-{}-{}-{}-{}",
+                                  1900 + now.tm_year,
+                                  now.tm_mon + 1,
+                                  now.tm_mday,
+                                  now.tm_hour,
+                                  now.tm_min,
+                                  now.tm_sec,
+                                  now.tm_nsec);
+        TraceWrite { kind,
+                     time: time_string,
+                     module_path,
+                     line,
+                     thread_name,
+                     server_name: None,
+                     member_id: None,
+                     to_member_id: None,
+                     listening: None,
+                     to_addr: None,
+                     swim: None,
+                     rumor: None }
     }
 }
 
@@ -145,17 +140,15 @@ impl<'a> fmt::Display for TraceWrite<'a> {
 #[derive(Debug)]
 pub struct Trace {
     pub directory: PathBuf,
-    pub file: Option<fs::File>,
-    pub on: bool,
+    pub file:      Option<fs::File>,
+    pub on:        bool,
 }
 
 impl Default for Trace {
     fn default() -> Trace {
-        Trace {
-            directory: PathBuf::from("/tmp/habitat-swim-trace"),
-            file: None,
-            on: false,
-        }
+        Trace { directory: PathBuf::from("/tmp/habitat-swim-trace"),
+                file:      None,
+                on:        false, }
     }
 }
 
@@ -166,19 +159,19 @@ impl Trace {
             let now = time::now_utc();
             let filename = format!("{}-{}.swimtrace", server.name(), now.rfc3339());
             match fs::create_dir_all(&self.directory) {
-                Ok(_) => match fs::File::create(self.directory.join(&filename)) {
-                    Ok(f) => self.file = Some(f),
-                    Err(e) => panic!(
-                        "Trace requested, but cannot create file {:?}: {}",
-                        self.directory.join(&filename),
-                        e
-                    ),
-                },
+                Ok(_) => {
+                    match fs::File::create(self.directory.join(&filename)) {
+                        Ok(f) => self.file = Some(f),
+                        Err(e) => {
+                            panic!("Trace requested, but cannot create file {:?}: {}",
+                                   self.directory.join(&filename),
+                                   e)
+                        }
+                    }
+                }
                 Err(e) => {
-                    panic!(
-                        "Trace requested, but cannot create directory {:?}: {}",
-                        self.directory, e
-                    );
+                    panic!("Trace requested, but cannot create directory {:?}: {}",
+                           self.directory, e);
                 }
             }
         }
@@ -196,16 +189,16 @@ impl Trace {
     pub fn write(&mut self, trace_write: &TraceWrite<'_>) {
         let dump = format!("{:#?}", self);
         match self.file.as_mut() {
-            Some(file) => match write!(file, "{}", trace_write) {
-                Ok(_) => {}
-                Err(e) => panic!("Trace requested, but failed to write {:?}", e),
-            },
+            Some(file) => {
+                match write!(file, "{}", trace_write) {
+                    Ok(_) => {}
+                    Err(e) => panic!("Trace requested, but failed to write {:?}", e),
+                }
+            }
             None => {
-                panic!(
-                    "Trace requested, but init was never called; use the trace! macro instead: \
-                     {:#?}",
-                    dump
-                );
+                panic!("Trace requested, but init was never called; use the trace! macro \
+                        instead: {:#?}",
+                       dump);
             }
         }
     }

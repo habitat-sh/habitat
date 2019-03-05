@@ -49,16 +49,14 @@ const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
 
 pub struct Process {
-    handle: Handle,
+    handle:      Handle,
     last_status: Option<ExitStatus>,
 }
 
 impl Process {
     fn new(handle: Handle) -> Self {
-        Process {
-            handle,
-            last_status: None,
-        }
+        Process { handle,
+                  last_status: None }
     }
 
     pub fn id(&self) -> u32 { unsafe { processthreadsapi::GetProcessId(self.handle.raw()) as u32 } }
@@ -71,11 +69,9 @@ impl Process {
         }
         let ret = unsafe { wincon::GenerateConsoleCtrlEvent(1, self.id()) };
         if ret == 0 {
-            debug!(
-                "Failed to send ctrl-break to pid {}: {}",
-                self.id(),
-                io::Error::last_os_error()
-            );
+            debug!("Failed to send ctrl-break to pid {}: {}",
+                   self.id(),
+                   io::Error::last_os_error());
         }
 
         let stop_time = SteadyTime::now() + Duration::seconds(8);
@@ -99,10 +95,7 @@ impl Process {
                 return Err(io::Error::last_os_error());
             }
             let mut status = 0;
-            cvt(processthreadsapi::GetExitCodeProcess(
-                self.handle.raw(),
-                &mut status,
-            ))?;
+            cvt(processthreadsapi::GetExitCodeProcess(self.handle.raw(), &mut status))?;
             Ok(ExitStatus::from(status))
         }
     }
@@ -115,10 +108,7 @@ impl Process {
                 _ => return Err(io::Error::last_os_error()),
             }
             let mut status = 0;
-            cvt(processthreadsapi::GetExitCodeProcess(
-                self.handle.raw(),
-                &mut status,
-            ))?;
+            cvt(processthreadsapi::GetExitCodeProcess(self.handle.raw(), &mut status))?;
             Ok(Some(ExitStatus::from(status)))
         }
     }
@@ -169,13 +159,12 @@ fn spawn_pwsh(ps_binary_name: &str, msg: protocol::Spawn) -> Result<Service> {
         }
     };
 
-    match Child::spawn(
-        ps_binary_name,
-        vec!["-NonInteractive", "-command", ps_cmd.as_str()],
-        &msg.env,
-        user,
-        password,
-    ) {
+    match Child::spawn(ps_binary_name,
+                       vec!["-NonInteractive", "-command", ps_cmd.as_str()],
+                       &msg.env,
+                       user,
+                       password)
+    {
         Ok(child) => {
             let process = Process::new(child.handle);
             Ok(Service::new(msg, process, child.stdout, child.stderr))
@@ -189,40 +178,34 @@ fn build_proc_table() -> ProcessTable {
         unsafe { tlhelp32::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) };
 
     if processes_snap_handle == INVALID_HANDLE_VALUE {
-        error!(
-            "Failed to call CreateToolhelp32Snapshot: {}",
-            io::Error::last_os_error()
-        );
+        error!("Failed to call CreateToolhelp32Snapshot: {}",
+               io::Error::last_os_error());
         return ProcessTable::new();
     }
     let mut table = ProcessTable::new();
-    let mut process_entry = PROCESSENTRY32W {
-        dwSize: mem::size_of::<PROCESSENTRY32W>() as u32,
-        cntUsage: 0,
-        th32ProcessID: 0,
-        th32DefaultHeapID: 0,
-        th32ModuleID: 0,
-        cntThreads: 0,
-        th32ParentProcessID: 0,
-        pcPriClassBase: 0,
-        dwFlags: 0,
-        szExeFile: [0; MAX_PATH],
-    };
+    let mut process_entry = PROCESSENTRY32W { dwSize:              mem::size_of::<PROCESSENTRY32W>()
+                                                                   as u32,
+                                              cntUsage:            0,
+                                              th32ProcessID:       0,
+                                              th32DefaultHeapID:   0,
+                                              th32ModuleID:        0,
+                                              cntThreads:          0,
+                                              th32ParentProcessID: 0,
+                                              pcPriClassBase:      0,
+                                              dwFlags:             0,
+                                              szExeFile:           [0; MAX_PATH], };
     // Get the first process from the snapshot.
     match unsafe {
-        tlhelp32::Process32FirstW(
-            processes_snap_handle,
-            &mut process_entry as LPPROCESSENTRY32W,
-        )
-    } {
+              tlhelp32::Process32FirstW(processes_snap_handle,
+                                        &mut process_entry as LPPROCESSENTRY32W)
+          } {
         1 => {
             // First process worked, loop to find the process with the correct name.
             let mut process_success: i32 = 1;
             // Loop through all processes until we find one where `szExeFile` == `name`.
             while process_success == 1 {
-                let children = table
-                    .entry(process_entry.th32ParentProcessID)
-                    .or_insert(Vec::new());
+                let children = table.entry(process_entry.th32ParentProcessID)
+                                    .or_insert(Vec::new());
                 (*children).push(process_entry.th32ProcessID);
                 process_success =
                     unsafe { tlhelp32::Process32NextW(processes_snap_handle, &mut process_entry) };
@@ -249,10 +232,8 @@ fn exit_code(handle: &Handle) -> Option<u32> {
     unsafe {
         let ret = processthreadsapi::GetExitCodeProcess(handle.raw(), &mut exit_code as LPDWORD);
         if ret == 0 {
-            error!(
-                "Failed to retrieve Exit Code: {}",
-                io::Error::last_os_error()
-            );
+            error!("Failed to retrieve Exit Code: {}",
+                   io::Error::last_os_error());
             return None;
         }
     }
@@ -269,11 +250,9 @@ fn terminate_process_descendants(table: &ProcessTable, pid: DWORD) {
         match handle_from_pid(pid) {
             Some(h) => {
                 if processthreadsapi::TerminateProcess(h, 1) == 0 {
-                    error!(
-                        "Failed to call TerminateProcess on pid {}: {}",
-                        pid,
-                        io::Error::last_os_error()
-                    );
+                    error!("Failed to call TerminateProcess on pid {}: {}",
+                           pid,
+                           io::Error::last_os_error());
                 }
             }
             None => {}

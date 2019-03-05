@@ -27,9 +27,8 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str, key: &str) 
 
     ui.status(Status::Deleting, format!("secret {}.", key))?;
 
-    api_client
-        .delete_origin_secret(origin, token, key)
-        .map_err(Error::APIClient)?;
+    api_client.delete_origin_secret(origin, token, key)
+              .map_err(Error::APIClient)?;
 
     ui.status(Status::Deleted, format!("secret {}.", key))?;
 

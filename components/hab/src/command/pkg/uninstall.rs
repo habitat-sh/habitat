@@ -51,25 +51,22 @@ use crate::hcore::package::list::temp_package_directory;
 /// `excludes` is a list of user-supplied `PackageIdent`s.
 /// `services` is a list of fully-qualified `PackageIdent`s which are currently
 ///    running in a supervisor out of the `fs_root_path`.
-pub fn start(
-    ui: &mut UI,
-    ident: &PackageIdent,
-    fs_root_path: &Path,
-    execution_strategy: ExecutionStrategy,
-    scope: Scope,
-    excludes: &[PackageIdent],
-    services: &[PackageIdent],
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             ident: &PackageIdent,
+             fs_root_path: &Path,
+             execution_strategy: ExecutionStrategy,
+             scope: Scope,
+             excludes: &[PackageIdent],
+             services: &[PackageIdent])
+             -> Result<()> {
     // 1.
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
     let ident = pkg_install.ident();
     ui.begin(format!("Uninstalling {}", &ident))?;
 
     if !services.is_empty() {
-        ui.status(
-            Status::Determining,
-            "list of running services in supervisor",
-        )?;
+        ui.status(Status::Determining,
+                  "list of running services in supervisor")?;
         for s in services.iter() {
             ui.status(Status::Found, format!("running service {}", s))?;
         }
@@ -88,21 +85,17 @@ pub fn start(
             // with another hab uninstall. We can continue as what we wanted (package to
             // be removed) has already happened. We're going to continue and try and delete down
             // through the dependency tree anyway
-            ui.warn(format!(
-                "Tried to find dependant packages of {} but it wasn't in graph.  Maybe another \
-                 uninstall command was run at the same time?",
-                &ident
-            ))?;
+            ui.warn(format!("Tried to find dependant packages of {} but it wasn't in graph.  \
+                             Maybe another uninstall command was run at the same time?",
+                            &ident))?;
         }
         Some(0) => {
-            maybe_delete(
-                ui,
-                &fs_root_path,
-                &pkg_install,
-                execution_strategy,
-                &excludes,
-                &services,
-            )?;
+            maybe_delete(ui,
+                         &fs_root_path,
+                         &pkg_install,
+                         execution_strategy,
+                         &excludes,
+                         &services)?;
             graph.remove(&ident);
         }
         Some(c) => {
@@ -125,31 +118,26 @@ pub fn start(
                         // continue as what we wanted (package to be removed) has already happened.
                         // We're going to continue and try and delete down through the
                         // dependency tree anyway
-                        ui.warn(format!(
-                            "Tried to find dependant packages of {} but it wasn't in graph.  \
-                             Maybe another uninstall command was run at the same time?",
-                            &p
-                        ))?;
+                        ui.warn(format!("Tried to find dependant packages of {} but it wasn't \
+                                         in graph.  Maybe another uninstall command was run at \
+                                         the same time?",
+                                        &p))?;
                     }
                     Some(0) => {
                         let install = PackageInstall::load(&p, Some(fs_root_path))?;
-                        maybe_delete(
-                            ui,
-                            &fs_root_path,
-                            &install,
-                            execution_strategy,
-                            &excludes,
-                            &services,
-                        )?;
+                        maybe_delete(ui,
+                                     &fs_root_path,
+                                     &install,
+                                     execution_strategy,
+                                     &excludes,
+                                     &services)?;
 
                         graph.remove(&p);
                         count += 1;
                     }
                     Some(c) => {
-                        ui.status(
-                            Status::Skipping,
-                            format!("{}. It is a dependency of {} packages", &p, c),
-                        )?;
+                        ui.status(Status::Skipping,
+                                  format!("{}. It is a dependency of {} packages", &p, c))?;
                     }
                 }
             }
@@ -158,16 +146,12 @@ pub fn start(
 
     match execution_strategy {
         ExecutionStrategy::DryRun => {
-            ui.end(format!(
-                "Would uninstall {} and {} dependencies (Dry run)",
-                &ident, count
-            ))?;
+            ui.end(format!("Would uninstall {} and {} dependencies (Dry run)",
+                           &ident, count))?;
         }
         ExecutionStrategy::Run => {
-            ui.end(format!(
-                "Uninstall of {} and {} dependencies complete",
-                &ident, count
-            ))?;
+            ui.end(format!("Uninstall of {} and {} dependencies complete",
+                           &ident, count))?;
         }
     };
     Ok(())
@@ -179,32 +163,27 @@ pub fn start(
 ///   Ok(true) - package is deleted
 ///   Ok(false) - package would be deleted but it's a dry run
 ///   Err(_) -  IO problem deleting package from filesystem
-fn maybe_delete(
-    ui: &mut UI,
-    fs_root_path: &Path,
-    install: &PackageInstall,
-    strategy: ExecutionStrategy,
-    excludes: &[PackageIdent],
-    services: &[PackageIdent],
-) -> Result<bool> {
+fn maybe_delete(ui: &mut UI,
+                fs_root_path: &Path,
+                install: &PackageInstall,
+                strategy: ExecutionStrategy,
+                excludes: &[PackageIdent],
+                services: &[PackageIdent])
+                -> Result<bool> {
     let ident = install.ident();
     let pkg_root_path = hfs::pkg_root_path(Some(fs_root_path));
 
     let hab = PackageIdent::from_str("core/hab")?;
     if ident.satisfies(&hab) {
-        ui.status(
-            Status::Skipping,
-            format!("{}. You can't uninstall core/hab", &ident),
-        )?;
+        ui.status(Status::Skipping,
+                  format!("{}. You can't uninstall core/hab", &ident))?;
         return Ok(false);
     }
 
     let is_running = services.iter().any(|i| i.satisfies(ident));
     if is_running {
-        ui.status(
-            Status::Skipping,
-            format!("{}. It is currently running in the supervisor", &ident),
-        )?;
+        ui.status(Status::Skipping,
+                  format!("{}. It is currently running in the supervisor", &ident))?;
         return Ok(false);
     }
 
@@ -213,10 +192,8 @@ fn maybe_delete(
     // `Identifiable` trait which supplies this logic for PackageIdents
     let should_exclude = excludes.iter().any(|i| i.satisfies(ident));
     if should_exclude {
-        ui.status(
-            Status::Skipping,
-            format!("{}. It is on the exclusion list", &ident),
-        )?;
+        ui.status(Status::Skipping,
+                  format!("{}. It is on the exclusion list", &ident))?;
         return Ok(false);
     }
 

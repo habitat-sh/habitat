@@ -72,15 +72,13 @@ const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 /// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
-pub fn command_from_min_pkg<T>(
-    ui: &mut UI,
-    command: T,
-    ident: &PackageIdent,
-    cache_key_path: &Path,
-    retry: u8,
-) -> Result<PathBuf>
-where
-    T: Into<PathBuf>,
+pub fn command_from_min_pkg<T>(ui: &mut UI,
+                               command: T,
+                               ident: &PackageIdent,
+                               cache_key_path: &Path,
+                               retry: u8)
+                               -> Result<PathBuf>
+    where T: Into<PathBuf>
 {
     let command = command.into();
     if retry > MAX_RETRIES {
@@ -89,30 +87,34 @@ where
 
     let fs_root_path = FS_ROOT_PATH.as_path();
     match PackageInstall::load_at_least(ident, Some(fs_root_path)) {
-        Ok(pi) => match fs::find_command_in_pkg(&command, &pi, fs_root_path)? {
-            Some(cmd) => Ok(cmd),
-            None => Err(Error::ExecCommandNotFound(command)),
-        },
+        Ok(pi) => {
+            match fs::find_command_in_pkg(&command, &pi, fs_root_path)? {
+                Some(cmd) => Ok(cmd),
+                None => Err(Error::ExecCommandNotFound(command)),
+            }
+        }
         Err(hcore::Error::PackageNotFound(_)) => {
             ui.status(Status::Missing, format!("package for {}", &ident))?;
 
             // JB TODO - Does an auth token need to be plumbed into here?  Not 100% sure.
-            common::command::package::install::start(
-                ui,
-                &default_bldr_url(),
-                &internal_tooling_channel(),
-                &(ident.clone(), *PackageTarget::active_target()).into(),
-                PRODUCT,
-                VERSION,
-                fs_root_path,
-                &cache_artifact_path(None::<String>),
-                None,
-                // TODO fn: pass through and enable offline install mode
-                &InstallMode::default(),
-                // TODO (CM): pass through and enable no-local-package mode
-                &LocalPackageUsage::default(),
-                InstallHookMode::default(),
-            )?;
+            common::command::package::install::start(ui,
+                                                     &default_bldr_url(),
+                                                     &internal_tooling_channel(),
+                                                     &(ident.clone(),
+                                                       *PackageTarget::active_target())
+                                                                                       .into(),
+                                                     PRODUCT,
+                                                     VERSION,
+                                                     fs_root_path,
+                                                     &cache_artifact_path(None::<String>),
+                                                     None,
+                                                     // TODO fn: pass through and enable offline
+                                                     // install mode
+                                                     &InstallMode::default(),
+                                                     // TODO (CM): pass through and enable
+                                                     // no-local-package mode
+                                                     &LocalPackageUsage::default(),
+                                                     InstallHookMode::default())?;
             command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
         }
         Err(e) => Err(Error::from(e)),
@@ -122,7 +124,6 @@ where
 /// Determine the channel from which to install Habitat-specific
 /// packages.
 fn internal_tooling_channel() -> ChannelIdent {
-    hcore::env::var(INTERNAL_TOOLING_CHANNEL_ENVVAR)
-        .map(ChannelIdent::from)
-        .unwrap_or_default()
+    hcore::env::var(INTERNAL_TOOLING_CHANNEL_ENVVAR).map(ChannelIdent::from)
+                                                    .unwrap_or_default()
 }

@@ -21,12 +21,11 @@ use crate::{error::{Error,
                     Result},
             hcore::fs::PKG_PATH};
 
-pub fn start(
-    filename: &str,
-    fs_root_path: &Path,
-    full_releases: bool,
-    full_path: bool,
-) -> Result<()> {
+pub fn start(filename: &str,
+             fs_root_path: &Path,
+             full_releases: bool,
+             full_path: bool)
+             -> Result<()> {
     let mut found = HashSet::new();
     // count the # of directories in the path to the package dir
     // ex: /hab/pkg == 2
@@ -44,9 +43,8 @@ pub fn start(
                 let mut comps = entry.path().components();
 
                 // skip prefix_count segments of the path
-                let _ = comps
-                    .nth(prefix_count)
-                    .ok_or_else(|| Error::FileNotFound(f.to_string()))?;
+                let _ = comps.nth(prefix_count)
+                             .ok_or_else(|| Error::FileNotFound(f.to_string()))?;
 
                 let segments = if full_releases {
                     // take all 4 segments of the path
@@ -58,9 +56,9 @@ pub fn start(
                     comps.take(2)
                 };
 
-                let mapped_segs: Vec<String> = segments
-                    .map(|c| c.as_os_str().to_string_lossy().into_owned())
-                    .collect();
+                let mapped_segs: Vec<String> =
+                    segments.map(|c| c.as_os_str().to_string_lossy().into_owned())
+                            .collect();
                 let pkg_name = mapped_segs.join("/");
 
                 // if we show the full path, then don't bother stuffing

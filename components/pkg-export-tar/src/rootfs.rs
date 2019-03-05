@@ -24,8 +24,7 @@ use crate::error::Result;
 /// * If permissions for files and/or directories cannot be set
 #[cfg(unix)]
 pub fn create<T>(root: T) -> Result<()>
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     use std::fs;
 
@@ -39,8 +38,7 @@ where
 
 #[cfg(windows)]
 pub fn create<T>(_root: T) -> Result<()>
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     unimplemented!()
 }

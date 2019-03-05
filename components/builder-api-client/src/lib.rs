@@ -75,7 +75,7 @@ const DEFAULT_API_PATH: &str = "/v1";
 #[serde(rename = "error")]
 pub struct NetError {
     pub code: i32,
-    pub msg: String,
+    pub msg:  String,
 }
 
 impl fmt::Display for NetError {
@@ -86,26 +86,26 @@ impl fmt::Display for NetError {
 
 #[derive(Clone, Deserialize)]
 pub struct OriginKeyIdent {
-    pub origin: String,
+    pub origin:   String,
     pub revision: String,
     pub location: String,
 }
 
 #[derive(Clone, Default, Deserialize)]
 pub struct Project {
-    pub name: String,
-    pub ident: String,
-    pub state: String,
+    pub name:   String,
+    pub ident:  String,
+    pub state:  String,
     pub job_id: String,
     pub target: String,
 }
 
 #[derive(Clone, Deserialize)]
 pub struct OriginSecret {
-    pub id: String,
+    pub id:        String,
     pub origin_id: String,
-    pub name: String,
-    pub value: String,
+    pub name:      String,
+    pub value:     String,
 }
 
 impl fmt::Display for Project {
@@ -125,21 +125,19 @@ impl fmt::Display for Project {
 
 #[derive(Default, Deserialize)]
 pub struct SchedulerResponse {
-    pub id: String,
-    pub state: String,
-    pub projects: Vec<Project>,
-    pub created_at: String,
+    pub id:           String,
+    pub state:        String,
+    pub projects:     Vec<Project>,
+    pub created_at:   String,
     pub project_name: String,
-    pub target: String,
+    pub target:       String,
 }
 
 impl fmt::Display for SchedulerResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut output = Vec::new();
-        output.push(format!(
-            "Status for Job Group {} ({}): {}",
-            self.id, self.project_name, self.state
-        ));
+        output.push(format!("Status for Job Group {} ({}): {}",
+                            self.id, self.project_name, self.state));
 
         if let Ok(c) = DateTime::parse_from_rfc3339(&self.created_at) {
             output.push(format!("Created at: {}", c.to_string()));
@@ -163,13 +161,13 @@ impl fmt::Display for SchedulerResponse {
 #[derive(Deserialize)]
 pub struct ReverseDependencies {
     pub origin: String,
-    pub name: String,
-    pub rdeps: Vec<String>,
+    pub name:   String,
+    pub rdeps:  Vec<String>,
 }
 
 #[derive(Default, Deserialize)]
 pub struct JobGroupPromoteResponse {
-    pub group_id: String,
+    pub group_id:     String,
     pub not_promoted: Vec<PackageIdent>,
 }
 
@@ -186,16 +184,14 @@ mod json_u64 {
 
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn serialize<S>(num: &u64, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let s = format!("{}", num);
         serializer.serialize_str(&s)
     }
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<u64, D::Error>
-    where
-        D: Deserializer<'de>,
+        where D: Deserializer<'de>
     {
         let s = String::deserialize(deserializer)?;
         s.parse::<u64>().map_err(serde::de::Error::custom)
@@ -218,31 +214,29 @@ pub struct OriginPrivateSigningKey {
 mod json {
     #[derive(Clone, Deserialize)]
     pub struct Package {
-        pub ident: PackageIdent,
+        pub ident:    PackageIdent,
         pub checksum: String,
         pub manifest: String,
-        pub deps: Vec<PackageIdent>,
-        pub tdeps: Vec<PackageIdent>,
-        pub exposes: Vec<u32>,
-        pub config: String,
+        pub deps:     Vec<PackageIdent>,
+        pub tdeps:    Vec<PackageIdent>,
+        pub exposes:  Vec<u32>,
+        pub config:   String,
     }
 
     #[derive(Clone, Deserialize)]
     pub struct PackageIdent {
-        pub origin: String,
-        pub name: String,
+        pub origin:  String,
+        pub name:    String,
         pub version: String,
         pub release: String,
     }
 
     impl From<PackageIdent> for super::PackageIdent {
         fn from(ident: PackageIdent) -> Self {
-            super::PackageIdent {
-                origin: ident.origin,
-                name: ident.name,
-                version: Some(ident.version),
-                release: Some(ident.release),
-            }
+            super::PackageIdent { origin:  ident.origin,
+                                  name:    ident.name,
+                                  version: Some(ident.version),
+                                  release: Some(ident.release), }
         }
     }
 }
@@ -250,9 +244,9 @@ mod json {
 #[derive(Clone, Serialize, Deserialize)]
 pub struct PackageResults<T> {
     pub range_start: isize,
-    pub range_end: isize,
+    pub range_end:   isize,
     pub total_count: isize,
-    pub data: Vec<T>,
+    pub data:        Vec<T>,
 }
 
 #[derive(Clone, Deserialize)]
@@ -268,14 +262,12 @@ pub trait DisplayProgress: Write {
 pub struct Client(ApiClient);
 
 impl Client {
-    pub fn new<U>(
-        endpoint: U,
-        product: &str,
-        version: &str,
-        fs_root_path: Option<&Path>,
-    ) -> Result<Self>
-    where
-        U: IntoUrl,
+    pub fn new<U>(endpoint: U,
+                  product: &str,
+                  version: &str,
+                  fs_root_path: Option<&Path>)
+                  -> Result<Self>
+        where U: IntoUrl
     {
         let mut endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
         if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
@@ -292,18 +284,17 @@ impl Client {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn get_origin_schedule(
-        &self,
-        origin: &str,
-        limit: usize,
-    ) -> Result<Vec<SchedulerResponse>> {
+    pub fn get_origin_schedule(&self,
+                               origin: &str,
+                               limit: usize)
+                               -> Result<Vec<SchedulerResponse>> {
         debug!("Retrieving status for job groups in the {} origin", origin);
 
         let path = format!("depot/pkgs/schedule/{}/status", origin);
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
-                .append_pair("limit", &limit.to_string());
+               .append_pair("limit", &limit.to_string());
         };
 
         let res = self.0.get_with_custom_url(&path, custom).send()?;
@@ -328,7 +319,7 @@ impl Client {
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
-                .append_pair("include_projects", &include_projects.to_string());
+               .append_pair("include_projects", &include_projects.to_string());
         };
 
         let res = self.0.get_with_custom_url(&path, custom).send()?;
@@ -347,24 +338,22 @@ impl Client {
     ///
     /// * Key cannot be found
     /// * Remote Builder is not available
-    pub fn schedule_job(
-        &self,
-        ident: &PackageIdent,
-        target: PackageTarget,
-        package_only: bool,
-        token: &str,
-    ) -> Result<(String)> {
+    pub fn schedule_job(&self,
+                        ident: &PackageIdent,
+                        target: PackageTarget,
+                        package_only: bool,
+                        token: &str)
+                        -> Result<(String)> {
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
-                .append_pair("package_only", &package_only.to_string())
-                .append_pair("target", &target.to_string());
+               .append_pair("package_only", &package_only.to_string())
+               .append_pair("target", &target.to_string());
         };
 
-        match self
-            .add_authz(self.0.post_with_custom_url(&path, custom), token)
-            .send()
+        match self.add_authz(self.0.post_with_custom_url(&path, custom), token)
+                  .send()
         {
             Ok(response) => {
                 if response.status == StatusCode::Created || response.status == StatusCode::Ok {
@@ -388,13 +377,12 @@ impl Client {
 
         let url = format!("rdeps/{}", ident);
 
-        let mut res = self
-            .0
-            .get_with_custom_url(&url, |u| {
-                u.set_query(Some(&format!("target={}", &target.to_string())))
-            })
-            .send()
-            .map_err(Error::HyperError)?;
+        let mut res = self.0
+                          .get_with_custom_url(&url, |u| {
+                              u.set_query(Some(&format!("target={}", &target.to_string())))
+                          })
+                          .send()
+                          .map_err(Error::HyperError)?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
@@ -412,37 +400,31 @@ impl Client {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn job_group_promote_or_demote<T: AsRef<str> + serde::Serialize>(
-        &self,
-        group_id: u64,
-        idents: &[T],
-        channel: &ChannelIdent,
-        token: &str,
-        promote: bool,
-    ) -> Result<()> {
+    pub fn job_group_promote_or_demote<T: AsRef<str> + serde::Serialize>(&self,
+                                                                         group_id: u64,
+                                                                         idents: &[T],
+                                                                         channel: &ChannelIdent,
+                                                                         token: &str,
+                                                                         promote: bool)
+                                                                         -> Result<()> {
         let json_idents = json!(idents);
         let body = json!({ "idents": json_idents });
         let sbody = serde_json::to_string(&body).unwrap();
-        let url = format!(
-            "jobs/group/{}/{}/{}",
-            group_id,
-            if promote { "promote" } else { "demote" },
-            channel
-        );
-        let res = self
-            .add_authz(self.0.post(&url), token)
-            .body(&sbody)
-            .header(Accept::json())
-            .header(ContentType::json())
-            .send()
-            .map_err(Error::HyperError)?;
+        let url = format!("jobs/group/{}/{}/{}",
+                          group_id,
+                          if promote { "promote" } else { "demote" },
+                          channel);
+        let res = self.add_authz(self.0.post(&url), token)
+                      .body(&sbody)
+                      .header(Accept::json())
+                      .header(ContentType::json())
+                      .send()
+                      .map_err(Error::HyperError)?;
 
         if res.status != StatusCode::NoContent {
-            debug!(
-                "Failed to {} group, status: {:?}",
-                if promote { "promote" } else { "demote" },
-                res.status
-            );
+            debug!("Failed to {} group, status: {:?}",
+                   if promote { "promote" } else { "demote" },
+                   res.status);
             return Err(err_from_response(res));
         }
 
@@ -456,10 +438,9 @@ impl Client {
     /// * Remote API Server is not available
     pub fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
         let url = format!("jobs/group/{}/cancel", group_id);
-        let res = self
-            .add_authz(self.0.post(&url), token)
-            .send()
-            .map_err(Error::HyperError)?;
+        let res = self.add_authz(self.0.post(&url), token)
+                      .send()
+                      .map_err(Error::HyperError)?;
 
         if res.status != StatusCode::NoContent {
             debug!("Failed to cancel group, status: {:?}", res.status);
@@ -476,24 +457,20 @@ impl Client {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_origin_public_encryption_key<D, P: ?Sized>(
-        &self,
-        origin: &str,
-        token: &str,
-        dst_path: &P,
-        progress: Option<D>,
-    ) -> Result<PathBuf>
-    where
-        P: AsRef<Path>,
-        D: DisplayProgress + Sized,
+    pub fn fetch_origin_public_encryption_key<D, P: ?Sized>(&self,
+                                                            origin: &str,
+                                                            token: &str,
+                                                            dst_path: &P,
+                                                            progress: Option<D>)
+                                                            -> Result<PathBuf>
+        where P: AsRef<Path>,
+              D: DisplayProgress + Sized
     {
-        self.download(
-            self.0
-                .get(&format!("depot/origins/{}/encryption_key", origin)),
-            dst_path.as_ref(),
-            Some(token),
-            progress,
-        )
+        self.download(self.0
+                          .get(&format!("depot/origins/{}/encryption_key", origin)),
+                      dst_path.as_ref(),
+                      Some(token),
+                      progress)
     }
 
     /// Create secret for an origin
@@ -501,13 +478,12 @@ impl Client {
     /// # Failures
     ///
     /// * Remote Builder is not available
-    pub fn create_origin_secret(
-        &self,
-        origin: &str,
-        token: &str,
-        key: &str,
-        secret: &WrappedSealedBox,
-    ) -> Result<()> {
+    pub fn create_origin_secret(&self,
+                                origin: &str,
+                                token: &str,
+                                key: &str,
+                                secret: &WrappedSealedBox)
+                                -> Result<()> {
         let path = format!("depot/origins/{}/secret", origin);
         let body = json!({
             "name": key,
@@ -515,12 +491,11 @@ impl Client {
         });
 
         let sbody = serde_json::to_string(&body)?;
-        let res = self
-            .add_authz(self.0.post(&path), token)
-            .body(&sbody)
-            .header(Accept::json())
-            .header(ContentType::json())
-            .send()?;
+        let res = self.add_authz(self.0.post(&path), token)
+                      .body(&sbody)
+                      .header(Accept::json())
+                      .header(ContentType::json())
+                      .send()?;
 
         if res.status != StatusCode::Created {
             return Err(err_from_response(res));
@@ -582,12 +557,12 @@ impl Client {
 
         let mut encoded = String::new();
         res.read_to_string(&mut encoded)
-            .map_err(Error::BadResponseBody)?;
+           .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
-        let secret_keys: Vec<String> = serde_json::from_str::<Vec<OriginSecret>>(&encoded)?
-            .into_iter()
-            .map(|s| s.name)
-            .collect();
+        let secret_keys: Vec<String> =
+            serde_json::from_str::<Vec<OriginSecret>>(&encoded)?.into_iter()
+                                                                .map(|s| s.name)
+                                                                .collect();
         Ok(secret_keys)
     }
 
@@ -598,24 +573,20 @@ impl Client {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_origin_key<D, P: ?Sized>(
-        &self,
-        origin: &str,
-        revision: &str,
-        dst_path: &P,
-        progress: Option<D>,
-    ) -> Result<PathBuf>
-    where
-        P: AsRef<Path>,
-        D: DisplayProgress + Sized,
+    pub fn fetch_origin_key<D, P: ?Sized>(&self,
+                                          origin: &str,
+                                          revision: &str,
+                                          dst_path: &P,
+                                          progress: Option<D>)
+                                          -> Result<PathBuf>
+        where P: AsRef<Path>,
+              D: DisplayProgress + Sized
     {
-        self.download(
-            self.0
-                .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
-            dst_path.as_ref(),
-            None,
-            progress,
-        )
+        self.download(self.0
+                          .get(&format!("depot/origins/{}/keys/{}", origin, revision)),
+                      dst_path.as_ref(),
+                      None,
+                      progress)
     }
 
     /// Download a secret key from a remote Builder to the given filepath.
@@ -625,24 +596,20 @@ impl Client {
     /// * Key cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_secret_origin_key<D, P: ?Sized>(
-        &self,
-        origin: &str,
-        token: &str,
-        dst_path: &P,
-        progress: Option<D>,
-    ) -> Result<PathBuf>
-    where
-        P: AsRef<Path>,
-        D: DisplayProgress + Sized,
+    pub fn fetch_secret_origin_key<D, P: ?Sized>(&self,
+                                                 origin: &str,
+                                                 token: &str,
+                                                 dst_path: &P,
+                                                 progress: Option<D>)
+                                                 -> Result<PathBuf>
+        where P: AsRef<Path>,
+              D: DisplayProgress + Sized
     {
-        self.download(
-            self.0
-                .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
-            dst_path.as_ref(),
-            Some(token),
-            progress,
-        )
+        self.download(self.0
+                          .get(&format!("depot/origins/{}/secret_keys/latest", origin)),
+                      dst_path.as_ref(),
+                      Some(token),
+                      progress)
     }
 
     pub fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
@@ -655,7 +622,7 @@ impl Client {
 
         let mut encoded = String::new();
         res.read_to_string(&mut encoded)
-            .map_err(Error::BadResponseBody)?;
+           .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
         let revisions: Vec<OriginKeyIdent> = serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?;
         Ok(revisions)
@@ -667,11 +634,10 @@ impl Client {
     ///
     /// * Remote Builder is not available
     /// * Package does not exist
-    pub fn package_channels(
-        &self,
-        ident: &PackageIdent,
-        token: Option<&str>,
-    ) -> Result<Vec<String>> {
+    pub fn package_channels(&self,
+                            ident: &PackageIdent,
+                            token: Option<&str>)
+                            -> Result<Vec<String>> {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
@@ -687,11 +653,10 @@ impl Client {
 
         let mut encoded = String::new();
         res.read_to_string(&mut encoded)
-            .map_err(Error::BadResponseBody)?;
+           .map_err(Error::BadResponseBody)?;
         debug!("Response body: {:?}", encoded);
-        let channels: Vec<String> = serde_json::from_str::<Vec<String>>(&encoded)?
-            .into_iter()
-            .collect();
+        let channels: Vec<String> = serde_json::from_str::<Vec<String>>(&encoded)?.into_iter()
+                                                                                  .collect();
         Ok(channels)
     }
 
@@ -705,24 +670,21 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_origin_key<D>(
-        &self,
-        origin: &str,
-        revision: &str,
-        src_path: &Path,
-        token: &str,
-        progress: Option<D>,
-    ) -> Result<()>
-    where
-        D: DisplayProgress + Sized,
+    pub fn put_origin_key<D>(&self,
+                             origin: &str,
+                             revision: &str,
+                             src_path: &Path,
+                             token: &str,
+                             progress: Option<D>)
+                             -> Result<()>
+        where D: DisplayProgress + Sized
     {
         let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
         let mut file =
             File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
-        let file_size = file
-            .metadata()
-            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
-            .len();
+        let file_size = file.metadata()
+                            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
+                            .len();
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
@@ -736,10 +698,8 @@ impl Client {
                 .send()
         };
         match result {
-            Ok(Response {
-                status: StatusCode::Created,
-                ..
-            }) => Ok(()),
+            Ok(Response { status: StatusCode::Created,
+                          .. }) => Ok(()),
             Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
@@ -755,14 +715,12 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn fetch_origin_secret_key<P>(
-        &self,
-        origin: &str,
-        token: &str,
-        dst_path: P,
-    ) -> Result<PathBuf>
-    where
-        P: AsRef<Path>,
+    pub fn fetch_origin_secret_key<P>(&self,
+                                      origin: &str,
+                                      token: &str,
+                                      dst_path: P)
+                                      -> Result<PathBuf>
+        where P: AsRef<Path>
     {
         self.x_download(&origin_secret_keys_latest(origin), dst_path.as_ref(), token)
     }
@@ -777,24 +735,21 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_origin_secret_key<D>(
-        &self,
-        origin: &str,
-        revision: &str,
-        src_path: &Path,
-        token: &str,
-        progress: Option<D>,
-    ) -> Result<()>
-    where
-        D: DisplayProgress + Sized,
+    pub fn put_origin_secret_key<D>(&self,
+                                    origin: &str,
+                                    revision: &str,
+                                    src_path: &Path,
+                                    token: &str,
+                                    progress: Option<D>)
+                                    -> Result<()>
+        where D: DisplayProgress + Sized
     {
         let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
         let mut file =
             File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
-        let file_size = file
-            .metadata()
-            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
-            .len();
+        let file_size = file.metadata()
+                            .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
+                            .len();
 
         let result = if let Some(mut progress) = progress {
             progress.size(file_size);
@@ -808,10 +763,8 @@ impl Client {
                 .send()
         };
         match result {
-            Ok(Response {
-                status: StatusCode::Created,
-                ..
-            }) => Ok(()),
+            Ok(Response { status: StatusCode::Created,
+                          .. }) => Ok(()),
             Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
@@ -830,17 +783,15 @@ impl Client {
     /// * Package cannot be found
     /// * Remote Builder is not available
     /// * File cannot be created and written to
-    pub fn fetch_package<D, P>(
-        &self,
-        ident: &PackageIdent,
-        target: PackageTarget,
-        token: Option<&str>,
-        dst_path: &P,
-        progress: Option<D>,
-    ) -> Result<PackageArchive>
-    where
-        P: AsRef<Path> + ?Sized,
-        D: DisplayProgress + Sized,
+    pub fn fetch_package<D, P>(&self,
+                               ident: &PackageIdent,
+                               target: PackageTarget,
+                               token: Option<&str>,
+                               dst_path: &P,
+                               progress: Option<D>)
+                               -> Result<PackageArchive>
+        where P: AsRef<Path> + ?Sized,
+              D: DisplayProgress + Sized
     {
         // Ensure ident is fully qualified.
         //
@@ -851,8 +802,8 @@ impl Client {
         }
 
         let req_builder = self.0.get_with_custom_url(&package_download(ident), |u| {
-            u.set_query(Some(&format!("target={}", target)))
-        });
+                                    u.set_query(Some(&format!("target={}", target)))
+                                });
 
         match self.download(req_builder, dst_path.as_ref(), token, progress) {
             Ok(file) => Ok(PackageArchive::new(file)),
@@ -869,27 +820,24 @@ impl Client {
     ///
     /// * Package cannot be found
     /// * Remote Builder is not available
-    pub fn show_package(
-        &self,
-        package: &PackageIdent,
-        target: PackageTarget,
-        channel: &ChannelIdent,
-        token: Option<&str>,
-    ) -> Result<PackageIdent> {
+    pub fn show_package(&self,
+                        package: &PackageIdent,
+                        target: PackageTarget,
+                        channel: &ChannelIdent,
+                        token: Option<&str>)
+                        -> Result<PackageIdent> {
         let mut url = channel_package_path(channel, package);
 
         if !package.fully_qualified() {
             url.push_str("/latest");
         }
 
-        let mut res = self
-            .maybe_add_authz(
-                self.0.get_with_custom_url(&url, |u| {
-                    u.set_query(Some(&format!("target={}", target)))
-                }),
-                token,
-            )
-            .send()?;
+        let mut res = self.maybe_add_authz(self.0
+                                               .get_with_custom_url(&url, |u| {
+                                                   u.set_query(Some(&format!("target={}", target)))
+                                               }),
+                                           token)
+                          .send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
@@ -897,7 +845,7 @@ impl Client {
 
         let mut encoded = String::new();
         res.read_to_string(&mut encoded)
-            .map_err(Error::BadResponseBody)?;
+           .map_err(Error::BadResponseBody)?;
         debug!("Body: {:?}", encoded);
         let package: json::Package = serde_json::from_str::<json::Package>(&encoded)?;
         Ok(package.ident.into())
@@ -913,30 +861,27 @@ impl Client {
     /// # Panics
     ///
     /// * Authorization token was not set on client
-    pub fn put_package<D>(
-        &self,
-        pa: &mut PackageArchive,
-        token: &str,
-        force_upload: bool,
-        progress: Option<D>,
-    ) -> Result<()>
-    where
-        D: DisplayProgress + Sized,
+    pub fn put_package<D>(&self,
+                          pa: &mut PackageArchive,
+                          token: &str,
+                          force_upload: bool,
+                          progress: Option<D>)
+                          -> Result<()>
+        where D: DisplayProgress + Sized
     {
         let checksum = pa.checksum()?;
         let ident = pa.ident()?;
         let file = File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
-        let file_size = file
-            .metadata()
-            .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
-            .len();
+        let file_size = file.metadata()
+                            .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
+                            .len();
 
         let path = package_path(&ident);
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
-                .append_pair("checksum", &checksum)
-                .append_pair("forced", &force_upload.to_string());
+               .append_pair("checksum", &checksum)
+               .append_pair("forced", &force_upload.to_string());
         };
         debug!("Reading from {}", &pa.path.display());
 
@@ -947,16 +892,13 @@ impl Client {
             Box::new(file)
         };
 
-        let result = self
-            .add_authz(self.0.post_with_custom_url(&path, custom), token)
-            .body(Body::SizedBody(&mut reader, file_size))
-            .send();
+        let result = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
+                         .body(Body::SizedBody(&mut reader, file_size))
+                         .send();
 
         match result {
-            Ok(Response {
-                status: StatusCode::Created,
-                ..
-            }) => Ok(()),
+            Ok(Response { status: StatusCode::Created,
+                          .. }) => Ok(()),
             Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
@@ -967,27 +909,23 @@ impl Client {
         let ident = pa.ident()?;
         let mut file =
             File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
-        let file_size = file
-            .metadata()
-            .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
-            .len();
+        let file_size = file.metadata()
+                            .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
+                            .len();
         let path = package_path(&ident);
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
-                .append_pair("checksum", &checksum)
-                .append_pair("builder", "");
+               .append_pair("checksum", &checksum)
+               .append_pair("builder", "");
         };
         debug!("Reading from {}", &pa.path.display());
 
-        let result = self
-            .add_authz(self.0.post_with_custom_url(&path, custom), token)
-            .body(Body::SizedBody(&mut file, file_size))
-            .send();
+        let result = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
+                         .body(Body::SizedBody(&mut file, file_size))
+                         .send();
         match result {
-            Ok(Response {
-                status: StatusCode::Created,
-                ..
-            }) => Ok(()),
+            Ok(Response { status: StatusCode::Created,
+                          .. }) => Ok(()),
             Ok(response) => Err(err_from_response(response)),
             Err(e) => Err(Error::from(e)),
         }
@@ -1003,12 +941,11 @@ impl Client {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn promote_package(
-        &self,
-        ident: &PackageIdent,
-        channel: &ChannelIdent,
-        token: &str,
-    ) -> Result<()> {
+    pub fn promote_package(&self,
+                           ident: &PackageIdent,
+                           channel: &ChannelIdent,
+                           token: &str)
+                           -> Result<()> {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
@@ -1034,12 +971,11 @@ impl Client {
     ///
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
-    pub fn demote_package(
-        &self,
-        ident: &PackageIdent,
-        channel: &ChannelIdent,
-        token: &str,
-    ) -> Result<()> {
+    pub fn demote_package(&self,
+                          ident: &PackageIdent,
+                          channel: &ChannelIdent,
+                          token: &str)
+                          -> Result<()> {
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
@@ -1096,11 +1032,10 @@ impl Client {
     /// # Failures
     /// * Remote Builder is not available
     /// * Authorization token was not set on client
-    pub fn list_channels(
-        &self,
-        origin: &str,
-        include_sandbox_channels: bool,
-    ) -> Result<Vec<String>> {
+    pub fn list_channels(&self,
+                         origin: &str,
+                         include_sandbox_channels: bool)
+                         -> Result<Vec<String>> {
         let path = format!("depot/channels/{}", origin);
         let mut res = if include_sandbox_channels {
             self.0
@@ -1114,7 +1049,7 @@ impl Client {
             StatusCode::Ok | StatusCode::PartialContent => {
                 let mut encoded = String::new();
                 res.read_to_string(&mut encoded)
-                    .map_err(Error::BadResponseBody)?;
+                   .map_err(Error::BadResponseBody)?;
                 let results: Vec<OriginChannelIdent> = serde_json::from_str(&encoded)?;
                 let channels = results.into_iter().map(|o| o.name).collect();
                 Ok(channels)
@@ -1128,19 +1063,17 @@ impl Client {
     /// # Failures
     ///
     /// * Remote depot unavailable
-    pub fn search_package(
-        &self,
-        search_term: &str,
-        token: Option<&str>,
-    ) -> Result<(Vec<PackageIdent>, bool)> {
-        let mut res = self
-            .maybe_add_authz(self.0.get(&package_search(search_term)), token)
-            .send()?;
+    pub fn search_package(&self,
+                          search_term: &str,
+                          token: Option<&str>)
+                          -> Result<(Vec<PackageIdent>, bool)> {
+        let mut res = self.maybe_add_authz(self.0.get(&package_search(search_term)), token)
+                          .send()?;
         match res.status {
             StatusCode::Ok | StatusCode::PartialContent => {
                 let mut encoded = String::new();
                 res.read_to_string(&mut encoded)
-                    .map_err(Error::BadResponseBody)?;
+                   .map_err(Error::BadResponseBody)?;
                 let package_results: PackageResults<PackageIdent> = serde_json::from_str(&encoded)?;
                 let packages: Vec<PackageIdent> = package_results.data;
                 Ok((packages, res.status == StatusCode::PartialContent))
@@ -1149,35 +1082,28 @@ impl Client {
         }
     }
 
-    fn maybe_add_authz<'a>(
-        &'a self,
-        rb: RequestBuilder<'a>,
-        token: Option<&str>,
-    ) -> RequestBuilder<'_> {
+    fn maybe_add_authz<'a>(&'a self,
+                           rb: RequestBuilder<'a>,
+                           token: Option<&str>)
+                           -> RequestBuilder<'_> {
         if token.is_some() {
-            rb.header(Authorization(Bearer {
-                token: token.unwrap().to_string(),
-            }))
+            rb.header(Authorization(Bearer { token: token.unwrap().to_string(), }))
         } else {
             rb
         }
     }
 
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder<'_> {
-        rb.header(Authorization(Bearer {
-            token: token.to_string(),
-        }))
+        rb.header(Authorization(Bearer { token: token.to_string(), }))
     }
 
-    fn download<'a, D>(
-        &'a self,
-        rb: RequestBuilder<'a>,
-        dst_path: &Path,
-        token: Option<&str>,
-        progress: Option<D>,
-    ) -> Result<PathBuf>
-    where
-        D: DisplayProgress + Sized,
+    fn download<'a, D>(&'a self,
+                       rb: RequestBuilder<'a>,
+                       dst_path: &Path,
+                       token: Option<&str>,
+                       progress: Option<D>)
+                       -> Result<PathBuf>
+        where D: DisplayProgress + Sized
     {
         let mut res = self.maybe_add_authz(rb, token).send()?;
 
@@ -1189,26 +1115,26 @@ impl Client {
 
         fs::create_dir_all(&dst_path)?;
 
-        let file_name = res
-            .headers
-            .get::<XFileName>()
-            .expect("XFileName missing from response")
-            .to_string();
+        let file_name = res.headers
+                           .get::<XFileName>()
+                           .expect("XFileName missing from response")
+                           .to_string();
         let dst_file_path = dst_path.join(file_name);
         let w = AtomicWriter::new(&dst_file_path)?;
-        w.with_writer(|mut f| match progress {
-            Some(mut progress) => {
-                let size: u64 = res
-                    .headers
-                    .get::<hyper::header::ContentLength>()
-                    .map_or(0, |v| **v);
-                progress.size(size);
-                let mut writer = BroadcastWriter::new(&mut f, progress);
-                io::copy(&mut res, &mut writer)
-            }
-            None => io::copy(&mut res, &mut f),
-        })
-        .map_err(Error::BadResponseBody)?;
+        w.with_writer(|mut f| {
+             match progress {
+                 Some(mut progress) => {
+                     let size: u64 = res.headers
+                                        .get::<hyper::header::ContentLength>()
+                                        .map_or(0, |v| **v);
+                     progress.size(size);
+                     let mut writer = BroadcastWriter::new(&mut f, progress);
+                     io::copy(&mut res, &mut writer)
+                 }
+                 None => io::copy(&mut res, &mut f),
+             }
+         })
+         .map_err(Error::BadResponseBody)?;
         Ok(dst_file_path)
     }
 
@@ -1225,11 +1151,10 @@ impl Client {
         }
         fs::create_dir_all(&dst_path)?;
 
-        let file_name = res
-            .headers
-            .get::<XFileName>()
-            .expect("XFileName missing from response")
-            .to_string();
+        let file_name = res.headers
+                           .get::<XFileName>()
+                           .expect("XFileName missing from response")
+                           .to_string();
         let dst_file_path = dst_path.join(file_name);
         let w = AtomicWriter::new(&dst_file_path)?;
         w.with_writer(|mut w| io::copy(&mut res, &mut w).map_err(Error::BadResponseBody))?;
@@ -1239,18 +1164,20 @@ impl Client {
 
 fn err_from_response(mut response: hyper::client::Response) -> Error {
     if response.status == StatusCode::Unauthorized {
-        return Error::APIError(
-            response.status,
-            "Please check that you have specified a valid Personal Access Token.".to_string(),
-        );
+        return Error::APIError(response.status,
+                               "Please check that you have specified a valid Personal Access \
+                                Token."
+                                       .to_string());
     }
 
     let mut buff = String::new();
     match response.read_to_string(&mut buff) {
-        Ok(_) => match serde_json::from_str::<NetError>(&buff) {
-            Ok(err) => Error::APIError(response.status, err.to_string()),
-            Err(_) => Error::APIError(response.status, buff),
-        },
+        Ok(_) => {
+            match serde_json::from_str::<NetError>(&buff) {
+                Ok(err) => Error::APIError(response.status, err.to_string()),
+                Err(_) => Error::APIError(response.status, buff),
+            }
+        }
         Err(_) => {
             buff.truncate(0);
             Error::APIError(response.status, buff)
@@ -1276,12 +1203,10 @@ fn package_search(term: &str) -> String {
 }
 
 fn channel_package_path(channel: &ChannelIdent, package: &PackageIdent) -> String {
-    let mut path = format!(
-        "depot/channels/{}/{}/pkgs/{}",
-        package.origin(),
-        channel,
-        package.name()
-    );
+    let mut path = format!("depot/channels/{}/{}/pkgs/{}",
+                           package.origin(),
+                           channel,
+                           package.name());
     if let Some(version) = package.version() {
         path.push_str("/");
         path.push_str(version);
@@ -1294,35 +1219,29 @@ fn channel_package_path(channel: &ChannelIdent, package: &PackageIdent) -> Strin
 }
 
 fn package_channels_path(package: &PackageIdent) -> String {
-    format!(
-        "depot/pkgs/{}/{}/{}/{}/channels",
-        package.origin(),
-        package.name(),
-        package.version().unwrap(),
-        package.release().unwrap()
-    )
+    format!("depot/pkgs/{}/{}/{}/{}/channels",
+            package.origin(),
+            package.name(),
+            package.version().unwrap(),
+            package.release().unwrap())
 }
 
 fn channel_package_promote(channel: &ChannelIdent, package: &PackageIdent) -> String {
-    format!(
-        "depot/channels/{}/{}/pkgs/{}/{}/{}/promote",
-        package.origin(),
-        channel,
-        package.name(),
-        package.version().unwrap(),
-        package.release().unwrap()
-    )
+    format!("depot/channels/{}/{}/pkgs/{}/{}/{}/promote",
+            package.origin(),
+            channel,
+            package.name(),
+            package.version().unwrap(),
+            package.release().unwrap())
 }
 
 fn channel_package_demote(channel: &ChannelIdent, package: &PackageIdent) -> String {
-    format!(
-        "depot/channels/{}/{}/pkgs/{}/{}/{}/demote",
-        package.origin(),
-        channel,
-        package.name(),
-        package.version().unwrap(),
-        package.release().unwrap()
-    )
+    format!("depot/channels/{}/{}/pkgs/{}/{}/{}/demote",
+            package.origin(),
+            channel,
+            package.name(),
+            package.version().unwrap(),
+            package.release().unwrap())
 }
 
 #[cfg(test)]
@@ -1332,14 +1251,12 @@ mod tests {
 
     #[test]
     fn json_round_trip_u64_fields() {
-        let pre = OriginPrivateSigningKey {
-            id: 705_705_315_793_903_646,
-            origin_id: 705_705_305_031_319_582,
-            name: "core".to_string(),
-            revision: "20160810182414".to_string(),
-            body: vec![1, 2, 3],
-            owner_id: 0,
-        };
+        let pre = OriginPrivateSigningKey { id:        705_705_315_793_903_646,
+                                            origin_id: 705_705_305_031_319_582,
+                                            name:      "core".to_string(),
+                                            revision:  "20160810182414".to_string(),
+                                            body:      vec![1, 2, 3],
+                                            owner_id:  0, };
 
         let as_json = serde_json::to_value(&pre).unwrap();
         let expected = json!({

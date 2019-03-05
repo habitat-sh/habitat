@@ -31,23 +31,22 @@ use std::{net::SocketAddr,
                  UNIX_EPOCH}};
 
 pub struct Client {
-    butterfly_client: ButterflyClient,
-    pub package_name: String,
+    butterfly_client:  ButterflyClient,
+    pub package_name:  String,
     pub service_group: String,
 }
 
 impl Client {
     pub fn new(package_name: &str, service_group: &str, port: u16) -> Client {
-        let gossip_addr = format!("127.0.0.1:{}", port)
-            .parse::<SocketAddr>()
-            .expect("Could not parse Butterfly gossip address!");
-        let c = ButterflyClient::new(&gossip_addr.to_string(), None)
-            .expect("Could not create Butterfly Client for test!");
-        Client {
-            butterfly_client: c,
-            package_name: package_name.to_string(),
-            service_group: service_group.to_string(),
-        }
+        let gossip_addr =
+            format!("127.0.0.1:{}", port).parse::<SocketAddr>()
+                                         .expect("Could not parse Butterfly gossip address!");
+        let c = ButterflyClient::new(&gossip_addr.to_string(), None).expect("Could not create \
+                                                                             Butterfly Client \
+                                                                             for test!");
+        Client { butterfly_client: c,
+                 package_name:     package_name.to_string(),
+                 service_group:    service_group.to_string(), }
     }
 
     /// Apply the given configuration to the Supervisor. It will
@@ -67,12 +66,13 @@ impl Client {
 
         let incarnation = Self::new_incarnation();
         self.butterfly_client
-            .send_service_config(
-                ServiceGroup::new(None, &self.package_name, &self.service_group, None).unwrap(),
-                incarnation,
-                config,
-                false,
-            )
+            .send_service_config(ServiceGroup::new(None,
+                                                   &self.package_name,
+                                                   &self.service_group,
+                                                   None).unwrap(),
+                                 incarnation,
+                                 config,
+                                 false)
             .expect("Cannot send the service configuration");
     }
 
@@ -80,9 +80,8 @@ impl Client {
     /// since the Unix Epoch. As a result, this is unique to within a
     /// second, so beware! Might need to incorporate nanoseconds as well.
     fn new_incarnation() -> u64 {
-        SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs()
+        SystemTime::now().duration_since(UNIX_EPOCH)
+                         .unwrap()
+                         .as_secs()
     }
 }

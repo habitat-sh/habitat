@@ -44,13 +44,10 @@ pub struct NetTxn(Envelope);
 
 impl NetTxn {
     pub fn build<T>(message: &T) -> Result<Self>
-    where
-        T: LauncherMessage,
+        where T: LauncherMessage
     {
-        let env = Envelope {
-            message_id: T::MESSAGE_ID.to_string(),
-            payload: message.to_bytes()?,
-        };
+        let env = Envelope { message_id: T::MESSAGE_ID.to_string(),
+                             payload:    message.to_bytes()?, };
         Ok(NetTxn(env))
     }
 
@@ -62,8 +59,7 @@ impl NetTxn {
     pub fn to_bytes(&self) -> Result<Vec<u8>> { self.0.clone().to_bytes() }
 
     pub fn decode<T>(&self) -> Result<T>
-    where
-        T: LauncherMessage,
+        where T: LauncherMessage
     {
         T::from_bytes(&self.0.payload)
     }
@@ -72,11 +68,8 @@ impl NetTxn {
 }
 
 pub fn error<T>(err: T) -> NetErr
-where
-    T: ToString + Into<ErrCode>,
+    where T: ToString + Into<ErrCode>
 {
-    NetErr {
-        msg: err.to_string(),
-        code: err.into(),
-    }
+    NetErr { msg:  err.to_string(),
+             code: err.into(), }
 }

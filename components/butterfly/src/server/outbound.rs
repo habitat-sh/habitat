@@ -47,30 +47,22 @@ use crate::{member::{Health,
 const PING_RECV_QUEUE_EMPTY_SLEEP_MS: u64 = 10;
 
 lazy_static! {
-    static ref SWIM_MESSAGES_SENT: IntCounterVec = register_int_counter_vec!(
-        "hab_butterfly_swim_messages_sent_total",
-        "Total number of SWIM messages sent",
-        &["type"]
-    )
-    .unwrap();
-    static ref SWIM_BYTES_SENT: IntGaugeVec = register_int_gauge_vec!(
-        "hab_butterfly_swim_sent_bytes",
-        "SWIM message size sent in bytes",
-        &["type"]
-    )
-    .unwrap();
-    static ref SWIM_PROBES_SENT: IntCounterVec = register_int_counter_vec!(
-        "hab_butterfly_swim_probes_sent_total",
-        "Total number of SWIM probes sent",
-        &["type"]
-    )
-    .unwrap();
-    static ref SWIM_PROBE_DURATION: HistogramVec = register_histogram_vec!(
-        "hab_butterfly_swim_probe_duration_seconds",
-        "SWIM probe round trip time",
-        &["type"]
-    )
-    .unwrap();
+    static ref SWIM_MESSAGES_SENT: IntCounterVec =
+        register_int_counter_vec!("hab_butterfly_swim_messages_sent_total",
+                                  "Total number of SWIM messages sent",
+                                  &["type"]).unwrap();
+    static ref SWIM_BYTES_SENT: IntGaugeVec =
+        register_int_gauge_vec!("hab_butterfly_swim_sent_bytes",
+                                "SWIM message size sent in bytes",
+                                &["type"]).unwrap();
+    static ref SWIM_PROBES_SENT: IntCounterVec =
+        register_int_counter_vec!("hab_butterfly_swim_probes_sent_total",
+                                  "Total number of SWIM probes sent",
+                                  &["type"]).unwrap();
+    static ref SWIM_PROBE_DURATION: HistogramVec =
+        register_histogram_vec!("hab_butterfly_swim_probe_duration_seconds",
+                                "SWIM probe round trip time",
+                                &["type"]).unwrap();
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -90,26 +82,23 @@ impl fmt::Display for AckFrom {
 
 /// The outbound thread
 pub struct Outbound {
-    pub server: Server,
-    pub socket: UdpSocket,
+    pub server:     Server,
+    pub socket:     UdpSocket,
     pub rx_inbound: AckReceiver,
-    pub timing: Timing,
+    pub timing:     Timing,
 }
 
 impl Outbound {
     /// Creates a new Outbound struct.
-    pub fn new(
-        server: Server,
-        socket: UdpSocket,
-        rx_inbound: AckReceiver,
-        timing: Timing,
-    ) -> Outbound {
-        Outbound {
-            server,
-            socket,
-            rx_inbound,
-            timing,
-        }
+    pub fn new(server: Server,
+               socket: UdpSocket,
+               rx_inbound: AckReceiver,
+               timing: Timing)
+               -> Outbound {
+        Outbound { server,
+                   socket,
+                   rx_inbound,
+                   timing }
     }
 
     /// Run the outbound thread. Gets a list of members to ping, then walks the list, probing each
@@ -130,14 +119,12 @@ impl Outbound {
                         have_members = true;
                     } else {
                         self.server.member_list.with_initial_members(|member| {
-                            ping(
-                                &self.server,
-                                &self.socket,
-                                &member,
-                                member.swim_socket_address(),
-                                None,
-                            );
-                        });
+                                                   ping(&self.server,
+                                                        &self.socket,
+                                                        &member,
+                                                        member.swim_socket_address(),
+                                                        None);
+                                               });
                     }
                 }
             }
@@ -198,9 +185,8 @@ impl Outbound {
     ///
     /// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
     fn probe(&mut self, member: Member) {
-        let pa_timer = SWIM_PROBE_DURATION
-            .with_label_values(&["ping/ack"])
-            .start_timer();
+        let pa_timer = SWIM_PROBE_DURATION.with_label_values(&["ping/ack"])
+                                          .start_timer();
         let mut pr_timer: Option<HistogramTimer> = None;
         let addr = member.swim_socket_address();
 
@@ -247,9 +233,8 @@ impl Outbound {
             trace_it!(PROBE: &self.server, TraceKind::ProbeSuspect, &member.id, addr);
             trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, &member.id, addr);
             self.server.insert_member(member, Health::Suspect);
-            SWIM_PROBES_SENT
-                .with_label_values(&["pingreq/failure"])
-                .inc();
+            SWIM_PROBES_SENT.with_label_values(&["pingreq/failure"])
+                            .inc();
         }
 
         if pr_timer.is_some() {
@@ -340,11 +325,9 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
 
 /// Send a PingReq.
 pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, target: &Member) {
-    let pingreq = PingReq {
-        membership: vec![],
-        from: server.member.read().unwrap().as_member(),
-        target: target.clone(),
-    };
+    let pingreq = PingReq { membership: vec![],
+                            from:       server.member.read().unwrap().as_member(),
+                            target:     target.clone(), };
     let mut swim: Swim = pingreq.into();
     let addr = pingreq_target.swim_socket_address();
     populate_membership_rumors(server, target, &mut swim);
@@ -366,43 +349,36 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
         Ok(_s) => {
             let label_values = &["pingreq"];
             SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
-            SWIM_BYTES_SENT
-                .with_label_values(label_values)
-                .set(payload.len().to_i64());
-            trace!(
-                "Sent PingReq to {}@{} for {}@{}",
-                &pingreq_target.id,
-                addr,
-                &target.id,
-                target.swim_socket_address()
-            );
+            SWIM_BYTES_SENT.with_label_values(label_values)
+                           .set(payload.len().to_i64());
+            trace!("Sent PingReq to {}@{} for {}@{}",
+                   &pingreq_target.id,
+                   addr,
+                   &target.id,
+                   target.swim_socket_address());
         }
-        Err(e) => error!(
-            "Failed PingReq to {}@{} for {}@{}: {}",
-            &pingreq_target.id,
-            addr,
-            &target.id,
-            target.swim_socket_address(),
-            e
-        ),
+        Err(e) => {
+            error!("Failed PingReq to {}@{} for {}@{}: {}",
+                   &pingreq_target.id,
+                   addr,
+                   &target.id,
+                   target.swim_socket_address(),
+                   e)
+        }
     }
-    trace_it!(
-        SWIM: server,
-        TraceKind::SendPingReq,
-        &pingreq_target.id,
-        addr,
-        &swim
-    );
+    trace_it!(SWIM: server,
+              TraceKind::SendPingReq,
+              &pingreq_target.id,
+              addr,
+              &swim);
 }
 
 /// Send a Ping.
-pub fn ping(
-    server: &Server,
-    socket: &UdpSocket,
-    target: &Member,
-    addr: SocketAddr,
-    forward_to: Option<&Member>,
-) {
+pub fn ping(server: &Server,
+            socket: &UdpSocket,
+            target: &Member,
+            addr: SocketAddr,
+            forward_to: Option<&Member>) {
     let ping = Ping {
         membership: vec![],
         from: server.member.read().unwrap().as_member(),
@@ -428,9 +404,8 @@ pub fn ping(
         Ok(_s) => {
             let label_values = &["ping"];
             SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
-            SWIM_BYTES_SENT
-                .with_label_values(label_values)
-                .set(payload.len().to_i64());
+            SWIM_BYTES_SENT.with_label_values(label_values)
+                           .set(payload.len().to_i64());
             let on_behalf_of = match forward_to {
                 Some(x) => format!(" on behalf of {}@{}", x.id, x.address),
                 None => "".into(),
@@ -444,13 +419,11 @@ pub fn ping(
 
 /// Forward an ack on.
 pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, msg: Ack) {
-    trace_it!(
-        SWIM: server,
-        TraceKind::SendForwardAck,
-        &msg.from.id,
-        addr,
-        &msg
-    );
+    trace_it!(SWIM: server,
+              TraceKind::SendForwardAck,
+              &msg.from.id,
+              addr,
+              &msg);
     let member_id = msg.from.id.clone();
     let swim: Swim = msg.into();
     let bytes = match swim.encode() {
@@ -474,18 +447,14 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, msg: A
 }
 
 /// Send an Ack.
-pub fn ack(
-    server: &Server,
-    socket: &UdpSocket,
-    target: &Member,
-    addr: SocketAddr,
-    forward_to: Option<Member>,
-) {
-    let ack = Ack {
-        membership: vec![],
-        from: server.member.read().unwrap().as_member(),
-        forward_to: forward_to.map(Into::into),
-    };
+pub fn ack(server: &Server,
+           socket: &UdpSocket,
+           target: &Member,
+           addr: SocketAddr,
+           forward_to: Option<Member>) {
+    let ack = Ack { membership: vec![],
+                    from:       server.member.read().unwrap().as_member(),
+                    forward_to: forward_to.map(Into::into), };
     let member_id = ack.from.id.clone();
     let mut swim: Swim = ack.into();
     populate_membership_rumors(server, target, &mut swim);
@@ -507,9 +476,8 @@ pub fn ack(
         Ok(_s) => {
             let label_values = &["ack"];
             SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
-            SWIM_BYTES_SENT
-                .with_label_values(label_values)
-                .set(payload.len().to_i64());
+            SWIM_BYTES_SENT.with_label_values(label_values)
+                           .set(payload.len().to_i64());
             trace!("Sent ack to {}@{}", member_id, addr);
         }
         Err(e) => error!("Failed ack to {}@{}: {}", member_id, addr, e),

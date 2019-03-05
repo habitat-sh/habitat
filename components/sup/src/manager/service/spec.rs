@@ -91,16 +91,13 @@ impl From<DesiredState> for i32 {
 }
 
 pub fn deserialize_application_environment<'de, D>(
-    d: D,
-) -> result::Result<Option<ApplicationEnvironment>, D::Error>
-where
-    D: serde::Deserializer<'de>,
+    d: D)
+    -> result::Result<Option<ApplicationEnvironment>, D::Error>
+    where D: serde::Deserializer<'de>
 {
     let s: Option<String> = Option::deserialize(d)?;
     if let Some(s) = s {
-        Ok(Some(
-            FromStr::from_str(&s).map_err(serde::de::Error::custom)?,
-        ))
+        Ok(Some(FromStr::from_str(&s).map_err(serde::de::Error::custom)?))
     } else {
         Ok(None)
     }
@@ -113,10 +110,9 @@ pub trait IntoServiceSpec {
 impl IntoServiceSpec for protocol::ctl::SvcLoad {
     fn into_spec(&self, spec: &mut ServiceSpec) {
         spec.ident = self.ident.clone().unwrap().into();
-        spec.group = self
-            .group
-            .clone()
-            .unwrap_or_else(|| DEFAULT_GROUP.to_string());
+        spec.group = self.group
+                         .clone()
+                         .unwrap_or_else(|| DEFAULT_GROUP.to_string());
         if let Some(ref app_env) = self.application_environment {
             spec.application_environment = Some(app_env.clone().into());
         }
@@ -133,13 +129,13 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
             spec.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
         }
         if let Some(ref list) = self.binds {
-            spec.binds = list
-                .binds
-                .iter()
-                .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
-                    hcore::service::ServiceBind::new(&pb.name, pb.service_group.clone().into())
-                })
-                .collect();
+            spec.binds = list.binds
+                             .iter()
+                             .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
+                                 hcore::service::ServiceBind::new(&pb.name,
+                                                                  pb.service_group.clone().into())
+                             })
+                             .collect();
         }
         if let Some(binding_mode) = self.binding_mode {
             spec.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
@@ -159,16 +155,12 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
     pub ident: PackageIdent,
     pub group: String,
-    #[serde(
-        deserialize_with = "deserialize_application_environment",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(deserialize_with = "deserialize_application_environment",
+            skip_serializing_if = "Option::is_none")]
     pub application_environment: Option<ApplicationEnvironment>,
     pub bldr_url: String,
     pub channel: ChannelIdent,
@@ -177,10 +169,8 @@ pub struct ServiceSpec {
     pub binds: Vec<ServiceBind>,
     pub binding_mode: BindingMode,
     pub config_from: Option<PathBuf>,
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
     pub desired_state: DesiredState,
     pub health_check_interval: HealthCheckInterval,
     pub svc_encrypted_password: Option<String>,
@@ -202,29 +192,32 @@ impl ServiceSpec {
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = File::open(&path).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+                                        sup_error!(Error::ServiceSpecFileIO(path.as_ref()
+                                                                                .to_path_buf(),
+                                                                            err))
+                                    })?;
         let mut file = BufReader::new(file);
         let mut buf = String::new();
         file.read_to_string(&mut buf).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+                                          sup_error!(Error::ServiceSpecFileIO(path.as_ref()
+                                                                                  .to_path_buf(),
+                                                                              err))
+                                      })?;
         Self::from_str(&buf)
     }
 
     pub fn to_file<P: AsRef<Path>>(&self, path: P) -> Result<()> {
-        debug!(
-            "Writing service spec to '{}': {:?}",
-            path.as_ref().display(),
-            &self
-        );
-        let dst_path = path
-            .as_ref()
-            .parent()
-            .expect("Cannot determine parent directory for service spec");
+        debug!("Writing service spec to '{}': {:?}",
+               path.as_ref().display(),
+               &self);
+        let dst_path = path.as_ref()
+                           .parent()
+                           .expect("Cannot determine parent directory for service spec");
         fs::create_dir_all(dst_path).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+                                        sup_error!(Error::ServiceSpecFileIO(path.as_ref()
+                                                                                .to_path_buf(),
+                                                                            err))
+                                    })?;
         let toml = self.to_toml_string()?;
         atomic_write(path.as_ref(), toml).map_err(|err| {
             sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
@@ -270,9 +263,9 @@ impl ServiceSpec {
         // If we have remaining service binds then they are neither required nor optional package
         // binds. In this case, return an `Err`.
         if !svc_binds.is_empty() {
-            return Err(sup_error!(Error::InvalidBinds(
-                svc_binds.into_iter().map(|b| b.to_string()).collect()
-            )));
+            return Err(sup_error!(Error::InvalidBinds(svc_binds.into_iter()
+                                                               .map(|b| b.to_string())
+                                                               .collect())));
         }
 
         Ok(())
@@ -281,21 +274,19 @@ impl ServiceSpec {
 
 impl Default for ServiceSpec {
     fn default() -> Self {
-        ServiceSpec {
-            ident: PackageIdent::default(),
-            group: DEFAULT_GROUP.to_string(),
-            application_environment: None,
-            bldr_url: DEFAULT_BLDR_URL.to_string(),
-            channel: ChannelIdent::stable(),
-            topology: Topology::default(),
-            update_strategy: UpdateStrategy::default(),
-            binds: Vec::default(),
-            binding_mode: BindingMode::Strict,
-            config_from: None,
-            desired_state: DesiredState::default(),
-            health_check_interval: HealthCheckInterval::default(),
-            svc_encrypted_password: None,
-        }
+        ServiceSpec { ident:                   PackageIdent::default(),
+                      group:                   DEFAULT_GROUP.to_string(),
+                      application_environment: None,
+                      bldr_url:                DEFAULT_BLDR_URL.to_string(),
+                      channel:                 ChannelIdent::stable(),
+                      topology:                Topology::default(),
+                      update_strategy:         UpdateStrategy::default(),
+                      binds:                   Vec::default(),
+                      binding_mode:            BindingMode::Strict,
+                      config_from:             None,
+                      desired_state:           DesiredState::default(),
+                      health_check_interval:   HealthCheckInterval::default(),
+                      svc_encrypted_password:  None, }
     }
 }
 
@@ -370,33 +361,21 @@ mod test {
             "#;
         let spec = ServiceSpec::from_str(toml).unwrap();
 
-        assert_eq!(
-            spec.ident,
-            PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap()
-        );
+        assert_eq!(spec.ident,
+                   PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
         assert_eq!(spec.group, String::from("jobs"));
-        assert_eq!(
-            spec.application_environment,
-            Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),)
-        );
+        assert_eq!(spec.application_environment,
+                   Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),));
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
-        assert_eq!(
-            spec.binds,
-            vec![
-                ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
-                ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
-            ]
-        );
-        assert_eq!(
-            spec.config_from,
-            Some(PathBuf::from("/only/for/development"))
-        );
-        assert_eq!(
-            spec.health_check_interval,
-            HealthCheckInterval::from_str("5").unwrap()
-        );
+        assert_eq!(spec.binds,
+                   vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
+        assert_eq!(spec.config_from,
+                   Some(PathBuf::from("/only/for/development")));
+        assert_eq!(spec.health_check_interval,
+                   HealthCheckInterval::from_str("5").unwrap());
     }
 
     #[test]
@@ -404,10 +383,12 @@ mod test {
         let toml = r#""#;
 
         match ServiceSpec::from_str(toml) {
-            Err(e) => match e.err {
-                MissingRequiredIdent => assert!(true),
-                e => panic!("Unexpected error returned: {:?}", e),
-            },
+            Err(e) => {
+                match e.err {
+                    MissingRequiredIdent => assert!(true),
+                    e => panic!("Unexpected error returned: {:?}", e),
+                }
+            }
             Ok(_) => panic!("Spec TOML should fail to parse"),
         }
     }
@@ -420,10 +401,12 @@ mod test {
             "#;
 
         match ServiceSpec::from_str(toml) {
-            Err(e) => match e.err {
-                ServiceSpecParse(_) => assert!(true),
-                e => panic!("Unexpected error returned: {:?}", e),
-            },
+            Err(e) => {
+                match e.err {
+                    ServiceSpecParse(_) => assert!(true),
+                    e => panic!("Unexpected error returned: {:?}", e),
+                }
+            }
             Ok(_) => panic!("Spec TOML should fail to parse"),
         }
     }
@@ -437,36 +420,37 @@ mod test {
             "#;
 
         match ServiceSpec::from_str(toml) {
-            Err(e) => match e.err {
-                ServiceSpecParse(_) => assert!(true),
-                e => panic!("Unexpected error returned: {:?}", e),
-            },
+            Err(e) => {
+                match e.err {
+                    ServiceSpecParse(_) => assert!(true),
+                    e => panic!("Unexpected error returned: {:?}", e),
+                }
+            }
             Ok(_) => panic!("Spec TOML should fail to parse"),
         }
     }
 
     #[test]
     fn service_spec_to_toml_string() {
-        let spec = ServiceSpec {
-            ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
-            group: String::from("jobs"),
-            application_environment: Some(
-                ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
-            ),
-            bldr_url: String::from("http://example.com/depot"),
-            channel: ChannelIdent::unstable(),
-            topology: Topology::Leader,
-            update_strategy: UpdateStrategy::AtOnce,
-            binds: vec![
+        let spec =
+            ServiceSpec { ident:
+                              PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
+                          group:                   String::from("jobs"),
+                          application_environment:
+                              Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap()),
+                          bldr_url:                String::from("http://example.com/depot"),
+                          channel:                 ChannelIdent::unstable(),
+                          topology:                Topology::Leader,
+                          update_strategy:         UpdateStrategy::AtOnce,
+                          binds:                   vec![
                 ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ],
-            binding_mode: BindingMode::Relaxed,
-            health_check_interval: HealthCheckInterval::from_str("123").unwrap(),
-            config_from: Some(PathBuf::from("/only/for/development")),
-            desired_state: DesiredState::Down,
-            svc_encrypted_password: None,
-        };
+                          binding_mode:            BindingMode::Relaxed,
+                          health_check_interval:   HealthCheckInterval::from_str("123").unwrap(),
+                          config_from:             Some(PathBuf::from("/only/for/development")),
+                          desired_state:           DesiredState::Down,
+                          svc_encrypted_password:  None, };
         let toml = spec.to_toml_string().unwrap();
 
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#,));
@@ -493,10 +477,12 @@ mod test {
         let spec = ServiceSpec::default();
 
         match spec.to_toml_string() {
-            Err(e) => match e.err {
-                MissingRequiredIdent => assert!(true),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    MissingRequiredIdent => assert!(true),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => panic!("Spec TOML should fail to render"),
         }
     }
@@ -522,40 +508,26 @@ mod test {
         file_from_str(&path, toml);
         let spec = ServiceSpec::from_file(path).unwrap();
 
-        assert_eq!(
-            spec.ident,
-            PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap()
-        );
+        assert_eq!(spec.ident,
+                   PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap());
         assert_eq!(spec.group, String::from("jobs"));
         assert_eq!(spec.bldr_url, String::from("http://example.com/depot"));
         assert_eq!(spec.topology, Topology::Leader);
-        assert_eq!(
-            spec.application_environment,
-            Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),)
-        );
+        assert_eq!(spec.application_environment,
+                   Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),));
         assert_eq!(spec.update_strategy, UpdateStrategy::Rolling);
-        assert_eq!(
-            spec.binds,
-            vec![
-                ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
-                ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
-            ]
-        );
+        assert_eq!(spec.binds,
+                   vec![ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
+                        ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),]);
         assert_eq!(spec.channel, ChannelIdent::stable());
-        assert_eq!(
-            spec.config_from,
-            Some(PathBuf::from("/only/for/development"))
-        );
+        assert_eq!(spec.config_from,
+                   Some(PathBuf::from("/only/for/development")));
 
-        assert_eq!(
-            spec.binding_mode,
-            BindingMode::Strict,
-            "Strict is the default mode, if nothing was previously specified."
-        );
-        assert_eq!(
-            spec.health_check_interval,
-            HealthCheckInterval::from_str("5").unwrap()
-        );
+        assert_eq!(spec.binding_mode,
+                   BindingMode::Strict,
+                   "Strict is the default mode, if nothing was previously specified.");
+        assert_eq!(spec.health_check_interval,
+                   HealthCheckInterval::from_str("5").unwrap());
     }
 
     #[test]
@@ -585,10 +557,12 @@ mod test {
         let path = tmpdir.path().join("nope.spec");
 
         match ServiceSpec::from_file(&path) {
-            Err(e) => match e.err {
-                ServiceSpecFileIO(p, _) => assert_eq!(path, p),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    ServiceSpecFileIO(p, _) => assert_eq!(path, p),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => panic!("File should not exist for read"),
         }
     }
@@ -600,10 +574,12 @@ mod test {
         file_from_str(&path, "");
 
         match ServiceSpec::from_file(&path) {
-            Err(e) => match e.err {
-                MissingRequiredIdent => assert!(true),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    MissingRequiredIdent => assert!(true),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => panic!("File should not exist for read"),
         }
     }
@@ -615,10 +591,12 @@ mod test {
         file_from_str(&path, "You're gonna have a bad time");
 
         match ServiceSpec::from_file(&path) {
-            Err(e) => match e.err {
-                ServiceSpecParse(_) => assert!(true),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    ServiceSpecParse(_) => assert!(true),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => panic!("File should not exist for read"),
         }
     }
@@ -627,26 +605,25 @@ mod test {
     fn service_spec_to_file() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("name.spec");
-        let spec = ServiceSpec {
-            ident: PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
-            group: String::from("jobs"),
-            application_environment: Some(
-                ApplicationEnvironment::from_str("theinternet.preprod").unwrap(),
-            ),
-            bldr_url: String::from("http://example.com/depot"),
-            channel: ChannelIdent::unstable(),
-            topology: Topology::Leader,
-            update_strategy: UpdateStrategy::AtOnce,
-            binds: vec![
+        let spec =
+            ServiceSpec { ident:
+                              PackageIdent::from_str("origin/name/1.2.3/20170223130020").unwrap(),
+                          group:                   String::from("jobs"),
+                          application_environment:
+                              Some(ApplicationEnvironment::from_str("theinternet.preprod").unwrap()),
+                          bldr_url:                String::from("http://example.com/depot"),
+                          channel:                 ChannelIdent::unstable(),
+                          topology:                Topology::Leader,
+                          update_strategy:         UpdateStrategy::AtOnce,
+                          binds:                   vec![
                 ServiceBind::from_str("cache:redis.cache@acmecorp").unwrap(),
                 ServiceBind::from_str("db:postgres.app@acmecorp").unwrap(),
             ],
-            binding_mode: BindingMode::Relaxed,
-            health_check_interval: HealthCheckInterval::from_str("23").unwrap(),
-            config_from: Some(PathBuf::from("/only/for/development")),
-            desired_state: DesiredState::Down,
-            svc_encrypted_password: None,
-        };
+                          binding_mode:            BindingMode::Relaxed,
+                          health_check_interval:   HealthCheckInterval::from_str("23").unwrap(),
+                          config_from:             Some(PathBuf::from("/only/for/development")),
+                          desired_state:           DesiredState::Down,
+                          svc_encrypted_password:  None, };
         spec.to_file(&path).unwrap();
         let toml = string_from_file(path);
 
@@ -676,10 +653,12 @@ mod test {
         let spec = ServiceSpec::default();
 
         match spec.to_file(path) {
-            Err(e) => match e.err {
-                MissingRequiredIdent => assert!(true),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    MissingRequiredIdent => assert!(true),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => panic!("Service spec file should not have been written"),
         }
     }
@@ -693,31 +672,26 @@ mod test {
 
     fn testing_package_install() -> PackageInstall {
         let ident = if cfg!(target_os = "linux") {
-            PackageIdent::new(
-                "test-bind",
-                "test-bind",
-                Some("0.1.0"),
-                Some("20190219230309"),
-            )
+            PackageIdent::new("test-bind",
+                              "test-bind",
+                              Some("0.1.0"),
+                              Some("20190219230309"))
         } else if cfg!(target_os = "windows") {
-            PackageIdent::new(
-                "test-bind",
-                "test-bind-win",
-                Some("0.1.0"),
-                Some("20190219231616"),
-            )
+            PackageIdent::new("test-bind",
+                              "test-bind-win",
+                              Some("0.1.0"),
+                              Some("20190219231616"))
         } else {
             panic!("This is being run on a platform that's not currently supported");
         };
 
         let spec = ServiceSpec::default_for(ident);
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join("pkgs");
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+                                                            .join("fixtures")
+                                                            .join("pkgs");
 
-        PackageInstall::load(&spec.ident, Some(&path))
-            .expect("PackageInstall should've loaded my spec, but it didn't")
+        PackageInstall::load(&spec.ident, Some(&path)).expect("PackageInstall should've loaded my \
+                                                               spec, but it didn't")
     }
 
     #[test]
@@ -727,9 +701,11 @@ mod test {
         let mut spec = ServiceSpec::default_for(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap()];
         match spec.validate(&package) {
-            Err(e) => match e.err {
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => assert!(true),
         }
     }
@@ -739,14 +715,14 @@ mod test {
         let package = testing_package_install();
 
         let mut spec = ServiceSpec::default_for(package.ident().clone());
-        spec.binds = vec![
-            ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
-            ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),
-        ];
+        spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
+                          ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),];
         match spec.validate(&package) {
-            Err(e) => match e.err {
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => assert!(true),
         }
     }
@@ -759,10 +735,12 @@ mod test {
         let mut spec = ServiceSpec::default_for(package.ident().clone());
         spec.binds = vec![];
         match spec.validate(&package) {
-            Err(e) => match e.err {
-                MissingRequiredBind(b) => assert_eq!(vec!["database".to_string()], b),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    MissingRequiredBind(b) => assert_eq!(vec!["database".to_string()], b),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => panic!("Spec should not validate"),
         }
     }
@@ -774,15 +752,15 @@ mod test {
         let package = testing_package_install();
 
         let mut spec = ServiceSpec::default_for(package.ident().clone());
-        spec.binds = vec![
-            ServiceBind::from_str("backend:tomcat.app@acmecorp").unwrap(),
-            ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),
-        ];
+        spec.binds = vec![ServiceBind::from_str("backend:tomcat.app@acmecorp").unwrap(),
+                          ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),];
         match spec.validate(&package) {
-            Err(e) => match e.err {
-                InvalidBinds(b) => assert_eq!(vec!["backend".to_string()], b),
-                wrong => panic!("Unexpected error returned: {:?}", wrong),
-            },
+            Err(e) => {
+                match e.err {
+                    InvalidBinds(b) => assert_eq!(vec!["backend".to_string()], b),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
             Ok(_) => panic!("Spec should not validate"),
         }
     }

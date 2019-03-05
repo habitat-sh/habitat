@@ -34,28 +34,23 @@ use std::{sync::Arc,
           thread};
 
 pub struct HookRunner<H: Hook + Sync> {
-    hook: Arc<H>,
+    hook:          Arc<H>,
     service_group: ServiceGroup,
-    pkg: Pkg,
-    passwd: Option<String>,
+    pkg:           Pkg,
+    passwd:        Option<String>,
 }
 
-impl<H> HookRunner<H>
-where
-    H: Hook + Sync,
+impl<H> HookRunner<H> where H: Hook + Sync
 {
-    pub fn new(
-        hook: Arc<H>,
-        service_group: ServiceGroup,
-        pkg: Pkg,
-        passwd: Option<String>,
-    ) -> HookRunner<H> {
-        HookRunner {
-            hook,
-            service_group,
-            pkg,
-            passwd,
-        }
+    pub fn new(hook: Arc<H>,
+               service_group: ServiceGroup,
+               pkg: Pkg,
+               passwd: Option<String>)
+               -> HookRunner<H> {
+        HookRunner { hook,
+                     service_group,
+                     pkg,
+                     passwd }
     }
 }
 impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
@@ -72,16 +67,17 @@ impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
 
         // TODO (CM): May want to consider adding a configurable
         // timeout to how long this hook is allowed to run.
-        let handle_result = thread::Builder::new()
-            .name(format!("{}-{}", H::file_name(), self.service_group))
-            .spawn(move || {
-                let _timer = hook_timer(H::file_name());
-                let exit_value =
-                    self.hook
-                        .run(&self.service_group, &self.pkg, self.passwd.as_ref());
-                tx.send(exit_value)
-                    .expect("Couldn't send oneshot signal from HookRunner: receiver went away");
-            });
+        let handle_result =
+            thread::Builder::new().name(format!("{}-{}", H::file_name(), self.service_group))
+                                  .spawn(move || {
+                                      let _timer = hook_timer(H::file_name());
+                                      let exit_value = self.hook.run(&self.service_group,
+                                                                     &self.pkg,
+                                                                     self.passwd.as_ref());
+                                      tx.send(exit_value)
+                                        .expect("Couldn't send oneshot signal from HookRunner: \
+                                                 receiver went away");
+                                  });
 
         match handle_result {
             Ok(_handle) => rx.into(),

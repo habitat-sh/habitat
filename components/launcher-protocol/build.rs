@@ -9,15 +9,10 @@ use prost_build;
 fn main() {
     let mut config = prost_build::Config::new();
     config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
-    config
-        .compile_protos(
-            &[
-                "protocols/error.proto",
-                "protocols/launcher.proto",
-                "protocols/net.proto",
-                "protocols/supervisor.proto",
-            ],
-            &["protocols/"],
-        )
-        .unwrap()
+    config.compile_protos(&["protocols/error.proto",
+                            "protocols/launcher.proto",
+                            "protocols/net.proto",
+                            "protocols/supervisor.proto"],
+                          &["protocols/"])
+          .unwrap()
 }

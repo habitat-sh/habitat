@@ -26,8 +26,7 @@ use crate::error::{Error,
                    Result};
 
 pub fn start<T>(ident: &PackageIdent, command: T, args: Vec<OsString>) -> Result<()>
-where
-    T: Into<PathBuf>,
+    where T: Into<PathBuf>
 {
     let command = command.into();
     let pkg_install = PackageInstall::load(&ident, Some(&*FS_ROOT_PATH))?;

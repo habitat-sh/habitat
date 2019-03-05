@@ -58,9 +58,9 @@ mod test {
 
         #[test]
         fn local_gossip_mode_and_listen_gossip_are_mutually_exclusive() {
-            let cmd_vec = Vec::from_iter(
-                "hab-sup run --listen-gossip 1.1.1.1:1111 --local-gossip-mode".split_whitespace(),
-            );
+            let cmd_vec = Vec::from_iter("hab-sup run --listen-gossip 1.1.1.1:1111 \
+                                          --local-gossip-mode"
+                                                              .split_whitespace());
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
 
@@ -74,17 +74,17 @@ mod test {
 
         #[test]
         fn local_gossip_mode_and_peer_watch_file_are_mutually_exclusive() {
-            let cmd_vec = Vec::from_iter(
-                "hab-sup run --local-gossip-mode --peer-watch-file foobar".split_whitespace(),
-            );
+            let cmd_vec = Vec::from_iter("hab-sup run --local-gossip-mode --peer-watch-file \
+                                          foobar"
+                                                 .split_whitespace());
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
 
         #[test]
         fn peer_watch_file_and_peer_are_mutually_exclusive() {
-            let cmd_vec = Vec::from_iter(
-                "hab-sup run --peer 1.1.1.1:1111 --peer-watch-file foobar".split_whitespace(),
-            );
+            let cmd_vec = Vec::from_iter("hab-sup run --peer 1.1.1.1:1111 --peer-watch-file \
+                                          foobar"
+                                                 .split_whitespace());
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
 

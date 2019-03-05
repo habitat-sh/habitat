@@ -124,8 +124,7 @@ impl Status {
 /// Functions applied to an IO stream for receiving input for a UI.
 pub trait UIReader {
     fn edit<T>(&mut self, contents: &[T]) -> Result<String>
-    where
-        T: fmt::Display;
+        where T: fmt::Display;
     /// Returns true if message reads should expect the source as a tty.
     fn is_a_tty(&self) -> bool;
     fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String>;
@@ -151,49 +150,39 @@ pub trait UIWriter {
 
     /// Write a message formatted with `begin`.
     fn begin<T>(&mut self, message: T) -> io::Result<()>
-    where
-        T: fmt::Display,
+        where T: fmt::Display
     {
         let symbol = '»';
-        println(
-            self.out(),
-            format!("{} {}", symbol, message).as_bytes(),
-            ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true),
-        )
+        println(self.out(),
+                format!("{} {}", symbol, message).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true))
     }
 
     /// Write a message formatted with `end`.
     fn end<T>(&mut self, message: T) -> io::Result<()>
-    where
-        T: fmt::Display,
+        where T: fmt::Display
     {
         let symbol = '★';
-        println(
-            self.out(),
-            format!("{} {}", symbol, message).as_bytes(),
-            ColorSpec::new().set_fg(Some(Color::Magenta)).set_bold(true),
-        )
+        println(self.out(),
+                format!("{} {}", symbol, message).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Magenta)).set_bold(true))
     }
 
     /// Write a message formatted with `status`.
     fn status<T>(&mut self, status: Status, message: T) -> io::Result<()>
-    where
-        T: fmt::Display,
+        where T: fmt::Display
     {
         let (symbol, status_str, color) = status.parts();
-        print(
-            self.out(),
-            format!("{} {}", symbol, status_str).as_bytes(),
-            ColorSpec::new().set_fg(Some(color)).set_bold(true),
-        )?;
+        print(self.out(),
+              format!("{} {}", symbol, status_str).as_bytes(),
+              ColorSpec::new().set_fg(Some(color)).set_bold(true))?;
         self.out().write_all(format!(" {}\n", message).as_bytes())?;
         self.out().flush()
     }
 
     /// Write a message formatted with `info`.
     fn info<T>(&mut self, text: T) -> io::Result<()>
-    where
-        T: fmt::Display,
+        where T: fmt::Display
     {
         self.out().write_all(format!("{}\n", text).as_bytes())?;
         self.out().flush()
@@ -201,68 +190,49 @@ pub trait UIWriter {
 
     /// Write a message formatted with `warn`.
     fn warn<T>(&mut self, message: T) -> io::Result<()>
-    where
-        T: fmt::Display,
+        where T: fmt::Display
     {
-        println(
-            self.err(),
-            format!("∅ {}", message).as_bytes(),
-            ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true),
-        )
+        println(self.err(),
+                format!("∅ {}", message).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true))
     }
 
     /// Write a message formatted with `fatal`.
     fn fatal<T>(&mut self, message: T) -> io::Result<()>
-    where
-        T: fmt::Display,
+        where T: fmt::Display
     {
-        println(
-            self.err(),
-            "✗✗✗".as_bytes(),
-            ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
-        )?;
+        println(self.err(),
+                "✗✗✗".as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))?;
         for line in message.to_string().lines() {
-            println(
-                self.err(),
-                format!("✗✗✗ {}", line).as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
-            )?;
+            println(self.err(),
+                    format!("✗✗✗ {}", line).as_bytes(),
+                    ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))?;
         }
-        println(
-            self.err(),
-            "✗✗✗".as_bytes(),
-            ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true),
-        )
+        println(self.err(),
+                "✗✗✗".as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
     }
 
     /// Write a message formatted with `title`.
     fn title<T>(&mut self, text: T) -> io::Result<()>
-    where
-        T: AsRef<str>,
+        where T: AsRef<str>
     {
-        println(
-            self.out(),
-            format!(
-                "{}\n{:=<width$}\n",
-                text.as_ref(),
-                "",
-                width = text.as_ref().chars().count()
-            )
-            .as_bytes(),
-            ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true),
-        )
+        println(self.out(),
+                format!("{}\n{:=<width$}\n",
+                        text.as_ref(),
+                        "",
+                        width = text.as_ref().chars().count()).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true))
     }
 
     /// Write a message formatted with `heading`.
     fn heading<T>(&mut self, text: T) -> io::Result<()>
-    where
-        T: AsRef<str>,
+        where T: AsRef<str>
     {
-        println(
-            self.out(),
-            format!("{}\n", text.as_ref()).as_bytes(),
-            ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true),
-        )
+        println(self.out(),
+                format!("{}\n", text.as_ref()).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true))
     }
 
     /// Write a message formatted with `para`.
@@ -301,9 +271,8 @@ impl UI {
         } else {
             None
         };
-        let coloring = if env::var(NOCOLORING_ENVVAR)
-            .map(|val| val == "1" || val == "true")
-            .unwrap_or(false)
+        let coloring = if env::var(NOCOLORING_ENVVAR).map(|val| val == "1" || val == "true")
+                                                     .unwrap_or(false)
         {
             ColorChoice::Never
         } else {
@@ -319,34 +288,32 @@ impl UI {
     ///
     /// The standard input stream needs to implement `Read` and both the standard output and
     /// standard error streams need to implement `Write`.
-    pub fn with_streams<O, E>(
-        stdin: Box<dyn Read + Send>,
-        stdout_fn: O,
-        stderr_fn: E,
-        coloring: ColorChoice,
-        isatty: bool,
-    ) -> Self
-    where
-        O: FnMut() -> Box<dyn Write + Send>,
-        E: FnMut() -> Box<dyn Write + Send>,
+    pub fn with_streams<O, E>(stdin: Box<dyn Read + Send>,
+                              stdout_fn: O,
+                              stderr_fn: E,
+                              coloring: ColorChoice,
+                              isatty: bool)
+                              -> Self
+        where O: FnMut() -> Box<dyn Write + Send>,
+              E: FnMut() -> Box<dyn Write + Send>
     {
-        Self::new(Shell::new(
-            InputStream::new(stdin, isatty),
-            OutputStream::new(WriteStream::from_write(stdout_fn), coloring, isatty),
-            OutputStream::new(WriteStream::from_write(stderr_fn), coloring, isatty),
-        ))
+        Self::new(Shell::new(InputStream::new(stdin, isatty),
+                             OutputStream::new(WriteStream::from_write(stdout_fn),
+                                               coloring,
+                                               isatty),
+                             OutputStream::new(WriteStream::from_write(stderr_fn),
+                                               coloring,
+                                               isatty)))
     }
 
     /// Creates a new `UI` which an empty standard input and sinks (i.e. a `/dev/null`-like stream)
     /// for standard output and standard error.
     pub fn with_sinks() -> Self {
-        Self::with_streams(
-            Box::new(io::empty()),
-            || Box::new(io::sink()),
-            || Box::new(io::sink()),
-            ColorChoice::Never,
-            false,
-        )
+        Self::with_streams(Box::new(io::empty()),
+                           || Box::new(io::sink()),
+                           || Box::new(io::sink()),
+                           ColorChoice::Never,
+                           false)
     }
 }
 
@@ -387,26 +354,18 @@ impl UIReader for UI {
             None => ("[yes/no/quit]", "", ""),
         };
         loop {
-            print(
-                stream,
-                question.as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Cyan)),
-            )?;
-            print(
-                stream,
-                format!(" {}", prefix).as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::White)),
-            )?;
-            print(
-                stream,
-                default_text.as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::White)).set_bold(true),
-            )?;
-            print(
-                stream,
-                format!("{} ", suffix).as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::White)),
-            )?;
+            print(stream,
+                  question.as_bytes(),
+                  ColorSpec::new().set_fg(Some(Color::Cyan)))?;
+            print(stream,
+                  format!(" {}", prefix).as_bytes(),
+                  ColorSpec::new().set_fg(Some(Color::White)))?;
+            print(stream,
+                  default_text.as_bytes(),
+                  ColorSpec::new().set_fg(Some(Color::White)).set_bold(true))?;
+            print(stream,
+                  format!("{} ", suffix).as_bytes(),
+                  ColorSpec::new().set_fg(Some(Color::White)))?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
@@ -416,10 +375,12 @@ impl UIReader for UI {
                 'y' | 'Y' => return Ok(true),
                 'n' | 'N' => return Ok(false),
                 'q' | 'Q' => process::exit(0),
-                '\n' => match default {
-                    Some(default) => return Ok(default),
-                    None => continue,
-                },
+                '\n' => {
+                    match default {
+                        Some(default) => return Ok(default),
+                        None => continue,
+                    }
+                }
                 _ => continue,
             }
         }
@@ -428,23 +389,17 @@ impl UIReader for UI {
     fn prompt_ask(&mut self, question: &str, default: Option<&str>) -> Result<String> {
         let stream = &mut self.shell.out;
         loop {
-            print(
-                stream,
-                question.as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Cyan)),
-            )?;
+            print(stream,
+                  question.as_bytes(),
+                  ColorSpec::new().set_fg(Some(Color::Cyan)))?;
             stream.write_all(b": ")?;
             if let Some(d) = default {
-                print(
-                    stream,
-                    b"[default: ",
-                    ColorSpec::new().set_fg(Some(Color::White)),
-                )?;
-                print(
-                    stream,
-                    d.as_bytes(),
-                    ColorSpec::new().set_fg(Some(Color::White)).set_bold(true),
-                )?;
+                print(stream,
+                      b"[default: ",
+                      ColorSpec::new().set_fg(Some(Color::White)))?;
+                print(stream,
+                      d.as_bytes(),
+                      ColorSpec::new().set_fg(Some(Color::White)).set_bold(true))?;
                 print(stream, b"]", ColorSpec::new().set_fg(Some(Color::White)))?;
             }
             stream.write_all(b" ")?;
@@ -465,8 +420,7 @@ impl UIReader for UI {
     }
 
     fn edit<T>(&mut self, contents: &[T]) -> Result<String>
-    where
-        T: fmt::Display,
+        where T: fmt::Display
     {
         let editor = env::var("EDITOR").map_err(Error::EditorEnv)?;
 
@@ -503,8 +457,8 @@ impl UIReader for UI {
 #[derive(Debug)]
 pub struct Shell {
     input: InputStream,
-    out: OutputStream,
-    err: OutputStream,
+    out:   OutputStream,
+    err:   OutputStream,
 }
 
 impl Shell {
@@ -531,7 +485,7 @@ impl Default for Shell {
 }
 
 pub struct InputStream {
-    inner: Box<dyn Read + Send>,
+    inner:  Box<dyn Read + Send>,
     isatty: bool,
 }
 
@@ -539,13 +493,10 @@ impl InputStream {
     pub fn new(inner: Box<dyn Read + Send>, isatty: bool) -> Self { InputStream { inner, isatty } }
 
     pub fn from_stdin(isatty: Option<bool>) -> Self {
-        Self::new(
-            Box::new(io::stdin()),
-            match isatty {
-                Some(val) => val,
-                None => tty::isatty(StdStream::Stdin),
-            },
-        )
+        Self::new(Box::new(io::stdin()), match isatty {
+            Some(val) => val,
+            None => tty::isatty(StdStream::Stdin),
+        })
     }
 
     pub fn is_a_terminal(&self) -> bool { self.isatty }
@@ -562,40 +513,30 @@ impl fmt::Debug for InputStream {
 }
 
 pub struct OutputStream {
-    inner: WriteStream,
+    inner:    WriteStream,
     coloring: ColorChoice,
-    isatty: bool,
+    isatty:   bool,
 }
 
 impl OutputStream {
     pub fn new(inner: WriteStream, coloring: ColorChoice, isatty: bool) -> Self {
-        OutputStream {
-            inner,
-            coloring,
-            isatty,
-        }
+        OutputStream { inner,
+                       coloring,
+                       isatty }
     }
 
     pub fn from_stdout(coloring: ColorChoice, isatty: Option<bool>) -> Self {
-        Self::new(
-            WriteStream::from_stdout(coloring),
-            coloring,
-            match isatty {
-                Some(val) => val,
-                None => tty::isatty(StdStream::Stdout),
-            },
-        )
+        Self::new(WriteStream::from_stdout(coloring), coloring, match isatty {
+            Some(val) => val,
+            None => tty::isatty(StdStream::Stdout),
+        })
     }
 
     pub fn from_stderr(coloring: ColorChoice, isatty: Option<bool>) -> Self {
-        Self::new(
-            WriteStream::from_stderr(coloring),
-            coloring,
-            match isatty {
-                Some(val) => val,
-                None => tty::isatty(StdStream::Stderr),
-            },
-        )
+        Self::new(WriteStream::from_stderr(coloring), coloring, match isatty {
+            Some(val) => val,
+            None => tty::isatty(StdStream::Stderr),
+        })
     }
 
     pub fn is_a_terminal(&self) -> bool { self.isatty }
@@ -642,11 +583,9 @@ impl Write for OutputStream {
 
 impl fmt::Debug for OutputStream {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "OutputStream {{ coloring: {:?}, isatty: {} }}",
-            self.coloring, self.isatty,
-        )
+        write!(f,
+               "OutputStream {{ coloring: {:?}, isatty: {} }}",
+               self.coloring, self.isatty,)
     }
 }
 
@@ -723,18 +662,16 @@ mod tty {
 /// writer (i.e. implementing the `Write` trait) as a means to increase progress towards
 /// completion.
 pub struct ConsoleProgressBar {
-    bar: pbr::ProgressBar<Stdout>,
-    total: u64,
+    bar:     pbr::ProgressBar<Stdout>,
+    total:   u64,
     current: u64,
 }
 
 impl Default for ConsoleProgressBar {
     fn default() -> Self {
-        ConsoleProgressBar {
-            bar: pbr::ProgressBar::new(0),
-            total: 0,
-            current: 0,
-        }
+        ConsoleProgressBar { bar:     pbr::ProgressBar::new(0),
+                             total:   0,
+                             current: 0, }
     }
 }
 
@@ -770,14 +707,12 @@ impl Write for ConsoleProgressBar {
     fn flush(&mut self) -> io::Result<()> { self.bar.flush() }
 }
 
-pub fn print_wrapped<U>(
-    stream: &mut dyn WriteColor,
-    text: U,
-    wrap_width: usize,
-    left_indent: usize,
-) -> io::Result<()>
-where
-    U: AsRef<str>,
+pub fn print_wrapped<U>(stream: &mut dyn WriteColor,
+                        text: U,
+                        wrap_width: usize,
+                        left_indent: usize)
+                        -> io::Result<()>
+    where U: AsRef<str>
 {
     for line in text.as_ref().split("\n\n") {
         let mut buffer = String::new();
