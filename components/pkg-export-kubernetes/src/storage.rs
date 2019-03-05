@@ -24,8 +24,8 @@ use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct PersistentStorage {
-    pub size: String,
-    pub path: String,
+    pub size:  String,
+    pub path:  String,
     pub class: String,
 }
 
@@ -57,39 +57,49 @@ impl PersistentStorage {
             PowerOfTwo,
         };
         let mut state = State::Nothing;
-        let end_states = vec![
-            State::Digits,
-            State::FixedPoint,
-            State::PowerOfTen,
-            State::PowerOfTwo,
-        ];
+        let end_states = vec![State::Digits,
+                              State::FixedPoint,
+                              State::PowerOfTen,
+                              State::PowerOfTwo,];
         for c in size.chars() {
             match state {
-                State::Nothing => match c {
-                    '0'..='9' => state = State::Digits,
-                    _ => return false,
-                },
-                State::Digits => match c {
-                    '0'..='9' => (),
-                    'e' => state = State::E,
-                    'E' | 'P' | 'T' | 'G' | 'M' | 'K' => state = State::PowerOfTen,
-                    _ => return false,
-                },
-                State::E => match c {
-                    '0'..='9' => state = State::FixedPoint,
-                    _ => return false,
-                },
-                State::FixedPoint => match c {
-                    '0'..='9' => (),
-                    _ => return false,
-                },
-                State::PowerOfTen => match c {
-                    'i' => state = State::PowerOfTwo,
-                    _ => return false,
-                },
-                State::PowerOfTwo => match c {
-                    _ => return false,
-                },
+                State::Nothing => {
+                    match c {
+                        '0'..='9' => state = State::Digits,
+                        _ => return false,
+                    }
+                }
+                State::Digits => {
+                    match c {
+                        '0'..='9' => (),
+                        'e' => state = State::E,
+                        'E' | 'P' | 'T' | 'G' | 'M' | 'K' => state = State::PowerOfTen,
+                        _ => return false,
+                    }
+                }
+                State::E => {
+                    match c {
+                        '0'..='9' => state = State::FixedPoint,
+                        _ => return false,
+                    }
+                }
+                State::FixedPoint => {
+                    match c {
+                        '0'..='9' => (),
+                        _ => return false,
+                    }
+                }
+                State::PowerOfTen => {
+                    match c {
+                        'i' => state = State::PowerOfTwo,
+                        _ => return false,
+                    }
+                }
+                State::PowerOfTwo => {
+                    match c {
+                        _ => return false,
+                    }
+                }
             }
         }
         end_states.contains(&state)
@@ -108,20 +118,16 @@ impl FromStr for PersistentStorage {
     fn from_str(persistent_storage_str: &str) -> StdResult<Self, Self::Err> {
         let values: Vec<&str> = persistent_storage_str.splitn(3, ':').collect();
         if values.len() != 3
-            || !PersistentStorage::valid_size(values[0])
-            || !PersistentStorage::valid_path(values[1])
-            || values[2].is_empty()
+           || !PersistentStorage::valid_size(values[0])
+           || !PersistentStorage::valid_path(values[1])
+           || values[2].is_empty()
         {
-            return Err(Error::InvalidPersistentStorageSpec(
-                persistent_storage_str.to_string(),
-            ));
+            return Err(Error::InvalidPersistentStorageSpec(persistent_storage_str.to_string()));
         }
 
-        Ok(PersistentStorage {
-            size: values[0].to_string(),
-            path: values[1].to_string(),
-            class: values[2].to_string(),
-        })
+        Ok(PersistentStorage { size:  values[0].to_string(),
+                               path:  values[1].to_string(),
+                               class: values[2].to_string(), })
     }
 }
 
@@ -131,47 +137,35 @@ mod tests {
 
     #[test]
     fn test_k8s_size() {
-        let valid_sizes = vec![
-            "9", "99", "99e9", "9E", "9P", "9T", "9G", "9M", "9K", "9Ei", "9Pi", "9Ti", "9Gi",
-            "9Mi", "9Ki",
-        ];
+        let valid_sizes = vec!["9", "99", "99e9", "9E", "9P", "9T", "9G", "9M", "9K", "9Ei",
+                               "9Pi", "9Ti", "9Gi", "9Mi", "9Ki",];
         let invalid_sizes = vec!["", "foo", "99e", "99ex", "99X", "9Kx", "9Kix", "99e9K"];
 
         for size in valid_sizes {
-            assert!(
-                PersistentStorage::valid_size(size),
-                "size '{}' ought to be valid, but is not",
-                size
-            );
+            assert!(PersistentStorage::valid_size(size),
+                    "size '{}' ought to be valid, but is not",
+                    size);
         }
         for size in invalid_sizes {
-            assert!(
-                !PersistentStorage::valid_size(size),
-                "size '{}' ought to be invalid, but is not",
-                size
-            );
+            assert!(!PersistentStorage::valid_size(size),
+                    "size '{}' ought to be invalid, but is not",
+                    size);
         }
     }
 
     #[test]
     fn test_persistent_storage_from_str() {
-        let valid = vec![
-            ("10G:/foo:storage_class", "10G", "/foo", "storage_class"),
-            (
-                "10G:/foo:storage_class:with_colons",
-                "10G",
-                "/foo",
-                "storage_class:with_colons",
-            ),
-        ];
-        let invalid = vec![
-            "10G:/not/enough/parts",
-            "10G:/foo/empty/storage/class:",
-            "10G::empty_path",
-            ":/empty/size:sc",
-            "invalid size:/foo:sc",
-            "10G:relative/path:sc",
-        ];
+        let valid = vec![("10G:/foo:storage_class", "10G", "/foo", "storage_class"),
+                         ("10G:/foo:storage_class:with_colons",
+                          "10G",
+                          "/foo",
+                          "storage_class:with_colons"),];
+        let invalid = vec!["10G:/not/enough/parts",
+                           "10G:/foo/empty/storage/class:",
+                           "10G::empty_path",
+                           ":/empty/size:sc",
+                           "invalid size:/foo:sc",
+                           "10G:relative/path:sc",];
 
         for (raw, size, path, storage_class) in valid {
             let result = raw.parse::<PersistentStorage>();
@@ -179,19 +173,15 @@ mod tests {
             let storage = result.unwrap();
             assert_eq!(storage.size, size, "tested valid raw string '{}'", raw);
             assert_eq!(storage.path, path, "tested valid raw string '{}'", raw);
-            assert_eq!(
-                storage.class, storage_class,
-                "tested valid raw string '{}'",
-                raw
-            );
+            assert_eq!(storage.class, storage_class,
+                       "tested valid raw string '{}'",
+                       raw);
         }
 
         for raw in invalid {
-            assert!(
-                raw.parse::<PersistentStorage>().is_err(),
-                "invalid raw string '{}' parsed successfully to PersistentStorage",
-                raw
-            );
+            assert!(raw.parse::<PersistentStorage>().is_err(),
+                    "invalid raw string '{}' parsed successfully to PersistentStorage",
+                    raw);
         }
     }
 }

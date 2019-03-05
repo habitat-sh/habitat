@@ -31,26 +31,25 @@ static LOGKEY: &'static str = "SY";
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Sys {
-    pub version: String,
-    pub member_id: String,
-    pub ip: IpAddr,
-    pub hostname: String,
-    pub gossip_ip: IpAddr,
-    pub gossip_port: u16,
-    pub ctl_gateway_ip: IpAddr,
-    pub ctl_gateway_port: u16,
-    pub http_gateway_ip: IpAddr,
+    pub version:           String,
+    pub member_id:         String,
+    pub ip:                IpAddr,
+    pub hostname:          String,
+    pub gossip_ip:         IpAddr,
+    pub gossip_port:       u16,
+    pub ctl_gateway_ip:    IpAddr,
+    pub ctl_gateway_port:  u16,
+    pub http_gateway_ip:   IpAddr,
     pub http_gateway_port: u16,
-    pub permanent: bool,
+    pub permanent:         bool,
 }
 
 impl Sys {
-    pub fn new(
-        permanent: bool,
-        gossip: GossipListenAddr,
-        ctl: ListenCtlAddr,
-        http: http_gateway::ListenAddr,
-    ) -> Sys {
+    pub fn new(permanent: bool,
+               gossip: GossipListenAddr,
+               ctl: ListenCtlAddr,
+               http: http_gateway::ListenAddr)
+               -> Sys {
         let ip = match lookup_ip() {
             Ok(ip) => ip,
             Err(e) => {
@@ -67,19 +66,17 @@ impl Sys {
                 host
             }
         };
-        Sys {
-            version: VERSION.to_string(),
-            member_id: "unloaded".to_string(),
-            ip,
-            hostname: host,
-            gossip_ip: gossip.ip(),
-            gossip_port: gossip.port(),
-            ctl_gateway_ip: ctl.ip(),
-            ctl_gateway_port: ctl.port(),
-            http_gateway_ip: http.ip(),
-            http_gateway_port: http.port(),
-            permanent,
-        }
+        Sys { version: VERSION.to_string(),
+              member_id: "unloaded".to_string(),
+              ip,
+              hostname: host,
+              gossip_ip: gossip.ip(),
+              gossip_port: gossip.port(),
+              ctl_gateway_ip: ctl.ip(),
+              ctl_gateway_port: ctl.port(),
+              http_gateway_ip: http.ip(),
+              http_gateway_port: http.port(),
+              permanent }
     }
 
     pub fn as_sys_info(&self) -> SysInfo {

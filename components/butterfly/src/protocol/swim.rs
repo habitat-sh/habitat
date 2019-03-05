@@ -42,10 +42,8 @@ mod tests {
     fn health_values_are_title_case() {
         assert_eq!(serde_json::to_value(&Health::Alive).unwrap(), "Alive");
         assert_eq!(serde_json::to_value(&Health::Suspect).unwrap(), "Suspect");
-        assert_eq!(
-            serde_json::to_value(&Health::Confirmed).unwrap(),
-            "Confirmed"
-        );
+        assert_eq!(serde_json::to_value(&Health::Confirmed).unwrap(),
+                   "Confirmed");
         assert_eq!(serde_json::to_value(&Health::Departed).unwrap(), "Departed");
     }
 }

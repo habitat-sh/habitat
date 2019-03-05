@@ -114,13 +114,15 @@ fn boot() -> Option<LauncherCli> {
         process::exit(1);
     }
     match launcher_client::env_pipe() {
-        Some(pipe) => match LauncherCli::connect(pipe) {
-            Ok(launcher) => Some(launcher),
-            Err(err) => {
-                println!("{}", err);
-                process::exit(1);
+        Some(pipe) => {
+            match LauncherCli::connect(pipe) {
+                Ok(launcher) => Some(launcher),
+                Err(err) => {
+                    println!("{}", err);
+                    process::exit(1);
+                }
             }
-        },
+        }
         None => None,
     }
 }
@@ -140,11 +142,13 @@ fn start() -> Result<()> {
                 Some(_) => process::exit(ERR_NO_RETRY_EXCODE),
                 // If we weren't started by a launcher, exit 0 for
                 // help and version
-                None => match err.kind {
-                    clap::ErrorKind::HelpDisplayed => process::exit(0),
-                    clap::ErrorKind::VersionDisplayed => process::exit(0),
-                    _ => process::exit(ERR_NO_RETRY_EXCODE),
-                },
+                None => {
+                    match err.kind {
+                        clap::ErrorKind::HelpDisplayed => process::exit(0),
+                        clap::ErrorKind::VersionDisplayed => process::exit(0),
+                        _ => process::exit(ERR_NO_RETRY_EXCODE),
+                    }
+                }
             }
         }
     };
@@ -181,17 +185,16 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                 // Install the archive manually then explicitly set the pkg ident to the
                 // version found in the archive. This will lock the software to this
                 // specific version.
-                let install = util::pkg::install(
-                    &mut ui(),
-                    msg.bldr_url
-                        .as_ref()
-                        .unwrap_or(&*protocol::DEFAULT_BLDR_URL),
-                    &source,
-                    &msg.bldr_channel
-                        .clone()
-                        .map(ChannelIdent::from)
-                        .expect("update_svc_load_from_input to always set to Some"),
-                )?;
+                let install = util::pkg::install(&mut ui(),
+                                                 msg.bldr_url
+                                                    .as_ref()
+                                                    .unwrap_or(&*protocol::DEFAULT_BLDR_URL),
+                                                 &source,
+                                                 &msg.bldr_channel
+                                                     .clone()
+                                                     .map(ChannelIdent::from)
+                                                     .expect("update_svc_load_from_input to \
+                                                              always set to Some"))?;
                 install.ident.into()
             }
             InstallSource::Ident(ident, _) => ident.into(),
@@ -212,10 +215,8 @@ fn sub_term() -> Result<()> {
     // a function to generate said config, we can just explicitly pass the default.
     let cfg = ManagerConfig::default();
     match Manager::term(&cfg) {
-        Err(SupError {
-            err: Error::ProcessLockIO(..),
-            ..
-        }) => {
+        Err(SupError { err: Error::ProcessLockIO(..),
+                       .. }) => {
             println!("Supervisor not started.");
             Ok(())
         }
@@ -333,13 +334,16 @@ fn get_ring_key(m: &ArgMatches) -> Result<Option<SymKey>> {
             let key = SymKey::get_latest_pair_for(&val, &default_cache_key_path(None))?;
             Ok(Some(key))
         }
-        None => match m.value_of("RING_KEY") {
-            Some(val) => {
-                let (key, _) = SymKey::write_file_from_str(&val, &default_cache_key_path(None))?;
-                Ok(Some(key))
+        None => {
+            match m.value_of("RING_KEY") {
+                Some(val) => {
+                    let (key, _) =
+                        SymKey::write_file_from_str(&val, &default_cache_key_path(None))?;
+                    Ok(Some(key))
+                }
+                None => Ok(None),
             }
-            None => Ok(None),
-        },
+        }
     }
 }
 
@@ -356,8 +360,8 @@ fn bldr_url(m: &ArgMatches) -> String {
 /// the environment
 fn bldr_url_from_input(m: &ArgMatches) -> Option<String> {
     m.value_of("BLDR_URL")
-        .map(str::to_string)
-        .or_else(bldr_url_from_env)
+     .map(str::to_string)
+     .or_else(bldr_url_from_env)
 }
 
 /// Resolve a channel. Taken from CLI args, or (failing that), a
@@ -380,10 +384,8 @@ fn get_group_from_input(m: &ArgMatches) -> Option<String> {
 /// parse and set the value on the spec.
 fn get_app_env_from_input(m: &ArgMatches) -> Result<Option<ApplicationEnvironment>> {
     if let (Some(app), Some(env)) = (m.value_of("APPLICATION"), m.value_of("ENVIRONMENT")) {
-        Ok(Some(ApplicationEnvironment {
-            application: app.to_string(),
-            environment: env.to_string(),
-        }))
+        Ok(Some(ApplicationEnvironment { application: app.to_string(),
+                                         environment: env.to_string(), }))
     } else {
         Ok(None)
     }
@@ -391,12 +393,12 @@ fn get_app_env_from_input(m: &ArgMatches) -> Result<Option<ApplicationEnvironmen
 
 fn get_topology_from_input(m: &ArgMatches) -> Option<Topology> {
     m.value_of("TOPOLOGY")
-        .and_then(|f| Topology::from_str(f).ok())
+     .and_then(|f| Topology::from_str(f).ok())
 }
 
 fn get_strategy_from_input(m: &ArgMatches) -> Option<UpdateStrategy> {
     m.value_of("STRATEGY")
-        .and_then(|f| UpdateStrategy::from_str(f).ok())
+     .and_then(|f| UpdateStrategy::from_str(f).ok())
 }
 
 fn get_binds_from_input(m: &ArgMatches) -> Result<Option<ServiceBindList>> {
@@ -415,15 +417,14 @@ fn get_binds_from_input(m: &ArgMatches) -> Result<Option<ServiceBindList>> {
 fn get_binding_mode_from_input(m: &ArgMatches) -> Option<BindingMode> {
     // There won't be errors, because we validate with `valid_binding_mode`
     m.value_of("BINDING_MODE")
-        .and_then(|b| BindingMode::from_str(b).ok())
+     .and_then(|b| BindingMode::from_str(b).ok())
 }
 
 fn get_config_from_input(m: &ArgMatches) -> Option<String> {
     if let Some(ref config_from) = m.value_of("CONFIG_DIR") {
         warn!("");
-        warn!(
-            "WARNING: Setting '--config-from' should only be used in development, not production!"
-        );
+        warn!("WARNING: Setting '--config-from' should only be used in development, not \
+               production!");
         warn!("");
         Some(config_from.to_string())
     } else {
@@ -444,14 +445,12 @@ fn get_password_from_input(m: &ArgMatches) -> Result<Option<String>> {
 fn get_password_from_input(_m: &ArgMatches) -> Result<Option<String>> { Ok(None) }
 
 fn enable_features_from_env() {
-    let features = vec![
-        (feat::List, "LIST"),
-        (feat::TestExit, "TEST_EXIT"),
-        (feat::TestBootFail, "BOOT_FAIL"),
-        (feat::RedactHTTP, "REDACT_HTTP"),
-        (feat::IgnoreSignals, "IGNORE_SIGNALS"),
-        (feat::InstallHook, "INSTALL_HOOK"),
-    ];
+    let features = vec![(feat::List, "LIST"),
+                        (feat::TestExit, "TEST_EXIT"),
+                        (feat::TestBootFail, "BOOT_FAIL"),
+                        (feat::RedactHTTP, "REDACT_HTTP"),
+                        (feat::IgnoreSignals, "IGNORE_SIGNALS"),
+                        (feat::InstallHook, "INSTALL_HOOK"),];
 
     // If the environment variable for a flag is set to _anything_ but
     // the empty string, it is activated.
@@ -465,12 +464,10 @@ fn enable_features_from_env() {
     if feat::is_enabled(feat::List) {
         outputln!("Listing feature flags environment variables:");
         for feature in &features {
-            outputln!(
-                "     * {:?}: HAB_FEAT_{}={}",
-                feature.0,
-                feature.1,
-                henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or_default()
-            );
+            outputln!("     * {:?}: HAB_FEAT_{}={}",
+                      feature.0,
+                      feature.1,
+                      henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or_default());
         }
         outputln!("The Supervisor will start now, enjoy!");
     }
@@ -500,9 +497,8 @@ fn ui() -> UI {
     } else {
         ColorChoice::Never
     };
-    let isatty = if env::var(NONINTERACTIVE_ENVVAR)
-        .map(|val| val == "1" || val == "true")
-        .unwrap_or(false)
+    let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
+                                                   .unwrap_or(false)
     {
         Some(false)
     } else {
@@ -553,9 +549,8 @@ mod test {
         fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { Vec::from_iter(cmd.split_whitespace()) }
 
         fn config_from_cmd_vec(cmd_vec: Vec<&str>) -> ManagerConfig {
-            let matches = cli()
-                .get_matches_from_safe(cmd_vec)
-                .expect("Error while getting matches");
+            let matches = cli().get_matches_from_safe(cmd_vec)
+                               .expect("Error while getting matches");
             let (_, sub_matches) = matches.subcommand();
             let sub_matches = sub_matches.expect("Error getting sub command matches");
 
@@ -598,8 +593,9 @@ mod test {
         #[test]
         fn gossip_listen_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --listen-gossip 1.1.1.1:1111");
-            let expected_addr = GossipListenAddr::from_str("1.1.1.1:1111")
-                .expect("Could not create GossipListenAddr");
+            let expected_addr =
+                GossipListenAddr::from_str("1.1.1.1:1111").expect("Could not create \
+                                                                   GossipListenAddr");
             assert_eq!(config.gossip_listen, expected_addr);
         }
 
@@ -613,8 +609,9 @@ mod test {
         #[test]
         fn http_listen_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --listen-http 2.2.2.2:2222");
-            let expected_addr = http_gateway::ListenAddr::from_str("2.2.2.2:2222")
-                .expect("Could not create http listen addr");
+            let expected_addr =
+                http_gateway::ListenAddr::from_str("2.2.2.2:2222").expect("Could not create http \
+                                                                           listen addr");
             assert_eq!(config.http_listen, expected_addr);
         }
 
@@ -667,10 +664,13 @@ mod test {
         #[test]
         fn peers_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --peer 1.1.1.1:1 2.2.2.2:1 3.3.3.3:1");
-            let expected_peers: Vec<SocketAddr> = vec!["1.1.1.1:1", "2.2.2.2:1", "3.3.3.3:1"]
-                .into_iter()
-                .flat_map(|peer| peer.to_socket_addrs().expect("Failed getting addrs"))
-                .collect();
+            let expected_peers: Vec<SocketAddr> =
+                vec!["1.1.1.1:1", "2.2.2.2:1", "3.3.3.3:1"].into_iter()
+                                                           .flat_map(|peer| {
+                                                               peer.to_socket_addrs()
+                                                                   .expect("Failed getting addrs")
+                                                           })
+                                                           .collect();
             assert_eq!(config.gossip_peers, expected_peers);
 
             let config = config_from_cmd_str("hab-sup run");
@@ -680,11 +680,16 @@ mod test {
         #[test]
         fn peers_should_have_a_default_port_set() {
             let config = config_from_cmd_str("hab-sup run --peer 1.1.1.1 2.2.2.2 3.3.3.3");
-            let expected_peers: Vec<SocketAddr> = vec!["1.1.1.1", "2.2.2.2", "3.3.3.3"]
-                .into_iter()
-                .map(|peer| format!("{}:{}", peer, GOSSIP_DEFAULT_PORT))
-                .flat_map(|peer| peer.to_socket_addrs().expect("Failed getting addrs"))
-                .collect();
+            let expected_peers: Vec<SocketAddr> =
+                vec!["1.1.1.1", "2.2.2.2", "3.3.3.3"].into_iter()
+                                                     .map(|peer| {
+                                                         format!("{}:{}", peer, GOSSIP_DEFAULT_PORT)
+                                                     })
+                                                     .flat_map(|peer| {
+                                                         peer.to_socket_addrs()
+                                                             .expect("Failed getting addrs")
+                                                     })
+                                                     .collect();
             assert_eq!(config.gossip_peers, expected_peers);
         }
 
@@ -709,13 +714,10 @@ mod test {
                 .expect("Could not write key pair");
             let config = config_from_cmd_str("hab-sup run --ring foobar");
 
-            assert_eq!(
-                config
-                    .ring_key
-                    .expect("No ring key on manager config")
-                    .name_with_rev(),
-                pair.name_with_rev()
-            );
+            assert_eq!(config.ring_key
+                             .expect("No ring key on manager config")
+                             .name_with_rev(),
+                       pair.name_with_rev());
         }
 
         #[test]
@@ -726,23 +728,20 @@ mod test {
 
             env::set_var("HAB_CACHE_KEY_PATH", key_cache.path());
             let cmd_vec = vec![
-                "hab-sup",
-                "run",
-                "--ring-key",
-                r#"SYM-SEC-1
+                               "hab-sup",
+                               "run",
+                               "--ring-key",
+                               r#"SYM-SEC-1
 foobar-20160504220722
 
 RCFaO84j41GmrzWddxMdsXpGdn3iuIy7Mw3xYrjPLsE="#,
             ];
             let config = config_from_cmd_vec(cmd_vec);
 
-            assert_eq!(
-                config
-                    .ring_key
-                    .expect("No ring key on manager config")
-                    .name_with_rev(),
-                "foobar-20160504220722"
-            );
+            assert_eq!(config.ring_key
+                             .expect("No ring key on manager config")
+                             .name_with_rev(),
+                       "foobar-20160504220722");
         }
 
     }

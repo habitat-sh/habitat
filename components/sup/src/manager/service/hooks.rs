@@ -36,7 +36,7 @@ static LOGKEY: &'static str = "HK";
 
 #[derive(Debug, Serialize)]
 pub struct FileUpdatedHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -47,11 +47,9 @@ impl Hook for FileUpdatedHook {
     fn file_name() -> &'static str { "file-updated" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        FileUpdatedHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        FileUpdatedHook { render_pair:     pair,
+                          stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                          stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
     fn handle_exit<'a>(&self, _: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -69,7 +67,7 @@ impl Hook for FileUpdatedHook {
 
 #[derive(Debug, Serialize)]
 pub struct HealthCheckHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -80,11 +78,9 @@ impl Hook for HealthCheckHook {
     fn file_name() -> &'static str { "health-check" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        HealthCheckHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        HealthCheckHook { render_pair:     pair,
+                          stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                          stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -117,7 +113,7 @@ impl Hook for HealthCheckHook {
 
 #[derive(Debug, Serialize)]
 pub struct InitHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -128,11 +124,9 @@ impl Hook for InitHook {
     fn file_name() -> &'static str { "init" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        InitHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        InitHook { render_pair:     pair,
+                   stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                   stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -163,7 +157,7 @@ impl Hook for InitHook {
 
 #[derive(Debug, Serialize)]
 pub struct RunHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -174,21 +168,16 @@ impl Hook for RunHook {
     fn file_name() -> &'static str { "run" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        RunHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        RunHook { render_pair:     pair,
+                  stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                  stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
     fn run<T>(&self, _: &str, _: &Pkg, _: Option<T>) -> Self::ExitValue
-    where
-        T: ToString,
+        where T: ToString
     {
-        panic!(
-            "The run hook is a an exception to the lifetime of a service. It should only be run \
-             by the Supervisor module!"
-        );
+        panic!("The run hook is a an exception to the lifetime of a service. It should only be \
+                run by the Supervisor module!");
     }
 
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -212,7 +201,7 @@ impl Hook for RunHook {
 
 #[derive(Debug, Serialize)]
 pub struct PostRunHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -223,11 +212,9 @@ impl Hook for PostRunHook {
     fn file_name() -> &'static str { "post-run" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        PostRunHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        PostRunHook { render_pair:     pair,
+                      stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                      stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -251,7 +238,7 @@ impl Hook for PostRunHook {
 
 #[derive(Debug, Serialize)]
 pub struct ReloadHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -262,11 +249,9 @@ impl Hook for ReloadHook {
     fn file_name() -> &'static str { "reload" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        ReloadHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        ReloadHook { render_pair:     pair,
+                     stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                     stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -296,7 +281,7 @@ impl Hook for ReloadHook {
 
 #[derive(Debug, Serialize)]
 pub struct ReconfigureHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -307,11 +292,9 @@ impl Hook for ReconfigureHook {
     fn file_name() -> &'static str { "reconfigure" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        ReconfigureHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        ReconfigureHook { render_pair:     pair,
+                          stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                          stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -335,7 +318,7 @@ impl Hook for ReconfigureHook {
 
 #[derive(Debug, Serialize)]
 pub struct SuitabilityHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -346,19 +329,16 @@ impl Hook for SuitabilityHook {
     fn file_name() -> &'static str { "suitability" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        SuitabilityHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        SuitabilityHook { render_pair:     pair,
+                          stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                          stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        hook_output: &'a HookOutput,
-        status: ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self,
+                       pkg: &Pkg,
+                       hook_output: &'a HookOutput,
+                       status: ExitStatus)
+                       -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => {
@@ -411,7 +391,7 @@ impl Hook for SuitabilityHook {
 
 #[derive(Debug, Serialize)]
 pub struct PostStopHook {
-    render_pair: RenderPair,
+    render_pair:     RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
 }
@@ -422,11 +402,9 @@ impl Hook for PostStopHook {
     fn file_name() -> &'static str { "post-stop" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        PostStopHook {
-            render_pair: pair,
-            stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-            stderr_log_path: hooks::stderr_log_path::<Self>(package_name),
-        }
+        PostStopHook { render_pair:     pair,
+                       stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                       stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
@@ -457,13 +435,13 @@ impl Hook for PostStopHook {
 #[derive(Debug, Default, Serialize)]
 pub struct HookTable {
     pub health_check: Option<HealthCheckHook>,
-    pub init: Option<InitHook>,
+    pub init:         Option<InitHook>,
     pub file_updated: Option<FileUpdatedHook>,
-    pub reload: Option<ReloadHook>,
-    pub reconfigure: Option<ReconfigureHook>,
-    pub suitability: Option<SuitabilityHook>,
-    pub run: Option<RunHook>,
-    pub post_run: Option<PostRunHook>,
+    pub reload:       Option<ReloadHook>,
+    pub reconfigure:  Option<ReconfigureHook>,
+    pub suitability:  Option<SuitabilityHook>,
+    pub run:          Option<RunHook>,
+    pub post_run:     Option<PostRunHook>,
     // This Arc<> business is a possibly-temporary state while
     // we refactor hooks to be able to run asynchronously.
     pub post_stop: Option<Arc<PostStopHook>>,
@@ -472,9 +450,8 @@ pub struct HookTable {
 impl HookTable {
     /// Read all available hook templates from the table's package directory into the table.
     pub fn load<P, T>(package_name: &str, templates: T, hooks_path: P) -> Self
-    where
-        P: AsRef<Path>,
-        T: AsRef<Path>,
+        where P: AsRef<Path>,
+              T: AsRef<Path>
     {
         let mut table = HookTable::default();
         if let Ok(meta) = std::fs::metadata(templates.as_ref()) {
@@ -491,12 +468,10 @@ impl HookTable {
                     PostStopHook::load(package_name, &hooks_path, &templates).map(Arc::new);
             }
         }
-        debug!(
-            "{}, Hooks loaded, destination={}, templates={}",
-            package_name,
-            hooks_path.as_ref().display(),
-            templates.as_ref().display()
-        );
+        debug!("{}, Hooks loaded, destination={}, templates={}",
+               package_name,
+               hooks_path.as_ref().display(),
+               templates.as_ref().display());
         table
     }
 
@@ -505,8 +480,7 @@ impl HookTable {
     /// Returns `true` if compiling any of the hooks resulted in new
     /// content being written to the hook scripts on disk.
     pub fn compile<T>(&self, service_group: &str, ctx: &T) -> bool
-    where
-        T: Serialize,
+        where T: Serialize
     {
         debug!("{:?}", self);
         let mut changed = false;
@@ -541,9 +515,8 @@ impl HookTable {
     }
 
     fn compile_one<H, T>(&self, hook: &H, service_group: &str, ctx: &T) -> bool
-    where
-        H: Hook,
-        T: Serialize,
+        where H: Hook,
+              T: Serialize
     {
         match hook.compile(service_group, ctx) {
             Ok(status) => status,
@@ -612,18 +585,17 @@ mod tests {
                       PostStopHook);
 
     fn hook_templates_path() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join("hooks")
-            .join("hook_templates")
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+                                                 .join("fixtures")
+                                                 .join("hooks")
+                                                 .join("hook_templates")
     }
 
     fn rendered_hooks_path() -> TempDir { TempDir::new().expect("create temp dir") }
 
     fn service_group() -> ServiceGroup {
-        ServiceGroup::new(None, "test_service", "test_group", None)
-            .expect("couldn't create ServiceGroup")
+        ServiceGroup::new(None, "test_service", "test_group", None).expect("couldn't create \
+                                                                            ServiceGroup")
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -643,26 +615,20 @@ mod tests {
         // BEGIN RENDER CONTEXT SETUP
         // (See comment above)
 
-        let sys = Sys::new(
-            true,
-            GossipListenAddr::default(),
-            ListenCtlAddr::default(),
-            http_gateway::ListenAddr::default(),
-        );
+        let sys = Sys::new(true,
+                           GossipListenAddr::default(),
+                           ListenCtlAddr::default(),
+                           http_gateway::ListenAddr::default());
 
-        let pg_id = PackageIdent::new(
-            "testing",
-            &service_group.service(),
-            Some("1.0.0"),
-            Some("20170712000000"),
-        );
+        let pg_id = PackageIdent::new("testing",
+                                      &service_group.service(),
+                                      Some("1.0.0"),
+                                      Some("20170712000000"));
 
-        let pkg_install = PackageInstall::new_from_parts(
-            pg_id.clone(),
-            PathBuf::from("/tmp"),
-            PathBuf::from("/tmp"),
-            PathBuf::from("/tmp"),
-        );
+        let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),
+                                                         PathBuf::from("/tmp"),
+                                                         PathBuf::from("/tmp"),
+                                                         PathBuf::from("/tmp"));
         let pkg = Pkg::from_install(&pkg_install).expect("Could not create package!");
 
         // This is gross, but it actually works
@@ -688,13 +654,11 @@ mod tests {
         service_store.insert(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
-        let mut election = ElectionRumor::new(
-            "member-a",
-            &sg_one,
-            election::Term::default(),
-            10,
-            true, // has_quorum
-        );
+        let mut election = ElectionRumor::new("member-a",
+                                              &sg_one,
+                                              election::Term::default(),
+                                              10,
+                                              true /* has_quorum */);
         election.finish();
         election_store.insert(election);
 
@@ -706,14 +670,12 @@ mod tests {
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
         let mut ring = CensusRing::new("member-a");
-        ring.update_from_rumors(
-            &service_store,
-            &election_store,
-            &election_update_store,
-            &member_list,
-            &service_config_store,
-            &service_file_store,
-        );
+        ring.update_from_rumors(&service_store,
+                                &election_store,
+                                &election_update_store,
+                                &member_list,
+                                &service_config_store,
+                                &service_file_store);
 
         let bindings = iter::empty::<&ServiceBind>();
 

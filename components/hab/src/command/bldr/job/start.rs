@@ -25,20 +25,18 @@ use crate::{error::{Error,
             PRODUCT,
             VERSION};
 
-pub fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    ident: &PackageIdent,
-    target: PackageTarget,
-    token: &str,
-    group: bool,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             ident: &PackageIdent,
+             target: PackageTarget,
+             token: &str,
+             group: bool)
+             -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     if group {
-        let rdeps = api_client
-            .fetch_rdeps(ident, target)
-            .map_err(Error::APIClient)?;
+        let rdeps = api_client.fetch_rdeps(ident, target)
+                              .map_err(Error::APIClient)?;
         if !rdeps.is_empty() {
             ui.warn("Found the following reverse dependencies:")?;
 
@@ -56,14 +54,11 @@ pub fn start(
         }
     }
 
-    ui.status(
-        Status::Creating,
-        format!("build job for {} ({})", ident, target),
-    )?;
+    ui.status(Status::Creating,
+              format!("build job for {} ({})", ident, target))?;
 
-    let id = api_client
-        .schedule_job(ident, target, !group, token)
-        .map_err(Error::APIClient)?;
+    let id = api_client.schedule_job(ident, target, !group, token)
+                       .map_err(Error::APIClient)?;
 
     ui.status(Status::Created, format!("build job. The id is {}", id))?;
 

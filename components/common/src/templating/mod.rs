@@ -50,11 +50,10 @@ pub fn compile_for_package_install(package: &PackageInstall) -> Result<()> {
     let cfg_renderer = config::CfgRenderer::new(pkg.path.join("config_install"))?;
     cfg_renderer.compile(&pkg.name, &pkg, &pkg.svc_config_install_path, &ctx)?;
 
-    if let Some(ref hook) = InstallHook::load(
-        &pkg.name,
-        &fs::svc_hooks_path(&pkg.name),
-        &package.installed_path.join("hooks"),
-    ) {
+    if let Some(ref hook) = InstallHook::load(&pkg.name,
+                                              &fs::svc_hooks_path(&pkg.name),
+                                              &package.installed_path.join("hooks"))
+    {
         hook.compile(&pkg.name, &ctx)?;
     };
 
@@ -84,8 +83,7 @@ impl TemplateRenderer {
     }
 
     pub fn render<T>(&self, template: &str, ctx: &T) -> Result<String>
-    where
-        T: Serialize,
+        where T: Serialize
     {
         let raw = serde_json::to_value(ctx).map_err(Error::RenderContextSerialization)?;
         debug!("Rendering template with context, {}, {}", template, raw);
@@ -152,11 +150,9 @@ mod test {
 
     // Translates a toml table to a mustache data structure.
     fn toml_table_to_json(toml: BTreeMap<String, toml::Value>) -> serde_json::Value {
-        serde_json::Value::Object(
-            toml.into_iter()
-                .map(|(k, v)| (k, toml_to_json(v)))
-                .collect(),
-        )
+        serde_json::Value::Object(toml.into_iter()
+                                      .map(|(k, v)| (k, toml_to_json(v)))
+                                      .collect())
     }
 
     pub fn toml_to_json(value: toml::Value) -> serde_json::Value {
@@ -186,11 +182,10 @@ mod test {
         let r = renderer.render("t", &m);
 
         assert_eq!(
-            r.ok().unwrap(),
-            r#"{
+                   r.ok().unwrap(),
+                   r#"{
   "test": "something"
-}"#
-            .to_string()
+}"#.to_string()
         );
     }
 
@@ -209,10 +204,9 @@ mod test {
         let r = renderer.render("t", &m);
 
         assert_eq!(
-            r.ok().unwrap(),
-            r#"test = "something"
-"#
-            .to_string()
+                   r.ok().unwrap(),
+                   r#"test = "something"
+"#.to_string()
         );
     }
 
@@ -231,10 +225,10 @@ mod test {
         let r = renderer.render("t", &m);
 
         assert_eq!(
-            r.ok().unwrap(),
-            r#"---
+                   r.ok().unwrap(),
+                   r#"---
 test: something"#
-                .to_string()
+                   .to_string()
         );
     }
 
@@ -296,24 +290,20 @@ test: something"#
 
         let data = service_config_json_from_toml_file("complex_config.toml");
         let rendered = renderer.render("t", &data).unwrap();
-        assert_eq!(
-            PathBuf::from(rendered),
-            pkg_root_path(Some(&*FS_ROOT_PATH)).join("core/acl/2.2.52/20161208223311",)
-        );
+        assert_eq!(PathBuf::from(rendered),
+                   pkg_root_path(Some(&*FS_ROOT_PATH)).join("core/acl/2.2.52/20161208223311",));
     }
 
     #[test]
     fn each_alive_helper_content() {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
-        renderer
-            .register_template_file("each_alive", templates().join("each_alive.txt"))
-            .unwrap();
+        renderer.register_template_file("each_alive", templates().join("each_alive.txt"))
+                .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
-        renderer
-            .register_template_file("all_members", templates().join("all_members.txt"))
-            .unwrap();
+        renderer.register_template_file("all_members", templates().join("all_members.txt"))
+                .unwrap();
 
         let data = service_config_json_from_toml_file("multiple_supervisors_config.toml");
 
@@ -327,14 +317,12 @@ test: something"#
     fn each_alive_helper_first_node() {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
-        renderer
-            .register_template_file("each_alive", templates().join("each_alive.txt"))
-            .unwrap();
+        renderer.register_template_file("each_alive", templates().join("each_alive.txt"))
+                .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
-        renderer
-            .register_template_file("all_members", templates().join("all_members.txt"))
-            .unwrap();
+        renderer.register_template_file("all_members", templates().join("all_members.txt"))
+                .unwrap();
 
         let data = service_config_json_from_toml_file("one_supervisor_not_started.toml");
 
@@ -348,17 +336,13 @@ test: something"#
     fn each_alive_helper_with_identifier_alias() {
         let mut renderer = TemplateRenderer::new();
         // template using the new `eachAlive` helper
-        renderer
-            .register_template_file(
-                "each_alive",
-                templates().join("each_alive_with_identifier.txt"),
-            )
-            .unwrap();
+        renderer.register_template_file("each_alive",
+                                        templates().join("each_alive_with_identifier.txt"))
+                .unwrap();
 
         // template using an each block with a nested if block filtering on `alive`
-        renderer
-            .register_template_file("all_members", templates().join("all_members.txt"))
-            .unwrap();
+        renderer.register_template_file("all_members", templates().join("all_members.txt"))
+                .unwrap();
 
         let data = service_config_json_from_toml_file("multiple_supervisors_config.toml");
 
@@ -381,16 +365,12 @@ test: something"#
         create_with_content(toml_path, "message = \"Hello\"");
         let hooks_path = root.join("hooks");
         std::fs::create_dir_all(&hooks_path).unwrap();
-        create_with_content(
-            hooks_path.join("install"),
-            "install message is {{cfg.message}}",
-        );
+        create_with_content(hooks_path.join("install"),
+                            "install message is {{cfg.message}}");
         let config_path = root.join("config_install");
         std::fs::create_dir_all(&config_path).unwrap();
-        create_with_content(
-            config_path.join("config.txt"),
-            "config message is {{cfg.message}}",
-        );
+        create_with_content(config_path.join("config.txt"),
+                            "config message is {{cfg.message}}");
 
         compile_for_package_install(&pkg_install).expect("compile package");
 
@@ -398,10 +378,8 @@ test: something"#
             file_content(fs::svc_config_install_path(&pkg_install.ident().name).join("config.txt")),
             "config message is Hello"
         );
-        assert_eq!(
-            file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("install")),
-            "install message is Hello"
-        );
+        assert_eq!(file_content(fs::svc_hooks_path(&pkg_install.ident().name).join("install")),
+                   "install message is Hello");
 
         env::remove_var(fs::FS_ROOT_ENVVAR);
         std::fs::remove_dir_all(root).expect("removing temp root");

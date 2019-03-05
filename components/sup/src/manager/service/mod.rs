@@ -101,12 +101,10 @@ static LOGKEY: &'static str = "SR";
 pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;
 
 lazy_static! {
-    static ref HOOK_DURATION: HistogramVec = register_histogram_vec!(
-        "hab_sup_hook_duration_seconds",
-        "The time it takes for a hook to run",
-        &["hook"]
-    )
-    .unwrap();
+    static ref HOOK_DURATION: HistogramVec =
+        register_histogram_vec!("hab_sup_hook_duration_seconds",
+                                "The time it takes for a hook to run",
+                                &["hook"]).unwrap();
 }
 
 /// When evaluating whether a particular service group can satisfy a
@@ -133,18 +131,18 @@ enum BindStatus<'a> {
 
 #[derive(Debug, Serialize)]
 pub struct Service {
-    pub service_group: ServiceGroup,
-    pub bldr_url: String,
-    pub channel: ChannelIdent,
-    pub desired_state: DesiredState,
-    pub spec_file: PathBuf,
-    pub spec_ident: PackageIdent,
-    pub topology: Topology,
-    pub update_strategy: UpdateStrategy,
-    pub cfg: Cfg,
-    pub pkg: Pkg,
-    pub sys: Arc<Sys>,
-    pub initialized: bool,
+    pub service_group:       ServiceGroup,
+    pub bldr_url:            String,
+    pub channel:             ChannelIdent,
+    pub desired_state:       DesiredState,
+    pub spec_file:           PathBuf,
+    pub spec_ident:          PackageIdent,
+    pub topology:            Topology,
+    pub update_strategy:     UpdateStrategy,
+    pub cfg:                 Cfg,
+    pub pkg:                 Pkg,
+    pub sys:                 Arc<Sys>,
+    pub initialized:         bool,
     pub user_config_updated: bool,
 
     #[serde(skip_serializing)]
@@ -197,99 +195,87 @@ pub struct Service {
 }
 
 impl Service {
-    fn new(
-        sys: Arc<Sys>,
-        package: &PackageInstall,
-        spec: ServiceSpec,
-        manager_fs_cfg: Arc<FsCfg>,
-        organization: Option<&str>,
-        gateway_state: Arc<RwLock<GatewayState>>,
-    ) -> Result<Service> {
+    fn new(sys: Arc<Sys>,
+           package: &PackageInstall,
+           spec: ServiceSpec,
+           manager_fs_cfg: Arc<FsCfg>,
+           organization: Option<&str>,
+           gateway_state: Arc<RwLock<GatewayState>>)
+           -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = package.all_binds()?;
         let pkg = Pkg::from_install(&package)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
-        let service_group = ServiceGroup::new(
-            spec.application_environment.as_ref(),
-            &pkg.name,
-            spec.group,
-            organization,
-        )?;
+        let service_group = ServiceGroup::new(spec.application_environment.as_ref(),
+                                              &pkg.name,
+                                              spec.group,
+                                              organization)?;
         let config_root = Self::config_root(&pkg, spec.config_from.as_ref());
         let hooks_root = Self::hooks_root(&pkg, spec.config_from.as_ref());
-        Ok(Service {
-            sys,
-            cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
-            config_renderer: CfgRenderer::new(&config_root)?,
-            bldr_url: spec.bldr_url,
-            channel: spec.channel,
-            desired_state: spec.desired_state,
-            health_check: HealthCheck::default(),
-            hooks: HookTable::load(
-                &pkg.name,
-                &hooks_root,
-                svc_hooks_path(&service_group.service()),
-            ),
-            initialized: false,
-            last_election_status: ElectionStatus::None,
-            needs_reload: false,
-            needs_reconfiguration: false,
-            user_config_updated: false,
-            manager_fs_cfg,
-            supervisor: Supervisor::new(&service_group),
-            pkg,
-            service_group,
-            binds: spec.binds,
-            all_pkg_binds,
-            unsatisfied_binds: HashSet::new(),
-            binding_mode: spec.binding_mode,
-            spec_ident: spec.ident,
-            spec_file,
-            topology: spec.topology,
-            update_strategy: spec.update_strategy,
-            config_from: spec.config_from,
-            scheduled_health_check: Some(Instant::now()),
-            svc_encrypted_password: spec.svc_encrypted_password,
-            health_check_interval: spec.health_check_interval,
-            defaults_updated: false,
-            gateway_state,
-        })
+        Ok(Service { sys,
+                     cfg: Cfg::new(&pkg, spec.config_from.as_ref())?,
+                     config_renderer: CfgRenderer::new(&config_root)?,
+                     bldr_url: spec.bldr_url,
+                     channel: spec.channel,
+                     desired_state: spec.desired_state,
+                     health_check: HealthCheck::default(),
+                     hooks: HookTable::load(&pkg.name,
+                                            &hooks_root,
+                                            svc_hooks_path(&service_group.service())),
+                     initialized: false,
+                     last_election_status: ElectionStatus::None,
+                     needs_reload: false,
+                     needs_reconfiguration: false,
+                     user_config_updated: false,
+                     manager_fs_cfg,
+                     supervisor: Supervisor::new(&service_group),
+                     pkg,
+                     service_group,
+                     binds: spec.binds,
+                     all_pkg_binds,
+                     unsatisfied_binds: HashSet::new(),
+                     binding_mode: spec.binding_mode,
+                     spec_ident: spec.ident,
+                     spec_file,
+                     topology: spec.topology,
+                     update_strategy: spec.update_strategy,
+                     config_from: spec.config_from,
+                     scheduled_health_check: Some(Instant::now()),
+                     svc_encrypted_password: spec.svc_encrypted_password,
+                     health_check_interval: spec.health_check_interval,
+                     defaults_updated: false,
+                     gateway_state })
     }
 
     /// Returns the config root given the package and optional config-from path.
     fn config_root(package: &Pkg, config_from: Option<&PathBuf>) -> PathBuf {
-        config_from
-            .and_then(|p| Some(p.as_path()))
-            .unwrap_or(&package.path)
-            .join("config")
+        config_from.and_then(|p| Some(p.as_path()))
+                   .unwrap_or(&package.path)
+                   .join("config")
     }
 
     /// Returns the hooks root given the package and optional config-from path.
     fn hooks_root(package: &Pkg, config_from: Option<&PathBuf>) -> PathBuf {
-        config_from
-            .and_then(|p| Some(p.as_path()))
-            .unwrap_or(&package.path)
-            .join("hooks")
+        config_from.and_then(|p| Some(p.as_path()))
+                   .unwrap_or(&package.path)
+                   .join("hooks")
     }
 
-    pub fn load(
-        sys: Arc<Sys>,
-        spec: ServiceSpec,
-        manager_fs_cfg: Arc<FsCfg>,
-        organization: Option<&str>,
-        gateway_state: Arc<RwLock<GatewayState>>,
-    ) -> Result<Service> {
+    pub fn load(sys: Arc<Sys>,
+                spec: ServiceSpec,
+                manager_fs_cfg: Arc<FsCfg>,
+                organization: Option<&str>,
+                gateway_state: Arc<RwLock<GatewayState>>)
+                -> Result<Service> {
         // The package for a spec should already be installed.
         let fs_root_path = Path::new(&*FS_ROOT_PATH);
         let package = PackageInstall::load(&spec.ident, Some(fs_root_path))?;
-        Ok(Self::new(
-            sys,
-            &package,
-            spec,
-            manager_fs_cfg,
-            organization,
-            gateway_state,
-        )?)
+        Ok(Self::new(sys,
+                     &package,
+                     spec,
+                     manager_fs_cfg,
+                     organization,
+                     gateway_state)?)
     }
 
     /// Create the service path for this package.
@@ -300,15 +286,12 @@ impl Service {
     }
 
     fn start(&mut self, launcher: &LauncherCli) {
-        if let Some(err) = self
-            .supervisor
-            .start(
-                &self.pkg,
-                &self.service_group,
-                launcher,
-                self.svc_encrypted_password.as_ref(),
-            )
-            .err()
+        if let Some(err) = self.supervisor
+                               .start(&self.pkg,
+                                      &self.service_group,
+                                      launcher,
+                                      self.svc_encrypted_password.as_ref())
+                               .err()
         {
             outputln!(preamble self.service_group, "Service start failed: {}", err);
         } else {
@@ -324,12 +307,12 @@ impl Service {
         let gs = Arc::clone(&self.gateway_state);
 
         let f = self.supervisor.stop().and_then(move |_| {
-            gs.write()
-                .expect("GatewayState lock is poisoned")
-                .health_check_data
-                .remove(&service_group);
-            Ok(())
-        });
+                                          gs.write()
+                                            .expect("GatewayState lock is poisoned")
+                                            .health_check_data
+                                            .remove(&service_group);
+                                          Ok(())
+                                      });
 
         // eww
         let service_group_2 = self.service_group.clone();
@@ -338,11 +321,10 @@ impl Service {
             Some(hook) => {
                 future::Either::B(f.and_then(|_| hook.into_future().map(|_exitvalue| ())))
             }
-        }
-        .map_err(move |e| {
-            outputln!(preamble service_group_2, "Service stop failed: {}", e);
-            e
-        })
+        }.map_err(move |e| {
+             outputln!(preamble service_group_2, "Service stop failed: {}", e);
+             e
+         })
     }
 
     /// Runs the reconfigure hook if present, otherwise restarts the service.
@@ -350,25 +332,20 @@ impl Service {
         let _timer = hook_timer("reload");
         self.needs_reload = false;
         if self.process_down() || self.hooks.reload.is_none() {
-            if let Some(err) = self
-                .supervisor
-                .restart(
-                    &self.pkg,
-                    &self.service_group,
-                    launcher,
-                    self.svc_encrypted_password.as_ref(),
-                )
-                .err()
+            if let Some(err) = self.supervisor
+                                   .restart(&self.pkg,
+                                            &self.service_group,
+                                            launcher,
+                                            self.svc_encrypted_password.as_ref())
+                                   .err()
             {
                 outputln!(preamble self.service_group, "Service restart failed: {}", err);
             }
         } else {
             let hook = self.hooks.reload.as_ref().unwrap();
-            hook.run(
-                &self.service_group,
-                &self.pkg,
-                self.svc_encrypted_password.as_ref(),
-            );
+            hook.run(&self.service_group,
+                     &self.pkg,
+                     self.svc_encrypted_password.as_ref());
         }
     }
 
@@ -410,9 +387,9 @@ impl Service {
                 self.execute_hooks(launcher);
             }
             Topology::Leader => {
-                let census_group = census_ring
-                    .census_group_for(&self.service_group)
-                    .expect("Service Group's census entry missing from list!");
+                let census_group =
+                    census_ring.census_group_for(&self.service_group)
+                               .expect("Service Group's census entry missing from list!");
                 match census_group.election_status {
                     ElectionStatus::None => {
                         if self.last_election_status != census_group.election_status {
@@ -438,10 +415,9 @@ impl Service {
                         }
                     }
                     ElectionStatus::ElectionFinished => {
-                        let leader_id = census_group
-                            .leader_id
-                            .as_ref()
-                            .expect("No leader with finished election");
+                        let leader_id = census_group.leader_id
+                                                    .as_ref()
+                                                    .expect("No leader with finished election");
                         if self.last_election_status != census_group.election_status {
                             outputln!(preamble self.service_group,
                                       "Executing hooks; {} is the leader",
@@ -553,11 +529,10 @@ impl Service {
 
     /// Evaluate the suitability of the given `ServiceBind` based on
     /// current census information.
-    fn current_bind_status<'a>(
-        &'a self,
-        census_ring: &'a CensusRing,
-        service_bind: &'a ServiceBind,
-    ) -> BindStatus<'a> {
+    fn current_bind_status<'a>(&'a self,
+                               census_ring: &'a CensusRing,
+                               service_bind: &'a ServiceBind)
+                               -> BindStatus<'a> {
         match census_ring.census_group_for(service_bind.service_group()) {
             None => BindStatus::NotPresent,
             Some(group) => {
@@ -589,11 +564,10 @@ impl Service {
     /// given name.
     /// Can return `Error::NoActiveMembers` if there are no active members
     /// of the group.
-    fn unsatisfied_bind_exports<'a>(
-        &'a self,
-        group: &'a CensusGroup,
-        bind_name: &'a str,
-    ) -> Result<HashSet<&'a String>> {
+    fn unsatisfied_bind_exports<'a>(&'a self,
+                                    group: &'a CensusGroup,
+                                    bind_name: &'a str)
+                                    -> Result<HashSet<&'a String>> {
         let exports = self.exports_required_for_bind(bind_name)?;
         let group_exports = group.group_exports()?;
 
@@ -647,9 +621,9 @@ impl Service {
     ///
     /// Returns `true` if any modifications were made.
     fn update_templates(&mut self, census_ring: &CensusRing) -> bool {
-        let census_group = census_ring
-            .census_group_for(&self.service_group)
-            .expect("Service update failed; unable to find own service group");
+        let census_group =
+            census_ring.census_group_for(&self.service_group)
+                       .expect("Service update failed; unable to find own service group");
         let cfg_updated_from_rumors = self.update_gossip(census_group);
         let cfg_changed =
             self.defaults_updated || cfg_updated_from_rumors || self.user_config_updated;
@@ -699,13 +673,11 @@ impl Service {
                 None
             }
         };
-        let mut rumor = ServiceRumor::new(
-            self.sys.member_id.as_str(),
-            &self.pkg.ident,
-            self.service_group.clone(),
-            self.sys.as_sys_info().clone(),
-            exported,
-        );
+        let mut rumor = ServiceRumor::new(self.sys.member_id.as_str(),
+                                          &self.pkg.ident,
+                                          self.service_group.clone(),
+                                          self.sys.as_sys_info().clone(),
+                                          exported);
         rumor.incarnation = incarnation;
         rumor
     }
@@ -722,11 +694,9 @@ impl Service {
         outputln!(preamble self.service_group, "Initializing");
         self.initialized = true;
         if let Some(ref hook) = self.hooks.init {
-            self.initialized = hook.run(
-                &self.service_group,
-                &self.pkg,
-                self.svc_encrypted_password.as_ref(),
-            )
+            self.initialized = hook.run(&self.service_group,
+                                        &self.pkg,
+                                        self.svc_encrypted_password.as_ref())
         }
     }
 
@@ -736,11 +706,9 @@ impl Service {
 
         self.needs_reconfiguration = false;
         if let Some(ref hook) = self.hooks.reconfigure {
-            hook.run(
-                &self.service_group,
-                &self.pkg,
-                self.svc_encrypted_password.as_ref(),
-            );
+            hook.run(&self.service_group,
+                     &self.pkg,
+                     self.svc_encrypted_password.as_ref());
         }
     }
 
@@ -748,11 +716,9 @@ impl Service {
         let _timer = hook_timer("post-run");
 
         if let Some(ref hook) = self.hooks.post_run {
-            hook.run(
-                &self.service_group,
-                &self.pkg,
-                self.svc_encrypted_password.as_ref(),
-            );
+            hook.run(&self.service_group,
+                     &self.pkg,
+                     self.svc_encrypted_password.as_ref());
         }
     }
 
@@ -760,13 +726,12 @@ impl Service {
     // it's the only one that runs async right now.
     fn post_stop(&self) -> Option<hook_runner::HookRunner<hooks::PostStopHook>> {
         self.hooks.post_stop.as_ref().map(|hook| {
-            hook_runner::HookRunner::new(
-                Arc::clone(&hook),
-                self.service_group.clone(),
-                self.pkg.clone(),
-                self.svc_encrypted_password.clone(),
-            )
-        })
+                                         hook_runner::HookRunner::new(Arc::clone(&hook),
+                                                                      self.service_group.clone(),
+                                                                      self.pkg.clone(),
+                                                                      self.svc_encrypted_password
+                                                                          .clone())
+                                     })
     }
 
     pub fn suitability(&self) -> Option<u64> {
@@ -777,19 +742,15 @@ impl Service {
         }
 
         self.hooks.suitability.as_ref().and_then(|hook| {
-            hook.run(
-                &self.service_group,
-                &self.pkg,
-                self.svc_encrypted_password.as_ref(),
-            )
-        })
+                                           hook.run(&self.service_group,
+                                                    &self.pkg,
+                                                    self.svc_encrypted_password.as_ref())
+                                       })
     }
 
     fn cache_health_check(&self, check_result: HealthCheck) {
-        debug!(
-            "Caching HealthCheck = '{}' for '{}'",
-            check_result, self.service_group
-        );
+        debug!("Caching HealthCheck = '{}' for '{}'",
+               check_result, self.service_group);
         self.gateway_state
             .write()
             .expect("GatewayState lock is poisoned")
@@ -801,12 +762,11 @@ impl Service {
     ///
     /// Returns `true` if the configuration has changed.
     fn compile_configuration(&self, ctx: &RenderContext) -> bool {
-        match self.config_renderer.compile(
-            &ctx.service_group_name(),
-            &self.pkg,
-            &self.pkg.svc_config_path,
-            ctx,
-        ) {
+        match self.config_renderer.compile(&ctx.service_group_name(),
+                                           &self.pkg,
+                                           &self.pkg.svc_config_path,
+                                           ctx)
+        {
             Ok(true) => true,
             Ok(false) => false,
             Err(e) => {
@@ -891,11 +851,9 @@ impl Service {
             let now = Instant::now();
             match self.scheduled_health_check {
                 Some(scheduled_check_instant) if scheduled_check_instant > now => {
-                    trace!(
-                        "Skipping health check; next scheduled for {:?} (now: {:?})",
-                        scheduled_check_instant,
-                        now
-                    );
+                    trace!("Skipping health check; next scheduled for {:?} (now: {:?})",
+                           scheduled_check_instant,
+                           now);
                 }
                 _ => self.run_health_check_hook(),
             }
@@ -918,11 +876,9 @@ impl Service {
 
         if self.initialized {
             if let Some(ref hook) = self.hooks.file_updated {
-                return hook.run(
-                    &self.service_group,
-                    &self.pkg,
-                    self.svc_encrypted_password.as_ref(),
-                );
+                return hook.run(&self.service_group,
+                                &self.pkg,
+                                self.svc_encrypted_password.as_ref());
             }
         }
 
@@ -935,9 +891,10 @@ impl Service {
     /// Returns `true` if a file was changed, added, or removed, and
     /// `false` if there were no updates.
     fn update_service_files(&mut self, census_ring: &CensusRing) -> bool {
-        let census_group = census_ring
-            .census_group_for(&self.service_group)
-            .expect("Service update service files failed; unable to find own service group");
+        let census_group =
+            census_ring.census_group_for(&self.service_group)
+                       .expect("Service update service files failed; unable to find own service \
+                                group");
         let mut updated = false;
         for service_file in census_group.changed_service_files() {
             if self.cache_service_file(&service_file) {
@@ -954,27 +911,23 @@ impl Service {
         // Unsatisfied binds are filtered out; you only get bind
         // information in the render context if they actually satisfy
         // the contract!
-        RenderContext::new(
-            &self.service_group,
-            &self.sys,
-            &self.pkg,
-            &self.cfg,
-            census,
-            self.binds
-                .iter()
-                .filter(|b| !self.unsatisfied_binds.contains(b)),
-        )
+        RenderContext::new(&self.service_group,
+                           &self.sys,
+                           &self.pkg,
+                           &self.cfg,
+                           census,
+                           self.binds
+                               .iter()
+                               .filter(|b| !self.unsatisfied_binds.contains(b)))
     }
 
     fn run_health_check_hook(&mut self) {
         let _timer = hook_timer("health-check");
         debug!("Running Health Check hook for ({})", self.spec_ident);
         let check_result = if let Some(ref hook) = self.hooks.health_check {
-            hook.run(
-                &self.service_group,
-                &self.pkg,
-                self.svc_encrypted_password.as_ref(),
-            )
+            hook.run(&self.service_group,
+                     &self.pkg,
+                     self.svc_encrypted_password.as_ref())
         } else {
             match self.supervisor.status() {
                 (true, _) => HealthCheck::Ok,
@@ -988,15 +941,11 @@ impl Service {
 
         if check_result == HealthCheck::Ok {
             self.schedule_routine_health_check();
-            debug!(
-                "Service ({}) health check is: {}",
-                self.spec_ident, check_result
-            );
+            debug!("Service ({}) health check is: {}",
+                   self.spec_ident, check_result);
         } else {
-            debug!(
-                "Service ({}) health check is: {}; scheduling special health check",
-                self.spec_ident, check_result
-            );
+            debug!("Service ({}) health check is: {}; scheduling special health check",
+                   self.spec_ident, check_result);
             self.schedule_special_health_check();
         }
         self.health_check = check_result;
@@ -1020,18 +969,14 @@ impl Service {
         let instant_to_schedule = Instant::now() + interval.into();
         match self.scheduled_health_check {
             Some(already_scheduled_instant) if instant_to_schedule > already_scheduled_instant => {
-                trace!(
-                    "Skipping health check schedule request for {:?}; there is already one \
-                     scheduled sooner at {:?}",
-                    instant_to_schedule,
-                    already_scheduled_instant
-                );
+                trace!("Skipping health check schedule request for {:?}; there is already one \
+                        scheduled sooner at {:?}",
+                       instant_to_schedule,
+                       already_scheduled_instant);
             }
             _ => {
-                debug!(
-                    "Scheduling next health check for ({}) in {}",
-                    self.spec_ident, interval
-                );
+                debug!("Scheduling next health check for ({}) in {}",
+                       self.spec_ident, interval);
                 self.scheduled_health_check = Some(instant_to_schedule);
             }
         }
@@ -1045,8 +990,7 @@ impl Service {
 
     // Returns `false` if the write fails.
     fn write_cache_file<T>(&self, file: T, contents: &[u8]) -> bool
-    where
-        T: AsRef<Path>,
+        where T: AsRef<Path>
     {
         let current_checksum = match hash::hash_file(&file) {
             Ok(current_checksum) => current_checksum,
@@ -1142,23 +1086,20 @@ pub enum ConfigRendering {
 /// actual Service struct, but this will give us something we can refactor against without
 /// worrying about breaking the data returned to users.
 pub struct ServiceProxy<'a> {
-    service: &'a Service,
+    service:          &'a Service,
     config_rendering: ConfigRendering,
 }
 
 impl<'a> ServiceProxy<'a> {
     pub fn new(s: &'a Service, c: ConfigRendering) -> Self {
-        ServiceProxy {
-            service: &s,
-            config_rendering: c,
-        }
+        ServiceProxy { service:          &s,
+                       config_rendering: c, }
     }
 }
 
 impl<'a> Serialize for ServiceProxy<'a> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let num_fields: usize = if self.config_rendering == ConfigRendering::Full {
             27
@@ -1220,12 +1161,10 @@ mod tests {
         let listen_ctl_addr =
             ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
         let http_addr = http_gateway::ListenAddr::default();
-        let sys = Sys::new(
-            false,
-            GossipListenAddr::default(),
-            listen_ctl_addr,
-            http_addr,
-        );
+        let sys = Sys::new(false,
+                           GossipListenAddr::default(),
+                           listen_ctl_addr,
+                           http_addr);
 
         let ident = if cfg!(target_os = "linux") {
             PackageIdent::new("core", "tree", Some("1.7.0"), Some("20180609045201"))
@@ -1237,33 +1176,29 @@ mod tests {
 
         let spec = ServiceSpec::default_for(ident);
 
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join("pkgs");
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+                                                            .join("fixtures")
+                                                            .join("pkgs");
 
-        let install = PackageInstall::load(&spec.ident, Some(&path))
-            .expect("PackageInstall should've loaded my spec, but it didn't");
+        let install = PackageInstall::load(&spec.ident, Some(&path)).expect("PackageInstall \
+                                                                             should've loaded my \
+                                                                             spec, but it didn't");
         let asys = Arc::new(sys);
         let fscfg = FsCfg::new("/tmp");
         let afs = Arc::new(fscfg);
 
         let gs = Arc::new(RwLock::new(GatewayState::default()));
-        Service::new(asys, &install, spec, afs, Some("haha"), gs)
-            .expect("I wanted a service to load, but it didn't")
+        Service::new(asys, &install, spec, afs, Some("haha"), gs).expect("I wanted a service to \
+                                                                          load, but it didn't")
     }
 
     #[test]
     fn health_check_is_due_at_creation() {
         let service = initialize_test_service();
-        assert!(
-            service.scheduled_health_check.is_some(),
-            "Expected a scheduled health check"
-        );
-        assert!(
-            service.scheduled_health_check.unwrap() < Instant::now(),
-            "Expected health check due at creation"
-        );
+        assert!(service.scheduled_health_check.is_some(),
+                "Expected a scheduled health check");
+        assert!(service.scheduled_health_check.unwrap() < Instant::now(),
+                "Expected health check due at creation");
     }
 
     #[test]
@@ -1273,15 +1208,19 @@ mod tests {
         // With config
         let proxy_with_config = ServiceProxy::new(&service, ConfigRendering::Full);
         let proxies_with_config = vec![proxy_with_config];
-        let json_with_config = serde_json::to_string(&proxies_with_config)
-            .expect("Expected to convert proxies_with_config to JSON but failed");
+        let json_with_config =
+            serde_json::to_string(&proxies_with_config).expect("Expected to convert \
+                                                                proxies_with_config to JSON but \
+                                                                failed");
         assert_valid(&json_with_config, "http_gateway_services_schema.json");
 
         // Without config
         let proxy_without_config = ServiceProxy::new(&service, ConfigRendering::Redacted);
         let proxies_without_config = vec![proxy_without_config];
-        let json_without_config = serde_json::to_string(&proxies_without_config)
-            .expect("Expected to convert proxies_without_config to JSON but failed");
+        let json_without_config =
+            serde_json::to_string(&proxies_without_config).expect("Expected to convert \
+                                                                   proxies_without_config to \
+                                                                   JSON but failed");
         assert_valid(&json_without_config, "http_gateway_services_schema.json");
     }
 }

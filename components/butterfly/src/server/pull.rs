@@ -31,18 +31,14 @@ use crate::{rumor::{RumorEnvelope,
             ZMQ_CONTEXT};
 
 lazy_static! {
-    static ref GOSSIP_MESSAGES_RECEIVED: IntCounterVec = register_int_counter_vec!(
-        "hab_butterfly_gossip_messages_received_total",
-        "Total number of gossip messages received",
-        &["type", "mode", "blocked"]
-    )
-    .unwrap();
-    static ref GOSSIP_BYTES_RECEIVED: IntGaugeVec = register_int_gauge_vec!(
-        "hab_butterfly_gossip_received_bytes",
-        "Gossip message size received in bytes",
-        &["type", "mode", "blocked"]
-    )
-    .unwrap();
+    static ref GOSSIP_MESSAGES_RECEIVED: IntCounterVec =
+        register_int_counter_vec!("hab_butterfly_gossip_messages_received_total",
+                                  "Total number of gossip messages received",
+                                  &["type", "mode", "blocked"]).unwrap();
+    static ref GOSSIP_BYTES_RECEIVED: IntGaugeVec =
+        register_int_gauge_vec!("hab_butterfly_gossip_received_bytes",
+                                "Gossip message size received in bytes",
+                                &["type", "mode", "blocked"]).unwrap();
 }
 
 /// Takes a reference to the server itself
@@ -57,19 +53,15 @@ impl Pull {
     /// Run this thread. Creates a socket, binds to the `gossip_addr`, then processes messages as
     /// they are received. Uses a ZMQ pull socket, so inbound messages are fair-queued.
     pub fn run(&mut self) {
-        let socket = (**ZMQ_CONTEXT)
-            .as_mut()
-            .socket(zmq::PULL)
-            .expect("Failure to create the ZMQ pull socket");
-        socket
-            .set_linger(0)
-            .expect("Failure to set the ZMQ Pull socket to not linger");
-        socket
-            .set_tcp_keepalive(0)
-            .expect("Failure to set the ZMQ Pull socket to not use keepalive");
-        socket
-            .bind(&format!("tcp://{}", self.server.gossip_addr()))
-            .expect("Failure to bind the ZMQ Pull socket to the port");
+        let socket = (**ZMQ_CONTEXT).as_mut()
+                                    .socket(zmq::PULL)
+                                    .expect("Failure to create the ZMQ pull socket");
+        socket.set_linger(0)
+              .expect("Failure to set the ZMQ Pull socket to not linger");
+        socket.set_tcp_keepalive(0)
+              .expect("Failure to set the ZMQ Pull socket to not use keepalive");
+        socket.bind(&format!("tcp://{}", self.server.gossip_addr()))
+              .expect("Failure to bind the ZMQ Pull socket to the port");
         'recv: loop {
             if self.server.paused() {
                 thread::sleep(Duration::from_millis(100));
@@ -91,12 +83,10 @@ impl Pull {
                     // garbage all the time.
                     error!("Error parsing protocol message: {:?}", e);
                     let label_values = &["unwrap_wire", "failure", "unknown"];
-                    GOSSIP_BYTES_RECEIVED
-                        .with_label_values(label_values)
-                        .set(msg.len().to_i64());
-                    GOSSIP_MESSAGES_RECEIVED
-                        .with_label_values(label_values)
-                        .inc();
+                    GOSSIP_BYTES_RECEIVED.with_label_values(label_values)
+                                         .set(msg.len().to_i64());
+                    GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values)
+                                            .inc();
                     continue;
                 }
             };
@@ -106,12 +96,10 @@ impl Pull {
                 Err(e) => {
                     error!("Error parsing protocol message: {:?}", e);
                     let label_values = &["undecodable", "failure", "unknown"];
-                    GOSSIP_BYTES_RECEIVED
-                        .with_label_values(label_values)
-                        .set(payload.len().to_i64());
-                    GOSSIP_MESSAGES_RECEIVED
-                        .with_label_values(label_values)
-                        .inc();
+                    GOSSIP_BYTES_RECEIVED.with_label_values(label_values)
+                                         .set(payload.len().to_i64());
+                    GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values)
+                                            .inc();
                     continue 'recv;
                 }
             };
@@ -120,18 +108,14 @@ impl Pull {
             let blocked_label = if blocked { "true" } else { "false" };
             let label_values = &[&proto.type_.to_string(), "success", blocked_label];
 
-            GOSSIP_MESSAGES_RECEIVED
-                .with_label_values(label_values)
-                .inc();
-            GOSSIP_BYTES_RECEIVED
-                .with_label_values(label_values)
-                .set(payload.len().to_i64());
+            GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values)
+                                    .inc();
+            GOSSIP_BYTES_RECEIVED.with_label_values(label_values)
+                                 .set(payload.len().to_i64());
 
             if blocked {
-                warn!(
-                    "Not processing message from {} - it is blocked",
-                    proto.from_id
-                );
+                warn!("Not processing message from {} - it is blocked",
+                      proto.from_id);
                 continue 'recv;
             }
 

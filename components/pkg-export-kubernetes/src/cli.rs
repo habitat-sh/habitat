@@ -26,8 +26,7 @@ use std::{result,
 /// parts of the CLI that you need.
 #[derive(Clone)]
 pub struct Cli<'a, 'b>
-where
-    'a: 'b,
+    where 'a: 'b
 {
     pub app: App<'a, 'b>,
 }
@@ -56,36 +55,27 @@ impl<'a, 'b> Cli<'a, 'b> {
 
     pub fn add_docker_args(self) -> Self {
         let cli = docker::Cli { app: self.app };
-        let app = cli
-            .add_base_packages_args()
-            .add_builder_args()
-            .add_tagging_args()
-            .add_publishing_args()
-            .add_pkg_ident_arg(docker::PkgIdentArgOptions { multiple: false })
-            .app
-            .arg(
-                Arg::with_name("NO_DOCKER_IMAGE")
-                    .long("no-docker-image")
-                    .short("d")
-                    .help(
-                        "Disable creation of the Docker image and only create a Kubernetes \
-                         manifest",
-                    ),
-            );
+        let app = cli.add_base_packages_args()
+                     .add_builder_args()
+                     .add_tagging_args()
+                     .add_publishing_args()
+                     .add_pkg_ident_arg(docker::PkgIdentArgOptions { multiple: false })
+                     .app
+                     .arg(Arg::with_name("NO_DOCKER_IMAGE").long("no-docker-image")
+                                                           .short("d")
+                                                           .help("Disable creation of the Docker \
+                                                                  image and only create a \
+                                                                  Kubernetes manifest"));
 
         Cli { app }
     }
 
     pub fn add_output_args(self) -> Self {
-        Cli {
-            app: self.app.arg(
-                Arg::with_name("OUTPUT")
-                    .value_name("OUTPUT")
-                    .long("output")
-                    .short("o")
-                    .help("Name of manifest file to create. Pass '-' for stdout (default: -)"),
-            ),
-        }
+        Cli { app: self.app.arg(Arg::with_name("OUTPUT").value_name("OUTPUT")
+                                                        .long("output")
+                                                        .short("o")
+                                                        .help("Name of manifest file to create. \
+                                                               Pass '-' for stdout (default: -)")), }
     }
 
     /// Add Habitat (operator) runtime arguments to the CLI.
@@ -168,36 +158,27 @@ impl<'a, 'b> Cli<'a, 'b> {
     }
 
     pub fn add_secret_names_args(self) -> Self {
-        Cli {
-            app: self.app.arg(
-                Arg::with_name("RING_SECRET_NAME")
-                    .value_name("RING_SECRET_NAME")
-                    .long("ring-secret-name")
-                    .short("r")
-                    .help(
-                        "Name of the Kubernetes Secret that contains the ring key, which encrypts \
-                         the communication between Habitat supervisors",
-                    ),
-            ),
-        }
+        Cli { app: self.app
+                       .arg(Arg::with_name("RING_SECRET_NAME").value_name("RING_SECRET_NAME")
+                                                              .long("ring-secret-name")
+                                                              .short("r")
+                                                              .help("Name of the Kubernetes \
+                                                                     Secret that contains the \
+                                                                     ring key, which encrypts the \
+                                                                     communication between \
+                                                                     Habitat supervisors")), }
     }
 
     pub fn add_bind_args(self) -> Self {
-        Cli {
-            app: self.app.arg(
-                Arg::with_name("BIND")
-                    .value_name("BIND")
-                    .long("bind")
-                    .short("b")
-                    .multiple(true)
-                    .number_of_values(1)
-                    .validator(valid_bind)
-                    .help(
-                        "Bind to another service to form a producer/consumer relationship, \
-                         specified as name:service.group",
-                    ),
-            ),
-        }
+        Cli { app: self.app.arg(Arg::with_name("BIND").value_name("BIND")
+                                                      .long("bind")
+                                                      .short("b")
+                                                      .multiple(true)
+                                                      .number_of_values(1)
+                                                      .validator(valid_bind)
+                                                      .help("Bind to another service to form a \
+                                                             producer/consumer relationship, \
+                                                             specified as name:service.group")), }
     }
 }
 

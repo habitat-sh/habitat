@@ -78,10 +78,8 @@ fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
     // Determine if the current dir has an app that can use
     // one of our scaffoldings and use it by default
     ui.begin("Attempting autodiscovery ")?;
-    ui.para(
-        "No scaffolding type was provided. Let's see if we can figure out what kind of \
-         application you're planning to package.",
-    )?;
+    ui.para("No scaffolding type was provided. Let's see if we can figure out what kind of \
+             application you're planning to package.")?;
     let current_path = Path::new(".");
     if is_project_go(&current_path) {
         let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT).unwrap();
@@ -109,43 +107,37 @@ fn autodiscover_scaffolding(ui: &mut UI) -> Result<Option<PackageIdent>> {
         Ok(Some(ident))
     } else {
         ui.warn("Unable to determine the type of app in your current directory")?;
-        ui.para(
-            "For now, we'll generate a plan with all of the available plan variables and build \
-             phase callbacks. For more documentation on plan options try passing --withdocs or \
-             visit https://www.habitat.sh/docs/reference/plan-syntax/",
-        )?;
+        ui.para("For now, we'll generate a plan with all of the available plan variables and \
+                 build phase callbacks. For more documentation on plan options try passing \
+                 --withdocs or visit https://www.habitat.sh/docs/reference/plan-syntax/")?;
         Ok(None)
     }
 }
 
 fn is_project_go<T>(path: T) -> bool
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     path.as_ref().join("main.go").is_file()
-        || path.as_ref().join("Godeps/Godeps.json").is_file()
-        || path.as_ref().join("vendor/vendor.json").is_file()
-        || path.as_ref().join("glide.yaml").is_file()
-        || project_uses_gb(path.as_ref()).unwrap_or(false)
+    || path.as_ref().join("Godeps/Godeps.json").is_file()
+    || path.as_ref().join("vendor/vendor.json").is_file()
+    || path.as_ref().join("glide.yaml").is_file()
+    || project_uses_gb(path.as_ref()).unwrap_or(false)
 }
 
 fn is_project_gradle<T>(path: T) -> bool
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     path.as_ref().join("build.gradle").is_file() || path.as_ref().join("settings.gradle").is_file()
 }
 
 fn is_project_node<T>(path: T) -> bool
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     path.as_ref().join("package.json").is_file()
 }
 
 fn is_project_ruby<T>(path: T) -> bool
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     path.as_ref().join("Gemfile").is_file()
 }

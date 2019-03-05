@@ -34,28 +34,25 @@ impl ManifestJson {
     /// Create a `ManifestJson` from `manifest`.
     pub fn new(manifest: &Manifest) -> Self {
         let binds = manifest.binds.iter().map(to_json).collect::<Vec<_>>();
-        let environment = manifest
-            .environment
-            .iter()
-            .map(|e| e.to_json())
-            .collect::<Vec<_>>();
+        let environment = manifest.environment
+                                  .iter()
+                                  .map(|e| e.to_json())
+                                  .collect::<Vec<_>>();
         let persistent_storage = manifest.persistent_storage.as_ref().map(|s| s.to_json());
 
-        ManifestJson {
-            value: json!({
-                "metadata_name": manifest.metadata_name,
-                "service_name": manifest.pkg_ident.name,
-                "image": manifest.image,
-                "count": manifest.count,
-                "service_topology": manifest.service_topology.to_string(),
-                "service_group": manifest.service_group,
-                "config": manifest.config,
-                "ring_secret_name": manifest.ring_secret_name,
-                "binds": binds,
-                "environment": environment,
-                "persistent_storage": persistent_storage,
-            }),
-        }
+        ManifestJson { value: json!({
+                           "metadata_name": manifest.metadata_name,
+                           "service_name": manifest.pkg_ident.name,
+                           "image": manifest.image,
+                           "count": manifest.count,
+                           "service_topology": manifest.service_topology.to_string(),
+                           "service_group": manifest.service_group,
+                           "config": manifest.config,
+                           "ring_secret_name": manifest.ring_secret_name,
+                           "binds": binds,
+                           "environment": environment,
+                           "persistent_storage": persistent_storage,
+                       }), }
     }
 }
 

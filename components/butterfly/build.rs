@@ -15,20 +15,16 @@ fn main() {
 fn generate_protocols() {
     let mut config = prost_build::Config::new();
     config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
-    config
-        .compile_protos(&protocol_files(), &protocol_includes())
-        .expect("Error compiling protobuf definitions");
+    config.compile_protos(&protocol_files(), &protocol_includes())
+          .expect("Error compiling protobuf definitions");
     for file in generated_files() {
-        fs::copy(
-            &file,
-            // NB: src/generated is presumed to exist; if you delete
-            // it, this'll fail.
-            format!(
-                "src/generated/{}",
-                file.file_name().unwrap().to_string_lossy()
-            ),
-        )
-        .expect("Could not copy generated code to src/generated");
+        fs::copy(&file,
+                 // NB: src/generated is presumed to exist; if you delete
+                 // it, this'll fail.
+                 format!("src/generated/{}",
+                         file.file_name().unwrap().to_string_lossy())).expect("Could not copy \
+                                                                               generated code to \
+                                                                               src/generated");
     }
 }
 

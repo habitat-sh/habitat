@@ -19,16 +19,15 @@ use crate::common::ui::UI;
 use crate::{command::studio,
             error::Result};
 
-pub fn start(
-    ui: &mut UI,
-    plan_context: &str,
-    root: Option<&str>,
-    src: Option<&str>,
-    keys: Option<&str>,
-    reuse: bool,
-    windows: bool,
-    docker: bool,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             plan_context: &str,
+             root: Option<&str>,
+             src: Option<&str>,
+             keys: Option<&str>,
+             reuse: bool,
+             windows: bool,
+             docker: bool)
+             -> Result<()> {
     let mut args: Vec<OsString> = Vec::new();
     if let Some(root) = root {
         args.push("-r".into());

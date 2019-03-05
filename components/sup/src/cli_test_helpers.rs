@@ -26,35 +26,41 @@ enum CliTestError {
 impl fmt::Display for CliTestError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let content = match self {
-            CliTestError::ValueMismatch(flag, expected, actual) => format!(
-                r#"
+            CliTestError::ValueMismatch(flag, expected, actual) => {
+                format!(
+                        r#"
 '{}' validation failed:
   Expected: '{}'
   Actual:   '{}'
 "#,
-                flag, expected, actual
-            ),
-            CliTestError::MultiValueMismatch(flag, expected, actual) => format!(
-                r#"
+                        flag, expected, actual
+                )
+            }
+            CliTestError::MultiValueMismatch(flag, expected, actual) => {
+                format!(
+                        r#"
 '{}' validation failed:
   Expected: '{:#?}'
   Actual:   '{:#?}'
 "#,
-                flag, expected, actual,
-            ),
+                        flag, expected, actual,
+                )
+            }
             CliTestError::MissingFlag(flag) => format!("Expected {} flag was missing.", flag),
             CliTestError::MissingSubcmd() => {
                 "Expected a subcommand, but none was specified".to_string()
             }
-            CliTestError::ClapError(err) => format!(
-                r#"
+            CliTestError::ClapError(err) => {
+                format!(
+                        r#"
 Command Parse error:
 ****************************************
 {}
 ****************************************
 "#,
-                err.to_string()
-            ),
+                        err.to_string()
+                )
+            }
         };
         write!(f, "{}", content)
     }
@@ -63,77 +69,75 @@ Command Parse error:
 pub fn assert_command(app: App<'_, '_>, cmd: &str, assertions: Vec<(&str, Expectation<'_>)>) {
     let cmd_vec = Vec::from_iter(cmd.split_whitespace());
     let errors = match app.get_matches_from_safe(cmd_vec) {
-        Ok(matches) => match matches.subcommand() {
-            (_, Some(matches)) => assert_matches(matches, assertions),
-            (_, None) => vec![CliTestError::MissingSubcmd()],
-        },
+        Ok(matches) => {
+            match matches.subcommand() {
+                (_, Some(matches)) => assert_matches(matches, assertions),
+                (_, None) => vec![CliTestError::MissingSubcmd()],
+            }
+        }
         Err(err) => vec![CliTestError::ClapError(err.to_string())],
     };
 
     if !errors.is_empty() {
-        let error_string = errors
-            .into_iter()
-            .map(|error| format!("{}", error))
-            .collect::<Vec<_>>()
-            .join("\n");
+        let error_string = errors.into_iter()
+                                 .map(|error| format!("{}", error))
+                                 .collect::<Vec<_>>()
+                                 .join("\n");
 
         panic!(
-            r#"
+               r#"
 
 Failed assertions for command: '{}'
 
 {}
 
 "#,
-            cmd, error_string
+               cmd, error_string
         );
     }
 }
 
-fn assert_matches(
-    matches: &ArgMatches<'_>,
-    assertions: Vec<(&str, Expectation<'_>)>,
-) -> Vec<CliTestError> {
+fn assert_matches(matches: &ArgMatches<'_>,
+                  assertions: Vec<(&str, Expectation<'_>)>)
+                  -> Vec<CliTestError> {
     let mut errs = Vec::new();
 
     for (flag, expected_value) in assertions {
         match expected_value {
-            Value(expected) => match matches.value_of(flag) {
-                Some(actual) => {
-                    if actual != expected {
-                        errs.push(CliTestError::ValueMismatch(
-                            flag.to_string(),
-                            expected.to_string(),
-                            actual.to_string(),
-                        ));
+            Value(expected) => {
+                match matches.value_of(flag) {
+                    Some(actual) => {
+                        if actual != expected {
+                            errs.push(CliTestError::ValueMismatch(flag.to_string(),
+                                                                  expected.to_string(),
+                                                                  actual.to_string()));
+                        }
+                    }
+                    None => {
+                        errs.push(CliTestError::MissingFlag(flag.to_string()));
                     }
                 }
-                None => {
-                    errs.push(CliTestError::MissingFlag(flag.to_string()));
-                }
-            },
-            Values(expected) => match matches.values_of(flag) {
-                Some(actual_values) => {
-                    let actual = actual_values.map(|v| v.to_string()).collect();
-                    if actual != expected {
-                        errs.push(CliTestError::MultiValueMismatch(
-                            flag.to_string(),
-                            expected,
-                            actual,
-                        ));
+            }
+            Values(expected) => {
+                match matches.values_of(flag) {
+                    Some(actual_values) => {
+                        let actual = actual_values.map(|v| v.to_string()).collect();
+                        if actual != expected {
+                            errs.push(CliTestError::MultiValueMismatch(flag.to_string(),
+                                                                       expected,
+                                                                       actual));
+                        }
+                    }
+                    None => {
+                        errs.push(CliTestError::MissingFlag(flag.to_string()));
                     }
                 }
-                None => {
-                    errs.push(CliTestError::MissingFlag(flag.to_string()));
-                }
-            },
+            }
             Boolean(expected) => {
                 if matches.is_present(flag) != expected {
-                    errs.push(CliTestError::ValueMismatch(
-                        flag.to_string(),
-                        expected.to_string(),
-                        (!expected).to_string(),
-                    ));
+                    errs.push(CliTestError::ValueMismatch(flag.to_string(),
+                                                          expected.to_string(),
+                                                          (!expected).to_string()));
                 }
             }
         }

@@ -76,10 +76,8 @@ impl Env {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Pkg {
-    #[serde(
-        deserialize_with = "deserialize_using_from_str",
-        serialize_with = "serialize_using_to_string"
-    )]
+    #[serde(deserialize_with = "deserialize_using_from_str",
+            serialize_with = "serialize_using_to_string")]
     pub ident: PackageIdent,
     pub origin: String,
     pub name: String,
@@ -106,37 +104,34 @@ pub struct Pkg {
 impl Pkg {
     pub fn from_install(package: &PackageInstall) -> Result<Self> {
         let (svc_user, svc_group) = get_user_and_group(&package)?;
-        let pkg = Pkg {
-            svc_path: fs::svc_path(&package.ident.name),
-            svc_config_path: fs::svc_config_path(&package.ident.name),
-            svc_config_install_path: fs::svc_config_install_path(&package.ident.name),
-            svc_data_path: fs::svc_data_path(&package.ident.name),
-            svc_files_path: fs::svc_files_path(&package.ident.name),
-            svc_run: fs::svc_path(&package.ident.name).join("run"),
-            svc_static_path: fs::svc_static_path(&package.ident.name),
-            svc_var_path: fs::svc_var_path(&package.ident.name),
-            svc_pid_file: fs::svc_pid_file(&package.ident.name),
-            svc_user,
-            svc_group,
-            env: Env::new(&package)?,
-            deps: package.tdeps()?,
-            exposes: package.exposes()?,
-            exports: package.exports()?,
-            path: package.installed_path.clone(),
-            ident: package.ident.clone(),
-            origin: package.ident.origin.clone(),
-            name: package.ident.name.clone(),
-            version: package
-                .ident
-                .version
-                .clone()
-                .expect("No package version in PackageInstall"),
-            release: package
-                .ident
-                .release
-                .clone()
-                .expect("No package release in PackageInstall"),
-        };
+        let pkg = Pkg { svc_path: fs::svc_path(&package.ident.name),
+                        svc_config_path: fs::svc_config_path(&package.ident.name),
+                        svc_config_install_path: fs::svc_config_install_path(&package.ident
+                                                                                     .name),
+                        svc_data_path: fs::svc_data_path(&package.ident.name),
+                        svc_files_path: fs::svc_files_path(&package.ident.name),
+                        svc_run: fs::svc_path(&package.ident.name).join("run"),
+                        svc_static_path: fs::svc_static_path(&package.ident.name),
+                        svc_var_path: fs::svc_var_path(&package.ident.name),
+                        svc_pid_file: fs::svc_pid_file(&package.ident.name),
+                        svc_user,
+                        svc_group,
+                        env: Env::new(&package)?,
+                        deps: package.tdeps()?,
+                        exposes: package.exposes()?,
+                        exports: package.exports()?,
+                        path: package.installed_path.clone(),
+                        ident: package.ident.clone(),
+                        origin: package.ident.origin.clone(),
+                        name: package.ident.name.clone(),
+                        version: package.ident
+                                        .version
+                                        .clone()
+                                        .expect("No package version in PackageInstall"),
+                        release: package.ident
+                                        .release
+                                        .clone()
+                                        .expect("No package release in PackageInstall") };
         Ok(pkg)
     }
 }
@@ -157,8 +152,7 @@ impl<'a> PkgProxy<'a> {
 
 impl<'a> Serialize for PkgProxy<'a> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let p = &self.pkg;
         let mut strukt = serializer.serialize_struct("pkg", 21)?;
@@ -250,9 +244,11 @@ fn default_user_and_group() -> Result<(String, String)> {
                     debug!("Running as {}/{}", user, group);
                     Ok((user, group))
                 }
-                _ => Err(Error::PermissionFailed(
-                    "Can't determine current user:group".to_string(),
-                )),
+                _ => {
+                    Err(Error::PermissionFailed("Can't determine current \
+                                                 user:group"
+                                                            .to_string()))
+                }
             }
         }
     }

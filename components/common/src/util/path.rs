@@ -82,17 +82,19 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
     // access the `../DEPS` metadata file and read it to get the specific version of the
     // interpreter.
     let my_interpreter_dep_ident = match env::current_exe() {
-        Ok(p) => match p.parent() {
-            Some(p) => {
-                let metafile = p.join("DEPS");
-                if metafile.is_file() {
-                    interpreter_dep_from_metafile(metafile)
-                } else {
-                    None
+        Ok(p) => {
+            match p.parent() {
+                Some(p) => {
+                    let metafile = p.join("DEPS");
+                    if metafile.is_file() {
+                        interpreter_dep_from_metafile(metafile)
+                    } else {
+                        None
+                    }
                 }
+                None => None,
             }
-            None => None,
-        },
+        }
         Err(_) => None,
     };
     let interpreter_paths: Vec<PathBuf> = match my_interpreter_dep_ident {
@@ -115,18 +117,19 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                     match find_command(INTERPRETER_COMMAND) {
                         // We found the interpreter on `PATH`, so that its `dirname` and return
                         // that.
-                        Some(bin) => match bin.parent() {
-                            Some(dir) => vec![dir.to_path_buf()],
-                            None => {
-                                let path = bin.to_string_lossy().into_owned();
-                                println!(
-                                    "An unexpected error has occurred. {} was found at {}, yet \
-                                     the parent directory could not be computed. Aborting...",
-                                    INTERPRETER_COMMAND, &path
-                                );
-                                return Err(Error::FileNotFound(path));
+                        Some(bin) => {
+                            match bin.parent() {
+                                Some(dir) => vec![dir.to_path_buf()],
+                                None => {
+                                    let path = bin.to_string_lossy().into_owned();
+                                    println!("An unexpected error has occurred. {} was found at \
+                                              {}, yet the parent directory could not be \
+                                              computed. Aborting...",
+                                             INTERPRETER_COMMAND, &path);
+                                    return Err(Error::FileNotFound(path));
+                                }
                             }
-                        },
+                        }
                         None => {
                             install::start(
                                 &mut ui::UI::default_with_env(),
@@ -162,9 +165,8 @@ pub fn append_interpreter_and_path(path_entries: &mut Vec<PathBuf>) -> Result<St
         path_entries.append(&mut os_paths);
     }
     let joined = env::join_paths(path_entries)?;
-    let path_str = joined
-        .into_string()
-        .expect("Unable to convert OsStr path to string!");
+    let path_str = joined.into_string()
+                         .expect("Unable to convert OsStr path to string!");
     Ok(path_str)
 }
 

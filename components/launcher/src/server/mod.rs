@@ -81,12 +81,12 @@ enum TickState {
 
 pub struct Server {
     pid_file_path: PathBuf,
-    services: ServiceTable,
-    tx: Sender,
-    rx: Receiver,
-    pipe: String,
-    supervisor: Child,
-    args: Vec<String>,
+    services:      ServiceTable,
+    tx:            Sender,
+    rx:            Receiver,
+    pipe:          String,
+    supervisor:    Child,
+    args:          Vec<String>,
 }
 
 impl Drop for Server {
@@ -105,15 +105,13 @@ impl Server {
         write!(&mut pid_file, "{}", process::current_pid())?;
 
         let ((rx, tx), supervisor, pipe) = Self::init(&args, false)?;
-        Ok(Server {
-            pid_file_path,
-            services: ServiceTable::default(),
-            tx,
-            rx,
-            pipe,
-            supervisor,
-            args,
-        })
+        Ok(Server { pid_file_path,
+                    services: ServiceTable::default(),
+                    tx,
+                    rx,
+                    pipe,
+                    supervisor,
+                    args })
     }
 
     /// Spawn a Supervisor and setup a bi-directional IPC connection to it.
@@ -153,11 +151,9 @@ impl Server {
 
     fn forward_signal(&self, signal: Signal) {
         if let Err(err) = core::os::process::signal(self.supervisor.id() as Pid, signal) {
-            error!(
-                "Unable to signal Supervisor, {}, {}",
-                self.supervisor.id(),
-                err
-            );
+            error!("Unable to signal Supervisor, {}, {}",
+                   self.supervisor.id(),
+                   err);
         }
     }
 
@@ -213,11 +209,9 @@ impl Server {
         if send(&self.tx, &protocol::Shutdown::default()).is_err() {
             warn!("Forcefully stopping Supervisor: {}", self.supervisor.id());
             if let Err(err) = self.supervisor.kill() {
-                warn!(
-                    "Unable to kill Supervisor, {}, {}",
-                    self.supervisor.id(),
-                    err
-                );
+                warn!("Unable to kill Supervisor, {}, {}",
+                      self.supervisor.id(),
+                      err);
             }
         }
 
@@ -360,19 +354,15 @@ impl Server {
                 // at least one restart/stop cycle of the
                 // Supervisor. This just makes the behavior explicit;
                 // it can be revisited later.
-                outputln!(
-                    "Supervisor process killed by signal {}; shutting everything down now",
-                    signal
-                );
+                outputln!("Supervisor process killed by signal {}; shutting everything down now",
+                          signal);
                 Some(self.handle_supervisor_exit(Some(ERR_NO_RETRY_EXCODE)))
             } else {
                 // We should never get here; a Linux process either
                 // exits with a status code, or it was killed with a
                 // signal.
-                warn!(
-                    "UNEXPECTED RESULT: Supervisor process ended, but neither exit status nor \
-                     terminating signal are available"
-                );
+                warn!("UNEXPECTED RESULT: Supervisor process ended, but neither exit status nor \
+                       terminating signal are available");
                 Some(self.handle_supervisor_exit(None))
             }
         } else {
@@ -414,12 +404,10 @@ impl ServiceTable {
             match service.try_wait() {
                 Ok(None) => (),
                 Ok(Some(code)) => {
-                    outputln!(
-                        "Child for service '{}' with PID {} exited with code {}",
-                        service.name(),
-                        service.id(),
-                        code
-                    );
+                    outputln!("Child for service '{}' with PID {} exited with code {}",
+                              service.name(),
+                              service.id(),
+                              code);
                     dead.push(service.id());
                 }
                 Err(err) => {
@@ -457,8 +445,7 @@ pub fn run(args: Vec<String>) -> Result<i32> {
 }
 
 pub fn send<T>(tx: &Sender, msg: &T) -> Result<()>
-where
-    T: protocol::LauncherMessage,
+    where T: protocol::LauncherMessage
 {
     let msg = protocol::NetTxn::build(msg)?;
     let bytes = msg.to_bytes()?;
@@ -517,26 +504,22 @@ fn setup_connection(server: IpcOneShotServer<Vec<u8>>) -> Result<(Receiver, Send
     });
 
     let (ref lock, ref cvar) = *pair;
-    let timeout_secs = core::env::var(IPC_CONNECT_TIMEOUT_SECS)
-        .unwrap_or_default()
-        .parse()
-        .unwrap_or(DEFAULT_IPC_CONNECT_TIMEOUT_SECS);
+    let timeout_secs =
+        core::env::var(IPC_CONNECT_TIMEOUT_SECS).unwrap_or_default()
+                                                .parse()
+                                                .unwrap_or(DEFAULT_IPC_CONNECT_TIMEOUT_SECS);
 
     debug!("Waiting on connect thread for {} secs", timeout_secs);
-    let (started, wait_result) = cvar
-        .wait_timeout(
-            lock.lock().expect("IPC connection startup lock poisoned"),
-            Duration::from_secs(timeout_secs),
-        )
-        .expect("IPC connection startup lock poisoned");
+    let (started, wait_result) = cvar.wait_timeout(lock.lock().expect("IPC connection startup \
+                                                                       lock poisoned"),
+                                                   Duration::from_secs(timeout_secs))
+                                     .expect("IPC connection startup lock poisoned");
 
     if *started && !wait_result.timed_out() {
         handle.join().unwrap()
     } else {
-        debug!(
-            "Timeout exceeded waiting for IPC connection (started: {})",
-            *started
-        );
+        debug!("Timeout exceeded waiting for IPC connection (started: {})",
+               *started);
         Err(Error::AcceptConn)
     }
 }
@@ -555,24 +538,21 @@ fn is_supported_supervisor_version(version_output: &str) -> bool {
         .split(|c| c == '/' || c == '-') // strip "-dev" or "/build"
         .next()
     {
-        debug!(
-            "Checking Supervisor version '{}' against requirement '{}'",
-            version_str, SUP_VERSION_REQ
-        );
+        debug!("Checking Supervisor version '{}' against requirement '{}'",
+               version_str, SUP_VERSION_REQ);
         match Version::parse(version_str) {
-            Ok(version) => VersionReq::parse(SUP_VERSION_REQ)
-                .expect("invalid semantic version requirement")
-                .matches(&version),
+            Ok(version) => {
+                VersionReq::parse(SUP_VERSION_REQ).expect("invalid semantic version requirement")
+                                                  .matches(&version)
+            }
             Err(e) => {
                 error!("{}: {}", e, version_str);
                 false
             }
         }
     } else {
-        error!(
-            "Expected 'hab-sup <semantic-version>', found '{}'",
-            version_output
-        );
+        error!("Expected 'hab-sup <semantic-version>', found '{}'",
+               version_output);
         false
     }
 }
@@ -593,15 +573,11 @@ fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
         let sup_version = String::from_utf8_lossy(&version_check.stdout);
         if !is_supported_supervisor_version(&sup_version.trim()) {
             error!("This Launcher requires Habitat version {}", SUP_VERSION_REQ);
-            error!(
-                "This check can be disabled by setting the {} environment variable to a non-empty \
-                 string when starting the supervisor",
-                SUP_VERSION_CHECK_DISABLE
-            );
-            error!(
-                "Disabling this check may result in undefined behavior; please update to a newer \
-                 Habitat version"
-            );
+            error!("This check can be disabled by setting the {} environment variable to a \
+                    non-empty string when starting the supervisor",
+                   SUP_VERSION_CHECK_DISABLE);
+            error!("Disabling this check may result in undefined behavior; please update to a \
+                    newer Habitat version");
             error!("For more information see https://github.com/habitat-sh/habitat/pull/5484");
             return Err(Error::SupBinaryVersion);
         }
@@ -611,24 +587,19 @@ fn spawn_supervisor(pipe: &str, args: &[String], clean: bool) -> Result<Child> {
     if clean {
         command.env(protocol::LAUNCHER_LOCK_CLEAN_ENV, clean.to_string());
     }
-    debug!(
-        "Starting Supervisor {:?} with args {:?}, {}={}...",
-        binary,
-        args,
-        protocol::LAUNCHER_PIPE_ENV,
-        pipe
-    );
-    let child = command
-        .stdout(Stdio::inherit())
-        .stderr(Stdio::inherit())
-        .env(protocol::LAUNCHER_PIPE_ENV, pipe)
-        .env(
-            protocol::LAUNCHER_PID_ENV,
-            process::current_pid().to_string(),
-        )
-        .args(args)
-        .spawn()
-        .map_err(Error::SupSpawn)?;
+    debug!("Starting Supervisor {:?} with args {:?}, {}={}...",
+           binary,
+           args,
+           protocol::LAUNCHER_PIPE_ENV,
+           pipe);
+    let child = command.stdout(Stdio::inherit())
+                       .stderr(Stdio::inherit())
+                       .env(protocol::LAUNCHER_PIPE_ENV, pipe)
+                       .env(protocol::LAUNCHER_PID_ENV,
+                            process::current_pid().to_string())
+                       .args(args)
+                       .spawn()
+                       .map_err(Error::SupSpawn)?;
     Ok(child)
 }
 
@@ -643,10 +614,12 @@ fn supervisor_cmd() -> Result<PathBuf> {
     let ident = PackageIdent::from_str(SUP_PACKAGE_IDENT).unwrap();
     let fs_root_path = FS_ROOT_PATH.as_path();
     match PackageInstall::load_at_least(&ident, Some(fs_root_path)) {
-        Ok(install) => match core::fs::find_command_in_pkg(SUP_CMD, &install, fs_root_path) {
-            Ok(Some(cmd)) => Ok(cmd),
-            _ => Err(Error::SupBinaryNotFound),
-        },
+        Ok(install) => {
+            match core::fs::find_command_in_pkg(SUP_CMD, &install, fs_root_path) {
+                Ok(Some(cmd)) => Ok(cmd),
+                _ => Err(Error::SupBinaryNotFound),
+            }
+        }
         Err(_) => Err(Error::SupPackageNotFound),
     }
 }

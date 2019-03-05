@@ -58,13 +58,11 @@ mod inner {
                         PackageIdent::from_str(&format!("{}/{}", EXPORT_PKG_IDENT, version[0]))?
                     }
                 };
-                exec::command_from_min_pkg(
-                    ui,
-                    EXPORT_CMD,
-                    &ident,
-                    &default_cache_key_path(None),
-                    0,
-                )?
+                exec::command_from_min_pkg(ui,
+                                           EXPORT_CMD,
+                                           &ident,
+                                           &default_cache_key_path(None),
+                                           0)?
             }
         };
         if let Some(cmd) = find_command(&command) {
@@ -89,11 +87,9 @@ mod inner {
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let cmd = EXPORT_CMD.replace("hab", "").replace("-", " ");
-        ui.warn(format!(
-            "Running 'hab {}' on this operating system is not yet supported. Try running this \
-             command again on 64-bit Linux.",
-            &cmd
-        ))?;
+        ui.warn(format!("Running 'hab {}' on this operating system is not yet supported. Try \
+                         running this command again on 64-bit Linux.",
+                        &cmd))?;
         ui.br()?;
         Err(Error::SubcommandNotSupported(cmd.to_string()))
     }

@@ -77,18 +77,14 @@ pub const HTTP_THREAD_COUNT: usize = 2;
 pub const DEFAULT_PORT: u16 = 9631;
 
 lazy_static! {
-    static ref HTTP_GATEWAY_REQUESTS: CounterVec = register_counter_vec!(
-        "hab_sup_http_gateway_requests_total",
-        "Total number of HTTP gateway requests",
-        &["path"]
-    )
-    .unwrap();
-    static ref HTTP_GATEWAY_REQUEST_DURATION: HistogramVec = register_histogram_vec!(
-        "hab_sup_http_gateway_request_duration_seconds",
-        "The latency for HTTP gateway requests",
-        &["path"]
-    )
-    .unwrap();
+    static ref HTTP_GATEWAY_REQUESTS: CounterVec =
+        register_counter_vec!("hab_sup_http_gateway_requests_total",
+                              "Total number of HTTP gateway requests",
+                              &["path"]).unwrap();
+    static ref HTTP_GATEWAY_REQUEST_DURATION: HistogramVec =
+        register_histogram_vec!("hab_sup_http_gateway_request_duration_seconds",
+                                "The latency for HTTP gateway requests",
+                                &["path"]).unwrap();
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
@@ -160,15 +156,13 @@ impl Into<StatusCode> for HealthCheck {
 
 struct AppState {
     gateway_state: Arc<RwLock<manager::GatewayState>>,
-    timer: Cell<Option<HistogramTimer>>,
+    timer:         Cell<Option<HistogramTimer>>,
 }
 
 impl AppState {
     fn new(gs: Arc<RwLock<manager::GatewayState>>) -> Self {
-        AppState {
-            gateway_state: gs,
-            timer: Cell::new(None),
-        }
+        AppState { gateway_state: gs,
+                   timer:         Cell::new(None), }
     }
 }
 
@@ -177,12 +171,11 @@ struct Authentication;
 
 impl Middleware<AppState> for Authentication {
     fn start(&self, req: &HttpRequest<AppState>) -> actix_web::Result<Started> {
-        let current_token = &req
-            .state()
-            .gateway_state
-            .read()
-            .expect("GatewayState lock is poisoned")
-            .auth_token;
+        let current_token = &req.state()
+                                .gateway_state
+                                .read()
+                                .expect("GatewayState lock is poisoned")
+                                .auth_token;
 
         let current_token = match current_token.as_ref() {
             Some(t) => t,
@@ -198,11 +191,10 @@ impl Middleware<AppState> for Authentication {
         // anything short of a fully formed Authorization header containing a Bearer token that
         // matches the value we have in our state, results in an Unauthorized response.
 
-        let hdr = match req
-            .headers()
-            .get(http::header::AUTHORIZATION)
-            .ok_or("header missing")
-            .and_then(|hv| hv.to_str().or(Err("can't convert to str")))
+        let hdr = match req.headers()
+                           .get(http::header::AUTHORIZATION)
+                           .ok_or("header missing")
+                           .and_then(|hv| hv.to_str().or(Err("can't convert to str")))
         {
             Ok(h) => h,
             Err(e) => {
@@ -229,9 +221,8 @@ impl Middleware<AppState> for Metrics {
         let label_values = &[req.path()];
 
         HTTP_GATEWAY_REQUESTS.with_label_values(label_values).inc();
-        let timer = HTTP_GATEWAY_REQUEST_DURATION
-            .with_label_values(label_values)
-            .start_timer();
+        let timer = HTTP_GATEWAY_REQUEST_DURATION.with_label_values(label_values)
+                                                 .start_timer();
         req.state().timer.set(Some(timer));
 
         Ok(Started::Done)
@@ -260,31 +251,29 @@ pub enum ServerStartup {
 pub struct Server;
 
 impl Server {
-    pub fn run(
-        listen_addr: ListenAddr,
-        tls_config: Option<ServerConfig>,
-        gateway_state: Arc<RwLock<manager::GatewayState>>,
-        control: Arc<(Mutex<ServerStartup>, Condvar)>,
-    ) {
+    pub fn run(listen_addr: ListenAddr,
+               tls_config: Option<ServerConfig>,
+               gateway_state: Arc<RwLock<manager::GatewayState>>,
+               control: Arc<(Mutex<ServerStartup>, Condvar)>) {
         thread::spawn(move || {
             let &(ref lock, ref cvar) = &*control;
             let sys = actix::System::new("sup-http-gateway");
             let thread_count = match henv::var(HTTP_THREADS_ENVVAR) {
-                Ok(val) => match val.parse::<usize>() {
-                    Ok(v) => v,
-                    Err(_) => HTTP_THREAD_COUNT,
-                },
+                Ok(val) => {
+                    match val.parse::<usize>() {
+                        Ok(v) => v,
+                        Err(_) => HTTP_THREAD_COUNT,
+                    }
+                }
                 Err(_) => HTTP_THREAD_COUNT,
             };
 
             let mut server = server::new(move || {
-                let app_state = AppState::new(gateway_state.clone());
-                App::with_state(app_state)
-                    .middleware(Authentication)
-                    .middleware(Metrics)
-                    .configure(routes)
-            })
-            .workers(thread_count);
+                                 let app_state = AppState::new(gateway_state.clone());
+                                 App::with_state(app_state).middleware(Authentication)
+                                                           .middleware(Metrics)
+                                                           .configure(routes)
+                             }).workers(thread_count);
 
             // On Windows the default actix signal handler will create a ctrl+c handler for the
             // process which will disable default windows ctrl+c behavior and allow us to
@@ -329,95 +318,87 @@ impl<S: 'static> Predicate<S> for RedactHTTP {
 
 fn routes(app: App<AppState>) -> App<AppState> {
     app.resource("/", |r| r.get().f(doc))
-        .resource("/services", |r| r.get().f(services))
-        .resource("/services/{svc}/{group}", |r| {
-            r.get().f(service_without_org)
-        })
-        .resource("/services/{svc}/{group}/config", |r| {
-            r.get().f(config_without_org)
-        })
-        .resource("/services/{svc}/{group}/health", |r| {
-            r.get().f(health_without_org)
-        })
-        .resource("/services/{svc}/{group}/{org}", |r| {
-            r.get().f(service_with_org)
-        })
-        .resource("/services/{svc}/{group}/{org}/config", |r| {
-            r.get().f(config_with_org)
-        })
-        .resource("/services/{svc}/{group}/{org}/health", |r| {
-            r.get().f(health_with_org)
-        })
-        .resource("/butterfly", |r| r.get().filter(RedactHTTP).f(butterfly))
-        .resource("/census", |r| r.get().filter(RedactHTTP).f(census))
-        .resource("/metrics", |r| r.get().f(metrics))
+       .resource("/services", |r| r.get().f(services))
+       .resource("/services/{svc}/{group}", |r| {
+           r.get().f(service_without_org)
+       })
+       .resource("/services/{svc}/{group}/config", |r| {
+           r.get().f(config_without_org)
+       })
+       .resource("/services/{svc}/{group}/health", |r| {
+           r.get().f(health_without_org)
+       })
+       .resource("/services/{svc}/{group}/{org}", |r| {
+           r.get().f(service_with_org)
+       })
+       .resource("/services/{svc}/{group}/{org}/config", |r| {
+           r.get().f(config_with_org)
+       })
+       .resource("/services/{svc}/{group}/{org}/health", |r| {
+           r.get().f(health_with_org)
+       })
+       .resource("/butterfly", |r| r.get().filter(RedactHTTP).f(butterfly))
+       .resource("/census", |r| r.get().filter(RedactHTTP).f(census))
+       .resource("/metrics", |r| r.get().f(metrics))
 }
 
 fn json_response(data: String) -> HttpResponse {
-    HttpResponse::Ok()
-        .content_type("application/json")
-        .body(data)
+    HttpResponse::Ok().content_type("application/json")
+                      .body(data)
 }
 
 // Begin route handlers
 fn butterfly(req: &HttpRequest<AppState>) -> HttpResponse {
-    let data = &req
-        .state()
-        .gateway_state
-        .read()
-        .expect("GatewayState lock is poisoned")
-        .butterfly_data;
+    let data = &req.state()
+                   .gateway_state
+                   .read()
+                   .expect("GatewayState lock is poisoned")
+                   .butterfly_data;
     json_response(data.to_string())
 }
 
 fn census(req: &HttpRequest<AppState>) -> HttpResponse {
-    let data = &req
-        .state()
-        .gateway_state
-        .read()
-        .expect("GatewayState lock is poisoned")
-        .census_data;
+    let data = &req.state()
+                   .gateway_state
+                   .read()
+                   .expect("GatewayState lock is poisoned")
+                   .census_data;
     json_response(data.to_string())
 }
 
 fn services(req: &HttpRequest<AppState>) -> HttpResponse {
-    let data = &req
-        .state()
-        .gateway_state
-        .read()
-        .expect("GatewayState lock is poisoned")
-        .services_data;
+    let data = &req.state()
+                   .gateway_state
+                   .read()
+                   .expect("GatewayState lock is poisoned")
+                   .services_data;
     json_response(data.to_string())
 }
 
 // Honestly, this doesn't feel great, but it's the pattern builder-api uses, and at the
 // moment, I don't have a better way of doing it.
 fn config_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group, org) = Path::<(String, String, String)>::extract(&req)
-        .unwrap()
-        .into_inner();
+    let (svc, group, org) = Path::<(String, String, String)>::extract(&req).unwrap()
+                                                                           .into_inner();
     config(req, svc, group, Some(&org))
 }
 
 fn config_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group) = Path::<(String, String)>::extract(&req)
-        .unwrap()
-        .into_inner();
+    let (svc, group) = Path::<(String, String)>::extract(&req).unwrap()
+                                                              .into_inner();
     config(req, svc, group, None)
 }
 
-fn config(
-    req: &HttpRequest<AppState>,
-    svc: String,
-    group: String,
-    org: Option<&str>,
-) -> HttpResponse {
-    let data = &req
-        .state()
-        .gateway_state
-        .read()
-        .expect("GatewayState lock is poisoned")
-        .services_data;
+fn config(req: &HttpRequest<AppState>,
+          svc: String,
+          group: String,
+          org: Option<&str>)
+          -> HttpResponse {
+    let data = &req.state()
+                   .gateway_state
+                   .read()
+                   .expect("GatewayState lock is poisoned")
+                   .services_data;
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
@@ -430,35 +411,31 @@ fn config(
 }
 
 fn health_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group, org) = Path::<(String, String, String)>::extract(&req)
-        .unwrap()
-        .into_inner();
+    let (svc, group, org) = Path::<(String, String, String)>::extract(&req).unwrap()
+                                                                           .into_inner();
     health(req, svc, group, Some(&org))
 }
 
 fn health_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group) = Path::<(String, String)>::extract(&req)
-        .unwrap()
-        .into_inner();
+    let (svc, group) = Path::<(String, String)>::extract(&req).unwrap()
+                                                              .into_inner();
     health(req, svc, group, None)
 }
 
-fn health(
-    req: &HttpRequest<AppState>,
-    svc: String,
-    group: String,
-    org: Option<&str>,
-) -> HttpResponse {
+fn health(req: &HttpRequest<AppState>,
+          svc: String,
+          group: String,
+          org: Option<&str>)
+          -> HttpResponse {
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
-    let gateway_state = &req
-        .state()
-        .gateway_state
-        .read()
-        .expect("GatewayState lock is poisoned");
+    let gateway_state = &req.state()
+                            .gateway_state
+                            .read()
+                            .expect("GatewayState lock is poisoned");
     let health_check = gateway_state.health_check_data.get(&service_group);
 
     if health_check.is_some() {
@@ -477,40 +454,34 @@ fn health(
 
         HttpResponse::build(http_status).json(&body)
     } else {
-        debug!(
-            "Didn't find any health data for service group {:?}",
-            &service_group
-        );
+        debug!("Didn't find any health data for service group {:?}",
+               &service_group);
         HttpResponse::NotFound().finish()
     }
 }
 
 fn service_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group, org) = Path::<(String, String, String)>::extract(&req)
-        .unwrap()
-        .into_inner();
+    let (svc, group, org) = Path::<(String, String, String)>::extract(&req).unwrap()
+                                                                           .into_inner();
     service(req, svc, group, Some(&org))
 }
 
 fn service_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group) = Path::<(String, String)>::extract(&req)
-        .unwrap()
-        .into_inner();
+    let (svc, group) = Path::<(String, String)>::extract(&req).unwrap()
+                                                              .into_inner();
     service(req, svc, group, None)
 }
 
-fn service(
-    req: &HttpRequest<AppState>,
-    svc: String,
-    group: String,
-    org: Option<&str>,
-) -> HttpResponse {
-    let data = &req
-        .state()
-        .gateway_state
-        .read()
-        .expect("GatewayState lock is poisoned")
-        .services_data;
+fn service(req: &HttpRequest<AppState>,
+           svc: String,
+           group: String,
+           org: Option<&str>)
+           -> HttpResponse {
+    let data = &req.state()
+                   .gateway_state
+                   .read()
+                   .expect("GatewayState lock is poisoned")
+                   .services_data;
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
@@ -539,9 +510,8 @@ fn metrics(_req: &HttpRequest<AppState>) -> HttpResponse {
         }
     };
 
-    HttpResponse::Ok()
-        .content_type(encoder.format_type())
-        .body(resp)
+    HttpResponse::Ok().content_type(encoder.format_type())
+                      .body(resp)
 }
 
 fn doc(_req: &HttpRequest<AppState>) -> HttpResponse {
@@ -551,9 +521,10 @@ fn doc(_req: &HttpRequest<AppState>) -> HttpResponse {
 
 fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> Option<Json> {
     match serde_json::from_str(services_json) {
-        Ok(Json::Array(services)) => services
-            .into_iter()
-            .find(|s| s["service_group"] == service_group.as_ref()),
+        Ok(Json::Array(services)) => {
+            services.into_iter()
+                    .find(|s| s["service_group"] == service_group.as_ref())
+        }
         _ => None,
     }
 }
@@ -573,26 +544,23 @@ mod tests {
               sync::Mutex};
 
     fn validate_sample_file_against_schema(name: &str, schema: &str) {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join("http-gateway")
-            .join(name);
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+                                                            .join("fixtures")
+                                                            .join("http-gateway")
+                                                            .join(name);
 
         let mut f = File::open(path).unwrap_or_else(|_| panic!("could not open {}", &name));
         let mut json = String::new();
         f.read_to_string(&mut json)
-            .unwrap_or_else(|_| panic!("could not read {}", &name));
+         .unwrap_or_else(|_| panic!("could not read {}", &name));
 
         assert_valid(&json, schema);
     }
 
     #[test]
     fn sample_census_file_is_valid() {
-        validate_sample_file_against_schema(
-            "sample-census-output.json",
-            "http_gateway_census_schema.json",
-        );
+        validate_sample_file_against_schema("sample-census-output.json",
+                                            "http_gateway_census_schema.json");
     }
 
     #[test]
@@ -601,27 +569,21 @@ mod tests {
             r#"{"census_groups": {}, "changed": false, "last_election_counter": "narf"}"#,
             "http_gateway_census_schema.json",
         );
-        assert!(
-            !failure.is_valid(),
-            "Expected schema validation to fail, but it succeeded"
-        );
+        assert!(!failure.is_valid(),
+                "Expected schema validation to fail, but it succeeded");
     }
 
     #[test]
     fn sample_butterfly_file_is_valid() {
-        validate_sample_file_against_schema(
-            "sample-butterfly-output.json",
-            "http_gateway_butterfly_schema.json",
-        );
+        validate_sample_file_against_schema("sample-butterfly-output.json",
+                                            "http_gateway_butterfly_schema.json");
     }
 
     #[test]
     fn trivial_butterfly_failure() {
         let failure = validate_string(r#"{"departure": {}, "election": {}, "member": {}, "service": false, "service_file": []}"#, "http_gateway_butterfly_schema.json");
-        assert!(
-            !failure.is_valid(),
-            "Expected schema validation to fail, but it succeeded"
-        );
+        assert!(!failure.is_valid(),
+                "Expected schema validation to fail, but it succeeded");
     }
 
     #[test]
@@ -655,17 +617,14 @@ mod tests {
             let mut member = Member::default();
             member.swim_port = swim_port;
             member.gossip_port = gossip_port;
-            Server::new(
-                &swim_listen[..],
-                &gossip_listen[..],
-                member,
-                Trace::default(),
-                None,
-                None,
-                None,
-                Box::new(ZeroSuitability),
-            )
-            .unwrap()
+            Server::new(&swim_listen[..],
+                        &gossip_listen[..],
+                        member,
+                        Trace::default(),
+                        None,
+                        None,
+                        None,
+                        Box::new(ZeroSuitability)).unwrap()
         }
 
         let server = start_server();
@@ -676,26 +635,20 @@ mod tests {
 
     #[test]
     fn sample_services_with_cfg_file_is_valid() {
-        validate_sample_file_against_schema(
-            "sample-services-with-cfg-output.json",
-            "http_gateway_services_schema.json",
-        );
+        validate_sample_file_against_schema("sample-services-with-cfg-output.json",
+                                            "http_gateway_services_schema.json");
     }
 
     #[test]
     fn sample_services_without_cfg_file_is_valid() {
-        validate_sample_file_against_schema(
-            "sample-services-without-cfg-output.json",
-            "http_gateway_services_schema.json",
-        );
+        validate_sample_file_against_schema("sample-services-without-cfg-output.json",
+                                            "http_gateway_services_schema.json");
     }
 
     #[test]
     fn trivial_services_failure() {
         let failure = validate_string(r#"[{"lulz": true}]"#, "http_gateway_services_schema.json");
-        assert!(
-            !failure.is_valid(),
-            "Expected schema validation to fail, but it succeeded"
-        );
+        assert!(!failure.is_valid(),
+                "Expected schema validation to fail, but it succeeded");
     }
 }

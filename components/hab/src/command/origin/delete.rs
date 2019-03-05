@@ -27,10 +27,9 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<(
 
     ui.status(Status::Deleting, format!("origin {}.", origin))?;
 
-    api_client
-        .delete_origin(origin, token)
-        .map_err(Error::APIClient)?;
+    api_client.delete_origin(origin, token)
+              .map_err(Error::APIClient)?;
 
     ui.status(Status::Deleted, format!("origin {}.", origin))
-        .map_err(Into::into)
+      .map_err(Into::into)
 }

@@ -39,11 +39,11 @@ use crate::{error::{Error,
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceConfig {
-    pub from_id: String,
+    pub from_id:       String,
     pub service_group: ServiceGroup,
-    pub incarnation: u64,
-    pub encrypted: bool,
-    pub config: Vec<u8>, // TODO: make this a String
+    pub incarnation:   u64,
+    pub encrypted:     bool,
+    pub config:        Vec<u8>, // TODO: make this a String
 }
 
 impl PartialOrd for ServiceConfig {
@@ -59,56 +59,56 @@ impl PartialOrd for ServiceConfig {
 impl PartialEq for ServiceConfig {
     fn eq(&self, other: &ServiceConfig) -> bool {
         self.service_group == other.service_group
-            && self.incarnation == other.incarnation
-            && self.encrypted == other.encrypted
-            && self.config == other.config
+        && self.incarnation == other.incarnation
+        && self.encrypted == other.encrypted
+        && self.config == other.config
     }
 }
 
 impl ServiceConfig {
     /// Creates a new ServiceConfig.
     pub fn new<S1>(member_id: S1, service_group: ServiceGroup, config: Vec<u8>) -> Self
-    where
-        S1: Into<String>,
+        where S1: Into<String>
     {
-        ServiceConfig {
-            from_id: member_id.into(),
-            service_group,
-            incarnation: 0,
-            encrypted: false,
-            config,
-        }
+        ServiceConfig { from_id: member_id.into(),
+                        service_group,
+                        incarnation: 0,
+                        encrypted: false,
+                        config }
     }
 
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.config = user_pair
-            .encrypt(&self.config, Some(service_pair))?
-            .into_bytes();
+        self.config = user_pair.encrypt(&self.config, Some(service_pair))?
+                               .into_bytes();
         self.encrypted = true;
         Ok(())
     }
 
     pub fn config(&self) -> Result<toml::value::Table> {
-        let config = if self.encrypted {
-            let bytes = BoxKeyPair::decrypt_with_path(
+        let config =
+            if self.encrypted {
+                let bytes = BoxKeyPair::decrypt_with_path(
                 &WrappedSealedBox::from_bytes(&self.config)
                     .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
                 &default_cache_key_path(None),
             )?;
-            let encoded = str::from_utf8(&bytes)
-                .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
-            self.parse_config(&encoded)?
-        } else {
-            let encoded = str::from_utf8(&self.config)
-                .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?;
-            self.parse_config(&encoded)?
-        };
+                let encoded = str::from_utf8(&bytes).map_err(|e| {
+                                  Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
+                              })?;
+                self.parse_config(&encoded)?
+            } else {
+                let encoded = str::from_utf8(&self.config).map_err(|e| {
+                                  Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
+                              })?;
+                self.parse_config(&encoded)?
+            };
         Ok(config)
     }
 
     fn parse_config(&self, encoded: &str) -> Result<toml::value::Table> {
-        toml::from_str(encoded)
-            .map_err(|e| Error::ServiceConfigDecode(self.service_group.to_string(), e))
+        toml::from_str(encoded).map_err(|e| {
+                                   Error::ServiceConfigDecode(self.service_group.to_string(), e)
+                               })
     }
 }
 
@@ -120,27 +120,26 @@ impl FromProto<ProtoRumor> for ServiceConfig {
             RumorPayload::ServiceConfig(payload) => payload,
             _ => panic!("from-bytes service-config"),
         };
-        Ok(ServiceConfig {
-            from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
-            service_group: payload
-                .service_group
-                .ok_or(Error::ProtocolMismatch("service-group"))
-                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
-            incarnation: payload.incarnation.unwrap_or(0),
-            encrypted: payload.encrypted.unwrap_or(false),
-            config: payload.config.unwrap_or_default(),
-        })
+        Ok(ServiceConfig { from_id:       rumor.from_id
+                                               .ok_or(Error::ProtocolMismatch("from-id"))?,
+                           service_group:
+                               payload.service_group
+                                      .ok_or(Error::ProtocolMismatch("service-group"))
+                                      .and_then(|s| {
+                                          ServiceGroup::from_str(&s).map_err(Error::from)
+                                      })?,
+                           incarnation:   payload.incarnation.unwrap_or(0),
+                           encrypted:     payload.encrypted.unwrap_or(false),
+                           config:        payload.config.unwrap_or_default(), })
     }
 }
 
 impl From<ServiceConfig> for newscast::ServiceConfig {
     fn from(value: ServiceConfig) -> Self {
-        newscast::ServiceConfig {
-            service_group: Some(value.service_group.to_string()),
-            incarnation: Some(value.incarnation),
-            encrypted: Some(value.encrypted),
-            config: Some(value.config),
-        }
+        newscast::ServiceConfig { service_group: Some(value.service_group.to_string()),
+                                  incarnation:   Some(value.incarnation),
+                                  encrypted:     Some(value.encrypted),
+                                  config:        Some(value.config), }
     }
 }
 
@@ -179,11 +178,9 @@ mod tests {
 
     fn create_service_config(member_id: &str, config: &str) -> ServiceConfig {
         let config_bytes: Vec<u8> = Vec::from(config);
-        ServiceConfig::new(
-            member_id,
-            ServiceGroup::new(None, "neurosis", "production", None).unwrap(),
-            config_bytes,
-        )
+        ServiceConfig::new(member_id,
+                           ServiceGroup::new(None, "neurosis", "production", None).unwrap(),
+                           config_bytes)
     }
 
     #[test]
@@ -270,9 +267,7 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_toml_value() {
         let s1 = create_service_config("adam", "yep=1");
-        assert_eq!(
-            s1.config().unwrap(),
-            toml::from_str::<toml::value::Table>("yep=1").unwrap()
-        );
+        assert_eq!(s1.config().unwrap(),
+                   toml::from_str::<toml::value::Table>("yep=1").unwrap());
     }
 }

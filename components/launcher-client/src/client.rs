@@ -29,8 +29,8 @@ type Env = HashMap<String, String>;
 type IpcServer = IpcOneShotServer<Vec<u8>>;
 
 pub struct LauncherCli {
-    tx: IpcSender<Vec<u8>>,
-    rx: IpcReceiver<Vec<u8>>,
+    tx:   IpcSender<Vec<u8>>,
+    rx:   IpcReceiver<Vec<u8>>,
     pipe: String,
 }
 
@@ -50,23 +50,18 @@ impl LauncherCli {
         let tx = IpcSender::connect(pipe_to_launcher).map_err(Error::Connect)?;
         let (ipc_srv, pipe_to_sup) = IpcServer::new().map_err(Error::BadPipe)?;
         debug!("IpcServer::new() returned pipe_to_sup: {}", pipe_to_sup);
-        let cmd = protocol::Register {
-            pipe: pipe_to_sup.clone(),
-        };
+        let cmd = protocol::Register { pipe: pipe_to_sup.clone(), };
         Self::send(&tx, &cmd)?;
         let (rx, raw) = ipc_srv.accept().map_err(|_| Error::AcceptConn)?;
         Self::read::<protocol::NetOk>(&raw)?;
-        Ok(LauncherCli {
-            tx,
-            rx,
-            pipe: pipe_to_sup,
-        })
+        Ok(LauncherCli { tx,
+                         rx,
+                         pipe: pipe_to_sup })
     }
 
     /// Read a launcher protocol message from a byte array
     fn read<T>(bytes: &[u8]) -> Result<T>
-    where
-        T: protocol::LauncherMessage,
+        where T: protocol::LauncherMessage
     {
         let txn = protocol::NetTxn::from_bytes(bytes)?;
         if txn.message_id() == "NetErr" {
@@ -79,8 +74,7 @@ impl LauncherCli {
 
     /// Receive and read protocol message from an IpcReceiver
     fn recv<T>(rx: &IpcReceiver<Vec<u8>>) -> Result<T>
-    where
-        T: protocol::LauncherMessage,
+        where T: protocol::LauncherMessage
     {
         match rx.recv() {
             Ok(bytes) => Self::read(&bytes),
@@ -90,8 +84,7 @@ impl LauncherCli {
 
     /// Send a command to a Launcher
     fn send<T>(tx: &IpcSender<Vec<u8>>, message: &T) -> Result<()>
-    where
-        T: protocol::LauncherMessage,
+        where T: protocol::LauncherMessage
     {
         let txn = protocol::NetTxn::build(message)?;
         let bytes = txn.to_bytes()?;
@@ -101,8 +94,7 @@ impl LauncherCli {
 
     /// Receive and read protocol message from an IpcReceiver
     fn try_recv<T>(rx: &IpcReceiver<Vec<u8>>) -> Result<Option<T>>
-    where
-        T: protocol::LauncherMessage,
+        where T: protocol::LauncherMessage
     {
         match rx.try_recv().map_err(|err| Error::from(*err)) {
             Ok(bytes) => {
@@ -135,23 +127,21 @@ impl LauncherCli {
     /// `user` and `group` are string names, while `user_id` and
     /// `group_id` are numeric IDs. Newer versions of the Launcher can
     /// accept either, but prefer numeric IDs.
-    pub fn spawn<I, B, U, G, P>(
-        &self,
-        id: &I,
-        bin: B,
-        user: Option<U>,
-        group: Option<G>,
-        user_id: Option<u32>,
-        group_id: Option<u32>,
-        password: Option<P>,
-        env: Env,
-    ) -> Result<Pid>
-    where
-        I: ToString,
-        B: AsRef<Path>,
-        U: ToString,
-        G: ToString,
-        P: ToString,
+    pub fn spawn<I, B, U, G, P>(&self,
+                                id: &I,
+                                bin: B,
+                                user: Option<U>,
+                                group: Option<G>,
+                                user_id: Option<u32>,
+                                group_id: Option<u32>,
+                                password: Option<P>,
+                                env: Env)
+                                -> Result<Pid>
+        where I: ToString,
+              B: AsRef<Path>,
+              U: ToString,
+              G: ToString,
+              P: ToString
     {
         // On Windows, we only expect user to be Some.
         //
@@ -159,16 +149,15 @@ impl LauncherCli {
         // user and group may be either Some or None. Only the IDs are
         // used; names are only for backward compatibility with older
         // Launchers.
-        let msg = protocol::Spawn {
-            binary: bin.as_ref().to_path_buf().to_string_lossy().into_owned(),
-            svc_user: user.map(|u| u.to_string()),
-            svc_group: group.map(|g| g.to_string()),
-            svc_user_id: user_id,
-            svc_group_id: group_id,
-            svc_password: password.map(|p| p.to_string()),
-            env,
-            id: id.to_string(),
-        };
+        let msg =
+            protocol::Spawn { binary: bin.as_ref().to_path_buf().to_string_lossy().into_owned(),
+                              svc_user: user.map(|u| u.to_string()),
+                              svc_group: group.map(|g| g.to_string()),
+                              svc_user_id: user_id,
+                              svc_group_id: group_id,
+                              svc_password: password.map(|p| p.to_string()),
+                              env,
+                              id: id.to_string() };
 
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;

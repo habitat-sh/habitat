@@ -71,10 +71,9 @@ fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Result
 }
 
 lazy_static! {
-    pub static ref VERSION_HELP: String = format!(
-        "Version of the chart to create (default: {{pkg_version}} if available, or {})",
-        chartfile::DEFAULT_VERSION
-    );
+    pub static ref VERSION_HELP: String = format!("Version of the chart to create (default: \
+                                                   {{pkg_version}} if available, or {})",
+                                                  chartfile::DEFAULT_VERSION);
 }
 
 fn cli<'a, 'b>() -> clap::App<'a, 'b> {
@@ -206,9 +205,8 @@ fn valid_url(val: String) -> result::Result<(), String> {
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_maintainer(val: String) -> result::Result<(), String> {
-    maintainer::Maintainer::from_str(&val)
-        .map(|_| ())
-        .map_err(|e| format!("{}", e))
+    maintainer::Maintainer::from_str(&val).map(|_| ())
+                                          .map_err(|e| format!("{}", e))
 }
 
 #[cfg(test)]

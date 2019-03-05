@@ -32,9 +32,9 @@ const CLI_CONFIG_PATH: &str = "hab/etc/cli.toml";
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 pub struct Config {
     pub auth_token: Option<String>,
-    pub origin: Option<String>,
+    pub origin:     Option<String>,
     pub ctl_secret: Option<String>,
-    pub bldr_url: Option<String>,
+    pub bldr_url:   Option<String>,
 }
 
 impl ConfigFile for Config {
@@ -43,12 +43,10 @@ impl ConfigFile for Config {
 
 impl Default for Config {
     fn default() -> Self {
-        Config {
-            auth_token: None,
-            origin: None,
-            ctl_secret: None,
-            bldr_url: None,
-        }
+        Config { auth_token: None,
+                 origin:     None,
+                 ctl_secret: None,
+                 bldr_url:   None, }
     }
 }
 
@@ -68,9 +66,7 @@ pub fn save(config: &Config) -> Result<()> {
     let parent_path = match config_path.parent() {
         Some(p) => p,
         None => {
-            return Err(Error::FileNotFound(
-                config_path.to_string_lossy().into_owned(),
-            ));
+            return Err(Error::FileNotFound(config_path.to_string_lossy().into_owned()));
         }
     };
     fs::create_dir_all(&parent_path)?;

@@ -60,10 +60,8 @@ impl Process {
         // to prevent orphaned processes.
         let pgid = unsafe { libc::getpgid(self.pid) };
         if self.pid == pgid {
-            debug!(
-                "pid to kill {} is the process group root. Sending signal to process group.",
-                self.pid
-            );
+            debug!("pid to kill {} is the process group root. Sending signal to process group.",
+                   self.pid);
             // sending a signal to the negative pid sends it to the
             // entire process group instead just the single pid
             pid_to_kill = self.pid.neg();

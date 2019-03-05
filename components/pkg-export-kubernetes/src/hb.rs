@@ -46,20 +46,19 @@ impl QuoteHelper {
 }
 
 impl HelperDef for QuoteHelper {
-    fn call(
-        &self,
-        h: &Helper<'_>,
-        _r: &Handlebars,
-        rc: &mut RenderContext<'_>,
-    ) -> Result<(), RenderError> {
-        let to_escape = h
-            .param(0)
-            .ok_or_else(|| {
-                RenderError::new(&format!("Expected exactly one parameter for {}", h.name()))
-            })?
-            .value()
-            .as_str()
-            .ok_or_else(|| RenderError::new("Expected a string parameter"))?;
+    fn call(&self,
+            h: &Helper<'_>,
+            _r: &Handlebars,
+            rc: &mut RenderContext<'_>)
+            -> Result<(), RenderError> {
+        let to_escape = h.param(0)
+                         .ok_or_else(|| {
+                             RenderError::new(&format!("Expected exactly one parameter for {}",
+                                                       h.name()))
+                         })?
+                         .value()
+                         .as_str()
+                         .ok_or_else(|| RenderError::new("Expected a string parameter"))?;
         let escaped = QuoteHelper::escape(to_escape);
 
         rc.writer.write_all(escaped.into_bytes().as_ref())?;
@@ -84,8 +83,7 @@ impl Renderer {
     }
 
     fn render<T>(&self, data: &T) -> String
-    where
-        T: Serialize,
+        where T: Serialize
     {
         // The Result::expect() usage in this function is justified by
         // the fact that errors can only come from the crate
@@ -98,8 +96,7 @@ impl Renderer {
 }
 
 pub fn render<T>(data: &T) -> String
-where
-    T: Serialize,
+    where T: Serialize
 {
     Renderer::new().render(data)
 }
@@ -110,13 +107,11 @@ mod tests {
 
     #[test]
     fn test_quote_helper() {
-        let strings = vec![
-            (r#"abc"#, r#""abc""#),
-            (r#"escape " quote"#, r#""escape \" quote""#),
-            (r#"\"double escape\""#, r#""\\\"double escape\\\"""#),
-            (r#"backslash at the end\"#, r#""backslash at the end\\""#),
-            (r#""#, r#""""#),
-        ];
+        let strings = vec![(r#"abc"#, r#""abc""#),
+                           (r#"escape " quote"#, r#""escape \" quote""#),
+                           (r#"\"double escape\""#, r#""\\\"double escape\\\"""#),
+                           (r#"backslash at the end\"#, r#""backslash at the end\\""#),
+                           (r#""#, r#""""#),];
 
         for pair in strings {
             let input = pair.0;

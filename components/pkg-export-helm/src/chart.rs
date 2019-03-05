@@ -31,12 +31,12 @@ use crate::{chartfile::ChartFile,
             values::Values};
 
 pub struct Chart<'a> {
-    chartdir: PathBuf,
-    chartfile: ChartFile,
+    chartdir:          PathBuf,
+    chartfile:         ChartFile,
     manifest_template: Option<ManifestJson>,
-    values: Values,
-    deps: Deps,
-    ui: &'a mut UI,
+    values:            Values,
+    deps:              Deps,
+    ui:                &'a mut UI,
 }
 
 impl<'a> Chart<'a> {
@@ -56,45 +56,40 @@ impl<'a> Chart<'a> {
         }
         chartdir.push(&chartfile.name);
 
-        Ok(Self::new_for_manifest(
-            &manifest, chartdir, chartfile, deps, ui,
-        ))
+        Ok(Self::new_for_manifest(&manifest, chartdir, chartfile, deps, ui))
     }
 
-    fn new_for_manifest(
-        manifest: &Manifest,
-        chartdir: PathBuf,
-        chartfile: ChartFile,
-        deps: Deps,
-        ui: &'a mut UI,
-    ) -> Self {
-        let mut manifest_template = ManifestJson {
-            value: json!({
-            "metadata_name": "{{.Values.metadataName}}",
-            "service_name": "{{.Values.serviceName}}",
-            "image": "{{.Values.imageName}}",
-            "count": "{{.Values.instanceCount}}",
-            "service_topology": "{{.Values.serviceTopology}}",
-            "service_group": manifest.service_group
-                .as_ref()
-                .map(|_| "{{.Values.serviceGroup}}"),
-            "config": manifest.config
-                .as_ref()
-                .map(|_| "{{.Values.config}}"),
-            "ring_secret_name": manifest.ring_secret_name
-                .as_ref()
-                .map(|_| "{{.Values.ringSecretName}}"),
-            "persistent_storage": manifest.persistent_storage
-                .as_ref()
-                .map(|_| {
-                    PersistentStorage {
-                        size: "{{.Values.persistentStorageSize}}".to_string(),
-                        path: "{{.Values.persistentStoragePath}}".to_string(),
-                        class: "{{.Values.persistentStorageClass}}".to_string(),
-                    }.to_json()
-                }),
-            }),
-        };
+    fn new_for_manifest(manifest: &Manifest,
+                        chartdir: PathBuf,
+                        chartfile: ChartFile,
+                        deps: Deps,
+                        ui: &'a mut UI)
+                        -> Self {
+        let mut manifest_template = ManifestJson { value: json!({
+                                                   "metadata_name": "{{.Values.metadataName}}",
+                                                   "service_name": "{{.Values.serviceName}}",
+                                                   "image": "{{.Values.imageName}}",
+                                                   "count": "{{.Values.instanceCount}}",
+                                                   "service_topology": "{{.Values.serviceTopology}}",
+                                                   "service_group": manifest.service_group
+                                                       .as_ref()
+                                                       .map(|_| "{{.Values.serviceGroup}}"),
+                                                   "config": manifest.config
+                                                       .as_ref()
+                                                       .map(|_| "{{.Values.config}}"),
+                                                   "ring_secret_name": manifest.ring_secret_name
+                                                       .as_ref()
+                                                       .map(|_| "{{.Values.ringSecretName}}"),
+                                                   "persistent_storage": manifest.persistent_storage
+                                                       .as_ref()
+                                                       .map(|_| {
+                                                           PersistentStorage {
+                                                               size: "{{.Values.persistentStorageSize}}".to_string(),
+                                                               path: "{{.Values.persistentStoragePath}}".to_string(),
+                                                               class: "{{.Values.persistentStorageClass}}".to_string(),
+                                                           }.to_json()
+                                                       }),
+                                                   }), };
 
         let mut values = Values::new();
         values.add_entry("metadataName", &manifest.metadata_name);
@@ -154,21 +149,17 @@ impl<'a> Chart<'a> {
         }
         manifest_template.value["environment"] = json!(environment);
 
-        Chart {
-            chartdir,
-            chartfile,
-            manifest_template: Some(manifest_template),
-            values,
-            deps,
-            ui,
-        }
+        Chart { chartdir,
+                chartfile,
+                manifest_template: Some(manifest_template),
+                values,
+                deps,
+                ui }
     }
 
     pub fn generate(mut self) -> Result<()> {
-        self.ui.status(
-            Status::Creating,
-            format!("directory `{}`", self.chartdir.display()),
-        )?;
+        self.ui.status(Status::Creating,
+                        format!("directory `{}`", self.chartdir.display()))?;
         fs::create_dir_all(&self.chartdir)?;
 
         self.generate_chartfile()?;
@@ -199,11 +190,10 @@ impl<'a> Chart<'a> {
         self.ui
             .status(Status::Creating, format!("file `{}`", path.display()))?;
         let mut write = fs::File::create(path)?;
-        let out: String = self
-            .manifest_template
-            .take()
-            .expect("generate_manifest_template() called more than once")
-            .into();
+        let out: String = self.manifest_template
+                              .take()
+                              .expect("generate_manifest_template() called more than once")
+                              .into();
 
         write.write_all(out.as_bytes())?;
 

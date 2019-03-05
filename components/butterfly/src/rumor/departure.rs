@@ -36,11 +36,7 @@ pub struct Departure {
 }
 
 impl Departure {
-    pub fn new(member_id: &str) -> Self {
-        Departure {
-            member_id: member_id.to_string(),
-        }
-    }
+    pub fn new(member_id: &str) -> Self { Departure { member_id: member_id.to_string(), } }
 }
 
 impl protocol::Message<ProtoRumor> for Departure {}
@@ -51,20 +47,13 @@ impl FromProto<ProtoRumor> for Departure {
             RumorPayload::Departure(payload) => payload,
             _ => panic!("from-bytes departure"),
         };
-        Ok(Departure {
-            member_id: payload
-                .member_id
-                .ok_or(Error::ProtocolMismatch("member-id"))?,
-        })
+        Ok(Departure { member_id: payload.member_id
+                                         .ok_or(Error::ProtocolMismatch("member-id"))?, })
     }
 }
 
 impl From<Departure> for newscast::Departure {
-    fn from(value: Departure) -> Self {
-        newscast::Departure {
-            member_id: Some(value.member_id),
-        }
-    }
+    fn from(value: Departure) -> Self { newscast::Departure { member_id: Some(value.member_id), } }
 }
 
 impl Rumor for Departure {

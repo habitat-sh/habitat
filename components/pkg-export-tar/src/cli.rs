@@ -11,22 +11,19 @@ pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 
 #[derive(Clone)]
 pub struct Cli<'a, 'b>
-where
-    'a: 'b,
+    where 'a: 'b
 {
     pub app: App<'a, 'b>,
 }
 
 impl<'a, 'b> Cli<'a, 'b> {
     pub fn new(name: &str, about: &'a str) -> Self {
-        Cli {
-            app: clap_app!(
-            (name) =>
-            (about: about)
-            (version: VERSION)
-            (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n\n")
-            ),
-        }
+        Cli { app: clap_app!(
+              (name) =>
+              (about: about)
+              (version: VERSION)
+              (author: "\nAuthors: The Habitat Maintainers <humans@habitat.sh>\n\n")
+              ), }
     }
 
     pub fn add_base_packages_args(self) -> Self {
@@ -119,12 +116,11 @@ impl<'a, 'b> Cli<'a, 'b> {
         let help = "A Habitat package identifier (ex: acme/redis) and/or filepath to a Habitat \
                     Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)";
 
-        let app = self.app.arg(
-            Arg::with_name("PKG_IDENT_OR_ARTIFACT")
-                .value_name("PKG_IDENT_OR_ARTIFACT")
-                .required(true)
-                .help(help),
-        );
+        let app =
+            self.app
+                .arg(Arg::with_name("PKG_IDENT_OR_ARTIFACT").value_name("PKG_IDENT_OR_ARTIFACT")
+                                                            .required(true)
+                                                            .help(help));
 
         Cli { app }
     }

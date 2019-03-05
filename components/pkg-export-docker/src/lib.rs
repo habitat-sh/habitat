@@ -107,15 +107,13 @@ impl<'a> Naming<'a> {
             value_t!(m.value_of("REGISTRY_TYPE"), RegistryType).unwrap_or(RegistryType::Docker);
         let registry_url = m.value_of("REGISTRY_URL");
 
-        Naming {
-            custom_image_name: m.value_of("IMAGE_NAME"),
-            latest_tag: !m.is_present("NO_TAG_LATEST"),
-            version_tag: !m.is_present("NO_TAG_VERSION"),
-            version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
-            custom_tag: m.value_of("TAG_CUSTOM"),
-            registry_url,
-            registry_type,
-        }
+        Naming { custom_image_name: m.value_of("IMAGE_NAME"),
+                 latest_tag: !m.is_present("NO_TAG_LATEST"),
+                 version_tag: !m.is_present("NO_TAG_VERSION"),
+                 version_release_tag: !m.is_present("NO_TAG_VERSION_RELEASE"),
+                 custom_tag: m.value_of("TAG_CUSTOM"),
+                 registry_url,
+                 registry_type }
     }
 }
 
@@ -172,30 +170,26 @@ impl Credentials {
                 // TODO TED: Make the region configurable
                 let client = EcrClient::new_with(HttpClient::new()?, provider, Region::UsWest2);
                 let auth_token_req = GetAuthorizationTokenRequest { registry_ids: None };
-                let token = client
-                    .get_authorization_token(auth_token_req)
-                    .sync()
-                    .map_err(Error::TokenFetchFailed)
-                    .and_then(|resp| {
-                        resp.authorization_data
-                            .ok_or(Error::NoECRTokensReturned)
-                            .and_then(|auth_data| {
-                                auth_data[0]
-                                    .clone()
-                                    .authorization_token
-                                    .ok_or(Error::NoECRTokensReturned)
-                            })
-                    })?;
+                let token = client.get_authorization_token(auth_token_req)
+                                  .sync()
+                                  .map_err(Error::TokenFetchFailed)
+                                  .and_then(|resp| {
+                                      resp.authorization_data
+                                          .ok_or(Error::NoECRTokensReturned)
+                                          .and_then(|auth_data| {
+                                              auth_data[0].clone()
+                                                          .authorization_token
+                                                          .ok_or(Error::NoECRTokensReturned)
+                                          })
+                                  })?;
 
                 Ok(Credentials { token })
             }
-            RegistryType::Docker | RegistryType::Azure => Ok(Credentials {
-                token: base64::encode(&format!(
-                    "{}:{}",
-                    username.to_string(),
-                    password.to_string()
-                )),
-            }),
+            RegistryType::Docker | RegistryType::Azure => {
+                Ok(Credentials { token: base64::encode(&format!("{}:{}",
+                                                                username.to_string(),
+                                                                password.to_string())), })
+            }
         }
     }
 }
@@ -209,24 +203,19 @@ impl Credentials {
 /// * If additional Docker-related files cannot be created in the root file system
 /// * If building the Docker image fails
 /// * If destroying the temporary build root directory fails
-pub fn export(
-    ui: &mut UI,
-    build_spec: BuildSpec,
-    naming: &Naming,
-    memory: Option<&str>,
-) -> Result<DockerImage> {
-    ui.begin(format!(
-        "Building a runnable Docker image with: {}",
-        build_spec.idents_or_archives.join(", ")
-    ))?;
+pub fn export(ui: &mut UI,
+              build_spec: BuildSpec,
+              naming: &Naming,
+              memory: Option<&str>)
+              -> Result<DockerImage> {
+    ui.begin(format!("Building a runnable Docker image with: {}",
+                     build_spec.idents_or_archives.join(", ")))?;
     let build_root = DockerBuildRoot::from_build_root(build_spec.create(ui)?, ui)?;
     let image = build_root.export(ui, naming, memory)?;
     build_root.destroy(ui)?;
-    ui.end(format!(
-        "Docker image '{}' created with tags: {}",
-        image.name(),
-        image.tags().join(", ")
-    ))?;
+    ui.end(format!("Docker image '{}' created with tags: {}",
+                   image.name(),
+                   image.tags().join(", ")))?;
 
     Ok(image)
 }
@@ -242,10 +231,9 @@ pub fn export(
 /// * Pushing the image to remote registry fails.
 /// * Parsing of credentials fails.
 /// * The image (tags) cannot be removed.
-pub fn export_for_cli_matches(
-    ui: &mut UI,
-    matches: &clap::ArgMatches<'_>,
-) -> Result<Option<DockerImage>> {
+pub fn export_for_cli_matches(ui: &mut UI,
+                              matches: &clap::ArgMatches<'_>)
+                              -> Result<Option<DockerImage>> {
     let default_url = hurl::default_bldr_url();
     let spec = BuildSpec::new_from_cli_matches(&matches, &default_url);
     let naming = Naming::new_from_cli_matches(&matches);
@@ -254,15 +242,11 @@ pub fn export_for_cli_matches(
     docker_image.create_report(ui, env::current_dir()?.join("results"))?;
 
     if matches.is_present("PUSH_IMAGE") {
-        let credentials = Credentials::new(
-            naming.registry_type,
-            matches
-                .value_of("REGISTRY_USERNAME")
-                .expect("Username not specified"),
-            matches
-                .value_of("REGISTRY_PASSWORD")
-                .expect("Password not specified"),
-        )?;
+        let credentials = Credentials::new(naming.registry_type,
+                                           matches.value_of("REGISTRY_USERNAME")
+                                                  .expect("Username not specified"),
+                                           matches.value_of("REGISTRY_PASSWORD")
+                                                  .expect("Password not specified"))?;
         docker_image.push(ui, &credentials, naming.registry_url)?;
     }
     if matches.is_present("RM_IMAGE") {
@@ -279,12 +263,11 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates (and optionally pushes) a Docker image from a set of Habitat packages";
 
-    Cli::new(name, about)
-        .add_base_packages_args()
-        .add_builder_args()
-        .add_tagging_args()
-        .add_publishing_args()
-        .add_memory_arg()
-        .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })
-        .app
+    Cli::new(name, about).add_base_packages_args()
+                         .add_builder_args()
+                         .add_tagging_args()
+                         .add_publishing_args()
+                         .add_memory_arg()
+                         .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })
+                         .app
 }

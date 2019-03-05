@@ -87,10 +87,10 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
             Error::APIClient(ref err) => format!("{}", err),
-            Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => format!(
-                "Artifact ident {} for `{}' does not match expected ident {}",
-                ai, a, i
-            ),
+            Error::ArtifactIdentMismatch((ref a, ref ai, ref i)) => {
+                format!("Artifact ident {} for `{}' does not match expected ident {}",
+                        ai, a, i)
+            }
             Error::BadEnvConfig(ref varname) => {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
@@ -104,10 +104,10 @@ impl fmt::Display for Error {
             Error::EditStatus => "Failed edit text command".to_string(),
             Error::FileNameError => "Failed to extract a filename".to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::GossipFileRelativePath(ref s) => format!(
-                "Path for gossip file cannot have relative components (eg: ..): {}",
-                s
-            ),
+            Error::GossipFileRelativePath(ref s) => {
+                format!("Path for gossip file cannot have relative components (eg: ..): {}",
+                        s)
+            }
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::InstallHookFailed(ref ident) => {
                 format!("Install hook exited unsuccessfully: {}", ident)
@@ -121,15 +121,15 @@ impl fmt::Display for Error {
             Error::OfflineArtifactNotFound(ref ident) => {
                 format!("Cached artifact not found in offline mode: {}", ident)
             }
-            Error::OfflineOriginKeyNotFound(ref name_with_rev) => format!(
-                "Cached origin key not found in offline mode: {}",
-                name_with_rev
-            ),
-            Error::OfflinePackageNotFound(ref ident) => format!(
-                "No installed package or cached artifact could be found locally in offline mode: \
-                 {}",
-                ident
-            ),
+            Error::OfflineOriginKeyNotFound(ref name_with_rev) => {
+                format!("Cached origin key not found in offline mode: {}",
+                        name_with_rev)
+            }
+            Error::OfflinePackageNotFound(ref ident) => {
+                format!("No installed package or cached artifact could be found locally in \
+                         offline mode: {}",
+                        ident)
+            }
             Error::PackageNotFound(ref e) => format!("Package not found. {}", e),
             Error::PermissionFailed(ref e) => e.to_string(),
             Error::RenderContextSerialization(ref e) => {
@@ -138,10 +138,10 @@ impl fmt::Display for Error {
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation".to_string()
             }
-            Error::StatusFileCorrupt(ref path) => format!(
-                "Unable to decode contents of INSTALL_STATUS file, {}",
-                path.display()
-            ),
+            Error::StatusFileCorrupt(ref path) => {
+                format!("Unable to decode contents of INSTALL_STATUS file, {}",
+                        path.display())
+            }
             Error::StrFromUtf8Error(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TemplateFileError(ref err) => format!("{:?}", err),

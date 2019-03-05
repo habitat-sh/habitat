@@ -98,10 +98,8 @@ impl DirFileName {
             None => return None,
             Some(f) => f,
         };
-        Some(Self {
-            directory: parent.to_owned(),
-            file_name: file_name.to_owned(),
-        })
+        Some(Self { directory: parent.to_owned(),
+                    file_name: file_name.to_owned(), })
     }
 
     fn as_path(&self) -> PathBuf { self.directory.join(&self.file_name) }
@@ -136,10 +134,8 @@ impl SplitPath {
         }
         self.file_name = Some(path.clone());
 
-        DirFileName {
-            directory: self.directory.clone(),
-            file_name: path,
-        }
+        DirFileName { directory: self.directory.clone(),
+                      file_name: path, }
     }
 }
 
@@ -207,7 +203,7 @@ impl IndentedToString for ChainLinkInfo {
 #[derive(Debug)]
 struct PathsActionData {
     dir_file_name: DirFileName,
-    args: ProcessPathArgs,
+    args:          ProcessPathArgs,
 }
 
 impl IndentedToString for PathsActionData {
@@ -224,7 +220,7 @@ impl IndentedToString for PathsActionData {
 // TODO(krnowak): Rename it.
 struct Common {
     // TODO: maybe drop this? we could also use dir_file_name.as_path()
-    path: PathBuf,
+    path:          PathBuf,
     dir_file_name: DirFileName,
     // Previous watched item in chain, is None for the first watched
     // item.
@@ -252,26 +248,20 @@ impl Common {
         let mut path_rest = VecDeque::new();
         path_rest.push_back(self.dir_file_name.file_name.clone());
         path_rest.extend(self.path_rest.iter().cloned());
-        ProcessPathArgs {
-            path: self.dir_file_name.directory.clone(),
-            path_rest,
-            index: self.index,
-            prev: self.prev.clone(),
-        }
+        ProcessPathArgs { path: self.dir_file_name.directory.clone(),
+                          path_rest,
+                          index: self.index,
+                          prev: self.prev.clone() }
     }
 
     fn get_chain_link_info(&self) -> ChainLinkInfo {
-        ChainLinkInfo {
-            path: self.path.clone(),
-            prev: self.prev.clone(),
-        }
+        ChainLinkInfo { path: self.path.clone(),
+                        prev: self.prev.clone(), }
     }
 
     fn get_paths_action_data(&self) -> PathsActionData {
-        PathsActionData {
-            dir_file_name: self.dir_file_name.clone(),
-            args: self.get_process_path_args(),
-        }
+        PathsActionData { dir_file_name: self.dir_file_name.clone(),
+                          args:          self.get_process_path_args(), }
     }
 
     // The path is at the end of the chain, which means we expect it
@@ -324,18 +314,14 @@ struct CommonGenerator {
 
 impl CommonGenerator {
     fn new(args: ProcessPathArgs) -> Self {
-        let split_path = SplitPath {
-            directory: args.path.clone(),
-            file_name: None,
-        };
-        let s = Self {
-            prev: args.prev,
-            old_prev: None,
-            path: args.path,
-            split_path,
-            index: args.index,
-            path_rest: args.path_rest,
-        };
+        let split_path = SplitPath { directory: args.path.clone(),
+                                     file_name: None, };
+        let s = Self { prev: args.prev,
+                       old_prev: None,
+                       path: args.path,
+                       split_path,
+                       index: args.index,
+                       path_rest: args.path_rest };
         debug!("common generator created: {}", dits!(s));
         s
     }
@@ -344,10 +330,8 @@ impl CommonGenerator {
 
     fn set_path(&mut self, path: PathBuf) {
         self.path = path;
-        self.split_path = SplitPath {
-            directory: self.path.clone(),
-            file_name: None,
-        };
+        self.split_path = SplitPath { directory: self.path.clone(),
+                                      file_name: None, };
         debug!("new path in generator: {:?}", self.path);
     }
 
@@ -385,14 +369,12 @@ impl CommonGenerator {
 
             let index = self.index;
             self.index += 1;
-            Some(Common {
-                path,
-                dir_file_name,
-                prev,
-                next: None,
-                index,
-                path_rest: self.path_rest.clone(),
-            })
+            Some(Common { path,
+                          dir_file_name,
+                          prev,
+                          next: None,
+                          index,
+                          path_rest: self.path_rest.clone() })
         } else {
             None
         };
@@ -608,11 +590,11 @@ impl IndentedToString for BranchResult {
             BranchResult::NewInOldDirectory(ref i) => {
                 format!("NewInOldDirectory({})", its!(i, spaces, repeat))
             }
-            BranchResult::NewInNewDirectory(ref i, ref p) => format!(
-                "NewInNewDirectory({}, {})",
-                its!(i, spaces, repeat),
-                p.to_string_lossy()
-            ),
+            BranchResult::NewInNewDirectory(ref i, ref p) => {
+                format!("NewInNewDirectory({}, {})",
+                        its!(i, spaces, repeat),
+                        p.to_string_lossy())
+            }
         }
     }
 }
@@ -631,11 +613,11 @@ impl IndentedToString for LeafResult {
             LeafResult::NewInOldDirectory(ref i) => {
                 format!("NewInOldDirectory({})", its!(i, spaces, repeat))
             }
-            LeafResult::NewInNewDirectory(ref i, ref p) => format!(
-                "NewInNewDirectory({}, {})",
-                its!(i, spaces, repeat),
-                p.to_string_lossy()
-            ),
+            LeafResult::NewInNewDirectory(ref i, ref p) => {
+                format!("NewInNewDirectory({}, {})",
+                        its!(i, spaces, repeat),
+                        p.to_string_lossy())
+            }
         }
     }
 }
@@ -662,12 +644,10 @@ struct Paths {
     // that points to `b`, so we end up with two paths (`/a` and
     // `/b`), but only one directory (`/`) to watch with use count
     // being two.
-    dirs: HashMap<
-        // Path to watched directory.
-        PathBuf,
-        // Watched files count in the directory.
-        u32,
-    >,
+    dirs: HashMap<// Path to watched directory.
+                  PathBuf,
+                  // Watched files count in the directory.
+                  u32>,
     // A path we are interested in.
     start_path: PathBuf,
     // A map used to detect symlink loops.
@@ -675,12 +655,10 @@ struct Paths {
     // TODO(krnowak): Figure out if we can perform loop detection
     // without this hash map, but only using whatever data we have in
     // `Paths`.
-    symlink_loop_catcher: HashMap<
-        // Symlink path
-        PathBuf,
-        // Path + path rest
-        PathBuf,
-    >,
+    symlink_loop_catcher: HashMap<// Symlink path
+                                  PathBuf,
+                                  // Path + path rest
+                                  PathBuf>,
     // A real path to the file from `start_path`.
     real_file: Option<PathBuf>,
     // A set of paths to settle after the items there got removed.
@@ -706,15 +684,13 @@ impl IndentedToString for Paths {
 
 impl Paths {
     fn new(simplified_abs_path: &PathBuf) -> Self {
-        Self {
-            paths: HashMap::new(),
-            dirs: HashMap::new(),
-            start_path: simplified_abs_path.clone(),
-            symlink_loop_catcher: HashMap::new(),
-            real_file: None,
-            paths_to_settle: HashSet::new(),
-            process_args_after_settle: None,
-        }
+        Self { paths: HashMap::new(),
+               dirs: HashMap::new(),
+               start_path: simplified_abs_path.clone(),
+               symlink_loop_catcher: HashMap::new(),
+               real_file: None,
+               paths_to_settle: HashSet::new(),
+               process_args_after_settle: None, }
     }
 
     // Get a list of paths to watch, based on the configured
@@ -746,12 +722,10 @@ impl Paths {
             };
         }
 
-        ProcessPathArgs {
-            path,
-            path_rest,
-            index: 0,
-            prev: None,
-        }
+        ProcessPathArgs { path,
+                          path_rest,
+                          index: 0,
+                          prev: None }
     }
 
     // Navigates through each of the components of the watched paths,
@@ -791,17 +765,14 @@ impl Paths {
                     if !file_type.is_symlink() {
                         if common.is_leaf() {
                             let leaf_result = if file_type.is_file() {
-                                debug!(
-                                    "add regular because is not a symlink, is a file and is a leaf"
-                                );
+                                debug!("add regular because is not a symlink, is a file and is a \
+                                        leaf");
                                 self.real_file = Some(common.path.clone());
                                 self.add_regular(common)
                             } else {
-                                debug!(
-                                    "{}{}",
-                                    "add missing regular because is not a symlink,",
-                                    " not a file and is a leaf",
-                                );
+                                debug!("{}{}",
+                                       "add missing regular because is not a symlink,",
+                                       " not a file and is a leaf",);
                                 // It is not a symlink nor a file, so
                                 // it is either a directory or
                                 // something OS-specific. We expected
@@ -822,11 +793,9 @@ impl Paths {
                             debug!("add directory because is not a symlink and is not a leaf");
                             let branch_result = self.get_or_add_directory(common);
 
-                            self.handle_branch_result(
-                                &mut common_generator,
-                                branch_result,
-                                &mut new_watches,
-                            );
+                            self.handle_branch_result(&mut common_generator,
+                                                      branch_result,
+                                                      &mut new_watches);
 
                             continue;
                         }
@@ -839,11 +808,9 @@ impl Paths {
                         // missing directory item here and stop
                         // processing the rest of the path - we need
                         // to wait for the directory to show up first.
-                        debug!(
-                            "{}{}",
-                            "add missing directory because is not a symlink ",
-                            "and is not a dir and is not a leaf",
-                        );
+                        debug!("{}{}",
+                               "add missing directory because is not a symlink ",
+                               "and is not a dir and is not a leaf",);
                         let leaf_result = self.add_missing_directory(common);
 
                         self.handle_leaf_result(leaf_result, &mut new_watches);
@@ -854,18 +821,14 @@ impl Paths {
                             Err(_) => {
                                 // The path does not exist.
                                 let leaf_result = if common.is_leaf() {
-                                    debug!(
-                                        "{}{}",
-                                        "add missing regular because is a symlink and",
-                                        " is a leaf, but failed to read link",
-                                    );
+                                    debug!("{}{}",
+                                           "add missing regular because is a symlink and",
+                                           " is a leaf, but failed to read link",);
                                     self.add_missing_regular(common)
                                 } else {
-                                    debug!(
-                                        "{}{}",
-                                        "add missing directory because is a symlink",
-                                        " and is not a leaf, but failed to read link",
-                                    );
+                                    debug!("{}{}",
+                                           "add missing directory because is a symlink",
+                                           " and is not a leaf, but failed to read link",);
                                     self.add_missing_directory(common)
                                 };
 
@@ -887,12 +850,11 @@ impl Paths {
                         debug!("simplified target: {:?}", &simplified_target);
                         let process_args = Self::path_for_processing(&simplified_target);
 
-                        if self.symlink_loop(
-                            &common.path,
-                            &common.path_rest,
-                            &process_args.path,
-                            &process_args.path_rest,
-                        ) {
+                        if self.symlink_loop(&common.path,
+                                             &common.path_rest,
+                                             &process_args.path,
+                                             &process_args.path_rest)
+                        {
                             debug!("symlink loop");
                             // Symlink loop, nothing to watch here - hopefully
                             // later some symlink will be rewired to the real
@@ -903,11 +865,9 @@ impl Paths {
                         debug!("add symlink");
                         let branch_result = self.get_or_add_symlink(common);
 
-                        self.handle_branch_result(
-                            &mut common_generator,
-                            branch_result,
-                            &mut new_watches,
-                        );
+                        self.handle_branch_result(&mut common_generator,
+                                                  branch_result,
+                                                  &mut new_watches);
 
                         common_generator.set_path(process_args.path);
                         common_generator.prepend_to_path_rest(process_args.path_rest);
@@ -932,12 +892,10 @@ impl Paths {
         }
     }
 
-    fn handle_branch_result(
-        &mut self,
-        common_generator: &mut CommonGenerator,
-        branch_result: BranchResult,
-        new_watches: &mut Vec<PathBuf>,
-    ) {
+    fn handle_branch_result(&mut self,
+                            common_generator: &mut CommonGenerator,
+                            branch_result: BranchResult,
+                            new_watches: &mut Vec<PathBuf>) {
         debug!("handle branch result: {}", dits!(branch_result));
         match branch_result {
             // This is a part of the symlink handling, where we want
@@ -1025,13 +983,12 @@ impl Paths {
         }
     }
 
-    fn symlink_loop(
-        &mut self,
-        path: &PathBuf,
-        path_rest: &VecDeque<OsString>,
-        new_path: &PathBuf,
-        new_path_rest: &VecDeque<OsString>,
-    ) -> bool {
+    fn symlink_loop(&mut self,
+                    path: &PathBuf,
+                    path_rest: &VecDeque<OsString>,
+                    new_path: &PathBuf,
+                    new_path_rest: &VecDeque<OsString>)
+                    -> bool {
         let mut merged_path_rest = new_path_rest.clone();
         merged_path_rest.extend(path_rest.iter().cloned());
         let mut merged_path = new_path.clone();
@@ -1143,10 +1100,12 @@ impl Paths {
         let mut process_args = None;
         swap(&mut process_args, &mut self.process_args_after_settle);
         let (directories, new_args) = match process_args {
-            Some(args) => match self.process_path_if_settled(args) {
-                ProcessPathStatus::Executed(v) => (Some(v), None),
-                ProcessPathStatus::NotExecuted(a) => (None, Some(a)),
-            },
+            Some(args) => {
+                match self.process_path_if_settled(args) {
+                    ProcessPathStatus::Executed(v) => (Some(v), None),
+                    ProcessPathStatus::NotExecuted(a) => (None, Some(a)),
+                }
+            }
             None => (None, None),
         };
         self.process_args_after_settle = new_args;
@@ -1198,24 +1157,21 @@ pub struct FileWatcher<C: Callbacks, W: Watcher> {
 
 /// Convenience function for returning a new file watcher that matches
 /// the platform.
-pub fn default_file_watcher<P, C>(
-    path: P,
-    callbacks: C,
-) -> Result<FileWatcher<C, RecommendedWatcher>>
-where
-    P: Into<PathBuf>,
-    C: Callbacks,
+pub fn default_file_watcher<P, C>(path: P,
+                                  callbacks: C)
+                                  -> Result<FileWatcher<C, RecommendedWatcher>>
+    where P: Into<PathBuf>,
+          C: Callbacks
 {
     return FileWatcher::<C, RecommendedWatcher>::create(path, callbacks);
 }
 
 pub fn default_file_watcher_with_no_initial_event<P, C>(
     path: P,
-    callbacks: C,
-) -> Result<FileWatcher<C, RecommendedWatcher>>
-where
-    P: Into<PathBuf>,
-    C: Callbacks,
+    callbacks: C)
+    -> Result<FileWatcher<C, RecommendedWatcher>>
+    where P: Into<PathBuf>,
+          C: Callbacks
 {
     return FileWatcher::<C, RecommendedWatcher>::create_with_no_initial_event(path, callbacks);
 }
@@ -1232,8 +1188,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     /// fails. In case of watching errors, it returns
     /// `Error::NotifyError`.
     pub fn create<P>(path: P, callbacks: C) -> Result<Self>
-    where
-        P: Into<PathBuf>,
+        where P: Into<PathBuf>
     {
         Self::create_instance(path, callbacks, true)
     }
@@ -1249,16 +1204,14 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     /// fails. In case of watching errors, it returns
     /// `Error::NotifyError`.
     pub fn create_with_no_initial_event<P>(path: P, callbacks: C) -> Result<Self>
-    where
-        P: Into<PathBuf>,
+        where P: Into<PathBuf>
     {
         Self::create_instance(path, callbacks, false)
     }
 
     // Creates an instance of the FileWatcher.
     fn create_instance<P>(path: P, callbacks: C, send_initial_event: bool) -> Result<Self>
-    where
-        P: Into<PathBuf>,
+        where P: Into<PathBuf>
     {
         let (tx, rx) = channel();
         let mut watcher = W::new(tx, Duration::from_millis(WATCHER_DELAY_MS))
@@ -1273,9 +1226,8 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 
         // Start watcher on each path.
         for directory in directories {
-            watcher
-                .watch(&directory, RecursiveMode::NonRecursive)
-                .map_err(|err| sup_error!(Error::NotifyError(err)))?;
+            watcher.watch(&directory, RecursiveMode::NonRecursive)
+                   .map_err(|err| sup_error!(Error::NotifyError(err)))?;
         }
         let initial_real_file = if send_initial_event {
             paths.real_file.clone()
@@ -1283,13 +1235,11 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
             None
         };
 
-        Ok(Self {
-            callbacks,
-            watcher,
-            rx,
-            paths,
-            initial_real_file,
-        })
+        Ok(Self { callbacks,
+                  watcher,
+                  rx,
+                  paths,
+                  initial_real_file })
     }
 
     /// Get the reference to callbacks.
@@ -1429,10 +1379,12 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
             | DebouncedEvent::Create(ref p) => vec![p],
             DebouncedEvent::Rename(ref from, ref to) => vec![from, to],
             DebouncedEvent::Rescan => vec![],
-            DebouncedEvent::Error(_, ref o) => match o {
-                Some(ref p) => vec![p],
-                None => vec![],
-            },
+            DebouncedEvent::Error(_, ref o) => {
+                match o {
+                    Some(ref p) => vec![p],
+                    None => vec![],
+                }
+            }
         };
         let mut dirs = vec![];
         for path in paths {
@@ -1725,851 +1677,740 @@ mod tests {
 
     // Add new test cases here.
     fn get_test_cases() -> Vec<TestCase> {
-        vec![
-            TestCase {
-                name: "Basic add/remove directories/files",
-                init: Init {
-                    path: Some(pb!("/a/b/c")),
-                    commands: vec![],
-                    initial_file: None,
-                },
-                steps: vec![
-                    Step {
-                        action: StepAction::Nop,
-                        dirs: hm! {
-                            pb!("/") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::MkdirP(pb!("/a")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::MkdirP(pb!("/a/b")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                            pb!("/a/b") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/a/b/c")),
-                            },
-                            pb!("/a/b/c") => PathState {
-                                kind: PathKind::MissingRegular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a/b")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::Touch(pb!("/a/b/c")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                            pb!("/a/b") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/a/b/c")),
-                            },
-                            pb!("/a/b/c") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a/b")),
-                                next: None,
-                            },
-                        },
-                        events: vec![NotifyEvent::appeared(pb!("/a/b/c"))],
-                    },
-                    Step {
-                        action: StepAction::RmRF(pb!("/a/b/c")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                            pb!("/a/b") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/a/b/c")),
-                            },
-                            pb!("/a/b/c") => PathState {
-                                kind: PathKind::MissingRegular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a/b")),
-                                next: None,
-                            },
-                        },
-                        events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))],
-                    },
-                    Step {
-                        action: StepAction::RmRF(pb!("/a/b")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::RmRF(pb!("/a")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                ],
-            },
-            TestCase {
-                name: "Quick remove directories/files",
-                init: Init {
-                    path: Some(pb!("/a/b/c")),
-                    commands: vec![
-                        InitCommand::MkdirP(pb!("/a/b")),
-                        InitCommand::Touch(pb!("/a/b/c")),
-                    ],
-                    initial_file: Some(pb!("/a/b/c")),
-                },
-                steps: vec![
-                    Step {
-                        action: StepAction::Nop,
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                            pb!("/a/b") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/a/b/c")),
-                            },
-                            pb!("/a/b/c") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a/b")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::RmRF(pb!("/a")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: None,
-                            },
-                        },
-                        events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))],
-                    },
-                ],
-            },
-            TestCase {
-                name: "Basic symlink tracking",
-                init: Init {
-                    path: Some(pb!("/a")),
-                    commands: vec![
-                        InitCommand::Touch(pb!("/1")),
-                        InitCommand::Touch(pb!("/2")),
-                        InitCommand::Touch(pb!("/3")),
-                        InitCommand::LnS(pb!("s2"), pb!("/s1")),
-                        InitCommand::LnS(pb!("/s3"), pb!("/s2")),
-                        InitCommand::LnS(pb!("/1"), pb!("/s3")),
-                        InitCommand::LnS(pb!("s1"), pb!("/a")),
-                        InitCommand::MkdirP(pb!("/tmp")),
-                        InitCommand::LnS(pb!("3"), pb!("/tmp/link")),
-                    ],
-                    initial_file: Some(pb!("/1")),
-                },
-                steps: vec![
-                    Step {
-                        action: StepAction::Nop,
-                        dirs: hm! {
-                            pb!("/") => 5,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: None,
-                                next: Some(pb!("/s1")),
-                            },
-                            pb!("/s1") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/s2")),
-                            },
-                            pb!("/s2") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: Some(pb!("/s1")),
-                                next: Some(pb!("/s3")),
-                            },
-                            pb!("/s3") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: Some(pb!("/s2")),
-                                next: Some(pb!("/1")),
-                            },
-                            pb!("/1") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/s3")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::RmRF(pb!("/s2")),
-                        dirs: hm! {
-                            pb!("/") => 3,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: None,
-                                next: Some(pb!("/s1")),
-                            },
-                            pb!("/s1") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/s2")),
-                            },
-                            pb!("/s2") => PathState {
-                                kind: PathKind::MissingRegular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/s1")),
-                                next: None,
-                            },
-                        },
-                        events: vec![NotifyEvent::disappeared(pb!("/1"))],
-                    },
-                    Step {
-                        action: StepAction::LnS(pb!("/2"), pb!("/s2")),
-                        dirs: hm! {
-                            pb!("/") => 4,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: None,
-                                next: Some(pb!("/s1")),
-                            },
-                            pb!("/s1") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/s2")),
-                            },
-                            pb!("/s2") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: Some(pb!("/s1")),
-                                next: Some(pb!("/2")),
-                            },
-                            pb!("/2") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/s2")),
-                                next: None,
-                            },
-                        },
-                        events: vec![NotifyEvent::appeared(pb!("/2"))],
-                    },
-                    Step {
-                        action: StepAction::Mv(pb!("/tmp/link"), pb!("/s1")),
-                        dirs: hm! {
-                            pb!("/") => 3,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: None,
-                                next: Some(pb!("/s1")),
-                            },
-                            pb!("/s1") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/3")),
-                            },
-                            pb!("/3") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/s1")),
-                                next: None,
-                            },
-                        },
-                        events: vec![
-                            NotifyEvent::disappeared(pb!("/2")),
-                            NotifyEvent::appeared(pb!("/3")),
-                        ],
-                    },
-                ],
-            },
-            TestCase {
-                name: "Emulate Kubernetes ConfigMap",
-                init: Init {
-                    path: Some(pb!("/a")),
-                    commands: vec![
-                        InitCommand::MkdirP(pb!("/old")),
-                        InitCommand::MkdirP(pb!("/new")),
-                        InitCommand::Touch(pb!("/old/a")),
-                        InitCommand::Touch(pb!("/new/a")),
-                        InitCommand::LnS(pb!("old"), pb!("/data")),
-                        InitCommand::LnS(pb!("data/a"), pb!("/a")),
-                        InitCommand::MkdirP(pb!("/tmp")),
-                        InitCommand::LnS(pb!("new"), pb!("/tmp/link")),
-                    ],
-                    initial_file: Some(pb!("/old/a")),
-                },
-                steps: vec![
-                    Step {
-                        action: StepAction::Nop,
-                        dirs: hm! {
-                            pb!("/") => 3,
-                            pb!("/old") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: None,
-                                next: Some(pb!("/data")),
-                            },
-                            pb!("/data") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("a")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/old")),
-                            },
-                            pb!("/old") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("a")],
-                                prev: Some(pb!("/data")),
-                                next: Some(pb!("/old/a")),
-                            },
-                            pb!("/old/a") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/old")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::Mv(pb!("/tmp/link"), pb!("/data")),
-                        dirs: hm! {
-                            pb!("/") => 3,
-                            pb!("/new") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![],
-                                prev: None,
-                                next: Some(pb!("/data")),
-                            },
-                            pb!("/data") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("a")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/new")),
-                            },
-                            pb!("/new") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("a")],
-                                prev: Some(pb!("/data")),
-                                next: Some(pb!("/new/a")),
-                            },
-                            pb!("/new/a") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/new")),
-                                next: None,
-                            },
-                        },
-                        events: vec![
-                            NotifyEvent::disappeared(pb!("/old/a")),
-                            NotifyEvent::appeared(pb!("/new/a")),
-                        ],
-                    },
-                ],
-            },
-            TestCase {
-                name: "Symlink loop, pointing to itself",
-                init: Init {
-                    path: Some(pb!("/a/b/c")),
-                    commands: vec![
-                        InitCommand::MkdirP(pb!("/a")),
-                        InitCommand::LnS(pb!("b"), pb!("/a/b")),
-                    ],
-                    initial_file: None,
-                },
-                steps: vec![
-                    Step {
-                        action: StepAction::Nop,
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::RmRF(pb!("/a/b")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                ],
-            },
-            TestCase {
-                name: "Dropping looping symlink and adding a new one instead",
-                init: Init {
-                    path: Some(pb!("/a/b/c/d")),
-                    commands: vec![
-                        InitCommand::MkdirP(pb!("/a")),
-                        InitCommand::MkdirP(pb!("/x")),
-                        InitCommand::LnS(pb!("/x"), pb!("/a/b")),
-                        InitCommand::LnS(pb!("/a/b/c"), pb!("/x/c")),
-                    ],
-                    initial_file: None,
-                },
-                steps: vec![
-                    Step {
-                        action: StepAction::Nop,
-                        dirs: hm! {
-                            pb!("/") => 2,
-                            pb!("/a") => 1,
-                            pb!("/x") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c"), os!("d")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/x")),
-                            },
-                            pb!("/x") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a/b")),
-                                next: Some(pb!("/x/c")),
-                            },
-                            pb!("/x/c") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("d")],
-                                prev: Some(pb!("/x")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::RmRF(pb!("/x/c")),
-                        dirs: hm! {
-                            pb!("/") => 2,
-                            pb!("/a") => 1,
-                            pb!("/x") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c"), os!("d")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/x")),
-                            },
-                            pb!("/x") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a/b")),
-                                next: Some(pb!("/x/c")),
-                            },
-                            pb!("/x/c") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("d")],
-                                prev: Some(pb!("/x")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::Touch(pb!("/x/d")),
-                        dirs: hm! {
-                            pb!("/") => 2,
-                            pb!("/a") => 1,
-                            pb!("/x") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c"), os!("d")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/x")),
-                            },
-                            pb!("/x") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a/b")),
-                                next: Some(pb!("/x/c")),
-                            },
-                            pb!("/x/c") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("d")],
-                                prev: Some(pb!("/x")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::LnS(pb!("."), pb!("/x/c")),
-                        dirs: hm! {
-                            pb!("/") => 2,
-                            pb!("/a") => 1,
-                            pb!("/x") => 2,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c"), os!("d")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/x")),
-                            },
-                            pb!("/x") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a/b")),
-                                next: Some(pb!("/x/c")),
-                            },
-                            pb!("/x/c") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("d")],
-                                prev: Some(pb!("/x")),
-                                next: Some(pb!("/x/d")),
-                            },
-                            pb!("/x/d") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/x/c")),
-                                next: None,
-                            },
-                        },
-                        events: vec![NotifyEvent::appeared(pb!("/x/d"))],
-                    },
-                ],
-            },
-            TestCase {
-                name: "Rewiring symlink loop",
-                init: Init {
-                    path: Some(pb!("/a/b/c/d")),
-                    commands: vec![
-                        InitCommand::MkdirP(pb!("/a")),
-                        InitCommand::MkdirP(pb!("/x")),
-                        InitCommand::LnS(pb!("/x"), pb!("/a/b")),
-                        InitCommand::LnS(pb!("/a/b/c"), pb!("/x/c")),
-                        InitCommand::Touch(pb!("/x/d")),
-                        InitCommand::MkdirP(pb!("/tmp")),
-                        InitCommand::LnS(pb!("."), pb!("/tmp/link")),
-                    ],
-                    initial_file: None,
-                },
-                steps: vec![
-                    Step {
-                        action: StepAction::Nop,
-                        dirs: hm! {
-                            pb!("/") => 2,
-                            pb!("/a") => 1,
-                            pb!("/x") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c"), os!("d")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/x")),
-                            },
-                            pb!("/x") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a/b")),
-                                next: Some(pb!("/x/c")),
-                            },
-                            pb!("/x/c") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("d")],
-                                prev: Some(pb!("/x")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::Mv(pb!("/tmp/link"), pb!("/x/c")),
-                        dirs: hm! {
-                            pb!("/") => 2,
-                            pb!("/a") => 1,
-                            pb!("/x") => 2,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c"), os!("d")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/x")),
-                            },
-                            pb!("/x") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c"), os!("d")],
-                                prev: Some(pb!("/a/b")),
-                                next: Some(pb!("/x/c")),
-                            },
-                            pb!("/x/c") => PathState {
-                                kind: PathKind::Symlink,
-                                path_rest: vec![os!("d")],
-                                prev: Some(pb!("/x")),
-                                next: Some(pb!("/x/d")),
-                            },
-                            pb!("/x/d") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/x/c")),
-                                next: None,
-                            },
-                        },
-                        events: vec![NotifyEvent::appeared(pb!("/x/d"))],
-                    },
-                ],
-            },
-            TestCase {
-                name: "Moving a directory",
-                init: Init {
-                    path: Some(pb!("/a/b/c")),
-                    commands: vec![
-                        InitCommand::MkdirP(pb!("/a/b")),
-                        InitCommand::Touch(pb!("/a/b/c")),
-                    ],
-                    initial_file: Some(pb!("/a/b/c")),
-                },
-                steps: vec![
-                    Step {
-                        action: StepAction::Nop,
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                            pb!("/a/b") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: Some(pb!("/a/b/c")),
-                            },
-                            pb!("/a/b/c") => PathState {
-                                kind: PathKind::Regular,
-                                path_rest: vec![],
-                                prev: Some(pb!("/a/b")),
-                                next: None,
-                            },
-                        },
-                        events: vec![],
-                    },
-                    Step {
-                        action: StepAction::Mv(pb!("/a/b"), pb!("/a/d")),
-                        dirs: hm! {
-                            pb!("/") => 1,
-                            pb!("/a") => 1,
-                        },
-                        paths: hm! {
-                            pb!("/a") => PathState {
-                                kind: PathKind::Directory,
-                                path_rest: vec![os!("b"), os!("c")],
-                                prev: None,
-                                next: Some(pb!("/a/b")),
-                            },
-                            pb!("/a/b") => PathState {
-                                kind: PathKind::MissingDirectory,
-                                path_rest: vec![os!("c")],
-                                prev: Some(pb!("/a")),
-                                next: None,
-                            },
-                        },
-                        events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))],
-                    },
-                ],
-            },
-        ]
+        vec![TestCase { name:  "Basic add/remove directories/files",
+                        init:  Init { path:         Some(pb!("/a/b/c")),
+                                      commands:     vec![],
+                                      initial_file: None, },
+                        steps: vec![Step { action: StepAction::Nop,
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::MkdirP(pb!("/a")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::MkdirP(pb!("/a/b")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                               pb!("/a/b") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/a/b/c")),
+                                               },
+                                               pb!("/a/b/c") => PathState {
+                                                   kind: PathKind::MissingRegular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::Touch(pb!("/a/b/c")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                               pb!("/a/b") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/a/b/c")),
+                                               },
+                                               pb!("/a/b/c") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::appeared(pb!("/a/b/c"))], },
+                                    Step { action: StepAction::RmRF(pb!("/a/b/c")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                               pb!("/a/b") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/a/b/c")),
+                                               },
+                                               pb!("/a/b/c") => PathState {
+                                                   kind: PathKind::MissingRegular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))], },
+                                    Step { action: StepAction::RmRF(pb!("/a/b")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::RmRF(pb!("/a")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },], },
+             TestCase { name:  "Quick remove directories/files",
+                        init:  Init { path:         Some(pb!("/a/b/c")),
+                                      commands:     vec![InitCommand::MkdirP(pb!("/a/b")),
+                                                         InitCommand::Touch(pb!("/a/b/c")),],
+                                      initial_file: Some(pb!("/a/b/c")), },
+                        steps: vec![Step { action: StepAction::Nop,
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                               pb!("/a/b") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/a/b/c")),
+                                               },
+                                               pb!("/a/b/c") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::RmRF(pb!("/a")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))], },], },
+             TestCase { name:  "Basic symlink tracking",
+                        init:  Init { path:         Some(pb!("/a")),
+                                      commands:     vec![InitCommand::Touch(pb!("/1")),
+                                                         InitCommand::Touch(pb!("/2")),
+                                                         InitCommand::Touch(pb!("/3")),
+                                                         InitCommand::LnS(pb!("s2"), pb!("/s1")),
+                                                         InitCommand::LnS(pb!("/s3"), pb!("/s2")),
+                                                         InitCommand::LnS(pb!("/1"), pb!("/s3")),
+                                                         InitCommand::LnS(pb!("s1"), pb!("/a")),
+                                                         InitCommand::MkdirP(pb!("/tmp")),
+                                                         InitCommand::LnS(pb!("3"),
+                                                                          pb!("/tmp/link")),],
+                                      initial_file: Some(pb!("/1")), },
+                        steps: vec![Step { action: StepAction::Nop,
+                                           dirs:   hm! {
+                                               pb!("/") => 5,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: None,
+                                                   next: Some(pb!("/s1")),
+                                               },
+                                               pb!("/s1") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/s2")),
+                                               },
+                                               pb!("/s2") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/s1")),
+                                                   next: Some(pb!("/s3")),
+                                               },
+                                               pb!("/s3") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/s2")),
+                                                   next: Some(pb!("/1")),
+                                               },
+                                               pb!("/1") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/s3")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::RmRF(pb!("/s2")),
+                                           dirs:   hm! {
+                                               pb!("/") => 3,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: None,
+                                                   next: Some(pb!("/s1")),
+                                               },
+                                               pb!("/s1") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/s2")),
+                                               },
+                                               pb!("/s2") => PathState {
+                                                   kind: PathKind::MissingRegular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/s1")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::disappeared(pb!("/1"))], },
+                                    Step { action: StepAction::LnS(pb!("/2"), pb!("/s2")),
+                                           dirs:   hm! {
+                                               pb!("/") => 4,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: None,
+                                                   next: Some(pb!("/s1")),
+                                               },
+                                               pb!("/s1") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/s2")),
+                                               },
+                                               pb!("/s2") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/s1")),
+                                                   next: Some(pb!("/2")),
+                                               },
+                                               pb!("/2") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/s2")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::appeared(pb!("/2"))], },
+                                    Step { action: StepAction::Mv(pb!("/tmp/link"), pb!("/s1")),
+                                           dirs:   hm! {
+                                               pb!("/") => 3,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: None,
+                                                   next: Some(pb!("/s1")),
+                                               },
+                                               pb!("/s1") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/3")),
+                                               },
+                                               pb!("/3") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/s1")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::disappeared(pb!("/2")),
+                                                        NotifyEvent::appeared(pb!("/3")),], },], },
+             TestCase { name:  "Emulate Kubernetes ConfigMap",
+                        init:  Init { path:         Some(pb!("/a")),
+                                      commands:     vec![InitCommand::MkdirP(pb!("/old")),
+                                                         InitCommand::MkdirP(pb!("/new")),
+                                                         InitCommand::Touch(pb!("/old/a")),
+                                                         InitCommand::Touch(pb!("/new/a")),
+                                                         InitCommand::LnS(pb!("old"),
+                                                                          pb!("/data")),
+                                                         InitCommand::LnS(pb!("data/a"),
+                                                                          pb!("/a")),
+                                                         InitCommand::MkdirP(pb!("/tmp")),
+                                                         InitCommand::LnS(pb!("new"),
+                                                                          pb!("/tmp/link")),],
+                                      initial_file: Some(pb!("/old/a")), },
+                        steps: vec![Step { action: StepAction::Nop,
+                                           dirs:   hm! {
+                                               pb!("/") => 3,
+                                               pb!("/old") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: None,
+                                                   next: Some(pb!("/data")),
+                                               },
+                                               pb!("/data") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("a")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/old")),
+                                               },
+                                               pb!("/old") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("a")],
+                                                   prev: Some(pb!("/data")),
+                                                   next: Some(pb!("/old/a")),
+                                               },
+                                               pb!("/old/a") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/old")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::Mv(pb!("/tmp/link"), pb!("/data")),
+                                           dirs:   hm! {
+                                               pb!("/") => 3,
+                                               pb!("/new") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![],
+                                                   prev: None,
+                                                   next: Some(pb!("/data")),
+                                               },
+                                               pb!("/data") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("a")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/new")),
+                                               },
+                                               pb!("/new") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("a")],
+                                                   prev: Some(pb!("/data")),
+                                                   next: Some(pb!("/new/a")),
+                                               },
+                                               pb!("/new/a") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/new")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::disappeared(pb!("/old/a")),
+                                                        NotifyEvent::appeared(pb!("/new/a")),], },], },
+             TestCase { name:  "Symlink loop, pointing to itself",
+                        init:  Init { path:         Some(pb!("/a/b/c")),
+                                      commands:     vec![InitCommand::MkdirP(pb!("/a")),
+                                                         InitCommand::LnS(pb!("b"), pb!("/a/b")),],
+                                      initial_file: None, },
+                        steps: vec![Step { action: StepAction::Nop,
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::RmRF(pb!("/a/b")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },], },
+             TestCase { name:  "Dropping looping symlink and adding a new one instead",
+                        init:  Init { path:         Some(pb!("/a/b/c/d")),
+                                      commands:     vec![InitCommand::MkdirP(pb!("/a")),
+                                                         InitCommand::MkdirP(pb!("/x")),
+                                                         InitCommand::LnS(pb!("/x"), pb!("/a/b")),
+                                                         InitCommand::LnS(pb!("/a/b/c"),
+                                                                          pb!("/x/c")),],
+                                      initial_file: None, },
+                        steps: vec![Step { action: StepAction::Nop,
+                                           dirs:   hm! {
+                                               pb!("/") => 2,
+                                               pb!("/a") => 1,
+                                               pb!("/x") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/x")),
+                                               },
+                                               pb!("/x") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: Some(pb!("/x/c")),
+                                               },
+                                               pb!("/x/c") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("d")],
+                                                   prev: Some(pb!("/x")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::RmRF(pb!("/x/c")),
+                                           dirs:   hm! {
+                                               pb!("/") => 2,
+                                               pb!("/a") => 1,
+                                               pb!("/x") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/x")),
+                                               },
+                                               pb!("/x") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: Some(pb!("/x/c")),
+                                               },
+                                               pb!("/x/c") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("d")],
+                                                   prev: Some(pb!("/x")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::Touch(pb!("/x/d")),
+                                           dirs:   hm! {
+                                               pb!("/") => 2,
+                                               pb!("/a") => 1,
+                                               pb!("/x") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/x")),
+                                               },
+                                               pb!("/x") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: Some(pb!("/x/c")),
+                                               },
+                                               pb!("/x/c") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("d")],
+                                                   prev: Some(pb!("/x")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::LnS(pb!("."), pb!("/x/c")),
+                                           dirs:   hm! {
+                                               pb!("/") => 2,
+                                               pb!("/a") => 1,
+                                               pb!("/x") => 2,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/x")),
+                                               },
+                                               pb!("/x") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: Some(pb!("/x/c")),
+                                               },
+                                               pb!("/x/c") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("d")],
+                                                   prev: Some(pb!("/x")),
+                                                   next: Some(pb!("/x/d")),
+                                               },
+                                               pb!("/x/d") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/x/c")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::appeared(pb!("/x/d"))], },], },
+             TestCase { name:  "Rewiring symlink loop",
+                        init:  Init { path:         Some(pb!("/a/b/c/d")),
+                                      commands:     vec![InitCommand::MkdirP(pb!("/a")),
+                                                         InitCommand::MkdirP(pb!("/x")),
+                                                         InitCommand::LnS(pb!("/x"), pb!("/a/b")),
+                                                         InitCommand::LnS(pb!("/a/b/c"),
+                                                                          pb!("/x/c")),
+                                                         InitCommand::Touch(pb!("/x/d")),
+                                                         InitCommand::MkdirP(pb!("/tmp")),
+                                                         InitCommand::LnS(pb!("."),
+                                                                          pb!("/tmp/link")),],
+                                      initial_file: None, },
+                        steps: vec![Step { action: StepAction::Nop,
+                                           dirs:   hm! {
+                                               pb!("/") => 2,
+                                               pb!("/a") => 1,
+                                               pb!("/x") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/x")),
+                                               },
+                                               pb!("/x") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: Some(pb!("/x/c")),
+                                               },
+                                               pb!("/x/c") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("d")],
+                                                   prev: Some(pb!("/x")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::Mv(pb!("/tmp/link"), pb!("/x/c")),
+                                           dirs:   hm! {
+                                               pb!("/") => 2,
+                                               pb!("/a") => 1,
+                                               pb!("/x") => 2,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c"), os!("d")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/x")),
+                                               },
+                                               pb!("/x") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c"), os!("d")],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: Some(pb!("/x/c")),
+                                               },
+                                               pb!("/x/c") => PathState {
+                                                   kind: PathKind::Symlink,
+                                                   path_rest: vec![os!("d")],
+                                                   prev: Some(pb!("/x")),
+                                                   next: Some(pb!("/x/d")),
+                                               },
+                                               pb!("/x/d") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/x/c")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::appeared(pb!("/x/d"))], },], },
+             TestCase { name:  "Moving a directory",
+                        init:  Init { path:         Some(pb!("/a/b/c")),
+                                      commands:     vec![InitCommand::MkdirP(pb!("/a/b")),
+                                                         InitCommand::Touch(pb!("/a/b/c")),],
+                                      initial_file: Some(pb!("/a/b/c")), },
+                        steps: vec![Step { action: StepAction::Nop,
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                               pb!("/a/b") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: Some(pb!("/a/b/c")),
+                                               },
+                                               pb!("/a/b/c") => PathState {
+                                                   kind: PathKind::Regular,
+                                                   path_rest: vec![],
+                                                   prev: Some(pb!("/a/b")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![], },
+                                    Step { action: StepAction::Mv(pb!("/a/b"), pb!("/a/d")),
+                                           dirs:   hm! {
+                                               pb!("/") => 1,
+                                               pb!("/a") => 1,
+                                           },
+                                           paths:  hm! {
+                                               pb!("/a") => PathState {
+                                                   kind: PathKind::Directory,
+                                                   path_rest: vec![os!("b"), os!("c")],
+                                                   prev: None,
+                                                   next: Some(pb!("/a/b")),
+                                               },
+                                               pb!("/a/b") => PathState {
+                                                   kind: PathKind::MissingDirectory,
+                                                   path_rest: vec![os!("c")],
+                                                   prev: Some(pb!("/a")),
+                                                   next: None,
+                                               },
+                                           },
+                                           events: vec![NotifyEvent::disappeared(pb!("/a/b/c"))], },], },]
     }
 
     #[test]
@@ -2629,10 +2470,10 @@ mod tests {
     // Simplified description of the WatchedFile's Common struct.
     #[derive(Clone)]
     struct PathState {
-        kind: PathKind,
+        kind:      PathKind,
         path_rest: Vec<OsString>,
-        prev: Option<PathBuf>,
-        next: Option<PathBuf>,
+        prev:      Option<PathBuf>,
+        next:      Option<PathBuf>,
     }
 
     impl IndentedToString for PathState {
@@ -2766,25 +2607,19 @@ mod tests {
 
     impl Watcher for TestWatcher {
         fn new_raw(tx: Sender<RawEvent>) -> notify::Result<Self> {
-            Ok(TestWatcher {
-                real_watcher: RecommendedWatcher::new_raw(tx)?,
-                watched_dirs: HashSet::new(),
-            })
+            Ok(TestWatcher { real_watcher: RecommendedWatcher::new_raw(tx)?,
+                             watched_dirs: HashSet::new(), })
         }
 
         fn new(tx: Sender<DebouncedEvent>, d: Duration) -> notify::Result<Self> {
-            Ok(TestWatcher {
-                real_watcher: RecommendedWatcher::new(tx, d)?,
-                watched_dirs: HashSet::new(),
-            })
+            Ok(TestWatcher { real_watcher: RecommendedWatcher::new(tx, d)?,
+                             watched_dirs: HashSet::new(), })
         }
 
         fn watch<P: AsRef<Path>>(&mut self, path: P, mode: RecursiveMode) -> notify::Result<()> {
             if !self.watched_dirs.insert(path.as_ref().to_owned()) {
-                panic!(
-                    "Trying to watch a path {} we are already watching",
-                    path.as_ref().display(),
-                );
+                panic!("Trying to watch a path {} we are already watching",
+                       path.as_ref().display(),);
             }
             if mode == RecursiveMode::Recursive {
                 panic!("Recursive watch should not ever happen");
@@ -2794,10 +2629,8 @@ mod tests {
 
         fn unwatch<P: AsRef<Path>>(&mut self, path: P) -> notify::Result<()> {
             if !self.watched_dirs.remove(&path.as_ref().to_owned()) {
-                panic!(
-                    "Trying to unwatch a path {} we were not watching",
-                    path.as_ref().display(),
-                );
+                panic!("Trying to unwatch a path {} we were not watching",
+                       path.as_ref().display(),);
             }
             self.real_watcher.unwatch(path)
         }
@@ -2808,20 +2641,14 @@ mod tests {
     }
 
     impl DebugInfo {
-        fn new() -> Self {
-            Self {
-                logs_per_level: vec![Vec::new()],
-            }
-        }
+        fn new() -> Self { Self { logs_per_level: vec![Vec::new()], } }
 
         fn push_level(&mut self) { self.logs_per_level.push(Vec::new()); }
 
         fn pop_level(&mut self) {
             self.logs_per_level.pop();
-            assert!(
-                !self.logs_per_level.is_empty(),
-                "too many pops on DebugInfo"
-            );
+            assert!(!self.logs_per_level.is_empty(),
+                    "too many pops on DebugInfo");
         }
 
         fn add(&mut self, str: String) { self.logs_per_level.last_mut().unwrap().push(str); }
@@ -2841,14 +2668,14 @@ mod tests {
 
     struct WatcherSetup {
         init_path: PathBuf,
-        watcher: FileWatcher<TestCallbacks, TestWatcher>,
+        watcher:   FileWatcher<TestCallbacks, TestWatcher>,
     }
 
     // Structure used for executing the initial commands and step
     // actions.
     struct FsOps<'a> {
-        debug_info: &'a mut DebugInfo,
-        root: &'a PathBuf,
+        debug_info:   &'a mut DebugInfo,
+        root:         &'a PathBuf,
         watched_dirs: Option<&'a HashSet<PathBuf>>,
     }
 
@@ -2861,13 +2688,12 @@ mod tests {
                 target.clone()
             };
             unix_fs::symlink(&tt, &pp).unwrap_or_else(|_| {
-                panic!(
-                    "could not create symlink at {} pointing to {}, debug info:\n{}",
-                    pp.display(),
-                    tt.display(),
-                    self.debug_info,
-                )
-            });
+                                          panic!("could not create symlink at {} pointing to {}, \
+                                                  debug info:\n{}",
+                                                 pp.display(),
+                                                 tt.display(),
+                                                 self.debug_info,)
+                                      });
             if self.parent_is_watched(&pp) {
                 // One event - create.
                 1
@@ -2903,23 +2729,20 @@ mod tests {
 
         fn real_mkdir(&self, real_path: &PathBuf) {
             fs::create_dir_all(&real_path).unwrap_or_else(|_| {
-                panic!(
-                    "could not create directories up to {}, debug info:\n{}",
-                    real_path.display(),
-                    self.debug_info,
-                )
-            });
+                                              panic!("could not create directories up to {}, \
+                                                      debug info:\n{}",
+                                                     real_path.display(),
+                                                     self.debug_info,)
+                                          });
         }
 
         fn touch(&self, path: &PathBuf) -> u32 {
             let pp = self.prepend_root(&path);
             File::create(&pp).unwrap_or_else(|_| {
-                panic!(
-                    "could not create file {}, debug info:\n{}",
-                    pp.display(),
-                    self.debug_info,
-                )
-            });
+                                 panic!("could not create file {}, debug info:\n{}",
+                                        pp.display(),
+                                        self.debug_info,)
+                             });
             if self.parent_is_watched(&pp) {
                 // One event - create.
                 1
@@ -2933,13 +2756,11 @@ mod tests {
             let ff = self.prepend_root(&from);
             let tt = self.prepend_root(&to);
             fs::rename(&ff, &tt).unwrap_or_else(|_| {
-                panic!(
-                    "could not move from {} to {}, debug info:\n{}",
-                    ff.display(),
-                    tt.display(),
-                    self.debug_info,
-                )
-            });
+                                    panic!("could not move from {} to {}, debug info:\n{}",
+                                           ff.display(),
+                                           tt.display(),
+                                           self.debug_info,)
+                                });
             match (self.parent_is_watched(&ff), self.parent_is_watched(&tt)) {
                 (true, true) | (true, false) => {
                     if self.path_is_watched(&ff) {
@@ -2969,35 +2790,34 @@ mod tests {
             let pp = self.prepend_root(&path);
             let metadata = match pp.symlink_metadata() {
                 Ok(m) => m,
-                Err(e) => match e.kind() {
-                    ErrorKind::NotFound => return 0,
-                    _ => panic!(
-                        "Failed to stat {}: {}, debug info:\n{}",
-                        pp.display(),
-                        e,
-                        self.debug_info,
-                    ),
-                },
+                Err(e) => {
+                    match e.kind() {
+                        ErrorKind::NotFound => return 0,
+                        _ => {
+                            panic!("Failed to stat {}: {}, debug info:\n{}",
+                                   pp.display(),
+                                   e,
+                                   self.debug_info,)
+                        }
+                    }
+                }
             };
             let event_count = self.get_event_count_on_rm_rf(&pp);
             if metadata.is_dir() {
                 fs::remove_dir_all(&pp).unwrap_or_else(|err| {
-                    panic!(
-                        "failed to remove directory {}: {}, debug info:\n{}",
-                        pp.display(),
-                        err,
-                        self.debug_info,
-                    )
-                });
+                                           panic!("failed to remove directory {}: {}, debug \
+                                                   info:\n{}",
+                                                  pp.display(),
+                                                  err,
+                                                  self.debug_info,)
+                                       });
             } else {
                 fs::remove_file(&pp).unwrap_or_else(|err| {
-                    panic!(
-                        "failed to remove file {}: {}, debug info:\n{}",
-                        pp.display(),
-                        err,
-                        self.debug_info,
-                    )
-                });
+                                        panic!("failed to remove file {}: {}, debug info:\n{}",
+                                               pp.display(),
+                                               err,
+                                               self.debug_info,)
+                                    });
             }
             event_count
         }
@@ -3015,12 +2835,12 @@ mod tests {
                 event_count += 2;
                 let metadata = match path.symlink_metadata() {
                     Ok(m) => m,
-                    Err(err) => panic!(
-                        "Failed to stat {}: {}, debug info:\n{}",
-                        path.display(),
-                        err,
-                        self.debug_info,
-                    ),
+                    Err(err) => {
+                        panic!("Failed to stat {}: {}, debug info:\n{}",
+                               path.display(),
+                               err,
+                               self.debug_info,)
+                    }
                 };
                 if !metadata.is_dir() {
                     continue;
@@ -3031,28 +2851,23 @@ mod tests {
         }
 
         fn get_dir_contents(&self, path: &PathBuf) -> Vec<PathBuf> {
-            fs::read_dir(&path)
-                .unwrap_or_else(|err| {
-                    panic!(
-                        "failed to read directory {}: {}, debug info:\n{}",
-                        path.display(),
-                        err,
-                        self.debug_info,
-                    )
-                })
-                .map(|rde| {
-                    rde.unwrap_or_else(|err| {
-                        panic!(
-                            "failed to get entry for {}: {}, debug info:\n{}",
-                            path.display(),
-                            err,
-                            self.debug_info,
-                        )
-                    })
-                    .path()
-                    .to_owned()
-                })
-                .collect()
+            fs::read_dir(&path).unwrap_or_else(|err| {
+                                   panic!("failed to read directory {}: {}, debug info:\n{}",
+                                          path.display(),
+                                          err,
+                                          self.debug_info,)
+                               })
+                               .map(|rde| {
+                                   rde.unwrap_or_else(|err| {
+                                          panic!("failed to get entry for {}: {}, debug info:\n{}",
+                                                 path.display(),
+                                                 err,
+                                                 self.debug_info,)
+                                      })
+                                      .path()
+                                      .to_owned()
+                               })
+                               .collect()
         }
 
         fn parent_is_watched(&self, path: &PathBuf) -> bool {
@@ -3069,11 +2884,9 @@ mod tests {
         fn get_parent(&self, path: &PathBuf) -> PathBuf {
             path.parent()
                 .unwrap_or_else(|| {
-                    panic!(
-                        "path {} has no parent, debug info:\n{}",
-                        path.display(),
-                        self.debug_info
-                    )
+                    panic!("path {} has no parent, debug info:\n{}",
+                           path.display(),
+                           self.debug_info)
                 })
                 .to_owned()
         }
@@ -3097,11 +2910,9 @@ mod tests {
             let tmp_dir =
                 TempDir::new().unwrap_or_else(|_| panic!("couldn't create temporary directory",));
             let root = tmp_dir.path().to_owned();
-            Self {
-                debug_info: DebugInfo::new(),
-                tmp_dir,
-                root,
-            }
+            Self { debug_info: DebugInfo::new(),
+                   tmp_dir,
+                   root }
         }
 
         fn run_init_commands(&mut self, commands: &[InitCommand]) {
@@ -3125,20 +2936,17 @@ mod tests {
             let init_path = tc_init_path.clone().unwrap_or_else(|| pb!("/a/b/c/d/e/f"));
             let additional_dirs = self.get_additional_directories_from_root();
             let callbacks = TestCallbacks::new(&additional_dirs);
-            let watcher =
-                FileWatcher::<_, TestWatcher>::create(self.prepend_root(&init_path), callbacks)
-                    .unwrap_or_else(|_| {
-                        panic!("failed to create watcher, debug info:\n{}", self.debug_info,)
-                    });
+            let watcher = FileWatcher::<_, TestWatcher>::create(self.prepend_root(&init_path),
+                                                                callbacks).unwrap_or_else(|_| {
+                              panic!("failed to create watcher, debug info:\n{}", self.debug_info,)
+                          });
             WatcherSetup { init_path, watcher }
         }
 
-        fn run_steps(
-            &mut self,
-            mut setup: WatcherSetup,
-            tc_initial_file: &Option<PathBuf>,
-            steps: &[Step],
-        ) {
+        fn run_steps(&mut self,
+                     mut setup: WatcherSetup,
+                     tc_initial_file: &Option<PathBuf>,
+                     steps: &[Step]) {
             let mut initial_file = tc_initial_file.clone();
             let mut actual_initial_file = setup.watcher.initial_real_file.clone();
             for (step_idx, step) in steps.iter().enumerate() {
@@ -3151,11 +2959,9 @@ mod tests {
                 self.test_paths(&step.paths, &setup.init_path, &setup.watcher.paths.paths);
                 let real_initial_file =
                     self.test_initial_file(iterations, &mut initial_file, &mut actual_initial_file);
-                self.test_events(
-                    real_initial_file,
-                    &step.events,
-                    &mut setup.watcher.get_mut_callbacks().events,
-                );
+                self.test_events(real_initial_file,
+                                 &step.events,
+                                 &mut setup.watcher.get_mut_callbacks().events);
                 self.debug_info.pop_level();
                 debug!("\n\n\n++++++++++++++++\n++++STEP+END++++\n++++++++++++++++\n\n\n");
             }
@@ -3188,9 +2994,11 @@ mod tests {
             thread::sleep(Duration::from_secs(3));
 
             while iteration < iterations {
-                setup.watcher.single_iteration().unwrap_or_else(|_| {
-                    panic!("iteration failed, debug info:\n{}", self.debug_info,)
-                });
+                setup.watcher
+                     .single_iteration()
+                     .unwrap_or_else(|_| {
+                         panic!("iteration failed, debug info:\n{}", self.debug_info,)
+                     });
                 let cb = setup.watcher.get_mut_callbacks();
                 if cb.ignore {
                     debug!("got event below tmpdir, not increasing the iteration counter");
@@ -3201,74 +3009,57 @@ mod tests {
             }
         }
 
-        fn test_dirs(
-            &mut self,
-            step_dirs: &HashMap<PathBuf, u32>,
-            actual_dirs: &HashMap<PathBuf, u32>,
-        ) {
+        fn test_dirs(&mut self,
+                     step_dirs: &HashMap<PathBuf, u32>,
+                     actual_dirs: &HashMap<PathBuf, u32>) {
             let expected_dirs = self.fixup_expected_dirs(step_dirs);
             self.debug_info
                 .add(format!("fixed up expected dirs:\n{}", dits!(expected_dirs),));
-            assert_eq!(
-                &expected_dirs, actual_dirs,
-                "comparing watched directories, debug info:\n{}",
-                self.debug_info,
-            );
+            assert_eq!(&expected_dirs, actual_dirs,
+                       "comparing watched directories, debug info:\n{}",
+                       self.debug_info,);
         }
 
-        fn test_paths(
-            &mut self,
-            step_paths: &HashMap<PathBuf, PathState>,
-            init_path: &PathBuf,
-            actual_paths: &HashMap<PathBuf, WatchedFile>,
-        ) {
+        fn test_paths(&mut self,
+                      step_paths: &HashMap<PathBuf, PathState>,
+                      init_path: &PathBuf,
+                      actual_paths: &HashMap<PathBuf, WatchedFile>) {
             let expected_paths = self.fixup_expected_paths(&step_paths, &init_path);
-            self.debug_info.add(format!(
-                "fixed up expected paths:\n{}",
-                dits!(expected_paths),
-            ));
+            self.debug_info
+                .add(format!("fixed up expected paths:\n{}", dits!(expected_paths),));
             self.compare_paths(expected_paths, actual_paths);
         }
 
-        fn test_initial_file(
-            &mut self,
-            iterations: u32,
-            initial_file: &mut Option<PathBuf>,
-            actual_initial_file: &mut Option<PathBuf>,
-        ) -> Option<PathBuf> {
+        fn test_initial_file(&mut self,
+                             iterations: u32,
+                             initial_file: &mut Option<PathBuf>,
+                             actual_initial_file: &mut Option<PathBuf>)
+                             -> Option<PathBuf> {
             if iterations > 0 {
                 let expected_initial_file =
                     initial_file.take().map(|path| self.prepend_root(&path));
-                self.debug_info.add(format!(
-                    "fixed up initial file: {:?}",
-                    expected_initial_file
-                ));
-                assert_eq!(
-                    expected_initial_file,
-                    actual_initial_file.take(),
-                    "comparing initial path, debug info:\n{}",
-                    self.debug_info,
-                );
+                self.debug_info
+                    .add(format!("fixed up initial file: {:?}", expected_initial_file));
+                assert_eq!(expected_initial_file,
+                           actual_initial_file.take(),
+                           "comparing initial path, debug info:\n{}",
+                           self.debug_info,);
                 expected_initial_file
             } else {
                 None
             }
         }
 
-        fn test_events(
-            &mut self,
-            real_initial_file: Option<PathBuf>,
-            step_events: &[NotifyEvent],
-            actual_events: &mut Vec<NotifyEvent>,
-        ) {
+        fn test_events(&mut self,
+                       real_initial_file: Option<PathBuf>,
+                       step_events: &[NotifyEvent],
+                       actual_events: &mut Vec<NotifyEvent>) {
             let expected_events = self.fixup_expected_events(&step_events, real_initial_file);
             self.debug_info
                 .add(format!("fixed up expected events: {:?}", expected_events));
-            assert_eq!(
-                &expected_events, actual_events,
-                "comparing expected events, debug info:\n{}",
-                self.debug_info,
-            );
+            assert_eq!(&expected_events, actual_events,
+                       "comparing expected events, debug info:\n{}",
+                       self.debug_info,);
             actual_events.clear();
         }
 
@@ -3279,18 +3070,15 @@ mod tests {
         }
 
         fn get_fs_ops(&mut self) -> FsOps<'_> {
-            FsOps {
-                debug_info: &mut self.debug_info,
-                root: &self.root,
-                watched_dirs: None,
-            }
+            FsOps { debug_info:   &mut self.debug_info,
+                    root:         &self.root,
+                    watched_dirs: None, }
         }
 
         fn fixup_expected_dirs(&self, dirs: &HashMap<PathBuf, u32>) -> HashMap<PathBuf, u32> {
-            let mut expected_dirs = dirs
-                .iter()
-                .map(|(p, c)| (self.prepend_root(&p), *c))
-                .collect::<HashMap<_, _>>();
+            let mut expected_dirs = dirs.iter()
+                                        .map(|(p, c)| (self.prepend_root(&p), *c))
+                                        .collect::<HashMap<_, _>>();
             let additional_dirs = self.get_additional_directories_from_root();
             expected_dirs.extend(additional_dirs.iter().cloned().map(|d| (d, 1)));
             expected_dirs
@@ -3328,33 +3116,27 @@ mod tests {
             additional_dirs
         }
 
-        fn fixup_expected_paths(
-            &self,
-            paths: &HashMap<PathBuf, PathState>,
-            init_path: &PathBuf,
-        ) -> HashMap<PathBuf, PathState> {
+        fn fixup_expected_paths(&self,
+                                paths: &HashMap<PathBuf, PathState>,
+                                init_path: &PathBuf)
+                                -> HashMap<PathBuf, PathState> {
             let expected_paths = self.get_initial_expected_paths(paths);
             let real_first_expected =
                 self.get_real_first_expected_path(&init_path, &expected_paths);
-            let additional_paths = self.get_additional_paths(
-                &real_first_expected,
-                // The existence of this path in the map is checked in
-                // get_real_first_expected_path.
-                &expected_paths[&real_first_expected],
-            );
+            let additional_paths = self.get_additional_paths(&real_first_expected,
+                                                             // The existence of this path in the
+                                                             // map is checked in
+                                                             // get_real_first_expected_path.
+                                                             &expected_paths[&real_first_expected]);
 
-            self.link_expected_paths_with_additional_ones(
-                expected_paths,
-                additional_paths,
-                real_first_expected,
-            )
+            self.link_expected_paths_with_additional_ones(expected_paths,
+                                                          additional_paths,
+                                                          real_first_expected)
         }
 
-        fn compare_paths(
-            &mut self,
-            expected_paths: HashMap<PathBuf, PathState>,
-            actual_paths: &HashMap<PathBuf, WatchedFile>,
-        ) {
+        fn compare_paths(&mut self,
+                         expected_paths: HashMap<PathBuf, PathState>,
+                         actual_paths: &HashMap<PathBuf, WatchedFile>) {
             self.compare_path_keys(&expected_paths, &actual_paths);
 
             for (path, path_state) in expected_paths {
@@ -3373,72 +3155,61 @@ mod tests {
             }
         }
 
-        fn fixup_expected_events(
-            &self,
-            events: &[NotifyEvent],
-            real_initial_file: Option<PathBuf>,
-        ) -> Vec<NotifyEvent> {
+        fn fixup_expected_events(&self,
+                                 events: &[NotifyEvent],
+                                 real_initial_file: Option<PathBuf>)
+                                 -> Vec<NotifyEvent> {
             let mut expected_events = match real_initial_file {
                 Some(path) => vec![NotifyEvent::appeared(path)],
                 None => Vec::new(),
             };
-            expected_events.extend(
-                events
-                    .iter()
-                    .map(|e| NotifyEvent::new(self.prepend_root(&e.path), e.kind)),
-            );
+            expected_events.extend(events.iter()
+                                         .map(|e| {
+                                             NotifyEvent::new(self.prepend_root(&e.path), e.kind)
+                                         }));
             expected_events
         }
 
-        fn get_initial_expected_paths(
-            &self,
-            paths: &HashMap<PathBuf, PathState>,
-        ) -> HashMap<PathBuf, PathState> {
-            paths
-                .iter()
-                .map(|(p, s)| {
-                    (
-                        self.prepend_root(&p),
-                        PathState {
-                            kind: s.kind,
-                            path_rest: s.path_rest.clone(),
-                            prev: match &s.prev {
-                                Some(ref p) => Some(self.prepend_root(&p)),
-                                None => None,
-                            },
-                            next: match &s.next {
-                                Some(ref p) => Some(self.prepend_root(&p)),
-                                None => None,
-                            },
-                        },
-                    )
-                })
-                .collect()
+        fn get_initial_expected_paths(&self,
+                                      paths: &HashMap<PathBuf, PathState>)
+                                      -> HashMap<PathBuf, PathState> {
+            paths.iter()
+                 .map(|(p, s)| {
+                     (self.prepend_root(&p),
+                      PathState { kind:      s.kind,
+                                  path_rest: s.path_rest.clone(),
+                                  prev:      match &s.prev {
+                                      Some(ref p) => Some(self.prepend_root(&p)),
+                                      None => None,
+                                  },
+                                  next:      match &s.next {
+                                      Some(ref p) => Some(self.prepend_root(&p)),
+                                      None => None,
+                                  }, })
+                 })
+                 .collect()
         }
 
-        fn get_real_first_expected_path(
-            &self,
-            init_path: &PathBuf,
-            expected_paths: &HashMap<PathBuf, PathState>,
-        ) -> PathBuf {
+        fn get_real_first_expected_path(&self,
+                                        init_path: &PathBuf,
+                                        expected_paths: &HashMap<PathBuf, PathState>)
+                                        -> PathBuf {
             let first_expected = get_first_item(&init_path);
             let real_first_expected = self.prepend_root(&first_expected);
             let first_item = expected_paths.get(&real_first_expected).unwrap_or_else(|| {
-                panic!(
+                                                                         panic!(
                     "expected watched item for {} (real: {}), it is an error in the test case",
                     first_expected.display(),
                     real_first_expected.display(),
                 )
-            });
+                                                                     });
 
-            assert_eq!(
-                first_item.prev,
-                None,
-                "expected prev member of first expected path ({}, real: {}) to be None, {}",
-                first_expected.display(),
-                real_first_expected.display(),
-                "it is an error in the test case",
-            );
+            assert_eq!(first_item.prev,
+                       None,
+                       "expected prev member of first expected path ({}, real: {}) to be None, {}",
+                       first_expected.display(),
+                       real_first_expected.display(),
+                       "it is an error in the test case",);
 
             real_first_expected
         }
@@ -3447,23 +3218,18 @@ mod tests {
             prepend_root_impl(&self.root, p, &self.debug_info)
         }
 
-        fn get_additional_paths(
-            &self,
-            real_first_expected: &PathBuf,
-            first_item: &PathState,
-        ) -> Vec<(PathBuf, PathState)> {
+        fn get_additional_paths(&self,
+                                real_first_expected: &PathBuf,
+                                first_item: &PathState)
+                                -> Vec<(PathBuf, PathState)> {
             let mut ap_vec = Vec::new();
             // empty additional path states
             for path in self.get_additional_paths_from_root() {
-                ap_vec.push((
-                    path,
-                    PathState {
-                        kind: PathKind::Directory,
-                        path_rest: Vec::new(),
-                        prev: None,
-                        next: None,
-                    },
-                ));
+                ap_vec.push((path,
+                             PathState { kind:      PathKind::Directory,
+                                         path_rest: Vec::new(),
+                                         prev:      None,
+                                         next:      None, }));
             }
             let ap_len = ap_vec.len();
             // Link the path states - set the prev and next
@@ -3490,12 +3256,13 @@ mod tests {
             ap_vec
         }
 
-        fn link_expected_paths_with_additional_ones(
-            &self,
-            mut expected_paths: HashMap<PathBuf, PathState>,
-            mut additional_paths: Vec<(PathBuf, PathState)>,
-            real_first_expected: PathBuf,
-        ) -> HashMap<PathBuf, PathState> {
+        fn link_expected_paths_with_additional_ones(&self,
+                                                    mut expected_paths: HashMap<PathBuf,
+                                                            PathState>,
+                                                    mut additional_paths: Vec<(PathBuf,
+                                                         PathState)>,
+                                                    real_first_expected: PathBuf)
+                                                    -> HashMap<PathBuf, PathState> {
             // link last additional path state with the first expected one
             if let Some(last) = additional_paths.last_mut() {
                 // The existence of this path in the map is checked in
@@ -3510,28 +3277,22 @@ mod tests {
             expected_paths
         }
 
-        fn compare_path_keys(
-            &self,
-            expected_paths: &HashMap<PathBuf, PathState>,
-            actual_paths: &HashMap<PathBuf, WatchedFile>,
-        ) {
+        fn compare_path_keys(&self,
+                             expected_paths: &HashMap<PathBuf, PathState>,
+                             actual_paths: &HashMap<PathBuf, WatchedFile>) {
             let mut expected_paths_keys: Vec<&PathBuf> = expected_paths.keys().collect();
             expected_paths_keys.sort();
             let mut actual_paths_keys: Vec<&PathBuf> = actual_paths.keys().collect();
             actual_paths_keys.sort();
 
-            assert_eq!(
-                expected_paths_keys, actual_paths_keys,
-                "comparing paths, debug info:\n{}",
-                self.debug_info,
-            );
+            assert_eq!(expected_paths_keys, actual_paths_keys,
+                       "comparing paths, debug info:\n{}",
+                       self.debug_info,);
         }
 
-        fn compare_path_state_with_watched_file(
-            &self,
-            path_state: &PathState,
-            watched_file: &WatchedFile,
-        ) {
+        fn compare_path_state_with_watched_file(&self,
+                                                path_state: &PathState,
+                                                watched_file: &WatchedFile) {
             let common = watched_file.get_common();
             let expected_kind = match watched_file {
                 WatchedFile::Regular(_) => PathKind::Regular,
@@ -3542,26 +3303,18 @@ mod tests {
             };
             let path_rest: Vec<OsString> = common.path_rest.iter().cloned().collect();
 
-            assert_eq!(
-                path_state.kind, expected_kind,
-                "ensuring proper watched file kind, debug info:\n{}",
-                self.debug_info,
-            );
-            assert_eq!(
-                path_state.path_rest, path_rest,
-                "comparing path rest, debug info:\n{}",
-                self.debug_info,
-            );
-            assert_eq!(
-                path_state.prev, common.prev,
-                "comparing prev member, debug info:\n{}",
-                self.debug_info,
-            );
-            assert_eq!(
-                path_state.next, common.next,
-                "comparing next member, debug info:\n{}",
-                self.debug_info,
-            );
+            assert_eq!(path_state.kind, expected_kind,
+                       "ensuring proper watched file kind, debug info:\n{}",
+                       self.debug_info,);
+            assert_eq!(path_state.path_rest, path_rest,
+                       "comparing path rest, debug info:\n{}",
+                       self.debug_info,);
+            assert_eq!(path_state.prev, common.prev,
+                       "comparing prev member, debug info:\n{}",
+                       self.debug_info,);
+            assert_eq!(path_state.next, common.next,
+                       "comparing next member, debug info:\n{}",
+                       self.debug_info,);
         }
 
         // Get vector for extending paths. For the root directory like
@@ -3598,11 +3351,9 @@ mod tests {
 
     fn prepend_root_impl(root: &PathBuf, p: &PathBuf, debug_info: &DebugInfo) -> PathBuf {
         if !p.is_absolute() {
-            panic!(
-                "expected path {} to be absolute, debug info:\n{}",
-                p.display(),
-                debug_info,
-            );
+            panic!("expected path {} to be absolute, debug info:\n{}",
+                   p.display(),
+                   debug_info,);
         }
         root.join(strip_prefix_and_root(p))
     }

@@ -74,16 +74,13 @@ impl LockedEnvVar {
             Err(env::VarError::NotPresent) => None,
             Err(env::VarError::NotUnicode(os_string)) => Some(os_string),
         };
-        LockedEnvVar {
-            lock,
-            original_value: original,
-        }
+        LockedEnvVar { lock,
+                       original_value: original }
     }
 
     /// Set the locked environment variable to `value`.
     pub fn set<V>(&self, value: V)
-    where
-        V: AsRef<OsStr>,
+        where V: AsRef<OsStr>
     {
         env::set_var(&*self.lock, value.as_ref());
     }
@@ -151,24 +148,18 @@ mod tests {
         // macro and types behave properly!
         locked_env_var!(HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET, lock_var);
 
-        assert_eq!(
-            env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
-            Err(env::VarError::NotPresent)
-        );
+        assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
+                   Err(env::VarError::NotPresent));
 
         {
             let lock = lock_var();
             lock.set("foo");
-            assert_eq!(
-                env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
-                Ok(String::from("foo"))
-            );
+            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
+                       Ok(String::from("foo")));
         }
 
-        assert_eq!(
-            env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
-            Err(env::VarError::NotPresent)
-        );
+        assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR_INITIALLY_UNSET"),
+                   Err(env::VarError::NotPresent));
     }
 
     #[test]
@@ -183,31 +174,21 @@ mod tests {
         {
             let lock = lock_var();
             lock.set("foo");
-            assert_eq!(
-                env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                Ok(String::from("foo"))
-            );
+            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
+                       Ok(String::from("foo")));
             lock.set("bar");
-            assert_eq!(
-                env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                Ok(String::from("bar"))
-            );
+            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
+                       Ok(String::from("bar")));
             lock.set("foobar");
-            assert_eq!(
-                env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                Ok(String::from("foobar"))
-            );
+            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
+                       Ok(String::from("foobar")));
             lock.unset();
-            assert_eq!(
-                env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-                Err(VarError::NotPresent)
-            );
+            assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
+                       Err(VarError::NotPresent));
         }
 
-        assert_eq!(
-            env::var("HAB_TESTING_LOCKED_ENV_VAR"),
-            Ok(String::from("original_value"))
-        );
+        assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR"),
+                   Ok(String::from("original_value")));
     }
 
     #[test]
@@ -215,14 +196,13 @@ mod tests {
         locked_env_var!(HAB_TESTING_LOCKED_ENV_VAR_POISONED, lock_var);
 
         // Poison the lock
-        let _ = thread::Builder::new()
-            .name("testing-locked-env-var-panic".into())
-            .spawn(move || {
-                let _lock = lock_var();
-                panic!("This is an intentional panic; it's OK");
-            })
-            .expect("Couldn't spawn thread!")
-            .join();
+        let _ = thread::Builder::new().name("testing-locked-env-var-panic".into())
+                                      .spawn(move || {
+                                          let _lock = lock_var();
+                                          panic!("This is an intentional panic; it's OK");
+                                      })
+                                      .expect("Couldn't spawn thread!")
+                                      .join();
 
         // We should still be able to do something with it; otherwise
         // any test that used this variable and failed would fail any
@@ -230,9 +210,7 @@ mod tests {
         let lock = lock_var();
         lock.set("poisoned foo");
 
-        assert_eq!(
-            env::var("HAB_TESTING_LOCKED_ENV_VAR_POISONED"),
-            Ok(String::from("poisoned foo"))
-        );
+        assert_eq!(env::var("HAB_TESTING_LOCKED_ENV_VAR_POISONED"),
+                   Ok(String::from("poisoned foo")));
     }
 }

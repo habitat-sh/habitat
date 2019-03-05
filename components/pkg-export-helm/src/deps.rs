@@ -29,18 +29,15 @@ pub const OPERATOR_REPO_URL: &str =
 
 pub struct Deps {
     _operator_version: String,
-    update: bool,
+    update:            bool,
 }
 
 impl Deps {
     pub fn new_for_cli_matches(matches: &clap::ArgMatches<'_>) -> Self {
-        Deps {
-            _operator_version: matches
-                .value_of("OPERATOR_VERSION")
-                .unwrap_or(DEFAULT_OPERATOR_VERSION)
-                .to_owned(),
-            update: matches.is_present("DOWNLOAD_DEPS"),
-        }
+        Deps { _operator_version: matches.value_of("OPERATOR_VERSION")
+                                         .unwrap_or(DEFAULT_OPERATOR_VERSION)
+                                         .to_owned(),
+               update:            matches.is_present("DOWNLOAD_DEPS"), }
     }
 
     pub fn generate(&mut self, write: &mut dyn Write) -> Result<()> {
@@ -62,32 +59,29 @@ impl Deps {
             return Ok(());
         }
 
-        Command::new("helm")
-            .arg("repo")
-            .arg("add")
-            .arg("habitat-operator")
-            .arg(OPERATOR_REPO_URL)
-            .spawn()
-            .map_err(|_| Error::HelmLaunchFailed)
-            .and_then(|mut c| {
-                if !c.wait().map_err(|_| Error::HelmLaunchFailed)?.success() {
-                    Err(Error::HelmNotSetup(String::from(
-                        "Failed to update chart dependencies",
-                    )))?
-                } else {
-                    Ok(())
-                }
-            })?;
+        Command::new("helm").arg("repo")
+                            .arg("add")
+                            .arg("habitat-operator")
+                            .arg(OPERATOR_REPO_URL)
+                            .spawn()
+                            .map_err(|_| Error::HelmLaunchFailed)
+                            .and_then(|mut c| {
+                                if !c.wait().map_err(|_| Error::HelmLaunchFailed)?.success() {
+                                    Err(Error::HelmNotSetup(String::from("Failed to update \
+                                                                          chart dependencies")))?
+                                } else {
+                                    Ok(())
+                                }
+                            })?;
 
         ui.status(Status::Downloading, "dependencies")?;
 
-        Command::new("helm")
-            .arg("dep")
-            .arg("up")
-            .arg(dir.as_ref().as_os_str())
-            .spawn()?
-            .wait()
-            .map(|_| ())
-            .map_err(From::from)
+        Command::new("helm").arg("dep")
+                            .arg("up")
+                            .arg(dir.as_ref().as_os_str())
+                            .spawn()?
+                            .wait()
+                            .map(|_| ())
+                            .map_err(From::from)
     }
 }

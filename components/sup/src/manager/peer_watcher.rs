@@ -46,14 +46,13 @@ impl Callbacks for PeerCallbacks {
 }
 
 pub struct PeerWatcher {
-    path: PathBuf,
+    path:        PathBuf,
     have_events: Arc<AtomicBool>,
 }
 
 impl PeerWatcher {
     pub fn run<P>(path: P) -> Result<Self>
-    where
-        P: Into<PathBuf>,
+        where P: Into<PathBuf>
     {
         let path = path.into();
         let have_events = Self::setup_watcher(path.clone())?;
@@ -65,17 +64,16 @@ impl PeerWatcher {
         let have_events = Arc::new(AtomicBool::new(false));
         let have_events_for_thread = Arc::clone(&have_events);
 
-        ThreadBuilder::new()
-            .name(format!("peer-watcher-[{}]", path.display()))
-            .spawn(move || {
-                // debug!("PeerWatcher({}) thread starting", abs_path.display());
-                loop {
-                    let have_events_for_loop = Arc::clone(&have_events_for_thread);
-                    if Self::file_watcher_loop_body(&path, have_events_for_loop) {
-                        break;
-                    }
-                }
-            })?;
+        ThreadBuilder::new().name(format!("peer-watcher-[{}]", path.display()))
+                            .spawn(move || {
+                                // debug!("PeerWatcher({}) thread starting", abs_path.display());
+                                loop {
+                                    let have_events_for_loop = Arc::clone(&have_events_for_thread);
+                                    if Self::file_watcher_loop_body(&path, have_events_for_loop) {
+                                        break;
+                                    }
+                                }
+                            })?;
         Ok(have_events)
     }
 
@@ -83,32 +81,30 @@ impl PeerWatcher {
         let callbacks = PeerCallbacks { have_events };
         let mut file_watcher = match default_file_watcher(&path, callbacks) {
             Ok(w) => w,
-            Err(sup_err) => match sup_err.err {
-                Error::NotifyError(err) => {
-                    outputln!(
-                        "PeerWatcher({}) failed to start watching the directories ({}), {}",
-                        path.display(),
-                        err,
-                        "will try again",
-                    );
-                    return false;
+            Err(sup_err) => {
+                match sup_err.err {
+                    Error::NotifyError(err) => {
+                        outputln!("PeerWatcher({}) failed to start watching the directories \
+                                   ({}), {}",
+                                  path.display(),
+                                  err,
+                                  "will try again",);
+                        return false;
+                    }
+                    _ => {
+                        outputln!("PeerWatcher({}) could not create file watcher, ending thread \
+                                   ({})",
+                                  path.display(),
+                                  sup_err);
+                        return true;
+                    }
                 }
-                _ => {
-                    outputln!(
-                        "PeerWatcher({}) could not create file watcher, ending thread ({})",
-                        path.display(),
-                        sup_err
-                    );
-                    return true;
-                }
-            },
+            }
         };
         if let Err(err) = file_watcher.run() {
-            outputln!(
-                "PeerWatcher({}) error during watching ({}), restarting",
-                path.display(),
-                err
-            );
+            outputln!("PeerWatcher({}) error during watching ({}), restarting",
+                      path.display(),
+                      err);
         }
         false
     }
@@ -121,8 +117,8 @@ impl PeerWatcher {
             return Ok(Vec::new());
         }
         let file = File::open(&self.path).map_err(|err| {
-            return sup_error!(Error::Io(err));
-        })?;
+                                             return sup_error!(Error::Io(err));
+                                         })?;
         let reader = BufReader::new(file);
         let mut members: Vec<Member> = Vec::new();
         for line in reader.lines() {
@@ -186,11 +182,10 @@ mod tests {
     fn with_file() {
         let tmpdir = TempDir::new().unwrap();
         let path = tmpdir.path().join("some_file");
-        let mut file = OpenOptions::new()
-            .append(true)
-            .create_new(true)
-            .open(path.clone())
-            .unwrap();
+        let mut file = OpenOptions::new().append(true)
+                                         .create_new(true)
+                                         .open(path.clone())
+                                         .unwrap();
         let watcher = PeerWatcher::run(path).unwrap();
         writeln!(file, "1.2.3.4:5").unwrap();
         writeln!(file, "4.3.2.1").unwrap();

@@ -43,10 +43,11 @@ impl<T> Future for SpawnedFuture<T> {
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         match self {
             SpawnedFuture(Ok(r)) => r.poll().map_err(Into::into),
-            SpawnedFuture(Err(e)) => Err(e
-                .take()
-                .expect("Cannot poll SpawnedFuture::Err twice")
-                .into()),
+            SpawnedFuture(Err(e)) => {
+                Err(e.take()
+                     .expect("Cannot poll SpawnedFuture::Err twice")
+                     .into())
+            }
         }
     }
 }

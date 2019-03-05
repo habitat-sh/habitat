@@ -44,16 +44,16 @@ lazy_static! {
 }
 
 pub struct TestSup {
-    pub hab_root: PathBuf,
-    pub origin_name: String,
-    pub package_name: String,
-    pub service_group: String,
-    pub http_port: u16,
-    pub butterfly_port: u16,
-    pub control_port: u16,
+    pub hab_root:         PathBuf,
+    pub origin_name:      String,
+    pub package_name:     String,
+    pub service_group:    String,
+    pub http_port:        u16,
+    pub butterfly_port:   u16,
+    pub control_port:     u16,
     pub butterfly_client: test_butterfly::Client,
-    pub cmd: Command,
-    pub process: Option<Child>,
+    pub cmd:              Command,
+    pub process:          Option<Child>,
 }
 
 /// Return a free TCP port number. We test to see that the system has
@@ -120,8 +120,7 @@ fn random_port() -> u16 {
 ///
 ///    /home/me/habitat/target/debug/hab-sup
 fn find_exe<B>(binary_name: B) -> PathBuf
-where
-    B: AsRef<Path>,
+    where B: AsRef<Path>
 {
     let exe_root = env::current_exe()
         .unwrap()
@@ -131,14 +130,10 @@ where
         .unwrap()
         .to_path_buf();
     let bin = exe_root.join(binary_name.as_ref());
-    assert!(
-        bin.exists(),
-        format!(
-            "Expected to find a {:?} executable at {:?}",
-            binary_name.as_ref(),
-            bin
-        )
-    );
+    assert!(bin.exists(),
+            format!("Expected to find a {:?} executable at {:?}",
+                    binary_name.as_ref(),
+                    bin));
     bin
 }
 
@@ -161,29 +156,25 @@ impl TestSup {
     /// parallel don't step on each other.
     ///
     /// See also `new`.
-    pub fn new_with_random_ports<R>(
-        fs_root: R,
-        origin: &str,
-        pkg_name: &str,
-        service_group: &str,
-    ) -> TestSup
-    where
-        R: AsRef<Path>,
+    pub fn new_with_random_ports<R>(fs_root: R,
+                                    origin: &str,
+                                    pkg_name: &str,
+                                    service_group: &str)
+                                    -> TestSup
+        where R: AsRef<Path>
     {
         // We'll give 10 tries to find a free port number
         let http_port = unclaimed_port(10);
         let butterfly_port = unclaimed_port(10);
         let control_port = unclaimed_port(10);
 
-        TestSup::new(
-            fs_root,
-            origin,
-            pkg_name,
-            service_group,
-            http_port,
-            butterfly_port,
-            control_port,
-        )
+        TestSup::new(fs_root,
+                     origin,
+                     pkg_name,
+                     service_group,
+                     http_port,
+                     butterfly_port,
+                     control_port)
     }
 
     /// Bundle up a Habitat Supervisor process along with an
@@ -204,17 +195,15 @@ impl TestSup {
     ///
     /// (No HTTP interaction with the Supervisor is currently called
     /// for, so we don't have a HTTP client.)
-    pub fn new<R>(
-        fs_root: R,
-        origin: &str,
-        pkg_name: &str,
-        service_group: &str,
-        http_port: u16,
-        butterfly_port: u16,
-        control_port: u16,
-    ) -> TestSup
-    where
-        R: AsRef<Path>,
+    pub fn new<R>(fs_root: R,
+                  origin: &str,
+                  pkg_name: &str,
+                  service_group: &str,
+                  http_port: u16,
+                  butterfly_port: u16,
+                  control_port: u16)
+                  -> TestSup
+        where R: AsRef<Path>
     {
         let sup_exe = find_exe("hab-sup");
         let launcher_exe = find_exe("hab-launch");
@@ -251,18 +240,16 @@ impl TestSup {
 
         let bc = test_butterfly::Client::new(&pkg_name, &service_group, butterfly_port);
 
-        TestSup {
-            hab_root: fs_root.as_ref().to_path_buf(),
-            origin_name: origin,
-            package_name: pkg_name,
-            service_group: service_group.to_string(),
-            http_port,
-            butterfly_port,
-            control_port,
-            butterfly_client: bc,
-            cmd,
-            process: None,
-        }
+        TestSup { hab_root: fs_root.as_ref().to_path_buf(),
+                  origin_name: origin,
+                  package_name: pkg_name,
+                  service_group: service_group.to_string(),
+                  http_port,
+                  butterfly_port,
+                  control_port,
+                  butterfly_client: bc,
+                  cmd,
+                  process: None }
     }
 
     /// Spawn a process actually running the Supervisor.

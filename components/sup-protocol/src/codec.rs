@@ -131,13 +131,11 @@ impl From<u32> for SrvTxn {
 
 impl fmt::Debug for SrvTxn {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "SrvTxn[id: {}, is_complete: {}, is_response: {}]",
-            self.id(),
-            self.is_complete(),
-            self.is_response(),
-        )
+        write!(f,
+               "SrvTxn[id: {}, is_complete: {}, is_response: {}]",
+               self.id(),
+               self.is_complete(),
+               self.is_response(),)
     }
 }
 
@@ -148,14 +146,10 @@ pub struct SrvHeader(u32);
 
 impl SrvHeader {
     pub fn new(body_len: u32, message_id_len: u32, is_txn: bool) -> Self {
-        assert!(
-            message_id_len <= MESSAGE_ID_MASK,
-            "cannot construct message with message-id length larger than MESSAGE_ID_MASK"
-        );
-        assert!(
-            body_len <= BODY_LEN_MASK,
-            "cannot construct message with body length larger than BODY_LEN_MASK"
-        );
+        assert!(message_id_len <= MESSAGE_ID_MASK,
+                "cannot construct message with message-id length larger than MESSAGE_ID_MASK");
+        assert!(body_len <= BODY_LEN_MASK,
+                "cannot construct message with body length larger than BODY_LEN_MASK");
         let txn_value = if is_txn { 1 } else { 0 };
         let value = (txn_value << TXN_OFFSET) | (message_id_len << MESSAGE_ID_OFFSET) | body_len;
         SrvHeader(value)
@@ -189,13 +183,11 @@ impl From<u32> for SrvHeader {
 
 impl fmt::Debug for SrvHeader {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "SrvHeader[body_len: {}, message_id_len: {}, is_txn: {}]",
-            self.body_len(),
-            self.message_id_len(),
-            self.is_transaction()
-        )
+        write!(f,
+               "SrvHeader[body_len: {}, message_id_len: {}, is_txn: {}]",
+               self.body_len(),
+               self.message_id_len(),
+               self.is_transaction())
     }
 }
 
@@ -203,10 +195,10 @@ impl fmt::Debug for SrvHeader {
 /// socket speaking `SrvProtocol`.
 #[derive(Clone)]
 pub struct SrvMessage {
-    header: SrvHeader,
+    header:      SrvHeader,
     transaction: Option<SrvTxn>,
-    message_id: String,
-    body: Bytes,
+    message_id:  String,
+    body:        Bytes,
 }
 
 impl SrvMessage {
@@ -255,8 +247,7 @@ impl SrvMessage {
     /// }
     /// ```
     pub fn parse<T>(&self) -> Result<T, prost::DecodeError>
-    where
-        T: Message + MessageStatic + Default,
+        where T: Message + MessageStatic + Default
     {
         T::decode(&self.body)
     }
@@ -305,29 +296,23 @@ impl SrvMessage {
 
 impl fmt::Debug for SrvMessage {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
-            "{:?}, {:?}, {:?}",
-            self.header, self.transaction, self.message_id
-        )
+        write!(f,
+               "{:?}, {:?}, {:?}",
+               self.header, self.transaction, self.message_id)
     }
 }
 
-impl<T> From<T> for SrvMessage
-where
-    T: Message + MessageStatic,
+impl<T> From<T> for SrvMessage where T: Message + MessageStatic
 {
     fn from(msg: T) -> Self {
         let mut buf = BytesMut::with_capacity(msg.encoded_len());
         msg.encode(&mut buf).unwrap();
         let body = buf.freeze();
         let message_id = T::MESSAGE_ID.to_string();
-        SrvMessage {
-            header: SrvHeader::new(body.len() as u32, message_id.len() as u32, false),
-            transaction: None,
-            message_id,
-            body,
-        }
+        SrvMessage { header: SrvHeader::new(body.len() as u32, message_id.len() as u32, false),
+                     transaction: None,
+                     message_id,
+                     body }
     }
 }
 
@@ -339,11 +324,7 @@ pub struct SrvCodec {
 
 impl SrvCodec {
     /// Creates a new `SrvCodec` for shipping around `SrvMessage`s.
-    pub fn new() -> SrvCodec {
-        SrvCodec {
-            recv_buf: vec![0; BODY_LEN_MASK as usize],
-        }
-    }
+    pub fn new() -> SrvCodec { SrvCodec { recv_buf: vec![0; BODY_LEN_MASK as usize], } }
 }
 
 impl Decoder for SrvCodec {
@@ -374,22 +355,20 @@ impl Decoder for SrvCodec {
             return Ok(None);
         }
         buf.copy_to_slice(&mut self.recv_buf[0..header.message_id_len()]);
-        let message_id = str::from_utf8(&self.recv_buf[0..header.message_id_len()])
-            .map_err(|e| {
-                trace!("  -> Invalid message data: {}", e);
-                io::Error::new(io::ErrorKind::InvalidData, e)
-            })?
-            .to_string();
+        let message_id = str::from_utf8(&self.recv_buf[0..header.message_id_len()]).map_err(|e| {
+                             trace!("  -> Invalid message data: {}", e);
+                             io::Error::new(io::ErrorKind::InvalidData, e)
+                         })?
+                         .to_string();
         buf.copy_to_slice(&mut self.recv_buf[0..header.body_len()]);
         let position = buf.position() as usize;
         let bytes = buf.into_inner();
         bytes.split_to(position);
-        Ok(Some(SrvMessage {
-            header,
-            transaction: txn,
-            message_id,
-            body: Bytes::from(&self.recv_buf[0..header.body_len()]),
-        }))
+        Ok(Some(SrvMessage { header,
+                             transaction: txn,
+                             message_id,
+                             body:
+                                 Bytes::from(&self.recv_buf[0..header.body_len()]) }))
     }
 }
 

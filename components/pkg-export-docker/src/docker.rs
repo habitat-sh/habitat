@@ -64,15 +64,12 @@ pub struct DockerBuilder<'a> {
 
 impl<'a> DockerBuilder<'a> {
     fn new<S>(workdir: &'a Path, name: S) -> Self
-    where
-        S: Into<String>,
+        where S: Into<String>
     {
-        DockerBuilder {
-            workdir,
-            name: name.into(),
-            tags: Vec::new(),
-            memory: None,
-        }
+        DockerBuilder { workdir,
+                        name: name.into(),
+                        tags: Vec::new(),
+                        memory: None }
     }
 
     /// Adds a tag for the Docker image.
@@ -95,9 +92,9 @@ impl<'a> DockerBuilder<'a> {
     pub fn build(self) -> Result<DockerImage> {
         let mut cmd = docker_cmd();
         cmd.current_dir(self.workdir)
-            .arg("build")
-            .arg("--force-rm")
-            .arg("--no-cache");
+           .arg("build")
+           .arg("--force-rm")
+           .arg("--no-cache");
         if let Some(mem) = self.memory {
             cmd.arg("--memory").arg(mem);
         }
@@ -120,12 +117,10 @@ impl<'a> DockerBuilder<'a> {
             None => self.image_id(&self.name)?,
         };
 
-        Ok(DockerImage {
-            id,
-            name: self.name,
-            tags: self.tags,
-            workdir: self.workdir.to_owned(),
-        })
+        Ok(DockerImage { id,
+                         name: self.name,
+                         tags: self.tags,
+                         workdir: self.workdir.to_owned() })
     }
 
     fn image_id(&self, image_tag: &str) -> Result<String> {
@@ -163,16 +158,13 @@ impl<'a> DockerImage {
     /// * If a registry login is not successful
     /// * If a pushing one or more of the image tags fails
     /// * If a registry logout is not successful
-    pub fn push(
-        &self,
-        ui: &mut UI,
-        credentials: &Credentials,
-        registry_url: Option<&str>,
-    ) -> Result<()> {
-        ui.begin(format!(
-            "Pushing Docker image '{}' with all tags to remote registry",
-            self.name()
-        ))?;
+    pub fn push(&self,
+                ui: &mut UI,
+                credentials: &Credentials,
+                registry_url: Option<&str>)
+                -> Result<()> {
+        ui.begin(format!("Pushing Docker image '{}' with all tags to remote registry",
+                         self.name()))?;
         self.create_docker_config_file(credentials, registry_url)
             .unwrap();
         if self.tags.is_empty() {
@@ -182,11 +174,9 @@ impl<'a> DockerImage {
                 self.push_image(ui, Some(tag))?;
             }
         }
-        ui.end(format!(
-            "Docker image '{}' published with tags: {}",
-            self.name(),
-            self.tags().join(", "),
-        ))?;
+        ui.end(format!("Docker image '{}' published with tags: {}",
+                       self.name(),
+                       self.tags().join(", "),))?;
 
         Ok(())
     }
@@ -197,10 +187,8 @@ impl<'a> DockerImage {
     ///
     /// * If one or more of the image tags cannot be removed
     pub fn rm(self, ui: &mut UI) -> Result<()> {
-        ui.begin(format!(
-            "Cleaning up local Docker image '{}' with all tags",
-            self.name()
-        ))?;
+        ui.begin(format!("Cleaning up local Docker image '{}' with all tags",
+                         self.name()))?;
         if self.tags.is_empty() {
             self.rm_image(ui, None)?;
         } else {
@@ -208,11 +196,9 @@ impl<'a> DockerImage {
                 self.rm_image(ui, Some(tag))?;
             }
         }
-        ui.end(format!(
-            "Local Docker image '{}' with tags: {} cleaned up",
-            self.name(),
-            self.tags().join(", "),
-        ))?;
+        ui.end(format!("Local Docker image '{}' with tags: {} cleaned up",
+                       self.name(),
+                       self.tags().join(", "),))?;
 
         Ok(())
     }
@@ -234,36 +220,29 @@ impl<'a> DockerImage {
     /// * If the report file cannot be written
     pub fn create_report<P: AsRef<Path>>(&self, ui: &mut UI, dst: P) -> Result<()> {
         let report = dst.as_ref().join("last_docker_export.env");
-        ui.status(
-            Status::Creating,
-            format!("build report {}", report.display()),
-        )?;
+        ui.status(Status::Creating,
+                  format!("build report {}", report.display()))?;
         fs::create_dir_all(&dst)?;
-        let name_tags: Vec<_> = self
-            .tags
-            .iter()
-            .map(|t| format!("{}:{}", &self.name, t))
-            .collect();
+        let name_tags: Vec<_> = self.tags
+                                    .iter()
+                                    .map(|t| format!("{}:{}", &self.name, t))
+                                    .collect();
         let json = json!({
             "id": &self.id,
             "name": &self.name,
             "tags": self.tags.join(","),
             "name_tags": name_tags.join(","),
         });
-        util::write_file(
-            &report,
-            &Handlebars::new()
-                .template_render(BUILD_REPORT, &json)
-                .map_err(SyncFailure::new)?,
-        )?;
+        util::write_file(&report,
+                         &Handlebars::new().template_render(BUILD_REPORT, &json)
+                                           .map_err(SyncFailure::new)?)?;
         Ok(())
     }
 
-    pub fn create_docker_config_file(
-        &self,
-        credentials: &Credentials,
-        registry_url: Option<&str>,
-    ) -> Result<()> {
+    pub fn create_docker_config_file(&self,
+                                     credentials: &Credentials,
+                                     registry_url: Option<&str>)
+                                     -> Result<()> {
         let config = self.workdir.join("config.json");
         fs::create_dir_all(&self.workdir)?;
         let registry = match registry_url {
@@ -287,10 +266,8 @@ impl<'a> DockerImage {
             Some(tag) => format!("{}:{}", &self.name, tag),
             None => self.name.to_string(),
         };
-        ui.status(
-            Status::Uploading,
-            format!("image '{}' to remote registry", &image_tag),
-        )?;
+        ui.status(Status::Uploading,
+                  format!("image '{}' to remote registry", &image_tag))?;
         let mut cmd = docker_cmd();
         cmd.arg("--config");
         cmd.arg(self.workdir.to_str().unwrap());
@@ -368,22 +345,20 @@ impl DockerBuildRoot {
     ///
     /// * If the Docker image cannot be created successfully
     #[cfg(unix)]
-    pub fn export(
-        &self,
-        ui: &mut UI,
-        naming: &Naming,
-        memory: Option<&str>,
-    ) -> Result<DockerImage> {
+    pub fn export(&self,
+                  ui: &mut UI,
+                  naming: &Naming,
+                  memory: Option<&str>)
+                  -> Result<DockerImage> {
         self.build_docker_image(ui, naming, memory)
     }
 
     #[cfg(windows)]
-    pub fn export(
-        &self,
-        ui: &mut UI,
-        naming: &Naming,
-        memory: Option<&str>,
-    ) -> Result<DockerImage> {
+    pub fn export(&self,
+                  ui: &mut UI,
+                  naming: &Naming,
+                  memory: Option<&str>)
+                  -> Result<DockerImage> {
         let mut cmd = docker_cmd();
         cmd.arg("version").arg("--format='{{.Server.Os}}'");
         debug!("Running command: {:?}", cmd);
@@ -405,27 +380,21 @@ impl DockerBuildRoot {
         let (users, groups) = ctx.svc_users_and_groups()?;
         {
             let file = "etc/passwd";
-            let mut f = OpenOptions::new()
-                .append(true)
-                .open(ctx.rootfs().join(&file))?;
+            let mut f = OpenOptions::new().append(true)
+                                          .open(ctx.rootfs().join(&file))?;
             for user in users {
-                ui.status(
-                    Status::Creating,
-                    format!("user '{}' in /{}", user.name, &file),
-                )?;
+                ui.status(Status::Creating,
+                          format!("user '{}' in /{}", user.name, &file))?;
                 writeln!(f, "{}", user)?;
             }
         }
         {
             let file = "etc/group";
-            let mut f = OpenOptions::new()
-                .append(true)
-                .open(ctx.rootfs().join(&file))?;
+            let mut f = OpenOptions::new().append(true)
+                                          .open(ctx.rootfs().join(&file))?;
             for group in groups {
-                ui.status(
-                    Status::Creating,
-                    format!("group '{}' in /{}", group.name, &file),
-                )?;
+                ui.status(Status::Creating,
+                          format!("group '{}' in /{}", group.name, &file))?;
                 writeln!(f, "{}", group)?;
             }
         }
@@ -450,12 +419,9 @@ impl DockerBuildRoot {
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
         });
         let init = ctx.rootfs().join("init.sh");
-        util::write_file(
-            &init,
-            &Handlebars::new()
-                .template_render(INIT_SH, &json)
-                .map_err(SyncFailure::new)?,
-        )?;
+        util::write_file(&init,
+                         &Handlebars::new().template_render(INIT_SH, &json)
+                                           .map_err(SyncFailure::new)?)?;
         posix_perm::set_permissions(init.to_string_lossy().as_ref(), 0o0755)?;
         Ok(())
     }
@@ -479,21 +445,17 @@ impl DockerBuildRoot {
             "install_hook_feat": ctx.install_hook_feat(),
             "environment": ctx.environment,
         });
-        util::write_file(
-            self.0.workdir().join("Dockerfile"),
-            &Handlebars::new()
-                .template_render(DOCKERFILE, &json)
-                .map_err(SyncFailure::new)?,
-        )?;
+        util::write_file(self.0.workdir().join("Dockerfile"),
+                         &Handlebars::new().template_render(DOCKERFILE, &json)
+                                           .map_err(SyncFailure::new)?)?;
         Ok(())
     }
 
-    fn build_docker_image(
-        &self,
-        ui: &mut UI,
-        naming: &Naming,
-        memory: Option<&str>,
-    ) -> Result<DockerImage> {
+    fn build_docker_image(&self,
+                          ui: &mut UI,
+                          naming: &Naming,
+                          memory: Option<&str>)
+                          -> Result<DockerImage> {
         ui.status(Status::Creating, "Docker image")?;
         let ident = self.0.ctx().installed_primary_svc_ident()?;
         let version = &ident.version.expect("version exists");
@@ -506,18 +468,17 @@ impl DockerBuildRoot {
             "channel": self.0.ctx().channel().as_str(),
         });
         let image_name = match naming.custom_image_name {
-            Some(ref custom) => Handlebars::new()
-                .template_render(custom, &json)
-                .map_err(SyncFailure::new)?,
-            None => format!("{}/{}", ident.origin, ident.name),
-        }
-        .to_lowercase();
+                             Some(ref custom) => {
+                                 Handlebars::new().template_render(custom, &json)
+                                                  .map_err(SyncFailure::new)?
+                             }
+                             None => format!("{}/{}", ident.origin, ident.name),
+                         }.to_lowercase();
 
         let image_name = match naming.registry_url {
-            Some(ref url) => format!("{}/{}", url, image_name),
-            None => image_name,
-        }
-        .to_lowercase();
+                             Some(ref url) => format!("{}/{}", url, image_name),
+                             None => image_name,
+                         }.to_lowercase();
 
         let mut builder = DockerBuilder::new(self.0.workdir(), image_name);
         if naming.version_release_tag {
@@ -533,12 +494,9 @@ impl DockerBuildRoot {
             builder = builder.memory(memory);
         }
         if let Some(ref custom) = naming.custom_tag {
-            builder = builder.tag(
-                Handlebars::new()
-                    .template_render(custom, &json)
-                    .map_err(SyncFailure::new)?
-                    .to_lowercase(),
-            );
+            builder = builder.tag(Handlebars::new().template_render(custom, &json)
+                                                   .map_err(SyncFailure::new)?
+                                                   .to_lowercase());
         }
         builder.build()
     }

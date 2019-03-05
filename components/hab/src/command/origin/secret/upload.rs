@@ -25,15 +25,14 @@ use crate::{error::{Error,
             VERSION};
 use std::path::Path;
 
-pub fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    token: &str,
-    origin: &str,
-    key: &str,
-    secret: &str,
-    cache: &Path,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             token: &str,
+             origin: &str,
+             key: &str,
+             secret: &str,
+             cache: &Path)
+             -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
     let encryption_key = match BoxKeyPair::get_latest_pair_for(origin, cache) {
@@ -51,9 +50,8 @@ pub fn start(
 
     ui.status(Status::Uploading, format!("secret for key {}.", key))?;
 
-    api_client
-        .create_origin_secret(origin, token, key, &encrypted_secret_string)
-        .map_err(Error::APIClient)?;
+    api_client.create_origin_secret(origin, token, key, &encrypted_secret_string)
+              .map_err(Error::APIClient)?;
 
     ui.status(Status::Uploaded, format!("secret for {}.", key))?;
 

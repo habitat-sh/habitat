@@ -85,20 +85,17 @@ fn tar_command(temp_dir_path: &Path, pkg_ident: PackageIdent, hab_pkg: &str) {
 }
 
 fn format_tar_name(ident: PackageIdent) -> String {
-    format!(
-        "{}-{}-{}-{}.tar.gz",
-        ident.origin,
-        ident.name,
-        ident.version.unwrap(),
-        ident.release.unwrap()
-    )
+    format!("{}-{}-{}-{}.tar.gz",
+            ident.origin,
+            ident.name,
+            ident.version.unwrap(),
+            ident.release.unwrap())
 }
 
 fn hab_package_ident(hab_pkg: &str) -> PackageIdent { PackageIdent::from_str(hab_pkg).unwrap() }
 
 fn hab_install_path(hab_ident: &PackageIdent, root_fs_path: &Path) -> PathBuf {
     let root_fs_path = Path::new(&root_fs_path);
-    PackageInstall::load(&hab_ident, Some(root_fs_path))
-        .unwrap()
-        .installed_path
+    PackageInstall::load(&hab_ident, Some(root_fs_path)).unwrap()
+                                                        .installed_path
 }

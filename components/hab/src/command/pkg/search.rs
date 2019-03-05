@@ -31,10 +31,8 @@ pub fn start(st: &str, bldr_url: &str, token: Option<&str>) -> Result<()> {
                 }
             }
             if more {
-                println!(
-                    "Search returned too many items, only showing the first {}",
-                    packages.len()
-                );
+                println!("Search returned too many items, only showing the first {}",
+                         packages.len());
             }
         }
     }

@@ -63,18 +63,16 @@ use crate::{api_client::{self,
 /// * Fails if it cannot find a package
 /// * Fails if the package doesn't have a `.hart` file in the cache
 /// * Fails if it cannot upload the file
-pub fn start<T, U>(
-    ui: &mut UI,
-    bldr_url: &str,
-    additional_release_channel: &Option<ChannelIdent>,
-    token: &str,
-    archive_path: T,
-    force_upload: bool,
-    key_path: U,
-) -> Result<()>
-where
-    T: AsRef<Path>,
-    U: AsRef<Path>,
+pub fn start<T, U>(ui: &mut UI,
+                   bldr_url: &str,
+                   additional_release_channel: &Option<ChannelIdent>,
+                   token: &str,
+                   archive_path: T,
+                   force_upload: bool,
+                   key_path: U)
+                   -> Result<()>
+    where T: AsRef<Path>,
+          U: AsRef<Path>
 {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
 
@@ -102,17 +100,15 @@ where
                             None => unreachable!(),
                         };
                         let upload = || {
-                            attempt_upload_dep(
-                                ui,
-                                &api_client,
-                                token,
-                                &dep,
-                                target,
-                                additional_release_channel,
-                                force_upload,
-                                &candidate_path,
-                                &key_path,
-                            )
+                            attempt_upload_dep(ui,
+                                               &api_client,
+                                               token,
+                                               &dep,
+                                               target,
+                                               additional_release_channel,
+                                               force_upload,
+                                               &candidate_path,
+                                               &key_path)
                         };
                         match retry(RETRIES, RETRY_WAIT, upload, Result::is_ok) {
                             Ok(_) => trace!("attempt_upload_dep succeeded"),
@@ -129,15 +125,13 @@ where
             }
 
             let upload = || {
-                upload_into_depot(
-                    ui,
-                    &api_client,
-                    token,
-                    &ident,
-                    additional_release_channel,
-                    force_upload,
-                    &mut archive,
-                )
+                upload_into_depot(ui,
+                                  &api_client,
+                                  token,
+                                  &ident,
+                                  additional_release_channel,
+                                  force_upload,
+                                  &mut archive)
             };
             match retry(RETRIES, RETRY_WAIT, upload, Result::is_ok) {
                 Ok(_) => trace!("upload_into_depot succeeded"),
@@ -159,15 +153,14 @@ where
 /// automatically put into the `unstable` channel, but if
 /// `additional_release_channel` is provided, packages will be
 /// promoted to that channel as well.
-fn upload_into_depot(
-    ui: &mut UI,
-    api_client: &Client,
-    token: &str,
-    ident: &PackageIdent,
-    additional_release_channel: &Option<ChannelIdent>,
-    force_upload: bool,
-    mut archive: &mut PackageArchive,
-) -> Result<()> {
+fn upload_into_depot(ui: &mut UI,
+                     api_client: &Client,
+                     token: &str,
+                     ident: &PackageIdent,
+                     additional_release_channel: &Option<ChannelIdent>,
+                     force_upload: bool,
+                     mut archive: &mut PackageArchive)
+                     -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
     let package_uploaded =
         match api_client.put_package(&mut archive, token, force_upload, ui.progress()) {
@@ -177,23 +170,18 @@ fn upload_into_depot(
                 true
             }
             Err(api_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
-                return Err(Error::PackageArchiveMalformed(format!(
-                    "{}",
-                    archive.path.display()
-                )));
+                return Err(Error::PackageArchiveMalformed(format!("{}",
+                                                                  archive.path
+                                                                         .display())));
             }
             Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
-                println!(
-                    "Package platform or architecture not supported by the targeted depot; \
-                     skipping."
-                );
+                println!("Package platform or architecture not supported by the targeted depot; \
+                          skipping.");
                 false
             }
             Err(api_client::Error::APIError(StatusCode::FailedDependency, _)) => {
-                ui.fatal(
-                    "Package upload introduces a circular dependency - please check pkg_deps; \
-                     skipping.",
-                )?;
+                ui.fatal("Package upload introduces a circular dependency - please check \
+                          pkg_deps; skipping.")?;
                 false
             }
             Err(e) => return Err(Error::from(e)),
@@ -223,62 +211,50 @@ fn upload_into_depot(
     Ok(())
 }
 
-fn attempt_upload_dep<T>(
-    ui: &mut UI,
-    api_client: &Client,
-    token: &str,
-    ident: &PackageIdent,
-    target: PackageTarget,
-    additional_release_channel: &Option<ChannelIdent>,
-    _force_upload: bool,
-    archives_dir: &PathBuf,
-    key_path: T,
-) -> Result<()>
-where
-    T: AsRef<Path>,
+fn attempt_upload_dep<T>(ui: &mut UI,
+                         api_client: &Client,
+                         token: &str,
+                         ident: &PackageIdent,
+                         target: PackageTarget,
+                         additional_release_channel: &Option<ChannelIdent>,
+                         _force_upload: bool,
+                         archives_dir: &PathBuf,
+                         key_path: T)
+                         -> Result<()>
+    where T: AsRef<Path>
 {
     let candidate_path = archives_dir.join(ident.archive_name_with_target(&target).unwrap());
 
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
         upload_public_key(ui, &token, &api_client, &mut archive, key_path)?;
-        upload_into_depot(
-            ui,
-            &api_client,
-            token,
-            &ident,
-            additional_release_channel,
-            false,
-            &mut archive,
-        )
+        upload_into_depot(ui,
+                          &api_client,
+                          token,
+                          &ident,
+                          additional_release_channel,
+                          false,
+                          &mut archive)
     } else {
         let archive_name = ident.archive_name_with_target(&target).unwrap();
 
-        ui.status(
-            Status::Missing,
-            format!(
-                "artifact {}. It was not found in {}. Please make sure that all the dependent \
-                 artifacts are present in the same directory as the original artifact that you \
-                 are attemping to upload.",
-                archive_name,
-                archives_dir.display()
-            ),
-        )?;
-        Err(Error::FileNotFound(
-            archives_dir.to_string_lossy().into_owned(),
-        ))
+        ui.status(Status::Missing,
+                  format!("artifact {}. It was not found in {}. Please make sure that all the \
+                           dependent artifacts are present in the same directory as the \
+                           original artifact that you are attemping to upload.",
+                          archive_name,
+                          archives_dir.display()))?;
+        Err(Error::FileNotFound(archives_dir.to_string_lossy().into_owned()))
     }
 }
 
-fn upload_public_key<T>(
-    ui: &mut UI,
-    token: &str,
-    api_client: &Client,
-    archive: &mut PackageArchive,
-    key_path: T,
-) -> Result<()>
-where
-    T: AsRef<Path>,
+fn upload_public_key<T>(ui: &mut UI,
+                        token: &str,
+                        api_client: &Client,
+                        archive: &mut PackageArchive,
+                        key_path: T)
+                        -> Result<()>
+    where T: AsRef<Path>
 {
     let hart_header = get_artifact_header(&archive.path)?;
     let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
@@ -288,22 +264,15 @@ where
 
     match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
         Ok(()) => {
-            ui.begin(format!(
-                "Uploading public origin key {}",
-                &public_keyfile_name
-            ))?;
+            ui.begin(format!("Uploading public origin key {}", &public_keyfile_name))?;
 
-            ui.status(
-                Status::Uploaded,
-                format!("public origin key {}", &public_keyfile_name),
-            )?;
+            ui.status(Status::Uploaded,
+                      format!("public origin key {}", &public_keyfile_name))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
-            ui.status(
-                Status::Using,
-                format!("existing public origin key {}", &public_keyfile_name),
-            )?;
+            ui.status(Status::Using,
+                      format!("existing public origin key {}", &public_keyfile_name))?;
             Ok(())
         }
         Err(err) => Err(Error::from(err)),

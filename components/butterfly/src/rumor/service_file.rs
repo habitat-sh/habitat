@@ -37,12 +37,12 @@ use crate::{error::{Error,
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceFile {
-    pub from_id: String,
+    pub from_id:       String,
     pub service_group: ServiceGroup,
-    pub incarnation: u64,
-    pub encrypted: bool,
-    pub filename: String,
-    pub body: Vec<u8>, // TODO: make this a String
+    pub incarnation:   u64,
+    pub encrypted:     bool,
+    pub filename:      String,
+    pub body:          Vec<u8>, // TODO: make this a String
 }
 
 impl PartialOrd for ServiceFile {
@@ -58,40 +58,35 @@ impl PartialOrd for ServiceFile {
 impl PartialEq for ServiceFile {
     fn eq(&self, other: &ServiceFile) -> bool {
         self.service_group == other.service_group
-            && self.incarnation == other.incarnation
-            && self.encrypted == other.encrypted
-            && self.filename == other.filename
-            && self.body == other.body
+        && self.incarnation == other.incarnation
+        && self.encrypted == other.encrypted
+        && self.filename == other.filename
+        && self.body == other.body
     }
 }
 
 impl ServiceFile {
     /// Creates a new ServiceFile.
-    pub fn new<S1, S2>(
-        member_id: S1,
-        service_group: ServiceGroup,
-        filename: S2,
-        body: Vec<u8>,
-    ) -> Self
-    where
-        S1: Into<String>,
-        S2: Into<String>,
+    pub fn new<S1, S2>(member_id: S1,
+                       service_group: ServiceGroup,
+                       filename: S2,
+                       body: Vec<u8>)
+                       -> Self
+        where S1: Into<String>,
+              S2: Into<String>
     {
-        ServiceFile {
-            from_id: member_id.into(),
-            service_group,
-            incarnation: 0,
-            encrypted: false,
-            filename: filename.into(),
-            body,
-        }
+        ServiceFile { from_id: member_id.into(),
+                      service_group,
+                      incarnation: 0,
+                      encrypted: false,
+                      filename: filename.into(),
+                      body }
     }
 
     /// Encrypt the contents of the service file
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
-        self.body = user_pair
-            .encrypt(&self.body, Some(service_pair))?
-            .into_bytes();
+        self.body = user_pair.encrypt(&self.body, Some(service_pair))?
+                             .into_bytes();
         self.encrypted = true;
         Ok(())
     }
@@ -120,31 +115,26 @@ impl FromProto<ProtoRumor> for ServiceFile {
             RumorPayload::ServiceFile(payload) => payload,
             _ => panic!("from-bytes service-config"),
         };
-        Ok(ServiceFile {
-            from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
-            service_group: payload
-                .service_group
-                .ok_or(Error::ProtocolMismatch("service-group"))
-                .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
-            incarnation: payload.incarnation.unwrap_or(0),
-            encrypted: payload.encrypted.unwrap_or(false),
-            filename: payload
-                .filename
-                .ok_or(Error::ProtocolMismatch("filename"))?,
-            body: payload.body.unwrap_or_default(),
-        })
+        Ok(ServiceFile { from_id:       rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
+                         service_group:
+                             payload.service_group
+                                    .ok_or(Error::ProtocolMismatch("service-group"))
+                                    .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
+                         incarnation:   payload.incarnation.unwrap_or(0),
+                         encrypted:     payload.encrypted.unwrap_or(false),
+                         filename:      payload.filename
+                                               .ok_or(Error::ProtocolMismatch("filename"))?,
+                         body:          payload.body.unwrap_or_default(), })
     }
 }
 
 impl From<ServiceFile> for newscast::ServiceFile {
     fn from(value: ServiceFile) -> Self {
-        newscast::ServiceFile {
-            service_group: Some(value.service_group.to_string()),
-            incarnation: Some(value.incarnation),
-            encrypted: Some(value.encrypted),
-            filename: Some(value.filename),
-            body: Some(value.body),
-        }
+        newscast::ServiceFile { service_group: Some(value.service_group.to_string()),
+                                incarnation:   Some(value.incarnation),
+                                encrypted:     Some(value.encrypted),
+                                filename:      Some(value.filename),
+                                body:          Some(value.body), }
     }
 }
 
@@ -179,12 +169,10 @@ mod tests {
 
     fn create_service_file(member_id: &str, filename: &str, body: &str) -> ServiceFile {
         let body_bytes: Vec<u8> = Vec::from(body);
-        ServiceFile::new(
-            member_id,
-            ServiceGroup::new(None, "neurosis", "production", None).unwrap(),
-            filename,
-            body_bytes,
-        )
+        ServiceFile::new(member_id,
+                         ServiceGroup::new(None, "neurosis", "production", None).unwrap(),
+                         filename,
+                         body_bytes)
     }
 
     #[test]
@@ -252,9 +240,8 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_string() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        assert_eq!(
-            String::from_utf8(s1.body().unwrap()).expect("cannot get a utf-8 string for the body"),
-            String::from("tcp-backlog = 128")
-        );
+        assert_eq!(String::from_utf8(s1.body().unwrap()).expect("cannot get a utf-8 string for \
+                                                                 the body"),
+                   String::from("tcp-backlog = 128"));
     }
 }

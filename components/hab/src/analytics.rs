@@ -274,20 +274,20 @@ pub fn instrument_subcommand() {
         | ("pkg", "build", _)
         | ("pkg", "upload", _)
         | ("studio", "build", _)
-        | ("studio", "enter", _) => record_event(
-            Event::Subcommand,
-            &format!("{}--{}--{}", PRODUCT, arg1, arg2),
-        ),
+        | ("studio", "enter", _) => {
+            record_event(Event::Subcommand,
+                         &format!("{}--{}--{}", PRODUCT, arg1, arg2))
+        }
         // Match against any pre-selected subcommands that are 3 levels deep. Since there are no
         // more positional matches left, we ignore all further arguments, options, or flags to that
         // subcommand.
         ("origin", "key", "generate")
         | ("ring", "key", "generate")
         | ("svc", "key", "generate")
-        | ("user", "key", "generate") => record_event(
-            Event::Subcommand,
-            &format!("{}--{}--{}--{}", PRODUCT, arg1, arg2, arg3),
-        ),
+        | ("user", "key", "generate") => {
+            record_event(Event::Subcommand,
+                         &format!("{}--{}--{}--{}", PRODUCT, arg1, arg2, arg3))
+        }
         // If the subcommand to be invoked doesn't match any of the above arms, then it has not
         // been pre-selected and we can return early, all done.
         _ => (),
@@ -322,21 +322,21 @@ pub fn instrument_clap_error(err: &clap::Error) {
     // Use a pattern match against the first program argument.
     match arg1.as_str() {
         // Match against subcommands which are 2 levels deep.
-        "config" | "file" | "pkg" => record_event(
-            Event::CliError,
-            &format!("{:?}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2),
-        ),
+        "config" | "file" | "pkg" => {
+            record_event(Event::CliError,
+                         &format!("{:?}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2))
+        }
         // Match against subcommands which are 3 levels deep.
-        "origin" | "ring" | "svc" | "user" => record_event(
-            Event::CliError,
-            &format!("{:?}--{}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2, arg3),
-        ),
+        "origin" | "ring" | "svc" | "user" => {
+            record_event(Event::CliError,
+                         &format!("{:?}--{}--{}--{}--{}", err.kind, PRODUCT, arg1, arg2, arg3))
+        }
         // Match against subcommands which are 1 levels deep or anything else remaining. This match
         // arm appears last because it "slurps" up all remaining cases with `_`.
-        "apply" | "install" | "setup" | _ => record_event(
-            Event::CliError,
-            &format!("{:?}--{}--{}", err.kind, PRODUCT, arg1),
-        ),
+        "apply" | "install" | "setup" | _ => {
+            record_event(Event::CliError,
+                         &format!("{:?}--{}--{}", err.kind, PRODUCT, arg1))
+        }
     }
 }
 
@@ -370,16 +370,12 @@ pub fn opt_in(ui: &mut UI, analytics_path: &Path, origin_generated: bool) -> Res
     let _ = File::create(opt_in_path)?;
     ui.end("Analytics opted in, thank you!")?;
     // Record an event that the setup subcommand was invoked
-    record_event(
-        Event::Subcommand,
-        &format!("{}--{}--{}", PRODUCT, "cli", "setup"),
-    );
+    record_event(Event::Subcommand,
+                 &format!("{}--{}--{}", PRODUCT, "cli", "setup"));
     // If an origin key was generated in the setup subcommand, record an event as well
     if origin_generated {
-        record_event(
-            Event::Subcommand,
-            &format!("{}--{}--{}--{}", PRODUCT, "origin", "key", "generate"),
-        );
+        record_event(Event::Subcommand,
+                     &format!("{}--{}--{}--{}", PRODUCT, "origin", "key", "generate"));
     }
     // Send any pending events to the Google Analytics API
     send_pending();
@@ -422,8 +418,7 @@ pub fn opt_out(ui: &mut UI, analytics_path: &Path) -> Result<()> {
 
 /// Returns whether or not analytics are explicitly opted in, opted out, or are so far unset.
 pub fn is_opted_in<T>(analytics_path: T) -> Option<bool>
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     if analytics_path.as_ref().join(OPTED_OUT_METAFILE).exists() {
         // If an explicit opt-out file exists, the return false
@@ -462,16 +457,14 @@ fn record_event(kind: Event, action: &str) {
     //
     // For more details about the chosen variables, values, and their meanings, see the above
     // module documentation.
-    let event = format!(
-        "v=1&tid={}&cid={}&t=event&aip=1&an={}&av={}&ds={}&ec={}&ea={}",
-        utf8_percent_encode(GOOGLE_ANALYTICS_ID, PATH_SEGMENT_ENCODE_SET),
-        utf8_percent_encode(&client_id(), PATH_SEGMENT_ENCODE_SET),
-        utf8_percent_encode(PRODUCT, PATH_SEGMENT_ENCODE_SET),
-        utf8_percent_encode(super::VERSION, PATH_SEGMENT_ENCODE_SET),
-        utf8_percent_encode(DATA_SOURCE, PATH_SEGMENT_ENCODE_SET),
-        utf8_percent_encode(category, PATH_SEGMENT_ENCODE_SET),
-        utf8_percent_encode(action, PATH_SEGMENT_ENCODE_SET)
-    );
+    let event = format!("v=1&tid={}&cid={}&t=event&aip=1&an={}&av={}&ds={}&ec={}&ea={}",
+                        utf8_percent_encode(GOOGLE_ANALYTICS_ID, PATH_SEGMENT_ENCODE_SET),
+                        utf8_percent_encode(&client_id(), PATH_SEGMENT_ENCODE_SET),
+                        utf8_percent_encode(PRODUCT, PATH_SEGMENT_ENCODE_SET),
+                        utf8_percent_encode(super::VERSION, PATH_SEGMENT_ENCODE_SET),
+                        utf8_percent_encode(DATA_SOURCE, PATH_SEGMENT_ENCODE_SET),
+                        utf8_percent_encode(category, PATH_SEGMENT_ENCODE_SET),
+                        utf8_percent_encode(action, PATH_SEGMENT_ENCODE_SET));
     debug!("Event: {}", event);
     // Save the event to disk--there might not be enough time to hit the network
     save_event(&event);
@@ -488,11 +481,10 @@ fn should_send() -> bool {
     // Use a pattern match against a tuple of the first 3 program arguments after the program name
     // in order to determine whether or not the subcommand to be invoked is going to hit the
     // network. If it will, return true and otherwise return false.
-    match (
-        args.nth(1).unwrap_or_default().as_str(),
-        args.next().unwrap_or_default().as_str(),
-        args.next().unwrap_or_default().as_str(),
-    ) {
+    match (args.nth(1).unwrap_or_default().as_str(),
+           args.next().unwrap_or_default().as_str(),
+           args.next().unwrap_or_default().as_str())
+    {
         ("apply", ..)
         | ("config", "apply", _)
         | ("file", "upload", _)
@@ -542,16 +534,12 @@ fn send_event(payload: &str) -> bool {
     };
     // Report if the posting was successful or not successful.
     if response.status.is_success() {
-        debug!(
-            "Event posted successfully: {}",
-            response.status.canonical_reason().unwrap_or_default()
-        );
+        debug!("Event posted successfully: {}",
+               response.status.canonical_reason().unwrap_or_default());
         true
     } else {
-        debug!(
-            "Response indicated not successful: {}",
-            response.status.canonical_reason().unwrap_or_default()
-        );
+        debug!("Response indicated not successful: {}",
+               response.status.canonical_reason().unwrap_or_default());
         false
     }
 }
@@ -585,11 +573,9 @@ fn send_pending() {
     let entries = match cache_dir.read_dir() {
         Ok(rd) => rd,
         Err(e) => {
-            debug!(
-                "Cannot read directory entries in {}: {}",
-                cache_dir.display(),
-                e
-            );
+            debug!("Cannot read directory entries in {}: {}",
+                   cache_dir.display(),
+                   e);
             return;
         }
     };
@@ -614,11 +600,10 @@ fn send_pending() {
         // If the directory entry is a file and the base file name starts with `event-`, then this
         // is a cached event. Otherwise proceed to the next entry.
         if metadata.is_file()
-            && entry
-                .file_name()
-                .to_string_lossy()
-                .as_ref()
-                .starts_with("event-")
+           && entry.file_name()
+                   .to_string_lossy()
+                   .as_ref()
+                   .starts_with("event-")
         {
             let file_path = entry.path();
             // Send the event, but if not successful report and proceed to the next entry.

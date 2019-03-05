@@ -38,20 +38,16 @@ fn config_only_packages_restart_on_config_application() {
     let package_name = "config-only";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -78,20 +74,16 @@ fn hook_only_packages_restart_on_config_application() {
     let package_name = "no-configs-only-hooks";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -118,20 +110,16 @@ fn config_files_change_but_hooks_do_not_still_restarts() {
     let package_name = "config-changes-hooks-do-not";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -141,7 +129,7 @@ fn config_files_change_but_hooks_do_not_still_restarts() {
     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     test_sup.apply_config(
-        r#"
+                          r#"
 config_value = "applied"
 hook_value = "default"
 "#,
@@ -166,20 +154,16 @@ fn hooks_change_but_config_files_do_not_still_restarts() {
     let package_name = "hook-changes-config-does-not";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -189,7 +173,7 @@ fn hooks_change_but_config_files_do_not_still_restarts() {
     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     test_sup.apply_config(
-        r#"
+                          r#"
 config_value = "default"
 hook_value = "applied"
 "#,
@@ -216,20 +200,16 @@ fn applying_identical_configuration_results_in_no_changes_and_no_restart() {
     let package_name = "no-changes-no-restart";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -239,7 +219,7 @@ fn applying_identical_configuration_results_in_no_changes_and_no_restart() {
     let config_before_apply = hab_root.compiled_config_contents(&package_name, "config.toml");
 
     test_sup.apply_config(
-        r#"
+                          r#"
 config_value = "default"
 hook_value = "default"
 "#,
@@ -264,20 +244,16 @@ fn install_hook_success() {
     let package_name = "install-hook-succeeds";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -308,20 +284,16 @@ fn package_with_successful_install_hook_in_dependency_is_loaded() {
     let dep = "install-hook-succeeds";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -350,20 +322,16 @@ fn install_hook_fails() {
     let package_name = "install-hook-fails";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);
@@ -395,20 +363,16 @@ fn package_with_failing_install_hook_in_dependency_is_not_loaded() {
     let dep = "install-hook-fails";
     let service_group = "default";
 
-    utils::setup_package_files(
-        &origin_name,
-        &package_name,
-        &service_group,
-        &FIXTURE_ROOT,
-        &hab_root,
-    );
+    utils::setup_package_files(&origin_name,
+                               &package_name,
+                               &service_group,
+                               &FIXTURE_ROOT,
+                               &hab_root);
 
-    let mut test_sup = utils::TestSup::new_with_random_ports(
-        &hab_root,
-        &origin_name,
-        &package_name,
-        &service_group,
-    );
+    let mut test_sup = utils::TestSup::new_with_random_ports(&hab_root,
+                                                             &origin_name,
+                                                             &package_name,
+                                                             &service_group);
 
     test_sup.start();
     utils::sleep_seconds(3);

@@ -39,7 +39,7 @@ macro_rules! dits(
 );
 
 pub struct IndentedStructFormatter {
-    name: String,
+    name:   String,
     fields: Vec<(String, String)>,
     spaces: String,
     repeat: usize,
@@ -47,12 +47,10 @@ pub struct IndentedStructFormatter {
 
 impl IndentedStructFormatter {
     pub fn new(name: &str, spaces: &str, repeat: usize) -> Self {
-        Self {
-            name: name.to_string(),
-            fields: Vec::new(),
-            spaces: spaces.to_string(),
-            repeat,
-        }
+        Self { name: name.to_string(),
+               fields: Vec::new(),
+               spaces: spaces.to_string(),
+               repeat }
     }
 
     pub fn add_string(&mut self, field_name: &str, field_value: String) {
@@ -118,12 +116,10 @@ impl<V: IndentedToString> IndentedToString for HashMap<PathBuf, V> {
         let mut str = String::new();
         str.push_str("{\n");
         for path in paths {
-            str.push_str(&format!(
-                "{}{}: {},\n",
-                indent,
-                path.display(),
-                its!(self.get(path).unwrap(), spaces, repeat + 1),
-            ));
+            str.push_str(&format!("{}{}: {},\n",
+                                  indent,
+                                  path.display(),
+                                  its!(self.get(path).unwrap(), spaces, repeat + 1),));
         }
         str.push_str(&format!("{}}}", spaces.repeat(repeat)));
         str

@@ -99,32 +99,24 @@ pub fn generate_secret_key(out: &mut String) {
 /// it to the given out buffer. An `Ok` return value of `true` indicates a successful read while
 /// `false` indicates the file was not found.
 pub fn read_secret_key<T>(sup_root: T, out: &mut String) -> NetResult<bool>
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     let secret_key_path = sup_root.as_ref().join(CTL_SECRET_FILENAME);
     if secret_key_path.exists() {
         if secret_key_path.is_dir() {
-            return Err(net::err(
-                ErrCode::Io,
-                format!(
-                    "Expected file but found directory when reading ctl secret, {}",
-                    secret_key_path.display()
-                ),
-            ));
+            return Err(net::err(ErrCode::Io,
+                                format!("Expected file but found directory when \
+                                         reading ctl secret, {}",
+                                        secret_key_path.display())));
         }
-        File::open(&secret_key_path)
-            .and_then(|mut f| f.read_to_string(out))
-            .map_err(move |e| {
-                net::err(
-                    ErrCode::Io,
-                    format!(
-                        "IoError while reading or writing ctl secret, {}, {}",
-                        secret_key_path.display(),
-                        e
-                    ),
-                )
-            })?;
+        File::open(&secret_key_path).and_then(|mut f| f.read_to_string(out))
+                                    .map_err(move |e| {
+                                        net::err(ErrCode::Io,
+                                                 format!("IoError while reading or writing ctl \
+                                                          secret, {}, {}",
+                                                         secret_key_path.display(),
+                                                         e))
+                                    })?;
         *out = out.trim_end().into();
         Ok(true)
     } else {
@@ -134,8 +126,7 @@ where
 
 /// Returns the location of the CtlGateway Secret on disk for the given Supervisor root.
 pub fn secret_key_path<T>(sup_root: T) -> PathBuf
-where
-    T: AsRef<Path>,
+    where T: AsRef<Path>
 {
     sup_root.as_ref().join(CTL_SECRET_FILENAME)
 }
@@ -155,10 +146,9 @@ pub fn sup_root(custom_state_path: Option<&PathBuf>) -> PathBuf {
 /// Given an Environment variable name, attempts to parse a SocketAddr from it.
 /// If the Environment variable is empty or unparseable, returns the default as passed in.
 pub fn socket_addr_env_or_default(env_var: &str, default: SocketAddr) -> SocketAddr {
-    henv::var(env_var)
-        .unwrap_or_default()
-        .parse()
-        .unwrap_or(default)
+    henv::var(env_var).unwrap_or_default()
+                      .parse()
+                      .unwrap_or(default)
 }
 
 #[cfg(test)]
@@ -173,19 +163,14 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        write!(
-            secret_file,
-            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
-             w=="
-        )
-        .unwrap();
+        write!(secret_file,
+               "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                Itfu4HOdQGmLRY9G5fRUcuw/w==").unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(
-            out,
-            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
-             w=="
-        );
+        assert_eq!(out,
+                   "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                    Itfu4HOdQGmLRY9G5fRUcuw/w==");
     }
 
     #[test]
@@ -193,19 +178,14 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        writeln!(
-            secret_file,
-            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
-             w=="
-        )
-        .unwrap();
+        writeln!(secret_file,
+                 "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                  Itfu4HOdQGmLRY9G5fRUcuw/w==").unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(
-            out,
-            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
-             w=="
-        );
+        assert_eq!(out,
+                   "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                    Itfu4HOdQGmLRY9G5fRUcuw/w==");
     }
 
     #[test]
@@ -213,19 +193,14 @@ mod ctl_secret {
         let tmpdir = TempDir::new().unwrap();
         let file_path = tmpdir.path().to_owned().join("CTL_SECRET");
         let mut secret_file = File::create(file_path).unwrap();
-        writeln!(
-            secret_file,
-            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
-             w==\r"
-        )
-        .unwrap();
+        writeln!(secret_file,
+                 "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                  Itfu4HOdQGmLRY9G5fRUcuw/w==\r").unwrap();
         let mut out = String::new();
         assert_eq!(read_secret_key(tmpdir, &mut out), Ok(true));
-        assert_eq!(
-            out,
-            "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/Itfu4HOdQGmLRY9G5fRUcuw/\
-             w=="
-        );
+        assert_eq!(out,
+                   "w9TuoqTk4Ixaht8ZpJpHQlmPRbvpgz13GaGnvxunJy8iOhZcS7qGqEA7jogq/\
+                    Itfu4HOdQGmLRY9G5fRUcuw/w==");
     }
 
     #[test]

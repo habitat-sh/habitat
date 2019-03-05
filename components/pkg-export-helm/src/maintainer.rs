@@ -25,9 +25,9 @@ use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct Maintainer {
-    name: String,
+    name:  String,
     email: Option<String>,
-    url: Option<String>,
+    url:   Option<String>,
 }
 
 impl Maintainer {

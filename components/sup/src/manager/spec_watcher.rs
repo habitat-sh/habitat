@@ -80,7 +80,7 @@ pub struct SpecWatcher {
     // purposes (`Drop` kills the threads that the watcher spawns to do
     // its work).
     _watcher: RecommendedWatcher,
-    channel: mpsc::Receiver<DebouncedEvent>,
+    channel:  mpsc::Receiver<DebouncedEvent>,
 }
 
 impl SpecWatcher {
@@ -107,14 +107,13 @@ impl SpecWatcher {
         // reference is the true API we want.
         let dir = spec_dir.clone();
 
-        Builder::new()
-            .name(String::from("spec-watcher"))
-            .spawn(move || Self::new(&dir))?
-            .join()
-            .map_err(|_| {
-                error!("SpecWatcher spawning thread panicked!");
-                sup_error!(Error::SpecWatcherNotCreated)
-            })?
+        Builder::new().name(String::from("spec-watcher"))
+                      .spawn(move || Self::new(&dir))?
+                      .join()
+                      .map_err(|_| {
+                          error!("SpecWatcher spawning thread panicked!");
+                          sup_error!(Error::SpecWatcherNotCreated)
+                      })?
     }
 
     /// Isolates the pure creation logic of a `SpecWatcher`, separate
@@ -127,10 +126,8 @@ impl SpecWatcher {
         let delay = SpecWatcherDelay::configured_value();
         let mut watcher = RecommendedWatcher::new(tx, delay.0)?;
         watcher.watch(spec_dir, RecursiveMode::NonRecursive)?;
-        Ok(SpecWatcher {
-            _watcher: watcher,
-            channel: rx,
-        })
+        Ok(SpecWatcher { _watcher: watcher,
+                         channel:  rx, })
     }
 
     /// Returns `true` if _any_ filesystem events were detected in the
@@ -186,8 +183,7 @@ mod tests {
     locked_env_var!(HAB_SPEC_WATCHER_DELAY_MS, lock_delay_var);
 
     fn file_with_content<C>(dir: &TempDir, filename: &str, contents: C) -> StdResult<(), IoError>
-    where
-        C: Into<String>,
+        where C: Into<String>
     {
         let path = dir.path().join(filename);
         let mut buffer = File::create(&path)?;
@@ -207,10 +203,8 @@ mod tests {
 
         let dir = TempDir::new().expect("Could not create directory");
         let spec_dir = SpecDir::new(dir.path()).expect("Couldn't make SpecDir");
-        assert!(
-            SpecWatcher::run(&spec_dir).is_ok(),
-            "Couldn't create a SpecWatcher!"
-        );
+        assert!(SpecWatcher::run(&spec_dir).is_ok(),
+                "Couldn't create a SpecWatcher!");
     }
 
     #[test]
@@ -225,18 +219,14 @@ mod tests {
 
         file_with_content(&dir, "foo.spec", "fooooooo").expect("couldn't create file");
 
-        assert!(
-            !sw.has_events(),
-            "Need to allow for the debounce interval to pass before you can expect events"
-        );
+        assert!(!sw.has_events(),
+                "Need to allow for the debounce interval to pass before you can expect events");
 
         wait_for_debounce_interval();
 
         assert!(sw.has_events(), "There should be an event now");
-        assert!(
-            !sw.has_events(),
-            "Should be no more events after you've checked"
-        );
+        assert!(!sw.has_events(),
+                "Should be no more events after you've checked");
     }
 
     /// Currently, the spec watcher will respond to changes to any
@@ -257,18 +247,14 @@ mod tests {
 
         file_with_content(&dir, "foo.abc123xyz", "fooooooo").expect("couldn't create file");
 
-        assert!(
-            !sw.has_events(),
-            "Need to allow for the debounce interval to pass before you can expect events"
-        );
+        assert!(!sw.has_events(),
+                "Need to allow for the debounce interval to pass before you can expect events");
 
         wait_for_debounce_interval();
 
         assert!(sw.has_events(), "There should be an event now");
-        assert!(
-            !sw.has_events(),
-            "Should be no more events after you've checked"
-        );
+        assert!(!sw.has_events(),
+                "Should be no more events after you've checked");
     }
 
     #[test]
@@ -277,10 +263,8 @@ mod tests {
         delay.set("1");
 
         // Just verifying that our delay variable works correctly
-        assert_eq!(
-            SpecWatcherDelay::configured_value().0,
-            Duration::from_millis(1)
-        );
+        assert_eq!(SpecWatcherDelay::configured_value().0,
+                   Duration::from_millis(1));
 
         let dir = TempDir::new().expect("Could not create directory");
         let spec_dir = SpecDir::new(dir.path()).expect("Couldn't make SpecDir");
@@ -290,17 +274,13 @@ mod tests {
 
         file_with_content(&dir, "foo.spec", "fooooooo").expect("couldn't create file");
 
-        assert!(
-            !sw.has_events(),
-            "Need to allow for the debounce interval to pass before you can expect events"
-        );
+        assert!(!sw.has_events(),
+                "Need to allow for the debounce interval to pass before you can expect events");
 
         wait_for_debounce_interval();
 
         assert!(sw.has_events(), "There should be an event now");
-        assert!(
-            !sw.has_events(),
-            "Should be no more events after you've checked"
-        );
+        assert!(!sw.has_events(),
+                "Should be no more events after you've checked");
     }
 }

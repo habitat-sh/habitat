@@ -34,19 +34,13 @@ fn generate_protocols() {
     let mut config = prost_build::Config::new();
     config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
     config.type_attribute(".", "#[serde(rename_all = \"kebab-case\")]");
-    config
-        .compile_protos(&protocol_files(), &protocol_includes())
-        .expect("protocols");
+    config.compile_protos(&protocol_files(), &protocol_includes())
+          .expect("protocols");
     compile_proto_impls(&protocol_files(), &protocol_includes()).expect("protocol-impls");
     for file in generated_files() {
-        fs::rename(
-            &file,
-            format!(
-                "src/generated/{}",
-                file.file_name().unwrap().to_string_lossy()
-            ),
-        )
-        .unwrap();
+        fs::rename(&file,
+                   format!("src/generated/{}",
+                           file.file_name().unwrap().to_string_lossy())).unwrap();
     }
 }
 
@@ -81,21 +75,23 @@ fn protocol_files() -> Vec<String> {
 fn protocol_includes() -> Vec<String> { vec!["protocols".to_string()] }
 
 fn compile_proto_impls<P>(protos: &[P], includes: &[P]) -> Result<()>
-where
-    P: AsRef<Path>,
+    where P: AsRef<Path>
 {
-    let target: PathBuf = env::var_os("OUT_DIR")
-        .ok_or_else(|| Error::new(ErrorKind::Other, "OUT_DIR environment variable is not set"))?
-        .into();
+    let target: PathBuf = env::var_os("OUT_DIR").ok_or_else(|| {
+                                                    Error::new(ErrorKind::Other,
+                                                               "OUT_DIR environment variable is \
+                                                                not set")
+                                                })?
+                                                .into();
 
     let tmp = tempfile::TempDir::new()?;
     let descriptor_set = tmp.path().join("prost-descriptor-set");
 
     let mut cmd = Command::new(protoc());
     cmd.arg("--include_imports")
-        .arg("--include_source_info")
-        .arg("-o")
-        .arg(&descriptor_set);
+       .arg("--include_source_info")
+       .arg("-o")
+       .arg(&descriptor_set);
 
     for include in includes {
         cmd.arg("-I").arg(include.as_ref());
@@ -111,10 +107,9 @@ where
 
     let output = cmd.output()?;
     if !output.status.success() {
-        return Err(Error::new(
-            ErrorKind::Other,
-            format!("protoc failed: {}", String::from_utf8_lossy(&output.stderr)),
-        ));
+        return Err(Error::new(ErrorKind::Other,
+                              format!("protoc failed: {}",
+                                      String::from_utf8_lossy(&output.stderr))));
     }
 
     let mut buf = Vec::new();
@@ -155,14 +150,8 @@ pub fn module(file: &FileDescriptorProto) -> Module {
 }
 
 fn add_message(msg: &DescriptorProto, buf: &mut String) {
-    buf.push_str(&format!(
-        "impl message::MessageStatic for {} {{\n",
-        msg.name()
-    ));
-    buf.push_str(&format!(
-        "    const MESSAGE_ID: &'static str = \"{}\";\n",
-        msg.name()
-    ));
+    buf.push_str(&format!("impl message::MessageStatic for {} {{\n", msg.name()));
+    buf.push_str(&format!("    const MESSAGE_ID: &'static str = \"{}\";\n", msg.name()));
     buf.push_str("}\n");
 }
 

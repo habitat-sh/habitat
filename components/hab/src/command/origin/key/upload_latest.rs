@@ -31,14 +31,13 @@ use super::get_name_with_rev;
 use crate::{PRODUCT,
             VERSION};
 
-pub fn start(
-    ui: &mut UI,
-    bldr_url: &str,
-    token: &str,
-    origin: &str,
-    with_secret: bool,
-    cache: &Path,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             token: &str,
+             origin: &str,
+             with_secret: bool,
+             cache: &Path)
+             -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
     ui.begin(format!("Uploading latest public origin key {}", &origin))?;
     let latest = SigKeyPair::get_latest_pair_for(origin, cache, None)?;
@@ -50,20 +49,13 @@ pub fn start(
     match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
         Ok(()) => ui.status(Status::Uploaded, &name_with_rev)?,
         Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
-            ui.status(
-                Status::Using,
-                format!(
-                    "public key revision {} which already exists in the depot",
-                    &name_with_rev
-                ),
-            )?;
+            ui.status(Status::Using,
+                      format!("public key revision {} which already exists in the depot",
+                              &name_with_rev))?;
         }
         Err(err) => return Err(Error::from(err)),
     }
-    ui.end(format!(
-        "Upload of public origin key {} complete.",
-        &name_with_rev
-    ))?;
+    ui.end(format!("Upload of public origin key {} complete.", &name_with_rev))?;
 
     if with_secret {
         let secret_keyfile = SigKeyPair::get_secret_key_path(&latest.name_with_rev(), cache)?;
@@ -75,10 +67,7 @@ pub fn start(
         match api_client.put_origin_secret_key(&name, &rev, &secret_keyfile, token, ui.progress()) {
             Ok(()) => {
                 ui.status(Status::Uploaded, &name_with_rev)?;
-                ui.end(format!(
-                    "Upload of secret origin key {} complete.",
-                    &name_with_rev
-                ))?;
+                ui.end(format!("Upload of secret origin key {} complete.", &name_with_rev))?;
             }
             Err(e) => {
                 return Err(Error::APIClient(e));

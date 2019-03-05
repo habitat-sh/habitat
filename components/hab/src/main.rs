@@ -170,143 +170,180 @@ fn start(ui: &mut UI) -> Result<()> {
     // possible stack overflow crashes at runtime. OSX, for instance,
     // will crash with our large tree. This is a known issue:
     // https://github.com/kbknapp/clap-rs/issues/86
-    let child = thread::Builder::new()
-        .stack_size(8 * 1024 * 1024)
-        .spawn(move || {
-            return cli::get()
+    let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
+                                      .spawn(move || {
+                                          return cli::get()
                 .get_matches_from_safe_borrow(&mut args.iter())
                 .unwrap_or_else(|e| {
                     analytics::instrument_clap_error(&e);
                     e.exit();
                 });
-        })
-        .unwrap();
+                                      })
+                                      .unwrap();
     let app_matches = child.join().unwrap();
 
     match app_matches.subcommand() {
         ("apply", Some(m)) => sub_svc_set(m)?,
-        ("cli", Some(matches)) => match matches.subcommand() {
-            ("setup", Some(_)) => sub_cli_setup(ui)?,
-            ("completers", Some(m)) => sub_cli_completers(m)?,
-            _ => unreachable!(),
-        },
-        ("config", Some(m)) => match m.subcommand() {
-            ("apply", Some(m)) => sub_svc_set(m)?,
-            ("show", Some(m)) => sub_svc_config(m)?,
-            _ => unreachable!(),
-        },
-        ("file", Some(m)) => match m.subcommand() {
-            ("upload", Some(m)) => sub_file_put(m)?,
-            _ => unreachable!(),
-        },
+        ("cli", Some(matches)) => {
+            match matches.subcommand() {
+                ("setup", Some(_)) => sub_cli_setup(ui)?,
+                ("completers", Some(m)) => sub_cli_completers(m)?,
+                _ => unreachable!(),
+            }
+        }
+        ("config", Some(m)) => {
+            match m.subcommand() {
+                ("apply", Some(m)) => sub_svc_set(m)?,
+                ("show", Some(m)) => sub_svc_config(m)?,
+                _ => unreachable!(),
+            }
+        }
+        ("file", Some(m)) => {
+            match m.subcommand() {
+                ("upload", Some(m)) => sub_file_put(m)?,
+                _ => unreachable!(),
+            }
+        }
         ("install", Some(m)) => sub_pkg_install(ui, m)?,
-        ("origin", Some(matches)) => match matches.subcommand() {
-            ("key", Some(m)) => match m.subcommand() {
-                ("download", Some(sc)) => sub_origin_key_download(ui, sc)?,
-                ("export", Some(sc)) => sub_origin_key_export(sc)?,
-                ("generate", Some(sc)) => sub_origin_key_generate(ui, sc)?,
-                ("import", Some(_)) => sub_origin_key_import(ui)?,
-                ("upload", Some(sc)) => sub_origin_key_upload(ui, sc)?,
+        ("origin", Some(matches)) => {
+            match matches.subcommand() {
+                ("key", Some(m)) => {
+                    match m.subcommand() {
+                        ("download", Some(sc)) => sub_origin_key_download(ui, sc)?,
+                        ("export", Some(sc)) => sub_origin_key_export(sc)?,
+                        ("generate", Some(sc)) => sub_origin_key_generate(ui, sc)?,
+                        ("import", Some(_)) => sub_origin_key_import(ui)?,
+                        ("upload", Some(sc)) => sub_origin_key_upload(ui, sc)?,
+                        _ => unreachable!(),
+                    }
+                }
+                ("secret", Some(m)) => {
+                    match m.subcommand() {
+                        ("upload", Some(sc)) => sub_origin_secret_upload(ui, sc)?,
+                        ("delete", Some(sc)) => sub_origin_secret_delete(ui, sc)?,
+                        ("list", Some(sc)) => sub_origin_secret_list(ui, sc)?,
+                        _ => unreachable!(),
+                    }
+                }
+                ("delete", Some(m)) => sub_origin_delete(ui, m)?,
                 _ => unreachable!(),
-            },
-            ("secret", Some(m)) => match m.subcommand() {
-                ("upload", Some(sc)) => sub_origin_secret_upload(ui, sc)?,
-                ("delete", Some(sc)) => sub_origin_secret_delete(ui, sc)?,
-                ("list", Some(sc)) => sub_origin_secret_list(ui, sc)?,
+            }
+        }
+        ("bldr", Some(matches)) => {
+            match matches.subcommand() {
+                ("job", Some(m)) => {
+                    match m.subcommand() {
+                        ("start", Some(m)) => sub_bldr_job_start(ui, m)?,
+                        ("cancel", Some(m)) => sub_bldr_job_cancel(ui, m)?,
+                        ("promote", Some(m)) => sub_bldr_job_promote_or_demote(ui, m, true)?,
+                        ("demote", Some(m)) => sub_bldr_job_promote_or_demote(ui, m, false)?,
+                        ("status", Some(m)) => sub_bldr_job_status(ui, m)?,
+                        _ => unreachable!(),
+                    }
+                }
+                ("channel", Some(m)) => {
+                    match m.subcommand() {
+                        ("create", Some(m)) => sub_bldr_channel_create(ui, m)?,
+                        ("destroy", Some(m)) => sub_bldr_channel_destroy(ui, m)?,
+                        ("list", Some(m)) => sub_bldr_channel_list(ui, m)?,
+                        _ => unreachable!(),
+                    }
+                }
                 _ => unreachable!(),
-            },
-            ("delete", Some(m)) => sub_origin_delete(ui, m)?,
-            _ => unreachable!(),
-        },
-        ("bldr", Some(matches)) => match matches.subcommand() {
-            ("job", Some(m)) => match m.subcommand() {
-                ("start", Some(m)) => sub_bldr_job_start(ui, m)?,
-                ("cancel", Some(m)) => sub_bldr_job_cancel(ui, m)?,
-                ("promote", Some(m)) => sub_bldr_job_promote_or_demote(ui, m, true)?,
-                ("demote", Some(m)) => sub_bldr_job_promote_or_demote(ui, m, false)?,
-                ("status", Some(m)) => sub_bldr_job_status(ui, m)?,
+            }
+        }
+        ("pkg", Some(matches)) => {
+            match matches.subcommand() {
+                ("binds", Some(m)) => sub_pkg_binds(m)?,
+                ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
+                ("build", Some(m)) => sub_pkg_build(ui, m)?,
+                ("channels", Some(m)) => sub_pkg_channels(ui, m)?,
+                ("config", Some(m)) => sub_pkg_config(m)?,
+                ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
+                ("env", Some(m)) => sub_pkg_env(m)?,
+                ("exec", Some(m)) => sub_pkg_exec(m, remaining_args)?,
+                ("export", Some(m)) => sub_pkg_export(ui, m)?,
+                ("hash", Some(m)) => sub_pkg_hash(m)?,
+                ("install", Some(m)) => sub_pkg_install(ui, m)?,
+                ("list", Some(m)) => sub_pkg_list(m)?,
+                ("path", Some(m)) => sub_pkg_path(m)?,
+                ("provides", Some(m)) => sub_pkg_provides(m)?,
+                ("search", Some(m)) => sub_pkg_search(m)?,
+                ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
+                ("uninstall", Some(m)) => sub_pkg_uninstall(ui, m)?,
+                ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
+                ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
+                ("header", Some(m)) => sub_pkg_header(ui, m)?,
+                ("info", Some(m)) => sub_pkg_info(ui, m)?,
+                ("promote", Some(m)) => sub_pkg_promote(ui, m)?,
+                ("demote", Some(m)) => sub_pkg_demote(ui, m)?,
                 _ => unreachable!(),
-            },
-            ("channel", Some(m)) => match m.subcommand() {
-                ("create", Some(m)) => sub_bldr_channel_create(ui, m)?,
-                ("destroy", Some(m)) => sub_bldr_channel_destroy(ui, m)?,
-                ("list", Some(m)) => sub_bldr_channel_list(ui, m)?,
+            }
+        }
+        ("plan", Some(matches)) => {
+            match matches.subcommand() {
+                ("init", Some(m)) => sub_plan_init(ui, m)?,
                 _ => unreachable!(),
-            },
-            _ => unreachable!(),
-        },
-        ("pkg", Some(matches)) => match matches.subcommand() {
-            ("binds", Some(m)) => sub_pkg_binds(m)?,
-            ("binlink", Some(m)) => sub_pkg_binlink(ui, m)?,
-            ("build", Some(m)) => sub_pkg_build(ui, m)?,
-            ("channels", Some(m)) => sub_pkg_channels(ui, m)?,
-            ("config", Some(m)) => sub_pkg_config(m)?,
-            ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
-            ("env", Some(m)) => sub_pkg_env(m)?,
-            ("exec", Some(m)) => sub_pkg_exec(m, remaining_args)?,
-            ("export", Some(m)) => sub_pkg_export(ui, m)?,
-            ("hash", Some(m)) => sub_pkg_hash(m)?,
-            ("install", Some(m)) => sub_pkg_install(ui, m)?,
-            ("list", Some(m)) => sub_pkg_list(m)?,
-            ("path", Some(m)) => sub_pkg_path(m)?,
-            ("provides", Some(m)) => sub_pkg_provides(m)?,
-            ("search", Some(m)) => sub_pkg_search(m)?,
-            ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
-            ("uninstall", Some(m)) => sub_pkg_uninstall(ui, m)?,
-            ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
-            ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
-            ("header", Some(m)) => sub_pkg_header(ui, m)?,
-            ("info", Some(m)) => sub_pkg_info(ui, m)?,
-            ("promote", Some(m)) => sub_pkg_promote(ui, m)?,
-            ("demote", Some(m)) => sub_pkg_demote(ui, m)?,
-            _ => unreachable!(),
-        },
-        ("plan", Some(matches)) => match matches.subcommand() {
-            ("init", Some(m)) => sub_plan_init(ui, m)?,
-            _ => unreachable!(),
-        },
-        ("ring", Some(matches)) => match matches.subcommand() {
-            ("key", Some(m)) => match m.subcommand() {
-                ("export", Some(sc)) => sub_ring_key_export(sc)?,
-                ("import", Some(_)) => sub_ring_key_import(ui)?,
-                ("generate", Some(sc)) => sub_ring_key_generate(ui, sc)?,
+            }
+        }
+        ("ring", Some(matches)) => {
+            match matches.subcommand() {
+                ("key", Some(m)) => {
+                    match m.subcommand() {
+                        ("export", Some(sc)) => sub_ring_key_export(sc)?,
+                        ("import", Some(_)) => sub_ring_key_import(ui)?,
+                        ("generate", Some(sc)) => sub_ring_key_generate(ui, sc)?,
+                        _ => unreachable!(),
+                    }
+                }
                 _ => unreachable!(),
-            },
-            _ => unreachable!(),
-        },
-        ("svc", Some(matches)) => match matches.subcommand() {
-            ("key", Some(m)) => match m.subcommand() {
-                ("generate", Some(sc)) => sub_service_key_generate(ui, sc)?,
+            }
+        }
+        ("svc", Some(matches)) => {
+            match matches.subcommand() {
+                ("key", Some(m)) => {
+                    match m.subcommand() {
+                        ("generate", Some(sc)) => sub_service_key_generate(ui, sc)?,
+                        _ => unreachable!(),
+                    }
+                }
+                ("load", Some(m)) => sub_svc_load(m)?,
+                ("unload", Some(m)) => sub_svc_unload(m)?,
+                ("start", Some(m)) => sub_svc_start(m)?,
+                ("stop", Some(m)) => sub_svc_stop(m)?,
+                ("status", Some(m)) => sub_svc_status(m)?,
                 _ => unreachable!(),
-            },
-            ("load", Some(m)) => sub_svc_load(m)?,
-            ("unload", Some(m)) => sub_svc_unload(m)?,
-            ("start", Some(m)) => sub_svc_start(m)?,
-            ("stop", Some(m)) => sub_svc_stop(m)?,
-            ("status", Some(m)) => sub_svc_status(m)?,
-            _ => unreachable!(),
-        },
-        ("sup", Some(m)) => match m.subcommand() {
-            ("depart", Some(m)) => sub_sup_depart(m)?,
-            ("secret", Some(m)) => match m.subcommand() {
-                ("generate", _) => sub_sup_secret_generate()?,
+            }
+        }
+        ("sup", Some(m)) => {
+            match m.subcommand() {
+                ("depart", Some(m)) => sub_sup_depart(m)?,
+                ("secret", Some(m)) => {
+                    match m.subcommand() {
+                        ("generate", _) => sub_sup_secret_generate()?,
+                        _ => unreachable!(),
+                    }
+                }
+                // this is effectively an alias of `hab svc status`
+                ("status", Some(m)) => sub_svc_status(m)?,
                 _ => unreachable!(),
-            },
-            // this is effectively an alias of `hab svc status`
-            ("status", Some(m)) => sub_svc_status(m)?,
-            _ => unreachable!(),
-        },
+            }
+        }
         ("supportbundle", _) => sub_supportbundle(ui)?,
         ("setup", Some(_)) => sub_cli_setup(ui)?,
         ("start", Some(m)) => sub_svc_start(m)?,
         ("stop", Some(m)) => sub_svc_stop(m)?,
-        ("user", Some(matches)) => match matches.subcommand() {
-            ("key", Some(m)) => match m.subcommand() {
-                ("generate", Some(sc)) => sub_user_key_generate(ui, sc)?,
+        ("user", Some(matches)) => {
+            match matches.subcommand() {
+                ("key", Some(m)) => {
+                    match m.subcommand() {
+                        ("generate", Some(sc)) => sub_user_key_generate(ui, sc)?,
+                        _ => unreachable!(),
+                    }
+                }
                 _ => unreachable!(),
-            },
-            _ => unreachable!(),
-        },
+            }
+        }
         _ => unreachable!(),
     };
     Ok(())
@@ -324,9 +361,8 @@ fn sub_cli_setup(ui: &mut UI) -> Result<()> {
 }
 
 fn sub_cli_completers(m: &ArgMatches<'_>) -> Result<()> {
-    let shell = m
-        .value_of("SHELL")
-        .expect("Missing Shell; A shell is required");
+    let shell = m.value_of("SHELL")
+                 .expect("Missing Shell; A shell is required");
     cli::get().gen_completions_to("hab", shell.parse::<Shell>().unwrap(), &mut io::stdout());
     Ok(())
 }
@@ -339,16 +375,14 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(&m)?;
 
-    command::origin::key::download::start(
-        ui,
-        &url,
-        &origin,
-        revision,
-        with_secret,
-        with_encryption,
-        token.as_ref().map(String::as_str),
-        &default_cache_key_path(Some(&*FS_ROOT)),
-    )
+    command::origin::key::download::start(ui,
+                                          &url,
+                                          &origin,
+                                          revision,
+                                          with_secret,
+                                          with_encryption,
+                                          token.as_ref().map(String::as_str),
+                                          &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_origin_key_export(m: &ArgMatches<'_>) -> Result<()> {
@@ -372,11 +406,9 @@ fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
     init();
 
     // Trim the content to lose line feeds added by Powershell pipeline
-    command::origin::key::import::start(
-        ui,
-        content.trim(),
-        &default_cache_key_path(Some(&*FS_ROOT)),
-    )
+    command::origin::key::import::start(ui,
+                                        content.trim(),
+                                        &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -389,14 +421,12 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         let origin = m.value_of("ORIGIN").unwrap();
         // you can either specify files, or infer the latest key names
         let with_secret = m.is_present("WITH_SECRET");
-        command::origin::key::upload_latest::start(
-            ui,
-            &url,
-            &token,
-            origin,
-            with_secret,
-            &default_cache_key_path(Some(&*FS_ROOT)),
-        )
+        command::origin::key::upload_latest::start(ui,
+                                                   &url,
+                                                   &token,
+                                                   origin,
+                                                   with_secret,
+                                                   &default_cache_key_path(Some(&*FS_ROOT)))
     } else {
         let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
@@ -410,15 +440,13 @@ fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = origin_param_or_env(&m)?;
     let key = m.value_of("KEY_NAME").unwrap();
     let secret = m.value_of("SECRET").unwrap();
-    command::origin::secret::upload::start(
-        ui,
-        &url,
-        &token,
-        &origin,
-        &key,
-        &secret,
-        &default_cache_key_path(Some(&*FS_ROOT)),
-    )
+    command::origin::secret::upload::start(ui,
+                                           &url,
+                                           &token,
+                                           &origin,
+                                           &key,
+                                           &secret,
+                                           &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -464,11 +492,10 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
             init();
             for key in keys.clone() {
                 // Validate that all secret keys are present
-                let pair = SigKeyPair::get_latest_pair_for(
-                    key,
-                    &default_cache_key_path(Some(&*FS_ROOT)),
-                    None,
-                )?;
+                let pair =
+                    SigKeyPair::get_latest_pair_for(key,
+                                                    &default_cache_key_path(Some(&*FS_ROOT)),
+                                                    None)?;
                 let _ = pair.secret();
             }
             Some(keys.collect::<Vec<_>>().join(","))
@@ -573,15 +600,13 @@ fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
     let services = supervisor_services()?;
 
-    command::pkg::uninstall::start(
-        ui,
-        &ident,
-        &*FS_ROOT,
-        execute_strategy,
-        scope,
-        &excludes,
-        &services,
-    )
+    command::pkg::uninstall::start(ui,
+                                   &ident,
+                                   &*FS_ROOT,
+                                   execute_strategy,
+                                   scope,
+                                   &excludes,
+                                   &services)
 }
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
@@ -630,28 +655,25 @@ fn sub_bldr_job_promote_or_demote(ui: &mut UI, m: &ArgMatches<'_>, promote: bool
     let interactive = m.is_present("INTERACTIVE");
     let verbose = m.is_present("VERBOSE");
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::job::promote::start(
-        ui,
-        &url,
-        &group_id,
-        &channel,
-        origin,
-        interactive,
-        verbose,
-        &token,
-        promote,
-    )
+    command::bldr::job::promote::start(ui,
+                                       &url,
+                                       &group_id,
+                                       &channel,
+                                       origin,
+                                       interactive,
+                                       verbose,
+                                       &token,
+                                       promote)
 }
 
 fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let group_id = m.value_of("GROUP_ID");
     let origin = m.value_of("ORIGIN");
-    let limit = m
-        .value_of("LIMIT")
-        .unwrap_or("10")
-        .parse::<usize>()
-        .unwrap();
+    let limit = m.value_of("LIMIT")
+                 .unwrap_or("10")
+                 .parse::<usize>()
+                 .unwrap();
     let show_jobs = m.is_present("SHOW_JOBS");
 
     command::bldr::job::status::start(ui, &url, group_id, origin, limit, show_jobs)
@@ -673,16 +695,14 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         scaffolding::scaffold_check(ui, m.value_of("SCAFFOLDING"))?
     };
 
-    command::plan::init::start(
-        ui,
-        origin,
-        with_docs,
-        with_callbacks,
-        with_all,
-        windows,
-        scaffolding_ident,
-        name,
-    )
+    command::plan::init::start(ui,
+                               origin,
+                               with_docs,
+                               with_callbacks,
+                               with_all,
+                               windows,
+                               scaffolding_ident,
+                               name)
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -713,31 +733,28 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     init();
 
     for install_source in install_sources.iter() {
-        let pkg_install = common::command::package::install::start(
-            ui,
-            &url,
-            &channel,
-            install_source,
-            PRODUCT,
-            VERSION,
-            &*FS_ROOT,
-            &cache_artifact_path(Some(&*FS_ROOT)),
-            token.as_ref().map(String::as_str),
-            &install_mode,
-            &local_package_usage,
-            install_hook_mode,
-        )?;
+        let pkg_install =
+            common::command::package::install::start(ui,
+                                                     &url,
+                                                     &channel,
+                                                     install_source,
+                                                     PRODUCT,
+                                                     VERSION,
+                                                     &*FS_ROOT,
+                                                     &cache_artifact_path(Some(&*FS_ROOT)),
+                                                     token.as_ref().map(String::as_str),
+                                                     &install_mode,
+                                                     &local_package_usage,
+                                                     install_hook_mode)?;
 
         if m.is_present("BINLINK") {
             let dest_dir = binlink_dest_dir_from_matches(m);
             let force = m.is_present("FORCE");
-            command::pkg::binlink::binlink_all_in_pkg(
-                ui,
-                pkg_install.ident(),
-                dest_dir,
-                &*FS_ROOT,
-                force,
-            )?;
+            command::pkg::binlink::binlink_all_in_pkg(ui,
+                                                      pkg_install.ident(),
+                                                      dest_dir,
+                                                      &*FS_ROOT,
+                                                      force)?;
         }
     }
     Ok(())
@@ -775,11 +792,9 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     let dst = Path::new(m.value_of("DEST").unwrap()); // Required via clap
     init();
-    let pair = SigKeyPair::get_latest_pair_for(
-        &origin_param_or_env(&m)?,
-        &default_cache_key_path(Some(&*FS_ROOT)),
-        Some(&PairType::Secret),
-    )?;
+    let pair = SigKeyPair::get_latest_pair_for(&origin_param_or_env(&m)?,
+                                               &default_cache_key_path(Some(&*FS_ROOT)),
+                                               Some(&PairType::Secret))?;
 
     command::pkg::sign::start(ui, &pair, &src, &dst)
 }
@@ -799,15 +814,13 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
     for artifact_path in artifact_paths {
-        command::pkg::upload::start(
-            ui,
-            &url,
-            &additional_release_channel,
-            &token,
-            &artifact_path,
-            force_upload,
-            &key_path,
-        )?;
+        command::pkg::upload::start(ui,
+                                    &url,
+                                    &additional_release_channel,
+                                    &token,
+                                    &artifact_path,
+                                    force_upload,
+                                    &key_path)?;
     }
     Ok(())
 }
@@ -875,10 +888,8 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         }
     };
     if cfg_len > protocol::butterfly::MAX_SVC_CFG_SIZE {
-        ui.fatal(format!(
-            "Configuration too large. Maximum size allowed is {} bytes.",
-            protocol::butterfly::MAX_SVC_CFG_SIZE
-        ))?;
+        ui.fatal(format!("Configuration too large. Maximum size allowed is {} bytes.",
+                         protocol::butterfly::MAX_SVC_CFG_SIZE))?;
         process::exit(1);
     }
     validate.cfg = Some(buf.clone());
@@ -888,14 +899,10 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         (Some(_org), Some(username)) => {
             let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
             let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
-            ui.status(
-                Status::Encrypting,
-                format!(
-                    "TOML as {} for {}",
-                    user_pair.name_with_rev(),
-                    service_pair.name_with_rev()
-                ),
-            )?;
+            ui.status(Status::Encrypting,
+                      format!("TOML as {} for {}",
+                              user_pair.name_with_rev(),
+                              service_pair.name_with_rev()))?;
             set.cfg = Some(user_pair.encrypt(&buf, Some(&service_pair))?.into_bytes());
             set.is_encrypted = Some(true);
         }
@@ -903,21 +910,18 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     }
     set.service_group = Some(service_group.into());
     set.version = Some(value_t!(m, "VERSION_NUMBER", u64).unwrap());
-    ui.begin(format!(
-        "Setting new configuration version {} for {}",
-        set.version
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or_else(|| "UNKNOWN".to_string()),
-        set.service_group
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or_else(|| "UNKNOWN".to_string()),
-    ))?;
+    ui.begin(format!("Setting new configuration version {} for {}",
+                     set.version
+                        .as_ref()
+                        .map(ToString::to_string)
+                        .unwrap_or_else(|| "UNKNOWN".to_string()),
+                     set.service_group
+                        .as_ref()
+                        .map(ToString::to_string)
+                        .unwrap_or_else(|| "UNKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service configuration")?;
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| {
-            conn.call(validate)
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         conn.call(validate)
                 .for_each(|reply| match reply.message_id() {
                     "NetOk" => Ok(()),
                     "NetErr" => {
@@ -936,15 +940,15 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                         io::ErrorKind::UnexpectedEof,
                     ))),
                 })
-        })
-        .wait()?;
+                                                     })
+                                                     .wait()?;
     ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
     // JW: We should not need to make two connections here. I need a way to return the
     // SrvClient from a for_each iterator so we can chain upon a successful stream but I don't
     // know if it's possible with this version of futures.
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| {
-            conn.call(set).for_each(|reply| match reply.message_id() {
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         conn.call(set).for_each(|reply| {
+                          match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
@@ -955,9 +959,10 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                 _ => Err(SrvClientError::from(io::Error::from(
                     io::ErrorKind::UnexpectedEof,
                 ))),
-            })
-        })
-        .wait()?;
+            }
+                      })
+                                                     })
+                                                     .wait()?;
     ui.end("Applied configuration")?;
     Ok(())
 }
@@ -969,9 +974,9 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| {
-            conn.call(msg).for_each(|reply| match reply.message_id() {
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         conn.call(msg).for_each(|reply| {
+                          match reply.message_id() {
                 "ServiceCfg" => {
                     let m = reply
                         .parse::<protocol::types::ServiceCfg>()
@@ -988,9 +993,10 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
                 _ => Err(SrvClientError::from(io::Error::from(
                     io::ErrorKind::UnexpectedEof,
                 ))),
-            })
-        })
-        .wait()?;
+            }
+                      })
+                                                     })
+                                                     .wait()?;
     Ok(())
 }
 
@@ -1002,9 +1008,11 @@ fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     update_svc_load_from_input(m, &mut msg)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| conn.call(msg).for_each(|m| handle_ctl_reply(&m)))
-        .wait()?;
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         conn.call(msg)
+                                                             .for_each(|m| handle_ctl_reply(&m))
+                                                     })
+                                                     .wait()?;
     Ok(())
 }
 
@@ -1015,9 +1023,11 @@ fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcUnload::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| conn.call(msg).for_each(|m| handle_ctl_reply(&m)))
-        .wait()?;
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         conn.call(msg)
+                                                             .for_each(|m| handle_ctl_reply(&m))
+                                                     })
+                                                     .wait()?;
     Ok(())
 }
 
@@ -1028,9 +1038,11 @@ fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStart::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| conn.call(msg).for_each(|m| handle_ctl_reply(&m)))
-        .wait()?;
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         conn.call(msg)
+                                                             .for_each(|m| handle_ctl_reply(&m))
+                                                     })
+                                                     .wait()?;
     Ok(())
 }
 
@@ -1043,10 +1055,9 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
     }
 
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| {
-            let mut out = TabWriter::new(io::stdout());
-            conn.call(msg)
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         let mut out = TabWriter::new(io::stdout());
+                                                         conn.call(msg)
                 .into_future()
                 .map_err(|(err, _)| err)
                 .and_then(move |(reply, rest)| {
@@ -1070,8 +1081,8 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
                     out.flush()?;
                     Ok(())
                 })
-        })
-        .wait()?;
+                                                     })
+                                                     .wait()?;
     Ok(())
 }
 
@@ -1082,9 +1093,11 @@ fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStop::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| conn.call(msg).for_each(|m| handle_ctl_reply(&m)))
-        .wait()?;
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         conn.call(msg)
+                                                             .for_each(|m| handle_ctl_reply(&m))
+                                                     })
+                                                     .wait()?;
     Ok(())
 }
 
@@ -1097,10 +1110,8 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let mut msg = protocol::ctl::SvcFilePut::default();
     let file = Path::new(m.value_of("FILE").unwrap());
     if file.metadata()?.len() > protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
-        ui.fatal(format!(
-            "File too large. Maximum size allowed is {} bytes.",
-            protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES
-        ))?;
+        ui.fatal(format!("File too large. Maximum size allowed is {} bytes.",
+                         protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES))?;
         process::exit(1);
     };
     msg.service_group = Some(service_group.clone().into());
@@ -1108,42 +1119,38 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     msg.filename = Some(file.file_name().unwrap().to_string_lossy().into_owned());
     let mut buf = Vec::with_capacity(protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES);
     let cache = default_cache_key_path(Some(&*FS_ROOT));
-    ui.begin(format!(
-        "Uploading file {} to {} incarnation {}",
-        file.display(),
-        msg.version
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or_else(|| "UNKNOWN".to_string()),
-        msg.service_group
-            .as_ref()
-            .map(ToString::to_string)
-            .unwrap_or_else(|| "UKNOWN".to_string()),
-    ))?;
+    ui.begin(format!("Uploading file {} to {} incarnation {}",
+                     file.display(),
+                     msg.version
+                        .as_ref()
+                        .map(ToString::to_string)
+                        .unwrap_or_else(|| "UNKNOWN".to_string()),
+                     msg.service_group
+                        .as_ref()
+                        .map(ToString::to_string)
+                        .unwrap_or_else(|| "UKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service file")?;
     File::open(&file)?.read_to_end(&mut buf)?;
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
             let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
             let service_pair = BoxKeyPair::get_latest_pair_for(&service_group, &cache)?;
-            ui.status(
-                Status::Encrypting,
-                format!(
-                    "file as {} for {}",
-                    user_pair.name_with_rev(),
-                    service_pair.name_with_rev()
-                ),
-            )?;
+            ui.status(Status::Encrypting,
+                      format!("file as {} for {}",
+                              user_pair.name_with_rev(),
+                              service_pair.name_with_rev()))?;
             msg.content = Some(user_pair.encrypt(&buf, Some(&service_pair))?.into_bytes());
             msg.is_encrypted = Some(true);
         }
         _ => msg.content = Some(buf.to_vec()),
     }
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| {
-            ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
-                .unwrap();
-            conn.call(msg).for_each(|reply| match reply.message_id() {
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         ui.status(Status::Applying,
+                                                                   format!("via peer {}",
+                                                                           listen_ctl_addr))
+                                                           .unwrap();
+                                                         conn.call(msg).for_each(|reply| {
+                          match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
@@ -1160,9 +1167,10 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                 _ => Err(SrvClientError::from(io::Error::from(
                     io::ErrorKind::UnexpectedEof,
                 ))),
-            })
-        })
-        .wait()?;
+            }
+                      })
+                                                     })
+                                                     .wait()?;
     ui.end("Uploaded file")?;
     Ok(())
 }
@@ -1174,19 +1182,17 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let mut ui = ui();
     let mut msg = protocol::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| {
-            ui.begin(format!(
-                "Permanently marking {} as departed",
-                msg.member_id
-                    .as_ref()
-                    .map(String::as_str)
-                    .unwrap_or("UNKNOWN")
-            ))
-            .unwrap();
-            ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
-                .unwrap();
-            conn.call(msg).for_each(|reply| match reply.message_id() {
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+        ui.begin(format!("Permanently marking {} as departed",
+                         msg.member_id
+                            .as_ref()
+                            .map(String::as_str)
+                            .unwrap_or("UNKNOWN")))
+          .unwrap();
+        ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
+          .unwrap();
+        conn.call(msg).for_each(|reply| {
+                          match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
@@ -1197,9 +1203,10 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
                 _ => Err(SrvClientError::from(io::Error::from(
                     io::ErrorKind::UnexpectedEof,
                 ))),
-            })
-        })
-        .wait()?;
+            }
+                      })
+    })
+    .wait()?;
     ui.end("Departure recorded.")?;
     Ok(())
 }
@@ -1246,12 +1253,10 @@ fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     init();
 
-    command::service::key::generate::start(
-        ui,
-        &org,
-        &service_group,
-        &default_cache_key_path(Some(&*FS_ROOT)),
-    )
+    command::service::key::generate::start(ui,
+                                           &org,
+                                           &service_group,
+                                           &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
 fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -1263,11 +1268,10 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let mut args = env::args();
-    match (
-        args.nth(1).unwrap_or_default().as_str(),
-        args.next().unwrap_or_default().as_str(),
-        args.next().unwrap_or_default().as_str(),
-    ) {
+    match (args.nth(1).unwrap_or_default().as_str(),
+           args.next().unwrap_or_default().as_str(),
+           args.next().unwrap_or_default().as_str())
+    {
         ("pkg", "export", "docker") => {
             command::pkg::export::docker::start(ui, env::args_os().skip(4).collect())
         }
@@ -1316,16 +1320,10 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
 /// certain point, especially if those arguments look like further options and flags.
 fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
     let mut args = env::args();
-    match (
-        args.nth(1).unwrap_or_default().as_str(),
-        args.next().unwrap_or_default().as_str(),
-    ) {
+    match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
         ("pkg", "exec") => {
             if args.by_ref().count() > 2 {
-                return (
-                    env::args_os().take(5).collect(),
-                    env::args_os().skip(5).collect(),
-                );
+                return (env::args_os().take(5).collect(), env::args_os().skip(5).collect());
             } else {
                 (env::args_os().collect(), Vec::new())
             }
@@ -1340,16 +1338,18 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
 fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
     match m.value_of("AUTH_TOKEN") {
         Some(o) => Ok(o.to_string()),
-        None => match henv::var(AUTH_TOKEN_ENVVAR) {
-            Ok(v) => Ok(v),
-            Err(_) => {
-                let config = config::load()?;
-                match config.auth_token {
-                    Some(v) => Ok(v),
-                    None => return Err(Error::ArgumentError("No auth token specified")),
+        None => {
+            match henv::var(AUTH_TOKEN_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => {
+                    let config = config::load()?;
+                    match config.auth_token {
+                        Some(v) => Ok(v),
+                        None => return Err(Error::ArgumentError("No auth token specified")),
+                    }
                 }
             }
-        },
+        }
     }
 }
 
@@ -1358,10 +1358,12 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
 fn ctl_secret_key(config: &Config) -> Result<String> {
     match henv::var(CTL_SECRET_ENVVAR) {
         Ok(v) => Ok(v.to_string()),
-        Err(_) => match config.ctl_secret {
-            Some(ref v) => Ok(v.to_string()),
-            None => SrvClient::read_secret_key().map_err(Error::from),
-        },
+        Err(_) => {
+            match config.ctl_secret {
+                Some(ref v) => Ok(v.to_string()),
+                None => SrvClient::read_secret_key().map_err(Error::from),
+            }
+        }
     }
 }
 
@@ -1381,16 +1383,18 @@ fn maybe_auth_token(m: &ArgMatches<'_>) -> Option<String> {
 fn origin_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
     match m.value_of("ORIGIN") {
         Some(o) => Ok(o.to_string()),
-        None => match henv::var(ORIGIN_ENVVAR) {
-            Ok(v) => Ok(v),
-            Err(_) => {
-                let config = config::load()?;
-                match config.origin {
-                    Some(v) => Ok(v),
-                    None => return Err(Error::CryptoCLI("No origin specified".to_string())),
+        None => {
+            match henv::var(ORIGIN_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => {
+                    let config = config::load()?;
+                    match config.origin {
+                        Some(v) => Ok(v),
+                        None => return Err(Error::CryptoCLI("No origin specified".to_string())),
+                    }
                 }
             }
-        },
+        }
     }
 }
 
@@ -1400,10 +1404,12 @@ fn origin_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
 fn org_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
     match m.value_of("ORG") {
         Some(o) => Ok(o.to_string()),
-        None => match henv::var(HABITAT_ORG_ENVVAR) {
-            Ok(v) => Ok(v),
-            Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
-        },
+        None => {
+            match henv::var(HABITAT_ORG_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
+            }
+        }
     }
 }
 
@@ -1413,16 +1419,18 @@ fn org_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
 fn bldr_url_from_matches(matches: &ArgMatches<'_>) -> Result<String> {
     match matches.value_of("BLDR_URL") {
         Some(url) => Ok(url.to_string()),
-        None => match henv::var(BLDR_URL_ENVVAR) {
-            Ok(v) => Ok(v),
-            Err(_) => {
-                let config = config::load()?;
-                match config.bldr_url {
-                    Some(v) => Ok(v),
-                    None => Ok(default_bldr_url()),
+        None => {
+            match henv::var(BLDR_URL_ENVVAR) {
+                Ok(v) => Ok(v),
+                Err(_) => {
+                    let config = config::load()?;
+                    match config.bldr_url {
+                        Some(v) => Ok(v),
+                        None => Ok(default_bldr_url()),
+                    }
                 }
             }
-        },
+        }
     }
 }
 
@@ -1447,11 +1455,10 @@ fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {
 
 /// Resolve a target. Default to x86_64-linux if none specified
 fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
-    matches
-        .value_of("PKG_TARGET")
-        .map(PackageTarget::from_str)
-        .unwrap_or_else(|| PackageTarget::from_str("x86_64-linux"))
-        .map_err(Error::HabitatCore)
+    matches.value_of("PKG_TARGET")
+           .map(PackageTarget::from_str)
+           .unwrap_or_else(|| PackageTarget::from_str("x86_64-linux"))
+           .map_err(Error::HabitatCore)
 }
 
 fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
@@ -1476,12 +1483,10 @@ fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
 }
 
 fn enable_features_from_env(ui: &mut UI) {
-    let features = vec![
-        (feat::List, "LIST"),
-        (feat::OfflineInstall, "OFFLINE_INSTALL"),
-        (feat::IgnoreLocal, "IGNORE_LOCAL"),
-        (feat::InstallHook, "INSTALL_HOOK"),
-    ];
+    let features = vec![(feat::List, "LIST"),
+                        (feat::OfflineInstall, "OFFLINE_INSTALL"),
+                        (feat::IgnoreLocal, "IGNORE_LOCAL"),
+                        (feat::InstallHook, "INSTALL_HOOK"),];
 
     // If the environment variable for a flag is set to _anything_ but
     // the empty string, it is activated.
@@ -1489,21 +1494,19 @@ fn enable_features_from_env(ui: &mut UI) {
         if henv::var(format!("HAB_FEAT_{}", feature.1)).is_ok() {
             feat::enable(feature.0);
             ui.warn(&format!("Enabling feature: {:?}", feature.0))
-                .unwrap();
+              .unwrap();
         }
     }
 
     if feat::is_enabled(feat::List) {
         ui.warn("Listing feature flags environment variables:")
-            .unwrap();
+          .unwrap();
         for feature in &features {
-            ui.warn(&format!(
-                "  * {:?}: HAB_FEAT_{}={}",
-                feature.0,
-                feature.1,
-                henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or_default()
-            ))
-            .unwrap();
+            ui.warn(&format!("  * {:?}: HAB_FEAT_{}={}",
+                             feature.0,
+                             feature.1,
+                             henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or_default()))
+              .unwrap();
         }
     }
 }
@@ -1515,31 +1518,29 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
     progress_bar.message("    ");
     match reply.message_id() {
         "ConsoleLine" => {
-            let m = reply
-                .parse::<protocol::ctl::ConsoleLine>()
-                .map_err(SrvClientError::Decode)?;
+            let m = reply.parse::<protocol::ctl::ConsoleLine>()
+                         .map_err(SrvClientError::Decode)?;
             let mut new_spec = ColorSpec::new();
             let msg_spec = match m.color {
-                Some(color) => new_spec
-                    .set_fg(Some(Color::from_str(&color)?))
-                    .set_bold(m.bold),
+                Some(color) => {
+                    new_spec.set_fg(Some(Color::from_str(&color)?))
+                            .set_bold(m.bold)
+                }
                 None => new_spec.set_bold(m.bold),
             };
             common::ui::print(UI::default_with_env().out(), m.line.as_bytes(), msg_spec)?;
         }
         "NetProgress" => {
-            let m = reply
-                .parse::<protocol::ctl::NetProgress>()
-                .map_err(SrvClientError::Decode)?;
+            let m = reply.parse::<protocol::ctl::NetProgress>()
+                         .map_err(SrvClientError::Decode)?;
             progress_bar.total = m.total;
             if progress_bar.set(m.position) >= m.total {
                 progress_bar.finish();
             }
         }
         "NetErr" => {
-            let m = reply
-                .parse::<protocol::net::NetErr>()
-                .map_err(SrvClientError::Decode)?;
+            let m = reply.parse::<protocol::net::NetErr>()
+                         .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(m));
         }
         _ => (),
@@ -1547,26 +1548,24 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
     Ok(())
 }
 
-fn print_svc_status<T>(
-    out: &mut T,
-    reply: &SrvMessage,
-    print_header: bool,
-) -> result::Result<(), SrvClientError>
-where
-    T: io::Write,
+fn print_svc_status<T>(out: &mut T,
+                       reply: &SrvMessage,
+                       print_header: bool)
+                       -> result::Result<(), SrvClientError>
+    where T: io::Write
 {
     let status = match reply.message_id() {
-        "ServiceStatus" => reply
-            .parse::<protocol::types::ServiceStatus>()
-            .map_err(SrvClientError::Decode)?,
+        "ServiceStatus" => {
+            reply.parse::<protocol::types::ServiceStatus>()
+                 .map_err(SrvClientError::Decode)?
+        }
         "NetOk" => {
             println!("No services loaded.");
             return Ok(());
         }
         "NetErr" => {
-            let err = reply
-                .parse::<protocol::net::NetErr>()
-                .map_err(SrvClientError::Decode)?;
+            let err = reply.parse::<protocol::net::NetErr>()
+                           .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(err));
         }
         _ => {
@@ -1574,23 +1573,19 @@ where
             return Ok(());
         }
     };
-    let svc_desired_state = status
-        .desired_state
-        .map_or("<none>".to_string(), |s| s.to_string());
+    let svc_desired_state = status.desired_state
+                                  .map_or("<none>".to_string(), |s| s.to_string());
     let (svc_state, svc_pid, svc_elapsed) = {
         match status.process {
-            Some(process) => (
-                process.state.to_string(),
-                process
-                    .pid
-                    .map_or_else(|| "<none>".to_string(), |p| p.to_string()),
-                process.elapsed.unwrap_or_default().to_string(),
-            ),
-            None => (
-                ProcessState::default().to_string(),
-                "<none>".to_string(),
-                "<none>".to_string(),
-            ),
+            Some(process) => {
+                (process.state.to_string(),
+                 process.pid
+                        .map_or_else(|| "<none>".to_string(), |p| p.to_string()),
+                 process.elapsed.unwrap_or_default().to_string())
+            }
+            None => {
+                (ProcessState::default().to_string(), "<none>".to_string(), "<none>".to_string())
+            }
         }
     };
     if print_header {
@@ -1604,16 +1599,14 @@ where
     //
     // TODO: Remove this when we have a stable machine-readable alternative
     // that scripts could depend on
-    writeln!(
-        out,
-        "{}\tstandalone\t{}\t{}\t{}\t{}\t{}",
-        status.ident,
-        DesiredState::from_str(&svc_desired_state)?,
-        ProcessState::from_str(&svc_state)?,
-        svc_elapsed,
-        svc_pid,
-        status.service_group,
-    )?;
+    writeln!(out,
+             "{}\tstandalone\t{}\t{}\t{}\t{}\t{}",
+             status.ident,
+             DesiredState::from_str(&svc_desired_state)?,
+             ProcessState::from_str(&svc_state)?,
+             svc_elapsed,
+             svc_pid,
+             status.service_group,)?;
     return Ok(());
 }
 
@@ -1637,30 +1630,29 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let msg = protocol::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
-    SrvClient::connect(&listen_ctl_addr, &secret_key)
-        .and_then(|conn| {
-            conn.call(msg).for_each(|reply| match reply.message_id() {
-                "ServiceStatus" => {
-                    let m = reply
-                        .parse::<protocol::types::ServiceStatus>()
-                        .map_err(SrvClientError::Decode)?;
-                    out.push(m.ident.into());
-                    Ok(())
-                }
-                "NetOk" => Ok(()),
-                "NetErr" => {
-                    let err = reply
-                        .parse::<protocol::net::NetErr>()
-                        .map_err(SrvClientError::Decode)?;
-                    return Err(SrvClientError::from(err));
-                }
-                _ => {
-                    warn!("Unexpected status message, {:?}", reply);
-                    Ok(())
-                }
-            })
-        })
-        .wait()?;
+    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
+                                                         conn.call(msg).for_each(|reply| {
+                          match reply.message_id() {
+                              "ServiceStatus" => {
+                                  let m = reply.parse::<protocol::types::ServiceStatus>()
+                                               .map_err(SrvClientError::Decode)?;
+                                  out.push(m.ident.into());
+                                  Ok(())
+                              }
+                              "NetOk" => Ok(()),
+                              "NetErr" => {
+                                  let err = reply.parse::<protocol::net::NetErr>()
+                                                 .map_err(SrvClientError::Decode)?;
+                                  return Err(SrvClientError::from(err));
+                              }
+                              _ => {
+                                  warn!("Unexpected status message, {:?}", reply);
+                                  Ok(())
+                              }
+                          }
+                      })
+                                                     })
+                                                     .wait()?;
     Ok(out)
 }
 
@@ -1668,18 +1660,16 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
 /// the environment
 fn bldr_url_from_input(m: &ArgMatches<'_>) -> Option<String> {
     m.value_of("BLDR_URL")
-        .and_then(|u| Some(u.to_string()))
-        .or_else(bldr_url_from_env)
+     .and_then(|u| Some(u.to_string()))
+     .or_else(bldr_url_from_env)
 }
 
 /// If the user provides both --application and --environment options,
 /// parse and set the value on the spec.
 fn get_app_env_from_input(m: &ArgMatches<'_>) -> Result<Option<ApplicationEnvironment>> {
     if let (Some(app), Some(env)) = (m.value_of("APPLICATION"), m.value_of("ENVIRONMENT")) {
-        Ok(Some(ApplicationEnvironment {
-            application: app.to_string(),
-            environment: env.to_string(),
-        }))
+        Ok(Some(ApplicationEnvironment { application: app.to_string(),
+                                         environment: env.to_string(), }))
     } else {
         Ok(None)
     }
@@ -1701,20 +1691,19 @@ fn get_binds_from_input(m: &ArgMatches<'_>) -> Result<Option<ServiceBindList>> {
 fn get_binding_mode_from_input(m: &ArgMatches<'_>) -> Option<protocol::types::BindingMode> {
     // There won't be errors, because we validate with `valid_binding_mode`
     m.value_of("BINDING_MODE")
-        .and_then(|b| BindingMode::from_str(b).ok())
+     .and_then(|b| BindingMode::from_str(b).ok())
 }
 
 fn get_group_from_input(m: &ArgMatches<'_>) -> Option<String> {
     m.value_of("GROUP").map(ToString::to_string)
 }
 
-fn get_health_check_interval_from_input(
-    m: &ArgMatches<'_>,
-) -> Option<protocol::types::HealthCheckInterval> {
+fn get_health_check_interval_from_input(m: &ArgMatches<'_>)
+                                        -> Option<protocol::types::HealthCheckInterval> {
     // Value will have already been validated by `cli::valid_health_check_interval`
     m.value_of("HEALTH_CHECK_INTERVAL")
-        .and_then(|s| HealthCheckInterval::from_str(s).ok())
-        .map(|s| s.into())
+     .and_then(|s| HealthCheckInterval::from_str(s).ok())
+     .map(|s| s.into())
 }
 
 #[cfg(target_os = "windows")]
@@ -1731,17 +1720,17 @@ fn get_password_from_input(_m: &ArgMatches<'_>) -> Result<Option<String>> { Ok(N
 
 fn get_topology_from_input(m: &ArgMatches<'_>) -> Option<Topology> {
     m.value_of("TOPOLOGY")
-        .and_then(|f| Topology::from_str(f).ok())
+     .and_then(|f| Topology::from_str(f).ok())
 }
 
 fn get_strategy_from_input(m: &ArgMatches<'_>) -> Option<UpdateStrategy> {
     m.value_of("STRATEGY")
-        .and_then(|f| UpdateStrategy::from_str(f).ok())
+     .and_then(|f| UpdateStrategy::from_str(f).ok())
 }
 
 fn listen_ctl_addr_from_input(m: &ArgMatches<'_>) -> Result<ListenCtlAddr> {
     m.value_of("REMOTE_SUP")
-        .map_or(Ok(ListenCtlAddr::default()), resolve_listen_ctl_addr)
+     .map_or(Ok(ListenCtlAddr::default()), resolve_listen_ctl_addr)
 }
 
 fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
@@ -1751,18 +1740,17 @@ fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
         format!("{}:{}", input, ListenCtlAddr::DEFAULT_PORT)
     };
 
-    listen_ctl_addr
-        .to_socket_addrs()
-        .and_then(|mut addrs| {
-            addrs.find(std::net::SocketAddr::is_ipv4).ok_or_else(|| {
-                io::Error::new(
+    listen_ctl_addr.to_socket_addrs()
+                   .and_then(|mut addrs| {
+                       addrs.find(std::net::SocketAddr::is_ipv4).ok_or_else(|| {
+                                                                    io::Error::new(
                     io::ErrorKind::AddrNotAvailable,
                     "Address could not be resolved.",
                 )
-            })
-        })
-        .map(ListenCtlAddr::from)
-        .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))
+                                                                })
+                   })
+                   .map(ListenCtlAddr::from)
+                   .map_err(|e| Error::RemoteSupResolutionError(listen_ctl_addr, e))
 }
 
 /// Check to see if the user has passed in a USER param.
@@ -1771,10 +1759,12 @@ fn resolve_listen_ctl_addr(input: &str) -> Result<ListenCtlAddr> {
 fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
     match m.value_of("USER") {
         Some(u) => Some(u.to_string()),
-        None => match env::var(HABITAT_USER_ENVVAR) {
-            Ok(v) => Some(v),
-            Err(_) => None,
-        },
+        None => {
+            match env::var(HABITAT_USER_ENVVAR) {
+                Ok(v) => Some(v),
+                Err(_) => None,
+            }
+        }
     }
 }
 
@@ -1790,9 +1780,8 @@ fn ui() -> UI {
     } else {
         ColorChoice::Never
     };
-    let isatty = if env::var(NONINTERACTIVE_ENVVAR)
-        .map(|val| val == "1" || val == "true")
-        .unwrap_or(false)
+    let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
+                                                   .unwrap_or(false)
     {
         Some(false)
     } else {

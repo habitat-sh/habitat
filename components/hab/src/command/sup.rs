@@ -52,13 +52,13 @@ mod inner {
             Err(_) => {
                 init();
                 let version: Vec<&str> = VERSION.split('/').collect();
-                exec::command_from_min_pkg(
-                    ui,
-                    SUP_CMD,
-                    &PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, version[0]))?,
-                    &default_cache_key_path(None),
-                    0,
-                )?
+                exec::command_from_min_pkg(ui,
+                                           SUP_CMD,
+                                           &PackageIdent::from_str(&format!("{}/{}",
+                                                                            SUP_PKG_IDENT,
+                                                                            version[0]))?,
+                                           &default_cache_key_path(None),
+                                           0)?
             }
         };
         if let Some(cmd) = find_command(&command) {
@@ -83,10 +83,8 @@ mod inner {
 
     pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
-        ui.warn(
-            "Launching a native Supervisor on this operating system is not yet supported. Try \
-             running this command again on 64-bit Linux or Windows.",
-        )?;
+        ui.warn("Launching a native Supervisor on this operating system is not yet supported. \
+                 Try running this command again on 64-bit Linux or Windows.")?;
         ui.br()?;
         Err(Error::SubcommandNotSupported(subcmd))
     }

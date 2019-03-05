@@ -33,35 +33,30 @@ use core::os::process::windows_child::{ChildStderr,
 pub use crate::sys::service::*;
 
 pub struct Service {
-    args: protocol::Spawn,
+    args:    protocol::Spawn,
     process: Process,
 }
 
 impl Service {
-    pub fn new(
-        spawn: protocol::Spawn,
-        process: Process,
-        stdout: Option<ChildStdout>,
-        stderr: Option<ChildStderr>,
-    ) -> Self {
+    pub fn new(spawn: protocol::Spawn,
+               process: Process,
+               stdout: Option<ChildStdout>,
+               stderr: Option<ChildStderr>)
+               -> Self {
         if let Some(stdout) = stdout {
             let id = spawn.id.to_string();
-            thread::Builder::new()
-                .name(format!("{}-out", spawn.id))
-                .spawn(move || pipe_stdout(stdout, &id))
-                .ok();
+            thread::Builder::new().name(format!("{}-out", spawn.id))
+                                  .spawn(move || pipe_stdout(stdout, &id))
+                                  .ok();
         }
         if let Some(stderr) = stderr {
             let id = spawn.id.to_string();
-            thread::Builder::new()
-                .name(format!("{}-err", spawn.id))
-                .spawn(move || pipe_stderr(stderr, &id))
-                .ok();
+            thread::Builder::new().name(format!("{}-err", spawn.id))
+                                  .spawn(move || pipe_stderr(stderr, &id))
+                                  .ok();
         }
-        Service {
-            args: spawn,
-            process,
-        }
+        Service { args: spawn,
+                  process }
     }
 
     pub fn args(&self) -> &protocol::Spawn { &self.args }
@@ -89,8 +84,7 @@ impl fmt::Debug for Service {
 
 /// Consume output from a child process until EOF, then finish
 fn pipe_stdout<T>(out: T, id: &str)
-where
-    T: Read,
+    where T: Read
 {
     let mut reader = BufReader::new(out);
     let mut buffer = String::new();
@@ -103,8 +97,7 @@ where
 
 /// Consume standard error from a child process until EOF, then finish
 fn pipe_stderr<T>(err: T, id: &str)
-where
-    T: Read,
+    where T: Read
 {
     let mut reader = BufReader::new(err);
     let mut buffer = String::new();

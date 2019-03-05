@@ -61,9 +61,8 @@ impl FromStr for RumorShareLimit {
     type Err = Error;
 
     fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        let raw = s
-            .parse::<usize>()
-            .map_err(|_| Error::InvalidRumorShareLimit)?;
+        let raw = s.parse::<usize>()
+                   .map_err(|_| Error::InvalidRumorShareLimit)?;
         if raw > 0 {
             Ok(RumorShareLimit(raw))
         } else {
@@ -114,14 +113,14 @@ impl RumorHeat {
     /// **NOTE**: The ordering of rumors within each of these "heat"
     /// cohorts is currently undefined.
     pub fn currently_hot_rumors(&self, id: &str) -> Vec<RumorKey> {
-        let mut rumor_heat: Vec<(RumorKey, usize)> = self
-            .0
-            .read()
-            .expect("RumorHeat lock poisoned")
-            .iter()
-            .map(|(k, heat_map)| (k.clone(), *heat_map.get(id).unwrap_or(&0)))
-            .filter(|&(_, heat)| heat < RumorShareLimit::configured_value().0)
-            .collect();
+        let mut rumor_heat: Vec<(RumorKey, usize)> =
+            self.0
+                .read()
+                .expect("RumorHeat lock poisoned")
+                .iter()
+                .map(|(k, heat_map)| (k.clone(), *heat_map.get(id).unwrap_or(&0)))
+                .filter(|&(_, heat)| heat < RumorShareLimit::configured_value().0)
+                .collect();
 
         // Reverse sorting by heat; 0s come last!
         rumor_heat.sort_by(|&(_, ref h1), &(_, ref h2)| h2.cmp(h1));
@@ -152,10 +151,8 @@ impl RumorHeat {
                         heat_map.insert(String::from(id), 1);
                     }
                 } else {
-                    debug!(
-                        "Rumor does not exist in map; was probably deleted between retrieval and \
-                         sending"
-                    );
+                    debug!("Rumor does not exist in map; was probably deleted between retrieval \
+                            and sending");
                 }
             }
         }
@@ -181,11 +178,9 @@ impl RumorHeat {
         let count_before = heat_map.len();
         heat_map.retain(|k, _| !(k.kind == RumorType::Service && k.id == id));
         let count_after = heat_map.len();
-        debug!(
-            "Purged {} service rumor mappings for {:?}",
-            count_before - count_after,
-            id
-        );
+        debug!("Purged {} service rumor mappings for {:?}",
+               count_before - count_after,
+               id);
 
         // Remove any "cooling" information for this member, across
         // all types of rumors.
@@ -226,16 +221,14 @@ mod tests {
 
     #[derive(Clone, Debug, Serialize)]
     struct FakeRumor {
-        pub id: String,
+        pub id:  String,
         pub key: String,
     }
 
     impl Default for FakeRumor {
         fn default() -> FakeRumor {
-            FakeRumor {
-                id: format!("{}", Uuid::new_v4().to_simple_ref()),
-                key: String::from("fakerton"),
-            }
+            FakeRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
+                        key: String::from("fakerton"), }
         }
     }
 
@@ -270,8 +263,7 @@ mod tests {
     /// Helper function that tests that a given rumor is currently
     /// considered "hot" for the given member.
     fn assert_rumor_is_hot<T>(heat: &RumorHeat, member_id: &str, rumor: T)
-    where
-        T: Into<RumorKey>,
+        where T: Into<RumorKey>
     {
         let key = rumor.into();
         let hot_rumors = heat.currently_hot_rumors(&member_id);
@@ -281,8 +273,7 @@ mod tests {
     /// Helper function that tests that a given rumor is currently
     /// NOT considered "hot" for the given member.
     fn assert_rumor_is_cold<T>(heat: &RumorHeat, member_id: &str, rumor: T)
-    where
-        T: Into<RumorKey>,
+        where T: Into<RumorKey>
     {
         let key = rumor.into();
         let hot_rumors = heat.currently_hot_rumors(&member_id);
@@ -293,8 +284,7 @@ mod tests {
     /// introduced into the `RumorHeat` and cools it enough to no
     /// longer be considered "hot".
     fn cool_rumor_completely<T>(heat: &RumorHeat, member_id: &str, rumor: T)
-    where
-        T: Into<RumorKey>,
+        where T: Into<RumorKey>
     {
         let rumor_keys = &[rumor.into()];
         for _ in 0..RumorShareLimit::default().0 {
@@ -515,31 +505,23 @@ mod tests {
 
             // Check the Member rumors
             for m in &[&member_1, &member_2, &member_3] {
-                let heat_map = inner
-                    .get(&RumorKey::from(*m))
-                    .expect("Should have had a member rumor present");
+                let heat_map = inner.get(&RumorKey::from(*m))
+                                    .expect("Should have had a member rumor present");
                 for m in &[member_1_id, member_2_id, member_3_id] {
-                    assert_eq!(
-                        heat_map
-                            .get(*m)
-                            .expect("Should have had an entry for the member"),
-                        &RumorShareLimit::default().0
-                    );
+                    assert_eq!(heat_map.get(*m)
+                                       .expect("Should have had an entry for the member"),
+                               &RumorShareLimit::default().0);
                 }
             }
 
             // Check the Service rumors
             for s in &[&service_1, &service_2, &service_3] {
-                let heat_map = inner
-                    .get(&RumorKey::from(*s))
-                    .expect("Should have had a service rumor present");
+                let heat_map = inner.get(&RumorKey::from(*s))
+                                    .expect("Should have had a service rumor present");
                 for m in &[member_1_id, member_2_id, member_3_id] {
-                    assert_eq!(
-                        heat_map
-                            .get(*m)
-                            .expect("Should have had an entry for the member"),
-                        &RumorShareLimit::default().0
-                    );
+                    assert_eq!(heat_map.get(*m)
+                                       .expect("Should have had an entry for the member"),
+                               &RumorShareLimit::default().0);
                 }
             }
         }
@@ -555,44 +537,28 @@ mod tests {
 
             // Check the Member rumors... all these should be present
             for m in &[&member_1, &member_2, &member_3] {
-                let heat_map = inner
-                    .get(&RumorKey::from(*m))
-                    .expect("Should have had a member rumor present");
-                assert_eq!(
-                    heat_map.get(member_1_id).expect("lulz"),
-                    &RumorShareLimit::default().0
-                );
-                assert!(
-                    heat_map.get(member_2_id).is_none(),
-                    "Heat information for a purged member should be removed"
-                );
-                assert_eq!(
-                    heat_map.get(member_3_id).expect("lulz"),
-                    &RumorShareLimit::default().0
-                );
+                let heat_map = inner.get(&RumorKey::from(*m))
+                                    .expect("Should have had a member rumor present");
+                assert_eq!(heat_map.get(member_1_id).expect("lulz"),
+                           &RumorShareLimit::default().0);
+                assert!(heat_map.get(member_2_id).is_none(),
+                        "Heat information for a purged member should be removed");
+                assert_eq!(heat_map.get(member_3_id).expect("lulz"),
+                           &RumorShareLimit::default().0);
             }
 
             // Check the Service rumors
-            assert!(
-                inner.get(&RumorKey::from(&service_2)).is_none(),
-                "Service keys from the purged member should be removed"
-            );
+            assert!(inner.get(&RumorKey::from(&service_2)).is_none(),
+                    "Service keys from the purged member should be removed");
             for s in &[&service_1, &service_3] {
-                let heat_map = inner
-                    .get(&RumorKey::from(*s))
-                    .expect("Should have had a service rumor present");
-                assert_eq!(
-                    heat_map.get(member_1_id).expect("lulz"),
-                    &RumorShareLimit::default().0
-                );
-                assert!(
-                    heat_map.get(member_2_id).is_none(),
-                    "Heat information for a purged member should be removed"
-                );
-                assert_eq!(
-                    heat_map.get(member_3_id).expect("lulz"),
-                    &RumorShareLimit::default().0
-                );
+                let heat_map = inner.get(&RumorKey::from(*s))
+                                    .expect("Should have had a service rumor present");
+                assert_eq!(heat_map.get(member_1_id).expect("lulz"),
+                           &RumorShareLimit::default().0);
+                assert!(heat_map.get(member_2_id).is_none(),
+                        "Heat information for a purged member should be removed");
+                assert_eq!(heat_map.get(member_3_id).expect("lulz"),
+                           &RumorShareLimit::default().0);
             }
         }
     }
