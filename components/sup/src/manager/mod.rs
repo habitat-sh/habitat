@@ -29,20 +29,18 @@ mod user_config_watcher;
 use self::{peer_watcher::PeerWatcher,
            self_updater::{SelfUpdater,
                           SUP_PKG_IDENT},
-           service::{health::HealthCheck,
-                     DesiredState},
+           service::{ConfigRendering,
+                     DesiredState,
+                     HealthCheck,
+                     Service,
+                     ServiceProxy,
+                     ServiceSpec,
+                     Topology},
            service_updater::ServiceUpdater,
            spec_dir::SpecDir,
            spec_watcher::SpecWatcher,
+           sys::Sys,
            user_config_watcher::UserConfigWatcher};
-pub use self::{service::{ConfigRendering,
-                         Service,
-                         ServiceProxy,
-                         ServiceSpec,
-                         Topology,
-                         UpdateStrategy},
-               sys::Sys};
-use super::feat;
 use crate::{census::{CensusRing,
                      CensusRingProxy},
             config::GossipListenAddr,
@@ -51,21 +49,20 @@ use crate::{census::{CensusRing,
             error::{Error,
                     Result,
                     SupError},
+            feat,
             http_gateway,
-            ShutdownReason,
             VERSION};
 use cpu_time::ProcessTime;
-use futures::{prelude::*,
-              sync::mpsc};
-use habitat_butterfly::{self,
-                        member::Member,
+use futures::{future,
+              prelude::*,
+              sync::{mpsc,
+                     oneshot}};
+use habitat_butterfly::{member::Member,
                         server::{timing::Timing,
                                  ServerProxy,
                                  Suitability},
                         trace::Trace};
-pub use habitat_common::templating::package::Pkg;
-use habitat_common::{self,
-                     types::ListenCtlAddr};
+use habitat_common::types::ListenCtlAddr;
 use habitat_core::{crypto::SymKey,
                    env::{self,
                          Config},
@@ -75,6 +72,7 @@ use habitat_core::{crypto::SymKey,
                                   Signal},
                         signals::{self,
                                   SignalEvent}},
+                   outputln,
                    package::{Identifiable,
                              PackageIdent,
                              PackageInstall},
@@ -96,7 +94,8 @@ use rustls::{internal::pemfile,
              ServerConfig};
 use serde_json;
 use std::{self,
-          collections::HashMap,
+          collections::{HashMap,
+                        HashSet},
           fs::{self,
                File,
                OpenOptions},
@@ -104,14 +103,15 @@ use std::{self,
                BufReader,
                Read,
                Write},
-          mem,
+          iter::IntoIterator,
           net::SocketAddr,
-          ops::DerefMut,
           path::{Path,
                  PathBuf},
           result,
           str::FromStr,
-          sync::{Arc,
+          sync::{atomic::{AtomicBool,
+                          Ordering},
+                 Arc,
                  Condvar,
                  Mutex,
                  RwLock},
@@ -122,7 +122,8 @@ use time::{self,
            SteadyTime,
            Timespec};
 use tokio::{executor,
-            runtime};
+            runtime::{Builder as RuntimeBuilder,
+                      Runtime}};
 #[cfg(windows)]
 use winapi::{shared::minwindef::PDWORD,
              um::processthreadsapi};
@@ -165,6 +166,21 @@ pub enum ServiceOperation {
         to_stop: ServiceSpec,
         to_start: ServiceSpec,
     },
+}
+
+/// A Supervisor can stop in a handful of ways.
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+enum ShutdownMode {
+    /// When the Supervisor is shutting down for normal reasons and
+    /// should take all services down with it (i.e., it's actually
+    /// shutting down).
+    Normal,
+    /// When the Supervisor has been manually departed from the
+    /// Habitat network. All services should come down, as well.
+    Departed,
+    /// A Supervisor is updating itself, or is otherwise simply
+    /// restarting. Services _do not_ get shut down.
+    Restarting,
 }
 
 /// FileSystem paths that the Manager uses to persist data to disk.
@@ -261,6 +277,67 @@ impl env::Config for GatewayAuthToken {
     const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
 }
 
+/// Once a formerly-busy service is no longer doing something
+/// asynchronously, we mark that we should take a look at the spec
+/// files on disk to ensure that we're still "in sync".
+///
+/// For example, a "restart" is achieved by stopping a service,
+/// and then restarting it when we see that its spec file says it
+/// should be up.
+///
+/// This flag behaves essentially the same as making an arbitrary
+/// change to a file in the specs directory, in that the latter
+/// provides a boolean condition on whether or not we need to
+/// reexamine our spec files.
+///
+/// Wrapping this up into a type consolidates the logic for
+/// manipulation of the signaling Boolean. In particular, all the
+/// atomic ordering information resides here, meaning that we don't
+/// have to scatter it throughout the code, which could lead to logic
+/// errors and drift over time.
+#[derive(Clone)]
+struct ReconciliationFlag(Arc<AtomicBool>);
+
+impl ReconciliationFlag {
+    fn new(value: bool) -> Self { ReconciliationFlag(Arc::new(AtomicBool::new(value))) }
+
+    /// Called after a service has finished some asynchronous
+    /// operation to signal that we need to take a look at their spec
+    /// file again to potentially take action.
+    ///
+    /// See Manager::wrap_async_service_operation for additional details.
+    ///
+    /// We used `Ordering::Relaxed` here because there isn't a need to
+    /// sequence operations for multiple actors setting the value to
+    /// `true`.
+    fn set(&self) { self.0.store(true, Ordering::Relaxed); }
+
+    fn is_set(&self) -> bool { self.0.load(Ordering::Relaxed) }
+
+    /// Returns whether or not we need to re-examine spec files in
+    /// response to some service having finished an asynchronous
+    /// action.
+    ///
+    /// This *does* change the value of the flag back to `false` if it
+    /// was `true`, so we don't have a strict CQRS-style separation of
+    /// read/write responsibilities, but this is needed to avoid
+    /// potential race conditions between separate check and load
+    /// operations.
+    ///
+    /// This also allows us to use `Ordering::Relaxed`... whether we
+    /// see that we need to reconcile before or after some service
+    /// signals that it has finished is ultimately unimportant, since
+    /// we'll just check again the next time through our supervision
+    /// loop.
+    ///
+    /// While this is all dependent on some of the inner workings of
+    /// the `Manager` right now, consolidating this "flag" logic in
+    /// one place seemed the prudent choice. In the long-term, we
+    /// should be able to dispense with this altogether once we're all
+    /// asynchronous.
+    fn toggle_if_set(&self) -> bool { self.0.compare_and_swap(true, false, Ordering::Relaxed) }
+}
+
 /// This struct encapsulates the shared state for the supervisor. It's worth noting that if there's
 /// something you want the CtlGateway to be able to operate on, it needs to be put in here. This
 /// state gets shared with all the CtlGateway handlers.
@@ -286,16 +363,41 @@ pub struct Manager {
     census_ring: CensusRing,
     fs_cfg: Arc<FsCfg>,
     launcher: LauncherCli,
-    updater: ServiceUpdater,
+    updater: Arc<Mutex<ServiceUpdater>>,
     peer_watcher: Option<PeerWatcher>,
     spec_watcher: SpecWatcher,
-    user_config_watcher: UserConfigWatcher,
+    // This Arc<RwLock<>> business is a potentially temporary
+    // change. Right now, in order to asynchronously shut down
+    // services, we need to be able to have a safe reference to this
+    // from another thread.
+    //
+    // Future refactorings may suggest other ways to achieve the same
+    // result of being able to manipulate the config watcher from
+    // other threads (e.g., maybe we subscribe to messages to change
+    // the watcher)
+    user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
     spec_dir: SpecDir,
     organization: Option<String>,
     self_updater: Option<SelfUpdater>,
     service_states: HashMap<PackageIdent, Timespec>,
     sys: Arc<Sys>,
     http_disable: bool,
+
+    /// Collects the identifiers of all services that are currently
+    /// doing something asynchronously (like shutting down, or running
+    /// a lifecycle hook). We want to know which to ignore if changes
+    /// in their spec files are detected while they're asynchronously
+    /// doing something else. That will prevent us from getting into
+    /// weird states if spec files change in the middle of us doing
+    /// something else.
+    // Currently, this is just going to be things that are shutting
+    // down, but as more operations become asynchronous, we'll end up
+    // keeping track of services doing other operations as well. At
+    // that point, we might need / want to change from a HashSet to
+    // something else (maybe a HashMap?) in order to cleanly manage
+    // the different operations.
+    busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
+    services_need_reconciliation: ReconciliationFlag,
 }
 
 impl Manager {
@@ -396,19 +498,21 @@ impl Manager {
                 gateway_state: Arc::new(RwLock::new(gateway_state)),
             }),
             self_updater,
-            updater: ServiceUpdater::new(server.clone()),
+            updater: Arc::new(Mutex::new(ServiceUpdater::new(server.clone()))),
             census_ring: CensusRing::new(sys.member_id.clone()),
             butterfly: server,
             launcher,
             peer_watcher,
             spec_watcher,
-            user_config_watcher: UserConfigWatcher::new(),
+            user_config_watcher: Arc::new(RwLock::new(UserConfigWatcher::new())),
             spec_dir,
             fs_cfg: Arc::new(fs_cfg),
             organization: cfg.organization,
             service_states: HashMap::new(),
             sys: Arc::new(sys),
             http_disable: cfg.http_disable,
+            busy_services: Arc::new(Mutex::new(HashSet::new())),
+            services_need_reconciliation: ReconciliationFlag::new(false),
         })
     }
 
@@ -548,7 +652,12 @@ impl Manager {
             self.butterfly.start_election(&service.service_group, 0);
         }
 
-        if let Err(e) = self.user_config_watcher.add(&service) {
+        if let Err(e) = self
+            .user_config_watcher
+            .write()
+            .expect("user-config-watcher lock is poisoned")
+            .add(&service)
+        {
             outputln!(
                 "Unable to start UserConfigWatcher for {}: {}",
                 service.spec_ident,
@@ -557,7 +666,10 @@ impl Manager {
             return;
         }
 
-        self.updater.add(&service);
+        self.updater
+            .lock()
+            .expect("Updater lock poisoned")
+            .add(&service);
         self.state
             .services
             .write()
@@ -571,25 +683,29 @@ impl Manager {
         let mut next_cpu_measurement = SteadyTime::now();
         let mut cpu_start = ProcessTime::now();
 
-        let mut runtime = runtime::Builder::new()
+        let mut runtime = RuntimeBuilder::new()
             .name_prefix("tokio-")
             .core_threads(TokioThreadCount::configured_value().into())
             .build()
             .expect("Couldn't build Tokio Runtime!");
 
         let (ctl_tx, ctl_rx) = mpsc::unbounded();
-        let ctl_handler = CtlAcceptor::new(self.state.clone(), ctl_rx).for_each(move |handler| {
-            executor::spawn(handler);
-            Ok(())
-        });
-
+        let (ctl_shutdown_tx, ctl_shutdown_rx) = oneshot::channel();
+        let ctl_handler = CtlAcceptor::new(self.state.clone(), ctl_rx, ctl_shutdown_rx).for_each(
+            move |handler| {
+                executor::spawn(handler);
+                Ok(())
+            },
+        );
         runtime.spawn(ctl_handler);
 
         if let Some(svc_load) = svc {
             commands::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
         }
+
         // This serves to start up any services that need starting
-        self.take_action_on_services()?;
+        // (which will be all of them at this point!)
+        self.maybe_spawn_service_futures(&mut runtime);
 
         outputln!(
             "Starting gossip-listener on {}",
@@ -682,7 +798,14 @@ impl Manager {
             signals::init();
         }
 
-        loop {
+        // Enter the main Supervisor loop. When we break out, it'll be
+        // because we've been instructed to shutdown. The value we
+        // break out with governs exactly how we shut down.
+
+        // TODO (CM): Investigate the appropriateness of capturing any
+        // errors or panics generated in this loop and performing some
+        // kind of controlled shutdown.
+        let shutdown_mode = loop {
             // time will be recorded automatically by HistogramTimer's drop implementation when
             // this var goes out of scope
             #[allow(unused_variables)]
@@ -713,36 +836,58 @@ impl Manager {
 
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
-                self.shutdown(ShutdownReason::LauncherStopping);
-                return Ok(());
+                break ShutdownMode::Normal;
             }
             if self.check_for_departure() {
-                self.shutdown(ShutdownReason::Departed);
-                return Err(sup_error!(Error::Departed));
+                break ShutdownMode::Departed;
             }
             if !feat::is_enabled(feat::IgnoreSignals) {
                 if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal() {
                     outputln!("Supervisor shutting down for signal");
-                    self.shutdown(ShutdownReason::Signal);
-                    return Ok(());
+                    break ShutdownMode::Restarting;
                 }
             }
+
             if let Some(package) = self.check_for_updated_supervisor() {
                 outputln!(
                     "Supervisor shutting down for automatic update to {}",
                     package
                 );
-                self.shutdown(ShutdownReason::PkgUpdating);
-                return Ok(());
+                break ShutdownMode::Restarting;
             }
 
-            if self.spec_watcher.has_events() {
-                self.take_action_on_services()?;
+            // Indicates if we need to examine our on-disk specfiles
+            // in order to reconcile them with whatever we're
+            // currently running.
+            //
+            // Takes into account filesystem events in the specs
+            // directory, as well as whether or not we need to
+            // reexamine specs after finishing some asynchronous
+            // operation on a service.
+            if self.spec_watcher.has_events() || self.services_need_reconciliation.is_set() {
+                // This call *must* come first. If some other future
+                // happens to complete before we get done spawning our
+                // current batch of futures, it could set the flag to
+                // true, but we wouldn't have taken another look at
+                // its spec file to see if we needed to do anything
+                // else. Thus, we could "lose" that signal if we
+                // toggle *after* spawning these futures.
+                //
+                // This could mean, say, the "start" part of a service
+                // restart could be greatly delayed (until some file
+                // event in the specs directory is registered, or
+                // another service finishes shutting down).
+                self.services_need_reconciliation.toggle_if_set();
+                self.maybe_spawn_service_futures(&mut runtime);
             }
 
             self.update_peers_from_watch_file()?;
             self.update_running_services_from_user_config_watcher();
-            self.check_for_updated_packages();
+
+            for f in self.stop_services_with_updates() {
+                runtime.spawn(f);
+            }
+
             self.restart_elections();
             self.census_ring.update_from_rumors(
                 &self.butterfly.service_store,
@@ -797,37 +942,110 @@ impl Manager {
                 next_cpu_measurement = SteadyTime::now() + TimeDuration::seconds(1);
                 cpu_start = ProcessTime::now();
             }
+        }; // end main loop
+
+        // When we make it down here, we've broken out of the main
+        // Supervisor loop, which means it's time to shut down. Based
+        // on the value we broke out of the loop with, we may need to
+        // shut services down. We do that out here, so we can run the
+        // shutdown futures directly on the reactor, and ensure
+        // they're all driven to completion before we exit.
+
+        // Stop the ctl gateway; this way we'll stop responding to
+        // user commands as we're trying to shut down.
+        ctl_shutdown_tx.send(()).ok();
+
+        match shutdown_mode {
+            ShutdownMode::Restarting => {}
+            ShutdownMode::Normal | ShutdownMode::Departed => {
+                outputln!("Gracefully departing from butterfly network.");
+                self.butterfly.set_departed();
+
+                let mut svcs = self
+                    .state
+                    .services
+                    .write()
+                    .expect("Services lock is poisoned!");
+
+                for (_ident, svc) in svcs.drain() {
+                    runtime.spawn(self.stop(svc));
+                }
+            }
+        }
+
+        // Allow all existing futures to run to completion.
+        runtime
+            .shutdown_on_idle()
+            .wait()
+            .expect("Error waiting on Tokio runtime to shutdown");
+
+        release_process_lock(&self.fs_cfg);
+        self.butterfly.persist_data();
+
+        match shutdown_mode {
+            ShutdownMode::Normal | ShutdownMode::Restarting => Ok(()),
+            ShutdownMode::Departed => Err(sup_error!(Error::Departed)),
         }
     }
 
     fn check_for_updated_supervisor(&mut self) -> Option<PackageInstall> {
-        if let Some(ref mut updater) = self.self_updater {
-            return updater.updated();
+        if let Some(ref mut self_updater) = self.self_updater {
+            return self_updater.updated();
         }
         None
     }
 
-    /// Walk each service and check if it has an updated package installed via the Update Strategy.
-    /// This updates the Service to point to the new service struct, and then marks it for
-    /// restarting.
-    ///
-    /// The run loop's last updated census is a required parameter on this function to inform the
-    /// main loop that we, ourselves, updated the service counter when we updated ourselves.
-    fn check_for_updated_packages(&mut self) {
-        for service in self
+    /// Return the Services that currently have a newer package in
+    /// Builder. These are removed from the internal `services` vec
+    /// for further transformation into futures.
+    fn take_services_with_updates(&mut self) -> Vec<Service> {
+        let mut updater = self.updater.lock().expect("Updater lock poisoned");
+
+        let mut state_services = self
             .state
             .services
             .write()
-            .expect("Services lock is poisoned!")
-            .values_mut()
-        {
-            if self
-                .updater
-                .check_for_updated_package(service, &self.census_ring, &self.launcher)
-            {
-                self.gossip_latest_service_rumor(&service);
-            }
+            .expect("Services lock is poisoned!");
+        let idents_to_restart: Vec<_> = state_services
+            .iter()
+            .filter_map(|(current_ident, service)| {
+                if let Some(new_ident) =
+                    updater.check_for_updated_package(&service, &self.census_ring)
+                {
+                    outputln!("Updating from {} to {}", current_ident, new_ident);
+                    Some(current_ident.clone())
+                } else {
+                    trace!("No update found for {}", current_ident);
+                    None
+                }
+            })
+            .collect();
+
+        let mut services_to_restart = Vec::with_capacity(idents_to_restart.len());
+        for current_ident in idents_to_restart {
+            // unwrap is safe because we've to the write lock, and we
+            // know there's a value present at this key.
+            services_to_restart.push(state_services.remove(&current_ident).unwrap());
         }
+        services_to_restart
+    }
+
+    /// Returns a Vec of futures for shutting down those services that
+    /// need to be updated.
+    // TODO (CM): In the future, when service start up is
+    // future-based, we'll want to have an actual "restart"
+    // future, that queues up the start future after the stop
+    // future.
+    //
+    // Until then, we will just stop the services, and rely on the
+    // our specfile reconciliation logic to catch the fact that
+    // the service needs to be restarted. At that point, this function
+    // can be renamed; right now, it says exactly what it's doing.
+    fn stop_services_with_updates(&mut self) -> Vec<impl Future<Item = (), Error = ()>> {
+        self.take_services_with_updates()
+            .into_iter()
+            .map(|service| self.stop(service))
+            .collect()
     }
 
     // Creates a rumor for the specified service.
@@ -868,7 +1086,6 @@ impl Manager {
         for loaded in self
             .spec_dir
             .specs()
-            .unwrap()
             .iter()
             .filter(|s| !active_services.contains(&s.ident))
         {
@@ -933,7 +1150,6 @@ impl Manager {
         let watched_services: Vec<Service> = self
             .spec_dir
             .specs()
-            .unwrap()
             .iter()
             .filter(|spec| !existing_idents.contains(&spec.ident))
             .flat_map(|spec| {
@@ -966,121 +1182,177 @@ impl Manager {
             .services_data = json;
     }
 
-    /// Remove the given service from the manager.
-    ///
-    /// Passing `true` for the term argument will also request the Launcher to terminate the running
-    /// service. Passing a value of `false` will let the Launcher keep the service running. This
-    /// useful if you want the Supervisor to shutdown temporarily and then come back and re-attach
-    /// to all running processes.
-    fn remove_service(&mut self, service: &mut Service, cause: ShutdownReason) {
-        // JW TODO: Update service rumor to remove service from cluster
-        let term = match cause {
-            ShutdownReason::LauncherStopping | ShutdownReason::SvcStopCmd => true,
-            _ => false,
-        };
-
-        if term {
-            service.stop(&self.launcher, cause);
-        }
-
-        if self.user_config_watcher.remove(service).is_err() {
-            debug!(
-                "Error stopping user-config watcher thread for service {}",
-                service
-            );
-        }
-
-        self.updater.remove(service);
-    }
-
     /// Check if any elections need restarting.
     fn restart_elections(&mut self) { self.butterfly.restart_elections(); }
 
-    fn shutdown(&mut self, cause: ShutdownReason) {
-        match cause {
-            ShutdownReason::PkgUpdating | ShutdownReason::Signal => {
-                // Previously, we would unconditionally set our health
-                // to departed. However, given our current conflation
-                // of Supervisor reachability and Service health, I
-                // suspect this causes instability when simply
-                // shutting down the Supervisor for a Supervisor
-                // upgrade.
-                //
-                // In the future, we may want to notify the rest of
-                // the network more formally of our intent to update,
-                // but for now, NOT convincing everyone that our
-                // services are gone seems like a good intermediate
-                // step. (We should also, of course, stop conflating
-                // Supervisor reachability and Service health!) Our
-                // existing suspicion mechanism should serve us well
-                // here if it takes longer than expected for the new
-                // Supervisor to come back up.
-                //
-                // Thus, for these given ShutdownReasons, we just
-                // won't send any Membership rumors out.
-            }
-            ShutdownReason::SvcStopCmd => {
-                // Just to call it out specifically, we shouldn't ever
-                // be called with this ShutdownReason.
-                //
-                // This is all being refactored elsewhere right now,
-                // for what it's worth.
-            }
-            ShutdownReason::LauncherStopping | ShutdownReason::Departed => {
-                // On the other hand, if we legitimately are going
-                // away, tell people, even though sending something
-                // out when _we've already been manually departed_ is
-                // perhaps excessive.
-                outputln!("Gracefully departing from butterfly network.");
-                self.butterfly.set_departed();
-            }
-        }
+    /// Create a future for stopping a Service. The Service is assumed
+    /// to have been removed from the internal list of active services
+    /// already (see, e.g., take_services_with_updates and
+    /// remove_service_from_state).
+    fn stop(&self, service: Service) -> impl Future<Item = (), Error = ()> {
+        Self::service_stop_future(
+            service,
+            Arc::clone(&self.user_config_watcher),
+            Arc::clone(&self.updater),
+            Arc::clone(&self.busy_services),
+            self.services_need_reconciliation.clone(),
+        )
+    }
 
-        let mut svcs = HashMap::new();
-
-        // The problem we're trying to work around here by adding this block is that `write`
-        // creates an immutable borrow on `self`, and `self.remove_service` needs `&mut self`.
-        // The solution is to introduce the block to drop the immutable borrow before the call to
-        // `self.remove_service`, and use `mem::swap` to move the services to a variable defined
-        // outside the block while we have the lock.
-        {
-            let mut services = self
-                .state
-                .services
+    /// Remove the given service from the manager.
+    fn service_stop_future(
+        service: Service,
+        user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
+        updater: Arc<Mutex<ServiceUpdater>>,
+        busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
+        services_need_reconciliation: ReconciliationFlag,
+    ) -> impl Future<Item = (), Error = ()> {
+        // JW TODO: Update service rumor to remove service from
+        // cluster
+        // TODO (CM): But only if we're not going down for a restart.
+        let ident = service.spec_ident.clone();
+        let stop_it = service.stop().then(move |_| {
+            user_config_watcher
                 .write()
-                .expect("Services lock is poisoned!");
-            mem::swap(services.deref_mut(), &mut svcs);
-        }
+                .expect("Watcher lock poisoned")
+                .remove(&service);
+            updater
+                .lock()
+                .expect("Updater lock poisoned")
+                .remove(&service);
+            Ok(())
+        });
+        Self::wrap_async_service_operation(
+            ident,
+            busy_services,
+            services_need_reconciliation,
+            stop_it,
+        )
+    }
 
-        for mut service in svcs.drain().map(|(_ident, service)| service) {
-            self.remove_service(&mut service, cause);
-        }
-        release_process_lock(&self.fs_cfg);
+    /// Wrap a future that starts, stops, or restarts a service with
+    /// logic that marks that service as "busy" for the duration of
+    /// the process.
+    ///
+    /// This allows us to postpone taking additional action on
+    /// services until they're done with what they're doing.  (For
+    /// example, consider stopping a service that takes 10 seconds to
+    /// shut down (including post-stop hook execution), but then
+    /// executing `hab svc start SERVICE` 2 seconds into that 10
+    /// seconds.)
+    ///
+    /// As more service operations (e.g., hooks) become asynchronous,
+    /// we'll need to wrap those operations in this logic to ensure
+    /// consistent operation.
+    fn wrap_async_service_operation<F>(
+        ident: PackageIdent,
+        busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
+        services_need_reconciliation: ReconciliationFlag,
+        fut: F,
+    ) -> impl Future<Item = (), Error = ()>
+    where
+        F: IntoFuture<Item = (), Error = ()>,
+    {
+        // TODO (CM): can't wait for the Pinning API :(
+        let busy_services_2 = Arc::clone(&busy_services);
+        let ident_2 = ident.clone();
 
-        self.butterfly.persist_data();
+        future::lazy(move || {
+            trace!(
+                "Flagging '{:?}' as busy, pending an asynchronous operation",
+                ident
+            );
+            busy_services
+                .lock()
+                .expect("busy_services lock is poisoned")
+                .insert(ident);
+            Ok(())
+        })
+        .and_then(|_| fut)
+        .and_then(move |_| {
+            trace!(
+                "Removing 'busy' flag for '{:?}'; asynchronous operation over",
+                ident_2
+            );
+            busy_services_2
+                .lock()
+                .expect("busy_services lock is poisoned")
+                .remove(&ident_2);
+            services_need_reconciliation.set();
+            Ok(())
+        })
+    }
+
+    /// Determine if our on-disk spec files indicate that we should
+    /// perform some action on our services (start, stop, etc.)
+    ///
+    /// If so, futures for those actions are spawned on the runtime.
+    ///
+    /// NOTE: Service start is currently synchronous, so any start
+    /// operations will be performed directly as a consequence of
+    /// calling this method.
+    fn maybe_spawn_service_futures(&mut self, runtime: &mut Runtime) {
+        let ops = self.compute_service_operations();
+        for f in self.operations_into_futures(ops) {
+            runtime.spawn(f);
+        }
+    }
+
+    fn remove_service_from_state(&mut self, spec: &ServiceSpec) -> Option<Service> {
+        self.state
+            .services
+            .write()
+            .expect("Services lock is poisoned")
+            .remove(&spec.ident)
     }
 
     /// Start, stop, or restart services to bring what's running in
     /// line with what our spec files say.
-    fn take_action_on_services(&mut self) -> Result<()> {
-        for op in self.reconcile_spec_files()? {
-            match op {
-                ServiceOperation::Stop(spec) => {
-                    self.remove_service_for_spec(&spec);
+    ///
+    /// In the future, this will simply convert `ServiceOperation`s
+    /// into futures that can be later spawned. Until starting of
+    /// services is made asynchronous, however, it performs a mix of
+    /// operations; starts are performed synchronously, while
+    /// shutdowns and restarts are turned into futures.
+    fn operations_into_futures<O>(&mut self, ops: O) -> Vec<impl Future<Item = (), Error = ()>>
+    where
+        O: IntoIterator<Item = ServiceOperation>,
+    {
+        ops.into_iter()
+            .filter_map(|op| {
+                match op {
+                    ServiceOperation::Stop(spec)
+                    | ServiceOperation::Restart { to_stop: spec, .. } => {
+                        // Yes, Stop and Restart both turn into
+                        // "stop"... Once we've finished stopping, we'll
+                        // end up re-examining the spec file on disk; if
+                        // we should be running, we'll start up again.
+                        //
+                        // This may change in the future, once service
+                        // start can be performed asynchronously in a
+                        // future; then we could just chain that future
+                        // onto the end of the stop one for a *real*
+                        // restart future.
+                        let f = self
+                            .remove_service_from_state(&spec)
+                            .map(|service| self.stop(service));
+                        if f.is_none() {
+                            // We really don't expect this to happen....
+                            outputln!(
+                                "Tried to remove service for {} but could not find it running, \
+                                 skipping",
+                                &spec.ident
+                            );
+                        }
+                        f
+                    }
+                    ServiceOperation::Start(spec) => {
+                        self.add_service(spec);
+                        None // No future to return (currently synchronous!)
+                    }
                 }
-                ServiceOperation::Start(spec) => {
-                    self.add_service(spec);
-                }
-                ServiceOperation::Restart {
-                    to_stop: running,
-                    to_start: desired,
-                } => {
-                    self.remove_service_for_spec(&running);
-                    self.add_service(desired);
-                }
-            }
-        }
-        Ok(())
+            })
+            .collect()
     }
 
     /// Determine what services we need to start, stop, or restart in
@@ -1088,18 +1360,29 @@ impl Manager {
     /// should be running.
     ///
     /// See `specs_to_operations` for the real logic.
-    fn reconcile_spec_files(&mut self) -> Result<Vec<ServiceOperation>> {
+    fn compute_service_operations(&mut self) -> Vec<ServiceOperation> {
+        // First, figure out what's currently running.
         let services = self
             .state
             .services
             .read()
             .expect("Services lock is poisoned");
-        let currently_running_specs = services.values().map(|s| s.to_spec());
-        let on_disk_specs = self.spec_dir.specs()?;
-        Ok(Self::specs_to_operations(
-            currently_running_specs,
-            on_disk_specs,
-        ))
+        let currently_running_specs = services.values().map(Service::to_spec);
+
+        // Now, figure out what we should compare against, ignoring
+        // any services that are currently doing something
+        // asynchronously.
+        let busy_services = self
+            .busy_services
+            .lock()
+            .expect("busy_services lock is poisoned");
+        let on_disk_specs = self
+            .spec_dir
+            .specs()
+            .into_iter()
+            .filter(|s| !busy_services.contains(&s.ident));
+
+        Self::specs_to_operations(currently_running_specs, on_disk_specs)
     }
 
     /// Pure utility function to generate a list of operations to
@@ -1115,7 +1398,7 @@ impl Manager {
     {
         let mut svc_states = HashMap::new();
 
-        #[derive(Default)]
+        #[derive(Default, Debug)]
         struct ServiceState {
             running: Option<ServiceSpec>,
             disk: Option<(DesiredState, ServiceSpec)>,
@@ -1141,65 +1424,66 @@ impl Manager {
 
         svc_states
             .into_iter()
-            .filter_map(|(ident, ss)| match ss {
-                ServiceState {
-                    disk: Some((DesiredState::Up, disk_spec)),
-                    running: None,
-                } => {
-                    debug!("Reconciliation: '{}' queued for start", ident);
-                    Some(ServiceOperation::Start(disk_spec))
-                }
-
-                ServiceState {
-                    disk: Some((DesiredState::Up, disk_spec)),
-                    running: Some(running_spec),
-                } => {
-                    if running_spec == disk_spec {
-                        debug!("Reconciliation: '{}' unchanged", ident);
-                        None
-                    } else {
-                        // TODO (CM): In the future, this would be the
-                        // place where we can evaluate what has changed
-                        // between the spec-on-disk and our in-memory
-                        // representation and potentially just bring our
-                        // in-memory representation in line without having
-                        // to restart the entire service.
-                        debug!("Reconciliation: '{}' queued for restart", ident);
-                        Some(ServiceOperation::Restart {
-                            to_stop: running_spec,
-                            to_start: disk_spec,
-                        })
+            .filter_map(|(ident, ss)| {
+                match ss {
+                    ServiceState {
+                        disk: Some((DesiredState::Up, disk_spec)),
+                        running: None,
+                    } => {
+                        debug!("Reconciliation: '{}' queued for start", ident);
+                        Some(ServiceOperation::Start(disk_spec))
                     }
-                }
 
-                ServiceState {
-                    disk: Some((DesiredState::Down, _)),
-                    running: Some(running_spec),
-                } => {
-                    debug!("Reconciliation: '{}' queued for stop", ident);
-                    Some(ServiceOperation::Stop(running_spec))
-                }
+                    ServiceState {
+                        disk: Some((DesiredState::Up, disk_spec)),
+                        running: Some(running_spec),
+                    } => {
+                        if running_spec == disk_spec {
+                            debug!("Reconciliation: '{}' unchanged", ident);
+                            None
+                        } else {
+                            // TODO (CM): In the future, this would be the
+                            // place where we can evaluate what has changed
+                            // between the spec-on-disk and our in-memory
+                            // representation and potentially just bring our
+                            // in-memory representation in line without having
+                            // to restart the entire service.
+                            debug!("Reconciliation: '{}' queued for restart", ident);
+                            Some(ServiceOperation::Restart {
+                                to_stop: running_spec,
+                                to_start: disk_spec,
+                            })
+                        }
+                    }
+                    ServiceState {
+                        disk: Some((DesiredState::Down, _)),
+                        running: Some(running_spec),
+                    } => {
+                        debug!("Reconciliation: '{}' queued for stop", ident);
+                        Some(ServiceOperation::Stop(running_spec))
+                    }
 
-                ServiceState {
-                    disk: Some((DesiredState::Down, _)),
-                    running: None,
-                } => {
-                    debug!("Reconciliation: '{}' should be down, and is", ident);
-                    None
-                }
+                    ServiceState {
+                        disk: Some((DesiredState::Down, _)),
+                        running: None,
+                    } => {
+                        debug!("Reconciliation: '{}' should be down, and is", ident);
+                        None
+                    }
 
-                ServiceState {
-                    disk: None,
-                    running: Some(running_spec),
-                } => {
-                    debug!("Reconciliation: '{}' queued for shutdown", ident);
-                    Some(ServiceOperation::Stop(running_spec))
-                }
+                    ServiceState {
+                        disk: None,
+                        running: Some(running_spec),
+                    } => {
+                        debug!("Reconciliation: '{}' queued for shutdown", ident);
+                        Some(ServiceOperation::Stop(running_spec))
+                    }
 
-                ServiceState {
-                    disk: None,
-                    running: None,
-                } => unreachable!(),
+                    ServiceState {
+                        disk: None,
+                        running: None,
+                    } => unreachable!(),
+                }
             })
             .collect()
     }
@@ -1226,30 +1510,16 @@ impl Manager {
             .services
             .write()
             .expect("Services lock is poisoned");
+
         for service in services.values_mut() {
-            if self.user_config_watcher.have_events_for(service) {
+            if self
+                .user_config_watcher
+                .read()
+                .expect("user_config_watcher lock is poisoned")
+                .have_events_for(service)
+            {
                 outputln!("user.toml changes detected for {}", &service.spec_ident);
                 service.user_config_updated = true;
-            }
-        }
-    }
-
-    fn remove_service_for_spec(&mut self, spec: &ServiceSpec) {
-        let svc = self
-            .state
-            .services
-            .write()
-            .expect("Services lock is poisoned")
-            .remove(&spec.ident);
-        match svc {
-            Some(mut service) => {
-                self.remove_service(&mut service, ShutdownReason::SvcStopCmd);
-            }
-            None => {
-                outputln!(
-                    "Tried to remove service for {} but could not find it running, skipping",
-                    &spec.ident
-                );
             }
         }
     }
@@ -1465,11 +1735,20 @@ fn track_memory_stats() {}
 struct CtlAcceptor {
     rx: ctl_gateway::server::MgrReceiver,
     state: Arc<ManagerState>,
+    shutdown_trigger: oneshot::Receiver<()>,
 }
 
 impl CtlAcceptor {
-    fn new(state: Arc<ManagerState>, rx: ctl_gateway::server::MgrReceiver) -> Self {
-        CtlAcceptor { state, rx }
+    fn new(
+        state: Arc<ManagerState>,
+        rx: ctl_gateway::server::MgrReceiver,
+        shutdown_trigger: oneshot::Receiver<()>,
+    ) -> Self {
+        CtlAcceptor {
+            state,
+            rx,
+            shutdown_trigger,
+        }
     }
 }
 
@@ -1478,17 +1757,27 @@ impl Stream for CtlAcceptor {
     type Item = CtlHandler;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.rx.poll() {
-            Ok(Async::Ready(Some(cmd))) => {
-                let task = CtlHandler::new(cmd, self.state.clone());
-                Ok(Async::Ready(Some(task)))
+        match self.shutdown_trigger.poll() {
+            Ok(Async::Ready(())) => {
+                info!("Signal received; stopping CtlAcceptor");
+                Ok(Async::Ready(None))
             }
-            Ok(Async::Ready(None)) => Ok(Async::Ready(None)),
-            Ok(Async::NotReady) => Ok(Async::NotReady),
             Err(e) => {
-                debug!("CtlAcceptor error, {:?}", e);
-                Err(())
+                error!("Error polling CtlAcceptor shutdown trigger: {:?}", e);
+                Ok(Async::Ready(None))
             }
+            Ok(Async::NotReady) => match self.rx.poll() {
+                Ok(Async::Ready(Some(cmd))) => {
+                    let task = CtlHandler::new(cmd, self.state.clone());
+                    Ok(Async::Ready(Some(task)))
+                }
+                Ok(Async::Ready(None)) => Ok(Async::Ready(None)),
+                Ok(Async::NotReady) => Ok(Async::NotReady),
+                Err(e) => {
+                    debug!("CtlAcceptor error, {:?}", e);
+                    Err(())
+                }
+            },
         }
     }
 }
@@ -1527,6 +1816,23 @@ mod test {
     use super::*;
     use habitat_sup_protocol::STATE_PATH_PREFIX;
     use std::path::PathBuf;
+
+    mod reconciliation_flag {
+        use super::*;
+
+        #[test]
+        fn toggle_if_set_only_returns_true_if_previously_set() {
+            let f = ReconciliationFlag::new(false);
+            assert!(!f.is_set());
+            assert!(!f.toggle_if_set(), "Should not be set!");
+            f.set();
+            assert!(f.toggle_if_set(), "Should have been toggled, but wasn't!");
+            assert!(
+                !f.toggle_if_set(),
+                "Should no longer be toggled, after having been toggled previously!"
+            );
+        }
+    }
 
     #[test]
     fn manager_state_path_default() {
@@ -1594,6 +1900,7 @@ mod test {
         //! what is currently running.
 
         use super::super::*;
+        use habitat_sup_protocol::types::UpdateStrategy;
 
         /// Helper function for generating a basic spec from an
         /// identifier string

@@ -12,6 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::{package::Pkg,
+            TemplateRenderer};
+use crate::error::{Error,
+                   Result};
+#[cfg(windows)]
+use habitat_core::os::process::windows_child::{Child,
+                                               ExitStatus};
+use habitat_core::{crypto,
+                   fs,
+                   outputln};
+use serde::{Serialize,
+            Serializer};
 #[cfg(unix)]
 use std::os::unix::process::{CommandExt,
                              ExitStatusExt};
@@ -28,21 +40,6 @@ use std::{ffi::OsStr,
           path::{Path,
                  PathBuf},
           result};
-
-#[cfg(windows)]
-use crate::hcore::os::process::windows_child::{Child,
-                                               ExitStatus};
-use crate::hcore::{self,
-                   crypto,
-                   fs,
-                   outputln};
-use serde::{Serialize,
-            Serializer};
-
-use super::{package::Pkg,
-            TemplateRenderer};
-use crate::error::{Error,
-                   Result};
 
 #[cfg(not(windows))]
 pub const HOOK_PERMISSIONS: u32 = 0o755;
@@ -69,8 +66,14 @@ impl Default for ExitCode {
     fn default() -> ExitCode { ExitCode(-1) }
 }
 
-pub trait Hook: fmt::Debug + Sized {
-    type ExitValue: Default;
+// Hook and ExitValue must (currently) be Send so we can use them in
+// futures. ExitValue must currently be Debug because we want to use
+// it in Results
+//
+// Future refactorings may make these changes unnecessary, but it
+// helps us bridge the gap
+pub trait Hook: fmt::Debug + Sized + Send {
+    type ExitValue: Default + fmt::Debug + Send;
 
     fn file_name() -> &'static str;
 
@@ -160,15 +163,15 @@ pub trait Hook: fmt::Debug + Sized {
     }
 
     #[cfg(not(windows))]
-    fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-        use crate::hcore::util::posix_perm;
+    fn set_permissions<T: AsRef<Path>>(path: T) -> habitat_core::error::Result<()> {
+        use habitat_core::util::posix_perm;
 
         posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
     }
 
     #[cfg(windows)]
-    fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-        use crate::hcore::util::win_perm;
+    fn set_permissions<T: AsRef<Path>>(path: T) -> habitat_core::error::Result<()> {
+        use habitat_core::util::win_perm;
 
         win_perm::harden_path(path.as_ref())
     }
@@ -253,7 +256,8 @@ pub trait Hook: fmt::Debug + Sized {
         T: ToString,
         S: AsRef<OsStr>,
     {
-        use crate::hcore::os::users;
+        use habitat_core::os::users;
+        use std::io::Error as IoError;
 
         let mut cmd = Command::new(path.as_ref());
         cmd.stdin(Stdio::null())
@@ -288,6 +292,19 @@ pub trait Hook: fmt::Debug + Sized {
                 &pkg.svc_user
             );
         }
+
+        cmd.before_exec(|| {
+            // Run in your own process group! This prevents terminal
+            // signals (e.g. ^C) sent to a Supervisor running in the
+            // foreground from being passed down to any running hooks,
+            // which could cause them to terminate prematurely, among
+            // other things.
+            if unsafe { libc::setpgid(0, 0) } == 0 {
+                Ok(())
+            } else {
+                Err(IoError::last_os_error())
+            }
+        });
 
         Ok(cmd.spawn()?)
     }
@@ -515,16 +532,15 @@ impl<'a> HookOutput<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::hcore::{package::{PackageIdent,
-                                 PackageInstall},
-                       service::ServiceGroup};
-    use tempfile::TempDir;
-
     use super::*;
     use crate::templating::{config::Cfg,
                             context::RenderContext,
                             package::Pkg,
                             test_helpers::*};
+    use habitat_core::{package::{PackageIdent,
+                                 PackageInstall},
+                       service::ServiceGroup};
+    use tempfile::TempDir;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use

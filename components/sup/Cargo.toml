@@ -68,7 +68,7 @@ jemalloc-ctl = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
-winapi = "*"
+winapi =  { version = "*", features = ["tlhelp32"] }
 
 [dev-dependencies]
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72

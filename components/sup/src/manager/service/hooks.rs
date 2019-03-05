@@ -12,25 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::health;
+#[cfg(windows)]
+use crate::hcore::os::process::windows_child::ExitStatus;
+use habitat_common::templating::{hooks::{self,
+                                         ExitCode,
+                                         Hook,
+                                         HookOutput,
+                                         RenderPair},
+                                 package::Pkg,
+                                 TemplateRenderer};
+use habitat_core::outputln;
+use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;
 use std::{self,
           io::prelude::*,
           path::{Path,
-                 PathBuf}};
-
-use crate::common::templating::{hooks::{self,
-                                        ExitCode,
-                                        Hook,
-                                        HookOutput,
-                                        RenderPair},
-                                package::Pkg,
-                                TemplateRenderer};
-#[cfg(windows)]
-use crate::hcore::os::process::windows_child::ExitStatus;
-use serde::Serialize;
-
-use super::health;
+                 PathBuf},
+          sync::Arc};
 
 static LOGKEY: &'static str = "HK";
 
@@ -499,7 +499,9 @@ pub struct HookTable {
     pub suitability: Option<SuitabilityHook>,
     pub run: Option<RunHook>,
     pub post_run: Option<PostRunHook>,
-    pub post_stop: Option<PostStopHook>,
+    // This Arc<> business is a possibly-temporary state while
+    // we refactor hooks to be able to run asynchronously.
+    pub post_stop: Option<Arc<PostStopHook>>,
 }
 
 impl HookTable {
@@ -520,7 +522,8 @@ impl HookTable {
                 table.reconfigure = ReconfigureHook::load(package_name, &hooks_path, &templates);
                 table.run = RunHook::load(package_name, &hooks_path, &templates);
                 table.post_run = PostRunHook::load(package_name, &hooks_path, &templates);
-                table.post_stop = PostStopHook::load(package_name, &hooks_path, &templates);
+                table.post_stop =
+                    PostStopHook::load(package_name, &hooks_path, &templates).map(Arc::new);
             }
         }
         debug!(
@@ -543,31 +546,31 @@ impl HookTable {
         debug!("{:?}", self);
         let mut changed = false;
         if let Some(ref hook) = self.file_updated {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.health_check {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.init {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reload {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reconfigure {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.suitability {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.run {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_run {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_stop {
-            changed = self.compile_one(hook, service_group, ctx) || changed;
+            changed |= self.compile_one(hook.as_ref(), service_group, ctx);
         }
         changed
     }

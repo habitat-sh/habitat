@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{common::ui::UI,
-            hcore::{package::PackageIdent,
-                    ChannelIdent}};
-
 use crate::error::Result;
+use habitat_common::ui::UI;
+use habitat_core::{package::PackageIdent,
+                   ChannelIdent};
 
 pub mod cf;
 pub mod docker;
@@ -131,12 +130,12 @@ mod inner {
 #[cfg(not(target_os = "linux"))]
 mod inner {
     use super::ExportFormat;
-    use crate::{common::ui::{UIWriter,
-                             UI},
-                error::{Error,
-                        Result},
-                hcore::{package::PackageIdent,
-                        ChannelIdent}};
+    use crate::error::{Error,
+                       Result};
+    use habitat_common::ui::{UIWriter,
+                             UI};
+    use habitat_core::{package::PackageIdent,
+                       ChannelIdent};
     use std::env;
 
     pub fn format_for(ui: &mut UI, value: &str) -> Result<ExportFormat> {

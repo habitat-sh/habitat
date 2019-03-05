@@ -14,17 +14,9 @@
 
 //! All the code for responding to Supervisor commands
 
-use crate::{butterfly,
-            common::{command::package::install::InstallSource,
-                     ui::UIWriter},
-            ctl_gateway::CtlRequest,
+use crate::{ctl_gateway::CtlRequest,
             error::{Error,
                     Result},
-            hcore::{package::{Identifiable,
-                              PackageIdent,
-                              PackageTarget},
-                    service::ServiceGroup,
-                    ChannelIdent},
             manager::{service::{spec::{IntoServiceSpec,
                                        ServiceSpec},
                                 DesiredState,
@@ -32,11 +24,20 @@ use crate::{butterfly,
                                 ProcessState},
                       ManagerConfig,
                       ManagerState},
-            protocol::{self,
-                       net::{self,
-                             ErrCode,
-                             NetResult}},
             util};
+use habitat_butterfly as butterfly;
+use habitat_common::{command::package::install::InstallSource,
+                     ui::UIWriter};
+use habitat_core::{outputln,
+                   package::{Identifiable,
+                             PackageIdent,
+                             PackageTarget},
+                   service::ServiceGroup,
+                   ChannelIdent};
+use habitat_sup_protocol::{self as protocol,
+                           net::{self,
+                                 ErrCode,
+                                 NetResult}};
 use serde_json;
 use std::{fmt,
           fs,

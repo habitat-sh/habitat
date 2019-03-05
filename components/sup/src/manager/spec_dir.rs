@@ -60,33 +60,20 @@ impl SpecDir {
     }
 
     /// Return a list of all the specs as currently found on disk.
-    pub fn specs(&self) -> Result<Vec<ServiceSpec>> {
+    pub fn specs(&self) -> Vec<ServiceSpec> {
         let mut specs = vec![];
 
         for spec_file in self.spec_files() {
             let spec = match ServiceSpec::from_file(&spec_file) {
                 Ok(s) => s,
                 Err(e) => {
-                    match e.err {
-                        // If the error is related to loading a `ServiceSpec`, emit a warning
-                        // message and continue on to the next spec file. The best we can do to
-                        // fail-safe is report and skip.
-                        Error::ServiceSpecParse(_) | Error::MissingRequiredIdent => {
-                            outputln!(
-                                "Error when loading service spec file '{}' ({}). This file will \
-                                 be skipped.",
-                                spec_file.display(),
-                                e.description()
-                            );
-                            continue;
-                        }
-                        // All other errors are unexpected and should be dealt with up the calling
-                        // stack.
-
-                        // TODO (CM): This is the only way this
-                        // function could fail.
-                        _ => return Err(e),
-                    }
+                    outputln!(
+                        "Error when loading service spec file '{}' ({}). This file will be \
+                         skipped.",
+                        spec_file.display(),
+                        e.description()
+                    );
+                    continue;
                 }
             };
 
@@ -116,7 +103,7 @@ impl SpecDir {
             });
         }
 
-        Ok(specs)
+        specs
     }
 
     /// Return the list of all spec files in the directory
