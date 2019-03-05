@@ -54,7 +54,7 @@ impl Hook for FileUpdatedHook {
         }
     }
 
-    fn handle_exit<'a>(&self, _: &Pkg, _: &'a HookOutput, status: &ExitStatus) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, _: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         status.success()
     }
 
@@ -87,12 +87,7 @@ impl Hook for HealthCheckHook {
         }
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => health::HealthCheck::Ok,
@@ -140,12 +135,7 @@ impl Hook for InitHook {
         }
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => true,
@@ -201,12 +191,7 @@ impl Hook for RunHook {
         );
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -245,12 +230,7 @@ impl Hook for PostRunHook {
         }
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -289,12 +269,7 @@ impl Hook for ReloadHook {
         }
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => ExitCode(0),
@@ -339,12 +314,7 @@ impl Hook for ReconfigureHook {
         }
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         match status.code() {
             Some(code) => ExitCode(code),
             None => {
@@ -387,7 +357,7 @@ impl Hook for SuitabilityHook {
         &self,
         pkg: &Pkg,
         hook_output: &'a HookOutput,
-        status: &ExitStatus,
+        status: ExitStatus,
     ) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
@@ -459,12 +429,7 @@ impl Hook for PostStopHook {
         }
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => true,

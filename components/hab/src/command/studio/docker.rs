@@ -303,20 +303,20 @@ fn unset_proxy_env_vars() {
 fn image_identifier_for_active_target(docker_cmd: &Path) -> String {
     image_identifier(
         is_serving_windows_containers(docker_cmd),
-        target::PackageTarget::active_target(),
+        *target::PackageTarget::active_target(),
     )
 }
 
 /// Returns the Docker Studio image with tag for the desired version which corresponds to the
 /// same version (minus release) as this program.
-fn image_identifier(using_windows_containers: bool, target: &target::PackageTarget) -> String {
+fn image_identifier(using_windows_containers: bool, target: target::PackageTarget) -> String {
     let version: Vec<&str> = VERSION.split('/').collect();
     let (img, studio_target) = if using_windows_containers {
-        (DOCKER_WINDOWS_IMAGE, target::X86_64_WINDOWS.as_ref())
+        (DOCKER_WINDOWS_IMAGE, target::X86_64_WINDOWS)
     } else {
-        let t = match *target {
-            target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2.as_ref(),
-            _ => target::X86_64_LINUX.as_ref(),
+        let t = match target {
+            target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2,
+            _ => target::X86_64_LINUX,
         };
         (DOCKER_IMAGE, t)
     };
@@ -338,27 +338,27 @@ mod tests {
     fn retrieve_image_identifier() {
         let windows_container = true;
         assert_eq!(
-            image_identifier(!windows_container, &target::X86_64_DARWIN),
+            image_identifier(!windows_container, target::X86_64_DARWIN),
             format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
         );
         assert_eq!(
-            image_identifier(!windows_container, &target::X86_64_LINUX),
+            image_identifier(!windows_container, target::X86_64_LINUX),
             format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
         );
         assert_eq!(
-            image_identifier(!windows_container, &target::X86_64_LINUX_KERNEL2),
+            image_identifier(!windows_container, target::X86_64_LINUX_KERNEL2),
             format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux-kernel2", VERSION)
         );
         assert_eq!(
-            image_identifier(!windows_container, &target::X86_64_WINDOWS),
+            image_identifier(!windows_container, target::X86_64_WINDOWS),
             format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION)
         );
         assert_eq!(
-            image_identifier(windows_container, &target::X86_64_WINDOWS),
+            image_identifier(windows_container, target::X86_64_WINDOWS),
             format!("{}-{}:{}", DOCKER_WINDOWS_IMAGE, "x86_64-windows", VERSION)
         );
         assert_eq!(
-            image_identifier(windows_container, &target::X86_64_LINUX),
+            image_identifier(windows_container, target::X86_64_LINUX),
             format!("{}-{}:{}", DOCKER_WINDOWS_IMAGE, "x86_64-windows", VERSION)
         );
     }

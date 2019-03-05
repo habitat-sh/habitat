@@ -27,7 +27,6 @@
 //!
 //! This should be extended to cover uploading specific packages, and finding them by ways more
 //! complex than just latest version.
-//!
 
 // Standard Library
 use std::path::{Path,
@@ -87,14 +86,14 @@ where
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match api_client.show_package(&ident, &target, &ChannelIdent::unstable(), Some(token)) {
+    match api_client.show_package(&ident, target, &ChannelIdent::unstable(), Some(token)) {
         Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
-                match api_client.show_package(&dep, &target, &ChannelIdent::unstable(), Some(token))
+                match api_client.show_package(&dep, target, &ChannelIdent::unstable(), Some(token))
                 {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
@@ -108,7 +107,7 @@ where
                                 &api_client,
                                 token,
                                 &dep,
-                                &target,
+                                target,
                                 additional_release_channel,
                                 force_upload,
                                 &candidate_path,
@@ -229,7 +228,7 @@ fn attempt_upload_dep<T>(
     api_client: &Client,
     token: &str,
     ident: &PackageIdent,
-    target: &PackageTarget,
+    target: PackageTarget,
     additional_release_channel: &Option<ChannelIdent>,
     _force_upload: bool,
     archives_dir: &PathBuf,
@@ -238,7 +237,7 @@ fn attempt_upload_dep<T>(
 where
     T: AsRef<Path>,
 {
-    let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
+    let candidate_path = archives_dir.join(ident.archive_name_with_target(&target).unwrap());
 
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
@@ -253,7 +252,7 @@ where
             &mut archive,
         )
     } else {
-        let archive_name = ident.archive_name_with_target(target).unwrap();
+        let archive_name = ident.archive_name_with_target(&target).unwrap();
 
         ui.status(
             Status::Missing,

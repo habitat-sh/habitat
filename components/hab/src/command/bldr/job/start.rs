@@ -29,7 +29,7 @@ pub fn start(
     ui: &mut UI,
     bldr_url: &str,
     ident: &PackageIdent,
-    target: &PackageTarget,
+    target: PackageTarget,
     token: &str,
     group: bool,
 ) -> Result<()> {

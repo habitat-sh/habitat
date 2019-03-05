@@ -182,7 +182,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
     /// This should only be called when `ExitStatus#code()` returns
     /// `None`, and this only happens on non-Windows machines.
     #[cfg(unix)]
-    fn output_termination_message(service_group: &str, status: &ExitStatus) {
+    fn output_termination_message(service_group: &str, status: ExitStatus) {
         outputln!(preamble service_group, "{} was terminated by signal {:?}",
                   Self::file_name(),
                   status.signal());
@@ -196,7 +196,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
     ///
     /// See https://doc.rust-lang.org/1.30.1/std/process/struct.ExitStatus.html#method.code
     #[cfg(windows)]
-    fn output_termination_message(_: &str, _: &ExitStatus) {
+    fn output_termination_message(_: &str, _: ExitStatus) {
         panic!(
             "ExitStatus::code should never return None on Windows; please report this to the \
              Habitat core developers"
@@ -224,7 +224,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
         hook_output.stream_output::<Self>(service_group, &mut child);
         match child.wait() {
-            Ok(status) => self.handle_exit(pkg, &hook_output, &status),
+            Ok(status) => self.handle_exit(pkg, &hook_output, status),
             Err(err) => {
                 outputln!(preamble service_group,
                     "Hook failed to run, {}, {}", Self::file_name(), err);
@@ -313,7 +313,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         &self,
         pkg: &Pkg,
         output: &'a HookOutput,
-        status: &ExitStatus,
+        status: ExitStatus,
     ) -> Self::ExitValue;
 
     fn path(&self) -> &Path;
@@ -349,12 +349,7 @@ impl Hook for InstallHook {
         }
     }
 
-    fn handle_exit<'a>(
-        &self,
-        pkg: &Pkg,
-        _: &'a HookOutput,
-        status: &ExitStatus,
-    ) -> Self::ExitValue {
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         let name = &pkg.name;
         if let Some(code) = status.code() {
             let path = pkg.path.join(InstallHook::STATUS_FILE);

@@ -100,7 +100,7 @@ pub struct SrvTxn(u32);
 
 impl SrvTxn {
     /// The contained transaction ID.
-    pub fn id(&self) -> u32 { self.0 & TXN_ID_MASK }
+    pub fn id(self) -> u32 { self.0 & TXN_ID_MASK }
 
     /// Update the transaction ID to the next valid value.
     pub fn increment(&mut self) {
@@ -111,10 +111,10 @@ impl SrvTxn {
     }
 
     /// Check if this transaction represents the last message in a transaction.
-    pub fn is_complete(&self) -> bool { ((self.0 >> COMPLETE_OFFSET) & COMPLETE_MASK) == 1 }
+    pub fn is_complete(self) -> bool { ((self.0 >> COMPLETE_OFFSET) & COMPLETE_MASK) == 1 }
 
     /// Check if this transaction represents a reply to a request.
-    pub fn is_response(&self) -> bool { ((self.0 >> RESPONSE_OFFSET) & RESPONSE_MASK) == 1 }
+    pub fn is_response(self) -> bool { ((self.0 >> RESPONSE_OFFSET) & RESPONSE_MASK) == 1 }
 
     /// Set the completion bit indicating that the message this transaction is associated with is
     /// the last reply to a transactional request.
@@ -162,15 +162,15 @@ impl SrvHeader {
     }
 
     #[inline]
-    pub fn body_len(&self) -> usize { (self.0 & BODY_LEN_MASK) as usize }
+    pub fn body_len(self) -> usize { (self.0 & BODY_LEN_MASK) as usize }
 
     #[inline]
-    pub fn message_id_len(&self) -> usize {
+    pub fn message_id_len(self) -> usize {
         ((self.0 >> MESSAGE_ID_OFFSET) & MESSAGE_ID_MASK) as usize
     }
 
     #[inline]
-    pub fn is_transaction(&self) -> bool {
+    pub fn is_transaction(self) -> bool {
         match (self.0 >> TXN_OFFSET) & 1 {
             1 => true,
             0 => false,
