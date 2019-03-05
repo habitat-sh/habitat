@@ -7,6 +7,7 @@
 - Asynchronous service shutdown [#6107](https://github.com/habitat-sh/habitat/pull/6107) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Adds dependent plans build documentation [#5814](https://github.com/habitat-sh/habitat/pull/5814) ([rsertelon](https://github.com/rsertelon))
 - Enable local installation of latest rustfmt [#6238](https://github.com/habitat-sh/habitat/pull/6238) ([raskchanky](https://github.com/raskchanky))
 
 #### Bug Fixes
