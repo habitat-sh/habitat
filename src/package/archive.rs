@@ -210,7 +210,6 @@ impl PackageArchive {
     ///
     /// # Failures
     ///
-    /// * If a `DEPS` metafile is not found in the archive
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
     pub fn deps(&mut self) -> Result<Vec<PackageIdent>> {
@@ -222,11 +221,32 @@ impl PackageArchive {
     ///
     /// # Failures
     ///
-    /// * If a `TDEPS` metafile is not found in the archive
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
     pub fn tdeps(&mut self) -> Result<Vec<PackageIdent>> {
         self.read_deps(MetaFile::TDeps)
+    }
+
+    /// Returns a list of package identifiers representing the buildtime package dependencies for
+    /// this archive.
+    ///
+    /// # Failures
+    ///
+    /// * If the archive cannot be read
+    /// * If the archive cannot be verified
+    pub fn build_deps(&mut self) -> Result<Vec<PackageIdent>> {
+        self.read_deps(MetaFile::BuildDeps)
+    }
+
+    /// Returns a list of package identifiers representing the transitive buildtime package
+    /// dependencies for this archive.
+    ///
+    /// # Failures
+    ///
+    /// * If the archive cannot be read
+    /// * If the archive cannot be verified
+    pub fn build_tdeps(&mut self) -> Result<Vec<PackageIdent>> {
+        self.read_deps(MetaFile::BuildTDeps)
     }
 
     pub fn exposes(&mut self) -> Result<Vec<u16>> {

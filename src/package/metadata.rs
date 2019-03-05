@@ -173,6 +173,8 @@ pub enum MetaFile {
     BindMap, // Composite-only
     Binds,
     BindsOptional,
+    BuildDeps,
+    BuildTDeps,
     CFlags,
     Config,
     Deps,
@@ -202,6 +204,8 @@ impl fmt::Display for MetaFile {
             MetaFile::BindMap => "BIND_MAP",
             MetaFile::Binds => "BINDS",
             MetaFile::BindsOptional => "BINDS_OPTIONAL",
+            MetaFile::BuildDeps => "BUILD_DEPS",
+            MetaFile::BuildTDeps => "BUILD_TDEPS",
             MetaFile::CFlags => "CFLAGS",
             MetaFile::Config => "default.toml",
             MetaFile::Deps => "DEPS",
