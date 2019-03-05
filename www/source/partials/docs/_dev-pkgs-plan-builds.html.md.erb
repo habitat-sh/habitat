@@ -57,6 +57,19 @@ Depending on the platform of your host and your Docker configuration, the behavi
 
 > Note: For more details related to Windows containers see [Running Habitat Windows Containers](/docs/best-practices/#running-habitat-windows-containers).
 
+### Building Dependent Plans in the Studio
+
+Writing plans for multiple packages that are dependent on each other can prove cumbersome when using multiple studios, as you need update dependencies frequently. On the other hand, using a single studio allows you to quickly test your changes by using locally built packages. To do so, you should use a folder structure like this:
+
+```shell
+$ tree projects
+projects/
+├── project-a
+└── project-b
+```
+
+This way, you can `hab studio enter` in `projects/`. If `project-b` depends on `project-a`, you can call `build project-a && build project-b` for example.
+
 ## Non-Interactive Build
 
 A non-interactive build is one in which Habitat creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
