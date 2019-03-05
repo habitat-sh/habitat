@@ -26,19 +26,22 @@ mod net;
 pub mod proxy;
 pub mod util;
 
-pub use crate::api_client::ApiClient;
-pub use crate::error::{Error, Result};
+pub use crate::{api_client::ApiClient,
+                error::{Error,
+                        Result}};
 
 #[cfg(not(target_os = "macos"))]
 mod ssl {
-    use std::fs::{self, File};
-    use std::io::Write;
-    use std::path::Path;
-    use std::str::FromStr;
+    use std::{fs::{self,
+                   File},
+              io::Write,
+              path::Path,
+              str::FromStr};
 
-    use habitat_core::env;
-    use habitat_core::fs::cache_ssl_path;
-    use habitat_core::package::{PackageIdent, PackageInstall};
+    use habitat_core::{env,
+                       fs::cache_ssl_path,
+                       package::{PackageIdent,
+                                 PackageInstall}};
     use openssl::ssl::SslContextBuilder;
 
     use crate::error::Result;
@@ -53,10 +56,8 @@ mod ssl {
             ctx.set_default_verify_paths()?;
         } else if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
             let pkg_certs = pkg_install.installed_path().join("ssl/cert.pem");
-            debug!(
-                "Setting CA file for SSL context to: {}",
-                pkg_certs.display()
-            );
+            debug!("Setting CA file for SSL context to: {}",
+                   pkg_certs.display());
             ctx.set_ca_file(pkg_certs)?;
         } else {
             let cached_certs = cache_ssl_path(fs_root_path).join("cert.pem");
@@ -66,10 +67,8 @@ mod ssl {
                 let mut file = File::create(&cached_certs)?;
                 file.write_all(CACERT_PEM.as_bytes())?;
             }
-            debug!(
-                "Setting CA file for SSL context to: {}",
-                cached_certs.display()
-            );
+            debug!("Setting CA file for SSL context to: {}",
+                   cached_certs.display());
             ctx.set_ca_file(cached_certs)?;
         }
         Ok(())

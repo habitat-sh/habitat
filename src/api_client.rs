@@ -12,28 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::Path;
-use std::time::Duration;
+use std::{path::Path,
+          time::Duration};
 
-use habitat_core::env;
-use habitat_core::package::PackageTarget;
-use habitat_core::util::sys;
-use hyper::client::pool::{Config, Pool};
-use hyper::client::{Client as HyperClient, IntoUrl, RequestBuilder};
-use hyper::header::UserAgent;
-use hyper::http::h1::Http11Protocol;
-use hyper::net::HttpsConnector;
+use habitat_core::{env,
+                   package::PackageTarget,
+                   util::sys};
+use hyper::{client::{pool::{Config,
+                            Pool},
+                     Client as HyperClient,
+                     IntoUrl,
+                     RequestBuilder},
+            header::UserAgent,
+            http::h1::Http11Protocol,
+            net::HttpsConnector};
 use hyper_openssl::OpensslClient;
-use openssl::ssl::{
-    SslConnector, SslConnectorBuilder, SslMethod, SslOption, SSL_OP_NO_COMPRESSION,
-    SSL_OP_NO_SSLV2, SSL_OP_NO_SSLV3, SSL_VERIFY_NONE,
-};
+use openssl::ssl::{SslConnector,
+                   SslConnectorBuilder,
+                   SslMethod,
+                   SslOption,
+                   SSL_OP_NO_COMPRESSION,
+                   SSL_OP_NO_SSLV2,
+                   SSL_OP_NO_SSLV3,
+                   SSL_VERIFY_NONE};
 use url::Url;
 
-use crate::error::{Error, Result};
-use crate::net::ProxyHttpsConnector;
-use crate::proxy::{proxy_unless_domain_exempted, ProxyInfo};
-use crate::ssl;
+use crate::{error::{Error,
+                    Result},
+            net::ProxyHttpsConnector,
+            proxy::{proxy_unless_domain_exempted,
+                    ProxyInfo},
+            ssl};
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
 const CLIENT_SOCKET_RW_TIMEOUT_SEC: u64 = 120;
@@ -69,34 +78,27 @@ impl ApiClient {
     /// * If a suitable SSL context cannot be established
     /// * If an HTTP proxy cannot be correctly setup
     /// * If a `User-Agent` HTTP header string cannot be constructed
-    pub fn new<T>(
-        endpoint: T,
-        product: &str,
-        version: &str,
-        fs_root_path: Option<&Path>,
-    ) -> Result<Self>
-    where
-        T: IntoUrl,
+    pub fn new<T>(endpoint: T,
+                  product: &str,
+                  version: &str,
+                  fs_root_path: Option<&Path>)
+                  -> Result<Self>
+        where T: IntoUrl
     {
         let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
-        Ok(ApiClient {
-            inner: new_hyper_client(&endpoint, fs_root_path)?,
-            proxy: proxy_unless_domain_exempted(Some(&endpoint))?,
-            target_scheme: endpoint.scheme().to_string(),
-            endpoint,
-            user_agent_header: user_agent(product, version)?,
-        })
+        Ok(ApiClient { inner: new_hyper_client(&endpoint, fs_root_path)?,
+                       proxy: proxy_unless_domain_exempted(Some(&endpoint))?,
+                       target_scheme: endpoint.scheme().to_string(),
+                       endpoint,
+                       user_agent_header: user_agent(product, version)? })
     }
 
     /// Builds an HTTP GET request for a given path.
-    pub fn get(&self, path: &str) -> RequestBuilder {
-        self.get_with_custom_url(path, |_| {})
-    }
+    pub fn get(&self, path: &str) -> RequestBuilder { self.get_with_custom_url(path, |_| {}) }
 
     /// Builds an HTTP GET request for a given path with the ability to customize the target URL.
     pub fn get_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-    where
-        F: FnMut(&mut Url),
+        where F: FnMut(&mut Url)
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -105,14 +107,11 @@ impl ApiClient {
     }
 
     /// Builds an HTTP HEAD request for a given path.
-    pub fn head(&self, path: &str) -> RequestBuilder {
-        self.head_with_custom_url(path, |_| {})
-    }
+    pub fn head(&self, path: &str) -> RequestBuilder { self.head_with_custom_url(path, |_| {}) }
 
     /// Builds an HTTP HEAD request for a given path with the ability to customize the target URL.
     pub fn head_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-    where
-        F: FnMut(&mut Url),
+        where F: FnMut(&mut Url)
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -121,14 +120,11 @@ impl ApiClient {
     }
 
     /// Builds an HTTP PATCH request for a given path.
-    pub fn patch(&self, path: &str) -> RequestBuilder {
-        self.patch_with_custom_url(path, |_| {})
-    }
+    pub fn patch(&self, path: &str) -> RequestBuilder { self.patch_with_custom_url(path, |_| {}) }
 
     /// Builds an HTTP PATCH request for a given path with the ability to customize the target URL.
     pub fn patch_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-    where
-        F: FnMut(&mut Url),
+        where F: FnMut(&mut Url)
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -137,14 +133,11 @@ impl ApiClient {
     }
 
     /// Builds an HTTP POST request for a given path.
-    pub fn post(&self, path: &str) -> RequestBuilder {
-        self.post_with_custom_url(path, |_| {})
-    }
+    pub fn post(&self, path: &str) -> RequestBuilder { self.post_with_custom_url(path, |_| {}) }
 
     /// Builds an HTTP POST request for a given path with the ability to customize the target URL.
     pub fn post_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-    where
-        F: FnMut(&mut Url),
+        where F: FnMut(&mut Url)
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -153,14 +146,11 @@ impl ApiClient {
     }
 
     /// Builds an HTTP PUT request for a given path.
-    pub fn put(&self, path: &str) -> RequestBuilder {
-        self.put_with_custom_url(path, |_| {})
-    }
+    pub fn put(&self, path: &str) -> RequestBuilder { self.put_with_custom_url(path, |_| {}) }
 
     /// Builds an HTTP PUT request for a given path with the ability to customize the target URL.
     pub fn put_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-    where
-        F: FnMut(&mut Url),
+        where F: FnMut(&mut Url)
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -169,14 +159,11 @@ impl ApiClient {
     }
 
     /// Builds an HTTP DELETE request for a given path.
-    pub fn delete(&self, path: &str) -> RequestBuilder {
-        self.delete_with_custom_url(path, |_| {})
-    }
+    pub fn delete(&self, path: &str) -> RequestBuilder { self.delete_with_custom_url(path, |_| {}) }
 
     /// Builds an HTTP DELETE request for a given path with the ability to customize the target URL.
     pub fn delete_with_custom_url<F>(&self, path: &str, mut customize_url: F) -> RequestBuilder
-    where
-        F: FnMut(&mut Url),
+        where F: FnMut(&mut Url)
     {
         let mut url = self.url_for(path);
         customize_url(&mut url);
@@ -247,16 +234,17 @@ impl ApiClient {
 /// The Mac platform uses a Security Framework to store and find root certificates and the hyper
 /// library will default to using this on the Mac. Therefore the behavior on the Mac remains
 /// unchanged and will use the system's certificates.
-///
 fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClient> {
     let connector = ssl_connector(fs_root_path)?;
     let ssl_client = OpensslClient::from(connector);
 
     let timeout_in_secs = match env::var("HAB_CLIENT_SOCKET_TIMEOUT") {
-        Ok(t) => match t.parse::<u64>() {
-            Ok(n) => n,
-            Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
-        },
+        Ok(t) => {
+            match t.parse::<u64>() {
+                Ok(n) => n,
+                Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
+            }
+        }
         Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
     };
     debug!("Client socket timeout: {} secs", timeout_in_secs);
@@ -310,13 +298,11 @@ fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClien
 /// * If system information cannot be obtained via `uname`
 fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
     let uname = sys::uname()?;
-    let ua = format!(
-        "{}/{} ({}; {})",
-        product.trim(),
-        version.trim(),
-        PackageTarget::active_target(),
-        uname.release.trim().to_lowercase()
-    );
+    let ua = format!("{}/{} ({}; {})",
+                     product.trim(),
+                     version.trim(),
+                     PackageTarget::active_target(),
+                     uname.release.trim().to_lowercase());
     debug!("User-Agent: {}", &ua);
     Ok(UserAgent(ua))
 }

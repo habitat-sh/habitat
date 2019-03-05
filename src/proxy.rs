@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use url::percent_encoding::percent_decode;
-use url::{self, Url};
+use url::{self,
+          percent_encoding::percent_decode,
+          Url};
 
 use base64;
 use habitat_core::env;
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 /// Configuration relating to an HTTP Proxy.
 ///
@@ -30,9 +32,9 @@ use crate::error::{Error, Result};
 /// extern crate habitat_http_client;
 /// extern crate url;
 ///
+/// use habitat_http_client::proxy::ProxyInfo;
 /// use std::str::FromStr;
 /// use url::Url;
-/// use habitat_http_client::proxy::ProxyInfo;
 ///
 /// fn main() {
 ///     let url = Url::from_str("http://proxy.example.com:8001/").unwrap();
@@ -50,9 +52,10 @@ use crate::error::{Error, Result};
 /// extern crate habitat_http_client;
 /// extern crate url;
 ///
+/// use habitat_http_client::proxy::{ProxyBasicAuthorization,
+///                                  ProxyInfo};
 /// use std::str::FromStr;
 /// use url::Url;
-/// use habitat_http_client::proxy::{ProxyBasicAuthorization, ProxyInfo};
 ///
 /// fn main() {
 ///     let url = Url::from_str("http://proxy.example.com").unwrap();
@@ -61,10 +64,10 @@ use crate::error::{Error, Result};
 ///
 ///     assert_eq!(proxy.host(), "proxy.example.com");
 ///     assert_eq!(proxy.port(), 80);
-///     assert_eq!(proxy.authorization_header_value().unwrap(), "Basic Zm9vOmJhcg==");
+///     assert_eq!(proxy.authorization_header_value().unwrap(),
+///                "Basic Zm9vOmJhcg==");
 /// }
 /// ```
-///
 #[derive(Debug, PartialEq)]
 pub struct ProxyInfo {
     /// Url for the proxy server.
@@ -134,7 +137,6 @@ impl ProxyInfo {
 ///
 /// assert_eq!(authz.header_value(), "Basic Zm9vOmJhcg==");
 /// ```
-///
 #[derive(Debug, PartialEq)]
 pub struct ProxyBasicAuthorization {
     /// Username for Basic authorization.
@@ -151,10 +153,8 @@ impl ProxyBasicAuthorization {
 
     /// Returns a `String` containing the value for a `Proxy-Authorization` HTTP header.
     pub fn header_value(&self) -> String {
-        format!(
-            "Basic {}",
-            base64::encode(format!("{}:{}", self.username, self.password).as_bytes())
-        )
+        format!("Basic {}",
+                base64::encode(format!("{}:{}", self.username, self.password).as_bytes()))
     }
 }
 
@@ -177,8 +177,8 @@ impl ProxyBasicAuthorization {
 /// Behavior when environment variable is set:
 ///
 /// ```
-/// use std;
 /// use habitat_http_client::proxy;
+/// use std;
 ///
 /// std::env::set_var("http_proxy", "http://proxy.example.com:8001/");
 /// let info = proxy::http_proxy().unwrap().unwrap();
@@ -191,22 +191,23 @@ impl ProxyBasicAuthorization {
 /// Behavior when environment variable is set with basic auth credentials:
 ///
 /// ```
-/// use std;
 /// use habitat_http_client::proxy;
+/// use std;
 ///
 /// std::env::set_var("http_proxy", "http://itsme:asecret@proxy.example.com");
 /// let info = proxy::http_proxy().unwrap().unwrap();
 ///
 /// assert_eq!(info.host(), "proxy.example.com");
 /// assert_eq!(info.port(), 80);
-/// assert_eq!(info.authorization_header_value().unwrap(), "Basic aXRzbWU6YXNlY3JldA==");
+/// assert_eq!(info.authorization_header_value().unwrap(),
+///            "Basic aXRzbWU6YXNlY3JldA==");
 /// ```
 ///
 /// Behavior when both lower case and upper case environment variables are set:
 ///
 /// ```
-/// use std;
 /// use habitat_http_client::proxy;
+/// use std;
 ///
 /// std::env::set_var("HTTP_PROXY", "http://upper.example.com");
 /// std::env::set_var("http_proxy", "http://lower.example.com");
@@ -218,8 +219,8 @@ impl ProxyBasicAuthorization {
 /// Behavior when environment variable is empty:
 ///
 /// ```
-/// use std;
 /// use habitat_http_client::proxy;
+/// use std;
 ///
 /// std::env::set_var("http_proxy", "");
 ///
@@ -235,10 +236,12 @@ impl ProxyBasicAuthorization {
 pub fn http_proxy() -> Result<Option<ProxyInfo>> {
     match env::var("http_proxy") {
         Ok(url) => parse_proxy_url(&url),
-        _ => match env::var("HTTP_PROXY") {
-            Ok(url) => parse_proxy_url(&url),
-            _ => Ok(None),
-        },
+        _ => {
+            match env::var("HTTP_PROXY") {
+                Ok(url) => parse_proxy_url(&url),
+                _ => Ok(None),
+            }
+        }
     }
 }
 
@@ -261,8 +264,8 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 /// Behavior when environment variable is set:
 ///
 /// ```
-/// use std;
 /// use habitat_http_client::proxy;
+/// use std;
 ///
 /// std::env::set_var("https_proxy", "http://proxy.example.com:8001/");
 /// let info = proxy::https_proxy().unwrap().unwrap();
@@ -275,22 +278,23 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 /// Behavior when environment variable is set with basic auth credentials:
 ///
 /// ```
-/// use std;
 /// use habitat_http_client::proxy;
+/// use std;
 ///
 /// std::env::set_var("https_proxy", "http://itsme:asecret@proxy.example.com");
 /// let info = proxy::https_proxy().unwrap().unwrap();
 ///
 /// assert_eq!(info.host(), "proxy.example.com");
 /// assert_eq!(info.port(), 80);
-/// assert_eq!(info.authorization_header_value().unwrap(), "Basic aXRzbWU6YXNlY3JldA==");
+/// assert_eq!(info.authorization_header_value().unwrap(),
+///            "Basic aXRzbWU6YXNlY3JldA==");
 /// ```
 ///
 /// Behavior when both lower case and upper case environment variables are set:
 ///
 /// ```
-/// use std;
 /// use habitat_http_client::proxy;
+/// use std;
 ///
 /// std::env::set_var("HTTPS_PROXY", "http://upper.example.com");
 /// std::env::set_var("https_proxy", "http://lower.example.com");
@@ -302,8 +306,8 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 /// Behavior when environment variable is empty:
 ///
 /// ```
-/// use std;
 /// use habitat_http_client::proxy;
+/// use std;
 ///
 /// std::env::set_var("https_proxy", "");
 ///
@@ -319,10 +323,12 @@ pub fn http_proxy() -> Result<Option<ProxyInfo>> {
 pub fn https_proxy() -> Result<Option<ProxyInfo>> {
     match env::var("https_proxy") {
         Ok(url) => parse_proxy_url(&url),
-        _ => match env::var("HTTPS_PROXY") {
-            Ok(url) => parse_proxy_url(&url),
-            _ => Ok(None),
-        },
+        _ => {
+            match env::var("HTTPS_PROXY") {
+                Ok(url) => parse_proxy_url(&url),
+                _ => Ok(None),
+            }
+        }
     }
 }
 
@@ -351,19 +357,19 @@ pub fn https_proxy() -> Result<Option<ProxyInfo>> {
 /// extern crate habitat_http_client;
 /// extern crate url;
 ///
+/// use habitat_http_client::proxy;
 /// use std::str::FromStr;
 /// use url::Url;
-/// use habitat_http_client::proxy;
 ///
 /// fn main() {
 ///     std::env::set_var("http_proxy", "http://proxy.example.com:8001/");
-///     std::env::set_var("no_proxy", "localhost,127.0.0.1,localaddress,.localdomain.com");
+///     std::env::set_var("no_proxy",
+///                       "localhost,127.0.0.1,localaddress,.localdomain.com");
 ///     let for_domain = Url::from_str("http://server.localdomain.com").unwrap();
 ///     let info = proxy::proxy_unless_domain_exempted(Some(&for_domain)).unwrap();
 ///
 ///     assert!(info.is_none());
 /// }
-///
 /// ```
 ///
 /// Behavior when domain matches extension set for https_proxy:
@@ -372,13 +378,14 @@ pub fn https_proxy() -> Result<Option<ProxyInfo>> {
 /// extern crate habitat_http_client;
 /// extern crate url;
 ///
+/// use habitat_http_client::proxy;
 /// use std::str::FromStr;
 /// use url::Url;
-/// use habitat_http_client::proxy;
 ///
 /// fn main() {
 ///     std::env::set_var("https_proxy", "http://proxy.example.com:8001/");
-///     std::env::set_var("no_proxy", "localhost,127.0.0.1,localaddress,.localdomain.com");
+///     std::env::set_var("no_proxy",
+///                       "localhost,127.0.0.1,localaddress,.localdomain.com");
 ///     let for_domain = Url::from_str("https://server.localdomain.com").unwrap();
 ///     let info = proxy::proxy_unless_domain_exempted(Some(&for_domain)).unwrap();
 ///
@@ -392,9 +399,9 @@ pub fn https_proxy() -> Result<Option<ProxyInfo>> {
 /// extern crate habitat_http_client;
 /// extern crate url;
 ///
+/// use habitat_http_client::proxy;
 /// use std::str::FromStr;
 /// use url::Url;
-/// use habitat_http_client::proxy;
 ///
 /// fn main() {
 ///     std::env::set_var("HTTPS_PROXY", "http://upper.example.com");
@@ -414,22 +421,25 @@ pub fn https_proxy() -> Result<Option<ProxyInfo>> {
 /// extern crate habitat_http_client;
 /// extern crate url;
 ///
+/// use habitat_http_client::proxy;
 /// use std::str::FromStr;
 /// use url::Url;
-/// use habitat_http_client::proxy;
 ///
 /// fn main() {
-///     std::env::set_var("https_proxy", "http://itsme:asecret@proxy.example.com:8001/");
-///     std::env::set_var("no_proxy", "localhost,127.0.0.1,localaddress,.localdomain.com");
+///     std::env::set_var("https_proxy",
+///                       "http://itsme:asecret@proxy.example.com:8001/");
+///     std::env::set_var("no_proxy",
+///                       "localhost,127.0.0.1,localaddress,.localdomain.com");
 ///     let for_domain = Url::from_str("https://www.example.com").unwrap();
-///     let info = proxy::proxy_unless_domain_exempted(Some(&for_domain)).unwrap().unwrap();
+///     let info = proxy::proxy_unless_domain_exempted(Some(&for_domain)).unwrap()
+///                                                                      .unwrap();
 ///
 ///     assert_eq!(info.host(), "proxy.example.com");
 ///     assert_eq!(info.port(), 8001);
-///     assert_eq!(info.authorization_header_value().unwrap(), "Basic aXRzbWU6YXNlY3JldA==");
+///     assert_eq!(info.authorization_header_value().unwrap(),
+///                "Basic aXRzbWU6YXNlY3JldA==");
 /// }
 /// ```
-///
 pub fn proxy_unless_domain_exempted(for_domain: Option<&Url>) -> Result<Option<ProxyInfo>> {
     let scheme = match for_domain {
         Some(url) => url.scheme(),
@@ -437,31 +447,32 @@ pub fn proxy_unless_domain_exempted(for_domain: Option<&Url>) -> Result<Option<P
     };
     match env::var("no_proxy") {
         Ok(domains) => process_no_proxy(for_domain, scheme, &domains),
-        _ => match env::var("NO_PROXY") {
-            Ok(domains) => process_no_proxy(for_domain, scheme, &domains),
-            _ => match scheme {
-                "https" => https_proxy(),
-                _ => http_proxy(),
-            },
-        },
+        _ => {
+            match env::var("NO_PROXY") {
+                Ok(domains) => process_no_proxy(for_domain, scheme, &domains),
+                _ => {
+                    match scheme {
+                        "https" => https_proxy(),
+                        _ => http_proxy(),
+                    }
+                }
+            }
+        }
     }
 }
 
-fn process_no_proxy(
-    for_domain: Option<&Url>,
-    scheme: &str,
-    domains: &str,
-) -> Result<Option<ProxyInfo>> {
+fn process_no_proxy(for_domain: Option<&Url>,
+                    scheme: &str,
+                    domains: &str)
+                    -> Result<Option<ProxyInfo>> {
     let domain = match for_domain {
         Some(url) => url.host_str().unwrap_or(""),
         None => "",
     };
     for extension in domains.split(',') {
         if domain.ends_with(extension) {
-            debug!(
-                "Domain {} matches domain extension {} from no_proxy='{}'",
-                &domain, &extension, &domains
-            );
+            debug!("Domain {} matches domain extension {} from no_proxy='{}'",
+                   &domain, &extension, &domains);
             return Ok(None);
         }
     }

@@ -1,12 +1,10 @@
-fn main() {
-    inner::main()
-}
+fn main() { inner::main() }
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
-    use std::env;
-    use std::fs;
-    use std::path::Path;
+    use std::{env,
+              fs,
+              path::Path};
 
     pub fn main() {
         let src = env::var("SSL_CERT_FILE").unwrap();
