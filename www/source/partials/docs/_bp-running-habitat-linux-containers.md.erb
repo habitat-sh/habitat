@@ -59,7 +59,7 @@ As illustrated, updates of this kind are completely optional; you may prefer to 
 
 ### Running a Habitat Container as a Non-Root User in a Non-Root Group
 
-If for whatever reason you do not want your user to be in the `root` group inside the container, you will need to add some additional volumes in order to create the needed supervisor and service state directories. However, since you will (by definition) not have write permissions on the `/hab` directory as a whole, your Supervisor _will not_ be able to update either itself or the services it supervises.
+If for whatever reason you do not want your user to be in the `root` group inside the container, you will need to add some additional volumes in order to create the needed directories. However, since you will (by definition) not have write permissions on the `/hab` directory as a whole, your Supervisor _will not_ be able to update either itself or the services it supervises.
 
 To implement this using pure Docker, you could do something like this (the group ID of `999999` was again chosen arbitrarily, as with the user ID):
 
@@ -76,11 +76,18 @@ docker volume create --driver local \\
        --opt o=size=100m,uid=888888 \\
        svc_state
 
+docker volume create --driver local \\
+       --opt type=tmpfs \\
+       --opt device=tmpfs \\
+       --opt o=size=100m,uid=888888 \\
+       launcher_state
+
 docker run --rm -it \\
        --user=888888:999999 \\
        --mount type=volume,src=sup_state,dst=/hab/sup \\
        --mount type=volume,src=svc_state,dst=/hab/svc \\
+       --mount type=volume,src=launcher_state,dst=/hab/launcher \\
        core/redis:latest
 ```
 
-Again, this is just an illustrative example; use the appropriate strategies for your specific circumstances. The key information here is to ensure that both the `/hab/sup` and `/hab/svc` directories are writable by the user inside the container.
+Again, this is just an illustrative example; use the appropriate strategies for your specific circumstances. The key information here is to ensure that the `/hab/sup`, `/hab/svc`, and `/hab/launcher` directories are writable by the user inside the container.
