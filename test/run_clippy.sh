@@ -66,6 +66,7 @@ denied_lints=(clippy::assign_op_pattern \
                clippy::get_unwrap \
                clippy::identity_conversion \
                clippy::if_let_some_result \
+               clippy::just_underscores_and_digits \
                clippy::len_without_is_empty \
                clippy::len_zero \
                clippy::let_and_return \

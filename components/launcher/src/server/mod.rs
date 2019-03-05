@@ -232,7 +232,7 @@ impl Server {
         match self.supervisor.try_wait() {
             Ok(Some(status)) => debug!("Supervisor exited with: {}", status),
             Err(e) => error!("Error waiting on supervisor: {:?}", e),
-            __ => unreachable!(),
+            _ => unreachable!(),
         }
 
         // TODO (CM): Eventually this can go away... but we need to
