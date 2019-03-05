@@ -12,6 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{env as henv,
+            error::{Error,
+                    Result},
+            os::users::{self,
+                        assert_pkg_user_and_group},
+            package::{Identifiable,
+                      PackageIdent,
+                      PackageInstall}};
 use dirs;
 use std::{env,
           fs,
@@ -21,15 +29,6 @@ use std::{env,
                  PathBuf},
           str::FromStr};
 use tempfile;
-
-use crate::{env as henv,
-            error::{Error,
-                    Result},
-            os::users::{self,
-                        assert_pkg_user_and_group},
-            package::{Identifiable,
-                      PackageIdent,
-                      PackageInstall}};
 
 /// The default root path of the Habitat filesystem
 pub const ROOT_PATH: &str = "hab";
