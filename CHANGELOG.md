@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Enable local installation of latest rustfmt [#6238](https://github.com/habitat-sh/habitat/pull/6238) ([raskchanky](https://github.com/raskchanky))
+
 #### Bug Fixes
 - Fix plan build regression in 0.76.0 release [#6257](https://github.com/habitat-sh/habitat/pull/6257) ([baumanj](https://github.com/baumanj))
 <!-- latest_release -->
