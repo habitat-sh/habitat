@@ -916,7 +916,7 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     (@arg PEER: --peer +takes_value +multiple
         "The listen address of one or more initial peers (IP[:PORT])")
     (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-    (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+    (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
         "Watch this file for connecting to the ring"
     )
     (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY")
