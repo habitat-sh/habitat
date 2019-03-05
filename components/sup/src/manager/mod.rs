@@ -1347,7 +1347,7 @@ impl Manager {
                         f
                     }
                     ServiceOperation::Start(spec) => {
-                        self.add_service(spec);
+                        self.add_service(&spec);
                         None // No future to return (currently synchronous!)
                     }
                 }

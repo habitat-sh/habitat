@@ -23,10 +23,6 @@ use std::{fmt,
           result,
           str::FromStr};
 
-use super::env_config::EnvConfig;
-use crate::error::{Error,
-                   Result};
-
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);
 
