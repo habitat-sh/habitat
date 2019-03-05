@@ -7,6 +7,7 @@
 - Asynchronous service shutdown [#6107](https://github.com/habitat-sh/habitat/pull/6107) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Add option to run the supervisor in &quot;local mode&quot; [#6209](https://github.com/habitat-sh/habitat/pull/6209) ([mpeck](https://github.com/mpeck))
 - [pipeline] Ensure user is root when `curl`ing Windows artifact. [#6253](https://github.com/habitat-sh/habitat/pull/6253) ([fnichol](https://github.com/fnichol))
 - Update to rust 1.33.0 [#6239](https://github.com/habitat-sh/habitat/pull/6239) ([raskchanky](https://github.com/raskchanky))
 - Adds dependent plans build documentation [#5814](https://github.com/habitat-sh/habitat/pull/5814) ([rsertelon](https://github.com/rsertelon))
