@@ -24,10 +24,10 @@
 //! - All symmetric encryption keys are to be referred to as **secret**.
 //! - In general, the word `key` by itself does not indicate something as
 //! **public** or **secret**. The exceptions to this rule are as follows:
-//!     - if the word key appears in a URL, then we are referring to a public key to
-//!       conform to other APIs that offer similar public key downloading functionality.
-//!     - the word `key` appears as part of a file suffix, where it is then considered as
-//!       a **secret key** file.
+//!     - if the word key appears in a URL, then we are referring to a public key to conform to
+//!       other APIs that offer similar public key downloading functionality.
+//!     - the word `key` appears as part of a file suffix, where it is then considered as a **secret
+//!       key** file.
 //! - Referring to keys (by example):
 //!     - A key name: `habitat`
 //!     - A key rev: `201603312016`
@@ -225,14 +225,15 @@
 //! ```
 
 use crypto;
-use std::path::{Path, PathBuf};
+use std::path::{Path,
+                PathBuf};
 
 use crate::env as henv;
 pub use sodiumoxide::init;
 
-pub use self::keys::box_key_pair::BoxKeyPair;
-pub use self::keys::sig_key_pair::SigKeyPair;
-pub use self::keys::sym_key::SymKey;
+pub use self::keys::{box_key_pair::BoxKeyPair,
+                     sig_key_pair::SigKeyPair,
+                     sym_key::SymKey};
 use crate::fs::cache_key_path;
 
 /// The suffix on the end of a public sig/box file
@@ -280,28 +281,26 @@ pub fn default_cache_key_path(fs_root_path: Option<&Path>) -> PathBuf {
 /// This function should be used whenever comparing a secret value to one
 /// supplied by a user.
 pub fn secure_eq<T, U>(t: T, u: U) -> bool
-where
-    T: AsRef<[u8]>,
-    U: AsRef<[u8]>,
+    where T: AsRef<[u8]>,
+          U: AsRef<[u8]>
 {
     crypto::util::fixed_time_eq(t.as_ref(), u.as_ref())
 }
 
 #[cfg(test)]
 pub mod test_support {
-    use std::fs::File;
-    use std::io::Read;
-    use std::path::PathBuf;
+    use std::{fs::File,
+              io::Read,
+              path::PathBuf};
 
     use time;
 
     use crate::error as herror;
 
     pub fn fixture(name: &str) -> PathBuf {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join(name);
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+                                                            .join("fixtures")
+                                                            .join(name);
         if !path.is_file() {
             panic!("Fixture '{}' not found at: {:?}", name, path);
         }
@@ -316,8 +315,7 @@ pub mod test_support {
     }
 
     pub fn wait_until_ok<F, T>(some_fn: F) -> Option<T>
-    where
-        F: Fn() -> Result<T, herror::Error>,
+        where F: Fn() -> Result<T, herror::Error>
     {
         let wait_duration = time::Duration::seconds(30);
         let current_time = time::now_utc().to_timespec();

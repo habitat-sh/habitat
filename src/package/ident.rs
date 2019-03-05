@@ -12,17 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::borrow::Cow;
-use std::cmp::{Ordering, PartialOrd};
-use std::fmt;
-use std::result;
-use std::str::FromStr;
+use std::{borrow::Cow,
+          cmp::{Ordering,
+                PartialOrd},
+          fmt,
+          result,
+          str::FromStr};
 
 use regex::Regex;
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::{Deserialize,
+                   Serialize};
 
-use crate::error::{Error, Result};
-use crate::package::PackageTarget;
+use crate::{error::{Error,
+                    Result},
+            package::PackageTarget};
 
 lazy_static::lazy_static! {
     static ref ORIGIN_NAME_RE: Regex =
@@ -31,8 +34,8 @@ lazy_static::lazy_static! {
 
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct PackageIdent {
-    pub origin: String,
-    pub name: String,
+    pub origin:  String,
+    pub name:    String,
     pub version: Option<String>,
     pub release: Option<String>,
 }
@@ -43,9 +46,7 @@ pub trait Identifiable: fmt::Display + Into<PackageIdent> {
     fn version(&self) -> Option<&str>;
     fn release(&self) -> Option<&str>;
 
-    fn fully_qualified(&self) -> bool {
-        self.version().is_some() && self.release().is_some()
-    }
+    fn fully_qualified(&self) -> bool { self.version().is_some() && self.release().is_some() }
 
     fn valid(&self) -> bool {
         let re = Regex::new(r"^[A-Za-z0-9_-]+$").unwrap();
@@ -78,18 +79,15 @@ pub trait Identifiable: fmt::Display + Into<PackageIdent> {
 
 impl PackageIdent {
     /// Creates a new package identifier
-    pub fn new<T: Into<String>>(
-        origin: T,
-        name: T,
-        version: Option<T>,
-        release: Option<T>,
-    ) -> Self {
-        PackageIdent {
-            origin: origin.into(),
-            name: name.into(),
-            version: version.map(|v| v.into()),
-            release: release.map(|v| v.into()),
-        }
+    pub fn new<T: Into<String>>(origin: T,
+                                name: T,
+                                version: Option<T>,
+                                release: Option<T>)
+                                -> Self {
+        PackageIdent { origin:  origin.into(),
+                       name:    name.into(),
+                       version: version.map(|v| v.into()),
+                       release: release.map(|v| v.into()), }
     }
 
     pub fn archive_name(&self) -> Result<String> {
@@ -110,8 +108,8 @@ impl PackageIdent {
     /// # Examples
     ///
     /// ```
-    /// use std::str::FromStr;
     /// use habitat_core::package::PackageIdent;
+    /// use std::str::FromStr;
     ///
     /// // All ident components are iterated through with a fully qualified ident
     /// let full_ident = PackageIdent::from_str("acme/myapp/1.2.3/20180710122645").unwrap();
@@ -132,10 +130,8 @@ impl PackageIdent {
     /// assert_eq!(it.next(), None);
     /// ```
     pub fn iter(&self) -> Iter<'_> {
-        Iter {
-            ident: self,
-            pos: 0,
-        }
+        Iter { ident: self,
+               pos:   0, }
     }
 
     /// Compare two `PackageIdent`s component by component:
@@ -153,10 +149,9 @@ impl PackageIdent {
         if self.name != other.name {
             return self.name.cmp(&other.name);
         }
-        match version_sort(
-            self.version.as_ref().unwrap(),
-            other.version.as_ref().unwrap(),
-        ) {
+        match version_sort(self.version.as_ref().unwrap(),
+                           other.version.as_ref().unwrap())
+        {
             Ok(Ordering::Equal) => self.release.cmp(&other.release),
             Ok(ordering) => ordering,
             Err(_) => Ordering::Less,
@@ -165,14 +160,12 @@ impl PackageIdent {
 
     fn archive_name_impl(&self, target: &PackageTarget) -> Result<String> {
         if self.fully_qualified() {
-            Ok(format!(
-                "{}-{}-{}-{}-{}.hart",
-                self.origin,
-                self.name,
-                self.version.as_ref().unwrap(),
-                self.release.as_ref().unwrap(),
-                target
-            ))
+            Ok(format!("{}-{}-{}-{}-{}.hart",
+                       self.origin,
+                       self.name,
+                       self.version.as_ref().unwrap(),
+                       self.release.as_ref().unwrap(),
+                       target))
         } else {
             Err(Error::FullyQualifiedPackageIdentRequired(self.to_string()))
         }
@@ -180,48 +173,34 @@ impl PackageIdent {
 }
 
 impl Identifiable for PackageIdent {
-    fn origin(&self) -> &str {
-        &self.origin
-    }
+    fn origin(&self) -> &str { &self.origin }
 
-    fn name(&self) -> &str {
-        &self.name
-    }
+    fn name(&self) -> &str { &self.name }
 
-    fn version(&self) -> Option<&str> {
-        self.version.as_ref().map(|f| f.as_str())
-    }
+    fn version(&self) -> Option<&str> { self.version.as_ref().map(|f| f.as_str()) }
 
-    fn release(&self) -> Option<&str> {
-        self.release.as_ref().map(|f| f.as_str())
-    }
+    fn release(&self) -> Option<&str> { self.release.as_ref().map(|f| f.as_str()) }
 }
 
 impl Default for PackageIdent {
-    fn default() -> PackageIdent {
-        PackageIdent::new("", "", None, None)
-    }
+    fn default() -> PackageIdent { PackageIdent::new("", "", None, None) }
 }
 
 impl fmt::Display for PackageIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.version.is_some() && self.release.is_some() {
-            write!(
-                f,
-                "{}/{}/{}/{}",
-                self.origin,
-                self.name,
-                self.version.as_ref().unwrap(),
-                self.release.as_ref().unwrap()
-            )
+            write!(f,
+                   "{}/{}/{}/{}",
+                   self.origin,
+                   self.name,
+                   self.version.as_ref().unwrap(),
+                   self.release.as_ref().unwrap())
         } else if self.version.is_some() {
-            write!(
-                f,
-                "{}/{}/{}",
-                self.origin,
-                self.name,
-                self.version.as_ref().unwrap()
-            )
+            write!(f,
+                   "{}/{}/{}",
+                   self.origin,
+                   self.name,
+                   self.version.as_ref().unwrap())
         } else {
             write!(f, "{}/{}", self.origin, self.name)
         }
@@ -229,9 +208,7 @@ impl fmt::Display for PackageIdent {
 }
 
 impl AsRef<PackageIdent> for PackageIdent {
-    fn as_ref(&self) -> &PackageIdent {
-        self
-    }
+    fn as_ref(&self) -> &PackageIdent { self }
 }
 
 impl FromStr for PackageIdent {
@@ -252,13 +229,10 @@ impl FromStr for PackageIdent {
 impl PartialOrd for PackageIdent {
     /// Packages can be compared according to the following:
     ///
-    /// * origin is ignored in the comparison - my redis and
-    ///   your redis compare the same.
+    /// * origin is ignored in the comparison - my redis and your redis compare the same.
     /// * If the names are not equal, they cannot be compared.
-    /// * If the versions are greater/lesser, return that as
-    ///   the ordering.
-    /// * If the versions are equal, return the greater/lesser
-    ///   for the release.
+    /// * If the versions are greater/lesser, return that as the ordering.
+    /// * If the versions are equal, return the greater/lesser for the release.
     fn partial_cmp(&self, other: &PackageIdent) -> Option<Ordering> {
         if self.name != other.name {
             return None;
@@ -281,10 +255,9 @@ impl PartialOrd for PackageIdent {
         if self.release.is_some() && other.release.is_none() {
             return Some(Ordering::Greater);
         }
-        match version_sort(
-            self.version.as_ref().unwrap(),
-            other.version.as_ref().unwrap(),
-        ) {
+        match version_sort(self.version.as_ref().unwrap(),
+                           other.version.as_ref().unwrap())
+        {
             ord @ Ok(Ordering::Greater) | ord @ Ok(Ordering::Less) => ord.ok(),
             Ok(Ordering::Equal) => Some(self.release.cmp(&other.release)),
             Err(_) => {
@@ -292,16 +265,13 @@ impl PartialOrd for PackageIdent {
                 // non-numeric versions to co-exist with numeric ones, we
                 // always have potential for incorrect ordering no matter
                 // what we choose - eg, "master" vs. "0.x.x" (real examples)
-                debug!(
-                    "Comparing non-numeric versions: {} {}",
-                    self.version.as_ref().unwrap(),
-                    other.version.as_ref().unwrap()
-                );
-                match self
-                    .version
-                    .as_ref()
-                    .unwrap()
-                    .cmp(other.version.as_ref().unwrap())
+                debug!("Comparing non-numeric versions: {} {}",
+                       self.version.as_ref().unwrap(),
+                       other.version.as_ref().unwrap());
+                match self.version
+                          .as_ref()
+                          .unwrap()
+                          .cmp(other.version.as_ref().unwrap())
                 {
                     ord @ Ordering::Greater | ord @ Ordering::Less => Some(ord),
                     Ordering::Equal => Some(self.release.cmp(&other.release)),
@@ -314,21 +284,17 @@ impl PartialOrd for PackageIdent {
 impl Ord for PackageIdent {
     /// Packages can be compared according to the following:
     ///
-    /// * origin is ignored in the comparison - my redis and
-    ///   your redis compare the same.
+    /// * origin is ignored in the comparison - my redis and your redis compare the same.
     /// * If the names are not equal, they cannot be compared.
-    /// * If the versions are greater/lesser, return that as
-    ///   the ordering.
-    /// * If the versions are equal, return the greater/lesser
-    ///   for the release.
+    /// * If the versions are greater/lesser, return that as the ordering.
+    /// * If the versions are equal, return the greater/lesser for the release.
     fn cmp(&self, other: &PackageIdent) -> Ordering {
         if self.name != other.name {
             return self.name.cmp(&other.name);
         }
-        match version_sort(
-            self.version.as_ref().unwrap(),
-            other.version.as_ref().unwrap(),
-        ) {
+        match version_sort(self.version.as_ref().unwrap(),
+                           other.version.as_ref().unwrap())
+        {
             Ok(Ordering::Equal) => self.release.cmp(&other.release),
             Ok(ordering) => ordering,
             Err(_) => Ordering::Less,
@@ -337,15 +303,11 @@ impl Ord for PackageIdent {
 }
 
 impl<'a> From<PackageIdent> for Cow<'a, PackageIdent> {
-    fn from(pi: PackageIdent) -> Cow<'a, PackageIdent> {
-        Cow::Owned(pi)
-    }
+    fn from(pi: PackageIdent) -> Cow<'a, PackageIdent> { Cow::Owned(pi) }
 }
 
 impl<'a> From<&'a PackageIdent> for Cow<'a, PackageIdent> {
-    fn from(pi: &'a PackageIdent) -> Cow<'a, PackageIdent> {
-        Cow::Borrowed(pi)
-    }
+    fn from(pi: &'a PackageIdent) -> Cow<'a, PackageIdent> { Cow::Borrowed(pi) }
 }
 
 /// An iterator over the [`&str`] slices of a [`PackageIdent`].
@@ -360,8 +322,8 @@ impl<'a> From<&'a PackageIdent> for Cow<'a, PackageIdent> {
 /// # Examples
 ///
 /// ```
-/// use std::str::FromStr;
 /// use habitat_core::package::PackageIdent;
+/// use std::str::FromStr;
 ///
 /// let target = PackageIdent::from_str("acme/myapp/1.2.3").unwrap();
 ///
@@ -402,8 +364,8 @@ impl<'a> Iterator for Iter<'a> {
 /// * Split the version numbers into an array of digits on any '.' characters. Digits are converted
 ///   into <u64>.
 /// * Compare the version numbers by iterating over them. If 'a' is greater or lesser than 'b', we
-///   return that as the result. If it is equal, we move to the next digit and repeat. If one of
-///   the version numbers is exhausted before the other, it gains 0's for the missing slot.
+///   return that as the result. If it is equal, we move to the next digit and repeat. If one of the
+///   version numbers is exhausted before the other, it gains 0's for the missing slot.
 /// * If the version numbers are equal, but either A or B has an extension (but not both) than the
 ///   version without the extension is greater. (1.0.0 is greater than 1.0.0-alpha6)
 /// * If both have an extension, it is compared lexicographically, with the result as the final
@@ -498,42 +460,34 @@ pub fn is_valid_origin_name(origin: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::split_version;
-    use super::*;
-    use std::cmp::Ordering;
-    use std::cmp::PartialOrd;
+    use super::{split_version,
+                *};
+    use std::cmp::{Ordering,
+                   PartialOrd};
 
     #[test]
     fn package_ident_partial_eq() {
-        let a = PackageIdent::new(
-            "ty".to_string(),
-            "tabor".to_string(),
-            Some("1.0.0".to_string()),
-            Some("20150521131555".to_string()),
-        );
-        let b = PackageIdent::new(
-            "ty".to_string(),
-            "tabor".to_string(),
-            Some("1.0.0".to_string()),
-            Some("20150521131555".to_string()),
-        );
+        let a = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131555".to_string()));
+        let b = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131555".to_string()));
         assert_eq!(a, b);
     }
 
     #[test]
     fn package_ident_partial_ord() {
-        let a = PackageIdent::new(
-            "ty".to_string(),
-            "tabor".to_string(),
-            Some("1.0.1".to_string()),
-            Some("20150521131555".to_string()),
-        );
-        let b = PackageIdent::new(
-            "ty".to_string(),
-            "tabor".to_string(),
-            Some("1.0.0".to_string()),
-            Some("20150521131555".to_string()),
-        );
+        let a = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("1.0.1".to_string()),
+                                  Some("20150521131555".to_string()));
+        let b = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("Ordering should be greater"),
@@ -542,24 +496,18 @@ mod tests {
 
     #[test]
     fn package_ident_non_numeric_version_ord() {
-        let a = PackageIdent::new(
-            "ty".to_string(),
-            "tabor".to_string(),
-            Some("random".to_string()),
-            Some("20150521131556".to_string()),
-        );
-        let b = PackageIdent::new(
-            "ty".to_string(),
-            "tabor".to_string(),
-            Some("random".to_string()),
-            Some("20150521131555".to_string()),
-        );
-        let c = PackageIdent::new(
-            "ty".to_string(),
-            "tabor".to_string(),
-            Some("undefined".to_string()),
-            Some("20150521131555".to_string()),
-        );
+        let a = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("random".to_string()),
+                                  Some("20150521131556".to_string()));
+        let b = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("random".to_string()),
+                                  Some("20150521131555".to_string()));
+        let c = PackageIdent::new("ty".to_string(),
+                                  "tabor".to_string(),
+                                  Some("undefined".to_string()),
+                                  Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("Ordering should be greater"),
@@ -572,18 +520,14 @@ mod tests {
 
     #[test]
     fn package_ident_partial_ord_bad_name() {
-        let a = PackageIdent::new(
-            "awesome".to_string(),
-            "snoopy".to_string(),
-            Some("1.0.1".to_string()),
-            Some("20150521131555".to_string()),
-        );
-        let b = PackageIdent::new(
-            "awesome".to_string(),
-            "banana".to_string(),
-            Some("1.0.0".to_string()),
-            Some("20150521131555".to_string()),
-        );
+        let a = PackageIdent::new("awesome".to_string(),
+                                  "snoopy".to_string(),
+                                  Some("1.0.1".to_string()),
+                                  Some("20150521131555".to_string()));
+        let b = PackageIdent::new("awesome".to_string(),
+                                  "banana".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(_) => panic!("We tried to return an order"),
             None => assert!(true),
@@ -592,18 +536,14 @@ mod tests {
 
     #[test]
     fn package_ident_partial_ord_different_origin() {
-        let a = PackageIdent::new(
-            "adam".to_string(),
-            "blueberry".to_string(),
-            Some("1.0.0".to_string()),
-            Some("20150521131555".to_string()),
-        );
-        let b = PackageIdent::new(
-            "banana".to_string(),
-            "blueberry".to_string(),
-            Some("1.0.0".to_string()),
-            Some("20150521131555".to_string()),
-        );
+        let a = PackageIdent::new("adam".to_string(),
+                                  "blueberry".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131555".to_string()));
+        let b = PackageIdent::new("banana".to_string(),
+                                  "blueberry".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Equal),
             None => panic!("We failed to return an order"),
@@ -612,18 +552,14 @@ mod tests {
 
     #[test]
     fn package_ident_partial_ord_release() {
-        let a = PackageIdent::new(
-            "adam".to_string(),
-            "brown".to_string(),
-            Some("1.0.0".to_string()),
-            Some("20150521131556".to_string()),
-        );
-        let b = PackageIdent::new(
-            "boulder".to_string(),
-            "brown".to_string(),
-            Some("1.0.0".to_string()),
-            Some("20150521131555".to_string()),
-        );
+        let a = PackageIdent::new("adam".to_string(),
+                                  "brown".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131556".to_string()));
+        let b = PackageIdent::new("boulder".to_string(),
+                                  "brown".to_string(),
+                                  Some("1.0.0".to_string()),
+                                  Some("20150521131555".to_string()));
         match a.partial_cmp(&b) {
             Some(ord) => assert_eq!(ord, Ordering::Greater),
             None => panic!("We failed to return an order"),
@@ -755,13 +691,9 @@ mod tests {
         let ident = PackageIdent::from_str("tom-petty/the_last__dj/1.0.0/20180701125610").unwrap();
         let target = PackageTarget::active_target();
 
-        assert_eq!(
-            format!(
-                "{}-{}.hart",
-                "tom-petty-the_last__dj-1.0.0-20180701125610", target
-            ),
-            ident.archive_name().unwrap()
-        );
+        assert_eq!(format!("{}-{}.hart",
+                           "tom-petty-the_last__dj-1.0.0-20180701125610", target),
+                   ident.archive_name().unwrap());
     }
 
     #[test]
@@ -782,10 +714,8 @@ mod tests {
         let ident = PackageIdent::from_str("tom-petty/the_last__dj/1.0.0/20180701125610").unwrap();
         let target = PackageTarget::from_str("x86_64-linux").unwrap();
 
-        assert_eq!(
-            String::from("tom-petty-the_last__dj-1.0.0-20180701125610-x86_64-linux.hart"),
-            ident.archive_name_with_target(&target).unwrap()
-        );
+        assert_eq!(String::from("tom-petty-the_last__dj-1.0.0-20180701125610-x86_64-linux.hart"),
+                   ident.archive_name_with_target(&target).unwrap());
     }
 
     #[test]

@@ -12,21 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std;
-use std::collections::HashMap;
-use std::env;
-use std::fmt;
-use std::fs::File;
-use std::io::Read;
-use std::iter::{FromIterator, IntoIterator};
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
-use std::vec::IntoIter;
+use std::{self,
+          collections::HashMap,
+          env,
+          fmt,
+          fs::File,
+          io::Read,
+          iter::{FromIterator,
+                 IntoIterator},
+          path::{Path,
+                 PathBuf},
+          str::FromStr,
+          vec::IntoIter};
 
 use serde_derive::Serialize;
 
-use crate::error::{Error, Result};
-use crate::package::PackageIdent;
+use crate::{error::{Error,
+                    Result},
+            package::PackageIdent};
 
 #[cfg(not(windows))]
 const ENV_PATH_SEPARATOR: char = ':';
@@ -35,11 +38,11 @@ const ENV_PATH_SEPARATOR: char = ':';
 const ENV_PATH_SEPARATOR: char = ';';
 
 pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
-    Ok(HashMap::from_iter(
-        s.lines()
-            .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
-            .map(|kv| (kv[0].to_string(), kv[1].to_string())),
-    ))
+    Ok(HashMap::from_iter(s.lines()
+                           .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
+                           .map(|kv| {
+                               (kv[0].to_string(), kv[1].to_string())
+                           })))
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -61,10 +64,7 @@ impl FromStr for Bind {
             None => return Err(Error::MetaFileBadBind),
             Some(exports) => exports.split(' ').map(|t| t.to_string()).collect(),
         };
-        Ok(Bind {
-            service: service,
-            exports: exports,
-        })
+        Ok(Bind { service, exports })
     }
 }
 
@@ -90,25 +90,22 @@ impl FromStr for BindMapping {
 
     fn from_str(line: &str) -> Result<Self> {
         let mut parts = line.split(':');
-        let bind_name = parts
-            .next()
-            .and_then(|bn| Some(bn.to_string()))
-            .ok_or(Error::MetaFileBadBind)?;
+        let bind_name = parts.next()
+                             .and_then(|bn| Some(bn.to_string()))
+                             .ok_or(Error::MetaFileBadBind)?;
         let satisfying_service = match parts.next() {
             None => return Err(Error::MetaFileBadBind),
             Some(satisfying_service) => satisfying_service.parse()?,
         };
-        Ok(BindMapping {
-            bind_name: bind_name,
-            satisfying_service: satisfying_service,
-        })
+        Ok(BindMapping { bind_name,
+                         satisfying_service })
     }
 }
 
 #[derive(Debug, PartialEq)]
 pub struct EnvVar {
-    pub key: String,
-    pub value: String,
+    pub key:       String,
+    pub value:     String,
     pub separator: Option<char>,
 }
 
@@ -119,53 +116,37 @@ pub struct PkgEnv {
 
 impl PkgEnv {
     pub fn new(values: HashMap<String, String>, separators: HashMap<String, String>) -> Self {
-        Self {
-            inner: values
-                .into_iter()
-                .map(|(key, value)| {
-                    if let Some(sep) = separators.get(&key) {
-                        EnvVar {
-                            key: key,
-                            value: value,
-                            separator: sep.to_owned().pop(),
-                        }
-                    } else {
-                        EnvVar {
-                            key: key,
-                            value: value,
-                            separator: None,
-                        }
-                    }
-                })
-                .collect(),
-        }
+        Self { inner: values.into_iter()
+                            .map(|(key, value)| {
+                                if let Some(sep) = separators.get(&key) {
+                                    EnvVar { key,
+                                             value,
+                                             separator: sep.to_owned().pop() }
+                                } else {
+                                    EnvVar { key,
+                                             value,
+                                             separator: None }
+                                }
+                            })
+                            .collect(), }
     }
 
     pub fn from_paths(paths: Vec<PathBuf>) -> Self {
         let p = env::join_paths(&paths).expect("Failed to build path string");
-        Self {
-            inner: vec![EnvVar {
-                key: "PATH".to_string(),
-                value: p
-                    .into_string()
-                    .expect("Failed to convert path to utf8 string"),
-                separator: Some(ENV_PATH_SEPARATOR),
-            }],
-        }
+        Self { inner: vec![EnvVar { key:       "PATH".to_string(),
+                                    value:     p.into_string()
+                                                .expect("Failed to convert path to utf8 string"),
+                                    separator: Some(ENV_PATH_SEPARATOR), }], }
     }
 
-    pub fn is_empty(&self) -> bool {
-        self.inner.is_empty()
-    }
+    pub fn is_empty(&self) -> bool { self.inner.is_empty() }
 }
 
 impl IntoIterator for PkgEnv {
-    type Item = EnvVar;
     type IntoIter = IntoIter<EnvVar>;
+    type Item = EnvVar;
 
-    fn into_iter(self) -> Self::IntoIter {
-        self.inner.into_iter()
-    }
+    fn into_iter(self) -> Self::IntoIter { self.inner.into_iter() }
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -233,16 +214,18 @@ impl fmt::Display for MetaFile {
 /// Returns the contents of the file
 pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Result<String> {
     match existing_metafile(installed_path, file) {
-        Some(filepath) => match File::open(&filepath) {
-            Ok(mut f) => {
-                let mut data = String::new();
-                if f.read_to_string(&mut data).is_err() {
-                    return Err(Error::MetaFileMalformed(file.clone()));
+        Some(filepath) => {
+            match File::open(&filepath) {
+                Ok(mut f) => {
+                    let mut data = String::new();
+                    if f.read_to_string(&mut data).is_err() {
+                        return Err(Error::MetaFileMalformed(file.clone()));
+                    }
+                    Ok(data.trim().to_string())
                 }
-                Ok(data.trim().to_string())
+                Err(e) => Err(Error::MetaFileIO(e)),
             }
-            Err(e) => Err(Error::MetaFileIO(e)),
-        },
+        }
         None => Err(Error::MetaFileNotFound(file.clone())),
     }
 }
@@ -308,22 +291,18 @@ port=front-end.port
         let path = install_dir.join(metafile.to_string());
         let mut f = File::create(path).expect("Could not create metafile");
         f.write_all(content.as_bytes())
-            .expect("Could not write metafile contents");
+         .expect("Could not write metafile contents");
     }
 
     #[test]
     #[should_panic]
-    fn malformed_file() {
-        parse_key_value(&"PATH").unwrap();
-    }
+    fn malformed_file() { parse_key_value(&"PATH").unwrap(); }
 
     #[test]
     fn can_parse_environment_file() {
         let mut m: HashMap<String, String> = HashMap::new();
-        m.insert(
-            "PATH".to_string(),
-            "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-        );
+        m.insert("PATH".to_string(),
+                 "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string());
         m.insert(
             "PYTHONPATH".to_string(),
             "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
@@ -353,29 +332,23 @@ port=front-end.port
 
     #[test]
     fn build_pkg_env() {
-        let mut result = PkgEnv::new(
-            parse_key_value(&ENVIRONMENT).unwrap(),
-            parse_key_value(&ENVIRONMENT_SEP).unwrap(),
-        )
-        .into_iter()
-        .collect::<Vec<_>>();
+        let mut result =
+            PkgEnv::new(parse_key_value(&ENVIRONMENT).unwrap(),
+                        parse_key_value(&ENVIRONMENT_SEP).unwrap()).into_iter()
+                                                                   .collect::<Vec<_>>();
         // Sort the result by key, so we have a guarantee of order
         result.sort_by_key(|v| v.key.to_owned());
 
-        let expected = vec![
-            EnvVar {
-                key: "PATH".to_string(),
-                value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-                separator: Some(':'),
-            },
-            EnvVar {
-                key: "PYTHONPATH".to_string(),
-                value:
-                    "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/python3.6/site-packages"
-                        .to_string(),
-                separator: Some(':'),
-            },
-        ];
+        let expected =
+            vec![EnvVar { key:       "PATH".to_string(),
+                          value:
+                              "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
+                          separator: Some(':'), },
+                 EnvVar { key:       "PYTHONPATH".to_string(),
+                          value:     "/hab/pkgs/python/setuptools/35.0.1/20170424072606/lib/\
+                                      python3.6/site-packages"
+                                                              .to_string(),
+                          separator: Some(':'), },];
 
         assert_eq!(result, expected);
     }
@@ -388,15 +361,14 @@ port=front-end.port
 
     #[test]
     fn build_pkg_env_from_path() {
-        let result = PkgEnv::from_paths(vec![PathBuf::from(PATH)])
-            .into_iter()
-            .collect::<Vec<_>>();
+        let result = PkgEnv::from_paths(vec![PathBuf::from(PATH)]).into_iter()
+                                                                  .collect::<Vec<_>>();
 
-        let expected = vec![EnvVar {
-            key: "PATH".to_string(),
-            value: "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string(),
-            separator: Some(ENV_PATH_SEPARATOR),
-        }];
+        let expected = vec![EnvVar { key:       "PATH".to_string(),
+                                     value:     "/hab/pkgs/python/setuptools/35.0.1/\
+                                                 20170424072606/bin"
+                                                                    .to_string(),
+                                     separator: Some(ENV_PATH_SEPARATOR), }];
 
         assert_eq!(result, expected);
     }
@@ -408,10 +380,8 @@ port=front-end.port
         let output: BindMapping = input.parse().unwrap();
 
         assert_eq!(output.bind_name, "my_bind");
-        assert_eq!(
-            output.satisfying_service,
-            PackageIdent::from_str("core/test").unwrap()
-        );
+        assert_eq!(output.satisfying_service,
+                   PackageIdent::from_str("core/test").unwrap());
     }
 
     #[test]

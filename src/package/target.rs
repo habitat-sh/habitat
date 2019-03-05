@@ -77,16 +77,16 @@
 //! [musl]: https://www.musl-libc.org/
 //! [rust_triple]: https://github.com/rust-lang/rust/tree/master/src/librustc_back/target
 
-use std::fmt;
-use std::ops::Deref;
-use std::result;
-use std::str::FromStr;
+use std::{fmt,
+          ops::Deref,
+          result,
+          str::FromStr};
 
 use regex::Regex;
 use serde;
 
-use crate::error::Error;
-use crate::util;
+use crate::{error::Error,
+            util};
 
 macro_rules! supported_package_targets {
     (
@@ -326,8 +326,9 @@ lazy_static::lazy_static! {
 /// # Examples
 ///
 /// ```
+/// use habitat_core::package::target::{self,
+///                                     PackageTarget};
 /// use std::str::FromStr;
-/// use habitat_core::package::target::{self, PackageTarget};
 ///
 /// // Package target implements the `FromStr` trait and thus can be parsed from strings
 /// let target = PackageTarget::from_str("x86_64-linux").unwrap();
@@ -364,10 +365,8 @@ impl PackageTarget {
     /// assert_eq!(it.next(), None);
     /// ```
     pub fn iter(&self) -> Iter<'_> {
-        Iter {
-            target: self,
-            pos: 0,
-        }
+        Iter { target: self,
+               pos:    0, }
     }
 
     /// Returns the `PackageTarget` that is determined at compile time for the currently running
@@ -387,9 +386,7 @@ impl PackageTarget {
     /// let active = PackageTarget::active_target();
     /// println!("The active target for this system is '{}'", active);
     /// ```
-    pub fn active_target() -> &'static Self {
-        &*ACTIVE_PACKAGE_TARGET
-    }
+    pub fn active_target() -> &'static Self { &*ACTIVE_PACKAGE_TARGET }
 
     /// Produces an iterator over all supported `PackageTarget`s.
     ///
@@ -405,7 +402,8 @@ impl PackageTarget {
     ///
     /// // Alternatively, the iterator can be chained to perform more sophisticated
     /// // transformations
-    /// let targets: Vec<_> = PackageTarget::supported_targets().map(|t| t.as_ref()).collect();
+    /// let targets: Vec<_> = PackageTarget::supported_targets().map(|t| t.as_ref())
+    ///                                                         .collect();
     /// println!("All supported targets: [{}]", targets.join(", "));
     /// ```
     pub fn supported_targets() -> ::std::slice::Iter<'static, PackageTarget> {
@@ -414,9 +412,7 @@ impl PackageTarget {
 }
 
 impl fmt::Display for PackageTarget {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0.as_str())
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0.as_str()) }
 }
 
 impl FromStr for PackageTarget {
@@ -430,21 +426,16 @@ impl FromStr for PackageTarget {
 impl Deref for PackageTarget {
     type Target = str;
 
-    fn deref(&self) -> &'static str {
-        self.0.as_str()
-    }
+    fn deref(&self) -> &'static str { self.0.as_str() }
 }
 
 impl AsRef<str> for PackageTarget {
-    fn as_ref(&self) -> &str {
-        self.0.as_str()
-    }
+    fn as_ref(&self) -> &str { self.0.as_str() }
 }
 
 impl<'d> serde::Deserialize<'d> for PackageTarget {
     fn deserialize<D>(deserializer: D) -> result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'d>,
+        where D: serde::Deserializer<'d>
     {
         util::deserialize_using_from_str(deserializer)
     }
@@ -452,8 +443,7 @@ impl<'d> serde::Deserialize<'d> for PackageTarget {
 
 impl serde::Serialize for PackageTarget {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
+        where S: serde::Serializer
     {
         serializer.serialize_str(self.0.as_str())
     }
@@ -462,31 +452,28 @@ impl serde::Serialize for PackageTarget {
 impl Type {
     /// Returns the architecture component of the underlying target type.
     fn architecture(&self) -> &str {
-        TYPE_FROM_STR_RE
-            .captures(self.as_str())
-            .unwrap()
-            .name("architecture")
-            .unwrap()
-            .as_str()
+        TYPE_FROM_STR_RE.captures(self.as_str())
+                        .unwrap()
+                        .name("architecture")
+                        .unwrap()
+                        .as_str()
     }
 
     /// Returns the system component of the underlying target type.
     fn system(&self) -> &str {
-        TYPE_FROM_STR_RE
-            .captures(self.as_str())
-            .unwrap()
-            .name("system")
-            .unwrap()
-            .as_str()
+        TYPE_FROM_STR_RE.captures(self.as_str())
+                        .unwrap()
+                        .name("system")
+                        .unwrap()
+                        .as_str()
     }
 
     /// Returns the variant component of the underlying target type, if one is present.
     fn variant(&self) -> Option<&str> {
-        TYPE_FROM_STR_RE
-            .captures(self.as_str())
-            .unwrap()
-            .name("variant")
-            .and_then(|v| Some(v.as_str()))
+        TYPE_FROM_STR_RE.captures(self.as_str())
+                        .unwrap()
+                        .name("variant")
+                        .and_then(|v| Some(v.as_str()))
     }
 }
 
@@ -502,8 +489,8 @@ impl Type {
 /// # Examples
 ///
 /// ```
-/// use std::str::FromStr;
 /// use habitat_core::package::target;
+/// use std::str::FromStr;
 ///
 /// let target = target::X86_64_LINUX;
 ///
@@ -513,7 +500,7 @@ impl Type {
 /// ```
 pub struct Iter<'a> {
     target: &'a PackageTarget,
-    pos: usize,
+    pos:    usize,
 }
 
 impl<'a> Iterator for Iter<'a> {
@@ -538,7 +525,8 @@ impl<'a> Iterator for Iter<'a> {
 mod test {
     use super::*;
 
-    use serde_derive::{Deserialize, Serialize};
+    use serde_derive::{Deserialize,
+                       Serialize};
     use toml;
 
     // This test explicitly runs the function which returns the active `PackageTarget` for the
@@ -556,10 +544,8 @@ mod test {
     // wrapping type's API.
     #[test]
     fn package_target_from_str() {
-        assert_eq!(
-            PackageTarget(Type::X86_64_Linux),
-            PackageTarget::from_str("x86_64-linux").unwrap()
-        );
+        assert_eq!(PackageTarget(Type::X86_64_Linux),
+                   PackageTarget::from_str("x86_64-linux").unwrap());
     }
 
     // The `Type::as_str()` implementation is already tested for every enum variant, so this
@@ -583,9 +569,7 @@ mod test {
         struct Data {
             target: PackageTarget,
         }
-        let data = Data {
-            target: PackageTarget(Type::X86_64_Linux),
-        };
+        let data = Data { target: PackageTarget(Type::X86_64_Linux), };
         let toml = toml::to_string(&data).unwrap();
 
         assert!(toml.starts_with(r#"target = "x86_64-linux""#));

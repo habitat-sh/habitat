@@ -12,22 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::error;
-use std::ffi;
-use std::fmt;
-use std::io;
-use std::num;
-use std::path::PathBuf;
-use std::result;
-use std::str;
-use std::string;
+use std::{env,
+          error,
+          ffi,
+          fmt,
+          io,
+          num,
+          path::PathBuf,
+          result,
+          str,
+          string};
 
 use libarchive;
 use regex;
 use toml;
 
-use crate::package::{self, Identifiable};
+use crate::package::{self,
+                     Identifiable};
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -175,78 +176,78 @@ impl fmt::Display for Error {
         let msg = match *self {
             Error::ArchiveError(ref err) => format!("{}", err),
             Error::BadBindingMode(ref value) => format!("Unknown binding mode '{}'", value),
-            Error::BadKeyPath(ref e) => format!(
-                "Invalid keypath: {}. Specify an absolute path to a file on disk.",
-                e
-            ),
+            Error::BadKeyPath(ref e) => {
+                format!("Invalid keypath: {}. Specify an absolute path to a file on disk.",
+                        e)
+            }
             Error::CompositePackageExpected(ref ident) => {
                 format!("The package is not a composite: {}", ident)
             }
             Error::ConfigFileIO(ref f, ref e) => {
                 format!("Error reading configuration file, {}, {}", f.display(), e)
             }
-            Error::ConfigFileSyntax(ref e) => format!(
-                "Syntax errors while parsing TOML configuration file:\n\n{}",
-                e
-            ),
-            Error::ConfigInvalidArraySocketAddr(ref f) => format!(
-                "Invalid array value of network address pair strings config, field={}. \
-                 (example: [\"127.0.0.1:8080\", \"10.0.0.4:22\"])",
-                f
-            ),
-            Error::ConfigInvalidArrayTableString(ref f) => format!(
-                "Invalid array value of tables containing string fields and values in \
-                 config, field={}",
-                f
-            ),
-            Error::ConfigInvalidArrayTarget(ref f) => format!(
-                "Invalid array value of targets containing string fields and values in \
-                 config, field={}",
-                f
-            ),
-            Error::ConfigInvalidArrayU16(ref f) => format!(
-                "Invalid array value of u16 entries in config, field={}. (example: [1, 2])",
-                f
-            ),
-            Error::ConfigInvalidArrayU32(ref f) => format!(
-                "Invalid array value of u32 entries in config, field={}. (example: [1, 2])",
-                f
-            ),
-            Error::ConfigInvalidArrayU64(ref f) => format!(
-                "Invalid array value of u64 entries in config, field={}. (example: [1, 2])",
-                f
-            ),
-            Error::ConfigInvalidBool(ref f) => format!(
-                "Invalid boolean value in config, field={}. (example: true)",
-                f
-            ),
-            Error::ConfigInvalidIdent(ref f) => format!(
-                "Invalid package identifier string value in config, field={}. (example: \
-                 \"core/redis\")",
-                f
-            ),
-            Error::ConfigInvalidIpAddr(ref f) => format!(
-                "Invalid IP address string value in config, field={}. (example: \
-                 \"127.0.0.0\")",
-                f
-            ),
-            Error::ConfigInvalidSocketAddr(ref f) => format!(
-                "Invalid network address pair string value in config, field={}. (example: \
-                 \"127.0.0.0:8080\")",
-                f
-            ),
+            Error::ConfigFileSyntax(ref e) => {
+                format!("Syntax errors while parsing TOML configuration file:\n\n{}",
+                        e)
+            }
+            Error::ConfigInvalidArraySocketAddr(ref f) => {
+                format!("Invalid array value of network address pair strings config, field={}. \
+                         (example: [\"127.0.0.1:8080\", \"10.0.0.4:22\"])",
+                        f)
+            }
+            Error::ConfigInvalidArrayTableString(ref f) => {
+                format!("Invalid array value of tables containing string fields and values in \
+                         config, field={}",
+                        f)
+            }
+            Error::ConfigInvalidArrayTarget(ref f) => {
+                format!("Invalid array value of targets containing string fields and values in \
+                         config, field={}",
+                        f)
+            }
+            Error::ConfigInvalidArrayU16(ref f) => {
+                format!("Invalid array value of u16 entries in config, field={}. (example: [1, 2])",
+                        f)
+            }
+            Error::ConfigInvalidArrayU32(ref f) => {
+                format!("Invalid array value of u32 entries in config, field={}. (example: [1, 2])",
+                        f)
+            }
+            Error::ConfigInvalidArrayU64(ref f) => {
+                format!("Invalid array value of u64 entries in config, field={}. (example: [1, 2])",
+                        f)
+            }
+            Error::ConfigInvalidBool(ref f) => {
+                format!("Invalid boolean value in config, field={}. (example: true)",
+                        f)
+            }
+            Error::ConfigInvalidIdent(ref f) => {
+                format!("Invalid package identifier string value in config, field={}. (example: \
+                         \"core/redis\")",
+                        f)
+            }
+            Error::ConfigInvalidIpAddr(ref f) => {
+                format!("Invalid IP address string value in config, field={}. (example: \
+                         \"127.0.0.0\")",
+                        f)
+            }
+            Error::ConfigInvalidSocketAddr(ref f) => {
+                format!("Invalid network address pair string value in config, field={}. (example: \
+                         \"127.0.0.0:8080\")",
+                        f)
+            }
             Error::ConfigInvalidString(ref f) => {
                 format!("Invalid string value in config, field={}.", f)
             }
-            Error::ConfigInvalidTableString(ref f) => format!(
-                "Invalid table value of string fields and values in config, field={}",
-                f
-            ),
-            Error::ConfigInvalidTarget(ref f) => format!(
-                "Invalid package target string value in config, field={}. (example: \
-                 \"x86_64-linux\")",
-                f
-            ),
+            Error::ConfigInvalidTableString(ref f) => {
+                format!("Invalid table value of string fields and values in config, field={}",
+                        f)
+            }
+            Error::ConfigInvalidTarget(ref f) => {
+                format!("Invalid package target string value in config, field={}. (example: \
+                         \"x86_64-linux\")",
+                        f)
+            }
             Error::ConfigInvalidU16(ref f) => format!("Invalid u16 value in config, field={}", f),
             Error::ConfigInvalidU32(ref f) => format!("Invalid u32 value in config, field={}", f),
             Error::ConfigInvalidU64(ref f) => format!("Invalid u64 value in config, field={}", f),
@@ -260,51 +261,51 @@ impl fmt::Display for Error {
             Error::CryptProtectDataFailed(ref e) => e.to_string(),
             Error::CryptUnprotectDataFailed(ref e) => e.to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
-            Error::FullyQualifiedPackageIdentRequired(ref ident) => format!(
-                "Fully-qualified package identifier was expected, but found: {:?}",
-                ident
-            ),
-            Error::InvalidApplicationEnvironment(ref e) => format!(
-                "Invalid application environment: {}. A valid application environment string \
-                 is in the form application.environment (example: twitter.prod)",
-                e
-            ),
-            Error::InvalidBinding(ref binding) => format!(
-                "Invalid binding '{}', must be of the form <NAME>:<SERVICE_GROUP> where <NAME> \
-                 is a service name, and <SERVICE_GROUP> is a valid service group",
-                binding
-            ),
-            Error::InvalidPackageIdent(ref e) => format!(
-                "Invalid package identifier: {:?}. A valid identifier is in the form \
-                 origin/name (example: acme/redis)",
-                e
-            ),
-            Error::InvalidPackageTarget(ref e) => format!(
-                "Invalid package target: {}. A valid target is in the form \
-                 architecture-platform (example: x86_64-linux)",
-                e
-            ),
+            Error::FullyQualifiedPackageIdentRequired(ref ident) => {
+                format!("Fully-qualified package identifier was expected, but found: {:?}",
+                        ident)
+            }
+            Error::InvalidApplicationEnvironment(ref e) => {
+                format!("Invalid application environment: {}. A valid application environment \
+                         string is in the form application.environment (example: twitter.prod)",
+                        e)
+            }
+            Error::InvalidBinding(ref binding) => {
+                format!("Invalid binding '{}', must be of the form <NAME>:<SERVICE_GROUP> where \
+                         <NAME> is a service name, and <SERVICE_GROUP> is a valid service group",
+                        binding)
+            }
+            Error::InvalidPackageIdent(ref e) => {
+                format!("Invalid package identifier: {:?}. A valid identifier is in the form \
+                         origin/name (example: acme/redis)",
+                        e)
+            }
+            Error::InvalidPackageTarget(ref e) => {
+                format!("Invalid package target: {}. A valid target is in the form \
+                         architecture-platform (example: x86_64-linux)",
+                        e)
+            }
             Error::InvalidPackageType(ref e) => format!("Invalid package type: {}.", e),
-            Error::InvalidServiceGroup(ref e) => format!(
-                "Invalid service group: {}. A valid service group string is in the form \
-                 service.group (example: redis.production)",
-                e
-            ),
-            Error::InvalidOrigin(ref origin) => format!(
-                "Invalid origin: {}. Origins must begin with a lowercase letter or number. \
-                 Allowed characters include lowercase letters, numbers, -, and _. \
-                 No more than 255 characters.",
-                origin
-            ),
+            Error::InvalidServiceGroup(ref e) => {
+                format!("Invalid service group: {}. A valid service group string is in the form \
+                         service.group (example: redis.production)",
+                        e)
+            }
+            Error::InvalidOrigin(ref origin) => {
+                format!("Invalid origin: {}. Origins must begin with a lowercase letter or \
+                         number. Allowed characters include lowercase letters, numbers, -, and _. \
+                         No more than 255 characters.",
+                        origin)
+            }
             Error::InvalidPathString(ref s) => {
                 format!("Could not generate String from path: {:?}", s)
             }
             Error::IO(ref err) => format!("{}", err),
             Error::JoinPathsError(ref err) => format!("{}", err),
             Error::LogonTypeNotGranted => {
-                "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' \
-                 account right to be spawned as a service by the Supervisor"
-                    .to_string()
+                "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' account right to be \
+                 spawned as a service by the Supervisor"
+                                                        .to_string()
             }
             Error::LogonUserFailed(ref e) => format!("Failure calling LogonUserW: {:?}", e),
             Error::MetaFileBadBind => {
@@ -330,12 +331,10 @@ impl fmt::Display for Error {
             Error::ParseIntError(ref e) => format!("{}", e),
             Error::PlanMalformed => "Failed to read or parse contents of Plan file".to_string(),
             Error::PermissionFailed(ref e) => e.to_string(),
-            Error::PrivilegeNotHeld => {
-                "Current user must possess the 'SE_INCREASE_QUOTA_NAME' and \
-                 'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new process as a different \
-                 user"
-                    .to_string()
-            }
+            Error::PrivilegeNotHeld => "Current user must possess the 'SE_INCREASE_QUOTA_NAME' \
+                                        and 'SE_ASSIGNPRIMARYTOKEN_NAME' privilege to spawn a new \
+                                        process as a different user"
+                                                                    .to_string(),
             Error::RegexParse(ref e) => format!("{}", e),
             Error::StringFromUtf8Error(ref e) => format!("{}", e),
             Error::TargetMatchError(ref e) => e.to_string(),
@@ -349,11 +348,11 @@ impl fmt::Display for Error {
             Error::WaitForSingleObjectFailed(ref e) => e.to_string(),
             Error::TerminateProcessFailed(ref e) => e.to_string(),
             Error::Utf8Error(ref e) => format!("{}", e),
-            Error::WrongActivePackageTarget(ref active, ref wrong) => format!(
-                "Package target '{}' is not supported as this system has a different \
-                 active package target '{}'",
-                wrong, active
-            ),
+            Error::WrongActivePackageTarget(ref active, ref wrong) => {
+                format!("Package target '{}' is not supported as this system has a different \
+                         active package target '{}'",
+                        wrong, active)
+            }
         };
         write!(f, "{}", msg)
     }
@@ -366,7 +365,7 @@ impl error::Error for Error {
             Error::BadBindingMode(_) => "Unknown binding mode",
             Error::BadKeyPath(_) => "An absolute path to a file on disk is required",
             Error::CompositePackageExpected(_) => "A composite package was expected",
-            Error::ConfigFileIO(_, _) => "Unable to read the raw contents of a configuration file",
+            Error::ConfigFileIO(..) => "Unable to read the raw contents of a configuration file",
             Error::ConfigFileSyntax(_) => "Error parsing contents of configuration file",
             Error::ConfigInvalidArraySocketAddr(_) => {
                 "Invalid array value of network address pair strings encountered while parsing a \
@@ -434,11 +433,13 @@ impl error::Error for Error {
                 "A fully-qualified package identifier was expected"
             }
             Error::InvalidApplicationEnvironment(_) => {
-                "Application environment strings must be in \
-                 application.environment format (example: twitter.prod)"
+                "Application environment strings must be in application.environment format \
+                 (example: twitter.prod)"
             }
-            Error::InvalidBinding(_) => "Service Bind strings must be in \
-                name:service_group format (example cache:redis.cache@organization).",
+            Error::InvalidBinding(_) => {
+                "Service Bind strings must be in name:service_group format (example \
+                 cache:redis.cache@organization)."
+            }
             Error::InvalidPackageIdent(_) => {
                 "Package identifiers must be in origin/name format (example: acme/redis)"
             }
@@ -447,11 +448,12 @@ impl error::Error for Error {
             }
             Error::InvalidPackageType(_) => "Unsupported package type supplied.",
             Error::InvalidServiceGroup(_) => {
-                "Service group strings must be in service.group[@organization] format (example: redis.production or foo.default@bazcorp)"
+                "Service group strings must be in service.group[@organization] format (example: \
+                 redis.production or foo.default@bazcorp)"
             }
             Error::InvalidOrigin(_) => {
-                "Origins must begin with a lowercase letter or number.  \
-                 Allowed characters include a - z, 0 - 9, _, and -. No more than 255 characters."
+                "Origins must begin with a lowercase letter or number.  Allowed characters include \
+                 a - z, 0 - 9, _, and -. No more than 255 characters."
             }
             Error::InvalidPathString(_) => "Failed to convert an OsString Path to a String",
             Error::IO(ref err) => err.description(),
@@ -478,59 +480,45 @@ impl error::Error for Error {
             Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
             Error::TargetMatchError(_) => "System target does not match package target",
             Error::UnameFailed(_) => "uname failed",
-            Error::SignalFailed(_, _) => "Failed to send a signal to the child process",
+            Error::SignalFailed(..) => "Failed to send a signal to the child process",
             Error::CreateToolhelp32SnapshotFailed(_) => "CreateToolhelp32Snapshot failed",
             Error::WaitpidFailed(_) => "waitpid failed",
             Error::GetExitCodeProcessFailed(_) => "GetExitCodeProcess failed",
             Error::WaitForSingleObjectFailed(_) => "WaitForSingleObjectFailed failed",
             Error::TerminateProcessFailed(_) => "Failed to call TerminateProcess",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
-            Error::WrongActivePackageTarget(_, _) => {
-                "Package target is not supported as this system has a different \
-                 active package target"
+            Error::WrongActivePackageTarget(..) => {
+                "Package target is not supported as this system has a different active package \
+                 target"
             }
         }
     }
 }
 
 impl From<env::JoinPathsError> for Error {
-    fn from(err: env::JoinPathsError) -> Self {
-        Error::JoinPathsError(err)
-    }
+    fn from(err: env::JoinPathsError) -> Self { Error::JoinPathsError(err) }
 }
 
 impl From<string::FromUtf8Error> for Error {
-    fn from(err: string::FromUtf8Error) -> Self {
-        Error::StringFromUtf8Error(err)
-    }
+    fn from(err: string::FromUtf8Error) -> Self { Error::StringFromUtf8Error(err) }
 }
 
 impl From<str::Utf8Error> for Error {
-    fn from(err: str::Utf8Error) -> Self {
-        Error::Utf8Error(err)
-    }
+    fn from(err: str::Utf8Error) -> Self { Error::Utf8Error(err) }
 }
 
 impl From<io::Error> for Error {
-    fn from(err: io::Error) -> Self {
-        Error::IO(err)
-    }
+    fn from(err: io::Error) -> Self { Error::IO(err) }
 }
 
 impl From<libarchive::error::ArchiveError> for Error {
-    fn from(err: libarchive::error::ArchiveError) -> Self {
-        Error::ArchiveError(err)
-    }
+    fn from(err: libarchive::error::ArchiveError) -> Self { Error::ArchiveError(err) }
 }
 
 impl From<num::ParseIntError> for Error {
-    fn from(err: num::ParseIntError) -> Self {
-        Error::ParseIntError(err)
-    }
+    fn from(err: num::ParseIntError) -> Self { Error::ParseIntError(err) }
 }
 
 impl From<regex::Error> for Error {
-    fn from(err: regex::Error) -> Self {
-        Error::RegexParse(err)
-    }
+    fn from(err: regex::Error) -> Self { Error::RegexParse(err) }
 }

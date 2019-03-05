@@ -12,19 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ffi::OsString;
-use std::io;
-use std::path::PathBuf;
-use std::process::{self, Command};
-use std::ptr;
+use std::{ffi::OsString,
+          io,
+          path::PathBuf,
+          process::{self,
+                    Command},
+          ptr};
 
-use winapi::shared::minwindef::{DWORD, FALSE, LPDWORD};
-use winapi::um::handleapi;
-use winapi::um::processthreadsapi;
-use winapi::um::winnt::{HANDLE, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_TERMINATE};
+use winapi::{shared::minwindef::{DWORD,
+                                 FALSE,
+                                 LPDWORD},
+             um::{handleapi,
+                  processthreadsapi,
+                  winnt::{HANDLE,
+                          PROCESS_QUERY_LIMITED_INFORMATION,
+                          PROCESS_TERMINATE}}};
 
-use super::{OsSignal, Signal};
-use crate::error::{Error, Result};
+use super::{OsSignal,
+            Signal};
+use crate::error::{Error,
+                   Result};
 
 const STILL_ACTIVE: u32 = 259;
 
@@ -32,13 +39,9 @@ pub type Pid = DWORD;
 pub type SignalCode = DWORD;
 
 impl OsSignal for Signal {
-    fn from_signal_code(code: SignalCode) -> Option<Signal> {
-        None
-    }
+    fn from_signal_code(code: SignalCode) -> Option<Signal> { None }
 
-    fn os_signal(&self) -> SignalCode {
-        0
-    }
+    fn os_signal(&self) -> SignalCode { 0 }
 }
 
 pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
@@ -46,17 +49,14 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 }
 
 /// Get process identifier of calling process.
-pub fn current_pid() -> u32 {
-    unsafe { processthreadsapi::GetCurrentProcessId() as u32 }
-}
+pub fn current_pid() -> u32 { unsafe { processthreadsapi::GetCurrentProcessId() as u32 } }
 
 pub fn handle_from_pid(pid: Pid) -> Option<HANDLE> {
     unsafe {
-        let proc_handle = processthreadsapi::OpenProcess(
-            PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_TERMINATE,
-            FALSE,
-            pid,
-        );
+        let proc_handle = processthreadsapi::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION
+                                                         | PROCESS_TERMINATE,
+                                                         FALSE,
+                                                         pid);
 
         // we expect this to happen if the process died
         // before OpenProcess completes
@@ -83,11 +83,9 @@ pub fn is_alive(pid: Pid) -> bool {
 }
 
 pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
-    debug!(
-        "sending no-op(windows) signal {} to pid {}",
-        signal.os_signal(),
-        pid
-    );
+    debug!("sending no-op(windows) signal {} to pid {}",
+           signal.os_signal(),
+           pid);
     Ok(())
 }
 
@@ -99,11 +97,9 @@ pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
 ///
 /// * If the child process cannot be created
 fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
-    debug!(
-        "Calling child process: ({:?}) {:?}",
-        command.display(),
-        &args
-    );
+    debug!("Calling child process: ({:?}) {:?}",
+           command.display(),
+           &args);
     let status = Command::new(command).args(&args).status()?;
     // Let's honor the exit codes from the child process we finished running
     process::exit(status.code().unwrap())

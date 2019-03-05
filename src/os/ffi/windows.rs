@@ -36,19 +36,14 @@ impl OsStrExt3 for OsStr {
         use std::mem;
         unsafe { mem::transmute(b) }
     }
-    fn as_bytes(&self) -> &[u8] {
-        self.to_str().map(|s| s.as_bytes()).expect(INVALID_UTF8)
-    }
+
+    fn as_bytes(&self) -> &[u8] { self.to_str().map(|s| s.as_bytes()).expect(INVALID_UTF8) }
 }
 
 impl OsStrExt2 for OsStr {
-    fn starts_with(&self, s: &[u8]) -> bool {
-        self.as_bytes().starts_with(s)
-    }
+    fn starts_with(&self, s: &[u8]) -> bool { self.as_bytes().starts_with(s) }
 
-    fn is_empty_(&self) -> bool {
-        self.as_bytes().is_empty()
-    }
+    fn is_empty_(&self) -> bool { self.as_bytes().is_empty() }
 
     fn contains_byte(&self, byte: u8) -> bool {
         for b in self.as_bytes() {
@@ -62,16 +57,11 @@ impl OsStrExt2 for OsStr {
     fn split_at_byte(&self, byte: u8) -> (&OsStr, &OsStr) {
         for (i, b) in self.as_bytes().iter().enumerate() {
             if b == &byte {
-                return (
-                    &OsStr::from_bytes(&self.as_bytes()[..i]),
-                    &OsStr::from_bytes(&self.as_bytes()[i + 1..]),
-                );
+                return (&OsStr::from_bytes(&self.as_bytes()[..i]),
+                        &OsStr::from_bytes(&self.as_bytes()[i + 1..]));
             }
         }
-        (
-            &*self,
-            &OsStr::from_bytes(&self.as_bytes()[self.len_()..self.len_()]),
-        )
+        (&*self, &OsStr::from_bytes(&self.as_bytes()[self.len_()..self.len_()]))
     }
 
     fn trim_left_matches(&self, byte: u8) -> &OsStr {
@@ -84,22 +74,15 @@ impl OsStrExt2 for OsStr {
     }
 
     fn split_at(&self, i: usize) -> (&OsStr, &OsStr) {
-        (
-            &OsStr::from_bytes(&self.as_bytes()[..i]),
-            &OsStr::from_bytes(&self.as_bytes()[i..]),
-        )
+        (&OsStr::from_bytes(&self.as_bytes()[..i]), &OsStr::from_bytes(&self.as_bytes()[i..]))
     }
 
-    fn len_(&self) -> usize {
-        self.as_bytes().len()
-    }
+    fn len_(&self) -> usize { self.as_bytes().len() }
 
     fn split(&self, b: u8) -> OsSplit {
-        OsSplit {
-            sep: b,
-            val: self.as_bytes(),
-            pos: 0,
-        }
+        OsSplit { sep: b,
+                  val: self.as_bytes(),
+                  pos: 0, }
     }
 }
 
@@ -127,6 +110,7 @@ impl<'a> Iterator for OsSplit<'a> {
         }
         Some(&OsStr::from_bytes(&self.val[start..]))
     }
+
     fn size_hint(&self) -> (usize, Option<usize>) {
         let mut count = 0;
         for b in &self.val[self.pos..] {

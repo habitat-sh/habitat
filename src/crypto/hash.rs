@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs::File;
-use std::io::{BufReader, Read};
-use std::path::Path;
-use std::ptr;
+use std::{fs::File,
+          io::{BufReader,
+               Read},
+          path::Path,
+          ptr};
 
 use hex;
 use libsodium_sys;
@@ -28,8 +29,7 @@ const BUF_SIZE: usize = 1024;
 /// digest size = 32 BYTES
 /// NOTE: the hashing is keyless
 pub fn hash_file<P>(filename: P) -> Result<String>
-where
-    P: AsRef<Path>,
+    where P: AsRef<Path>
 {
     let file = File::open(filename.as_ref())?;
     let mut reader = BufReader::new(file);
@@ -86,33 +86,35 @@ pub fn hash_reader(reader: &mut BufReader<File>) -> Result<String> {
 
 #[cfg(test)]
 mod test {
-    use std::env;
     #[allow(unused_imports)]
-    use std::fs::{self, File};
+    use std::fs::{self,
+                  File};
     #[allow(unused_imports)]
     use std::io;
-    use std::path::PathBuf;
+    use std::{env,
+              path::PathBuf};
 
-    use super::super::test_support::*;
-    use super::*;
+    use super::{super::test_support::*,
+                *};
     #[cfg(feature = "functional")]
-    use hyper::{header, Client, Url};
+    use hyper::{header,
+                Client,
+                Url};
 
     #[allow(dead_code)]
     fn mk_local_tmpdir() -> PathBuf {
-        let dir = env::current_exe()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .join("tmp");
+        let dir = env::current_exe().unwrap()
+                                    .parent()
+                                    .unwrap()
+                                    .parent()
+                                    .unwrap()
+                                    .parent()
+                                    .unwrap()
+                                    .parent()
+                                    .unwrap()
+                                    .parent()
+                                    .unwrap()
+                                    .join("tmp");
         fs::create_dir_all(&dir).unwrap();
         dir
     }
@@ -146,18 +148,15 @@ mod test {
                 let client = match env::var("http_proxy") {
                     Ok(url) => {
                         let url = Url::parse(&url).unwrap();
-                        Client::with_http_proxy(
-                            url.host_str().unwrap().to_string(),
-                            url.port_or_known_default().unwrap(),
-                        )
+                        Client::with_http_proxy(url.host_str().unwrap().to_string(),
+                                                url.port_or_known_default().unwrap())
                     }
                     _ => Client::new(),
                 };
-                let mut response = client
-                    .get(url)
-                    .header(header::Connection::close())
-                    .send()
-                    .unwrap();
+                let mut response = client.get(url)
+                                         .header(header::Connection::close())
+                                         .send()
+                                         .unwrap();
                 let mut f = File::create(&file).unwrap();
                 io::copy(&mut response, &mut f).unwrap();
             }

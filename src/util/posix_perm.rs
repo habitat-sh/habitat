@@ -12,31 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use libc::{self, c_char, c_int, mode_t};
-use std::ffi::CString;
-use std::path::Path;
+use libc::{self,
+           c_char,
+           c_int,
+           mode_t};
+use std::{ffi::CString,
+          path::Path};
 
 use crate::users;
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> Result<()> {
-    debug!(
-        "Attempting to set owner of {:?} to {:?}:{:?}",
-        &path.as_ref(),
-        &owner.as_ref(),
-        &group.as_ref()
-    );
+    debug!("Attempting to set owner of {:?} to {:?}:{:?}",
+           &path.as_ref(),
+           &owner.as_ref(),
+           &group.as_ref());
 
     let uid = match users::get_uid_by_name(&owner.as_ref()) {
         Some(user) => user,
         None => {
-            let msg = format!(
-                "Can't change owner of {:?} to {:?}:{:?}, error getting user.",
-                &path.as_ref(),
-                &owner.as_ref(),
-                &group.as_ref()
-            );
+            let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting user.",
+                              &path.as_ref(),
+                              &owner.as_ref(),
+                              &group.as_ref());
             return Err(Error::PermissionFailed(msg));
         }
     };
@@ -44,12 +44,10 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     let gid = match users::get_gid_by_name(&group.as_ref()) {
         Some(group) => group,
         None => {
-            let msg = format!(
-                "Can't change owner of {:?} to {:?}:{:?}, error getting group.",
-                &path.as_ref(),
-                &owner.as_ref(),
-                &group.as_ref()
-            );
+            let msg = format!("Can't change owner of {:?} to {:?}:{:?}, error getting group.",
+                              &path.as_ref(),
+                              &owner.as_ref(),
+                              &group.as_ref());
             return Err(Error::PermissionFailed(msg));
         }
     };
@@ -57,10 +55,7 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!(
-                "Invalid path {:?}",
-                &path.as_ref()
-            )));
+            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
         }
     };
     let result = chown(s_path, uid, gid);
@@ -68,12 +63,13 @@ pub fn set_owner<T: AsRef<Path>, X: AsRef<str>>(path: T, owner: X, group: X) -> 
     match result {
         Err(err) => Err(err),
         Ok(0) => Ok(()),
-        _ => Err(Error::PermissionFailed(format!(
-            "Can't change owner of {:?} to {:?}:{:?}",
-            &path.as_ref(),
-            &owner.as_ref(),
-            &group.as_ref()
-        ))),
+        _ => {
+            Err(Error::PermissionFailed(format!("Can't change owner of \
+                                                 {:?} to {:?}:{:?}",
+                                                &path.as_ref(),
+                                                &owner.as_ref(),
+                                                &group.as_ref())))
+        }
     }
 }
 
@@ -81,10 +77,7 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!(
-                "Invalid path {:?}",
-                &path.as_ref()
-            )));
+            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
         }
     };
 
@@ -92,11 +85,12 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, mode: u32) -> Result<()> {
     match result {
         Err(err) => Err(err),
         Ok(0) => Ok(()),
-        _ => Err(Error::PermissionFailed(format!(
-            "Can't set permissions on {:?} to {:?}",
-            &path.as_ref(),
-            &mode
-        ))),
+        _ => {
+            Err(Error::PermissionFailed(format!("Can't set permissions \
+                                                 on {:?} to {:?}",
+                                                &path.as_ref(),
+                                                &mode)))
+        }
     }
 }
 
@@ -104,10 +98,9 @@ fn validate_raw_path(path: &str) -> Result<*mut c_char> {
     let c_path = match CString::new(path) {
         Ok(c) => c,
         Err(e) => {
-            return Err(Error::PermissionFailed(format!(
-                "Can't create string from path {:?}: {}",
-                path, e
-            )));
+            return Err(Error::PermissionFailed(format!("Can't create string \
+                                                        from path {:?}: {}",
+                                                       path, e)));
         }
     };
     Ok(c_path.into_raw())
@@ -130,10 +123,9 @@ fn chmod(path: &str, mode: u32) -> Result<c_int> {
     let c_path = match CString::new(path) {
         Ok(c) => c,
         Err(e) => {
-            return Err(Error::PermissionFailed(format!(
-                "Can't create string from path {:?}: {}",
-                path, e
-            )));
+            return Err(Error::PermissionFailed(format!("Can't create string \
+                                                        from path {:?}: {}",
+                                                       path, e)));
         }
     };
     let r_path = c_path.into_raw();
@@ -147,9 +139,9 @@ fn chmod(path: &str, mode: u32) -> Result<c_int> {
 
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-    use std::io::Write;
-    use std::path::Path;
+    use std::{fs::File,
+              io::Write,
+              path::Path};
 
     use tempfile::Builder;
 
@@ -158,10 +150,9 @@ mod tests {
 
     #[test]
     fn chmod_ok_test() {
-        let tmp_dir = Builder::new()
-            .prefix("foo")
-            .tempdir()
-            .expect("create temp dir");
+        let tmp_dir = Builder::new().prefix("foo")
+                                    .tempdir()
+                                    .expect("create temp dir");
         let file_path = tmp_dir.path().join("test.txt");
         let mut tmp_file = File::create(&file_path).expect("create temp file");
         writeln!(tmp_file, "foobar123").expect("write temp file");

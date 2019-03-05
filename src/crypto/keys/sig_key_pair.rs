@@ -12,24 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::{fs,
+          path::{Path,
+                 PathBuf}};
 
 use base64;
 use hex;
-use sodiumoxide::crypto::sign;
-use sodiumoxide::crypto::sign::ed25519::PublicKey as SigPublicKey;
-use sodiumoxide::crypto::sign::ed25519::SecretKey as SigSecretKey;
-use sodiumoxide::randombytes::randombytes;
+use sodiumoxide::{crypto::sign::{self,
+                                 ed25519::{PublicKey as SigPublicKey,
+                                           SecretKey as SigSecretKey}},
+                  randombytes::randombytes};
 
-use super::super::{
-    hash, PUBLIC_KEY_SUFFIX, PUBLIC_SIG_KEY_VERSION, SECRET_SIG_KEY_SUFFIX, SECRET_SIG_KEY_VERSION,
-};
-use super::{
-    get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev, read_key_bytes,
-    write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile,
-};
-use crate::error::{Error, Result};
+use super::{super::{hash,
+                    PUBLIC_KEY_SUFFIX,
+                    PUBLIC_SIG_KEY_VERSION,
+                    SECRET_SIG_KEY_SUFFIX,
+                    SECRET_SIG_KEY_VERSION},
+            get_key_revisions,
+            mk_key_filename,
+            mk_revision_string,
+            parse_name_with_rev,
+            read_key_bytes,
+            write_keypair_files,
+            KeyPair,
+            KeyType,
+            PairType,
+            TmpKeyfile};
+use crate::error::{Error,
+                   Result};
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
@@ -42,38 +52,32 @@ impl SigKeyPair {
 
     /// Return a Vec of origin keys with a given name.
     /// The newest key is listed first in the Vec.
-    pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(
-        name: &str,
-        cache_key_path: &P,
-        pair_type: Option<&PairType>,
-    ) -> Result<Vec<Self>> {
+    pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
+                                                  cache_key_path: &P,
+                                                  pair_type: Option<&PairType>)
+                                                  -> Result<Vec<Self>> {
         let revisions = get_key_revisions(name, cache_key_path.as_ref(), pair_type, &KeyType::Sig)?;
         debug!("revisions = {:?}", &revisions);
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
-            debug!(
-                "Attempting to read key name_with_rev {} for {}",
-                name_with_rev, name
-            );
+            debug!("Attempting to read key name_with_rev {} for {}",
+                   name_with_rev, name);
             let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
             key_pairs.push(kp);
         }
         Ok(key_pairs)
     }
 
-    pub fn get_pair_for<P: AsRef<Path> + ?Sized>(
-        name_with_rev: &str,
-        cache_key_path: &P,
-    ) -> Result<Self> {
+    pub fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
+                                                 cache_key_path: &P)
+                                                 -> Result<Self> {
         let (name, rev) = parse_name_with_rev(name_with_rev)?;
         let pk = match Self::get_public_key(name_with_rev, cache_key_path.as_ref()) {
             Ok(k) => Some(k),
             Err(e) => {
                 // Not an error, just continue
-                debug!(
-                    "Can't find public key for name_with_rev {}: {}",
-                    name_with_rev, e
-                );
+                debug!("Can't find public key for name_with_rev {}: {}",
+                       name_with_rev, e);
                 None
             }
         };
@@ -81,28 +85,23 @@ impl SigKeyPair {
             Ok(k) => Some(k),
             Err(e) => {
                 // Not an error, just continue
-                debug!(
-                    "Can't find secret key for name_with_rev {}: {}",
-                    name_with_rev, e
-                );
+                debug!("Can't find secret key for name_with_rev {}: {}",
+                       name_with_rev, e);
                 None
             }
         };
         if pk == None && sk == None {
-            let msg = format!(
-                "No public or secret keys found for name_with_rev {}",
-                name_with_rev
-            );
+            let msg = format!("No public or secret keys found for name_with_rev {}",
+                              name_with_rev);
             return Err(Error::CryptoError(msg));
         }
         Ok(SigKeyPair::new(name, rev, pk, sk))
     }
 
-    pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(
-        name: &str,
-        cache_key_path: &P,
-        pair_type: Option<&PairType>,
-    ) -> Result<Self> {
+    pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(name: &str,
+                                                        cache_key_path: &P,
+                                                        pair_type: Option<&PairType>)
+                                                        -> Result<Self> {
         let mut all = Self::get_pairs_for(name, cache_key_path, pair_type)?;
         match all.len() {
             0 => {
@@ -113,30 +112,22 @@ impl SigKeyPair {
         }
     }
 
-    pub fn get_public_key_path<P: AsRef<Path> + ?Sized>(
-        key_with_rev: &str,
-        cache_key_path: &P,
-    ) -> Result<PathBuf> {
+    pub fn get_public_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<PathBuf> {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, PUBLIC_KEY_SUFFIX);
         if !path.is_file() {
-            return Err(Error::CryptoError(format!(
-                "No public key found at {}",
-                path.display()
-            )));
+            return Err(Error::CryptoError(format!("No public key found at {}", path.display())));
         }
         Ok(path)
     }
 
-    pub fn get_secret_key_path<P: AsRef<Path> + ?Sized>(
-        key_with_rev: &str,
-        cache_key_path: &P,
-    ) -> Result<PathBuf> {
+    pub fn get_secret_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<PathBuf> {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_SIG_KEY_SUFFIX);
         if !path.is_file() {
-            return Err(Error::CryptoError(format!(
-                "No secret key found at {}",
-                path.display()
-            )));
+            return Err(Error::CryptoError(format!("No secret key found at {}", path.display())));
         }
         Ok(path)
     }
@@ -153,10 +144,10 @@ impl SigKeyPair {
     /// extern crate habitat_core;
     /// extern crate tempfile;
     ///
-    /// use std::fs::File;
-    /// use std::io::Read;
-    /// use habitat_core::crypto::SigKeyPair;
-    /// use habitat_core::crypto::keys::PairType;
+    /// use habitat_core::crypto::{keys::PairType,
+    ///                            SigKeyPair};
+    /// use std::{fs::File,
+    ///           io::Read};
     /// use tempfile::Builder;
     ///
     /// fn main() {
@@ -184,10 +175,10 @@ impl SigKeyPair {
     /// extern crate habitat_core;
     /// extern crate tempfile;
     ///
-    /// use std::fs::File;
-    /// use std::io::Read;
-    /// use habitat_core::crypto::SigKeyPair;
-    /// use habitat_core::crypto::keys::PairType;
+    /// use habitat_core::crypto::{keys::PairType,
+    ///                            SigKeyPair};
+    /// use std::{fs::File,
+    ///           io::Read};
     /// use tempfile::Builder;
     ///
     /// fn main() {
@@ -218,10 +209,9 @@ impl SigKeyPair {
     /// * If the key file cannot be written to disk
     /// * If an existing key is already installed, but the new content is different from the
     /// existing
-    pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(
-        content: &str,
-        cache_key_path: &P,
-    ) -> Result<(Self, PairType)> {
+    pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<(Self, PairType)> {
         let (pair_type, name_with_rev, _) = super::parse_key_str(content)?;
         let suffix = match pair_type {
             PairType::Public => PUBLIC_KEY_SUFFIX,
@@ -230,11 +220,9 @@ impl SigKeyPair {
         let keyfile = mk_key_filename(cache_key_path.as_ref(), &name_with_rev, &suffix);
         let tmpfile = {
             let mut t = keyfile.clone();
-            t.set_file_name(format!(
-                "{}.{}",
-                &keyfile.file_name().unwrap().to_str().unwrap(),
-                &hex::encode(randombytes(6).as_slice())
-            ));
+            t.set_file_name(format!("{}.{}",
+                                    &keyfile.file_name().unwrap().to_str().unwrap(),
+                                    &hex::encode(randombytes(6).as_slice())));
             TmpKeyfile { path: t }
         };
 
@@ -252,65 +240,54 @@ impl SigKeyPair {
             let existing_hash = hash::hash_file(&keyfile)?;
             let new_hash = hash::hash_file(&tmpfile.path)?;
             if existing_hash != new_hash {
-                let msg = format!(
-                    "Existing key file {} found but new version hash is different, \
-                     failing to write new file over existing. ({} = {}, {} = {})",
-                    keyfile.display(),
-                    keyfile.display(),
-                    existing_hash,
-                    tmpfile.path.display(),
-                    new_hash
-                );
+                let msg = format!("Existing key file {} found but new version hash is different, \
+                                   failing to write new file over existing. ({} = {}, {} = {})",
+                                  keyfile.display(),
+                                  keyfile.display(),
+                                  existing_hash,
+                                  tmpfile.path.display(),
+                                  new_hash);
                 return Err(Error::CryptoError(msg));
             } else {
                 // Otherwise, hashes match and we can skip writing over the existing file
-                debug!(
-                    "New content hash matches existing file {} hash, removing temp key file \
-                     {}.",
-                    keyfile.display(),
-                    tmpfile.path.display()
-                );
+                debug!("New content hash matches existing file {} hash, removing temp key file \
+                        {}.",
+                       keyfile.display(),
+                       tmpfile.path.display());
                 fs::remove_file(&tmpfile.path)?;
             }
         } else {
             fs::rename(&tmpfile.path, keyfile)?;
         }
-        Ok((
-            Self::get_pair_for(&name_with_rev, cache_key_path)?,
-            pair_type,
-        ))
+        Ok((Self::get_pair_for(&name_with_rev, cache_key_path)?, pair_type))
     }
 
     pub fn to_public_string(&self) -> Result<String> {
         match self.public {
-            Some(pk) => Ok(format!(
-                "{}\n{}\n\n{}",
-                PUBLIC_SIG_KEY_VERSION,
-                self.name_with_rev(),
-                &base64::encode(&pk[..])
-            )),
+            Some(pk) => {
+                Ok(format!("{}\n{}\n\n{}",
+                           PUBLIC_SIG_KEY_VERSION,
+                           self.name_with_rev(),
+                           &base64::encode(&pk[..])))
+            }
             None => {
-                return Err(Error::CryptoError(format!(
-                    "No public key present for {}",
-                    self.name_with_rev()
-                )));
+                return Err(Error::CryptoError(format!("No public key present for {}",
+                                                      self.name_with_rev())));
             }
         }
     }
 
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
-            Some(ref sk) => Ok(format!(
-                "{}\n{}\n\n{}",
-                SECRET_SIG_KEY_VERSION,
-                self.name_with_rev(),
-                &base64::encode(&sk[..])
-            )),
+            Some(ref sk) => {
+                Ok(format!("{}\n{}\n\n{}",
+                           SECRET_SIG_KEY_VERSION,
+                           self.name_with_rev(),
+                           &base64::encode(&sk[..])))
+            }
             None => {
-                return Err(Error::CryptoError(format!(
-                    "No secret key present for {}",
-                    self.name_with_rev()
-                )));
+                return Err(Error::CryptoError(format!("No secret key present for {}",
+                                                      self.name_with_rev())));
             }
         }
     }
@@ -321,12 +298,10 @@ impl SigKeyPair {
         debug!("public sig keyfile = {}", public_keyfile.display());
         debug!("secret sig keyfile = {}", secret_keyfile.display());
 
-        write_keypair_files(
-            Some(&public_keyfile),
-            Some(self.to_public_string()?),
-            Some(&secret_keyfile),
-            Some(self.to_secret_string()?),
-        )
+        write_keypair_files(Some(&public_keyfile),
+                            Some(self.to_public_string()?),
+                            Some(&secret_keyfile),
+                            Some(self.to_secret_string()?))
     }
 
     fn get_public_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SigPublicKey> {
@@ -335,10 +310,9 @@ impl SigKeyPair {
         match SigPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!(
-                    "Can't read sig public key for {}",
-                    key_with_rev
-                )));
+                return Err(Error::CryptoError(format!("Can't read sig public key \
+                                                       for {}",
+                                                      key_with_rev)));
             }
         }
     }
@@ -349,10 +323,9 @@ impl SigKeyPair {
         match SigSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!(
-                    "Can't read sig secret key for {}",
-                    key_with_rev
-                )));
+                return Err(Error::CryptoError(format!("Can't read sig secret key \
+                                                       for {}",
+                                                      key_with_rev)));
             }
         }
     }
@@ -360,14 +333,15 @@ impl SigKeyPair {
 
 #[cfg(test)]
 mod test {
-    use std::fs::{self, File};
-    use std::io::Read;
+    use std::{fs::{self,
+                   File},
+              io::Read};
 
     use tempfile::Builder;
 
-    use super::super::super::test_support::*;
-    use super::super::PairType;
-    use super::SigKeyPair;
+    use super::{super::{super::test_support::*,
+                        PairType},
+                SigKeyPair};
 
     static VALID_KEY: &'static str = "origin-key-valid-20160509190508.sig.key";
     static VALID_PUB: &'static str = "origin-key-valid-20160509190508.pub";
@@ -400,22 +374,16 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "unicorn");
-        assert!(
-            pair.public().is_ok(),
-            "Generated pair should have a public key"
-        );
-        assert!(
-            pair.secret().is_ok(),
-            "Generated pair should have a public key"
-        );
-        assert!(cache
-            .path()
-            .join(format!("{}.pub", pair.name_with_rev()))
-            .exists());
-        assert!(cache
-            .path()
-            .join(format!("{}.sig.key", pair.name_with_rev()))
-            .exists());
+        assert!(pair.public().is_ok(),
+                "Generated pair should have a public key");
+        assert!(pair.secret().is_ok(),
+                "Generated pair should have a public key");
+        assert!(cache.path()
+                     .join(format!("{}.pub", pair.name_with_rev()))
+                     .exists());
+        assert!(cache.path()
+                     .join(format!("{}.sig.key", pair.name_with_rev()))
+                     .exists());
     }
 
     #[test]
@@ -424,18 +392,17 @@ mod test {
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 0);
 
-        SigKeyPair::generate_pair_for_origin("unicorn")
-            .unwrap()
-            .to_pair_files(cache.path())
-            .unwrap();
+        SigKeyPair::generate_pair_for_origin("unicorn").unwrap()
+                                                       .to_pair_files(cache.path())
+                                                       .unwrap();
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 1);
 
         match wait_until_ok(|| {
-            let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
-            p.to_pair_files(cache.path())?;
-            Ok(())
-        }) {
+                  let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+                  p.to_pair_files(cache.path())?;
+                  Ok(())
+              }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
@@ -443,10 +410,9 @@ mod test {
         assert_eq!(pairs.len(), 2);
 
         // We should not include another named key in the count
-        SigKeyPair::generate_pair_for_origin("dragon")
-            .unwrap()
-            .to_pair_files(cache.path())
-            .unwrap();
+        SigKeyPair::generate_pair_for_origin("dragon").unwrap()
+                                                      .to_pair_files(cache.path())
+                                                      .unwrap();
         let pairs = SigKeyPair::get_pairs_for("unicorn", cache.path(), None).unwrap();
         assert_eq!(pairs.len(), 2);
 
@@ -466,10 +432,10 @@ mod test {
         let p1 = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         p1.to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
-            let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
-            p.to_pair_files(cache.path())?;
-            Ok(p)
-        }) {
+                  let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+                  p.to_pair_files(cache.path())?;
+                  Ok(p)
+              }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
@@ -503,15 +469,14 @@ mod test {
     #[test]
     fn get_latest_pair_for_multiple() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SigKeyPair::generate_pair_for_origin("unicorn")
-            .unwrap()
-            .to_pair_files(cache.path())
-            .unwrap();
+        SigKeyPair::generate_pair_for_origin("unicorn").unwrap()
+                                                       .to_pair_files(cache.path())
+                                                       .unwrap();
         let p2 = match wait_until_ok(|| {
-            let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
-            p.to_pair_files(cache.path())?;
-            Ok(p)
-        }) {
+                  let p = SigKeyPair::generate_pair_for_origin("unicorn")?;
+                  p.to_pair_files(cache.path())?;
+                  Ok(p)
+              }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
@@ -526,9 +491,9 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let p = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         p.to_pair_files(cache.path()).unwrap();
-        let latest =
-            SigKeyPair::get_latest_pair_for("unicorn", cache.path(), Some(&PairType::Secret))
-                .unwrap();
+        let latest = SigKeyPair::get_latest_pair_for("unicorn",
+                                                     cache.path(),
+                                                     Some(&PairType::Secret)).unwrap();
         assert_eq!(latest.name, p.name);
         assert_eq!(latest.rev, p.rev);
     }
@@ -538,9 +503,9 @@ mod test {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let p = SigKeyPair::generate_pair_for_origin("unicorn").unwrap();
         p.to_pair_files(cache.path()).unwrap();
-        let latest =
-            SigKeyPair::get_latest_pair_for("unicorn", cache.path(), Some(&PairType::Public))
-                .unwrap();
+        let latest = SigKeyPair::get_latest_pair_for("unicorn",
+                                                     cache.path(),
+                                                     Some(&PairType::Public)).unwrap();
         assert_eq!(latest.name, p.name);
         assert_eq!(latest.rev, p.rev);
     }
@@ -555,11 +520,8 @@ mod test {
     #[test]
     fn get_public_key_path() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        fs::copy(
-            fixture(&format!("keys/{}", VALID_PUB)),
-            cache.path().join(VALID_PUB),
-        )
-        .unwrap();
+        fs::copy(fixture(&format!("keys/{}", VALID_PUB)),
+                 cache.path().join(VALID_PUB)).unwrap();
 
         let result = SigKeyPair::get_public_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_PUB));
@@ -575,11 +537,8 @@ mod test {
     #[test]
     fn get_secret_key_path() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        fs::copy(
-            fixture(&format!("keys/{}", VALID_KEY)),
-            cache.path().join(VALID_KEY),
-        )
-        .unwrap();
+        fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
+                 cache.path().join(VALID_KEY)).unwrap();
 
         let result = SigKeyPair::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
@@ -729,11 +688,9 @@ mod test {
     fn write_file_from_str_invalid_key_secret() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
-        SigKeyPair::write_file_from_str(
-            "SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n%",
-            cache.path(),
-        )
-        .unwrap();
+        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\\
+                                         nc29tZXRoaW5n%",
+                                        cache.path()).unwrap();
     }
 
     #[test]
@@ -741,11 +698,8 @@ mod test {
     fn write_file_from_str_invalid_key_public() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
 
-        SigKeyPair::write_file_from_str(
-            "SIG-PUB-1\nim-in-trouble-123\n\nc29tZXRoaW5n%",
-            cache.path(),
-        )
-        .unwrap();
+        SigKeyPair::write_file_from_str("SIG-PUB-1\nim-in-trouble-123\n\nc29tZXRoaW5n%",
+                                        cache.path()).unwrap();
     }
 
     #[test]
@@ -753,17 +707,12 @@ mod test {
     fn write_file_from_str_key_exists_but_hashes_differ_secret() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = fixture("keys/origin-key-valid-20160509190508.sig.key");
-        fs::copy(
-            key,
-            cache.path().join("origin-key-valid-20160509190508.sig.key"),
-        )
-        .unwrap();
+        fs::copy(key,
+                 cache.path().join("origin-key-valid-20160509190508.sig.key")).unwrap();
 
-        SigKeyPair::write_file_from_str(
-            "SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
-            cache.path(),
-        )
-        .unwrap();
+        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\\
+                                         nc29tZXRoaW5n",
+                                        cache.path()).unwrap();
     }
 
     #[test]
@@ -771,16 +720,11 @@ mod test {
     fn write_file_from_str_key_exists_but_hashes_differ_public() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = fixture("keys/origin-key-valid-20160509190508.pub");
-        fs::copy(
-            key,
-            cache.path().join("origin-key-valid-20160509190508.pub"),
-        )
-        .unwrap();
+        fs::copy(key,
+                 cache.path().join("origin-key-valid-20160509190508.pub")).unwrap();
 
-        SigKeyPair::write_file_from_str(
-            "SIG-PUB-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n",
-            cache.path(),
-        )
-        .unwrap();
+        SigKeyPair::write_file_from_str("SIG-PUB-1\norigin-key-valid-20160509190508\n\\
+                                         nc29tZXRoaW5n",
+                                        cache.path()).unwrap();
     }
 }

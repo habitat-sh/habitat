@@ -12,30 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io;
-use std::mem;
-use std::ptr;
+use std::{io,
+          mem,
+          ptr};
 
 use base64;
-use winapi::shared::minwindef::DWORD;
-use winapi::um::dpapi;
-use winapi::um::wincrypt::CRYPTOAPI_BLOB;
+use winapi::{shared::minwindef::DWORD,
+             um::{dpapi,
+                  wincrypt::CRYPTOAPI_BLOB}};
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 const COMPLEXITY: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/hab-crypt"));
 
 pub fn decrypt(secret: String) -> Result<String> {
     unsafe {
         let mut bytes = base64::decode(secret.as_str()).unwrap();
-        let mut in_blob = CRYPTOAPI_BLOB {
-            cbData: bytes.len() as DWORD,
-            pbData: bytes.as_mut_ptr(),
-        };
-        let mut out_blob = CRYPTOAPI_BLOB {
-            cbData: 0,
-            pbData: ptr::null_mut(),
-        };
+        let mut in_blob = CRYPTOAPI_BLOB { cbData: bytes.len() as DWORD,
+                                           pbData: bytes.as_mut_ptr(), };
+        let mut out_blob = CRYPTOAPI_BLOB { cbData: 0,
+                                            pbData: ptr::null_mut(), };
         let mut entropy = ptr::null_mut();
         let mut blob: CRYPTOAPI_BLOB = mem::zeroed::<CRYPTOAPI_BLOB>();
         let mut complexity_vec = COMPLEXITY.to_vec();
@@ -44,15 +41,13 @@ pub fn decrypt(secret: String) -> Result<String> {
             blob.pbData = complexity_vec.as_mut_ptr();
             entropy = &mut blob;
         }
-        let ret = dpapi::CryptUnprotectData(
-            &mut in_blob,
-            ptr::null_mut(),
-            entropy,
-            ptr::null_mut(),
-            ptr::null_mut(),
-            0,
-            &mut out_blob,
-        );
+        let ret = dpapi::CryptUnprotectData(&mut in_blob,
+                                            ptr::null_mut(),
+                                            entropy,
+                                            ptr::null_mut(),
+                                            ptr::null_mut(),
+                                            0,
+                                            &mut out_blob);
         if ret == 0 {
             return Err(Error::CryptUnprotectDataFailed(format!(
                 "Failed to decrypt secret: {}",
@@ -70,14 +65,10 @@ pub fn decrypt(secret: String) -> Result<String> {
 pub fn encrypt(secret: String) -> Result<String> {
     unsafe {
         let mut secret_bytes = secret.into_bytes();
-        let mut in_blob = CRYPTOAPI_BLOB {
-            cbData: secret_bytes.len() as DWORD,
-            pbData: secret_bytes.as_mut_ptr(),
-        };
-        let mut out_blob = CRYPTOAPI_BLOB {
-            cbData: 0,
-            pbData: ptr::null_mut(),
-        };
+        let mut in_blob = CRYPTOAPI_BLOB { cbData: secret_bytes.len() as DWORD,
+                                           pbData: secret_bytes.as_mut_ptr(), };
+        let mut out_blob = CRYPTOAPI_BLOB { cbData: 0,
+                                            pbData: ptr::null_mut(), };
         let mut entropy = ptr::null_mut();
         let mut blob: CRYPTOAPI_BLOB = mem::zeroed::<CRYPTOAPI_BLOB>();
         let mut complexity_vec = COMPLEXITY.to_vec();
@@ -86,15 +77,13 @@ pub fn encrypt(secret: String) -> Result<String> {
             blob.pbData = complexity_vec.as_mut_ptr();
             entropy = &mut blob;
         }
-        let ret = dpapi::CryptProtectData(
-            &mut in_blob,
-            ptr::null(),
-            entropy,
-            ptr::null_mut(),
-            ptr::null_mut(),
-            4, // CRYPTPROTECT_LOCAL_MACHINE
-            &mut out_blob,
-        );
+        let ret = dpapi::CryptProtectData(&mut in_blob,
+                                          ptr::null(),
+                                          entropy,
+                                          ptr::null_mut(),
+                                          ptr::null_mut(),
+                                          4, // CRYPTPROTECT_LOCAL_MACHINE
+                                          &mut out_blob);
         if ret == 0 {
             return Err(Error::CryptProtectDataFailed(format!(
                 "Failed to encrypt secret: {}",

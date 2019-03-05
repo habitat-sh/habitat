@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::net::{IpAddr, UdpSocket};
+use std::net::{IpAddr,
+               UdpSocket};
 
 use crate::error::Result;
 
-pub use crate::os::system::{uname, Uname};
+pub use crate::os::system::{uname,
+                            Uname};
 
 static GOOGLE_DNS: &'static str = "8.8.8.8:53";
 

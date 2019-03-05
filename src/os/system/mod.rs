@@ -24,9 +24,9 @@ pub use self::linux::uname;
 
 #[derive(Debug)]
 pub struct Uname {
-    pub sys_name: String,
+    pub sys_name:  String,
     pub node_name: String,
-    pub release: String,
-    pub version: String,
-    pub machine: String,
+    pub release:   String,
+    pub version:   String,
+    pub machine:   String,
 }

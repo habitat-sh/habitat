@@ -12,21 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::collections::HashMap;
-use std::error;
-use std::path::{Path, PathBuf};
-use std::result;
-use std::str::{self, FromStr};
+use std::{collections::HashMap,
+          error,
+          path::{Path,
+                 PathBuf},
+          result,
+          str::{self,
+                FromStr}};
 
-use libarchive::archive::{Entry, ExtractOption, ExtractOptions, ReadFilter, ReadFormat};
-use libarchive::reader::{self, Reader};
-use libarchive::writer;
+use libarchive::{archive::{Entry,
+                           ExtractOption,
+                           ExtractOptions,
+                           ReadFilter,
+                           ReadFormat},
+                 reader::{self,
+                          Reader},
+                 writer};
 use regex::Regex;
 
-use super::metadata::{MetaFile, PackageType};
-use super::{Identifiable, PackageIdent, PackageTarget};
-use crate::crypto::{artifact, hash};
-use crate::error::{Error, Result};
+use super::{metadata::{MetaFile,
+                       PackageType},
+            Identifiable,
+            PackageIdent,
+            PackageTarget};
+use crate::{crypto::{artifact,
+                     hash},
+            error::{Error,
+                    Result}};
 
 lazy_static::lazy_static! {
     static ref METAFILE_REGXS: HashMap<MetaFile, Regex> = {
@@ -165,10 +177,8 @@ pub struct PackageArchive {
 
 impl PackageArchive {
     pub fn new<P: Into<PathBuf>>(path: P) -> Self {
-        PackageArchive {
-            path: path.into(),
-            metadata: None,
-        }
+        PackageArchive { path:     path.into(),
+                         metadata: None, }
     }
 
     /// Calculate and return the checksum of the package archive in base64 format.
@@ -176,9 +186,7 @@ impl PackageArchive {
     /// # Failures
     ///
     /// * If the archive cannot be read
-    pub fn checksum(&self) -> Result<String> {
-        hash::hash_file(&self.path)
-    }
+    pub fn checksum(&self) -> Result<String> { hash::hash_file(&self.path) }
 
     pub fn cflags(&mut self) -> Result<Option<String>> {
         match self.read_metadata(MetaFile::CFlags) {
@@ -213,9 +221,7 @@ impl PackageArchive {
     /// * If a `DEPS` metafile is not found in the archive
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
-    pub fn deps(&mut self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::Deps)
-    }
+    pub fn deps(&mut self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::Deps) }
 
     /// Returns a list of package identifiers representing the transitive runtime package
     /// dependencies for this archive.
@@ -225,17 +231,14 @@ impl PackageArchive {
     /// * If a `TDEPS` metafile is not found in the archive
     /// * If the archive cannot be read
     /// * If the archive cannot be verified
-    pub fn tdeps(&mut self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::TDeps)
-    }
+    pub fn tdeps(&mut self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::TDeps) }
 
     pub fn exposes(&mut self) -> Result<Vec<u16>> {
         match self.read_metadata(MetaFile::Exposes) {
             Ok(Some(data)) => {
-                let ports: Vec<u16> = data
-                    .split(' ')
-                    .filter_map(|port| port.parse::<u16>().ok())
-                    .collect();
+                let ports: Vec<u16> = data.split(' ')
+                                          .filter_map(|port| port.parse::<u16>().ok())
+                                          .collect();
                 Ok(ports)
             }
             Ok(None) => Ok(vec![]),
@@ -368,9 +371,7 @@ impl PackageArchive {
                 for id in &ids {
                     let package = PackageIdent::from_str(id)?;
                     if !package.fully_qualified() && must_be_fully_qualified {
-                        return Err(Error::FullyQualifiedPackageIdentRequired(
-                            package.to_string(),
-                        ));
+                        return Err(Error::FullyQualifiedPackageIdentRequired(package.to_string()));
                     }
                     deps.push(package);
                 }
@@ -433,7 +434,7 @@ impl PackageArchive {
                     }
                     Err(_) => return Err(Error::MetaFileMalformed(matched_type.unwrap())),
                 }
-            } //inner loop
+            } // inner loop
 
             if matched_count == METAFILE_REGXS.len() as u8 {
                 break;
@@ -452,15 +453,14 @@ pub trait FromArchive: Sized {
 
 #[cfg(test)]
 mod test {
-    use super::super::target;
-    use super::*;
+    use super::{super::target,
+                *};
     use std::path::PathBuf;
 
     #[test]
     fn reading_artifact_metadata() {
-        let mut hart = PackageArchive::new(
-            fixtures().join("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
-        );
+        let mut hart = PackageArchive::new(fixtures().join("happyhumans-possums-8.1.\
+                                                            4-20160427165340-x86_64-linux.hart"));
         let ident = hart.ident().unwrap();
         assert_eq!(ident.origin, "happyhumans");
         assert_eq!(ident.name, "possums");
@@ -468,37 +468,30 @@ mod test {
         assert_eq!(ident.release, Some("20160427165340".to_string()));
     }
 
-    pub fn root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
-    }
+    pub fn root() -> PathBuf { PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests") }
 
-    pub fn fixtures() -> PathBuf {
-        root().join("fixtures")
-    }
+    pub fn fixtures() -> PathBuf { root().join("fixtures") }
 
     #[test]
     fn reading_artifact_deps() {
-        let mut hart = PackageArchive::new(
-            fixtures().join("happyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
-        );
+        let mut hart = PackageArchive::new(fixtures().join("happyhumans-possums-8.1.\
+                                                            4-20160427165340-x86_64-linux.hart"));
         let _ = hart.deps().unwrap();
         let _ = hart.tdeps().unwrap();
     }
 
     #[test]
     fn reading_artifact_large_tdeps() {
-        let mut hart = PackageArchive::new(
-            fixtures().join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
-        );
+        let mut hart = PackageArchive::new(fixtures().join("unhappyhumans-possums-8.1.\
+                                                            4-20160427165340-x86_64-linux.hart"));
         let tdeps = hart.tdeps().unwrap();
         assert_eq!(1024, tdeps.len());
     }
 
     #[test]
     fn reading_artifact_target() {
-        let mut hart = PackageArchive::new(
-            fixtures().join("unhappyhumans-possums-8.1.4-20160427165340-x86_64-linux.hart"),
-        );
+        let mut hart = PackageArchive::new(fixtures().join("unhappyhumans-possums-8.1.\
+                                                            4-20160427165340-x86_64-linux.hart"));
         let target = hart.target().unwrap();
 
         assert_eq!(target::X86_64_LINUX, target);

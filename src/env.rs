@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std;
-use std::env::VarError;
-use std::ffi::{OsStr, OsString};
-use std::str::FromStr;
+use std::{self,
+          env::VarError,
+          ffi::{OsStr,
+                OsString},
+          str::FromStr};
 
 /// Fetches the environment variable `key` from the current process, but only it is not empty.
 ///
@@ -25,14 +26,17 @@ use std::str::FromStr;
 /// # Examples
 ///
 /// ```
-/// use std;
 /// use habitat_core;
+/// use std;
 ///
 /// let key = "_I_AM_A_TEAPOT_COMMA_RIGHT_PEOPLE_QUESTION_MARK_";
 /// std::env::set_var(key, "");
 /// match habitat_core::env::var(key) {
 ///     Ok(val) => panic!("The environment variable {} is set but empty!", key),
-///     Err(e) => println!("The environment variable {} is set, but empty. Not useful!", key),
+///     Err(e) => {
+///         println!("The environment variable {} is set, but empty. Not useful!",
+///                  key)
+///     }
 /// }
 /// ```
 pub fn var<K: AsRef<OsStr>>(key: K) -> std::result::Result<String, VarError> {
@@ -56,14 +60,17 @@ pub fn var<K: AsRef<OsStr>>(key: K) -> std::result::Result<String, VarError> {
 /// # Examples
 ///
 /// ```
-/// use std;
 /// use habitat_core;
+/// use std;
 ///
 /// let key = "_I_AM_A_TEAPOT_COMMA_RIGHT_PEOPLE_QUESTION_MARK_";
 /// std::env::set_var(key, "");
 /// match habitat_core::env::var_os(key) {
 ///     Some(val) => panic!("The environment variable {} is set but empty!", key),
-///     None => println!("The environment variable {} is set, but empty. Not useful!", key),
+///     None => {
+///         println!("The environment variable {} is set, but empty. Not useful!",
+///                  key)
+///     }
 /// }
 /// ```
 pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
@@ -96,16 +103,18 @@ pub trait Config: Default + FromStr {
     fn configured_value() -> Self {
         match var(Self::ENVVAR) {
             Err(VarError::NotPresent) => Self::default(),
-            Ok(val) => match val.parse() {
-                Ok(parsed) => {
-                    Self::log_parsable(&val);
-                    parsed
+            Ok(val) => {
+                match val.parse() {
+                    Ok(parsed) => {
+                        Self::log_parsable(&val);
+                        parsed
+                    }
+                    Err(_) => {
+                        Self::log_unparsable(&val);
+                        Self::default()
+                    }
                 }
-                Err(_) => {
-                    Self::log_unparsable(&val);
-                    Self::default()
-                }
-            },
+            }
             Err(VarError::NotUnicode(nu)) => {
                 Self::log_unparsable(nu.to_string_lossy());
                 Self::default()
@@ -118,11 +127,9 @@ pub trait Config: Default + FromStr {
     ///
     /// By default, we log a message at the `warn` level.
     fn log_parsable(env_value: &str) {
-        warn!(
-            "Found '{}' in environment; using value '{}'",
-            Self::ENVVAR,
-            env_value
-        );
+        warn!("Found '{}' in environment; using value '{}'",
+              Self::ENVVAR,
+              env_value);
     }
 
     /// Overridable function for logging when an environment variable
@@ -130,13 +137,10 @@ pub trait Config: Default + FromStr {
     ///
     /// By default, we log a message at the `warn` level.
     fn log_unparsable<S>(env_value: S)
-    where
-        S: AsRef<str>,
+        where S: AsRef<str>
     {
-        warn!(
-            "Found '{}' in environment, but value '{}' was unparsable; using default instead",
-            Self::ENVVAR,
-            env_value.as_ref()
-        );
+        warn!("Found '{}' in environment, but value '{}' was unparsable; using default instead",
+              Self::ENVVAR,
+              env_value.as_ref());
     }
 }

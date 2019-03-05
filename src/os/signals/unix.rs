@@ -14,10 +14,14 @@
 
 //! Traps and notifies UNIX signals.
 
-use std::collections::VecDeque;
-use std::sync::{Mutex, Once, ONCE_INIT};
+use std::{collections::VecDeque,
+          sync::{Mutex,
+                 Once,
+                 ONCE_INIT}};
 
-use crate::os::process::{OsSignal, Signal, SignalCode};
+use crate::os::process::{OsSignal,
+                         Signal,
+                         SignalCode};
 
 use super::SignalEvent;
 
@@ -29,23 +33,21 @@ lazy_static::lazy_static! {
 
 // Functions from POSIX libc.
 extern "C" {
-    fn signal(
-        sig: SignalCode,
-        cb: unsafe extern "C" fn(SignalCode),
-    ) -> unsafe extern "C" fn(SignalCode);
+    fn signal(sig: SignalCode,
+              cb: unsafe extern "C" fn(SignalCode))
+              -> unsafe extern "C" fn(SignalCode);
 }
 
 unsafe extern "C" fn handle_signal(signal: SignalCode) {
-    CAUGHT_SIGNALS
-        .lock()
-        .expect("Signal mutex poisoned")
-        .push_back(signal);
+    CAUGHT_SIGNALS.lock()
+                  .expect("Signal mutex poisoned")
+                  .push_back(signal);
 }
 
 pub fn init() {
     INIT.call_once(|| {
-        self::set_signal_handlers();
-    });
+            self::set_signal_handlers();
+        });
 }
 
 /// Consumers should call this function fairly frequently and since the vast

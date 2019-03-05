@@ -12,16 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ffi::OsString;
-use std::io;
-use std::os::unix::process::CommandExt;
-use std::path::PathBuf;
-use std::process::Command;
+use std::{ffi::OsString,
+          io,
+          os::unix::process::CommandExt,
+          path::PathBuf,
+          process::Command};
 
-use libc::{self, pid_t};
+use libc::{self,
+           pid_t};
 
-use super::{OsSignal, Signal};
-use crate::error::{Error, Result};
+use super::{OsSignal,
+            Signal};
+use crate::error::{Error,
+                   Result};
 
 pub type Pid = libc::pid_t;
 pub type SignalCode = libc::c_int;
@@ -66,19 +69,19 @@ pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
 }
 
 /// Get process identifier of calling process.
-pub fn current_pid() -> Pid {
-    unsafe { libc::getpid() as pid_t }
-}
+pub fn current_pid() -> Pid { unsafe { libc::getpid() as pid_t } }
 
 /// Determines if a process is running with the given process identifier.
 pub fn is_alive(pid: Pid) -> bool {
     match unsafe { libc::kill(pid as pid_t, 0) } {
         0 => true,
-        _ => match io::Error::last_os_error().raw_os_error() {
-            Some(libc::EPERM) => true,
-            Some(libc::ESRCH) => false,
-            _ => false,
-        },
+        _ => {
+            match io::Error::last_os_error().raw_os_error() {
+                Some(libc::EPERM) => true,
+                Some(libc::ESRCH) => false,
+                _ => false,
+            }
+        }
     }
 }
 

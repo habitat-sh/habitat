@@ -12,14 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-use std::fs::{self, File};
-use std::path::{Path, PathBuf};
-use std::result;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::{fmt,
+          fs::{self,
+               File},
+          path::{Path,
+                 PathBuf},
+          result,
+          time::{SystemTime,
+                 UNIX_EPOCH}};
 
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
 use serde_json;
 
 /// Sample envelope JSON payload
@@ -58,40 +62,40 @@ macro_rules! log_event {
 #[derive(Debug, Clone)]
 pub enum Event {
     ProjectCreate {
-        origin: String,
+        origin:  String,
         package: String,
         account: String,
     },
     PackageUpload {
-        origin: String,
+        origin:  String,
         package: String,
         version: String,
         release: String,
-        target: String,
+        target:  String,
         account: String,
     },
     OriginKeyUpload {
-        origin: String,
+        origin:  String,
         version: String,
         account: String,
     },
     OriginSigningKeyUpload {
-        origin: String,
+        origin:  String,
         version: String,
         account: String,
     },
     OriginInvitationSend {
-        origin: String,
-        user: String,
-        id: String,
+        origin:  String,
+        user:    String,
+        id:      String,
         account: String,
     },
     OriginInvitationAccept {
-        id: String,
+        id:      String,
         account: String,
     },
     OriginInvitationIgnore {
-        id: String,
+        id:      String,
         account: String,
     },
     JobCreate {
@@ -99,7 +103,7 @@ pub enum Event {
         account: String,
     },
     GithubAuthenticate {
-        user: String,
+        user:    String,
         account: String,
     },
 }
@@ -125,15 +129,12 @@ impl fmt::Display for Event {
 impl Serialize for Event {
     #[allow(clippy::many_single_char_names)]
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let strukt = match *self {
-            Event::ProjectCreate {
-                origin: ref o,
-                package: ref p,
-                account: ref a,
-            } => {
+            Event::ProjectCreate { origin: ref o,
+                                   package: ref p,
+                                   account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 4)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("origin", o)?;
@@ -141,14 +142,12 @@ impl Serialize for Event {
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::PackageUpload {
-                origin: ref o,
-                package: ref p,
-                version: ref v,
-                release: ref r,
-                target: ref t,
-                account: ref a,
-            } => {
+            Event::PackageUpload { origin: ref o,
+                                   package: ref p,
+                                   version: ref v,
+                                   release: ref r,
+                                   target: ref t,
+                                   account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 6)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("origin", o)?;
@@ -159,12 +158,10 @@ impl Serialize for Event {
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::OriginInvitationSend {
-                origin: ref o,
-                user: ref u,
-                id: ref i,
-                account: ref a,
-            } => {
+            Event::OriginInvitationSend { origin: ref o,
+                                          user: ref u,
+                                          id: ref i,
+                                          account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 5)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("origin", o)?;
@@ -173,51 +170,41 @@ impl Serialize for Event {
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::OriginInvitationAccept {
-                id: ref i,
-                account: ref a,
-            } => {
+            Event::OriginInvitationAccept { id: ref i,
+                                            account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 3)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("id", i)?;
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::OriginInvitationIgnore {
-                id: ref i,
-                account: ref a,
-            } => {
+            Event::OriginInvitationIgnore { id: ref i,
+                                            account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 3)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("id", i)?;
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::JobCreate {
-                package: ref p,
-                account: ref a,
-            } => {
+            Event::JobCreate { package: ref p,
+                               account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 3)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("package", p)?;
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::GithubAuthenticate {
-                user: ref u,
-                account: ref a,
-            } => {
+            Event::GithubAuthenticate { user: ref u,
+                                        account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 3)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("user", u)?;
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::OriginKeyUpload {
-                origin: ref o,
-                version: ref v,
-                account: ref a,
-            } => {
+            Event::OriginKeyUpload { origin: ref o,
+                                     version: ref v,
+                                     account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 4)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("origin", o)?;
@@ -225,11 +212,9 @@ impl Serialize for Event {
                 strukt.serialize_field("account", a)?;
                 strukt
             }
-            Event::OriginSigningKeyUpload {
-                origin: ref o,
-                version: ref v,
-                account: ref a,
-            } => {
+            Event::OriginSigningKeyUpload { origin: ref o,
+                                            version: ref v,
+                                            account: ref a, } => {
                 let mut strukt = serializer.serialize_struct("event", 4)?;
                 strukt.serialize_field("name", &self.to_string())?;
                 strukt.serialize_field("origin", o)?;
@@ -244,25 +229,22 @@ impl Serialize for Event {
 
 #[derive(Debug, Clone)]
 pub struct Envelope {
-    pub version: u32,
+    pub version:   u32,
     pub timestamp: String,
-    pub event: Event,
+    pub event:     Event,
 }
 
 impl Envelope {
     pub fn new(event: &Event) -> Self {
-        Envelope {
-            version: SCHEMA_VERSION,
-            timestamp: timestamp(),
-            event: event.clone(),
-        }
+        Envelope { version:   SCHEMA_VERSION,
+                   timestamp: timestamp(),
+                   event:     event.clone(), }
     }
 }
 
 impl Serialize for Envelope {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let mut strukt = serializer.serialize_struct("envelope", 3)?;
         strukt.serialize_field("version", &self.version)?;
@@ -273,8 +255,7 @@ impl Serialize for Envelope {
 }
 
 fn write_file<T>(parent_dir: &Path, file_path: &Path, val: &T)
-where
-    T: Serialize + ?Sized,
+    where T: Serialize + ?Sized
 {
     fs::create_dir_all(parent_dir).expect("Unable to create directory");
     let mut file = File::create(&file_path).expect("Unable to create file");
@@ -299,18 +280,15 @@ pub struct EventLogger {
 
 impl EventLogger {
     pub fn new<T: Into<PathBuf>>(log_dir: T, enabled: bool) -> Self {
-        EventLogger {
-            log_dir: log_dir.into(),
-            enabled: enabled,
-        }
+        EventLogger { log_dir: log_dir.into(),
+                      enabled }
     }
 
     pub fn record_event(&self, event: Event) {
         if self.enabled {
             let envelope = Envelope::new(&event);
-            let file_path = self
-                .log_dir
-                .join(format!("event-{}.json", &envelope.timestamp));
+            let file_path = self.log_dir
+                                .join(format!("event-{}.json", &envelope.timestamp));
             write_file(&self.log_dir, &file_path, &envelope);
         }
     }

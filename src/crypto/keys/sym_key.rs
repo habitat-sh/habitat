@@ -12,82 +12,81 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::fmt;
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::{fmt,
+          fs,
+          path::{Path,
+                 PathBuf}};
 
 use base64;
 use hex;
-use sodiumoxide::crypto::secretbox;
-use sodiumoxide::crypto::secretbox::Key as SymSecretKey;
-use sodiumoxide::randombytes::randombytes;
+use sodiumoxide::{crypto::secretbox::{self,
+                                      Key as SymSecretKey},
+                  randombytes::randombytes};
 
-use super::super::{hash, SECRET_SYM_KEY_SUFFIX, SECRET_SYM_KEY_VERSION};
-use super::{
-    get_key_revisions, mk_key_filename, mk_revision_string, parse_name_with_rev, read_key_bytes,
-    write_keypair_files, KeyPair, KeyType, PairType, TmpKeyfile,
-};
-use crate::error::{Error, Result};
+use super::{super::{hash,
+                    SECRET_SYM_KEY_SUFFIX,
+                    SECRET_SYM_KEY_VERSION},
+            get_key_revisions,
+            mk_key_filename,
+            mk_revision_string,
+            parse_name_with_rev,
+            read_key_bytes,
+            write_keypair_files,
+            KeyPair,
+            KeyType,
+            PairType,
+            TmpKeyfile};
+use crate::error::{Error,
+                   Result};
 
 pub type SymKey = KeyPair<(), SymSecretKey>;
 
 impl fmt::Debug for SymKey {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SymKey")
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "SymKey") }
 }
 
 impl SymKey {
     pub fn generate_pair_for_ring<S: ToString>(name: S) -> Result<Self> {
         let revision = mk_revision_string()?;
         let secret_key = secretbox::gen_key();
-        Ok(SymKey::new(
-            name.to_string(),
-            revision,
-            Some(()),
-            Some(secret_key),
-        ))
+        Ok(SymKey::new(name.to_string(),
+                       revision,
+                       Some(()),
+                       Some(secret_key)))
     }
 
-    pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(
-        name: &str,
-        cache_key_path: &P,
-    ) -> Result<Vec<Self>> {
+    pub fn get_pairs_for<P: AsRef<Path> + ?Sized>(name: &str,
+                                                  cache_key_path: &P)
+                                                  -> Result<Vec<Self>> {
         let revisions = get_key_revisions(name, cache_key_path.as_ref(), None, &KeyType::Sym)?;
         let mut key_pairs = Vec::new();
         for name_with_rev in &revisions {
-            debug!(
-                "Attempting to read key name_with_rev {} for {}",
-                name_with_rev, name
-            );
+            debug!("Attempting to read key name_with_rev {} for {}",
+                   name_with_rev, name);
             let kp = Self::get_pair_for(name_with_rev, cache_key_path)?;
             key_pairs.push(kp);
         }
         Ok(key_pairs)
     }
 
-    pub fn get_pair_for<P: AsRef<Path> + ?Sized>(
-        name_with_rev: &str,
-        cache_key_path: &P,
-    ) -> Result<Self> {
+    pub fn get_pair_for<P: AsRef<Path> + ?Sized>(name_with_rev: &str,
+                                                 cache_key_path: &P)
+                                                 -> Result<Self> {
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
         let sk = match Self::get_secret_key(name_with_rev, cache_key_path.as_ref()) {
             Ok(k) => Some(k),
             Err(e) => {
-                let msg = format!(
-                    "No secret keys found for name_with_rev {}: {}",
-                    name_with_rev, e
-                );
+                let msg = format!("No secret keys found for name_with_rev {}: {}",
+                                  name_with_rev, e);
                 return Err(Error::CryptoError(msg));
             }
         };
         Ok(Self::new(name, rev, None, sk))
     }
 
-    pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(
-        name: &str,
-        cache_key_path: &P,
-    ) -> Result<Self> {
+    pub fn get_latest_pair_for<P: AsRef<Path> + ?Sized>(name: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<Self> {
         let mut all = Self::get_pairs_for(name, cache_key_path)?;
         match all.len() {
             0 => {
@@ -98,13 +97,10 @@ impl SymKey {
         }
     }
 
-    pub fn get_public_key_path<P: AsRef<Path> + ?Sized>(
-        _key_with_rev: &str,
-        _cache_key_path: &P,
-    ) -> Result<PathBuf> {
-        Err(Error::CryptoError(
-            "No public key exists for sym keys".to_string(),
-        ))
+    pub fn get_public_key_path<P: AsRef<Path> + ?Sized>(_key_with_rev: &str,
+                                                        _cache_key_path: &P)
+                                                        -> Result<PathBuf> {
+        Err(Error::CryptoError("No public key exists for sym keys".to_string()))
     }
 
     /// Returns the full path to the secret sym key given a key name with revision.
@@ -134,16 +130,12 @@ impl SymKey {
     /// # Errors
     ///
     /// * If no file exists at the the computed file path
-    pub fn get_secret_key_path<P: AsRef<Path> + ?Sized>(
-        key_with_rev: &str,
-        cache_key_path: &P,
-    ) -> Result<PathBuf> {
+    pub fn get_secret_key_path<P: AsRef<Path> + ?Sized>(key_with_rev: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<PathBuf> {
         let path = mk_key_filename(cache_key_path.as_ref(), key_with_rev, SECRET_SYM_KEY_SUFFIX);
         if !path.is_file() {
-            return Err(Error::CryptoError(format!(
-                "No secret key found at {}",
-                path.display()
-            )));
+            return Err(Error::CryptoError(format!("No secret key found at {}", path.display())));
         }
         Ok(path)
     }
@@ -219,25 +211,25 @@ impl SymKey {
         };
         match secretbox::open(ciphertext, &nonce, &key) {
             Ok(msg) => Ok(msg),
-            Err(_) => Err(Error::CryptoError(
-                "Secret key and nonce could not decrypt ciphertext".to_string(),
-            )),
+            Err(_) => {
+                Err(Error::CryptoError("Secret key and nonce could not \
+                                        decrypt ciphertext"
+                                                           .to_string()))
+            }
         }
     }
 
     pub fn to_secret_string(&self) -> Result<String> {
         match self.secret {
-            Some(ref sk) => Ok(format!(
-                "{}\n{}\n\n{}",
-                SECRET_SYM_KEY_VERSION,
-                self.name_with_rev(),
-                &base64::encode(&sk[..])
-            )),
+            Some(ref sk) => {
+                Ok(format!("{}\n{}\n\n{}",
+                           SECRET_SYM_KEY_VERSION,
+                           self.name_with_rev(),
+                           &base64::encode(&sk[..])))
+            }
             None => {
-                return Err(Error::CryptoError(format!(
-                    "No secret key present for {}",
-                    self.name_with_rev()
-                )));
+                return Err(Error::CryptoError(format!("No secret key present for {}",
+                                                      self.name_with_rev())));
             }
         }
     }
@@ -246,12 +238,10 @@ impl SymKey {
         let secret_keyfile = mk_key_filename(path, self.name_with_rev(), SECRET_SYM_KEY_SUFFIX);
         debug!("secret sym keyfile = {}", secret_keyfile.display());
 
-        write_keypair_files(
-            None,
-            None,
-            Some(&secret_keyfile),
-            Some(self.to_secret_string()?),
-        )
+        write_keypair_files(None,
+                            None,
+                            Some(&secret_keyfile),
+                            Some(self.to_secret_string()?))
     }
 
     fn get_secret_key(key_with_rev: &str, cache_key_path: &Path) -> Result<SymSecretKey> {
@@ -260,10 +250,9 @@ impl SymKey {
         match SymSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!(
-                    "Can't read sym secret key for {}",
-                    key_with_rev
-                )));
+                return Err(Error::CryptoError(format!("Can't read sym secret key \
+                                                       for {}",
+                                                      key_with_rev)));
             }
         }
     }
@@ -280,8 +269,8 @@ impl SymKey {
     /// extern crate habitat_core;
     /// extern crate tempfile;
     ///
-    /// use habitat_core::crypto::SymKey;
-    /// use habitat_core::crypto::keys::PairType;
+    /// use habitat_core::crypto::{keys::PairType,
+    ///                            SymKey};
     /// use tempfile::Builder;
     ///
     /// fn main() {
@@ -294,7 +283,9 @@ impl SymKey {
     ///     let (pair, pair_type) = SymKey::write_file_from_str(content, cache.path()).unwrap();
     ///     assert_eq!(pair_type, PairType::Secret);
     ///     assert_eq!(pair.name_with_rev(), "beyonce-20160504220722");
-    ///     assert!(cache.path().join("beyonce-20160504220722.sym.key").is_file());
+    ///     assert!(cache.path()
+    ///                  .join("beyonce-20160504220722.sym.key")
+    ///                  .is_file());
     /// }
     /// ```
     ///
@@ -307,57 +298,43 @@ impl SymKey {
     /// * If the key file cannot be written to disk
     /// * If an existing key is already installed, but the new content is different from the
     /// existing
-    pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(
-        content: &str,
-        cache_key_path: &P,
-    ) -> Result<(Self, PairType)> {
+    pub fn write_file_from_str<P: AsRef<Path> + ?Sized>(content: &str,
+                                                        cache_key_path: &P)
+                                                        -> Result<(Self, PairType)> {
         let mut lines = content.lines();
         match lines.next() {
             Some(val) => {
                 if val != SECRET_SYM_KEY_VERSION {
-                    return Err(Error::CryptoError(format!(
-                        "Unsupported key version: {}",
-                        val
-                    )));
+                    return Err(Error::CryptoError(format!("Unsupported key version: {}", val)));
                 }
             }
             None => {
-                let msg = format!(
-                    "write_sym_key_from_str:1 Malformed sym key string:\n({})",
-                    content
-                );
+                let msg = format!("write_sym_key_from_str:1 Malformed sym key string:\n({})",
+                                  content);
                 return Err(Error::CryptoError(msg));
             }
         };
         let name_with_rev = match lines.next() {
             Some(val) => val,
             None => {
-                let msg = format!(
-                    "write_sym_key_from_str:2 Malformed sym key string:\n({})",
-                    content
-                );
+                let msg = format!("write_sym_key_from_str:2 Malformed sym key string:\n({})",
+                                  content);
                 return Err(Error::CryptoError(msg));
             }
         };
         if lines.nth(1).is_none() {
-            let msg = format!(
-                "write_sym_key_from_str:3 Malformed sym key string:\n({})",
-                content
-            );
+            let msg = format!("write_sym_key_from_str:3 Malformed sym key string:\n({})",
+                              content);
             return Err(Error::CryptoError(msg));
         };
-        let secret_keyfile = mk_key_filename(
-            cache_key_path.as_ref(),
-            &name_with_rev,
-            SECRET_SYM_KEY_SUFFIX,
-        );
+        let secret_keyfile = mk_key_filename(cache_key_path.as_ref(),
+                                             &name_with_rev,
+                                             SECRET_SYM_KEY_SUFFIX);
         let tmpfile = {
             let mut t = secret_keyfile.clone();
-            t.set_file_name(format!(
-                "{}.{}",
-                &secret_keyfile.file_name().unwrap().to_str().unwrap(),
-                &hex::encode(randombytes(6).as_slice())
-            ));
+            t.set_file_name(format!("{}.{}",
+                                    &secret_keyfile.file_name().unwrap().to_str().unwrap(),
+                                    &hex::encode(randombytes(6).as_slice())));
             TmpKeyfile { path: t }
         };
 
@@ -368,53 +345,45 @@ impl SymKey {
             let existing_hash = hash::hash_file(&secret_keyfile)?;
             let new_hash = hash::hash_file(&tmpfile.path)?;
             if existing_hash != new_hash {
-                let msg = format!(
-                    "Existing key file {} found but new version hash is different, \
-                     failing to write new file over existing. ({} = {}, {} = {})",
-                    secret_keyfile.display(),
-                    secret_keyfile.display(),
-                    existing_hash,
-                    tmpfile.path.display(),
-                    new_hash
-                );
+                let msg = format!("Existing key file {} found but new version hash is different, \
+                                   failing to write new file over existing. ({} = {}, {} = {})",
+                                  secret_keyfile.display(),
+                                  secret_keyfile.display(),
+                                  existing_hash,
+                                  tmpfile.path.display(),
+                                  new_hash);
                 return Err(Error::CryptoError(msg));
             } else {
                 // Otherwise, hashes match and we can skip writing over the existing file
-                debug!(
-                    "New content hash matches existing file {} hash, removing temp key file \
-                     {}.",
-                    secret_keyfile.display(),
-                    tmpfile.path.display()
-                );
+                debug!("New content hash matches existing file {} hash, removing temp key file \
+                        {}.",
+                       secret_keyfile.display(),
+                       tmpfile.path.display());
                 fs::remove_file(&tmpfile.path)?;
             }
         } else {
-            debug!(
-                "Moving {} to {}",
-                tmpfile.path.display(),
-                secret_keyfile.display()
-            );
+            debug!("Moving {} to {}",
+                   tmpfile.path.display(),
+                   secret_keyfile.display());
             fs::rename(&tmpfile.path, secret_keyfile)?;
         }
 
         // Now load and return the pair to ensure everything wrote out
-        Ok((
-            Self::get_pair_for(&name_with_rev, cache_key_path)?,
-            PairType::Secret,
-        ))
+        Ok((Self::get_pair_for(&name_with_rev, cache_key_path)?, PairType::Secret))
     }
 }
 
 #[cfg(test)]
 mod test {
-    use std::fs::{self, File};
-    use std::io::Read;
+    use std::{fs::{self,
+                   File},
+              io::Read};
 
     use tempfile::Builder;
 
-    use super::super::super::test_support::*;
-    use super::super::PairType;
-    use super::SymKey;
+    use super::{super::{super::test_support::*,
+                        PairType},
+                SymKey};
 
     static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
     static VALID_NAME_WITH_REV: &'static str = "ring-key-valid-20160504220722";
@@ -446,18 +415,13 @@ mod test {
         pair.to_pair_files(cache.path()).unwrap();
 
         assert_eq!(pair.name, "beyonce");
-        assert!(
-            pair.public().is_ok(),
-            "Generated pair should have an empty public key"
-        );
-        assert!(
-            pair.secret().is_ok(),
-            "Generated pair should have a secret key"
-        );
-        assert!(cache
-            .path()
-            .join(format!("{}.sym.key", pair.name_with_rev()))
-            .exists());
+        assert!(pair.public().is_ok(),
+                "Generated pair should have an empty public key");
+        assert!(pair.secret().is_ok(),
+                "Generated pair should have a secret key");
+        assert!(cache.path()
+                     .join(format!("{}.sym.key", pair.name_with_rev()))
+                     .exists());
     }
 
     #[test]
@@ -466,18 +430,17 @@ mod test {
         let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 0);
 
-        SymKey::generate_pair_for_ring("beyonce")
-            .unwrap()
-            .to_pair_files(cache.path())
-            .unwrap();
+        SymKey::generate_pair_for_ring("beyonce").unwrap()
+                                                 .to_pair_files(cache.path())
+                                                 .unwrap();
         let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 1);
 
         match wait_until_ok(|| {
-            let rpair = SymKey::generate_pair_for_ring("beyonce")?;
-            rpair.to_pair_files(cache.path())?;
-            Ok(())
-        }) {
+                  let rpair = SymKey::generate_pair_for_ring("beyonce")?;
+                  rpair.to_pair_files(cache.path())?;
+                  Ok(())
+              }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
@@ -485,10 +448,9 @@ mod test {
         assert_eq!(pairs.len(), 2);
 
         // We should not include another named key in the count
-        SymKey::generate_pair_for_ring("jayz")
-            .unwrap()
-            .to_pair_files(cache.path())
-            .unwrap();
+        SymKey::generate_pair_for_ring("jayz").unwrap()
+                                              .to_pair_files(cache.path())
+                                              .unwrap();
         let pairs = SymKey::get_pairs_for("beyonce", cache.path()).unwrap();
         assert_eq!(pairs.len(), 2);
     }
@@ -499,10 +461,10 @@ mod test {
         let p1 = SymKey::generate_pair_for_ring("beyonce").unwrap();
         p1.to_pair_files(cache.path()).unwrap();
         let p2 = match wait_until_ok(|| {
-            let rpath = SymKey::generate_pair_for_ring("beyonce")?;
-            rpath.to_pair_files(cache.path())?;
-            Ok(rpath)
-        }) {
+                  let rpath = SymKey::generate_pair_for_ring("beyonce")?;
+                  rpath.to_pair_files(cache.path())?;
+                  Ok(rpath)
+              }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
@@ -536,15 +498,14 @@ mod test {
     #[test]
     fn get_latest_pair_for_multiple() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        SymKey::generate_pair_for_ring("beyonce")
-            .unwrap()
-            .to_pair_files(cache.path())
-            .unwrap();
+        SymKey::generate_pair_for_ring("beyonce").unwrap()
+                                                 .to_pair_files(cache.path())
+                                                 .unwrap();
         let p2 = match wait_until_ok(|| {
-            let rpath = SymKey::generate_pair_for_ring("beyonce")?;
-            rpath.to_pair_files(cache.path())?;
-            Ok(rpath)
-        }) {
+                  let rpath = SymKey::generate_pair_for_ring("beyonce")?;
+                  rpath.to_pair_files(cache.path())?;
+                  Ok(rpath)
+              }) {
             Some(pair) => pair,
             None => panic!("Failed to generate another keypair after waiting"),
         };
@@ -571,11 +532,8 @@ mod test {
     #[test]
     fn get_secret_key_path() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
-        fs::copy(
-            fixture(&format!("keys/{}", VALID_KEY)),
-            cache.path().join(VALID_KEY),
-        )
-        .unwrap();
+        fs::copy(fixture(&format!("keys/{}", VALID_KEY)),
+                 cache.path().join(VALID_KEY)).unwrap();
 
         let result = SymKey::get_secret_key_path(VALID_NAME_WITH_REV, cache.path()).unwrap();
         assert_eq!(result, cache.path().join(VALID_KEY));
@@ -716,16 +674,10 @@ mod test {
     fn write_file_from_str_key_exists_but_hashes_differ() {
         let cache = Builder::new().prefix("key_cache").tempdir().unwrap();
         let key = fixture("keys/ring-key-valid-20160504220722.sym.key");
-        fs::copy(
-            key,
-            cache.path().join("ring-key-valid-20160504220722.sym.key"),
-        )
-        .unwrap();
+        fs::copy(key,
+                 cache.path().join("ring-key-valid-20160504220722.sym.key")).unwrap();
 
-        SymKey::write_file_from_str(
-            "SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething",
-            cache.path(),
-        )
-        .unwrap();
+        SymKey::write_file_from_str("SYM-SEC-1\nring-key-valid-20160504220722\n\nsomething",
+                                    cache.path()).unwrap();
     }
 }

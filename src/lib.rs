@@ -16,7 +16,8 @@
 #[macro_use]
 extern crate log;
 
-pub use self::error::{Error, Result};
+pub use self::error::{Error,
+                      Result};
 
 pub mod binlink;
 pub mod config;
@@ -32,13 +33,14 @@ pub mod service;
 pub mod url;
 pub mod util;
 
-use std::fmt;
-use std::path::PathBuf;
+use std::{fmt,
+          path::PathBuf};
 
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::{Deserialize,
+                   Serialize};
 
-pub use crate::os::filesystem;
-pub use crate::os::users;
+pub use crate::os::{filesystem,
+                    users};
 
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
@@ -62,46 +64,31 @@ impl env::Config for ChannelIdent {
 }
 
 impl ChannelIdent {
-    pub fn as_str(&self) -> &str {
-        self.0.as_str()
-    }
+    pub fn as_str(&self) -> &str { self.0.as_str() }
 
-    pub fn stable() -> Self {
-        Self::from("stable")
-    }
+    pub fn stable() -> Self { Self::from("stable") }
 
-    pub fn unstable() -> Self {
-        Self::from("unstable")
-    }
+    pub fn unstable() -> Self { Self::from("unstable") }
 }
 
 impl From<&str> for ChannelIdent {
-    fn from(s: &str) -> Self {
-        ChannelIdent(s.to_string())
-    }
+    fn from(s: &str) -> Self { ChannelIdent(s.to_string()) }
 }
 
 impl From<String> for ChannelIdent {
-    fn from(s: String) -> Self {
-        ChannelIdent(s)
-    }
+    fn from(s: String) -> Self { ChannelIdent(s) }
 }
 
 impl std::str::FromStr for ChannelIdent {
     type Err = ();
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        Ok(Self::from(s))
-    }
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> { Ok(Self::from(s)) }
 }
 
 impl fmt::Display for ChannelIdent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
 impl Default for ChannelIdent {
-    fn default() -> Self {
-        Self::stable()
-    }
+    fn default() -> Self { Self::stable() }
 }

@@ -15,23 +15,26 @@
 use std::path::Path;
 
 use widestring::WideCString;
-use winapi::shared::minwindef::DWORD;
-use winapi::shared::ntdef::NULL;
-use winapi::shared::winerror::ERROR_SUCCESS;
-use winapi::um::accctrl::SE_FILE_OBJECT;
-use winapi::um::aclapi::SetNamedSecurityInfoW;
-use winapi::um::winnt::{
-    DACL_SECURITY_INFORMATION, FILE_ALL_ACCESS, PACL, PROTECTED_DACL_SECURITY_INFORMATION, PSID,
-};
-use windows_acl::acl::ACL;
-use windows_acl::helper;
+use winapi::{shared::{minwindef::DWORD,
+                      ntdef::NULL,
+                      winerror::ERROR_SUCCESS},
+             um::{accctrl::SE_FILE_OBJECT,
+                  aclapi::SetNamedSecurityInfoW,
+                  winnt::{DACL_SECURITY_INFORMATION,
+                          FILE_ALL_ACCESS,
+                          PACL,
+                          PROTECTED_DACL_SECURITY_INFORMATION,
+                          PSID}}};
+use windows_acl::{acl::ACL,
+                  helper};
 
 use habitat_win_users::account::Account;
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 pub struct PermissionEntry {
-    pub account: Account,
+    pub account:     Account,
     pub access_mask: DWORD,
 }
 
@@ -39,52 +42,43 @@ pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &Vec<PermissionEntry>) 
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
-            return Err(Error::PermissionFailed(format!(
-                "Invalid path {:?}",
-                &path.as_ref()
-            )));
+            return Err(Error::PermissionFailed(format!("Invalid path {:?}", &path.as_ref())));
         }
     };
 
     let ret = unsafe {
-        SetNamedSecurityInfoW(
-            WideCString::from_str(s_path).unwrap().into_raw(),
-            SE_FILE_OBJECT,
-            DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
-            NULL as PSID,
-            NULL as PSID,
-            NULL as PACL,
-            NULL as PACL,
-        )
+        SetNamedSecurityInfoW(WideCString::from_str(s_path).unwrap().into_raw(),
+                              SE_FILE_OBJECT,
+                              DACL_SECURITY_INFORMATION | PROTECTED_DACL_SECURITY_INFORMATION,
+                              NULL as PSID,
+                              NULL as PSID,
+                              NULL as PACL,
+                              NULL as PACL)
     };
     if ret != ERROR_SUCCESS {
-        return Err(Error::PermissionFailed(format!(
-            "OS error resetting permissions {}",
-            ret
-        )));
+        return Err(Error::PermissionFailed(format!("OS error resetting \
+                                                    permissions {}",
+                                                   ret)));
     }
 
     let mut acl = match ACL::from_file_path(s_path, false) {
         Ok(acl) => acl,
         Err(e) => {
-            return Err(Error::PermissionFailed(format!(
-                "OS error {} retrieving ACLs from path path {:?}",
-                e,
-                &path.as_ref()
-            )));
+            return Err(Error::PermissionFailed(format!("OS error {} retrieving \
+                                                        ACLs from path path {:?}",
+                                                       e,
+                                                       &path.as_ref())));
         }
     };
 
     for entry in entries {
-        if let Err(e) = acl.allow(
-            entry.account.sid.raw.as_ptr() as PSID,
-            true,
-            entry.access_mask,
-        ) {
-            return Err(Error::PermissionFailed(format!(
-                "OS error {} setting permissions for {}",
-                e, entry.account.name
-            )));
+        if let Err(e) = acl.allow(entry.account.sid.raw.as_ptr() as PSID,
+                                  true,
+                                  entry.access_mask)
+        {
+            return Err(Error::PermissionFailed(format!("OS error {} setting \
+                                                        permissions for {}",
+                                                       e, entry.account.name)));
         }
     }
     Ok(())
@@ -99,35 +93,26 @@ pub fn harden_path<T: AsRef<Path>>(path: T) -> Result<()> {
     let current_user = match helper::current_user() {
         Some(u) => u,
         None => {
-            return Err(Error::CryptoError(format!(
-                "Unable to find current user setting permissions for {}",
-                path.as_ref().display()
-            )));
+            return Err(Error::CryptoError(format!("Unable to find current user \
+                                                   setting permissions for {}",
+                                                  path.as_ref().display())));
         }
     };
 
-    let entries = vec![
-        PermissionEntry {
-            account: Account::from_name(&current_user).unwrap(),
-            access_mask: FILE_ALL_ACCESS,
-        },
-        PermissionEntry {
-            account: Account::from_name("Administrators").unwrap(),
-            access_mask: FILE_ALL_ACCESS,
-        },
-        PermissionEntry {
-            account: Account::from_name("SYSTEM").unwrap(),
-            access_mask: FILE_ALL_ACCESS,
-        },
-    ];
+    let entries = vec![PermissionEntry { account:     Account::from_name(&current_user).unwrap(),
+                                         access_mask: FILE_ALL_ACCESS, },
+                       PermissionEntry { account:     Account::from_name("Administrators").unwrap(),
+                                         access_mask: FILE_ALL_ACCESS, },
+                       PermissionEntry { account:     Account::from_name("SYSTEM").unwrap(),
+                                         access_mask: FILE_ALL_ACCESS, },];
     set_permissions(path.as_ref(), &entries)
 }
 
 #[cfg(test)]
 mod tests {
-    use std::fs::File;
-    use std::io::Write;
-    use std::path::Path;
+    use std::{fs::File,
+              io::Write,
+              path::Path};
 
     use tempfile::Builder;
     use winapi::um::winnt::FILE_ALL_ACCESS;
@@ -140,19 +125,17 @@ mod tests {
 
     #[test]
     fn set_permissions_ok_test() {
-        let tmp_dir = Builder::new()
-            .prefix("foo")
-            .tempdir()
-            .expect("create temp dir");
+        let tmp_dir = Builder::new().prefix("foo")
+                                    .tempdir()
+                                    .expect("create temp dir");
         let file_path = tmp_dir.path().join("test.txt");
         let mut tmp_file = File::create(&file_path).expect("create temp file");
         writeln!(tmp_file, "foobar123").expect("write temp file");
 
         let current_user = helper::current_user().expect("find current user");
-        let entries = vec![PermissionEntry {
-            account: account::Account::from_name(&current_user).unwrap(),
-            access_mask: FILE_ALL_ACCESS,
-        }];
+        let entries = vec![PermissionEntry { account:
+                                                 account::Account::from_name(&current_user).unwrap(),
+                                             access_mask: FILE_ALL_ACCESS, }];
 
         assert!(set_permissions(&file_path, &entries).is_ok());
 
@@ -176,10 +159,9 @@ mod tests {
         let badpath = Path::new("this_file_should_never_exist_deadbeef");
 
         let current_user = helper::current_user().expect("find current user");
-        let entries = vec![PermissionEntry {
-            account: account::Account::from_name(&current_user).unwrap(),
-            access_mask: FILE_ALL_ACCESS,
-        }];
+        let entries = vec![PermissionEntry { account:
+                                                 account::Account::from_name(&current_user).unwrap(),
+                                             access_mask: FILE_ALL_ACCESS, }];
 
         if let Err(Error::PermissionFailed(_)) = set_permissions(badpath, &entries) {
             assert!(true);

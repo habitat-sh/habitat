@@ -33,7 +33,9 @@ mod unix;
 mod windows;
 
 #[cfg(unix)]
-pub use self::unix::{check_for_signal, init};
+pub use self::unix::{check_for_signal,
+                     init};
 
 #[cfg(windows)]
-pub use self::windows::{check_for_signal, init};
+pub use self::windows::{check_for_signal,
+                        init};

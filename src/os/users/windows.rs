@@ -12,39 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::path::PathBuf;
+use std::{env,
+          path::PathBuf};
 
 use habitat_win_users::account::Account;
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 extern "C" {
     pub fn GetUserTokenStatus() -> u32;
 }
 
-pub fn can_run_services_as_svc_user() -> bool {
-    true
-}
+pub fn can_run_services_as_svc_user() -> bool { true }
 
 fn get_sid_by_name(name: &str) -> Option<String> {
     match Account::from_name(name) {
-        Some(acct) => match acct.sid.to_string() {
-            Ok(username) => Some(username),
-            Err(_) => None,
-        },
+        Some(acct) => {
+            match acct.sid.to_string() {
+                Ok(username) => Some(username),
+                Err(_) => None,
+            }
+        }
         None => None,
     }
 }
 
-pub fn get_uid_by_name(owner: &str) -> Option<String> {
-    get_sid_by_name(owner)
-}
+pub fn get_uid_by_name(owner: &str) -> Option<String> { get_sid_by_name(owner) }
 
 // this is a no-op on windows
-pub fn get_gid_by_name(group: &str) -> Option<String> {
-    Some(String::new())
-}
+pub fn get_gid_by_name(group: &str) -> Option<String> { Some(String::new()) }
 
 pub fn get_current_username() -> Option<String> {
     match env::var("USERNAME").ok() {
@@ -54,31 +51,27 @@ pub fn get_current_username() -> Option<String> {
 }
 
 // this is a no-op on windows
-pub fn get_current_groupname() -> Option<String> {
-    Some(String::new())
-}
+pub fn get_current_groupname() -> Option<String> { Some(String::new()) }
 
-pub fn get_effective_uid() -> u32 {
-    unsafe { GetUserTokenStatus() }
-}
+pub fn get_effective_uid() -> u32 { unsafe { GetUserTokenStatus() } }
 
 pub fn get_home_for_user(username: &str) -> Option<PathBuf> {
     unimplemented!();
 }
 
-pub fn root_level_account() -> String {
-    env::var("COMPUTERNAME").unwrap().to_uppercase() + "$"
-}
+pub fn root_level_account() -> String { env::var("COMPUTERNAME").unwrap().to_uppercase() + "$" }
 
 /// Windows does not have a concept of "group" in a Linux sense
 /// So we just validate the user
 pub fn assert_pkg_user_and_group(user: &str, _group: &str) -> Result<()> {
     match get_uid_by_name(user) {
         Some(_) => Ok(()),
-        None => Err(Error::PermissionFailed(format!(
-            "Package requires user {} to exist, but it doesn't",
-            user
-        ))),
+        None => {
+            Err(Error::PermissionFailed(format!("Package requires user \
+                                                 {} to exist, but it \
+                                                 doesn't",
+                                                user)))
+        }
     }
 }
 

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io;
-use std::path::Path;
+use std::{io,
+          path::Path};
 
 pub fn symlink<P: AsRef<Path>, Q: AsRef<Path>>(src: P, dst: Q) -> io::Result<()> {
     unimplemented!();

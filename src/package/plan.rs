@@ -14,14 +14,16 @@
 
 use std::io::BufRead;
 
-use serde_derive::{Deserialize, Serialize};
+use serde_derive::{Deserialize,
+                   Serialize};
 
-use crate::error::{Error, Result};
+use crate::error::{Error,
+                   Result};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Plan {
-    pub name: String,
-    pub origin: String,
+    pub name:    String,
+    pub origin:  String,
     pub version: Option<String>,
 }
 
@@ -62,11 +64,9 @@ impl Plan {
             return Err(Error::PlanMalformed);
         }
 
-        Ok(Plan {
-            name: name.unwrap(),
-            origin: origin.unwrap(),
-            version: version,
-        })
+        Ok(Plan { name: name.unwrap(),
+                  origin: origin.unwrap(),
+                  version })
     }
 }
 

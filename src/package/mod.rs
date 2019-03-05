@@ -20,29 +20,32 @@ pub mod metadata;
 pub mod plan;
 pub mod target;
 
-pub use self::archive::{FromArchive, PackageArchive};
-pub use self::ident::{Identifiable, PackageIdent};
-pub use self::install::PackageInstall;
-pub use self::list::all_packages;
-pub use self::plan::Plan;
-pub use self::target::PackageTarget;
+pub use self::{archive::{FromArchive,
+                         PackageArchive},
+               ident::{Identifiable,
+                       PackageIdent},
+               install::PackageInstall,
+               list::all_packages,
+               plan::Plan,
+               target::PackageTarget};
 
 #[cfg(test)]
 pub mod test_support {
-    use super::metadata::MetaFile;
-    use super::*;
+    use super::{metadata::MetaFile,
+                *};
     use crate::fs;
-    use std::fs::{create_dir_all, File};
-    use std::io::Write;
-    use std::path::{Path, PathBuf};
-    use std::str::FromStr;
+    use std::{fs::{create_dir_all,
+                   File},
+              io::Write,
+              path::{Path,
+                     PathBuf},
+              str::FromStr};
     use time;
 
     pub fn fixture_path(name: &str) -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("fixtures")
-            .join(name)
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
+                                                 .join("fixtures")
+                                                 .join(name)
     }
 
     /// Creates a minimal installed package under an fs_root and return a corresponding loaded
@@ -61,27 +64,23 @@ pub mod test_support {
                 pkg_ident.version = Some(String::from("1.0.0"));
             }
             if pkg_ident.release.is_none() {
-                pkg_ident.release = Some(
-                    time::now_utc()
-                        .strftime("%Y%m%d%H%M%S")
-                        .unwrap()
-                        .to_string(),
-                );
+                pkg_ident.release = Some(time::now_utc().strftime("%Y%m%d%H%M%S")
+                                                        .unwrap()
+                                                        .to_string());
             }
         }
         let pkg_install_path = fs::pkg_install_path(&pkg_ident, Some(fs_root));
 
         create_dir_all(&pkg_install_path).unwrap();
-        write_file(
-            &pkg_install_path.join(MetaFile::Ident.to_string()),
-            &pkg_ident.to_string(),
-        );
-        write_file(
-            &pkg_install_path.join(MetaFile::Target.to_string()),
-            PackageTarget::active_target(),
-        );
+        write_file(&pkg_install_path.join(MetaFile::Ident.to_string()),
+                   &pkg_ident.to_string());
+        write_file(&pkg_install_path.join(MetaFile::Target.to_string()),
+                   PackageTarget::active_target());
 
-        PackageInstall::load(&pkg_ident, Some(fs_root))
-            .unwrap_or_else(|_| panic!("PackageInstall should load for {}", &pkg_ident))
+        PackageInstall::load(&pkg_ident, Some(fs_root)).unwrap_or_else(|_| {
+                                                           panic!("PackageInstall should load for \
+                                                                   {}",
+                                                                  &pkg_ident)
+                                                       })
     }
 }

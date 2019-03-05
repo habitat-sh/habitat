@@ -12,24 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::cmp::{Ordering, PartialOrd};
-use std::collections::{HashMap, HashSet};
-use std::env;
-use std::fmt;
-use std::fs::File;
-use std::io::Read;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
+use std::{cmp::{Ordering,
+                PartialOrd},
+          collections::{HashMap,
+                        HashSet},
+          env,
+          fmt,
+          fs::File,
+          io::Read,
+          path::{Path,
+                 PathBuf},
+          str::FromStr};
 
-use serde_derive::{Deserialize, Serialize};
-use toml;
-use toml::Value;
+use serde_derive::{Deserialize,
+                   Serialize};
+use toml::{self,
+           Value};
 
-use super::list::package_list_for_ident;
-use super::metadata::{parse_key_value, read_metafile, Bind, BindMapping, MetaFile, PackageType};
-use super::{Identifiable, PackageIdent};
-use crate::error::{Error, Result};
-use crate::fs;
+use super::{list::package_list_for_ident,
+            metadata::{parse_key_value,
+                       read_metafile,
+                       Bind,
+                       BindMapping,
+                       MetaFile,
+                       PackageType},
+            Identifiable,
+            PackageIdent};
+use crate::{error::{Error,
+                    Result},
+            fs};
 
 #[cfg(test)]
 use super::PackageTarget;
@@ -41,18 +52,16 @@ const PATH_KEY: &str = "PATH";
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct PackageInstall {
-    pub ident: PackageIdent,
-    fs_root_path: PathBuf,
-    package_root_path: PathBuf,
+    pub ident:          PackageIdent,
+    fs_root_path:       PathBuf,
+    package_root_path:  PathBuf,
     pub installed_path: PathBuf,
 }
 
 // The docs recommend implementing `From` instead, but that feels a
 // bit odd here.
 impl Into<PackageIdent> for PackageInstall {
-    fn into(self) -> PackageIdent {
-        self.ident
-    }
+    fn into(self) -> PackageIdent { self.ident }
 }
 
 impl PackageInstall {
@@ -75,20 +84,17 @@ impl PackageInstall {
     ///
     /// An optional `fs_root` path may be provided to search for a package that is mounted on a
     /// filesystem not currently rooted at `/`.
-    pub fn load_at_least(
-        ident: &PackageIdent,
-        fs_root_path: Option<&Path>,
-    ) -> Result<PackageInstall> {
+    pub fn load_at_least(ident: &PackageIdent,
+                         fs_root_path: Option<&Path>)
+                         -> Result<PackageInstall> {
         let package_install = Self::resolve_package_install_min(ident, fs_root_path)?;
         Ok(package_install)
     }
 
-    fn resolve_package_install<T>(
-        ident: &PackageIdent,
-        fs_root_path: Option<T>,
-    ) -> Result<PackageInstall>
-    where
-        T: AsRef<Path>,
+    fn resolve_package_install<T>(ident: &PackageIdent,
+                                  fs_root_path: Option<T>)
+                                  -> Result<PackageInstall>
+        where T: AsRef<Path>
     {
         let fs_root_path = fs_root_path.map_or(PathBuf::from("/"), |p| p.as_ref().into());
         let package_root_path = fs::pkg_root_path(Some(&fs_root_path));
@@ -99,35 +105,37 @@ impl PackageInstall {
         let pl = package_list_for_ident(&package_root_path, ident)?;
         if ident.fully_qualified() {
             if pl.iter().any(|ref p| p.satisfies(ident)) {
-                Ok(PackageInstall {
-                    installed_path: fs::pkg_install_path(&ident, Some(&fs_root_path)),
-                    fs_root_path: fs_root_path,
-                    package_root_path: package_root_path,
-                    ident: ident.clone(),
-                })
+                Ok(PackageInstall { installed_path: fs::pkg_install_path(&ident,
+                                                                         Some(&fs_root_path)),
+                                    fs_root_path,
+                                    package_root_path,
+                                    ident: ident.clone() })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
             }
         } else {
             let latest: Option<PackageIdent> =
                 pl.iter()
-                    .filter(|&p| p.satisfies(ident))
-                    .fold(None, |winner, b| match winner {
-                        Some(a) => match a.partial_cmp(&b) {
-                            Some(Ordering::Greater) => Some(a),
-                            Some(Ordering::Equal) => Some(a),
-                            Some(Ordering::Less) => Some(b.clone()),
-                            None => Some(a),
-                        },
-                        None => Some(b.clone()),
-                    });
+                  .filter(|&p| p.satisfies(ident))
+                  .fold(None, |winner, b| {
+                      match winner {
+                          Some(a) => {
+                              match a.partial_cmp(&b) {
+                                  Some(Ordering::Greater) => Some(a),
+                                  Some(Ordering::Equal) => Some(a),
+                                  Some(Ordering::Less) => Some(b.clone()),
+                                  None => Some(a),
+                              }
+                          }
+                          None => Some(b.clone()),
+                      }
+                  });
             if let Some(id) = latest {
-                Ok(PackageInstall {
-                    installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
-                    fs_root_path: fs_root_path,
-                    package_root_path: package_root_path,
-                    ident: id.clone(),
-                })
+                Ok(PackageInstall { installed_path: fs::pkg_install_path(&id,
+                                                                         Some(&fs_root_path)),
+                                    fs_root_path,
+                                    package_root_path,
+                                    ident: id.clone() })
             } else {
                 Err(Error::PackageNotFound(ident.clone()))
             }
@@ -135,23 +143,19 @@ impl PackageInstall {
     }
 
     /// Find an installed package that is at minimum the version of the given ident.
-    fn resolve_package_install_min<T>(
-        ident: &PackageIdent,
-        fs_root_path: Option<T>,
-    ) -> Result<PackageInstall>
-    where
-        T: AsRef<Path>,
+    fn resolve_package_install_min<T>(ident: &PackageIdent,
+                                      fs_root_path: Option<T>)
+                                      -> Result<PackageInstall>
+        where T: AsRef<Path>
     {
         let original_ident = ident;
         // If the PackageIndent is does not have a version, use a reasonable minimum version that
         // will be satisfied by any installed package with the same origin/name
         let ident = if None == ident.version {
-            PackageIdent::new(
-                ident.origin.clone(),
-                ident.name.clone(),
-                Some("0".into()),
-                Some("0".into()),
-            )
+            PackageIdent::new(ident.origin.clone(),
+                              ident.name.clone(),
+                              Some("0".into()),
+                              Some("0".into()))
         } else {
             ident.clone()
         };
@@ -162,42 +166,46 @@ impl PackageInstall {
         }
 
         let pl = package_list_for_ident(&package_root_path, &original_ident)?;
-        let latest: Option<PackageIdent> = pl
-            .iter()
-            .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
-            .fold(None, |winner, b| match winner {
-                Some(a) => match a.cmp(&b) {
-                    Ordering::Greater | Ordering::Equal => Some(a),
-                    Ordering::Less => Some(b.clone()),
-                },
-                None => match b.cmp(&ident) {
-                    Ordering::Greater | Ordering::Equal => Some(b.clone()),
-                    Ordering::Less => None,
-                },
-            });
+        let latest: Option<PackageIdent> =
+            pl.iter()
+              .filter(|ref p| p.origin == ident.origin && p.name == ident.name)
+              .fold(None, |winner, b| {
+                  match winner {
+                      Some(a) => {
+                          match a.cmp(&b) {
+                              Ordering::Greater | Ordering::Equal => Some(a),
+                              Ordering::Less => Some(b.clone()),
+                          }
+                      }
+                      None => {
+                          match b.cmp(&ident) {
+                              Ordering::Greater | Ordering::Equal => Some(b.clone()),
+                              Ordering::Less => None,
+                          }
+                      }
+                  }
+              });
         match latest {
-            Some(id) => Ok(PackageInstall {
-                installed_path: fs::pkg_install_path(&id, Some(&fs_root_path)),
-                fs_root_path: fs_root_path,
-                package_root_path: package_root_path,
-                ident: id.clone(),
-            }),
+            Some(id) => {
+                Ok(PackageInstall { installed_path: fs::pkg_install_path(&id,
+                                                                         Some(&fs_root_path)),
+                                    fs_root_path,
+                                    package_root_path,
+                                    ident: id.clone() })
+            }
             None => Err(Error::PackageNotFound(original_ident.clone())),
         }
     }
 
-    pub fn new_from_parts(
-        ident: PackageIdent,
-        fs_root_path: PathBuf,
-        package_root_path: PathBuf,
-        installed_path: PathBuf,
-    ) -> PackageInstall {
-        PackageInstall {
-            ident: ident,
-            fs_root_path: fs_root_path,
-            package_root_path: package_root_path,
-            installed_path: installed_path,
-        }
+    pub fn new_from_parts(ident: PackageIdent,
+                          fs_root_path: PathBuf,
+                          package_root_path: PathBuf,
+                          installed_path: PathBuf)
+                          -> PackageInstall {
+        PackageInstall { ident,
+                         fs_root_path,
+                         package_root_path,
+                         installed_path }
     }
 
     /// Determines whether or not this package has a runnable service.
@@ -205,7 +213,7 @@ impl PackageInstall {
         // Currently, a runnable package can be determined by checking if a `run` hook exists in
         // package's hooks directory or directly in the package prefix.
         self.installed_path.join("hooks").join("run").is_file()
-            || self.installed_path.join("run").is_file()
+        || self.installed_path.join("run").is_file()
     }
 
     /// Determine what kind of package this is.
@@ -221,9 +229,7 @@ impl PackageInstall {
     /// these identifiers are *as given* in the initial `plan.sh` of
     /// the composite, and not the fully-resolved identifiers you
     /// would get from other "dependency" metadata files.
-    pub fn pkg_services(&self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::Services)
-    }
+    pub fn pkg_services(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::Services) }
 
     /// Constructs and returns a `HashMap` of environment variable/value key pairs of all
     /// environment variables needed to properly run a command from the context of this package.
@@ -243,9 +249,8 @@ impl PackageInstall {
             *path = fs::fs_rooted_path(&path, Some(&*self.fs_root_path));
         }
 
-        let joined = env::join_paths(paths)?
-            .into_string()
-            .map_err(Error::InvalidPathString)?;
+        let joined = env::join_paths(paths)?.into_string()
+                                            .map_err(Error::InvalidPathString)?;
         // Only insert a PATH entry if the resulting path string is non-empty
         if !joined.is_empty() {
             env.insert(PATH_KEY.to_string(), joined);
@@ -342,14 +347,10 @@ impl PackageInstall {
     }
 
     /// Return the direct dependencies of the package
-    pub fn deps(&self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::Deps)
-    }
+    pub fn deps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::Deps) }
 
     /// Return all transitive dependencies of the package
-    pub fn tdeps(&self) -> Result<Vec<PackageIdent>> {
-        self.read_deps(MetaFile::TDeps)
-    }
+    pub fn tdeps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::TDeps) }
 
     /// Returns a Rust representation of the mappings defined by the `pkg_exports` plan variable.
     ///
@@ -360,8 +361,7 @@ impl PackageInstall {
         match self.read_metafile(MetaFile::Exports) {
             Ok(body) => {
                 let parsed_value = parse_key_value(&body);
-                let result =
-                    parsed_value.map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?;
+                let result = parsed_value.map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?;
                 Ok(result)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(HashMap::new()),
@@ -373,10 +373,9 @@ impl PackageInstall {
     pub fn exposes(&self) -> Result<Vec<String>> {
         match self.read_metafile(MetaFile::Exposes) {
             Ok(body) => {
-                let v: Vec<String> = body
-                    .split(' ')
-                    .map(|x| String::from(x.trim_end_matches('\n')))
-                    .collect();
+                let v: Vec<String> = body.split(' ')
+                                         .map(|x| String::from(x.trim_end_matches('\n')))
+                                         .collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Exposes)) => {
@@ -387,9 +386,7 @@ impl PackageInstall {
         }
     }
 
-    pub fn ident(&self) -> &PackageIdent {
-        &self.ident
-    }
+    pub fn ident(&self) -> &PackageIdent { &self.ident }
 
     /// Returns the path elements of the package's `PATH` metafile if it exists, or an empty `Vec`
     /// if not found.
@@ -409,9 +406,8 @@ impl PackageInstall {
                 // Habitat 0.50.0, 2017-11-30) which produced `PATH` metafiles containing extra
                 // path entries.
                 let pkg_prefix = fs::pkg_install_path(self.ident(), None::<&Path>);
-                let v = env::split_paths(&body)
-                    .filter(|p| p.starts_with(&pkg_prefix))
-                    .collect();
+                let v = env::split_paths(&body).filter(|p| p.starts_with(&pkg_prefix))
+                                               .collect();
                 Ok(v)
             }
             Err(Error::MetaFileNotFound(MetaFile::Path)) => {
@@ -427,9 +423,10 @@ impl PackageInstall {
                         Ok(ref body) => {
                             match Self::parse_runtime_environment_metafile(body)?.get(PATH_KEY) {
                                 Some(env_path) => {
-                                    let v = env::split_paths(env_path)
-                                        .filter(|p| p.starts_with(&pkg_prefix))
-                                        .collect();
+                                    let v = env::split_paths(env_path).filter(|p| {
+                                                                          p.starts_with(&pkg_prefix)
+                                                                      })
+                                                                      .collect();
                                     Ok(v)
                                 }
                                 None => Ok(vec![]),
@@ -451,8 +448,7 @@ impl PackageInstall {
     ///
     /// # Failures
     ///
-    /// * Any direct dependency could not be located or it's contents could not be read
-    ///   from disk
+    /// * Any direct dependency could not be located or it's contents could not be read from disk
     fn load_deps(&self) -> Result<Vec<PackageInstall>> {
         let ddeps = self.deps()?;
         let mut deps = Vec::with_capacity(ddeps.len());
@@ -468,8 +464,8 @@ impl PackageInstall {
     ///
     /// # Failures
     ///
-    /// * Any transitive dependency could not be located or it's contents could not be read
-    ///   from disk
+    /// * Any transitive dependency could not be located or it's contents could not be read from
+    ///   disk
     fn load_tdeps(&self) -> Result<Vec<PackageInstall>> {
         let tdeps = self.tdeps()?;
         let mut deps = Vec::with_capacity(tdeps.len());
@@ -523,10 +519,9 @@ impl PackageInstall {
             paths.push(p);
         }
 
-        let ordered_pkgs = self
-            .load_deps()?
-            .into_iter()
-            .chain(self.load_tdeps()?.into_iter());
+        let ordered_pkgs = self.load_deps()?
+                               .into_iter()
+                               .chain(self.load_tdeps()?.into_iter());
         for pkg in ordered_pkgs {
             for p in pkg.paths()? {
                 if seen.contains(&p) {
@@ -566,9 +561,7 @@ impl PackageInstall {
         }
     }
 
-    pub fn installed_path(&self) -> &Path {
-        &*self.installed_path
-    }
+    pub fn installed_path(&self) -> &Path { &*self.installed_path }
 
     /// Returns the user that the package is specified to run as
     /// or None if the package doesn't contain a SVC_USER Metafile
@@ -649,21 +642,20 @@ impl PackageInstall {
 }
 
 impl fmt::Display for PackageInstall {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.ident)
-    }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.ident) }
 }
 
 #[cfg(test)]
 mod test {
-    use std::fs::File;
-    use std::io::Write;
+    use std::{fs::File,
+              io::Write};
 
     use tempfile::Builder;
     use toml;
 
     use super::*;
-    use crate::package::test_support::{fixture_path, testing_package_install};
+    use crate::package::test_support::{fixture_path,
+                                       testing_package_install};
 
     /// Write the given contents into the specified metadata file for
     /// the package.
@@ -671,7 +663,7 @@ mod test {
         let path = pkg_install.installed_path().join(metafile.to_string());
         let mut f = File::create(path).expect("Could not create metafile");
         f.write_all(content.as_bytes())
-            .expect("Could not write metafile contents");
+         .expect("Could not write metafile contents");
     }
 
     /// Creates a `PATH` metafile with path entries all prefixed with the package's `pkg_prefix`.
@@ -692,19 +684,16 @@ mod test {
     fn set_runtime_path_for(pkg_install: &PackageInstall, installs: Vec<&PackageInstall>) {
         let mut paths = Vec::new();
         for install in installs {
-            for path in install
-                .paths()
-                .expect("Could not read or parse PATH metafile")
+            for path in install.paths()
+                               .expect("Could not read or parse PATH metafile")
             {
                 paths.push(path)
             }
         }
 
-        write_metafile(
-            &pkg_install,
-            MetaFile::RuntimePath,
-            env::join_paths(paths).unwrap().to_string_lossy().as_ref(),
-        );
+        write_metafile(&pkg_install,
+                       MetaFile::RuntimePath,
+                       env::join_paths(paths).unwrap().to_string_lossy().as_ref());
     }
 
     /// Creates a `DEPS` metafile for the given `PackageInstall` populated with the provided deps.
@@ -744,12 +733,10 @@ mod test {
     fn can_serialize_default_config() {
         let package_ident = PackageIdent::from_str("just/nothing").unwrap();
         let fixture_path = fixture_path("test_package");
-        let package_install = PackageInstall {
-            ident: package_ident,
-            fs_root_path: PathBuf::from(""),
-            package_root_path: PathBuf::from(""),
-            installed_path: fixture_path,
-        };
+        let package_install = PackageInstall { ident:             package_ident,
+                                               fs_root_path:      PathBuf::from(""),
+                                               package_root_path: PathBuf::from(""),
+                                               installed_path:    fixture_path, };
 
         let cfg = package_install.default_cfg().unwrap();
 
@@ -776,21 +763,13 @@ core/bar=pub:core/publish sub:core/subscribe
 
         // Assert that it was interpreted correctly
         let mut expected: HashMap<PackageIdent, Vec<BindMapping>> = HashMap::new();
-        expected.insert(
-            "core/foo".parse().unwrap(),
-            vec![
-                "db:core/database".parse().unwrap(),
-                "fe:core/front-end".parse().unwrap(),
-                "be:core/back-end".parse().unwrap(),
-            ],
-        );
-        expected.insert(
-            "core/bar".parse().unwrap(),
-            vec![
-                "pub:core/publish".parse().unwrap(),
-                "sub:core/subscribe".parse().unwrap(),
-            ],
-        );
+        expected.insert("core/foo".parse().unwrap(),
+                        vec!["db:core/database".parse().unwrap(),
+                             "fe:core/front-end".parse().unwrap(),
+                             "be:core/back-end".parse().unwrap(),]);
+        expected.insert("core/bar".parse().unwrap(),
+                        vec!["pub:core/publish".parse().unwrap(),
+                             "sub:core/subscribe".parse().unwrap(),]);
 
         assert_eq!(expected, bind_map);
     }
@@ -829,11 +808,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         write_metafile(&pkg_install, MetaFile::Target, active_target);
 
-        let loaded = PackageInstall::load(
-            &PackageIdent::from_str(ident_s).unwrap(),
-            Some(fs_root.path()),
-        )
-        .unwrap();
+        let loaded = PackageInstall::load(&PackageIdent::from_str(ident_s).unwrap(),
+                                          Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -853,13 +829,13 @@ core/bar=pub:core/publish sub:core/subscribe
                 assert_eq!(&ident, err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
-            Ok(i) => panic!(
-                "Should not load successfully, \
-                 install_ident={}, install_target={}, active_target={}",
-                &i,
-                i.target().unwrap(),
-                active_target,
-            ),
+            Ok(i) => {
+                panic!("Should not load successfully, install_ident={}, install_target={}, \
+                        active_target={}",
+                       &i,
+                       i.target().unwrap(),
+                       active_target,)
+            }
         }
     }
 
@@ -871,11 +847,9 @@ core/bar=pub:core/publish sub:core/subscribe
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         write_metafile(&pkg_install, MetaFile::Target, active_target);
 
-        let loaded = PackageInstall::load(
-            &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
-            Some(fs_root.path()),
-        )
-        .unwrap();
+        let loaded = PackageInstall::load(&PackageIdent::from_str("dream-theater/\
+                                                                   systematic-chaos").unwrap(),
+                                          Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -895,13 +869,13 @@ core/bar=pub:core/publish sub:core/subscribe
                 assert_eq!(&ident, err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
-            Ok(i) => panic!(
-                "Should not load successfully, \
-                 install_ident={}, install_target={}, active_target={}",
-                &i,
-                i.target().unwrap(),
-                active_target,
-            ),
+            Ok(i) => {
+                panic!("Should not load successfully, install_ident={}, install_target={}, \
+                        active_target={}",
+                       &i,
+                       i.target().unwrap(),
+                       active_target,)
+            }
         }
     }
 
@@ -921,11 +895,9 @@ core/bar=pub:core/publish sub:core/subscribe
         let wrong_pkg_install = testing_package_install(wrong_ident_s, fs_root.path());
         write_metafile(&wrong_pkg_install, MetaFile::Target, wrong_target);
 
-        let loaded = PackageInstall::load(
-            &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
-            Some(fs_root.path()),
-        )
-        .unwrap();
+        let loaded = PackageInstall::load(&PackageIdent::from_str("dream-theater/\
+                                                                   systematic-chaos").unwrap(),
+                                          Some(fs_root.path())).unwrap();
         assert_eq!(matching_pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -935,12 +907,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        std::fs::remove_file(
-            pkg_install
-                .installed_path()
-                .join(MetaFile::Target.to_string()),
-        )
-        .unwrap();
+        std::fs::remove_file(pkg_install.installed_path()
+                                        .join(MetaFile::Target.to_string())).unwrap();
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load(&ident, Some(fs_root.path())) {
@@ -948,11 +916,10 @@ core/bar=pub:core/publish sub:core/subscribe
                 assert_eq!(&ident, err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
-            Ok(i) => panic!(
-                "Should not load successfully, \
-                 install_ident={}, install_target=missing",
-                &i,
-            ),
+            Ok(i) => {
+                panic!("Should not load successfully, install_ident={}, install_target=missing",
+                       &i,)
+            }
         }
     }
 
@@ -969,11 +936,10 @@ core/bar=pub:core/publish sub:core/subscribe
                 assert_eq!(&ident, err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
-            Ok(i) => panic!(
-                "Should not load successfully, \
-                 install_ident={}, install_target=missing",
-                &i,
-            ),
+            Ok(i) => {
+                panic!("Should not load successfully, install_ident={}, install_target=missing",
+                       &i,)
+            }
         }
     }
 
@@ -985,11 +951,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         write_metafile(&pkg_install, MetaFile::Target, active_target);
 
-        let loaded = PackageInstall::load_at_least(
-            &PackageIdent::from_str(ident_s).unwrap(),
-            Some(fs_root.path()),
-        )
-        .unwrap();
+        let loaded = PackageInstall::load_at_least(&PackageIdent::from_str(ident_s).unwrap(),
+                                                   Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -1009,13 +972,13 @@ core/bar=pub:core/publish sub:core/subscribe
                 assert_eq!(&ident, err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
-            Ok(i) => panic!(
-                "Should not load successfully, \
-                 install_ident={}, install_target={}, active_target={}",
-                &i,
-                i.target().unwrap(),
-                active_target,
-            ),
+            Ok(i) => {
+                panic!("Should not load successfully, install_ident={}, install_target={}, \
+                        active_target={}",
+                       &i,
+                       i.target().unwrap(),
+                       active_target,)
+            }
         }
     }
 
@@ -1027,11 +990,10 @@ core/bar=pub:core/publish sub:core/subscribe
         let pkg_install = testing_package_install(ident_s, fs_root.path());
         write_metafile(&pkg_install, MetaFile::Target, active_target);
 
-        let loaded = PackageInstall::load_at_least(
-            &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
-            Some(fs_root.path()),
-        )
-        .unwrap();
+        let loaded =
+            PackageInstall::load_at_least(&PackageIdent::from_str("dream-theater/\
+                                                                   systematic-chaos").unwrap(),
+                                          Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -1051,13 +1013,13 @@ core/bar=pub:core/publish sub:core/subscribe
                 assert_eq!(&ident, err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
-            Ok(i) => panic!(
-                "Should not load successfully, \
-                 install_ident={}, install_target={}, active_target={}",
-                &i,
-                i.target().unwrap(),
-                active_target,
-            ),
+            Ok(i) => {
+                panic!("Should not load successfully, install_ident={}, install_target={}, \
+                        active_target={}",
+                       &i,
+                       i.target().unwrap(),
+                       active_target,)
+            }
         }
     }
 
@@ -1077,11 +1039,10 @@ core/bar=pub:core/publish sub:core/subscribe
         let wrong_pkg_install = testing_package_install(wrong_ident_s, fs_root.path());
         write_metafile(&wrong_pkg_install, MetaFile::Target, wrong_target);
 
-        let loaded = PackageInstall::load_at_least(
-            &PackageIdent::from_str("dream-theater/systematic-chaos").unwrap(),
-            Some(fs_root.path()),
-        )
-        .unwrap();
+        let loaded =
+            PackageInstall::load_at_least(&PackageIdent::from_str("dream-theater/\
+                                                                   systematic-chaos").unwrap(),
+                                          Some(fs_root.path())).unwrap();
         assert_eq!(matching_pkg_install, loaded);
         assert_eq!(active_target, &loaded.target().unwrap());
     }
@@ -1091,12 +1052,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        std::fs::remove_file(
-            pkg_install
-                .installed_path()
-                .join(MetaFile::Target.to_string()),
-        )
-        .unwrap();
+        std::fs::remove_file(pkg_install.installed_path()
+                                        .join(MetaFile::Target.to_string())).unwrap();
         let ident = PackageIdent::from_str(ident_s).unwrap();
 
         match PackageInstall::load_at_least(&ident, Some(fs_root.path())) {
@@ -1104,11 +1061,10 @@ core/bar=pub:core/publish sub:core/subscribe
                 assert_eq!(&ident, err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
-            Ok(i) => panic!(
-                "Should not load successfully, \
-                 install_ident={}, install_target=missing",
-                &i,
-            ),
+            Ok(i) => {
+                panic!("Should not load successfully, install_ident={}, install_target=missing",
+                       &i,)
+            }
         }
     }
 
@@ -1125,11 +1081,10 @@ core/bar=pub:core/publish sub:core/subscribe
                 assert_eq!(&ident, err_ident);
             }
             Err(e) => panic!("Wrong error returned, error={:?}", e),
-            Ok(i) => panic!(
-                "Should not load successfully, \
-                 install_ident={}, install_target=missing",
-                &i,
-            ),
+            Ok(i) => {
+                panic!("Should not load successfully, install_ident={}, install_target=missing",
+                       &i,)
+            }
         }
     }
 
@@ -1139,10 +1094,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         set_path_for(&pkg_install, vec!["bin"]);
 
-        assert_eq!(
-            vec![pkg_prefix_for(&pkg_install).join("bin")],
-            pkg_install.paths().unwrap()
-        );
+        assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin")],
+                   pkg_install.paths().unwrap());
     }
 
     #[test]
@@ -1153,14 +1106,10 @@ core/bar=pub:core/publish sub:core/subscribe
 
         let pkg_prefix = pkg_prefix_for(&pkg_install);
 
-        assert_eq!(
-            vec![
-                pkg_prefix.join("bin"),
-                pkg_prefix.join("sbin"),
-                pkg_prefix.join(".gem/bin"),
-            ],
-            pkg_install.paths().unwrap()
-        );
+        assert_eq!(vec![pkg_prefix.join("bin"),
+                        pkg_prefix.join("sbin"),
+                        pkg_prefix.join(".gem/bin"),],
+                   pkg_install.paths().unwrap());
     }
 
     #[test]
@@ -1206,10 +1155,8 @@ core/bar=pub:core/publish sub:core/subscribe
             .as_ref(),
         );
 
-        assert_eq!(
-            vec![pkg_prefix_for(&pkg_install).join("bin")],
-            pkg_install.paths().unwrap()
-        );
+        assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin")],
+                   pkg_install.paths().unwrap());
     }
 
     #[cfg(windows)]
@@ -1221,25 +1168,16 @@ core/bar=pub:core/publish sub:core/subscribe
 
         // Create `RUNTIME_ENVIROMENT` metafile which has path entries from another package to
         // replicate certain older packages
-        let path_val = env::join_paths(
-            vec![
-                pkg_prefix_for(&pkg_install).join("bin"),
-                pkg_prefix_for(&other_pkg_install).join("bin"),
-                pkg_prefix_for(&other_pkg_install).join("sbin"),
-            ]
-            .iter(),
-        )
-        .unwrap();
-        write_metafile(
-            &pkg_install,
-            MetaFile::RuntimeEnvironment,
-            &format!("PATH={}\n", path_val.to_string_lossy().as_ref()),
-        );
+        let path_val =
+            env::join_paths(vec![pkg_prefix_for(&pkg_install).join("bin"),
+                                 pkg_prefix_for(&other_pkg_install).join("bin"),
+                                 pkg_prefix_for(&other_pkg_install).join("sbin"),].iter()).unwrap();
+        write_metafile(&pkg_install,
+                       MetaFile::RuntimeEnvironment,
+                       &format!("PATH={}\n", path_val.to_string_lossy().as_ref()));
 
-        assert_eq!(
-            vec![pkg_prefix_for(&pkg_install).join("bin")],
-            pkg_install.paths().unwrap()
-        );
+        assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin")],
+                   pkg_install.paths().unwrap());
     }
 
     #[test]
@@ -1249,10 +1187,8 @@ core/bar=pub:core/publish sub:core/subscribe
         set_path_for(&pkg_install, vec!["bin"]);
         set_runtime_path_for(&pkg_install, vec![&pkg_install]);
 
-        assert_eq!(
-            vec![pkg_prefix_for(&pkg_install).join("bin")],
-            pkg_install.runtime_paths().unwrap()
-        );
+        assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin")],
+                   pkg_install.runtime_paths().unwrap());
     }
 
     #[test]
@@ -1264,14 +1200,10 @@ core/bar=pub:core/publish sub:core/subscribe
 
         let pkg_prefix = pkg_prefix_for(&pkg_install);
 
-        assert_eq!(
-            vec![
-                pkg_prefix.join("sbin"),
-                pkg_prefix.join(".gem/bin"),
-                pkg_prefix.join("bin"),
-            ],
-            pkg_install.runtime_paths().unwrap()
-        );
+        assert_eq!(vec![pkg_prefix.join("sbin"),
+                        pkg_prefix.join(".gem/bin"),
+                        pkg_prefix.join("bin"),],
+                   pkg_install.runtime_paths().unwrap());
     }
 
     #[test]
@@ -1285,13 +1217,9 @@ core/bar=pub:core/publish sub:core/subscribe
         set_path_for(&pkg_install, vec!["bin"]);
         set_runtime_path_for(&pkg_install, vec![&pkg_install, &other_pkg_install]);
 
-        assert_eq!(
-            vec![
-                pkg_prefix_for(&pkg_install).join("bin"),
-                pkg_prefix_for(&other_pkg_install).join("sbin"),
-            ],
-            pkg_install.runtime_paths().unwrap()
-        );
+        assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin"),
+                        pkg_prefix_for(&other_pkg_install).join("sbin"),],
+                   pkg_install.runtime_paths().unwrap());
     }
 
     // This test uses the legacy/fallback implementation of determining the runtime path
@@ -1307,13 +1235,9 @@ core/bar=pub:core/publish sub:core/subscribe
         set_deps_for(&pkg_install, vec![&other_pkg_install]);
         set_tdeps_for(&pkg_install, vec![&other_pkg_install]);
 
-        assert_eq!(
-            vec![
-                pkg_prefix_for(&pkg_install).join("bin"),
-                pkg_prefix_for(&other_pkg_install).join("sbin"),
-            ],
-            pkg_install.runtime_paths().unwrap()
-        );
+        assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin"),
+                        pkg_prefix_for(&other_pkg_install).join("sbin"),],
+                   pkg_install.runtime_paths().unwrap());
     }
 
     #[test]
@@ -1324,12 +1248,8 @@ core/bar=pub:core/publish sub:core/subscribe
         set_path_for(&pkg_install, vec!["nope"]);
 
         // Create a zero-sizd `RUNTIME_PATH` metafile
-        let _ = File::create(
-            pkg_install
-                .installed_path
-                .join(MetaFile::RuntimePath.to_string()),
-        )
-        .unwrap();
+        let _ = File::create(pkg_install.installed_path
+                                        .join(MetaFile::RuntimePath.to_string())).unwrap();
 
         assert_eq!(Vec::<PathBuf>::new(), pkg_install.runtime_paths().unwrap());
     }
@@ -1338,9 +1258,7 @@ core/bar=pub:core/publish sub:core/subscribe
     // lack a `RUNTIME_PATH` metafile.
     #[test]
     fn legacy_runtime_paths() {
-        fn paths_for(pkg_install: &PackageInstall) -> Vec<PathBuf> {
-            pkg_install.paths().unwrap()
-        }
+        fn paths_for(pkg_install: &PackageInstall) -> Vec<PathBuf> { pkg_install.paths().unwrap() }
 
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
@@ -1374,10 +1292,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let alpha = testing_package_install("acme/alpha", fs_root.path());
         set_path_for(&alpha, vec!["sbin", ".gem/bin", "bin"]);
         set_deps_for(&alpha, vec![&charlie, &hotel, &beta]);
-        set_tdeps_for(
-            &alpha,
-            vec![&beta, &charlie, &delta, &echo, &foxtrot, &golf, &hotel],
-        );
+        set_tdeps_for(&alpha,
+                      vec![&beta, &charlie, &delta, &echo, &foxtrot, &golf, &hotel]);
 
         let mut expected = Vec::new();
         expected.append(&mut paths_for(&alpha));
@@ -1395,10 +1311,8 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
-        assert_eq!(
-            HashMap::<String, String>::new(),
-            pkg_install.environment_for_command().unwrap()
-        );
+        assert_eq!(HashMap::<String, String>::new(),
+                   pkg_install.environment_for_command().unwrap());
     }
 
     #[test]
@@ -1407,11 +1321,9 @@ core/bar=pub:core/publish sub:core/subscribe
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
         // Create a `RUNTIME_ENVIRONMENT` metafile including a `PATH` key which should be ignored
-        write_metafile(
-            &pkg_install,
-            MetaFile::RuntimeEnvironment,
-            "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n",
-        );
+        write_metafile(&pkg_install,
+                       MetaFile::RuntimeEnvironment,
+                       "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n");
 
         let mut expected = HashMap::new();
         expected.insert("FOO".to_string(), "bar".to_string());
@@ -1432,31 +1344,28 @@ core/bar=pub:core/publish sub:core/subscribe
         set_runtime_path_for(&pkg_install, vec![&pkg_install, &other_pkg_install]);
 
         // Create a `RUNTIME_ENVIRONMENT` metafile including a `PATH` key which should be ignored
-        write_metafile(
-            &pkg_install,
-            MetaFile::RuntimeEnvironment,
-            "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n",
-        );
+        write_metafile(&pkg_install,
+                       MetaFile::RuntimeEnvironment,
+                       "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n");
 
         let mut expected = HashMap::new();
         let fs_root_path = fs_root.into_path();
         expected.insert("FOO".to_string(), "bar".to_string());
         expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
         expected.insert(
-            "PATH".to_string(),
-            env::join_paths(vec![
-                fs::fs_rooted_path(
-                    &pkg_prefix_for(&pkg_install).join("bin"),
-                    Some(&*fs_root_path),
-                ),
-                fs::fs_rooted_path(
-                    &pkg_prefix_for(&other_pkg_install).join("sbin"),
-                    Some(&*fs_root_path),
-                ),
-            ])
-            .unwrap()
-            .to_string_lossy()
-            .into_owned(),
+                        "PATH".to_string(),
+                        env::join_paths(vec![
+            fs::fs_rooted_path(
+                &pkg_prefix_for(&pkg_install).join("bin"),
+                Some(&*fs_root_path),
+            ),
+            fs::fs_rooted_path(
+                &pkg_prefix_for(&other_pkg_install).join("sbin"),
+                Some(&*fs_root_path),
+            ),
+        ]).unwrap()
+                        .to_string_lossy()
+                        .into_owned(),
         );
 
         assert_eq!(expected, pkg_install.environment_for_command().unwrap());

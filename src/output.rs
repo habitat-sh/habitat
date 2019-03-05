@@ -32,13 +32,18 @@
 //! JSON object. It ignores the coloring option, and does _not_ ever log
 //! with ANSI color codes, but does honor the verbose flag.
 
-use std::fmt;
-use std::result;
-use std::sync::atomic::{AtomicBool, Ordering, ATOMIC_BOOL_INIT};
+use std::{fmt,
+          result,
+          sync::atomic::{AtomicBool,
+                         Ordering,
+                         ATOMIC_BOOL_INIT}};
 
-use ansi_term::Colour::{Cyan, Green, White};
-use serde::ser::SerializeMap;
-use serde::{Serialize, Serializer};
+use ansi_term::Colour::{Cyan,
+                        Green,
+                        White};
+use serde::{ser::SerializeMap,
+            Serialize,
+            Serializer};
 use serde_json;
 
 use crate::PROGRAM_NAME;
@@ -51,9 +56,7 @@ static mut NO_COLOR: AtomicBool = ATOMIC_BOOL_INIT;
 static mut JSON: AtomicBool = ATOMIC_BOOL_INIT;
 
 /// True if verbose output is on.
-pub fn is_verbose() -> bool {
-    unsafe { VERBOSE.load(Ordering::Relaxed) }
-}
+pub fn is_verbose() -> bool { unsafe { VERBOSE.load(Ordering::Relaxed) } }
 
 /// Turn verbose output on or off.
 pub fn set_verbose(booly: bool) {
@@ -63,9 +66,7 @@ pub fn set_verbose(booly: bool) {
 }
 
 /// True if color is enabled
-pub fn is_color() -> bool {
-    unsafe { !NO_COLOR.load(Ordering::Relaxed) }
-}
+pub fn is_color() -> bool { unsafe { !NO_COLOR.load(Ordering::Relaxed) } }
 
 /// Set to true if you want color to turn off.
 pub fn set_no_color(booly: bool) {
@@ -75,14 +76,10 @@ pub fn set_no_color(booly: bool) {
 }
 
 /// True if JSON formatting is enabled
-pub fn is_json() -> bool {
-    unsafe { JSON.load(Ordering::Relaxed) }
-}
+pub fn is_json() -> bool { unsafe { JSON.load(Ordering::Relaxed) } }
 
 /// Set to true if you want JSON-formatted logs
-pub fn set_json(booly: bool) {
-    unsafe { JSON.store(booly, Ordering::Relaxed) }
-}
+pub fn set_json(booly: bool) { unsafe { JSON.store(booly, Ordering::Relaxed) } }
 
 /// Adds structure to printed output. Stores a preamble, a logkey, line, file, column, and content
 /// to print.
@@ -105,25 +102,22 @@ pub struct StructuredOutput<'a> {
 
 impl<'a> StructuredOutput<'a> {
     /// Return a new StructuredOutput struct.
-    pub fn new(
-        preamble: &'a str,
-        logkey: &'static str,
-        line: u32,
-        file: &'static str,
-        column: u32,
-        content: &'a str,
-    ) -> StructuredOutput<'a> {
-        StructuredOutput {
-            preamble: preamble,
-            logkey: logkey,
-            line: line,
-            file: file,
-            column: column,
-            content: content,
-            verbose: None,
-            color: None,
-            json: None,
-        }
+    pub fn new(preamble: &'a str,
+               logkey: &'static str,
+               line: u32,
+               file: &'static str,
+               column: u32,
+               content: &'a str)
+               -> StructuredOutput<'a> {
+        StructuredOutput { preamble,
+                           logkey,
+                           line,
+                           file,
+                           column,
+                           content,
+                           verbose: None,
+                           color: None,
+                           json: None }
     }
 }
 
@@ -132,8 +126,7 @@ impl<'a> StructuredOutput<'a> {
 // behavior which isn't otherwise possible to derive.
 impl<'a> Serialize for StructuredOutput<'a> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
+        where S: Serializer
     {
         let verbose = self.verbose.unwrap_or_else(is_verbose);
 
@@ -179,31 +172,29 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
 
             if verbose {
                 if color {
-                    write!(
-                        f,
-                        "{}({})[{}]: {}",
-                        preamble_color.paint(self.preamble),
-                        White.bold().paint(self.logkey),
-                        White
-                            .underline()
-                            .paint(format!("{}:{}:{}", self.file, self.line, self.column)),
-                        self.content
-                    )
+                    write!(f,
+                           "{}({})[{}]: {}",
+                           preamble_color.paint(self.preamble),
+                           White.bold().paint(self.logkey),
+                           White.underline()
+                                .paint(format!("{}:{}:{}", self.file, self.line, self.column)),
+                           self.content)
                 } else {
-                    write!(
-                        f,
-                        "{}({})[{}:{}:{}]: {}",
-                        self.preamble, self.logkey, self.file, self.line, self.column, self.content
-                    )
+                    write!(f,
+                           "{}({})[{}:{}:{}]: {}",
+                           self.preamble,
+                           self.logkey,
+                           self.file,
+                           self.line,
+                           self.column,
+                           self.content)
                 }
             } else if color {
-                write!(
-                    f,
-                    "{}({}): {}",
-                    preamble_color.paint(self.preamble),
-                    White.bold().paint(self.logkey),
-                    self.content
-                )
+                write!(f,
+                       "{}({}): {}",
+                       preamble_color.paint(self.preamble),
+                       White.bold().paint(self.logkey),
+                       self.content)
             } else {
                 write!(f, "{}({}): {}", self.preamble, self.logkey, self.content)
             }
@@ -274,14 +265,12 @@ macro_rules! output_format {
     (preamble $preamble:expr,logkey $logkey:expr, $content:expr) => {{
         use $crate::output::StructuredOutput;
         let trimmed_content = &$content.trim_end_matches('\n');
-        let so = StructuredOutput::new(
-            &$preamble,
-            $logkey,
-            line!(),
-            file!(),
-            column!(),
-            trimmed_content,
-        );
+        let so = StructuredOutput::new(&$preamble,
+                                       $logkey,
+                                       line!(),
+                                       file!(),
+                                       column!(),
+                                       trimmed_content);
         format!("{}", so)
     }};
 }
@@ -289,7 +278,8 @@ macro_rules! output_format {
 #[cfg(test)]
 mod tests {
     use super::StructuredOutput;
-    use ansi_term::Colour::{Cyan, White};
+    use ansi_term::Colour::{Cyan,
+                            White};
     use serde_json;
 
     use crate::PROGRAM_NAME;
@@ -322,14 +312,10 @@ mod tests {
         let mut so = so(progname, "opeth is amazing");
         so.verbose = Some(false);
         so.color = Some(true);
-        assert_eq!(
-            format!("{}", so),
-            format!(
-                "{}({}): opeth is amazing",
-                Cyan.paint(progname),
-                White.bold().paint("SOT")
-            )
-        );
+        assert_eq!(format!("{}", so),
+                   format!("{}({}): opeth is amazing",
+                           Cyan.paint(progname),
+                           White.bold().paint("SOT")));
     }
 
     #[test]
@@ -340,14 +326,12 @@ mod tests {
         let actual: serde_json::Value =
             serde_json::from_str(&(format!("{}", so))).expect("Couldn't parse from JSON");
 
-        assert_eq!(
-            actual,
-            serde_json::json!({
-                "preamble": "monkeys",
-                "logkey": LOGKEY,
-                "content": "I love monkeys"
-            })
-        );
+        assert_eq!(actual,
+                   serde_json::json!({
+                       "preamble": "monkeys",
+                       "logkey": LOGKEY,
+                       "content": "I love monkeys"
+                   }));
     }
 
     #[test]
@@ -359,17 +343,15 @@ mod tests {
         let actual: serde_json::Value =
             serde_json::from_str(&(format!("{}", so))).expect("Couldn't parse from JSON");
 
-        assert_eq!(
-            actual,
-            serde_json::json!({
-                "preamble": "monkeys",
-                "logkey": LOGKEY,
-                "line": 1,
-                "file": file!(),
-                "column": 2,
-                "content": "I love verbose monkeys"
-            })
-        );
+        assert_eq!(actual,
+                   serde_json::json!({
+                       "preamble": "monkeys",
+                       "logkey": LOGKEY,
+                       "line": 1,
+                       "file": file!(),
+                       "column": 2,
+                       "content": "I love verbose monkeys"
+                   }));
     }
 
     #[test]
@@ -381,14 +363,12 @@ mod tests {
         let actual: serde_json::Value =
             serde_json::from_str(&(format!("{}", with_color))).expect("Couldn't parse from JSON");
 
-        assert_eq!(
-            actual,
-            serde_json::json!({
-                "preamble": "monkeys",
-                "logkey": LOGKEY,
-                "content": "I love drab monkeys"
-            }),
-            "JSON output shouldn't have color, even if the colorized flag was set"
-        );
+        assert_eq!(actual,
+                   serde_json::json!({
+                       "preamble": "monkeys",
+                       "logkey": LOGKEY,
+                       "content": "I love drab monkeys"
+                   }),
+                   "JSON output shouldn't have color, even if the colorized flag was set");
     }
 }

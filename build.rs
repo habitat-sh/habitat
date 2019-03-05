@@ -3,10 +3,10 @@ fn main() {
     extern crate base64;
     extern crate gcc;
 
-    use std::env;
-    use std::fs::File;
-    use std::io::prelude::*;
-    use std::path::Path;
+    use std::{env,
+              fs::File,
+              io::prelude::*,
+              path::Path};
 
     gcc::compile_library("libadmincheck.a", &["./src/os/users/admincheck.c"]);
     let mut file =
