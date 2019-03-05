@@ -20,11 +20,6 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
-use crate::error::{Result,
-                   SupError};
-use habitat_common::cli_defaults::{GOSSIP_DEFAULT_IP,
-                                   GOSSIP_DEFAULT_PORT,
-                                   GOSSIP_LISTEN_ADDRESS_ENVVAR};
 use habitat_core::env::Config as EnvConfig;
 use std::{fmt,
           io,
@@ -39,10 +34,20 @@ use std::{fmt,
           result,
           str::FromStr};
 
+use crate::{common::cli_defaults::{GOSSIP_DEFAULT_IP,
+                                   GOSSIP_DEFAULT_PORT,
+                                   GOSSIP_LISTEN_ADDRESS_ENVVAR},
+            error::{Result,
+                    SupError}};
+
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
 
 impl GossipListenAddr {
+    pub fn new(ip: Ipv4Addr, port: u16) -> Self {
+        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(ip, port)))
+    }
+
     /// Generate an address at which a server configured with this
     /// GossipListenAddr can communicate with itself.
     ///
@@ -62,12 +67,12 @@ impl GossipListenAddr {
 
 impl Default for GossipListenAddr {
     fn default() -> GossipListenAddr {
-        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(
+        GossipListenAddr::new(
             GOSSIP_DEFAULT_IP
                 .parse()
                 .expect("GOSSIP_DEFAULT_IP can not be parsed."),
             GOSSIP_DEFAULT_PORT,
-        )))
+        )
     }
 }
 

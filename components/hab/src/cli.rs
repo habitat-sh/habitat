@@ -900,8 +900,10 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     // is displayed confusingly as `hab-sup`
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
     (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-          (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
+    (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the Gossip System Gateway.")
+    (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
+        "Start the supervisor in local mode.")
     (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the HTTP Gateway.")
     (@arg HTTP_DISABLE: --("http-disable") -D
@@ -914,7 +916,7 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     (@arg PEER: --peer +takes_value +multiple
         "The listen address of one or more initial peers (IP[:PORT])")
     (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-    (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with[peer]
+    (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
         "Watch this file for connecting to the ring"
     )
     (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY")
