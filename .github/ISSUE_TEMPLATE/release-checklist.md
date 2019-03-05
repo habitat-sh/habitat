@@ -38,4 +38,7 @@ Here are all the steps for the release process. Create a new issue at the beginn
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`core`](https://github.com/habitat-sh/core)
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`habitat`](https://github.com/habitat-sh/habitat)
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`builder`](https://github.com/habitat-sh/builder)
+- [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`habitat`](https://github.com/habitat-sh/habitat)
+- [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`core`](https://github.com/habitat-sh/core)
+- [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`builder`](https://github.com/habitat-sh/builder)
 - [ ] Review release automation and/or [`RELEASE.md`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md) and add necessary fixes

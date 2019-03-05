@@ -284,3 +284,15 @@ With the addition of Windows builder workers, you will also need to build and pr
 1. If there are warnings or errors that are simple, fix them. Otherwise, lock the appropriate versions in `Cargo.toml` files that lets the build succeed and file an issue to resolve the failure and relax the version lock.
 1. Open a PR for the `Cargo.lock` updates and any accompanying fixes which are necessary.
 1. Repeat with the [core](https://github.com/habitat-sh/core) and [builder](https://github.com/habitat-sh/builder) repos (omit the `habitat-launcher` build).
+
+# Update rustfmt
+1. Using https://mexus.github.io/rustup-components-history/, find the most recent date that all the Tier1 platforms have a present `rustfmt`. For example: `nightly-2019-03-04`.
+1. Update `get_current_toolchain` in [`support/ci/shared.sh`](https://github.com/habitat-sh/habitat/blob/master/support/ci/shared.sh#L16) to output the new nightly date.
+1. Locally install the nightly toolchain and update the formatting. For example:
+    ```
+    ➤ rustup toolchain install nightly-2019-03-04
+    ➤ rustup component add --toolchain nightly-2019-03-04 rustfmt
+    ➤ cargo +nightly-2019-03-04 fmt
+    ```
+1. Open a PR and merge the toolchain update as well as any formatting changes.
+1. Repeat with the `core` and `builder` repos.
