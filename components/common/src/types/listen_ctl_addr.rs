@@ -23,7 +23,7 @@ use std::{fmt,
           result,
           str::FromStr};
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct ListenCtlAddr(SocketAddr);
 
 impl ListenCtlAddr {

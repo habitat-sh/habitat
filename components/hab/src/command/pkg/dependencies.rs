@@ -27,8 +27,8 @@ use crate::{common::package_graph::PackageGraph,
 /// the provided identifier
 pub fn start(
     ident: &PackageIdent,
-    scope: &Scope,
-    direction: &DependencyRelation,
+    scope: Scope,
+    direction: DependencyRelation,
     fs_root_path: &Path,
 ) -> Result<()> {
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;

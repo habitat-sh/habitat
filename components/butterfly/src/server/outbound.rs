@@ -73,8 +73,7 @@ lazy_static! {
     .unwrap();
 }
 
-/// Where an Ack came from; either Ping or PingReq.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 enum AckFrom {
     Ping,
     PingReq,

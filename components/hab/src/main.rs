@@ -513,7 +513,7 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
     } else {
         command::pkg::DependencyRelation::Requires
     };
-    command::pkg::dependencies::start(&ident, &scope, &direction, &*FS_ROOT)
+    command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT)
 }
 
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
@@ -579,8 +579,8 @@ fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         &*FS_ROOT,
         execute_strategy,
         scope,
-        excludes,
-        services,
+        &excludes,
+        &services,
     )
 }
 fn sub_bldr_channel_create(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -942,7 +942,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     // JW: We should not need to make two connections here. I need a way to return the
     // SrvClient from a for_each iterator so we can chain upon a successful stream but I don't
     // know if it's possible with this version of futures.
-    SrvClient::connect(&listen_ctl_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
         .and_then(|conn| {
             conn.call(set).for_each(|reply| match reply.message_id() {
                 "NetOk" => Ok(()),
@@ -969,7 +969,7 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
         .and_then(|conn| {
             conn.call(msg).for_each(|reply| match reply.message_id() {
                 "ServiceCfg" => {
@@ -1002,8 +1002,8 @@ fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     update_svc_load_from_input(m, &mut msg)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, secret_key)
-        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
+        .and_then(|conn| conn.call(msg).for_each(|m| handle_ctl_reply(&m)))
         .wait()?;
     Ok(())
 }
@@ -1015,8 +1015,8 @@ fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcUnload::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, secret_key)
-        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
+        .and_then(|conn| conn.call(msg).for_each(|m| handle_ctl_reply(&m)))
         .wait()?;
     Ok(())
 }
@@ -1028,8 +1028,8 @@ fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStart::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, secret_key)
-        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
+        .and_then(|conn| conn.call(msg).for_each(|m| handle_ctl_reply(&m)))
         .wait()?;
     Ok(())
 }
@@ -1043,7 +1043,7 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
     }
 
-    SrvClient::connect(&listen_ctl_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
         .and_then(|conn| {
             let mut out = TabWriter::new(io::stdout());
             conn.call(msg)
@@ -1056,13 +1056,13 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
                                 io::ErrorKind::UnexpectedEof,
                             )));
                         }
-                        Some(m) => print_svc_status(&mut out, m, true)?,
+                        Some(m) => print_svc_status(&mut out, &m, true)?,
                     }
                     Ok((out, rest))
                 })
                 .and_then(|(out, rest)| {
                     rest.fold(out, move |mut out, reply| {
-                        print_svc_status(&mut out, reply, false)?;
+                        print_svc_status(&mut out, &reply, false)?;
                         Ok::<_, SrvClientError>(out)
                     })
                 })
@@ -1082,8 +1082,8 @@ fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = protocol::ctl::SvcStop::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, secret_key)
-        .and_then(|conn| conn.call(msg).for_each(handle_ctl_reply))
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
+        .and_then(|conn| conn.call(msg).for_each(|m| handle_ctl_reply(&m)))
         .wait()?;
     Ok(())
 }
@@ -1139,7 +1139,7 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         }
         _ => msg.content = Some(buf.to_vec()),
     }
-    SrvClient::connect(&listen_ctl_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
         .and_then(|conn| {
             ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
                 .unwrap();
@@ -1174,7 +1174,7 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let mut ui = ui();
     let mut msg = protocol::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
-    SrvClient::connect(&listen_ctl_addr, secret_key)
+    SrvClient::connect(&listen_ctl_addr, &secret_key)
         .and_then(|conn| {
             ui.begin(format!(
                 "Permanently marking {} as departed",
@@ -1508,7 +1508,7 @@ fn enable_features_from_env(ui: &mut UI) {
     }
 }
 
-fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
+fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
     let mut progress_bar = pbr::ProgressBar::<io::Stdout>::new(0);
     progress_bar.set_units(pbr::Units::Bytes);
     progress_bar.show_tick = true;
@@ -1549,7 +1549,7 @@ fn handle_ctl_reply(reply: SrvMessage) -> result::Result<(), SrvClientError> {
 
 fn print_svc_status<T>(
     out: &mut T,
-    reply: SrvMessage,
+    reply: &SrvMessage,
     print_header: bool,
 ) -> result::Result<(), SrvClientError>
 where

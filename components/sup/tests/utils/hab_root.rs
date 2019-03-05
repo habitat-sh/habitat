@@ -41,10 +41,7 @@ use tempfile::{Builder,
 pub struct HabRoot(TempDir);
 
 impl HabRoot {
-    pub fn new<S>(name: S) -> HabRoot
-    where
-        S: ToString,
-    {
+    pub fn new(name: &str) -> HabRoot {
         let s = name.to_string();
         let t = Builder::new()
             .prefix(&s)
@@ -127,9 +124,8 @@ impl HabRoot {
 
     /// The path to which a spec file should be written for a given
     /// package name.
-    pub fn spec_path<P, S>(&self, pkg_name: P, service_group: S) -> PathBuf
+    pub fn spec_path<S>(&self, pkg_name: &str, service_group: S) -> PathBuf
     where
-        P: ToString,
         S: AsRef<Path>,
     {
         self.spec_dir(service_group)

@@ -1106,6 +1106,8 @@ fn sub_svc_load() -> App<'static, 'static> {
 
 // CLAP Validation Functions
 ////////////////////////////////////////////////////////////////////////
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_binding_mode(val: String) -> result::Result<(), String> {
     match habitat_sup_protocol::types::BindingMode::from_str(&val) {
         Ok(_) => Ok(()),
@@ -1113,6 +1115,7 @@ fn valid_binding_mode(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_pair_type(val: String) -> result::Result<(), String> {
     match PairType::from_str(&val) {
         Ok(_) => Ok(()),
@@ -1123,10 +1126,12 @@ fn valid_pair_type(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_service_group(val: String) -> result::Result<(), String> {
     ServiceGroup::validate(&val).map_err(|e| e.to_string())
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn dir_exists(val: String) -> result::Result<(), String> {
     if Path::new(&val).is_dir() {
         Ok(())
@@ -1135,6 +1140,7 @@ fn dir_exists(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn file_exists(val: String) -> result::Result<(), String> {
     if Path::new(&val).is_file() {
         Ok(())
@@ -1151,6 +1157,7 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_socket_addr(val: String) -> result::Result<(), String> {
     match SocketAddr::from_str(&val) {
         Ok(_) => Ok(()),
@@ -1160,6 +1167,7 @@ fn valid_socket_addr(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_url(val: String) -> result::Result<(), String> {
     match Url::parse(&val) {
         Ok(_) => Ok(()),
@@ -1167,6 +1175,7 @@ fn valid_url(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
     match val.parse::<T>() {
         Ok(_) => Ok(()),
@@ -1174,6 +1183,7 @@ fn valid_numeric<T: FromStr>(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_health_check_interval(val: String) -> result::Result<(), String> {
     match HealthCheckInterval::from_str(&val) {
         Ok(_) => Ok(()),
@@ -1184,6 +1194,7 @@ fn valid_health_check_interval(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_update_strategy(val: String) -> result::Result<(), String> {
     match habitat_sup_protocol::types::UpdateStrategy::from_str(&val) {
         Ok(_) => Ok(()),
@@ -1191,6 +1202,7 @@ fn valid_update_strategy(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_ident(val: String) -> result::Result<(), String> {
     match PackageIdent::from_str(&val) {
         Ok(_) => Ok(()),
@@ -1201,6 +1213,7 @@ fn valid_ident(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_target(val: String) -> result::Result<(), String> {
     match PackageTarget::from_str(&val) {
         Ok(_) => Ok(()),
@@ -1212,6 +1225,7 @@ fn valid_target(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
     match PackageIdent::from_str(&val) {
         Ok(ref ident) if ident.fully_qualified() => Ok(()),
@@ -1223,6 +1237,7 @@ fn valid_fully_qualified_ident(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_origin(val: String) -> result::Result<(), String> {
     if ident::is_valid_origin_name(&val) {
         Ok(())

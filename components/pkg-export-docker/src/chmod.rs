@@ -54,19 +54,19 @@ where
     if filetype.is_symlink() {
         // skip
     } else if filetype.is_dir() {
-        set_g_equal_u(&path, permissions)?;
+        set_g_equal_u(&path, &permissions)?;
         for entry in fs::read_dir(&path)? {
             let entry = entry.unwrap().path();
             recursive_g_equal_u(entry)?;
         }
     } else if filetype.is_file() {
-        set_g_equal_u(&path, permissions)?;
+        set_g_equal_u(&path, &permissions)?;
     }
     Ok(())
 }
 
 /// Set the group permissions of `path` equal to the user permissions.
-fn set_g_equal_u<P, Q>(path: P, permissions: Q) -> Result<()>
+fn set_g_equal_u<P, Q>(path: P, permissions: &Q) -> Result<()>
 where
     P: AsRef<Path>,
     Q: PermissionsExt,

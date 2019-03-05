@@ -229,6 +229,7 @@ const OPTED_IN_METAFILE: &str = "OPTED_IN";
 const OPTED_OUT_METAFILE: &str = "OPTED_OUT";
 
 /// Different kinds of analytic events.
+#[derive(Clone, Copy)]
 enum Event {
     /// Occurs when a CLI error occurs, such as when a required argument is missing, an invalid
     /// subcommand is invoked, etc.

@@ -140,12 +140,9 @@ where
     sup_root.as_ref().join(CTL_SECRET_FILENAME)
 }
 
-pub fn sup_root<U>(custom_state_path: Option<U>) -> PathBuf
-where
-    U: AsRef<Path>,
-{
+pub fn sup_root(custom_state_path: Option<&PathBuf>) -> PathBuf {
     match custom_state_path {
-        Some(ref custom) => custom.as_ref().to_path_buf(),
+        Some(custom) => custom.to_path_buf(),
         // TODO: /hab/sup/default is legacy from when we allowed multiple
         // supervisors on the same host with --override-name. The sup dir
         // should really be /hab/sup now, but it would be an awkward change

@@ -67,16 +67,16 @@ impl SelfUpdater {
         let (tx, rx) = sync_channel(0);
         thread::Builder::new()
             .name("self-updater".to_string())
-            .spawn(move || Self::run(tx, current, update_url, update_channel))
+            .spawn(move || Self::run(&tx, &current, &update_url, &update_channel))
             .expect("Unable to start self-updater thread");
         rx
     }
 
     fn run(
-        sender: SyncSender<PackageInstall>,
-        current: PackageIdent,
-        builder_url: String,
-        channel: ChannelIdent,
+        sender: &SyncSender<PackageInstall>,
+        current: &PackageIdent,
+        builder_url: &str,
+        channel: &ChannelIdent,
     ) {
         debug!("Self updater current package, {}", current);
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,
@@ -88,12 +88,12 @@ impl SelfUpdater {
             match util::pkg::install(
                 // We don't want anything in here to print
                 &mut UI::with_sinks(),
-                &builder_url,
+                builder_url,
                 &install_source,
-                &channel,
+                channel,
             ) {
                 Ok(package) => {
-                    if current < *package.ident() {
+                    if current < package.ident() {
                         debug!(
                             "Self updater installing newer Supervisor, {}",
                             package.ident()

@@ -34,6 +34,7 @@ pub mod upload;
 pub mod verify;
 
 /// Used in commands like uninstall which provide a --dry-run option
+#[derive(Clone, Copy)]
 pub enum ExecutionStrategy {
     /// Don't actually run commands that mutate the state of the system,
     /// simply print their output
@@ -44,6 +45,7 @@ pub enum ExecutionStrategy {
 
 /// Used in `hab pkg` commands to choose where to apply the command to just a package
 /// or the package and its dependencies
+#[derive(Clone, Copy)]
 pub enum Scope {
     Package,
     PackageAndDependencies,
@@ -52,6 +54,7 @@ pub enum Scope {
 /// Express the relationship between two packages
 /// `Requires`: a dependency from a package to one it depends on
 /// `Supports`: a dependency from a package to one that depends on it
+#[derive(Clone, Copy)]
 pub enum DependencyRelation {
     Requires,
     Supports,

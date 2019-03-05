@@ -36,10 +36,7 @@ pub struct Departure {
 }
 
 impl Departure {
-    pub fn new<U>(member_id: U) -> Self
-    where
-        U: ToString,
-    {
+    pub fn new(member_id: &str) -> Self {
         Departure {
             member_id: member_id.to_string(),
         }

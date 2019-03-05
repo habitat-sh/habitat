@@ -91,7 +91,7 @@ lazy_static! {
     .unwrap();
 }
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub struct ListenAddr(SocketAddr);
 
 impl ListenAddr {
@@ -662,7 +662,7 @@ mod tests {
                 Trace::default(),
                 None,
                 None,
-                None::<PathBuf>,
+                None,
                 Box::new(ZeroSuitability),
             )
             .unwrap()

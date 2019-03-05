@@ -245,9 +245,9 @@ mod test {
         deps: Vec<PackageIdent>,
     }
 
-    fn build(packages: Vec<PackageDeps>) -> PackageGraph {
+    fn build(packages: &[PackageDeps]) -> PackageGraph {
         let mut graph = PackageGraph::empty();
-        for p in &packages {
+        for p in packages.iter() {
             graph.extend(&p.ident, &p.deps);
         }
         graph
@@ -273,7 +273,7 @@ mod test {
     fn empty_graph() {
         let packages = Vec::new();
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 0);
         assert_eq!(graph.edge_count(), 0);
     }
@@ -285,7 +285,7 @@ mod test {
             empty_package_deps(PackageIdent::from_str("core/foo/1.0/20180704142702").unwrap()),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 2);
         assert_eq!(graph.edge_count(), 0);
     }
@@ -299,7 +299,7 @@ mod test {
             package_deps(b.clone(), &[a.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert!(graph.has_package(&a));
         assert!(graph.has_package(&b));
 
@@ -316,7 +316,7 @@ mod test {
             empty_package_deps(PackageIdent::from_str("mine/redis/2.1.0/20180704142101").unwrap()),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 2);
         assert_eq!(graph.edge_count(), 0);
     }
@@ -334,7 +334,7 @@ mod test {
             package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 4);
 
@@ -356,7 +356,7 @@ mod test {
             package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 4);
 
@@ -379,7 +379,7 @@ mod test {
             package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 4);
 
@@ -404,7 +404,7 @@ mod test {
             package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 4);
 
@@ -427,7 +427,7 @@ mod test {
             package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 4);
 
@@ -452,7 +452,7 @@ mod test {
             package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
-        let mut graph = build(packages);
+        let mut graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 4);
 
@@ -477,7 +477,7 @@ mod test {
             package_deps(b.clone(), &[a.clone()]),
         ];
 
-        let mut graph = build(packages);
+        let mut graph = build(&packages);
         assert_eq!(graph.node_count(), 2);
         assert_eq!(graph.edge_count(), 1);
 
@@ -492,7 +492,7 @@ mod test {
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let packages = vec![empty_package_deps(a.clone())];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 1);
         assert_eq!(graph.edge_count(), 0);
 
@@ -513,7 +513,7 @@ mod test {
             package_deps(d.clone(), &[b.clone(), c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 4);
 
@@ -535,7 +535,7 @@ mod test {
             package_deps(d.clone(), &[c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 3);
 
@@ -557,7 +557,7 @@ mod test {
             package_deps(d.clone(), &[c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 3);
 
@@ -570,7 +570,7 @@ mod test {
         let a = PackageIdent::from_str("core/redis/2.1.0/20180704142101").unwrap();
         let packages = vec![empty_package_deps(a.clone())];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 1);
         assert_eq!(graph.edge_count(), 0);
 
@@ -591,7 +591,7 @@ mod test {
             package_deps(d.clone(), &[c.clone()]),
         ];
 
-        let graph = build(packages);
+        let graph = build(&packages);
         assert_eq!(graph.node_count(), 4);
         assert_eq!(graph.edge_count(), 3);
 

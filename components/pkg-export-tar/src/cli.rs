@@ -130,6 +130,7 @@ impl<'a, 'b> Cli<'a, 'b> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_ident_or_hart(val: String) -> result::Result<(), String> {
     match InstallSource::from_str(&val) {
         Ok(_) => Ok(()),
@@ -137,6 +138,7 @@ fn valid_ident_or_hart(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_url(val: String) -> result::Result<(), String> {
     match Url::parse(&val) {
         Ok(_) => Ok(()),

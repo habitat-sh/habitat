@@ -193,7 +193,7 @@ pub fn start(
         ui.br()?;
         ui.para("Enter your Habitat Personal Access Token.")?;
         let auth_token = prompt_auth_token(ui)?;
-        write_cli_config_auth_token(auth_token)?;
+        write_cli_config_auth_token(&auth_token)?;
     } else {
         ui.para("Okay, maybe another time.")?;
     }
@@ -201,7 +201,7 @@ pub fn start(
         ui.br()?;
         ui.para("Enter your Habitat Supervisor CtlGateway secret.")?;
         let ctl_secret = prompt_ctl_secret(ui)?;
-        write_cli_config_ctl_secret(ctl_secret)?;
+        write_cli_config_ctl_secret(&ctl_secret)?;
     } else {
         ui.para("Okay, maybe another time.")?;
     }
@@ -266,37 +266,25 @@ fn ask_create_origin(ui: &mut UI, origin: &str) -> Result<bool> {
     )?)
 }
 
-fn write_cli_config_origin<T>(origin: T) -> Result<()>
-where
-    T: ToString,
-{
+fn write_cli_config_origin(origin: &str) -> Result<()> {
     let mut config = config::load()?;
     config.origin = Some(origin.to_string());
     config::save(&config)
 }
 
-fn write_cli_config_bldr_url<T>(url: T) -> Result<()>
-where
-    T: ToString,
-{
+fn write_cli_config_bldr_url(url: &str) -> Result<()> {
     let mut config = config::load()?;
     config.bldr_url = Some(url.to_string());
     config::save(&config)
 }
 
-fn write_cli_config_auth_token<T>(auth_token: T) -> Result<()>
-where
-    T: ToString,
-{
+fn write_cli_config_auth_token(auth_token: &str) -> Result<()> {
     let mut config = config::load()?;
     config.auth_token = Some(auth_token.to_string());
     config::save(&config)
 }
 
-fn write_cli_config_ctl_secret<T>(value: T) -> Result<()>
-where
-    T: ToString,
-{
+fn write_cli_config_ctl_secret(value: &str) -> Result<()> {
     let mut config = config::load()?;
     config.ctl_secret = Some(value.to_string());
     config::save(&config)

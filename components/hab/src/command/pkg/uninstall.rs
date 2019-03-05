@@ -57,8 +57,8 @@ pub fn start(
     fs_root_path: &Path,
     execution_strategy: ExecutionStrategy,
     scope: Scope,
-    excludes: Vec<PackageIdent>,
-    services: Vec<PackageIdent>,
+    excludes: &[PackageIdent],
+    services: &[PackageIdent],
 ) -> Result<()> {
     // 1.
     let pkg_install = PackageInstall::load(ident, Some(fs_root_path))?;
@@ -70,7 +70,7 @@ pub fn start(
             Status::Determining,
             "list of running services in supervisor",
         )?;
-        for s in &services {
+        for s in services.iter() {
             ui.status(Status::Found, format!("running service {}", s))?;
         }
     }
@@ -99,7 +99,7 @@ pub fn start(
                 ui,
                 &fs_root_path,
                 &pkg_install,
-                &execution_strategy,
+                execution_strategy,
                 &excludes,
                 &services,
             )?;
@@ -137,7 +137,7 @@ pub fn start(
                             ui,
                             &fs_root_path,
                             &install,
-                            &execution_strategy,
+                            execution_strategy,
                             &excludes,
                             &services,
                         )?;
@@ -183,7 +183,7 @@ fn maybe_delete(
     ui: &mut UI,
     fs_root_path: &Path,
     install: &PackageInstall,
-    strategy: &ExecutionStrategy,
+    strategy: ExecutionStrategy,
     excludes: &[PackageIdent],
     services: &[PackageIdent],
 ) -> Result<bool> {

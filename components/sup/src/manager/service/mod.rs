@@ -199,7 +199,7 @@ pub struct Service {
 impl Service {
     fn new(
         sys: Arc<Sys>,
-        package: PackageInstall,
+        package: &PackageInstall,
         spec: ServiceSpec,
         manager_fs_cfg: Arc<FsCfg>,
         organization: Option<&str>,
@@ -284,7 +284,7 @@ impl Service {
         let package = PackageInstall::load(&spec.ident, Some(fs_root_path))?;
         Ok(Self::new(
             sys,
-            package,
+            &package,
             spec,
             manager_fs_cfg,
             organization,
@@ -1249,7 +1249,7 @@ mod tests {
         let afs = Arc::new(fscfg);
 
         let gs = Arc::new(RwLock::new(GatewayState::default()));
-        Service::new(asys, install, spec, afs, Some("haha"), gs)
+        Service::new(asys, &install, spec, afs, Some("haha"), gs)
             .expect("I wanted a service to load, but it didn't")
     }
 

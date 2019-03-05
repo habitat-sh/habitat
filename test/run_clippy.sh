@@ -45,7 +45,6 @@ allowed_lints=(clippy::module_inception \
 # Known failing lints we want to receive warnings for, but not fail the build
 lints_to_fix=(clippy::cyclomatic_complexity \
                clippy::large_enum_variant \
-               clippy::needless_pass_by_value \
                clippy::needless_return \
                clippy::too_many_arguments)
 
@@ -76,6 +75,7 @@ denied_lints=(clippy::assign_op_pattern \
                clippy::match_ref_pats \
                clippy::needless_bool \
                clippy::needless_collect \
+               clippy::needless_pass_by_value \
                clippy::needless_range_loop \
                clippy::needless_update \
                clippy::ok_expect \

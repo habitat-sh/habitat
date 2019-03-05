@@ -1222,14 +1222,14 @@ mod test {
             pkg_dir.clone(),
         );
         let toml_path = pkg_dir.join("default.toml");
-        create_with_content(toml_path, &String::from("message = \"Hello\""));
+        create_with_content(toml_path, "message = \"Hello\"");
 
         let config_dir = pkg_dir.join("config");
         let deep_config_dir = config_dir.join("dir_a").join("dir_b");
         fs::create_dir_all(&deep_config_dir).expect("create config/dir_a/dir_b");
         create_with_content(
             deep_config_dir.join("config.txt"),
-            &String::from("config message is {{cfg.message}}"),
+            "config message is {{cfg.message}}",
         );
 
         // Setup context for loading and compiling templates

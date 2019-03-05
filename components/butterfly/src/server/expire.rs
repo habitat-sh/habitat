@@ -44,7 +44,7 @@ impl Expire {
             for id in newly_confirmed_members {
                 self.server
                     .rumor_heat
-                    .start_hot_rumor(RumorKey::new(RumorType::Member, id, ""));
+                    .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));
             }
 
             let newly_departed_members = self
@@ -56,7 +56,7 @@ impl Expire {
                 self.server.rumor_heat.purge(&id);
                 self.server
                     .rumor_heat
-                    .start_hot_rumor(RumorKey::new(RumorType::Member, id, ""));
+                    .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));
             }
 
             thread::sleep(Duration::from_millis(LOOP_DELAY_MS));

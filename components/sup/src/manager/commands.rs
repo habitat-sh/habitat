@@ -164,7 +164,7 @@ pub fn service_cfg_set(
         service_group,
     );
     let mut client = match butterfly::client::Client::new(
-        mgr.cfg.gossip_listen.local_addr(),
+        &mgr.cfg.gossip_listen.local_addr().to_string(),
         mgr.cfg.ring_key.clone(),
     ) {
         Ok(client) => client,
@@ -202,7 +202,7 @@ pub fn service_file_put(
         service_group,
     );
     let mut client = match butterfly::client::Client::new(
-        mgr.cfg.gossip_listen.local_addr(),
+        &mgr.cfg.gossip_listen.local_addr().to_string(),
         mgr.cfg.ring_key.clone(),
     ) {
         Ok(client) => client,
@@ -223,7 +223,7 @@ pub fn service_file_put(
 pub fn service_load(
     mgr: &ManagerState,
     req: &mut CtlRequest,
-    opts: protocol::ctl::SvcLoad,
+    opts: &protocol::ctl::SvcLoad,
 ) -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
     let bldr_url = opts
@@ -385,7 +385,7 @@ pub fn supervisor_depart(
 ) -> NetResult<()> {
     let member_id = opts.member_id.ok_or_else(err_update_client)?;
     let mut client = match butterfly::client::Client::new(
-        mgr.cfg.gossip_listen.local_addr(),
+        &mgr.cfg.gossip_listen.local_addr().to_string(),
         mgr.cfg.ring_key.clone(),
     ) {
         Ok(client) => client,
@@ -395,7 +395,7 @@ pub fn supervisor_depart(
         }
     };
     outputln!("Attempting to depart member: {}", member_id);
-    match client.send_departure(member_id) {
+    match client.send_departure(&member_id) {
         Ok(()) => {
             req.reply_complete(net::ok());
             Ok(())

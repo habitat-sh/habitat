@@ -35,6 +35,7 @@ where
     pub app: App<'a, 'b>,
 }
 
+#[derive(Clone, Copy)]
 pub struct PkgIdentArgOptions {
     pub multiple: bool,
 }
@@ -299,6 +300,7 @@ impl<'a, 'b> Cli<'a, 'b> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_ident_or_hart(val: String) -> result::Result<(), String> {
     if Path::new(&val).is_file() {
         Ok(())
@@ -312,6 +314,7 @@ fn valid_ident_or_hart(val: String) -> result::Result<(), String> {
     }
 }
 
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_url(val: String) -> result::Result<(), String> {
     match Url::parse(&val) {
         Ok(_) => Ok(()),

@@ -378,18 +378,18 @@ test: something"#
             PackageInstall::new_from_parts(pg_id.clone(), root.clone(), root.clone(), root.clone());
 
         let toml_path = root.join("default.toml");
-        create_with_content(toml_path, &String::from("message = \"Hello\""));
+        create_with_content(toml_path, "message = \"Hello\"");
         let hooks_path = root.join("hooks");
         std::fs::create_dir_all(&hooks_path).unwrap();
         create_with_content(
             hooks_path.join("install"),
-            &String::from("install message is {{cfg.message}}"),
+            "install message is {{cfg.message}}",
         );
         let config_path = root.join("config_install");
         std::fs::create_dir_all(&config_path).unwrap();
         create_with_content(
             config_path.join("config.txt"),
-            &String::from("config message is {{cfg.message}}"),
+            "config message is {{cfg.message}}",
         );
 
         compile_for_package_install(&pkg_install).expect("compile package");

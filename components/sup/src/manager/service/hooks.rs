@@ -667,7 +667,7 @@ mod tests {
 
         // This is gross, but it actually works
         let cfg_path = &concrete_path.as_path().join("default.toml");
-        create_with_content(cfg_path, &String::from("message = \"Hello\""));
+        create_with_content(cfg_path, "message = \"Hello\"");
 
         let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
             .expect("Could not create config");

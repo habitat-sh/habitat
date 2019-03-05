@@ -355,7 +355,7 @@ impl Future for SrvHandler {
                                 CtlCommand::new(
                                     Some(self.tx.clone()),
                                     msg.transaction(),
-                                    move |state, req| commands::service_load(state, req, m.clone()),
+                                    move |state, req| commands::service_load(state, req, &m),
                                 )
                             }
                             "SvcUnload" => {

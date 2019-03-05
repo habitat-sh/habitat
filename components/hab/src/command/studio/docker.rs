@@ -126,7 +126,7 @@ pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> 
     if !is_serving_windows_containers(&docker_cmd) {
         check_mounts(&docker_cmd, volumes.iter())?;
     }
-    run_container(docker_cmd, args, volumes.iter(), env_vars.iter())
+    run_container(docker_cmd, &args, volumes.iter(), env_vars.iter())
 }
 
 fn find_docker_cmd() -> Result<PathBuf> {
@@ -230,7 +230,7 @@ where
 
 fn run_container<I, J, S, T>(
     docker_cmd: PathBuf,
-    args: Vec<OsString>,
+    args: &[OsString],
     volumes: I,
     env_vars: J,
 ) -> Result<()>
@@ -280,7 +280,7 @@ where
         cmd_args.push(vol.as_ref().into());
     }
     cmd_args.push(image.into());
-    cmd_args.extend_from_slice(args.as_slice());
+    cmd_args.extend_from_slice(args);
     if using_windows_containers {
         cmd_args.push("-n".into());
         cmd_args.push("-o".into());

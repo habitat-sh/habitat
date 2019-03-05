@@ -16,7 +16,6 @@ use env_logger;
 
 use std::{env,
           net::SocketAddr,
-          path::PathBuf,
           thread,
           time::Duration};
 
@@ -57,7 +56,7 @@ fn main() {
         trace::Trace::default(),
         None,
         None,
-        None::<PathBuf>,
+        None,
         Box::new(ZeroSuitability),
     )
     .unwrap();

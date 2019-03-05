@@ -28,10 +28,7 @@ pub struct EtcPasswdEntry {
 }
 
 impl EtcPasswdEntry {
-    pub fn new<S>(name: S, uid: u32, gid: u32) -> Self
-    where
-        S: ToString,
-    {
+    pub fn new(name: &str, uid: u32, gid: u32) -> Self {
         Self {
             name: name.to_string(),
             uid,
@@ -61,17 +58,13 @@ pub struct EtcGroupEntry {
 }
 
 impl EtcGroupEntry {
-    pub fn empty_group<S>(name: S, gid: u32) -> Self
-    where
-        S: ToString,
-    {
+    pub fn empty_group(name: &str, gid: u32) -> Self {
         let users: Vec<String> = vec![];
-        Self::group_with_users(name, gid, users)
+        Self::group_with_users(name, gid, &users)
     }
 
-    pub fn group_with_users<S, U>(name: S, gid: u32, users: Vec<U>) -> Self
+    pub fn group_with_users<U>(name: &str, gid: u32, users: &[U]) -> Self
     where
-        S: ToString,
         U: ToString,
     {
         Self {
@@ -108,7 +101,7 @@ mod test {
 
     #[test]
     fn etc_group_entry_with_users_renders_correctly() {
-        let entry = EtcGroupEntry::group_with_users("my_group", 456, vec!["larry", "moe", "curly"]);
+        let entry = EtcGroupEntry::group_with_users("my_group", 456, &["larry", "moe", "curly"]);
         let rendered = format!("{}", entry);
 
         assert_eq!(rendered, "my_group:x:456:larry,moe,curly");

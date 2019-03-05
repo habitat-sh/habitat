@@ -107,11 +107,7 @@ pub struct RumorKey {
 }
 
 impl RumorKey {
-    pub fn new<A, B>(kind: RumorType, id: A, key: B) -> RumorKey
-    where
-        A: ToString,
-        B: ToString,
-    {
+    pub fn new(kind: RumorType, id: &str, key: &str) -> RumorKey {
         RumorKey {
             kind,
             id: id.to_string(),
@@ -641,11 +637,7 @@ mod tests {
 
     #[test]
     fn rumor_keys_kind_can_be_represented_as_a_string() {
-        let r = RumorKey::new(
-            RumorType::Member,
-            String::from("my-sweet-id"),
-            String::from("my-sweet-key"),
-        );
+        let r = RumorKey::new(RumorType::Member, "my-sweet-id", "my-sweet-key");
         assert_eq!(r.kind.to_string(), "member");
     }
 
