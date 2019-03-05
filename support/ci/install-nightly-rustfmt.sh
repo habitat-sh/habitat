@@ -7,8 +7,4 @@ dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 source "$dir/shared.sh"
 toolchain=$(get_current_toolchain)
 
-install_rustup
 install_rustfmt "$toolchain"
-cargo_fmt="cargo +$toolchain fmt --all -- --check"
-echo "--- :rust: Running cargo fmt command: $cargo_fmt"
-$cargo_fmt
