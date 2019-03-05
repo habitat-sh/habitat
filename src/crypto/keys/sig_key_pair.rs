@@ -709,10 +709,8 @@ mod test {
         let key = fixture("keys/origin-key-valid-20160509190508.sig.key");
         fs::copy(key,
                  cache.path().join("origin-key-valid-20160509190508.sig.key")).unwrap();
-
-        SigKeyPair::write_file_from_str("SIG-SEC-1\norigin-key-valid-20160509190508\n\\
-                                         nc29tZXRoaW5n",
-                                        cache.path()).unwrap();
+        let k = "SIG-SEC-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n";
+        SigKeyPair::write_file_from_str(k, cache.path()).unwrap();
     }
 
     #[test]
@@ -722,9 +720,7 @@ mod test {
         let key = fixture("keys/origin-key-valid-20160509190508.pub");
         fs::copy(key,
                  cache.path().join("origin-key-valid-20160509190508.pub")).unwrap();
-
-        SigKeyPair::write_file_from_str("SIG-PUB-1\norigin-key-valid-20160509190508\n\\
-                                         nc29tZXRoaW5n",
-                                        cache.path()).unwrap();
+        let k = "SIG-PUB-1\norigin-key-valid-20160509190508\n\nc29tZXRoaW5n";
+        SigKeyPair::write_file_from_str(k, cache.path()).unwrap();
     }
 }
