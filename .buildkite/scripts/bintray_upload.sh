@@ -43,7 +43,7 @@ if [ "$BUILD_PKG_TARGET" = "x86_64-windows" ]; then
     version=$(get_version)
     windows_ident=$(latest_from_builder x86_64-windows "${channel}" hab "${version}")
     echo "--- Downloading Windows version directly from bldr: $windows_ident"
-    curl "https://bldr.habitat.sh/v1/depot/pkgs/$windows_ident/download?target=$BUILD_PKG_TARGET" -o "/hab/cache/artifacts/$hab_artifact"
+    sudo curl "https://bldr.habitat.sh/v1/depot/pkgs/$windows_ident/download?target=$BUILD_PKG_TARGET" -o "/hab/cache/artifacts/$hab_artifact"
 else
     sudo "${hab_binary:?}" pkg install core/hab --channel="${channel}"
 fi
