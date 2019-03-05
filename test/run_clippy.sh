@@ -39,8 +39,7 @@ unexamined_lints=()
 # Lints we disagree with and choose to keep in our code with no warning
 allowed_lints=(clippy::module_inception \
                clippy::new_ret_no_self \
-               clippy::new_without_default \
-               clippy::new_without_default_derive)
+               clippy::new_without_default)
 
 # Known failing lints we want to receive warnings for, but not fail the build
 lints_to_fix=(clippy::cyclomatic_complexity \
