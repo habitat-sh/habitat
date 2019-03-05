@@ -12,42 +12,42 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::env;
-use std::io::Error;
-use std::ptr::null_mut;
+use std::{env,
+          io::Error,
+          ptr::null_mut};
 
 use widestring::WideCString;
-use winapi::shared::minwindef::{BOOL, LPDWORD};
-use winapi::shared::ntdef::LPCWSTR;
-use winapi::shared::winerror::*;
-use winapi::um::winnt::{PSID, PSID_NAME_USE, SID_NAME_USE};
+use winapi::{shared::{minwindef::{BOOL,
+                                  LPDWORD},
+                      ntdef::LPCWSTR,
+                      winerror::*},
+             um::winnt::{PSID,
+                         PSID_NAME_USE,
+                         SID_NAME_USE}};
 
 use super::sid::Sid;
 
 extern "system" {
-    fn LookupAccountNameW(
-        lpSystemName: LPCWSTR,
-        lpAccountName: LPCWSTR,
-        Sid: PSID,
-        cbSid: LPDWORD,
-        ReferencedDomainName: LPCWSTR,
-        cchReferencedDomainName: LPDWORD,
-        peUse: PSID_NAME_USE,
-    ) -> BOOL;
+    fn LookupAccountNameW(lpSystemName: LPCWSTR,
+                          lpAccountName: LPCWSTR,
+                          Sid: PSID,
+                          cbSid: LPDWORD,
+                          ReferencedDomainName: LPCWSTR,
+                          cchReferencedDomainName: LPDWORD,
+                          peUse: PSID_NAME_USE)
+                          -> BOOL;
 }
 
 pub struct Account {
-    pub name: String,
-    pub system_name: Option<String>,
-    pub domain: String,
+    pub name:         String,
+    pub system_name:  Option<String>,
+    pub domain:       String,
     pub account_type: SID_NAME_USE,
-    pub sid: Sid,
+    pub sid:          Sid,
 }
 
 impl Account {
-    pub fn from_name(name: &str) -> Option<Account> {
-        lookup_account(name, None)
-    }
+    pub fn from_name(name: &str) -> Option<Account> { lookup_account(name, None) }
 
     pub fn from_name_and_system(name: &str, system_name: &str) -> Option<Account> {
         lookup_account(name, Some(system_name.to_string()))
@@ -69,25 +69,21 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     let mut domain_size: u32 = 0;
     let wide = WideCString::from_str(stripped_name).unwrap();
     unsafe {
-        LookupAccountNameW(
-            null_mut(),
-            wide.as_ptr(),
-            null_mut(),
-            &mut sid_size as LPDWORD,
-            null_mut(),
-            &mut domain_size as LPDWORD,
-            null_mut(),
-        )
+        LookupAccountNameW(null_mut(),
+                           wide.as_ptr(),
+                           null_mut(),
+                           &mut sid_size as LPDWORD,
+                           null_mut(),
+                           &mut domain_size as LPDWORD,
+                           null_mut())
     };
     match Error::last_os_error().raw_os_error().unwrap() as u32 {
         ERROR_INSUFFICIENT_BUFFER => {}
         ERROR_NONE_MAPPED => return None,
         _ => {
-            error!(
-                "Error while looking up account for {}: {}",
-                name,
-                Error::last_os_error()
-            );
+            error!("Error while looking up account for {}: {}",
+                   name,
+                   Error::last_os_error());
             return None;
         }
     }
@@ -97,22 +93,18 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     let mut sid_type: SID_NAME_USE = 0 as SID_NAME_USE;
 
     let ret = unsafe {
-        LookupAccountNameW(
-            null_mut(),
-            wide.as_ptr(),
-            sid.as_mut_ptr() as PSID,
-            &mut sid_size as LPDWORD,
-            domain.as_mut_ptr(),
-            &mut domain_size as LPDWORD,
-            &mut sid_type as PSID_NAME_USE,
-        )
+        LookupAccountNameW(null_mut(),
+                           wide.as_ptr(),
+                           sid.as_mut_ptr() as PSID,
+                           &mut sid_size as LPDWORD,
+                           domain.as_mut_ptr(),
+                           &mut domain_size as LPDWORD,
+                           &mut sid_type as PSID_NAME_USE)
     };
     if ret == 0 {
-        error!(
-            "Failed to retrieve SID for {}: {}",
-            name,
-            Error::last_os_error()
-        );
+        error!("Failed to retrieve SID for {}: {}",
+               name,
+               Error::last_os_error());
         return None;
     }
     unsafe {
@@ -120,20 +112,19 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
         sid.set_len(sid_size as usize);
     }
     let domain_str = WideCString::new(domain).unwrap().to_string_lossy();
-    Some(Account {
-        name: name.to_string(),
-        system_name: system_name,
-        domain: domain_str,
-        account_type: sid_type,
-        sid: Sid { raw: sid },
-    })
+    Some(Account { name: name.to_string(),
+                   system_name,
+                   domain: domain_str,
+                   account_type: sid_type,
+                   sid: Sid { raw: sid } })
 }
 
 #[cfg(test)]
 mod tests {
     use std::env;
 
-    use winapi::um::winnt::{SidTypeUser, SidTypeWellKnownGroup};
+    use winapi::um::winnt::{SidTypeUser,
+                            SidTypeWellKnownGroup};
 
     use super::*;
 
@@ -143,9 +134,7 @@ mod tests {
     }
 
     #[test]
-    fn bogus_account_returns_none() {
-        assert_eq!(Account::from_name("bogus").is_none(), true)
-    }
+    fn bogus_account_returns_none() { assert_eq!(Account::from_name("bogus").is_none(), true) }
 
     #[test]
     fn user_account_returns_user_type() {
@@ -174,23 +163,17 @@ mod tests {
     #[test]
     fn mixing_case_returns_same_account() {
         let current_user = env::var("USERNAME").unwrap();
-        let lower_sid = Account::from_name(current_user.to_lowercase().as_str())
-            .unwrap()
-            .sid;
-        let upper_sid = Account::from_name(current_user.to_uppercase().as_str())
-            .unwrap()
-            .sid;
-        assert_eq!(
-            lower_sid.to_string().unwrap(),
-            upper_sid.to_string().unwrap()
-        )
+        let lower_sid = Account::from_name(current_user.to_lowercase().as_str()).unwrap()
+                                                                                .sid;
+        let upper_sid = Account::from_name(current_user.to_uppercase().as_str()).unwrap()
+                                                                                .sid;
+        assert_eq!(lower_sid.to_string().unwrap(),
+                   upper_sid.to_string().unwrap())
     }
 
     #[test]
     fn machine_account_returns_some() {
-        assert_eq!(
-            Account::from_name((env::var("COMPUTERNAME").unwrap() + "$").as_str()).is_some(),
-            true
-        )
+        assert_eq!(Account::from_name((env::var("COMPUTERNAME").unwrap() + "$").as_str()).is_some(),
+                   true)
     }
 }
