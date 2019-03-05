@@ -72,6 +72,14 @@ mod test {
             assert!(cli().get_matches_from_safe(cmd_vec).is_err());
         }
 
+        #[test]
+        fn local_gossip_mode_and_peer_watch_file_are_mutually_exclusive() {
+            let cmd_vec = Vec::from_iter(
+                "hab-sup run --local-gossip-mode --peer-watch-file foobar".split_whitespace(),
+            );
+            assert!(cli().get_matches_from_safe(cmd_vec).is_err());
+        }
+
     }
 
 }
