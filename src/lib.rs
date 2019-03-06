@@ -27,14 +27,12 @@ pub mod error;
 pub mod event;
 pub mod fs;
 pub mod os;
-pub mod output;
 pub mod package;
 pub mod service;
 pub mod url;
 pub mod util;
 
-use std::{fmt,
-          path::PathBuf};
+use std::fmt;
 
 use serde_derive::{Deserialize,
                    Serialize};
@@ -43,17 +41,6 @@ pub use crate::os::{filesystem,
                     users};
 
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
-
-lazy_static::lazy_static! {
-    pub static ref PROGRAM_NAME: String = {
-        let arg0 = std::env::args().next().map(PathBuf::from);
-        arg0.as_ref()
-            .and_then(|p| p.file_stem())
-            .and_then(|p| p.to_str())
-            .unwrap()
-            .to_string()
-    };
-}
 
 // A Builder channel
 #[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
