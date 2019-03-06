@@ -48,8 +48,7 @@ use habitat_common::{self,
 use habitat_core::{self,
                    os::process::Pid,
                    package::{self,
-                             Identifiable,
-                             PackageInstall}};
+                             Identifiable}};
 use habitat_launcher_client;
 use habitat_sup_protocol;
 use notify;
