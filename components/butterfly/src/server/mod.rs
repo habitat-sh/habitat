@@ -807,8 +807,7 @@ impl Server {
 
     /// Check if a given service group has quorum to run an election.
     ///
-    /// A given group has quorum if, from this servers perspective, it has an alive population that
-    /// is over 50%, and at least 3 members.
+    /// A group has quorum if a majority of its non-departed members are alive.
     fn check_quorum(&self, key: &str) -> bool {
         let electorate = self.get_electorate(key);
         let service_group_members = self.get_total_population(key);
