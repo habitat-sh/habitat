@@ -356,25 +356,25 @@ impl<'a> SvcDir<'a> {
     }
 
     /// Utility function that removes all files in `root`.
-    fn purge_directory_content<P>(root: P) -> Result<()>
-        where P: AsRef<Path>
-    {
-        for entry in fs::read_dir(root.as_ref())? {
+    fn purge_directory_content(root: &Path) -> Result<()> {
+        for entry in fs::read_dir(root)? {
             let entry = entry?;
-            if let Ok(file_type) = entry.file_type() {
-                if file_type.is_file() {
-                    debug!("Purging file {:?}", entry.path().display());
-                    fs::remove_file(entry.path())?;
-                } else if file_type.is_dir() {
-                    debug!("Purging directory {:?}", entry.path().display());
-                    fs::remove_dir_all(entry.path())?;
-                } else if file_type.is_symlink() {
-                    debug!("Purging symlink {:?}", entry.path().display());
-                    fs::remove_file(entry.path())?;
+            match entry.file_type() {
+                Ok(ft) => {
+                    debug!("Purging {:?} {:?}", ft, entry);
+                    if ft.is_file() || ft.is_symlink() {
+                        fs::remove_file(entry.path())?;
+                    } else if ft.is_dir() {
+                        fs::remove_dir_all(entry.path())?;
+                    } else {
+                        debug!("Nothing to do for {:?}", ft);
+                    }
                 }
-            } else {
-                warn!("Not purging {:?}; could not determine file type",
-                      entry.path().display());
+                Err(e) => {
+                    warn!("Not purging {}; could not determine file type: {}",
+                          entry.path().display(),
+                          e);
+                }
             }
         }
         Ok(())
@@ -800,7 +800,7 @@ mod tests {
             assert!(sub_file_1.exists());
             assert!(sub_file_2.exists());
 
-            SvcDir::purge_directory_content(&root).expect("Couldn't purge!");
+            SvcDir::purge_directory_content(&root.path()).expect("Couldn't purge!");
 
             assert!(root.as_ref().exists());
             assert!(!file_1.exists());
