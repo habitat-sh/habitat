@@ -43,7 +43,6 @@ allowed_lints=(clippy::module_inception \
 
 # Known failing lints we want to receive warnings for, but not fail the build
 lints_to_fix=(clippy::cyclomatic_complexity \
-               clippy::large_enum_variant \
                clippy::needless_return \
                clippy::too_many_arguments)
 
@@ -66,6 +65,7 @@ denied_lints=(clippy::assign_op_pattern \
                clippy::identity_conversion \
                clippy::if_let_some_result \
                clippy::just_underscores_and_digits \
+               clippy::large_enum_variant \
                clippy::len_without_is_empty \
                clippy::len_zero \
                clippy::let_and_return \

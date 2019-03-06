@@ -66,7 +66,8 @@ pub enum Error {
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
     /// When an error occurs registering template file
-    TemplateFileError(handlebars::TemplateFileError),
+    // Boxed due to clippy::large_enum_variant
+    TemplateFileError(Box<handlebars::TemplateFileError>),
     /// When an error occurs rendering template
     /// The error is constructed with a handlebars::RenderError's format string instead
     /// of the handlebars::RenderError itself because the cause field of the
@@ -207,7 +208,7 @@ impl From<api_client::Error> for Error {
 }
 
 impl From<handlebars::TemplateFileError> for Error {
-    fn from(err: handlebars::TemplateFileError) -> Self { Error::TemplateFileError(err) }
+    fn from(err: handlebars::TemplateFileError) -> Self { Error::TemplateFileError(Box::new(err)) }
 }
 
 impl From<hcore::Error> for Error {

@@ -125,7 +125,7 @@ impl Pull {
                     self.server
                         .insert_member_from_rumor(membership.member, membership.health);
                 }
-                RumorKind::Service(service) => self.server.insert_service(service),
+                RumorKind::Service(service) => self.server.insert_service(*service),
                 RumorKind::ServiceConfig(service_config) => {
                     self.server.insert_service_config(service_config);
                 }
