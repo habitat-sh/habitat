@@ -37,10 +37,10 @@ static HABITAT_SUBJECT: &'static str = "habitat";
 // TODO: This will change as we firm up what the interaction between
 // Habitat and A2 looks like.
 pub struct EventConnectionInfo {
-    pub name: String,
-    pub verbose: bool,
+    pub name:        String,
+    pub verbose:     bool,
     pub cluster_uri: String,
-    pub cluster_id: String,
+    pub cluster_id:  String,
 }
 
 /// Defines default connection information for a NATS Streaming server
@@ -50,12 +50,10 @@ pub struct EventConnectionInfo {
 // prototyping, though.
 impl Default for EventConnectionInfo {
     fn default() -> Self {
-        EventConnectionInfo {
-            name: String::from("habitat"),
-            verbose: true,
-            cluster_uri: String::from("127.0.0.1:4223"),
-            cluster_id: String::from("test-cluster"),
-        }
+        EventConnectionInfo { name:        String::from("habitat"),
+                              verbose:     true,
+                              cluster_uri: String::from("127.0.0.1:4223"),
+                              cluster_id:  String::from("test-cluster"), }
     }
 }
 
@@ -68,30 +66,27 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
     // it in the Supervisor's Tokio runtime, but there's currently a
     // bug: https://github.com/YellowInnovation/nitox/issues/24
 
-    thread::Builder::new()
-        .name("events".to_string())
-        .spawn(move || {
-            let EventConnectionInfo {
-                name,
-                verbose,
-                cluster_uri,
-                cluster_id,
-            } = conn_info;
+    thread::Builder::new().name("events".to_string())
+                          .spawn(move || {
+                              let EventConnectionInfo { name,
+                                                        verbose,
+                                                        cluster_uri,
+                                                        cluster_id, } = conn_info;
 
-            let cc = ConnectCommand::builder()
+                              let cc = ConnectCommand::builder()
                 // .user(Some("nats".to_string()))
                 // .pass(Some("S3Cr3TP@5w0rD".to_string()))
                 .name(Some(name))
                 .verbose(verbose)
                 .build()
                 .unwrap();
-            let opts = NatsClientOptions::builder()
-                .connect_command(cc)
-                .cluster_uri(cluster_uri.as_str())
-                .build()
-                .unwrap();
+                              let opts =
+                                  NatsClientOptions::builder().connect_command(cc)
+                                                              .cluster_uri(cluster_uri.as_str())
+                                                              .build()
+                                                              .unwrap();
 
-            let publisher = NatsClient::from_options(opts)
+                              let publisher = NatsClient::from_options(opts)
                 .map_err(Into::<NatsStreamingError>::into)
                 .and_then(|client| {
                     NatsStreamingClient::from(client)
@@ -112,13 +107,12 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
                     })
                 });
 
-            ThreadRuntime::new()
-                .expect("Couldn't create event stream runtime!")
-                .spawn(publisher)
-                .run()
-                .expect("something seriously wrong has occurred");
-        })
-        .expect("Couldn't start events thread!");
+                              ThreadRuntime::new().expect("Couldn't create event stream runtime!")
+                                                  .spawn(publisher)
+                                                  .run()
+                                                  .expect("something seriously wrong has occurred");
+                          })
+                          .expect("Couldn't start events thread!");
 
     sync_rx.recv()?; // TODO (CM): nicer error message
     Ok(EventStream(event_tx))

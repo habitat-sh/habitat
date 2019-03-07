@@ -52,10 +52,10 @@ lazy_static! {
 /// static reference for access later.
 pub fn init_stream(conn_info: EventConnectionInfo, event_core: EventCore) {
     INIT.call_once(|| {
-        let event_stream = nats::init_stream(conn_info).expect("Could not start NATS thread");
-        EVENT_STREAM.set(event_stream);
-        EVENT_CORE.set(event_core);
-    });
+            let event_stream = nats::init_stream(conn_info).expect("Could not start NATS thread");
+            EVENT_STREAM.set(event_stream);
+            EVENT_CORE.set(event_core);
+        });
 }
 
 /// Publish an event. This is the main interface that client code will
