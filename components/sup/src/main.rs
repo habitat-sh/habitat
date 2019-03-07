@@ -80,7 +80,8 @@ use crate::sup::{cli::cli,
                          SupError},
                  feat,
                  manager::{Manager,
-                           ManagerConfig},
+                           ManagerConfig,
+                           TLSConfig},
                  util};
 
 #[cfg(test)]
@@ -278,14 +279,17 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
             },
             |v| v.parse(),
         )?,
-        tls_files: m.value_of("KEY_FILE").and_then(|kf| {
-            Some((
-                PathBuf::from(kf),
-                PathBuf::from(
-                    m.value_of("CERT_FILE")
-                        .expect("CERT_FILE should always have a value if KEY_FILE has a value."),
-                ),
-            ))
+        tls_config: m.value_of("KEY_FILE").map(|kf| {
+            let cert_path = m
+                .value_of("CERT_FILE")
+                .map(PathBuf::from)
+                .expect("CERT_FILE should always have a value if KEY_FILE has a value.");
+            let ca_cert_path = m.value_of("CA_CERT_FILE").map(PathBuf::from);
+            TLSConfig {
+                key_path: PathBuf::from(kf),
+                cert_path,
+                ca_cert_path,
+            }
         }),
         // default is only included here for the custom_state_path field which will ideally
         // eventually be removed, it only exists to manipulate test data.

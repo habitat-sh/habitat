@@ -90,7 +90,9 @@ use prometheus::{HistogramVec,
                  IntGauge,
                  IntGaugeVec};
 use rustls::{internal::pemfile,
+             AllowAnyAuthenticatedClient,
              NoClientAuth,
+             RootCertStore,
              ServerConfig};
 use serde_json;
 use std::{self,
@@ -218,7 +220,14 @@ pub struct ManagerConfig {
     pub ring_key:          Option<SymKey>,
     pub organization:      Option<String>,
     pub watch_peer_file:   Option<String>,
-    pub tls_files:         Option<(PathBuf, PathBuf)>,
+    pub tls_config:        Option<TLSConfig>,
+}
+
+#[derive(Clone, Debug)]
+pub struct TLSConfig {
+    pub cert_path:    PathBuf,
+    pub key_path:     PathBuf,
+    pub ca_cert_path: Option<PathBuf>,
 }
 
 impl ManagerConfig {
@@ -242,7 +251,7 @@ impl Default for ManagerConfig {
                         ring_key:          None,
                         organization:      None,
                         watch_peer_file:   None,
-                        tls_files:         None, }
+                        tls_config:        None, }
     }
 }
 
@@ -695,9 +704,9 @@ impl Manager {
             // appropriate config here, where it's easy to propagate errors, vs in a separate
             // thread, where that process is more cumbersome.
 
-            let tls_server_config = match self.state.cfg.tls_files {
-                Some((ref key_path, ref cert_path)) => {
-                    match tls_config(key_path, cert_path) {
+            let tls_server_config = match &self.state.cfg.tls_config {
+                Some(c) => {
+                    match tls_config(c) {
                         Ok(c) => Some(c),
                         Err(e) => return Err(e),
                     }
@@ -1427,13 +1436,27 @@ impl Manager {
     }
 }
 
-fn tls_config<A, B>(key_path: A, cert_path: B) -> Result<ServerConfig>
-    where A: AsRef<Path>,
-          B: AsRef<Path>
-{
-    let mut config = ServerConfig::new(NoClientAuth::new());
-    let key_file = &mut BufReader::new(File::open(&key_path)?);
-    let cert_file = &mut BufReader::new(File::open(&cert_path)?);
+fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
+    let client_auth = match &config.ca_cert_path {
+        Some(path) => {
+            let mut root_store = RootCertStore::empty();
+            let ca_file = &mut BufReader::new(File::open(path)?);
+            root_store.add_pem_file(ca_file)
+                      .and_then(|(added, _)| {
+                          if added < 1 {
+                              Err(())
+                          } else {
+                              Ok(AllowAnyAuthenticatedClient::new(root_store))
+                          }
+                      })
+                      .map_err(|_| sup_error!(Error::InvalidCertFile(path.clone())))?
+        }
+        None => NoClientAuth::new(),
+    };
+
+    let mut server_config = ServerConfig::new(client_auth);
+    let key_file = &mut BufReader::new(File::open(&config.key_path)?);
+    let cert_file = &mut BufReader::new(File::open(&config.cert_path)?);
 
     // Note that we must explicitly map these errors because rustls returns () as the error from
     // both pemfile::certs() as well as pemfile::rsa_private_keys() and we want to return
@@ -1441,17 +1464,19 @@ fn tls_config<A, B>(key_path: A, cert_path: B) -> Result<ServerConfig>
     let cert_chain =
         pemfile::certs(cert_file).and_then(|c| if c.is_empty() { Err(()) } else { Ok(c) })
                                  .map_err(|_| {
-                                     sup_error!(Error::InvalidCertFile(cert_path.as_ref()
-                                                                                .to_path_buf()))
+                                     sup_error!(Error::InvalidCertFile(config.cert_path.clone()))
                                  })?;
 
-    let key = pemfile::rsa_private_keys(key_file)
-        .and_then(|mut k| k.pop().ok_or(()))
-        .map_err(|_| sup_error!(Error::InvalidKeyFile(key_path.as_ref().to_path_buf())))?;
+    let key =
+        pemfile::rsa_private_keys(key_file).and_then(|mut k| k.pop().ok_or(()))
+                                           .map_err(|_| {
+                                               sup_error!(Error::InvalidKeyFile(config.key_path
+                                                                                      .clone()))
+                                           })?;
 
-    config.set_single_cert(cert_chain, key)?;
-    config.ignore_client_order = true;
-    Ok(config)
+    server_config.set_single_cert(cert_chain, key)?;
+    server_config.ignore_client_order = true;
+    Ok(server_config)
 }
 
 /// Represents how many threads to start for our main Tokio runtime
