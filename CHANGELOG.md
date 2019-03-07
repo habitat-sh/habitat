@@ -7,6 +7,7 @@
 - Asynchronous service shutdown [#6107](https://github.com/habitat-sh/habitat/pull/6107) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- [sup] Enable client-authentication with TLS [#6172](https://github.com/habitat-sh/habitat/pull/6172) ([stevendanna](https://github.com/stevendanna))
 - Enable some of the other options [#6201](https://github.com/habitat-sh/habitat/pull/6201) ([raskchanky](https://github.com/raskchanky))
 - Add option to run the supervisor in &quot;local mode&quot; [#6209](https://github.com/habitat-sh/habitat/pull/6209) ([mpeck](https://github.com/mpeck))
 - [pipeline] Ensure user is root when `curl`ing Windows artifact. [#6253](https://github.com/habitat-sh/habitat/pull/6253) ([fnichol](https://github.com/fnichol))
