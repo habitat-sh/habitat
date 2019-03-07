@@ -16,7 +16,7 @@
 
 use super::EventStream;
 use crate::error::Result;
-use futures::{sync::mpsc::unbounded,
+use futures::{sync::mpsc as futures_mpsc,
               Future,
               Stream};
 use nitox::{commands::ConnectCommand,
@@ -24,7 +24,7 @@ use nitox::{commands::ConnectCommand,
                         error::NatsStreamingError},
             NatsClient,
             NatsClientOptions};
-use std::{sync::mpsc::sync_channel,
+use std::{sync::mpsc as std_mpsc,
           thread};
 use tokio::{executor,
             runtime::current_thread::Runtime as ThreadRuntime};
@@ -59,8 +59,8 @@ impl Default for EventConnectionInfo {
 
 pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
     // TODO (CM): Investigate back-pressure scenarios
-    let (event_tx, event_rx) = unbounded();
-    let (sync_tx, sync_rx) = sync_channel(0); // rendezvous channel
+    let (event_tx, event_rx) = futures_mpsc::unbounded();
+    let (sync_tx, sync_rx) = std_mpsc::sync_channel(0); // rendezvous channel
 
     // TODO (CM): We could theoretically create this future and spawn
     // it in the Supervisor's Tokio runtime, but there's currently a
