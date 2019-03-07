@@ -30,7 +30,7 @@ use tokio::{executor,
             runtime::current_thread::Runtime as ThreadRuntime};
 
 /// All messages are published under this subject.
-static HABITAT_SUBJECT: &'static str = "habitat";
+const HABITAT_SUBJECT: &str = "habitat";
 
 /// All the information needed to establish a connection to a NATS
 /// Streaming server.
