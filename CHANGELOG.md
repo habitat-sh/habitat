@@ -16,6 +16,7 @@
 - Enable local installation of latest rustfmt [#6238](https://github.com/habitat-sh/habitat/pull/6238) ([raskchanky](https://github.com/raskchanky))
 
 #### Bug Fixes
+- refactor ctl_gateway and launcher to leverage windows color friendly StructuredOutput [#6256](https://github.com/habitat-sh/habitat/pull/6256) ([mwrock](https://github.com/mwrock))
 - Fix plan build regression in 0.76.0 release [#6257](https://github.com/habitat-sh/habitat/pull/6257) ([baumanj](https://github.com/baumanj))
 <!-- latest_release -->
 
