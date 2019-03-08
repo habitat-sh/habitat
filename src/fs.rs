@@ -737,6 +737,7 @@ impl AtomicWriter {
     /// unlink() operations have been persisted to disk. sync_parent
     /// ensures the durability of AtomicWriter but is not required for
     /// the atomocity guarantee.
+    #[cfg(unix)]
     fn sync_parent(&self) -> io::Result<()> {
         let parent = parent(&self.dest)?;
         let f = fs::File::open(parent)?;
