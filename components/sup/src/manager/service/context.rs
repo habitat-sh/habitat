@@ -47,31 +47,28 @@
 //! their focused and single-use purpose; they shouldn't be used for
 //! anything else, and so, they _can't_ be used for anything else.
 
-use std::{borrow::Cow,
-          collections::HashMap,
-          net::IpAddr,
-          path::PathBuf,
-          result};
-
-use serde::{ser::SerializeMap,
-            Serialize,
-            Serializer};
-use toml;
-
-use crate::{butterfly::rumor::service::SysInfo,
-            common::templating::{config::Cfg,
-                                 package::{Env,
-                                           Pkg}},
-            hcore::{package::PackageIdent,
-                    service::{ServiceBind,
-                              ServiceGroup}}};
-
 use crate::{census::{CensusGroup,
                      CensusMember,
                      CensusRing,
                      ElectionStatus,
                      MemberId},
             manager::Sys};
+use habitat_butterfly::rumor::service::SysInfo;
+use habitat_common::templating::{config::Cfg,
+                                 package::{Env,
+                                           Pkg}};
+use habitat_core::{package::PackageIdent,
+                   service::{ServiceBind,
+                             ServiceGroup}};
+use serde::{ser::SerializeMap,
+            Serialize,
+            Serializer};
+use std::{borrow::Cow,
+          collections::HashMap,
+          net::IpAddr,
+          path::PathBuf,
+          result};
+use toml;
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -574,10 +571,10 @@ mod tests {
     use serde_json;
     use tempfile::TempDir;
 
-    use crate::{butterfly::rumor::service::SysInfo,
-                common::templating::{config::PackageConfigPaths,
-                                     TemplateRenderer},
-                hcore::package::PackageIdent};
+    use habitat_butterfly::rumor::service::SysInfo;
+    use habitat_common::templating::{config::PackageConfigPaths,
+                                     TemplateRenderer};
+    use habitat_core::package::PackageIdent;
 
     use crate::{manager::service::Cfg,
                 test_helpers::*};

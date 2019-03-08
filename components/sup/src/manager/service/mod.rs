@@ -53,13 +53,14 @@ use futures::{future,
               Future,
               IntoFuture};
 use habitat_butterfly::rumor::service::Service as ServiceRumor;
-use habitat_common::templating::{config::CfgRenderer,
-                                 hooks::Hook};
 pub use habitat_common::templating::{config::{Cfg,
                                               UserConfigPath},
                                      package::{Env,
                                                Pkg,
                                                PkgProxy}};
+use habitat_common::{outputln,
+                     templating::{config::CfgRenderer,
+                                  hooks::Hook}};
 use habitat_core::{crypto::hash,
                    fs::{atomic_write,
                         svc_hooks_path,
@@ -819,16 +820,16 @@ impl Service {
     }
 
     #[cfg(not(windows))]
-    fn set_hook_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-        use crate::{common::templating::hooks::HOOK_PERMISSIONS,
-                    hcore::util::posix_perm};
+    fn set_hook_permissions<T: AsRef<Path>>(path: T) -> habitat_core::error::Result<()> {
+        use habitat_common::templating::hooks::HOOK_PERMISSIONS;
+        use habitat_core::util::posix_perm;
 
         posix_perm::set_permissions(path.as_ref(), HOOK_PERMISSIONS)
     }
 
     #[cfg(windows)]
-    fn set_hook_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-        use hcore::util::win_perm;
+    fn set_hook_permissions<T: AsRef<Path>>(path: T) -> habitat_core::error::Result<()> {
+        use habitat_core::util::win_perm;
 
         win_perm::harden_path(path.as_ref())
     }
@@ -1017,7 +1018,7 @@ impl Service {
 
     #[cfg(not(windows))]
     fn set_gossip_permissions<T: AsRef<Path>>(&self, path: T) -> bool {
-        use crate::hcore::{os::users,
+        use habitat_core::{os::users,
                            util::posix_perm};
 
         if users::can_run_services_as_svc_user() {
@@ -1042,7 +1043,7 @@ impl Service {
 
     #[cfg(windows)]
     fn set_gossip_permissions<T: AsRef<Path>>(&self, path: T) -> bool {
-        use hcore::util::win_perm;
+        use habitat_core::util::win_perm;
 
         if let Err(e) = win_perm::harden_path(path.as_ref()) {
             outputln!(preamble self.service_group,

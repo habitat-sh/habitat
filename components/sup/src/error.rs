@@ -36,19 +36,22 @@
 //! Also included in this module is `Result<T>`, a type alias for `Result<T, SupError>`. Use
 //! it instead of the longer `Result` form.
 
-use crate::{api_client,
-            butterfly,
-            common,
-            hcore::{self,
-                    os::process::Pid,
-                    output::StructuredOutput,
-                    package::{self,
-                              Identifiable,
-                              PackageInstall}},
-            launcher_client,
-            protocol};
 use futures::sync::oneshot;
 use glob;
+use habitat_api_client;
+use habitat_butterfly;
+use habitat_common::{self,
+                     output::{self,
+                              OutputVerbosity,
+                              StructuredOutput},
+                     PROGRAM_NAME};
+use habitat_core::{self,
+                   os::process::Pid,
+                   package::{self,
+                             Identifiable,
+                             PackageInstall}};
+use habitat_launcher_client;
+use habitat_sup_protocol;
 use notify;
 use rustls;
 use serde_json;
@@ -64,8 +67,6 @@ use std::{env,
           string,
           sync::mpsc};
 use toml;
-
-use crate::PROGRAM_NAME;
 
 static LOGKEY: &'static str = "ER";
 
@@ -109,22 +110,22 @@ pub enum Error {
     BadDataPath(PathBuf, io::Error),
     BadDesiredState(String),
     BadElectionStatus(String),
-    BadPackage(PackageInstall, hcore::error::Error),
+    BadPackage(PackageInstall, habitat_core::error::Error),
     BadSpecsPath(PathBuf, io::Error),
     BadStartStyle(String),
     BindTimeout(String),
     LockPoisoned,
     TestBootFail,
-    ButterflyError(butterfly::error::Error),
+    ButterflyError(habitat_butterfly::error::Error),
     CtlSecretIo(PathBuf, io::Error),
-    APIClient(api_client::Error),
+    APIClient(habitat_api_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
     FileNotFound(String),
     FileWatcherFileIsRoot,
     GroupNotFound(String),
-    HabitatCommon(common::Error),
-    HabitatCore(hcore::Error),
+    HabitatCommon(habitat_common::Error),
+    HabitatCore(habitat_core::Error),
     InvalidBinds(Vec<String>),
     InvalidCertFile(PathBuf),
     InvalidKeyFile(PathBuf),
@@ -135,13 +136,13 @@ pub enum Error {
     InvalidUpdateStrategy(String),
     Io(io::Error),
     IPFailed,
-    Launcher(launcher_client::Error),
+    Launcher(habitat_launcher_client::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
     NameLookup(io::Error),
-    NetErr(protocol::net::NetErr),
+    NetErr(habitat_sup_protocol::net::NetErr),
     NetParseError(net::AddrParseError),
-    NoActiveMembers(hcore::service::ServiceGroup),
+    NoActiveMembers(habitat_core::service::ServiceGroup),
     NoLauncher,
     NoSuchBind(String),
     NotifyCreateError(notify::Error),
@@ -325,13 +326,14 @@ impl fmt::Display for SupError {
             Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
         };
         let progname = PROGRAM_NAME.as_str();
-        let mut so = StructuredOutput::new(progname,
-                                           self.logkey,
-                                           self.line,
-                                           self.file,
-                                           self.column,
-                                           &content);
-        so.verbose = Some(true);
+        let so = StructuredOutput::new(progname,
+                                       self.logkey,
+                                       self.line,
+                                       self.file,
+                                       self.column,
+                                       output::get_format(),
+                                       OutputVerbosity::Verbose,
+                                       &content);
         write!(f, "{}", so)
     }
 }
@@ -428,13 +430,13 @@ impl From<rustls::TLSError> for SupError {
     fn from(err: rustls::TLSError) -> SupError { sup_error!(Error::TLSError(err)) }
 }
 
-impl From<api_client::Error> for SupError {
-    fn from(err: api_client::Error) -> SupError { sup_error!(Error::APIClient(err)) }
+impl From<habitat_api_client::Error> for SupError {
+    fn from(err: habitat_api_client::Error) -> SupError { sup_error!(Error::APIClient(err)) }
 }
 
-impl From<SupError> for protocol::net::NetErr {
-    fn from(err: SupError) -> protocol::net::NetErr {
-        protocol::net::err(protocol::net::ErrCode::Internal, err)
+impl From<SupError> for habitat_sup_protocol::net::NetErr {
+    fn from(err: SupError) -> habitat_sup_protocol::net::NetErr {
+        habitat_sup_protocol::net::err(habitat_sup_protocol::net::ErrCode::Internal, err)
     }
 }
 
@@ -442,20 +444,22 @@ impl From<net::AddrParseError> for SupError {
     fn from(err: net::AddrParseError) -> SupError { sup_error!(Error::NetParseError(err)) }
 }
 
-impl From<butterfly::error::Error> for SupError {
-    fn from(err: butterfly::error::Error) -> SupError { sup_error!(Error::ButterflyError(err)) }
+impl From<habitat_butterfly::error::Error> for SupError {
+    fn from(err: habitat_butterfly::error::Error) -> SupError {
+        sup_error!(Error::ButterflyError(err))
+    }
 }
 
-impl From<common::Error> for SupError {
-    fn from(err: common::Error) -> SupError { sup_error!(Error::HabitatCommon(err)) }
+impl From<habitat_common::Error> for SupError {
+    fn from(err: habitat_common::Error) -> SupError { sup_error!(Error::HabitatCommon(err)) }
 }
 
 impl From<glob::PatternError> for SupError {
     fn from(err: glob::PatternError) -> SupError { sup_error!(Error::SpecWatcherGlob(err)) }
 }
 
-impl From<hcore::Error> for SupError {
-    fn from(err: hcore::Error) -> SupError { sup_error!(Error::HabitatCore(err)) }
+impl From<habitat_core::Error> for SupError {
+    fn from(err: habitat_core::Error) -> SupError { sup_error!(Error::HabitatCore(err)) }
 }
 
 impl From<ffi::NulError> for SupError {
@@ -470,8 +474,8 @@ impl From<env::JoinPathsError> for SupError {
     fn from(err: env::JoinPathsError) -> SupError { sup_error!(Error::EnvJoinPathsError(err)) }
 }
 
-impl From<launcher_client::Error> for SupError {
-    fn from(err: launcher_client::Error) -> SupError { sup_error!(Error::Launcher(err)) }
+impl From<habitat_launcher_client::Error> for SupError {
+    fn from(err: habitat_launcher_client::Error) -> SupError { sup_error!(Error::Launcher(err)) }
 }
 
 impl From<string::FromUtf8Error> for SupError {
@@ -498,8 +502,8 @@ impl From<toml::ser::Error> for SupError {
     fn from(err: toml::ser::Error) -> Self { sup_error!(Error::TomlEncode(err)) }
 }
 
-impl From<protocol::net::NetErr> for SupError {
-    fn from(err: protocol::net::NetErr) -> Self { sup_error!(Error::NetErr(err)) }
+impl From<habitat_sup_protocol::net::NetErr> for SupError {
+    fn from(err: habitat_sup_protocol::net::NetErr) -> Self { sup_error!(Error::NetErr(err)) }
 }
 
 impl From<oneshot::Canceled> for SupError {

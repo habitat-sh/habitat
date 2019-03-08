@@ -13,15 +13,13 @@
 // limitations under the License.
 
 use env_logger;
-use habitat_core as core;
-use habitat_launcher as launcher;
-#[macro_use]
-extern crate log;
-
+use habitat_common::output::{self,
+                             OutputFormat,
+                             OutputVerbosity};
+use habitat_launcher::server;
+use log::error;
 use std::{env,
           process};
-
-use crate::launcher::server;
 
 fn main() {
     env_logger::init();
@@ -58,12 +56,12 @@ fn set_global_logging_options(args: &[String]) {
     // Note that each of these options has only one form, so we don't
     // have to check for long _and_ short options, for example.
     if args.contains(&String::from("--no-color")) {
-        core::output::set_no_color(true);
+        output::set_format(OutputFormat::NoColor)
     }
     if args.contains(&String::from("--json-logging")) {
-        core::output::set_json(true);
+        output::set_format(OutputFormat::JSON)
     }
     if args.contains(&String::from("-v")) {
-        core::output::set_verbose(true);
+        output::set_verbosity(OutputVerbosity::Verbose);
     }
 }

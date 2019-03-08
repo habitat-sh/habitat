@@ -16,8 +16,8 @@ use super::spawned_future::SpawnedFuture;
 use crate::sys::{service,
                  ShutdownMethod};
 use futures::sync::oneshot;
-use habitat_core::{os::process::Pid,
-                   outputln};
+use habitat_common::outputln;
+use habitat_core::os::process::Pid;
 use std::thread;
 
 static LOGKEY: &str = "ST"; // "Service Terminator"

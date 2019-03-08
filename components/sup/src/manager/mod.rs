@@ -62,7 +62,8 @@ use habitat_butterfly::{member::Member,
                                  ServerProxy,
                                  Suitability},
                         trace::Trace};
-use habitat_common::types::ListenCtlAddr;
+use habitat_common::{outputln,
+                     types::ListenCtlAddr};
 use habitat_core::{crypto::SymKey,
                    env::{self,
                          Config},
@@ -72,7 +73,6 @@ use habitat_core::{crypto::SymKey,
                                   Signal},
                         signals::{self,
                                   SignalEvent}},
-                   outputln,
                    package::{Identifiable,
                              PackageIdent,
                              PackageInstall},

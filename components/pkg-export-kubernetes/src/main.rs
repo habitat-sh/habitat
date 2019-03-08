@@ -14,16 +14,11 @@
 
 use clap;
 use env_logger;
-use habitat_common as common;
-use habitat_core as hcore;
-
+use habitat_common::{ui::{UIWriter,
+                          UI},
+                     PROGRAM_NAME};
 use habitat_pkg_export_kubernetes as export_k8s;
-#[macro_use]
-extern crate log;
-
-use crate::{common::ui::{UIWriter,
-                         UI},
-            hcore::PROGRAM_NAME};
+use log::debug;
 
 fn main() {
     env_logger::init();

@@ -13,16 +13,16 @@
 // limitations under the License.
 
 use super::health;
+use habitat_common::{outputln,
+                     templating::{hooks::{self,
+                                          ExitCode,
+                                          Hook,
+                                          HookOutput,
+                                          RenderPair},
+                                  package::Pkg,
+                                  TemplateRenderer}};
 #[cfg(windows)]
-use crate::hcore::os::process::windows_child::ExitStatus;
-use habitat_common::templating::{hooks::{self,
-                                         ExitCode,
-                                         Hook,
-                                         HookOutput,
-                                         RenderPair},
-                                 package::Pkg,
-                                 TemplateRenderer};
-use habitat_core::outputln;
+use habitat_core::os::process::windows_child::ExitStatus;
 use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;
@@ -533,8 +533,9 @@ impl HookTable {
 mod tests {
     use std::{fs,
               iter};
+    use tempfile::TempDir;
 
-    use crate::{butterfly::{member::MemberList,
+    use habitat_butterfly::{member::MemberList,
                             rumor::{election::{self,
                                                Election as ElectionRumor,
                                                ElectionUpdate as ElectionUpdateRumor},
@@ -542,20 +543,19 @@ mod tests {
                                               SysInfo},
                                     service_config::ServiceConfig as ServiceConfigRumor,
                                     service_file::ServiceFile as ServiceFileRumor,
-                                    RumorStore}},
-                common::templating::{config::Cfg,
-                                     package::Pkg,
-                                     test_helpers::*},
-                hcore::{package::{PackageIdent,
-                                  PackageInstall},
-                        service::{ServiceBind,
-                                  ServiceGroup}}};
-    use tempfile::TempDir;
+                                    RumorStore}};
+    use habitat_common::{templating::{config::Cfg,
+                                      package::Pkg,
+                                      test_helpers::*},
+                         types::ListenCtlAddr};
+    use habitat_core::{package::{PackageIdent,
+                                 PackageInstall},
+                       service::{ServiceBind,
+                                 ServiceGroup}};
 
     use super::{super::RenderContext,
                 *};
     use crate::{census::CensusRing,
-                common::types::ListenCtlAddr,
                 config::GossipListenAddr,
                 http_gateway,
                 manager::sys::Sys};

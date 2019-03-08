@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::error::{Error,
+                   Result};
+use habitat_common::{outputln,
+                     util::path};
+use habitat_core::fs::find_command;
+use libc;
 use std::{env,
           ffi::CString,
           path::PathBuf,
           ptr};
-
-use crate::hcore::fs::find_command;
-use libc;
-
-use crate::{common::util::path,
-            error::{Error,
-                    Result}};
 
 /// Our output key
 static LOGKEY: &'static str = "SH";

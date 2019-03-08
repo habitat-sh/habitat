@@ -22,36 +22,28 @@
 
 pub mod server;
 
-use std::{borrow::Cow,
-          fmt,
+use crate::error::{Error,
+                   Result};
+use futures::prelude::*;
+use habitat_api_client::DisplayProgress;
+use habitat_common::{output::{self,
+                              OutputFormat,
+                              StructuredOutput},
+                     ui::UIWriter,
+                     PROGRAM_NAME};
+use habitat_core;
+use habitat_sup_protocol;
+use std::{fmt,
           fs::{self,
                File},
           io::{self,
                Write},
           path::Path};
-
-use regex::Regex;
-use termcolor::{Buffer,
-                Color,
+use termcolor::{Color,
+                ColorChoice,
                 ColorSpec,
+                StandardStream,
                 WriteColor};
-
-use crate::{api_client::DisplayProgress,
-            common::ui::UIWriter,
-            hcore::{self,
-                    output},
-            protocol};
-use futures::prelude::*;
-
-use crate::error::{Error,
-                   Result};
-
-lazy_static! {
-    /// Shamelessly stolen from https://github.com/chalk/ansi-regex/blob/master/index.js
-    static ref STRIP_ANSI_CODES: Regex = Regex::new(
-        r"[\x1b\x9b][\[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]")
-        .unwrap();
-}
 
 /// Time to wait in milliseconds for a client connection to timeout.
 pub const REQ_TIMEOUT: u64 = 10_000;
@@ -77,25 +69,27 @@ pub struct CtlRequest {
     /// eventually over the network back to the client.
     tx: Option<server::CtlSender>,
     /// Transaction for the given request.
-    transaction: Option<protocol::codec::SrvTxn>,
-    current_color_spec: Option<ColorSpec>,
+    transaction: Option<habitat_sup_protocol::codec::SrvTxn>,
+    current_color_spec: ColorSpec,
+    is_new_line: bool,
 }
 
 impl CtlRequest {
     /// Create a new CtlRequest from an optional [`server.CtlSender`] and
     /// [`protocol.codec.SrvTxn`].
     pub fn new(tx: Option<server::CtlSender>,
-               transaction: Option<protocol::codec::SrvTxn>)
+               transaction: Option<habitat_sup_protocol::codec::SrvTxn>)
                -> Self {
         CtlRequest { tx,
                      transaction,
-                     current_color_spec: None }
+                     current_color_spec: ColorSpec::new(),
+                     is_new_line: true }
     }
 
     /// Reply to the transaction with the given message but indicate to the receiver that this is
     /// not the final message for the transaction.
     pub fn reply_partial<T>(&mut self, msg: T)
-        where T: Into<protocol::codec::SrvMessage> + fmt::Debug
+        where T: Into<habitat_sup_protocol::codec::SrvMessage> + fmt::Debug
     {
         self.send_msg(msg, false);
     }
@@ -103,7 +97,7 @@ impl CtlRequest {
     /// Reply to the transaction with the given message and indicate to the receiver that this is
     /// the final message for the transaction.
     pub fn reply_complete<T>(&mut self, msg: T)
-        where T: Into<protocol::codec::SrvMessage> + fmt::Debug
+        where T: Into<habitat_sup_protocol::codec::SrvMessage> + fmt::Debug
     {
         self.send_msg(msg, true);
     }
@@ -112,14 +106,14 @@ impl CtlRequest {
     pub fn transactional(&self) -> bool { self.transaction.is_some() && self.tx.is_some() }
 
     fn send_msg<T>(&mut self, msg: T, complete: bool)
-        where T: Into<protocol::codec::SrvMessage> + fmt::Debug
+        where T: Into<habitat_sup_protocol::codec::SrvMessage> + fmt::Debug
     {
         if !self.transactional() {
             warn!("Attempted to reply to a non-transactional message with {:?}",
                   msg);
             return;
         }
-        let mut wire: protocol::codec::SrvMessage = msg.into();
+        let mut wire: habitat_sup_protocol::codec::SrvMessage = msg.into();
         wire.reply_for(self.transaction.unwrap(), complete);
         self.tx.as_ref().unwrap().start_send(wire).ok(); // ignore Err return
     }
@@ -149,12 +143,12 @@ impl WriteColor for CtlRequest {
     fn supports_color(&self) -> bool { true }
 
     fn reset(&mut self) -> io::Result<()> {
-        self.current_color_spec = None;
+        self.current_color_spec = ColorSpec::new();
         Ok(())
     }
 
     fn set_color(&mut self, spec: &ColorSpec) -> io::Result<()> {
-        self.current_color_spec = Some(spec.clone());
+        self.current_color_spec = spec.clone();
         Ok(())
     }
 }
@@ -163,56 +157,73 @@ impl Write for CtlRequest {
     fn flush(&mut self) -> io::Result<()> { Ok(()) }
 
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let line = String::from_utf8(buf.to_vec()).expect("CtlRequest buffer valid utf8");
+
         // The protocol reply is destined for the client, so (for now,
         // at least), we'll apply colored output.
         //
         // `line` will also have a newline character at the end, FYI.
-        let mut msg = protocol::ctl::ConsoleLine::default();
-        msg.line = String::from_utf8_lossy(buf).to_string();
-        match self.current_color_spec {
-            Some(ref spec) => {
-                msg.color = color_to_string(spec.fg());
-                msg.bold = spec.bold();
-            }
-            None => {
-                msg.color = None;
-                msg.bold = false;
-            }
-        }
+        let mut msg = habitat_sup_protocol::ctl::ConsoleLine::default();
+        msg.line = line.to_string();
+        msg.color = color_to_string(self.current_color_spec.fg());
+        msg.bold = self.current_color_spec.bold();
         self.reply_partial(msg);
 
         // Down here, however, we're doing double-duty by *also*
-        // sending the output to the Supervisor's output stream. In
-        // _this_ case, we want to honor whatever global logging flags
-        // have been set; in particular, if we're emitting
-        // JSON-formatted logs or if we've been instructed to not
-        // output ANSI color codes, we need to strip those codes out.
+        // sending the output to the Supervisor's output stream.
         //
         // TODO (CM): Obviously, this feels hacky to the extreme. It'd
         // be nice to find a cleaner way to model this, but the fact
         // that CtlRequest is sending output to two destinations with
         // different formatting requirements complicates things a bit.
         //
-        // TODO (MW): For `hab sup run` scenarios, it would be nice to
-        // support color on older versions of Windows. We could refactor
-        // outputln! to support a cross platform ColorWriter similar to
-        // what we use in common::UI.
-        let mut ansi_buffer = Buffer::ansi();
-        if let Some(spec) = &self.current_color_spec {
-            ansi_buffer.set_color(&spec)?;
-        }
-        ansi_buffer.write_all(buf)?;
-        ansi_buffer.flush()?;
-        let line = String::from_utf8_lossy(ansi_buffer.as_slice()).to_string();
-
-        let maybe_stripped = if output::is_json() || !output::is_color() {
-            STRIP_ANSI_CODES.replace_all(&line, "")
+        // (MW): to add to the hackiness here we need to determine if the
+        // buffer is the beginning of a line. If it is OR if it is JSON
+        // formatted, then we want the structured output metadata. If it
+        // is a line fragment starting somewhere in the middle (this will
+        // usually be the case when styling changes) of a line, then
+        // non-json content should just be printed as-is.
+        let is_line_ending = line.ends_with('\n');
+        if self.is_new_line || output::get_format() == OutputFormat::JSON {
+            let so = if !self.current_color_spec.is_none()
+                        && output::get_format() == OutputFormat::Color
+            {
+                StructuredOutput::colored(&PROGRAM_NAME,
+                                          LOGKEY,
+                                          line!(),
+                                          file!(),
+                                          column!(),
+                                          output::get_verbosity(),
+                                          line.trim_right_matches('\n'),
+                                          self.current_color_spec.clone())
+            } else {
+                StructuredOutput::new(&PROGRAM_NAME,
+                                      LOGKEY,
+                                      line!(),
+                                      file!(),
+                                      column!(),
+                                      output::get_format(),
+                                      output::get_verbosity(),
+                                      line.trim_right_matches('\n'))
+            };
+            let print_func = if is_line_ending {
+                StructuredOutput::println
+            } else {
+                StructuredOutput::print
+            };
+            print_func(&so).expect("failed to write output to stdout");
         } else {
-            Cow::Owned(line)
-        };
-        // TODO (CM): Consider pulling this newline trimming up into
-        // the macro
-        outputln!("{}", maybe_stripped.trim_end_matches('\n'));
+            let color_choice = if let OutputFormat::Color = output::get_format() {
+                ColorChoice::Auto
+            } else {
+                ColorChoice::Never
+            };
+            let mut stdout = StandardStream::stdout(color_choice);
+            stdout.set_color(&self.current_color_spec)?;
+            write!(&mut stdout, "{}", line)?;
+        }
+
+        self.is_new_line = is_line_ending;
 
         self.reset()?;
         Ok(buf.len())
@@ -229,14 +240,14 @@ fn color_to_string(color: Option<&Color>) -> Option<String> {
 /// A wrapper around a [`protocol.ctl.NetProgress`] and [`CtlRequest`]. This type implements
 /// traits for writing it's progress to the console.
 pub struct NetProgressBar {
-    inner: protocol::ctl::NetProgress,
+    inner: habitat_sup_protocol::ctl::NetProgress,
     req:   CtlRequest,
 }
 
 impl NetProgressBar {
     /// Create a new progress bar.
     pub fn new(req: CtlRequest) -> Self {
-        NetProgressBar { inner: protocol::ctl::NetProgress::default(),
+        NetProgressBar { inner: habitat_sup_protocol::ctl::NetProgress::default(),
                          req }
     }
 }
@@ -267,15 +278,15 @@ pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
                                      sup_error!(Error::CtlSecretIo(sup_root.as_ref().to_path_buf(),
                                                                    e))
                                  })?;
-    if protocol::read_secret_key(&sup_root, &mut out).ok()
-                                                     .unwrap_or(false)
+    if habitat_sup_protocol::read_secret_key(&sup_root, &mut out).ok()
+                                                                 .unwrap_or(false)
     {
         Ok(out)
     } else {
-        let secret_key_path = protocol::secret_key_path(sup_root);
+        let secret_key_path = habitat_sup_protocol::secret_key_path(sup_root);
         {
             let mut f = File::create(&secret_key_path)?;
-            protocol::generate_secret_key(&mut out);
+            habitat_sup_protocol::generate_secret_key(&mut out);
             f.write_all(out.as_bytes())?;
             f.sync_all()?;
         }
@@ -285,15 +296,15 @@ pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
 }
 
 #[cfg(not(windows))]
-fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-    use crate::hcore::util::posix_perm;
+fn set_permissions<T: AsRef<Path>>(path: T) -> habitat_core::error::Result<()> {
+    use habitat_core::util::posix_perm;
 
     posix_perm::set_permissions(path.as_ref(), CTL_SECRET_PERMISSIONS)
 }
 
 #[cfg(windows)]
-fn set_permissions<T: AsRef<Path>>(path: T) -> hcore::error::Result<()> {
-    use hcore::util::win_perm;
+fn set_permissions<T: AsRef<Path>>(path: T) -> habitat_core::error::Result<()> {
+    use habitat_core::util::win_perm;
 
     win_perm::harden_path(path.as_ref())
 }

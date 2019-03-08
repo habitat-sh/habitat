@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::protocol;
+#[cfg(windows)]
+use core::os::process::windows_child::{ChildStderr,
+                                       ChildStdout,
+                                       ExitStatus};
+use habitat_common::output::{self,
+                             StructuredOutput};
 #[cfg(unix)]
 use std::process::{ChildStderr,
                    ChildStdout,
@@ -20,15 +27,8 @@ use std::{fmt,
           io::{self,
                BufRead,
                BufReader,
-               Read,
-               Write},
+               Read},
           thread};
-
-use crate::protocol;
-#[cfg(windows)]
-use core::os::process::windows_child::{ChildStderr,
-                                       ChildStdout,
-                                       ExitStatus};
 
 pub use crate::sys::service::*;
 
@@ -89,8 +89,12 @@ fn pipe_stdout<T>(out: T, id: &str)
     let mut reader = BufReader::new(out);
     let mut buffer = String::new();
     while reader.read_line(&mut buffer).unwrap() > 0 {
-        let line = output_format!(preamble &id, logkey "O", buffer);
-        writeln!(&mut io::stdout(), "{}", line).expect("unable to write to stdout");
+        let content = &buffer.trim_right_matches('\n');
+        let so = StructuredOutput::succinct(&id, "O", output::get_format(), content);
+        if let Err(e) = so.println() {
+            println!("printing output: '{}' to stdout resulted in error: {}",
+                     content, e);
+        }
         buffer.clear();
     }
 }
@@ -102,8 +106,12 @@ fn pipe_stderr<T>(err: T, id: &str)
     let mut reader = BufReader::new(err);
     let mut buffer = String::new();
     while reader.read_line(&mut buffer).unwrap() > 0 {
-        let line = output_format!(preamble &id, logkey "E", buffer);
-        writeln!(&mut io::stderr(), "{}", line).expect("unable to write to stderr");
+        let content = &buffer.trim_right_matches('\n');
+        let so = StructuredOutput::succinct(&id, "E", output::get_format(), content);
+        if let Err(e) = so.eprintln() {
+            eprintln!("printing output: '{}' to stderr resulted in error: {}",
+                      content, e);
+        }
         buffer.clear();
     }
 }

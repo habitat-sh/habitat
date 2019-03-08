@@ -42,24 +42,11 @@ mod error;
 pub mod rootfs;
 mod util;
 
-use std::{env,
-          fmt,
-          result,
-          str::FromStr};
-
-use crate::{common::ui::{UIWriter,
-                         UI},
-            hcore::{url as hurl,
-                    PROGRAM_NAME}};
-
-use crate::aws_creds::StaticProvider;
-use clap::App;
-use rusoto_core::{request::*,
-                  Region};
-use rusoto_ecr::{Ecr,
-                 EcrClient,
-                 GetAuthorizationTokenRequest};
-
+use crate::{aws_creds::StaticProvider,
+            common::{ui::{UIWriter,
+                          UI},
+                     PROGRAM_NAME},
+            hcore::url as hurl};
 pub use crate::{build::BuildSpec,
                 cli::{Cli,
                       PkgIdentArgOptions},
@@ -67,6 +54,16 @@ pub use crate::{build::BuildSpec,
                          DockerImage},
                 error::{Error,
                         Result}};
+use clap::App;
+use rusoto_core::{request::*,
+                  Region};
+use rusoto_ecr::{Ecr,
+                 EcrClient,
+                 GetAuthorizationTokenRequest};
+use std::{env,
+          fmt,
+          result,
+          str::FromStr};
 
 /// The version of this library and program when built.
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

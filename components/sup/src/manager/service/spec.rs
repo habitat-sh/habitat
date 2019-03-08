@@ -15,20 +15,20 @@
 use super::{BindingMode,
             Topology,
             UpdateStrategy};
-use crate::{error::{Error,
-                    Result,
-                    SupError},
-            hcore::{fs::atomic_write,
-                    package::{PackageIdent,
-                              PackageInstall},
-                    service::{ApplicationEnvironment,
-                              HealthCheckInterval,
-                              ServiceBind},
-                    url::DEFAULT_BLDR_URL,
-                    util::{deserialize_using_from_str,
-                           serialize_using_to_string},
-                    ChannelIdent},
-            protocol};
+use crate::error::{Error,
+                   Result,
+                   SupError};
+use habitat_core::{fs::atomic_write,
+                   package::{PackageIdent,
+                             PackageInstall},
+                   service::{ApplicationEnvironment,
+                             HealthCheckInterval,
+                             ServiceBind},
+                   url::DEFAULT_BLDR_URL,
+                   util::{deserialize_using_from_str,
+                          serialize_using_to_string},
+                   ChannelIdent};
+use habitat_sup_protocol;
 use serde::{self,
             Deserialize};
 use std::{collections::HashSet,
@@ -107,7 +107,7 @@ pub trait IntoServiceSpec {
     fn into_spec(&self, spec: &mut ServiceSpec);
 }
 
-impl IntoServiceSpec for protocol::ctl::SvcLoad {
+impl IntoServiceSpec for habitat_sup_protocol::ctl::SvcLoad {
     fn into_spec(&self, spec: &mut ServiceSpec) {
         spec.ident = self.ident.clone().unwrap().into();
         spec.group = self.group
@@ -129,13 +129,14 @@ impl IntoServiceSpec for protocol::ctl::SvcLoad {
             spec.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
         }
         if let Some(ref list) = self.binds {
-            spec.binds = list.binds
-                             .iter()
-                             .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
-                                 hcore::service::ServiceBind::new(&pb.name,
-                                                                  pb.service_group.clone().into())
-                             })
-                             .collect();
+            spec.binds =
+                list.binds
+                    .iter()
+                    .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
+                        habitat_core::service::ServiceBind::new(&pb.name,
+                                                                pb.service_group.clone().into())
+                    })
+                    .collect();
         }
         if let Some(binding_mode) = self.binding_mode {
             spec.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
@@ -313,11 +314,11 @@ mod test {
               path::{Path,
                      PathBuf},
               str::FromStr};
+    use tempfile::TempDir;
 
-    use crate::hcore::{package::PackageIdent,
+    use habitat_core::{package::PackageIdent,
                        service::{ApplicationEnvironment,
                                  HealthCheckInterval}};
-    use tempfile::TempDir;
 
     use super::*;
     use crate::error::Error::*;

@@ -19,15 +19,15 @@ use crate::{common::{self,
                                                  LocalPackageUsage},
                      ui::{Status,
                           UIWriter,
-                          UI}},
+                          UI},
+                     PROGRAM_NAME},
             error::Result,
             hcore::{fs::{cache_artifact_path,
                          cache_key_path,
                          CACHE_ARTIFACT_PATH,
                          CACHE_KEY_PATH},
                     package::PackageIdent,
-                    ChannelIdent,
-                    PROGRAM_NAME}};
+                    ChannelIdent}};
 use clap;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;

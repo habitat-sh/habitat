@@ -50,14 +50,6 @@ extern crate cpu_time;
 extern crate ctrlc;
 #[macro_use]
 extern crate features;
-
-use habitat_butterfly as butterfly;
-use habitat_common as common;
-#[macro_use]
-extern crate habitat_core as hcore;
-use habitat_api_client as api_client;
-use habitat_launcher_client as launcher_client;
-use habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -109,19 +101,7 @@ mod sys;
 pub mod test_helpers;
 pub mod util;
 
-use std::{env,
-          path::PathBuf};
-
-lazy_static! {
-    pub static ref PROGRAM_NAME: String = {
-        let arg0 = env::args().next().map(PathBuf::from);
-        arg0.as_ref()
-            .and_then(|p| p.file_stem())
-            .and_then(|p| p.to_str())
-            .unwrap()
-            .to_string()
-    };
-}
+use std::env;
 
 /// List enables printing out the list features which can be dynamically enabled
 /// TestExit enables triggering an abrupt exit to simulate failures

@@ -14,14 +14,14 @@
 
 use super::{package::Pkg,
             TemplateRenderer};
-use crate::error::{Error,
-                   Result};
+use crate::{error::{Error,
+                    Result},
+            outputln};
 #[cfg(windows)]
 use habitat_core::os::process::windows_child::{Child,
                                                ExitStatus};
 use habitat_core::{crypto,
-                   fs,
-                   outputln};
+                   fs};
 use serde::{Serialize,
             Serializer};
 #[cfg(unix)]

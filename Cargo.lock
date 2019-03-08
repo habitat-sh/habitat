@@ -872,6 +872,7 @@ version = "0.0.0"
 dependencies = [
  "env_logger 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat-launcher-protocol 0.0.0",
+ "habitat_common 0.0.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "ipc-channel 0.9.0 (git+https://github.com/habitat-sh/ipc-channel?branch=hbt-windows)",
  "libc 0.2.49 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1047,9 +1048,8 @@ dependencies = [
 [[package]]
 name = "habitat_core"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/core.git#873de50fdc0bf2d63f0fc211b0dd2516517014e2"
+source = "git+https://github.com/habitat-sh/core.git#f9ab5b649067a409b77b2cd9aea823115ae17679"
 dependencies = [
- "ansi_term 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "base64 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "caps 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "ctrlc 3.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1084,7 +1084,7 @@ dependencies = [
 [[package]]
 name = "habitat_http_client"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/core.git#873de50fdc0bf2d63f0fc211b0dd2516517014e2"
+source = "git+https://github.com/habitat-sh/core.git#f9ab5b649067a409b77b2cd9aea823115ae17679"
 dependencies = [
  "base64 0.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
@@ -1245,11 +1245,11 @@ dependencies = [
 [[package]]
 name = "habitat_win_users"
 version = "0.0.0"
-source = "git+https://github.com/habitat-sh/core.git#873de50fdc0bf2d63f0fc211b0dd2516517014e2"
+source = "git+https://github.com/habitat-sh/core.git#f9ab5b649067a409b77b2cd9aea823115ae17679"
 dependencies = [
  "gcc 0.3.55 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "widestring 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "widestring 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

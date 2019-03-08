@@ -13,13 +13,13 @@
 // limitations under the License.
 
 /// Collect all the configuration data that is exposed to users, and render it.
-use crate::error::{Error,
-                   Result};
-use crate::{hcore::{self,
+use crate::{error::{Error,
+                    Result},
+            hcore::{self,
                     crypto,
                     fs::{self,
-                         USER_CONFIG_FILE},
-                    outputln},
+                         USER_CONFIG_FILE}},
+            outputln,
             templating::{package::Pkg,
                          TemplateRenderer}};
 use serde::{Serialize,

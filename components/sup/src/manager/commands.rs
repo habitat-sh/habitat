@@ -27,9 +27,9 @@ use crate::{ctl_gateway::CtlRequest,
             util};
 use habitat_butterfly as butterfly;
 use habitat_common::{command::package::install::InstallSource,
+                     outputln,
                      ui::UIWriter};
-use habitat_core::{outputln,
-                   package::{Identifiable,
+use habitat_core::{package::{Identifiable,
                              PackageIdent,
                              PackageTarget},
                    service::ServiceGroup,

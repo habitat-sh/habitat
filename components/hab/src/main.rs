@@ -16,36 +16,10 @@
 
 #[macro_use]
 extern crate clap;
-use env_logger;
-
-use habitat_common as common;
-use habitat_core as hcore;
-use habitat_sup_client as sup_client;
-use habitat_sup_protocol as protocol;
-
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-use pbr;
-
-use std::{env,
-          ffi::OsString,
-          fs::File,
-          io::{self,
-               prelude::*,
-               Read},
-          net::ToSocketAddrs,
-          path::{Path,
-                 PathBuf},
-          process,
-          result,
-          str::FromStr,
-          thread};
-use termcolor::{self,
-                Color,
-                ColorChoice,
-                ColorSpec};
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
@@ -53,6 +27,8 @@ use crate::{common::{command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
+                     output::{self,
+                              OutputFormat},
                      types::ListenCtlAddr,
                      ui::{Status,
                           UIWriter,
@@ -72,23 +48,21 @@ use crate::{common::{command::package::install::{InstallHookMode,
                          launcher_root_path},
                     package::{PackageIdent,
                               PackageTarget},
-                    ChannelIdent}};
-use clap::{ArgMatches,
-           Shell};
-use futures::prelude::*;
-
-use crate::{hcore::{service::{HealthCheckInterval,
+                    service::{HealthCheckInterval,
                               ServiceGroup},
                     url::{bldr_url_from_env,
-                          default_bldr_url}},
+                          default_bldr_url},
+                    ChannelIdent},
             protocol::{codec::*,
                        ctl::ServiceBindList,
                        net::ErrCode,
                        types::*},
             sup_client::{SrvClient,
                          SrvClientError}};
-use tabwriter::TabWriter;
-
+use clap::{ArgMatches,
+           Shell};
+use env_logger;
+use futures::prelude::*;
 use hab::{analytics,
           cli,
           command::{self,
@@ -105,6 +79,29 @@ use hab::{analytics,
           ORIGIN_ENVVAR,
           PRODUCT,
           VERSION};
+use habitat_common as common;
+use habitat_core as hcore;
+use habitat_sup_client as sup_client;
+use habitat_sup_protocol as protocol;
+use pbr;
+use std::{env,
+          ffi::OsString,
+          fs::File,
+          io::{self,
+               prelude::*,
+               Read},
+          net::ToSocketAddrs,
+          path::{Path,
+                 PathBuf},
+          process,
+          result,
+          str::FromStr,
+          thread};
+use tabwriter::TabWriter;
+use termcolor::{self,
+                Color,
+                ColorChoice,
+                ColorSpec};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -1775,10 +1772,9 @@ fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
 // function wouldn't be necessary. In the meantime, though, it'll keep
 // the scope of change contained.
 fn ui() -> UI {
-    let coloring = if hcore::output::is_color() {
-        ColorChoice::Auto
-    } else {
-        ColorChoice::Never
+    let coloring = match output::get_format() {
+        OutputFormat::Color => ColorChoice::Auto,
+        OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
     };
     let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
                                                    .unwrap_or(false)
