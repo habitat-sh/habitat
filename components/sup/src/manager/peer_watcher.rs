@@ -12,6 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{error::{Error,
+                    Result},
+            manager::file_watcher::{default_file_watcher,
+                                    Callbacks}};
+use habitat_butterfly::member::Member;
+use habitat_common::{cli_defaults::GOSSIP_DEFAULT_PORT,
+                     outputln};
 use std::{fs::File,
           io::{BufRead,
                BufReader},
@@ -23,13 +30,6 @@ use std::{fs::File,
                           Ordering},
                  Arc},
           thread::Builder as ThreadBuilder};
-
-use crate::{butterfly::member::Member,
-            common::cli_defaults::GOSSIP_DEFAULT_PORT,
-            error::{Error,
-                    Result},
-            manager::file_watcher::{default_file_watcher,
-                                    Callbacks}};
 
 static LOGKEY: &'static str = "PW";
 
@@ -151,8 +151,8 @@ impl PeerWatcher {
 #[cfg(test)]
 mod tests {
     use super::PeerWatcher;
-    use crate::{butterfly::member::Member,
-                common::cli_defaults::GOSSIP_DEFAULT_PORT};
+    use habitat_butterfly::member::Member;
+    use habitat_common::cli_defaults::GOSSIP_DEFAULT_PORT;
     use std::{fs::{File,
                    OpenOptions},
               io::Write};

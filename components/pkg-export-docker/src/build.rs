@@ -12,6 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::{BUSYBOX_IDENT,
+            CACERTS_IDENT,
+            VERSION};
+#[cfg(unix)]
+use crate::rootfs;
+use crate::{accounts::{EtcGroupEntry,
+                       EtcPasswdEntry},
+            common::{self,
+                     command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 InstallSource,
+                                                 LocalPackageUsage},
+                     ui::{Status,
+                          UIWriter,
+                          UI},
+                     PROGRAM_NAME},
+            error::{Error,
+                    Result},
+            hcore::{env,
+                    fs::{cache_artifact_path,
+                         cache_key_path,
+                         CACHE_ARTIFACT_PATH,
+                         CACHE_KEY_PATH},
+                    package::{PackageArchive,
+                              PackageIdent,
+                              PackageInstall},
+                    ChannelIdent},
+            util};
+use clap;
+#[cfg(unix)]
+use failure::SyncFailure;
+#[cfg(unix)]
+use hab;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
@@ -21,42 +54,7 @@ use std::{collections::HashMap,
           path::{Path,
                  PathBuf},
           str::FromStr};
-
-use crate::{common::{self,
-                     command::package::install::{InstallHookMode,
-                                                 InstallMode,
-                                                 InstallSource,
-                                                 LocalPackageUsage},
-                     ui::{Status,
-                          UIWriter,
-                          UI}},
-            hcore::{env,
-                    fs::{cache_artifact_path,
-                         cache_key_path,
-                         CACHE_ARTIFACT_PATH,
-                         CACHE_KEY_PATH},
-                    package::{PackageArchive,
-                              PackageIdent,
-                              PackageInstall},
-                    ChannelIdent,
-                    PROGRAM_NAME}};
-use clap;
-#[cfg(unix)]
-use failure::SyncFailure;
-#[cfg(unix)]
-use hab;
 use tempfile::TempDir;
-
-use super::{BUSYBOX_IDENT,
-            CACERTS_IDENT,
-            VERSION};
-#[cfg(unix)]
-use crate::rootfs;
-use crate::{accounts::{EtcGroupEntry,
-                       EtcPasswdEntry},
-            error::{Error,
-                    Result},
-            util};
 
 // Much of this functionality is duplicated (or slightly modified)
 // in the tar exporter. This needs to be abstacted out in
@@ -1006,7 +1004,8 @@ mod test {
     mod build_root_context {
         use std::str::FromStr;
 
-        use crate::hcore::package::PackageIdent;
+        use crate::{common::PROGRAM_NAME,
+                    hcore::package::PackageIdent};
 
         use super::{super::*,
                     *};
@@ -1057,7 +1056,7 @@ mod test {
                                                                         .set_svc_group("root")
                                                                         .install();
 
-            let matches = arg_matches(&[&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
+            let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg"]);
             let build_spec = BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh");
 
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
@@ -1079,7 +1078,7 @@ mod test {
                                                           .set_svc_group("some_other_group")
                                                           .install();
 
-            let matches = arg_matches(&[&*hcore::PROGRAM_NAME, "acme/my_pkg"]);
+            let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg"]);
             let build_spec = BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh");
 
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();

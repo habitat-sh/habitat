@@ -14,13 +14,8 @@
 
 extern crate clap;
 extern crate env_logger;
-extern crate hab;
-#[macro_use]
-extern crate habitat_core as hcore;
-extern crate habitat_launcher_client as launcher_client;
 #[macro_use]
 extern crate habitat_sup as sup;
-extern crate habitat_sup_protocol as protocol;
 #[cfg(unix)]
 extern crate jemalloc_ctl;
 #[cfg(unix)]
@@ -37,42 +32,6 @@ extern crate tempfile;
 extern crate time;
 extern crate url;
 
-use std::{env,
-          io::{self,
-               Write},
-          net::{Ipv4Addr,
-                SocketAddr,
-                ToSocketAddrs},
-          path::PathBuf,
-          process,
-          str::{self,
-                FromStr}};
-use termcolor::ColorChoice;
-
-use crate::{common::{cli_defaults::GOSSIP_DEFAULT_PORT,
-                     command::package::install::InstallSource,
-                     ui::{NONINTERACTIVE_ENVVAR,
-                          UI}},
-            hcore::{crypto::{self,
-                             default_cache_key_path,
-                             SymKey},
-                    env as henv,
-                    url::{bldr_url_from_env,
-                          default_bldr_url},
-                    ChannelIdent},
-            launcher_client::{LauncherCli,
-                              ERR_NO_RETRY_EXCODE},
-            protocol::{ctl::ServiceBindList,
-                       types::{ApplicationEnvironment,
-                               BindingMode,
-                               ServiceBind,
-                               Topology,
-                               UpdateStrategy}}};
-use clap::ArgMatches;
-use habitat_common as common;
-#[cfg(windows)]
-use hcore::crypto::dpapi::encrypt;
-
 use crate::sup::{cli::cli,
                  command,
                  error::{Error,
@@ -83,9 +42,45 @@ use crate::sup::{cli::cli,
                            ManagerConfig,
                            TLSConfig},
                  util};
-
+use clap::ArgMatches;
+use habitat_common::{cli_defaults::GOSSIP_DEFAULT_PORT,
+                     command::package::install::InstallSource,
+                     output::{self,
+                              OutputFormat,
+                              OutputVerbosity},
+                     outputln,
+                     ui::{NONINTERACTIVE_ENVVAR,
+                          UI}};
+#[cfg(windows)]
+use habitat_core::crypto::dpapi::encrypt;
+use habitat_core::{crypto::{self,
+                            default_cache_key_path,
+                            SymKey},
+                   env as henv,
+                   url::{bldr_url_from_env,
+                         default_bldr_url},
+                   ChannelIdent};
+use habitat_launcher_client::{LauncherCli,
+                              ERR_NO_RETRY_EXCODE};
+use habitat_sup_protocol::{ctl::ServiceBindList,
+                           types::{ApplicationEnvironment,
+                                   BindingMode,
+                                   ServiceBind,
+                                   Topology,
+                                   UpdateStrategy}};
+use std::{env,
+          io::{self,
+               Write},
+          net::{Ipv4Addr,
+                SocketAddr,
+                ToSocketAddrs},
+          path::PathBuf,
+          process,
+          str::{self,
+                FromStr}};
 #[cfg(test)]
 use tempfile::TempDir;
+use termcolor::ColorChoice;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -114,7 +109,7 @@ fn boot() -> Option<LauncherCli> {
         println!("Crypto initialization failed!");
         process::exit(1);
     }
-    match launcher_client::env_pipe() {
+    match habitat_launcher_client::env_pipe() {
         Some(pipe) => {
             match LauncherCli::connect(pipe) {
                 Ok(launcher) => Some(launcher),
@@ -175,7 +170,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
 
     // We need to determine if we have an initial service to start
     let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
-        let mut msg = protocol::ctl::SvcLoad::default();
+        let mut msg = habitat_sup_protocol::ctl::SvcLoad::default();
         update_svc_load_from_input(m, &mut msg)?;
         // Always force - running with a package ident is a "do what I mean" operation. You
         // don't care if a service was loaded previously or not and with what options. You
@@ -186,16 +181,17 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
                 // Install the archive manually then explicitly set the pkg ident to the
                 // version found in the archive. This will lock the software to this
                 // specific version.
-                let install = util::pkg::install(&mut ui(),
-                                                 msg.bldr_url
-                                                    .as_ref()
-                                                    .unwrap_or(&*protocol::DEFAULT_BLDR_URL),
-                                                 &source,
-                                                 &msg.bldr_channel
-                                                     .clone()
-                                                     .map(ChannelIdent::from)
-                                                     .expect("update_svc_load_from_input to \
-                                                              always set to Some"))?;
+                let install =
+                    util::pkg::install(&mut ui(),
+                                       msg.bldr_url
+                                          .as_ref()
+                                          .unwrap_or(&*habitat_sup_protocol::DEFAULT_BLDR_URL),
+                                       &source,
+                                       &msg.bldr_channel
+                                           .clone()
+                                           .map(ChannelIdent::from)
+                                           .expect("update_svc_load_from_input to always set to \
+                                                    Some"))?;
                 install.ident.into()
             }
             InstallSource::Ident(ident, _) => ident.into(),
@@ -259,7 +255,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
         },
         ctl_listen: m.value_of("LISTEN_CTL").map_or_else(
             || {
-                let default = common::types::ListenCtlAddr::default();
+                let default = habitat_common::types::ListenCtlAddr::default();
                 error!(
                     "Value for LISTEN_CTL has not been set. Using default: {}",
                     default
@@ -479,13 +475,13 @@ fn enable_features_from_env() {
 
 fn set_supervisor_logging_options(m: &ArgMatches) {
     if m.is_present("VERBOSE") {
-        hcore::output::set_verbose(true);
+        output::set_verbosity(OutputVerbosity::Verbose);
     }
     if m.is_present("NO_COLOR") {
-        hcore::output::set_no_color(true);
+        output::set_format(OutputFormat::NoColor)
     }
     if m.is_present("JSON") {
-        hcore::output::set_json(true)
+        output::set_format(OutputFormat::JSON)
     }
 }
 
@@ -496,10 +492,9 @@ fn set_supervisor_logging_options(m: &ArgMatches) {
 // function wouldn't be necessary. In the meantime, though, it'll keep
 // the scope of change contained.
 fn ui() -> UI {
-    let coloring = if hcore::output::is_color() {
-        ColorChoice::Auto
-    } else {
-        ColorChoice::Never
+    let coloring = match output::get_format() {
+        OutputFormat::Color => ColorChoice::Auto,
+        OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
     };
     let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
                                                    .unwrap_or(false)
@@ -513,7 +508,9 @@ fn ui() -> UI {
 
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
 /// populates all *shared* options between `run` and `load`.
-fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) -> Result<()> {
+fn update_svc_load_from_input(m: &ArgMatches,
+                              msg: &mut habitat_sup_protocol::ctl::SvcLoad)
+                              -> Result<()> {
     msg.bldr_url = Some(bldr_url(m));
     msg.bldr_channel = Some(channel(m).to_string());
     msg.application_environment = get_app_env_from_input(m)?;
@@ -533,10 +530,10 @@ fn update_svc_load_from_input(m: &ArgMatches, msg: &mut protocol::ctl::SvcLoad) 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{common::{locked_env_var,
-                         types::ListenCtlAddr},
-                sup::{config::GossipListenAddr,
-                      http_gateway}};
+    use crate::sup::{config::GossipListenAddr,
+                     http_gateway};
+    use habitat_common::{locked_env_var,
+                         types::ListenCtlAddr};
 
     mod manager_config {
 

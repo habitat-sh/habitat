@@ -22,16 +22,15 @@ use std::{sync::mpsc::{sync_channel,
           thread,
           time::Duration};
 
+use crate::{env,
+            util};
+use habitat_common::{command::package::install::InstallSource,
+                     ui::UI};
+use habitat_core::{package::{PackageIdent,
+                             PackageInstall},
+                   ChannelIdent};
 use time::{Duration as TimeDuration,
            SteadyTime};
-
-use crate::{common::{command::package::install::InstallSource,
-                     ui::UI},
-            env,
-            hcore::{package::{PackageIdent,
-                              PackageInstall},
-                    ChannelIdent},
-            util};
 
 pub const SUP_PKG_IDENT: &str = "core/hab-sup";
 const DEFAULT_FREQUENCY: i64 = 60_000;

@@ -14,25 +14,6 @@
 
 mod handlers;
 
-use std::{collections::HashMap,
-          fs,
-          io::Write,
-          path::PathBuf,
-          process::{Child,
-                    Command,
-                    Stdio},
-          str::FromStr,
-          sync::{Arc,
-                 Condvar,
-                 Mutex},
-          thread,
-          time::Duration};
-
-#[cfg(unix)]
-use std::os::unix::process::ExitStatusExt;
-#[cfg(unix)]
-use std::process::ExitStatus;
-
 use crate::{core::{self,
                    fs::{launcher_root_path,
                         FS_ROOT_PATH},
@@ -52,6 +33,7 @@ use crate::{core::{self,
             service::Service,
             SUP_CMD,
             SUP_PACKAGE_IDENT};
+use habitat_common::outputln;
 use ipc_channel::ipc::{IpcOneShotServer,
                        IpcReceiver,
                        IpcSender};
@@ -59,6 +41,23 @@ use ipc_channel::ipc::{IpcOneShotServer,
 use libc;
 use semver::{Version,
              VersionReq};
+#[cfg(unix)]
+use std::os::unix::process::ExitStatusExt;
+#[cfg(unix)]
+use std::process::ExitStatus;
+use std::{collections::HashMap,
+          fs,
+          io::Write,
+          path::PathBuf,
+          process::{Child,
+                    Command,
+                    Stdio},
+          str::FromStr,
+          sync::{Arc,
+                 Condvar,
+                 Mutex},
+          thread,
+          time::Duration};
 
 const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;

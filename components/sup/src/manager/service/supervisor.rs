@@ -24,13 +24,13 @@ use crate::error::{Error,
                    SupError};
 use futures::{future,
               Future};
-use habitat_common::templating::package::Pkg;
+use habitat_common::{outputln,
+                     templating::package::Pkg};
 #[cfg(unix)]
 use habitat_core::os::users;
 use habitat_core::{fs,
                    os::process::{self,
                                  Pid},
-                   outputln,
                    service::ServiceGroup};
 use habitat_launcher_client::LauncherCli;
 use serde::{ser::SerializeStruct,

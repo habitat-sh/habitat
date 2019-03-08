@@ -12,20 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{net::{IpAddr,
-                Ipv4Addr,
-                SocketAddr},
-          str};
-
-use crate::{butterfly::rumor::service::SysInfo,
-            hcore};
-
-use crate::{common::types::ListenCtlAddr,
-            config::GossipListenAddr,
+use crate::{config::GossipListenAddr,
             error::{Error,
                     Result},
             http_gateway,
             VERSION};
+use habitat_butterfly::rumor::service::SysInfo;
+use habitat_common::{outputln,
+                     types::ListenCtlAddr};
+use habitat_core;
+use std::{net::{IpAddr,
+                Ipv4Addr,
+                SocketAddr},
+          str};
 
 static LOGKEY: &'static str = "SY";
 
@@ -104,14 +103,14 @@ impl Sys {
 }
 
 pub fn lookup_ip() -> Result<IpAddr> {
-    match hcore::util::sys::ip() {
+    match habitat_core::util::sys::ip() {
         Ok(s) => Ok(s),
         Err(e) => Err(sup_error!(Error::HabitatCore(e))),
     }
 }
 
 pub fn lookup_hostname() -> Result<String> {
-    match hcore::os::net::hostname() {
+    match habitat_core::os::net::hostname() {
         Ok(hostname) => Ok(hostname),
         Err(_) => Err(sup_error!(Error::IPFailed)),
     }

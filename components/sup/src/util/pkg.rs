@@ -12,27 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::Path;
-
-use crate::{common::{self,
-                     command::package::install::{InstallHookMode,
-                                                 InstallMode,
-                                                 InstallSource,
-                                                 LocalPackageUsage},
-                     ui::UIWriter},
-            hcore::{env as henv,
-                    fs::{self,
-                         FS_ROOT_PATH},
-                    package::{PackageIdent,
-                              PackageInstall},
-                    ChannelIdent,
-                    AUTH_TOKEN_ENVVAR}};
-
 use crate::{error::{Error,
                     Result,
                     SupError},
             PRODUCT,
             VERSION};
+use habitat_common::{self,
+                     command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 InstallSource,
+                                                 LocalPackageUsage},
+                     outputln,
+                     ui::UIWriter};
+use habitat_core::{env as henv,
+                   fs::{self,
+                        FS_ROOT_PATH},
+                   package::{PackageIdent,
+                             PackageInstall},
+                   ChannelIdent,
+                   AUTH_TOKEN_ENVVAR};
+use std::path::Path;
 
 static LOGKEY: &'static str = "UT";
 
@@ -51,7 +50,7 @@ pub fn install<T>(ui: &mut T,
         Err(_) => None,
     };
 
-    common::command::package::install::start(ui,
+    habitat_common::command::package::install::start(ui,
                                              url,
                                              // We currently need this to be an option due to how
                                              // the depot

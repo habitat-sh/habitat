@@ -12,15 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{borrow::Cow,
-          collections::{BTreeMap,
-                        HashMap,
-                        HashSet},
-          fmt,
-          result,
-          str::FromStr};
-
-use crate::{butterfly::{member::{Health,
+use crate::error::{Error,
+                   SupError};
+use habitat_butterfly::{member::{Health,
                                  Member,
                                  MemberList},
                         rumor::{election::{Election as ElectionRumor,
@@ -30,17 +24,22 @@ use crate::{butterfly::{member::{Health,
                                           SysInfo},
                                 service_config::ServiceConfig as ServiceConfigRumor,
                                 service_file::ServiceFile as ServiceFileRumor,
-                                RumorStore}},
-            hcore::{self,
-                    package::PackageIdent,
-                    service::ServiceGroup}};
+                                RumorStore}};
+use habitat_common::outputln;
+use habitat_core::{self,
+                   package::PackageIdent,
+                   service::ServiceGroup};
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};
+use std::{borrow::Cow,
+          collections::{BTreeMap,
+                        HashMap,
+                        HashSet},
+          fmt,
+          result,
+          str::FromStr};
 use toml;
-
-use crate::error::{Error,
-                   SupError};
 
 static LOGKEY: &'static str = "CE";
 
@@ -713,7 +712,7 @@ impl<'a> Serialize for CensusMemberProxy<'a> {
     }
 }
 
-fn service_group_from_str(sg: &str) -> Result<ServiceGroup, hcore::Error> {
+fn service_group_from_str(sg: &str) -> Result<ServiceGroup, habitat_core::Error> {
     ServiceGroup::from_str(sg).map_err(|e| {
                                   outputln!("Malformed service group; cannot populate \
                                              configuration data. Aborting.: {}",
@@ -728,7 +727,7 @@ mod tests {
 
     use serde_json;
 
-    use crate::{butterfly::{member::{Health,
+    use habitat_butterfly::{member::{Health,
                                      MemberList},
                             rumor::{election::{self,
                                                Election as ElectionRumor,
@@ -737,10 +736,11 @@ mod tests {
                                               SysInfo},
                                     service_config::ServiceConfig as ServiceConfigRumor,
                                     service_file::ServiceFile as ServiceFileRumor,
-                                    RumorStore}},
-                hcore::{package::ident::PackageIdent,
-                        service::ServiceGroup},
-                test_helpers::*};
+                                    RumorStore}};
+    use habitat_core::{package::ident::PackageIdent,
+                       service::ServiceGroup};
+
+    use crate::test_helpers::*;
 
     #[test]
     fn update_from_rumors() {
