@@ -161,7 +161,7 @@ impl BoxKeyPair {
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} box key", name.as_ref());
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
             _ => Ok(all.remove(0)),
         }
@@ -210,8 +210,8 @@ impl BoxKeyPair {
                            &base64::encode(&pk[..])))
             }
             None => {
-                return Err(Error::CryptoError(format!("No public key present for {}",
-                                                      self.name_with_rev())));
+                Err(Error::CryptoError(format!("No public key present for {}",
+                                               self.name_with_rev())))
             }
         }
     }
@@ -225,8 +225,8 @@ impl BoxKeyPair {
                            &base64::encode(&sk[..])))
             }
             None => {
-                return Err(Error::CryptoError(format!("No secret key present for {}",
-                                                      self.name_with_rev())));
+                Err(Error::CryptoError(format!("No secret key present for {}",
+                                               self.name_with_rev())))
             }
         }
     }
@@ -304,7 +304,7 @@ impl BoxKeyPair {
                                        })?;
                 match Nonce::from_slice(&decoded) {
                     Some(nonce) => Ok(nonce),
-                    None => return Err(Error::CryptoError("Invalid size of nonce".to_string())),
+                    None => Err(Error::CryptoError("Invalid size of nonce".to_string())),
                 }
             }
             None => Err(Error::CryptoError("Corrupt payload, can't read nonce".to_string())),
@@ -420,9 +420,9 @@ impl BoxKeyPair {
         match BoxPublicKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError("Can't convert key bytes to \
-                                               BoxPublicKey"
-                                                            .to_string()));
+                Err(Error::CryptoError("Can't convert key bytes to \
+                                        BoxPublicKey"
+                                                     .to_string()))
             }
         }
     }
@@ -455,9 +455,9 @@ impl BoxKeyPair {
         match BoxSecretKey::from_slice(bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError("Can't convert key bytes to \
-                                               BoxSecretKey"
-                                                            .to_string()));
+                Err(Error::CryptoError("Can't convert key bytes to \
+                                        BoxSecretKey"
+                                                     .to_string()))
             }
         }
     }

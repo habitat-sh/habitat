@@ -121,6 +121,6 @@ pub fn assert_pkg_user_and_group(user: &str, group: &str) -> Result<()> {
         Ok(())
     } else {
         let msg = format!("Package must run as {}:{} or root", user, &group);
-        return Err(Error::PermissionFailed(msg));
+        Err(Error::PermissionFailed(msg))
     }
 }

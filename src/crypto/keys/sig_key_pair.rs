@@ -106,7 +106,7 @@ impl SigKeyPair {
         match all.len() {
             0 => {
                 let msg = format!("No revisions found for {} sig key", name);
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
             _ => Ok(all.remove(0)),
         }
@@ -271,8 +271,8 @@ impl SigKeyPair {
                            &base64::encode(&pk[..])))
             }
             None => {
-                return Err(Error::CryptoError(format!("No public key present for {}",
-                                                      self.name_with_rev())));
+                Err(Error::CryptoError(format!("No public key present for {}",
+                                               self.name_with_rev())))
             }
         }
     }
@@ -286,8 +286,8 @@ impl SigKeyPair {
                            &base64::encode(&sk[..])))
             }
             None => {
-                return Err(Error::CryptoError(format!("No secret key present for {}",
-                                                      self.name_with_rev())));
+                Err(Error::CryptoError(format!("No secret key present for {}",
+                                               self.name_with_rev())))
             }
         }
     }
@@ -310,9 +310,9 @@ impl SigKeyPair {
         match SigPublicKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!("Can't read sig public key \
-                                                       for {}",
-                                                      key_with_rev)));
+                Err(Error::CryptoError(format!("Can't read sig public key \
+                                                for {}",
+                                               key_with_rev)))
             }
         }
     }
@@ -323,9 +323,9 @@ impl SigKeyPair {
         match SigSecretKey::from_slice(&bytes) {
             Some(sk) => Ok(sk),
             None => {
-                return Err(Error::CryptoError(format!("Can't read sig secret key \
-                                                       for {}",
-                                                      key_with_rev)));
+                Err(Error::CryptoError(format!("Can't read sig secret key \
+                                                for {}",
+                                               key_with_rev)))
             }
         }
     }

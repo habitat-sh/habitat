@@ -90,9 +90,9 @@ impl FromStr for PairType {
             "public" => Ok(PairType::Public),
             "secret" => Ok(PairType::Secret),
             _ => {
-                return Err(Error::CryptoError(format!("Invalid PairType conversion \
-                                                       from {}",
-                                                      value)));
+                Err(Error::CryptoError(format!("Invalid PairType conversion \
+                                                from {}",
+                                               value)))
             }
         }
     }
@@ -146,7 +146,7 @@ impl<P, S> KeyPair<P, S> {
             None => {
                 let msg = format!("Public key is required but not present for {}",
                                   self.name_with_rev());
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
         }
     }
@@ -157,7 +157,7 @@ impl<P, S> KeyPair<P, S> {
             None => {
                 let msg = format!("Secret key is required but not present for {}",
                                   self.name_with_rev());
-                return Err(Error::CryptoError(msg));
+                Err(Error::CryptoError(msg))
             }
         }
     }
@@ -332,7 +332,7 @@ fn mk_revision_string() -> Result<String> {
     // http://man7.org/linux/man-pages/man3/strftime.3.html
     match now.strftime("%Y%m%d%H%M%S") {
         Ok(result) => Ok(result.to_string()),
-        Err(_) => return Err(Error::CryptoError("Can't parse system time".to_string())),
+        Err(_) => Err(Error::CryptoError("Can't parse system time".to_string())),
     }
 }
 

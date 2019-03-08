@@ -89,7 +89,7 @@ pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
     unsafe {
         match libc::kill(pid as pid_t, signal.os_signal()) {
             0 => Ok(()),
-            e => return Err(Error::SignalFailed(e, io::Error::last_os_error())),
+            e => Err(Error::SignalFailed(e, io::Error::last_os_error())),
         }
     }
 }
@@ -106,5 +106,5 @@ fn become_exec_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
     let error_if_failed = Command::new(command).args(&args).exec();
     // The only possible return for the above function is an `Error` so return it, meaning that we
     // failed to exec to our target program
-    return Err(error_if_failed.into());
+    Err(error_if_failed.into())
 }

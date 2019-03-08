@@ -272,22 +272,22 @@ fn package_ident_from_dir(origin: &str,
     // Ensure that the installed package's target matches the active `PackageTarget`,
     // otherwise skip the candidate
     if active_target == &install_target {
-        return Some(PackageIdent::new(origin.to_string(),
-                                      name.to_string(),
-                                      Some(version.to_string()),
-                                      Some(release.to_owned())));
+        Some(PackageIdent::new(origin.to_string(),
+                               name.to_string(),
+                               Some(version.to_string()),
+                               Some(release.to_owned())))
     } else {
         debug!("PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate, \
                 found={}, installed_target={}, active_target={}",
                dir.display(),
                install_target,
                active_target,);
-        return None;
+        None
     }
 }
 
 fn filename_from_entry(entry: fs::DirEntry) -> String {
-    return entry.file_name().to_string_lossy().into_owned().to_string();
+    entry.file_name().to_string_lossy().into_owned().to_string()
 }
 
 fn is_existing_dir(path: &Path) -> Result<bool> {
@@ -296,9 +296,9 @@ fn is_existing_dir(path: &Path) -> Result<bool> {
             if err.kind() == io::ErrorKind::NotFound {
                 return Ok(false);
             }
-            return Err(Error::from(err));
+            Err(Error::from(err))
         }
-        Ok(metadata) => return Ok(metadata.is_dir()),
+        Ok(metadata) => Ok(metadata.is_dir()),
     }
 }
 
