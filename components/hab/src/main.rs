@@ -707,9 +707,7 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let template_path = match m.value_of("TEMPLATE_PATH") {
         Some(o) => Path::new(o),
         None => {
-            return Err(Error::CryptoCLI(
-                "No config to render specified".to_string(),
-            ));
+            return Err(Error::CryptoCLI("No config to render specified".to_string()));
         }
     };
 
@@ -737,17 +735,15 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         None => Path::new("result"),
     };
 
-    command::plan::render::start(
-        ui,
-        template_path,
-        default_toml_path,
-        user_toml_path,
-        mock_data_path,
-        print,
-        no_render_dir,
-        render_dir,
-        quiet,
-    )
+    command::plan::render::start(ui,
+                                 template_path,
+                                 default_toml_path,
+                                 user_toml_path,
+                                 mock_data_path,
+                                 print,
+                                 no_render_dir,
+                                 render_dir,
+                                 quiet)
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

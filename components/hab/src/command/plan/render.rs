@@ -12,42 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use serde_json::{self, json, Value as Json};
-use std::fs::create_dir_all;
-use std::fs::{read_to_string, File};
-use std::io::Write;
-use std::path::Path;
+use serde_json::{self,
+                 json,
+                 Value as Json};
+use std::{fs::{create_dir_all,
+               read_to_string,
+               File},
+          io::Write,
+          path::Path};
 use toml::Value;
 
-use crate::common::templating::TemplateRenderer;
-use crate::common::ui::{Status, UIWriter, UI};
-use crate::error::Result;
+use crate::{common::{templating::TemplateRenderer,
+                     ui::{Status,
+                          UIWriter,
+                          UI}},
+            error::Result};
 
-pub fn start(
-    ui: &mut UI,
-    template_path: &Path,
-    default_toml_path: &Path,
-    user_toml_path: Option<&Path>,
-    mock_data_path: Option<&Path>,
-    print: bool,
-    no_render: bool,
-    render_dir: &Path,
-    quiet: bool,
-) -> Result<()> {
+pub fn start(ui: &mut UI,
+             template_path: &Path,
+             default_toml_path: &Path,
+             user_toml_path: Option<&Path>,
+             mock_data_path: Option<&Path>,
+             print: bool,
+             no_render: bool,
+             render_dir: &Path,
+             quiet: bool)
+             -> Result<()> {
     // Strip the file name out of our passed template
     let file_name = match Path::new(&template_path).file_name() {
         Some(name) => Path::new(name),
-        None => panic!(format!(
-            "Something went wrong getting filename of {:?}",
-            &template_path
-        )),
+        None => {
+            panic!(format!("Something went wrong getting filename of {:?}",
+                           &template_path))
+        }
     };
 
     if !(quiet) {
-        ui.begin(format!(
-            "Rendering: {:?} into: {:?} as: {:?}",
-            template_path, render_dir, file_name
-        ))?;
+        ui.begin(format!("Rendering: {:?} into: {:?} as: {:?}",
+                         template_path, render_dir, file_name))?;
         ui.br()?;
     }
 
@@ -102,28 +104,21 @@ pub fn start(
     // create a template renderer
     let mut renderer = TemplateRenderer::new();
     // register our template
-    renderer
-        .register_template_string(&template, &template)
-        .expect("Could not register template content");
+    renderer.register_template_string(&template, &template)
+            .expect("Could not register template content");
     // render our JSON override in our template.
     let rendered_template = renderer.render(&template, &data)?;
 
     if print {
         if !(quiet) {
             ui.br()?;
-            ui.warn(format!(
-                "###======== Rendered template: {:?}",
-                &template_path
-            ))?;
+            ui.warn(format!("###======== Rendered template: {:?}", &template_path))?;
         }
 
         println!("{}", rendered_template);
 
         if !(quiet) {
-            ui.warn(format!(
-                "========### End rendered template: {:?}",
-                &template_path
-            ))?;
+            ui.warn(format!("========### End rendered template: {:?}", &template_path))?;
         }
     }
 
@@ -159,13 +154,12 @@ fn merge(a: &mut Json, b: Json) {
     *a = b;
 }
 
-fn create_with_template(
-    ui: &mut UI,
-    render_dir: &std::path::Path,
-    file_name: &std::path::Path,
-    template: &str,
-    quiet: bool,
-) -> Result<()> {
+fn create_with_template(ui: &mut UI,
+                        render_dir: &std::path::Path,
+                        file_name: &std::path::Path,
+                        template: &str,
+                        quiet: bool)
+                        -> Result<()> {
     let path = Path::new(&render_dir).join(&file_name);
     if !(quiet) {
         ui.status(Status::Creating, format!("file: {:?}", path))?;
