@@ -48,8 +48,8 @@ pub fn start(ui: &mut UI,
     };
 
     if !quiet {
-        ui.begin(format!("Rendering: {:?} into: {:?} as: {:?}",
-                         template_path, render_dir, file_name))?;
+        ui.begin(format!("Rendering: {} into: {} as: {}",
+                         template_path.display(), render_dir.display(), file_name.display()))?;
         ui.br()?;
     }
 
@@ -61,7 +61,7 @@ pub fn start(ui: &mut UI,
 
     if !quiet {
         // import default.toml values, convert to JSON
-        ui.begin(format!("Importing default.toml: {:?}", &default_toml_path))?;
+        ui.begin(format!("Importing default.toml: {}", &default_toml_path.display()))?;
     }
 
     // we should always have a default.toml, would be nice to "autodiscover" based on package name,
@@ -76,7 +76,7 @@ pub fn start(ui: &mut UI,
         Some(path) => {
             if !quiet {
                 // print helper message, maybe only print if '--verbose'? how?
-                ui.begin(format!("Importing user.toml: {:?}", path))?;
+                ui.begin(format!("Importing user.toml: {}", path.display()))?;
             }
             read_to_string(path)?
         }
@@ -90,7 +90,7 @@ pub fn start(ui: &mut UI,
         Some(path) => {
             if !quiet {
                 // print helper message, maybe only print if '--verbose'? how?
-                ui.begin(format!("Importing override file: {:?}", path))?;
+                ui.begin(format!("Importing override file: {}", path.display()))?;
             }
             read_to_string(path)?
         }
@@ -112,13 +112,13 @@ pub fn start(ui: &mut UI,
     if print {
         if !quiet {
             ui.br()?;
-            ui.warn(format!("###======== Rendered template: {:?}", &template_path))?;
+            ui.warn(format!("###======== Rendered template: {}", &template_path.display()))?;
         }
 
         println!("{}", rendered_template);
 
         if !quiet {
-            ui.warn(format!("========### End rendered template: {:?}", &template_path))?;
+            ui.warn(format!("========### End rendered template: {}", &template_path.display()))?;
         }
     }
 
@@ -161,7 +161,7 @@ fn create_with_template(ui: &mut UI,
                         -> Result<()> {
     let path = Path::new(&render_dir).join(&file_name);
     if !quiet {
-        ui.status(Status::Creating, format!("file: {:?}", path))?;
+        ui.status(Status::Creating, format!("file: {}", path.display()))?;
     }
 
     create_dir_all(render_dir)?;
