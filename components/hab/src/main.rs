@@ -713,7 +713,7 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let mock_data_path = m.value_of("MOCK_DATA").map(Path::new);
 
     let print = m.is_present("PRINT");
-    let render = !m.is_present("NO_WRITE_FILE");
+    let render = !m.is_present("NO_RENDER");
     let quiet = m.is_present("QUIET");
 
     let render_dir = Path::new(m.value_of("RENDER_DIR").unwrap());
