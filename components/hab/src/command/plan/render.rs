@@ -34,7 +34,7 @@ pub fn start(ui: &mut UI,
              user_toml_path: Option<&Path>,
              mock_data_path: Option<&Path>,
              print: bool,
-             no_render: bool,
+             render: bool,
              render_dir: &Path,
              quiet: bool)
              -> Result<()> {
@@ -122,8 +122,7 @@ pub fn start(ui: &mut UI,
         }
     }
 
-    // if not no render dir (aka "unless no_render == true")
-    if !(no_render) {
+    if render {
         // Render our template file
         create_with_template(ui, &render_dir, &file_name, &rendered_template, quiet)?;
     }
