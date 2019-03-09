@@ -45,4 +45,4 @@ fi
 
 sudo sh /tmp/install.sh
 sudo hab install core/busybox-static core/hab-studio
-sudo rm -f /tmp/install.sh
+sudo rm -rf /tmp/install.sh
