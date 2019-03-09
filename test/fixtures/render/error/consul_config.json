@@ -1,0 +1,21 @@
+{
+  "datacenter": "{{cfg.server.datacenter",
+  "data_dir": "{{cfg.server.data-dir}}",
+  "log_level": "{{cfg.server.loglevel}}",
+  "bind_addr": "{{sys.ip}}",
+  "client_addr": "{{sys.ip}}",
+  "server": {{cfg.server.mode}},
+  "retry_join": [
+  {{#eachAlive svc.members as |member| ~}}
+    "{{member.sys.ip}}" {{~#unless @last}},{{/unless}}
+  {{/eachAlive ~}}
+  ],
+  "ports": {
+    "dns": {{cfg.ports.dns}},
+    "http": {{cfg.ports.http}},
+    "https": {{cfg.ports.https}},
+    "serf_lan": {{cfg.ports.serf_lan}},
+    "serf_wan": {{cfg.ports.serf_wan}},
+    "server": {{cfg.ports.server}}
+  }
+}

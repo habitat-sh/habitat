@@ -33,6 +33,7 @@ find . -type f \
   -and \! -path "./test/integration/test_helper/bats-file/*" \
   -and \! -path "./test/integration/test_helper/bats-support/*" \
   -and \! -path "./test/fixtures/render/consul/hooks/run" \
+  -and \! -path "./test/fixtures/render/error/*" \
   -print \
   | xargs shellcheck --external-sources --exclude=1090,1091,1117,2148,2034
 
