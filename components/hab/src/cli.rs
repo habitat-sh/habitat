@@ -588,7 +588,7 @@ pub fn get() -> App<'static, 'static> {
                 (@arg USER_TOML: -u --("user-toml") +takes_value "Path to user.toml, defaults to none")
                 (@arg MOCK_DATA: -m --("mock-data") +takes_value "Path to json file with mock data for template, defaults to none")
                 (@arg PRINT: -p --("print") "Prints config to STDOUT")
-                (@arg RENDER_DIR: -r --("render-dir") +takes_value "Path to render templates to, defaults to ./results/")
+                (@arg RENDER_DIR: -r --("render-dir") +takes_value default_value("./results") "Path to render templates")
                 (@arg NO_WRITE_FILE: -n --("no-render") "Don't write anything to disk, ignores --render-dir")
                 (@arg QUIET: -q --("no-verbose") --quiet
                     "Don't print any helper messages.  When used with `--print` will only print config file")

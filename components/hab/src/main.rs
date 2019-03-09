@@ -704,36 +704,19 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let template_path = match m.value_of("TEMPLATE_PATH") {
-        Some(o) => Path::new(o),
-        None => {
-            return Err(Error::CryptoCLI("No config to render specified".to_string()));
-        }
-    };
+    let template_path = Path::new(m.value_of("TEMPLATE_PATH").unwrap());
 
-    let default_toml_path = match m.value_of("DEFAULT_TOML") {
-        Some(o) => Path::new(o),
-        None => Path::new("./default.toml"),
-    };
+    let default_toml_path = Path::new(m.value_of("DEFAULT_TOML").unwrap());
 
-    let user_toml_path = match m.value_of("USER_TOML") {
-        Some(o) => Some(Path::new(o)),
-        None => None,
-    };
+    let user_toml_path = m.value_of("USER_TOML").map(Path::new);
 
-    let mock_data_path = match m.value_of("MOCK_DATA") {
-        Some(o) => Some(Path::new(o)),
-        None => None,
-    };
+    let mock_data_path = m.value_of("MOCK_DATA").map(Path::new);
 
     let print = m.is_present("PRINT");
     let render = !m.is_present("NO_WRITE_FILE");
     let quiet = m.is_present("QUIET");
 
-    let render_dir = match m.value_of("RENDER_DIR") {
-        Some(name) => Path::new(name),
-        None => Path::new("result"),
-    };
+    let render_dir = Path::new(m.value_of("RENDER_DIR").unwrap());
 
     command::plan::render::start(ui,
                                  template_path,
