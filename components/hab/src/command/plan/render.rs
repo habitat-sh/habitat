@@ -47,7 +47,7 @@ pub fn start(ui: &mut UI,
         }
     };
 
-    if !(quiet) {
+    if !quiet {
         ui.begin(format!("Rendering: {:?} into: {:?} as: {:?}",
                          template_path, render_dir, file_name))?;
         ui.br()?;
@@ -59,7 +59,7 @@ pub fn start(ui: &mut UI,
     // create a "data" json struct
     let mut data = json!({});
 
-    if !(quiet) {
+    if !quiet {
         // import default.toml values, convert to JSON
         ui.begin(format!("Importing default.toml: {:?}", &default_toml_path))?;
     }
@@ -74,7 +74,7 @@ pub fn start(ui: &mut UI,
     // import default.toml values, convert to JSON
     let user_toml = match user_toml_path {
         Some(path) => {
-            if !(quiet) {
+            if !quiet {
                 // print helper message, maybe only print if '--verbose'? how?
                 ui.begin(format!("Importing user.toml: {:?}", path))?;
             }
@@ -88,7 +88,7 @@ pub fn start(ui: &mut UI,
     // read mock data if provided
     let mock_data = match mock_data_path {
         Some(path) => {
-            if !(quiet) {
+            if !quiet {
                 // print helper message, maybe only print if '--verbose'? how?
                 ui.begin(format!("Importing override file: {:?}", path))?;
             }
@@ -110,14 +110,14 @@ pub fn start(ui: &mut UI,
     let rendered_template = renderer.render(&template, &data)?;
 
     if print {
-        if !(quiet) {
+        if !quiet {
             ui.br()?;
             ui.warn(format!("###======== Rendered template: {:?}", &template_path))?;
         }
 
         println!("{}", rendered_template);
 
-        if !(quiet) {
+        if !quiet {
             ui.warn(format!("========### End rendered template: {:?}", &template_path))?;
         }
     }
@@ -127,7 +127,7 @@ pub fn start(ui: &mut UI,
         create_with_template(ui, &render_dir, &file_name, &rendered_template, quiet)?;
     }
 
-    if !(quiet) {
+    if !quiet {
         ui.br()?;
     }
     Ok(())
@@ -160,7 +160,7 @@ fn create_with_template(ui: &mut UI,
                         quiet: bool)
                         -> Result<()> {
     let path = Path::new(&render_dir).join(&file_name);
-    if !(quiet) {
+    if !quiet {
         ui.status(Status::Creating, format!("file: {:?}", path))?;
     }
 
