@@ -43,7 +43,9 @@ pub fn start(ui: &mut UI,
 
     if !quiet {
         ui.begin(format!("Rendering: {} into: {} as: {}",
-                         template_path.display(), render_dir.display(), file_name.display()))?;
+                         template_path.display(),
+                         render_dir.display(),
+                         file_name.display()))?;
         ui.br()?;
     }
 
@@ -106,13 +108,15 @@ pub fn start(ui: &mut UI,
     if print {
         if !quiet {
             ui.br()?;
-            ui.warn(format!("###======== Rendered template: {}", &template_path.display()))?;
+            ui.warn(format!("###======== Rendered template: {}",
+                            &template_path.display()))?;
         }
 
         println!("{}", rendered_template);
 
         if !quiet {
-            ui.warn(format!("========### End rendered template: {}", &template_path.display()))?;
+            ui.warn(format!("========### End rendered template: {}",
+                            &template_path.display()))?;
         }
     }
 
