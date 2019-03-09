@@ -39,13 +39,7 @@ pub fn start(ui: &mut UI,
              quiet: bool)
              -> Result<()> {
     // Strip the file name out of our passed template
-    let file_name = match Path::new(&template_path).file_name() {
-        Some(name) => Path::new(name),
-        None => {
-            panic!(format!("Something went wrong getting filename of {:?}",
-                           &template_path))
-        }
-    };
+    let file_name = Path::new(template_path.file_name().expect("valid template file"));
 
     if !quiet {
         ui.begin(format!("Rendering: {} into: {} as: {}",
