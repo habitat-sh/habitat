@@ -407,7 +407,7 @@ impl PackageArchive {
             if let Some(entry) = reader.next_header() {
                 for (matched, regx) in METAFILE_REGXS.iter() {
                     if regx.is_match(entry.pathname()) {
-                        matched_type = Some((*matched).clone());
+                        matched_type = Some(*matched);
                         matched_count += 1;
                         break;
                     }

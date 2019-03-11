@@ -212,28 +212,28 @@ impl fmt::Display for MetaFile {
 /// Read a metadata file from within a package directory if it exists
 ///
 /// Returns the contents of the file
-pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Result<String> {
+pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Result<String> {
     match existing_metafile(installed_path, file) {
         Some(filepath) => {
             match File::open(&filepath) {
                 Ok(mut f) => {
                     let mut data = String::new();
                     if f.read_to_string(&mut data).is_err() {
-                        return Err(Error::MetaFileMalformed(file.clone()));
+                        return Err(Error::MetaFileMalformed(file));
                     }
                     Ok(data.trim().to_string())
                 }
                 Err(e) => Err(Error::MetaFileIO(e)),
             }
         }
-        None => Err(Error::MetaFileNotFound(file.clone())),
+        None => Err(Error::MetaFileNotFound(file)),
     }
 }
 
 /// Returns the path to a specified MetaFile in an installed path if it exists.
 ///
 /// Useful for fallback logic for dealing with older Habitat packages.
-fn existing_metafile<P: AsRef<Path>>(installed_path: P, file: &MetaFile) -> Option<PathBuf> {
+fn existing_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Option<PathBuf> {
     let filepath = installed_path.as_ref().join(file.to_string());
     match std::fs::metadata(&filepath) {
         Ok(_) => Some(filepath),
@@ -399,8 +399,7 @@ port=front-end.port
         let expected = "core/foo=db:core/database";
         write_metafile(install_dir, MetaFile::Binds, expected);
 
-        let bind = MetaFile::Binds;
-        let bind_map = read_metafile(install_dir, &bind).unwrap();
+        let bind_map = read_metafile(install_dir, MetaFile::Binds).unwrap();
 
         assert_eq!(expected, bind_map);
     }
@@ -409,9 +408,7 @@ port=front-end.port
     fn reading_a_non_existing_metafile_is_an_error() {
         let pkg_root = Builder::new().prefix("pkg-root").tempdir().unwrap();
         let install_dir = pkg_root.path();
-
-        let bind = MetaFile::Binds;
-        let bind_map = read_metafile(install_dir, &bind);
+        let bind_map = read_metafile(install_dir, MetaFile::Binds);
 
         assert!(bind_map.is_err());
     }

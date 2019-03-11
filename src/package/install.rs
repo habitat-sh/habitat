@@ -591,7 +591,7 @@ impl PackageInstall {
     /// * Contents of the metafile could not be read
     /// * Contents of the metafile are unreadable or malformed
     fn read_metafile(&self, file: MetaFile) -> Result<String> {
-        read_metafile(&self.installed_path, &file)
+        read_metafile(&self.installed_path, file)
     }
 
     /// Reads metafiles containing dependencies represented by package identifiers separated by new
@@ -723,7 +723,7 @@ mod test {
     /// Returns a `PackageTarget` that does not match the active target of this system.
     fn wrong_package_target() -> &'static PackageTarget {
         let active = PackageTarget::active_target();
-        match PackageTarget::supported_targets().find(|&target| target != active) {
+        match PackageTarget::supported_targets().find(|&&target| target != active) {
             Some(wrong) => wrong,
             None => panic!("Should be able to find an unsupported package type"),
         }
@@ -806,12 +806,12 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        write_metafile(&pkg_install, MetaFile::Target, active_target);
+        write_metafile(&pkg_install, MetaFile::Target, &active_target);
 
         let loaded = PackageInstall::load(&PackageIdent::from_str(ident_s).unwrap(),
                                           Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
-        assert_eq!(active_target, &loaded.target().unwrap());
+        assert_eq!(active_target, loaded.target().unwrap());
     }
 
     #[test]
@@ -845,13 +845,13 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        write_metafile(&pkg_install, MetaFile::Target, active_target);
+        write_metafile(&pkg_install, MetaFile::Target, &active_target);
 
         let loaded = PackageInstall::load(&PackageIdent::from_str("dream-theater/\
                                                                    systematic-chaos").unwrap(),
                                           Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
-        assert_eq!(active_target, &loaded.target().unwrap());
+        assert_eq!(active_target, loaded.target().unwrap());
     }
 
     #[test]
@@ -888,7 +888,7 @@ core/bar=pub:core/publish sub:core/subscribe
         // This installed package is older but matching the active package target
         let matching_ident_s = "dream-theater/systematic-chaos/1.1.1/20180704142702";
         let matching_pkg_install = testing_package_install(matching_ident_s, fs_root.path());
-        write_metafile(&matching_pkg_install, MetaFile::Target, active_target);
+        write_metafile(&matching_pkg_install, MetaFile::Target, &active_target);
 
         // This installed package is newer but does not match the active package target
         let wrong_ident_s = "dream-theater/systematic-chaos/5.5.5/20180704142702";
@@ -899,7 +899,7 @@ core/bar=pub:core/publish sub:core/subscribe
                                                                    systematic-chaos").unwrap(),
                                           Some(fs_root.path())).unwrap();
         assert_eq!(matching_pkg_install, loaded);
-        assert_eq!(active_target, &loaded.target().unwrap());
+        assert_eq!(active_target, loaded.target().unwrap());
     }
 
     #[test]
@@ -949,12 +949,12 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        write_metafile(&pkg_install, MetaFile::Target, active_target);
+        write_metafile(&pkg_install, MetaFile::Target, &active_target);
 
         let loaded = PackageInstall::load_at_least(&PackageIdent::from_str(ident_s).unwrap(),
                                                    Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
-        assert_eq!(active_target, &loaded.target().unwrap());
+        assert_eq!(active_target, loaded.target().unwrap());
     }
 
     #[test]
@@ -988,14 +988,14 @@ core/bar=pub:core/publish sub:core/subscribe
         let ident_s = "dream-theater/systematic-chaos/1.2.3/20180704142702";
         let active_target = PackageTarget::active_target();
         let pkg_install = testing_package_install(ident_s, fs_root.path());
-        write_metafile(&pkg_install, MetaFile::Target, active_target);
+        write_metafile(&pkg_install, MetaFile::Target, &active_target);
 
         let loaded =
             PackageInstall::load_at_least(&PackageIdent::from_str("dream-theater/\
                                                                    systematic-chaos").unwrap(),
                                           Some(fs_root.path())).unwrap();
         assert_eq!(pkg_install, loaded);
-        assert_eq!(active_target, &loaded.target().unwrap());
+        assert_eq!(active_target, loaded.target().unwrap());
     }
 
     #[test]
@@ -1032,7 +1032,7 @@ core/bar=pub:core/publish sub:core/subscribe
         // This installed package is older but matching the active package target
         let matching_ident_s = "dream-theater/systematic-chaos/1.1.1/20180704142702";
         let matching_pkg_install = testing_package_install(matching_ident_s, fs_root.path());
-        write_metafile(&matching_pkg_install, MetaFile::Target, active_target);
+        write_metafile(&matching_pkg_install, MetaFile::Target, &active_target);
 
         // This installed package is newer but does not match the active package target
         let wrong_ident_s = "dream-theater/systematic-chaos/5.5.5/20180704142702";
@@ -1044,7 +1044,7 @@ core/bar=pub:core/publish sub:core/subscribe
                                                                    systematic-chaos").unwrap(),
                                           Some(fs_root.path())).unwrap();
         assert_eq!(matching_pkg_install, loaded);
-        assert_eq!(active_target, &loaded.target().unwrap());
+        assert_eq!(active_target, loaded.target().unwrap());
     }
 
     #[test]

@@ -386,7 +386,7 @@ impl PackageTarget {
     /// let active = PackageTarget::active_target();
     /// println!("The active target for this system is '{}'", active);
     /// ```
-    pub fn active_target() -> &'static Self { &*ACTIVE_PACKAGE_TARGET }
+    pub fn active_target() -> Self { *ACTIVE_PACKAGE_TARGET }
 
     /// Produces an iterator over all supported `PackageTarget`s.
     ///
@@ -469,7 +469,7 @@ impl Type {
     }
 
     /// Returns the variant component of the underlying target type, if one is present.
-    fn variant(&self) -> Option<&str> {
+    fn variant(self) -> Option<&'static str> {
         TYPE_FROM_STR_RE.captures(self.as_str())
                         .unwrap()
                         .name("variant")

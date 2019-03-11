@@ -228,7 +228,7 @@ fn walk_releases(origin: &str,
 fn package_ident_from_dir(origin: &str,
                           name: &str,
                           version: &str,
-                          active_target: &PackageTarget,
+                          active_target: PackageTarget,
                           dir: &Path)
                           -> Option<PackageIdent> {
     let release = if let Some(rel) = dir.file_name().and_then(|f| f.to_str()) {
@@ -244,7 +244,7 @@ fn package_ident_from_dir(origin: &str,
         return None;
     }
 
-    let metafile_content = read_metafile(dir, &MetaFile::Target);
+    let metafile_content = read_metafile(dir, MetaFile::Target);
     // If there is an error reading the target metafile, then skip the candidate
     if let Err(e) = metafile_content {
         debug!("PackageInstall::package_ident_from_dir(): rejected PackageInstall candidate due \
@@ -271,7 +271,7 @@ fn package_ident_from_dir(origin: &str,
 
     // Ensure that the installed package's target matches the active `PackageTarget`,
     // otherwise skip the candidate
-    if active_target == &install_target {
+    if active_target == install_target {
         Some(PackageIdent::new(origin.to_string(),
                                name.to_string(),
                                Some(version.to_string()),

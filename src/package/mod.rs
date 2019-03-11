@@ -75,7 +75,7 @@ pub mod test_support {
         write_file(&pkg_install_path.join(MetaFile::Ident.to_string()),
                    &pkg_ident.to_string());
         write_file(&pkg_install_path.join(MetaFile::Target.to_string()),
-                   PackageTarget::active_target());
+                   &PackageTarget::active_target());
 
         PackageInstall::load(&pkg_ident, Some(fs_root)).unwrap_or_else(|_| {
                                                            panic!("PackageInstall should load for \

@@ -94,7 +94,7 @@ impl PackageIdent {
         self.archive_name_impl(PackageTarget::active_target())
     }
 
-    pub fn archive_name_with_target(&self, target: &PackageTarget) -> Result<String> {
+    pub fn archive_name_with_target(&self, target: PackageTarget) -> Result<String> {
         self.archive_name_impl(target)
     }
 
@@ -158,7 +158,7 @@ impl PackageIdent {
         }
     }
 
-    fn archive_name_impl(&self, target: &PackageTarget) -> Result<String> {
+    fn archive_name_impl(&self, target: PackageTarget) -> Result<String> {
         if self.fully_qualified() {
             Ok(format!("{}-{}-{}-{}-{}.hart",
                        self.origin,
@@ -715,7 +715,7 @@ mod tests {
         let target = PackageTarget::from_str("x86_64-linux").unwrap();
 
         assert_eq!(String::from("tom-petty-the_last__dj-1.0.0-20180701125610-x86_64-linux.hart"),
-                   ident.archive_name_with_target(&target).unwrap());
+                   ident.archive_name_with_target(target).unwrap());
     }
 
     #[test]
@@ -723,7 +723,7 @@ mod tests {
         let ident = PackageIdent::from_str("acme/not-enough").unwrap();
         let target = PackageTarget::from_str("x86_64-linux").unwrap();
 
-        match ident.archive_name_with_target(&target) {
+        match ident.archive_name_with_target(target) {
             Err(Error::FullyQualifiedPackageIdentRequired(i)) => {
                 assert_eq!("acme/not-enough".to_string(), i)
             }
