@@ -32,7 +32,8 @@ use habitat_core::{crypto::keys::PairType,
                              PackageIdent,
                              PackageTarget},
                    service::{HealthCheckInterval,
-                             ServiceGroup}};
+                             ServiceGroup},
+                   ChannelIdent};
 use habitat_sup_protocol;
 use std::{net::SocketAddr,
           path::Path,
@@ -407,9 +408,8 @@ pub fn get() -> App<'static, 'static> {
                     "Specify an alternate Builder endpoint. If not specified, the value will \
                      be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                      https://bldr.habitat.sh)")
-                (@arg CHANNEL: --channel -c +takes_value
-                    "Retrieve the container's package from the specified release channel \
-                    (default: stable)")
+                (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
+                    "Retrieve the container's package from the specified release channel")
             )
             (@subcommand hash =>
                 (about: "Generates a blake2b hashsum from a target at any given filepath")
@@ -485,9 +485,9 @@ pub fn get() -> App<'static, 'static> {
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 (@arg CHANNEL: --channel -c +takes_value
-                    "Additional release channel to upload package to. \
+                    "Optional additional release channel to upload package to. \
                      Packages are always uploaded to `unstable`, regardless \
-                     of the value of this option. (default: none)")
+                     of the value of this option.")
                 (@arg FORCE: --force "Skips checking availability of package and \
                     force uploads, potentially overwriting a stored copy of a package. \
                     (default: false)")
@@ -789,8 +789,8 @@ fn sub_pkg_install() -> App<'static, 'static> {
             "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
-        (@arg CHANNEL: --channel -c +takes_value
-            "Install from the specified release channel (default: stable)")
+        (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
+            "Install from the specified release channel")
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
@@ -900,8 +900,8 @@ pub fn sub_sup_run() -> App<'static, 'static> {
               foo-20181113185935 \
 
                   GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
-    (@arg CHANNEL: --channel +takes_value
-        "Receive Supervisor updates from the specified release channel [default: stable]")
+    (@arg CHANNEL: --channel +takes_value default_value[stable]
+        "Receive Supervisor updates from the specified release channel")
     (@arg BLDR_URL: -u --url +takes_value {valid_url}
         "Specify an alternate Builder endpoint. If not specified, the value will \
          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
@@ -1013,8 +1013,8 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Application name; [default: not set].")
         (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
             "Environment name; [default: not set].")
-        (@arg CHANNEL: --channel +takes_value
-            "Receive package updates from the specified release channel [default: stable]")
+        (@arg CHANNEL: --channel +takes_value default_value[stable]
+            "Receive package updates from the specified release channel")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default].")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}
@@ -1051,8 +1051,8 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Application name; [default: not set].")
         (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
             "Environment name; [default: not set].")
-        (@arg CHANNEL: --channel +takes_value
-            "Receive package updates from the specified release channel [default: stable]")
+        (@arg CHANNEL: --channel +takes_value default_value[stable]
+            "Receive package updates from the specified release channel")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default].")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}

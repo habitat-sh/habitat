@@ -121,8 +121,8 @@ impl Server {
     fn init(args: &[String], clean: bool) -> Result<((Receiver, Sender), Child, String)> {
         let (server, pipe) = IpcOneShotServer::new().map_err(Error::OpenPipe)?;
         let supervisor = spawn_supervisor(&pipe, args, clean)?;
-        let channel = setup_connection(server)?;
-        Ok((channel, supervisor, pipe))
+        let ipc_channel = setup_connection(server)?;
+        Ok((ipc_channel, supervisor, pipe))
     }
 
     fn remove_pipe(&self) {
