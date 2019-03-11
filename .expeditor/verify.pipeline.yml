@@ -282,7 +282,7 @@ steps:
       - ./test/run_cargo_test.ps1 builder-api-client
     agents:
       queue: 'single-use-windows-privileged'
-    timeout_in_minutes: 15
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
@@ -292,7 +292,7 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
     agents:
       queue: 'single-use-windows-privileged'
-    timeout_in_minutes: 15
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
@@ -302,7 +302,7 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1"
     agents:
       queue: 'single-use-windows-privileged'
-    timeout_in_minutes: 15
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 10
