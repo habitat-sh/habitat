@@ -138,6 +138,8 @@ pub enum Error {
     PackageUnpackFailed(String),
     /// When an error occurs parsing an integer.
     ParseIntError(num::ParseIntError),
+    /// When parsing a string as an OS signal fails
+    ParseSignalError(String),
     /// Occurs upon errors related to file or directory permissions.
     PermissionFailed(String),
     /// Error parsing the contents of a plan file were incomplete or malformed.
@@ -329,6 +331,7 @@ impl fmt::Display for Error {
             }
             Error::PackageUnpackFailed(ref e) => format!("Package could not be unpacked. {}", e),
             Error::ParseIntError(ref e) => format!("{}", e),
+            Error::ParseSignalError(ref s) => format!("Failed to parse '{}' as a signal", s),
             Error::PlanMalformed => "Failed to read or parse contents of Plan file".to_string(),
             Error::PermissionFailed(ref e) => e.to_string(),
             Error::PrivilegeNotHeld => "Current user must possess the 'SE_INCREASE_QUOTA_NAME' \
@@ -473,6 +476,7 @@ impl error::Error for Error {
             Error::PackageNotFound(_) => "Cannot find a package",
             Error::PackageUnpackFailed(_) => "Package could not be unpacked",
             Error::ParseIntError(_) => "Failed to parse an integer from a string!",
+            Error::ParseSignalError(_) => "Failed to parse an OS signal from a string!",
             Error::PermissionFailed(_) => "File system permissions error",
             Error::PlanMalformed => "Failed to read or parse contents of Plan file",
             Error::PrivilegeNotHeld => "Privilege not held to spawn process as different user",
