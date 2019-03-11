@@ -1,17 +1,17 @@
-* @fnichol @christophermaier @raskchanky
-.buildkite @christophermaier @fnichol @scotthain
-components/backline @fnichol @baumanj
+* @christophermaier @raskchanky
+.buildkite @christophermaier @scotthain
+components/backline @baumanj
 components/builder-api-client @chefsalim @raskchanky
-components/butterfly* @christophermaier @baumanj @fnichol @raskchanky @jamesc
-components/common @fnichol @baumanj @raskchanky @jamesc
-components/hab @fnichol @christophermaier @chefsalim @baumanj @raskchanky @eeyun @jamesc
+components/butterfly* @christophermaier @baumanj @raskchanky
+components/common @baumanj @raskchanky
+components/hab @christophermaier @chefsalim @baumanj @raskchanky @eeyun
 components/launcher* @christophermaier @baumanj @raskchanky
-components/pkg-* @fnichol @christophermaier @eeyun @jamesc
-components/plan-build @fnichol @christophermaier @scotthain
-components/studio @fnichol @baumanj @eeyun
-components/sup* @christophermaier @fnichol @baumanj @raskchanky @jamesc
-support @fnichol @baumanj @raskchanky
-tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky @fnichol
+components/pkg-* @christophermaier @eeyun
+components/plan-build @christophermaier @scotthain
+components/studio @baumanj @eeyun
+components/sup* @christophermaier @baumanj @raskchanky
+support @baumanj @raskchanky
+tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky
 www @raskchanky
 www/site/content/* @kagarmoe @mjingle
 UX_PRINCIPLES.md @apriofrost
