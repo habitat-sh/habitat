@@ -364,7 +364,7 @@ impl PushWorker {
                                                .member_list
                                                .health_of_by_id(&rumor_key.key())
                                                .unwrap() };
-        let rumor = RumorEnvelope { type_:   RumorType::Member,
+        let rumor = RumorEnvelope { r#type:  RumorType::Member,
                                     from_id: self.server.member_id().to_string(),
                                     kind:    RumorKind::Membership(payload), };
         Some(rumor)

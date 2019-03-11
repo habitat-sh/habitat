@@ -47,7 +47,7 @@ impl fmt::Display for RumorType {
 impl From<CDeparture> for Rumor {
     fn from(value: CDeparture) -> Self {
         let payload = Departure { member_id: Some(value.member_id), };
-        Rumor { type_:   RumorType::Departure as i32,
+        Rumor { r#type:  RumorType::Departure as i32,
                 tag:     Vec::default(),
                 from_id: Some("butterflyclient".to_string()),
                 payload: Some(RumorPayload::Departure(payload)), }
@@ -62,7 +62,7 @@ impl From<CElection> for Rumor {
                                  suitability:   Some(value.suitability),
                                  status:        Some(value.status as i32),
                                  votes:         value.votes.clone(), };
-        Rumor { type_:   RumorType::Election as i32,
+        Rumor { r#type:  RumorType::Election as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id),
                 payload: Some(RumorPayload::Election(payload)), }
@@ -77,7 +77,7 @@ impl From<CElectionUpdate> for Rumor {
                                  suitability:   Some(value.suitability),
                                  status:        Some(value.status as i32),
                                  votes:         value.votes.clone(), };
-        Rumor { type_:   RumorType::ElectionUpdate as i32,
+        Rumor { r#type:  RumorType::ElectionUpdate as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id.clone()),
                 payload: Some(RumorPayload::Election(payload)), }
@@ -93,7 +93,7 @@ impl From<CService> for Rumor {
                                 pkg:           Some(value.pkg),
                                 cfg:           Some(value.cfg),
                                 sys:           Some(value.sys.into()), };
-        Rumor { type_:   RumorType::Service as i32,
+        Rumor { r#type:  RumorType::Service as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id),
                 payload: Some(RumorPayload::Service(payload)), }
@@ -106,7 +106,7 @@ impl From<CServiceConfig> for Rumor {
                                       incarnation:   Some(value.incarnation),
                                       encrypted:     Some(value.encrypted),
                                       config:        Some(value.config), };
-        Rumor { type_:   RumorType::ServiceConfig as i32,
+        Rumor { r#type:  RumorType::ServiceConfig as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.from_id),
                 payload: Some(RumorPayload::ServiceConfig(payload)), }
@@ -120,7 +120,7 @@ impl From<CServiceFile> for Rumor {
                                     encrypted:     Some(value.encrypted),
                                     filename:      Some(value.filename),
                                     body:          Some(value.body), };
-        Rumor { type_:   RumorType::ServiceFile as i32,
+        Rumor { r#type:  RumorType::ServiceFile as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.from_id),
                 payload: Some(RumorPayload::ServiceFile(payload)), }
