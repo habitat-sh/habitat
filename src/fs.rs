@@ -213,14 +213,11 @@ pub fn pkg_install_path<T>(ident: &PackageIdent, fs_root: Option<T>) -> PathBuf
 /// this will "re-root" the path just under the fs_root. Otherwise returns
 /// the given path unchanged. Non-Windows platforms will always return the
 /// unchanged path.
-pub fn fs_rooted_path<T>(path: &PathBuf, fs_root: Option<T>) -> PathBuf
-    where T: AsRef<Path>
-{
-    match fs_root {
-        Some(ref root) if path.starts_with("/") && cfg!(windows) => {
-            Path::new(root.as_ref()).join(path.strip_prefix("/").unwrap())
-        }
-        _ => path.to_path_buf(),
+pub(crate) fn fs_rooted_path(path: &PathBuf, fs_root: &Path) -> PathBuf {
+    if path.starts_with("/") && cfg!(windows) {
+        fs_root.join(path.strip_prefix("/").unwrap())
+    } else {
+        path.to_path_buf()
     }
 }
 

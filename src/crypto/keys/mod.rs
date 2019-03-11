@@ -168,7 +168,7 @@ impl<P, S> KeyPair<P, S> {
 /// return an error on a "bad" file, the bad file key name just doesn't get
 /// added to the set.
 fn check_filename(keyname: &str,
-                  filename: String,
+                  filename: &str,
                   candidates: &mut HashSet<String>,
                   pair_type: Option<&PairType>) {
     let caps = match KEYFILE_RE.captures(&filename) {
@@ -300,7 +300,7 @@ fn get_key_revisions<P>(keyname: &str,
             }
         };
         debug!("checking file: {}", &filename);
-        check_filename(keyname, filename, &mut candidates, pair_type);
+        check_filename(keyname, &filename, &mut candidates, pair_type);
     }
 
     // traverse the candidates set and sort the entries
@@ -892,15 +892,15 @@ mod test {
         // only look for secret keys
         let mut candidates = HashSet::new();
         super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.pub".to_string(),
+                              "wecoyote-20160519203610.pub",
                               &mut candidates,
                               Some(&PairType::Secret));
         super::check_filename("wecoyote",
-                              "wecoyote-foo-20160519203610.pub".to_string(),
+                              "wecoyote-foo-20160519203610.pub",
                               &mut candidates,
                               Some(&PairType::Secret));
         super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.sig.key".to_string(),
+                              "wecoyote-20160519203610.sig.key",
                               &mut candidates,
                               Some(&PairType::Secret));
         assert_eq!(1, candidates.len());
@@ -911,15 +911,15 @@ mod test {
         // only look for public keys
         let mut candidates = HashSet::new();
         super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.pub".to_string(),
+                              "wecoyote-20160519203610.pub",
                               &mut candidates,
                               Some(&PairType::Public));
         super::check_filename("wecoyote",
-                              "wecoyote-20160519203611.pub".to_string(),
+                              "wecoyote-20160519203611.pub",
                               &mut candidates,
                               Some(&PairType::Public));
         super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.sig.key".to_string(),
+                              "wecoyote-20160519203610.sig.key",
                               &mut candidates,
                               Some(&PairType::Public));
         assert_eq!(2, candidates.len());
@@ -930,19 +930,19 @@ mod test {
         // look for a keyname that doesn't include a dash
         let mut candidates = HashSet::new();
         super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.pub".to_string(),
+                              "wecoyote-20160519203610.pub",
                               &mut candidates,
                               None);
         super::check_filename("wecoyote",
-                              "wecoyote-foo-20160519203610.pub".to_string(),
+                              "wecoyote-foo-20160519203610.pub",
                               &mut candidates,
                               None);
         super::check_filename("wecoyote",
-                              "wecoyote-20160519203610.box.key".to_string(),
+                              "wecoyote-20160519203610.box.key",
                               &mut candidates,
                               None);
         super::check_filename("wecoyote",
-                              "wecoyote-foo-20160519203610.box.key".to_string(),
+                              "wecoyote-foo-20160519203610.box.key",
                               &mut candidates,
                               None);
         assert_eq!(1, candidates.len());
@@ -953,19 +953,19 @@ mod test {
         // look for a keyname that includes a dash
         let mut candidates = HashSet::new();
         super::check_filename("wecoyote-foo",
-                              "wecoyote-20160519203610.pub".to_string(),
+                              "wecoyote-20160519203610.pub",
                               &mut candidates,
                               None);
         super::check_filename("wecoyote-foo",
-                              "wecoyote-foo-20160519203610.pub".to_string(),
+                              "wecoyote-foo-20160519203610.pub",
                               &mut candidates,
                               None);
         super::check_filename("wecoyote-foo",
-                              "wecoyote-20160519203610.box.key".to_string(),
+                              "wecoyote-20160519203610.box.key",
                               &mut candidates,
                               None);
         super::check_filename("wecoyote-foo",
-                              "wecoyote-foo-20160519203610.box.key".to_string(),
+                              "wecoyote-foo-20160519203610.box.key",
                               &mut candidates,
                               None);
         assert_eq!(1, candidates.len());

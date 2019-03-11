@@ -46,7 +46,7 @@ impl fmt::Debug for SymKey {
 }
 
 impl SymKey {
-    pub fn generate_pair_for_ring<S: ToString>(name: S) -> Result<Self> {
+    pub fn generate_pair_for_ring(name: &str) -> Result<Self> {
         let revision = mk_revision_string()?;
         let secret_key = secretbox::gen_key();
         Ok(SymKey::new(name.to_string(),

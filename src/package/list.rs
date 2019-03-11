@@ -151,7 +151,7 @@ fn walk_origins(path: &Path, packages: &mut Vec<PackageIdent>) -> Result<()> {
         let origin_dir = entry?;
         let origin_path = origin_dir.path();
         if fs::metadata(&origin_path)?.is_dir() {
-            let origin = filename_from_entry(origin_dir);
+            let origin = filename_from_entry(&origin_dir);
             walk_names(&origin, &origin_path, packages)?;
         }
     }
@@ -166,7 +166,7 @@ fn walk_names(origin: &str, dir: &Path, packages: &mut Vec<PackageIdent>) -> Res
         let name_dir = entry?;
         let name_path = name_dir.path();
         if fs::metadata(&name_path)?.is_dir() {
-            let name = filename_from_entry(name_dir);
+            let name = filename_from_entry(&name_dir);
             walk_versions(&origin, &name, &name_path, packages)?;
         }
     }
@@ -184,7 +184,7 @@ fn walk_versions(origin: &str,
         let version_dir = entry?;
         let version_path = version_dir.path();
         if fs::metadata(&version_path)?.is_dir() {
-            let version = filename_from_entry(version_dir);
+            let version = filename_from_entry(&version_dir);
             walk_releases(origin, name, &version, &version_path, packages)?;
         }
     }
@@ -286,7 +286,7 @@ fn package_ident_from_dir(origin: &str,
     }
 }
 
-fn filename_from_entry(entry: fs::DirEntry) -> String {
+fn filename_from_entry(entry: &fs::DirEntry) -> String {
     entry.file_name().to_string_lossy().into_owned().to_string()
 }
 

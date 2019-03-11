@@ -246,7 +246,7 @@ impl PackageInstall {
         // the paths in a windows studio where FS_ROOT_PATH will
         // be the studio root path (ie c:\hab\studios\...)
         for path in &mut paths {
-            *path = fs::fs_rooted_path(&path, Some(&*self.fs_root_path));
+            *path = fs::fs_rooted_path(&path, &self.fs_root_path);
         }
 
         let joined = env::join_paths(paths)?.into_string()
@@ -667,7 +667,7 @@ mod test {
     }
 
     /// Creates a `PATH` metafile with path entries all prefixed with the package's `pkg_prefix`.
-    fn set_path_for(pkg_install: &PackageInstall, paths: Vec<&str>) {
+    fn set_path_for(pkg_install: &PackageInstall, paths: &[&str]) {
         write_metafile(
             &pkg_install,
             MetaFile::Path,
@@ -697,7 +697,7 @@ mod test {
     }
 
     /// Creates a `DEPS` metafile for the given `PackageInstall` populated with the provided deps.
-    fn set_deps_for(pkg_install: &PackageInstall, deps: Vec<&PackageInstall>) {
+    fn set_deps_for(pkg_install: &PackageInstall, deps: &[&PackageInstall]) {
         let mut content = String::new();
         for dep in deps.iter().map(|d| d.ident()) {
             content.push_str(&format!("{}\n", dep));
@@ -707,7 +707,7 @@ mod test {
 
     /// Creates a `TDEPS` metafile for the given `PackageInstall` populated with the provided
     /// tdeps.
-    fn set_tdeps_for(pkg_install: &PackageInstall, tdeps: Vec<&PackageInstall>) {
+    fn set_tdeps_for(pkg_install: &PackageInstall, tdeps: &[&PackageInstall]) {
         let mut content = String::new();
         for tdep in tdeps.iter().map(|d| d.ident()) {
             content.push_str(&format!("{}\n", tdep));
@@ -1092,7 +1092,7 @@ core/bar=pub:core/publish sub:core/subscribe
     fn paths_metafile_single() {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
-        set_path_for(&pkg_install, vec!["bin"]);
+        set_path_for(&pkg_install, &["bin"]);
 
         assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin")],
                    pkg_install.paths().unwrap());
@@ -1102,7 +1102,7 @@ core/bar=pub:core/publish sub:core/subscribe
     fn paths_metafile_multiple() {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
-        set_path_for(&pkg_install, vec!["bin", "sbin", ".gem/bin"]);
+        set_path_for(&pkg_install, &["bin", "sbin", ".gem/bin"]);
 
         let pkg_prefix = pkg_prefix_for(&pkg_install);
 
@@ -1184,7 +1184,7 @@ core/bar=pub:core/publish sub:core/subscribe
     fn runtime_paths_single_package_single_path() {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
-        set_path_for(&pkg_install, vec!["bin"]);
+        set_path_for(&pkg_install, &["bin"]);
         set_runtime_path_for(&pkg_install, vec![&pkg_install]);
 
         assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin")],
@@ -1195,7 +1195,7 @@ core/bar=pub:core/publish sub:core/subscribe
     fn runtime_paths_single_package_multiple_paths() {
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
-        set_path_for(&pkg_install, vec!["sbin", ".gem/bin", "bin"]);
+        set_path_for(&pkg_install, &["sbin", ".gem/bin", "bin"]);
         set_runtime_path_for(&pkg_install, vec![&pkg_install]);
 
         let pkg_prefix = pkg_prefix_for(&pkg_install);
@@ -1211,10 +1211,10 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
         let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
-        set_path_for(&other_pkg_install, vec!["sbin"]);
+        set_path_for(&other_pkg_install, &["sbin"]);
 
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
-        set_path_for(&pkg_install, vec!["bin"]);
+        set_path_for(&pkg_install, &["bin"]);
         set_runtime_path_for(&pkg_install, vec![&pkg_install, &other_pkg_install]);
 
         assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin"),
@@ -1228,12 +1228,12 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
         let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
-        set_path_for(&other_pkg_install, vec!["sbin"]);
+        set_path_for(&other_pkg_install, &["sbin"]);
 
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
-        set_path_for(&pkg_install, vec!["bin"]);
-        set_deps_for(&pkg_install, vec![&other_pkg_install]);
-        set_tdeps_for(&pkg_install, vec![&other_pkg_install]);
+        set_path_for(&pkg_install, &["bin"]);
+        set_deps_for(&pkg_install, &[&other_pkg_install]);
+        set_tdeps_for(&pkg_install, &[&other_pkg_install]);
 
         assert_eq!(vec![pkg_prefix_for(&pkg_install).join("bin"),
                         pkg_prefix_for(&other_pkg_install).join("sbin"),],
@@ -1245,7 +1245,7 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
         // A `PATH` metafile should *not* influence this test
-        set_path_for(&pkg_install, vec!["nope"]);
+        set_path_for(&pkg_install, &["nope"]);
 
         // Create a zero-sizd `RUNTIME_PATH` metafile
         let _ = File::create(pkg_install.installed_path
@@ -1263,37 +1263,37 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
         let hotel = testing_package_install("acme/hotel", fs_root.path());
-        set_path_for(&hotel, vec!["bin"]);
+        set_path_for(&hotel, &["bin"]);
 
         let golf = testing_package_install("acme/golf", fs_root.path());
-        set_path_for(&golf, vec!["bin"]);
+        set_path_for(&golf, &["bin"]);
 
         let foxtrot = testing_package_install("acme/foxtrot", fs_root.path());
-        set_path_for(&foxtrot, vec!["bin"]);
+        set_path_for(&foxtrot, &["bin"]);
 
         let echo = testing_package_install("acme/echo", fs_root.path());
-        set_deps_for(&echo, vec![&foxtrot]);
-        set_tdeps_for(&echo, vec![&foxtrot]);
+        set_deps_for(&echo, &[&foxtrot]);
+        set_tdeps_for(&echo, &[&foxtrot]);
 
         let delta = testing_package_install("acme/delta", fs_root.path());
-        set_deps_for(&delta, vec![&echo]);
-        set_tdeps_for(&delta, vec![&echo, &foxtrot]);
+        set_deps_for(&delta, &[&echo]);
+        set_tdeps_for(&delta, &[&echo, &foxtrot]);
 
         let charlie = testing_package_install("acme/charlie", fs_root.path());
-        set_path_for(&charlie, vec!["sbin"]);
-        set_deps_for(&charlie, vec![&golf, &delta]);
-        set_tdeps_for(&charlie, vec![&delta, &echo, &foxtrot, &golf]);
+        set_path_for(&charlie, &["sbin"]);
+        set_deps_for(&charlie, &[&golf, &delta]);
+        set_tdeps_for(&charlie, &[&delta, &echo, &foxtrot, &golf]);
 
         let beta = testing_package_install("acme/beta", fs_root.path());
-        set_path_for(&beta, vec!["bin"]);
-        set_deps_for(&beta, vec![&delta]);
-        set_tdeps_for(&beta, vec![&delta, &echo, &foxtrot]);
+        set_path_for(&beta, &["bin"]);
+        set_deps_for(&beta, &[&delta]);
+        set_tdeps_for(&beta, &[&delta, &echo, &foxtrot]);
 
         let alpha = testing_package_install("acme/alpha", fs_root.path());
-        set_path_for(&alpha, vec!["sbin", ".gem/bin", "bin"]);
-        set_deps_for(&alpha, vec![&charlie, &hotel, &beta]);
+        set_path_for(&alpha, &["sbin", ".gem/bin", "bin"]);
+        set_deps_for(&alpha, &[&charlie, &hotel, &beta]);
         set_tdeps_for(&alpha,
-                      vec![&beta, &charlie, &delta, &echo, &foxtrot, &golf, &hotel]);
+                      &[&beta, &charlie, &delta, &echo, &foxtrot, &golf, &hotel]);
 
         let mut expected = Vec::new();
         expected.append(&mut paths_for(&alpha));
@@ -1337,10 +1337,10 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
 
         let other_pkg_install = testing_package_install("acme/ty-tabor", fs_root.path());
-        set_path_for(&other_pkg_install, vec!["sbin"]);
+        set_path_for(&other_pkg_install, &["sbin"]);
 
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
-        set_path_for(&pkg_install, vec!["bin"]);
+        set_path_for(&pkg_install, &["bin"]);
         set_runtime_path_for(&pkg_install, vec![&pkg_install, &other_pkg_install]);
 
         // Create a `RUNTIME_ENVIRONMENT` metafile including a `PATH` key which should be ignored
@@ -1355,13 +1355,10 @@ core/bar=pub:core/publish sub:core/subscribe
         expected.insert(
                         "PATH".to_string(),
                         env::join_paths(vec![
-            fs::fs_rooted_path(
-                &pkg_prefix_for(&pkg_install).join("bin"),
-                Some(&*fs_root_path),
-            ),
+            fs::fs_rooted_path(&pkg_prefix_for(&pkg_install).join("bin"), &fs_root_path),
             fs::fs_rooted_path(
                 &pkg_prefix_for(&other_pkg_install).join("sbin"),
-                Some(&*fs_root_path),
+                &fs_root_path,
             ),
         ]).unwrap()
                         .to_string_lossy()

@@ -24,7 +24,6 @@ pub mod config;
 pub mod crypto;
 pub mod env;
 pub mod error;
-pub mod event;
 pub mod fs;
 pub mod os;
 pub mod package;
