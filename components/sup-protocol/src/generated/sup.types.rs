@@ -1,26 +1,26 @@
-#[derive(Clone, PartialEq, Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ApplicationEnvironment {
     #[prost(string, required, tag="1")]
-    pub application: String,
+    pub application: std::string::String,
     #[prost(string, required, tag="2")]
-    pub environment: String,
+    pub environment: std::string::String,
 }
-#[derive(Clone, PartialEq, Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct PackageIdent {
     #[prost(string, required, tag="1")]
-    pub origin: String,
+    pub origin: std::string::String,
     #[prost(string, required, tag="2")]
-    pub name: String,
+    pub name: std::string::String,
     #[prost(string, optional, tag="3")]
-    pub version: ::std::option::Option<String>,
+    pub version: ::std::option::Option<std::string::String>,
     #[prost(string, optional, tag="4")]
-    pub release: ::std::option::Option<String>,
+    pub release: ::std::option::Option<std::string::String>,
 }
-#[derive(Clone, PartialEq, Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ProcessStatus {
@@ -31,16 +31,16 @@ pub struct ProcessStatus {
     #[prost(enumeration="ProcessState", required, tag="3")]
     pub state: i32,
 }
-#[derive(Clone, PartialEq, Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceBind {
     #[prost(string, required, tag="1")]
-    pub name: String,
+    pub name: std::string::String,
     #[prost(message, required, tag="2")]
     pub service_group: ServiceGroup,
 }
-#[derive(Clone, PartialEq, Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceCfg {
@@ -50,30 +50,31 @@ pub struct ServiceCfg {
     #[prost(enumeration="service_cfg::Format", optional, tag="1", default="Toml")]
     pub format: ::std::option::Option<i32>,
     #[prost(string, optional, tag="2")]
-    pub default: ::std::option::Option<String>,
+    pub default: ::std::option::Option<std::string::String>,
 }
 pub mod service_cfg {
-    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+    #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+    #[repr(i32)]
     #[derive(Serialize, Deserialize)]
     #[serde(rename_all = "kebab-case")]
     pub enum Format {
         Toml = 0,
     }
 }
-#[derive(Clone, PartialEq, Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceGroup {
     #[prost(string, required, tag="1")]
-    pub service: String,
+    pub service: std::string::String,
     #[prost(string, required, tag="2")]
-    pub group: String,
+    pub group: std::string::String,
     #[prost(message, optional, tag="3")]
     pub application_environment: ::std::option::Option<ApplicationEnvironment>,
     #[prost(string, optional, tag="4")]
-    pub organization: ::std::option::Option<String>,
+    pub organization: ::std::option::Option<std::string::String>,
 }
-#[derive(Clone, PartialEq, Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct ServiceStatus {
@@ -86,7 +87,7 @@ pub struct ServiceStatus {
     #[prost(enumeration="DesiredState", optional, tag="5")]
     pub desired_state: ::std::option::Option<i32>,
 }
-#[derive(Clone, PartialEq, Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct HealthCheckInterval {
@@ -94,7 +95,8 @@ pub struct HealthCheckInterval {
     pub seconds: u64,
 }
 /// Encapsulate all possible sources we can install packages from.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum InstallSource {
@@ -103,14 +105,16 @@ pub enum InstallSource {
     /// Install from a local archive file
     Archive = 1,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum ProcessState {
     Down = 0,
     Up = 1,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum DesiredState {
@@ -121,14 +125,16 @@ pub enum DesiredState {
     DesiredUp = 1,
 }
 /// The relationship of a service with peers in the same service group.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Topology {
     Standalone = 0,
     Leader = 1,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum UpdateStrategy {
@@ -136,7 +142,8 @@ pub enum UpdateStrategy {
     AtOnce = 1,
     Rolling = 2,
 }
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Enumeration)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum BindingMode {

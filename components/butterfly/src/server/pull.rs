@@ -106,7 +106,7 @@ impl Pull {
 
             let blocked = self.server.is_member_blocked(&proto.from_id);
             let blocked_label = if blocked { "true" } else { "false" };
-            let label_values = &[&proto.type_.to_string(), "success", blocked_label];
+            let label_values = &[&proto.r#type.to_string(), "success", blocked_label];
 
             GOSSIP_MESSAGES_RECEIVED.with_label_values(label_values)
                                     .inc();

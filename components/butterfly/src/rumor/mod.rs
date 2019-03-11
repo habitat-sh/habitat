@@ -456,7 +456,7 @@ impl RumorStore<Service> {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct RumorEnvelope {
-    pub type_:   RumorType,
+    pub r#type:  RumorType,
     pub from_id: String,
     pub kind:    RumorKind,
 }
@@ -464,11 +464,11 @@ pub struct RumorEnvelope {
 impl RumorEnvelope {
     pub fn decode(bytes: &[u8]) -> Result<Self> {
         let proto = ProtoRumor::decode(bytes)?;
-        let type_ = RumorType::from_i32(proto.type_).ok_or(Error::ProtocolMismatch("type"))?;
+        let r#type = RumorType::from_i32(proto.r#type).ok_or(Error::ProtocolMismatch("type"))?;
         let from_id = proto.from_id
                            .clone()
                            .ok_or(Error::ProtocolMismatch("from-id"))?;
-        let kind = match type_ {
+        let kind = match r#type {
             RumorType::Departure => RumorKind::Departure(Departure::from_proto(proto)?),
             RumorType::Election => RumorKind::Election(Election::from_proto(proto)?),
             RumorType::ElectionUpdate => {
@@ -480,7 +480,7 @@ impl RumorEnvelope {
             RumorType::ServiceFile => RumorKind::ServiceFile(ServiceFile::from_proto(proto)?),
             RumorType::Fake | RumorType::Fake2 => panic!("fake rumor"),
         };
-        Ok(RumorEnvelope { type_,
+        Ok(RumorEnvelope { r#type,
                            from_id,
                            kind })
     }
@@ -495,7 +495,7 @@ impl RumorEnvelope {
 
 impl From<RumorEnvelope> for ProtoRumor {
     fn from(value: RumorEnvelope) -> ProtoRumor {
-        ProtoRumor { type_:   value.type_ as i32,
+        ProtoRumor { r#type:  value.r#type as i32,
                      tag:     vec![],
                      from_id: Some(value.from_id),
                      payload: Some(value.kind.into()), }

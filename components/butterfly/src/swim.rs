@@ -70,7 +70,7 @@ impl From<Ack> for proto::Ack {
 
 impl From<Ack> for proto::Swim {
     fn from(value: Ack) -> Self {
-        proto::Swim { type_:      SwimType::Ack as i32,
+        proto::Swim { r#type:     SwimType::Ack as i32,
                       membership: value.membership
                                        .clone()
                                        .into_iter()
@@ -82,7 +82,7 @@ impl From<Ack> for proto::Swim {
 
 impl From<Ack> for Swim {
     fn from(value: Ack) -> Self {
-        Swim { type_:      SwimType::Ack,
+        Swim { r#type:     SwimType::Ack,
                membership: value.membership.clone(),
                kind:       SwimKind::Ack(value), }
     }
@@ -155,7 +155,7 @@ impl From<Ping> for proto::Ping {
 
 impl From<Ping> for proto::Swim {
     fn from(value: Ping) -> Self {
-        proto::Swim { type_:      SwimType::Ping as i32,
+        proto::Swim { r#type:     SwimType::Ping as i32,
                       membership: value.membership
                                        .clone()
                                        .into_iter()
@@ -167,7 +167,7 @@ impl From<Ping> for proto::Swim {
 
 impl From<Ping> for Swim {
     fn from(value: Ping) -> Self {
-        Swim { type_:      SwimType::Ping,
+        Swim { r#type:     SwimType::Ping,
                membership: value.membership.clone(),
                kind:       SwimKind::Ping(value), }
     }
@@ -211,7 +211,7 @@ impl From<PingReq> for proto::PingReq {
 
 impl From<PingReq> for proto::Swim {
     fn from(value: PingReq) -> Self {
-        proto::Swim { type_:      SwimType::Pingreq as i32,
+        proto::Swim { r#type:     SwimType::Pingreq as i32,
                       membership: value.membership
                                        .clone()
                                        .into_iter()
@@ -223,7 +223,7 @@ impl From<PingReq> for proto::Swim {
 
 impl From<PingReq> for Swim {
     fn from(value: PingReq) -> Self {
-        Swim { type_:      SwimType::Pingreq,
+        Swim { r#type:     SwimType::Pingreq,
                membership: value.membership.clone(),
                kind:       SwimKind::PingReq(value), }
     }
@@ -265,7 +265,7 @@ impl SwimKind {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Swim {
-    pub type_:      SwimType,
+    pub r#type:     SwimType,
     pub membership: Vec<Membership>,
     pub kind:       SwimKind,
 }
@@ -273,17 +273,17 @@ pub struct Swim {
 impl Swim {
     pub fn decode(bytes: &[u8]) -> Result<Self> {
         let proto = proto::Swim::decode(bytes)?;
-        let type_ = SwimType::from_i32(proto.type_).ok_or(Error::ProtocolMismatch("type"))?;
+        let r#type = SwimType::from_i32(proto.r#type).ok_or(Error::ProtocolMismatch("type"))?;
         let mut memberships = Vec::with_capacity(proto.membership.len());
         for membership in proto.membership.clone() {
             memberships.push(Membership::from_proto(membership)?);
         }
-        let kind = match type_ {
+        let kind = match r#type {
             SwimType::Ack => SwimKind::Ack(Ack::from_proto(proto)?),
             SwimType::Ping => SwimKind::Ping(Ping::from_proto(proto)?),
             SwimType::Pingreq => SwimKind::PingReq(PingReq::from_proto(proto)?),
         };
-        Ok(Swim { type_,
+        Ok(Swim { r#type,
                   membership: memberships,
                   kind })
     }
@@ -298,7 +298,7 @@ impl Swim {
 
 impl From<Swim> for proto::Swim {
     fn from(value: Swim) -> Self {
-        proto::Swim { type_:      value.type_ as i32,
+        proto::Swim { r#type:     value.r#type as i32,
                       membership: value.membership.into_iter().map(Into::into).collect(),
                       payload:    Some(value.kind.into()), }
     }
