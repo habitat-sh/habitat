@@ -19,7 +19,7 @@ use crate::common::ui::UI;
 use crate::error::Result;
 
 pub fn start(ui: &mut UI,
-             args: Vec<OsString>,
+             args: &[OsString],
              export_cmd: &str,
              export_cmd_envvar: &str,
              export_pkg_ident: &str,
@@ -53,7 +53,7 @@ mod inner {
                 VERSION};
 
     pub fn start(ui: &mut UI,
-                 args: Vec<OsString>,
+                 args: &[OsString],
                  export_cmd: &str,
                  export_cmd_envvar: &str,
                  export_pkg_ident: &str,
@@ -97,7 +97,7 @@ mod inner {
                        Result};
 
     pub fn start(ui: &mut UI,
-                 _args: Vec<OsString>,
+                 _args: &[OsString],
                  export_cmd: &str,
                  _export_cmd_envvar: &str,
                  _export_pkg_ident: &str,

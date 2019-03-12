@@ -20,7 +20,7 @@ use crate::error::Result;
 
 const EXPORT_CMD: &str = "hab-pkg-export-tar";
 
-pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> { inner::start(ui, args) }
+pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> { inner::start(ui, args) }
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
@@ -46,7 +46,7 @@ mod inner {
     const EXPORT_PKG_IDENT: &str = "core/hab-pkg-export-tar";
     const EXPORT_PKG_IDENT_ENVVAR: &str = "HAB_PKG_EXPORT_TAR_PKG_IDENT";
 
-    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         let command = match henv::var(EXPORT_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
@@ -85,7 +85,7 @@ mod inner {
     use crate::error::{Error,
                        Result};
 
-    pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, _args: &[OsString]) -> Result<()> {
         let cmd = EXPORT_CMD.replace("hab", "").replace("-", " ");
         ui.warn(format!("Running 'hab {}' on this operating system is not yet supported. Try \
                          running this command again on 64-bit Linux.",

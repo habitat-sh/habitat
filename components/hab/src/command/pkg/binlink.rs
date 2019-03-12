@@ -455,7 +455,7 @@ mod test {
         }
         let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
         write_file(prefix.join("IDENT"), &ident.to_string());
-        write_file(prefix.join("TARGET"), PackageTarget::active_target());
+        write_file(prefix.join("TARGET"), &PackageTarget::active_target());
         let mut paths = Vec::new();
         for (path, bins) in binaries {
             let abspath = hcore::fs::pkg_install_path(&ident, None::<&Path>).join(path);

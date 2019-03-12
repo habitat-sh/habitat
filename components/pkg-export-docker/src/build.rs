@@ -821,7 +821,7 @@ mod test {
             }
             let prefix = hcore::fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
             util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
-            util::write_file(prefix.join("TARGET"), PackageTarget::active_target()).unwrap();
+            util::write_file(prefix.join("TARGET"), &PackageTarget::active_target()).unwrap();
 
             util::write_file(prefix.join("SVC_USER"), &self.svc_user).unwrap();
             util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();

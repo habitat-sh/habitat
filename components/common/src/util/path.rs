@@ -134,7 +134,7 @@ pub fn interpreter_paths() -> Result<Vec<PathBuf>> {
                                 &mut ui::UI::default_with_env(),
                                 &default_bldr_url(),
                                 &ChannelIdent::stable(),
-                                &(ident.clone(), *PackageTarget::active_target()).into(),
+                                &(ident.clone(), PackageTarget::active_target()).into(),
                                 &*PROGRAM_NAME,
                                 VERSION,
                                 FS_ROOT_PATH.as_path(),

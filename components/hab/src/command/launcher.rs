@@ -18,7 +18,7 @@ use crate::common::ui::UI;
 
 use crate::error::Result;
 
-pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> { inner::start(ui, args) }
+pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> { inner::start(ui, args) }
 
 #[cfg(not(target_os = "macos"))]
 mod inner {
@@ -46,7 +46,7 @@ mod inner {
     const LAUNCH_CMD_ENVVAR: &str = "HAB_LAUNCH_BINARY";
     const LAUNCH_PKG_IDENT: &str = "core/hab-launcher";
 
-    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         init();
         if henv::var(SUP_CMD_ENVVAR).is_err() {
             let version: Vec<&str> = VERSION.split('/').collect();
@@ -89,7 +89,7 @@ mod inner {
     use crate::error::{Error,
                        Result};
 
-    pub fn start(ui: &mut UI, _args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, _args: &[OsString]) -> Result<()> {
         let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
         ui.warn("Launching a native Supervisor on this operating system is not yet supported. \
                  Try running this command again on 64-bit Linux or Windows.")?;

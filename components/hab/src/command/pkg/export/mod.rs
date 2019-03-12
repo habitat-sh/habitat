@@ -115,7 +115,7 @@ mod inner {
             // dependent programs such as `docker` on `$PATH`. This is not ideal and we should be
             // using `hcore::os::process::become_command` but for the moment we'll continue to use
             // the behavior of the `pkg exec` subcommand.
-            command::pkg::exec::start(format.pkg_ident(), cmd, vec![pkg_arg])
+            command::pkg::exec::start(format.pkg_ident(), cmd, &[pkg_arg])
         } else {
             Err(Error::ExecCommandNotFound(command))
         }
