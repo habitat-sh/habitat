@@ -67,7 +67,7 @@ impl fmt::Display for KeyType {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PairType {
     Public,
     Secret,
