@@ -16,7 +16,7 @@ steps:
   - label: ":windows: :habicat: core/hab-launcher"
     command: .buildkite/scripts/build_component.ps1 -Component launcher
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -34,7 +34,7 @@ steps:
   - label: ":windows: Build windows service"
     command: .buildkite/scripts/build_component.ps1 -Component windows-service 
     agents:
-      queue: windows-docker
+      queue: default-windows-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
