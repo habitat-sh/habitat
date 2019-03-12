@@ -45,3 +45,15 @@ do_prepare() {
   export SODIUM_LIB_DIR=/opt/hab-bundle/embedded/lib
   export SODIUM_STATIC=true
 }
+
+# Override the do_strip implementation that the x86_64-linux plan.sh includes
+#
+# TODO(SM): MacOS strip doesn't provide any of --strip-{all,debug,unnecessary}
+# that we use in plan-build, so I don't believe we've ever stripped our MacOS 
+# binaries.  Running `file $(which hab)` returns `regular file` which would 
+# bypass the existing behavior. For now, lets always skip stripping to prevent 
+# accidental breakages from changes to plan-build.  
+do_strip() {
+  build_line "Skipping do_strip on x86_64-darwin"
+  return 0
+}
