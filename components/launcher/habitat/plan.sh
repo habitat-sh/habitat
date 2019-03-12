@@ -50,3 +50,7 @@ do_install() {
   install -v -D "$CARGO_TARGET_DIR"/"$rustc_target"/"${builder_build_type#--}"/$bin \
     "$pkg_prefix"/bin/$bin
 }
+
+do_strip() {
+  strip --strip-debug "$pkg_prefix"/bin/$bin
+}

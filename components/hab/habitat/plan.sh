@@ -87,6 +87,6 @@ do_install() {
 
 do_strip() {
   if [[ "$build_type" != "--debug" ]]; then
-    do_default_strip
+    strip --strip-debug "$pkg_prefix"/bin/$bin
   fi
 }
