@@ -52,7 +52,8 @@ do_prepare() {
 # that we use in plan-build, so I don't believe we've ever stripped our MacOS 
 # binaries.  Running `file $(which hab)` returns `regular file` which would 
 # bypass the existing behavior. For now, lets always skip stripping to prevent 
-# accidental breakages in changes to plan-build.  
+# accidental breakages from changes to plan-build.  
 do_strip() {
+  build_line "Skipping do_strip on x86_64-darwin"
   return 0
 }
