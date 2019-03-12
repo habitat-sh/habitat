@@ -7,6 +7,7 @@
 - Asynchronous service shutdown [#6107](https://github.com/habitat-sh/habitat/pull/6107) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Use --strip-debug for hab, sup, and launcher [#6275](https://github.com/habitat-sh/habitat/pull/6275) ([jaym](https://github.com/jaym))
 - Update CODEOWNERS [#6280](https://github.com/habitat-sh/habitat/pull/6280) ([raskchanky](https://github.com/raskchanky))
 - [sup] Enable client-authentication with TLS [#6172](https://github.com/habitat-sh/habitat/pull/6172) ([stevendanna](https://github.com/stevendanna))
 - Enable some of the other options [#6201](https://github.com/habitat-sh/habitat/pull/6201) ([raskchanky](https://github.com/raskchanky))
