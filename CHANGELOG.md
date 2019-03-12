@@ -5,30 +5,23 @@
 
 #### New Features & Enhancements
 - Asynchronous service shutdown [#6107](https://github.com/habitat-sh/habitat/pull/6107) ([christophermaier](https://github.com/christophermaier))
-
-#### Merged Pull Requests
 - Use --strip-debug for hab, sup, and launcher [#6275](https://github.com/habitat-sh/habitat/pull/6275) ([jaym](https://github.com/jaym))
-- Update CODEOWNERS [#6280](https://github.com/habitat-sh/habitat/pull/6280) ([raskchanky](https://github.com/raskchanky))
 - [sup] Enable client-authentication with TLS [#6172](https://github.com/habitat-sh/habitat/pull/6172) ([stevendanna](https://github.com/stevendanna))
-- Enable some of the other options [#6201](https://github.com/habitat-sh/habitat/pull/6201) ([raskchanky](https://github.com/raskchanky))
-- Add option to run the supervisor in &quot;local mode&quot; [#6209](https://github.com/habitat-sh/habitat/pull/6209) ([mpeck](https://github.com/mpeck))
-- [pipeline] Ensure user is root when `curl`ing Windows artifact. [#6253](https://github.com/habitat-sh/habitat/pull/6253) ([fnichol](https://github.com/fnichol))
-- Update to rust 1.33.0 [#6239](https://github.com/habitat-sh/habitat/pull/6239) ([raskchanky](https://github.com/raskchanky))
-- Adds dependent plans build documentation [#5814](https://github.com/habitat-sh/habitat/pull/5814) ([rsertelon](https://github.com/rsertelon))
-- Enable local installation of latest rustfmt [#6238](https://github.com/habitat-sh/habitat/pull/6238) ([raskchanky](https://github.com/raskchanky))
+- Add option to run the supervisor in "local mode" [#6209](https://github.com/habitat-sh/habitat/pull/6209) ([mpeck](https://github.com/mpeck))
+- Adds origin deletion tool to hab binary [#6121](https://github.com/habitat-sh/habitat/pull/6121) ([eeyun](https://github.com/eeyun))
 
 #### Bug Fixes
 - Remove old templated content when adding a service [#6269](https://github.com/habitat-sh/habitat/pull/6269) ([christophermaier](https://github.com/christophermaier))
 - refactor ctl_gateway and launcher to leverage windows color friendly StructuredOutput [#6256](https://github.com/habitat-sh/habitat/pull/6256) ([mwrock](https://github.com/mwrock))
 - Fix plan build regression in 0.76.0 release [#6257](https://github.com/habitat-sh/habitat/pull/6257) ([baumanj](https://github.com/baumanj))
-<!-- latest_release -->
-
-## [0.78.0-dev](https://github.com/habitat-sh/habitat/tree/0.78.0-dev) (2019-03-02)
 
 #### Merged Pull Requests
-- Bump version post release [#6255](https://github.com/habitat-sh/habitat/pull/6255) ([eeyun](https://github.com/eeyun))
+- Update to rust 1.33.0 [#6239](https://github.com/habitat-sh/habitat/pull/6239) ([raskchanky](https://github.com/raskchanky))
+- Adds dependent plans build documentation [#5814](https://github.com/habitat-sh/habitat/pull/5814) ([rsertelon](https://github.com/rsertelon))
+- Enable local installation of latest rustfmt [#6238](https://github.com/habitat-sh/habitat/pull/6238) ([raskchanky](https://github.com/raskchanky))
 - Adds blog post for release 0.77.0 [#6254](https://github.com/habitat-sh/habitat/pull/6254) ([eeyun](https://github.com/eeyun))
-- Adds origin deletion tool to hab binary [#6121](https://github.com/habitat-sh/habitat/pull/6121) ([eeyun](https://github.com/eeyun))
+
+<!-- latest_release -->
 
 ## [0.77.0](https://github.com/habitat-sh/habitat/tree/0.77.0) (2019-03-01)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.75.0...0.76.0)
