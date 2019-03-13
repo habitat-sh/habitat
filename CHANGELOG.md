@@ -3,6 +3,11 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+
+## [0.78.0](https://github.com/habitat-sh/habitat/tree/0.78.0) (2019-03-13)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.77.0...0.78.0)
+
 #### New Features & Enhancements
 - Asynchronous service shutdown [#6107](https://github.com/habitat-sh/habitat/pull/6107) ([christophermaier](https://github.com/christophermaier))
 - Use --strip-debug for hab, sup, and launcher [#6275](https://github.com/habitat-sh/habitat/pull/6275) ([jaym](https://github.com/jaym))
@@ -16,15 +21,13 @@
 - Fix plan build regression in 0.76.0 release [#6257](https://github.com/habitat-sh/habitat/pull/6257) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
-- 0.78.0 blog post [#6292](https://github.com/habitat-sh/habitat/pull/6292) ([christophermaier](https://github.com/christophermaier))
 - Update to rust 1.33.0 [#6239](https://github.com/habitat-sh/habitat/pull/6239) ([raskchanky](https://github.com/raskchanky))
 - Adds dependent plans build documentation [#5814](https://github.com/habitat-sh/habitat/pull/5814) ([rsertelon](https://github.com/rsertelon))
 - Enable local installation of latest rustfmt [#6238](https://github.com/habitat-sh/habitat/pull/6238) ([raskchanky](https://github.com/raskchanky))
 - Adds blog post for release 0.77.0 [#6254](https://github.com/habitat-sh/habitat/pull/6254) ([eeyun](https://github.com/eeyun))
-<!-- latest_release -->
 
 ## [0.77.0](https://github.com/habitat-sh/habitat/tree/0.77.0) (2019-03-01)
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.75.0...0.76.0)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.76.0...0.77.0)
 
 #### Bug Fixes
 - Prevent a crash in Supervisor protocol processing [#6144](https://github.com/habitat-sh/habitat/pull/6144) ([christophermaier](https://github.com/christophermaier))
