@@ -194,7 +194,9 @@ mod tests {
     /// few milliseconds more, just to be certain our filesystem
     /// events have had plenty of time to process.
     fn wait_for_debounce_interval() {
-        thread::sleep(SpecWatcherDelay::configured_value().0 + Duration::from_millis(2));
+        let wait_duration = SpecWatcherDelay::configured_value().0 + Duration::from_millis(2);
+        trace!("wait_for_debounce_interval: waiting {:?}", wait_duration);
+        thread::sleep(wait_duration);
     }
 
     #[test]
@@ -237,6 +239,8 @@ mod tests {
     /// to their final `*.spec` form.
     #[test]
     fn can_get_events_for_non_spec_files() {
+        env_logger::try_init().ok();
+        debug!("can_get_events_for_non_spec_files starting");
         let _delay = lock_delay_var();
 
         let dir = TempDir::new().expect("Could not create directory");
@@ -250,11 +254,14 @@ mod tests {
         assert!(!sw.has_events(),
                 "Need to allow for the debounce interval to pass before you can expect events");
 
-        wait_for_debounce_interval();
+        while !sw.has_events() {
+            wait_for_debounce_interval();
+        }
 
-        assert!(sw.has_events(), "There should be an event now");
+        // assert!(sw.has_events(), "There should be an event now");
         assert!(!sw.has_events(),
                 "Should be no more events after you've checked");
+        debug!("can_get_events_for_non_spec_files done");
     }
 
     #[test]
