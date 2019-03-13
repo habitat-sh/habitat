@@ -580,6 +580,19 @@ pub fn get() -> App<'static, 'static> {
                 (@arg SCAFFOLDING: --scaffolding -s +takes_value
                     "Specify explicit Scaffolding for your app (ex: node, ruby)")
             )
+            (@subcommand render =>
+                (about: "Renders plan config files")
+                (aliases: &["r", "re", "ren", "rend", "rende"])
+                (@arg TEMPLATE_PATH: +required {file_exists} "Path to config to render")
+                (@arg DEFAULT_TOML: -d --("default-toml") +takes_value default_value("./default.toml") "Path to default.toml")
+                (@arg USER_TOML: -u --("user-toml") +takes_value "Path to user.toml, defaults to none")
+                (@arg MOCK_DATA: -m --("mock-data") +takes_value "Path to json file with mock data for template, defaults to none")
+                (@arg PRINT: -p --("print") "Prints config to STDOUT")
+                (@arg RENDER_DIR: -r --("render-dir") +takes_value default_value("./results") "Path to render templates")
+                (@arg NO_RENDER: -n --("no-render") "Don't write anything to disk, ignores --render-dir")
+                (@arg QUIET: -q --("no-verbose") --quiet
+                    "Don't print any helper messages.  When used with `--print` will only print config file")
+            )
         )
         (@subcommand ring =>
             (about: "Commands relating to Habitat rings")

@@ -280,6 +280,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("plan", Some(matches)) => {
             match matches.subcommand() {
                 ("init", Some(m)) => sub_plan_init(ui, m)?,
+                ("render", Some(m)) => sub_plan_render(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -700,6 +701,32 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                windows,
                                scaffolding_ident,
                                name)
+}
+
+fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let template_path = Path::new(m.value_of("TEMPLATE_PATH").unwrap());
+
+    let default_toml_path = Path::new(m.value_of("DEFAULT_TOML").unwrap());
+
+    let user_toml_path = m.value_of("USER_TOML").map(Path::new);
+
+    let mock_data_path = m.value_of("MOCK_DATA").map(Path::new);
+
+    let print = m.is_present("PRINT");
+    let render = !m.is_present("NO_RENDER");
+    let quiet = m.is_present("QUIET");
+
+    let render_dir = Path::new(m.value_of("RENDER_DIR").unwrap());
+
+    command::plan::render::start(ui,
+                                 template_path,
+                                 default_toml_path,
+                                 user_toml_path,
+                                 mock_data_path,
+                                 print,
+                                 render,
+                                 render_dir,
+                                 quiet)
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
