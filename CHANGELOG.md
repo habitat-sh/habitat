@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### New Features & Enhancements
+- Attempt to implement template debugging tool [#6114](https://github.com/habitat-sh/habitat/pull/6114) ([qubitrenegade](https://github.com/qubitrenegade))
 <!-- latest_release -->
 
 ## [0.78.0](https://github.com/habitat-sh/habitat/tree/0.78.0) (2019-03-13)
