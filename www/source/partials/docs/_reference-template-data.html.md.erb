@@ -40,7 +40,6 @@ Details about the package currently running the service
 | path | string | The location where the package is installed locally, e.g., `/hab/pkgs/core/redis/3.2.4/20170514150022`. Note that this is _not_ a `PATH` environment variable; for that, please see the `env` key above. |
 | svc_path | string | The root location of the source files for the Habitat service, e.g., `/hab/svc/redis`. |
 | svc_config_path | string | The location of any templated configuration files for the Habitat service, e.g., `/hab/svc/redis/config`. |
-| svc_config_install_path | string | The location of any templated configuration files for the Habitat service referenced during the execution of an `install` hook, e.g., `/hab/svc/redis/config_install`. Note this property is not available during the execution of any hook with the exception of the `install` hook. |
 | svc_data_path | string | The location of any data files for the Habitat service, e.g., `/hab/svc/redis/data`. |
 | svc_files_path | string | The location of any gossiped configuration files for the Habitat service, e.g., `/hab/svc/redis/files`. |
 | svc_static_path | string | The location of any static content for the Habitat service, e.g., `/hab/svc/redis/static`. |
