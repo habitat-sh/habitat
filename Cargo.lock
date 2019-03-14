@@ -875,6 +875,7 @@ dependencies = [
  "bincode 1.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat-launcher-protocol 0.0.0",
+ "habitat_common 0.0.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",
  "ipc-channel 0.9.0 (git+https://github.com/habitat-sh/ipc-channel?branch=hbt-windows)",
  "libc 0.2.50 (registry+https://github.com/rust-lang/crates.io-index)",
