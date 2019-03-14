@@ -305,22 +305,20 @@ impl Clone for Server {
 impl Server {
     /// Create a new server, bound to the `addr`, hosting a particular `member`, and with a
     /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
-    pub fn new<T, U>(swim_addr: T,
-                     gossip_addr: U,
-                     mut member: Member,
-                     trace: Trace,
-                     ring_key: Option<SymKey>,
-                     name: Option<String>,
-                     // TODO (CM): having data_path as optional is only something
-                     // that's used in testing, but it cascades outward and
-                     // complicates other parts of this code. We should find a way
-                     // to remove the optionality.
-                     data_path: Option<&Path>,
-                     suitability_lookup: Box<dyn Suitability>)
-                     -> Result<Server>
-        where T: ToSocketAddrs,
-              U: ToSocketAddrs
-    {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(swim_addr: SocketAddr,
+               gossip_addr: SocketAddr,
+               mut member: Member,
+               trace: Trace,
+               ring_key: Option<SymKey>,
+               name: Option<String>,
+               // TODO (CM): having data_path as optional is only something
+               // that's used in testing, but it cascades outward and
+               // complicates other parts of this code. We should find a way
+               // to remove the optionality.
+               data_path: Option<&Path>,
+               suitability_lookup: Box<dyn Suitability>)
+               -> Result<Server> {
         let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
         let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
 
@@ -1490,6 +1488,9 @@ mod tests {
                     trace::Trace};
         use std::{fs::File,
                   io::prelude::*,
+                  net::{IpAddr,
+                        Ipv4Addr,
+                        SocketAddr},
                   sync::Mutex};
         use tempfile::TempDir;
 
@@ -1511,19 +1512,20 @@ mod tests {
                 swim_port = *swim_port_guard;
                 *swim_port_guard += 1;
             }
-            let swim_listen = format!("127.0.0.1:{}", swim_port);
+            let swim_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), swim_port);
             let gossip_port;
             {
                 let mut gossip_port_guard = GOSSIP_PORT.lock().expect("GOSSIP_PORT poisoned");
                 gossip_port = *gossip_port_guard;
                 *gossip_port_guard += 1;
             }
-            let gossip_listen = format!("127.0.0.1:{}", gossip_port);
+            let gossip_listen =
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), gossip_port);
             let mut member = Member::default();
             member.swim_port = swim_port;
             member.gossip_port = gossip_port;
-            Server::new(&swim_listen[..],
-                        &gossip_listen[..],
+            Server::new(swim_listen,
+                        gossip_listen,
                         member,
                         Trace::default(),
                         None,
@@ -1539,14 +1541,15 @@ mod tests {
                 swim_port = *swim_port_guard;
                 *swim_port_guard += 1;
             }
-            let swim_listen = format!("127.0.0.1:{}", swim_port);
+            let swim_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), swim_port);
             let gossip_port;
             {
                 let mut gossip_port_guard = GOSSIP_PORT.lock().expect("GOSSIP_PORT poisoned");
                 gossip_port = *gossip_port_guard;
                 *gossip_port_guard += 1;
             }
-            let gossip_listen = format!("127.0.0.1:{}", gossip_port);
+            let gossip_listen =
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), gossip_port);
             let mut member = Member::default();
             member.swim_port = swim_port;
             member.gossip_port = gossip_port;
@@ -1554,8 +1557,8 @@ mod tests {
             let file_path = tmpdir.path().to_owned().join(rumor_name);
             let mut rumor_file = File::create(file_path).unwrap();
             writeln!(rumor_file, "This is not a valid rumor file!").unwrap();
-            Server::new(&swim_listen[..],
-                        &gossip_listen[..],
+            Server::new(swim_listen,
+                        gossip_listen,
                         member,
                         Trace::default(),
                         None,
@@ -1573,21 +1576,6 @@ mod tests {
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
             server.start(Timing::default())
                   .expect("Server failed to start");
-        }
-
-        #[test]
-        fn invalid_addresses_fails() {
-            let swim_listen = "";
-            let gossip_listen = "";
-            let member = Member::default();
-            assert!(Server::new(&swim_listen[..],
-                                &gossip_listen[..],
-                                member,
-                                Trace::default(),
-                                None,
-                                None,
-                                None,
-                                Box::new(ZeroSuitability),).is_err())
         }
 
         #[test]

@@ -18,16 +18,6 @@ extern crate habitat_butterfly;
 #[macro_use]
 extern crate lazy_static;
 
-use std::{ops::{Deref,
-                DerefMut,
-                Range},
-          str::FromStr,
-          sync::Mutex,
-          thread,
-          time::Duration};
-
-use time::SteadyTime;
-
 use habitat_butterfly::{member::{Health,
                                  Member},
                         rumor::{departure::Departure,
@@ -44,6 +34,17 @@ use habitat_core::{crypto::keys::sym_key::SymKey,
                    package::{Identifiable,
                              PackageIdent},
                    service::ServiceGroup};
+use std::{net::{IpAddr,
+                Ipv4Addr,
+                SocketAddr},
+          ops::{Deref,
+                DerefMut,
+                Range},
+          str::FromStr,
+          sync::Mutex,
+          thread,
+          time::Duration};
+use time::SteadyTime;
 
 lazy_static! {
     static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
@@ -65,13 +66,13 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
         gossip_port = *port_guard;
         *port_guard += 1;
     }
-    let listen_swim = format!("127.0.0.1:{}", swim_port);
-    let listen_gossip = format!("127.0.0.1:{}", gossip_port);
+    let listen_swim = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), swim_port);
+    let listen_gossip = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), gossip_port);
     let mut member = Member::default();
     member.swim_port = swim_port;
     member.gossip_port = gossip_port;
-    let mut server = Server::new(&listen_swim[..],
-                                 &listen_gossip[..],
+    let mut server = Server::new(listen_swim,
+                                 listen_gossip,
                                  member,
                                  Trace::default(),
                                  ring_key,
