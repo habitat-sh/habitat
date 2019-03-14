@@ -98,16 +98,14 @@ impl<'a> StructuredOutput<'a> {
     /// Return a new StructuredOutput struct.
     pub fn new(preamble: &'a str,
                logkey: &'static str,
-               line: u32,
-               file: &'static str,
-               column: u32,
+               context: OutputContext,
                format: OutputFormat,
                verbosity: OutputVerbosity,
                content: &'a str)
                -> StructuredOutput<'a> {
         let verbosity = match verbosity {
             OutputVerbosity::Normal => OutputVerbosityInternal::Normal,
-            OutputVerbosity::Verbose => OutputVerbosityInternal::Verbose { line, file, column },
+            OutputVerbosity::Verbose => OutputVerbosityInternal::Verbose(context),
         };
         StructuredOutput { preamble,
                            logkey,
@@ -188,7 +186,9 @@ impl<'a> StructuredOutput<'a> {
                 writer.write_all(self.logkey.as_bytes())?;
                 writer.reset()?;
                 writer.write_all(b")")?;
-                if let OutputVerbosityInternal::Verbose { line, file, column } = self.verbosity {
+                if let OutputVerbosityInternal::Verbose(OutputContext { line, file, column }) =
+                    self.verbosity
+                {
                     writer.write_all(b"[")?;
                     writer.set_color(ColorSpec::new().set_fg(Some(Color::White))
                                                      .set_underline(true))?;
@@ -221,7 +221,9 @@ impl<'a> Serialize for StructuredOutput<'a> {
 
         map.serialize_entry("preamble", &self.preamble)?;
         map.serialize_entry("logkey", &self.logkey)?;
-        if let OutputVerbosityInternal::Verbose { line, file, column } = self.verbosity {
+        if let OutputVerbosityInternal::Verbose(OutputContext { line, file, column }) =
+            self.verbosity
+        {
             map.serialize_entry("file", &file)?;
             map.serialize_entry("line", &line)?;
             map.serialize_entry("column", &column)?;
@@ -276,13 +278,16 @@ pub enum OutputVerbosity {
 }
 
 #[derive(Clone, Copy)]
+pub struct OutputContext {
+    pub line:   u32,
+    pub file:   &'static str,
+    pub column: u32,
+}
+
+#[derive(Clone, Copy)]
 enum OutputVerbosityInternal {
     Normal,
-    Verbose {
-        line:   u32,
-        file:   &'static str,
-        column: u32,
-    },
+    Verbose(OutputContext),
 }
 
 #[macro_export]
@@ -290,13 +295,13 @@ enum OutputVerbosityInternal {
 macro_rules! outputln {
     ($content: expr) => {
         {
-            use $crate::output::{get_format, get_verbosity, StructuredOutput};
+            use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             use $crate::PROGRAM_NAME;
             StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!() },
                                            get_format(),
                                            get_verbosity(),
                                            $content).println().expect("failed to write output to stdout");
@@ -304,12 +309,12 @@ macro_rules! outputln {
     };
     (preamble $preamble:expr, $content: expr) => {
         {
-            use $crate::output::{get_format, get_verbosity, StructuredOutput};
+            use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             StructuredOutput::new(&$preamble,
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!() },
                                            get_format(),
                                            get_verbosity(),
                                            $content).println().expect("failed to write output to stdout");
@@ -317,14 +322,14 @@ macro_rules! outputln {
     };
     ($content: expr, $($arg:tt)*) => {
         {
-            use $crate::output::{get_format, get_verbosity, StructuredOutput};
+            use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
             StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!() },
                                            get_format(),
                                            get_verbosity(),
                                            &content).println().expect("failed to write output to stdout");
@@ -332,13 +337,13 @@ macro_rules! outputln {
     };
     (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
         {
-            use $crate::output::{get_format, get_verbosity, StructuredOutput};
+            use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             let content = format!($content, $($arg)*);
             StructuredOutput::new(&$preamble,
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!() },
                                            get_format(),
                                            get_verbosity(),
                                            &content).println().expect("failed to write output to stdout");
@@ -350,7 +355,8 @@ macro_rules! outputln {
 mod tests {
     use std::io::Write;
 
-    use super::{OutputFormat,
+    use super::{OutputContext,
+                OutputFormat,
                 OutputVerbosity,
                 StructuredOutput};
     use serde_json;
@@ -369,7 +375,14 @@ mod tests {
               format: OutputFormat,
               verbosity: OutputVerbosity)
               -> StructuredOutput<'a> {
-        StructuredOutput::new(preamble, LOGKEY, 1, file!(), 2, format, verbosity, content)
+        StructuredOutput::new(preamble,
+                              LOGKEY,
+                              OutputContext { line:   1,
+                                              file:   file!(),
+                                              column: 2, },
+                              format,
+                              verbosity,
+                              content)
     }
 
     #[test]
@@ -400,9 +413,9 @@ mod tests {
         cs.set_underline(true);
         let so = StructuredOutput::new(progname,
                                        LOGKEY,
-                                       1,
-                                       file!(),
-                                       2,
+                                       OutputContext { line:   1,
+                                                       file:   file!(),
+                                                       column: 2, },
                                        OutputFormat::Color(cs.clone()),
                                        OutputVerbosity::Normal,
                                        content);

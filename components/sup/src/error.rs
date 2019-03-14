@@ -42,6 +42,7 @@ use habitat_api_client;
 use habitat_butterfly;
 use habitat_common::{self,
                      output::{self,
+                              OutputContext,
                               OutputVerbosity,
                               StructuredOutput},
                      PROGRAM_NAME};
@@ -325,9 +326,9 @@ impl fmt::Display for SupError {
         let progname = PROGRAM_NAME.as_str();
         let so = StructuredOutput::new(progname,
                                        self.logkey,
-                                       self.line,
-                                       self.file,
-                                       self.column,
+                                       OutputContext { line:   self.line,
+                                                       file:   self.file,
+                                                       column: self.column, },
                                        output::get_format(),
                                        OutputVerbosity::Verbose,
                                        &content);

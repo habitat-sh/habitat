@@ -27,6 +27,7 @@ use crate::error::{Error,
 use futures::prelude::*;
 use habitat_api_client::DisplayProgress;
 use habitat_common::{output::{self,
+                              OutputContext,
                               OutputFormat,
                               StructuredOutput},
                      ui::UIWriter,
@@ -192,9 +193,9 @@ impl Write for CtlRequest {
                 };
             let so = StructuredOutput::new(&PROGRAM_NAME,
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!(), },
                                            output_format,
                                            output::get_verbosity(),
                                            line.trim_end_matches('\n'));
