@@ -54,11 +54,12 @@ use termcolor::{BufferWriter,
 static VERBOSITY: AtomicBool = ATOMIC_BOOL_INIT;
 
 lazy_static! {
-    static ref FORMAT: Mutex<OutputFormat> = Mutex::new(OutputFormat::Color);
+    static ref FORMAT: Mutex<OutputFormat> = Mutex::new(OutputFormat::Color(ColorSpec::default()));
 }
 
 /// Get the OutputFormat for which content is to be rendered
-pub fn get_format() -> OutputFormat { *FORMAT.lock().expect("FORMAT lock poisoned") }
+// Maybe return a &'static instead of cloning?
+pub fn get_format() -> OutputFormat { FORMAT.lock().expect("FORMAT lock poisoned").clone() }
 
 /// Set the OutputFormat for which content is to be rendered
 pub fn set_format(format: OutputFormat) { *FORMAT.lock().expect("FORMAT lock poisoned") = format }
@@ -91,8 +92,6 @@ pub struct StructuredOutput<'a> {
     verbosity: OutputVerbosityInternal,
     /// How should output be formatted
     format: OutputFormat,
-    /// Color and styling to use for content.
-    color_spec: ColorSpec,
 }
 
 impl<'a> StructuredOutput<'a> {
@@ -114,29 +113,7 @@ impl<'a> StructuredOutput<'a> {
                            logkey,
                            content,
                            verbosity,
-                           format,
-                           color_spec: ColorSpec::new() }
-    }
-
-    pub fn colored(preamble: &'a str,
-                   logkey: &'static str,
-                   line: u32,
-                   file: &'static str,
-                   column: u32,
-                   verbosity: OutputVerbosity,
-                   content: &'a str,
-                   color_spec: ColorSpec)
-                   -> StructuredOutput<'a> {
-        let verbosity = match verbosity {
-            OutputVerbosity::Normal => OutputVerbosityInternal::Normal,
-            OutputVerbosity::Verbose => OutputVerbosityInternal::Verbose { line, file, column },
-        };
-        StructuredOutput { preamble,
-                           logkey,
-                           content,
-                           verbosity,
-                           format: OutputFormat::Color,
-                           color_spec }
+                           format }
     }
 
     pub fn succinct(preamble: &'a str,
@@ -148,24 +125,23 @@ impl<'a> StructuredOutput<'a> {
                            logkey,
                            content,
                            verbosity: OutputVerbosityInternal::Normal,
-                           format,
-                           color_spec: ColorSpec::new() }
+                           format }
     }
 
     pub fn print(&self) -> io::Result<()> {
-        self.print_to_writer(&BufferWriter::stdout(self.color_choice()))
+        self.print_to_writer(&BufferWriter::stdout(self.format.color_choice()))
     }
 
     pub fn eprint(&self) -> io::Result<()> {
-        self.print_to_writer(&BufferWriter::stderr(self.color_choice()))
+        self.print_to_writer(&BufferWriter::stderr(self.format.color_choice()))
     }
 
     pub fn println(&self) -> io::Result<()> {
-        self.println_to_writer(&BufferWriter::stdout(self.color_choice()))
+        self.println_to_writer(&BufferWriter::stdout(self.format.color_choice()))
     }
 
     pub fn eprintln(&self) -> io::Result<()> {
-        self.println_to_writer(&BufferWriter::stderr(self.color_choice()))
+        self.println_to_writer(&BufferWriter::stderr(self.format.color_choice()))
     }
 
     fn print_to_writer(&self, writer: &BufferWriter) -> io::Result<()> {
@@ -180,13 +156,6 @@ impl<'a> StructuredOutput<'a> {
         buffer.write_all(b"\n")?;
         buffer.flush()?;
         writer.print(&buffer)
-    }
-
-    fn color_choice(&self) -> ColorChoice {
-        match self.format {
-            OutputFormat::Color => ColorChoice::Auto,
-            OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
-        }
     }
 
     // If we ever want to create multiple output formats in the future, we would do it here -
@@ -228,7 +197,9 @@ impl<'a> StructuredOutput<'a> {
                     writer.write_all(b"]")?;
                 }
                 writer.write_all(b": ")?;
-                writer.set_color(&self.color_spec)?;
+                if let OutputFormat::Color(ref color_spec) = self.format {
+                    writer.set_color(color_spec)?;
+                }
                 writer.write_all(self.content.as_bytes())?;
                 writer.reset()?;
                 writer.flush()
@@ -263,7 +234,7 @@ impl<'a> Serialize for StructuredOutput<'a> {
 
 impl<'a> fmt::Display for StructuredOutput<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bufwtr = BufferWriter::stdout(self.color_choice());
+        let bufwtr = BufferWriter::stdout(self.format.color_choice());
         let mut buffer = bufwtr.buffer();
         match self.format(&mut buffer) {
             Ok(_) => {
@@ -275,11 +246,27 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum OutputFormat {
-    Color,
+    Color(ColorSpec),
     NoColor,
     JSON,
+}
+
+impl OutputFormat {
+    pub fn color_choice(&self) -> ColorChoice {
+        match self {
+            OutputFormat::Color(_) => ColorChoice::Auto,
+            OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
+        }
+    }
+
+    pub fn is_color(&self) -> bool {
+        match self {
+            OutputFormat::Color(_) => true,
+            OutputFormat::NoColor | OutputFormat::JSON => false,
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -411,14 +398,14 @@ mod tests {
         let content = "opeth is amazing";
         let mut cs = ColorSpec::new();
         cs.set_underline(true);
-        let so = StructuredOutput::colored(progname,
-                                           LOGKEY,
-                                           1,
-                                           file!(),
-                                           2,
-                                           OutputVerbosity::Normal,
-                                           content,
-                                           cs.clone());
+        let so = StructuredOutput::new(progname,
+                                       LOGKEY,
+                                       1,
+                                       file!(),
+                                       2,
+                                       OutputFormat::Color(cs.clone()),
+                                       OutputVerbosity::Normal,
+                                       content);
         let writer = BufferWriter::stdout(ColorChoice::Auto);
         let mut buffer = writer.buffer();
         buffer.reset().unwrap();

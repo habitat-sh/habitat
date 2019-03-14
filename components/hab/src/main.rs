@@ -27,8 +27,7 @@ use crate::{common::{command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
-                     output::{self,
-                              OutputFormat},
+                     output,
                      types::ListenCtlAddr,
                      ui::{Status,
                           UIWriter,
@@ -100,7 +99,6 @@ use std::{env,
 use tabwriter::TabWriter;
 use termcolor::{self,
                 Color,
-                ColorChoice,
                 ColorSpec};
 
 /// Makes the --org CLI param optional when this env var is set
@@ -1797,10 +1795,6 @@ fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
 // function wouldn't be necessary. In the meantime, though, it'll keep
 // the scope of change contained.
 fn ui() -> UI {
-    let coloring = match output::get_format() {
-        OutputFormat::Color => ColorChoice::Auto,
-        OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
-    };
     let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
                                                    .unwrap_or(false)
     {
@@ -1808,7 +1802,7 @@ fn ui() -> UI {
     } else {
         None
     };
-    UI::default_with(coloring, isatty)
+    UI::default_with(output::get_format().color_choice(), isatty)
 }
 
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
