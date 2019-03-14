@@ -9,6 +9,21 @@ Vagrant.configure("2") do |config|
   end
 
   config.vm.provision "shell", inline: <<-SHELL
-    yum install -y wget curl 
+    yum install -y wget curl git
+
+    # You'll need this for running most services
+    adduser hab
+
+    # You'll want this if you want to build a plan
+    git clone https://github.com/habitat-sh/core-plans.git
+
+    # You'll also want the keys for building for whatever origin you
+    # choose.
+    #
+    # It expects you to have HAB_ORIGIN and HAB_AUTH_TOKEN set in your
+    # environment when you provision the VM.
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh -o install.sh
+    bash install.sh -t x86_64-linux-kernel2
+    sudo -u vagrant hab origin key download #{ENV['HAB_ORIGIN']} --secret --auth=#{ENV['HAB_AUTH_TOKEN']}
   SHELL
 end
