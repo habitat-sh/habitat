@@ -141,10 +141,11 @@ EOT
   studio_env_command="$busybox_path/bin/env"
 }
 
-_hab() {
-  # shellcheck disable=2154
-  $bb env FS_ROOT="$HAB_STUDIO_ROOT" HAB_CACHE_KEY_PATH= "$hab" "$@"
-}
+
+_hab() (
+    unset HAB_CACHE_KEY_PATH
+    $bb env FS_ROOT="$HAB_STUDIO_ROOT" "$hab" "$@"
+)
 
 _pkgpath_for() {
   _hab pkg path "$1" | $bb sed -e "s,^$HAB_STUDIO_ROOT,,g"
