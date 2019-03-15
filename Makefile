@@ -159,13 +159,13 @@ docs: image ## build the docs
 
 tag-release:
 	git tag $(VERSION)
-	git push origin --tags      # Add the remote tag
+	git push origin $(VERSION)
 
-re-tag-release:
-	git tag -d $(VERSION)       # Delete the local release tag
-	git push origin :$(VERSION) # Delete the remote tag
-	git tag $(VERSION)          # Tag the release again
-	git push origin --tags      # Add the remote tag
+delete-release-tag:
+	git tag -d $(VERSION)
+	git push origin :$(VERSION)
+
+re-tag-release: delete-release-tag tag-release
 
 define BUILD
 build-$1: image ## builds the $1 component
