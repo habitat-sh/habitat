@@ -86,6 +86,9 @@ COMMON FLAGS:
     -V  Prints version information
     -D  Use a Docker Studio instead of a chroot Studio
 
+    --no-tty           Disable the --tty default (Docker Studio only)
+    --non-interactive  Disable the --interactive default (Docker Studio only)
+
 COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
@@ -104,24 +107,24 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
-    ARTIFACT_PATH       Sets the source artifact cache path (\`-a' option overrides)
-    HAB_NOCOLORING      Disables text coloring mode despite TERM capabilities
-    HAB_NONINTERACTIVE  Disables interactive progress bars despite tty
-    HAB_ORIGIN          Propagates this variable into any studios
-    HAB_ORIGIN_KEYS     Installs secret keys (\`-k' option overrides)
-    HAB_STUDIOS_HOME    Sets a home path for all Studios (default: /hab/studios)
-    HAB_STUDIO_NOSTUDIORC Disables sourcing a \`.studiorc' in \`studio enter'
-    HAB_STUDIO_ROOT     Sets a Studio root (\`-r' option overrides)
-    HAB_STUDIO_SUP      Sets args for a Supervisor in \`studio enter'
-    NO_ARTIFACT_PATH    If set, do not mount the source artifact cache path (\`-N' flag overrides)
-    NO_SRC_PATH         If set, do not mount the source path (\`-n' flag overrides)
-    QUIET               Prints less output (\`-q' flag overrides)
-    SRC_PATH            Sets the source path (\`-s' option overrides)
-    STUDIO_TYPE         Sets a Studio type when creating (\`-t' option overrides)
-    VERBOSE             Prints more verbose output (\`-v' flag overrides)
-    http_proxy          Sets an http_proxy environment variable inside the Studio
-    https_proxy         Sets an https_proxy environment variable inside the Studio
-    no_proxy            Sets a no_proxy environment variable inside the Studio
+    ARTIFACT_PATH          Sets the source artifact cache path (\`-a' option overrides)
+    HAB_NOCOLORING         Disables text coloring mode despite TERM capabilities
+    HAB_NONINTERACTIVE     Disables interactive progress bars despite tty
+    HAB_ORIGIN             Propagates this variable into any studios
+    HAB_ORIGIN_KEYS        Installs secret keys (\`-k' option overrides)
+    HAB_STUDIOS_HOME       Sets a home path for all Studios (default: /hab/studios)
+    HAB_STUDIO_NOSTUDIORC  Disables sourcing a \`.studiorc' in \`studio enter'
+    HAB_STUDIO_ROOT        Sets a Studio root (\`-r' option overrides)
+    HAB_STUDIO_SUP         Sets args for a Supervisor in \`studio enter'
+    NO_ARTIFACT_PATH       If set, do not mount the source artifact cache path (\`-N' flag overrides)
+    NO_SRC_PATH            If set, do not mount the source path (\`-n' flag overrides)
+    QUIET                  Prints less output (\`-q' flag overrides)
+    SRC_PATH               Sets the source path (\`-s' option overrides)
+    STUDIO_TYPE            Sets a Studio type when creating (\`-t' option overrides)
+    VERBOSE                Prints more verbose output (\`-v' flag overrides)
+    http_proxy             Sets an http_proxy environment variable inside the Studio
+    https_proxy            Sets an https_proxy environment variable inside the Studio
+    no_proxy               Sets a no_proxy environment variable inside the Studio
 
 SUBCOMMAND HELP:
     $program <SUBCOMMAND> -h

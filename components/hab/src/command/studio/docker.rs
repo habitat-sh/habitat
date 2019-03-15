@@ -226,16 +226,34 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
     let using_windows_containers = is_serving_windows_containers(&docker_cmd);
     let image = image_identifier_for_active_target(&docker_cmd);
     let mut cmd_args: Vec<OsString> = vec!["run".into(), "--rm".into()];
+
     if !using_windows_containers {
         cmd_args.push("--privileged".into());
     }
-    match args.first().map(|f| f.to_str().unwrap_or_default()) {
-        Some("build") | Some("run") => {}
-        _ => {
-            cmd_args.push("--tty".into());
-            cmd_args.push("--interactive".into());
-        }
+
+    // This needs to be a vec so that we can mutate it. Down below, cmd_args is
+    // extended to include everything in args, and since we're accepting args
+    // that are not docker args, we need to remove them if they're present.
+    let mut new_args = args.to_vec();
+
+    // We will apply --interactive and --tty by default, but if you're running
+    // in a CI or other non-interactive environment, you can pass --non-interactive
+    // and/or --no-tty to disable those.
+    let no_tty = OsString::from("--no-tty");
+    let non_interactive = OsString::from("--non-interactive");
+
+    if new_args.contains(&no_tty) {
+        new_args.retain(|a| a != &no_tty);
+    } else {
+        cmd_args.push("--tty".into());
     }
+
+    if new_args.contains(&non_interactive) {
+        new_args.retain(|a| a != &non_interactive);
+    } else {
+        cmd_args.push("--interactive".into());
+    }
+
     if let Ok(opts) = henv::var(DOCKER_OPTS_ENVVAR) {
         let opts = opts
             .split(' ')
@@ -243,12 +261,14 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
             // Ensure we're not passing something like `--tty` again here.
             .filter(|v| !cmd_args.contains(v))
             .collect::<Vec<_>>();
+
         if !opts.is_empty() {
             debug!("Adding extra Docker options from {} = {:?}",
                    DOCKER_OPTS_ENVVAR, opts);
             cmd_args.extend_from_slice(opts.as_slice());
         }
     }
+
     for var in env_vars {
         if let Ok(val) = henv::var(var.as_ref()) {
             debug!("Setting container env var: {:?}='{}'", var.as_ref(), val);
@@ -256,17 +276,21 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
             cmd_args.push(format!("{}={}", var.as_ref(), val).into());
         }
     }
+
     for vol in volumes {
         cmd_args.push("--volume".into());
         cmd_args.push(vol.as_ref().into());
     }
+
     cmd_args.push(image.into());
-    cmd_args.extend_from_slice(args);
+    cmd_args.extend(new_args);
+
     if using_windows_containers {
         cmd_args.push("-n".into());
         cmd_args.push("-o".into());
         cmd_args.push("c:/".into());
     }
+
     unset_proxy_env_vars();
     process::become_command(docker_cmd, cmd_args)?;
     Ok(())

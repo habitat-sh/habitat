@@ -66,13 +66,12 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
 
 #[cfg(target_os = "linux")]
 mod inner {
-    use std::{env,
-              ffi::OsString,
-              path::PathBuf,
-              str::FromStr};
-
-    use crate::{common::ui::{UIWriter,
+    use crate::{command::studio::docker,
+                common::ui::{UIWriter,
                              UI},
+                error::{Error,
+                        Result},
+                exec,
                 hcore::{crypto::{default_cache_key_path,
                                  init},
                         env as henv,
@@ -80,14 +79,12 @@ mod inner {
                              find_command},
                         os::process,
                         package::PackageIdent,
-                        users::linux as group}};
-
-    use crate::{error::{Error,
-                        Result},
-                exec,
+                        users::linux as group},
                 VERSION};
-
-    use crate::command::studio::docker;
+    use std::{env,
+              ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
     const SUDO_CMD: &str = "sudo";
 
@@ -174,23 +171,21 @@ mod inner {
 
 #[cfg(not(target_os = "linux"))]
 mod inner {
-    use std::{ffi::OsString,
-              path::PathBuf,
-              str::FromStr};
-
-    use crate::{common::ui::UI,
+    use crate::{command::studio::docker,
+                common::ui::UI,
+                error::{Error,
+                        Result},
+                exec,
                 hcore::{crypto::{default_cache_key_path,
                                  init},
                         env as henv,
                         fs::find_command,
                         os::process,
-                        package::PackageIdent}};
-
-    use crate::{command::studio::docker,
-                error::{Error,
-                        Result},
-                exec,
+                        package::PackageIdent},
                 VERSION};
+    use std::{ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
     pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
         if is_windows_studio(&args) {
