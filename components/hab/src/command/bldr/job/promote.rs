@@ -82,6 +82,7 @@ fn get_group_status(bldr_url: &str, group_id: u64) -> Result<api_client::Schedul
     Ok(group_status)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              bldr_url: &str,
              group_id: &str,

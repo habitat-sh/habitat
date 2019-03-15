@@ -48,6 +48,7 @@ const README_TEMPLATE: &str =
 
 const DEFAULT_PKG_VERSION: &str = "0.1.0";
 
+#[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              origin: String,
              with_docs: bool,

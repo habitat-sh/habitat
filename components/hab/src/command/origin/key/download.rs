@@ -30,6 +30,7 @@ use crate::{error::{Error,
 
 use retry::retry;
 
+#[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              bldr_url: &str,
              origin: &str,

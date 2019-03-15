@@ -19,6 +19,7 @@ use crate::common::ui::UI;
 use crate::{command::studio,
             error::Result};
 
+#[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              plan_context: &str,
              root: Option<&str>,

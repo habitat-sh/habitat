@@ -676,7 +676,7 @@ fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let name = m.value_of("PKG_NAME").map(|v| v.into());
+    let name = m.value_of("PKG_NAME").map(String::from);
     let origin = origin_param_or_env(&m)?;
     let with_docs = m.is_present("WITH_DOCS");
     let with_callbacks = m.is_present("WITH_CALLBACKS");
@@ -835,12 +835,12 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
     let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
-    for artifact_path in artifact_paths {
+    for artifact_path in artifact_paths.map(Path::new) {
         command::pkg::upload::start(ui,
                                     &url,
                                     &additional_release_channel,
                                     &token,
-                                    &artifact_path,
+                                    artifact_path,
                                     force_upload,
                                     &key_path)?;
     }
