@@ -7,6 +7,8 @@ labels: C-release
 
 Here are all the steps for the release process. Create a new issue at the beginning and check them off as you go. This issue exists to track progress on the release and ensure all the steps are carried out. When you're done just close the issue.
 
+As you encounter discrepancies between this list and reality, or as you encounter problems with a release, please add a comment to this issue with a checklist of these things, and add to it as the release progresses. This will give you a list of things to update at the end, as well as provide a historical record of what happened, which can help us drive improvements in the future. As you fix things or file formal issues, please add the relevant links back to the checklist item that triggered it to provide further context.
+
 - [ ] Determine if you need a new Launcher release, based on changes since the last release. The pipeline will ask you if it needs to build a new one.
 - [ ] Declare merge freeze and update slack status
 - [ ] [Create PR](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#prepare-master-branch-for-release) to update [`VERSION`](https://github.com/habitat-sh/habitat/blob/master/VERSION)
