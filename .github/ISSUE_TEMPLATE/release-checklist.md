@@ -23,7 +23,6 @@ Here are all the steps for the release process. Create a new issue at the beginn
 - [ ] Declare merge thaw and update slack status
 - [ ] Merge blog announcement PR
 - [ ] [Update builder bootstrap bundle](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-builder-bootstrap-bundle)
-- [ ] [Update homebrew tap](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-homebrew-tap)
 - [ ] [Update chocolately package](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#rerun-chocolatey-validation-tests)
 - [ ] [Publish release](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#publish-release) on GitHub
 - [ ] [Update `hab-backline` to release version in acceptance environment](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline)
