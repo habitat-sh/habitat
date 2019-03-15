@@ -21,7 +21,7 @@ Here are all the steps for the release process. Create a new issue at the beginn
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [windows binaries](https://bintray.com/habitat/stable/hab-x86_64-windows)
 - [ ] Confirm validation in Buildkite to complete promotion
 - [ ] Declare merge thaw and update slack status
-- [ ] Merge blog announcement PR
+- [ ] Merge blog announcement PR. Upon publication, this will also automatically trigger a tweet from `@habitatsh`
 - [ ] [Update builder bootstrap bundle](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-builder-bootstrap-bundle)
 - [ ] [Update chocolately package](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#rerun-chocolatey-validation-tests)
 - [ ] [Publish release](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#publish-release) on GitHub
@@ -34,7 +34,6 @@ Here are all the steps for the release process. Create a new issue at the beginn
 - [ ] [Promote Windows builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confirm build uses new version
 - [ ] Post announcement in [Chef discourse](https://discourse.chef.io/c/habitat)
 - [ ] Post announcement in [Habitat forums](https://forums.habitat.sh/c/announcements)
-- [ ] Tweet announcement from `@habitatsh`
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`core`](https://github.com/habitat-sh/core)
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`habitat`](https://github.com/habitat-sh/habitat)
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`builder`](https://github.com/habitat-sh/builder)
