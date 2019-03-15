@@ -149,7 +149,7 @@ mod test {
     }
 
     // Translates a toml table to a mustache data structure.
-    fn toml_table_to_json(toml: BTreeMap<String, toml::Value>) -> serde_json::Value {
+    fn toml_table_to_json(toml: toml::value::Table) -> serde_json::Value {
         serde_json::Value::Object(toml.into_iter()
                                       .map(|(k, v)| (k, toml_to_json(v)))
                                       .collect())

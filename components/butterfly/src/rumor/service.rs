@@ -347,8 +347,7 @@ mod tests {
         let mut map = toml::value::Table::default();
         let sub_map = toml::value::Table::default();
         map.insert("foo".into(), 5.into());
-        map.insert("a".into(), sub_map.into());
-
+        map.insert("a".into(), toml::value::Value::Table(sub_map));
         Service::new("member_id_val", &package, sg, SysInfo::default(), Some(map));
     }
 }
