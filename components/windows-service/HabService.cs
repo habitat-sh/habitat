@@ -75,6 +75,13 @@ namespace HabService
             {
                 ConfigureDebug();
                 ConfigureSupSignal();
+
+                // DataReceivedEventArgs.Data will return text in the default system
+                // locale. We can change that via System.Console.OutputEncoding for a console
+                // but not here because there is no actual console. To prevent a larger refactor
+                // and research excercise, we will just emit our glyphs in ascii.
+                Environment.SetEnvironmentVariable("HAB_GLYPH_STYLE", "ascii");
+                
                 proc = new Process();
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.CreateNoWindow = true;

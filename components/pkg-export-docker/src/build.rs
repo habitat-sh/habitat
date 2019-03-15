@@ -291,9 +291,10 @@ impl<'a> BuildSpec<'a> {
         where P: AsRef<Path>
     {
         use crate::chmod;
+        use habitat_common::ui::Glyph;
 
         let target = rootfs.as_ref().join("hab");
-        ui.status(Status::Custom('✓', "Changing permissions on".into()),
+        ui.status(Status::Custom(Glyph::CheckMark, "Changing permissions on".into()),
                   format!("{:?}", target))?;
         chmod::recursive_g_equal_u(target)
     }
