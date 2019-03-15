@@ -56,7 +56,7 @@ pub enum Error {
     FileNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
-    // Boxed because https://rust-lang-nursery.github.io/rust-clippy/master/index.html#large_enum_variant
+    // Boxed due to clippy::large_enum_variant
     HandlebarsRenderError(Box<handlebars::TemplateRenderError>),
     IO(io::Error),
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),

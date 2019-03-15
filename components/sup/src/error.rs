@@ -48,8 +48,7 @@ use habitat_common::{self,
 use habitat_core::{self,
                    os::process::Pid,
                    package::{self,
-                             Identifiable,
-                             PackageInstall}};
+                             Identifiable}};
 use habitat_launcher_client;
 use habitat_sup_protocol;
 use notify;
@@ -110,7 +109,6 @@ pub enum Error {
     BadDataPath(PathBuf, io::Error),
     BadDesiredState(String),
     BadElectionStatus(String),
-    BadPackage(PackageInstall, habitat_core::error::Error),
     BadSpecsPath(PathBuf, io::Error),
     BadStartStyle(String),
     BindTimeout(String),
@@ -208,7 +206,6 @@ impl fmt::Display for SupError {
                 format!("Unknown service desired state style '{}'", state)
             }
             Error::BadElectionStatus(ref status) => format!("Unknown election status '{}'", status),
-            Error::BadPackage(ref pkg, ref err) => format!("Bad package, {}, {}", pkg, err),
             Error::BadSpecsPath(ref path, ref err) => {
                 format!("Unable to create the specs directory '{}' ({})",
                         path.display(),
@@ -348,7 +345,6 @@ impl error::Error for SupError {
             Error::BadDataPath(..) => "Unable to read or write to data directory",
             Error::BadElectionStatus(_) => "Unknown election status",
             Error::BadDesiredState(_) => "Unknown desired state in service spec",
-            Error::BadPackage(..) => "Package was malformed or contained malformed contents",
             Error::BadSpecsPath(..) => "Unable to create the specs directory",
             Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::BindTimeout(_) => "Timeout waiting to bind to an address",

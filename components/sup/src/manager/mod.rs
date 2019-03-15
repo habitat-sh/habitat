@@ -154,7 +154,8 @@ lazy_static! {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ServiceOperation {
+#[allow(clippy::large_enum_variant)]
+enum ServiceOperation {
     Start(ServiceSpec),
     Stop(ServiceSpec),
     Restart {
