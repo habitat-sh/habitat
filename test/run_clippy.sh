@@ -42,9 +42,8 @@ allowed_lints=(clippy::module_inception \
                clippy::new_without_default)
 
 # Known failing lints we want to receive warnings for, but not fail the build
-lints_to_fix=(clippy::cyclomatic_complexity \
-               clippy::needless_return \
-               clippy::too_many_arguments)
+lints_to_fix+=(clippy::cyclomatic_complexity \
+               clippy::needless_return)
 
 # Lints we don't expect to have in our code at all and want to avoid adding
 # even at the cost of failing the build
@@ -91,6 +90,7 @@ denied_lints=(clippy::assign_op_pattern \
                clippy::single_char_pattern \
                clippy::single_match \
                clippy::string_lit_as_bytes \
+               clippy::too_many_arguments \
                clippy::toplevel_ref_arg \
                clippy::trivially_copy_pass_by_ref \
                clippy::unit_arg \
