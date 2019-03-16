@@ -28,7 +28,8 @@ use std::{fs::File,
           io::{self,
                prelude::*}};
 
-use crate::common::ui::{Status,
+use crate::common::ui::{Glyph,
+                        Status,
                         UIWriter,
                         UI};
 
@@ -60,7 +61,7 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Re
     let image = if !matches.is_present("NO_DOCKER_IMAGE") {
         export_docker::export_for_cli_matches(ui, &matches)?
     } else {
-        ui.status(Status::Custom('☛', String::from("Skipping")),
+        ui.status(Status::Custom(Glyph::FingerPoint, String::from("Skipping")),
                   "Docker image generation")?;
         None
     };
@@ -76,7 +77,7 @@ pub fn export_for_cli_matches(ui: &mut UI, matches: &clap::ArgMatches<'_>) -> Re
         }
         _ => {
             let stdout = Box::new(io::stdout());
-            ui.status(Status::Custom('→', String::from("Writing")),
+            ui.status(Status::Custom(Glyph::RightArrow, String::from("Writing")),
                       "Kubernetes manifest to stdout")?;
 
             stdout

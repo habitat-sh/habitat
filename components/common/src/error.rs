@@ -35,6 +35,7 @@ pub enum Error {
     ArtifactIdentMismatch((String, String, String)),
     /// Occurs when there is no valid toml of json in the environment variable
     BadEnvConfig(String),
+    BadGlyphStyle(String),
     CantUploadGossipToml,
     ChannelNotFound,
     CryptoKeyError(String),
@@ -95,6 +96,7 @@ impl fmt::Display for Error {
             Error::BadEnvConfig(ref varname) => {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
+            Error::BadGlyphStyle(ref style) => format!("Unknown symbol style '{}'", style),
             Error::CantUploadGossipToml => {
                 "Can't upload gossip.toml, it's a reserved file name".to_string()
             }
@@ -162,6 +164,7 @@ impl error::Error for Error {
             Error::APIClient(ref err) => err.description(),
             Error::ArtifactIdentMismatch((..)) => "Artifact ident does not match expected ident",
             Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
+            Error::BadGlyphStyle(_) => "Unknown symbol style",
             Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
             Error::ChannelNotFound => "Channel not found",
             Error::CryptoKeyError(_) => "Missing or invalid key",
