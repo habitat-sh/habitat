@@ -44,7 +44,8 @@ const DOCKER_OPTS_ENVVAR: &str = "HAB_DOCKER_OPTS";
 const DOCKER_SOCKET: &str = "/var/run/docker.sock";
 const HAB_STUDIO_SECRET: &str = "HAB_STUDIO_SECRET_";
 
-pub fn start_docker_studio(_ui: &mut UI, mut args: Vec<OsString>) -> Result<()> {
+pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
+    let mut args = args.to_vec();
     if args.get(0) == Some(&OsString::from("rm")) {
         return Err(Error::CannotRemoveDockerStudio);
     }
@@ -292,7 +293,7 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
     }
 
     unset_proxy_env_vars();
-    process::become_command(docker_cmd, cmd_args)?;
+    process::become_command(docker_cmd, &cmd_args)?;
     Ok(())
 }
 
@@ -307,7 +308,7 @@ fn unset_proxy_env_vars() {
 
 fn image_identifier_for_active_target(docker_cmd: &Path) -> String {
     image_identifier(is_serving_windows_containers(docker_cmd),
-                     *target::PackageTarget::active_target())
+                     target::PackageTarget::active_target())
 }
 
 /// Returns the Docker Studio image with tag for the desired version which corresponds to the

@@ -223,7 +223,7 @@ fn attempt_upload_dep<T>(ui: &mut UI,
                          -> Result<()>
     where T: AsRef<Path>
 {
-    let candidate_path = archives_dir.join(ident.archive_name_with_target(&target).unwrap());
+    let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
 
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
@@ -236,7 +236,7 @@ fn attempt_upload_dep<T>(ui: &mut UI,
                           false,
                           &mut archive)
     } else {
-        let archive_name = ident.archive_name_with_target(&target).unwrap();
+        let archive_name = ident.archive_name_with_target(target).unwrap();
 
         ui.status(Status::Missing,
                   format!("artifact {}. It was not found in {}. Please make sure that all the \

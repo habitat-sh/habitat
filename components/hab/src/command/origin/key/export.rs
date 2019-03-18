@@ -21,7 +21,6 @@ use crate::hcore::crypto::{keys::PairType,
 
 use crate::error::Result;
 
-#[warn(clippy::needless_pass_by_value)] // Remove after making `PairType` Copy
 pub fn start(origin: &str, pair_type: PairType, cache: &Path) -> Result<()> {
     let latest = SigKeyPair::get_latest_pair_for(origin, cache, Some(&pair_type))?;
     let path = match pair_type {

@@ -52,5 +52,5 @@ pub fn start(ui: &mut UI,
     if studio::native_studio_support() && docker {
         args.push("-D".into());
     }
-    studio::enter::start(ui, args)
+    studio::enter::start(ui, &args)
 }

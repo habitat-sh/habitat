@@ -25,7 +25,7 @@ use crate::hcore::{fs::{find_command,
 use crate::error::{Error,
                    Result};
 
-pub fn start<T>(ident: &PackageIdent, command: T, args: Vec<OsString>) -> Result<()>
+pub fn start<T>(ident: &PackageIdent, command: T, args: &[OsString]) -> Result<()>
     where T: Into<PathBuf>
 {
     let command = command.into();
@@ -41,7 +41,7 @@ pub fn start<T>(ident: &PackageIdent, command: T, args: Vec<OsString>) -> Result
         None => return Err(Error::ExecCommandNotFound(command)),
     };
     let mut display_args = command.to_string_lossy().into_owned();
-    for arg in &args {
+    for arg in args {
         display_args.push(' ');
         display_args.push_str(arg.to_string_lossy().as_ref());
     }

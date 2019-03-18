@@ -167,7 +167,7 @@ impl FromStr for InstallSource {
                 // one string, such as `"x86_64-linux::core/redis"` (or similar). As there is
                 // currently no such representation, I'd argue that this `FromStr` is no longer
                 // reasonable. However, it's doing the job for now and we can proceed with caution.
-                Ok(ident) => Ok(InstallSource::Ident(ident, *PackageTarget::active_target())),
+                Ok(ident) => Ok(InstallSource::Ident(ident, PackageTarget::active_target())),
                 Err(e) => Err(e),
             }
         }
@@ -990,9 +990,9 @@ impl<'a> InstallTask<'a> {
         // system. Until we have better ideas, this implementation preserves past behavior.
         let artifact_target = artifact.target()?;
         let active_target = PackageTarget::active_target();
-        if active_target != &artifact_target {
+        if active_target != artifact_target {
             return Err(Error::HabitatCore(hcore::Error::WrongActivePackageTarget(
-                *active_target,
+                active_target,
                 artifact_target,
             )));
         }
