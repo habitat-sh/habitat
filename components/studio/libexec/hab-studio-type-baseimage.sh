@@ -141,7 +141,8 @@ EOT
   studio_env_command="$busybox_path/bin/env"
 }
 
-
+# Intentionally using a subshell here so `unset` doesn't affect the
+# caller's environment.
 _hab() (
     unset HAB_CACHE_KEY_PATH
     $bb env FS_ROOT="$HAB_STUDIO_ROOT" "$hab" "$@"

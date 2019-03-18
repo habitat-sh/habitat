@@ -232,6 +232,8 @@ PROFILE_ENTER
   studio_env_command="$coreutils_path/bin/env"
 }
 
+# Intentionally using a subshell here so `unset` doesn't affect the
+# caller's environment.
 _hab() (
     # We remove a couple of env vars we do not want for this instance of the studio
     unset HAB_CACHE_KEY_PATH
