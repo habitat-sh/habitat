@@ -269,6 +269,14 @@ Now there's yet another new version of hab-backline, in unstable. So off to the 
 ./update-hab-backline.sh unstable $(< VERSION)
 ```
 
+NOTE: Until Builder automatically builds linux2 packages in response to web hook activity, you may need to manually trigger a build after you've merged the version bump PR. If that is the case, you can use the CLI:
+
+```sh
+hab bldr job start core/hab-backline x86_64-linux-kernel2
+```
+
+Once the Acceptance Builder is doing this, then we will no longer need to worry about this step.
+
 Make sure the commands from the trace output look correct when the script executes:
 1. The version is the new dev version after the one we just released; there should be a `-dev` suffix
 1. The install is from the `unstable` channel
