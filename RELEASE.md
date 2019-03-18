@@ -262,12 +262,23 @@ Make sure the commands from the trace output look correct when the script execut
 
 ## The Builder Worker
 
-Now that the release is stable, we need to build a new version of builder-worker and promote it. Navigate to
-[habitat/builder-worker](https://bldr.habitat.sh/#/pkgs/habitat/builder-worker/latest) and check to see if a build is already running.
-If it is, just wait for it to finish and promote it. If it's not, click the
-`Build Latest Version` button to kick off a build, and promote when it's done.  Wait for a few minutes so that supervisors on all the workers can update to the newly promoted version, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
+Now that the release is stable, we need to build a new version of builder-worker and promote it. The easiest way to do this is to use the CLI to trigger builds for all three platforms:
 
-With the addition of Windows builder workers, you will also need to build and promote the builder-worker package for x86_64-windows.  In order to build the Windows package, you will need to use the hab cli and issue `hab bldr job start habitat/builder-worker x86_64-windows` in order to create the package.
+```sh
+hab bldr job start habitat/builder-worker x86_64-linux
+hab bldr job start habitat/builder-worker x86_64-linux-kernel2
+hab bldr job start habitat/builder-worker x86_64-windows
+```
+
+When these are all done, promote the resulting artifacts to the `stable` channel (do this for each of the three build jobs):
+
+```sh
+hab bldr job promote ${BUILD_GROUP_ID} stable
+```
+(`$BUILD_GROUP_ID` is given in the output of each `hab bldr job start` command.)
+
+
+Wait for a few minutes so that supervisors on all the workers can update to the newly promoted version, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
 
 # Release Notification
 
