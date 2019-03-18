@@ -158,12 +158,26 @@ Once the Buildkite linux deployment has completed, we generate a release bundle 
 
 NOTE: Do this step from either a Linux VM or in a studio.
 
-1. Configure your AWS credentials in your environment
+1. Configure your AWS credentials in your environment.
+
+In general, this means ensuring that `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are present in your environment.
+
+_However_, if you are using [okta_aws](https://github.com/chef/okta_aws) (and if you're working at Chef, you should be!), things are a little bit different.
+
+In this case, you will need to run the following:
+
+```sh
+okta_aws habitat
+export AWS_DEFAULT_PROFILE=habitat
+```
+
+This ensures that the script can access your appropriate Okta-mediated credentials.
+
 1. Execute the script that currently lives in the [builder](https://github.com/habitat-sh/builder) repository:
 
     ```
     $ cd /path/to/builder-repo
-    $ sudo AWS_ACCESS_KEY_ID=<...> AWS_SECRET_ACCESS_KEY=<...> terraform/scripts/create_bootstrap_bundle.sh <HABITAT_VERSION>'
+    $ terraform/scripts/create_bootstrap_bundle.sh <HABITAT_VERSION>
     ```
 
 ## Update Homebrew Tap
@@ -259,6 +273,14 @@ Now there's yet another new version of hab-backline, in unstable. So off to the 
 ./update-hab-backline.sh unstable $(< VERSION)
 ```
 
+NOTE: Until Builder automatically builds linux2 packages in response to web hook activity, you may need to manually trigger a build after you've merged the version bump PR. If that is the case, you can use the CLI:
+
+```sh
+hab bldr job start core/hab-backline x86_64-linux-kernel2
+```
+
+Once the Acceptance Builder is doing this, then we will no longer need to worry about this step.
+
 Make sure the commands from the trace output look correct when the script executes:
 1. The version is the new dev version after the one we just released; there should be a `-dev` suffix
 1. The install is from the `unstable` channel
@@ -266,19 +288,29 @@ Make sure the commands from the trace output look correct when the script execut
 
 ## The Builder Worker
 
-Now that the release is stable, we need to build a new version of builder-worker and promote it. Navigate to
-[habitat/builder-worker](https://bldr.habitat.sh/#/pkgs/habitat/builder-worker/latest) and check to see if a build is already running.
-If it is, just wait for it to finish and promote it. If it's not, click the
-`Build Latest Version` button to kick off a build, and promote when it's done.  Wait for a few minutes so that supervisors on all the workers can update to the newly promoted version, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
+Now that the release is stable, we need to build a new version of builder-worker and promote it. The easiest way to do this is to use the CLI to trigger builds for all three platforms:
 
-With the addition of Windows builder workers, you will also need to build and promote the builder-worker package for x86_64-windows.  In order to build the Windows package, you will need to use the hab cli and issue `hab bldr job start habitat/builder-worker x86_64-windows` in order to create the package.
+```sh
+hab bldr job start habitat/builder-worker x86_64-linux
+hab bldr job start habitat/builder-worker x86_64-linux-kernel2
+hab bldr job start habitat/builder-worker x86_64-windows
+```
+
+When these are all done, promote the resulting artifacts to the `stable` channel (do this for each of the three build jobs):
+
+```sh
+hab bldr job promote ${BUILD_GROUP_ID} stable
+```
+(`$BUILD_GROUP_ID` is given in the output of each `hab bldr job start` command.)
+
+
+Wait for a few minutes so that supervisors on all the workers can update to the newly promoted version, then perform a test build. Check the build log for the test build to confirm that the version of the Habitat client being used is the desired version.
 
 # Release Notification
 
 1. Create new posts in [Habitat Announcements](https://discourse.chef.io/c/habitat) on the Chef discourse as well as [Announcements](https://forums.habitat.sh/c/announcements) in the Habitat forums.
 1. Link forum posts to the github release
 1. Link github release to forum post
-1. Tweet a link to the announcement @habitatsh (credentials in [1password](https://team-habitat.1password.com))
 1. Make sure the blog post PR with the release announcements is merged and published.
 1. Announce that the "Freeze" on merges to master is lifted in both the Chef internal slack team and in the Habitat slack team.
 
