@@ -154,12 +154,26 @@ Once the Buildkite linux deployment has completed, we generate a release bundle 
 
 NOTE: Do this step from either a Linux VM or in a studio.
 
-1. Configure your AWS credentials in your environment
+1. Configure your AWS credentials in your environment.
+
+In general, this means ensuring that `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are present in your environment.
+
+_However_, if you are using [okta_aws](https://github.com/chef/okta_aws) (and if you're working at Chef, you should be!), things are a little bit different.
+
+In this case, you will need to run the following:
+
+```sh
+okta_aws habitat
+export AWS_DEFAULT_PROFILE=habitat
+```
+
+This ensures that the script can access your appropriate Okta-mediated credentials.
+
 1. Execute the script that currently lives in the [builder](https://github.com/habitat-sh/builder) repository:
 
     ```
     $ cd /path/to/builder-repo
-    $ sudo AWS_ACCESS_KEY_ID=<...> AWS_SECRET_ACCESS_KEY=<...> terraform/scripts/create_bootstrap_bundle.sh <HABITAT_VERSION>'
+    $ terraform/scripts/create_bootstrap_bundle.sh <HABITAT_VERSION>
     ```
 
 ## Update Homebrew Tap
