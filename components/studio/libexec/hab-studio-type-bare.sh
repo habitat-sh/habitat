@@ -118,6 +118,7 @@ EOT
 # caller's environment.
 _hab() (
     unset HAB_CACHE_KEY_PATH
+    # shellcheck disable=2154
     $bb env FS_ROOT="$HAB_STUDIO_ROOT" "$hab" "$@"
 )
 
