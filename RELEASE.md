@@ -137,6 +137,10 @@ When testing the linux studio, you will need to `export CI_OVERRIDE_CHANNEL` to 
 
 For this PackageTarget it is important that you perform validation on a Linux system running a 2.6 series kernel. CentOS 6 is recommended because it ships with a kernel of the appropriate age,  but any distro with a Kernel between 2.6.32 and 3.0.0 can be used. Included in the `support/validation/x86_64-linux-kernel2` directory in this repository is a Vagrantfile that will create a CentOS-6 VM to perform the validation. You can also run a VM in EC2.
 
+The Vagrantfile is configured to grab the [core-plans](https://github.com/habitat-sh/core-plans) repository (to give you something to build), as well as grab the secret key for your `HAB_ORIGIN` (using the `HAB_ORIGIN` and `HAB_AUTH_TOKEN` variables in your environment). You'll need to manually install the release-candidate `hab` binary and set your various channel overrides, but other than that you should have all you need to test things out.
+
+As an example, immediately after provisioning you can SSH into the machine and run `HAB_ORIGIN=<my_origin> hab pkg build core-plans/redis`.
+
 ### Addressing issues with a Release
 
 If you find issues when validating the release binaries that must be fixed before promoting the release, you will need to fix those issues and then have Buildkite and AppVeyor rerun the deployment. After you merge the necessary PRs to fix the release issues:
