@@ -41,3 +41,13 @@ lazy_static! {
     pub static ref LISTEN_CTL_DEFAULT_ADDR_STRING: String =
         { ListenCtlAddr::default().to_string() };
 }
+
+pub const BINLINK_DIR_ENVVAR: &str = "HAB_BINLINK_DIR";
+
+/// Default Binlink Dir
+#[cfg(target_os = "windows")]
+pub const DEFAULT_BINLINK_DIR: &str = "/hab/bin";
+#[cfg(target_os = "linux")]
+pub const DEFAULT_BINLINK_DIR: &str = "/bin";
+#[cfg(target_os = "macos")]
+pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";

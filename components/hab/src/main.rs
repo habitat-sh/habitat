@@ -23,7 +23,8 @@ extern crate log;
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
-use crate::{common::{command::package::install::{InstallHookMode,
+use crate::{common::{cli_defaults::DEFAULT_BINLINK_DIR,
+                     command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
@@ -34,8 +35,7 @@ use crate::{common::{command::package::install::{InstallHookMode,
                           UIWriter,
                           NONINTERACTIVE_ENVVAR,
                           UI}},
-            hcore::{binlink::default_binlink_dir,
-                    crypto::{default_cache_key_path,
+            hcore::{crypto::{default_cache_key_path,
                              init,
                              keys::PairType,
                              BoxKeyPair,
@@ -350,12 +350,9 @@ fn start(ui: &mut UI) -> Result<()> {
 fn sub_cli_setup(ui: &mut UI) -> Result<()> {
     init();
 
-    command::cli::setup::start(
-        ui,
-        &default_cache_key_path(Some(&*FS_ROOT)),
-        &cache_analytics_path(Some(&*FS_ROOT)),
-        &Path::new(&*FS_ROOT).join(Path::new(&default_binlink_dir()).strip_prefix("/").unwrap()),
-    )
+    command::cli::setup::start(ui,
+                               &default_cache_key_path(Some(&*FS_ROOT)),
+                               &cache_analytics_path(Some(&*FS_ROOT)))
 }
 
 fn sub_cli_completers(m: &ArgMatches<'_>) -> Result<()> {
@@ -471,13 +468,13 @@ fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let dest_dir = binlink_dest_dir_from_matches(m);
+    let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap()); // required by clap
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
         Some(binary) => {
-            command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT, force)
+            command::pkg::binlink::start(ui, &ident, &binary, dest_dir, &FS_ROOT, force)
         }
-        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, &dest_dir, &*FS_ROOT, force),
+        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &FS_ROOT, force),
     }
 }
 
@@ -772,12 +769,11 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                                      install_hook_mode)?;
 
         if m.is_present("BINLINK") {
-            let dest_dir = binlink_dest_dir_from_matches(m);
             let force = m.is_present("FORCE");
             command::pkg::binlink::binlink_all_in_pkg(ui,
                                                       pkg_install.ident(),
-                                                      dest_dir,
-                                                      &*FS_ROOT,
+                                                      Path::new(DEFAULT_BINLINK_DIR),
+                                                      &FS_ROOT,
                                                       force)?;
         }
     }
@@ -1481,11 +1477,6 @@ fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
            .map(PackageTarget::from_str)
            .unwrap_or_else(|| PackageTarget::from_str("x86_64-linux"))
            .map_err(Error::HabitatCore)
-}
-
-fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
-    let env_or_default = default_binlink_dir();
-    Path::new(matches.value_of("DEST_DIR").unwrap_or(&env_or_default)).to_path_buf()
 }
 
 fn install_sources_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<InstallSource>> {

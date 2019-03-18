@@ -53,11 +53,7 @@ use crate::{analytics,
             CTL_SECRET_ENVVAR,
             ORIGIN_ENVVAR};
 
-pub fn start(ui: &mut UI,
-             cache_path: &Path,
-             analytics_path: &Path,
-             binlink_path: &Path)
-             -> Result<()> {
+pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()> {
     let mut generated_origin = false;
 
     ui.br()?;
@@ -177,7 +173,8 @@ pub fn start(ui: &mut UI,
     } else {
         ui.para("Okay, maybe another time.")?;
     }
-    if cfg!(windows) {
+    #[cfg(windows)]
+    {
         ui.heading("Habitat Binlink Path")?;
         ui.para("The `hab` command-line tool can create binlinks for package binaries in the \
                  'PATH' when using the 'pkg binlink' or 'pkg install --binlink' commands. By \
@@ -383,7 +380,10 @@ fn binlink_is_on_path(binlink_path: &Path) -> bool {
 /// the path of this process. These are maintained
 /// in the Windows registry
 #[cfg(windows)]
-fn set_binlink_path(binlink_path: &Path) -> Result<()> {
+fn set_binlink_path() -> Result<()> {
+    let binlink_path =
+        &Path::new(&*FS_ROOT).join(Path::new(DEFAULT_BINLINK_DIR).strip_prefix("/").unwrap());
+
     if !binlink_is_on_path(binlink_path) {
         let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
         let env = hklm.open_subkey_with_flags(
@@ -411,6 +411,3 @@ fn set_binlink_path(binlink_path: &Path) -> Result<()> {
     }
     Ok(())
 }
-
-#[cfg(not(windows))]
-fn set_binlink_path(_binlink_path: &Path) -> Result<()> { unreachable!() }
