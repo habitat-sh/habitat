@@ -44,7 +44,7 @@ impl OsSignal for Signal {
     fn os_signal(&self) -> SignalCode { 0 }
 }
 
-pub fn become_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
+pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     become_child_command(command, args)
 }
 
@@ -96,11 +96,11 @@ pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
 /// # Failures
 ///
 /// * If the child process cannot be created
-fn become_child_command(command: PathBuf, args: Vec<OsString>) -> Result<()> {
+fn become_child_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     debug!("Calling child process: ({:?}) {:?}",
            command.display(),
            &args);
-    let status = Command::new(command).args(&args).status()?;
+    let status = Command::new(command).args(args).status()?;
     // Let's honor the exit codes from the child process we finished running
     process::exit(status.code().unwrap())
 }
