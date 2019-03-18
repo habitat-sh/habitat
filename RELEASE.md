@@ -307,7 +307,6 @@ Wait for a few minutes so that supervisors on all the workers can update to the 
 1. Create new posts in [Habitat Announcements](https://discourse.chef.io/c/habitat) on the Chef discourse as well as [Announcements](https://forums.habitat.sh/c/announcements) in the Habitat forums.
 1. Link forum posts to the github release
 1. Link github release to forum post
-1. Tweet a link to the announcement @habitatsh (credentials in [1password](https://team-habitat.1password.com))
 1. Make sure the blog post PR with the release announcements is merged and published.
 1. Announce that the "Freeze" on merges to master is lifted in both the Chef internal slack team and in the Habitat slack team.
 
