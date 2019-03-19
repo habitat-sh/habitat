@@ -16,6 +16,7 @@
 - Use sup-run instead of hab sup run in demo [#5746](https://github.com/habitat-sh/habitat/pull/5746) ([rsertelon](https://github.com/rsertelon))
 
 #### New Features & Enhancements
+- Copies /etc/inputrc in studio if available [#5658](https://github.com/habitat-sh/habitat/pull/5658) ([rsertelon](https://github.com/rsertelon))
 - Attempt to implement template debugging tool [#6114](https://github.com/habitat-sh/habitat/pull/6114) ([qubitrenegade](https://github.com/qubitrenegade))
 <!-- latest_release -->
 
