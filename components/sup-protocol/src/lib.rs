@@ -45,7 +45,6 @@ use habitat_core as core;
 extern crate lazy_static;
 #[macro_use]
 extern crate log;
-#[macro_use]
 extern crate prost_derive;
 
 #[macro_use]

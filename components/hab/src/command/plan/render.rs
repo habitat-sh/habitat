@@ -28,6 +28,7 @@ use crate::{common::{templating::TemplateRenderer,
                           UI}},
             error::Result};
 
+#[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              template_path: &Path,
              default_toml_path: &Path,

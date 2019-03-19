@@ -113,13 +113,13 @@ impl<'a> BuildSpec<'a> {
         Ok((workdir, created_ident))
     }
 
-    fn prepare_rootfs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<(PackageIdent)> {
+    fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<(PackageIdent)> {
         ui.status(Status::Creating, "root filesystem")?;
         rootfs::create(&rootfs)?;
         self.create_symlink_to_artifact_cache(ui, &rootfs)?;
         self.create_symlink_to_key_cache(ui, &rootfs)?;
         self.install_base_pkgs(ui, &rootfs)?;
-        let ident = self.install_user_pkg(ui, self.ident_or_archive, &rootfs)?;
+        let ident = self.install_user_pkg(ui, self.ident_or_archive, rootfs)?;
         self.remove_symlink_to_key_cache(ui, &rootfs)?;
         self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
 
@@ -155,12 +155,12 @@ impl<'a> BuildSpec<'a> {
         Ok(())
     }
 
-    fn install_base_pkgs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<BasePkgIdents> {
-        let hab = self.install_base_pkg(ui, self.hab, &rootfs)?;
-        let sup = self.install_base_pkg(ui, self.hab_sup, &rootfs)?;
-        let launcher = self.install_base_pkg(ui, self.hab_launcher, &rootfs)?;
+    fn install_base_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<BasePkgIdents> {
+        let hab = self.install_base_pkg(ui, self.hab, rootfs)?;
+        let sup = self.install_base_pkg(ui, self.hab_sup, rootfs)?;
+        let launcher = self.install_base_pkg(ui, self.hab_launcher, rootfs)?;
         let busybox = if cfg!(target_os = "linux") {
-            Some(self.install_base_pkg(ui, BUSYBOX_IDENT, &rootfs)?)
+            Some(self.install_base_pkg(ui, BUSYBOX_IDENT, rootfs)?)
         } else {
             None
         };
@@ -171,11 +171,11 @@ impl<'a> BuildSpec<'a> {
                            busybox })
     }
 
-    fn install_base_pkg<P: AsRef<Path>>(&self,
-                                        ui: &mut UI,
-                                        ident_or_archive: &str,
-                                        fs_root_path: P)
-                                        -> Result<PackageIdent> {
+    fn install_base_pkg(&self,
+                        ui: &mut UI,
+                        ident_or_archive: &str,
+                        fs_root_path: &Path)
+                        -> Result<PackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      self.base_pkgs_url,
@@ -183,21 +183,21 @@ impl<'a> BuildSpec<'a> {
                      fs_root_path)
     }
 
-    fn install_user_pkg<P: AsRef<Path>>(&self,
-                                        ui: &mut UI,
-                                        ident_or_archive: &str,
-                                        fs_root_path: P)
-                                        -> Result<PackageIdent> {
+    fn install_user_pkg(&self,
+                        ui: &mut UI,
+                        ident_or_archive: &str,
+                        fs_root_path: &Path)
+                        -> Result<PackageIdent> {
         self.install(ui, ident_or_archive, self.url, &self.channel, fs_root_path)
     }
 
-    fn install<P: AsRef<Path>>(&self,
-                               ui: &mut UI,
-                               ident_or_archive: &str,
-                               url: &str,
-                               channel: &ChannelIdent,
-                               fs_root_path: P)
-                               -> Result<PackageIdent> {
+    fn install(&self,
+               ui: &mut UI,
+               ident_or_archive: &str,
+               url: &str,
+               channel: &ChannelIdent,
+               fs_root_path: &Path)
+               -> Result<PackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install =
             common::command::package::install::start(ui,
@@ -206,7 +206,7 @@ impl<'a> BuildSpec<'a> {
                                                      &install_source,
                                                      &*PROGRAM_NAME,
                                                      VERSION,
-                                                     &fs_root_path,
+                                                     fs_root_path,
                                                      &cache_artifact_path(Some(&fs_root_path)),
                                                      None,
                                                      // TODO fn: pass through and enable offline

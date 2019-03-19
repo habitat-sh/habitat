@@ -54,11 +54,12 @@ use termcolor::{BufferWriter,
 static VERBOSITY: AtomicBool = ATOMIC_BOOL_INIT;
 
 lazy_static! {
-    static ref FORMAT: Mutex<OutputFormat> = Mutex::new(OutputFormat::Color);
+    static ref FORMAT: Mutex<OutputFormat> = Mutex::new(OutputFormat::Color(ColorSpec::default()));
 }
 
 /// Get the OutputFormat for which content is to be rendered
-pub fn get_format() -> OutputFormat { *FORMAT.lock().expect("FORMAT lock poisoned") }
+// Maybe return a &'static instead of cloning?
+pub fn get_format() -> OutputFormat { FORMAT.lock().expect("FORMAT lock poisoned").clone() }
 
 /// Set the OutputFormat for which content is to be rendered
 pub fn set_format(format: OutputFormat) { *FORMAT.lock().expect("FORMAT lock poisoned") = format }
@@ -91,52 +92,26 @@ pub struct StructuredOutput<'a> {
     verbosity: OutputVerbosityInternal,
     /// How should output be formatted
     format: OutputFormat,
-    /// Color and styling to use for content.
-    color_spec: ColorSpec,
 }
 
 impl<'a> StructuredOutput<'a> {
     /// Return a new StructuredOutput struct.
     pub fn new(preamble: &'a str,
                logkey: &'static str,
-               line: u32,
-               file: &'static str,
-               column: u32,
+               context: OutputContext,
                format: OutputFormat,
                verbosity: OutputVerbosity,
                content: &'a str)
                -> StructuredOutput<'a> {
         let verbosity = match verbosity {
             OutputVerbosity::Normal => OutputVerbosityInternal::Normal,
-            OutputVerbosity::Verbose => OutputVerbosityInternal::Verbose { line, file, column },
+            OutputVerbosity::Verbose => OutputVerbosityInternal::Verbose(context),
         };
         StructuredOutput { preamble,
                            logkey,
                            content,
                            verbosity,
-                           format,
-                           color_spec: ColorSpec::new() }
-    }
-
-    pub fn colored(preamble: &'a str,
-                   logkey: &'static str,
-                   line: u32,
-                   file: &'static str,
-                   column: u32,
-                   verbosity: OutputVerbosity,
-                   content: &'a str,
-                   color_spec: ColorSpec)
-                   -> StructuredOutput<'a> {
-        let verbosity = match verbosity {
-            OutputVerbosity::Normal => OutputVerbosityInternal::Normal,
-            OutputVerbosity::Verbose => OutputVerbosityInternal::Verbose { line, file, column },
-        };
-        StructuredOutput { preamble,
-                           logkey,
-                           content,
-                           verbosity,
-                           format: OutputFormat::Color,
-                           color_spec }
+                           format }
     }
 
     pub fn succinct(preamble: &'a str,
@@ -148,24 +123,23 @@ impl<'a> StructuredOutput<'a> {
                            logkey,
                            content,
                            verbosity: OutputVerbosityInternal::Normal,
-                           format,
-                           color_spec: ColorSpec::new() }
+                           format }
     }
 
     pub fn print(&self) -> io::Result<()> {
-        self.print_to_writer(&BufferWriter::stdout(self.color_choice()))
+        self.print_to_writer(&BufferWriter::stdout(self.format.color_choice()))
     }
 
     pub fn eprint(&self) -> io::Result<()> {
-        self.print_to_writer(&BufferWriter::stderr(self.color_choice()))
+        self.print_to_writer(&BufferWriter::stderr(self.format.color_choice()))
     }
 
     pub fn println(&self) -> io::Result<()> {
-        self.println_to_writer(&BufferWriter::stdout(self.color_choice()))
+        self.println_to_writer(&BufferWriter::stdout(self.format.color_choice()))
     }
 
     pub fn eprintln(&self) -> io::Result<()> {
-        self.println_to_writer(&BufferWriter::stderr(self.color_choice()))
+        self.println_to_writer(&BufferWriter::stderr(self.format.color_choice()))
     }
 
     fn print_to_writer(&self, writer: &BufferWriter) -> io::Result<()> {
@@ -180,13 +154,6 @@ impl<'a> StructuredOutput<'a> {
         buffer.write_all(b"\n")?;
         buffer.flush()?;
         writer.print(&buffer)
-    }
-
-    fn color_choice(&self) -> ColorChoice {
-        match self.format {
-            OutputFormat::Color => ColorChoice::Auto,
-            OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
-        }
     }
 
     // If we ever want to create multiple output formats in the future, we would do it here -
@@ -219,7 +186,9 @@ impl<'a> StructuredOutput<'a> {
                 writer.write_all(self.logkey.as_bytes())?;
                 writer.reset()?;
                 writer.write_all(b")")?;
-                if let OutputVerbosityInternal::Verbose { line, file, column } = self.verbosity {
+                if let OutputVerbosityInternal::Verbose(OutputContext { line, file, column }) =
+                    self.verbosity
+                {
                     writer.write_all(b"[")?;
                     writer.set_color(ColorSpec::new().set_fg(Some(Color::White))
                                                      .set_underline(true))?;
@@ -228,7 +197,9 @@ impl<'a> StructuredOutput<'a> {
                     writer.write_all(b"]")?;
                 }
                 writer.write_all(b": ")?;
-                writer.set_color(&self.color_spec)?;
+                if let OutputFormat::Color(ref color_spec) = self.format {
+                    writer.set_color(color_spec)?;
+                }
                 writer.write_all(self.content.as_bytes())?;
                 writer.reset()?;
                 writer.flush()
@@ -250,7 +221,9 @@ impl<'a> Serialize for StructuredOutput<'a> {
 
         map.serialize_entry("preamble", &self.preamble)?;
         map.serialize_entry("logkey", &self.logkey)?;
-        if let OutputVerbosityInternal::Verbose { line, file, column } = self.verbosity {
+        if let OutputVerbosityInternal::Verbose(OutputContext { line, file, column }) =
+            self.verbosity
+        {
             map.serialize_entry("file", &file)?;
             map.serialize_entry("line", &line)?;
             map.serialize_entry("column", &column)?;
@@ -263,7 +236,7 @@ impl<'a> Serialize for StructuredOutput<'a> {
 
 impl<'a> fmt::Display for StructuredOutput<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let bufwtr = BufferWriter::stdout(self.color_choice());
+        let bufwtr = BufferWriter::stdout(self.format.color_choice());
         let mut buffer = bufwtr.buffer();
         match self.format(&mut buffer) {
             Ok(_) => {
@@ -275,11 +248,27 @@ impl<'a> fmt::Display for StructuredOutput<'a> {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum OutputFormat {
-    Color,
+    Color(ColorSpec),
     NoColor,
     JSON,
+}
+
+impl OutputFormat {
+    pub fn color_choice(&self) -> ColorChoice {
+        match self {
+            OutputFormat::Color(_) => ColorChoice::Auto,
+            OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
+        }
+    }
+
+    pub fn is_color(&self) -> bool {
+        match self {
+            OutputFormat::Color(_) => true,
+            OutputFormat::NoColor | OutputFormat::JSON => false,
+        }
+    }
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -289,13 +278,16 @@ pub enum OutputVerbosity {
 }
 
 #[derive(Clone, Copy)]
+pub struct OutputContext {
+    pub line:   u32,
+    pub file:   &'static str,
+    pub column: u32,
+}
+
+#[derive(Clone, Copy)]
 enum OutputVerbosityInternal {
     Normal,
-    Verbose {
-        line:   u32,
-        file:   &'static str,
-        column: u32,
-    },
+    Verbose(OutputContext),
 }
 
 #[macro_export]
@@ -303,13 +295,13 @@ enum OutputVerbosityInternal {
 macro_rules! outputln {
     ($content: expr) => {
         {
-            use $crate::output::{get_format, get_verbosity, StructuredOutput};
+            use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             use $crate::PROGRAM_NAME;
             StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!() },
                                            get_format(),
                                            get_verbosity(),
                                            $content).println().expect("failed to write output to stdout");
@@ -317,12 +309,12 @@ macro_rules! outputln {
     };
     (preamble $preamble:expr, $content: expr) => {
         {
-            use $crate::output::{get_format, get_verbosity, StructuredOutput};
+            use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             StructuredOutput::new(&$preamble,
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!() },
                                            get_format(),
                                            get_verbosity(),
                                            $content).println().expect("failed to write output to stdout");
@@ -330,14 +322,14 @@ macro_rules! outputln {
     };
     ($content: expr, $($arg:tt)*) => {
         {
-            use $crate::output::{get_format, get_verbosity, StructuredOutput};
+            use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             use $crate::PROGRAM_NAME;
             let content = format!($content, $($arg)*);
             StructuredOutput::new(PROGRAM_NAME.as_str(),
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!() },
                                            get_format(),
                                            get_verbosity(),
                                            &content).println().expect("failed to write output to stdout");
@@ -345,13 +337,13 @@ macro_rules! outputln {
     };
     (preamble $preamble: expr, $content: expr, $($arg:tt)*) => {
         {
-            use $crate::output::{get_format, get_verbosity, StructuredOutput};
+            use $crate::output::{get_format, get_verbosity, OutputContext, StructuredOutput};
             let content = format!($content, $($arg)*);
             StructuredOutput::new(&$preamble,
                                            LOGKEY,
-                                           line!(),
-                                           file!(),
-                                           column!(),
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!() },
                                            get_format(),
                                            get_verbosity(),
                                            &content).println().expect("failed to write output to stdout");
@@ -363,7 +355,8 @@ macro_rules! outputln {
 mod tests {
     use std::io::Write;
 
-    use super::{OutputFormat,
+    use super::{OutputContext,
+                OutputFormat,
                 OutputVerbosity,
                 StructuredOutput};
     use serde_json;
@@ -382,7 +375,14 @@ mod tests {
               format: OutputFormat,
               verbosity: OutputVerbosity)
               -> StructuredOutput<'a> {
-        StructuredOutput::new(preamble, LOGKEY, 1, file!(), 2, format, verbosity, content)
+        StructuredOutput::new(preamble,
+                              LOGKEY,
+                              OutputContext { line:   1,
+                                              file:   file!(),
+                                              column: 2, },
+                              format,
+                              verbosity,
+                              content)
     }
 
     #[test]
@@ -411,14 +411,14 @@ mod tests {
         let content = "opeth is amazing";
         let mut cs = ColorSpec::new();
         cs.set_underline(true);
-        let so = StructuredOutput::colored(progname,
-                                           LOGKEY,
-                                           1,
-                                           file!(),
-                                           2,
-                                           OutputVerbosity::Normal,
-                                           content,
-                                           cs.clone());
+        let so = StructuredOutput::new(progname,
+                                       LOGKEY,
+                                       OutputContext { line:   1,
+                                                       file:   file!(),
+                                                       column: 2, },
+                                       OutputFormat::Color(cs.clone()),
+                                       OutputVerbosity::Normal,
+                                       content);
         let writer = BufferWriter::stdout(ColorChoice::Auto);
         let mut buffer = writer.buffer();
         buffer.reset().unwrap();

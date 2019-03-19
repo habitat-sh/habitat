@@ -27,6 +27,7 @@ use crate::error::{Error,
 use futures::prelude::*;
 use habitat_api_client::DisplayProgress;
 use habitat_common::{output::{self,
+                              OutputContext,
                               OutputFormat,
                               StructuredOutput},
                      ui::UIWriter,
@@ -40,7 +41,6 @@ use std::{fmt,
                Write},
           path::Path};
 use termcolor::{Color,
-                ColorChoice,
                 ColorSpec,
                 StandardStream,
                 WriteColor};
@@ -185,27 +185,21 @@ impl Write for CtlRequest {
         // non-json content should just be printed as-is.
         let is_line_ending = line.ends_with('\n');
         if self.is_new_line || output::get_format() == OutputFormat::JSON {
-            let so = if !self.current_color_spec.is_none()
-                        && output::get_format() == OutputFormat::Color
-            {
-                StructuredOutput::colored(&PROGRAM_NAME,
-                                          LOGKEY,
-                                          line!(),
-                                          file!(),
-                                          column!(),
-                                          output::get_verbosity(),
-                                          line.trim_right_matches('\n'),
-                                          self.current_color_spec.clone())
-            } else {
-                StructuredOutput::new(&PROGRAM_NAME,
-                                      LOGKEY,
-                                      line!(),
-                                      file!(),
-                                      column!(),
-                                      output::get_format(),
-                                      output::get_verbosity(),
-                                      line.trim_right_matches('\n'))
-            };
+            let output_format =
+                if !self.current_color_spec.is_none() && output::get_format().is_color() {
+                    OutputFormat::Color(self.current_color_spec.clone())
+                } else {
+                    output::get_format()
+                };
+            let so = StructuredOutput::new(&PROGRAM_NAME,
+                                           LOGKEY,
+                                           OutputContext { line:   line!(),
+                                                           file:   file!(),
+                                                           column: column!(), },
+                                           output_format,
+                                           output::get_verbosity(),
+                                           line.trim_end_matches('\n'));
+
             let print_func = if is_line_ending {
                 StructuredOutput::println
             } else {
@@ -213,12 +207,7 @@ impl Write for CtlRequest {
             };
             print_func(&so).expect("failed to write output to stdout");
         } else {
-            let color_choice = if let OutputFormat::Color = output::get_format() {
-                ColorChoice::Auto
-            } else {
-                ColorChoice::Never
-            };
-            let mut stdout = StandardStream::stdout(color_choice);
+            let mut stdout = StandardStream::stdout(output::get_format().color_choice());
             stdout.set_color(&self.current_color_spec)?;
             write!(&mut stdout, "{}", line)?;
         }

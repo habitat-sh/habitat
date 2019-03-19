@@ -323,38 +323,36 @@ impl<'a> fmt::Display for FullyQualifiedPackageIdent<'a> {
 // TODO (CM): Consider passing in a configured depot client instead of
 // product / version... That might make it easier to share with the
 // `sup` crate
-pub fn start<U, P1, P2>(ui: &mut U,
-                        url: &str,
-                        channel: &ChannelIdent,
-                        install_source: &InstallSource,
-                        product: &str,
-                        version: &str,
-                        fs_root_path: P1,
-                        artifact_cache_path: P2,
-                        token: Option<&str>,
-                        install_mode: &InstallMode,
-                        local_package_usage: &LocalPackageUsage,
-                        install_hook_mode: InstallHookMode)
-                        -> Result<PackageInstall>
-    where U: UIWriter,
-          P1: AsRef<Path>,
-          P2: AsRef<Path>
+#[allow(clippy::too_many_arguments)]
+pub fn start<U>(ui: &mut U,
+                url: &str,
+                channel: &ChannelIdent,
+                install_source: &InstallSource,
+                product: &str,
+                version: &str,
+                fs_root_path: &Path,
+                artifact_cache_path: &Path,
+                token: Option<&str>,
+                install_mode: &InstallMode,
+                local_package_usage: &LocalPackageUsage,
+                install_hook_mode: InstallHookMode)
+                -> Result<PackageInstall>
+    where U: UIWriter
 {
     // TODO (CM): rename fs::cache_key_path so the naming is
     // consistent and flows better.
-    let key_cache_path = cache_key_path(Some(fs_root_path.as_ref()));
+    let key_cache_path = &cache_key_path(Some(fs_root_path));
     debug!("install key_cache_path: {}", key_cache_path.display());
 
-    let task = InstallTask::new(install_mode,
-                                local_package_usage,
-                                url,
-                                channel,
-                                product,
-                                version,
-                                fs_root_path.as_ref(),
-                                artifact_cache_path.as_ref(),
-                                &key_cache_path,
-                                install_hook_mode)?;
+    let api_client = Client::new(url, product, version, Some(fs_root_path))?;
+    let task = InstallTask { install_mode,
+                             local_package_usage,
+                             api_client,
+                             channel,
+                             fs_root_path,
+                             artifact_cache_path,
+                             key_cache_path,
+                             install_hook_mode };
 
     match *install_source {
         InstallSource::Ident(ref ident, target) => {
@@ -441,30 +439,6 @@ struct InstallTask<'a> {
 }
 
 impl<'a> InstallTask<'a> {
-    fn new(install_mode: &'a InstallMode,
-           local_package_usage: &'a LocalPackageUsage,
-           bldr_url: &str,
-           channel: &'a ChannelIdent,
-           product: &str,
-           version: &str,
-           fs_root_path: &'a Path,
-           artifact_cache_path: &'a Path,
-           key_cache_path: &'a Path,
-           install_hook_mode: InstallHookMode)
-           -> Result<Self> {
-        Ok(InstallTask { install_mode,
-                         local_package_usage,
-                         api_client: Client::new(bldr_url,
-                                                 product,
-                                                 version,
-                                                 Some(fs_root_path))?,
-                         channel,
-                         fs_root_path,
-                         artifact_cache_path,
-                         key_cache_path,
-                         install_hook_mode })
-    }
-
     /// Install a package from the Depot, based on a given identifier.
     ///
     /// If the identifier is fully-qualified, that specific package

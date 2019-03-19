@@ -540,6 +540,9 @@ mod tests {
     use serde_json;
     use std::{fs::File,
               io::Read,
+              net::{IpAddr,
+                    Ipv4Addr,
+                    SocketAddr},
               path::PathBuf,
               sync::Mutex};
 
@@ -606,19 +609,20 @@ mod tests {
                 swim_port = *swim_port_guard;
                 *swim_port_guard += 1;
             }
-            let swim_listen = format!("127.0.0.1:{}", swim_port);
+            let swim_listen = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), swim_port);
             let gossip_port;
             {
                 let mut gossip_port_guard = GOSSIP_PORT.lock().expect("GOSSIP_PORT poisoned");
                 gossip_port = *gossip_port_guard;
                 *gossip_port_guard += 1;
             }
-            let gossip_listen = format!("127.0.0.1:{}", gossip_port);
+            let gossip_listen =
+                SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), gossip_port);
             let mut member = Member::default();
             member.swim_port = swim_port;
             member.gossip_port = gossip_port;
-            Server::new(&swim_listen[..],
-                        &gossip_listen[..],
+            Server::new(swim_listen,
+                        gossip_listen,
                         member,
                         Trace::default(),
                         None,

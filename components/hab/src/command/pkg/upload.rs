@@ -63,18 +63,15 @@ use crate::{api_client::{self,
 /// * Fails if it cannot find a package
 /// * Fails if the package doesn't have a `.hart` file in the cache
 /// * Fails if it cannot upload the file
-pub fn start<T, U>(ui: &mut UI,
-                   bldr_url: &str,
-                   additional_release_channel: &Option<ChannelIdent>,
-                   token: &str,
-                   archive_path: T,
-                   force_upload: bool,
-                   key_path: U)
-                   -> Result<()>
-    where T: AsRef<Path>,
-          U: AsRef<Path>
-{
-    let mut archive = PackageArchive::new(PathBuf::from(archive_path.as_ref()));
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             additional_release_channel: &Option<ChannelIdent>,
+             token: &str,
+             archive_path: &Path,
+             force_upload: bool,
+             key_path: &Path)
+             -> Result<()> {
+    let mut archive = PackageArchive::new(PathBuf::from(archive_path));
 
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
@@ -95,7 +92,7 @@ pub fn start<T, U>(ui: &mut UI,
                 {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
-                        let candidate_path = match archive_path.as_ref().parent() {
+                        let candidate_path = match archive_path.parent() {
                             Some(p) => PathBuf::from(p),
                             None => unreachable!(),
                         };
@@ -106,9 +103,8 @@ pub fn start<T, U>(ui: &mut UI,
                                                &dep,
                                                target,
                                                additional_release_channel,
-                                               force_upload,
                                                &candidate_path,
-                                               &key_path)
+                                               key_path)
                         };
                         match retry(RETRIES, RETRY_WAIT, upload, Result::is_ok) {
                             Ok(_) => trace!("attempt_upload_dep succeeded"),
@@ -211,27 +207,25 @@ fn upload_into_depot(ui: &mut UI,
     Ok(())
 }
 
-fn attempt_upload_dep<T>(ui: &mut UI,
-                         api_client: &Client,
-                         token: &str,
-                         ident: &PackageIdent,
-                         target: PackageTarget,
-                         additional_release_channel: &Option<ChannelIdent>,
-                         _force_upload: bool,
-                         archives_dir: &PathBuf,
-                         key_path: T)
-                         -> Result<()>
-    where T: AsRef<Path>
-{
+#[allow(clippy::too_many_arguments)]
+fn attempt_upload_dep(ui: &mut UI,
+                      api_client: &Client,
+                      token: &str,
+                      ident: &PackageIdent,
+                      target: PackageTarget,
+                      additional_release_channel: &Option<ChannelIdent>,
+                      archives_dir: &PathBuf,
+                      key_path: &Path)
+                      -> Result<()> {
     let candidate_path = archives_dir.join(ident.archive_name_with_target(target).unwrap());
 
     if candidate_path.is_file() {
         let mut archive = PackageArchive::new(candidate_path);
-        upload_public_key(ui, &token, &api_client, &mut archive, key_path)?;
+        upload_public_key(ui, &token, api_client, &mut archive, key_path)?;
         upload_into_depot(ui,
-                          &api_client,
+                          api_client,
                           token,
-                          &ident,
+                          ident,
                           additional_release_channel,
                           false,
                           &mut archive)
@@ -248,17 +242,15 @@ fn attempt_upload_dep<T>(ui: &mut UI,
     }
 }
 
-fn upload_public_key<T>(ui: &mut UI,
-                        token: &str,
-                        api_client: &Client,
-                        archive: &mut PackageArchive,
-                        key_path: T)
-                        -> Result<()>
-    where T: AsRef<Path>
-{
+fn upload_public_key(ui: &mut UI,
+                     token: &str,
+                     api_client: &Client,
+                     archive: &mut PackageArchive,
+                     key_path: &Path)
+                     -> Result<()> {
     let hart_header = get_artifact_header(&archive.path)?;
     let public_keyfile_name = format!("{}.pub", &hart_header.key_name);
-    let public_keyfile = key_path.as_ref().join(&public_keyfile_name);
+    let public_keyfile = key_path.join(&public_keyfile_name);
 
     let (name, rev) = parse_name_with_rev(&hart_header.key_name)?;
 
