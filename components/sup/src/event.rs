@@ -77,7 +77,7 @@ pub fn init_stream(conn_info: EventConnectionInfo, event_core: EventCore) {
 // NOTE: we can take advantage of this to "disable" the event
 // subsystem if users don't wish to send events out; just don't call
 // `init_stream` if they don't want it.
-pub fn publish(event: impl Event) {
+pub fn publish(event: &impl Event) {
     // TODO: incorporate the current timestamp into the rendered event
     // (which will require tweaks to the rendering logic, but we know
     // that'll need to be updated anyway).
