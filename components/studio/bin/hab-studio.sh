@@ -1112,12 +1112,12 @@ copy_minimal_default_file() {
     if [ -n "$VERBOSE" ]; then
         echo "> Creating minimal ${file_path}"
     fi
-    if [ ! -f "$(defaults_path)${file_path}" ]; then
+    if [ -f "$(defaults_path)${file_path}" ]; then
+        $bb cp "$(defaults_path)${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
+    else
         echo
         echo "Tried to copy default file for '${file_path}', but could not find one! Please report this error."
         echo
-    else
-        $bb cp "$(defaults_path)${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
     fi
 }
 
