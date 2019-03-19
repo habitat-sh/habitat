@@ -518,42 +518,32 @@ new_studio() {
   # shellcheck disable=1090
   . "$studio_type_dir/hab-studio-type-${STUDIO_TYPE}.sh"
 
-  # If `/etc/passwd` is not present, create a minimal version to satisfy
-  # some software when being built
-  if [ ! -f "$HAB_STUDIO_ROOT/etc/passwd" ]; then
-    if [ -n "$VERBOSE" ]; then
-      echo "> Creating minimal /etc/passwd"
-    fi
-    $bb cp "$(defaults_path)/etc/passwd" "${HAB_STUDIO_ROOT}/etc/passwd"
-  fi
+  # These two are needed to satisfy some software builds.
+  #
+  # They're also not overwritten, because we actually *add* entries to
+  # them later on in the process. Since you can re-use studios, that
+  # would wipe out those changes.
+  #
+  # TODO (CM): we should consolidate this stuff.
+  copy_minimal_default_file_if_not_present "/etc/passwd"
+  copy_minimal_default_file_if_not_present "/etc/group"
 
-  # If `/etc/group` is not present, create a minimal version to satisfy
-  # some software when being built
-  if [ ! -f "$HAB_STUDIO_ROOT/etc/group" ]; then
-    if [ -n "$VERBOSE" ]; then
-      echo "> Creating minimal /etc/group"
-    fi
-    $bb cp "$(defaults_path)/etc/group" "${HAB_STUDIO_ROOT}/etc/group"
-  fi
-
-  # If `/etc/inputrc` is not present, create a minimal version to provide
-  # some standard key mappings in shell
-  if [ ! -f "$HAB_STUDIO_ROOT/etc/inputrc" ]; then
-    if [ -n "$VERBOSE" ]; then
-      echo "> Creating minimal /etc/inputrc"
-    fi
-    $bb cp "$(defaults_path)/etc/inputrc" "${HAB_STUDIO_ROOT}/etc/inputrc"
-  fi
+  # This one is nice for interactive work.
+  #
+  # Though we don't do anything else with this file, it's conceivable
+  # that users might modify it and want those changes to persist in a
+  # long-lived studio.
+  copy_minimal_default_file_if_not_present "/etc/inputrc"
 
   # Copy minimal networking and DNS resolution configuration files into the
-  # Studio filesystem so that commands such as `wget(1)` will work
-  for f in /etc/hosts /etc/resolv.conf /etc/nsswitch.conf; do
-    $bb mkdir -p $v "$($bb dirname $f)"
-    if [ $f = "/etc/nsswitch.conf" ] ; then
-        $bb cp "$(defaults_path)/etc/nsswitch.conf" "${HAB_STUDIO_ROOT}/etc/nsswitch.conf"
-    else
-      $bb cp $v $f "$HAB_STUDIO_ROOT$f"
-    fi
+  # Studio filesystem so that commands such as `wget(1)` will work.
+  #
+  # TODO (CM): Unsure why we unconditionally copy this file, but
+  # not the two files below.
+  copy_minimal_default_file "/etc/nsswitch.conf"
+  for f in /etc/hosts /etc/resolv.conf; do
+    # Note: These files are copied **from the host**
+    $bb cp $v $f "$HAB_STUDIO_ROOT$f"
   done
 
   # Invoke the type's implementation
@@ -1106,6 +1096,29 @@ set_libexec_path() {
 
 defaults_path() {
     echo "$($bb dirname "${libexec_path}")/defaults"
+}
+
+# If `file_path` is not present in the studio, copy in a minimal
+# default version from the studio package's `defaults` directory.
+copy_minimal_default_file_if_not_present() {
+    local file_path="${1}"
+    if [ ! -f "${HAB_STUDIO_ROOT}${file_path}" ]; then
+        copy_minimal_default_file "${file_path}"
+    fi
+}
+
+copy_minimal_default_file() {
+    local file_path="${1}"
+    if [ -n "$VERBOSE" ]; then
+        echo "> Creating minimal ${file_path}"
+    fi
+    if [ ! -f "$(defaults_path)${file_path}" ]; then
+        echo
+        echo "Tried to copy default file for '${file_path}', but could not find one! Please report this error."
+        echo
+    else
+        $bb cp "$(defaults_path)${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
+    fi
 }
 
 # # Main Flow
