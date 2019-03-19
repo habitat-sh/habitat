@@ -524,13 +524,7 @@ new_studio() {
     if [ -n "$VERBOSE" ]; then
       echo "> Creating minimal /etc/passwd"
     fi
-    $bb cat > "$HAB_STUDIO_ROOT/etc/passwd" << "EOF"
-root:x:0:0:root:/root:/bin/sh
-bin:x:1:1:bin:/dev/null:/bin/false
-daemon:x:6:6:Daemon User:/dev/null:/bin/false
-messagebus:x:18:18:D-Bus Message Daemon User:/var/run/dbus:/bin/false
-nobody:x:99:99:Unprivileged User:/dev/null:/bin/false
-EOF
+    $bb cp "$(defaults_path)/etc/passwd" "${HAB_STUDIO_ROOT}/etc/passwd"
   fi
 
   # If `/etc/group` is not present, create a minimal version to satisfy
