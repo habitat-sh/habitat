@@ -9,6 +9,7 @@
 - implement platform specific UI symbols [#6290](https://github.com/habitat-sh/habitat/pull/6290) ([mwrock](https://github.com/mwrock))
 
 #### Behavioral Changes
+- Remove usage of habitat_core::binlink::default_binlink_dir [#6315](https://github.com/habitat-sh/habitat/pull/6315) ([baumanj](https://github.com/baumanj))
 - macOS still needs --interactive and --tty set [#6295](https://github.com/habitat-sh/habitat/pull/6295) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
