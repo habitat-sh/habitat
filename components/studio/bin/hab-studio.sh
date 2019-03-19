@@ -1146,8 +1146,8 @@ set_libexec_path() {
   fi
 
   if [ -n "${HAB_STUDIO_BINARY:-}" ]; then
-    version=$($bb env -u HAB_STUDIO_BINARY hab studio version | $bb cut -d ' ' -f 2)
-    libexec_path="$($bb env -u HAB_STUDIO_BINARY hab pkg path core/hab-studio)/libexec"
+    version="$(unset HAB_STUDIO_BINARY; hab studio version | $bb cut -d ' ' -f 2)"
+    libexec_path="$(unset HAB_STUDIO_BINARY; hab pkg path core/hab-studio)/libexec"
     studio_binary_libexec_path="$($bb dirname "$HAB_STUDIO_BINARY")/../libexec"
   else
     p=$($bb dirname "$0")
