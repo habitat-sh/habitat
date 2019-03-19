@@ -1101,14 +1101,14 @@ defaults_path() {
 # If `file_path` is not present in the studio, copy in a minimal
 # default version from the studio package's `defaults` directory.
 copy_minimal_default_file_if_not_present() {
-    local file_path="${1}"
+    file_path="${1}"
     if [ ! -f "${HAB_STUDIO_ROOT}${file_path}" ]; then
         copy_minimal_default_file "${file_path}"
     fi
 }
 
 copy_minimal_default_file() {
-    local file_path="${1}"
+    file_path="${1}"
     if [ -n "$VERBOSE" ]; then
         echo "> Creating minimal ${file_path}"
     fi
