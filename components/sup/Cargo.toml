@@ -14,8 +14,16 @@ name = "hab-sup"
 path = "src/main.rs"
 doc = false
 
+[[bin]]
+name = "subscriber"
+path = "src/subscriber.rs"
+doc = false
+
 [dependencies]
 actix = "*"
+bytes = "*"
+# This is temporary, until this is merged to the mainline
+nitox = { git = "https://github.com/YellowInnovation/nitox", branch="feature/nats-server" }
 actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
 bitflags = "*"
 byteorder = "*"
@@ -48,6 +56,7 @@ serde_derive = "*"
 serde_json = "*"
 serde_yaml = "*"
 serde-transcode = "*"
+state = "*"
 tempfile = "*"
 termcolor = "*"
 time = "*"

@@ -51,6 +51,7 @@ use habitat_core::{self,
                              Identifiable}};
 use habitat_launcher_client;
 use habitat_sup_protocol;
+use nitox;
 use notify;
 use rustls;
 use serde_json;
@@ -119,6 +120,8 @@ pub enum Error {
     APIClient(habitat_api_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
+    EventError(nitox::NatsError),
+    EventStreamError(nitox::streaming::error::NatsStreamingError),
     FileNotFound(String),
     FileWatcherFileIsRoot,
     GroupNotFound(String),
@@ -224,6 +227,8 @@ impl fmt::Display for SupError {
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
+            Error::EventError(ref err) => err.to_string(),
+            Error::EventStreamError(ref err) => err.to_string(),
             Error::Permissions(ref err) => err.to_string(),
             Error::HabitatCommon(ref err) => err.to_string(),
             Error::HabitatCore(ref err) => err.to_string(),
@@ -353,6 +358,9 @@ impl error::Error for SupError {
             Error::ButterflyError(ref err) => err.description(),
             Error::CtlSecretIo(..) => "IoError while reading ctl secret",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
+            Error::EventError(_) => "event error", // underlying NATS error doesn't implement Error
+            Error::EventStreamError(_) => "event streaming error", // underlying NATS error
+            // doesn't implement Error
             Error::GroupNotFound(_) => "No matching GID for group found",
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
@@ -504,4 +512,14 @@ impl From<habitat_sup_protocol::net::NetErr> for SupError {
 
 impl From<oneshot::Canceled> for SupError {
     fn from(err: oneshot::Canceled) -> Self { sup_error!(Error::OneshotCanceled(err)) }
+}
+
+impl From<nitox::NatsError> for SupError {
+    fn from(err: nitox::NatsError) -> Self { sup_error!(Error::EventError(err)) }
+}
+
+impl From<nitox::streaming::error::NatsStreamingError> for SupError {
+    fn from(err: nitox::streaming::error::NatsStreamingError) -> Self {
+        sup_error!(Error::EventStreamError(err))
+    }
 }

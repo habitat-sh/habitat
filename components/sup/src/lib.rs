@@ -94,6 +94,7 @@ pub mod command;
 pub mod config;
 pub mod ctl_gateway;
 pub mod error;
+mod event;
 pub mod http_gateway;
 pub mod manager;
 mod sys;
@@ -114,7 +115,8 @@ features! {
         const TestBootFail  = 0b0000_0100,
         const RedactHTTP    = 0b0000_1000,
         const IgnoreSignals = 0b0001_0000,
-        const InstallHook   = 0b0010_0000
+        const InstallHook   = 0b0010_0000,
+        const EventStream   = 0b0100_0000
     }
 }
 
