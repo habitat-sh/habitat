@@ -21,7 +21,6 @@ use ipc_channel::ipc::{IpcOneShotServer,
                        IpcReceiver,
                        IpcSender};
 use std::{collections::HashMap,
-          fs,
           io,
           path::Path};
 
@@ -29,14 +28,20 @@ type Env = HashMap<String, String>;
 type IpcServer = IpcOneShotServer<Vec<u8>>;
 
 pub struct LauncherCli {
-    tx:   IpcSender<Vec<u8>>,
-    rx:   IpcReceiver<Vec<u8>>,
+    tx: IpcSender<Vec<u8>>,
+    rx: IpcReceiver<Vec<u8>>,
+    // We persist the pipe identifier so we can delete the file on drop.
+    // This is not necessary on Windows because named pipes are removed
+    // upon releasing the last handle to the pipe. The ipc-channel crate
+    // wraps the pipe in a WinHandle whose drop impl calls CloseHandle.
+    #[cfg(not(windows))]
     pipe: String,
 }
 
+#[cfg(not(windows))]
 impl Drop for LauncherCli {
     fn drop(&mut self) {
-        if fs::remove_file(&self.pipe).is_err() {
+        if std::fs::remove_file(&self.pipe).is_err() {
             error!("Could not remove old pipe to launcher {}", self.pipe);
         } else {
             debug!("Removed old pipe to launcher {}", self.pipe);
@@ -56,6 +61,7 @@ impl LauncherCli {
         Self::read::<protocol::NetOk>(&raw)?;
         Ok(LauncherCli { tx,
                          rx,
+                         #[cfg(not(windows))]
                          pipe: pipe_to_sup })
     }
 
