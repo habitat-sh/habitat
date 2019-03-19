@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- Use subshells and unset to actually unset environment variables [#6296](https://github.com/habitat-sh/habitat/pull/6296) ([christophermaier](https://github.com/christophermaier))
 - implement platform specific UI symbols [#6290](https://github.com/habitat-sh/habitat/pull/6290) ([mwrock](https://github.com/mwrock))
 
 #### Behavioral Changes
