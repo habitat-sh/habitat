@@ -45,7 +45,7 @@ use crate::{error::{Error,
             ssl};
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
-const CLIENT_SOCKET_RW_TIMEOUT_SEC: u64 = 120;
+const CLIENT_SOCKET_RW_TIMEOUT_SEC: u64 = 300;
 
 header! { (ProxyAuthorization, "Proxy-Authorization") => [String] }
 
