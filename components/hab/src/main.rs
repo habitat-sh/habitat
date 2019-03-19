@@ -23,7 +23,9 @@ extern crate log;
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
-use crate::{common::{command::package::install::{InstallHookMode,
+use crate::{common::{cli_defaults::{DEFAULT_BINLINK_DIR,
+                                    FS_ROOT},
+                     command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
@@ -33,8 +35,7 @@ use crate::{common::{command::package::install::{InstallHookMode,
                           UIWriter,
                           NONINTERACTIVE_ENVVAR,
                           UI}},
-            hcore::{binlink::default_binlink_dir,
-                    crypto::{default_cache_key_path,
+            hcore::{crypto::{default_cache_key_path,
                              init,
                              keys::PairType,
                              BoxKeyPair,
@@ -90,8 +91,7 @@ use std::{env,
                prelude::*,
                Read},
           net::ToSocketAddrs,
-          path::{Path,
-                 PathBuf},
+          path::Path,
           process,
           result,
           str::FromStr,
@@ -105,41 +105,16 @@ use termcolor::{self,
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
 /// Makes the --user CLI param optional when this env var is set
 const HABITAT_USER_ENVVAR: &str = "HAB_USER";
-const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 
 lazy_static! {
     static ref STATUS_HEADER: Vec<&'static str> = {
-        vec![
-            "package",
-            "type",
-            "desired",
-            "state",
-            "elapsed (s)",
-            "pid",
-            "group",
-        ]
-    };
-
-    /// The default filesystem root path to base all commands from. This is lazily generated on
-    /// first call and reflects on the presence and value of the environment variable keyed as
-    /// `FS_ROOT_ENVVAR`.
-    static ref FS_ROOT: PathBuf = {
-        use crate::hcore::fs::FS_ROOT_ENVVAR;
-
-        if cfg!(target_os = "windows") {
-            match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
-                (Ok(path), _) => PathBuf::from(path),
-                (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "\\")),
-                (Err(_), Err(_)) => unreachable!(
-                    "Windows should always have a SYSTEMDRIVE \
-                    environment variable."
-                ),
-            }
-        } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
-            PathBuf::from(root)
-        } else {
-            PathBuf::from("/")
-        }
+        vec!["package",
+             "type",
+             "desired",
+             "state",
+             "elapsed (s)",
+             "pid",
+             "group",]
     };
 }
 
@@ -348,12 +323,9 @@ fn start(ui: &mut UI) -> Result<()> {
 fn sub_cli_setup(ui: &mut UI) -> Result<()> {
     init();
 
-    command::cli::setup::start(
-        ui,
-        &default_cache_key_path(Some(&*FS_ROOT)),
-        &cache_analytics_path(Some(&*FS_ROOT)),
-        &Path::new(&*FS_ROOT).join(Path::new(&default_binlink_dir()).strip_prefix("/").unwrap()),
-    )
+    command::cli::setup::start(ui,
+                               &default_cache_key_path(Some(&*FS_ROOT)),
+                               &cache_analytics_path(Some(&*FS_ROOT)))
 }
 
 fn sub_cli_completers(m: &ArgMatches<'_>) -> Result<()> {
@@ -469,13 +441,13 @@ fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let dest_dir = binlink_dest_dir_from_matches(m);
+    let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap()); // required by clap
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
         Some(binary) => {
-            command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT, force)
+            command::pkg::binlink::start(ui, &ident, &binary, dest_dir, &FS_ROOT, force)
         }
-        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, &dest_dir, &*FS_ROOT, force),
+        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &FS_ROOT, force),
     }
 }
 
@@ -770,12 +742,11 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                                      install_hook_mode)?;
 
         if m.is_present("BINLINK") {
-            let dest_dir = binlink_dest_dir_from_matches(m);
             let force = m.is_present("FORCE");
             command::pkg::binlink::binlink_all_in_pkg(ui,
                                                       pkg_install.ident(),
-                                                      dest_dir,
-                                                      &*FS_ROOT,
+                                                      Path::new(DEFAULT_BINLINK_DIR),
+                                                      &FS_ROOT,
                                                       force)?;
         }
     }
@@ -1479,11 +1450,6 @@ fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
            .map(PackageTarget::from_str)
            .unwrap_or_else(|| PackageTarget::from_str("x86_64-linux"))
            .map_err(Error::HabitatCore)
-}
-
-fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
-    let env_or_default = default_binlink_dir();
-    Path::new(matches.value_of("DEST_DIR").unwrap_or(&env_or_default)).to_path_buf()
 }
 
 fn install_sources_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<InstallSource>> {

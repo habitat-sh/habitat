@@ -17,7 +17,9 @@ use crate::{command::studio,
 use clap::{App,
            AppSettings,
            Arg};
-use habitat_common::{cli_defaults::{GOSSIP_DEFAULT_ADDR,
+use habitat_common::{cli_defaults::{BINLINK_DIR_ENVVAR,
+                                    DEFAULT_BINLINK_DIR,
+                                    GOSSIP_DEFAULT_ADDR,
                                     GOSSIP_LISTEN_ADDRESS_ENVVAR,
                                     LISTEN_CTL_DEFAULT_ADDR_STRING,
                                     LISTEN_HTTP_ADDRESS_ENVVAR,
@@ -369,8 +371,8 @@ pub fn get() -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg BINARY: +takes_value
                     "The command to binlink (ex: bash)")
-                (@arg DEST_DIR: -d --dest +takes_value
-                    "Sets the destination directory (default: /bin)")
+                (@arg DEST_DIR: -d --dest +takes_value {non_empty} env(BINLINK_DIR_ENVVAR) default_value(DEFAULT_BINLINK_DIR)
+                    "Sets the destination directory")
                 (@arg FORCE: -f --force "Overwrite existing binlinks")
             )
             (@subcommand config =>
@@ -1236,6 +1238,15 @@ fn valid_origin(val: String) -> result::Result<(), String> {
         Err(format!("'{}' is not valid. A valid origin contains a-z, \
                      0-9, and _ or - after the first character",
                     &val))
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+fn non_empty(val: String) -> result::Result<(), String> {
+    if val.is_empty() {
+        Err("must not be empty".to_string())
+    } else {
+        Ok(())
     }
 }
 
