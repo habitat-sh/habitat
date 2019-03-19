@@ -572,19 +572,7 @@ EOF
     if [ -n "$VERBOSE" ]; then
       echo "> Creating minimal /etc/inputrc"
     fi
-    $bb cat > "$HAB_STUDIO_ROOT/etc/inputrc" << "EOF"
-# allow the use of the Home/End keys
-"\e[1~": beginning-of-line
-"\e[4~": end-of-line
-
-# mappings for Ctrl-left-arrow and Ctrl-right-arrow for word moving
-"\e[1;5C": forward-word
-"\e[1;5D": backward-word
-"\e[5C": forward-word
-"\e[5D": backward-word
-"\e\e[C": forward-word
-"\e\e[D": backward-word
-EOF
+    $bb cp "$(defaults_path)/etc/inputrc" "${HAB_STUDIO_ROOT}/etc/inputrc"
   fi
 
   # Copy minimal networking and DNS resolution configuration files into the
@@ -1155,6 +1143,10 @@ set_libexec_path() {
     libexec_path="$($bb dirname "$p")/libexec"
   fi
   return 0
+}
+
+defaults_path() {
+    echo "$($bb dirname "${libexec_path}")/defaults"
 }
 
 # # Main Flow

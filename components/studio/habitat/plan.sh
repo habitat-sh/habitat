@@ -44,4 +44,6 @@ do_install() {
   install -v -D "$(pkg_path_for hab)"/bin/hab \
     "$pkg_prefix"/libexec/"$hab_dir"/bin/hab
   ln -sv "$hab_dir"/bin/hab "$pkg_prefix"/libexec/hab
+
+  cp -rv "${SRC_PATH}/defaults" "${pkg_prefix}"
 }
