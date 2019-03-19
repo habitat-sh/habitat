@@ -666,8 +666,8 @@ impl Manager {
             .add(&service);
 
         event::publish(&event::ServiceStarted { ident:         &service.pkg.ident,
-                                               spec_ident:    &spec.ident,
-                                               service_group: &service.service_group, });
+                                                spec_ident:    &spec.ident,
+                                                service_group: &service.service_group, });
 
         self.state
             .services
