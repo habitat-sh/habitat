@@ -556,18 +556,7 @@ EOF
   for f in /etc/hosts /etc/resolv.conf /etc/nsswitch.conf; do
     $bb mkdir -p $v "$($bb dirname $f)"
     if [ $f = "/etc/nsswitch.conf" ] ; then
-      $bb touch "$HAB_STUDIO_ROOT$f"
-      $bb cat <<EOF > "$HAB_STUDIO_ROOT$f"
-passwd:     files
-group:      files
-shadow:     files
-
-hosts:      files dns
-networks:   files
-
-rpc:        files
-services:   files
-EOF
+        $bb cp "$(defaults_path)/etc/nsswitch.conf" "${HAB_STUDIO_ROOT}/etc/nsswitch.conf"
     else
       $bb cp $v $f "$HAB_STUDIO_ROOT$f"
     fi
