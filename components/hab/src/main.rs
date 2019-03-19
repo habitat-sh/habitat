@@ -23,7 +23,8 @@ extern crate log;
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
-use crate::{common::{cli_defaults::DEFAULT_BINLINK_DIR,
+use crate::{common::{cli_defaults::{DEFAULT_BINLINK_DIR,
+                                    FS_ROOT},
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
@@ -91,8 +92,7 @@ use std::{env,
                prelude::*,
                Read},
           net::ToSocketAddrs,
-          path::{Path,
-                 PathBuf},
+          path::Path,
           process,
           result,
           str::FromStr,
@@ -107,41 +107,16 @@ use termcolor::{self,
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
 /// Makes the --user CLI param optional when this env var is set
 const HABITAT_USER_ENVVAR: &str = "HAB_USER";
-const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 
 lazy_static! {
     static ref STATUS_HEADER: Vec<&'static str> = {
-        vec![
-            "package",
-            "type",
-            "desired",
-            "state",
-            "elapsed (s)",
-            "pid",
-            "group",
-        ]
-    };
-
-    /// The default filesystem root path to base all commands from. This is lazily generated on
-    /// first call and reflects on the presence and value of the environment variable keyed as
-    /// `FS_ROOT_ENVVAR`.
-    static ref FS_ROOT: PathBuf = {
-        use crate::hcore::fs::FS_ROOT_ENVVAR;
-
-        if cfg!(target_os = "windows") {
-            match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
-                (Ok(path), _) => PathBuf::from(path),
-                (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "\\")),
-                (Err(_), Err(_)) => unreachable!(
-                    "Windows should always have a SYSTEMDRIVE \
-                    environment variable."
-                ),
-            }
-        } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
-            PathBuf::from(root)
-        } else {
-            PathBuf::from("/")
-        }
+        vec!["package",
+             "type",
+             "desired",
+             "state",
+             "elapsed (s)",
+             "pid",
+             "group",]
     };
 }
 

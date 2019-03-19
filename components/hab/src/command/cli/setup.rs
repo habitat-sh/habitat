@@ -18,7 +18,18 @@ use std::{path::Path,
           result};
 
 #[cfg(windows)]
+use crate::common::cli_defaults::{DEFAULT_BINLINK_DIR,
+                                  FS_ROOT};
+use crate::{common::ui::{UIReader,
+                         UIWriter,
+                         UI},
+            hcore::{crypto::SigKeyPair,
+                    env as henv,
+                    package::ident,
+                    Error::InvalidOrigin}};
+#[cfg(windows)]
 use std::ptr;
+use url::Url;
 #[cfg(windows)]
 use widestring::WideCString;
 #[cfg(windows)]
@@ -34,15 +45,6 @@ use winreg::enums::{HKEY_LOCAL_MACHINE,
                     KEY_READ};
 #[cfg(windows)]
 use winreg::RegKey;
-
-use crate::{common::ui::{UIReader,
-                         UIWriter,
-                         UI},
-            hcore::{crypto::SigKeyPair,
-                    env as henv,
-                    package::ident,
-                    Error::InvalidOrigin}};
-use url::Url;
 
 use crate::{analytics,
             command,
@@ -175,6 +177,8 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     }
     #[cfg(windows)]
     {
+        let binlink_path =
+            Path::new(&*FS_ROOT).join(Path::new(DEFAULT_BINLINK_DIR).strip_prefix("/").unwrap());
         ui.heading("Habitat Binlink Path")?;
         ui.para("The `hab` command-line tool can create binlinks for package binaries in the \
                  'PATH' when using the 'pkg binlink' or 'pkg install --binlink' commands. By \
@@ -380,10 +384,7 @@ fn binlink_is_on_path(binlink_path: &Path) -> bool {
 /// the path of this process. These are maintained
 /// in the Windows registry
 #[cfg(windows)]
-fn set_binlink_path() -> Result<()> {
-    let binlink_path =
-        &Path::new(&*FS_ROOT).join(Path::new(DEFAULT_BINLINK_DIR).strip_prefix("/").unwrap());
-
+fn set_binlink_path(binlink_path: &Path) -> Result<()> {
     if !binlink_is_on_path(binlink_path) {
         let hklm = RegKey::predef(HKEY_LOCAL_MACHINE);
         let env = hklm.open_subkey_with_flags(
