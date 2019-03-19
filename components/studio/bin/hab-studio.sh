@@ -1094,10 +1094,6 @@ set_libexec_path() {
   return 0
 }
 
-defaults_path() {
-    echo "$($bb dirname "${libexec_path}")/defaults"
-}
-
 # If `file_path` is not present in the studio, copy in a minimal
 # default version from the studio package's `defaults` directory.
 copy_minimal_default_file_if_not_present() {
@@ -1109,11 +1105,12 @@ copy_minimal_default_file_if_not_present() {
 
 copy_minimal_default_file() {
     file_path="${1}"
+    defaults_path="$($bb dirname "${libexec_path}")/defaults"
     if [ -n "$VERBOSE" ]; then
         echo "> Creating minimal ${file_path}"
     fi
-    if [ -f "$(defaults_path)${file_path}" ]; then
-        $bb cp "$(defaults_path)${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
+    if [ -f "${defaults_path}${file_path}" ]; then
+        $bb cp "${defaults_path}${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
     else
         echo
         echo "Tried to copy default file for '${file_path}', but could not find one! Please report this error."
