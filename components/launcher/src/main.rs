@@ -17,7 +17,9 @@ use habitat_common::output::{self,
                              OutputFormat,
                              OutputVerbosity};
 use habitat_launcher::server;
-use log::error;
+use log::{error,
+          log,
+          Level};
 use std::{env,
           process};
 
@@ -33,7 +35,8 @@ fn main() {
             process::exit(1);
         }
         Ok(code) => {
-            error!("Launcher exiting with code {}", code);
+            let level = if code == 0 { Level::Info } else { Level::Error };
+            log!(level, "Launcher exiting with code {}", code);
             process::exit(code);
         }
     }
