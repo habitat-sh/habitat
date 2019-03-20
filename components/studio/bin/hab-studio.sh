@@ -1098,7 +1098,11 @@ set_libexec_path() {
 # default version from the studio package's `defaults` directory.
 copy_minimal_default_file_if_not_present() {
     file_path="${1}"
-    if [ ! -f "${HAB_STUDIO_ROOT}${file_path}" ]; then
+    if [ -f "${HAB_STUDIO_ROOT}${file_path}" ]; then
+        if [ -n "$VERBOSE" ]; then
+            echo "> Skipping creation of ${file_path}; file exists"
+        fi
+    else
         copy_minimal_default_file "${file_path}"
     fi
 }
