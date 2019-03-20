@@ -1110,7 +1110,7 @@ copy_minimal_default_file() {
         echo "> Creating minimal ${file_path}"
     fi
     if [ -f "${defaults_path}${file_path}" ]; then
-        $bb cp "${defaults_path}${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
+        $bb cp -f "${defaults_path}${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
     else
         echo
         echo "Tried to copy default file for '${file_path}', but could not find one! Please report this error."
