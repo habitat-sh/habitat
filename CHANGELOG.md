@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- windows docker studio should output sup log in color and without timestamp [#6312](https://github.com/habitat-sh/habitat/pull/6312) ([mwrock](https://github.com/mwrock))
 - eliminate false error noise from windows launcher [#6313](https://github.com/habitat-sh/habitat/pull/6313) ([mwrock](https://github.com/mwrock))
 - Use subshells and unset to actually unset environment variables [#6296](https://github.com/habitat-sh/habitat/pull/6296) ([christophermaier](https://github.com/christophermaier))
 - implement platform specific UI symbols [#6290](https://github.com/habitat-sh/habitat/pull/6290) ([mwrock](https://github.com/mwrock))
