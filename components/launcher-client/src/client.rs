@@ -151,13 +151,13 @@ impl LauncherCli {
         // used; names are only for backward compatibility with older
         // Launchers.
         let msg = protocol::Spawn { binary: bin.to_string_lossy().into_owned(),
-                                    svc_user: username,
-                                    svc_group: groupname,
-                                    svc_user_id: uid,
-                                    svc_group_id: gid,
                                     svc_password: password.map(str::to_string),
                                     env,
-                                    id: id.to_string() };
+                                    id: id.to_string(),
+                                    user_info: UserInfo { username,
+                                                          uid,
+                                                          groupname,
+                                                          gid } };
 
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;

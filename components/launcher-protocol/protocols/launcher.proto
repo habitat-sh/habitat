@@ -10,6 +10,7 @@ message Restart {
   optional int64 pid = 1;
 }
 
+// Make this SpawnUnix
 message Spawn {
   optional string id = 1;
   optional string binary = 2;
@@ -17,8 +18,12 @@ message Spawn {
   optional string svc_group = 4;
   optional string svc_password = 5;
   map<string, string> env = 6;
-  optional uint32 svc_user_id = 7;
-  optional uint32 svc_group_id = 8;
+  required uint32 svc_user_id = 7;
+  required uint32 svc_group_id = 8;
+}
+
+message SpawnWindows {
+  required string svc_user = 3;
 }
 
 message SpawnOk {

@@ -25,14 +25,19 @@ pub use self::listen_ctl_addr::ListenCtlAddr;
 /// On Windows, all but `username` will be `None`. On Linux,
 /// `username` and `groupname` may legitimately be `None`, but `uid`
 /// and `gid` should always be `Some`.
-#[derive(Debug, Default)]
+#[cfg(unix)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct UserInfo {
-    /// Windows required, Linux optional
     pub username: Option<String>,
     /// Linux preferred
-    pub uid: Option<u32>,
-    /// Linux optional
+    pub uid: u32,
     pub groupname: Option<String>,
     /// Linux preferred
-    pub gid: Option<u32>,
+    pub gid: u32,
+}
+
+#[cfg(windows)]
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct UserInfo {
+    pub username: String,
 }

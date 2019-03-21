@@ -104,10 +104,10 @@ impl Supervisor {
             let gid = users::get_gid_by_name(&pkg.svc_group)
                 .ok_or(sup_error!(Error::GroupNotFound(pkg.svc_group.to_string(),)))?;
 
-            Ok(UserInfo { username:  Some(pkg.svc_user.clone()),
-                          uid:       Some(uid),
+            Ok(UserInfo { username: Some(pkg.svc_user.clone()),
+                          uid,
                           groupname: Some(pkg.svc_group.clone()),
-                          gid:       Some(gid), })
+                          gid })
         } else {
             // We DO NOT have the ability to run as other users!  Also
             // note that we legitimately may not have a username or
@@ -123,9 +123,9 @@ impl Supervisor {
                 run services as a different user; running as self!", name_for_logging);
 
             Ok(UserInfo { username,
-                          uid: Some(uid),
+                          uid,
                           groupname,
-                          gid: Some(gid) })
+                          gid })
         }
     }
 

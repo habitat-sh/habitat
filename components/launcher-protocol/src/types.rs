@@ -15,6 +15,7 @@
 use crate::{error::{Error,
                     Result},
             generated};
+use habitat_common::types::UserInfo;
 use prost::{self,
             Message};
 use std::{collections::HashMap,
@@ -149,12 +150,9 @@ impl From<Restart> for generated::Restart {
 pub struct Spawn {
     pub id:           String,
     pub binary:       String,
-    pub svc_user:     Option<String>,
-    pub svc_group:    Option<String>,
     pub svc_password: Option<String>,
     pub env:          HashMap<String, String>,
-    pub svc_user_id:  Option<u32>,
-    pub svc_group_id: Option<u32>,
+    pub user_info:    UserInfo,
 }
 
 impl LauncherMessage for Spawn {
@@ -165,12 +163,12 @@ impl LauncherMessage for Spawn {
     fn from_proto(proto: generated::Spawn) -> Result<Self> {
         Ok(Spawn { id:           proto.id.ok_or(Error::ProtocolMismatch("id"))?,
                    binary:       proto.binary.ok_or(Error::ProtocolMismatch("binary"))?,
-                   svc_user:     proto.svc_user,
-                   svc_group:    proto.svc_group,
                    svc_password: proto.svc_password,
                    env:          proto.env,
-                   svc_user_id:  proto.svc_user_id,
-                   svc_group_id: proto.svc_group_id, })
+                   user_info:    UserInfo { username:  proto.svc_user,
+                                            uid:       proto.svc_user_id,
+                                            groupname: proto.svc_group,
+                                            gid:       proto.svc_group_id, }, })
     }
 }
 
@@ -178,12 +176,12 @@ impl From<Spawn> for generated::Spawn {
     fn from(value: Spawn) -> Self {
         generated::Spawn { id:           Some(value.id),
                            binary:       Some(value.binary),
-                           svc_user:     value.svc_user,
-                           svc_group:    value.svc_group,
+                           svc_user:     value.user_info.username,
+                           svc_group:    value.user_info.groupname,
                            svc_password: value.svc_password,
                            env:          value.env,
-                           svc_user_id:  value.svc_user_id,
-                           svc_group_id: value.svc_group_id, }
+                           svc_user_id:  value.user_info.uid,
+                           svc_group_id: value.user_info.gid, }
     }
 }
 

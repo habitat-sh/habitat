@@ -8,6 +8,7 @@ workspace = "../../"
 
 [dependencies]
 bytes = "*"
+habitat_common = { path = "../common" }
 prost = "*"
 prost-derive = "*"
 serde = "*"
