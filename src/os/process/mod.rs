@@ -49,27 +49,6 @@ pub enum Signal {
     CHLD,
 }
 
-impl From<i32> for Signal {
-    fn from(val: i32) -> Signal {
-        match val {
-            1 => Signal::HUP,
-            2 => Signal::INT,
-            3 => Signal::QUIT,
-            4 => Signal::ILL,
-            6 => Signal::ABRT,
-            8 => Signal::FPE,
-            9 => Signal::KILL,
-            10 => Signal::USR1,
-            11 => Signal::SEGV,
-            12 => Signal::USR2,
-            14 => Signal::ALRM,
-            15 => Signal::TERM,
-            17 => Signal::CHLD,
-            _ => Signal::KILL,
-        }
-    }
-}
-
 impl From<Signal> for i32 {
     fn from(value: Signal) -> i32 {
         match value {
