@@ -56,8 +56,7 @@ mod inner {
               str::FromStr};
 
     use crate::{common::ui::UI,
-                hcore::{crypto::{default_cache_key_path,
-                                 init},
+                hcore::{crypto::init,
                         env::Config,
                         fs::find_command,
                         package::PackageIdent,
@@ -101,11 +100,7 @@ mod inner {
                  format: &ExportFormat)
                  -> Result<()> {
         init();
-        let command = exec::command_from_min_pkg(ui,
-                                                 format.cmd(),
-                                                 format.pkg_ident(),
-                                                 &default_cache_key_path(None),
-                                                 0)?;
+        let command = exec::command_from_min_pkg(ui, format.cmd(), format.pkg_ident())?;
 
         if let Some(cmd) = find_command(command.to_string_lossy().as_ref()) {
             let pkg_arg = OsString::from(&ident.to_string());

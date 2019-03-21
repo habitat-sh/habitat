@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::path::{Path,
-                PathBuf};
-
 use crate::{common::{self,
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
@@ -31,13 +28,14 @@ use crate::{common::{self,
                               PackageTarget},
                     url::default_bldr_url,
                     ChannelIdent}};
+use std::path::PathBuf;
 
 use crate::{error::{Error,
                     Result},
             PRODUCT,
             VERSION};
 
-const MAX_RETRIES: u8 = 4;
+const RETRY_LIMIT: u8 = 5;
 const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 
 /// Returns the absolute path to the given command from a package no
@@ -72,16 +70,20 @@ const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 /// * If the package is installed but the command cannot be found in the package
 /// * If an error occurs when loading the local package from disk
 /// * If the maximum number of installation retries has been exceeded
-pub fn command_from_min_pkg<T>(ui: &mut UI,
-                               command: T,
-                               ident: &PackageIdent,
-                               cache_key_path: &Path,
-                               retry: u8)
-                               -> Result<PathBuf>
-    where T: Into<PathBuf>
-{
+pub fn command_from_min_pkg(ui: &mut UI,
+                            command: impl Into<PathBuf>,
+                            ident: &PackageIdent)
+                            -> Result<PathBuf> {
+    try_command_from_min_pkg(ui, command, ident, 0)
+}
+
+fn try_command_from_min_pkg(ui: &mut UI,
+                            command: impl Into<PathBuf>,
+                            ident: &PackageIdent,
+                            retry: u8)
+                            -> Result<PathBuf> {
     let command = command.into();
-    if retry > MAX_RETRIES {
+    if retry >= RETRY_LIMIT {
         return Err(Error::ExecCommandNotFound(command));
     }
 
@@ -115,7 +117,7 @@ pub fn command_from_min_pkg<T>(ui: &mut UI,
                                                      // no-local-package mode
                                                      &LocalPackageUsage::default(),
                                                      InstallHookMode::default())?;
-            command_from_min_pkg(ui, &command, &ident, &cache_key_path, retry + 1)
+            try_command_from_min_pkg(ui, &command, &ident, retry.saturating_add(1))
         }
         Err(e) => Err(Error::from(e)),
     }

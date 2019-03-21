@@ -31,8 +31,7 @@ mod inner {
               str::FromStr};
 
     use crate::{common::ui::UI,
-                hcore::{crypto::{default_cache_key_path,
-                                 init},
+                hcore::{crypto::init,
                         env as henv,
                         fs::find_command,
                         os::process,
@@ -56,9 +55,7 @@ mod inner {
                                            SUP_CMD,
                                            &PackageIdent::from_str(&format!("{}/{}",
                                                                             SUP_PKG_IDENT,
-                                                                            version[0]))?,
-                                           &default_cache_key_path(None),
-                                           0)?
+                                                                            version[0]))?)?
             }
         };
         if let Some(cmd) = find_command(&command) {
