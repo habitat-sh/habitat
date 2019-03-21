@@ -37,6 +37,7 @@ use std::{borrow::Cow,
                         HashMap,
                         HashSet},
           fmt,
+          path::Path,
           result,
           str::FromStr};
 use toml;
@@ -78,6 +79,7 @@ impl CensusRing {
     }
 
     pub fn update_from_rumors(&mut self,
+                              cache_key_path: &Path,
                               service_rumors: &RumorStore<ServiceRumor>,
                               election_rumors: &RumorStore<ElectionRumor>,
                               election_update_rumors: &RumorStore<ElectionUpdateRumor>,
@@ -98,8 +100,8 @@ impl CensusRing {
             self.populate_census(service_rumors, member_list);
             self.update_from_election_store(election_rumors);
             self.update_from_election_update_store(election_update_rumors);
-            self.update_from_service_config(service_config_rumors);
-            self.update_from_service_files(service_file_rumors);
+            self.update_from_service_config(cache_key_path, service_config_rumors);
+            self.update_from_service_files(cache_key_path, service_file_rumors);
 
             // Update our counters to reflect current state.
             self.last_membership_counter = member_list.get_update_counter();
@@ -184,19 +186,23 @@ impl CensusRing {
     }
 
     fn update_from_service_config(&mut self,
+                                  cache_key_path: &Path,
                                   service_config_rumors: &RumorStore<ServiceConfigRumor>) {
         service_config_rumors.with_keys(|(service_group, rumors)| {
             if let Ok(sg) = service_group_from_str(service_group) {
                 if let Some(service_config) = rumors.get("service_config") {
                     if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                        census_group.update_from_service_config_rumor(service_config);
+                        census_group.update_from_service_config_rumor(cache_key_path,
+                                                                      service_config);
                     }
                 }
             }
         });
     }
 
-    fn update_from_service_files(&mut self, service_file_rumors: &RumorStore<ServiceFileRumor>) {
+    fn update_from_service_files(&mut self,
+                                 cache_key_path: &Path,
+                                 service_file_rumors: &RumorStore<ServiceFileRumor>) {
         service_file_rumors.with_keys(|(service_group, rumors)| {
                                if let Ok(sg) = service_group_from_str(service_group) {
                                    let local_member_id = Cow::from(&self.local_member_id);
@@ -204,7 +210,8 @@ impl CensusRing {
                     .census_groups
                     .entry(sg.clone())
                     .or_insert_with(|| CensusGroup::new(sg, &local_member_id));
-                                   census_group.update_from_service_file_rumors(rumors);
+                                   census_group.update_from_service_file_rumors(cache_key_path,
+                                                                                rumors);
                                }
                            });
     }
@@ -450,8 +457,10 @@ impl CensusGroup {
         }
     }
 
-    fn update_from_service_config_rumor(&mut self, service_config: &ServiceConfigRumor) {
-        match service_config.config() {
+    fn update_from_service_config_rumor(&mut self,
+                                        cache_key_path: &Path,
+                                        service_config: &ServiceConfigRumor) {
+        match service_config.config(cache_key_path) {
             Ok(config) => {
                 if self.service_config.is_none()
                    || service_config.incarnation > self.service_config.as_ref().unwrap().incarnation
@@ -466,6 +475,7 @@ impl CensusGroup {
     }
 
     fn update_from_service_file_rumors(&mut self,
+                                       cache_key_path: &Path,
                                        service_file_rumors: &HashMap<String, ServiceFileRumor>)
     {
         self.changed_service_files.clear();
@@ -476,7 +486,7 @@ impl CensusGroup {
                            .or_insert_with(ServiceFile::default);
 
             if service_file_rumor.incarnation > file.incarnation {
-                match service_file_rumor.body() {
+                match service_file_rumor.body(cache_key_path) {
                     Ok(body) => {
                         self.changed_service_files.push(filename.clone());
                         file.filename = filename.clone();
@@ -724,9 +734,7 @@ fn service_group_from_str(sg: &str) -> Result<ServiceGroup, habitat_core::Error>
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use serde_json;
-
+    use crate::test_helpers::*;
     use habitat_butterfly::{member::{Health,
                                      MemberList},
                             rumor::{election::{self,
@@ -737,10 +745,11 @@ mod tests {
                                     service_config::ServiceConfig as ServiceConfigRumor,
                                     service_file::ServiceFile as ServiceFileRumor,
                                     RumorStore}};
-    use habitat_core::{package::ident::PackageIdent,
+    use habitat_common::cli::FS_ROOT;
+    use habitat_core::{fs::cache_key_path,
+                       package::ident::PackageIdent,
                        service::ServiceGroup};
-
-    use crate::test_helpers::*;
+    use serde_json;
 
     #[test]
     fn update_from_rumors() {
@@ -828,7 +837,8 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
         let mut ring = CensusRing::new("member-b".to_string());
-        ring.update_from_rumors(&service_store,
+        ring.update_from_rumors(&cache_key_path(Some(&*FS_ROOT)),
+                                &service_store,
                                 &election_store,
                                 &election_update_store,
                                 &member_list,

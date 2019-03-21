@@ -30,7 +30,7 @@ extern crate winapi;
 pub use self::error::{Error,
                       Result};
 
-pub mod cli_defaults;
+pub mod cli;
 pub mod command;
 pub mod error;
 pub mod locked_env_var;

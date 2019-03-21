@@ -17,15 +17,15 @@ use crate::{command::studio,
 use clap::{App,
            AppSettings,
            Arg};
-use habitat_common::{cli_defaults::{BINLINK_DIR_ENVVAR,
-                                    DEFAULT_BINLINK_DIR,
-                                    GOSSIP_DEFAULT_ADDR,
-                                    GOSSIP_LISTEN_ADDRESS_ENVVAR,
-                                    LISTEN_CTL_DEFAULT_ADDR_STRING,
-                                    LISTEN_HTTP_ADDRESS_ENVVAR,
-                                    LISTEN_HTTP_DEFAULT_ADDR,
-                                    RING_ENVVAR,
-                                    RING_KEY_ENVVAR},
+use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
+                           DEFAULT_BINLINK_DIR,
+                           GOSSIP_DEFAULT_ADDR,
+                           GOSSIP_LISTEN_ADDRESS_ENVVAR,
+                           LISTEN_CTL_DEFAULT_ADDR_STRING,
+                           LISTEN_HTTP_ADDRESS_ENVVAR,
+                           LISTEN_HTTP_DEFAULT_ADDR,
+                           RING_ENVVAR,
+                           RING_KEY_ENVVAR},
                      types::ListenCtlAddr};
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
@@ -975,10 +975,13 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
         "Watch this file for connecting to the ring"
     )
-    (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY")
+    (arg: arg_cache_key_path("Path to search for encryption keys. \
+        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
+        directory otherwise."))
+    (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
         "The name of the ring used by the Supervisor when running with wire encryption. \
          (ex: hab sup run --ring myring)")
-    (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden
+    (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
         "The contents of the ring key when running with wire encryption. \
              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
              (ex: hab sup run --ring-key 'SYM-SEC-1 \
@@ -1282,7 +1285,7 @@ fn valid_origin(val: String) -> result::Result<(), String> {
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn non_empty(val: String) -> result::Result<(), String> {
     if val.is_empty() {
-        Err("must not be empty".to_string())
+        Err("must not be empty (check env overrides)".to_string())
     } else {
         Ok(())
     }

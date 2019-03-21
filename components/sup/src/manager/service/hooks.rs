@@ -531,10 +531,12 @@ impl HookTable {
 
 #[cfg(test)]
 mod tests {
-    use std::{fs,
-              iter};
-    use tempfile::TempDir;
-
+    use super::{super::RenderContext,
+                *};
+    use crate::{census::CensusRing,
+                config::GossipListenAddr,
+                http_gateway,
+                manager::sys::Sys};
     use habitat_butterfly::{member::MemberList,
                             rumor::{election::{self,
                                                Election as ElectionRumor,
@@ -544,21 +546,19 @@ mod tests {
                                     service_config::ServiceConfig as ServiceConfigRumor,
                                     service_file::ServiceFile as ServiceFileRumor,
                                     RumorStore}};
-    use habitat_common::{templating::{config::Cfg,
+    use habitat_common::{cli::FS_ROOT,
+                         templating::{config::Cfg,
                                       package::Pkg,
                                       test_helpers::*},
                          types::ListenCtlAddr};
-    use habitat_core::{package::{PackageIdent,
+    use habitat_core::{fs::cache_key_path,
+                       package::{PackageIdent,
                                  PackageInstall},
                        service::{ServiceBind,
                                  ServiceGroup}};
-
-    use super::{super::RenderContext,
-                *};
-    use crate::{census::CensusRing,
-                config::GossipListenAddr,
-                http_gateway,
-                manager::sys::Sys};
+    use std::{fs,
+              iter};
+    use tempfile::TempDir;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
     // least for these tests. Ideally, this would be useful to use
@@ -670,7 +670,8 @@ mod tests {
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
         let mut ring = CensusRing::new("member-a");
-        ring.update_from_rumors(&service_store,
+        ring.update_from_rumors(&cache_key_path(Some(&*FS_ROOT)),
+                                &service_store,
                                 &election_store,
                                 &election_update_store,
                                 &member_list,

@@ -20,9 +20,9 @@
 //!
 //! See the [Config](struct.Config.html) struct for the specific options available.
 
-use habitat_common::cli_defaults::{GOSSIP_DEFAULT_IP,
-                                   GOSSIP_DEFAULT_PORT,
-                                   GOSSIP_LISTEN_ADDRESS_ENVVAR};
+use habitat_common::cli::{GOSSIP_DEFAULT_IP,
+                          GOSSIP_DEFAULT_PORT,
+                          GOSSIP_LISTEN_ADDRESS_ENVVAR};
 use habitat_core::env::Config as EnvConfig;
 use std::{fmt,
           io,

@@ -40,10 +40,12 @@ use crate::sup::{cli::cli,
                  feat,
                  manager::{Manager,
                            ManagerConfig,
-                           TLSConfig},
+                           TLSConfig,
+                           PROC_LOCK_FILE},
                  util};
 use clap::ArgMatches;
-use habitat_common::{cli_defaults::GOSSIP_DEFAULT_PORT,
+use habitat_common::{cli::{cache_key_path_from_matches,
+                           GOSSIP_DEFAULT_PORT},
                      command::package::install::InstallSource,
                      output::{self,
                               OutputFormat,
@@ -54,7 +56,6 @@ use habitat_common::{cli_defaults::GOSSIP_DEFAULT_PORT,
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{crypto::{self,
-                            default_cache_key_path,
                             SymKey},
                    env as henv,
                    url::{bldr_url_from_env,
@@ -74,7 +75,8 @@ use std::{env,
           net::{Ipv4Addr,
                 SocketAddr,
                 ToSocketAddrs},
-          path::PathBuf,
+          path::{Path,
+                 PathBuf},
           process,
           str::{self,
                 FromStr}};
@@ -209,8 +211,8 @@ fn sub_term() -> Result<()> {
     // We were generating a ManagerConfig from matches here, but 'hab sup term' takes no options.
     // This means that we were implicitly getting the default ManagerConfig here. Instead of calling
     // a function to generate said config, we can just explicitly pass the default.
-    let cfg = ManagerConfig::default();
-    match Manager::term(&cfg) {
+    let proc_lock_file = habitat_sup_protocol::sup_root(None).join(PROC_LOCK_FILE);
+    match Manager::term(&proc_lock_file) {
         Err(SupError { err: Error::ProcessLockIO(..),
                        .. }) => {
             println!("Supervisor not started.");
@@ -224,14 +226,17 @@ fn sub_term() -> Result<()> {
 ////////////////////////////////////////////////////////////////////////
 
 fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
+    let cache_key_path = cache_key_path_from_matches(m);
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
+        custom_state_path: None, // remove entirely?
+        cache_key_path,
         update_url: bldr_url(m),
         update_channel: channel(m),
         http_disable: m.is_present("HTTP_DISABLE"),
         organization: m.value_of("ORGANIZATION").map(str::to_string),
         gossip_permanent: m.is_present("PERMANENT_PEER"),
-        ring_key: get_ring_key(m)?,
+        ring_key: get_ring_key(m, &cache_key_path_from_matches(m))?,
         gossip_peers: get_peers(m)?,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
         // TODO: Refactor this to remove the duplication
@@ -286,9 +291,6 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
                 ca_cert_path,
             }
         }),
-        // default is only included here for the custom_state_path field which will ideally
-        // eventually be removed, it only exists to manipulate test data.
-        ..Default::default()
     };
 
     Ok(cfg)
@@ -327,17 +329,16 @@ fn get_peers(matches: &ArgMatches) -> Result<Vec<SocketAddr>> {
 // The use of env variables here makes it difficult to unit test. Since tests are run in parallel,
 // setting an env var in one test can adversely effect the results in another test. We need some
 // additional abstractions written around env vars in order to make them more testable.
-fn get_ring_key(m: &ArgMatches) -> Result<Option<SymKey>> {
+fn get_ring_key(m: &ArgMatches, cache_key_path: &Path) -> Result<Option<SymKey>> {
     match m.value_of("RING") {
         Some(val) => {
-            let key = SymKey::get_latest_pair_for(&val, &default_cache_key_path(None))?;
+            let key = SymKey::get_latest_pair_for(&val, cache_key_path)?;
             Ok(Some(key))
         }
         None => {
             match m.value_of("RING_KEY") {
                 Some(val) => {
-                    let (key, _) =
-                        SymKey::write_file_from_str(&val, &default_cache_key_path(None))?;
+                    let (key, _) = SymKey::write_file_from_str(&val, cache_key_path)?;
                     Ok(Some(key))
                 }
                 None => Ok(None),

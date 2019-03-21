@@ -16,17 +16,6 @@
 //!
 //! Holds the toml configuration injected for a service.
 
-use std::{cmp::Ordering,
-          mem,
-          str::{self,
-                FromStr}};
-
-use habitat_core::{crypto::{default_cache_key_path,
-                            keys::box_key_pair::WrappedSealedBox,
-                            BoxKeyPair},
-                   service::ServiceGroup};
-use toml;
-
 use crate::{error::{Error,
                     Result},
             protocol::{self,
@@ -36,6 +25,15 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
+use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
+                            BoxKeyPair},
+                   service::ServiceGroup};
+use std::{cmp::Ordering,
+          mem,
+          path::Path,
+          str::{self,
+                FromStr}};
+use toml;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceConfig {
@@ -84,24 +82,25 @@ impl ServiceConfig {
         Ok(())
     }
 
-    pub fn config(&self) -> Result<toml::value::Table> {
-        let config =
-            if self.encrypted {
-                let bytes = BoxKeyPair::decrypt_with_path(
-                &WrappedSealedBox::from_bytes(&self.config)
-                    .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
-                &default_cache_key_path(None),
-            )?;
-                let encoded = str::from_utf8(&bytes).map_err(|e| {
-                                  Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
-                              })?;
-                self.parse_config(&encoded)?
-            } else {
-                let encoded = str::from_utf8(&self.config).map_err(|e| {
-                                  Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
-                              })?;
-                self.parse_config(&encoded)?
-            };
+    pub fn config(&self, cache_key_path: &Path) -> Result<toml::value::Table> {
+        let config = if self.encrypted {
+            let bytes = BoxKeyPair::decrypt_with_path(
+                    &WrappedSealedBox::from_bytes(&self.config)
+                        .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
+                    cache_key_path,
+                    )?;
+            let encoded = str::from_utf8(&bytes).map_err(|e| {
+                                                    Error::ServiceConfigNotUtf8(self.service_group
+                                                                                    .to_string(),
+                                                                                e)
+                                                })?;
+            self.parse_config(&encoded)?
+        } else {
+            let encoded = str::from_utf8(&self.config).map_err(|e| {
+                              Error::ServiceConfigNotUtf8(self.service_group.to_string(), e)
+                          })?;
+            self.parse_config(&encoded)?
+        };
         Ok(config)
     }
 
@@ -267,7 +266,8 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_toml_value() {
         let s1 = create_service_config("adam", "yep=1");
-        assert_eq!(s1.config().unwrap(),
+        let mock_cache_key_path = std::path::PathBuf::new();
+        assert_eq!(s1.config(&mock_cache_key_path).unwrap(),
                    toml::from_str::<toml::value::Table>("yep=1").unwrap());
     }
 }
