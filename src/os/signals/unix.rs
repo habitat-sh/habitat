@@ -74,13 +74,13 @@ pub fn check_for_signal() -> Option<SignalEvent> {
 
 fn set_signal_handlers() {
     unsafe {
-        signal(Signal::HUP.os_signal(), handle_signal);
-        signal(Signal::INT.os_signal(), handle_signal);
-        signal(Signal::QUIT.os_signal(), handle_signal);
-        signal(Signal::ALRM.os_signal(), handle_signal);
-        signal(Signal::TERM.os_signal(), handle_signal);
-        signal(Signal::USR1.os_signal(), handle_signal);
-        signal(Signal::USR2.os_signal(), handle_signal);
-        signal(Signal::CHLD.os_signal(), handle_signal);
+        signal(libc::SIGHUP, handle_signal);
+        signal(libc::SIGINT, handle_signal);
+        signal(libc::SIGQUIT, handle_signal);
+        signal(libc::SIGALRM, handle_signal);
+        signal(libc::SIGTERM, handle_signal);
+        signal(libc::SIGUSR1, handle_signal);
+        signal(libc::SIGUSR2, handle_signal);
+        signal(libc::SIGCHLD, handle_signal);
     }
 }
