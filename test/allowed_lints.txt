@@ -1,0 +1,3 @@
+clippy::module_inception
+clippy::new_ret_no_self
+clippy::new_without_default

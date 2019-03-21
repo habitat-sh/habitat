@@ -863,7 +863,7 @@ mod tests {
                        suspect: health == Health::Suspect,
                        confirmed: health == Health::Confirmed,
                        departed: health == Health::Departed,
-                       cfg: BTreeMap::new(), }
+                       cfg: toml::value::Table::new(), }
     }
 
     #[test]

@@ -122,6 +122,7 @@ pub mod rumor {
         Departure = 9,
     }
     #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[allow(clippy::large_enum_variant)]
     #[derive(Serialize, Deserialize)]
     pub enum Payload {
         #[prost(message, tag="4")]

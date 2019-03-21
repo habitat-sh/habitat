@@ -560,8 +560,7 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
 mod tests {
     use super::*;
 
-    use std::{collections::BTreeMap,
-              fs,
+    use std::{fs,
               io::{Read,
                    Write},
               net::{IpAddr,
@@ -661,7 +660,7 @@ two = 2
                     suspect: Cow::Owned(false),
                     confirmed: Cow::Owned(false),
                     departed: Cow::Owned(false),
-                    cfg: Cow::Owned(BTreeMap::new() as toml::value::Table), }
+                    cfg: Cow::Owned(toml::value::Table::new()), }
     }
 
     /// Just create a basic RenderContext that could be used in tests.
@@ -731,12 +730,12 @@ two = 2
         let cfg = Cfg::new(&test_pkg, None).expect("create config");
 
         // TODO (CM): just create a toml table directly
-        let mut svc_member_cfg = BTreeMap::new();
+        let mut svc_member_cfg = toml::value::Table::new();
         svc_member_cfg.insert("foo".into(), "bar".into());
 
         let mut me = default_svc_member();
         me.pkg = Cow::Owned(Some(ident.clone()));
-        me.cfg = Cow::Owned(svc_member_cfg as toml::value::Table);
+        me.cfg = Cow::Owned(svc_member_cfg);
 
         let svc = Svc { service_group:          Cow::Owned(group),
                         election_status:        Cow::Owned(ElectionStatus::ElectionInProgress),

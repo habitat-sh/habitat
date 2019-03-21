@@ -290,6 +290,13 @@ function Enter-Studio {
     mkdir $HAB_STUDIO_ROOT | Out-Null
   }
   $env:HAB_STUDIO_ENTER_ROOT = Resolve-Path $HAB_STUDIO_ROOT
+  if (Test-InContainer) {
+    # The Windows Docker TTY does not render non standard
+    # characters. Each is rendered as a '?'. So we are going
+    # to just render standard ascii symbols. No pretty clouds
+    # or check marks.
+    $env:HAB_GLYPH_STYLE="ascii"
+  }
   New-Studio
   Write-HabInfo "Entering Studio at $HAB_STUDIO_ROOT"
   $env:STUDIO_SCRIPT_ROOT = $PSScriptRoot
@@ -348,18 +355,35 @@ function Enter-Studio {
     } else {
       $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
       if(!$habSvc -or ($habSvc.Status -eq "Stopped")) {
+        # Set console encoding to UTF-8 so that any redirected glyphs
+        # from the supervisor log are propperly encoded
+        [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
         $pr = New-Object System.Diagnostics.Process
         $pr.StartInfo.UseShellExecute = $false
         $pr.StartInfo.CreateNoWindow = $true
         $pr.StartInfo.RedirectStandardOutput = $true
         $pr.StartInfo.RedirectStandardError = $true
         $pr.StartInfo.FileName = "hab.exe"
-        $pr.StartInfo.Arguments = "sup run"
+        
+        # We if the termcolor crate cannot find a console, which it will not
+        # since we launch the supervisor in the background, it will fall back
+        # to ANSI codes on Windows unless we explicitly turn off color. Lets
+        # do that if on a windows version that does not support ANSI codes in
+        # its console
+        $ansi_min_supported_version = [Version]::new(10, 0, 10586)
+        $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
+        if ($osVersion -ge $ansi_min_supported_version) {
+          $pr.StartInfo.Arguments = "sup run"
+        } else {
+          $pr.StartInfo.Arguments = "sup run --no-color"
+          $pr.StartInfo.EnvironmentVariables["HAB_NOCOLORING"] = "1"
+        }
+
         Register-ObjectEvent -InputObject $pr -EventName OutputDataReceived -action {
-          $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
+          $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append
         } | Out-Null
         Register-ObjectEvent -InputObject $pr -EventName ErrorDataReceived -action {
-          $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append -Encoding ascii
+          $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append
         } | Out-Null
         $pr.start() | Out-Null
         $pr.BeginErrorReadLine()

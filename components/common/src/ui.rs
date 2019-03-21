@@ -23,13 +23,13 @@ use std::{env,
                Stdout,
                Write},
           process::{self,
-                    Command}};
+                    Command},
+          str::FromStr};
 use uuid::Uuid;
 
 use crate::api_client::DisplayProgress;
 use pbr;
 use termcolor::{self,
-                Color,
                 ColorChoice,
                 ColorSpec,
                 StandardStream,
@@ -42,6 +42,165 @@ use crate::error::{Error,
 pub const NONINTERACTIVE_ENVVAR: &str = "HAB_NONINTERACTIVE";
 
 pub const NOCOLORING_ENVVAR: &str = "HAB_NOCOLORING";
+
+pub const GLYPH_STYLE_ENVVAR: &str = "HAB_GLYPH_STYLE";
+
+#[derive(Clone, Copy)]
+pub enum Color {
+    Plain,
+    Info,
+    Important,
+    Warn,
+    Critical,
+    End,
+}
+
+impl From<Color> for termcolor::Color {
+    fn from(color: Color) -> Self {
+        match color {
+            Color::Plain => termcolor::Color::White,
+            Color::Info => termcolor::Color::Green,
+            Color::Important => termcolor::Color::Cyan,
+            Color::Critical => termcolor::Color::Red,
+            Color::End => termcolor::Color::Magenta,
+            Color::Warn => termcolor::Color::Yellow,
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum GlyphStyle {
+    Full,
+    Limited,
+    Ascii,
+}
+
+impl Default for GlyphStyle {
+    #[cfg(windows)]
+    fn default() -> GlyphStyle { GlyphStyle::Limited }
+
+    #[cfg(unix)]
+    fn default() -> GlyphStyle { GlyphStyle::Full }
+}
+
+impl FromStr for GlyphStyle {
+    type Err = Error;
+
+    fn from_str(value: &str) -> Result<Self> {
+        match value.to_lowercase().as_ref() {
+            "full" => Ok(GlyphStyle::Full),
+            "limited" => Ok(GlyphStyle::Limited),
+            "ascii" => Ok(GlyphStyle::Ascii),
+            _ => Err(Error::BadGlyphStyle(value.to_string())),
+        }
+    }
+}
+
+impl fmt::Display for GlyphStyle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let msg = match *self {
+            GlyphStyle::Full => "full",
+            GlyphStyle::Limited => "limited",
+            GlyphStyle::Ascii => "ascii",
+        };
+        write!(f, "{}", msg)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum Glyph {
+    UpArrow,
+    FingerPoint,
+    CheckMark,
+    BoxedCheckMark,
+    Omega,
+    BoxedX,
+    RightArrow,
+    Cloud,
+    DownArrow,
+    Elipses,
+    Because,
+    RightShift,
+    Star,
+    SlashedZero,
+    ErrorX,
+}
+
+impl Glyph {
+    pub fn to_str(&self) -> &str {
+        let style = if let Ok(s) = env::var(GLYPH_STYLE_ENVVAR) {
+            match GlyphStyle::from_str(&s) {
+                Ok(style) => style,
+                Err(e) => {
+                    eprintln!("{}\nSetting GlyphStyle to {}", e, GlyphStyle::default());
+                    GlyphStyle::default()
+                }
+            }
+        } else {
+            GlyphStyle::default()
+        };
+
+        match style {
+            GlyphStyle::Ascii => {
+                match *self {
+                    Glyph::UpArrow => "/^\\",
+                    Glyph::FingerPoint => "-->",
+                    Glyph::CheckMark => "[x]",
+                    Glyph::BoxedCheckMark => "[#]",
+                    Glyph::Omega => "-->",
+                    Glyph::BoxedX => "-X-",
+                    Glyph::RightArrow => "-->",
+                    Glyph::Cloud => "-->",
+                    Glyph::DownArrow => "  >",
+                    Glyph::Elipses => "...",
+                    Glyph::Because => "???",
+                    Glyph::RightShift => " >>",
+                    Glyph::Star => "***",
+                    Glyph::SlashedZero => "  0",
+                    Glyph::ErrorX => "XXX",
+                }
+            }
+            GlyphStyle::Limited => {
+                match *self {
+                    Glyph::UpArrow => "↑",
+                    Glyph::FingerPoint => "→",
+                    Glyph::CheckMark => "√",
+                    Glyph::BoxedCheckMark => "⌂",
+                    Glyph::Omega => "Ω",
+                    Glyph::BoxedX => "░",
+                    Glyph::RightArrow => "→",
+                    Glyph::Cloud => "⌂",
+                    Glyph::DownArrow => "↓",
+                    Glyph::Elipses => "…",
+                    Glyph::Because => "‼",
+                    Glyph::RightShift => "»",
+                    Glyph::Star => "≡",
+                    Glyph::SlashedZero => "Ø",
+                    Glyph::ErrorX => "XXX",
+                }
+            }
+            GlyphStyle::Full => {
+                match *self {
+                    Glyph::UpArrow => "↑",
+                    Glyph::FingerPoint => "☛",
+                    Glyph::CheckMark => "✓",
+                    Glyph::BoxedCheckMark => "☑",
+                    Glyph::Omega => "Ω",
+                    Glyph::BoxedX => "☒",
+                    Glyph::RightArrow => "→",
+                    Glyph::Cloud => "☁",
+                    Glyph::DownArrow => "↓",
+                    Glyph::Elipses => "…",
+                    Glyph::Because => "∵",
+                    Glyph::RightShift => "»",
+                    Glyph::Star => "★",
+                    Glyph::SlashedZero => "Ø",
+                    Glyph::ErrorX => "✗✗✗",
+                }
+            }
+        }
+    }
+}
 
 pub enum Status {
     Applying,
@@ -77,46 +236,48 @@ pub enum Status {
     Using,
     Verified,
     Verifying,
-    Custom(char, String),
+    Custom(Glyph, String),
 }
 
 impl Status {
-    pub fn parts(&self) -> (char, String, Color) {
+    pub fn parts(&self) -> (Glyph, String, Color) {
         match *self {
-            Status::Applying => ('↑', "Applying".into(), Color::Green),
-            Status::Added => ('↑', "Added".into(), Color::Green),
-            Status::Adding => ('☛', "Adding".into(), Color::Green),
-            Status::Canceled => ('✓', "Canceled".into(), Color::Green),
-            Status::Canceling => ('☛', "Canceling".into(), Color::Green),
-            Status::Cached => ('☑', "Cached".into(), Color::Green),
-            Status::Created => ('✓', "Created".into(), Color::Green),
-            Status::Creating => ('Ω', "Creating".into(), Color::Green),
-            Status::Deleted => ('✓', "Deleted".into(), Color::Green),
-            Status::Deleting => ('☒', "Deleting".into(), Color::Green),
-            Status::Demoted => ('✓', "Demoted".into(), Color::Green),
-            Status::Demoting => ('→', "Demoting".into(), Color::Green),
-            Status::Determining => ('☁', "Determining".into(), Color::Green),
-            Status::Downloading => ('↓', "Downloading".into(), Color::Green),
-            Status::DryRunDeleting => ('☒', "Would be deleted (Dry run)".into(), Color::Red),
-            Status::Encrypting => ('☛', "Encrypting".into(), Color::Green),
-            Status::Encrypted => ('✓', "Encrypted".into(), Color::Green),
-            Status::Executing => ('☛', "Executing".into(), Color::Green),
-            Status::Found => ('→', "Found".into(), Color::Cyan),
-            Status::Generated => ('→', "Generated".into(), Color::Cyan),
-            Status::Generating => ('☛', "Generating".into(), Color::Green),
-            Status::Installed => ('✓', "Installed".into(), Color::Green),
-            Status::Missing => ('∵', "Missing".into(), Color::Red),
-            Status::Promoted => ('✓', "Promoted".into(), Color::Green),
-            Status::Promoting => ('→', "Promoting".into(), Color::Green),
-            Status::Signed => ('✓', "Signed".into(), Color::Cyan),
-            Status::Signing => ('☛', "Signing".into(), Color::Cyan),
-            Status::Skipping => ('…', "Skipping".into(), Color::Green),
-            Status::Uploaded => ('✓', "Uploaded".into(), Color::Green),
-            Status::Uploading => ('↑', "Uploading".into(), Color::Green),
-            Status::Using => ('→', "Using".into(), Color::Green),
-            Status::Verified => ('✓', "Verified".into(), Color::Green),
-            Status::Verifying => ('☛', "Verifying".into(), Color::Green),
-            Status::Custom(c, ref s) => (c, s.to_string(), Color::Green),
+            Status::Applying => (Glyph::UpArrow, "Applying".into(), Color::Info),
+            Status::Added => (Glyph::UpArrow, "Added".into(), Color::Info),
+            Status::Adding => (Glyph::FingerPoint, "Adding".into(), Color::Info),
+            Status::Canceled => (Glyph::CheckMark, "Canceled".into(), Color::Info),
+            Status::Canceling => (Glyph::FingerPoint, "Canceling".into(), Color::Info),
+            Status::Cached => (Glyph::BoxedCheckMark, "Cached".into(), Color::Info),
+            Status::Created => (Glyph::CheckMark, "Created".into(), Color::Info),
+            Status::Creating => (Glyph::Omega, "Creating".into(), Color::Info),
+            Status::Deleted => (Glyph::CheckMark, "Deleted".into(), Color::Info),
+            Status::Deleting => (Glyph::BoxedX, "Deleting".into(), Color::Info),
+            Status::Demoted => (Glyph::CheckMark, "Demoted".into(), Color::Info),
+            Status::Demoting => (Glyph::RightArrow, "Demoting".into(), Color::Info),
+            Status::Determining => (Glyph::Cloud, "Determining".into(), Color::Info),
+            Status::Downloading => (Glyph::DownArrow, "Downloading".into(), Color::Info),
+            Status::DryRunDeleting => {
+                (Glyph::BoxedX, "Would be deleted (Dry run)".into(), Color::Critical)
+            }
+            Status::Encrypting => (Glyph::FingerPoint, "Encrypting".into(), Color::Info),
+            Status::Encrypted => (Glyph::CheckMark, "Encrypted".into(), Color::Info),
+            Status::Executing => (Glyph::FingerPoint, "Executing".into(), Color::Info),
+            Status::Found => (Glyph::RightArrow, "Found".into(), Color::Important),
+            Status::Generated => (Glyph::RightArrow, "Generated".into(), Color::Important),
+            Status::Generating => (Glyph::FingerPoint, "Generating".into(), Color::Info),
+            Status::Installed => (Glyph::CheckMark, "Installed".into(), Color::Info),
+            Status::Missing => (Glyph::Because, "Missing".into(), Color::Critical),
+            Status::Promoted => (Glyph::CheckMark, "Promoted".into(), Color::Info),
+            Status::Promoting => (Glyph::RightArrow, "Promoting".into(), Color::Info),
+            Status::Signed => (Glyph::CheckMark, "Signed".into(), Color::Important),
+            Status::Signing => (Glyph::FingerPoint, "Signing".into(), Color::Important),
+            Status::Skipping => (Glyph::Elipses, "Skipping".into(), Color::Info),
+            Status::Uploaded => (Glyph::CheckMark, "Uploaded".into(), Color::Info),
+            Status::Uploading => (Glyph::UpArrow, "Uploading".into(), Color::Info),
+            Status::Using => (Glyph::RightArrow, "Using".into(), Color::Info),
+            Status::Verified => (Glyph::CheckMark, "Verified".into(), Color::Info),
+            Status::Verifying => (Glyph::FingerPoint, "Verifying".into(), Color::Info),
+            Status::Custom(c, ref s) => (c, s.to_string(), Color::Info),
         }
     }
 }
@@ -152,20 +313,22 @@ pub trait UIWriter {
     fn begin<T>(&mut self, message: T) -> io::Result<()>
         where T: fmt::Display
     {
-        let symbol = '»';
+        let symbol = Glyph::RightShift.to_str();
         println(self.out(),
                 format!("{} {}", symbol, message).as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true))
+                ColorSpec::new().set_fg(Some(Color::Warn.into()))
+                                .set_bold(true))
     }
 
     /// Write a message formatted with `end`.
     fn end<T>(&mut self, message: T) -> io::Result<()>
         where T: fmt::Display
     {
-        let symbol = '★';
+        let symbol = Glyph::Star.to_str();
         println(self.out(),
                 format!("{} {}", symbol, message).as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Magenta)).set_bold(true))
+                ColorSpec::new().set_fg(Some(Color::End.into()))
+                                .set_bold(true))
     }
 
     /// Write a message formatted with `status`.
@@ -174,8 +337,8 @@ pub trait UIWriter {
     {
         let (symbol, status_str, color) = status.parts();
         print(self.out(),
-              format!("{} {}", symbol, status_str).as_bytes(),
-              ColorSpec::new().set_fg(Some(color)).set_bold(true))?;
+              format!("{} {}", symbol.to_str(), status_str).as_bytes(),
+              ColorSpec::new().set_fg(Some(color.into())).set_bold(true))?;
         self.out().write_all(format!(" {}\n", message).as_bytes())?;
         self.out().flush()
     }
@@ -193,8 +356,9 @@ pub trait UIWriter {
         where T: fmt::Display
     {
         println(self.err(),
-                format!("∅ {}", message).as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Yellow)).set_bold(true))
+                format!("{} {}", Glyph::SlashedZero.to_str(), message).as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Warn.into()))
+                                .set_bold(true))
     }
 
     /// Write a message formatted with `fatal`.
@@ -202,16 +366,19 @@ pub trait UIWriter {
         where T: fmt::Display
     {
         println(self.err(),
-                "✗✗✗".as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))?;
+                Glyph::ErrorX.to_str().as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Critical.into()))
+                                .set_bold(true))?;
         for line in message.to_string().lines() {
             println(self.err(),
-                    format!("✗✗✗ {}", line).as_bytes(),
-                    ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))?;
+                    format!("{} {}", Glyph::ErrorX.to_str(), line).as_bytes(),
+                    ColorSpec::new().set_fg(Some(Color::Critical.into()))
+                                    .set_bold(true))?;
         }
         println(self.err(),
-                "✗✗✗".as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Red)).set_bold(true))
+                Glyph::ErrorX.to_str().as_bytes(),
+                ColorSpec::new().set_fg(Some(Color::Critical.into()))
+                                .set_bold(true))
     }
 
     /// Write a message formatted with `title`.
@@ -223,7 +390,8 @@ pub trait UIWriter {
                         text.as_ref(),
                         "",
                         width = text.as_ref().chars().count()).as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true))
+                ColorSpec::new().set_fg(Some(Color::Info.into()))
+                                .set_bold(true))
     }
 
     /// Write a message formatted with `heading`.
@@ -232,7 +400,8 @@ pub trait UIWriter {
     {
         println(self.out(),
                 format!("{}\n", text.as_ref()).as_bytes(),
-                ColorSpec::new().set_fg(Some(Color::Green)).set_bold(true))
+                ColorSpec::new().set_fg(Some(Color::Info.into()))
+                                .set_bold(true))
     }
 
     /// Write a message formatted with `para`.
@@ -356,16 +525,17 @@ impl UIReader for UI {
         loop {
             print(stream,
                   question.as_bytes(),
-                  ColorSpec::new().set_fg(Some(Color::Cyan)))?;
+                  ColorSpec::new().set_fg(Some(Color::Important.into())))?;
             print(stream,
                   format!(" {}", prefix).as_bytes(),
-                  ColorSpec::new().set_fg(Some(Color::White)))?;
+                  ColorSpec::new().set_fg(Some(Color::Plain.into())))?;
             print(stream,
                   default_text.as_bytes(),
-                  ColorSpec::new().set_fg(Some(Color::White)).set_bold(true))?;
+                  ColorSpec::new().set_fg(Some(Color::Plain.into()))
+                                  .set_bold(true))?;
             print(stream,
                   format!("{} ", suffix).as_bytes(),
-                  ColorSpec::new().set_fg(Some(Color::White)))?;
+                  ColorSpec::new().set_fg(Some(Color::Plain.into())))?;
             let mut response = String::new();
             {
                 let reference = self.shell.input.by_ref();
@@ -391,16 +561,19 @@ impl UIReader for UI {
         loop {
             print(stream,
                   question.as_bytes(),
-                  ColorSpec::new().set_fg(Some(Color::Cyan)))?;
+                  ColorSpec::new().set_fg(Some(Color::Important.into())))?;
             stream.write_all(b": ")?;
             if let Some(d) = default {
                 print(stream,
                       b"[default: ",
-                      ColorSpec::new().set_fg(Some(Color::White)))?;
+                      ColorSpec::new().set_fg(Some(Color::Plain.into())))?;
                 print(stream,
                       d.as_bytes(),
-                      ColorSpec::new().set_fg(Some(Color::White)).set_bold(true))?;
-                print(stream, b"]", ColorSpec::new().set_fg(Some(Color::White)))?;
+                      ColorSpec::new().set_fg(Some(Color::Plain.into()))
+                                      .set_bold(true))?;
+                print(stream,
+                      b"]",
+                      ColorSpec::new().set_fg(Some(Color::Plain.into())))?;
             }
             stream.write_all(b" ")?;
             stream.flush()?;

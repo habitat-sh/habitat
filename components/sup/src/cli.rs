@@ -8,7 +8,6 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> { sup_commands() }
 mod test {
     use super::cli;
     use clap::ErrorKind;
-    use std::iter::FromIterator;
 
     macro_rules! assert_cli_cmd {
         ($test:ident, $cmd:expr, $( $key:expr => $value:tt ),+) => {
@@ -29,6 +28,7 @@ mod test {
 
     mod sup_run {
         use super::*;
+        use std::iter::FromIterator as _;
 
         assert_cli_cmd!(should_handle_multiple_peer_flags,
                         "hab-sup run --peer 1.1.1.1 --peer 2.2.2.2",

@@ -213,7 +213,7 @@ pub fn service_load(mgr: &ManagerState,
                            .map(ChannelIdent::from)
                            .unwrap_or_default();
     let force = opts.force.unwrap_or(false);
-    let source = InstallSource::Ident(ident.clone(), *PackageTarget::active_target());
+    let source = InstallSource::Ident(ident.clone(), PackageTarget::active_target());
     match spec_for_ident(&mgr.cfg, source.as_ref()) {
         None => {
             let mut spec = ServiceSpec::default();

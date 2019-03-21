@@ -32,7 +32,7 @@ const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
-pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     if henv::var(ORIGIN_ENVVAR).is_err() {
         let config = config::load()?;
         if let Some(default_origin) = config.origin {
@@ -66,13 +66,12 @@ pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
 
 #[cfg(target_os = "linux")]
 mod inner {
-    use std::{env,
-              ffi::OsString,
-              path::PathBuf,
-              str::FromStr};
-
-    use crate::{common::ui::{UIWriter,
+    use crate::{command::studio::docker,
+                common::ui::{UIWriter,
                              UI},
+                error::{Error,
+                        Result},
+                exec,
                 hcore::{crypto::{default_cache_key_path,
                                  init},
                         env as henv,
@@ -80,18 +79,16 @@ mod inner {
                              find_command},
                         os::process,
                         package::PackageIdent,
-                        users::linux as group}};
-
-    use crate::{error::{Error,
-                        Result},
-                exec,
+                        users::linux as group},
                 VERSION};
-
-    use crate::command::studio::docker;
+    use std::{env,
+              ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
     const SUDO_CMD: &str = "sudo";
 
-    pub fn start(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         rerun_with_sudo_if_needed(ui, &args)?;
         if is_docker_studio(&args) {
             docker::start_docker_studio(ui, args)
@@ -145,7 +142,7 @@ mod inner {
     fn rerun_with_sudo_if_needed(ui: &mut UI, args: &[OsString]) -> Result<()> {
         // If I have root permissions or if I am executing a docker studio
         // and have the appropriate group - early return, we are done.
-        if am_i_root() || (is_docker_studio(&args) && has_docker_group()) {
+        if am_i_root() || (is_docker_studio(args) && has_docker_group()) {
             return Ok(());
         }
 
@@ -156,7 +153,7 @@ mod inner {
                                                    "[sudo hab-studio] password for %u: ".into(),
                                                    "-E".into(),];
                 args.append(&mut env::args_os().collect());
-                process::become_command(sudo_prog, args)?;
+                process::become_command(sudo_prog, &args)?;
                 Ok(())
             }
             None => {
@@ -174,25 +171,23 @@ mod inner {
 
 #[cfg(not(target_os = "linux"))]
 mod inner {
-    use std::{ffi::OsString,
-              path::PathBuf,
-              str::FromStr};
-
-    use crate::{common::ui::UI,
+    use crate::{command::studio::docker,
+                common::ui::UI,
+                error::{Error,
+                        Result},
+                exec,
                 hcore::{crypto::{default_cache_key_path,
                                  init},
                         env as henv,
                         fs::find_command,
                         os::process,
-                        package::PackageIdent}};
-
-    use crate::{command::studio::docker,
-                error::{Error,
-                        Result},
-                exec,
+                        package::PackageIdent},
                 VERSION};
+    use std::{ffi::OsString,
+              path::PathBuf,
+              str::FromStr};
 
-    pub fn start(_ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    pub fn start(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         if is_windows_studio(&args) {
             start_windows_studio(_ui, args)
         } else {
@@ -200,7 +195,7 @@ mod inner {
         }
     }
 
-    pub fn start_windows_studio(ui: &mut UI, args: Vec<OsString>) -> Result<()> {
+    pub fn start_windows_studio(ui: &mut UI, args: &[OsString]) -> Result<()> {
         let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
@@ -225,7 +220,7 @@ mod inner {
         Ok(())
     }
 
-    fn is_windows_studio(args: &Vec<OsString>) -> bool {
+    fn is_windows_studio(args: &[OsString]) -> bool {
         if cfg!(not(target_os = "windows")) {
             return false;
         }

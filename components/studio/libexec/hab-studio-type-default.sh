@@ -232,10 +232,14 @@ PROFILE_ENTER
   studio_env_command="$coreutils_path/bin/env"
 }
 
-_hab() {
-  # We remove a couple of env vars we do not want for this instance of the studio
-  $bb env FS_ROOT="$HAB_STUDIO_ROOT" HAB_CACHE_KEY_PATH= HAB_BLDR_CHANNEL= "$hab" "$@"
-}
+# Intentionally using a subshell here so `unset` doesn't affect the
+# caller's environment.
+_hab() (
+    # We remove a couple of env vars we do not want for this instance of the studio
+    unset HAB_CACHE_KEY_PATH
+    unset HAB_BLDR_CHANNEL
+    $bb env FS_ROOT="$HAB_STUDIO_ROOT" "$hab" "$@"
+)
 
 _pkgpath_for() {
   _hab pkg path "$1" | $bb sed -e "s,^$HAB_STUDIO_ROOT,,g"

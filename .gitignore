@@ -12,6 +12,7 @@
 dump.rdb
 log/
 results/
+result
 tags
 terraform.tfstate*
 test/builder-api/built/*

@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.76.0/20190227200538 (linux) | 28 Feb 2019 |
+| hab 0.78.0/20190313115951 (linux) | 13 Mar 2019 |
 
 ## hab
 
@@ -694,8 +694,43 @@ hab origin [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
+| [hab origin delete](#hab-origin-delete) | Removes an unused/empty origin |
 | [hab origin key](#hab-origin-key) | Commands relating to Habitat origin key maintenance |
 | [hab origin secret](#hab-origin-secret) | Commands related to secret management |
+---
+
+### hab origin delete
+
+Removes an unused/empty origin
+
+**USAGE**
+
+```
+hab origin delete [OPTIONS] <ORIGIN>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+```
+
+**ARGS**
+
+```
+<ORIGIN>    The origin name
+```
+
+
+
 ---
 
 ### hab origin key
@@ -1371,7 +1406,7 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 
 ```
 -u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel (default: stable)
+-c, --channel <CHANNEL>    Retrieve the container's package from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
 ```
 
 **ARGS**
@@ -1466,7 +1501,7 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
 -u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--c, --channel <CHANNEL>    Install from the specified release channel (default: stable)
+-c, --channel <CHANNEL>    Install from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
 ```
 
 **ARGS**
@@ -1732,7 +1767,7 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>...
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
 -u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--c, --channel <CHANNEL>    Additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option. (default: none)
+-c, --channel <CHANNEL>    Optional additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option.
 ```
 
 **ARGS**
@@ -2201,13 +2236,14 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 **FLAGS**
 
 ```
--A, --auto-update       Enable automatic updates for the Supervisor itself
--D, --http-disable      Disable the HTTP Gateway completely [default: false]
-    --json-logging      Use structured JSON logging for the Supervisor. Implies NO_COLOR
-    --no-color          Turn ANSI color off
--I, --permanent-peer    If this Supervisor is a permanent peer
--v                      Verbose output; shows file and line/column numbers
--h, --help              Prints help information
+-A, --auto-update          Enable automatic updates for the Supervisor itself
+-D, --http-disable         Disable the HTTP Gateway completely [default: false]
+    --json-logging         Use structured JSON logging for the Supervisor. Implies NO_COLOR
+    --local-gossip-mode    Start the supervisor in local mode.
+    --no-color             Turn ANSI color off
+-I, --permanent-peer       If this Supervisor is a permanent peer
+-v                         Verbose output; shows file and line/column numbers
+-h, --help                 Prints help information
 ```
 
 **OPTIONS**

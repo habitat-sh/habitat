@@ -25,7 +25,8 @@ use crate::error::{Error,
 use futures::{future,
               Future};
 use habitat_common::{outputln,
-                     templating::package::Pkg};
+                     templating::package::Pkg,
+                     types::UserInfo};
 #[cfg(unix)]
 use habitat_core::os::users;
 use habitat_core::{fs,
@@ -46,23 +47,6 @@ use std::{fs::File,
 use time::Timespec;
 
 static LOGKEY: &'static str = "SV";
-
-/// Bundles up information about the user and group that a supervised
-/// service should be run as. If the Supervisor itself is running with
-/// root-like permissions, then these will be for `SVC_USER` and
-/// `SVC_GROUP` for a service. If not, it will be for the user the
-/// Supervisor itself is running as.
-///
-/// On Windows, all but `username` will be `None`. On Linux,
-/// `username` and `groupname` may legitimately be `None`, but `uid`
-/// and `gid` should always be `Some`.
-#[derive(Debug, Default)]
-struct UserInfo {
-    username:  Option<String>,
-    uid:       Option<u32>,
-    groupname: Option<String>,
-    gid:       Option<u32>,
-}
 
 #[derive(Debug)]
 pub struct Supervisor {
@@ -157,23 +141,17 @@ impl Supervisor {
                       ..Default::default() })
     }
 
-    pub fn start<T>(&mut self,
-                    pkg: &Pkg,
-                    group: &ServiceGroup,
-                    launcher: &LauncherCli,
-                    svc_password: Option<T>)
-                    -> Result<()>
-        where T: ToString
-    {
-        let UserInfo { username: service_user,
-                       uid: service_user_id,
-                       groupname: service_group,
-                       gid: service_group_id, } = self.user_info(&pkg)?;
-
+    pub fn start(&mut self,
+                 pkg: &Pkg,
+                 group: &ServiceGroup,
+                 launcher: &LauncherCli,
+                 svc_password: Option<&str>)
+                 -> Result<()> {
+        let user_info = self.user_info(&pkg)?;
         outputln!(preamble self.preamble,
                   "Starting service as user={}, group={}",
-                  service_user.as_ref().map_or("<anonymous>", |s| s.as_str()),
-                  service_group.as_ref().map_or("<anonymous>", |s| s.as_str())
+                  user_info.username.as_ref().map_or("<anonymous>", String::as_str),
+                  user_info.groupname.as_ref().map_or("<anonymous>", String::as_str)
         );
 
         // In the interests of having as little logic in the Launcher
@@ -194,13 +172,10 @@ impl Supervisor {
         // Launcher versions on Linux (and current Windows versions)
         // will use these, while newer versions will prefer the UID
         // and GID, ignoring the names.
-        let pid = launcher.spawn(&group.to_string(),
+        let pid = launcher.spawn(&group,
                                  &pkg.svc_run,
-                                 service_user,     // Windows required, Linux optional
-                                 service_group,    // Linux optional
-                                 service_user_id,  // Linux preferred
-                                 service_group_id, // Linux preferred
-                                 svc_password,     // Windows optional
+                                 user_info,
+                                 svc_password, // Windows optional
                                  (*pkg.env).clone())?;
         self.pid = Some(pid);
         self.create_pidfile()?;
@@ -242,14 +217,12 @@ impl Supervisor {
         }
     }
 
-    pub fn restart<T>(&mut self,
-                      pkg: &Pkg,
-                      group: &ServiceGroup,
-                      launcher: &LauncherCli,
-                      svc_password: Option<T>)
-                      -> Result<()>
-        where T: ToString
-    {
+    pub fn restart(&mut self,
+                   pkg: &Pkg,
+                   group: &ServiceGroup,
+                   launcher: &LauncherCli,
+                   svc_password: Option<&str>)
+                   -> Result<()> {
         match self.pid {
             Some(pid) => {
                 match launcher.restart(pid) {

@@ -80,7 +80,6 @@ use std::{env,
                 FromStr}};
 #[cfg(test)]
 use tempfile::TempDir;
-use termcolor::ColorChoice;
 
 /// Our output key
 static LOGKEY: &'static str = "MN";
@@ -450,7 +449,8 @@ fn enable_features_from_env() {
                         (feat::TestBootFail, "BOOT_FAIL"),
                         (feat::RedactHTTP, "REDACT_HTTP"),
                         (feat::IgnoreSignals, "IGNORE_SIGNALS"),
-                        (feat::InstallHook, "INSTALL_HOOK"),];
+                        (feat::InstallHook, "INSTALL_HOOK"),
+                        (feat::EventStream, "EVENT_STREAM"),];
 
     // If the environment variable for a flag is set to _anything_ but
     // the empty string, it is activated.
@@ -492,10 +492,6 @@ fn set_supervisor_logging_options(m: &ArgMatches) {
 // function wouldn't be necessary. In the meantime, though, it'll keep
 // the scope of change contained.
 fn ui() -> UI {
-    let coloring = match output::get_format() {
-        OutputFormat::Color => ColorChoice::Auto,
-        OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
-    };
     let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
                                                    .unwrap_or(false)
     {
@@ -503,7 +499,7 @@ fn ui() -> UI {
     } else {
         None
     };
-    UI::default_with(coloring, isatty)
+    UI::default_with(output::get_format().color_choice(), isatty)
 }
 
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function

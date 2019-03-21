@@ -17,7 +17,9 @@ use crate::{command::studio,
 use clap::{App,
            AppSettings,
            Arg};
-use habitat_common::{cli_defaults::{GOSSIP_DEFAULT_ADDR,
+use habitat_common::{cli_defaults::{BINLINK_DIR_ENVVAR,
+                                    DEFAULT_BINLINK_DIR,
+                                    GOSSIP_DEFAULT_ADDR,
                                     GOSSIP_LISTEN_ADDRESS_ENVVAR,
                                     LISTEN_CTL_DEFAULT_ADDR_STRING,
                                     LISTEN_HTTP_ADDRESS_ENVVAR,
@@ -369,8 +371,8 @@ pub fn get() -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg BINARY: +takes_value
                     "The command to binlink (ex: bash)")
-                (@arg DEST_DIR: -d --dest +takes_value
-                    "Sets the destination directory (default: /bin)")
+                (@arg DEST_DIR: -d --dest +takes_value {non_empty} env(BINLINK_DIR_ENVVAR) default_value(DEFAULT_BINLINK_DIR)
+                    "Sets the destination directory")
                 (@arg FORCE: -f --force "Overwrite existing binlinks")
             )
             (@subcommand config =>
@@ -579,6 +581,19 @@ pub fn get() -> App<'static, 'static> {
                     "Use a Windows Powershell plan template")
                 (@arg SCAFFOLDING: --scaffolding -s +takes_value
                     "Specify explicit Scaffolding for your app (ex: node, ruby)")
+            )
+            (@subcommand render =>
+                (about: "Renders plan config files")
+                (aliases: &["r", "re", "ren", "rend", "rende"])
+                (@arg TEMPLATE_PATH: +required {file_exists} "Path to config to render")
+                (@arg DEFAULT_TOML: -d --("default-toml") +takes_value default_value("./default.toml") "Path to default.toml")
+                (@arg USER_TOML: -u --("user-toml") +takes_value "Path to user.toml, defaults to none")
+                (@arg MOCK_DATA: -m --("mock-data") +takes_value "Path to json file with mock data for template, defaults to none")
+                (@arg PRINT: -p --("print") "Prints config to STDOUT")
+                (@arg RENDER_DIR: -r --("render-dir") +takes_value default_value("./results") "Path to render templates")
+                (@arg NO_RENDER: -n --("no-render") "Don't write anything to disk, ignores --render-dir")
+                (@arg QUIET: -q --("no-verbose") --quiet
+                    "Don't print any helper messages.  When used with `--print` will only print config file")
             )
         )
         (@subcommand ring =>
@@ -1223,6 +1238,15 @@ fn valid_origin(val: String) -> result::Result<(), String> {
         Err(format!("'{}' is not valid. A valid origin contains a-z, \
                      0-9, and _ or - after the first character",
                     &val))
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+fn non_empty(val: String) -> result::Result<(), String> {
+    if val.is_empty() {
+        Err("must not be empty".to_string())
+    } else {
+        Ok(())
     }
 }
 

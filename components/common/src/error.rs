@@ -35,6 +35,7 @@ pub enum Error {
     ArtifactIdentMismatch((String, String, String)),
     /// Occurs when there is no valid toml of json in the environment variable
     BadEnvConfig(String),
+    BadGlyphStyle(String),
     CantUploadGossipToml,
     ChannelNotFound,
     CryptoKeyError(String),
@@ -66,7 +67,8 @@ pub enum Error {
     StrFromUtf8Error(str::Utf8Error),
     StringFromUtf8Error(string::FromUtf8Error),
     /// When an error occurs registering template file
-    TemplateFileError(handlebars::TemplateFileError),
+    // Boxed due to clippy::large_enum_variant
+    TemplateFileError(Box<handlebars::TemplateFileError>),
     /// When an error occurs rendering template
     /// The error is constructed with a handlebars::RenderError's format string instead
     /// of the handlebars::RenderError itself because the cause field of the
@@ -94,6 +96,7 @@ impl fmt::Display for Error {
             Error::BadEnvConfig(ref varname) => {
                 format!("Unable to find valid TOML or JSON in {} ENVVAR", varname)
             }
+            Error::BadGlyphStyle(ref style) => format!("Unknown symbol style '{}'", style),
             Error::CantUploadGossipToml => {
                 "Can't upload gossip.toml, it's a reserved file name".to_string()
             }
@@ -161,6 +164,7 @@ impl error::Error for Error {
             Error::APIClient(ref err) => err.description(),
             Error::ArtifactIdentMismatch((..)) => "Artifact ident does not match expected ident",
             Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
+            Error::BadGlyphStyle(_) => "Unknown symbol style",
             Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
             Error::ChannelNotFound => "Channel not found",
             Error::CryptoKeyError(_) => "Missing or invalid key",
@@ -207,7 +211,7 @@ impl From<api_client::Error> for Error {
 }
 
 impl From<handlebars::TemplateFileError> for Error {
-    fn from(err: handlebars::TemplateFileError) -> Self { Error::TemplateFileError(err) }
+    fn from(err: handlebars::TemplateFileError) -> Self { Error::TemplateFileError(Box::new(err)) }
 }
 
 impl From<hcore::Error> for Error {

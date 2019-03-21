@@ -19,6 +19,7 @@ use crate::common::ui::UI;
 use crate::{command::studio,
             error::Result};
 
+#[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              plan_context: &str,
              root: Option<&str>,
@@ -52,5 +53,5 @@ pub fn start(ui: &mut UI,
     if studio::native_studio_support() && docker {
         args.push("-D".into());
     }
-    studio::enter::start(ui, args)
+    studio::enter::start(ui, &args)
 }

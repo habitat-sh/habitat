@@ -101,8 +101,8 @@ pub fn command_from_min_pkg<T>(ui: &mut UI,
                                                      &default_bldr_url(),
                                                      &internal_tooling_channel(),
                                                      &(ident.clone(),
-                                                       *PackageTarget::active_target())
-                                                                                       .into(),
+                                                       PackageTarget::active_target())
+                                                                                      .into(),
                                                      PRODUCT,
                                                      VERSION,
                                                      fs_root_path,

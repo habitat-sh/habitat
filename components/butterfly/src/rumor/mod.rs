@@ -75,7 +75,7 @@ pub enum RumorKind {
     Election(Election),
     ElectionUpdate(ElectionUpdate),
     Membership(Membership),
-    Service(Service),
+    Service(Box<Service>), // Boxed due to clippy::large_enum_variant
     ServiceConfig(ServiceConfig),
     ServiceFile(ServiceFile),
 }
@@ -87,7 +87,7 @@ impl From<RumorKind> for RumorPayload {
             RumorKind::Election(election) => RumorPayload::Election(election.into()),
             RumorKind::ElectionUpdate(election) => RumorPayload::Election(election.into()),
             RumorKind::Membership(membership) => RumorPayload::Member(membership.into()),
-            RumorKind::Service(service) => RumorPayload::Service(service.into()),
+            RumorKind::Service(service) => RumorPayload::Service((*service).into()),
             RumorKind::ServiceConfig(service_config) => {
                 RumorPayload::ServiceConfig(service_config.into())
             }
@@ -475,7 +475,7 @@ impl RumorEnvelope {
                 RumorKind::ElectionUpdate(ElectionUpdate::from_proto(proto)?)
             }
             RumorType::Member => RumorKind::Membership(Membership::from_proto(proto)?),
-            RumorType::Service => RumorKind::Service(Service::from_proto(proto)?),
+            RumorType::Service => RumorKind::Service(Box::new(Service::from_proto(proto)?)),
             RumorType::ServiceConfig => RumorKind::ServiceConfig(ServiceConfig::from_proto(proto)?),
             RumorType::ServiceFile => RumorKind::ServiceFile(ServiceFile::from_proto(proto)?),
             RumorType::Fake | RumorType::Fake2 => panic!("fake rumor"),

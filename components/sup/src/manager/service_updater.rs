@@ -472,7 +472,7 @@ impl Worker {
         // Fairly certain that this only gets called in a rolling update
         // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
-        let install_source = (ident, *PackageTarget::active_target()).into();
+        let install_source = (ident, PackageTarget::active_target()).into();
         let mut next_time = SteadyTime::now();
 
         loop {
@@ -513,7 +513,7 @@ impl Worker {
     /// Continually poll for a new version of a package, installing it
     /// when found.
     fn run_poll(&mut self, sender: &Sender<PackageInstall>, kill_rx: &Receiver<()>) {
-        let install_source = (self.spec_ident.clone(), *PackageTarget::active_target()).into();
+        let install_source = (self.spec_ident.clone(), PackageTarget::active_target()).into();
         let mut next_time = SteadyTime::now();
 
         loop {

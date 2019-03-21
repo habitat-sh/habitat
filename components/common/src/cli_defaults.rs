@@ -18,6 +18,8 @@
 //! need a spot to consolidate those values and help simplify some of the logic around them.
 
 use crate::types::ListenCtlAddr;
+use habitat_core::env as henv;
+use std::path::PathBuf;
 
 pub const GOSSIP_DEFAULT_IP: &str = "0.0.0.0";
 pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
@@ -37,7 +39,41 @@ lazy_static! {
 }
 pub const LISTEN_HTTP_ADDRESS_ENVVAR: &str = "HAB_LISTEN_HTTP";
 
+const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
+
 lazy_static! {
     pub static ref LISTEN_CTL_DEFAULT_ADDR_STRING: String =
         { ListenCtlAddr::default().to_string() };
+
+    /// The default filesystem root path to base all commands from. This is lazily generated on
+    /// first call and reflects on the presence and value of the environment variable keyed as
+    /// `FS_ROOT_ENVVAR`.
+    pub static ref FS_ROOT: PathBuf = {
+        use crate::hcore::fs::FS_ROOT_ENVVAR;
+
+        if cfg!(target_os = "windows") {
+            match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
+                (Ok(path), _) => PathBuf::from(path),
+                (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "\\")),
+                (Err(_), Err(_)) => unreachable!(
+                    "Windows should always have a SYSTEMDRIVE \
+                    environment variable."
+                ),
+            }
+        } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
+            PathBuf::from(root)
+        } else {
+            PathBuf::from("/")
+        }
+    };
 }
+
+pub const BINLINK_DIR_ENVVAR: &str = "HAB_BINLINK_DIR";
+
+/// Default Binlink Dir
+#[cfg(target_os = "windows")]
+pub const DEFAULT_BINLINK_DIR: &str = "/hab/bin";
+#[cfg(target_os = "linux")]
+pub const DEFAULT_BINLINK_DIR: &str = "/bin";
+#[cfg(target_os = "macos")]
+pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";

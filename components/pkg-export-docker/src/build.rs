@@ -138,43 +138,40 @@ impl<'a> BuildSpec<'a> {
     }
 
     #[cfg(unix)]
-    fn prepare_rootfs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
+    fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         ui.status(Status::Creating, "root filesystem")?;
-        rootfs::create(&rootfs)?;
-        self.create_symlink_to_artifact_cache(ui, &rootfs)?;
-        self.create_symlink_to_key_cache(ui, &rootfs)?;
-        let base_pkgs = self.install_base_pkgs(ui, &rootfs)?;
-        let user_pkgs = self.install_user_pkgs(ui, &rootfs)?;
-        self.chmod_hab_directory(ui, &rootfs)?;
-        self.link_binaries(ui, &rootfs, &base_pkgs)?;
-        self.link_cacerts(ui, &rootfs, &base_pkgs)?;
-        self.link_user_pkgs(ui, &rootfs, &user_pkgs)?;
-        self.remove_symlink_to_key_cache(ui, &rootfs)?;
-        self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
+        rootfs::create(rootfs)?;
+        self.create_symlink_to_artifact_cache(ui, rootfs)?;
+        self.create_symlink_to_key_cache(ui, rootfs)?;
+        let base_pkgs = self.install_base_pkgs(ui, rootfs)?;
+        let user_pkgs = self.install_user_pkgs(ui, rootfs)?;
+        self.chmod_hab_directory(ui, rootfs)?;
+        self.link_binaries(ui, rootfs, &base_pkgs)?;
+        self.link_cacerts(ui, rootfs, &base_pkgs)?;
+        self.link_user_pkgs(ui, rootfs, &user_pkgs)?;
+        self.remove_symlink_to_key_cache(ui, rootfs)?;
+        self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
         Ok(())
     }
 
     #[cfg(windows)]
-    fn prepare_rootfs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
+    fn prepare_rootfs(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         ui.status(Status::Creating, "root filesystem")?;
-        self.create_symlink_to_artifact_cache(ui, &rootfs)?;
-        self.create_symlink_to_key_cache(ui, &rootfs)?;
-        self.install_base_pkgs(ui, &rootfs)?;
-        self.install_user_pkgs(ui, &rootfs)?;
-        self.remove_symlink_to_key_cache(ui, &rootfs)?;
-        self.remove_symlink_to_artifact_cache(ui, &rootfs)?;
+        self.create_symlink_to_artifact_cache(ui, rootfs)?;
+        self.create_symlink_to_key_cache(ui, rootfs)?;
+        self.install_base_pkgs(ui, rootfs)?;
+        self.install_user_pkgs(ui, rootfs)?;
+        self.remove_symlink_to_key_cache(ui, rootfs)?;
+        self.remove_symlink_to_artifact_cache(ui, rootfs)?;
 
         Ok(())
     }
 
-    fn create_symlink_to_artifact_cache<P: AsRef<Path>>(&self,
-                                                        ui: &mut UI,
-                                                        rootfs: P)
-                                                        -> Result<()> {
+    fn create_symlink_to_artifact_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         ui.status(Status::Creating, "artifact cache symlink")?;
-        let src = cache_artifact_path(None::<P>);
-        let dst = rootfs.as_ref().join(CACHE_ARTIFACT_PATH);
+        let src = cache_artifact_path(None::<&Path>);
+        let dst = rootfs.join(CACHE_ARTIFACT_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
         debug!("Symlinking src: {} to dst: {}",
                src.display(),
@@ -184,10 +181,10 @@ impl<'a> BuildSpec<'a> {
         Ok(())
     }
 
-    fn create_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
+    fn create_symlink_to_key_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         ui.status(Status::Creating, "key cache symlink")?;
-        let src = cache_key_path(None::<P>);
-        let dst = rootfs.as_ref().join(CACHE_KEY_PATH);
+        let src = cache_key_path(None::<&Path>);
+        let dst = rootfs.join(CACHE_KEY_PATH);
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
         debug!("Symlinking src: {} to dst: {}",
                src.display(),
@@ -197,16 +194,16 @@ impl<'a> BuildSpec<'a> {
         Ok(())
     }
 
-    fn install_base_pkgs<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<BasePkgIdents> {
-        let hab = self.install_base_pkg(ui, self.hab, &rootfs)?;
-        let sup = self.install_base_pkg(ui, self.hab_sup, &rootfs)?;
-        let launcher = self.install_base_pkg(ui, self.hab_launcher, &rootfs)?;
+    fn install_base_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<BasePkgIdents> {
+        let hab = self.install_base_pkg(ui, self.hab, rootfs)?;
+        let sup = self.install_base_pkg(ui, self.hab_sup, rootfs)?;
+        let launcher = self.install_base_pkg(ui, self.hab_launcher, rootfs)?;
         let busybox = if cfg!(target_os = "linux") {
-            Some(self.install_base_pkg(ui, BUSYBOX_IDENT, &rootfs)?)
+            Some(self.install_base_pkg(ui, BUSYBOX_IDENT, rootfs)?)
         } else {
             None
         };
-        let cacerts = self.install_base_pkg(ui, CACERTS_IDENT, &rootfs)?;
+        let cacerts = self.install_base_pkg(ui, CACERTS_IDENT, rootfs)?;
 
         Ok(BasePkgIdents { hab,
                            sup,
@@ -215,60 +212,45 @@ impl<'a> BuildSpec<'a> {
                            cacerts })
     }
 
-    fn install_user_pkgs<P: AsRef<Path>>(&self,
-                                         ui: &mut UI,
-                                         rootfs: P)
-                                         -> Result<Vec<PackageIdent>> {
+    fn install_user_pkgs(&self, ui: &mut UI, rootfs: &Path) -> Result<Vec<PackageIdent>> {
         let mut idents = Vec::new();
         for ioa in self.idents_or_archives.iter() {
-            idents.push(self.install_user_pkg(ui, ioa, &rootfs)?);
+            idents.push(self.install_user_pkg(ui, ioa, rootfs)?);
         }
 
         Ok(idents)
     }
 
     #[cfg(unix)]
-    fn link_user_pkgs<P: AsRef<Path>>(&self,
-                                      ui: &mut UI,
-                                      rootfs: P,
-                                      user_pkgs: &[PackageIdent])
-                                      -> Result<()> {
+    fn link_user_pkgs(&self, ui: &mut UI, rootfs: &Path, user_pkgs: &[PackageIdent]) -> Result<()> {
         let dst = util::bin_path();
         for pkg in user_pkgs.iter() {
-            hab::command::pkg::binlink::binlink_all_in_pkg(ui, &pkg, &dst, rootfs.as_ref(), true)
+            hab::command::pkg::binlink::binlink_all_in_pkg(ui, &pkg, &dst, rootfs, true)
                 .map_err(SyncFailure::new)?;
         }
         Ok(())
     }
 
     #[cfg(unix)]
-    fn link_binaries<P: AsRef<Path>>(&self,
-                                     ui: &mut UI,
-                                     rootfs: P,
-                                     base_pkgs: &BasePkgIdents)
-                                     -> Result<()> {
+    fn link_binaries(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
         let dst = util::bin_path();
         hab::command::pkg::binlink::binlink_all_in_pkg(ui,
                                                        &base_pkgs.busybox
                                                                  .clone()
                                                                  .expect("No busybox in idents"),
                                                        &dst,
-                                                       rootfs.as_ref(),
+                                                       rootfs,
                                                        true).map_err(SyncFailure::new)?;
-        hab::command::pkg::binlink::start(ui, &base_pkgs.hab, "hab", &dst, rootfs.as_ref(), true)
+        hab::command::pkg::binlink::start(ui, &base_pkgs.hab, "hab", &dst, rootfs, true)
             .map_err(SyncFailure::new)?;
         Ok(())
     }
 
     #[cfg(unix)]
-    fn link_cacerts<P: AsRef<Path>>(&self,
-                                    ui: &mut UI,
-                                    rootfs: P,
-                                    base_pkgs: &BasePkgIdents)
-                                    -> Result<()> {
+    fn link_cacerts(&self, ui: &mut UI, rootfs: &Path, base_pkgs: &BasePkgIdents) -> Result<()> {
         ui.status(Status::Creating, "cacerts symlink into /etc")?;
-        let src = util::pkg_path_for(&base_pkgs.cacerts, rootfs.as_ref())?.join("ssl");
-        let dst = rootfs.as_ref().join("etc").join("ssl");
+        let src = util::pkg_path_for(&base_pkgs.cacerts, rootfs)?.join("ssl");
+        let dst = rootfs.join("etc").join("ssl");
         stdfs::create_dir_all(dst.parent().expect("parent directory exists"))?;
         debug!("Symlinking src: {} to dst: {}",
                src.display(),
@@ -287,38 +269,34 @@ impl<'a> BuildSpec<'a> {
     ///
     /// [`chmod`]: chmod/index.html
     #[cfg(unix)]
-    fn chmod_hab_directory<P>(&self, ui: &mut UI, rootfs: P) -> Result<()>
-        where P: AsRef<Path>
-    {
+    fn chmod_hab_directory(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         use crate::chmod;
+        use habitat_common::ui::Glyph;
 
-        let target = rootfs.as_ref().join("hab");
-        ui.status(Status::Custom('✓', "Changing permissions on".into()),
+        let target = rootfs.join("hab");
+        ui.status(Status::Custom(Glyph::CheckMark, "Changing permissions on".into()),
                   format!("{:?}", target))?;
         chmod::recursive_g_equal_u(target)
     }
 
-    fn remove_symlink_to_artifact_cache<P: AsRef<Path>>(&self,
-                                                        ui: &mut UI,
-                                                        rootfs: P)
-                                                        -> Result<()> {
+    fn remove_symlink_to_artifact_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         ui.status(Status::Deleting, "artifact cache symlink")?;
-        stdfs::remove_dir_all(rootfs.as_ref().join(CACHE_ARTIFACT_PATH))?;
+        stdfs::remove_dir_all(rootfs.join(CACHE_ARTIFACT_PATH))?;
         Ok(())
     }
 
-    fn remove_symlink_to_key_cache<P: AsRef<Path>>(&self, ui: &mut UI, rootfs: P) -> Result<()> {
+    fn remove_symlink_to_key_cache(&self, ui: &mut UI, rootfs: &Path) -> Result<()> {
         ui.status(Status::Deleting, "artifact key symlink")?;
-        stdfs::remove_dir_all(rootfs.as_ref().join(CACHE_KEY_PATH))?;
+        stdfs::remove_dir_all(rootfs.join(CACHE_KEY_PATH))?;
 
         Ok(())
     }
 
-    fn install_base_pkg<P: AsRef<Path>>(&self,
-                                        ui: &mut UI,
-                                        ident_or_archive: &str,
-                                        fs_root_path: P)
-                                        -> Result<PackageIdent> {
+    fn install_base_pkg(&self,
+                        ui: &mut UI,
+                        ident_or_archive: &str,
+                        fs_root_path: &Path)
+                        -> Result<PackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      self.base_pkgs_url,
@@ -327,11 +305,11 @@ impl<'a> BuildSpec<'a> {
                      None)
     }
 
-    fn install_user_pkg<P: AsRef<Path>>(&self,
-                                        ui: &mut UI,
-                                        ident_or_archive: &str,
-                                        fs_root_path: P)
-                                        -> Result<PackageIdent> {
+    fn install_user_pkg(&self,
+                        ui: &mut UI,
+                        ident_or_archive: &str,
+                        fs_root_path: &Path)
+                        -> Result<PackageIdent> {
         self.install(ui,
                      ident_or_archive,
                      self.url,
@@ -340,14 +318,14 @@ impl<'a> BuildSpec<'a> {
                      self.auth)
     }
 
-    fn install<P: AsRef<Path>>(&self,
-                               ui: &mut UI,
-                               ident_or_archive: &str,
-                               url: &str,
-                               channel: &ChannelIdent,
-                               fs_root_path: P,
-                               token: Option<&str>)
-                               -> Result<PackageIdent> {
+    fn install(&self,
+               ui: &mut UI,
+               ident_or_archive: &str,
+               url: &str,
+               channel: &ChannelIdent,
+               fs_root_path: &Path,
+               token: Option<&str>)
+               -> Result<PackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install =
             common::command::package::install::start(ui,
@@ -356,7 +334,7 @@ impl<'a> BuildSpec<'a> {
                                                      &install_source,
                                                      &*PROGRAM_NAME,
                                                      VERSION,
-                                                     &fs_root_path,
+                                                     fs_root_path,
                                                      &cache_artifact_path(Some(&fs_root_path)),
                                                      token,
                                                      // TODO fn: pass through and enable offline
@@ -821,7 +799,7 @@ mod test {
             }
             let prefix = hcore::fs::pkg_install_path(&ident, Some(self.rootfs.as_path()));
             util::write_file(prefix.join("IDENT"), &ident.to_string()).unwrap();
-            util::write_file(prefix.join("TARGET"), PackageTarget::active_target()).unwrap();
+            util::write_file(prefix.join("TARGET"), &PackageTarget::active_target()).unwrap();
 
             util::write_file(prefix.join("SVC_USER"), &self.svc_user).unwrap();
             util::write_file(prefix.join("SVC_GROUP"), &self.svc_group).unwrap();

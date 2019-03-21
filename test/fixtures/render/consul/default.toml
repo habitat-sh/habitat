@@ -1,0 +1,31 @@
+# If you would like the web gui on the agent
+website = true
+
+# The options for consul are available here
+# https://www.consul.io/docs/agent/options.html
+[bootstrap]
+expect = "3"
+
+[server]
+data-dir = "IN_DEFAULT_TOML"
+datacenter = "dc1"
+loglevel = "INFO"
+# Revert back to the Legacy UI
+legacy_ui = false
+# switch this to false you want to start in DEVMODE
+# https://www.consul.io/docs/guides/bootstrapping.html
+mode = true
+
+[ports]
+# The DNS server, -1 to disable
+dns = 8600
+# The HTTP API, -1 to disable
+http = 8500
+# The HTTPS API, -1 to disable
+https = -1
+# The Serf LAN port
+serf_lan = 8301
+# The Serf WAN port
+serf_wan = 8302
+# Server RPC address
+server = 8300

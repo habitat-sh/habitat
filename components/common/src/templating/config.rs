@@ -575,7 +575,7 @@ fn load_templates(dir: &Path,
             Ok(file_type) if file_type.is_file() => {
                 // JW TODO: This error needs improvement. TemplateFileError is too generic.
                 template.register_template_file(&relative_path.to_string_lossy(), &entry.path())
-                        .map_err(Error::TemplateFileError)?;
+                        .map_err(|e| Error::TemplateFileError(Box::new(e)))?;
             }
             Ok(file_type) if file_type.is_dir() => {
                 template = load_templates(&entry.path(), &relative_path, template)?

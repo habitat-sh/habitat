@@ -28,6 +28,7 @@ This is a list of all environment variables that can be used to modify the opera
 | `HAB_STUDIO_ROOT` | build system | no default | Root of the current Studio under `$HAB_STUDIOS_HOME`. Infrequently overridden. |
 | `HAB_STUDIO_NOSTUDIORC` | build system | no default | When set to a non-empty value, a `.studiorc` will not be sourced when entering an interactive Studio via `hab studio enter`. |
 | `HAB_STUDIO_SUP` | build system | no default | Used to customize the arguments passed to an automatically launched Supervisor, or to disable the automatic launching by setting it to `false`, `no`, or `0`. |
+| `HAB_GLYPH_STYLE` | build system | `full` (`limited` on Windows) | Used to customize the rendering of unicode glyphs in UI messages. Valid values are `full`, `limited`, or `ascii`. |
 | `HAB_UPDATE_STRATEGY_FREQUENCY_MS` | Supervisor | 60000 | Frequency of milliseconds to check for updates when running with an [update strategy](/docs/using-habitat#using-updates) |
 | `HAB_USER` | Supervisor | no default | User key to use when running with [service group encryption](/docs/using-habitat#using-encryption) |
 | `http_proxy` | build system, Supervisor | no default | A URL for a local HTTP proxy server optionally supporting basic authentication |

@@ -46,11 +46,19 @@ try {
     $version = "$($pathParts[-2])-$($pathParts[-1])"
     
 @"
+# escape=``
 FROM microsoft/windowsservercore
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ADD rootfs /
 WORKDIR /src
-RUN /hab/pkgs/$ident/bin/hab/hab.exe pkg exec core/windows-service install
+SHELL ["powershell", "-Command", "`$ErrorActionPreference = 'Stop'; `$ProgressPreference = 'SilentlyContinue';"]
+# Install the habitat windows service and then allow color and strip the log timestamps.
+# Because this is a studio we are not worried about ANSI codes in the log. Users will 
+# view them by tailing the log to the console. Because we are in a Docker studio, it is safe to
+# assume that the terminal supports ANSI sequence codes.
+RUN &/hab/pkgs/$ident/bin/hab/hab.exe pkg exec core/windows-service install; ``
+    (Get-Content /hab/svc/windows-service/HabService.dll.config).replace('--no-color', '') | Set-Content /hab/svc/windows-service/HabService.dll.config; ``
+    (Get-Content /hab/svc/windows-service/log4net.xml).replace('%date - ', '') | Set-Content /hab/svc/windows-service/log4net.xml
 ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "bypass", "-NoLogo", "-file", "/hab/pkgs/$ident/bin/hab-studio.ps1"]
 "@ | Out-File "$tmpRoot/Dockerfile" -Encoding ascii
     

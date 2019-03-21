@@ -56,12 +56,13 @@ pub enum Error {
     FileNotFound(String),
     HabitatCommon(common::Error),
     HabitatCore(hcore::Error),
-    // Boxed because https://rust-lang-nursery.github.io/rust-clippy/master/index.html#large_enum_variant
+    // Boxed due to clippy::large_enum_variant
     HandlebarsRenderError(Box<handlebars::TemplateRenderError>),
     IO(io::Error),
     JobGroupPromoteOrDemote(api_client::Error, bool /* promote */),
     JobGroupCancel(api_client::Error),
     JobGroupPromoteOrDemoteUnprocessable(bool /* promote */),
+    JsonErr(serde_json::Error),
     NameLookup,
     NetErr(net::NetErr),
     PackageArchiveMalformed(String),
@@ -156,6 +157,7 @@ impl fmt::Display for Error {
                         if promote { "promote" } else { "demote" },
                         e)
             }
+            Error::JsonErr(ref e) => e.to_string(),
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
             Error::NameLookup => "Error resolving a name or IP address".to_string(),
             Error::NetErr(ref e) => e.to_string(),
@@ -238,6 +240,7 @@ impl error::Error for Error {
             Error::ProvidesError(_) => {
                 "Can't find a package that provides the given search parameter"
             }
+            Error::JsonErr(ref err) => err.description(),
             Error::RemoteSupResolutionError(_, ref err) => err.description(),
             Error::RootRequired => {
                 "Root or administrator permissions required to complete operation"
@@ -299,4 +302,8 @@ impl From<SrvClientError> for Error {
 
 impl From<net::NetErr> for Error {
     fn from(err: net::NetErr) -> Self { Error::NetErr(err) }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self { Error::JsonErr(err) }
 }

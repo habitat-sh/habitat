@@ -3,6 +3,31 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- windows docker studio should output sup log in color and without timestamp [#6312](https://github.com/habitat-sh/habitat/pull/6312) ([mwrock](https://github.com/mwrock))
+- eliminate false error noise from windows launcher [#6313](https://github.com/habitat-sh/habitat/pull/6313) ([mwrock](https://github.com/mwrock))
+- Use subshells and unset to actually unset environment variables [#6296](https://github.com/habitat-sh/habitat/pull/6296) ([christophermaier](https://github.com/christophermaier))
+- implement platform specific UI symbols [#6290](https://github.com/habitat-sh/habitat/pull/6290) ([mwrock](https://github.com/mwrock))
+
+#### Behavioral Changes
+- Remove usage of habitat_core::binlink::default_binlink_dir [#6315](https://github.com/habitat-sh/habitat/pull/6315) ([baumanj](https://github.com/baumanj))
+- macOS still needs --interactive and --tty set [#6295](https://github.com/habitat-sh/habitat/pull/6295) ([raskchanky](https://github.com/raskchanky))
+
+#### Merged Pull Requests
+- Use POSIX `unset` rather than Busybox `env -u` for HAB_STUDIO_BINARY [#6318](https://github.com/habitat-sh/habitat/pull/6318) ([christophermaier](https://github.com/christophermaier))
+- Make Linux Kernel 2 validation just a little bit easier [#6297](https://github.com/habitat-sh/habitat/pull/6297) ([christophermaier](https://github.com/christophermaier))
+- turn off supervisor log coloring in local windows studio if ANSI is not supported [#6306](https://github.com/habitat-sh/habitat/pull/6306) ([mwrock](https://github.com/mwrock))
+- Use sup-run instead of hab sup run in demo [#5746](https://github.com/habitat-sh/habitat/pull/5746) ([rsertelon](https://github.com/rsertelon))
+
+#### New Features & Enhancements
+- Introduce NATS Streaming eventing to the Supervisor [#6218](https://github.com/habitat-sh/habitat/pull/6218) ([christophermaier](https://github.com/christophermaier))
+- Copies /etc/inputrc in studio if available [#5658](https://github.com/habitat-sh/habitat/pull/5658) ([rsertelon](https://github.com/rsertelon))
+- Attempt to implement template debugging tool [#6114](https://github.com/habitat-sh/habitat/pull/6114) ([qubitrenegade](https://github.com/qubitrenegade))
+<!-- latest_release -->
+
+## [0.78.0](https://github.com/habitat-sh/habitat/tree/0.78.0) (2019-03-13)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.77.0...0.78.0)
+
 #### New Features & Enhancements
 - Asynchronous service shutdown [#6107](https://github.com/habitat-sh/habitat/pull/6107) ([christophermaier](https://github.com/christophermaier))
 - Use --strip-debug for hab, sup, and launcher [#6275](https://github.com/habitat-sh/habitat/pull/6275) ([jaym](https://github.com/jaym))
@@ -21,10 +46,8 @@
 - Enable local installation of latest rustfmt [#6238](https://github.com/habitat-sh/habitat/pull/6238) ([raskchanky](https://github.com/raskchanky))
 - Adds blog post for release 0.77.0 [#6254](https://github.com/habitat-sh/habitat/pull/6254) ([eeyun](https://github.com/eeyun))
 
-<!-- latest_release -->
-
 ## [0.77.0](https://github.com/habitat-sh/habitat/tree/0.77.0) (2019-03-01)
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.75.0...0.76.0)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.76.0...0.77.0)
 
 #### Bug Fixes
 - Prevent a crash in Supervisor protocol processing [#6144](https://github.com/habitat-sh/habitat/pull/6144) ([christophermaier](https://github.com/christophermaier))

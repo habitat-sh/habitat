@@ -42,16 +42,17 @@ use habitat_api_client;
 use habitat_butterfly;
 use habitat_common::{self,
                      output::{self,
+                              OutputContext,
                               OutputVerbosity,
                               StructuredOutput},
                      PROGRAM_NAME};
 use habitat_core::{self,
                    os::process::Pid,
                    package::{self,
-                             Identifiable,
-                             PackageInstall}};
+                             Identifiable}};
 use habitat_launcher_client;
 use habitat_sup_protocol;
+use nitox;
 use notify;
 use rustls;
 use serde_json;
@@ -110,7 +111,6 @@ pub enum Error {
     BadDataPath(PathBuf, io::Error),
     BadDesiredState(String),
     BadElectionStatus(String),
-    BadPackage(PackageInstall, habitat_core::error::Error),
     BadSpecsPath(PathBuf, io::Error),
     BadStartStyle(String),
     BindTimeout(String),
@@ -121,6 +121,8 @@ pub enum Error {
     APIClient(habitat_api_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
+    EventError(nitox::NatsError),
+    EventStreamError(nitox::streaming::error::NatsStreamingError),
     FileNotFound(String),
     FileWatcherFileIsRoot,
     GroupNotFound(String),
@@ -208,7 +210,6 @@ impl fmt::Display for SupError {
                 format!("Unknown service desired state style '{}'", state)
             }
             Error::BadElectionStatus(ref status) => format!("Unknown election status '{}'", status),
-            Error::BadPackage(ref pkg, ref err) => format!("Bad package, {}, {}", pkg, err),
             Error::BadSpecsPath(ref path, ref err) => {
                 format!("Unable to create the specs directory '{}' ({})",
                         path.display(),
@@ -227,6 +228,8 @@ impl fmt::Display for SupError {
             Error::ExecCommandNotFound(ref c) => {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
+            Error::EventError(ref err) => err.to_string(),
+            Error::EventStreamError(ref err) => err.to_string(),
             Error::Permissions(ref err) => err.to_string(),
             Error::HabitatCommon(ref err) => err.to_string(),
             Error::HabitatCore(ref err) => err.to_string(),
@@ -328,9 +331,9 @@ impl fmt::Display for SupError {
         let progname = PROGRAM_NAME.as_str();
         let so = StructuredOutput::new(progname,
                                        self.logkey,
-                                       self.line,
-                                       self.file,
-                                       self.column,
+                                       OutputContext { line:   self.line,
+                                                       file:   self.file,
+                                                       column: self.column, },
                                        output::get_format(),
                                        OutputVerbosity::Verbose,
                                        &content);
@@ -348,7 +351,6 @@ impl error::Error for SupError {
             Error::BadDataPath(..) => "Unable to read or write to data directory",
             Error::BadElectionStatus(_) => "Unknown election status",
             Error::BadDesiredState(_) => "Unknown desired state in service spec",
-            Error::BadPackage(..) => "Package was malformed or contained malformed contents",
             Error::BadSpecsPath(..) => "Unable to create the specs directory",
             Error::BadStartStyle(_) => "Unknown start style in service spec",
             Error::BindTimeout(_) => "Timeout waiting to bind to an address",
@@ -357,6 +359,9 @@ impl error::Error for SupError {
             Error::ButterflyError(ref err) => err.description(),
             Error::CtlSecretIo(..) => "IoError while reading ctl secret",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
+            Error::EventError(_) => "event error", // underlying NATS error doesn't implement Error
+            Error::EventStreamError(_) => "event streaming error", // underlying NATS error
+            // doesn't implement Error
             Error::GroupNotFound(_) => "No matching GID for group found",
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
@@ -508,4 +513,14 @@ impl From<habitat_sup_protocol::net::NetErr> for SupError {
 
 impl From<oneshot::Canceled> for SupError {
     fn from(err: oneshot::Canceled) -> Self { sup_error!(Error::OneshotCanceled(err)) }
+}
+
+impl From<nitox::NatsError> for SupError {
+    fn from(err: nitox::NatsError) -> Self { sup_error!(Error::EventError(err)) }
+}
+
+impl From<nitox::streaming::error::NatsStreamingError> for SupError {
+    fn from(err: nitox::streaming::error::NatsStreamingError) -> Self {
+        sup_error!(Error::EventStreamError(err))
+    }
 }

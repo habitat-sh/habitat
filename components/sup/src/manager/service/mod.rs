@@ -293,7 +293,7 @@ impl Service {
                                .start(&self.pkg,
                                       &self.service_group,
                                       launcher,
-                                      self.svc_encrypted_password.as_ref())
+                                      self.svc_encrypted_password.as_ref().map(String::as_str))
                                .err()
         {
             outputln!(preamble self.service_group, "Service start failed: {}", err);
@@ -335,12 +335,13 @@ impl Service {
         let _timer = hook_timer("reload");
         self.needs_reload = false;
         if self.process_down() || self.hooks.reload.is_none() {
-            if let Some(err) = self.supervisor
-                                   .restart(&self.pkg,
-                                            &self.service_group,
-                                            launcher,
-                                            self.svc_encrypted_password.as_ref())
-                                   .err()
+            if let Some(err) =
+                self.supervisor
+                    .restart(&self.pkg,
+                             &self.service_group,
+                             launcher,
+                             self.svc_encrypted_password.as_ref().map(String::as_ref))
+                    .err()
             {
                 outputln!(preamble self.service_group, "Service restart failed: {}", err);
             }

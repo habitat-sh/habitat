@@ -14,6 +14,7 @@
 
 use crate::error::{Error,
                    Result};
+use habitat_common::types::UserInfo;
 use habitat_core::os::process::Pid;
 use habitat_launcher_protocol::{self as protocol,
                                 Error as ProtocolError};
@@ -21,7 +22,6 @@ use ipc_channel::ipc::{IpcOneShotServer,
                        IpcReceiver,
                        IpcSender};
 use std::{collections::HashMap,
-          fs,
           io,
           path::Path};
 
@@ -29,14 +29,20 @@ type Env = HashMap<String, String>;
 type IpcServer = IpcOneShotServer<Vec<u8>>;
 
 pub struct LauncherCli {
-    tx:   IpcSender<Vec<u8>>,
-    rx:   IpcReceiver<Vec<u8>>,
+    tx: IpcSender<Vec<u8>>,
+    rx: IpcReceiver<Vec<u8>>,
+    // We persist the pipe identifier so we can delete the file on drop.
+    // This is not necessary on Windows because named pipes are removed
+    // upon releasing the last handle to the pipe. The ipc-channel crate
+    // wraps the pipe in a WinHandle whose drop impl calls CloseHandle.
+    #[cfg(not(windows))]
     pipe: String,
 }
 
+#[cfg(not(windows))]
 impl Drop for LauncherCli {
     fn drop(&mut self) {
-        if fs::remove_file(&self.pipe).is_err() {
+        if std::fs::remove_file(&self.pipe).is_err() {
             error!("Could not remove old pipe to launcher {}", self.pipe);
         } else {
             debug!("Removed old pipe to launcher {}", self.pipe);
@@ -56,6 +62,7 @@ impl LauncherCli {
         Self::read::<protocol::NetOk>(&raw)?;
         Ok(LauncherCli { tx,
                          rx,
+                         #[cfg(not(windows))]
                          pipe: pipe_to_sup })
     }
 
@@ -124,40 +131,33 @@ impl LauncherCli {
 
     /// Send a process spawn command to the connected Launcher
     ///
-    /// `user` and `group` are string names, while `user_id` and
-    /// `group_id` are numeric IDs. Newer versions of the Launcher can
+    /// `username` and `groupname` are string names, while `uid` and
+    /// `gid` are numeric IDs. Newer versions of the Launcher can
     /// accept either, but prefer numeric IDs.
-    pub fn spawn<I, B, U, G, P>(&self,
-                                id: &I,
-                                bin: B,
-                                user: Option<U>,
-                                group: Option<G>,
-                                user_id: Option<u32>,
-                                group_id: Option<u32>,
-                                password: Option<P>,
-                                env: Env)
-                                -> Result<Pid>
-        where I: ToString,
-              B: AsRef<Path>,
-              U: ToString,
-              G: ToString,
-              P: ToString
-    {
+    pub fn spawn(&self,
+                 id: &str,
+                 bin: &Path,
+                 UserInfo { username,
+                            uid,
+                            groupname,
+                            gid, }: UserInfo,
+                 password: Option<&str>,
+                 env: Env)
+                 -> Result<Pid> {
         // On Windows, we only expect user to be Some.
         //
-        // On Linux, we expect user_id and group_id to be Some, while
-        // user and group may be either Some or None. Only the IDs are
+        // On Linux, we expect uid and gid to be Some, while
+        // user and groupname may be either Some or None. Only the IDs are
         // used; names are only for backward compatibility with older
         // Launchers.
-        let msg =
-            protocol::Spawn { binary: bin.as_ref().to_path_buf().to_string_lossy().into_owned(),
-                              svc_user: user.map(|u| u.to_string()),
-                              svc_group: group.map(|g| g.to_string()),
-                              svc_user_id: user_id,
-                              svc_group_id: group_id,
-                              svc_password: password.map(|p| p.to_string()),
-                              env,
-                              id: id.to_string() };
+        let msg = protocol::Spawn { binary: bin.to_string_lossy().into_owned(),
+                                    svc_user: username,
+                                    svc_group: groupname,
+                                    svc_user_id: uid,
+                                    svc_group_id: gid,
+                                    svc_password: password.map(str::to_string),
+                                    env,
+                                    id: id.to_string() };
 
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;

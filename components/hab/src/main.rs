@@ -23,19 +23,19 @@ extern crate log;
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
-use crate::{common::{command::package::install::{InstallHookMode,
+use crate::{common::{cli_defaults::{DEFAULT_BINLINK_DIR,
+                                    FS_ROOT},
+                     command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
                                                  LocalPackageUsage},
-                     output::{self,
-                              OutputFormat},
+                     output,
                      types::ListenCtlAddr,
                      ui::{Status,
                           UIWriter,
                           NONINTERACTIVE_ENVVAR,
                           UI}},
-            hcore::{binlink::default_binlink_dir,
-                    crypto::{default_cache_key_path,
+            hcore::{crypto::{default_cache_key_path,
                              init,
                              keys::PairType,
                              BoxKeyPair,
@@ -91,8 +91,7 @@ use std::{env,
                prelude::*,
                Read},
           net::ToSocketAddrs,
-          path::{Path,
-                 PathBuf},
+          path::Path,
           process,
           result,
           str::FromStr,
@@ -100,48 +99,22 @@ use std::{env,
 use tabwriter::TabWriter;
 use termcolor::{self,
                 Color,
-                ColorChoice,
                 ColorSpec};
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
 /// Makes the --user CLI param optional when this env var is set
 const HABITAT_USER_ENVVAR: &str = "HAB_USER";
-const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 
 lazy_static! {
     static ref STATUS_HEADER: Vec<&'static str> = {
-        vec![
-            "package",
-            "type",
-            "desired",
-            "state",
-            "elapsed (s)",
-            "pid",
-            "group",
-        ]
-    };
-
-    /// The default filesystem root path to base all commands from. This is lazily generated on
-    /// first call and reflects on the presence and value of the environment variable keyed as
-    /// `FS_ROOT_ENVVAR`.
-    static ref FS_ROOT: PathBuf = {
-        use crate::hcore::fs::FS_ROOT_ENVVAR;
-
-        if cfg!(target_os = "windows") {
-            match (henv::var(FS_ROOT_ENVVAR), henv::var(SYSTEMDRIVE_ENVVAR)) {
-                (Ok(path), _) => PathBuf::from(path),
-                (Err(_), Ok(system_drive)) => PathBuf::from(format!("{}{}", system_drive, "\\")),
-                (Err(_), Err(_)) => unreachable!(
-                    "Windows should always have a SYSTEMDRIVE \
-                    environment variable."
-                ),
-            }
-        } else if let Ok(root) = henv::var(FS_ROOT_ENVVAR) {
-            PathBuf::from(root)
-        } else {
-            PathBuf::from("/")
-        }
+        vec!["package",
+             "type",
+             "desired",
+             "state",
+             "elapsed (s)",
+             "pid",
+             "group",]
     };
 }
 
@@ -258,7 +231,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("config", Some(m)) => sub_pkg_config(m)?,
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
                 ("env", Some(m)) => sub_pkg_env(m)?,
-                ("exec", Some(m)) => sub_pkg_exec(m, remaining_args)?,
+                ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
                 ("export", Some(m)) => sub_pkg_export(ui, m)?,
                 ("hash", Some(m)) => sub_pkg_hash(m)?,
                 ("install", Some(m)) => sub_pkg_install(ui, m)?,
@@ -280,6 +253,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("plan", Some(matches)) => {
             match matches.subcommand() {
                 ("init", Some(m)) => sub_plan_init(ui, m)?,
+                ("render", Some(m)) => sub_plan_render(ui, m)?,
                 _ => unreachable!(),
             }
         }
@@ -349,12 +323,9 @@ fn start(ui: &mut UI) -> Result<()> {
 fn sub_cli_setup(ui: &mut UI) -> Result<()> {
     init();
 
-    command::cli::setup::start(
-        ui,
-        &default_cache_key_path(Some(&*FS_ROOT)),
-        &cache_analytics_path(Some(&*FS_ROOT)),
-        &Path::new(&*FS_ROOT).join(Path::new(&default_binlink_dir()).strip_prefix("/").unwrap()),
-    )
+    command::cli::setup::start(ui,
+                               &default_cache_key_path(Some(&*FS_ROOT)),
+                               &cache_analytics_path(Some(&*FS_ROOT)))
 }
 
 fn sub_cli_completers(m: &ArgMatches<'_>) -> Result<()> {
@@ -470,13 +441,13 @@ fn sub_origin_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-    let dest_dir = binlink_dest_dir_from_matches(m);
+    let dest_dir = Path::new(m.value_of("DEST_DIR").unwrap()); // required by clap
     let force = m.is_present("FORCE");
     match m.value_of("BINARY") {
         Some(binary) => {
-            command::pkg::binlink::start(ui, &ident, &binary, &dest_dir, &*FS_ROOT, force)
+            command::pkg::binlink::start(ui, &ident, &binary, dest_dir, &FS_ROOT, force)
         }
-        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, &dest_dir, &*FS_ROOT, force),
+        None => command::pkg::binlink::binlink_all_in_pkg(ui, &ident, dest_dir, &FS_ROOT, force),
     }
 }
 
@@ -546,7 +517,7 @@ fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
     command::pkg::env::start(&ident, &*FS_ROOT)
 }
 
-fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: Vec<OsString>) -> Result<()> {
+fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let cmd = m.value_of("CMD").unwrap(); // Required via clap
 
@@ -677,7 +648,7 @@ fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let name = m.value_of("PKG_NAME").map(|v| v.into());
+    let name = m.value_of("PKG_NAME").map(String::from);
     let origin = origin_param_or_env(&m)?;
     let with_docs = m.is_present("WITH_DOCS");
     let with_callbacks = m.is_present("WITH_CALLBACKS");
@@ -700,6 +671,32 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                windows,
                                scaffolding_ident,
                                name)
+}
+
+fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let template_path = Path::new(m.value_of("TEMPLATE_PATH").unwrap());
+
+    let default_toml_path = Path::new(m.value_of("DEFAULT_TOML").unwrap());
+
+    let user_toml_path = m.value_of("USER_TOML").map(Path::new);
+
+    let mock_data_path = m.value_of("MOCK_DATA").map(Path::new);
+
+    let print = m.is_present("PRINT");
+    let render = !m.is_present("NO_RENDER");
+    let quiet = m.is_present("QUIET");
+
+    let render_dir = Path::new(m.value_of("RENDER_DIR").unwrap());
+
+    command::plan::render::start(ui,
+                                 template_path,
+                                 default_toml_path,
+                                 user_toml_path,
+                                 mock_data_path,
+                                 print,
+                                 render,
+                                 render_dir,
+                                 quiet)
 }
 
 fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -745,12 +742,11 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                                      install_hook_mode)?;
 
         if m.is_present("BINLINK") {
-            let dest_dir = binlink_dest_dir_from_matches(m);
             let force = m.is_present("FORCE");
             command::pkg::binlink::binlink_all_in_pkg(ui,
                                                       pkg_install.ident(),
-                                                      dest_dir,
-                                                      &*FS_ROOT,
+                                                      Path::new(DEFAULT_BINLINK_DIR),
+                                                      &FS_ROOT,
                                                       force)?;
         }
     }
@@ -810,12 +806,12 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
     let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
-    for artifact_path in artifact_paths {
+    for artifact_path in artifact_paths.map(Path::new) {
         command::pkg::upload::start(ui,
                                     &url,
                                     &additional_release_channel,
                                     &token,
-                                    &artifact_path,
+                                    artifact_path,
                                     force_upload,
                                     &key_path)?;
     }
@@ -1263,6 +1259,10 @@ fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::user::key::generate::start(ui, user, &default_cache_key_path(Some(&*FS_ROOT)))
 }
 
+fn args_after_first(args_to_skip: usize) -> Vec<OsString> {
+    env::args_os().skip(args_to_skip).collect()
+}
+
 fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
     let mut args = env::args();
     match (args.nth(1).unwrap_or_default().as_str(),
@@ -1270,23 +1270,17 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
            args.next().unwrap_or_default().as_str())
     {
         ("pkg", "export", "docker") => {
-            command::pkg::export::docker::start(ui, env::args_os().skip(4).collect())
+            command::pkg::export::docker::start(ui, &args_after_first(4))
         }
-        ("pkg", "export", "cf") => {
-            command::pkg::export::cf::start(ui, env::args_os().skip(4).collect())
-        }
-        ("pkg", "export", "helm") => {
-            command::pkg::export::helm::start(ui, env::args_os().skip(4).collect())
-        }
+        ("pkg", "export", "cf") => command::pkg::export::cf::start(ui, &args_after_first(4)),
+        ("pkg", "export", "helm") => command::pkg::export::helm::start(ui, &args_after_first(4)),
         ("pkg", "export", "k8s") | ("pkg", "export", "kubernetes") => {
-            command::pkg::export::kubernetes::start(ui, env::args_os().skip(4).collect())
+            command::pkg::export::kubernetes::start(ui, &args_after_first(4))
         }
-        ("pkg", "export", "tar") => {
-            command::pkg::export::tar::start(ui, env::args_os().skip(4).collect())
-        }
-        ("run", ..) => command::launcher::start(ui, env::args_os().skip(1).collect()),
+        ("pkg", "export", "tar") => command::pkg::export::tar::start(ui, &args_after_first(4)),
+        ("run", ..) => command::launcher::start(ui, &args_after_first(1)),
         ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
-            command::studio::enter::start(ui, env::args_os().skip(2).collect())
+            command::studio::enter::start(ui, &args_after_first(2))
         }
         // Skip invoking the `hab-sup` binary for sup cli help messages;
         // handle these from within `hab`
@@ -1303,10 +1297,10 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         | ("sup", "bash", _)
         | ("sup", "sh", _)
         | ("sup", "-V", _)
-        | ("sup", "--version", _) => command::sup::start(ui, env::args_os().skip(2).collect()),
-        ("term", ..) => command::sup::start(ui, env::args_os().skip(1).collect()),
+        | ("sup", "--version", _) => command::sup::start(ui, &args_after_first(2)),
+        ("term", ..) => command::sup::start(ui, &args_after_first(1)),
         // Delegate `hab sup run *` to the Launcher
-        ("sup", "run", _) => command::launcher::start(ui, env::args_os().skip(2).collect()),
+        ("sup", "run", _) => command::launcher::start(ui, &args_after_first(2)),
         _ => Ok(()),
     }
 }
@@ -1456,11 +1450,6 @@ fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
            .map(PackageTarget::from_str)
            .unwrap_or_else(|| PackageTarget::from_str("x86_64-linux"))
            .map_err(Error::HabitatCore)
-}
-
-fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
-    let env_or_default = default_binlink_dir();
-    Path::new(matches.value_of("DEST_DIR").unwrap_or(&env_or_default)).to_path_buf()
 }
 
 fn install_sources_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<InstallSource>> {
@@ -1772,10 +1761,6 @@ fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
 // function wouldn't be necessary. In the meantime, though, it'll keep
 // the scope of change contained.
 fn ui() -> UI {
-    let coloring = match output::get_format() {
-        OutputFormat::Color => ColorChoice::Auto,
-        OutputFormat::NoColor | OutputFormat::JSON => ColorChoice::Never,
-    };
     let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
                                                    .unwrap_or(false)
     {
@@ -1783,7 +1768,7 @@ fn ui() -> UI {
     } else {
         None
     };
-    UI::default_with(coloring, isatty)
+    UI::default_with(output::get_format().color_choice(), isatty)
 }
 
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
