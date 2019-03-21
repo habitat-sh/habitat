@@ -82,12 +82,7 @@ pub fn is_alive(pid: Pid) -> bool {
     }
 }
 
-pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
-    debug!("sending no-op(windows) signal {} to pid {}",
-           signal.os_signal(),
-           pid);
-    Ok(())
-}
+pub fn signal(pid: Pid, signal: Signal) -> Result<()> { Ok(()) }
 
 /// Executes a command as a child process and exits with the child's exit code.
 ///
