@@ -12,25 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::{ExecutionStrategy,
+            Scope};
+use crate::error::{Error,
+                   Result};
+use habitat_common::{package_graph::PackageGraph,
+                     ui::{Status,
+                          UIWriter,
+                          UI}};
+use habitat_core::{error as herror,
+                   fs as hfs,
+                   package::{list::temp_package_directory,
+                             Identifiable,
+                             PackageIdent,
+                             PackageInstall}};
 use std::{fs,
           path::Path,
           str::FromStr};
-
-use super::{ExecutionStrategy,
-            Scope};
-use crate::{common::{package_graph::PackageGraph,
-                     ui::{Status,
-                          UIWriter,
-                          UI}},
-            error::{Error,
-                    Result},
-            hcore::{error as herror,
-                    fs as hfs,
-                    package::{Identifiable,
-                              PackageIdent,
-                              PackageInstall}}};
-
-use crate::hcore::package::list::temp_package_directory;
 
 /// Delete a package and all dependencies which are not used by other packages.
 /// We do an ordered traverse of the dependencies, updating the graph as we delete a
@@ -217,7 +215,8 @@ fn do_clean_delete(pkg_root_path: &Path, real_install_path: &Path) -> Result<boo
     // below the pkg_root_path
     match real_install_path.parent() {
         Some(real_install_base) => {
-            let temp_install_path = temp_package_directory(real_install_path)?;
+            let temp_install_path = temp_package_directory(real_install_path)?.path()
+                                                                              .to_path_buf();
             fs::rename(&real_install_path, &temp_install_path)?;
             fs::remove_dir_all(&temp_install_path)?;
 
