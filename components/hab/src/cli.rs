@@ -787,7 +787,7 @@ fn sub_pkg_build() -> App<'static, 'static> {
                                               .long("docker"));
     }
 
-    if cfg!(target_os = "windows") {
+    if cfg!(windows) {
         sub.arg(Arg::with_name("WINDOWS").help("Use a local Windows Studio instead of a Docker \
                                                 Studio")
                                          .short("w")
@@ -1016,9 +1016,8 @@ fn sub_svc_stop() -> App<'static, 'static> {
     )
 }
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
 fn sub_svc_load() -> App<'static, 'static> {
-    clap_app!(@subcommand load =>
+    let mut sub = clap_app!(@subcommand load =>
         (about: "Load a service to be started and supervised by Habitat from a package \
             identifier. If an installed package doesn't satisfy the given package \
             identifier, a suitable package will be installed from Builder.")
@@ -1051,46 +1050,15 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
         (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
             "The interval (seconds) on which to run health checks [default: 30]")
-    )
-}
+    );
 
-#[cfg(target_os = "windows")]
-fn sub_svc_load() -> App<'static, 'static> {
-    clap_app!(@subcommand load =>
-        (about: "Load a service to be started and supervised by Habitat from a package \
-            identifier. If an installed package doesn't satisfy the given package \
-            identifier, a suitable package will be installed from Builder.")
-        (@arg PKG_IDENT: +required +takes_value {valid_ident}
-            "A Habitat package identifier (ex: core/redis)")
-        (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
-            "Application name; [default: not set].")
-        (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
-            "Environment name; [default: not set].")
-        (@arg CHANNEL: --channel +takes_value default_value[stable]
-            "Receive package updates from the specified release channel")
-        (@arg GROUP: --group +takes_value
-            "The service group; shared config and topology [default: default].")
-        (@arg BLDR_URL: -u --url +takes_value {valid_url}
-            "Specify an alternate Builder endpoint. If not specified, the value will \
-             be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-             https://bldr.habitat.sh)")
-        (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-            "Service topology; [default: none]")
-        (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-            "The update strategy; [default: none] [values: none, at-once, rolling]")
-        (@arg BIND: --bind +takes_value +multiple
-            "One or more service groups to bind to a configuration")
-        (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-              startup until all binds are present. [default: strict] [values: relaxed, strict]")
-        (@arg FORCE: --force -f "Load or reload an already loaded service. If the service \
-            was previously loaded and running this operation will also restart the service")
-        (@arg PASSWORD: --password +takes_value "Password of the service user")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-        (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-            "The interval (seconds) on which to run health checks [default: 30]")
-    )
+    if cfg!(windows) {
+        sub = sub.arg(Arg::with_name("PASSWORD").long("password")
+                                                .takes_value(true)
+                                                .help("Password of the service user"));
+    }
+
+    sub
 }
 
 // CLAP Validation Functions
