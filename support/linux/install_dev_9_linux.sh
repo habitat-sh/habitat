@@ -23,10 +23,12 @@ EOF
       -exec ln -s "/usr/local/bin/rustc" "/usr/local/bin/{}" \;
   rustup target add x86_64-unknown-linux-musl
 else # non-root user, install in user directory
-  curl -sSf https://sh.rustup.rs \
-    | env -u CARGO_HOME sh -s -- -y --default-toolchain stable
-  . "$HOME/.cargo/env"
-  env -u CARGO_HOME rustup target add x86_64-unknown-linux-musl
+  ( # Use a subshell to remove CARGO_HOME since `env -u` is non-POSIX
+    unset CARGO_HOME
+    curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+    . "$HOME/.cargo/env"
+    rustup target add x86_64-unknown-linux-musl
+  )
 fi
 
 rustc --version
