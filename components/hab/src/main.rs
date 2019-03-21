@@ -35,8 +35,7 @@ use crate::{common::{cli_defaults::{DEFAULT_BINLINK_DIR,
                           UIWriter,
                           NONINTERACTIVE_ENVVAR,
                           UI}},
-            hcore::{crypto::{default_cache_key_path,
-                             init,
+            hcore::{crypto::{init,
                              keys::PairType,
                              BoxKeyPair,
                              SigKeyPair},
@@ -45,7 +44,8 @@ use crate::{common::{cli_defaults::{DEFAULT_BINLINK_DIR,
                     fs::{cache_analytics_path,
                          cache_artifact_path,
                          cache_key_path,
-                         launcher_root_path},
+                         launcher_root_path,
+                         CACHE_KEY_PATH},
                     package::{PackageIdent,
                               PackageTarget},
                     service::{HealthCheckInterval,
@@ -91,7 +91,8 @@ use std::{env,
                prelude::*,
                Read},
           net::ToSocketAddrs,
-          path::Path,
+          path::{Path,
+                 PathBuf},
           process,
           result,
           str::FromStr,
@@ -156,7 +157,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("apply", Some(m)) => sub_svc_set(m)?,
         ("cli", Some(matches)) => {
             match matches.subcommand() {
-                ("setup", Some(_)) => sub_cli_setup(ui)?,
+                ("setup", Some(m)) => sub_cli_setup(ui, m)?,
                 ("completers", Some(m)) => sub_cli_completers(m)?,
                 _ => unreachable!(),
             }
@@ -182,7 +183,7 @@ fn start(ui: &mut UI) -> Result<()> {
                         ("download", Some(sc)) => sub_origin_key_download(ui, sc)?,
                         ("export", Some(sc)) => sub_origin_key_export(sc)?,
                         ("generate", Some(sc)) => sub_origin_key_generate(ui, sc)?,
-                        ("import", Some(_)) => sub_origin_key_import(ui)?,
+                        ("import", Some(_)) => sub_origin_key_import(ui, m)?,
                         ("upload", Some(sc)) => sub_origin_key_upload(ui, sc)?,
                         _ => unreachable!(),
                     }
@@ -262,7 +263,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("key", Some(m)) => {
                     match m.subcommand() {
                         ("export", Some(sc)) => sub_ring_key_export(sc)?,
-                        ("import", Some(_)) => sub_ring_key_import(ui)?,
+                        ("import", Some(sc)) => sub_ring_key_import(ui, sc)?,
                         ("generate", Some(sc)) => sub_ring_key_generate(ui, sc)?,
                         _ => unreachable!(),
                     }
@@ -301,7 +302,7 @@ fn start(ui: &mut UI) -> Result<()> {
             }
         }
         ("supportbundle", _) => sub_supportbundle(ui)?,
-        ("setup", Some(_)) => sub_cli_setup(ui)?,
+        ("setup", Some(m)) => sub_cli_setup(ui, m)?,
         ("start", Some(m)) => sub_svc_start(m)?,
         ("stop", Some(m)) => sub_svc_stop(m)?,
         ("user", Some(matches)) => {
@@ -320,12 +321,11 @@ fn start(ui: &mut UI) -> Result<()> {
     Ok(())
 }
 
-fn sub_cli_setup(ui: &mut UI) -> Result<()> {
+fn sub_cli_setup(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
-    command::cli::setup::start(ui,
-                               &default_cache_key_path(Some(&*FS_ROOT)),
-                               &cache_analytics_path(Some(&*FS_ROOT)))
+    command::cli::setup::start(ui, &cache_key_path, &cache_analytics_path(Some(&*FS_ROOT)))
 }
 
 fn sub_cli_completers(m: &ArgMatches<'_>) -> Result<()> {
@@ -342,6 +342,7 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let with_encryption = m.is_present("WITH_ENCRYPTION");
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(&m)?;
+    let cache_key_path = cache_key_path_from_matches(&m);
 
     command::origin::key::download::start(ui,
                                           &url,
@@ -350,38 +351,40 @@ fn sub_origin_key_download(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                           with_secret,
                                           with_encryption,
                                           token.as_ref().map(String::as_str),
-                                          &default_cache_key_path(Some(&*FS_ROOT)))
+                                          &cache_key_path)
 }
 
 fn sub_origin_key_export(m: &ArgMatches<'_>) -> Result<()> {
     let origin = m.value_of("ORIGIN").unwrap(); // Required via clap
     let pair_type = PairType::from_str(m.value_of("PAIR_TYPE").unwrap_or("public"))?;
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
-    command::origin::key::export::start(origin, pair_type, &default_cache_key_path(Some(&*FS_ROOT)))
+    command::origin::key::export::start(origin, pair_type, &cache_key_path)
 }
 
 fn sub_origin_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = origin_param_or_env(&m)?;
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
-    command::origin::key::generate::start(ui, &origin, &default_cache_key_path(Some(&*FS_ROOT)))
+    command::origin::key::generate::start(ui, &origin, &cache_key_path)
 }
 
-fn sub_origin_key_import(ui: &mut UI) -> Result<()> {
+fn sub_origin_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let mut content = String::new();
     io::stdin().read_to_string(&mut content)?;
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
     // Trim the content to lose line feeds added by Powershell pipeline
-    command::origin::key::import::start(ui,
-                                        content.trim(),
-                                        &default_cache_key_path(Some(&*FS_ROOT)))
+    command::origin::key::import::start(ui, content.trim(), &cache_key_path)
 }
 
 fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
+    let cache_key_path = cache_key_path_from_matches(&m);
 
     init();
 
@@ -394,7 +397,7 @@ fn sub_origin_key_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                                    &token,
                                                    origin,
                                                    with_secret,
-                                                   &default_cache_key_path(Some(&*FS_ROOT)))
+                                                   &cache_key_path)
     } else {
         let keyfile = Path::new(m.value_of("PUBLIC_FILE").unwrap());
         let secret_keyfile = m.value_of("SECRET_FILE").map(|f| Path::new(f));
@@ -408,13 +411,14 @@ fn sub_origin_secret_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let origin = origin_param_or_env(&m)?;
     let key = m.value_of("KEY_NAME").unwrap();
     let secret = m.value_of("SECRET").unwrap();
+    let cache_key_path = cache_key_path_from_matches(&m);
     command::origin::secret::upload::start(ui,
                                            &url,
                                            &token,
                                            &origin,
                                            &key,
                                            &secret,
-                                           &default_cache_key_path(Some(&*FS_ROOT)))
+                                           &cache_key_path)
 }
 
 fn sub_origin_secret_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -458,12 +462,10 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let keys_string = match m.values_of("HAB_ORIGIN_KEYS") {
         Some(keys) => {
             init();
+            let cache_key_path = cache_key_path_from_matches(&m);
             for key in keys.clone() {
                 // Validate that all secret keys are present
-                let pair =
-                    SigKeyPair::get_latest_pair_for(key,
-                                                    &default_cache_key_path(Some(&*FS_ROOT)),
-                                                    None)?;
+                let pair = SigKeyPair::get_latest_pair_for(key, &cache_key_path, None)?;
                 let _ = pair.secret();
             }
             Some(keys.collect::<Vec<_>>().join(","))
@@ -784,16 +786,17 @@ fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
 fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     let dst = Path::new(m.value_of("DEST").unwrap()); // Required via clap
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
     let pair = SigKeyPair::get_latest_pair_for(&origin_param_or_env(&m)?,
-                                               &default_cache_key_path(Some(&*FS_ROOT)),
+                                               &cache_key_path,
                                                Some(&PairType::Secret))?;
 
     command::pkg::sign::start(ui, &pair, &src, &dst)
 }
 
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let key_path = cache_key_path(Some(&*FS_ROOT));
+    let key_path = cache_key_path_from_matches(&m);
     let url = bldr_url_from_matches(&m)?;
 
     // When packages are uploaded, they *always* go to `unstable`;
@@ -820,9 +823,10 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
-    command::pkg::verify::start(ui, &src, &default_cache_key_path(Some(&*FS_ROOT)))
+    command::pkg::verify::start(ui, &src, &cache_key_path)
 }
 
 fn sub_pkg_header(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -886,7 +890,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         process::exit(1);
     }
     validate.cfg = Some(buf.clone());
-    let cache = default_cache_key_path(Some(&*FS_ROOT));
+    let cache = cache_key_path_from_matches(&m);
     let mut set = protocol::ctl::SvcSetCfg::default();
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
@@ -1111,7 +1115,7 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     msg.version = Some(value_t!(m, "VERSION_NUMBER", u64).unwrap());
     msg.filename = Some(file.file_name().unwrap().to_string_lossy().into_owned());
     let mut buf = Vec::with_capacity(protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES);
-    let cache = default_cache_key_path(Some(&*FS_ROOT));
+    let cache = cache_key_path_from_matches(&m);
     ui.begin(format!("Uploading file {} to {} incarnation {}",
                      file.display(),
                      msg.version
@@ -1220,43 +1224,45 @@ fn sub_supportbundle(ui: &mut UI) -> Result<()> {
 
 fn sub_ring_key_export(m: &ArgMatches<'_>) -> Result<()> {
     let ring = m.value_of("RING").unwrap(); // Required via clap
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
-    command::ring::key::export::start(ring, &default_cache_key_path(Some(&*FS_ROOT)))
+    command::ring::key::export::start(ring, &cache_key_path)
 }
 
 fn sub_ring_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ring = m.value_of("RING").unwrap(); // Required via clap
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
-    command::ring::key::generate::start(ui, ring, &default_cache_key_path(Some(&*FS_ROOT)))
+    command::ring::key::generate::start(ui, ring, &cache_key_path)
 }
 
-fn sub_ring_key_import(ui: &mut UI) -> Result<()> {
+fn sub_ring_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let mut content = String::new();
     io::stdin().read_to_string(&mut content)?;
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
     // Trim the content to lose line feeds added by Powershell pipeline
-    command::ring::key::import::start(ui, content.trim(), &default_cache_key_path(Some(&*FS_ROOT)))
+    command::ring::key::import::start(ui, content.trim(), &cache_key_path)
 }
 
 fn sub_service_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let org = org_param_or_env(&m)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
-    command::service::key::generate::start(ui,
-                                           &org,
-                                           &service_group,
-                                           &default_cache_key_path(Some(&*FS_ROOT)))
+    command::service::key::generate::start(ui, &org, &service_group, &cache_key_path)
 }
 
 fn sub_user_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let user = m.value_of("USER").unwrap(); // Required via clap
+    let cache_key_path = cache_key_path_from_matches(&m);
     init();
 
-    command::user::key::generate::start(ui, user, &default_cache_key_path(Some(&*FS_ROOT)))
+    command::user::key::generate::start(ui, user, &cache_key_path)
 }
 
 fn args_after_first(args_to_skip: usize) -> Vec<OsString> {
@@ -1466,6 +1472,17 @@ fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
         .unwrap_or_default()
         .map(|i| PackageIdent::from_str(i).unwrap()) // unwrap safe as we've validated the input
         .collect()
+}
+
+/// We require the value at the clap layer (see cli::arg_cache_key_path),
+/// so we can safely unwrap, but we need some additional logic to calculate
+// the dynamic "default" value if the argument has the default signifier value:
+/// CACHE_KEY_PATH. An empty value can't stand for default since it is invalid.
+fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
+    match matches.value_of("CACHE_KEY_PATH").unwrap() {
+        CACHE_KEY_PATH => cache_key_path(Some(&*FS_ROOT)),
+        val => PathBuf::from(val),
+    }
 }
 
 fn enable_features_from_env(ui: &mut UI) {

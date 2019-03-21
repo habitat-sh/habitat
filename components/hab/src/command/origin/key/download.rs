@@ -182,12 +182,12 @@ fn download_key(ui: &mut UI,
                 cache: &Path)
                 -> Result<()> {
     match SigKeyPair::get_public_key_path(&nwr, &cache) {
-        Ok(_) => ui.status(Status::Using, &nwr)?,
+        Ok(_) => ui.status(Status::Using, &format!("{} in {}", nwr, cache.display()))?,
         Err(_) => {
             let download_fn = || -> Result<()> {
                 ui.status(Status::Downloading, &nwr)?;
                 api_client.fetch_origin_key(name, rev, cache, ui.progress())?;
-                ui.status(Status::Cached, &nwr)?;
+                ui.status(Status::Cached, &format!("{} to {}", nwr, cache.display()))?;
                 Ok(())
             };
 
