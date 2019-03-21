@@ -28,8 +28,7 @@ use winapi::{shared::minwindef::{DWORD,
                           PROCESS_QUERY_LIMITED_INFORMATION,
                           PROCESS_TERMINATE}}};
 
-use super::{OsSignal,
-            Signal};
+use super::Signal;
 use crate::error::{Error,
                    Result};
 
@@ -37,10 +36,6 @@ const STILL_ACTIVE: u32 = 259;
 
 pub type Pid = DWORD;
 pub type SignalCode = DWORD;
-
-impl OsSignal for Signal {
-    fn from_signal_code(code: SignalCode) -> Option<Signal> { None }
-}
 
 pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     become_child_command(command, args)

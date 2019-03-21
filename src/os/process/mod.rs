@@ -26,10 +26,6 @@ mod imp;
 
 pub use self::imp::*;
 
-pub trait OsSignal {
-    fn from_signal_code(_: SignalCode) -> Option<Signal>;
-}
-
 #[allow(non_snake_case)]
 #[derive(Clone, Copy, Debug)]
 pub enum Signal {

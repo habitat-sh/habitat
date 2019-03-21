@@ -19,8 +19,7 @@ use std::{collections::VecDeque,
                  Once,
                  ONCE_INIT}};
 
-use crate::os::process::{OsSignal,
-                         Signal,
+use crate::os::process::{Signal,
                          SignalCode};
 
 use super::SignalEvent;
@@ -58,7 +57,7 @@ pub fn check_for_signal() -> Option<SignalEvent> {
     let mut signals = CAUGHT_SIGNALS.lock().expect("Signal mutex poisoned");
 
     if let Some(code) = signals.pop_front() {
-        match Signal::from_signal_code(code) {
+        match from_signal_code(code) {
             Some(Signal::INT) | Some(Signal::TERM) => Some(SignalEvent::Shutdown),
             Some(Signal::CHLD) => Some(SignalEvent::WaitForChild),
             Some(signal) => Some(SignalEvent::Passthrough(signal)),
@@ -82,5 +81,30 @@ fn set_signal_handlers() {
         signal(libc::SIGUSR1, handle_signal);
         signal(libc::SIGUSR2, handle_signal);
         signal(libc::SIGCHLD, handle_signal);
+    }
+}
+
+/// These are the signals that we can eventually translate into
+/// some kind of event
+fn from_signal_code(code: SignalCode) -> Option<Signal> {
+    // only 3 signals are explicitly acted upon... everything else
+    // is passed through to the supervisor
+    //
+    // If it gets a HUP, it restarts the Supervisor
+    // process... anything else will pretty much kill the
+    // supervisor outright (I think)
+    //
+    // Also, these are things that get sent to the launcher.
+    match code {
+        libc::SIGHUP => Some(Signal::HUP),
+        libc::SIGINT => Some(Signal::INT), // -> shutdown
+        libc::SIGILL => Some(Signal::ILL),
+        libc::SIGABRT => Some(Signal::ABRT),
+        libc::SIGFPE => Some(Signal::FPE),
+        libc::SIGKILL => Some(Signal::KILL),
+        libc::SIGSEGV => Some(Signal::SEGV),
+        libc::SIGTERM => Some(Signal::TERM), // -> wait on child
+        libc::SIGCHLD => Some(Signal::CHLD), // -> shutdown
+        _ => None,
     }
 }

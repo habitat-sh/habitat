@@ -21,30 +21,12 @@ use std::{ffi::OsString,
 use libc::{self,
            pid_t};
 
-use super::{OsSignal,
-            Signal};
+use super::Signal;
 use crate::error::{Error,
                    Result};
 
 pub type Pid = libc::pid_t;
 pub type SignalCode = libc::c_int;
-
-impl OsSignal for Signal {
-    fn from_signal_code(code: SignalCode) -> Option<Signal> {
-        match code {
-            libc::SIGHUP => Some(Signal::HUP),
-            libc::SIGINT => Some(Signal::INT),
-            libc::SIGILL => Some(Signal::ILL),
-            libc::SIGABRT => Some(Signal::ABRT),
-            libc::SIGFPE => Some(Signal::FPE),
-            libc::SIGKILL => Some(Signal::KILL),
-            libc::SIGSEGV => Some(Signal::SEGV),
-            libc::SIGTERM => Some(Signal::TERM),
-            libc::SIGCHLD => Some(Signal::CHLD),
-            _ => None,
-        }
-    }
-}
 
 pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     become_exec_command(command, args)
