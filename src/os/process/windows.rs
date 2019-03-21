@@ -40,8 +40,6 @@ pub type SignalCode = DWORD;
 
 impl OsSignal for Signal {
     fn from_signal_code(code: SignalCode) -> Option<Signal> { None }
-
-    fn os_signal(&self) -> SignalCode { 0 }
 }
 
 pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {

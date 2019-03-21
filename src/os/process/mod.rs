@@ -27,7 +27,6 @@ mod imp;
 pub use self::imp::*;
 
 pub trait OsSignal {
-    fn os_signal(&self) -> SignalCode;
     fn from_signal_code(_: SignalCode) -> Option<Signal>;
 }
 
@@ -47,24 +46,4 @@ pub enum Signal {
     USR1,
     USR2,
     CHLD,
-}
-
-impl From<Signal> for i32 {
-    fn from(value: Signal) -> i32 {
-        match value {
-            Signal::HUP => 1,
-            Signal::INT => 2,
-            Signal::QUIT => 3,
-            Signal::ILL => 4,
-            Signal::ABRT => 6,
-            Signal::FPE => 8,
-            Signal::KILL => 9,
-            Signal::USR1 => 10,
-            Signal::SEGV => 11,
-            Signal::USR2 => 12,
-            Signal::ALRM => 14,
-            Signal::TERM => 15,
-            Signal::CHLD => 17,
-        }
-    }
 }

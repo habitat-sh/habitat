@@ -44,24 +44,6 @@ impl OsSignal for Signal {
             _ => None,
         }
     }
-
-    fn os_signal(&self) -> SignalCode {
-        match *self {
-            Signal::INT => libc::SIGINT,
-            Signal::ILL => libc::SIGILL,
-            Signal::ABRT => libc::SIGABRT,
-            Signal::FPE => libc::SIGFPE,
-            Signal::KILL => libc::SIGKILL,
-            Signal::SEGV => libc::SIGSEGV,
-            Signal::TERM => libc::SIGTERM,
-            Signal::HUP => libc::SIGHUP,
-            Signal::QUIT => libc::SIGQUIT,
-            Signal::ALRM => libc::SIGALRM,
-            Signal::USR1 => libc::SIGUSR1,
-            Signal::USR2 => libc::SIGUSR2,
-            Signal::CHLD => libc::SIGCHLD,
-        }
-    }
 }
 
 pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
@@ -87,13 +69,32 @@ pub fn is_alive(pid: Pid) -> bool {
 
 pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
     unsafe {
-        match libc::kill(pid as pid_t, signal.os_signal()) {
+        match libc::kill(pid as pid_t, signal.into()) {
             0 => Ok(()),
             e => Err(Error::SignalFailed(e, io::Error::last_os_error())),
         }
     }
 }
 
+impl From<Signal> for SignalCode {
+    fn from(value: Signal) -> SignalCode {
+        match value {
+            Signal::INT => libc::SIGINT,
+            Signal::ILL => libc::SIGILL,
+            Signal::ABRT => libc::SIGABRT,
+            Signal::FPE => libc::SIGFPE,
+            Signal::KILL => libc::SIGKILL,
+            Signal::SEGV => libc::SIGSEGV,
+            Signal::TERM => libc::SIGTERM,
+            Signal::HUP => libc::SIGHUP,
+            Signal::QUIT => libc::SIGQUIT,
+            Signal::ALRM => libc::SIGALRM,
+            Signal::USR1 => libc::SIGUSR1,
+            Signal::USR2 => libc::SIGUSR2,
+            Signal::CHLD => libc::SIGCHLD,
+        }
+    }
+}
 /// Makes an `execvp(3)` system call to become a new program.
 ///
 /// Note that if successful, this function will not return.
