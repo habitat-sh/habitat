@@ -151,6 +151,8 @@ impl Server {
         Ok(())
     }
 
+    // Signals aren't a thing on Windows
+    #[cfg(unix)]
     fn forward_signal(&self, signal: Signal) {
         if let Err(err) = core::os::process::signal(self.supervisor.id() as Pid, signal) {
             error!("Unable to signal Supervisor, {}, {}",
@@ -270,6 +272,7 @@ impl Server {
                     self.shutdown();
                     return Ok(TickState::Exit(0));
                 }
+                #[cfg(unix)] // This isn't a Windows feature
                 SignalEvent::WaitForChild => {
                     // We only return Some if we ended up reaping our
                     // Supervisor; otherwise, we don't need to do anything
@@ -280,6 +283,7 @@ impl Server {
                         return result;
                     }
                 }
+                #[cfg(unix)] // Signals are only a thing on Unix platforms, not Windows
                 SignalEvent::Passthrough(signal) => {
                     self.forward_signal(signal);
                 }
@@ -375,12 +379,6 @@ impl Server {
             None
         }
     }
-
-    /// Windows doesn't have the same orphan-reaping behavior as Linux;
-    /// returning `None` means that there's nothing special that needs
-    /// to be done.
-    #[cfg(windows)]
-    fn reap_zombie_orphans(&mut self) -> Option<Result<TickState>> { None }
 }
 
 #[derive(Debug, Default)]
