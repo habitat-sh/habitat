@@ -356,6 +356,8 @@ test: something"#
     fn render_package_install() {
         let root = TempDir::new().expect("create temp dir").into_path();
         env::set_var(fs::FS_ROOT_ENVVAR, &root);
+        // Override the default / filesystem root for this test
+        env::set_var("TESTING_FS_ROOT", &root);
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
 
         let pkg_install =
