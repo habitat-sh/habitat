@@ -75,8 +75,6 @@ pub fn is_alive(pid: Pid) -> bool {
     }
 }
 
-pub fn signal(pid: Pid, signal: Signal) -> Result<()> { Ok(()) }
-
 /// Executes a command as a child process and exits with the child's exit code.
 ///
 /// Note that if successful, this function will not return.
