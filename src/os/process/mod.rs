@@ -17,14 +17,26 @@ pub mod windows_child;
 
 #[allow(unused_variables)]
 #[cfg(windows)]
-#[path = "windows.rs"]
-mod imp;
+mod windows;
 
 #[cfg(not(windows))]
-#[path = "linux.rs"]
-mod imp;
+mod linux;
 
-pub use self::imp::*;
+#[cfg(windows)]
+pub use self::windows::{become_command,
+                        current_pid,
+                        handle_from_pid,
+                        is_alive,
+                        Pid};
+
+#[cfg(not(windows))]
+pub(crate) use self::linux::SignalCode;
+#[cfg(not(windows))]
+pub use self::linux::{become_command,
+                      current_pid,
+                      is_alive,
+                      signal,
+                      Pid};
 
 #[allow(non_snake_case)]
 #[derive(Clone, Copy, Debug)]
