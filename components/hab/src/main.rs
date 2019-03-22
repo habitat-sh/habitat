@@ -143,12 +143,11 @@ fn start(ui: &mut UI) -> Result<()> {
     // https://github.com/kbknapp/clap-rs/issues/86
     let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
                                       .spawn(move || {
-                                          return cli::get()
-                .get_matches_from_safe_borrow(&mut args.iter())
-                .unwrap_or_else(|e| {
-                    analytics::instrument_clap_error(&e);
-                    e.exit();
-                });
+                                          cli::get().get_matches_from_safe_borrow(&mut args.iter())
+                                                    .unwrap_or_else(|e| {
+                                                        analytics::instrument_clap_error(&e);
+                                                        e.exit();
+                                                    })
                                       })
                                       .unwrap();
     let app_matches = child.join().unwrap();
@@ -1320,7 +1319,7 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
     match (args.nth(1).unwrap_or_default().as_str(), args.next().unwrap_or_default().as_str()) {
         ("pkg", "exec") => {
             if args.by_ref().count() > 2 {
-                return (env::args_os().take(5).collect(), env::args_os().skip(5).collect());
+                (env::args_os().take(5).collect(), env::args_os().skip(5).collect())
             } else {
                 (env::args_os().collect(), Vec::new())
             }
@@ -1339,11 +1338,8 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
             match henv::var(AUTH_TOKEN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    let config = config::load()?;
-                    match config.auth_token {
-                        Some(v) => Ok(v),
-                        None => return Err(Error::ArgumentError("No auth token specified")),
-                    }
+                    config::load()?.auth_token
+                                   .ok_or(Error::ArgumentError("No auth token specified"))
                 }
             }
         }
@@ -1384,11 +1380,9 @@ fn origin_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
             match henv::var(ORIGIN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    let config = config::load()?;
-                    match config.origin {
-                        Some(v) => Ok(v),
-                        None => return Err(Error::CryptoCLI("No origin specified".to_string())),
-                    }
+                    config::load()?.origin.ok_or_else(|| {
+                                              Error::CryptoCLI("No origin specified".to_string())
+                                          })
                 }
             }
         }
@@ -1402,10 +1396,8 @@ fn org_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
     match m.value_of("ORG") {
         Some(o) => Ok(o.to_string()),
         None => {
-            match henv::var(HABITAT_ORG_ENVVAR) {
-                Ok(v) => Ok(v),
-                Err(_) => return Err(Error::CryptoCLI("No organization specified".to_string())),
-            }
+            henv::var(HABITAT_ORG_ENVVAR).map_err(|_|
+                                                  Error::CryptoCLI("No organization specified".to_string()))
         }
     }
 }
@@ -1610,7 +1602,7 @@ fn print_svc_status<T>(out: &mut T,
              svc_elapsed,
              svc_pid,
              status.service_group,)?;
-    return Ok(());
+    Ok(())
 }
 
 /// Check if we have a launcher/supervisor running out of this habitat root.
@@ -1635,25 +1627,25 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let mut out: Vec<PackageIdent> = vec![];
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg).for_each(|reply| {
-                          match reply.message_id() {
-                              "ServiceStatus" => {
-                                  let m = reply.parse::<protocol::types::ServiceStatus>()
-                                               .map_err(SrvClientError::Decode)?;
-                                  out.push(m.ident.into());
-                                  Ok(())
-                              }
-                              "NetOk" => Ok(()),
-                              "NetErr" => {
-                                  let err = reply.parse::<protocol::net::NetErr>()
-                                                 .map_err(SrvClientError::Decode)?;
-                                  return Err(SrvClientError::from(err));
-                              }
-                              _ => {
-                                  warn!("Unexpected status message, {:?}", reply);
-                                  Ok(())
-                              }
-                          }
-                      })
+            match reply.message_id() {
+                "ServiceStatus" => {
+                    let m = reply.parse::<protocol::types::ServiceStatus>()
+                        .map_err(SrvClientError::Decode)?;
+                    out.push(m.ident.into());
+                    Ok(())
+                }
+                "NetOk" => Ok(()),
+                "NetErr" => {
+                    let err = reply.parse::<protocol::net::NetErr>()
+                        .map_err(SrvClientError::Decode)?;
+                    Err(SrvClientError::from(err))
+                }
+                _ => {
+                    warn!("Unexpected status message, {:?}", reply);
+                    Ok(())
+                }
+            }
+        })
                                                      })
                                                      .wait()?;
     Ok(out)

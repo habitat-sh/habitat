@@ -130,13 +130,13 @@ impl Cfg {
         let user_config_path = Self::determine_user_config_path(package);
         let user = Self::load_user(user_config_path.get_path())?;
         let environment = Self::load_environment(&package.name())?;
-        return Ok(Self { default,
-                         user,
-                         gossip: None,
-                         environment,
-                         gossip_incarnation: 0,
-                         user_config_path,
-                         override_config_dir });
+        Ok(Self { default,
+                  user,
+                  gossip: None,
+                  environment,
+                  gossip_incarnation: 0,
+                  user_config_path,
+                  override_config_dir })
     }
 
     /// Validates a service configuration against a configuration interface.
@@ -525,13 +525,8 @@ fn toml_merge_recurse(me: &mut toml::value::Table,
 
 fn is_toml_value_a_table(key: &str, table: &toml::value::Table) -> bool {
     match table.get(key) {
-        None => return false,
-        Some(value) => {
-            match value.as_table() {
-                Some(_) => return true,
-                None => return false,
-            }
-        }
+        None => false,
+        Some(value) => value.as_table().is_some(),
     }
 }
 

@@ -533,10 +533,8 @@ impl<'a> InstallTask<'a> {
                               &ident))?;
             match self.latest_installed_or_cached(&ident) {
                 Ok(i) => Ok(i),
-                Err(Error::PackageNotFound(_)) => {
-                    return Err(Error::OfflinePackageNotFound(ident.clone()));
-                }
-                Err(e) => return Err(e),
+                Err(Error::PackageNotFound(_)) => Err(Error::OfflinePackageNotFound(ident.clone())),
+                Err(e) => Err(e),
             }
         } else {
             // Otherwise, we're online and we have a fuzzy package identifier. Now we can find the
@@ -892,7 +890,7 @@ impl<'a> InstallTask<'a> {
         where T: UIWriter
     {
         if self.is_offline() {
-            return Err(Error::OfflineOriginKeyNotFound(name_with_rev.to_string()));
+            Err(Error::OfflineOriginKeyNotFound(name_with_rev.to_string()))
         } else {
             ui.status(Status::Downloading,
                       format!("{} public origin key", &name_with_rev))?;

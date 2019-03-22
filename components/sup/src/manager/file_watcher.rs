@@ -876,7 +876,7 @@ impl Paths {
             }
         }
 
-        return new_watches;
+        new_watches
     }
 
     fn handle_leaf_result(&mut self, leaf_result: LeafResult, new_watches: &mut Vec<PathBuf>) {
@@ -1163,7 +1163,7 @@ pub fn default_file_watcher<P, C>(path: P,
     where P: Into<PathBuf>,
           C: Callbacks
 {
-    return FileWatcher::<C, RecommendedWatcher>::create(path, callbacks);
+    FileWatcher::<C, RecommendedWatcher>::create(path, callbacks)
 }
 
 pub fn default_file_watcher_with_no_initial_event<P, C>(
@@ -1173,7 +1173,7 @@ pub fn default_file_watcher_with_no_initial_event<P, C>(
     where P: Into<PathBuf>,
           C: Callbacks
 {
-    return FileWatcher::<C, RecommendedWatcher>::create_with_no_initial_event(path, callbacks);
+    FileWatcher::<C, RecommendedWatcher>::create_with_no_initial_event(path, callbacks)
 }
 
 impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
