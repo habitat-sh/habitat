@@ -141,7 +141,7 @@ fn find_exe<B>(binary_name: B) -> PathBuf
 /// see more output.
 fn nocapture_set() -> bool {
     if env::args().any(|arg| arg == "--nocapture") {
-        return true;
+        true
     } else {
         match env::var("RUST_TEST_NOCAPTURE") {
             Ok(val) => &val != "0",

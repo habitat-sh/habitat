@@ -230,6 +230,6 @@ mod inner {
             }
         }
 
-        return true;
+        true
     }
 }

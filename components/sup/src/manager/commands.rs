@@ -156,13 +156,11 @@ pub fn service_cfg_set(mgr: &ManagerState,
                 return Err(net::err(ErrCode::Internal, err.to_string()));
             }
         };
-    match client.send_service_config(service_group, version, &cfg, is_encrypted) {
-        Ok(()) => {
-            req.reply_complete(net::ok());
-            return Ok(());
-        }
-        Err(e) => return Err(net::err(ErrCode::Internal, e.to_string())),
-    }
+    client.send_service_config(service_group, version, &cfg, is_encrypted)
+          .map_err(|e| net::err(ErrCode::Internal, e.to_string()))
+          .map(|_| {
+              req.reply_complete(net::ok());
+          })
 }
 
 pub fn service_file_put(mgr: &ManagerState,
@@ -191,13 +189,11 @@ pub fn service_file_put(mgr: &ManagerState,
                 return Err(net::err(ErrCode::Internal, err.to_string()));
             }
         };
-    match client.send_service_file(service_group, filename, version, &content, is_encrypted) {
-        Ok(()) => {
-            req.reply_complete(net::ok());
-            return Ok(());
-        }
-        Err(e) => return Err(net::err(ErrCode::Internal, e.to_string())),
-    }
+    client.send_service_file(service_group, filename, version, &content, is_encrypted)
+          .map_err(|e| net::err(ErrCode::Internal, e.to_string()))
+          .map(|_| {
+              req.reply_complete(net::ok());
+          })
 }
 
 pub fn service_load(mgr: &ManagerState,
