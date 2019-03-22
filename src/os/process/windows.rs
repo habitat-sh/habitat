@@ -35,7 +35,6 @@ use crate::error::{Error,
 const STILL_ACTIVE: u32 = 259;
 
 pub type Pid = DWORD;
-pub type SignalCode = DWORD;
 
 pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     become_child_command(command, args)
