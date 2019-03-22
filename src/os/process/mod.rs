@@ -19,8 +19,8 @@ pub mod windows_child;
 #[cfg(windows)]
 mod windows;
 
-#[cfg(not(windows))]
-mod linux;
+#[cfg(unix)]
+mod unix;
 
 #[cfg(windows)]
 pub use self::windows::{become_command,
@@ -29,14 +29,14 @@ pub use self::windows::{become_command,
                         is_alive,
                         Pid};
 
-#[cfg(not(windows))]
-pub(crate) use self::linux::SignalCode;
-#[cfg(not(windows))]
-pub use self::linux::{become_command,
-                      current_pid,
-                      is_alive,
-                      signal,
-                      Pid};
+#[cfg(unix)]
+pub(crate) use self::unix::SignalCode;
+#[cfg(unix)]
+pub use self::unix::{become_command,
+                     current_pid,
+                     is_alive,
+                     signal,
+                     Pid};
 
 #[allow(non_snake_case)]
 #[derive(Clone, Copy, Debug)]
