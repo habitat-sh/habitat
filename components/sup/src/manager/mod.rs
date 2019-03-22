@@ -407,6 +407,10 @@ impl Manager {
     pub fn term(proc_lock_file: &Path) -> Result<()> {
         match read_process_lock(proc_lock_file) {
             Ok(pid) => {
+                // TODO (CM): this only ever worked on Linux! It's a no-op
+                // on Windows! See
+                // https://github.com/habitat-sh/habitat/issues/4945
+                #[cfg(target_os = "linux")]
                 process::signal(pid, Signal::TERM).map_err(|_| sup_error!(Error::SignalFailed))?;
                 Ok(())
             }
