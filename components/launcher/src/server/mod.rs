@@ -263,26 +263,29 @@ impl Server {
         // be done in a way that the basic functionality of process
         // tracking still works on Windows.
         self.reap_services();
-        match signals::check_for_signal() {
-            Some(SignalEvent::Shutdown) => {
-                self.shutdown();
-                return Ok(TickState::Exit(0));
-            }
-            Some(SignalEvent::WaitForChild) => {
-                // We only return Some if we ended up reaping our
-                // Supervisor; otherwise, we don't need to do anything
-                // special. If the supervisor exits but reap_zombie_orphans()
-                // doesn't catch the signal (such as on Windows), we will still
-                // handle that properly in handle_message().
-                if let Some(result) = self.reap_zombie_orphans() {
-                    return result;
+
+        if let Some(event) = signals::check_for_signal() {
+            match event {
+                SignalEvent::Shutdown => {
+                    self.shutdown();
+                    return Ok(TickState::Exit(0));
+                }
+                SignalEvent::WaitForChild => {
+                    // We only return Some if we ended up reaping our
+                    // Supervisor; otherwise, we don't need to do anything
+                    // special. If the supervisor exits but reap_zombie_orphans()
+                    // doesn't catch the signal (such as on Windows), we will still
+                    // handle that properly in handle_message().
+                    if let Some(result) = self.reap_zombie_orphans() {
+                        return result;
+                    }
+                }
+                SignalEvent::Passthrough(signal) => {
+                    self.forward_signal(signal);
                 }
             }
-            Some(SignalEvent::Passthrough(signal)) => {
-                self.forward_signal(signal);
-            }
-            None => (),
         }
+
         self.handle_message()
     }
 
