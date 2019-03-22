@@ -27,8 +27,7 @@ mod inner {
               str::FromStr};
 
     use crate::{common::ui::UI,
-                hcore::{crypto::{default_cache_key_path,
-                                 init},
+                hcore::{crypto::init,
                         env as henv,
                         fs::find_command,
                         os::process,
@@ -54,9 +53,7 @@ mod inner {
                                        SUP_CMD,
                                        &PackageIdent::from_str(&format!("{}/{}",
                                                                         SUP_PKG_IDENT,
-                                                                        version[0]))?,
-                                       &default_cache_key_path(None),
-                                       0)?;
+                                                                        version[0]))?)?;
         }
         let command = match henv::var(LAUNCH_CMD_ENVVAR) {
             Ok(command) => PathBuf::from(command),
@@ -64,9 +61,7 @@ mod inner {
                 init();
                 exec::command_from_min_pkg(ui,
                                            LAUNCH_CMD,
-                                           &PackageIdent::from_str(LAUNCH_PKG_IDENT)?,
-                                           &default_cache_key_path(None),
-                                           0)?
+                                           &PackageIdent::from_str(LAUNCH_PKG_IDENT)?)?
             }
         };
         if let Some(cmd) = find_command(&command) {

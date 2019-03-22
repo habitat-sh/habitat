@@ -72,8 +72,7 @@ mod inner {
                 error::{Error,
                         Result},
                 exec,
-                hcore::{crypto::{default_cache_key_path,
-                                 init},
+                hcore::{crypto::init,
                         env as henv,
                         fs::{am_i_root,
                              find_command},
@@ -101,11 +100,7 @@ mod inner {
                     let ident = PackageIdent::from_str(&format!("{}/{}",
                                                                 super::STUDIO_PACKAGE_IDENT,
                                                                 version[0]))?;
-                    exec::command_from_min_pkg(ui,
-                                               super::STUDIO_CMD,
-                                               &ident,
-                                               &default_cache_key_path(None),
-                                               0)?
+                    exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident)?
                 }
             };
 
@@ -176,8 +171,7 @@ mod inner {
                 error::{Error,
                         Result},
                 exec,
-                hcore::{crypto::{default_cache_key_path,
-                                 init},
+                hcore::{crypto::init,
                         env as henv,
                         fs::find_command,
                         os::process,
@@ -204,11 +198,7 @@ mod inner {
                 let ident = PackageIdent::from_str(&format!("{}/{}",
                                                             super::STUDIO_PACKAGE_IDENT,
                                                             version[0]))?;
-                exec::command_from_min_pkg(ui,
-                                           super::STUDIO_CMD,
-                                           &ident,
-                                           &default_cache_key_path(None),
-                                           0)?
+                exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident)?
             }
         };
 
