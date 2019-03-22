@@ -144,7 +144,7 @@ fn build_proc_table() -> ProcessTable {
             // Loop through all processes until we find one where `szExeFile` == `name`.
             while process_success == 1 {
                 let children = table.entry(process_entry.th32ParentProcessID)
-                                    .or_insert(Vec::new());
+                                    .or_insert_with(Vec::new);
                 (*children).push(process_entry.th32ProcessID);
                 process_success =
                     unsafe { tlhelp32::Process32NextW(processes_snap_handle, &mut process_entry) };
@@ -174,19 +174,16 @@ fn exit_code(handle: &Handle) -> Option<u32> {
 fn terminate_process_descendants(table: &ProcessTable, pid: DWORD) {
     if let Some(children) = table.get(&pid) {
         for child in children {
-            terminate_process_descendants(table, child.clone());
+            terminate_process_descendants(table, *child);
         }
     }
     unsafe {
-        match handle_from_pid(pid) {
-            Some(h) => {
-                if processthreadsapi::TerminateProcess(h, 1) == 0 {
-                    error!("Failed to call TerminateProcess on pid {}: {}",
-                           pid,
-                           io::Error::last_os_error());
-                }
+        if let Some(h) = handle_from_pid(pid) {
+            if processthreadsapi::TerminateProcess(h, 1) == 0 {
+                error!("Failed to call TerminateProcess on pid {}: {}",
+                       pid,
+                       io::Error::last_os_error());
             }
-            None => {}
         }
     }
 }

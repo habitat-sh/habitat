@@ -149,8 +149,10 @@ mod inner {
                  _ident: &PackageIdent,
                  _format: &ExportFormat)
                  -> Result<()> {
-        let subcmd = env::args().nth(1).unwrap_or("<unknown>".to_string());
-        let subsubcmd = env::args().nth(2).unwrap_or("<unknown>".to_string());
+        let subcmd = env::args().nth(1)
+                                .unwrap_or_else(|| "<unknown>".to_string());
+        let subsubcmd = env::args().nth(2)
+                                   .unwrap_or_else(|| "<unknown>".to_string());
         ui.warn("Exporting packages from this operating system is not yet supported. Try \
                  running this command again on a 64-bit Linux operating system.")?;
         ui.br()?;
