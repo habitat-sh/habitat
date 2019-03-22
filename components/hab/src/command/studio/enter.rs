@@ -200,7 +200,7 @@ mod inner {
             Ok(command) => PathBuf::from(command),
             Err(_) => {
                 init();
-                let version: Vec<&str> = VERSION.split("/").collect();
+                let version: Vec<&str> = VERSION.split('/').collect();
                 let ident = PackageIdent::from_str(&format!("{}/{}",
                                                             super::STUDIO_PACKAGE_IDENT,
                                                             version[0]))?;
@@ -227,7 +227,7 @@ mod inner {
 
         for arg in args.iter() {
             let str_arg = arg.to_string_lossy();
-            if str_arg == String::from("-D") {
+            if str_arg == "-D" {
                 return false;
             }
         }
@@ -235,7 +235,7 @@ mod inner {
         // -w/--windows is deprecated and should be removed in a post 0.64.0 release
         for arg in args.iter() {
             let str_arg = arg.to_string_lossy().to_lowercase();
-            if str_arg == String::from("--windows") || str_arg == String::from("-w") {
+            if str_arg == "--windows" || str_arg == "-w" {
                 return true;
             }
         }

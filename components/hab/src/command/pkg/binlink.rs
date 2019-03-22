@@ -225,7 +225,8 @@ impl Binlink {
     pub fn link(&self) -> Result<()> {
         let template = format!("@echo off\nREM source='{0}'\n\"{0}\" %*",
                                self.src.display());
-        Ok(fs::write(&self.dest, template)?)
+        fs::write(&self.dest, template)?;
+        Ok(())
     }
 }
 

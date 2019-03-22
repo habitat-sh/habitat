@@ -34,7 +34,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[lint] :paperclip: clippy!"
+  - label: "[lint] :linux: :paperclip: clippy!"
     command:
       - sudo yum install gcc -y # install GCC since it's required for the cargo build
       - sudo yum update bash # make sure we have 4.4 or later
@@ -42,6 +42,16 @@ steps:
     agents:
       queue: 'single-use-privileged'
     timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[lint] :windows: :paperclip: clippy!"
+    command:
+      - .\test\run_clippy.ps1 stable .\test\unexamined_lints.txt .\test\allowed_lints.txt .\test\lints_to_fix.txt .\test\denied_lints.txt
+    agents:
+      queue: 'single-use-windows-privileged'
+    timeout_in_minutes: 25
     retry:
       automatic:
         limit: 1
