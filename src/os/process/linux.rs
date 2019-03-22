@@ -26,7 +26,7 @@ use crate::error::{Error,
                    Result};
 
 pub type Pid = libc::pid_t;
-pub type SignalCode = libc::c_int;
+pub(crate) type SignalCode = libc::c_int;
 
 pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     become_exec_command(command, args)
