@@ -16,6 +16,7 @@
 - macOS still needs --interactive and --tty set [#6295](https://github.com/habitat-sh/habitat/pull/6295) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Simplify CLI definition for `hab svc load` command [#6327](https://github.com/habitat-sh/habitat/pull/6327) ([christophermaier](https://github.com/christophermaier))
 - Use POSIX `unset` rather than Busybox `env -u` for HAB_STUDIO_BINARY [#6318](https://github.com/habitat-sh/habitat/pull/6318) ([christophermaier](https://github.com/christophermaier))
 - Make Linux Kernel 2 validation just a little bit easier [#6297](https://github.com/habitat-sh/habitat/pull/6297) ([christophermaier](https://github.com/christophermaier))
 - turn off supervisor log coloring in local windows studio if ANSI is not supported [#6306](https://github.com/habitat-sh/habitat/pull/6306) ([mwrock](https://github.com/mwrock))
