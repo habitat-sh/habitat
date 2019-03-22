@@ -1116,9 +1116,7 @@ copy_minimal_default_file() {
     if [ -f "${defaults_path}${file_path}" ]; then
         $bb cp -f "${defaults_path}${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
     else
-        echo
-        echo "Tried to copy default file for '${file_path}', but could not find one! Please report this error."
-        echo
+        exit_with "Tried to copy default file for '${file_path}', but could not find one! Please report this error." "${ERR_RUNTIME_CODING_ERROR}"
     fi
 }
 
@@ -1145,6 +1143,9 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
+
+# The exit code for a coding error that manifests at runtime
+ERR_RUNTIME_CODING_ERROR=70
 
 # The exit code if unmounting a filesystem fails
 ERR_UMOUNT_FAILED=80
