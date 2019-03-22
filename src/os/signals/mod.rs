@@ -19,11 +19,17 @@
 
 use crate::os::process;
 
-#[allow(dead_code)]
+#[cfg(unix)]
 pub enum SignalEvent {
     Shutdown,
     WaitForChild,
     Passthrough(process::Signal),
+}
+
+/// We only respond to Ctrl-C on Windows
+#[cfg(windows)]
+pub enum SignalEvent {
+    Shutdown,
 }
 
 #[cfg(unix)]

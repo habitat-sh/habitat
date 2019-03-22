@@ -21,12 +21,29 @@ use std::{ffi::OsString,
 use libc::{self,
            pid_t};
 
-use super::Signal;
 use crate::error::{Error,
                    Result};
 
 pub type Pid = libc::pid_t;
 pub(crate) type SignalCode = libc::c_int;
+
+#[allow(non_snake_case)]
+#[derive(Clone, Copy, Debug)]
+pub enum Signal {
+    INT,
+    ILL,
+    ABRT,
+    FPE,
+    KILL,
+    SEGV,
+    TERM,
+    HUP,
+    QUIT,
+    ALRM,
+    USR1,
+    USR2,
+    CHLD,
+}
 
 pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     become_exec_command(command, args)

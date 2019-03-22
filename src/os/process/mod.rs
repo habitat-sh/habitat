@@ -36,22 +36,5 @@ pub use self::unix::{become_command,
                      current_pid,
                      is_alive,
                      signal,
-                     Pid};
-
-#[allow(non_snake_case)]
-#[derive(Clone, Copy, Debug)]
-pub enum Signal {
-    INT,
-    ILL,
-    ABRT,
-    FPE,
-    KILL,
-    SEGV,
-    TERM,
-    HUP,
-    QUIT,
-    ALRM,
-    USR1,
-    USR2,
-    CHLD,
-}
+                     Pid,
+                     Signal};
