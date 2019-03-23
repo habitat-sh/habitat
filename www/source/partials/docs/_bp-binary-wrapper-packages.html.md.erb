@@ -36,17 +36,16 @@ Most binaries compiled in a full Linux environment have a hard dependency on `/l
 2. Invoke `patchelf` on any binaries with this problem during the `do_install()` phase. For example:
 
 ```bash
-patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
-         ${pkg_prefix}/bin/somebinary
+patchelf --interpreter "$(pkg_path_for core/glibc)/lib/ld-linux-x86-64.so.2" \\
+  "${pkg_prefix}/bin/somebinary"
 ```
 
 3. The binary may have other hardcoded dependencies on its own libraries that you may need to relocate using other flags to `patchelf` like `--rpath`. For example, Oracle Java provides additional libraries in `lib/amd64/jli` that you will need to relocate to the Habitat location:
 
 ```bash
 export LD_RUN_PATH=$LD_RUN_PATH:$pkg_prefix/lib/amd64/jli
-patchelf --interpreter "$(pkg_path_for glibc)/lib/ld-linux-x86-64.so.2" \
-        --set-rpath ${LD_RUN_PATH} \
-        ${pkg_prefix}/bin/java
+patchelf --interpreter "$(pkg_path_for core/glibc)/lib/ld-linux-x86-64.so.2" \\
+  --set-rpath ${LD_RUN_PATH} "${pkg_prefix}/bin/java"
 ```
 
 4. For more information, please see the [patchelf](https://nixos.org/patchelf.html) documentation.
