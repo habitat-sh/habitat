@@ -1,10 +1,4 @@
 # shellcheck disable=2086,2128,2207
-# Copyright:: Copyright (c) 2015-2016 The Habitat Maintainers
-#
-# The terms of the Evaluation Agreement (Habitat) between Chef Software Inc.
-# and the party accessing this file ("Licensee") apply to Licensee's use of
-# the Software until such time that the Software is made available under an
-# open source license such as the Apache 2.0 License.
 
 # This is a bash completion file for the Habitat `hab` command. It requires
 # a "newer" version of bash-completion, so if you see an error such as
