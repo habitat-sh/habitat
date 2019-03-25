@@ -27,7 +27,11 @@
 
 mod types;
 
-use crate::error::Result;
+use self::types::{EventMessage,
+                  ServiceStartedEvent,
+                  ServiceStoppedEvent};
+use crate::{error::Result,
+            manager::service::Service};
 use futures::{sync::{mpsc as futures_mpsc,
                      mpsc::UnboundedSender},
               Future,
@@ -38,13 +42,11 @@ use nitox::{commands::ConnectCommand,
             NatsClient,
             NatsClientOptions};
 use state::Container;
-use std::{fmt::Debug,
-          sync::{mpsc as std_mpsc,
+use std::{sync::{mpsc as std_mpsc,
                  Once},
           thread};
 use tokio::{executor,
             runtime::current_thread::Runtime as ThreadRuntime};
-pub use types::*;
 
 static INIT: Once = Once::new();
 lazy_static! {
@@ -69,29 +71,15 @@ pub fn init_stream(conn_info: EventConnectionInfo, event_core: EventCore) {
         });
 }
 
-/// Publish an event. This is the main interface that client code will
-/// use.
-///
-/// If `init_stream` has not been called already, this function will
-/// be a no-op.
-// NOTE: we can take advantage of this to "disable" the event
-// subsystem if users don't wish to send events out; just don't call
-// `init_stream` if they don't want it.
-pub fn publish(event: &impl Event) {
-    // TODO: incorporate the current timestamp into the rendered event
-    // (which will require tweaks to the rendering logic, but we know
-    // that'll need to be updated anyway).
-
-    // We render the event to bytes here, rather than over in the
-    // publication thread, because it allows our Event types to deal
-    // with references, which means less allocations and unnecessary
-    // copying (otherwise, we'd have to have copies of everything to
-    // send it over to the other thread, or much more complicated
-    // thread-safe types!). It also makes the publication thread logic
-    // a bit simpler; it just takes bytes and sends them out.
-    if let Some(e) = EVENT_STREAM.try_get::<EventStream>() {
-        e.send(event.render(EVENT_CORE.get::<EventCore>()));
-    }
+/// All the information needed to establish a connection to a NATS
+/// Streaming server.
+// TODO: This will change as we firm up what the interaction between
+// Habitat and A2 looks like.
+pub struct EventConnectionInfo {
+    pub name:        String,
+    pub verbose:     bool,
+    pub cluster_uri: String,
+    pub cluster_id:  String,
 }
 
 /// A collection of data that will be present in all events. Rather
@@ -109,9 +97,49 @@ pub struct EventCore {
     pub supervisor_id: String,
 }
 
+/// Send an event for the start of a Service.
+pub fn service_started(service: &Service) {
+    if stream_initialized() {
+        publish(ServiceStartedEvent { service_metadata:    Some(service.to_service_metadata()),
+                                      supervisor_metadata: None, });
+    }
+}
+
+/// Send an event for the stop of a Service.
+pub fn service_stopped(service: &Service) {
+    if stream_initialized() {
+        publish(ServiceStoppedEvent { service_metadata:    Some(service.to_service_metadata()),
+                                      supervisor_metadata: None, });
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+/// Internal helper function to know whether or not to go to the trouble of
+/// creating event structures. If the event stream hasn't been
+/// initialized, then we shouldn't need to do anything.
+fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some() }
+
+/// Publish an event. This is the main interface that client code will
+/// use.
+///
+/// If `init_stream` has not been called already, this function will
+/// be a no-op.
+fn publish(mut event: impl EventMessage) {
+    // TODO: incorporate the current timestamp into the rendered event
+    // (which will require tweaks to the rendering logic, but we know
+    // that'll need to be updated anyway).
+    if let Some(e) = EVENT_STREAM.try_get::<EventStream>() {
+        event.supervisor_metadata(EVENT_CORE.get::<EventCore>().to_supervisor_metadata());
+        if let Ok(bytes) = event.to_bytes() {
+            e.send(bytes);
+        }
+    }
+}
+
 /// A lightweight handle for the event stream. All events get to the
 /// event stream through this.
-pub(self) struct EventStream(UnboundedSender<Vec<u8>>);
+struct EventStream(UnboundedSender<Vec<u8>>);
 
 impl EventStream {
     /// Queues an event to be sent out.
@@ -123,34 +151,10 @@ impl EventStream {
     }
 }
 
-/// Defines the logic for transforming concrete event into a
-/// byte representation to publish to the event stream.
-// TODO: The ultimate format we need is not well defined yet, so we're
-// using the absolute simplest thing that could possibly "work". Maybe
-// it'll be JSON, maybe it'll be protobuf, maybe it'll be something
-// else. Whatever it ultimately becomes, this is where the
-// transformation logic will live.
-pub trait Event: Debug {
-    fn render(&self, core: &EventCore) -> Vec<u8> {
-        format!("{:?} - {:?}", core, self).into_bytes()
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////
 
 /// All messages are published under this subject.
 const HABITAT_SUBJECT: &str = "habitat";
-
-/// All the information needed to establish a connection to a NATS
-/// Streaming server.
-// TODO: This will change as we firm up what the interaction between
-// Habitat and A2 looks like.
-pub struct EventConnectionInfo {
-    pub name:        String,
-    pub verbose:     bool,
-    pub cluster_uri: String,
-    pub cluster_id:  String,
-}
 
 /// Defines default connection information for a NATS Streaming server
 /// running on localhost.

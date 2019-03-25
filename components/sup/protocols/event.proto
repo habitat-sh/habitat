@@ -1,0 +1,30 @@
+syntax = "proto2";
+
+package supervisor.event;
+
+message SupervisorMetadata {
+  optional string id = 1;
+}
+
+message ServiceMetadata {
+  // todo: make a FQPI type
+  optional string package_ident = 1;
+  // not necessarily FQPI
+  optional string spec_ident = 2;
+  // todo: make / reuse a real type?
+  optional string service_group = 3;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Concrete Event Types
+////////////////////////////////////////////////////////////////////////
+
+message ServiceStartedEvent {
+  optional SupervisorMetadata supervisor_metadata = 1;
+  optional ServiceMetadata service_metadata = 2;
+}
+
+message ServiceStoppedEvent {
+  optional SupervisorMetadata supervisor_metadata = 1;
+  optional ServiceMetadata service_metadata = 2;
+}

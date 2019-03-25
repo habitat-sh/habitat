@@ -123,6 +123,7 @@ pub enum Error {
     ExecCommandNotFound(String),
     EventError(nitox::NatsError),
     EventStreamError(nitox::streaming::error::NatsStreamingError),
+    EventSerializationError(prost::EncodeError),
     FileNotFound(String),
     FileWatcherFileIsRoot,
     GroupNotFound(String),
@@ -230,6 +231,7 @@ impl fmt::Display for SupError {
             }
             Error::EventError(ref err) => err.to_string(),
             Error::EventStreamError(ref err) => err.to_string(),
+            Error::EventSerializationError(ref err) => err.to_string(),
             Error::Permissions(ref err) => err.to_string(),
             Error::HabitatCommon(ref err) => err.to_string(),
             Error::HabitatCore(ref err) => err.to_string(),
@@ -362,6 +364,7 @@ impl error::Error for SupError {
             Error::EventError(_) => "event error", // underlying NATS error doesn't implement Error
             Error::EventStreamError(_) => "event streaming error", // underlying NATS error
             // doesn't implement Error
+            Error::EventSerializationError(_) => "event serialization error",
             Error::GroupNotFound(_) => "No matching GID for group found",
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
@@ -523,4 +526,8 @@ impl From<nitox::streaming::error::NatsStreamingError> for SupError {
     fn from(err: nitox::streaming::error::NatsStreamingError) -> Self {
         sup_error!(Error::EventStreamError(err))
     }
+}
+
+impl From<prost::EncodeError> for SupError {
+    fn from(err: prost::EncodeError) -> Self { sup_error!(Error::EventSerializationError(err)) }
 }

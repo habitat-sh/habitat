@@ -45,6 +45,7 @@ notify = "*"
 num_cpus = "*"
 prometheus = "*"
 prost = "*"
+prost-derive = "*"
 protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
 regex = "*"
@@ -83,6 +84,9 @@ habitat_core = { path = "../core" }
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
 json = "*"
+
+[build-dependencies]
+prost-build = "*"
 
 [features]
 default = []

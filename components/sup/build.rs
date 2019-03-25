@@ -1,6 +1,7 @@
 // Inline common build behavior
 include!("../libbuild.rs");
 
+use prost_build;
 use std::{env,
           fs::File,
           io::{self,
@@ -13,6 +14,7 @@ use std::{env,
 fn main() {
     habitat::common();
     generate_apidocs();
+    generate_event_protobufs();
 }
 
 fn generate_apidocs() {
@@ -44,4 +46,11 @@ fn raml2html_cmd(dst: PathBuf, src: PathBuf) -> io::Result<ExitStatus> {
     };
 
     cmd.arg("-i").arg(src).arg("-o").arg(dst).status()
+}
+
+fn generate_event_protobufs() {
+    let mut config = prost_build::Config::new();
+    config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
+    config.compile_protos(&["protocols/event.proto"], &["protocols/"])
+          .unwrap()
 }

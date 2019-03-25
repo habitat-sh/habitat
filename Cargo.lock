@@ -1333,6 +1333,8 @@ dependencies = [
  "palaver 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "prometheus 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "prost 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "prost-build 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "prost-derive 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "protobuf 1.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "regex 1.1.6 (registry+https://github.com/rust-lang/crates.io-index)",

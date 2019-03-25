@@ -20,33 +20,54 @@
 //! less unnecessary allocations and copying in order to create
 //! events.
 
-// TODO: It is NOT AT ALL clear that every individual event should be
-// its own struct, though that obviously works. This is just a
-// convenient and flexible (if perhaps a bit verbose) way to start.
+use super::EventCore;
+use crate::{error::Result,
+            manager::service::Service};
+use prost::Message;
 
-use super::Event;
-use habitat_core::{package::PackageIdent,
-                   service::ServiceGroup};
+include!(concat!(env!("OUT_DIR"), "/supervisor.event.rs"));
 
-#[derive(Debug)]
-pub struct ServiceStarted<'a> {
-    /// The fully-qualified identifier of the service that has just started
-    // TODO (CM): I *really* want a FullyQualifiedIdentifier type now
-    pub ident: &'a PackageIdent,
-    /// The identifier the service was loaded as. This could be (and
-    /// often is) an abbreviated identifier, like "core/redis".
-    pub spec_ident: &'a PackageIdent,
-    /// The service group of the running service
-    pub service_group: &'a ServiceGroup,
+impl Service {
+    /// Create a protobuf metadata struct for Service-related event messages.
+    pub(super) fn to_service_metadata(&self) -> ServiceMetadata {
+        ServiceMetadata { package_ident: Some(self.pkg.ident.to_string()),
+                          spec_ident:    Some(self.spec_ident.to_string()),
+                          service_group: Some(self.service_group.to_string()), }
+    }
 }
-impl<'a> Event for ServiceStarted<'a> {}
 
-#[derive(Debug)]
-pub struct ServiceStopped<'a> {
-    /// The fully-qualified identifier of the service that has just started
-    pub ident: &'a PackageIdent,
-    //    pub spec_ident: &'a PackageIdent,
-    /// The service group of the running service
-    pub service_group: &'a ServiceGroup,
+impl EventCore {
+    /// Create a protobuf metadata struct for all event messages.
+    pub(super) fn to_supervisor_metadata(&self) -> SupervisorMetadata {
+        SupervisorMetadata { id: Some(self.supervisor_id.clone()), }
+    }
 }
-impl<'a> Event for ServiceStopped<'a> {}
+
+pub trait EventMessage: Message + Sized {
+    /// All messages will have some top-level metadata about the
+    /// Supervisor they come from. This function allows us to set it
+    /// generically when we send the message out.
+    fn supervisor_metadata(&mut self, sup_met: SupervisorMetadata);
+
+    /// Convert a message to bytes for sending to NATS.
+    fn to_bytes(&self) -> Result<Vec<u8>> {
+        let mut buf = bytes::BytesMut::with_capacity(self.encoded_len());
+        self.encode(&mut buf)?;
+        Ok(buf.to_vec())
+    }
+}
+
+// TODO (CM): these are repetitive, and will only get more so as we
+// add events. Consider implementing via macro instead.
+
+impl EventMessage for ServiceStartedEvent {
+    fn supervisor_metadata(&mut self, sup_met: SupervisorMetadata) {
+        self.supervisor_metadata = Some(sup_met);
+    }
+}
+
+impl EventMessage for ServiceStoppedEvent {
+    fn supervisor_metadata(&mut self, sup_met: SupervisorMetadata) {
+        self.supervisor_metadata = Some(sup_met);
+    }
+}
