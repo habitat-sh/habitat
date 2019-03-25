@@ -78,6 +78,7 @@ impl CensusRing {
                      last_service_file_counter: 0, }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn update_from_rumors(&mut self,
                               cache_key_path: &Path,
                               service_rumors: &RumorStore<ServiceRumor>,
