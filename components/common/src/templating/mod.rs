@@ -119,7 +119,7 @@ mod test {
                              FS_ROOT_PATH},
                         package::PackageIdent},
                 templating::test_helpers::*};
-    use crate::{locked_env_var};
+    // use crate::{locked_env_var};
     use serde_json;
     use std::{collections::BTreeMap,
               env,
@@ -353,15 +353,15 @@ test: something"#
         assert_eq!(each_alive_render, each_if_render);
     }
 
-    locked_env_var!(TESTING_FS_ROOT, lock_var);
+    // locked_env_var!(TESTING_FS_ROOT, lock_var);
 
     #[test]
     fn render_package_install() {
         let root = TempDir::new().expect("create temp dir").into_path();
         env::set_var(fs::FS_ROOT_ENVVAR, &root);
         // Override the default / filesystem root for this test
-        let lock = lock_var();
-        lock.set(&root);
+        // let lock = lock_var();
+        // lock.set(&root);
         env::set_var("TESTING_FS_ROOT", &root);
         let pg_id = PackageIdent::new("testing", "test", Some("1.0.0"), Some("20170712000000"));
 
