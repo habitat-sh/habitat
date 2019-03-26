@@ -87,24 +87,11 @@ fn set_signal_handlers() {
 /// These are the signals that we can eventually translate into
 /// some kind of event
 fn from_signal_code(code: SignalCode) -> Option<Signal> {
-    // only 3 signals are explicitly acted upon... everything else
-    // is passed through to the supervisor
-    //
-    // If it gets a HUP, it restarts the Supervisor
-    // process... anything else will pretty much kill the
-    // supervisor outright (I think)
-    //
-    // Also, these are things that get sent to the launcher.
     match code {
         libc::SIGHUP => Some(Signal::HUP),
-        libc::SIGINT => Some(Signal::INT), // -> shutdown
-        libc::SIGILL => Some(Signal::ILL),
-        libc::SIGABRT => Some(Signal::ABRT),
-        libc::SIGFPE => Some(Signal::FPE),
-        libc::SIGKILL => Some(Signal::KILL),
-        libc::SIGSEGV => Some(Signal::SEGV),
-        libc::SIGTERM => Some(Signal::TERM), // -> wait on child
-        libc::SIGCHLD => Some(Signal::CHLD), // -> shutdown
+        libc::SIGINT => Some(Signal::INT),
+        libc::SIGTERM => Some(Signal::TERM),
+        libc::SIGCHLD => Some(Signal::CHLD),
         _ => None,
     }
 }
