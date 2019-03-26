@@ -20,14 +20,6 @@ use prost::{self,
 use std::{collections::HashMap,
           fmt};
 
-pub trait MessageStatic {
-    const MESSAGE_ID: &'static str;
-}
-
-pub trait FromProto<T: prost::Message + Default>: Sized {
-    fn from_proto(value: T) -> Result<Self>;
-}
-
 pub trait LauncherMessage
     where Self: Clone + fmt::Debug
 {
