@@ -50,12 +50,24 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
     } else {
         ""
     };
+
+    let local_cache_key_path = default_cache_key_path(None);
+    if !local_cache_key_path.exists() {
+        return Err(Error::FileNotFound(
+            format!(
+                "{}\nRun `hab setup` to create an origin or \
+                use `hab origin key` to configure your keys.",
+                local_cache_key_path.to_string_lossy().into_owned()
+            )
+        ));
+    }
+
     let mut volumes = vec![format!("{}:{}{}",
                                    env::current_dir().unwrap().to_string_lossy(),
                                    mnt_prefix,
                                    "/src"),
                            format!("{}:{}/{}",
-                                   default_cache_key_path(None).to_string_lossy(),
+                                   local_cache_key_path.to_string_lossy(),
                                    mnt_prefix,
                                    CACHE_KEY_PATH),];
     if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
