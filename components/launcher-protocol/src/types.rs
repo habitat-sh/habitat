@@ -15,23 +15,14 @@
 use crate::{error::{Error,
                     Result},
             generated};
-use prost::{self,
-            Message};
+use prost::Message;
 use std::{collections::HashMap,
           fmt};
-
-pub trait MessageStatic {
-    const MESSAGE_ID: &'static str;
-}
-
-pub trait FromProto<T: prost::Message + Default>: Sized {
-    fn from_proto(value: T) -> Result<Self>;
-}
 
 pub trait LauncherMessage
     where Self: Clone + fmt::Debug
 {
-    type Generated: prost::Message + Default + From<Self>;
+    type Generated: Message + Default + From<Self>;
     const MESSAGE_ID: &'static str;
 
     fn from_proto(value: Self::Generated) -> Result<Self>;
