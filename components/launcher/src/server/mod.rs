@@ -266,14 +266,14 @@ impl Server {
         // tracking still works on Windows.
         self.reap_services();
 
-        if let Some(event) = signals::check_for_signal() {
-            match event {
-                SignalEvent::Shutdown => {
-                    self.shutdown();
-                    return Ok(TickState::Exit(0));
-                }
-                #[cfg(unix)] // This isn't a Windows feature
-                SignalEvent::WaitForChild => {
+        if signals::check_for_shutdown() {
+            self.shutdown();
+            return Ok(TickState::Exit(0));
+        }
+
+        if cfg!(unix) {
+            match signals::check_for_signal() {
+                Some(SignalEvent::WaitForChild) => {
                     // We only return Some if we ended up reaping our
                     // Supervisor; otherwise, we don't need to do anything
                     // special. If the supervisor exits but reap_zombie_orphans()
@@ -283,10 +283,10 @@ impl Server {
                         return result;
                     }
                 }
-                #[cfg(unix)] // Signals are only a thing on Unix platforms, not Windows
-                SignalEvent::Passthrough(signal) => {
+                Some(SignalEvent::Passthrough(signal)) => {
                     self.forward_signal(signal);
                 }
+                None => {}
             }
         }
 
