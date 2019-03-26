@@ -48,7 +48,7 @@ Habitat allows you to use the same immutable package in different deployment sce
 ```handlebars
 {{#if svc.me.follower}}
    {{#with svc.leader as |leader|}}
-     slaveof {{leader.sys.ip}} {{leader.cfg.port}}
+     replicaof {{leader.sys.ip}} {{leader.cfg.port}}
    {{/with}}
 {{/if}}
 ```
