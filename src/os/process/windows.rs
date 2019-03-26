@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::error::{Error,
+                   Result};
 use std::{ffi::OsString,
           io,
           path::PathBuf,
           process::{self,
                     Command},
           ptr};
-
 use winapi::{shared::minwindef::{DWORD,
                                  FALSE,
                                  LPDWORD},
@@ -27,10 +28,6 @@ use winapi::{shared::minwindef::{DWORD,
                   winnt::{HANDLE,
                           PROCESS_QUERY_LIMITED_INFORMATION,
                           PROCESS_TERMINATE}}};
-
-use super::Signal;
-use crate::error::{Error,
-                   Result};
 
 const STILL_ACTIVE: u32 = 259;
 
