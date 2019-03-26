@@ -14,16 +14,12 @@
 
 //! Traps and notifies signals.
 
-use std::sync::atomic::{AtomicBool,
-                        Ordering,
-                        ATOMIC_BOOL_INIT};
-
 use ctrlc;
+use std::sync::atomic::{AtomicBool,
+                        Ordering};
 
-use super::SignalEvent;
-
-// True when we have caught ctrl-c
-static CAUGHT: AtomicBool = ATOMIC_BOOL_INIT;
+/// True when we have caught `ctrl-c`
+static CAUGHT: AtomicBool = AtomicBool::new(false);
 
 pub fn init() {
     ctrlc::set_handler(move || {
@@ -31,12 +27,5 @@ pub fn init() {
     }).expect("Error setting Ctrl-C handler");
 }
 
-pub fn check_for_signal() -> Option<SignalEvent> {
-    if CAUGHT.load(Ordering::SeqCst) {
-        // clear out the signal so we don't sent it repeatedly
-        CAUGHT.store(false, Ordering::SeqCst);
-        Some(SignalEvent::Shutdown)
-    } else {
-        None
-    }
-}
+/// Returns `true` if we have received a signal to shut down.
+pub fn check_for_shutdown() -> bool { CAUGHT.compare_and_swap(true, false, Ordering::SeqCst) }

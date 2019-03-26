@@ -24,11 +24,16 @@ use crate::os::process::{Signal,
 
 use super::SignalEvent;
 
+use std::sync::atomic::{AtomicBool,
+                        Ordering};
+
 static INIT: Once = ONCE_INIT;
 
 lazy_static::lazy_static! {
     static ref CAUGHT_SIGNALS: Mutex<VecDeque<SignalCode>> = Mutex::new(VecDeque::new());
 }
+
+static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
 // Functions from POSIX libc.
 extern "C" {
@@ -43,11 +48,18 @@ unsafe extern "C" fn handle_signal(signal: SignalCode) {
                   .push_back(signal);
 }
 
+unsafe extern "C" fn handle_shutdown_signal(_signal: SignalCode) {
+    SHUTDOWN.store(true, Ordering::SeqCst);
+}
+
 pub fn init() {
     INIT.call_once(|| {
             self::set_signal_handlers();
         });
 }
+
+/// Returns `true` if we have received a signal to shut down.
+pub fn check_for_shutdown() -> bool { SHUTDOWN.compare_and_swap(true, false, Ordering::SeqCst) }
 
 /// Consumers should call this function fairly frequently and since the vast
 /// majority of the time there is at most one signal event waiting, we return
@@ -58,7 +70,6 @@ pub fn check_for_signal() -> Option<SignalEvent> {
 
     if let Some(code) = signals.pop_front() {
         match from_signal_code(code) {
-            Some(Signal::INT) | Some(Signal::TERM) => Some(SignalEvent::Shutdown),
             Some(Signal::CHLD) => Some(SignalEvent::WaitForChild),
             Some(signal) => Some(SignalEvent::Passthrough(signal)),
             None => {
@@ -73,11 +84,12 @@ pub fn check_for_signal() -> Option<SignalEvent> {
 
 fn set_signal_handlers() {
     unsafe {
+        signal(libc::SIGINT, handle_shutdown_signal);
+        signal(libc::SIGTERM, handle_shutdown_signal);
+
         signal(libc::SIGHUP, handle_signal);
-        signal(libc::SIGINT, handle_signal);
         signal(libc::SIGQUIT, handle_signal);
         signal(libc::SIGALRM, handle_signal);
-        signal(libc::SIGTERM, handle_signal);
         signal(libc::SIGUSR1, handle_signal);
         signal(libc::SIGUSR2, handle_signal);
         signal(libc::SIGCHLD, handle_signal);
@@ -89,8 +101,6 @@ fn set_signal_handlers() {
 fn from_signal_code(code: SignalCode) -> Option<Signal> {
     match code {
         libc::SIGHUP => Some(Signal::HUP),
-        libc::SIGINT => Some(Signal::INT),
-        libc::SIGTERM => Some(Signal::TERM),
         libc::SIGCHLD => Some(Signal::CHLD),
         _ => None,
     }

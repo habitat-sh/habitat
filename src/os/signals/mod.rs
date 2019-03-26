@@ -39,9 +39,10 @@ mod unix;
 mod windows;
 
 #[cfg(unix)]
-pub use self::unix::{check_for_signal,
+pub use self::unix::{check_for_shutdown,
+                     check_for_signal,
                      init};
 
 #[cfg(windows)]
-pub use self::windows::{check_for_signal,
+pub use self::windows::{check_for_shutdown,
                         init};
