@@ -16,15 +16,6 @@
 //!
 //! Holds the toml configuration injected for a service.
 
-use std::{cmp::Ordering,
-          mem,
-          str::FromStr};
-
-use habitat_core::{crypto::{default_cache_key_path,
-                            keys::box_key_pair::WrappedSealedBox,
-                            BoxKeyPair},
-                   service::ServiceGroup};
-
 use crate::{error::{Error,
                     Result},
             protocol::{self,
@@ -34,6 +25,13 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
+use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
+                            BoxKeyPair},
+                   service::ServiceGroup};
+use std::{cmp::Ordering,
+          mem,
+          path::Path,
+          str::FromStr};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ServiceFile {
@@ -93,12 +91,12 @@ impl ServiceFile {
 
     /// Return the body of the service file as a stream of bytes. Always returns a new copy, due to
     /// the fact that we might be encrypted.
-    pub fn body(&self) -> Result<Vec<u8>> {
+    pub fn body(&self, cache_key_path: &Path) -> Result<Vec<u8>> {
         if self.encrypted {
             let bytes = BoxKeyPair::decrypt_with_path(
                 &WrappedSealedBox::from_bytes(&self.body)
                     .map_err(|e| Error::ServiceConfigNotUtf8(self.service_group.to_string(), e))?,
-                &default_cache_key_path(None),
+                cache_key_path,
             )?;
             Ok(bytes)
         } else {
@@ -240,7 +238,8 @@ mod tests {
     #[test]
     fn config_comes_back_as_a_string() {
         let s1 = create_service_file("adam", "yep", "tcp-backlog = 128");
-        assert_eq!(String::from_utf8(s1.body().unwrap()).expect("cannot get a utf-8 string for \
+        let mock_cache_key_path = std::path::PathBuf::new();
+        assert_eq!(String::from_utf8(s1.body(&mock_cache_key_path).unwrap()).expect("cannot get a utf-8 string for \
                                                                  the body"),
                    String::from("tcp-backlog = 128"));
     }

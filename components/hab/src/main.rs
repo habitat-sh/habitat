@@ -23,8 +23,9 @@ extern crate log;
 
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
-use crate::{common::{cli_defaults::{DEFAULT_BINLINK_DIR,
-                                    FS_ROOT},
+use crate::{common::{cli::{cache_key_path_from_matches,
+                           DEFAULT_BINLINK_DIR,
+                           FS_ROOT},
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
                                                  InstallSource,
@@ -43,9 +44,7 @@ use crate::{common::{cli_defaults::{DEFAULT_BINLINK_DIR,
                     env::Config as EnvConfig,
                     fs::{cache_analytics_path,
                          cache_artifact_path,
-                         cache_key_path,
-                         launcher_root_path,
-                         CACHE_KEY_PATH},
+                         launcher_root_path},
                     package::{PackageIdent,
                               PackageTarget},
                     service::{HealthCheckInterval,
@@ -91,8 +90,7 @@ use std::{env,
                prelude::*,
                Read},
           net::ToSocketAddrs,
-          path::{Path,
-                 PathBuf},
+          path::Path,
           process,
           result,
           str::FromStr,
@@ -1464,17 +1462,6 @@ fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
         .unwrap_or_default()
         .map(|i| PackageIdent::from_str(i).unwrap()) // unwrap safe as we've validated the input
         .collect()
-}
-
-/// We require the value at the clap layer (see cli::arg_cache_key_path),
-/// so we can safely unwrap, but we need some additional logic to calculate
-// the dynamic "default" value if the argument has the default signifier value:
-/// CACHE_KEY_PATH. An empty value can't stand for default since it is invalid.
-fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
-    match matches.value_of("CACHE_KEY_PATH").unwrap() {
-        CACHE_KEY_PATH => cache_key_path(Some(&*FS_ROOT)),
-        val => PathBuf::from(val),
-    }
 }
 
 fn enable_features_from_env(ui: &mut UI) {

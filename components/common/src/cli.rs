@@ -18,7 +18,10 @@
 //! need a spot to consolidate those values and help simplify some of the logic around them.
 
 use crate::types::ListenCtlAddr;
-use habitat_core::env as henv;
+use clap::ArgMatches;
+use habitat_core::{env as henv,
+                   fs::{cache_key_path,
+                        CACHE_KEY_PATH}};
 use std::path::PathBuf;
 
 pub const GOSSIP_DEFAULT_IP: &str = "0.0.0.0";
@@ -77,3 +80,14 @@ pub const DEFAULT_BINLINK_DIR: &str = "/hab/bin";
 pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 #[cfg(target_os = "macos")]
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
+
+/// We require the value at the clap layer (see cli::arg_cache_key_path),
+/// so we can safely unwrap, but we need some additional logic to calculate
+// the dynamic "default" value if the argument has the default signifier value:
+/// CACHE_KEY_PATH. An empty value can't stand for default since it is invalid.
+pub fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
+    match matches.value_of("CACHE_KEY_PATH").unwrap() {
+        CACHE_KEY_PATH => cache_key_path(Some(&*FS_ROOT)),
+        val => PathBuf::from(val),
+    }
+}

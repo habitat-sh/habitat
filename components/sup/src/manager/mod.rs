@@ -134,7 +134,7 @@ use winapi::{shared::minwindef::PDWORD,
              um::processthreadsapi};
 
 const MEMBER_ID_FILE: &str = "MEMBER_ID";
-const PROC_LOCK_FILE: &str = "LOCK";
+pub const PROC_LOCK_FILE: &str = "LOCK";
 
 static LOGKEY: &'static str = "MR";
 
@@ -213,6 +213,7 @@ impl FsCfg {
 pub struct ManagerConfig {
     pub auto_update:       bool,
     pub custom_state_path: Option<PathBuf>,
+    pub cache_key_path:    PathBuf,
     pub update_url:        String,
     pub update_channel:    ChannelIdent,
     pub gossip_listen:     GossipListenAddr,
@@ -237,25 +238,6 @@ pub struct TLSConfig {
 impl ManagerConfig {
     pub fn sup_root(&self) -> PathBuf {
         habitat_sup_protocol::sup_root(self.custom_state_path.as_ref())
-    }
-}
-
-impl Default for ManagerConfig {
-    fn default() -> Self {
-        ManagerConfig { auto_update:       false,
-                        custom_state_path: None,
-                        update_url:        "".to_string(),
-                        update_channel:    ChannelIdent::default(),
-                        gossip_listen:     GossipListenAddr::default(),
-                        ctl_listen:        ListenCtlAddr::default(),
-                        http_listen:       http_gateway::ListenAddr::default(),
-                        http_disable:      false,
-                        gossip_peers:      vec![],
-                        gossip_permanent:  false,
-                        ring_key:          None,
-                        organization:      None,
-                        watch_peer_file:   None,
-                        tls_config:        None, }
     }
 }
 
@@ -419,9 +401,8 @@ impl Manager {
         Self::new(cfg, fs_cfg, launcher)
     }
 
-    pub fn term(cfg: &ManagerConfig) -> Result<()> {
-        let fs_cfg = FsCfg::new(cfg.sup_root());
-        match read_process_lock(&fs_cfg.proc_lock_file) {
+    pub fn term(proc_lock_file: &Path) -> Result<()> {
+        match read_process_lock(proc_lock_file) {
             Ok(pid) => {
                 process::signal(pid, Signal::TERM).map_err(|_| sup_error!(Error::SignalFailed))?;
                 Ok(())
@@ -886,7 +867,8 @@ impl Manager {
 
             self.restart_elections();
             self.census_ring
-                .update_from_rumors(&self.butterfly.service_store,
+                .update_from_rumors(&self.state.cfg.cache_key_path,
+                                    &self.butterfly.service_store,
                                     &self.butterfly.election_store,
                                     &self.butterfly.update_store,
                                     &self.butterfly.member_list,
@@ -1767,6 +1749,8 @@ impl Future for CtlHandler {
 #[cfg(test)]
 mod test {
     use super::*;
+    use habitat_common::cli::FS_ROOT;
+    use habitat_core::fs::cache_key_path;
     use habitat_sup_protocol::STATE_PATH_PREFIX;
     use std::path::PathBuf;
 
@@ -1782,6 +1766,29 @@ mod test {
             assert!(f.toggle_if_set(), "Should have been toggled, but wasn't!");
             assert!(!f.toggle_if_set(),
                     "Should no longer be toggled, after having been toggled previously!");
+        }
+    }
+
+    // Implementing Default in production code encourages passing the entirety of this struct
+    // around when it would be better to be more targeted. However, it is very handy for test
+    // code, so only implement it under test configuration.
+    impl Default for ManagerConfig {
+        fn default() -> Self {
+            ManagerConfig { auto_update:       false,
+                            custom_state_path: None,
+                            cache_key_path:    cache_key_path(Some(&*FS_ROOT)),
+                            update_url:        "".to_string(),
+                            update_channel:    ChannelIdent::default(),
+                            gossip_listen:     GossipListenAddr::default(),
+                            ctl_listen:        ListenCtlAddr::default(),
+                            http_listen:       http_gateway::ListenAddr::default(),
+                            http_disable:      false,
+                            gossip_peers:      vec![],
+                            gossip_permanent:  false,
+                            ring_key:          None,
+                            organization:      None,
+                            watch_peer_file:   None,
+                            tls_config:        None, }
         }
     }
 

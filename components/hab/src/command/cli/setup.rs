@@ -18,8 +18,8 @@ use std::{path::Path,
           result};
 
 #[cfg(windows)]
-use crate::common::cli_defaults::{DEFAULT_BINLINK_DIR,
-                                  FS_ROOT};
+use crate::common::cli::{DEFAULT_BINLINK_DIR,
+                         FS_ROOT};
 use crate::{common::ui::{UIReader,
                          UIWriter,
                          UI},

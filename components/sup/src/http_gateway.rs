@@ -32,9 +32,9 @@ use actix_web::{http::{self,
                 HttpResponse,
                 Path,
                 Request};
-use habitat_common::{cli_defaults::{LISTEN_HTTP_ADDRESS_ENVVAR,
-                                    LISTEN_HTTP_DEFAULT_IP,
-                                    LISTEN_HTTP_DEFAULT_PORT},
+use habitat_common::{cli::{LISTEN_HTTP_ADDRESS_ENVVAR,
+                           LISTEN_HTTP_DEFAULT_IP,
+                           LISTEN_HTTP_DEFAULT_PORT},
                      templating::hooks};
 use habitat_core::{crypto,
                    env as henv,
