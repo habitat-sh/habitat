@@ -30,9 +30,6 @@ lazy_static! {
     pub static ref GOSSIP_DEFAULT_ADDR: String =
         { format!("{}:{}", GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT) };
 }
-pub const GOSSIP_LISTEN_ADDRESS_ENVVAR: &str = "HAB_LISTEN_GOSSIP";
-pub const RING_ENVVAR: &str = "HAB_RING";
-pub const RING_KEY_ENVVAR: &str = "HAB_RING_KEY";
 
 pub const LISTEN_HTTP_DEFAULT_PORT: u16 = 9631;
 pub const LISTEN_HTTP_DEFAULT_IP: &str = "0.0.0.0";
@@ -40,7 +37,6 @@ lazy_static! {
     pub static ref LISTEN_HTTP_DEFAULT_ADDR: String =
         { format!("{}:{}", LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT) };
 }
-pub const LISTEN_HTTP_ADDRESS_ENVVAR: &str = "HAB_LISTEN_HTTP";
 
 const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 
@@ -71,7 +67,36 @@ lazy_static! {
     };
 }
 
-pub const BINLINK_DIR_ENVVAR: &str = "HAB_BINLINK_DIR";
+/// The environment variables used in CLI arg overrides
+// TODO: Collect the rest of the *_ENVVAR values here
+pub mod env_var {
+    pub const BINLINK_DIR: &str = "HAB_BINLINK_DIR";
+    pub const CACHE_KEY_PATH: &str = "HAB_CACHE_KEY_PATH"; // TODO: Remove duplicate habitat_core::crypto::CACHE_KEY_PATH_ENV_VAR
+    pub const GLYPH_STYLE: &str = "HAB_GLYPH_STYLE";
+    pub const GOSSIP_LISTEN_ADDRESS: &str = "HAB_LISTEN_GOSSIP";
+    pub const LISTEN_HTTP_ADDRESS: &str = "HAB_LISTEN_HTTP";
+    pub const NONINTERACTIVE: &str = "HAB_NONINTERACTIVE";
+    pub const NOCOLORING: &str = "HAB_NOCOLORING";
+    pub const NOSTUDIORC: &str = "HAB_STUDIO_NOSTUDIORC";
+    pub const ORIGIN: &str = "HAB_ORIGIN";
+    pub const ORIGIN_KEYS: &str = "HAB_ORIGIN_KEYS";
+    pub const RING: &str = "HAB_RING";
+    pub const RING_KEY: &str = "HAB_RING_KEY";
+    pub const STUDIOS_HOME: &str = "HAB_STUDIOS_HOME";
+    pub const STUDIO_ROOT: &str = "HAB_STUDIO_ROOT";
+    pub const STUDIO_SUP: &str = "HAB_STUDIO_SUP";
+    // These should be deprecated in favor of names of the form "HAB_*"
+    pub const ARTIFACT_PATH: &str = "ARTIFACT_PATH";
+    pub const HTTPS_PROXY: &str = "https_proxy";
+    pub const HTTP_PROXY: &str = "http_proxy";
+    pub const NO_ARTIFACT_PATH: &str = "NO_ARTIFACT_PATH";
+    pub const NO_PROXY: &str = "no_proxy";
+    pub const NO_SRC_PATH: &str = "NO_SRC_PATH";
+    pub const QUIET: &str = "QUIET";
+    pub const STUDIO_TYPE: &str = "STUDIO_TYPE";
+    pub const VERBOSE: &str = "VERBOSE";
+    // End to deprecate
+}
 
 /// Default Binlink Dir
 #[cfg(target_os = "windows")]
@@ -80,6 +105,8 @@ pub const DEFAULT_BINLINK_DIR: &str = "/hab/bin";
 pub const DEFAULT_BINLINK_DIR: &str = "/bin";
 #[cfg(target_os = "macos")]
 pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
+
+pub const CACHE_KEY_PATH_ARG: &str = "cache-key-path";
 
 /// We require the value at the clap layer (see cli::arg_cache_key_path),
 /// so we can safely unwrap, but we need some additional logic to calculate

@@ -45,14 +45,14 @@ use crate::sup::{cli::cli,
                  util};
 use clap::ArgMatches;
 use habitat_common::{cli::{cache_key_path_from_matches,
+                           env_var,
                            GOSSIP_DEFAULT_PORT},
                      command::package::install::InstallSource,
                      output::{self,
                               OutputFormat,
                               OutputVerbosity},
                      outputln,
-                     ui::{NONINTERACTIVE_ENVVAR,
-                          UI}};
+                     ui::UI};
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{crypto::{self,
@@ -493,8 +493,8 @@ fn set_supervisor_logging_options(m: &ArgMatches) {
 // function wouldn't be necessary. In the meantime, though, it'll keep
 // the scope of change contained.
 fn ui() -> UI {
-    let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
-                                                   .unwrap_or(false)
+    let isatty = if env::var(env_var::NONINTERACTIVE).map(|val| val == "1" || val == "true")
+                                                     .unwrap_or(false)
     {
         Some(false)
     } else {

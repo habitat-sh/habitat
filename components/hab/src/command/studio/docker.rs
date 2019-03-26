@@ -12,6 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{common::cli::env_var,
+            error::{Error,
+                    Result},
+            hcore::{env as henv,
+                    fs::{find_command,
+                         CACHE_ARTIFACT_PATH,
+                         CACHE_KEY_PATH},
+                    os::process,
+                    package::target},
+            VERSION};
 use std::{env,
           ffi::{OsStr,
                 OsString},
@@ -19,20 +29,6 @@ use std::{env,
                  PathBuf},
           process::{Command,
                     Stdio}};
-
-use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
-            common::ui::UI,
-            hcore::{crypto::default_cache_key_path,
-                    env as henv,
-                    fs::{find_command,
-                         CACHE_ARTIFACT_PATH,
-                         CACHE_KEY_PATH},
-                    os::process,
-                    package::target}};
-
-use crate::{error::{Error,
-                    Result},
-            VERSION};
 
 const DOCKER_CMD: &str = "docker";
 const DOCKER_CMD_ENVVAR: &str = "HAB_DOCKER_BINARY";
@@ -44,7 +40,7 @@ const DOCKER_OPTS_ENVVAR: &str = "HAB_DOCKER_OPTS";
 const DOCKER_SOCKET: &str = "/var/run/docker.sock";
 const HAB_STUDIO_SECRET: &str = "HAB_STUDIO_SECRET_";
 
-pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
+pub fn start_docker_studio(cache_key_path: &Path, args: &[OsString]) -> Result<()> {
     let mut args = args.to_vec();
     if args.get(0) == Some(&OsString::from("rm")) {
         return Err(Error::CannotRemoveDockerStudio);
@@ -69,10 +65,10 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                                    mnt_prefix,
                                    "/src"),
                            format!("{}:{}/{}",
-                                   default_cache_key_path(None).to_string_lossy(),
+                                   cache_key_path.to_string_lossy(),
                                    mnt_prefix,
                                    CACHE_KEY_PATH),];
-    if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
+    if let Ok(cache_artifact_path) = henv::var(env_var::ARTIFACT_PATH) {
         volumes.push(format!("{}:{}/{}",
                              cache_artifact_path, mnt_prefix, CACHE_ARTIFACT_PATH));
     }

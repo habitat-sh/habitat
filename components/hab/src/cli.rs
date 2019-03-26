@@ -16,19 +16,16 @@ use crate::{command::studio,
             feat};
 use clap::{App,
            AppSettings,
-           Arg};
-use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
+           Arg,
+           SubCommand};
+use habitat_common::{cli::{env_var,
+                           CACHE_KEY_PATH_ARG,
                            DEFAULT_BINLINK_DIR,
                            GOSSIP_DEFAULT_ADDR,
-                           GOSSIP_LISTEN_ADDRESS_ENVVAR,
                            LISTEN_CTL_DEFAULT_ADDR_STRING,
-                           LISTEN_HTTP_ADDRESS_ENVVAR,
-                           LISTEN_HTTP_DEFAULT_ADDR,
-                           RING_ENVVAR,
-                           RING_KEY_ENVVAR},
+                           LISTEN_HTTP_DEFAULT_ADDR},
                      types::ListenCtlAddr};
-use habitat_core::{crypto::{keys::PairType,
-                            CACHE_KEY_PATH_ENV_VAR},
+use habitat_core::{crypto::keys::PairType,
                    env::Config,
                    fs::CACHE_KEY_PATH,
                    package::{ident,
@@ -395,7 +392,7 @@ pub fn get() -> App<'static, 'static> {
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
                 (@arg BINARY: +takes_value
                     "The command to binlink (ex: bash)")
-                (@arg DEST_DIR: -d --dest +takes_value {non_empty} env(BINLINK_DIR_ENVVAR) default_value(DEFAULT_BINLINK_DIR)
+                (@arg DEST_DIR: -d --dest +takes_value env(env_var::BINLINK_DIR) default_value(DEFAULT_BINLINK_DIR)
                     "Sets the destination directory")
                 (@arg FORCE: -f --force "Overwrite existing binlinks")
             )
@@ -697,10 +694,7 @@ pub fn get() -> App<'static, 'static> {
                     "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
             )
         )
-        (@subcommand studio =>
-            (about: "Commands relating to Habitat Studios")
-            (aliases: &["stu", "stud", "studi"])
-        )
+        (subcommand: studio_commands())
         (@subcommand supportbundle =>
             (about: "Create a tarball of Habitat Supervisor data to send to support")
             (aliases: &["supp", "suppo", "suppor", "support-bundle"])
@@ -766,6 +760,206 @@ fn sub_cli_setup() -> App<'static, 'static> {
     )
 }
 
+fn studio_commands() -> App<'static, 'static> {
+    arg_enum! {
+        #[derive(PartialEq, Debug)]
+        #[allow(non_camel_case_types)]
+        pub enum Studio {
+            default,
+            baseimage,
+            busybox,
+            stage1,
+        }
+    }
+
+    let platform_args;
+    // We should unify the following vars if possible
+    let hab_studio_root_opt;
+    let after_help;
+    #[cfg(unix)]
+    {
+        platform_args =
+            [Arg::with_name("NO_ARTIFACT_PATH").short("N")
+                                               .env(env_var::NO_ARTIFACT_PATH)
+                                               .empty_values(false)
+                                               .conflicts_with("ARTIFACT_PATH")
+                                               .help("Set to any non-empty value to not mount \
+                                                      the source artifact cache path into the \
+                                                      Studio (default: mount the path)"),
+             Arg::with_name("ARTIFACT_PATH").short("-a")
+                                            .env(env_var::ARTIFACT_PATH)
+                                            .help("Sets the source artifact cache path")
+                                            .validator(dir_exists)
+                                            .default_value("/hab/cache/artifacts"),
+             Arg::with_name("DOCKER").short("D")
+                                     .long("docker")
+                                     .help("-D  Use a Docker Studio instead of a chroot Studio"),
+             Arg::with_name("VERSION").short("V")
+                                      .help("Prints version information"),
+             Arg::with_name("NO_TTY").long("no-tty")
+                                     .requires("DOCKER")
+                                     .help("Disable the --tty default (Docker Studio only)"),
+             Arg::with_name("NON_INTERACTIVE").long("non-interactive")
+                                              .requires("DOCKER")
+                                              .help("Disable the --interactive default (Docker \
+                                                     Studio only)"),
+             Arg::with_name("NO_PROGRESS_BARS").long("no-progress-bars")
+                                               .env(env_var::NONINTERACTIVE)
+                                               .empty_values(false)
+                                               .help("Disables interactive progress bars \
+                                                      despite tty"),
+             Arg::with_name("NO_STUDIORC").long("no-studiorc")
+                                          .env(env_var::NOSTUDIORC)
+                                          .empty_values(false)
+                                          .help("Disables sourcing a `.studiorc' in `studio \
+                                                 enter'"),
+             Arg::with_name("NO_COLOR").long("no-color")
+                                       .env(env_var::NOCOLORING)
+                                       .empty_values(false)
+                                       .help("Disables text coloring mode despite TERM \
+                                              capabilities"),
+             Arg::with_name("STUDIO_TYPE").short("t")
+                                          .env(env_var::STUDIO_TYPE)
+                                          .empty_values(false)
+                                          .possible_values(&Studio::variants())
+                                          .default_value(Studio::variants()[0])
+                                          .help("Sets a Studio type when creating"),
+             Arg::with_name("SUP_ARGS").long("sup-args")
+                                       .env(env_var::STUDIO_SUP)
+                                       .empty_values(false)
+                                       .help("Sets args for a Supervisor in `studio enter'"),
+             Arg::with_name("HTTP_PROXY").long("http-proxy")
+                                         .env(env_var::HTTP_PROXY)
+                                         .empty_values(false)
+                                         .help("Sets an http_proxy environment variable inside \
+                                                the Studio"),
+             Arg::with_name("HTTPS_PROXY").long("https-proxy")
+                                          .env(env_var::HTTPS_PROXY)
+                                          .empty_values(false)
+                                          .help("Sets an https_proxy environment variable \
+                                                 inside the Studio"),
+             Arg::with_name("NO_PROXY").long("no-proxy")
+                                       .env(env_var::NO_PROXY)
+                                       .empty_values(false)
+                                       // Should we add these?
+                                       // .conflicts_with("HTTP_PROXY")
+                                       // .conflicts_with("HTTPS_PROXY")
+                                       .help("Sets an no_proxy environment variable inside the \
+                                              Studio")];
+        hab_studio_root_opt = "r";
+        after_help = "EXAMPLES:
+
+    # Create a new default Studio
+    hab studio new
+
+    # Enter the default Studio
+    hab studio enter
+
+    # Run a command in the default Studio
+    hab studio run wget --version
+
+    # Destroy the default Studio
+    hab studio rm
+
+    # Create and enter a busybox type Studio with a custom root
+    hab studio -r /opt/slim -t busybox enter
+
+    # Run a command in the slim Studio, showing only the command output
+    hab studio -q -r /opt/slim run busybox ls -l /
+
+    # Verbosely destroy the slim Studio
+    hab studio -v -r /opt/slim rm";
+    }
+    #[cfg(windows)]
+    {
+        platform_args = [Arg::with_name("DOCKER").short("D")
+                                                 .long("docker")
+                                                 .help("-D  Use a Docker Studio instead of a \
+                                                        native Studio")];
+        hab_studio_root_opt = "o";
+
+        after_help = "EXAMPLES:
+
+    # Create a new default Studio
+    hab studio new
+
+    # Enter the default Studio
+    hab studio enter
+
+    # Run a command in the default Studio
+    hab studio run hab --version
+
+    # Destroy the default Studio
+    hab studio rm
+
+    # Create and enter a Studio with a custom root
+    hab studio -o /opt/slim
+
+    # Run a command in the slim Studio, showing only the command output
+    hab studio -q -o /opt/slim run busybox ls -l /
+
+    # Verbosely destroy the slim Studio
+    hab studio -v -o /opt/slim rm";
+    }
+
+    let common_args = [Arg::with_name("NO_SRC_PATH").short("n")
+                                                    .env(env_var::NO_SRC_PATH)
+                                                    .empty_values(false)
+                                                    .conflicts_with("SRC_PATH")
+                                                    .help("Set to any non-empty value to not \
+                                                           mount the source path into the \
+                                                           Studio (default: mount the path)"),
+                       Arg::with_name("SRC_PATH").short("s")
+                                                 .validator(dir_exists)
+                                                 .default_value(".")
+                                                 .help("Sets the source path"),
+                       Arg::with_name("QUIET").short("q")
+                                              .empty_values(false)
+                                              .env(env_var::QUIET)
+                                              .help("Set to any non-empty value to print less \
+                                                     output for better use in scripts"),
+                       Arg::with_name("VERBOSE").short("v")
+                                                .env(env_var::VERBOSE)
+                                                .empty_values(false)
+                                                .help("Set to any non-empty value to print more \
+                                                       verbose output"),
+                       Arg::with_name("ORIGIN_KEYS").short("-k")
+                                                    .long("keys")
+                                                    .env(env_var::ORIGIN_KEYS)
+                                                    .validator(valid_origin)
+                                                    .help("Installs secret origin keys \
+                                                           (default: HAB_ORIGIN)"), /* make sure overriding HAB_ORIGIN affects this */
+                       Arg::with_name("STUDIO_ROOT").short(hab_studio_root_opt)
+                                                    .env(env_var::STUDIO_ROOT)
+                                                    .empty_values(false)
+                                                    .help("Sets a Studio root (default: \
+                                                           /hab/studios/<DIR_NAME>)"), /* probably CURRENT_DIR_NAME would be better */
+                       Arg::with_name("ORIGIN").long("origin") /* -o would conflict with windows */
+                                               .env(env_var::ORIGIN)
+                                               .validator(valid_origin)
+                                               .help("Propagates this variable into any studios"),
+                       Arg::with_name("STUDIOS_HOME").long("home")
+                                                     .env(env_var::STUDIOS_HOME)
+                                                     .default_value("/hab/studios")
+                                                     .empty_values(false)
+                                                     .help("Sets a home path for all Studios"),
+                       arg_cache_key_path("Path to search for encryption keys. Default value is \
+                                           hab/cache/keys if root and .hab/cache/keys under the \
+                                           home directory otherwise.")];
+
+    App::new("studio").about("Commands relating to Habitat Studios")
+                      .args(&common_args)
+                      .args(&platform_args)
+                      .subcommand(SubCommand::with_name("build"))
+                      .subcommand(SubCommand::with_name("enter"))
+                      .subcommand(SubCommand::with_name("help"))
+                      .subcommand(SubCommand::with_name("new"))
+                      .subcommand(SubCommand::with_name("rm"))
+                      .subcommand(SubCommand::with_name("run"))
+                      .subcommand(SubCommand::with_name("version"))
+                      .after_help(after_help)
+}
+
 pub fn sup_commands() -> App<'static, 'static> {
     // Define all of the `hab sup *` subcommands in one place.
     // This removes the need to duplicate this in `hab-sup`.
@@ -813,14 +1007,13 @@ fn sub_cli_completers() -> App<'static, 'static> {
                                    .possible_values(&supported_shells))
 }
 
-// We need a default_value so that the argument can be required and validated. We hide the
+// We need a default_value so that the argument can be validated as non-empty. We hide the
 // default because it's a special value that will be internally mapped according to the
 // user type. This is to allow us to apply consistent validation to the env var override.
 fn arg_cache_key_path(help_text: &'static str) -> Arg<'static, 'static> {
-    Arg::with_name("CACHE_KEY_PATH").long("cache-key-path")
-                                    .required(true)
-                                    .validator(non_empty)
-                                    .env(CACHE_KEY_PATH_ENV_VAR)
+    Arg::with_name("CACHE_KEY_PATH").long(CACHE_KEY_PATH_ARG)
+                                    .empty_values(false)
+                                    .env(env_var::CACHE_KEY_PATH)
                                     .default_value(CACHE_KEY_PATH)
                                     .hide_default_value(true)
                                     .help(&help_text)
@@ -956,11 +1149,11 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     // is displayed confusingly as `hab-sup`
     // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
     (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-    (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
+    (@arg LISTEN_GOSSIP: --("listen-gossip") env(env_var::GOSSIP_LISTEN_ADDRESS) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the Gossip System Gateway.")
     (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
         "Start the supervisor in local mode.")
-    (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
+    (@arg LISTEN_HTTP: --("listen-http") env(env_var::LISTEN_HTTP_ADDRESS) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
         "The listen address for the HTTP Gateway.")
     (@arg HTTP_DISABLE: --("http-disable") -D
         "Disable the HTTP Gateway completely [default: false]")
@@ -978,10 +1171,10 @@ pub fn sub_sup_run() -> App<'static, 'static> {
     (arg: arg_cache_key_path("Path to search for encryption keys. \
         Default value is hab/cache/keys if root and .hab/cache/keys under the home \
         directory otherwise."))
-    (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
+    (@arg RING: --ring -r env(env_var::RING) conflicts_with("RING_KEY")
         "The name of the ring used by the Supervisor when running with wire encryption. \
          (ex: hab sup run --ring myring)")
-    (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
+    (@arg RING_KEY: --("ring-key") env(env_var::RING_KEY) conflicts_with("RING") +hidden
         "The contents of the ring key when running with wire encryption. \
              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
              (ex: hab sup run --ring-key 'SYM-SEC-1 \
@@ -1279,15 +1472,6 @@ fn valid_origin(val: String) -> result::Result<(), String> {
         Err(format!("'{}' is not valid. A valid origin contains a-z, \
                      0-9, and _ or - after the first character",
                     &val))
-    }
-}
-
-#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
-fn non_empty(val: String) -> result::Result<(), String> {
-    if val.is_empty() {
-        Err("must not be empty (check env overrides)".to_string())
-    } else {
-        Ok(())
     }
 }
 

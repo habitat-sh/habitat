@@ -12,28 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{env,
-          ffi::OsString,
-          fs as stdfs,
-          path::PathBuf};
-
-use crate::{common::ui::UI,
+use crate::{common::{cli::env_var,
+                     ui::UI},
+            config,
+            error::Result,
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
                     env as henv,
                     fs}};
+use std::{env,
+          ffi::OsString,
+          fs as stdfs,
+          path::{Path,
+                 PathBuf}};
 
-use crate::{config,
-            error::Result};
-
-pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
-
-const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
 const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
-pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
-    if henv::var(ORIGIN_ENVVAR).is_err() {
+pub fn start(ui: &mut UI, cache_key_path: &Path, args: &[OsString]) -> Result<()> {
+    if henv::var(env_var::ORIGIN).is_err() {
         let config = config::load()?;
         if let Some(default_origin) = config.origin {
             debug!("Setting default origin {} via CLI config", &default_origin);
@@ -47,12 +44,12 @@ pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         env::set_var(CACHE_KEY_PATH_ENV_VAR, &path);
     };
 
-    let artifact_path = match henv::var(ARTIFACT_PATH_ENVVAR) {
+    let artifact_path = match henv::var(env_var::ARTIFACT_PATH) {
         Ok(p) => PathBuf::from(p),
         Err(_) => {
             let path = fs::cache_artifact_path(None::<&str>);
-            debug!("Setting {}={}", ARTIFACT_PATH_ENVVAR, path.display());
-            env::set_var(ARTIFACT_PATH_ENVVAR, &path);
+            debug!("Setting {}={}", env_var::ARTIFACT_PATH, path.display());
+            env::set_var(env_var::ARTIFACT_PATH, &path);
             path
         }
     };
@@ -61,7 +58,7 @@ pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         stdfs::create_dir_all(&artifact_path)?;
     }
 
-    inner::start(ui, args)
+    inner::start(ui, cache_key_path, args)
 }
 
 #[cfg(target_os = "linux")]
@@ -82,15 +79,16 @@ mod inner {
                 VERSION};
     use std::{env,
               ffi::OsString,
-              path::PathBuf,
+              path::{Path,
+                     PathBuf},
               str::FromStr};
 
     const SUDO_CMD: &str = "sudo";
 
-    pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
+    pub fn start(ui: &mut UI, cache_key_path: &Path, args: &[OsString]) -> Result<()> {
         rerun_with_sudo_if_needed(ui, &args)?;
         if is_docker_studio(&args) {
-            docker::start_docker_studio(ui, args)
+            docker::start_docker_studio(cache_key_path, args)
         } else {
             let command = match henv::var(super::STUDIO_CMD_ENVVAR) {
                 Ok(command) => PathBuf::from(command),
@@ -118,7 +116,7 @@ mod inner {
             return false;
         }
 
-        for arg in args.iter() {
+        for arg in args {
             let str_arg = arg.to_string_lossy();
             if str_arg == "-D" {
                 return true;
@@ -178,14 +176,15 @@ mod inner {
                         package::PackageIdent},
                 VERSION};
     use std::{ffi::OsString,
-              path::PathBuf,
+              path::{Path,
+                     PathBuf},
               str::FromStr};
 
-    pub fn start(_ui: &mut UI, args: &[OsString]) -> Result<()> {
+    pub fn start(_ui: &mut UI, cache_key_path: &Path, args: &[OsString]) -> Result<()> {
         if is_windows_studio(&args) {
             start_windows_studio(_ui, args)
         } else {
-            docker::start_docker_studio(_ui, args)
+            docker::start_docker_studio(cache_key_path, args)
         }
     }
 
@@ -215,18 +214,10 @@ mod inner {
             return false;
         }
 
-        for arg in args.iter() {
+        for arg in args {
             let str_arg = arg.to_string_lossy();
             if str_arg == "-D" {
                 return false;
-            }
-        }
-
-        // -w/--windows is deprecated and should be removed in a post 0.64.0 release
-        for arg in args.iter() {
-            let str_arg = arg.to_string_lossy().to_lowercase();
-            if str_arg == "--windows" || str_arg == "-w" {
-                return true;
             }
         }
 

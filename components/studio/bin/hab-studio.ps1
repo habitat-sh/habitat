@@ -68,8 +68,6 @@ COMMON FLAGS:
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -D  Use a Docker Studio instead of a native Studio
-DEPRECATED FLAG:
-    -w  Use a local Windows studio instead of a Docker Studio
 
 COMMON OPTIONS:
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )

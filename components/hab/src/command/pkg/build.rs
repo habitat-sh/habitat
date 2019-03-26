@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::ffi::OsString;
-
-use crate::common::ui::UI;
-
 use crate::{command::studio,
+            common::ui::UI,
             error::Result};
+use std::{ffi::OsString,
+          path::Path};
 
 #[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              plan_context: &str,
+             cache_key_path: &Path,
              root: Option<&str>,
              src: Option<&str>,
              keys: Option<&str>,
@@ -53,5 +53,5 @@ pub fn start(ui: &mut UI,
     if studio::native_studio_support() && docker {
         args.push("-D".into());
     }
-    studio::enter::start(ui, &args)
+    studio::enter::start(ui, cache_key_path, &args)
 }

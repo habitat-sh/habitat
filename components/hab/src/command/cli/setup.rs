@@ -13,11 +13,6 @@
 // limitations under the License.
 
 #[cfg(windows)]
-use std::env;
-use std::{path::Path,
-          result};
-
-#[cfg(windows)]
 use crate::common::cli::{DEFAULT_BINLINK_DIR,
                          FS_ROOT};
 use crate::{common::ui::{UIReader,
@@ -27,8 +22,13 @@ use crate::{common::ui::{UIReader,
                     env as henv,
                     package::ident,
                     Error::InvalidOrigin}};
+use habitat_common::cli::env_var;
+#[cfg(windows)]
+use std::env;
 #[cfg(windows)]
 use std::ptr;
+use std::{path::Path,
+          result};
 use url::Url;
 #[cfg(windows)]
 use widestring::WideCString;
@@ -52,8 +52,7 @@ use crate::{analytics,
             error::Result,
             AUTH_TOKEN_ENVVAR,
             BLDR_URL_ENVVAR,
-            CTL_SECRET_ENVVAR,
-            ORIGIN_ENVVAR};
+            CTL_SECRET_ENVVAR};
 
 pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()> {
     let mut generated_origin = false;
@@ -278,7 +277,10 @@ fn prompt_origin(ui: &mut UI) -> Result<String> {
                              &o))?;
             Some(o)
         }
-        None => henv::var(ORIGIN_ENVVAR).or_else(|_| henv::var("USER")).ok(),
+        None => {
+            henv::var(env_var::ORIGIN).or_else(|_| henv::var("USER"))
+                                      .ok()
+        }
     };
     Ok(ui.prompt_ask("Default origin name", default.as_ref().map(|x| &**x))?)
 }

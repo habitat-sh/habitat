@@ -24,6 +24,7 @@ extern crate log;
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
 use crate::{common::{cli::{cache_key_path_from_matches,
+                           env_var,
                            DEFAULT_BINLINK_DIR,
                            FS_ROOT},
                      command::package::install::{InstallHookMode,
@@ -34,7 +35,6 @@ use crate::{common::{cli::{cache_key_path_from_matches,
                      types::ListenCtlAddr,
                      ui::{Status,
                           UIWriter,
-                          NONINTERACTIVE_ENVVAR,
                           UI}},
             hcore::{crypto::{init,
                              keys::PairType,
@@ -75,7 +75,6 @@ use hab::{analytics,
           AUTH_TOKEN_ENVVAR,
           BLDR_URL_ENVVAR,
           CTL_SECRET_ENVVAR,
-          ORIGIN_ENVVAR,
           PRODUCT,
           VERSION};
 use habitat_common as common;
@@ -129,8 +128,6 @@ fn main() {
 }
 
 fn start(ui: &mut UI) -> Result<()> {
-    exec_subcommand_if_called(ui)?;
-
     let (args, remaining_args) = raw_parse_args();
     debug!("clap cli args: {:?}", &args);
     debug!("remaining cli args: {:?}", &remaining_args);
@@ -149,6 +146,8 @@ fn start(ui: &mut UI) -> Result<()> {
                                       })
                                       .unwrap();
     let app_matches = child.join().unwrap();
+    debug!("app_matches: {:#?}", app_matches);
+    exec_subcommand_if_called(ui, &app_matches)?;
 
     match app_matches.subcommand() {
         ("apply", Some(m)) => sub_svc_set(m)?,
@@ -454,12 +453,12 @@ fn sub_pkg_binlink(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let plan_context = m.value_of("PLAN_CONTEXT").unwrap(); // Required via clap
+    let cache_key_path = cache_key_path_from_matches(&m);
     let root = m.value_of("HAB_STUDIO_ROOT");
     let src = m.value_of("SRC_PATH");
     let keys_string = match m.values_of("HAB_ORIGIN_KEYS") {
         Some(keys) => {
             init();
-            let cache_key_path = cache_key_path_from_matches(&m);
             for key in keys.clone() {
                 // Validate that all secret keys are present
                 let pair = SigKeyPair::get_latest_pair_for(key, &cache_key_path, None)?;
@@ -477,7 +476,15 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let reuse = m.is_present("REUSE");
     let windows = m.is_present("WINDOWS");
 
-    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, windows, docker)
+    command::pkg::build::start(ui,
+                               plan_context,
+                               &cache_key_path,
+                               root,
+                               src,
+                               keys,
+                               reuse,
+                               windows,
+                               docker)
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {
@@ -1266,8 +1273,17 @@ fn args_after_first(args_to_skip: usize) -> Vec<OsString> {
     env::args_os().skip(args_to_skip).collect()
 }
 
-fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
+fn exec_subcommand_if_called(ui: &mut UI, arg_matches: &ArgMatches) -> Result<()> {
     let mut args = env::args();
+
+    match arg_matches.subcommand() {
+        ("studio", Some(m)) => {
+            let cache_key_path = cache_key_path_from_matches(&m);
+            return command::studio::enter::start(ui, &cache_key_path, &args_after_first(2));
+        }
+        _ => (),
+    }
+
     match (args.nth(1).unwrap_or_default().as_str(),
            args.next().unwrap_or_default().as_str(),
            args.next().unwrap_or_default().as_str())
@@ -1282,9 +1298,6 @@ fn exec_subcommand_if_called(ui: &mut UI) -> Result<()> {
         }
         ("pkg", "export", "tar") => command::pkg::export::tar::start(ui, &args_after_first(4)),
         ("run", ..) => command::launcher::start(ui, &args_after_first(1)),
-        ("stu", ..) | ("stud", ..) | ("studi", ..) | ("studio", ..) => {
-            command::studio::enter::start(ui, &args_after_first(2))
-        }
         // Skip invoking the `hab-sup` binary for sup cli help messages;
         // handle these from within `hab`
         ("help", "sup", _)
@@ -1329,6 +1342,8 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
 /// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the
 /// HAB_AUTH_TOKEN env var. If not, check the CLI config to see if there is a default auth
 /// token set. If that's empty too, then error.
+// TODO: once https://github.com/habitat-sh/habitat/issues/6314 is complete, this function
+// will likely go away, and with it, we can remove ArgumentError.
 fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
     match m.value_of("AUTH_TOKEN") {
         Some(o) => Ok(o.to_string()),
@@ -1375,7 +1390,7 @@ fn origin_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
     match m.value_of("ORIGIN") {
         Some(o) => Ok(o.to_string()),
         None => {
-            match henv::var(ORIGIN_ENVVAR) {
+            match henv::var(env_var::ORIGIN) {
                 Ok(v) => Ok(v),
                 Err(_) => {
                     config::load()?.origin.ok_or_else(|| {
@@ -1757,8 +1772,8 @@ fn user_param_or_env(m: &ArgMatches<'_>) -> Option<String> {
 // function wouldn't be necessary. In the meantime, though, it'll keep
 // the scope of change contained.
 fn ui() -> UI {
-    let isatty = if env::var(NONINTERACTIVE_ENVVAR).map(|val| val == "1" || val == "true")
-                                                   .unwrap_or(false)
+    let isatty = if env::var(env_var::NONINTERACTIVE).map(|val| val == "1" || val == "true")
+                                                     .unwrap_or(false)
     {
         Some(false)
     } else {

@@ -32,7 +32,7 @@ use actix_web::{http::{self,
                 HttpResponse,
                 Path,
                 Request};
-use habitat_common::{cli::{LISTEN_HTTP_ADDRESS_ENVVAR,
+use habitat_common::{cli::{env_var,
                            LISTEN_HTTP_DEFAULT_IP,
                            LISTEN_HTTP_DEFAULT_PORT},
                      templating::hooks};
@@ -106,7 +106,7 @@ impl Default for ListenAddr {
 }
 
 impl EnvConfig for ListenAddr {
-    const ENVVAR: &'static str = LISTEN_HTTP_ADDRESS_ENVVAR;
+    const ENVVAR: &'static str = env_var::LISTEN_HTTP_ADDRESS;
 }
 
 impl Deref for ListenAddr {

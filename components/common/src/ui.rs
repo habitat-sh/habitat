@@ -12,6 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use self::tty::StdStream;
+use crate::{api_client::DisplayProgress,
+            cli::env_var,
+            error::{Error,
+                    Result}};
+use pbr;
 use std::{env,
           fmt,
           fs::{self,
@@ -25,25 +31,12 @@ use std::{env,
           process::{self,
                     Command},
           str::FromStr};
-use uuid::Uuid;
-
-use crate::api_client::DisplayProgress;
-use pbr;
 use termcolor::{self,
                 ColorChoice,
                 ColorSpec,
                 StandardStream,
                 WriteColor};
-
-use self::tty::StdStream;
-use crate::error::{Error,
-                   Result};
-
-pub const NONINTERACTIVE_ENVVAR: &str = "HAB_NONINTERACTIVE";
-
-pub const NOCOLORING_ENVVAR: &str = "HAB_NOCOLORING";
-
-pub const GLYPH_STYLE_ENVVAR: &str = "HAB_GLYPH_STYLE";
+use uuid::Uuid;
 
 #[derive(Clone, Copy)]
 pub enum Color {
@@ -128,7 +121,7 @@ pub enum Glyph {
 
 impl Glyph {
     pub fn to_str(&self) -> &str {
-        let style = if let Ok(s) = env::var(GLYPH_STYLE_ENVVAR) {
+        let style = if let Ok(s) = env::var(env_var::GLYPH_STYLE) {
             match GlyphStyle::from_str(&s) {
                 Ok(style) => style,
                 Err(e) => {
@@ -431,7 +424,7 @@ impl UI {
 
     /// Creates a new default `UI` with a coloring strategy and tty hinting.
     pub fn default_with_env() -> Self {
-        let isatty = if env::var(NONINTERACTIVE_ENVVAR)
+        let isatty = if env::var(env_var::NONINTERACTIVE)
             // Keep string boolean for backwards-compatibility
             .map(|val| val == "1" || val == "true")
             .unwrap_or(false)
@@ -440,8 +433,8 @@ impl UI {
         } else {
             None
         };
-        let coloring = if env::var(NOCOLORING_ENVVAR).map(|val| val == "1" || val == "true")
-                                                     .unwrap_or(false)
+        let coloring = if env::var(env_var::NOCOLORING).map(|val| val == "1" || val == "true")
+                                                       .unwrap_or(false)
         {
             ColorChoice::Never
         } else {
