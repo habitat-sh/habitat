@@ -1,18 +1,18 @@
-syntax = "proto2";
+syntax = "proto3";
 
 package chef.habitat.supervisor.event;
 
 message SupervisorMetadata {
-  optional string id = 1;
+  string id = 1;
 }
 
 message ServiceMetadata {
   // todo: make a FQPI type
-  optional string package_ident = 1;
+  string package_ident = 1;
   // not necessarily FQPI
-  optional string spec_ident = 2;
+  string spec_ident = 2;
   // todo: make / reuse a real type?
-  optional string service_group = 3;
+  string service_group = 3;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -20,11 +20,11 @@ message ServiceMetadata {
 ////////////////////////////////////////////////////////////////////////
 
 message ServiceStartedEvent {
-  optional SupervisorMetadata supervisor_metadata = 1;
-  optional ServiceMetadata service_metadata = 2;
+  SupervisorMetadata supervisor_metadata = 1;
+  ServiceMetadata service_metadata = 2;
 }
 
 message ServiceStoppedEvent {
-  optional SupervisorMetadata supervisor_metadata = 1;
-  optional ServiceMetadata service_metadata = 2;
+  SupervisorMetadata supervisor_metadata = 1;
+  ServiceMetadata service_metadata = 2;
 }

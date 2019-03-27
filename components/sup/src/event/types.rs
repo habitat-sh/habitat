@@ -30,16 +30,16 @@ include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
 impl Service {
     /// Create a protobuf metadata struct for Service-related event messages.
     pub(super) fn to_service_metadata(&self) -> ServiceMetadata {
-        ServiceMetadata { package_ident: Some(self.pkg.ident.to_string()),
-                          spec_ident:    Some(self.spec_ident.to_string()),
-                          service_group: Some(self.service_group.to_string()), }
+        ServiceMetadata { package_ident: self.pkg.ident.to_string(),
+                          spec_ident:    self.spec_ident.to_string(),
+                          service_group: self.service_group.to_string(), }
     }
 }
 
 impl EventCore {
     /// Create a protobuf metadata struct for all event messages.
     pub(super) fn to_supervisor_metadata(&self) -> SupervisorMetadata {
-        SupervisorMetadata { id: Some(self.supervisor_id.clone()), }
+        SupervisorMetadata { id: self.supervisor_id.clone(), }
     }
 }
 
