@@ -26,13 +26,15 @@ done
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
 
-sudo hab pkg install core/rust
+sudo rm -rf /opt/rust
 
-rust_path=$(hab pkg path core/rust)
-export PATH=$rust_path/bin:$PATH
+sudo hab pkg install core/rust --binlink
+
+# rust_path=$(hab pkg path core/rust)
+# export PATH=$rust_path/bin:$PATH
 
 component=${1?component argument required}
-cargo_test_command="$rust_path/bin/cargo test ${features_string} -- --nocapture ${test_options:-}"
+cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:-}"
 
 
 
@@ -64,6 +66,8 @@ PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path co
 
 export TESTING_FS_ROOT
 TESTING_FS_ROOT=/tmp/foo
+
+which cargo
 
 echo "--- Running cargo test on $component with command: '$cargo_test_command'"
 cd "components/$component"
