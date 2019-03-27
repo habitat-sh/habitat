@@ -29,6 +29,7 @@ sudo chown -R buildkite-agent /home/buildkite-agent
 sudo hab pkg install core/rust
 
 rust_path=$(hab pkg path core/rust)
+export PATH=$rust_path/bin:$PATH
 
 component=${1?component argument required}
 cargo_test_command="$rust_path/bin/cargo test ${features_string} -- --nocapture ${test_options:-}"
