@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- Revert &quot;remove old content&quot; feature [#6348](https://github.com/habitat-sh/habitat/pull/6348) ([christophermaier](https://github.com/christophermaier))
 - Remove offensively-named command in favor of updated version [#6343](https://github.com/habitat-sh/habitat/pull/6343) ([baumanj](https://github.com/baumanj))
 - uninstall should not rename to existing directory on windows [#6322](https://github.com/habitat-sh/habitat/pull/6322) ([mwrock](https://github.com/mwrock))
 - windows docker studio should output sup log in color and without timestamp [#6312](https://github.com/habitat-sh/habitat/pull/6312) ([mwrock](https://github.com/mwrock))
