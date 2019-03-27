@@ -19,15 +19,21 @@ done
 # set the features string if needed
 [ -z "${features:-}" ] && features_string="" || features_string="--features ${features}"
 
-component=${1?component argument required}
-cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:-}"
-
-# TODO: fix this upstream so it's already on the path and set up
-export RUSTUP_HOME=/opt/rust
-export CARGO_HOME=/home/buildkite-agent/.cargo
-export PATH=/opt/rust/bin:$PATH
+# # TODO: fix this upstream so it's already on the path and set up
+# export RUSTUP_HOME=/opt/rust
+# export CARGO_HOME=/home/buildkite-agent/.cargo
+# export PATH=/opt/rust/bin:$PATH
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
+
+sudo hab pkg install core/rust
+
+rust_path=$(hab pkg path core/rust)
+
+component=${1?component argument required}
+cargo_test_command="$rust_path/bin/cargo test ${features_string} -- --nocapture ${test_options:-}"
+
+
 
 # TODO: these should be in a shared script?
 sudo hab pkg install core/bzip2
@@ -54,6 +60,9 @@ LIBRARY_PATH="$(hab pkg path core/bzip2)/lib:$(hab pkg path core/libsodium)/lib:
 # setup pkgconfig so the libarchive crate can use pkg-config to fine bzip2 and xz at *build* time
 export PKG_CONFIG_PATH
 PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path core/libsodium)/lib/pkgconfig:$(hab pkg path core/openssl)/lib/pkgconfig"
+
+export TESTING_FS_ROOT
+TESTING_FS_ROOT=/tmp/foo
 
 echo "--- Running cargo test on $component with command: '$cargo_test_command'"
 cd "components/$component"
