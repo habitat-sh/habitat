@@ -25,7 +25,7 @@ use crate::{error::Result,
             manager::service::Service};
 use prost::Message;
 
-include!(concat!(env!("OUT_DIR"), "/supervisor.event.rs"));
+include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
 
 impl Service {
     /// Create a protobuf metadata struct for Service-related event messages.
