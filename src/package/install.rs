@@ -352,6 +352,12 @@ impl PackageInstall {
     /// Return all transitive dependencies of the package
     pub fn tdeps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::TDeps) }
 
+    /// Return all build dependencies of the package
+    pub fn build_deps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::BuildDeps) }
+
+    /// Return all transitive build dependencies of the package
+    pub fn build_tdeps(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::BuildTDeps) }
+
     /// Returns a Rust representation of the mappings defined by the `pkg_exports` plan variable.
     ///
     /// These mappings are used as a filter-map to generate a public configuration when the package

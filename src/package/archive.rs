@@ -76,6 +76,22 @@ lazy_static::lazy_static! {
             .unwrap(),
         );
         map.insert(
+            MetaFile::BuildDeps,
+            Regex::new(&format!(
+                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                MetaFile::BuildDeps,
+            ))
+            .unwrap(),
+        );
+        map.insert(
+            MetaFile::BuildTDeps,
+            Regex::new(&format!(
+                r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
+                MetaFile::BuildTDeps,
+            ))
+            .unwrap(),
+        );
+        map.insert(
             MetaFile::Exposes,
             Regex::new(&format!(
                 r"^/?hab/pkgs/([^/]+)/([^/]+)/([^/]+)/([^/]+)/{}$",
