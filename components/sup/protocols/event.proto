@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-package supervisor.event;
+package chef.habitat.supervisor.event;
 
 message SupervisorMetadata {
   optional string id = 1;
