@@ -14,26 +14,19 @@
 
 //! Traps and notifies UNIX signals.
 
-use std::{collections::VecDeque,
-          sync::{Mutex,
-                 Once,
-                 ONCE_INIT}};
-
 use crate::os::process::{Signal,
                          SignalCode};
-
-use super::SignalEvent;
-
-use std::sync::atomic::{AtomicBool,
-                        Ordering};
+use std::{collections::VecDeque,
+          sync::{atomic::Ordering,
+                 Mutex,
+                 Once,
+                 ONCE_INIT}};
 
 static INIT: Once = ONCE_INIT;
 
 lazy_static::lazy_static! {
     static ref CAUGHT_SIGNALS: Mutex<VecDeque<SignalCode>> = Mutex::new(VecDeque::new());
 }
-
-static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
 // Functions from POSIX libc.
 extern "C" {
@@ -49,7 +42,7 @@ unsafe extern "C" fn handle_signal(signal: SignalCode) {
 }
 
 unsafe extern "C" fn handle_shutdown_signal(_signal: SignalCode) {
-    SHUTDOWN.store(true, Ordering::SeqCst);
+    super::SHUTDOWN.store(true, Ordering::SeqCst);
 }
 
 pub fn init() {
@@ -58,8 +51,10 @@ pub fn init() {
         });
 }
 
-/// Returns `true` if we have received a signal to shut down.
-pub fn check_for_shutdown() -> bool { SHUTDOWN.compare_and_swap(true, false, Ordering::SeqCst) }
+pub enum SignalEvent {
+    WaitForChild,
+    Passthrough(Signal),
+}
 
 /// Consumers should call this function fairly frequently and since the vast
 /// majority of the time there is at most one signal event waiting, we return
