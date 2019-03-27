@@ -131,9 +131,7 @@ fn publish(mut event: impl EventMessage) {
     // that'll need to be updated anyway).
     if let Some(e) = EVENT_STREAM.try_get::<EventStream>() {
         event.supervisor_metadata(EVENT_CORE.get::<EventCore>().to_supervisor_metadata());
-        if let Ok(bytes) = event.to_bytes() {
-            e.send(bytes);
-        }
+        e.send(event.to_bytes());
     }
 }
 

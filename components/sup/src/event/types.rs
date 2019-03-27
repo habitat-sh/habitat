@@ -21,8 +21,7 @@
 //! events.
 
 use super::EventCore;
-use crate::{error::Result,
-            manager::service::Service};
+use crate::manager::service::Service;
 use prost::Message;
 
 include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
@@ -50,10 +49,14 @@ pub trait EventMessage: Message + Sized {
     fn supervisor_metadata(&mut self, sup_met: SupervisorMetadata);
 
     /// Convert a message to bytes for sending to NATS.
-    fn to_bytes(&self) -> Result<Vec<u8>> {
+    fn to_bytes(&self) -> Vec<u8> {
         let mut buf = bytes::BytesMut::with_capacity(self.encoded_len());
-        self.encode(&mut buf)?;
-        Ok(buf.to_vec())
+        // The only way this can fail is if the buffer doesn't have
+        // enough room. We just set that, though, so something would
+        // have to be seriously wrong in Prost for this to fail.
+        self.encode(&mut buf)
+            .expect("UNEXPECTED PROST ERROR: encoded_len() was not long enough!");
+        buf.to_vec()
     }
 }
 
