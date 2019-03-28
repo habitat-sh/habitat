@@ -4,6 +4,12 @@ As Habitat currently does not have first class support for the Mac platform, a p
 
 ## Prerequisites
 
+### Reference
+The following script is what runs in CI and installs all the required prerequisites *except* xcode. Please use this as a reference for the following steps.
+```sh
+./.buildkite/scripts/build_mac_release.sh
+```
+
 ### Install XCode Command Line Developer Tools
 This installs basic developer tooling needed to compile and build software on a Mac.
 
@@ -15,7 +21,7 @@ xcode-select --install
 
 Since there is not yet a complete Habitat build toolchain available for macOS, we provide the minimal set of binaries and static libraries needed to compile a `hab` binary using Chef's Omnibus tooling platform. This effectively takes the place of the packages we would add to a `pkg_build_deps` entry in a Habitat plan file.
 
-TODO: Where can this package be retrieved from?
+This currently exists in at `https://s3-us-west-2.amazonaws.com/shain-bk-test/mac-bootstrapper-1.0.0-latest.pkg`
 
 ```sh
 sudo installer \
@@ -23,9 +29,7 @@ sudo installer \
      -target /
 ```
 
-TODO: Can we rename `hab-bundle`?
-
-This will install the toolchain in `/opt/hab-bundle`; this is where the build program is expecting to find binaries and libraries it needs.
+This will install the toolchain in `/opt/mac-bootstrapper`; this is where the build program is expecting to find binaries and libraries it needs.
 
 ### Install Homebrew
 Follow the instructions at https://brew.sh.
@@ -34,20 +38,16 @@ Follow the instructions at https://brew.sh.
 Follow the instructions at https://rustup.rs/
 
 ### Install Homebrew prerequisites
-Though most of the toolchain needed to build a `hab` binary exist in the Omnibus bootstrap toolchain, a few are not yet available there. Until they are migrated in, we need to use Homebrew to get them.
-
-``` sh
-brew bundle install --verbose --file=<HABITAT_REPO>/.buildkite/Brewfile
+The only extra homebrew dependency we have current is wget, which can be installed by running the following:
+```sh
+brew install wget
 ```
 
-This step is temporary, until we have a fully-contained toolchain in an Omnibus package
-
 ### Install `hab`
-This is currently handled with the `brew bundle` command above, but for completeness:
+We install hab via the `curl|bash` method:
 
 ``` sh
-brew tap habitat-sh/habitat
-brew install hab
+curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 ```
 
 ### Install Builder Origin Keys
@@ -65,10 +65,10 @@ Here, we use `sudo` to install keys in system-wide `/hab/cache/keys/` directory 
 Ensure that the necessary tools are on your path, and then build.
 
 ``` sh
-PATH="/opt/hab-bundle/embedded/bin:${PATH}"
+PATH="/opt/mac-toolchain/embedded/bin:${PATH}"
 PATH="~/.cargo/bin:${PATH}"
 export PATH
-sudo -E $(brew --prefix bash)/bin/bash components/plan-build/bin/hab-plan-build.sh components/hab/mac
+sudo -E bash components/plan-build/bin/hab-plan-build.sh components/hab
 ```
 
 Assuming success, this will produce a local `./results` directory with the artifact.
