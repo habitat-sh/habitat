@@ -24,7 +24,8 @@ impl Service {
 impl EventCore {
     /// Create a protobuf metadata struct for all event messages.
     pub(super) fn to_supervisor_metadata(&self) -> SupervisorMetadata {
-        SupervisorMetadata { id: self.supervisor_id.clone(), }
+        SupervisorMetadata { id:        self.supervisor_id.clone(),
+                             timestamp: None, }
     }
 }
 

@@ -1,9 +1,11 @@
 syntax = "proto3";
 
 package chef.habitat.supervisor.event;
+import "google/protobuf/timestamp.proto";
 
 message SupervisorMetadata {
   string id = 1;
+  google.protobuf.Timestamp timestamp = 2;
 }
 
 message ServiceMetadata {
