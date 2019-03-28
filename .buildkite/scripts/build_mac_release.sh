@@ -5,11 +5,14 @@ set -euo pipefail
 source .buildkite/env
 source .buildkite/scripts/shared.sh
 
+# Set SSL cert location
+export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
+
 echo "--- Installing Habitat Toolchain Omnibus package"
-# This is a temporary situation until we have a pipeline building the
-# toolchain packages and automatically installing them in our
-# workers. Until then, we'll do it ourselves
-bootstrap_package="habitat-bootstrap-1.0.0%2B20180813202835-1.pkg"
+# We now have a temporary pipeline to building this bootstrap package, but
+# it just pushes to an S3 bucket here. The final omnibus pipeline is still
+# WIP right now.
+bootstrap_package="mac-bootstrapper-1.0.0-latest.pkg"
 curl --remote-name \
      --location \
      "https://s3-us-west-2.amazonaws.com/shain-bk-test/${bootstrap_package}"
@@ -18,16 +21,13 @@ sudo installer \
      -pkg "${bootstrap_package}" \
      -target /
 rm "${bootstrap_package}"
+export PATH="/opt/mac-bootstrapper/embedded/bin:$PATH"
 
-# TODO (CM): consider getting Bash updated on builders (likely via Homebrew)
-# TODO (CM): have a cleanup function
-#     Clear out /hab
-#     Uninstall Homebrew stuff
-#     Uninstall Rustup, Rust?
+echo "--- :beer: Installing wget from homebrew"
+brew install wget
 
-echo "--- :beer: Updating Homebrew dependencies"
-brew bundle install --verbose --file=.buildkite/Brewfile
-
+echo "--- Installing hab"
+curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
 echo "--- :habicat: Using $(hab --version)"
 
 # Declaring this variable for the import_keys function only; see its
@@ -55,21 +55,15 @@ echo "--- :rust: Using Rust toolchain ${RUST_TOOLCHAIN}"
 rustup default "${RUST_TOOLCHAIN}"
 rustc --version # just 'cause I'm paranoid and I want to double check
 
-echo "--- Cleanup caches"
-# TODO (CM): enable control of cache clearing on a pipeline-wide basis
-sudo rm -Rf /hab/cache/src
-rm -Rf "${HOME}/.cargo/{git,registry}"
-
 echo "--- :habicat: :hammer_and_wrench: Building 'hab'"
 
 # NOTE: This does *not* need the CI_OVERRIDE_CHANNEL /
 # HAB_BLDR_CHANNEL variables that builds for other supported platforms
 # need, because we're not pulling anything from Builder. Once we do,
 # we'll need to make sure we pull from the right channels.
-sudo -E PATH="/opt/hab-bundle/embedded/bin:${PATH}" \
-     "$(brew --prefix bash)/bin/bash" \
-     components/plan-build/bin/hab-plan-build.sh \
-     components/hab
+sudo -E bash \
+        components/plan-build/bin/hab-plan-build.sh \
+        components/hab
 source results/last_build.env
 
 echo "--- :buildkite: Annotating build"
