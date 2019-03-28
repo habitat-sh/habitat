@@ -93,19 +93,12 @@ steps:
 
   - label: ":mac: :habicat: core/hab"
     command: .buildkite/scripts/build_mac_release.sh
-    concurrency_group: "habitat/release/macos"
-    # We only want to run one build at a time because these are long-lived VMs and the builds
-    # are by definition not very isolated
-    concurrency: 1
-    env:
-      # Temporary workaround for https://github.com/habitat-sh/habitat/issues/4871#issuecomment-419233861
-      SSL_CERT_FILE: "/usr/local/etc/openssl/cert.pem"
     agents:
-      # This is the only queue that has Mac builders at the moment;
-      # they're also not being used by anyone else.
-      queue: omnibus
-      os: Darwin
-      "os:version": 10.12 # Build statically on the oldest thing we can
+      queue: "anka-trial"
+    plugins:
+      - chef/anka#v0.4.3:
+          vm-name: "macos-omnibus-10.12"
+          wait-network: true
 
   - wait
 
