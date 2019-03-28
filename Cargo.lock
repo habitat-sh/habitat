@@ -1069,6 +1069,7 @@ name = "habitat_common"
 version = "0.0.0"
 dependencies = [
  "bimap 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "glob 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "habitat_api_client 0.0.0",
  "habitat_core 0.0.0 (git+https://github.com/habitat-sh/core.git)",

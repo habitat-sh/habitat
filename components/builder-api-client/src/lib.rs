@@ -931,6 +931,27 @@ impl Client {
         }
     }
 
+    /// Delete a package from Builder
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    /// * If package does not exist in Builder
+    /// * If the package does not qualify for deletion
+    /// * Authorization token was not set on client
+    pub fn delete_package(&self, ident: &PackageIdent, token: &str) -> Result<()> {
+        let path = package_path(ident);
+        debug!("Deleting package {}", ident);
+
+        let res = self.add_authz(self.0.delete(&path), token).send()?;
+
+        if res.status != StatusCode::NoContent {
+            return Err(err_from_response(res));
+        };
+
+        Ok(())
+    }
+
     /// Promote a package to a given channel
     ///
     /// # Failures

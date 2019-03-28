@@ -15,6 +15,7 @@
 pub mod binlink;
 pub mod build;
 pub mod channels;
+pub mod delete;
 pub mod demote;
 pub mod dependencies;
 pub mod env;
