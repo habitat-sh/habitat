@@ -46,7 +46,6 @@ num_cpus = "*"
 prometheus = "*"
 prost = "*"
 prost-derive = "*"
-protobuf = { version = "1.5.1", features = ["bytes"] }
 rand = "*"
 regex = "*"
 rustls = "*"

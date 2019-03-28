@@ -25,7 +25,6 @@ extern crate log;
 #[cfg(test)]
 #[macro_use]
 extern crate lazy_static;
-extern crate protobuf;
 extern crate rustls;
 extern crate tempfile;
 extern crate time;
