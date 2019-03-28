@@ -240,6 +240,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
                 ("uninstall", Some(m)) => sub_pkg_uninstall(ui, m)?,
                 ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
+                ("delete", Some(m)) => sub_pkg_delete(ui, m)?,
                 ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
                 ("header", Some(m)) => sub_pkg_header(ui, m)?,
                 ("info", Some(m)) => sub_pkg_info(ui, m)?,
@@ -818,6 +819,16 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
+fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let url = bldr_url_from_matches(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+
+    command::pkg::delete::start(ui, &url, &ident, &token)?;
+
+    Ok(())
+}
+
 fn sub_pkg_verify(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let src = Path::new(m.value_of("SOURCE").unwrap()); // Required via clap
     let cache_key_path = cache_key_path_from_matches(&m);
@@ -1393,10 +1404,8 @@ fn origin_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
 fn org_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
     match m.value_of("ORG") {
         Some(o) => Ok(o.to_string()),
-        None => {
-            henv::var(HABITAT_ORG_ENVVAR).map_err(|_|
-                                                  Error::CryptoCLI("No organization specified".to_string()))
-        }
+        None => henv::var(HABITAT_ORG_ENVVAR)
+            .map_err(|_| Error::CryptoCLI("No organization specified".to_string())),
     }
 }
 
@@ -1614,25 +1623,25 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let mut out: Vec<PackageIdent> = vec![];
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg).for_each(|reply| {
-            match reply.message_id() {
-                "ServiceStatus" => {
-                    let m = reply.parse::<protocol::types::ServiceStatus>()
-                        .map_err(SrvClientError::Decode)?;
-                    out.push(m.ident.into());
-                    Ok(())
-                }
-                "NetOk" => Ok(()),
-                "NetErr" => {
-                    let err = reply.parse::<protocol::net::NetErr>()
-                        .map_err(SrvClientError::Decode)?;
-                    Err(SrvClientError::from(err))
-                }
-                _ => {
-                    warn!("Unexpected status message, {:?}", reply);
-                    Ok(())
-                }
-            }
-        })
+                          match reply.message_id() {
+                              "ServiceStatus" => {
+                                  let m = reply.parse::<protocol::types::ServiceStatus>()
+                                               .map_err(SrvClientError::Decode)?;
+                                  out.push(m.ident.into());
+                                  Ok(())
+                              }
+                              "NetOk" => Ok(()),
+                              "NetErr" => {
+                                  let err = reply.parse::<protocol::net::NetErr>()
+                                                 .map_err(SrvClientError::Decode)?;
+                                  Err(SrvClientError::from(err))
+                              }
+                              _ => {
+                                  warn!("Unexpected status message, {:?}", reply);
+                                  Ok(())
+                              }
+                          }
+                      })
                                                      })
                                                      .wait()?;
     Ok(out)

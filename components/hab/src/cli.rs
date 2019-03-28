@@ -527,6 +527,16 @@ pub fn get() -> App<'static, 'static> {
                     Default value is hab/cache/keys if root and .hab/cache/keys under the home \
                     directory otherwise."))
             )
+            (@subcommand delete =>
+                (about: "Removes a package from Builder")
+                (aliases: &["del", "dele"])
+                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Builder \
+                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
+                    environment variable if defined. (default: https://bldr.habitat.sh)")
+                (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
+                    (ex: core/busybox-static/1.42.2/20170513215502)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+            )
             (@subcommand promote =>
                 (about: "Promote a package to a specified channel")
                 (aliases: &["pr", "pro", "promo", "promot"])
@@ -759,10 +769,10 @@ fn alias_term() -> App<'static, 'static> {
 
 fn sub_cli_setup() -> App<'static, 'static> {
     clap_app!(@subcommand setup =>
-        (about: "Sets up the CLI with reasonable defaults.")
-        (arg: arg_cache_key_path("Path to search for or create keys in. \
-            Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-            directory otherwise."))
+    (about: "Sets up the CLI with reasonable defaults.")
+    (arg: arg_cache_key_path("Path to search for or create keys in. \
+        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
+        directory otherwise."))
     )
 }
 
@@ -900,19 +910,19 @@ fn sub_pkg_install() -> App<'static, 'static> {
 
 fn sub_config_apply() -> App<'static, 'static> {
     clap_app!(@subcommand apply =>
-        (about: "Sets a configuration to be shared by members of a Service Group")
-        (@arg SERVICE_GROUP: +required {valid_service_group}
-            "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
-        (@arg VERSION_NUMBER: +required
-            "A version number (positive integer) for this configuration (ex: 42)")
-        (@arg FILE: {file_exists_or_stdin}
-            "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
-        (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
-        (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
-            "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
-        (arg: arg_cache_key_path("Path to search for encryption keys. \
-            Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-            directory otherwise."))
+    (about: "Sets a configuration to be shared by members of a Service Group")
+    (@arg SERVICE_GROUP: +required {valid_service_group}
+        "Target service group service.group[@organization] (ex: redis.default or foo.default@bazcorp)")
+    (@arg VERSION_NUMBER: +required
+        "A version number (positive integer) for this configuration (ex: 42)")
+    (@arg FILE: {file_exists_or_stdin}
+        "Path to local file on disk (ex: /tmp/config.toml, default: <stdin>)")
+    (@arg USER: -u --user +takes_value "Name of a user key to use for encryption")
+    (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
+        "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
+    (arg: arg_cache_key_path("Path to search for encryption keys. \
+        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
+        directory otherwise."))
     )
 }
 
