@@ -27,22 +27,22 @@ do_prepare() {
   # Our dependencies are coming from an Omnibus toolchain in
   # https://github.com/habitat-sh/release-engineering/tree/master/components/bootstrap/x86_64-darwin/mac-bootstrapper
   # (private for now, but will be opened soon)
-  la_ldflags="-L/opt/hab-bundle/embedded/lib -lz"
-  la_ldflags="$la_ldflags -L/opt/hab-bundle/embedded/lib -llzma"
-  la_ldflags="$la_ldflags -L/opt/hab-bundle/embedded/lib -lbz2"
-  la_ldflags="$la_ldflags -L/opt/hab-bundle/embedded/lib -lexpat"
-  la_ldflags="$la_ldflags -L/opt/hab-bundle/embedded/lib -liconv"
+  la_ldflags="-L/opt/mac-bootstrapper/embedded/lib -lz"
+  la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -llzma"
+  la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -lbz2"
+  la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -lexpat"
+  la_ldflags="$la_ldflags -L/opt/mac-bootstrapper/embedded/lib -liconv"
 
-  export LIBARCHIVE_LIB_DIR=/opt/hab-bundle/embedded/lib
-  export LIBARCHIVE_INCLUDE_DIR=/opt/hab-bundle/embedded/include
+  export LIBARCHIVE_LIB_DIR=/opt/mac-bootstrapper/embedded/lib
+  export LIBARCHIVE_INCLUDE_DIR=/opt/mac-bootstrapper/embedded/include
   export LIBARCHIVE_LDFLAGS="$la_ldflags"
   export LIBARCHIVE_STATIC=true
 
-  export OPENSSL_LIB_DIR=/opt/hab-bundle/embedded/lib
-  export OPENSSL_INCLUDE_DIR=/opt/hab-bundle/embedded/include
+  export OPENSSL_LIB_DIR=/opt/mac-bootstrapper/embedded/lib
+  export OPENSSL_INCLUDE_DIR=/opt/mac-bootstrapper/embedded/include
   export OPENSSL_STATIC=true
 
-  export SODIUM_LIB_DIR=/opt/hab-bundle/embedded/lib
+  export SODIUM_LIB_DIR=/opt/mac-bootstrapper/embedded/lib
   export SODIUM_STATIC=true
 }
 
