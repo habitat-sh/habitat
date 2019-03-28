@@ -29,7 +29,8 @@ mod types;
 
 use self::types::{EventMessage,
                   ServiceStartedEvent,
-                  ServiceStoppedEvent};
+                  ServiceStoppedEvent,
+                  SupervisorMetadata};
 use crate::{error::Result,
             manager::service::Service};
 use futures::{sync::{mpsc as futures_mpsc,
@@ -126,11 +127,22 @@ fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some(
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
 fn publish(mut event: impl EventMessage) {
-    // TODO: incorporate the current timestamp into the rendered event
-    // (which will require tweaks to the rendering logic, but we know
-    // that'll need to be updated anyway).
     if let Some(e) = EVENT_STREAM.try_get::<EventStream>() {
-        event.supervisor_metadata(EVENT_CORE.get::<EventCore>().to_supervisor_metadata());
+        // TODO (CM): Yeah... this is looking pretty gross. The
+        // intention is to be able to timestamp the events right as
+        // they go out.
+        //
+        // We *could* set the time when we convert the EventCore to a
+        // SupervisorMetadata struct, but that seems odd.
+        //
+        // It probably means that this structure just isn't the right
+        // one.
+        //
+        // The ugliness is at least contained, though.
+        event.supervisor_metadata(SupervisorMetadata { timestamp:
+                                                      Some(std::time::SystemTime::now().into()),
+                                                  ..EVENT_CORE.get::<EventCore>()
+                                                              .to_supervisor_metadata() });
         e.send(event.to_bytes());
     }
 }
