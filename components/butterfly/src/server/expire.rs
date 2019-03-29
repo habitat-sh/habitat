@@ -1,5 +1,4 @@
 
-
 //! Periodically check membership rumors to automatically "time out"
 //! `Suspect` rumors to `Confirmed`, and `Confirmed` rumors to
 //! `Departed`.
