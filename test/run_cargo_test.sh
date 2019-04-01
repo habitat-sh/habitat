@@ -22,10 +22,6 @@ done
 component=${1?component argument required}
 cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:-}"
 
-# TODO: fix this upstream so it's already on the path and set up
-export RUSTUP_HOME=/opt/rust
-export CARGO_HOME=/home/buildkite-agent/.cargo
-export PATH=/opt/rust/bin:$PATH
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
 
@@ -37,6 +33,7 @@ sudo hab pkg install core/openssl
 sudo hab pkg install core/xz
 sudo hab pkg install core/zeromq
 sudo hab pkg install core/protobuf --binlink
+sudo hab pkg install core/rust --binlink
 export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
 export OPENSSL_DIR # so the openssl crate knows what to build against
