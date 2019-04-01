@@ -35,7 +35,8 @@ use state::Container;
 use std::{net::SocketAddr,
           sync::{mpsc as std_mpsc,
                  Once},
-          thread};
+          thread,
+          time::Duration};
 use tokio::{executor,
             runtime::current_thread::Runtime as ThreadRuntime};
 
@@ -108,12 +109,15 @@ pub fn service_stopped(service: &Service) {
 // Takes metadata directly, rather than a `&Service` like other event
 // functions, because of how the asynchronous health checking
 // currently works. Revisit when async/await + Pin is all stabilized.
-pub fn health_check(metadata: ServiceMetadata, check_result: HealthCheckResult) {
+pub fn health_check(metadata: ServiceMetadata,
+                    check_result: HealthCheckResult,
+                    duration: Option<Duration>) {
     if stream_initialized() {
         publish(HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata:   None,
                                    result:           Into::<types::HealthCheck>::into(check_result)
-                                                     as i32, });
+                                                     as i32,
+                                   duration:         duration.map(Duration::into), });
     }
 }
 

@@ -17,7 +17,9 @@ use futures::{sync::oneshot,
 use habitat_common::templating::hooks::Hook;
 use habitat_core::service::ServiceGroup;
 use std::{sync::Arc,
-          thread};
+          thread,
+          time::{Duration,
+                 Instant}};
 
 pub struct HookRunner<H: Hook + Sync> {
     hook:          Arc<H>,
@@ -42,7 +44,7 @@ impl<H> HookRunner<H> where H: Hook + Sync
 impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
     type Error = SupError;
     type Future = SpawnedFuture<Self::Item>;
-    type Item = H::ExitValue;
+    type Item = (H::ExitValue, Duration);
 
     fn into_future(self) -> Self::Future {
         let (tx, rx) = oneshot::channel();
@@ -56,11 +58,16 @@ impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
         let handle_result =
             thread::Builder::new().name(format!("{}-{}", H::file_name(), self.service_group))
                                   .spawn(move || {
+                                      // _timer is for Prometheus metrics, but we also want
+                                      // the runtime for other purposes. Unfortunately,
+                                      // we're not able to use the same timer for both :(
                                       let _timer = hook_timer(H::file_name());
+                                      let start = Instant::now();
                                       let exit_value = self.hook.run(&self.service_group,
                                                                      &self.pkg,
                                                                      self.passwd.as_ref());
-                                      tx.send(exit_value)
+                                      let run_time = start.elapsed();
+                                      tx.send((exit_value, run_time))
                                         .expect("Couldn't send oneshot signal from HookRunner: \
                                                  receiver went away");
                                   });
