@@ -29,7 +29,8 @@ use nitox::{commands::ConnectCommand,
             NatsClient,
             NatsClientOptions};
 use state::Container;
-use std::{sync::{mpsc as std_mpsc,
+use std::{net::SocketAddr,
+          sync::{mpsc as std_mpsc,
                  Once},
           thread};
 use tokio::{executor,
@@ -82,6 +83,7 @@ pub struct EventConnectionInfo {
 pub struct EventCore {
     /// The unique identifier of the Supervisor sending the event.
     pub supervisor_id: String,
+    pub ip_address: SocketAddr,
 }
 
 /// Send an event for the start of a Service.

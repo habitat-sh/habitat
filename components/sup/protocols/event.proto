@@ -4,8 +4,12 @@ package chef.habitat.supervisor.event;
 import "google/protobuf/timestamp.proto";
 
 message EventMetadata {
+  // The unique ID of this Supervisor.
   string supervisor_id = 1;
-  google.protobuf.Timestamp timestamp = 2;
+  // The IP address on which the Supervisor is listening for gossip.
+  string ip_address = 2;
+  // The time at which this event occurred.
+  google.protobuf.Timestamp timestamp = 3;
 }
 
 message ServiceMetadata {
