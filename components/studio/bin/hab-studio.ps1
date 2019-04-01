@@ -298,8 +298,51 @@ function Enter-Studio {
     $env:HAB_GLYPH_STYLE="ascii"
   }
   New-Studio
-  Write-HabInfo "Entering Studio at $HAB_STUDIO_ROOT"
   $env:STUDIO_SCRIPT_ROOT = $PSScriptRoot
+  $shouldStartStudio = $false
+
+  if(!(Test-InContainer) -and (Get-Process -Name hab-sup -ErrorAction SilentlyContinue)) {
+    Write-Warning "A Habitat Supervisor is already running on this machine."
+    Write-Warning "Only one Supervisor can run at a time."
+    Write-Warning "A Supervisor will not be started in this Studio."
+  } else {
+    $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
+    if(!$habSvc -or ($habSvc.Status -eq "Stopped")) {
+      $shouldStartStudio = $true
+
+      # Set console encoding to UTF-8 so that any redirected glyphs
+      # from the supervisor log are propperly encoded
+      [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+      # We start the Supervisor and handle its output logging in C# which will handle
+      # the process's OutputDataReceived and ErrorDataReceived events in a separate thread.
+      # While we could use PowerShell's Register-ObjectEvent instead. That uses a PSJob
+      # which will be blocked while the interactive studio is open
+      Add-Type -TypeDefinition (Get-Content "$PSScriptRoot\SupervisorBootstrapper.cs" | Out-String)
+
+      # If the termcolor crate cannot find a console, which it will not
+      # since we launch the supervisor in the background, it will fall back
+      # to ANSI codes on Windows unless we explicitly turn off color. Lets
+      # do that if on a windows version that does not support ANSI codes in
+      # its console
+      $ansi_min_supported_version = [Version]::new(10, 0, 10586)
+      $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
+      $isAnsiSupported = $false
+      if ($osVersion -ge $ansi_min_supported_version) {
+        $isAnsiSupported = $true
+      }
+
+      mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
+      [SupervisorBootstrapper]::Run($isAnsiSupported)
+    }
+    
+    Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
+    Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
+    Write-Host  "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
+    Write-Host  "** Use the 'Stop-Supervisor' to terminate the Supervisor." -ForegroundColor Cyan
+    Write-Host  ""
+  }
+  Write-HabInfo "Entering Studio at $HAB_STUDIO_ROOT"
   & "$PSScriptRoot\powershell\pwsh.exe" -NoProfile -ExecutionPolicy bypass -NoLogo -NoExit -Command {
     function prompt {
       Write-Host "[HAB-STUDIO]" -NoNewLine -ForegroundColor Green
@@ -341,74 +384,23 @@ function Enter-Studio {
       }
       elseif(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
         Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
-        Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK"
+        Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK" -Force -ErrorAction SilentlyContinue
       }
     }
 
     New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $env:HAB_STUDIO_ENTER_ROOT | Out-Null
-    mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
-    
-    if(!(Test-InContainer) -and (Get-Process -Name hab-sup -ErrorAction SilentlyContinue)) {
-      Write-Warning "A Habitat Supervisor is already running on this machine."
-      Write-Warning "Only one Supervisor can run at a time."
-      Write-Warning "A Supervisor will not be started in this Studio."
-    } else {
-      $habSvc = Get-Service Habitat -ErrorAction SilentlyContinue
-      if(!$habSvc -or ($habSvc.Status -eq "Stopped")) {
-        # Set console encoding to UTF-8 so that any redirected glyphs
-        # from the supervisor log are propperly encoded
-        [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-        $pr = New-Object System.Diagnostics.Process
-        $pr.StartInfo.UseShellExecute = $false
-        $pr.StartInfo.CreateNoWindow = $true
-        $pr.StartInfo.RedirectStandardOutput = $true
-        $pr.StartInfo.RedirectStandardError = $true
-        $pr.StartInfo.FileName = "hab.exe"
-        
-        # We if the termcolor crate cannot find a console, which it will not
-        # since we launch the supervisor in the background, it will fall back
-        # to ANSI codes on Windows unless we explicitly turn off color. Lets
-        # do that if on a windows version that does not support ANSI codes in
-        # its console
-        $ansi_min_supported_version = [Version]::new(10, 0, 10586)
-        $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
-        if ($osVersion -ge $ansi_min_supported_version) {
-          $pr.StartInfo.Arguments = "sup run"
-        } else {
-          $pr.StartInfo.Arguments = "sup run --no-color"
-          $pr.StartInfo.EnvironmentVariables["HAB_NOCOLORING"] = "1"
-        }
-
-        Register-ObjectEvent -InputObject $pr -EventName OutputDataReceived -action {
-          $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append
-        } | Out-Null
-        Register-ObjectEvent -InputObject $pr -EventName ErrorDataReceived -action {
-          $Event.SourceEventArgs.Data | Out-File $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Append
-        } | Out-Null
-        $pr.start() | Out-Null
-        $pr.BeginErrorReadLine()
-        
-        # As an industry, this should make us all feel bad
-        # without this stdin never seems to come back and the PS prompt
-        # fails to appear and things look like they are hung
-        Start-Sleep -Milliseconds 100
-    
-        $pr.BeginOutputReadLine()
-      }
-      
-      Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
-      Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
-      Write-Host  "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
-      Write-Host  "** Use the 'Stop-Supervisor' to terminate the Supervisor." -ForegroundColor Cyan
-      Write-Host  ""
-    }
-
     Set-Location "Habitat:\src"
   }
 
-  if(Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") {
-    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK") -Force -ErrorAction SilentlyContinue
-    Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK"
+  if($shouldStartStudio -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
+    Stop-Process -Id (Get-Content "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")
+    $retry = 0
+    while(($retry -lt 5) -and (Test-Path "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK")) {
+      $retry += 1
+      Write-Host "Waiting for Supervisor to finish..."
+      Start-Sleep -Seconds 5
+    }
+    Remove-Item "$env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\LOCK" -Force -ErrorAction SilentlyContinue
   }
 }
 
