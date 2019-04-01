@@ -48,7 +48,8 @@ use state::Container;
 use std::{net::SocketAddr,
           sync::{mpsc as std_mpsc,
                  Once},
-          thread};
+          thread,
+          time::Duration};
 use tokio::{executor,
             runtime::current_thread::Runtime as ThreadRuntime};
 
@@ -118,12 +119,13 @@ pub fn service_stopped(service: &Service) {
     }
 }
 
-pub fn health_check(service: &Service, check_result: HealthCheck) {
+pub fn health_check(service: &Service, check_result: HealthCheck, duration: Duration) {
     if stream_initialized() {
         publish(HealthCheckEvent { service_metadata: Some(service.to_service_metadata()),
                                    event_metadata:   None,
                                    result:           Into::<types::HealthCheck>::into(check_result)
-                                                     as i32, });
+                                                     as i32,
+                                   duration:         Some(duration.into()), });
     }
 }
 

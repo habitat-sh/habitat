@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package chef.habitat.supervisor.event;
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 message EventMetadata {
   // The unique ID of this Supervisor.
@@ -61,5 +62,8 @@ message ServiceStoppedEvent {
 message HealthCheckEvent {
   EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;
+  // The result of the health check execution
   HealthCheck result = 3;
+  // How long the health check took to run
+  google.protobuf.Duration duration = 4;
 }
