@@ -7,7 +7,8 @@
 //! events.
 
 use super::EventCore;
-use crate::manager::service::{Service,
+use crate::manager::service::{HealthCheckResult as DomainHealthCheckResult,
+                              Service,
                               UpdateStrategy as DomainUpdateStrategy};
 use prost::{Enumeration,
             Message};
@@ -27,9 +28,28 @@ impl Into<UpdateStrategy> for DomainUpdateStrategy {
     }
 }
 
+// Note: `HealthCheck` here is the protobuf-generated type for the
+// event we're sending out; `DomainHealthCheckResult` is the one we use
+// elsewhere in the Supervisor.
+impl Into<HealthCheck> for DomainHealthCheckResult {
+    fn into(self) -> HealthCheck {
+        match self {
+            DomainHealthCheckResult::Ok => HealthCheck::Ok,
+            DomainHealthCheckResult::Warning => HealthCheck::Warning,
+            DomainHealthCheckResult::Critical => HealthCheck::Critical,
+            DomainHealthCheckResult::Unknown => HealthCheck::Unknown,
+        }
+    }
+}
+
 impl Service {
-    /// Create a protobuf metadata struct for Service-related event messages.
-    pub(super) fn to_service_metadata(&self) -> ServiceMetadata {
+    /// Create a protobuf metadata struct for Service-related event
+    /// messages.
+    // NOTE This was originally `pub(super)`, but it's `pub` for now
+    // because it seems better to be able to generate this when we
+    // kick off the health checking future for a service, rather than
+    // cloning the entire service for eventing.
+    pub fn to_service_metadata(&self) -> ServiceMetadata {
         ServiceMetadata { package_ident:   self.pkg.ident.to_string(),
                           spec_ident:      self.spec_ident.to_string(),
                           service_group:   self.service_group.to_string(),
@@ -75,6 +95,12 @@ impl EventMessage for ServiceStartedEvent {
 }
 
 impl EventMessage for ServiceStoppedEvent {
+    fn event_metadata(&mut self, event_metadata: EventMetadata) {
+        self.event_metadata = Some(event_metadata);
+    }
+}
+
+impl EventMessage for HealthCheckEvent {
     fn event_metadata(&mut self, event_metadata: EventMetadata) {
         self.event_metadata = Some(event_metadata);
     }

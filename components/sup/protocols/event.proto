@@ -37,6 +37,13 @@ enum UpdateStrategy {
   Rolling = 2;
 }
 
+enum HealthCheck {
+  Ok = 0;
+  Warning = 1;
+  Critical = 2;
+  Unknown = 3;
+}
+
 ////////////////////////////////////////////////////////////////////////
 // Concrete Event Types
 ////////////////////////////////////////////////////////////////////////
@@ -49,4 +56,10 @@ message ServiceStartedEvent {
 message ServiceStoppedEvent {
   EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;
+}
+
+message HealthCheckEvent {
+  EventMetadata event_metadata = 1;
+  ServiceMetadata service_metadata = 2;
+  HealthCheck result = 3;
 }

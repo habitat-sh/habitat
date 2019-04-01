@@ -13,12 +13,15 @@
 
 mod types;
 
+pub(crate) use self::types::ServiceMetadata;
 use self::types::{EventMessage,
                   EventMetadata,
+                  HealthCheckEvent,
                   ServiceStartedEvent,
                   ServiceStoppedEvent};
 use crate::{error::Result,
-            manager::service::Service};
+            manager::service::{HealthCheckResult,
+                               Service}};
 use futures::{sync::{mpsc as futures_mpsc,
                      mpsc::UnboundedSender},
               Future,
@@ -99,6 +102,18 @@ pub fn service_stopped(service: &Service) {
     if stream_initialized() {
         publish(ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
+    }
+}
+
+// Takes metadata directly, rather than a `&Service` like other event
+// functions, because of how the asynchronous health checking
+// currently works. Revisit when async/await + Pin is all stabilized.
+pub fn health_check(metadata: ServiceMetadata, check_result: HealthCheckResult) {
+    if stream_initialized() {
+        publish(HealthCheckEvent { service_metadata: Some(metadata),
+                                   event_metadata:   None,
+                                   result:           Into::<types::HealthCheck>::into(check_result)
+                                                     as i32, });
     }
 }
 
