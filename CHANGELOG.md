@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- start supervisor outside of interactive powershell session in local windows studio [#6353](https://github.com/habitat-sh/habitat/pull/6353) ([mwrock](https://github.com/mwrock))
 - Revert &quot;remove old content&quot; feature [#6348](https://github.com/habitat-sh/habitat/pull/6348) ([christophermaier](https://github.com/christophermaier))
 - Remove offensively-named command in favor of updated version [#6343](https://github.com/habitat-sh/habitat/pull/6343) ([baumanj](https://github.com/baumanj))
 - uninstall should not rename to existing directory on windows [#6322](https://github.com/habitat-sh/habitat/pull/6322) ([mwrock](https://github.com/mwrock))
