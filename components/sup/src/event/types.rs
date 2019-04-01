@@ -21,7 +21,8 @@
 //! events.
 
 use super::EventCore;
-use crate::manager::service::{Service,
+use crate::manager::service::{HealthCheck as DomainHealthCheck,
+                              Service,
                               UpdateStrategy as DomainUpdateStrategy};
 use prost::{Enumeration,
             Message};
@@ -37,6 +38,20 @@ impl Into<UpdateStrategy> for DomainUpdateStrategy {
             DomainUpdateStrategy::None => UpdateStrategy::None,
             DomainUpdateStrategy::AtOnce => UpdateStrategy::AtOnce,
             DomainUpdateStrategy::Rolling => UpdateStrategy::Rolling,
+        }
+    }
+}
+
+// Note: `HealthCheck` here is the protobuf-generated type for the
+// event we're sending out; `DomainHealthCheck` is the one we use
+// elsewhere in the Supervisor.
+impl Into<HealthCheck> for DomainHealthCheck {
+    fn into(self) -> HealthCheck {
+        match self {
+            DomainHealthCheck::Ok => HealthCheck::Ok,
+            DomainHealthCheck::Warning => HealthCheck::Warning,
+            DomainHealthCheck::Critical => HealthCheck::Critical,
+            DomainHealthCheck::Unknown => HealthCheck::Unknown,
         }
     }
 }
@@ -89,6 +104,12 @@ impl EventMessage for ServiceStartedEvent {
 }
 
 impl EventMessage for ServiceStoppedEvent {
+    fn event_metadata(&mut self, event_metadata: EventMetadata) {
+        self.event_metadata = Some(event_metadata);
+    }
+}
+
+impl EventMessage for HealthCheckEvent {
     fn event_metadata(&mut self, event_metadata: EventMetadata) {
         self.event_metadata = Some(event_metadata);
     }

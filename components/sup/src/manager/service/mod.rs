@@ -46,6 +46,7 @@ use crate::{census::{CensusGroup,
             error::{Error,
                     Result,
                     SupError},
+            event,
             manager::{action::ShutdownSpec,
                       FsCfg,
                       GatewayState,
@@ -951,6 +952,7 @@ impl Service {
             self.schedule_special_health_check();
         }
         self.health_check = check_result;
+        event::health_check(&self, check_result);
         self.cache_health_check(check_result);
     }
 

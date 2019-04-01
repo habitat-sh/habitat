@@ -29,10 +29,12 @@ mod types;
 
 use self::types::{EventMessage,
                   EventMetadata,
+                  HealthCheckEvent,
                   ServiceStartedEvent,
                   ServiceStoppedEvent};
 use crate::{error::Result,
-            manager::service::Service};
+            manager::service::{HealthCheck,
+                               Service}};
 use futures::{sync::{mpsc as futures_mpsc,
                      mpsc::UnboundedSender},
               Future,
@@ -113,6 +115,15 @@ pub fn service_stopped(service: &Service) {
     if stream_initialized() {
         publish(ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
+    }
+}
+
+pub fn health_check(service: &Service, check_result: HealthCheck) {
+    if stream_initialized() {
+        publish(HealthCheckEvent { service_metadata: Some(service.to_service_metadata()),
+                                   event_metadata:   None,
+                                   result:           Into::<types::HealthCheck>::into(check_result)
+                                                     as i32, });
     }
 }
 
