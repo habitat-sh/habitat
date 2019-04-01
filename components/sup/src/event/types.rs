@@ -56,6 +56,7 @@ impl EventCore {
     /// Create a protobuf metadata struct for all event messages.
     pub(super) fn to_event_metadata(&self) -> EventMetadata {
         EventMetadata { supervisor_id: self.supervisor_id.clone(),
+                        ip_address:    self.ip_address.to_string(),
                         timestamp:     None, }
     }
 }

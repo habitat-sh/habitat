@@ -488,7 +488,8 @@ impl Manager {
             // flag for now.  If the flag isn't set, just don't
             // initialize the stream; everything else will turn into a
             // no-op automatically.
-            let ec = EventCore { supervisor_id: sys.member_id.clone(), };
+            let ec = EventCore { supervisor_id: sys.member_id.clone(),
+                                 ip_address:    sys.gossip_listen(), };
             // TODO: Determine what the actual connection parameters
             // should be, and process them at some point before here.
             event::init_stream(EventConnectionInfo::default(), ec);
