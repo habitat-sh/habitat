@@ -20,12 +20,16 @@ pub mod package;
 pub mod test_helpers;
 
 use std::{fmt,
+          fs::read_to_string,
           ops::{Deref,
                 DerefMut},
           result};
 
+use regex::Regex;
+
 use handlebars::{Handlebars,
-                 RenderError};
+                 RenderError,
+                 TemplateFileError};
 use serde::Serialize;
 use serde_json;
 
@@ -90,6 +94,42 @@ impl TemplateRenderer {
         self.0
             .render(template, &raw)
             .map_err(|e| Error::TemplateRenderError(format!("{}", e)))
+    }
+
+    // This method is only implemented so we can intercept the call to Handlebars and display
+    // a deprecation message to users. More information here https://github.com/habitat-sh/habitat/issues/6323.
+    // When Handlebars is upgraded this can be safely removed.
+    pub fn register_template_file<P>(&mut self,
+                                     name: &str,
+                                     path: P)
+                                     -> result::Result<(), TemplateFileError>
+        where P: AsRef<std::path::Path>
+    {
+        let path = path.as_ref();
+
+        lazy_static! {
+            static ref RE: Regex =
+                Regex::new(r"\{\{[^}]+[^.]\[[^}]*\}\}").expect("Failed to compile template \
+                                                                deprecation regex");
+        }
+
+        if let Ok(template_string) = read_to_string(path) {
+            template_string.split("\n")
+                           .enumerate()
+                           .filter(|(_i, v)| RE.is_match(&v))
+                           .for_each(|(i, v)| {
+                               println!("\n\n***************************************************\n\
+                                         Deprecated object access syntax in handlebars template\n\n\
+                                         TEMPLATE: {}\n\
+                                         LINE: {}: '{}'\n\n\
+                                         Use 'object.[index]' syntax instead of 'object[index]'\n\
+                                         See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\
+                                         *******************************************************\n\n",
+                                        path.display(), i, v)
+                           });
+        }
+
+        self.0.register_template_file(name, path)
     }
 }
 
