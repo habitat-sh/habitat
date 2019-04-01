@@ -28,9 +28,9 @@
 mod types;
 
 use self::types::{EventMessage,
+                  EventMetadata,
                   ServiceStartedEvent,
-                  ServiceStoppedEvent,
-                  SupervisorMetadata};
+                  ServiceStoppedEvent};
 use crate::{error::Result,
             manager::service::Service};
 use futures::{sync::{mpsc as futures_mpsc,
@@ -101,16 +101,16 @@ pub struct EventCore {
 /// Send an event for the start of a Service.
 pub fn service_started(service: &Service) {
     if stream_initialized() {
-        publish(ServiceStartedEvent { service_metadata:    Some(service.to_service_metadata()),
-                                      supervisor_metadata: None, });
+        publish(ServiceStartedEvent { service_metadata: Some(service.to_service_metadata()),
+                                      event_metadata:   None, });
     }
 }
 
 /// Send an event for the stop of a Service.
 pub fn service_stopped(service: &Service) {
     if stream_initialized() {
-        publish(ServiceStoppedEvent { service_metadata:    Some(service.to_service_metadata()),
-                                      supervisor_metadata: None, });
+        publish(ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
+                                      event_metadata:   None, });
     }
 }
 
@@ -133,16 +133,15 @@ fn publish(mut event: impl EventMessage) {
         // they go out.
         //
         // We *could* set the time when we convert the EventCore to a
-        // SupervisorMetadata struct, but that seems odd.
+        // EventMetadata struct, but that seems odd.
         //
         // It probably means that this structure just isn't the right
         // one.
         //
         // The ugliness is at least contained, though.
-        event.supervisor_metadata(SupervisorMetadata { timestamp:
-                                                      Some(std::time::SystemTime::now().into()),
-                                                  ..EVENT_CORE.get::<EventCore>()
-                                                              .to_supervisor_metadata() });
+        event.event_metadata(EventMetadata { timestamp:
+                                                 Some(std::time::SystemTime::now().into()),
+                                             ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
         e.send(event.to_bytes());
     }
 }

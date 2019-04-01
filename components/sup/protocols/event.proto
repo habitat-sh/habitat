@@ -3,8 +3,8 @@ syntax = "proto3";
 package chef.habitat.supervisor.event;
 import "google/protobuf/timestamp.proto";
 
-message SupervisorMetadata {
-  string id = 1;
+message EventMetadata {
+  string supervisor_id = 1;
   google.protobuf.Timestamp timestamp = 2;
 }
 
@@ -38,11 +38,11 @@ enum UpdateStrategy {
 ////////////////////////////////////////////////////////////////////////
 
 message ServiceStartedEvent {
-  SupervisorMetadata supervisor_metadata = 1;
+  EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;
 }
 
 message ServiceStoppedEvent {
-  SupervisorMetadata supervisor_metadata = 1;
+  EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;
 }

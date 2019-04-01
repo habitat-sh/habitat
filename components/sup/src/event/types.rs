@@ -54,9 +54,9 @@ impl Service {
 
 impl EventCore {
     /// Create a protobuf metadata struct for all event messages.
-    pub(super) fn to_supervisor_metadata(&self) -> SupervisorMetadata {
-        SupervisorMetadata { id:        self.supervisor_id.clone(),
-                             timestamp: None, }
+    pub(super) fn to_event_metadata(&self) -> EventMetadata {
+        EventMetadata { supervisor_id: self.supervisor_id.clone(),
+                        timestamp:     None, }
     }
 }
 
@@ -64,7 +64,7 @@ pub trait EventMessage: Message + Sized {
     /// All messages will have some top-level metadata about the
     /// Supervisor they come from. This function allows us to set it
     /// generically when we send the message out.
-    fn supervisor_metadata(&mut self, sup_met: SupervisorMetadata);
+    fn event_metadata(&mut self, event_metadata: EventMetadata);
 
     /// Convert a message to bytes for sending to NATS.
     fn to_bytes(&self) -> Vec<u8> {
@@ -82,13 +82,13 @@ pub trait EventMessage: Message + Sized {
 // add events. Consider implementing via macro instead.
 
 impl EventMessage for ServiceStartedEvent {
-    fn supervisor_metadata(&mut self, sup_met: SupervisorMetadata) {
-        self.supervisor_metadata = Some(sup_met);
+    fn event_metadata(&mut self, event_metadata: EventMetadata) {
+        self.event_metadata = Some(event_metadata);
     }
 }
 
 impl EventMessage for ServiceStoppedEvent {
-    fn supervisor_metadata(&mut self, sup_met: SupervisorMetadata) {
-        self.supervisor_metadata = Some(sup_met);
+    fn event_metadata(&mut self, event_metadata: EventMetadata) {
+        self.event_metadata = Some(event_metadata);
     }
 }
