@@ -21,17 +21,34 @@
 //! events.
 
 use super::EventCore;
-use crate::manager::service::Service;
-use prost::Message;
+use crate::manager::service::{Service,
+                              UpdateStrategy as DomainUpdateStrategy};
+use prost::{Enumeration,
+            Message};
 
 include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
+
+// Note: `UpdateStrategy` here is the protobuf-generated type for the
+// event we're sending out; `DomainUpdateStrategy` is the one we use
+// elsewhere in the Supervisor.
+impl Into<UpdateStrategy> for DomainUpdateStrategy {
+    fn into(self) -> UpdateStrategy {
+        match self {
+            DomainUpdateStrategy::None => UpdateStrategy::None,
+            DomainUpdateStrategy::AtOnce => UpdateStrategy::AtOnce,
+            DomainUpdateStrategy::Rolling => UpdateStrategy::Rolling,
+        }
+    }
+}
 
 impl Service {
     /// Create a protobuf metadata struct for Service-related event messages.
     pub(super) fn to_service_metadata(&self) -> ServiceMetadata {
-        ServiceMetadata { package_ident: self.pkg.ident.to_string(),
-                          spec_ident:    self.spec_ident.to_string(),
-                          service_group: self.service_group.to_string(), }
+        ServiceMetadata { package_ident:   self.pkg.ident.to_string(),
+                          spec_ident:      self.spec_ident.to_string(),
+                          service_group:   self.service_group.to_string(),
+                          update_channel:  self.channel.to_string(),
+                          update_strategy: self.update_strategy.into(), }
     }
 }
 
