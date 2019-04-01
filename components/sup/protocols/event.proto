@@ -66,4 +66,6 @@ message HealthCheckEvent {
   HealthCheck result = 3;
   // How long the health check took to run
   google.protobuf.Duration duration = 4;
+  // Whether or not the health check is defined in a hook
+  bool has_hook = 5;
 }

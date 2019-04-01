@@ -119,13 +119,17 @@ pub fn service_stopped(service: &Service) {
     }
 }
 
-pub fn health_check(service: &Service, check_result: HealthCheck, duration: Duration) {
+pub fn health_check(service: &Service,
+                    check_result: HealthCheck,
+                    duration: Duration,
+                    has_hook: bool) {
     if stream_initialized() {
         publish(HealthCheckEvent { service_metadata: Some(service.to_service_metadata()),
                                    event_metadata:   None,
                                    result:           Into::<types::HealthCheck>::into(check_result)
                                                      as i32,
-                                   duration:         Some(duration.into()), });
+                                   duration:         Some(duration.into()),
+                                   has_hook, });
     }
 }
 

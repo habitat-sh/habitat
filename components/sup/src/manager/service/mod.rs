@@ -965,7 +965,12 @@ impl Service {
             self.schedule_special_health_check();
         }
         self.health_check = check_result;
-        event::health_check(&self, check_result, event_duration);
+        event::health_check(&self,
+                            check_result,
+                            event_duration,
+                            // TODO (CM): self.hooks is not public,
+                            // and it's not clear that it should be.
+                            self.hooks.health_check.is_some());
         self.cache_health_check(check_result);
     }
 
