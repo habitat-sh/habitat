@@ -871,6 +871,8 @@ impl Client {
     {
         let checksum = pa.checksum()?;
         let ident = pa.ident()?;
+        let target = pa.target()?;
+
         let file = File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
         let file_size = file.metadata()
                             .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
@@ -881,6 +883,7 @@ impl Client {
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("checksum", &checksum)
+               .append_pair("target", &target.to_string())
                .append_pair("forced", &force_upload.to_string());
         };
         debug!("Reading from {}", &pa.path.display());
@@ -907,6 +910,8 @@ impl Client {
     pub fn x_put_package(&self, pa: &mut PackageArchive, token: &str) -> Result<()> {
         let checksum = pa.checksum()?;
         let ident = pa.ident()?;
+        let target = pa.target()?;
+
         let mut file =
             File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
         let file_size = file.metadata()
@@ -916,6 +921,7 @@ impl Client {
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("checksum", &checksum)
+               .append_pair("target", &target.to_string())
                .append_pair("builder", "");
         };
         debug!("Reading from {}", &pa.path.display());
