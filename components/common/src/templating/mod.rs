@@ -117,23 +117,34 @@ impl TemplateRenderer {
                                              TemplateFileError::IOError(e, name.to_owned())
                                          })?;
 
-        template_string.split("\n")
+        fn transform(text: &str) -> String {
+            let text = text.to_owned();
+            if RE.is_match(&text) {
+                transform(&RE.replace_all(&text, "$1.$2"))
+            } else {
+                text
+            }
+        }
+
+        template_string.lines()
             .enumerate()
-            .filter(|(_i, v)| RE.is_match(&v))
-            .for_each(|(i, v)| {
+            .filter(|(_i, line)| RE.is_match(&line))
+            .map(|(i, line)| (i, line, transform(&line)))
+            .for_each(|(i, old_line, new_line)| {
                 println!("\n\n***************************************************\n\
-                          Deprecated object access syntax in handlebars template\n\n\
-                          TEMPLATE: {}\n\
-                          LINE: {}: '{}'\n\n\
+                          Deprecated object access syntax in handlebars template\n\
                           Use 'object.[index]' syntax instead of 'object[index]'\n\
-                          See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\
+                          See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\n\
+                          TEMPLATE: {}\n\
+                          LINE: {}: '{}'\n\
+                          Update to '{}'\n\n\
                           *******************************************************\n\n",
-                         path.display(), i, v)
+                         path.display(), i + 1, old_line, new_line)
             });
 
         // Replace the deprecated syntax with the good syntax. This should make it easier to upgrade
         // the handlebars crate without breaking folks.
-        let updated_template_string = RE.replace_all(&template_string, "$1.$2");
+        let updated_template_string = transform(&template_string);
         self.0
             .register_template_string(name, updated_template_string)?;
         Ok(())
