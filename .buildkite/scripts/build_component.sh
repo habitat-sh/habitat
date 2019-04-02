@@ -85,4 +85,8 @@ curl -v -X POST \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
     --data-binary "@results/${pkg_artifact}.hart" \
-    "http://bldr.habitat.sh:9636/v1/depot/pkgs/${pkg_ident}\?checksum=${pkg_blake2bsum:?}\&target=${pkg_target}"
+    "http://bldr.habitat.sh:9636/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
+
+${hab_binary} pkg promote \
+    --auth="${HAB_AUTH_TOKEN}" \
+    "${pkg_ident}" "${channel}"
