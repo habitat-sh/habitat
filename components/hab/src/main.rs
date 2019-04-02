@@ -180,7 +180,7 @@ fn start(ui: &mut UI) -> Result<()> {
                         ("download", Some(sc)) => sub_origin_key_download(ui, sc)?,
                         ("export", Some(sc)) => sub_origin_key_export(sc)?,
                         ("generate", Some(sc)) => sub_origin_key_generate(ui, sc)?,
-                        ("import", Some(_)) => sub_origin_key_import(ui, m)?,
+                        ("import", Some(sc)) => sub_origin_key_import(ui, sc)?,
                         ("upload", Some(sc)) => sub_origin_key_upload(ui, sc)?,
                         _ => unreachable!(),
                     }
@@ -371,9 +371,9 @@ fn sub_origin_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_origin_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let mut content = String::new();
-    io::stdin().read_to_string(&mut content)?;
     let cache_key_path = cache_key_path_from_matches(&m);
     init();
+    io::stdin().read_to_string(&mut content)?;
 
     // Trim the content to lose line feeds added by Powershell pipeline
     command::origin::key::import::start(ui, content.trim(), &cache_key_path)
@@ -1248,9 +1248,9 @@ fn sub_ring_key_generate(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_ring_key_import(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let mut content = String::new();
-    io::stdin().read_to_string(&mut content)?;
     let cache_key_path = cache_key_path_from_matches(&m);
     init();
+    io::stdin().read_to_string(&mut content)?;
 
     // Trim the content to lose line feeds added by Powershell pipeline
     command::ring::key::import::start(ui, content.trim(), &cache_key_path)
