@@ -52,7 +52,6 @@ use crate::{census::{CensusRing,
             event::{self,
                     EventConnectionInfo,
                     EventCore},
-            feat,
             http_gateway,
             VERSION};
 use cpu_time::ProcessTime;
@@ -66,7 +65,8 @@ use habitat_butterfly::{member::Member,
                                  Suitability},
                         trace::Trace};
 use habitat_common::{outputln,
-                     types::ListenCtlAddr};
+                     types::ListenCtlAddr,
+                     FeatureFlag};
 use habitat_core::{crypto::SymKey,
                    env::{self,
                          Config},
@@ -226,6 +226,7 @@ pub struct ManagerConfig {
     pub organization:      Option<String>,
     pub watch_peer_file:   Option<String>,
     pub tls_config:        Option<TLSConfig>,
+    pub feature_flags:     FeatureFlag,
 }
 
 #[derive(Clone, Debug)]
@@ -381,6 +382,8 @@ pub struct Manager {
     // the different operations.
     busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
     services_need_reconciliation: ReconciliationFlag,
+
+    feature_flags: FeatureFlag,
 }
 
 impl Manager {
@@ -465,7 +468,7 @@ impl Manager {
 
         let spec_watcher = SpecWatcher::run(&spec_dir)?;
 
-        if feat::is_enabled(feat::EventStream) {
+        if cfg.feature_flags.contains(FeatureFlag::EVENT_STREAM) {
             // Putting configuration of the stream behind a feature
             // flag for now.  If the flag isn't set, just don't
             // initialize the stream; everything else will turn into a
@@ -495,7 +498,8 @@ impl Manager {
                      sys: Arc::new(sys),
                      http_disable: cfg.http_disable,
                      busy_services: Arc::new(Mutex::new(HashSet::new())),
-                     services_need_reconciliation: ReconciliationFlag::new(false) })
+                     services_need_reconciliation: ReconciliationFlag::new(false),
+                     feature_flags: cfg.feature_flags })
     }
 
     /// Load the initial Butterly Member which is used in initializing the Butterfly server. This
@@ -599,7 +603,7 @@ impl Manager {
             }
         };
 
-        if feat::is_enabled(feat::InstallHook) {
+        if self.feature_flags.contains(FeatureFlag::INSTALL_HOOK) {
             if let Ok(package) =
                 PackageInstall::load(&service.pkg.ident, Some(Path::new(&*FS_ROOT_PATH)))
             {
@@ -730,6 +734,7 @@ impl Manager {
             http_gateway::Server::run(http_listen_addr,
                                       tls_server_config,
                                       self.state.gateway_state.clone(),
+                                      self.feature_flags,
                                       pair.clone());
 
             let &(ref lock, ref cvar) = &*pair;
@@ -774,7 +779,7 @@ impl Manager {
         // amount of time and the supervisor will not respond to ctrl+c. On Windows, we
         // let the launcher catch ctrl+c and gracefully shut down services. ctrl+c should
         // simply halt the supervisor
-        if !feat::is_enabled(feat::IgnoreSignals) {
+        if !self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
             signals::init();
         }
 
@@ -798,7 +803,7 @@ impl Manager {
 
             track_memory_stats();
 
-            if feat::is_enabled(feat::TestExit) {
+            if self.feature_flags.contains(FeatureFlag::TEST_EXIT) {
                 if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
                     if let Ok(mut exit_code_file) = File::open(&exit_file_path) {
                         let mut buffer = String::new();
@@ -820,7 +825,7 @@ impl Manager {
             if self.check_for_departure() {
                 break ShutdownMode::Departed;
             }
-            if !feat::is_enabled(feat::IgnoreSignals) {
+            if self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
                 if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal() {
                     outputln!("Supervisor shutting down for signal");
                     break ShutdownMode::Restarting;
@@ -1099,7 +1104,7 @@ impl Manager {
     }
 
     fn persist_services_state(&self) {
-        let config_rendering = if feat::is_enabled(feat::RedactHTTP) {
+        let config_rendering = if self.feature_flags.contains(FeatureFlag::REDACT_HTTP) {
             ConfigRendering::Redacted
         } else {
             ConfigRendering::Full
@@ -1788,7 +1793,8 @@ mod test {
                             ring_key:          None,
                             organization:      None,
                             watch_peer_file:   None,
-                            tls_config:        None, }
+                            tls_config:        None,
+                            feature_flags:     FeatureFlag::empty(), }
         }
     }
 

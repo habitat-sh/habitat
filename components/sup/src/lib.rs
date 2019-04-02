@@ -39,17 +39,12 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
-#[macro_use]
-extern crate bitflags;
-
 #[cfg(target_os = "linux")]
 extern crate caps;
 extern crate clap;
 extern crate cpu_time;
 #[cfg(windows)]
 extern crate ctrlc;
-#[macro_use]
-extern crate features;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -103,22 +98,6 @@ pub mod test_helpers;
 pub mod util;
 
 use std::env;
-
-/// List enables printing out the list features which can be dynamically enabled
-/// TestExit enables triggering an abrupt exit to simulate failures
-/// TestBootFail exits with a fatal error before even calling boot()
-/// Search for feat::is_enabled(feat::FeatureName) to learn more
-features! {
-    pub mod feat {
-        const List          = 0b0000_0001,
-        const TestExit      = 0b0000_0010,
-        const TestBootFail  = 0b0000_0100,
-        const RedactHTTP    = 0b0000_1000,
-        const IgnoreSignals = 0b0001_0000,
-        const InstallHook   = 0b0010_0000,
-        const EventStream   = 0b0100_0000
-    }
-}
 
 pub const PRODUCT: &str = "hab-sup";
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));

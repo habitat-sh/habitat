@@ -72,7 +72,6 @@ use hab::{analytics,
                    Config},
           error::{Error,
                   Result},
-          feat,
           scaffolding,
           AUTH_TOKEN_ENVVAR,
           BLDR_URL_ENVVAR,
@@ -80,7 +79,8 @@ use hab::{analytics,
           ORIGIN_ENVVAR,
           PRODUCT,
           VERSION};
-use habitat_common as common;
+use habitat_common::{self as common,
+                     FeatureFlag};
 use habitat_core as hcore;
 use habitat_sup_client as sup_client;
 use habitat_sup_protocol as protocol;
@@ -122,15 +122,15 @@ lazy_static! {
 fn main() {
     env_logger::init();
     let mut ui = UI::default_with_env();
-    enable_features_from_env(&mut ui);
+    let flags = FeatureFlag::from_env(&mut ui);
     thread::spawn(analytics::instrument_subcommand);
-    if let Err(e) = start(&mut ui) {
+    if let Err(e) = start(&mut ui, flags) {
         ui.fatal(e).unwrap();
         std::process::exit(1)
     }
 }
 
-fn start(ui: &mut UI) -> Result<()> {
+fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     exec_subcommand_if_called(ui)?;
 
     let (args, remaining_args) = raw_parse_args();
@@ -143,7 +143,7 @@ fn start(ui: &mut UI) -> Result<()> {
     // https://github.com/kbknapp/clap-rs/issues/86
     let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
                                       .spawn(move || {
-                                          cli::get().get_matches_from_safe_borrow(&mut args.iter())
+                                          cli::get(feature_flags).get_matches_from_safe_borrow(&mut args.iter())
                                                     .unwrap_or_else(|e| {
                                                         analytics::instrument_clap_error(&e);
                                                         e.exit();
@@ -157,7 +157,7 @@ fn start(ui: &mut UI) -> Result<()> {
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(m)) => sub_cli_setup(ui, m)?,
-                ("completers", Some(m)) => sub_cli_completers(m)?,
+                ("completers", Some(m)) => sub_cli_completers(m, feature_flags)?,
                 _ => unreachable!(),
             }
         }
@@ -174,7 +174,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 _ => unreachable!(),
             }
         }
-        ("install", Some(m)) => sub_pkg_install(ui, m)?,
+        ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags)?,
         ("origin", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
@@ -234,7 +234,7 @@ fn start(ui: &mut UI) -> Result<()> {
                 ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
                 ("export", Some(m)) => sub_pkg_export(ui, m)?,
                 ("hash", Some(m)) => sub_pkg_hash(m)?,
-                ("install", Some(m)) => sub_pkg_install(ui, m)?,
+                ("install", Some(m)) => sub_pkg_install(ui, m, feature_flags)?,
                 ("list", Some(m)) => sub_pkg_list(m)?,
                 ("path", Some(m)) => sub_pkg_path(m)?,
                 ("provides", Some(m)) => sub_pkg_provides(m)?,
@@ -328,10 +328,16 @@ fn sub_cli_setup(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     command::cli::setup::start(ui, &cache_key_path, &cache_analytics_path(Some(&*FS_ROOT)))
 }
 
-fn sub_cli_completers(m: &ArgMatches<'_>) -> Result<()> {
+fn sub_cli_completers(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let shell = m.value_of("SHELL")
                  .expect("Missing Shell; A shell is required");
-    cli::get().gen_completions_to("hab", shell.parse::<Shell>().unwrap(), &mut io::stdout());
+
+    // TODO (CM): Interesting... the completions generated can depend
+    // on what feature flags happen to be enabled at the time you
+    // generated the completions
+    cli::get(feature_flags).gen_completions_to("hab",
+                                               shell.parse::<Shell>().unwrap(),
+                                               &mut io::stdout());
     Ok(())
 }
 
@@ -701,30 +707,32 @@ fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                  quiet)
 }
 
-fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = channel_from_matches_or_default(m);
     let install_sources = install_sources_from_matches(m)?;
     let token = maybe_auth_token(&m);
-    let install_mode = if feat::is_enabled(feat::OfflineInstall) && m.is_present("OFFLINE") {
-        InstallMode::Offline
-    } else {
-        InstallMode::default()
-    };
-
-    let local_package_usage = if feat::is_enabled(feat::IgnoreLocal) && m.is_present("IGNORE_LOCAL")
-    {
-        LocalPackageUsage::Ignore
-    } else {
-        LocalPackageUsage::default()
-    };
-
-    let install_hook_mode =
-        if !feat::is_enabled(feat::InstallHook) || m.is_present("IGNORE_INSTALL_HOOK") {
-            InstallHookMode::Ignore
+    let install_mode =
+        if feature_flags.contains(FeatureFlag::OFFLINE_INSTALL) && m.is_present("OFFLINE") {
+            InstallMode::Offline
         } else {
-            InstallHookMode::default()
+            InstallMode::default()
         };
+
+    let local_package_usage =
+        if feature_flags.contains(FeatureFlag::IGNORE_LOCAL) && m.is_present("IGNORE_LOCAL") {
+            LocalPackageUsage::Ignore
+        } else {
+            LocalPackageUsage::default()
+        };
+
+    let install_hook_mode = if !feature_flags.contains(FeatureFlag::INSTALL_HOOK)
+                               || m.is_present("IGNORE_INSTALL_HOOK")
+    {
+        InstallHookMode::Ignore
+    } else {
+        InstallHookMode::default()
+    };
 
     init();
 
@@ -1490,35 +1498,6 @@ fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
         .unwrap_or_default()
         .map(|i| PackageIdent::from_str(i).unwrap()) // unwrap safe as we've validated the input
         .collect()
-}
-
-fn enable_features_from_env(ui: &mut UI) {
-    let features = vec![(feat::List, "LIST"),
-                        (feat::OfflineInstall, "OFFLINE_INSTALL"),
-                        (feat::IgnoreLocal, "IGNORE_LOCAL"),
-                        (feat::InstallHook, "INSTALL_HOOK"),];
-
-    // If the environment variable for a flag is set to _anything_ but
-    // the empty string, it is activated.
-    for feature in &features {
-        if henv::var(format!("HAB_FEAT_{}", feature.1)).is_ok() {
-            feat::enable(feature.0);
-            ui.warn(&format!("Enabling feature: {:?}", feature.0))
-              .unwrap();
-        }
-    }
-
-    if feat::is_enabled(feat::List) {
-        ui.warn("Listing feature flags environment variables:")
-          .unwrap();
-        for feature in &features {
-            ui.warn(&format!("  * {:?}: HAB_FEAT_{}={}",
-                             feature.0,
-                             feature.1,
-                             henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or_default()))
-              .unwrap();
-        }
-    }
 }
 
 fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
