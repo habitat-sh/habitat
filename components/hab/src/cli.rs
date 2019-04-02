@@ -24,6 +24,7 @@ use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            LISTEN_CTL_DEFAULT_ADDR_STRING,
                            LISTEN_HTTP_ADDRESS_ENVVAR,
                            LISTEN_HTTP_DEFAULT_ADDR,
+                           PACKAGE_TARGET_ENVVAR,
                            RING_ENVVAR,
                            RING_KEY_ENVVAR},
                      types::ListenCtlAddr};
@@ -122,8 +123,7 @@ pub fn get() -> App<'static, 'static> {
                     (aliases: &["s", "st", "sta", "star"])
                     (@arg PKG_IDENT: +required +takes_value {valid_ident}
                         "The origin and name of the package to schedule a job for (eg: core/redis)")
-                    (@arg PKG_TARGET: +takes_value {valid_target}
-                        "A package target (ex: x86_64-windows) (default: x86_64-linux)")
+                    (arg: arg_target())
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the cli.toml or HAB_BLDR_URL environment variable if defined. \
@@ -535,6 +535,7 @@ pub fn get() -> App<'static, 'static> {
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
+                (arg: arg_target())
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand promote =>
@@ -545,6 +546,7 @@ pub fn get() -> App<'static, 'static> {
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
+                (arg: arg_target())
                 (@arg CHANNEL: +required +takes_value "Promote to the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
@@ -556,6 +558,7 @@ pub fn get() -> App<'static, 'static> {
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
+                (arg: arg_target())
                 (@arg CHANNEL: +required +takes_value "Demote from the specified release channel")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
@@ -567,6 +570,7 @@ pub fn get() -> App<'static, 'static> {
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
+                (arg: arg_target())
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand verify =>
@@ -834,6 +838,16 @@ fn arg_cache_key_path(help_text: &'static str) -> Arg<'static, 'static> {
                                     .default_value(CACHE_KEY_PATH)
                                     .hide_default_value(true)
                                     .help(&help_text)
+}
+
+fn arg_target() -> Arg<'static, 'static> {
+    Arg::with_name("PKG_TARGET").required(false)
+                                .takes_value(true)
+                                .validator(valid_target)
+                                .env(PACKAGE_TARGET_ENVVAR)
+                                .hide_default_value(true)
+                                .help("A package target (ex: x86_64-windows) (default: system \
+                                       appropriate target")
 }
 
 fn sub_pkg_build() -> App<'static, 'static> {

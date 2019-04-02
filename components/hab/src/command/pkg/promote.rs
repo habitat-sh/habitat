@@ -24,14 +24,14 @@
 //! Notes:
 //!    The package should already have been uploaded to Builder.
 //!    If the specified channel does not exist, it will be created.
-//!
 
 use crate::{api_client::{self,
                          Client},
             common::ui::{Status,
                          UIWriter,
                          UI},
-            hcore::{package::PackageIdent,
+            hcore::{package::{PackageIdent,
+                              PackageTarget},
                     ChannelIdent}};
 use hyper::status::StatusCode;
 
@@ -48,12 +48,13 @@ use crate::{error::{Error,
 pub fn start(ui: &mut UI,
              bldr_url: &str,
              ident: &PackageIdent,
+             target: PackageTarget,
              channel: &ChannelIdent,
              token: &str)
              -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
-    ui.begin(format!("Promoting {} to channel '{}'", ident, channel))?;
+    ui.begin(format!("Promoting {} ({}) to channel '{}'", ident, target, channel))?;
 
     if channel != &ChannelIdent::stable() && channel != &ChannelIdent::unstable() {
         match api_client.create_channel(&ident.origin, channel, token) {
@@ -66,7 +67,7 @@ pub fn start(ui: &mut UI,
         };
     }
 
-    match api_client.promote_package(ident, channel, token) {
+    match api_client.promote_package(ident, target, channel, token) {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to promote '{}': {:?}", ident, e);
@@ -74,7 +75,7 @@ pub fn start(ui: &mut UI,
         }
     }
 
-    ui.status(Status::Promoted, ident)?;
+    ui.status(Status::Promoted, format!("{} ({})", ident, target))?;
 
     Ok(())
 }

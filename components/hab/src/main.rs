@@ -45,7 +45,8 @@ use crate::{common::{cli::{cache_key_path_from_matches,
                     fs::{cache_analytics_path,
                          cache_artifact_path,
                          launcher_root_path},
-                    package::{PackageIdent,
+                    package::{target,
+                              PackageIdent,
                               PackageTarget},
                     service::{HealthCheckInterval,
                               ServiceGroup},
@@ -58,6 +59,7 @@ use crate::{common::{cli::{cache_key_path_from_matches,
                        types::*},
             sup_client::{SrvClient,
                          SrvClientError}};
+
 use clap::{ArgMatches,
            Shell};
 use env_logger;
@@ -823,8 +825,9 @@ fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let target = target_from_matches(m)?;
 
-    command::pkg::delete::start(ui, &url, &ident, &token)?;
+    command::pkg::delete::start(ui, &url, &ident, target, &token)?;
 
     Ok(())
 }
@@ -856,24 +859,27 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
+    let target = target_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    command::pkg::promote::start(ui, &url, &ident, &channel, &token)
+    command::pkg::promote::start(ui, &url, &ident, target, &channel, &token)
 }
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
+    let target = target_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    command::pkg::demote::start(ui, &url, &ident, &channel, &token)
+    command::pkg::demote::start(ui, &url, &ident, target, &channel, &token)
 }
 
 fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let token = maybe_auth_token(&m);
+    let target = target_from_matches(m)?;
 
-    command::pkg::channels::start(ui, &url, &ident, token.as_ref().map(String::as_str))
+    command::pkg::channels::start(ui, &url, &ident, target, token.as_ref().map(String::as_str))
 }
 
 fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
@@ -952,7 +958,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     // SrvClient from a for_each iterator so we can chain upon a successful stream but I don't
     // know if it's possible with this version of futures.
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(set).for_each(|reply| {
+        conn.call(set).for_each(|reply| {
                           match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
@@ -966,8 +972,8 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                 ))),
             }
                       })
-                                                     })
-                                                     .wait()?;
+    })
+    .wait()?;
     ui.end("Applied configuration")?;
     Ok(())
 }
@@ -980,7 +986,7 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let mut msg = protocol::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(msg).for_each(|reply| {
+        conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                 "ServiceCfg" => {
                     let m = reply
@@ -1000,8 +1006,8 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
                 ))),
             }
                       })
-                                                     })
-                                                     .wait()?;
+    })
+    .wait()?;
     Ok(())
 }
 
@@ -1150,11 +1156,9 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         _ => msg.content = Some(buf.to_vec()),
     }
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         ui.status(Status::Applying,
-                                                                   format!("via peer {}",
-                                                                           listen_ctl_addr))
-                                                           .unwrap();
-                                                         conn.call(msg).for_each(|reply| {
+        ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
+          .unwrap();
+        conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
@@ -1174,8 +1178,8 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                 ))),
             }
                       })
-                                                     })
-                                                     .wait()?;
+    })
+    .wait()?;
     ui.end("Uploaded file")?;
     Ok(())
 }
@@ -1453,8 +1457,18 @@ fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {
 fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
     matches.value_of("PKG_TARGET")
            .map(PackageTarget::from_str)
-           .unwrap_or_else(|| PackageTarget::from_str("x86_64-linux"))
+           .unwrap_or_else(|| Ok(active_target()))
            .map_err(Error::HabitatCore)
+}
+
+/// Helper function to determine active package target.
+/// It overrides x86_64-darwin to be x86_64-linux in order
+/// to provide a better user experience (ie, for the 99% case)
+fn active_target() -> PackageTarget {
+    match PackageTarget::active_target() {
+        target::X86_64_DARWIN => target::X86_64_LINUX,
+        t => t,
+    }
 }
 
 fn install_sources_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<InstallSource>> {
@@ -1622,7 +1636,7 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
 
     let mut out: Vec<PackageIdent> = vec![];
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(msg).for_each(|reply| {
+        conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                               "ServiceStatus" => {
                                   let m = reply.parse::<protocol::types::ServiceStatus>()
@@ -1642,8 +1656,8 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
                               }
                           }
                       })
-                                                     })
-                                                     .wait()?;
+    })
+    .wait()?;
     Ok(out)
 }
 

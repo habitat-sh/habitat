@@ -636,6 +636,7 @@ impl Client {
     /// * Package does not exist
     pub fn package_channels(&self,
                             ident: &PackageIdent,
+                            target: PackageTarget,
                             token: Option<&str>)
                             -> Result<Vec<String>> {
         if !ident.fully_qualified() {
@@ -643,9 +644,15 @@ impl Client {
         }
 
         let path = package_channels_path(ident);
-        debug!("Retrieving channels for {}", ident);
+        debug!("Retrieving channels for {}, target {}", ident, target);
 
-        let mut res = self.maybe_add_authz(self.0.get(&path), token).send()?;
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut()
+               .append_pair("target", &target.to_string());
+        };
+
+        let mut res = self.maybe_add_authz(self.0.get_with_custom_url(&path, custom), token)
+                          .send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
@@ -945,11 +952,21 @@ impl Client {
     /// * If package does not exist in Builder
     /// * If the package does not qualify for deletion
     /// * Authorization token was not set on client
-    pub fn delete_package(&self, ident: &PackageIdent, token: &str) -> Result<()> {
+    pub fn delete_package(&self,
+                          ident: &PackageIdent,
+                          target: PackageTarget,
+                          token: &str)
+                          -> Result<()> {
         let path = package_path(ident);
-        debug!("Deleting package {}", ident);
+        debug!("Deleting package {}, target {}", ident, target);
 
-        let res = self.add_authz(self.0.delete(&path), token).send()?;
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut()
+               .append_pair("target", &target.to_string());
+        };
+
+        let res = self.add_authz(self.0.delete_with_custom_url(&path, custom), token)
+                      .send()?;
 
         if res.status != StatusCode::NoContent {
             return Err(err_from_response(res));
@@ -970,6 +987,7 @@ impl Client {
     /// * Authorization token was not set on client
     pub fn promote_package(&self,
                            ident: &PackageIdent,
+                           target: PackageTarget,
                            channel: &ChannelIdent,
                            token: &str)
                            -> Result<()> {
@@ -977,9 +995,15 @@ impl Client {
             return Err(Error::IdentNotFullyQualified);
         }
         let path = channel_package_promote(channel, ident);
-        debug!("Promoting package {}", ident);
+        debug!("Promoting package {}, target {}", ident, target);
 
-        let res = self.add_authz(self.0.put(&path), token).send()?;
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut()
+               .append_pair("target", &target.to_string());
+        };
+
+        let res = self.add_authz(self.0.put_with_custom_url(&path, custom), token)
+                      .send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
@@ -1000,6 +1024,7 @@ impl Client {
     /// * Authorization token was not set on client
     pub fn demote_package(&self,
                           ident: &PackageIdent,
+                          target: PackageTarget,
                           channel: &ChannelIdent,
                           token: &str)
                           -> Result<()> {
@@ -1007,9 +1032,15 @@ impl Client {
             return Err(Error::IdentNotFullyQualified);
         }
         let path = channel_package_demote(channel, ident);
-        debug!("Demoting package {}", ident);
+        debug!("Demoting package {}, target {}", ident, target);
 
-        let res = self.add_authz(self.0.put(&path), token).send()?;
+        let custom = |url: &mut Url| {
+            url.query_pairs_mut()
+               .append_pair("target", &target.to_string());
+        };
+
+        let res = self.add_authz(self.0.put_with_custom_url(&path, custom), token)
+                      .send()?;
 
         if res.status != StatusCode::Ok {
             return Err(err_from_response(res));
