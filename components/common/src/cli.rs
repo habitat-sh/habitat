@@ -86,7 +86,9 @@ pub const DEFAULT_BINLINK_DIR: &str = "/usr/local/bin";
 // the dynamic "default" value if the argument has the default signifier value:
 /// CACHE_KEY_PATH. An empty value can't stand for default since it is invalid.
 pub fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
-    match matches.value_of("CACHE_KEY_PATH").unwrap() {
+    match matches.value_of("CACHE_KEY_PATH")
+                 .expect("CACHE_KEY_PATH required")
+    {
         CACHE_KEY_PATH => cache_key_path(Some(&*FS_ROOT)),
         val => PathBuf::from(val),
     }
