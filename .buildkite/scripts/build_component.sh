@@ -84,4 +84,5 @@ curl -v -X POST \
     -H "Accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
-    --data-binary "@/hab/cache/artifacts/${pkg_artifact}.hart" "http://bldr.habitat.sh:9636/v1/depot/pkgs/${pkg_ident}\?checksum=${pkg_sha256sum}\?target=${pkg_target}"
+    --data-binary "@results/${pkg_artifact}.hart" \
+    "http://bldr.habitat.sh:9636/v1/depot/pkgs/${pkg_ident}\?checksum=${pkg_sha256sum:?}\&target=${pkg_target}"
