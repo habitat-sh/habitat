@@ -73,7 +73,15 @@ esac
 echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --append --context "release-manifest"
 
 echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
-${hab_binary} pkg upload \
-    --channel="${channel}" \
-    --auth="${HAB_AUTH_TOKEN}" \
-    "results/${pkg_artifact}"
+# TODO: after 0.79.0 we can reenable this. We are explicitly using curl to upload
+# due to this bug: https://github.com/habitat-sh/builder/issues/940
+# ${hab_binary} pkg upload \
+#     --channel="${channel}" \
+#     --auth="${HAB_AUTH_TOKEN}" \
+#     "results/${pkg_artifact}"
+
+curl -v -X POST \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
+    --data-binary "@/hab/cache/artifacts/${pkg_artifact}.hart" "http://bldr.habitat.sh:9636/v1/depot/pkgs/${pkg_ident}\?checksum=${pkg_sha256sum}\?target=${pkg_target}"
