@@ -5,10 +5,11 @@
 
 <!-- latest_release -->
 
-## [0.79.0](https://github.com/habitat-sh/habitat/tree/0.79.0) (2019-04-01)
+## Unreleased
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.78.0...0.79.0)
 
 #### Bug Fixes
+- Properly pass CLI args to `hab origin key import` [#6363](https://github.com/habitat-sh/habitat/pull/6363) ([baumanj](https://github.com/baumanj))
 - start supervisor outside of interactive powershell session in local windows studio [#6353](https://github.com/habitat-sh/habitat/pull/6353) ([mwrock](https://github.com/mwrock))
 - Revert &quot;remove old content&quot; feature [#6348](https://github.com/habitat-sh/habitat/pull/6348) ([christophermaier](https://github.com/christophermaier))
 - Remove offensively-named command in favor of updated version [#6343](https://github.com/habitat-sh/habitat/pull/6343) ([baumanj](https://github.com/baumanj))
