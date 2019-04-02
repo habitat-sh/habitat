@@ -42,6 +42,7 @@ pub enum Error {
     DownloadFailed(String),
     EditorEnv(env::VarError),
     EditStatus,
+    EventStreamMetadataError(String),
     FileNameError,
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
@@ -105,6 +106,11 @@ impl fmt::Display for Error {
             Error::DownloadFailed(ref msg) => msg.to_string(),
             Error::EditorEnv(ref e) => format!("Missing EDITOR environment variable: {}", e),
             Error::EditStatus => "Failed edit text command".to_string(),
+            Error::EventStreamMetadataError(ref raw_kv_pair) => {
+                format!("Invalid key-value pair given (must be '='-delimited pair of non-empty \
+                         strings): {}",
+                        raw_kv_pair)
+            }
             Error::FileNameError => "Failed to extract a filename".to_string(),
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::GossipFileRelativePath(ref s) => {
@@ -171,6 +177,7 @@ impl error::Error for Error {
             Error::DownloadFailed(_) => "Failed to download from remote",
             Error::EditorEnv(_) => "Missing EDITOR environment variable",
             Error::EditStatus => "Failed edit text command",
+            Error::EventStreamMetadataError(_) => "Invalid key-value pair given",
             Error::FileNameError => "Failed to extract a filename from a path",
             Error::FileNotFound(_) => "File not found",
             Error::GossipFileRelativePath(_) => {

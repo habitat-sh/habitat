@@ -72,7 +72,10 @@ impl EventCore {
     pub(super) fn to_event_metadata(&self) -> EventMetadata {
         EventMetadata { supervisor_id: self.supervisor_id.clone(),
                         ip_address:    self.ip_address.to_string(),
-                        timestamp:     None, }
+                        application:   self.application.clone(),
+                        environment:   self.environment.clone(),
+                        timestamp:     None,
+                        meta:          self.meta.clone().into(), }
     }
 }
 

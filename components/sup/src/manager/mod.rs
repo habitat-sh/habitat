@@ -24,7 +24,7 @@ mod self_updater;
 mod service_updater;
 mod spec_dir;
 mod spec_watcher;
-mod sys;
+pub(crate) mod sys;
 mod user_config_watcher;
 
 use self::{action::{ShutdownSpec,
@@ -55,7 +55,8 @@ use crate::{census::{CensusRing,
                     SupError},
             event::{self,
                     EventConnectionInfo,
-                    EventCore},
+                    EventCore,
+                    EventStreamConfig},
             http_gateway,
             VERSION};
 use cpu_time::ProcessTime;
@@ -217,22 +218,23 @@ impl FsCfg {
 
 #[derive(Clone, Debug)]
 pub struct ManagerConfig {
-    pub auto_update:       bool,
-    pub custom_state_path: Option<PathBuf>,
-    pub cache_key_path:    PathBuf,
-    pub update_url:        String,
-    pub update_channel:    ChannelIdent,
-    pub gossip_listen:     GossipListenAddr,
-    pub ctl_listen:        ListenCtlAddr,
-    pub http_listen:       http_gateway::ListenAddr,
-    pub http_disable:      bool,
-    pub gossip_peers:      Vec<SocketAddr>,
-    pub gossip_permanent:  bool,
-    pub ring_key:          Option<SymKey>,
-    pub organization:      Option<String>,
-    pub watch_peer_file:   Option<String>,
-    pub tls_config:        Option<TLSConfig>,
-    pub feature_flags:     FeatureFlag,
+    pub auto_update:         bool,
+    pub custom_state_path:   Option<PathBuf>,
+    pub cache_key_path:      PathBuf,
+    pub update_url:          String,
+    pub update_channel:      ChannelIdent,
+    pub gossip_listen:       GossipListenAddr,
+    pub ctl_listen:          ListenCtlAddr,
+    pub http_listen:         http_gateway::ListenAddr,
+    pub http_disable:        bool,
+    pub gossip_peers:        Vec<SocketAddr>,
+    pub gossip_permanent:    bool,
+    pub ring_key:            Option<SymKey>,
+    pub organization:        Option<String>,
+    pub watch_peer_file:     Option<String>,
+    pub tls_config:          Option<TLSConfig>,
+    pub feature_flags:       FeatureFlag,
+    pub event_stream_config: Option<EventStreamConfig>,
 }
 
 #[derive(Clone, Debug)]
@@ -488,8 +490,10 @@ impl Manager {
             // flag for now.  If the flag isn't set, just don't
             // initialize the stream; everything else will turn into a
             // no-op automatically.
-            let ec = EventCore { supervisor_id: sys.member_id.clone(),
-                                 ip_address:    sys.gossip_listen(), };
+            let es_config =
+                cfg.event_stream_config
+                   .expect("Config should be present if the EventStream feature is enabled");
+            let ec = EventCore::new(es_config, &sys);
             // TODO: Determine what the actual connection parameters
             // should be, and process them at some point before here.
             event::init_stream(EventConnectionInfo::default(), ec);
@@ -1802,22 +1806,23 @@ mod test {
     // code, so only implement it under test configuration.
     impl Default for ManagerConfig {
         fn default() -> Self {
-            ManagerConfig { auto_update:       false,
-                            custom_state_path: None,
-                            cache_key_path:    cache_key_path(Some(&*FS_ROOT)),
-                            update_url:        "".to_string(),
-                            update_channel:    ChannelIdent::default(),
-                            gossip_listen:     GossipListenAddr::default(),
-                            ctl_listen:        ListenCtlAddr::default(),
-                            http_listen:       http_gateway::ListenAddr::default(),
-                            http_disable:      false,
-                            gossip_peers:      vec![],
-                            gossip_permanent:  false,
-                            ring_key:          None,
-                            organization:      None,
-                            watch_peer_file:   None,
-                            tls_config:        None,
-                            feature_flags:     FeatureFlag::empty(), }
+            ManagerConfig { auto_update:         false,
+                            custom_state_path:   None,
+                            cache_key_path:      cache_key_path(Some(&*FS_ROOT)),
+                            update_url:          "".to_string(),
+                            update_channel:      ChannelIdent::default(),
+                            gossip_listen:       GossipListenAddr::default(),
+                            ctl_listen:          ListenCtlAddr::default(),
+                            http_listen:         http_gateway::ListenAddr::default(),
+                            http_disable:        false,
+                            gossip_peers:        vec![],
+                            gossip_permanent:    false,
+                            ring_key:            None,
+                            organization:        None,
+                            watch_peer_file:     None,
+                            tls_config:          None,
+                            feature_flags:       FeatureFlag::empty(),
+                            event_stream_config: None, }
         }
     }
 

@@ -33,12 +33,15 @@ use self::types::{EventMessage,
                   ServiceStartedEvent,
                   ServiceStoppedEvent};
 use crate::{error::Result,
-            manager::service::{HealthCheck,
-                               Service}};
+            manager::{service::{HealthCheck,
+                                Service},
+                      sys::Sys}};
+use clap::ArgMatches;
 use futures::{sync::{mpsc as futures_mpsc,
                      mpsc::UnboundedSender},
               Future,
               Stream};
+use habitat_common::types::EventStreamMetadata;
 use nitox::{commands::ConnectCommand,
             streaming::{client::NatsStreamingClient,
                         error::NatsStreamingError},
@@ -76,6 +79,28 @@ pub fn init_stream(conn_info: EventConnectionInfo, event_core: EventCore) {
         });
 }
 
+/// Captures all event stream-related configuration options that would
+/// be passed in by a user
+#[derive(Clone, Debug)]
+pub struct EventStreamConfig {
+    environment: String,
+    application: String,
+    meta:        EventStreamMetadata,
+}
+
+impl EventStreamConfig {
+    /// Create an instance from Clap arguments.
+    pub fn from_matches(m: &ArgMatches) -> Result<EventStreamConfig> {
+        Ok(EventStreamConfig { environment: m.value_of("EVENT_STREAM_ENVIRONMENT")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"),
+                               application: m.value_of("EVENT_STREAM_APPLICATION")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"),
+                               meta:        EventStreamMetadata::from_matches(m)?, })
+    }
+}
+
 /// All the information needed to establish a connection to a NATS
 /// Streaming server.
 // TODO: This will change as we firm up what the interaction between
@@ -99,8 +124,23 @@ pub struct EventConnectionInfo {
 #[derive(Clone, Debug)]
 pub struct EventCore {
     /// The unique identifier of the Supervisor sending the event.
-    pub supervisor_id: String,
-    pub ip_address: SocketAddr,
+    supervisor_id: String,
+    ip_address: SocketAddr,
+    // TODO (CM): could add application and environment to the meta
+    // map directly... hrmm
+    application: String,
+    environment: String,
+    meta:        EventStreamMetadata,
+}
+
+impl EventCore {
+    pub fn new(config: EventStreamConfig, sys: &Sys) -> Self {
+        EventCore { supervisor_id: sys.member_id.clone(),
+                    ip_address:    sys.gossip_listen(),
+                    environment:   config.environment,
+                    application:   config.application,
+                    meta:          config.meta, }
+    }
 }
 
 /// Send an event for the start of a Service.
@@ -125,11 +165,11 @@ pub fn health_check(service: &Service,
                     has_hook: bool) {
     if stream_initialized() {
         publish(HealthCheckEvent { service_metadata: Some(service.to_service_metadata()),
-                                   event_metadata:   None,
-                                   result:           Into::<types::HealthCheck>::into(check_result)
-                                                     as i32,
-                                   duration:         Some(duration.into()),
-                                   has_hook, });
+                                   event_metadata: None,
+                                   result: Into::<types::HealthCheck>::into(check_result)
+                                           as i32,
+                                   duration: Some(duration.into()),
+                                   has_hook });
     }
 }
 
@@ -161,6 +201,7 @@ fn publish(mut event: impl EventMessage) {
         event.event_metadata(EventMetadata { timestamp:
                                                  Some(std::time::SystemTime::now().into()),
                                              ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
+
         e.send(event.to_bytes());
     }
 }

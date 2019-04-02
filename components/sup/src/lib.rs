@@ -86,7 +86,7 @@ pub mod command;
 pub mod config;
 pub mod ctl_gateway;
 pub mod error;
-mod event;
+pub mod event;
 pub mod http_gateway;
 pub mod manager;
 mod sys;

@@ -35,6 +35,7 @@ use crate::sup::{cli::cli,
                  error::{Error,
                          Result,
                          SupError},
+                 event::EventStreamConfig,
                  manager::{Manager,
                            ManagerConfig,
                            TLSConfig,
@@ -128,7 +129,7 @@ fn start(feature_flags: FeatureFlag) -> Result<()> {
         return Err(sup_error!(Error::TestBootFail));
     }
     let launcher = boot();
-    let app_matches = match cli().get_matches_safe() {
+    let app_matches = match cli(feature_flags).get_matches_safe() {
         Ok(matches) => matches,
         Err(err) => {
             let out = io::stdout();
@@ -228,6 +229,12 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
                                -> Result<ManagerConfig> {
     let cache_key_path = cache_key_path_from_matches(m);
 
+    let event_stream_config = if feature_flags.contains(FeatureFlag::EVENT_STREAM) {
+        Some(EventStreamConfig::from_matches(m)?)
+    } else {
+        None
+    };
+
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
         custom_state_path: None, // remove entirely?
@@ -292,7 +299,8 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
                 ca_cert_path,
             }
         }),
-        feature_flags
+        feature_flags,
+        event_stream_config,
     };
 
     Ok(cfg)
@@ -521,8 +529,8 @@ mod test {
         fn cmd_vec_from_cmd_str(cmd: &str) -> Vec<&str> { Vec::from_iter(cmd.split_whitespace()) }
 
         fn config_from_cmd_vec(cmd_vec: Vec<&str>) -> ManagerConfig {
-            let matches = cli().get_matches_from_safe(cmd_vec)
-                               .expect("Error while getting matches");
+            let matches = cli(no_feature_flags()).get_matches_from_safe(cmd_vec)
+                                                 .expect("Error while getting matches");
             let (_, sub_matches) = matches.subcommand();
             let sub_matches = sub_matches.expect("Error getting sub command matches");
 
