@@ -11,6 +11,9 @@ message EventMetadata {
   string ip_address = 2;
   // The time at which this event occurred.
   google.protobuf.Timestamp timestamp = 3;
+  string application = 4;
+  string environment = 5;
+  map<string, string> meta = 6;
 }
 
 message ServiceMetadata {
