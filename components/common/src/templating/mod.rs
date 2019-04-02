@@ -20,7 +20,6 @@ pub mod package;
 pub mod test_helpers;
 
 use std::{fmt,
-          fs::read_to_string,
           ops::{Deref,
                 DerefMut},
           result};
@@ -109,27 +108,35 @@ impl TemplateRenderer {
 
         lazy_static! {
             static ref RE: Regex =
-                Regex::new(r"\{\{[^}]+[^.]\[[^}]*\}\}").expect("Failed to compile template \
-                                                                deprecation regex");
+                Regex::new(r"(\{\{[^}]+[^.])(\[[^}]*\}\})").expect("Failed to compile template \
+                                                                    deprecation regex");
         }
 
-        if let Ok(template_string) = read_to_string(path) {
-            template_string.split("\n")
-                           .enumerate()
-                           .filter(|(_i, v)| RE.is_match(&v))
-                           .for_each(|(i, v)| {
-                               println!("\n\n***************************************************\n\
-                                         Deprecated object access syntax in handlebars template\n\n\
-                                         TEMPLATE: {}\n\
-                                         LINE: {}: '{}'\n\n\
-                                         Use 'object.[index]' syntax instead of 'object[index]'\n\
-                                         See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\
-                                         *******************************************************\n\n",
-                                        path.display(), i, v)
-                           });
-        }
+        let template_string =
+            std::fs::read_to_string(path).map_err(|e| {
+                                             TemplateFileError::IOError(e, name.to_owned())
+                                         })?;
 
-        self.0.register_template_file(name, path)
+        template_string.split("\n")
+            .enumerate()
+            .filter(|(_i, v)| RE.is_match(&v))
+            .for_each(|(i, v)| {
+                println!("\n\n***************************************************\n\
+                          Deprecated object access syntax in handlebars template\n\n\
+                          TEMPLATE: {}\n\
+                          LINE: {}: '{}'\n\n\
+                          Use 'object.[index]' syntax instead of 'object[index]'\n\
+                          See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\
+                          *******************************************************\n\n",
+                         path.display(), i, v)
+            });
+
+        // Replace the deprecated syntax with the good syntax. This should make it easier to upgrade
+        // the handlebars crate without breaking folks.
+        let updated_template_string = RE.replace_all(&template_string, "$1.$2");
+        self.0
+            .register_template_string(name, updated_template_string)?;
+        Ok(())
     }
 }
 
