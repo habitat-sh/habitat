@@ -302,7 +302,7 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
     agents:
       queue: 'single-use-windows-privileged'
-    timeout_in_minutes: 25
+    timeout_in_minutes: 12 # the butterfly tests usually pass in ~10m
     retry:
       automatic:
         limit: 1
@@ -312,7 +312,7 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1"
     agents:
       queue: 'single-use-windows-privileged'
-    timeout_in_minutes: 25
+    timeout_in_minutes: 12 # the butterfly tests usually pass in ~10m
     retry:
       automatic:
         limit: 10
