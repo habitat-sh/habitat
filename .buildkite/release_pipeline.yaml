@@ -92,12 +92,14 @@ steps:
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
   - label: ":mac: :habicat: core/hab"
-    command: .buildkite/scripts/build_mac_release.sh
+    command: 
+      - .buildkite/scripts/build_mac_release.sh
     agents:
-      queue: "anka-trial"
+      queue: default-macos-privileged
     plugins:
-      - chef/anka#v0.4.3:
-          vm-name: "macos-omnibus-10.12"
+      - chef/anka#v0.5.2:
+          vm-name: macos-base-10.12
+          inherit-environment-vars: true
           wait-network: true
 
   - wait
