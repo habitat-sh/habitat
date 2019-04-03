@@ -79,14 +79,20 @@ echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channe
 #     --channel="${channel}" \
 #     --auth="${HAB_AUTH_TOKEN}" \
 #     "results/${pkg_artifact}"
+#
+# ${hab_binary} pkg promote \
+#     --auth="${HAB_AUTH_TOKEN}" \
+#     "${pkg_ident}" "${channel}" "${pkg_target}"
 
 curl -v -X POST \
     -H "Accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
     --data-binary "@results/${pkg_artifact}.hart" \
-    "http://bldr.habitat.sh:9636/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
+    "http://bldr.habitat.sh/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
 
-${hab_binary} pkg promote \
-    --auth="${HAB_AUTH_TOKEN}" \
-    "${pkg_ident}" "${channel}"
+curl -v -X PUT \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
+    "http://bldr.habitat.sh/v1/depot/channels/${pkg_origin:?}/pkgs/${pkg_name:?}/${pkg_version:?}/${pkg_release}/promote?&target=${pkg_target}"
