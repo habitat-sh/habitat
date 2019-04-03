@@ -86,12 +86,10 @@ steps:
 
   - label: ":mac: :habicat: core/hab"
     command: .buildkite/scripts/build_mac_release.sh
-    agents:
-      queue: "anka-trial"
-    plugins:
-      - chef/anka#v0.4.3:
-          vm-name: "macos-omnibus-10.12"
-          wait-network: true
+    expeditor:
+      executor:
+        macos:
+          os_version: 10.12
 
   - wait
 
