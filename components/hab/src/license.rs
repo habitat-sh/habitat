@@ -1,16 +1,26 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//! This module provides the logic necessary to implement a license prompt into
+//! the hab CLI. When a user runs hab for the first time, they will be prompted
+//! to accept the Chef license agreement. If they choose not to, then hab will
+//! exit and they will be unable to use the tool.
+//!
+//! Choosing to accept the license will write a file to either
+//! /hab/accepted-licenses/habitat (if run as root) or
+//! ~/.hab/accepted-licenses/habitat. The presence of this file will
+//! prevent further license prompts. The file itself contains various metadata
+//! that we collect, but it's important to note that the contents of this file
+//! are not strictly important. The important thing is the presence of the file.
+//!
+//! If a user was to read our code and pre-emptively create one of the above
+//! files and leave its contents completely empty, that is sufficient for the
+//! acceptance of the license. We will not overwrite their empty file, nor
+//! will we care that it is empty.
+//!
+//! Because of this, the metadata that we store is not strictly necessary and
+//! is more of a best effort scenario. If we can't collect all of it for
+//! whatever reason, it's fine.
+//!
+//! More detailed information on the license spec is available at
+//! https://github.com/chef/license-acceptance
 
 use crate::{common::ui::{self,
                          UIReader,
@@ -29,6 +39,8 @@ use std::{fs::{self,
           io::Write,
           path::PathBuf};
 
+const LICENSE_FILE_FORMAT_VERSION: &str = "1.0";
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LicenseData {
     pub date_accepted: DateTime<Utc>,
@@ -44,7 +56,7 @@ impl LicenseData {
                       accepting_product: String::from("hab"),
                       accepting_product_version: super::VERSION.to_string(),
                       user: get_current_username(),
-                      file_format: String::from("1.0"), }
+                      file_format: String::from(LICENSE_FILE_FORMAT_VERSION), }
     }
 }
 
