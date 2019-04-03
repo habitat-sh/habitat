@@ -120,8 +120,28 @@ impl TemplateRenderer {
                                              TemplateFileError::IOError(e, name.to_owned())
                                          })?;
 
-        self.0
-            .register_template_string(name, process_template_string(template_string, &path))?;
+        // If we detect deprecated object access syntax notify the user.
+        if RE.is_match(&template_string) {
+            // Enumerate over the lines in the template and provide deprecation messages for each
+            // instance.
+            template_string.lines()
+                .enumerate()
+                .filter(|(_i, line)| RE.is_match(&line))
+                .map(|(i, line)| (i, line, fix_handlebars_syntax(&line)))
+                .for_each(|(i, old_line, new_line)| {
+                    println!("\n\n***************************************************\n\
+                              Deprecated object access syntax in handlebars template\n\
+                              Use 'object.[index]' syntax instead of 'object[index]'\n\
+                              See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\n\
+                              TEMPLATE: {}\n\
+                              LINE: {}: '{}'\n\
+                              Update to '{}'\n\n\
+                              *******************************************************\n\n",
+                             path.display(), i + 1, old_line, new_line)
+                });
+        }
+
+        self.0.register_template_string(name, template_string)?;
         Ok(())
     }
 }
@@ -145,35 +165,6 @@ impl DerefMut for TemplateRenderer {
 /// Disables HTML escaping which is enabled by default in Handlebars.
 fn never_escape(data: &str) -> String { String::from(data) }
 
-// Messages the user about object access syntax deprecation and fixes the violations on-the-fly
-// For more information https://github.com/habitat-sh/habitat/issues/6323.
-fn process_template_string(template_string: String, path: &std::path::Path) -> String {
-    if RE.is_match(&template_string) {
-        // Enumerate over the lines in the template and provide deprecation messages when bad syntax
-        // is detected.
-        template_string.lines()
-            .enumerate()
-            .filter(|(_i, line)| RE.is_match(&line))
-            .map(|(i, line)| (i, line, fix_handlebars_syntax(&line)))
-            .for_each(|(i, old_line, new_line)| {
-                println!("\n\n***************************************************\n\
-                        Deprecated object access syntax in handlebars template\n\
-                        Use 'object.[index]' syntax instead of 'object[index]'\n\
-                        See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\n\
-                        TEMPLATE: {}\n\
-                        LINE: {}: '{}'\n\
-                        Update to '{}'\n\n\
-                        *******************************************************\n\n",
-                        path.display(), i + 1, old_line, new_line)
-            });
-
-        // Replace the deprecated syntax with the good syntax. This should make it easier to upgrade
-        // the handlebars crate without breaking folks.
-        fix_handlebars_syntax(&template_string)
-    } else {
-        template_string
-    }
-}
 // Takes a string of text and replaces all occurrences of the pattern
 // object[key] with object.[key]
 fn fix_handlebars_syntax(text: &str) -> String {
