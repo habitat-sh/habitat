@@ -35,7 +35,8 @@ use self::types::{EventMessage,
 use crate::{error::Result,
             manager::{service::{HealthCheck,
                                 Service},
-                      sys::Sys}};
+                      sys::Sys},
+            AutomateAuthToken};
 use clap::ArgMatches;
 use futures::{sync::{mpsc as futures_mpsc,
                      mpsc::UnboundedSender},
@@ -73,6 +74,7 @@ lazy_static! {
 /// static reference for access later.
 pub fn init_stream(conn_info: EventConnectionInfo, event_core: EventCore) {
     INIT.call_once(|| {
+            println!("automate auth token is {}", conn_info.auth_token.as_str());
             let event_stream = init_nats_stream(conn_info).expect("Could not start NATS thread");
             EVENT_STREAM.set(event_stream);
             EVENT_CORE.set(event_core);
@@ -110,6 +112,7 @@ pub struct EventConnectionInfo {
     pub verbose:     bool,
     pub cluster_uri: String,
     pub cluster_id:  String,
+    pub auth_token:  AutomateAuthToken,
 }
 
 /// A collection of data that will be present in all events. Rather
@@ -235,7 +238,10 @@ impl Default for EventConnectionInfo {
         EventConnectionInfo { name:        String::from("habitat"),
                               verbose:     true,
                               cluster_uri: String::from("127.0.0.1:4223"),
-                              cluster_id:  String::from("test-cluster"), }
+                              cluster_id:  String::from("test-cluster"),
+                              // DON'T LEAVE THIS ADMIN TOKEN IN HERE!
+                              auth_token:
+                                  AutomateAuthToken("D6fHxsfc_FlGG4coaZXdNv-vSUM=".to_string()), }
     }
 }
 
@@ -253,13 +259,17 @@ fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
                               let EventConnectionInfo { name,
                                                         verbose,
                                                         cluster_uri,
-                                                        cluster_id, } = conn_info;
+                                                        cluster_id,
+                                                        auth_token, } = conn_info;
 
-                              let cc = ConnectCommand::builder()
+                              let cc =
+                                  ConnectCommand::builder()
                 // .user(Some("nats".to_string()))
                 // .pass(Some("S3Cr3TP@5w0rD".to_string()))
                 .name(Some(name))
                 .verbose(verbose)
+                .auth_token(Some(auth_token.as_str().to_string()))
+                .tls_required(false)
                 .build()
                 .unwrap();
                               let opts =
@@ -269,7 +279,11 @@ fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
                                                               .unwrap();
 
                               let publisher = NatsClient::from_options(opts)
-                .map_err(Into::<NatsStreamingError>::into)
+                .map_err(|e| {
+                    error!("Error creating Nats Client from options: {}", e);
+                    //Into::<NatsStreamingError>::into(e)
+                    e.into()
+                })
                 .and_then(|client| {
                     NatsStreamingClient::from(client)
                         .cluster_id(cluster_id)

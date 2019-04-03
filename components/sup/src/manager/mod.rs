@@ -58,6 +58,7 @@ use crate::{census::{CensusRing,
                     EventCore,
                     EventStreamConfig},
             http_gateway,
+            AutomateAuthToken,
             VERSION};
 use cpu_time::ProcessTime;
 use futures::{future,
@@ -72,16 +73,15 @@ use habitat_butterfly::{member::Member,
 use habitat_common::{outputln,
                      types::ListenCtlAddr,
                      FeatureFlag};
-#[cfg(unix)]
-use habitat_core::os::{process::Signal,
-                       signals::SignalEvent};
 use habitat_core::{crypto::SymKey,
                    env::{self,
                          Config},
                    fs::FS_ROOT_PATH,
                    os::{process::{self,
-                                  Pid},
-                        signals},
+                                  Pid,
+                                  Signal},
+                        signals::{self,
+                                  SignalEvent}},
                    package::{Identifiable,
                              PackageIdent,
                              PackageInstall},
@@ -487,16 +487,20 @@ impl Manager {
 
         if cfg.feature_flags.contains(FeatureFlag::EVENT_STREAM) {
             // Putting configuration of the stream behind a feature
-            // flag for now.  If the flag isn't set, just don't
+            // flag for now. If the flag isn't set, just don't
             // initialize the stream; everything else will turn into a
             // no-op automatically.
+
+            // TODO: Determine what the actual connection parameters
+            // should be, and process them at some point before here.
             let es_config =
                 cfg.event_stream_config
                    .expect("Config should be present if the EventStream feature is enabled");
             let ec = EventCore::new(es_config, &sys);
-            // TODO: Determine what the actual connection parameters
-            // should be, and process them at some point before here.
-            event::init_stream(EventConnectionInfo::default(), ec);
+            // unwrap won't fail here; if there were an issue, from_env()
+            // would have already propagated an error up the stack.
+            let c = AutomateAuthToken::from_env().unwrap();
+            event::init_stream(Self::init_conn_info(&c), ec);
         }
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
@@ -520,6 +524,21 @@ impl Manager {
                      busy_services: Arc::new(Mutex::new(HashSet::new())),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags })
+    }
+
+    /// Initialize struct containing the connection information required to
+    /// connect to the Automate messaging server: subject, verbosity, messaging
+    /// cluster id and uri, and authentication token.
+    fn init_conn_info(msg_auth_token: &AutomateAuthToken) -> event::EventConnectionInfo {
+        // Messaging connection information is hard-coded for now,
+        // with the exception of the Authomate authentication token.
+        // TODO: Determine what the actual connection parameters
+        // should be, and process them at some point before here.
+        EventConnectionInfo { name:        String::from("habitat"),
+                              verbose:     true,
+                              cluster_uri: String::from("10.0.0.174:4222"),
+                              cluster_id:  String::from("event-service"),
+                              auth_token:  msg_auth_token, }
     }
 
     /// Load the initial Butterly Member which is used in initializing the Butterfly server. This
