@@ -130,12 +130,12 @@ impl TemplateRenderer {
                 .map(|(i, line)| (i, line, fix_handlebars_syntax(&line)))
                 .for_each(|(i, old_line, new_line)| {
                     println!("\n\n***************************************************\n\
-                              Deprecated object access syntax in handlebars template\n\
+                              warning: Deprecated object access syntax in handlebars template\n\
                               Use 'object.[index]' syntax instead of 'object[index]'\n\
                               See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\n\
-                              TEMPLATE: {}\n\
-                              LINE: {}: '{}'\n\
-                              Update to '{}'\n\n\
+                                --> {}:{}\n\n\
+                              change '{}'\n\
+                              to     '{}'\n\n\
                               *******************************************************\n\n",
                              path.display(), i + 1, old_line, new_line)
                 });
