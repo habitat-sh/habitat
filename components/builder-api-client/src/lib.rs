@@ -339,8 +339,7 @@ impl Client {
     /// * Key cannot be found
     /// * Remote Builder is not available
     pub fn schedule_job(&self,
-                        ident: &PackageIdent,
-                        target: PackageTarget,
+                        (ident, target): (&PackageIdent, PackageTarget),
                         package_only: bool,
                         token: &str)
                         -> Result<(String)> {
@@ -372,7 +371,9 @@ impl Client {
     /// # Failures
     ///
     /// * Remote API Server is not available
-    pub fn fetch_rdeps(&self, ident: &PackageIdent, target: PackageTarget) -> Result<Vec<String>> {
+    pub fn fetch_rdeps(&self,
+                       (ident, target): (&PackageIdent, PackageTarget))
+                       -> Result<Vec<String>> {
         debug!("Fetching the reverse dependencies for {}", ident);
 
         let url = format!("rdeps/{}", ident);
@@ -635,8 +636,7 @@ impl Client {
     /// * Remote Builder is not available
     /// * Package does not exist
     pub fn package_channels(&self,
-                            ident: &PackageIdent,
-                            target: PackageTarget,
+                            (ident, target): (&PackageIdent, PackageTarget),
                             token: Option<&str>)
                             -> Result<Vec<String>> {
         if !ident.fully_qualified() {
@@ -791,8 +791,7 @@ impl Client {
     /// * Remote Builder is not available
     /// * File cannot be created and written to
     pub fn fetch_package<D, P>(&self,
-                               ident: &PackageIdent,
-                               target: PackageTarget,
+                               (ident, target): (&PackageIdent, PackageTarget),
                                token: Option<&str>,
                                dst_path: &P,
                                progress: Option<D>)
@@ -828,8 +827,7 @@ impl Client {
     /// * Package cannot be found
     /// * Remote Builder is not available
     pub fn show_package(&self,
-                        package: &PackageIdent,
-                        target: PackageTarget,
+                        (package, target): (&PackageIdent, PackageTarget),
                         channel: &ChannelIdent,
                         token: Option<&str>)
                         -> Result<PackageIdent> {
@@ -953,8 +951,7 @@ impl Client {
     /// * If the package does not qualify for deletion
     /// * Authorization token was not set on client
     pub fn delete_package(&self,
-                          ident: &PackageIdent,
-                          target: PackageTarget,
+                          (ident, target): (&PackageIdent, PackageTarget),
                           token: &str)
                           -> Result<()> {
         let path = package_path(ident);
@@ -986,8 +983,7 @@ impl Client {
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
     pub fn promote_package(&self,
-                           ident: &PackageIdent,
-                           target: PackageTarget,
+                           (ident, target): (&PackageIdent, PackageTarget),
                            channel: &ChannelIdent,
                            token: &str)
                            -> Result<()> {
@@ -1023,8 +1019,7 @@ impl Client {
     /// * If package does not exist in Builder
     /// * Authorization token was not set on client
     pub fn demote_package(&self,
-                          ident: &PackageIdent,
-                          target: PackageTarget,
+                          (ident, target): (&PackageIdent, PackageTarget),
                           channel: &ChannelIdent,
                           token: &str)
                           -> Result<()> {

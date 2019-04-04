@@ -606,7 +606,7 @@ fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let target = target_from_matches(m)?;
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::job::start::start(ui, &url, &ident, target, &token, group)
+    command::bldr::job::start::start(ui, &url, (&ident, target), &token, group)
 }
 
 fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -827,7 +827,7 @@ fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let target = target_from_matches(m)?;
 
-    command::pkg::delete::start(ui, &url, &ident, target, &token)?;
+    command::pkg::delete::start(ui, &url, (&ident, target), &token)?;
 
     Ok(())
 }
@@ -861,7 +861,7 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let token = auth_token_param_or_env(&m)?;
     let target = target_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    command::pkg::promote::start(ui, &url, &ident, target, &channel, &token)
+    command::pkg::promote::start(ui, &url, (&ident, target), &channel, &token)
 }
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -870,7 +870,7 @@ fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let token = auth_token_param_or_env(&m)?;
     let target = target_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    command::pkg::demote::start(ui, &url, &ident, target, &channel, &token)
+    command::pkg::demote::start(ui, &url, (&ident, target), &channel, &token)
 }
 
 fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -879,7 +879,10 @@ fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let token = maybe_auth_token(&m);
     let target = target_from_matches(m)?;
 
-    command::pkg::channels::start(ui, &url, &ident, target, token.as_ref().map(String::as_str))
+    command::pkg::channels::start(ui,
+                                  &url,
+                                  (&ident, target),
+                                  token.as_ref().map(String::as_str))
 }
 
 fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {

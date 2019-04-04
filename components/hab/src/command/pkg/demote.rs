@@ -47,8 +47,7 @@ use crate::{error::{Error,
 /// * Fails if "unstable" is the channel specified.
 pub fn start(ui: &mut UI,
              bldr_url: &str,
-             ident: &PackageIdent,
-             target: PackageTarget,
+             (ident, target): (&PackageIdent, PackageTarget),
              channel: &ChannelIdent,
              token: &str)
              -> Result<()> {
@@ -60,7 +59,7 @@ pub fn start(ui: &mut UI,
         return Err(Error::CannotRemoveFromChannel((ident.to_string(), channel.to_string())));
     }
 
-    match api_client.demote_package(ident, target, channel, token) {
+    match api_client.demote_package((ident, target), channel, token) {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to demote '{}': {:?}", ident, e);

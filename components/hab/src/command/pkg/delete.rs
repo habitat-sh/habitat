@@ -30,15 +30,14 @@ use crate::{api_client::Client,
 /// * Fails if it cannot find the specified package in Builder
 pub fn start(ui: &mut UI,
              bldr_url: &str,
-             ident: &PackageIdent,
-             target: PackageTarget,
+             (ident, target): (&PackageIdent, PackageTarget),
              token: &str)
              -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
     ui.begin(format!("Deleting {} ({}) from Builder", ident, target))?;
 
-    if let Err(err) = api_client.delete_package(ident, target, token) {
+    if let Err(err) = api_client.delete_package((ident, target), token) {
         println!("Failed to delete '{}': {:?}", ident, err);
         return Err(Error::from(err));
     }

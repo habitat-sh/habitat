@@ -47,8 +47,7 @@ use crate::{error::{Error,
 /// * Fails if it cannot find the specified package in Builder
 pub fn start(ui: &mut UI,
              bldr_url: &str,
-             ident: &PackageIdent,
-             target: PackageTarget,
+             (ident, target): (&PackageIdent, PackageTarget),
              channel: &ChannelIdent,
              token: &str)
              -> Result<()> {
@@ -67,7 +66,7 @@ pub fn start(ui: &mut UI,
         };
     }
 
-    match api_client.promote_package(ident, target, channel, token) {
+    match api_client.promote_package((ident, target), channel, token) {
         Ok(_) => (),
         Err(e) => {
             println!("Failed to promote '{}': {:?}", ident, e);
