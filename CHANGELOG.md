@@ -3,6 +3,10 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+## [0.79.0](https://github.com/habitat-sh/habitat/tree/0.79.0) (2019-04-01)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.78.0...0.79.0)
+
 #### Bug Fixes
 - Properly pass CLI args to `hab origin key import` [#6363](https://github.com/habitat-sh/habitat/pull/6363) ([baumanj](https://github.com/baumanj))
 - start supervisor outside of interactive powershell session in local windows studio [#6353](https://github.com/habitat-sh/habitat/pull/6353) ([mwrock](https://github.com/mwrock))
@@ -23,9 +27,7 @@
 - macOS still needs --interactive and --tty set [#6295](https://github.com/habitat-sh/habitat/pull/6295) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
-- Add target param to pkg related APIs [#6368](https://github.com/habitat-sh/habitat/pull/6368) ([chefsalim](https://github.com/chefsalim))
 - Use curl to upload packages rather than pkg upload [#6365](https://github.com/habitat-sh/habitat/pull/6365) ([scotthain](https://github.com/scotthain))
-- Send target query param on pkg upload [#6366](https://github.com/habitat-sh/habitat/pull/6366) ([chefsalim](https://github.com/chefsalim))
 - Migrate to habitat rust rather than system rust [#6349](https://github.com/habitat-sh/habitat/pull/6349) ([scotthain](https://github.com/scotthain))
 - Update the website bundle to fix some security jazz [#6355](https://github.com/habitat-sh/habitat/pull/6355) ([raskchanky](https://github.com/raskchanky))
 - Simplify CLI definition for `hab svc load` command [#6327](https://github.com/habitat-sh/habitat/pull/6327) ([christophermaier](https://github.com/christophermaier))
@@ -33,11 +35,12 @@
 - Use sup-run instead of hab sup run in demo [#5746](https://github.com/habitat-sh/habitat/pull/5746) ([rsertelon](https://github.com/rsertelon))
 
 #### New Features & Enhancements
+- Send target query param on pkg upload [#6366](https://github.com/habitat-sh/habitat/pull/6366) ([chefsalim](https://github.com/chefsalim))
+- Add target param to pkg related APIs [#6368](https://github.com/habitat-sh/habitat/pull/6368) ([chefsalim](https://github.com/chefsalim))
 - Add package deletion command [#6350](https://github.com/habitat-sh/habitat/pull/6350) ([chefsalim](https://github.com/chefsalim))
 - Introduce NATS Streaming eventing to the Supervisor [#6218](https://github.com/habitat-sh/habitat/pull/6218) ([christophermaier](https://github.com/christophermaier))
 - Copies /etc/inputrc in studio if available [#5658](https://github.com/habitat-sh/habitat/pull/5658) ([rsertelon](https://github.com/rsertelon))
 - Attempt to implement template debugging tool [#6114](https://github.com/habitat-sh/habitat/pull/6114) ([qubitrenegade](https://github.com/qubitrenegade))
-<!-- latest_release -->
 
 ## [0.78.0](https://github.com/habitat-sh/habitat/tree/0.78.0) (2019-03-13)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.77.0...0.78.0)
