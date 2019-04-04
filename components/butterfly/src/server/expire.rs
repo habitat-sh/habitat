@@ -36,6 +36,8 @@ impl Expire {
 
     pub fn run(&self) {
         loop {
+            warn!("{} top of loop",
+                  thread::current().name().unwrap_or_default());
             let newly_confirmed_members =
                 self.server
                     .member_list
@@ -51,10 +53,18 @@ impl Expire {
                     .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));
             }
 
+            warn!("{} calling members_expired_to_departed",
+                  thread::current().name().unwrap_or_default());
+
             let newly_departed_members =
                 self.server
                     .member_list
                     .members_expired_to_departed(self.timing.departure_timeout_duration());
+
+            warn!("{} members_expired_to_departed({} ms) => {:?}",
+                  thread::current().name().unwrap_or_default(),
+                  self.timing.departure_timeout_duration().num_milliseconds(),
+                  newly_departed_members);
 
             for id in newly_departed_members {
                 self.server.rumor_heat.purge(&id);
@@ -63,6 +73,9 @@ impl Expire {
                     .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));
             }
 
+            warn!("{} sleeping for {} ms",
+                  thread::current().name().unwrap_or_default(),
+                  LOOP_DELAY_MS);
             thread::sleep(Duration::from_millis(LOOP_DELAY_MS));
         }
     }
