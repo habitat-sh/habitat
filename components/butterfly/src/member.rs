@@ -338,6 +338,7 @@ mod member_list {
 /// suspect or confirmed.
 #[derive(Debug)]
 pub struct MemberList {
+    local_member_id: String,
     entries:         RwLock<HashMap<UuidSimple, member_list::Entry>>,
     initial_members: RwLock<Vec<Member>>,
     update_counter:  AtomicUsize,
@@ -376,27 +377,35 @@ impl Serialize for MemberList {
 
 impl MemberList {
     /// Creates a new, empty, MemberList.
-    pub fn new() -> MemberList {
-        MemberList { entries:         RwLock::new(HashMap::new()),
+    pub fn new(local_member_id: String) -> MemberList {
+        MemberList { local_member_id,
+                     entries: RwLock::new(HashMap::new()),
                      initial_members: RwLock::new(Vec::new()),
-                     update_counter:  AtomicUsize::new(0), }
+                     update_counter: AtomicUsize::new(0) }
     }
 
     fn read_entries(&self)
                     -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        warn!("{} trying to obtain read_entries lock...",
-              std::thread::current().name().unwrap_or_default());
-        self.entries.read().expect("Members read lock")
+        warn!("{} trying to obtain {}'s read_entries lock...",
+              std::thread::current().name().unwrap_or_default(),
+              self.local_member_id);
+        let rv = self.entries.read().expect("Members read lock");
+        warn!("{} ...successfully obtained {}'s read_entries lock",
+              std::thread::current().name().unwrap_or_default(),
+              self.local_member_id);
+        rv
     }
 
     fn write_entries(
         &self)
         -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        warn!("{} trying to obtain write_entries lock...",
-              std::thread::current().name().unwrap_or_default());
+        warn!("{} trying to obtain {}'s write_entries lock...",
+              std::thread::current().name().unwrap_or_default(),
+              self.local_member_id);
         let rv = self.entries.write().expect("Members write lock");
-        warn!("{} ...successfully obtained write_entries lock",
-              std::thread::current().name().unwrap_or_default());
+        warn!("{} ...successfully obtained {}'s write_entries lock",
+              std::thread::current().name().unwrap_or_default(),
+              self.local_member_id);
         rv
     }
 
@@ -949,7 +958,7 @@ mod tests {
                             PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
-            let ml = MemberList::new();
+            let ml = MemberList::new("unit-test".to_string());
             for _x in 0..size {
                 let m = Member::default();
                 ml.insert(m, Health::Alive);
@@ -959,7 +968,7 @@ mod tests {
 
         #[test]
         fn new() {
-            let ml = MemberList::new();
+            let ml = MemberList::new("unit-test".to_string());
             assert!(ml.is_empty());
         }
 
@@ -1041,7 +1050,7 @@ mod tests {
 
         #[test]
         fn insert_no_member() {
-            let ml = MemberList::new();
+            let ml = MemberList::new("unit-test".to_string());
             let member = Member::default();
             let mcheck = member.clone();
             assert_eq!(ml.insert(member, Health::Alive), true);
@@ -1058,7 +1067,7 @@ mod tests {
             fn assert_cannot_insert_member_rumor_of_lower_incarnation(from_health: Health,
                                                                       to_health: Health)
             {
-                let ml = MemberList::new();
+                let ml = MemberList::new("unit-test".to_string());
                 let initial_update_counter_value = ml.get_update_counter();
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
@@ -1137,7 +1146,7 @@ mod tests {
             fn assert_always_insert_member_rumor_of_higher_incarnation(from_health: Health,
                                                                        to_health: Health)
             {
-                let ml = MemberList::new();
+                let ml = MemberList::new("unit-test".to_string());
                 let initial_update_counter_value = ml.get_update_counter();
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
@@ -1216,7 +1225,7 @@ mod tests {
             fn assert_only_insert_member_rumor_of_same_incarnation_if_health_is_worse(from_health: Health,
                                                                                       to_health: Health)
             {
-                let ml = MemberList::new();
+                let ml = MemberList::new("unit-test".to_string());
                 let initial_update_counter_value = ml.get_update_counter();
                 let initial_incarnation = Incarnation::from(10); // just to pick a number
 
@@ -1310,7 +1319,7 @@ mod tests {
             /// Tests that the transition from `from_health` to `to_health` for
             /// `insert` works properly.
             fn assert_insert_health_by_id_transition(from_health: Health, to_health: Health) {
-                let ml = MemberList::new();
+                let ml = MemberList::new("unit-test".to_string());
                 let member_one = Member::default();
 
                 assert!(ml.insert(member_one.clone(), from_health),
@@ -1426,7 +1435,7 @@ mod tests {
 
             #[test]
             fn timing_out_from_suspect_to_confirmed() {
-                let ml = MemberList::new();
+                let ml = MemberList::new("unit-test".to_string());
                 let member_one = Member::default();
                 let small_seconds = 1;
                 let large_seconds = 100_000;
@@ -1465,7 +1474,7 @@ mod tests {
 
             #[test]
             fn timing_out_from_confirmed_to_departed() {
-                let ml = MemberList::new();
+                let ml = MemberList::new("unit-test".to_string());
                 let member_one = Member::default();
                 let small_seconds = 1;
                 let large_seconds = 100_000;
@@ -1510,7 +1519,7 @@ mod tests {
 
             #[test]
             fn suspect_timeout_is_appropriately_selective() {
-                let ml = MemberList::new();
+                let ml = MemberList::new("unit-test".to_string());
                 let member_1 = Member::default();
                 let member_2 = Member::default();
                 let member_3 = Member::default();
@@ -1545,7 +1554,7 @@ mod tests {
 
             #[test]
             fn confirmed_timeout_is_appropriately_selective() {
-                let ml = MemberList::new();
+                let ml = MemberList::new("unit-test".to_string());
                 let member_1 = Member::default();
                 let member_2 = Member::default();
                 let member_3 = Member::default();

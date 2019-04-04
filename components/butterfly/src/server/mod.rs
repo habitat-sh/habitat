@@ -339,9 +339,9 @@ impl Server {
                 Ok(Server { name: Arc::new(name.unwrap_or_else(|| member_id.clone())),
                             // TODO (CM): could replace this with an accessor
                             // on member, if we have a better type
-                            member_id:            Arc::new(member_id),
+                            member_id:            Arc::new(member_id.clone()),
                             member:               Arc::new(RwLock::new(myself)),
-                            member_list:          Arc::new(MemberList::new()),
+                            member_list:          Arc::new(MemberList::new(member_id)),
                             ring_key:             Arc::new(ring_key),
                             rumor_heat:           RumorHeat::default(),
                             service_store:        RumorStore::default(),
@@ -1245,7 +1245,7 @@ mod tests {
         let service_store = RumorStore::<Service>::default();
         let myself = Member::default();
         let unknown_leader_member_id = "unknown_leader";
-        let member_list = MemberList::new();
+        let member_list = MemberList::new("unit-test".to_string());
         let service = mock_service(&myself);
 
         let mut election_with_unknown_leader = Election::new(unknown_leader_member_id,
@@ -1276,7 +1276,7 @@ mod tests {
         let service_store = RumorStore::<Service>::default();
         let myself = Member::default();
         let departed_leader = Member::default();
-        let member_list = MemberList::new();
+        let member_list = MemberList::new("unit-test".to_string());
         let service = mock_service(&myself);
 
         let mut election_with_unknown_leader = Election::new(departed_leader.id.clone(),
@@ -1314,7 +1314,7 @@ mod tests {
     fn insert_service_adds_service_to_service_store() {
         let service = mock_service(&Member::default());
         let service_store = RumorStore::default();
-        let member_list = MemberList::new();
+        let member_list = MemberList::new("unit-test".to_string());
         let rumor_heat = RumorHeat::default();
 
         Server::insert_service_impl(service.clone(),
@@ -1333,7 +1333,7 @@ mod tests {
         let confirmed_member_service_rumor = mock_service(&confirmed_member);
         let alive_member_service_rumor = mock_service(&alive_member);
         let service_store = RumorStore::default();
-        let member_list = MemberList::new();
+        let member_list = MemberList::new("unit-test".to_string());
         let rumor_heat = RumorHeat::default();
 
         member_list.insert(alive_member.clone(), Health::Alive);
@@ -1365,7 +1365,7 @@ mod tests {
         let confirmed_member_service_rumor = mock_service(&confirmed_member);
         let alive_member_service_rumor = mock_service(&alive_member);
         let service_store = RumorStore::default();
-        let member_list = MemberList::new();
+        let member_list = MemberList::new("unit-test".to_string());
         let rumor_heat = RumorHeat::default();
 
         member_list.insert(alive_member.clone(), Health::Alive);
@@ -1406,7 +1406,7 @@ mod tests {
         let confirmed_member_service_rumor = mock_service(&confirmed_member);
         let alive_member_service_rumor = mock_service(&alive_member);
         let service_store = RumorStore::default();
-        let member_list = MemberList::new();
+        let member_list = MemberList::new("unit-test".to_string());
         let rumor_heat = RumorHeat::default();
 
         member_list.insert(alive_member.clone(), Health::Alive);
