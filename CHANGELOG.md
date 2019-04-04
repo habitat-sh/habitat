@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Add a welcome message when PRs are opened [#6356](https://github.com/habitat-sh/habitat/pull/6356) ([raskchanky](https://github.com/raskchanky))
 <!-- latest_release -->
 ## [0.79.0](https://github.com/habitat-sh/habitat/tree/0.79.0) (2019-04-01)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.78.0...0.79.0)
