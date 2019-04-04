@@ -78,7 +78,7 @@ steps:
 
   - label: "[unit] :linux: butterfly"
     command:
-      - ./test/run_cargo_test.sh --test-options "--test-threads=1" butterfly
+      - ./test/run_cargo_test.sh --test-options "--test-threads=1 six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirmed" butterfly
     agents:
       queue: 'default-privileged'
     plugins:
@@ -299,7 +299,7 @@ steps:
 
   - label: "[unit] :windows: butterfly"
     command:
-      - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
+      - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1 six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirmed"
     agents:
       queue: 'single-use-windows-privileged'
     timeout_in_minutes: 25
