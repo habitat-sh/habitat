@@ -185,6 +185,9 @@ impl Outbound {
     ///
     /// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
     fn probe(&mut self, member: Member) {
+        warn!("{} probing {}",
+              thread::current().name().unwrap_or_default(),
+              member.id);
         let pa_timer = SWIM_PROBE_DURATION.with_label_values(&["ping/ack"])
                                           .start_timer();
         let mut pr_timer: Option<HistogramTimer> = None;
@@ -204,6 +207,10 @@ impl Outbound {
             return;
         }
 
+        warn!("{} direct ping of {} failed, trying pingreq...",
+              thread::current().name().unwrap_or_default(),
+              member.id);
+
         self.server.member_list.with_pingreq_targets(
             self.server.member_id(),
             &member.id,
@@ -221,6 +228,10 @@ impl Outbound {
                 pingreq(&self.server, &self.socket, pingreq_target, &member);
             },
         );
+
+        warn!("{} sent all pingreqs for {} waiting for ack...",
+              thread::current().name().unwrap_or_default(),
+              member.id);
 
         if self.recv_ack(&member, addr, AckFrom::PingReq) {
             SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
@@ -248,6 +259,11 @@ impl Outbound {
             AckFrom::Ping => self.timing.ping_timeout(),
             AckFrom::PingReq => self.timing.pingreq_timeout(),
         };
+        warn!("{} entering wait loop for {} Ack from {}@{}",
+              thread::current().name().unwrap_or_default(),
+              ack_from,
+              &member.id,
+              addr);
         loop {
             match self.rx_inbound.try_recv() {
                 Ok((real_addr, mut ack)) => {
@@ -257,6 +273,12 @@ impl Outbound {
                         ack.from.address = real_addr.ip().to_string();
                     }
                     if member.id != ack.from.id {
+                        warn!("{} got {} Ack from {} (departed: {}) while waiting for ack from {}",
+                              thread::current().name().unwrap_or_default(),
+                              ack_from,
+                              ack.from.id,
+                              ack.from.departed,
+                              &member.id);
                         if ack.from.departed {
                             self.server.insert_member(ack.from, Health::Departed);
                         } else {
@@ -266,6 +288,12 @@ impl Outbound {
                         continue;
                     } else {
                         // We got the ack we are looking for; return.
+                        warn!("{} received {} Ack from {}@{} (departed: {})",
+                              thread::current().name().unwrap_or_default(),
+                              ack_from,
+                              &member.id,
+                              addr,
+                              ack.from.departed);
                         if ack.from.departed {
                             self.server.insert_member(ack.from, Health::Departed);
                         } else {
