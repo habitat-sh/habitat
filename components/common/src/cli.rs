@@ -42,6 +42,8 @@ lazy_static! {
 }
 pub const LISTEN_HTTP_ADDRESS_ENVVAR: &str = "HAB_LISTEN_HTTP";
 
+pub const PACKAGE_TARGET_ENVVAR: &str = "HAB_PACKAGE_TARGET";
+
 const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 
 lazy_static! {

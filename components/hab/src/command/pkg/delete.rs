@@ -18,7 +18,8 @@ use crate::{api_client::Client,
                          UI},
             error::{Error,
                     Result},
-            hcore::package::PackageIdent,
+            hcore::package::{PackageIdent,
+                             PackageTarget},
             PRODUCT,
             VERSION};
 
@@ -27,17 +28,21 @@ use crate::{api_client::Client,
 /// # Failures
 ///
 /// * Fails if it cannot find the specified package in Builder
-pub fn start(ui: &mut UI, bldr_url: &str, ident: &PackageIdent, token: &str) -> Result<()> {
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             (ident, target): (&PackageIdent, PackageTarget),
+             token: &str)
+             -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
-    ui.begin(format!("Deleting {} from Builder", ident))?;
+    ui.begin(format!("Deleting {} ({}) from Builder", ident, target))?;
 
-    if let Err(err) = api_client.delete_package(ident, token) {
+    if let Err(err) = api_client.delete_package((ident, target), token) {
         println!("Failed to delete '{}': {:?}", ident, err);
         return Err(Error::from(err));
     }
 
-    ui.status(Status::Deleted, ident)?;
+    ui.status(Status::Deleted, format!("{} ({})", ident, target))?;
 
     Ok(())
 }

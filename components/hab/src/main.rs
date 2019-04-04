@@ -45,7 +45,8 @@ use crate::{common::{cli::{cache_key_path_from_matches,
                     fs::{cache_analytics_path,
                          cache_artifact_path,
                          launcher_root_path},
-                    package::{PackageIdent,
+                    package::{target,
+                              PackageIdent,
                               PackageTarget},
                     service::{HealthCheckInterval,
                               ServiceGroup},
@@ -58,6 +59,7 @@ use crate::{common::{cli::{cache_key_path_from_matches,
                        types::*},
             sup_client::{SrvClient,
                          SrvClientError}};
+
 use clap::{ArgMatches,
            Shell};
 use env_logger;
@@ -604,7 +606,7 @@ fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let target = target_from_matches(m)?;
     let group = m.is_present("GROUP");
     let token = auth_token_param_or_env(&m)?;
-    command::bldr::job::start::start(ui, &url, &ident, target, &token, group)
+    command::bldr::job::start::start(ui, &url, (&ident, target), &token, group)
 }
 
 fn sub_bldr_job_cancel(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -823,8 +825,9 @@ fn sub_pkg_delete(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let token = auth_token_param_or_env(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
+    let target = target_from_matches(m)?;
 
-    command::pkg::delete::start(ui, &url, &ident, &token)?;
+    command::pkg::delete::start(ui, &url, (&ident, target), &token)?;
 
     Ok(())
 }
@@ -856,24 +859,30 @@ fn sub_pkg_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
+    let target = target_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    command::pkg::promote::start(ui, &url, &ident, &channel, &token)
+    command::pkg::promote::start(ui, &url, (&ident, target), &channel, &token)
 }
 
 fn sub_pkg_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let channel = required_channel_from_matches(&m);
     let token = auth_token_param_or_env(&m)?;
+    let target = target_from_matches(m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
-    command::pkg::demote::start(ui, &url, &ident, &channel, &token)
+    command::pkg::demote::start(ui, &url, (&ident, target), &channel, &token)
 }
 
 fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?; // Required via clap
     let token = maybe_auth_token(&m);
+    let target = target_from_matches(m)?;
 
-    command::pkg::channels::start(ui, &url, &ident, token.as_ref().map(String::as_str))
+    command::pkg::channels::start(ui,
+                                  &url,
+                                  (&ident, target),
+                                  token.as_ref().map(String::as_str))
 }
 
 fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
@@ -1453,8 +1462,18 @@ fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {
 fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
     matches.value_of("PKG_TARGET")
            .map(PackageTarget::from_str)
-           .unwrap_or_else(|| PackageTarget::from_str("x86_64-linux"))
+           .unwrap_or_else(|| Ok(active_target()))
            .map_err(Error::HabitatCore)
+}
+
+/// Helper function to determine active package target.
+/// It overrides x86_64-darwin to be x86_64-linux in order
+/// to provide a better user experience (ie, for the 99% case)
+fn active_target() -> PackageTarget {
+    match PackageTarget::active_target() {
+        target::X86_64_DARWIN => target::X86_64_LINUX,
+        t => t,
+    }
 }
 
 fn install_sources_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<InstallSource>> {

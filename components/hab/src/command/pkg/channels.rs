@@ -25,12 +25,12 @@
 //! Notes:
 //!    The package should already have been uploaded to Builder.
 //!    If the specified package does not exist, this will fail.
-//!
 
 use crate::{api_client::Client,
             common::ui::{UIWriter,
                          UI},
-            hcore::package::PackageIdent};
+            hcore::package::{PackageIdent,
+                             PackageTarget}};
 
 use crate::{error::Result,
             PRODUCT,
@@ -41,11 +41,15 @@ use crate::{error::Result,
 /// # Failures
 ///
 /// * Fails if it cannot find the specified package in Builder.
-pub fn start(ui: &mut UI, bldr_url: &str, ident: &PackageIdent, token: Option<&str>) -> Result<()> {
+pub fn start(ui: &mut UI,
+             bldr_url: &str,
+             (ident, target): (&PackageIdent, PackageTarget),
+             token: Option<&str>)
+             -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None)?;
 
-    ui.begin(format!("Retrieving channels for {}", ident))?;
-    let channels = api_client.package_channels(ident, token)?;
+    ui.begin(format!("Retrieving channels for {} ({})", ident, target))?;
+    let channels = api_client.package_channels((ident, target), token)?;
     for channel in &channels {
         println!("{}", channel);
     }

@@ -356,7 +356,7 @@ pub fn start<U>(ui: &mut U,
 
     match *install_source {
         InstallSource::Ident(ref ident, target) => {
-            task.with_ident(ui, ident.clone(), target, token)
+            task.with_ident(ui, (ident.clone(), target), token)
         }
         InstallSource::Archive(ref local_archive) => task.with_archive(ui, local_archive, token),
     }
@@ -454,14 +454,13 @@ impl<'a> InstallTask<'a> {
     /// that was passed in).
     fn with_ident<T>(&self,
                      ui: &mut T,
-                     ident: PackageIdent,
-                     target: PackageTarget,
+                     (ident, target): (PackageIdent, PackageTarget),
                      token: Option<&str>)
                      -> Result<PackageInstall>
         where T: UIWriter
     {
         ui.begin(format!("Installing {}", &ident))?;
-        let target_ident = self.determine_latest_from_ident(ui, ident, target, token)?;
+        let target_ident = self.determine_latest_from_ident(ui, (ident, target), token)?;
 
         match self.installed_package(&target_ident) {
             Some(package_install) => {
@@ -476,7 +475,7 @@ impl<'a> InstallTask<'a> {
             }
             None => {
                 // No installed package was found
-                self.install_package(ui, &target_ident, target, token)
+                self.install_package(ui, (&target_ident, target), token)
             }
         }
     }
@@ -506,15 +505,14 @@ impl<'a> InstallTask<'a> {
             None => {
                 // No installed package was found
                 self.store_artifact_in_cache(&target_ident, &local_archive.path)?;
-                self.install_package(ui, &target_ident, local_archive.target, token)
+                self.install_package(ui, (&target_ident, local_archive.target), token)
             }
         }
     }
 
     fn determine_latest_from_ident<T>(&self,
                                       ui: &mut T,
-                                      ident: PackageIdent,
-                                      target: PackageTarget,
+                                      (ident, target): (PackageIdent, PackageTarget),
                                       token: Option<&str>)
                                       -> Result<FullyQualifiedPackageIdent<'_>>
         where T: UIWriter
@@ -550,7 +548,7 @@ impl<'a> InstallTask<'a> {
             ui.status(Status::Determining,
                       format!("latest version of {} in the '{}' channel",
                               &ident, self.channel))?;
-            let latest_remote = match self.fetch_latest_pkg_ident_for(&ident, target, token) {
+            let latest_remote = match self.fetch_latest_pkg_ident_for((&ident, target), token) {
                 Ok(latest_ident) => Some(latest_ident),
                 Err(Error::APIClient(APIError(StatusCode::NotFound, _))) => None,
                 Err(e) => {
@@ -579,7 +577,7 @@ impl<'a> InstallTask<'a> {
                     if self.ignore_locally_installed_packages() {
                         // This is the behavior that is currently
                         // governed by the IGNORE_LOCAL feature-flag
-                        self.recommend_channels(ui, &ident, target, token)?;
+                        self.recommend_channels(ui, (&ident, target), token)?;
                         ui.warn(format!("Locally-installed package '{}' would satisfy '{}', \
                                          but we are ignoring that as directed",
                                         local.as_ref(),
@@ -597,7 +595,7 @@ impl<'a> InstallTask<'a> {
                 }
                 (Err(_), Some(remote)) => Ok(remote),
                 (Err(_), None) => {
-                    self.recommend_channels(ui, &ident, target, token)?;
+                    self.recommend_channels(ui, (&ident, target), token)?;
                     Err(Error::PackageNotFound("".to_string()))
                 }
             }
@@ -613,14 +611,13 @@ impl<'a> InstallTask<'a> {
     /// installed will be re-cached (as needed) and installed.
     fn install_package<T>(&self,
                           ui: &mut T,
-                          ident: &FullyQualifiedPackageIdent<'_>,
-                          target: PackageTarget,
+                          (ident, target): (&FullyQualifiedPackageIdent<'_>, PackageTarget),
                           token: Option<&str>)
                           -> Result<PackageInstall>
         where T: UIWriter
     {
         // TODO (CM): rename artifact to archive
-        let mut artifact = self.get_cached_artifact(ui, ident, target, token)?;
+        let mut artifact = self.get_cached_artifact(ui, (ident, target), token)?;
 
         // Ensure that all transitive dependencies, as well as the
         // original package itself, are cached locally.
@@ -643,8 +640,8 @@ impl<'a> InstallTask<'a> {
             } else {
                 artifacts_to_install.push(self.get_cached_artifact(
                     ui,
-                    &FullyQualifiedPackageIdent::from(dependency)?,
-                    target,
+                    (&FullyQualifiedPackageIdent::from(dependency)?,
+                                        target),
                     token,
                 )?);
             }
@@ -676,8 +673,7 @@ impl<'a> InstallTask<'a> {
     /// verifies it, and returns a handle to the package's metadata.
     fn get_cached_artifact<T>(&self,
                               ui: &mut T,
-                              ident: &FullyQualifiedPackageIdent<'_>,
-                              target: PackageTarget,
+                              (ident, target): (&FullyQualifiedPackageIdent<'_>, PackageTarget),
                               token: Option<&str>)
                               -> Result<PackageArchive>
         where T: UIWriter
@@ -689,7 +685,7 @@ impl<'a> InstallTask<'a> {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
         } else if retry(RETRIES,
                         RETRY_WAIT,
-                        || self.fetch_artifact(ui, ident, target, token),
+                        || self.fetch_artifact(ui, (ident, target), token),
                         |res| res.is_ok()).is_err()
         {
             return Err(Error::DownloadFailed(format!("We tried {} times but \
@@ -841,21 +837,19 @@ impl<'a> InstallTask<'a> {
     }
 
     fn fetch_latest_pkg_ident_for(&self,
-                                  ident: &PackageIdent,
-                                  target: PackageTarget,
+                                  (ident, target): (&PackageIdent, PackageTarget),
                                   token: Option<&str>)
                                   -> Result<FullyQualifiedPackageIdent<'_>> {
-        self.fetch_latest_pkg_ident_in_channel_for(ident, target, &self.channel, token)
+        self.fetch_latest_pkg_ident_in_channel_for((ident, target), &self.channel, token)
     }
 
     fn fetch_latest_pkg_ident_in_channel_for(&self,
-                                             ident: &PackageIdent,
-                                             target: PackageTarget,
+                                             (ident, target): (&PackageIdent, PackageTarget),
                                              channel: &ChannelIdent,
                                              token: Option<&str>)
                                              -> Result<FullyQualifiedPackageIdent<'_>> {
         let origin_package = self.api_client
-                                 .show_package(ident, target, channel, token)?;
+                                 .show_package((ident, target), channel, token)?;
         FullyQualifiedPackageIdent::from(origin_package)
     }
 
@@ -863,15 +857,13 @@ impl<'a> InstallTask<'a> {
     /// the artifact is cached locally.
     fn fetch_artifact<T>(&self,
                          ui: &mut T,
-                         ident: &FullyQualifiedPackageIdent<'_>,
-                         target: PackageTarget,
+                         (ident, target): (&FullyQualifiedPackageIdent<'_>, PackageTarget),
                          token: Option<&str>)
                          -> Result<()>
         where T: UIWriter
     {
         ui.status(Status::Downloading, ident)?;
-        match self.api_client.fetch_package(ident.as_ref(),
-                                            target,
+        match self.api_client.fetch_package((ident.as_ref(), target),
                                             token,
                                             self.artifact_cache_path,
                                             ui.progress())
@@ -1001,13 +993,12 @@ impl<'a> InstallTask<'a> {
     // `hab pkg ...` subcommand to get more information.
     fn recommend_channels<T>(&self,
                              ui: &mut T,
-                             ident: &PackageIdent,
-                             target: PackageTarget,
+                             (ident, target): (&PackageIdent, PackageTarget),
                              token: Option<&str>)
                              -> Result<()>
         where T: UIWriter
     {
-        if let Ok(recommendations) = self.get_channel_recommendations(&ident, target, token) {
+        if let Ok(recommendations) = self.get_channel_recommendations((&ident, target), token) {
             if !recommendations.is_empty() {
                 ui.warn(format!("No releases of {} exist in the '{}' channel",
                                 &ident, self.channel))?;
@@ -1026,8 +1017,7 @@ impl<'a> InstallTask<'a> {
     /// when the desired package was not found in the specified
     /// channel.
     fn get_channel_recommendations(&self,
-                                   ident: &PackageIdent,
-                                   target: PackageTarget,
+                                   (ident, target): (&PackageIdent, PackageTarget),
                                    token: Option<&str>)
                                    -> Result<Vec<(String, String)>> {
         let mut res = Vec::new();
@@ -1042,7 +1032,7 @@ impl<'a> InstallTask<'a> {
 
         for channel in channels.into_iter().map(ChannelIdent::from) {
             if let Ok(pkg) =
-                self.fetch_latest_pkg_ident_in_channel_for(ident, target, &channel, token)
+                self.fetch_latest_pkg_ident_in_channel_for((ident, target), &channel, token)
             {
                 res.push((channel.to_string(), format!("{}", pkg)));
             }

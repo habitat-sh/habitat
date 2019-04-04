@@ -81,14 +81,16 @@ pub fn start(ui: &mut UI,
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match api_client.show_package(&ident, target, &ChannelIdent::unstable(), Some(token)) {
+    match api_client.show_package((&ident, target), &ChannelIdent::unstable(), Some(token)) {
         Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
-                match api_client.show_package(&dep, target, &ChannelIdent::unstable(), Some(token))
+                match api_client.show_package((&dep, target),
+                                              &ChannelIdent::unstable(),
+                                              Some(token))
                 {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
@@ -100,8 +102,7 @@ pub fn start(ui: &mut UI,
                             attempt_upload_dep(ui,
                                                &api_client,
                                                token,
-                                               &dep,
-                                               target,
+                                               (&dep, target),
                                                additional_release_channel,
                                                &candidate_path,
                                                key_path)
@@ -124,7 +125,7 @@ pub fn start(ui: &mut UI,
                 upload_into_depot(ui,
                                   &api_client,
                                   token,
-                                  &ident,
+                                  (&ident, target),
                                   additional_release_channel,
                                   force_upload,
                                   &mut archive)
@@ -152,7 +153,7 @@ pub fn start(ui: &mut UI,
 fn upload_into_depot(ui: &mut UI,
                      api_client: &Client,
                      token: &str,
-                     ident: &PackageIdent,
+                     (ident, target): (&PackageIdent, PackageTarget),
                      additional_release_channel: &Option<ChannelIdent>,
                      force_upload: bool,
                      mut archive: &mut PackageArchive)
@@ -197,7 +198,7 @@ fn upload_into_depot(ui: &mut UI,
             };
         }
 
-        match api_client.promote_package(ident, &channel, token) {
+        match api_client.promote_package((ident, target), &channel, token) {
             Ok(_) => (),
             Err(e) => return Err(Error::from(e)),
         };
@@ -211,8 +212,7 @@ fn upload_into_depot(ui: &mut UI,
 fn attempt_upload_dep(ui: &mut UI,
                       api_client: &Client,
                       token: &str,
-                      ident: &PackageIdent,
-                      target: PackageTarget,
+                      (ident, target): (&PackageIdent, PackageTarget),
                       additional_release_channel: &Option<ChannelIdent>,
                       archives_dir: &PathBuf,
                       key_path: &Path)
@@ -225,7 +225,7 @@ fn attempt_upload_dep(ui: &mut UI,
         upload_into_depot(ui,
                           api_client,
                           token,
-                          ident,
+                          (ident, target),
                           additional_release_channel,
                           false,
                           &mut archive)
