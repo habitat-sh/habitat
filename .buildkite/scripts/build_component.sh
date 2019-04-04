@@ -84,15 +84,27 @@ echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channe
 #     --auth="${HAB_AUTH_TOKEN}" \
 #     "${pkg_ident}" "${channel}" "${pkg_target}"
 
-curl -v -X POST \
-    -H "Accept: application/json" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
-    --data-binary "@results/${pkg_artifact}.hart" \
-    "http://bldr.habitat.sh/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
+# Upload the package
+curl --request POST \
+     --header "Content-Type: application/octet-stream" \
+     --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
+     --data-binary "@results/${pkg_artifact}" \
+     --fail \
+     --verbose \
+    "https://bldr.habitat.sh/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
 
-curl -v -X PUT \
-    -H "Accept: application/json" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
-    "http://bldr.habitat.sh/v1/depot/channels/${pkg_origin:?}/pkgs/${pkg_name:?}/${pkg_version:?}/${pkg_release}/promote?&target=${pkg_target}"
+# Create the channel, if necessary.
+#
+# Don't use --fail here, because trying to create a channel that
+# already exists returns a 409, and we don't want to fail in that case.
+curl --request POST \
+     --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
+     --verbose \
+    "https://bldr.habitat.sh/v1/depot/channels/${pkg_origin:?}/${channel}"
+
+# Promote the uploaded package into the channel.
+curl --request PUT \
+     --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
+     --fail \
+     --verbose \
+     "https://bldr.habitat.sh/v1/depot/channels/${pkg_origin:?}/${channel}/pkgs/${pkg_name:?}/${pkg_version:?}/${pkg_release}/promote?&target=${pkg_target}"
