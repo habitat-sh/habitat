@@ -958,7 +958,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     // SrvClient from a for_each iterator so we can chain upon a successful stream but I don't
     // know if it's possible with this version of futures.
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-        conn.call(set).for_each(|reply| {
+                                                         conn.call(set).for_each(|reply| {
                           match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
@@ -972,8 +972,8 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                 ))),
             }
                       })
-    })
-    .wait()?;
+                                                     })
+                                                     .wait()?;
     ui.end("Applied configuration")?;
     Ok(())
 }
@@ -986,7 +986,7 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let mut msg = protocol::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-        conn.call(msg).for_each(|reply| {
+                                                         conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                 "ServiceCfg" => {
                     let m = reply
@@ -1006,8 +1006,8 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
                 ))),
             }
                       })
-    })
-    .wait()?;
+                                                     })
+                                                     .wait()?;
     Ok(())
 }
 
@@ -1156,9 +1156,11 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         _ => msg.content = Some(buf.to_vec()),
     }
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-        ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
-          .unwrap();
-        conn.call(msg).for_each(|reply| {
+                                                         ui.status(Status::Applying,
+                                                                   format!("via peer {}",
+                                                                           listen_ctl_addr))
+                                                           .unwrap();
+                                                         conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                 "NetOk" => Ok(()),
                 "NetErr" => {
@@ -1178,8 +1180,8 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                 ))),
             }
                       })
-    })
-    .wait()?;
+                                                     })
+                                                     .wait()?;
     ui.end("Uploaded file")?;
     Ok(())
 }
@@ -1636,7 +1638,7 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
 
     let mut out: Vec<PackageIdent> = vec![];
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-        conn.call(msg).for_each(|reply| {
+                                                         conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                               "ServiceStatus" => {
                                   let m = reply.parse::<protocol::types::ServiceStatus>()
@@ -1656,8 +1658,8 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
                               }
                           }
                       })
-    })
-    .wait()?;
+                                                     })
+                                                     .wait()?;
     Ok(out)
 }
 
