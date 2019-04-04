@@ -18,6 +18,11 @@ merge_actions:
       ignore_labels:
         - "Expeditor: Exclude from Changelog"
 
+subscriptions:
+  - workload: pull_request_opened:{{agent_id}}:*
+    actions:
+      - post_github_comment:.expeditor/templates/welcome.mustache
+
 changelog:
   categories:
     - "X-change": "Behavioral Changes"
