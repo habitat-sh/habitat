@@ -2090,10 +2090,10 @@ do_strip() {
 
 # Default implementation for the `do_strip()` phase.
 # TODO(SM): Previous versions of the `file` utility reported x-pie-exectuable
-# as x-sharedlib. This means that while the intent was to `--strip-all` for 
-# x-executable, in reality we have been running `--strip-unneeded`. In order to 
+# as x-sharedlib. This means that while the intent was to `--strip-all` for
+# x-executable, in reality we have been running `--strip-unneeded`. In order to
 # be consistant with past behavior we will pass `--strip-unneeded` when stripping
-# x-pie-executable. In the future, we will need to make a decision as to the behavior 
+# x-pie-executable. In the future, we will need to make a decision as to the behavior
 # we want and introduce it at an appropriate time, such as a core-plans refresh.
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81498
 # https://bugs.launchpad.net/ubuntu/+source/file/+bug/1747711

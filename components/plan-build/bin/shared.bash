@@ -90,7 +90,7 @@ _render_metadata_FILES() {
   # shellcheck disable=2154
   find "$pkg_prefix" -type f \
     | sort \
-    | hab pkg hash > "${pkg_name}"_blake2bsums
+    | $HAB_BIN pkg hash > "${pkg_name}"_blake2bsums
 
   build_line "Generating signed metadata FILES"
   # shellcheck disable=2154
