@@ -491,22 +491,40 @@ macro_rules! assert_wait_for_health_of {
     ($network:expr,[$from:expr, $to:expr], $health:expr) => {
         let left: Vec<usize> = $from.collect();
         let right: Vec<usize> = $to.collect();
+        log::info!("assert_wait_for_health_of: left: {:?}, right: {:?}",
+                   left,
+                   right);
         for l in left.iter() {
             for r in right.iter() {
                 if l == r {
                     continue;
                 }
+                log::info!("assert_wait_for_health_of: waiting for {} to see {} as {}...",
+                           l,
+                           r,
+                           $health);
                 assert!($network.wait_for_health_of(*l, *r, $health),
                         "Member {} does not see {} as {}",
                         l,
                         r,
                         $health);
+                log::info!("assert_wait_for_health_of: {} sees {} as {}; waiting on reverse...",
+                           l,
+                           r,
+                           $health);
                 assert!($network.wait_for_health_of(*r, *l, $health),
                         "Member {} does not see {} as {}",
                         r,
                         l,
                         $health);
+                log::info!("assert_wait_for_health_of: {} sees {} as {}; continuing loop...",
+                           r,
+                           l,
+                           $health);
             }
+            log::info!("assert_wait_for_health_of: inner loop for {} done, continuing outer \
+                        loop...",
+                       l);
         }
     };
     ($network:expr, $to:expr, $health:expr) => {
