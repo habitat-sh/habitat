@@ -241,3 +241,54 @@ set_version() {
     local version=$1
     buildkite-agent meta-data set "version" "${version}"
 }
+
+# curl-based promotion function to work around https://github.com/habitat-sh/builder/issues/940
+# Remove after 0.79.0
+promote() {
+    package_ident="${1}"
+    target="${2}"
+    to_channel="${3}"
+
+    # Extract the individual bits of the fully-qualified identifier
+    IFS="/" read -r origin package version release <<< "${package_ident}"
+
+    # Create the channel, if necessary.
+    #
+    # Don't use --fail here, because trying to create a channel that
+    # already exists returns a 409, and we don't want to fail in that case.
+    curl --request POST \
+         --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
+         --verbose \
+         "https://bldr.habitat.sh/v1/depot/channels/${origin}/${to_channel}"
+
+    # Promote the uploaded package into the channel.
+    curl --request PUT \
+         --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
+         --fail \
+         --verbose \
+         "https://bldr.habitat.sh/v1/depot/channels/${origin}/${to_channel}/pkgs/${package}/${version}/${release}/promote?&target=${target}"
+}
+
+# Until we can reliably deal with packages that have the same
+# identifier, but different target, we'll track the information in
+# Buildkite metadata.
+#
+# Each time we put a package into our release channel, we'll record
+# what target it was built for.
+set_target_metadata() {
+    package_ident="${1}"
+    target="${2}"
+
+    buildkite-agent meta-data set "${package_ident}-${target}" "true"
+}
+
+# When we do the final promotions, we need to know the target of each
+# package in order to properly get the promotion done. If Buildkite metadata for
+# an ident/target pair exists, then that means that's a valid
+# combination, and we can use the target in the promotion call.
+ident_has_target() {
+    package_ident="${1}"
+    target="${2}"
+
+    buildkite-agent meta-data exists "${package_ident}-${target}"
+}

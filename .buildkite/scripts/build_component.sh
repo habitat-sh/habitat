@@ -93,18 +93,5 @@ curl --request POST \
      --verbose \
     "https://bldr.habitat.sh/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
 
-# Create the channel, if necessary.
-#
-# Don't use --fail here, because trying to create a channel that
-# already exists returns a 409, and we don't want to fail in that case.
-curl --request POST \
-     --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
-     --verbose \
-    "https://bldr.habitat.sh/v1/depot/channels/${pkg_origin:?}/${channel}"
-
-# Promote the uploaded package into the channel.
-curl --request PUT \
-     --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
-     --fail \
-     --verbose \
-     "https://bldr.habitat.sh/v1/depot/channels/${pkg_origin:?}/${channel}/pkgs/${pkg_name:?}/${pkg_version:?}/${pkg_release}/promote?&target=${pkg_target}"
+promote "${pkg_ident}" "${pkg_target}" "${channel}"
+set_target_metadata "${package_ident}" "${pkg_target}"

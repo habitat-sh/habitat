@@ -21,26 +21,8 @@ promote_from_one_channel_to_another() {
     # TODO: after 0.79.0 we can reenable this. We are explicitly using curl to upload
     # due to this bug: https://github.com/habitat-sh/builder/issues/940
     # hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${artifact}" "${to_channel}"
-
-    # Create the channel, if necessary.
-    #
-    # Don't use --fail here, because trying to create a channel that
-    # already exists returns a 409, and we don't want to fail in that case.
-    curl --request POST \
-         --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
-         --verbose \
-         "https://bldr.habitat.sh/v1/depot/channels/core/${to_channel}"
-
-    # Extract the individual bits of the fully-qualified identifier we
-    # just retrieved.
-    IFS="/" read -r _ _ version release <<< "${artifact}"
-
-    # Promote the uploaded package into the channel.
-    curl --request PUT \
-         --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
-         --fail \
-         --verbose \
-         "https://bldr.habitat.sh/v1/depot/channels/core/${to_channel}/pkgs/${package_name}/${version}/${release}/promote?&target=${target}"
+    promote "${artifact}" "${target}" "${to_channel}"
+    set_target_metadata "${artifact}" "${target}"
 }
 
 launcher_action=$(buildkite-agent meta-data get "launcher-action");
