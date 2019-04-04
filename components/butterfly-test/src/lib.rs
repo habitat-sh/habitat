@@ -79,8 +79,12 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                                  Some(String::from(name)),
                                  None,
                                  Box::new(NSuitability(suitability))).unwrap();
-    server.start(Timing::default())
-          .expect("Cannot start server");
+    // Divide the normal values by 100 since this is a local-only test
+    let timing = Timing { ping_ms: 10,
+                          pingreq_ms: 21,
+                          gossip_period_ms: 10,
+                          ..Default::default() };
+    server.start(timing).expect("Cannot start server");
     server
 }
 

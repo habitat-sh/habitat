@@ -17,6 +17,8 @@ extern crate habitat_butterfly;
 #[macro_use]
 extern crate habitat_butterfly_test as btest;
 
+use log::info;
+
 mod encryption;
 mod rumor;
 
@@ -56,7 +58,11 @@ fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
 
 #[test]
 fn six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirmed() {
+    env_logger::try_init().ok();
     let mut net = btest::SwimNet::new(6);
+    for server in &net.members {
+        info!("{}: {}", server.name(), server.member_id());
+    }
     net.mesh();
     assert_wait_for_health_of!(net, 0, Health::Alive);
     net.partition(0..3, 3..6);

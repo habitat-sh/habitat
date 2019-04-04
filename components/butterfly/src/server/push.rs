@@ -90,7 +90,8 @@ impl Push {
                 let next_gossip = self.timing.gossip_timeout();
                 for member in check_list.drain(0..drain_length) {
                     if self.server.is_member_blocked(&member.id) {
-                        debug!("Not sending rumors to {} - it is blocked", member.id);
+                        debug!("{} not sending rumors to {} - it is blocked",
+                               self.server.member_id, member.id);
 
                         continue;
                     }
@@ -175,7 +176,10 @@ impl PushWorker {
               .expect("Failure to set the ZMQ send timeout");
         let to_addr = format!("{}:{}", member.address, member.gossip_port);
         match socket.connect(&format!("tcp://{}", to_addr)) {
-            Ok(()) => debug!("Connected push socket to {:?}", member),
+            Ok(()) => {
+                debug!("{} Connected push socket to {:?}",
+                       self.server.member_id, member)
+            }
             Err(e) => {
                 error!("Cannot connect push socket to {:?}: {:?}", member, e);
                 let label_values = &["socket_connect", "failure"];

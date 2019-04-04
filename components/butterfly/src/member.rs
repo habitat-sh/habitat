@@ -486,8 +486,12 @@ impl MemberList {
     /// | Departed  |       |           |           |           |
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
-        self.insert_membership(Membership { member: incoming_member,
-                                            health: incoming_health, })
+        let incoming_member_id = incoming_member.id.clone();
+        let rv = self.insert_membership(Membership { member: incoming_member,
+                                                     health: incoming_health, });
+        debug!("MemberList::insert({}, {}) => {}",
+               incoming_member_id, incoming_health, rv);
+        rv
     }
 
     fn insert_membership(&self, incoming: Membership) -> bool {

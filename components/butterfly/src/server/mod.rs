@@ -535,6 +535,7 @@ impl Server {
 
     /// Persistently block a given address, causing no traffic to be seen.
     pub fn add_to_block_list(&self, member_id: String) {
+        debug!("{} Adding {} to block list", self.member_id, member_id);
         let mut block_list = self.block_list
                                  .write()
                                  .expect("Write lock for block_list is poisoned");

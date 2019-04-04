@@ -115,8 +115,8 @@ impl Inbound {
                     match msg.kind {
                         SwimKind::Ping(ping) => {
                             if self.server.is_member_blocked(&ping.from.id) {
-                                debug!("Not processing message from {} - it is blocked",
-                                       ping.from.id);
+                                debug!("{} Not processing Ping message from {} - it is blocked",
+                                       self.server.member_id, ping.from.id);
                                 continue;
                             }
                             self.process_ping(addr, ping);
@@ -125,16 +125,16 @@ impl Inbound {
                             if self.server.is_member_blocked(&ack.from.id)
                                && ack.forward_to.is_none()
                             {
-                                debug!("Not processing message from {} - it is blocked",
-                                       ack.from.id);
+                                debug!("{} Not processing Ack message from {} - it is blocked",
+                                       self.server.member_id, ack.from.id);
                                 continue;
                             }
                             self.process_ack(addr, ack);
                         }
                         SwimKind::PingReq(pingreq) => {
                             if self.server.is_member_blocked(&pingreq.from.id) {
-                                debug!("Not processing message from {} - it is blocked",
-                                       pingreq.from.id);
+                                debug!("{} Not processing PingReq message from {} - it is blocked",
+                                       self.server.member_id, pingreq.from.id);
                                 continue;
                             }
                             self.process_pingreq(addr, pingreq);

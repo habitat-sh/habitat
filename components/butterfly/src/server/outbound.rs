@@ -276,7 +276,10 @@ impl Outbound {
                 }
                 Err(mpsc::TryRecvError::Empty) => {
                     if SteadyTime::now() > timeout {
-                        warn!("Timed out waiting for Ack from {}@{}", &member.id, addr);
+                        warn!("{} Timed out waiting for Ack from {}@{}",
+                              thread::current().name().unwrap_or_default(),
+                              &member.id,
+                              addr);
                         return false;
                     }
                     thread::sleep(Duration::from_millis(PING_RECV_QUEUE_EMPTY_SLEEP_MS));
@@ -351,14 +354,15 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
             SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
             SWIM_BYTES_SENT.with_label_values(label_values)
                            .set(payload.len().to_i64());
-            trace!("Sent PingReq to {}@{} for {}@{}",
-                   &pingreq_target.id,
-                   addr,
-                   &target.id,
-                   target.swim_socket_address());
+            warn!("{} Sent PingReq to {}@{} to ping {}@{}",
+                  thread::current().name().unwrap_or_default(),
+                  &pingreq_target.id,
+                  addr,
+                  &target.id,
+                  target.swim_socket_address());
         }
         Err(e) => {
-            error!("Failed PingReq to {}@{} for {}@{}: {}",
+            error!("Failed PingReq to {}@{} to ping {}@{}: {}",
                    &pingreq_target.id,
                    addr,
                    &target.id,
@@ -410,7 +414,11 @@ pub fn ping(server: &Server,
                 Some(x) => format!(" on behalf of {}@{}", x.id, x.address),
                 None => "".into(),
             };
-            trace!("Sent Ping to {}{}", addr, on_behalf_of);
+            warn!("{} Sent Ping to {}@{}{}",
+                  thread::current().name().unwrap_or_default(),
+                  target.id,
+                  addr,
+                  on_behalf_of);
         }
         Err(e) => error!("Failed Ping to {}: {}", addr, e),
     }
