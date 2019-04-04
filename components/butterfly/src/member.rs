@@ -561,9 +561,17 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
-        self.read_entries()
-            .get(member_id)
-            .map(|member_list::Entry { health, .. }| *health)
+        log::info!("{} trying to get health for {}...",
+                   std::thread::current().name().unwrap_or_default(),
+                   member_id);
+        let rv = self.read_entries()
+                     .get(member_id)
+                     .map(|member_list::Entry { health, .. }| *health);
+        log::info!("{} ...health for {} => {:?}",
+                   std::thread::current().name().unwrap_or_default(),
+                   member_id,
+                   rv);
+        rv
     }
 
     /// Returns true if the member is alive, suspect, or persistent; used during the target

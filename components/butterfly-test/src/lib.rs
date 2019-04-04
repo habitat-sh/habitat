@@ -364,9 +364,17 @@ impl SwimNet {
 
     pub fn wait_for_health_of(&self, from_entry: usize, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
+        log::info!("{} ({:?}) wait_for_health_of(from_entry: {}, to_check: {}, {}), entering \
+                    loop...",
+                   std::thread::current().name().unwrap_or_default(),
+                   rounds_in,
+                   from_entry,
+                   to_check,
+                   health);
         loop {
             let health_val = self.health_of(from_entry, to_check);
-            log::info!("({:?}) wait_for_health_of(from_entry: {}, to_check: {}, {}) => {:?}",
+            log::info!("{} ({:?}) wait_for_health_of(from_entry: {}, to_check: {}, {}) => {:?}",
+                       std::thread::current().name().unwrap_or_default(),
                        rounds_in,
                        from_entry,
                        to_check,
