@@ -40,6 +40,10 @@ impl Expire {
                 self.server
                     .member_list
                     .members_expired_to_confirmed(self.timing.suspicion_timeout_duration());
+            warn!("{} members_expired_to_confirmed({} ms) => {:?}",
+                  thread::current().name().unwrap_or_default(),
+                  self.timing.suspicion_timeout_duration().num_milliseconds(),
+                  newly_confirmed_members);
 
             for id in newly_confirmed_members {
                 self.server

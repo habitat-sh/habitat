@@ -716,6 +716,17 @@ impl MemberList {
                         *health_updated_at = now;
                         Some(id.clone())
                     } else {
+                        if *health == precursor_health && expiring_to == Health::Confirmed {
+                            warn!("{} {} will expire to {} in {} ms (now: {}, updated_at: {}, \
+                                   timeout: {})",
+                                  std::thread::current().name().unwrap_or_default(),
+                                  id,
+                                  expiring_to,
+                                  ((*health_updated_at + timeout) - now).num_milliseconds(),
+                                  now,
+                                  *health_updated_at,
+                                  timeout);
+                        }
                         None
                     }
                 })
