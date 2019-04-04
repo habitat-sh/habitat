@@ -3,10 +3,6 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
-<!-- latest_release -->
-## [0.79.0](https://github.com/habitat-sh/habitat/tree/0.79.0) (2019-04-01)
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.78.0...0.79.0)
-
 #### Bug Fixes
 - Properly pass CLI args to `hab origin key import` [#6363](https://github.com/habitat-sh/habitat/pull/6363) ([baumanj](https://github.com/baumanj))
 - start supervisor outside of interactive powershell session in local windows studio [#6353](https://github.com/habitat-sh/habitat/pull/6353) ([mwrock](https://github.com/mwrock))
@@ -42,6 +38,7 @@
 - Copies /etc/inputrc in studio if available [#5658](https://github.com/habitat-sh/habitat/pull/5658) ([rsertelon](https://github.com/rsertelon))
 - Attempt to implement template debugging tool [#6114](https://github.com/habitat-sh/habitat/pull/6114) ([qubitrenegade](https://github.com/qubitrenegade))
 
+<!-- latest_release -->
 ## [0.78.0](https://github.com/habitat-sh/habitat/tree/0.78.0) (2019-03-13)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.77.0...0.78.0)
 
