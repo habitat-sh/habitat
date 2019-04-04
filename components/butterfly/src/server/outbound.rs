@@ -276,8 +276,9 @@ impl Outbound {
                 }
                 Err(mpsc::TryRecvError::Empty) => {
                     if SteadyTime::now() > timeout {
-                        warn!("{} Timed out waiting for Ack from {}@{}",
+                        warn!("{} Timed out waiting for {} Ack from {}@{}",
                               thread::current().name().unwrap_or_default(),
+                              ack_from,
                               &member.id,
                               addr);
                         return false;

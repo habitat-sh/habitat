@@ -365,7 +365,14 @@ impl SwimNet {
     pub fn wait_for_health_of(&self, from_entry: usize, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
-            if let Some(real_health) = self.health_of(from_entry, to_check) {
+            let health_val = self.health_of(from_entry, to_check);
+            log::info!("({:?}) wait_for_health_of(from_entry: {}, to_check: {}, {}) => {:?}",
+                       rounds_in,
+                       from_entry,
+                       to_check,
+                       health,
+                       health_val);
+            if let Some(real_health) = health_val {
                 if real_health == health {
                     trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                     return true;
