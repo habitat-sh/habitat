@@ -339,6 +339,7 @@ mod member_list {
 #[derive(Debug)]
 pub struct MemberList {
     local_member_id: String,
+    holders:         std::sync::Mutex<Vec<String>>,
     entries:         RwLock<HashMap<UuidSimple, member_list::Entry>>,
     initial_members: RwLock<Vec<Member>>,
     update_counter:  AtomicUsize,
@@ -355,13 +356,13 @@ impl Serialize for MemberList {
         // and health was a HashMap<UuidSimple, Health>
         let mut member_struct = HashMap::new();
         let mut health_struct = HashMap::new();
-        warn!("{} XXX trying to obtain read_entries lock...",
+        warn!("{} serialize trying to obtain read_entries lock...",
               std::thread::current().name().unwrap_or_default());
         for (id, member_list::Entry { member, health, .. }) in self.read_entries().iter() {
             member_struct.insert(id.clone(), member.clone());
             health_struct.insert(id.clone(), *health);
         }
-        warn!("{} XXX ...dropped read_entries lock",
+        warn!("{} serialize ...dropped read_entries lock",
               std::thread::current().name().unwrap_or_default());
         strukt.serialize_field("members", &member_struct)?;
         strukt.serialize_field("health", &health_struct)?;
@@ -379,6 +380,7 @@ impl MemberList {
     /// Creates a new, empty, MemberList.
     pub fn new(local_member_id: String) -> MemberList {
         MemberList { local_member_id,
+                     holders: std::sync::Mutex::new(Vec::new()),
                      entries: RwLock::new(HashMap::new()),
                      initial_members: RwLock::new(Vec::new()),
                      update_counter: AtomicUsize::new(0) }
@@ -386,10 +388,15 @@ impl MemberList {
 
     fn read_entries(&self)
                     -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        warn!("{} trying to obtain {}'s read_entries lock...",
+        warn!("{} trying to obtain {}'s read_entries lock (last: {:?})...",
               std::thread::current().name().unwrap_or_default(),
-              self.local_member_id);
+              self.local_member_id,
+              self.holders.lock().expect("holders poisoned").last());
         let rv = self.entries.read().expect("Members read lock");
+        self.holders
+            .lock()
+            .expect("holders poisoned")
+            .push(format!("{}(R)", std::thread::current().name().unwrap_or_default()));
         warn!("{} ...successfully obtained {}'s read_entries lock",
               std::thread::current().name().unwrap_or_default(),
               self.local_member_id);
@@ -399,10 +406,15 @@ impl MemberList {
     fn write_entries(
         &self)
         -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        warn!("{} trying to obtain {}'s write_entries lock...",
+        warn!("{} trying to obtain {}'s write_entries lock (last: {:?})...",
               std::thread::current().name().unwrap_or_default(),
-              self.local_member_id);
+              self.local_member_id,
+              self.holders.lock().expect("holders poisoned").last());
         let rv = self.entries.write().expect("Members write lock");
+        self.holders
+            .lock()
+            .expect("holders poisoned")
+            .push(format!("{}(W)", std::thread::current().name().unwrap_or_default()));
         warn!("{} ...successfully obtained {}'s write_entries lock",
               std::thread::current().name().unwrap_or_default(),
               self.local_member_id);
