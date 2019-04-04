@@ -354,10 +354,14 @@ impl Serialize for MemberList {
         // and health was a HashMap<UuidSimple, Health>
         let mut member_struct = HashMap::new();
         let mut health_struct = HashMap::new();
+        warn!("{} XXX trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         for (id, member_list::Entry { member, health, .. }) in self.read_entries().iter() {
             member_struct.insert(id.clone(), member.clone());
             health_struct.insert(id.clone(), *health);
         }
+        warn!("{} XXX ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
         strukt.serialize_field("members", &member_struct)?;
         strukt.serialize_field("health", &health_struct)?;
 
@@ -380,6 +384,8 @@ impl MemberList {
 
     fn read_entries(&self)
                     -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+        warn!("{} trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         self.entries.read().expect("Members read lock")
     }
 
@@ -502,6 +508,8 @@ impl MemberList {
     fn insert_membership(&self, incoming: Membership) -> bool {
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
+        warn!("{} insert_membership trying to obtain write_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         let modified = match self.write_entries().entry(incoming.member.id.clone()) {
             hash_map::Entry::Occupied(mut entry) => {
                 let val = entry.get_mut();
@@ -521,6 +529,8 @@ impl MemberList {
                 true
             }
         };
+        warn!("{} insert_membership ...dropped write_entries lock",
+              std::thread::current().name().unwrap_or_default());
 
         if modified {
             self.increment_update_counter();
@@ -531,6 +541,8 @@ impl MemberList {
     }
 
     pub fn set_departed(&self, member_id: &str) {
+        warn!("{} set_departed trying to obtain write_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         if let Some(member_list::Entry { member, health, .. }) =
             self.write_entries().get_mut(member_id)
         {
@@ -542,14 +554,20 @@ impl MemberList {
         } else {
             trace!("set_departed called on unknown member {}", member_id);
         }
+        warn!("{} set_departed ...dropped write_entries lock",
+              std::thread::current().name().unwrap_or_default());
     }
 
     fn calculate_peer_health_metrics(&self) {
         let mut health_counts: HashMap<Health, i64> = HashMap::new();
 
+        warn!("{} calculate_peer_health_metrics trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         for entry in self.read_entries().values() {
             *health_counts.entry(entry.health).or_insert(0) += 1;
         }
+        warn!("{} calculate_peer_health_metrics ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
 
         for health in [Health::Alive,
                        Health::Suspect,
@@ -569,9 +587,13 @@ impl MemberList {
         log::info!("{} trying to get health for {}...",
                    std::thread::current().name().unwrap_or_default(),
                    member_id);
+        warn!("{} health_of_by_id trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         let rv = self.read_entries()
                      .get(member_id)
                      .map(|member_list::Entry { health, .. }| *health);
+        warn!("{} health_of_by_id ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
         log::info!("{} ...health for {} => {:?}",
                    std::thread::current().name().unwrap_or_default(),
                    member_id,
@@ -599,27 +621,50 @@ impl MemberList {
 
     /// Returns a protobuf membership record for the given member id.
     pub fn membership_for(&self, member_id: &str) -> Option<Membership> {
-        self.read_entries()
-            .get(member_id)
-            .map(|member_list::Entry { member, health, .. }| {
-                Membership { member: member.clone(),
-                             health: *health, }
-            })
+        warn!("{} membership_for trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
+        let rv = self.read_entries()
+                     .get(member_id)
+                     .map(|member_list::Entry { member, health, .. }| {
+                         Membership { member: member.clone(),
+                                      health: *health, }
+                     });
+        warn!("{} membership_for ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
+        rv
     }
 
     /// Returns the number of entries.
-    pub fn len(&self) -> usize { self.read_entries().len() }
+    pub fn len(&self) -> usize {
+        warn!("{} len trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
+        let rv = self.read_entries().len();
+        warn!("{} len ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
+        rv
+    }
 
-    pub fn is_empty(&self) -> bool { self.read_entries().is_empty() }
+    pub fn is_empty(&self) -> bool {
+        warn!("{} is_empty trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
+        let rv = self.read_entries().is_empty();
+        warn!("{} is_empty ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
+        rv
+    }
 
     /// A randomized list of members to check.
     pub fn check_list(&self, exclude_id: &str) -> Vec<Member> {
+        warn!("{} check_list trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         let mut members: Vec<_> = self.read_entries()
                                       .values()
                                       .map(|member_list::Entry { member, .. }| member)
                                       .filter(|member| member.id != exclude_id)
                                       .cloned()
                                       .collect();
+        warn!("{} check_list ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
         members.shuffle(&mut thread_rng());
         members
     }
@@ -629,6 +674,8 @@ impl MemberList {
                                 sending_member_id: &str,
                                 target_member_id: &str,
                                 mut with_closure: impl FnMut(&Member)) {
+        warn!("{} with_pingreq_targets trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         for member_list::Entry { member, .. } in
             self.read_entries()
                 .values()
@@ -641,28 +688,43 @@ impl MemberList {
         {
             with_closure(member);
         }
+        warn!("{} with_pingreq_targets ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
     }
 
     /// If an owned `Member` is required, use this. If a shared reference is
     /// good enough, use `with_member`.
     pub fn get_cloned(&self, member_id: &str) -> Option<Member> {
-        self.read_entries()
-            .get(member_id)
-            .map(|member_list::Entry { member, .. }| member.clone())
+        warn!("{} get_cloned trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
+        let rv = self.read_entries()
+                     .get(member_id)
+                     .map(|member_list::Entry { member, .. }| member.clone());
+        warn!("{} get_cloned ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
+        rv
     }
 
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
     pub fn with_member(&self, member_id: &str, mut with_closure: impl FnMut(Option<&Member>)) {
+        warn!("{} with_member trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         with_closure(self.read_entries()
                          .get(member_id)
                          .map(|member_list::Entry { member, .. }| member));
+        warn!("{} with_member ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
     }
 
     /// Iterates over the member list, calling the function for each member.
     pub fn with_members(&self, mut with_closure: impl FnMut(&Member)) {
+        warn!("{} with_members trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         for member_list::Entry { member, .. } in self.read_entries().values() {
             with_closure(member);
         }
+        warn!("{} with_members ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
     }
 
     // This could be Result<T> instead, but there's only the one caller now
@@ -670,6 +732,8 @@ impl MemberList {
                             mut with_closure: impl FnMut(Membership) -> Result<u64>)
                             -> Result<u64> {
         let mut ok: Result<u64> = Ok(0);
+        warn!("{} with_memberships trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         for membership in self.read_entries()
                               .values()
                               .map(|member_list::Entry { member, health, .. }| {
@@ -679,6 +743,8 @@ impl MemberList {
         {
             ok = Ok(with_closure(membership)?);
         }
+        warn!("{} with_memberships ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
         ok
     }
 
@@ -717,6 +783,8 @@ impl MemberList {
             other => panic!("Expiring to {} is invalid", other),
         };
 
+        warn!("{} members_expired_to trying to obtain write_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         let expired: Vec<_> =
             self.write_entries()
                 .iter_mut()
@@ -744,6 +812,8 @@ impl MemberList {
                     }
                 })
                 .collect();
+        warn!("{} members_expired_to ...dropped write_entries lock",
+              std::thread::current().name().unwrap_or_default());
 
         if !expired.is_empty() {
             self.increment_update_counter();
@@ -753,7 +823,12 @@ impl MemberList {
     }
 
     pub fn contains_member(&self, member_id: &str) -> bool {
-        self.read_entries().contains_key(member_id)
+        warn!("{} contains_member trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
+        let rv = self.read_entries().contains_key(member_id);
+        warn!("{} contains_member ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
+        rv
     }
 }
 
@@ -768,6 +843,8 @@ impl<'a> Serialize for MemberListProxy<'a> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
+        warn!("{} serialize trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         let map = self.0.read_entries();
 
         let mut m = serializer.serialize_map(Some(map.len()))?;
@@ -776,7 +853,10 @@ impl<'a> Serialize for MemberListProxy<'a> {
             m.serialize_entry(id, &MemberProxy::new(member, health))?;
         }
 
-        m.end()
+        let rv = m.end();
+        warn!("{} serialize ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
+        rv
     }
 }
 
@@ -816,9 +896,13 @@ mod tests {
                                      -> T)
                                -> T {
             let mut member_map = HashMap::new();
+            warn!("{} with_member_iter trying to obtain read_entries lock...",
+                  std::thread::current().name().unwrap_or_default());
             for (id, super::member_list::Entry { member, .. }) in self.read_entries().iter() {
                 member_map.insert(id.clone(), member.clone());
             }
+            warn!("{} with_member_iter ...dropped read_entries lock",
+                  std::thread::current().name().unwrap_or_default());
             with_closure(member_map.values())
         }
     }
