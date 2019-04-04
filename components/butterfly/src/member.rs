@@ -386,7 +386,12 @@ impl MemberList {
     fn write_entries(
         &self)
         -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        self.entries.write().expect("Members write lock")
+        warn!("{} trying to obtain write_entries lock...",
+              std::thread::current().name().unwrap_or_default());
+        let rv = self.entries.write().expect("Members write lock");
+        warn!("{} ...successfully obtained write_entries lock",
+              std::thread::current().name().unwrap_or_default());
+        rv
     }
 
     fn initial_members_read(&self) -> std::sync::RwLockReadGuard<'_, Vec<Member>> {
