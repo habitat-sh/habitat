@@ -58,7 +58,10 @@ fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
 
 #[test]
 fn six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirmed() {
-    env_logger::try_init().ok();
+    use env_logger::Builder;
+    use log::LevelFilter;
+    Builder::new().filter(None, LevelFilter::Info).init();
+
     let mut net = btest::SwimNet::new(6);
     for server in &net.members {
         info!("{}: {}", server.name(), server.member_id());
