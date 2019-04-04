@@ -97,7 +97,7 @@ for pkg in "${non_supervisor_packages[@]}"; do
     # hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
     for target in "${targets[@]}"; do
         if ident_has_target "${pkg}" "${target}"; then
-            promote "${pkg}" "${pkg_target}" "${to_channel}"
+            promote "${pkg}" "${target}" "${to_channel}"
         fi
     done
 done
