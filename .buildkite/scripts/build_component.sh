@@ -72,9 +72,9 @@ case "${component}" in
 esac
 echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --append --context "release-manifest"
 
-echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
 # TODO: after 0.79.0 we can reenable this. We are explicitly using curl to upload
 # due to this bug: https://github.com/habitat-sh/builder/issues/940
+# echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
 # ${hab_binary} pkg upload \
 #     --channel="${channel}" \
 #     --auth="${HAB_AUTH_TOKEN}" \
@@ -84,7 +84,7 @@ echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channe
 #     --auth="${HAB_AUTH_TOKEN}" \
 #     "${pkg_ident}" "${channel}" "${pkg_target}"
 
-# Upload the package
+echo "--- :partyparrot: Manually uploading '${pkg_ident}' (${pkg_target}) to Builder"
 curl --request POST \
      --header "Content-Type: application/octet-stream" \
      --header "Authorization: Bearer $HAB_AUTH_TOKEN" \

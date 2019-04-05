@@ -256,12 +256,13 @@ promote() {
     #
     # Don't use --fail here, because trying to create a channel that
     # already exists returns a 409, and we don't want to fail in that case.
+    echo "--- :partyparrot: Manually creating '${to_channel}' channel (if it doesn't exist already)"
     curl --request POST \
          --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
          --verbose \
          "https://bldr.habitat.sh/v1/depot/channels/${origin}/${to_channel}"
 
-    # Promote the uploaded package into the channel.
+    echo "--- :partyparrot: Manually promoting '${package_ident}' (${target}) to the '${to_channel}' channel"
     curl --request PUT \
          --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
          --fail \
@@ -279,6 +280,7 @@ set_target_metadata() {
     package_ident="${1}"
     target="${2}"
 
+    echo "--- :partyparrot: Setting target metadata for '${package_ident}' (${target})"
     buildkite-agent meta-data set "${package_ident}-${target}" "true"
 }
 
@@ -290,5 +292,6 @@ ident_has_target() {
     package_ident="${1}"
     target="${2}"
 
+    echo "--- :partyparrot: Checking target metadata for '${package_ident}' (${target})"
     buildkite-agent meta-data exists "${package_ident}-${target}"
 }
