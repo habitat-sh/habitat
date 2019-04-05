@@ -97,7 +97,10 @@ for pkg in "${non_supervisor_packages[@]}"; do
     # hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
     for target in "${targets[@]}"; do
         if ident_has_target "${pkg}" "${target}"; then
+            echo "--- :star: Found a match: ${pkg} is for ${target}"
             promote "${pkg}" "${target}" "${to_channel}"
+        else
+            echo "--- :thumbsdown: not a match"
         fi
     done
 done
@@ -108,7 +111,10 @@ for pkg in "${supervisor_packages[@]}"; do
     # hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
     for target in "${targets[@]}"; do
         if ident_has_target "${pkg}" "${target}"; then
+            echo "--- :star: Found a match: ${pkg} is for ${target}"
             promote "${pkg}" "${target}" "${to_channel}"
+        else
+            echo "--- :thumbsdown: not a match"
         fi
     done
 done
