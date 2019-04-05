@@ -48,29 +48,6 @@ source results/last_build.env
 # already have this value set.
 : "${pkg_target:=x86_64-linux}"
 
-# TODO (CM): we'll need to scope these by architecture
-case "${component}" in
-    "hab")
-        echo "--- :buildkite: Storing artifact ${pkg_ident:?}"
-        # buildkite-agent artifact upload "results/${pkg_artifact}"
-        set_hab_ident "${pkg_target:?}" "${pkg_ident:?}"
-        set_hab_release "${pkg_target:?}" "${pkg_release:?}"
-        set_hab_artifact "${pkg_target:?}" "${pkg_artifact:?}"
-        ;;
-    "studio")
-        echo "--- :buildkite: Recording metadata for ${pkg_ident}"
-        # buildkite-agent artifact upload "results/${pkg_artifact}"
-        set_studio_ident "${pkg_target:?}" "${pkg_ident:?}"
-        ;;
-    "backline")
-        echo "--- :buildkite: Recording metadata for ${pkg_ident}"
-        set_backline_ident "${pkg_target}" "${pkg_ident}"
-        set_backline_artifact "${pkg_target}" "${pkg_artifact}"
-        ;;
-    *)
-        ;;
-esac
-echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --append --context "release-manifest"
 
 # TODO: after 0.79.0 we can reenable this. We are explicitly using curl to upload
 # due to this bug: https://github.com/habitat-sh/builder/issues/940
@@ -95,3 +72,27 @@ curl --request POST \
 
 promote "${pkg_ident}" "${pkg_target}" "${channel}"
 set_target_metadata "${package_ident}" "${pkg_target}"
+
+echo "--- :writing_hand: Recording Build Metadata"
+case "${component}" in
+    "hab")
+        echo "--- :buildkite: Storing artifact ${pkg_ident:?}"
+        # buildkite-agent artifact upload "results/${pkg_artifact}"
+        set_hab_ident "${pkg_target:?}" "${pkg_ident:?}"
+        set_hab_release "${pkg_target:?}" "${pkg_release:?}"
+        set_hab_artifact "${pkg_target:?}" "${pkg_artifact:?}"
+        ;;
+    "studio")
+        echo "--- :buildkite: Recording metadata for ${pkg_ident}"
+        # buildkite-agent artifact upload "results/${pkg_artifact}"
+        set_studio_ident "${pkg_target:?}" "${pkg_ident:?}"
+        ;;
+    "backline")
+        echo "--- :buildkite: Recording metadata for ${pkg_ident}"
+        set_backline_ident "${pkg_target}" "${pkg_ident}"
+        set_backline_artifact "${pkg_target}" "${pkg_artifact}"
+        ;;
+    *)
+        ;;
+esac
+echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --append --context "release-manifest"
