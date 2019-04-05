@@ -121,7 +121,7 @@ impl Outbound {
                         self.server.member_list.with_initial_members(|member| {
                                                    ping(&self.server,
                                                         &self.socket,
-                                                        &member,
+                                                        member.clone(),
                                                         member.swim_socket_address(),
                                                         None);
                                                });
@@ -197,7 +197,7 @@ impl Outbound {
 
         // Ping the member, and wait for the ack.
         SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
-        ping(&self.server, &self.socket, &member, addr, None);
+        ping(&self.server, &self.socket, member.clone(), addr, None);
 
         if self.recv_ack(&member, addr, AckFrom::Ping) {
             trace_it!(PROBE: &self.server, TraceKind::ProbeAckReceived, &member.id, addr);
@@ -225,7 +225,8 @@ impl Outbound {
                         .with_label_values(&["pingreq/ack"])
                         .start_timer(),
                 );
-                pingreq(&self.server, &self.socket, pingreq_target, &member);
+                // pingreq(&self.server, &self.socket, pingreq_target, &member);
+                pingreq(&self.server, &self.socket, &pingreq_target, &member);
             },
         );
 
@@ -409,7 +410,7 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
 /// Send a Ping.
 pub fn ping(server: &Server,
             socket: &UdpSocket,
-            target: &Member,
+            target: Member,
             addr: SocketAddr,
             forward_to: Option<&Member>) {
     let ping = Ping {
@@ -418,7 +419,7 @@ pub fn ping(server: &Server,
         forward_to: forward_to.cloned(), // TODO: see if we can eliminate this clone
     };
     let mut swim: Swim = ping.into();
-    populate_membership_rumors(server, target, &mut swim);
+    populate_membership_rumors(server, &target, &mut swim);
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {

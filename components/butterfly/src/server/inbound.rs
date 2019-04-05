@@ -173,7 +173,7 @@ impl Inbound {
                                        // pingreq from
                                        outbound::ping(&self.server,
                                                       &self.socket,
-                                                      target,
+                                                      target.clone(),
                                                       target.swim_socket_address(),
                                                       Some(&msg.from));
                                    } else {

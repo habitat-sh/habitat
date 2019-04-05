@@ -24,6 +24,7 @@ use std::{collections::{hash_map,
           str::FromStr,
           sync::{atomic::{AtomicUsize,
                           Ordering},
+                 Mutex,
                  RwLock}};
 
 use habitat_core::util::ToI64;
@@ -340,7 +341,8 @@ mod member_list {
 pub struct MemberList {
     local_member_id: String,
     holders:         std::sync::Mutex<Vec<String>>,
-    entries:         RwLock<HashMap<UuidSimple, member_list::Entry>>,
+    // entries:         RwLock<HashMap<UuidSimple, member_list::Entry>>,
+    entries:         Mutex<HashMap<UuidSimple, member_list::Entry>>,
     initial_members: RwLock<Vec<Member>>,
     update_counter:  AtomicUsize,
 }
@@ -381,40 +383,58 @@ impl MemberList {
     pub fn new(local_member_id: String) -> MemberList {
         MemberList { local_member_id,
                      holders: std::sync::Mutex::new(Vec::new()),
-                     entries: RwLock::new(HashMap::new()),
+                     // entries: RwLock::new(HashMap::new()),
+                     entries: Mutex::new(HashMap::new()),
                      initial_members: RwLock::new(Vec::new()),
                      update_counter: AtomicUsize::new(0) }
     }
 
-    fn read_entries(&self)
-                    -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+    fn read_entries(&self) -> std::sync::MutexGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+        // -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         warn!("{} trying to obtain {}'s read_entries lock (last: {:?})...",
               std::thread::current().name().unwrap_or_default(),
               self.local_member_id,
               self.holders.lock().expect("holders poisoned").last());
-        let rv = self.entries.read().expect("Members read lock");
+        // let rv = self.entries.read().expect("Members read lock");
+        let rv = self.entries.lock().expect("Members read lock");
+        // if self.holders.lock().expect("holders poisoned").last()
+        //    == std::thread::current().name().map(str::to_string).as_ref()
+        // {
+        //     panic!("{} tried to recursively take {}'s read_entries lock",
+        //            std::thread::current().name().unwrap_or_default(),
+        //            self.local_member_id);
+        // }
         self.holders
             .lock()
             .expect("holders poisoned")
-            .push(format!("{}(R)", std::thread::current().name().unwrap_or_default()));
+            .push(format!("{}", std::thread::current().name().unwrap_or_default()));
+        // .push(format!("{}(R)", std::thread::current().name().unwrap_or_default()));
         warn!("{} ...successfully obtained {}'s read_entries lock",
               std::thread::current().name().unwrap_or_default(),
               self.local_member_id);
         rv
     }
 
-    fn write_entries(
-        &self)
-        -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+    fn write_entries(&self) -> std::sync::MutexGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+        // -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         warn!("{} trying to obtain {}'s write_entries lock (last: {:?})...",
               std::thread::current().name().unwrap_or_default(),
               self.local_member_id,
               self.holders.lock().expect("holders poisoned").last());
-        let rv = self.entries.write().expect("Members write lock");
+        // let rv = self.entries.write().expect("Members write lock");
+        let rv = self.entries.lock().expect("Members write lock");
+        // if self.holders.lock().expect("holders poisoned").last()
+        //    == std::thread::current().name().map(str::to_string).as_ref()
+        // {
+        //     panic!("{} tried to recursively take {}'s read_entries lock",
+        //            std::thread::current().name().unwrap_or_default(),
+        //            self.local_member_id);
+        // }
         self.holders
             .lock()
             .expect("holders poisoned")
-            .push(format!("{}(W)", std::thread::current().name().unwrap_or_default()));
+            .push(format!("{}", std::thread::current().name().unwrap_or_default()));
+        // .push(format!("{}(W)", std::thread::current().name().unwrap_or_default()));
         warn!("{} ...successfully obtained {}'s write_entries lock",
               std::thread::current().name().unwrap_or_default(),
               self.local_member_id);
@@ -690,27 +710,48 @@ impl MemberList {
         members
     }
 
-    /// Takes a function whose first argument is a member, and calls it for every pingreq target.
+    // /// Takes a function whose first argument is a member, and calls it for every pingreq target.
+    // pub fn with_pingreq_targets(&self,
+    //                             sending_member_id: &str,
+    //                             target_member_id: &str,
+    //                             mut with_closure: impl FnMut(&Member)) {
+    //     warn!("{} with_pingreq_targets trying to obtain read_entries lock...",
+    //           std::thread::current().name().unwrap_or_default());
+    //     for member_list::Entry { member, .. } in
+    //         self.read_entries()
+    //             .values()
+    //             .filter(|member_list::Entry { member, health, .. }| {
+    //                 member.id != sending_member_id
+    //                 && member.id != target_member_id
+    //                 && *health == Health::Alive
+    //             })
+    //             .choose_multiple(&mut thread_rng(), PINGREQ_TARGETS)
+    //     {
+    //         with_closure(member);
+    //     }
+    //     warn!("{} with_pingreq_targets ...dropped read_entries lock",
+    //           std::thread::current().name().unwrap_or_default());
+    // }
+
+    // OLD VERSION
     pub fn with_pingreq_targets(&self,
                                 sending_member_id: &str,
                                 target_member_id: &str,
-                                mut with_closure: impl FnMut(&Member)) {
-        warn!("{} with_pingreq_targets trying to obtain read_entries lock...",
-              std::thread::current().name().unwrap_or_default());
+                                mut with_closure: impl FnMut(Member)) {
+        // This will lead to nested read locks if you don't deal with making a copy
+        let mut entries: Vec<_> = self.read_entries().values().cloned().collect();
+        entries.shuffle(&mut thread_rng());
         for member_list::Entry { member, .. } in
-            self.read_entries()
-                .values()
-                .filter(|member_list::Entry { member, health, .. }| {
-                    member.id != sending_member_id
-                    && member.id != target_member_id
-                    && *health == Health::Alive
-                })
-                .choose_multiple(&mut thread_rng(), PINGREQ_TARGETS)
+            entries.into_iter()
+                   .filter(|member_list::Entry { member, health, .. }| {
+                       member.id != sending_member_id
+                       && member.id != target_member_id
+                       && *health == Health::Alive
+                   })
+                   .take(PINGREQ_TARGETS)
         {
             with_closure(member);
         }
-        warn!("{} with_pingreq_targets ...dropped read_entries lock",
-              std::thread::current().name().unwrap_or_default());
     }
 
     /// If an owned `Member` is required, use this. If a shared reference is
@@ -726,15 +767,27 @@ impl MemberList {
         rv
     }
 
+    // /// Calls a function whose argument is a reference to a membership entry matching the given
+    // ID. pub fn with_member(&self, member_id: &str, mut with_closure: impl
+    // FnMut(Option<&Member>)) {     warn!("{} with_member trying to obtain read_entries
+    // lock...",           std::thread::current().name().unwrap_or_default());
+    //     with_closure(self.read_entries()
+    //                      .get(member_id)
+    //                      .map(|member_list::Entry { member, .. }| member));
+    //     warn!("{} with_member ...dropped read_entries lock",
+    //           std::thread::current().name().unwrap_or_default());
+    // }
+
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
-    pub fn with_member(&self, member_id: &str, mut with_closure: impl FnMut(Option<&Member>)) {
+    pub fn with_member(&self, member_id: &str, mut with_closure: impl FnMut(Option<Member>)) {
         warn!("{} with_member trying to obtain read_entries lock...",
               std::thread::current().name().unwrap_or_default());
-        with_closure(self.read_entries()
+        let member = self.read_entries()
                          .get(member_id)
-                         .map(|member_list::Entry { member, .. }| member));
+                         .map(|member_list::Entry { member, .. }| member.clone());
         warn!("{} with_member ...dropped read_entries lock",
               std::thread::current().name().unwrap_or_default());
+        with_closure(member); // maybe don't call at all if None?
     }
 
     /// Iterates over the member list, calling the function for each member.
