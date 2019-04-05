@@ -372,6 +372,22 @@ impl SwimNet {
                    to_check,
                    health);
         loop {
+            use parking_lot::deadlock;
+            use std::{thread,
+                      time::Duration};
+            let deadlocks = deadlock::check_deadlock();
+            if !deadlocks.is_empty() {
+                println!("{} deadlocks detected", deadlocks.len());
+                for (i, threads) in deadlocks.iter().enumerate() {
+                    println!("Deadlock #{}", i);
+                    for t in threads {
+                        println!("Thread {:#?}", t.thread_id());
+                        println!("{:#?}", t.backtrace());
+                    }
+                }
+                return false;
+            }
+
             let health_val = self.health_of(from_entry, to_check);
             log::info!("{} ({:?}) wait_for_health_of(from_entry: {}, to_check: {}, {}) => {:?}",
                        std::thread::current().name().unwrap_or_default(),

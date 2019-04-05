@@ -14,20 +14,9 @@
 
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
-use std::{collections::{hash_map,
-                        HashMap},
-          fmt,
-          net::SocketAddr,
-          num::ParseIntError,
-          ops::Add,
-          result,
-          str::FromStr,
-          sync::{atomic::{AtomicUsize,
-                          Ordering},
-                 Mutex,
-                 RwLock}};
-
 use habitat_core::util::ToI64;
+use parking_lot::{Mutex,
+                  MutexGuard};
 use prometheus::IntGaugeVec;
 use rand::{seq::{IteratorRandom,
                  SliceRandom},
@@ -39,6 +28,17 @@ use serde::{de,
             Deserializer,
             Serialize,
             Serializer};
+use std::{collections::{hash_map,
+                        HashMap},
+          fmt,
+          net::SocketAddr,
+          num::ParseIntError,
+          ops::Add,
+          result,
+          str::FromStr,
+          sync::{atomic::{AtomicUsize,
+                          Ordering},
+                 RwLock}};
 use time::{Duration,
            SteadyTime};
 use uuid::Uuid;
@@ -326,6 +326,49 @@ impl FromProto<newscast::Rumor> for Membership {
     }
 }
 
+// type NonRecursiveMutexHolder = Option<std::thread::ThreadId>;
+// struct NonRecursiveMutex<T: ?Sized> {
+//     holder: Mutex<NonRecursiveMutexHolder>,
+//     inner:  Mutex<T>,
+// }
+
+// struct NonRecursiveMutexGuard<'a, T: ?Sized + 'a> {
+//     holder
+//     inner: std::sync::MutexGuard<'a, T>,
+// }
+
+// impl<T> NonRecursiveMutex<T> {
+//     pub fn lock(&self) -> std::sync::LockResult<NonRecursiveMutexGuard<T>> {
+//         let current_thread = std::thread::current();
+//         let current_thread_id = current_thread.id();
+//         // update the holder
+//         // if the holder already has this thread id, panic
+
+//         // lock the inner
+//         // lock the holder
+//         // if the holder is the same as the current thread, drop the holder lock
+//         //   and return the inner guard
+//         // else drop the holder lock AND the inner lock and retry (someone beat us)
+//         let holder = self.holder.lock().expect("holder lock poisoned");
+//         if *holder == Some(current_thread) {
+//             panic!("{:?} recursively locked", current_thread);
+//         } else {
+//             match self.mx.lock() {
+//                 Err(e) => panic!("mutex poisoned"), // return Err(e),
+//                 Ok(mut guard) => {
+//                     holder.replace(current_thread_id);
+//                     drop(holder);
+//                     Ok(NonRecursiveMutexGuard { inner: guard })
+//                 }
+//             }
+//         }
+//     }
+// }
+
+// impl<'a, T: ?Sized + 'a> Drop for NonRecursiveMutexGuard<'a, T> {
+//     fn drop(&mut self) { self.inner.0.take(); }
+// }
+
 mod member_list {
     #[derive(Clone, Debug)]
     pub struct Entry {
@@ -389,14 +432,15 @@ impl MemberList {
                      update_counter: AtomicUsize::new(0) }
     }
 
-    fn read_entries(&self) -> std::sync::MutexGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+    fn read_entries(&self) -> MutexGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         // -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         warn!("{} trying to obtain {}'s read_entries lock (last: {:?})...",
               std::thread::current().name().unwrap_or_default(),
               self.local_member_id,
               self.holders.lock().expect("holders poisoned").last());
         // let rv = self.entries.read().expect("Members read lock");
-        let rv = self.entries.lock().expect("Members read lock");
+        let rv = self.entries.lock(); // .expect("Members read lock");
+
         // if self.holders.lock().expect("holders poisoned").last()
         //    == std::thread::current().name().map(str::to_string).as_ref()
         // {
@@ -415,14 +459,15 @@ impl MemberList {
         rv
     }
 
-    fn write_entries(&self) -> std::sync::MutexGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+    fn write_entries(&self) -> MutexGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         // -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         warn!("{} trying to obtain {}'s write_entries lock (last: {:?})...",
               std::thread::current().name().unwrap_or_default(),
               self.local_member_id,
               self.holders.lock().expect("holders poisoned").last());
         // let rv = self.entries.write().expect("Members write lock");
-        let rv = self.entries.lock().expect("Members write lock");
+        let rv = self.entries.lock(); //.expect("Members write lock");
+
         // if self.holders.lock().expect("holders poisoned").last()
         //    == std::thread::current().name().map(str::to_string).as_ref()
         // {
@@ -710,49 +755,49 @@ impl MemberList {
         members
     }
 
-    // /// Takes a function whose first argument is a member, and calls it for every pingreq target.
-    // pub fn with_pingreq_targets(&self,
-    //                             sending_member_id: &str,
-    //                             target_member_id: &str,
-    //                             mut with_closure: impl FnMut(&Member)) {
-    //     warn!("{} with_pingreq_targets trying to obtain read_entries lock...",
-    //           std::thread::current().name().unwrap_or_default());
-    //     for member_list::Entry { member, .. } in
-    //         self.read_entries()
-    //             .values()
-    //             .filter(|member_list::Entry { member, health, .. }| {
-    //                 member.id != sending_member_id
-    //                 && member.id != target_member_id
-    //                 && *health == Health::Alive
-    //             })
-    //             .choose_multiple(&mut thread_rng(), PINGREQ_TARGETS)
-    //     {
-    //         with_closure(member);
-    //     }
-    //     warn!("{} with_pingreq_targets ...dropped read_entries lock",
-    //           std::thread::current().name().unwrap_or_default());
-    // }
-
-    // OLD VERSION
+    /// Takes a function whose first argument is a member, and calls it for every pingreq target.
     pub fn with_pingreq_targets(&self,
                                 sending_member_id: &str,
                                 target_member_id: &str,
-                                mut with_closure: impl FnMut(Member)) {
-        // This will lead to nested read locks if you don't deal with making a copy
-        let mut entries: Vec<_> = self.read_entries().values().cloned().collect();
-        entries.shuffle(&mut thread_rng());
+                                mut with_closure: impl FnMut(&Member)) {
+        warn!("{} with_pingreq_targets trying to obtain read_entries lock...",
+              std::thread::current().name().unwrap_or_default());
         for member_list::Entry { member, .. } in
-            entries.into_iter()
-                   .filter(|member_list::Entry { member, health, .. }| {
-                       member.id != sending_member_id
-                       && member.id != target_member_id
-                       && *health == Health::Alive
-                   })
-                   .take(PINGREQ_TARGETS)
+            self.read_entries()
+                .values()
+                .filter(|member_list::Entry { member, health, .. }| {
+                    member.id != sending_member_id
+                    && member.id != target_member_id
+                    && *health == Health::Alive
+                })
+                .choose_multiple(&mut thread_rng(), PINGREQ_TARGETS)
         {
             with_closure(member);
         }
+        warn!("{} with_pingreq_targets ...dropped read_entries lock",
+              std::thread::current().name().unwrap_or_default());
     }
+
+    // // OLD VERSION
+    // pub fn with_pingreq_targets(&self,
+    //                             sending_member_id: &str,
+    //                             target_member_id: &str,
+    //                             mut with_closure: impl FnMut(Member)) {
+    //     // This will lead to nested read locks if you don't deal with making a copy
+    //     let mut entries: Vec<_> = self.read_entries().values().cloned().collect();
+    //     entries.shuffle(&mut thread_rng());
+    //     for member_list::Entry { member, .. } in
+    //         entries.into_iter()
+    //                .filter(|member_list::Entry { member, health, .. }| {
+    //                    member.id != sending_member_id
+    //                    && member.id != target_member_id
+    //                    && *health == Health::Alive
+    //                })
+    //                .take(PINGREQ_TARGETS)
+    //     {
+    //         with_closure(member);
+    //     }
+    // }
 
     /// If an owned `Member` is required, use this. If a shared reference is
     /// good enough, use `with_member`.

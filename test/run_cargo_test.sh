@@ -2,6 +2,12 @@
 
 set -eou pipefail
 
+source ./support/ci/shared.sh
+
+toolchain=$(get_current_toolchain)
+install_rustup
+install_rust_toolchain "$toolchain"
+
 while [[ $# -gt 1 ]]; do
   case $1 in
     -f | --features )       shift
@@ -20,7 +26,7 @@ done
 [ -z "${features:-}" ] && features_string="" || features_string="--features ${features}"
 
 component=${1?component argument required}
-cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:-}"
+cargo_test_command="cargo +${toolchain} test ${features_string} -- --nocapture ${test_options:-}"
 
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
