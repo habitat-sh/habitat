@@ -19,6 +19,12 @@
 //! is more of a best effort scenario. If we can't collect all of it for
 //! whatever reason, it's fine.
 //!
+//! Additionally, there are 2 environment variables that are supported to
+//! constitute license acceptance. Setting HAB_LICENSE to "accept" will
+//! accept the license and persist the file and setting HAB_LICENSE to
+//! "accept-no-persist" will accept the license but not persist the
+//! acceptance.
+//!
 //! More detailed information on the license spec is available at
 //! https://github.com/chef/license-acceptance
 
@@ -34,12 +40,14 @@ use crate::{common::ui::{self,
 use chrono::prelude::*;
 use dirs;
 use serde_yaml;
-use std::{fs::{self,
+use std::{env,
+          fs::{self,
                File},
           io::Write,
           path::PathBuf};
 
 const LICENSE_FILE_FORMAT_VERSION: &str = "1.0";
+const LICENSE_ACCEPT_ENVVAR: &str = "HAB_LICENSE";
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LicenseData {
@@ -61,7 +69,7 @@ impl LicenseData {
 }
 
 pub fn check_for_license_acceptance_and_prompt(ui: &mut UI) -> Result<()> {
-    if license_exists() {
+    if license_exists() || env_var_present()? {
         return Ok(());
     }
 
@@ -102,11 +110,7 @@ pub fn accept_license(ui: &mut UI) -> Result<()> {
     ui.br()?;
     ui.info("Accepting 1 product license...")?;
 
-    let license = LicenseData::new();
-    let content = serde_yaml::to_string(&license)?;
-    fs::create_dir_all(license_path())?;
-    let mut file = File::create(license_file())?;
-    file.write_all(content.as_bytes())?;
+    write_license_file()?;
 
     ui.status(ui::Status::Custom(ui::Glyph::CheckMark, String::from("")),
               "1 product license accepted.")?;
@@ -127,6 +131,31 @@ fn license_path() -> PathBuf {
     };
 
     hab_dir.join("accepted-licenses")
+}
+
+fn env_var_present() -> Result<bool> {
+    match env::var(LICENSE_ACCEPT_ENVVAR) {
+        Ok(val) => {
+            if &val == "accept" {
+                write_license_file()?;
+                Ok(true)
+            } else if &val == "accept-no-persist" {
+                Ok(true)
+            } else {
+                Ok(false)
+            }
+        }
+        Err(_) => Ok(false),
+    }
+}
+
+fn write_license_file() -> Result<()> {
+    let license = LicenseData::new();
+    let content = serde_yaml::to_string(&license)?;
+    fs::create_dir_all(license_path())?;
+    let mut file = File::create(license_file())?;
+    file.write_all(content.as_bytes())?;
+    Ok(())
 }
 
 fn license_file() -> PathBuf { license_path().join("habitat") }
