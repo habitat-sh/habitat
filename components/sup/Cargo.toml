@@ -30,7 +30,6 @@ byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
 env_logger = "*"
-features = "*"
 futures = "*"
 glob = "*"
 hab = { path = "../hab" }

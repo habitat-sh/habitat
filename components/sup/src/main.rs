@@ -37,7 +37,6 @@ use crate::sup::{cli::cli,
                  error::{Error,
                          Result,
                          SupError},
-                 feat,
                  manager::{Manager,
                            ManagerConfig,
                            TLSConfig,
@@ -52,12 +51,12 @@ use habitat_common::{cli::{cache_key_path_from_matches,
                               OutputVerbosity},
                      outputln,
                      ui::{NONINTERACTIVE_ENVVAR,
-                          UI}};
+                          UI},
+                     FeatureFlag};
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{crypto::{self,
                             SymKey},
-                   env as henv,
                    url::{bldr_url_from_env,
                          default_bldr_url},
                    ChannelIdent};
@@ -92,8 +91,9 @@ static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn main() {
     env_logger::init();
-    enable_features_from_env();
-    let result = start();
+    let mut ui = UI::default_with_env();
+    let flags = FeatureFlag::from_env(&mut ui);
+    let result = start(flags);
     let exit_code = match result {
         Ok(_) => 0,
         Err(ref err) => {
@@ -124,8 +124,8 @@ fn boot() -> Option<LauncherCli> {
     }
 }
 
-fn start() -> Result<()> {
-    if feat::is_enabled(feat::TestBootFail) {
+fn start(feature_flags: FeatureFlag) -> Result<()> {
+    if feature_flags.contains(FeatureFlag::TEST_BOOT_FAIL) {
         outputln!("Simulating boot failure");
         return Err(sup_error!(Error::TestBootFail));
     }
@@ -153,7 +153,7 @@ fn start() -> Result<()> {
         ("bash", Some(_)) => sub_bash(),
         ("run", Some(m)) => {
             let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
-            sub_run(m, launcher)
+            sub_run(m, launcher, feature_flags)
         }
         ("sh", Some(_)) => sub_sh(),
         ("term", Some(_)) => sub_term(),
@@ -163,10 +163,10 @@ fn start() -> Result<()> {
 
 fn sub_bash() -> Result<()> { command::shell::bash() }
 
-fn sub_run(m: &ArgMatches, launcher: LauncherCli) -> Result<()> {
+fn sub_run(m: &ArgMatches, launcher: LauncherCli, feature_flags: FeatureFlag) -> Result<()> {
     set_supervisor_logging_options(m);
 
-    let cfg = mgrcfg_from_sup_run_matches(m)?;
+    let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
     let manager = Manager::load(cfg, launcher)?;
 
     // We need to determine if we have an initial service to start
@@ -225,8 +225,11 @@ fn sub_term() -> Result<()> {
 // Internal Implementation Details
 ////////////////////////////////////////////////////////////////////////
 
-fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
+fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
+                               feature_flags: FeatureFlag)
+                               -> Result<ManagerConfig> {
     let cache_key_path = cache_key_path_from_matches(m);
+
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
         custom_state_path: None, // remove entirely?
@@ -291,6 +294,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches) -> Result<ManagerConfig> {
                 ca_cert_path,
             }
         }),
+        feature_flags: feature_flags
     };
 
     Ok(cfg)
@@ -444,36 +448,6 @@ fn get_password_from_input(m: &ArgMatches) -> Result<Option<String>> {
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 fn get_password_from_input(_m: &ArgMatches) -> Result<Option<String>> { Ok(None) }
 
-fn enable_features_from_env() {
-    let features = vec![(feat::List, "LIST"),
-                        (feat::TestExit, "TEST_EXIT"),
-                        (feat::TestBootFail, "BOOT_FAIL"),
-                        (feat::RedactHTTP, "REDACT_HTTP"),
-                        (feat::IgnoreSignals, "IGNORE_SIGNALS"),
-                        (feat::InstallHook, "INSTALL_HOOK"),
-                        (feat::EventStream, "EVENT_STREAM"),];
-
-    // If the environment variable for a flag is set to _anything_ but
-    // the empty string, it is activated.
-    for feature in &features {
-        if henv::var(format!("HAB_FEAT_{}", feature.1)).is_ok() {
-            feat::enable(feature.0);
-            outputln!("Enabling feature: {:?}", feature.0);
-        }
-    }
-
-    if feat::is_enabled(feat::List) {
-        outputln!("Listing feature flags environment variables:");
-        for feature in &features {
-            outputln!("     * {:?}: HAB_FEAT_{}={}",
-                      feature.0,
-                      feature.1,
-                      henv::var(format!("HAB_FEAT_{}", feature.1)).unwrap_or_default());
-        }
-        outputln!("The Supervisor will start now, enjoy!");
-    }
-}
-
 fn set_supervisor_logging_options(m: &ArgMatches) {
     if m.is_present("VERBOSE") {
         output::set_verbosity(OutputVerbosity::Verbose);
@@ -532,6 +506,8 @@ mod test {
     use habitat_common::{locked_env_var,
                          types::ListenCtlAddr};
 
+    fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
+
     mod manager_config {
 
         use super::*;
@@ -552,7 +528,8 @@ mod test {
             let (_, sub_matches) = matches.subcommand();
             let sub_matches = sub_matches.expect("Error getting sub command matches");
 
-            mgrcfg_from_sup_run_matches(&sub_matches).expect("Could not get config")
+            mgrcfg_from_sup_run_matches(&sub_matches, no_feature_flags()).expect("Could not get \
+                                                                                  config")
         }
 
         #[test]

@@ -1,5 +1,4 @@
 use clap::App;
-
 use hab::cli::sup_commands;
 
 pub fn cli<'a, 'b>() -> App<'a, 'b> { sup_commands() }

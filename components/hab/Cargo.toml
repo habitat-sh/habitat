@@ -15,7 +15,6 @@ bitflags = "*"
 base64 = "*"
 dirs = "*"
 env_logger = "*"
-features = "*"
 futures = "*"
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"

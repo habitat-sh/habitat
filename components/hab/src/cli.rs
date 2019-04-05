@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{command::studio,
-            feat};
+use crate::command::studio;
 use clap::{App,
            AppSettings,
            Arg};
@@ -27,7 +26,8 @@ use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            PACKAGE_TARGET_ENVVAR,
                            RING_ENVVAR,
                            RING_KEY_ENVVAR},
-                     types::ListenCtlAddr};
+                     types::ListenCtlAddr,
+                     FeatureFlag};
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
@@ -46,13 +46,14 @@ use std::{net::SocketAddr,
           str::FromStr};
 use url::Url;
 
-pub fn get() -> App<'static, 'static> {
+pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     let alias_apply = sub_config_apply().about("Alias for 'config apply'")
                                         .aliases(&["ap", "app", "appl"])
                                         .setting(AppSettings::Hidden);
-    let alias_install = sub_pkg_install().about("Alias for 'pkg install'")
-                                         .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
-                                         .setting(AppSettings::Hidden);
+    let alias_install =
+        sub_pkg_install(feature_flags).about("Alias for 'pkg install'")
+                                      .aliases(&["i", "in", "ins", "inst", "insta", "instal"])
+                                      .setting(AppSettings::Hidden);
     let alias_setup = sub_cli_setup().about("Alias for 'cli setup'")
                                      .aliases(&["set", "setu"])
                                      .setting(AppSettings::Hidden);
@@ -442,7 +443,7 @@ pub fn get() -> App<'static, 'static> {
                 (aliases: &["ha", "has"])
                 (@arg SOURCE: +takes_value {file_exists} "A filepath of the target")
             )
-            (subcommand: sub_pkg_install().aliases(
+            (subcommand: sub_pkg_install(feature_flags).aliases(
                 &["i", "in", "ins", "inst", "insta", "instal"]))
             (@subcommand path =>
                 (about: "Prints the path to a specific installed release of a package")
@@ -887,7 +888,7 @@ fn sub_pkg_build() -> App<'static, 'static> {
     sub
 }
 
-fn sub_pkg_install() -> App<'static, 'static> {
+fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
     let mut sub = clap_app!(@subcommand install =>
         (about: "Installs a Habitat package from Builder or locally from a Habitat Artifact")
         (@arg BLDR_URL: --url -u +takes_value {valid_url}
@@ -903,18 +904,18 @@ fn sub_pkg_install() -> App<'static, 'static> {
         (@arg FORCE: -f --force "Overwrite existing binlinks")
         (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
     );
-    if feat::is_enabled(feat::OfflineInstall) {
+    if feature_flags.contains(FeatureFlag::OFFLINE_INSTALL) {
         sub = sub.arg(Arg::with_name("OFFLINE").help("Install packages in offline mode")
                                                .long("offline"));
     };
-    if feat::is_enabled(feat::IgnoreLocal) {
+    if feature_flags.contains(FeatureFlag::IGNORE_LOCAL) {
         sub = sub.arg(Arg::with_name("IGNORE_LOCAL").help("Do not use locally-installed \
                                                            packages when a corresponding \
                                                            package cannot be installed from \
                                                            Builder")
                                                     .long("ignore-local"));
     };
-    if feat::is_enabled(feat::InstallHook) {
+    if feature_flags.contains(FeatureFlag::INSTALL_HOOK) {
         sub = sub.arg(Arg::with_name("IGNORE_INSTALL_HOOK").help("Do not run any install hooks")
                                                            .long("ignore-install-hook"));
     };
@@ -1319,6 +1320,8 @@ fn non_empty(val: String) -> result::Result<(), String> {
 #[cfg(test)]
 mod tests {
 
+    fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
+
     use super::*;
 
     mod sup_commands {
@@ -1328,7 +1331,7 @@ mod tests {
 
         #[test]
         fn sup_subcommand_short_help() {
-            let r = get().get_matches_from_safe(vec!["hab", "sup", "-h"]);
+            let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab", "sup", "-h"]);
             assert!(r.is_err());
             // not `ErrorKind::InvalidSubcommand`
             assert_eq!(r.unwrap_err().kind, ErrorKind::HelpDisplayed);
@@ -1336,7 +1339,8 @@ mod tests {
 
         #[test]
         fn sup_subcommand_run_with_peer() {
-            let r = get().get_matches_from_safe(vec!["hab", "sup", "run", "--peer", "1.1.1.1"]);
+            let r = get(no_feature_flags()).get_matches_from_safe(vec!["hab", "sup", "run",
+                                                                       "--peer", "1.1.1.1"]);
             assert!(r.is_ok());
             let matches = r.expect("Error while getting matches");
             // validate `sup` subcommand
