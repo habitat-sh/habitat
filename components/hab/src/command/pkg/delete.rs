@@ -12,7 +12,8 @@
 //!
 //! //! Note: This command does not remove the package from disk
 
-use crate::{api_client::Client,
+use crate::{api_client::{self,
+                         Client},
             common::ui::{Status,
                          UIWriter,
                          UI},
@@ -22,6 +23,7 @@ use crate::{api_client::Client,
                              PackageTarget},
             PRODUCT,
             VERSION};
+use hyper::status::StatusCode;
 
 /// Delete a package from Builder.
 ///
@@ -39,6 +41,9 @@ pub fn start(ui: &mut UI,
 
     if let Err(err) = api_client.delete_package((ident, target), token) {
         println!("Failed to delete '{}': {:?}", ident, err);
+        if let api_client::Error::APIError(StatusCode::NotFound, _) = err {
+            println!("You may need to specify a platform target argument");
+        }
         return Err(Error::from(err));
     }
 

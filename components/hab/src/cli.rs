@@ -546,8 +546,8 @@ pub fn get() -> App<'static, 'static> {
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
-                (arg: arg_target())
                 (@arg CHANNEL: +required +takes_value "Promote to the specified release channel")
+                (arg: arg_target())
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand demote =>
@@ -558,8 +558,8 @@ pub fn get() -> App<'static, 'static> {
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg PKG_IDENT: +required +takes_value {valid_fully_qualified_ident} "A fully qualified package identifier \
                     (ex: core/busybox-static/1.42.2/20170513215502)")
-                (arg: arg_target())
                 (@arg CHANNEL: +required +takes_value "Demote from the specified release channel")
+                (arg: arg_target())
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
             )
             (@subcommand channels =>
@@ -845,7 +845,6 @@ fn arg_target() -> Arg<'static, 'static> {
                                 .takes_value(true)
                                 .validator(valid_target)
                                 .env(PACKAGE_TARGET_ENVVAR)
-                                .hide_default_value(true)
                                 .help("A package target (ex: x86_64-windows) (default: system \
                                        appropriate target")
 }

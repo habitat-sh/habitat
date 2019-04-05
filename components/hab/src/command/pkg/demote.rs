@@ -25,13 +25,15 @@
 //!    The package should already have been uploaded to Builder.
 //!    If the specified channel does not exist, this will fail.
 
-use crate::{api_client::Client,
+use crate::{api_client::{self,
+                         Client},
             common::ui::{Status,
                          UIWriter,
                          UI},
             hcore::{package::{PackageIdent,
                               PackageTarget},
                     ChannelIdent}};
+use hyper::status::StatusCode;
 
 use crate::{error::{Error,
                     Result},
@@ -63,6 +65,9 @@ pub fn start(ui: &mut UI,
         Ok(_) => (),
         Err(e) => {
             println!("Failed to demote '{}': {:?}", ident, e);
+            if let api_client::Error::APIError(StatusCode::NotFound, _) = e {
+                println!("You may need to specify a platform target argument");
+            }
             return Err(Error::from(e));
         }
     }
