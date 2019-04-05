@@ -453,6 +453,8 @@ steps:
         limit: 1
 
   - label: "[build] :linux: hab"
+    env:
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh hab
     agents:
