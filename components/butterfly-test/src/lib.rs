@@ -63,7 +63,6 @@ impl Suitability for NSuitability {
 
 #[cfg(feature = "deadlock_detection")]
 fn assert_no_deadlocks() {
-    use log;
     use parking_lot::deadlock;
 
     let deadlocks = deadlock::check_deadlock();

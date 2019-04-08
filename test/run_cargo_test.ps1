@@ -8,13 +8,20 @@ param (
     # Features to pass to cargo
     [string]$Features,
     # Options to pass to the cargo test command
-    [string]$TestOptions
+    [string]$TestOptions,
+    [string]$toolchain = "stable"
 )
 
 $ErrorActionPreference="stop"
 $env:RUSTUP_HOME="C:\rust\.rustup"
 $env:CARGO_HOME="C:\rust\.cargo"
 $env:Path="$env:Path;$env:CARGO_HOME\bin"
+
+rustup component list --toolchain $toolchain | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Installing rust toolchain $toolchain"
+    rustup toolchain install $toolchain
+}
 
 If($Features) {
     $FeatureString = "--features $Features"
@@ -23,7 +30,7 @@ If($Features) {
 }
 
 # Set cargo test invocation
-$CargoTestCommand = "cargo test $FeatureString -- --nocapture $TestOptions"
+$CargoTestCommand = "cargo +$toolchain test $FeatureString -- --nocapture $TestOptions"
 
 choco install habitat -y
 
