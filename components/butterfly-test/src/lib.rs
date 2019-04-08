@@ -18,7 +18,8 @@ extern crate habitat_butterfly;
 #[macro_use]
 extern crate lazy_static;
 
-use habitat_butterfly::{member::{Health,
+use habitat_butterfly::{error::Error,
+                        member::{Health,
                                  Member},
                         rumor::{departure::Departure,
                                 election::ElectionStatus,
@@ -50,10 +51,36 @@ lazy_static! {
     static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
 }
 
+/// To avoid deadlocking in a test, we use `health_of_by_id_with_timeout` rather than
+/// `health_of_by_id`.
+const HEALTH_OF_TIMEOUT: Duration = Duration::from_secs(5);
+
 #[derive(Debug)]
 struct NSuitability(u64);
 impl Suitability for NSuitability {
     fn get(&self, _service_group: &str) -> u64 { self.0 }
+}
+
+#[cfg(feature = "deadlock_detection")]
+fn assert_no_deadlocks() {
+    use log;
+    use parking_lot::deadlock;
+
+    let deadlocks = deadlock::check_deadlock();
+    if deadlocks.is_empty() {
+        log::trace!("No deadlocks detected");
+    } else {
+        println!("{} deadlocks detected", deadlocks.len());
+        for (i, threads) in deadlocks.iter().enumerate() {
+            println!("Deadlock #{}", i);
+            for t in threads {
+                println!("Thread {:#?}", t.thread_id());
+                println!("{:#?}", t.backtrace());
+            }
+        }
+    }
+
+    assert!(deadlocks.is_empty());
 }
 
 pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
@@ -191,6 +218,9 @@ impl SwimNet {
     }
 
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
+        assert!(cfg!(feature = "deadlock_detection"),
+                "This test should be run with --features=deadlock_detection");
+
         let from = self.members
                        .get(from_entry)
                        .expect("Asked for a network member who is out of bounds");
@@ -198,7 +228,19 @@ impl SwimNet {
         let to = self.members
                      .get(to_entry)
                      .expect("Asked for a network member who is out of bounds");
-        from.member_list.health_of_by_id(to.member_id())
+
+        match from.member_list
+                  .health_of_by_id_with_timeout(to.member_id(), HEALTH_OF_TIMEOUT)
+        {
+            Ok(health) => Some(health),
+            Err(Error::UnknownMember(_)) => None,
+            Err(_) => {
+                #[cfg(feature = "deadlock_detection")]
+                assert_no_deadlocks();
+                panic!("Timed out after waiting {:?} querying member health",
+                       HEALTH_OF_TIMEOUT);
+            }
+        }
     }
 
     pub fn network_health_of(&self, to_check: usize) -> Vec<Option<Health>> {
@@ -360,6 +402,9 @@ impl SwimNet {
 
     pub fn wait_for_health_of(&self, from_entry: usize, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
+        #[cfg(feature = "deadlock_detection")]
+        assert_no_deadlocks();
+
         loop {
             if let Some(real_health) = self.health_of(from_entry, to_check) {
                 if real_health == health {
