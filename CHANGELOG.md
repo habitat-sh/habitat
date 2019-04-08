@@ -23,6 +23,7 @@
 - macOS still needs --interactive and --tty set [#6295](https://github.com/habitat-sh/habitat/pull/6295) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Fix positional args, tweak err handling for promote/demote/delete [#6379](https://github.com/habitat-sh/habitat/pull/6379) ([chefsalim](https://github.com/chefsalim))
 - Add a welcome message when PRs are opened [#6356](https://github.com/habitat-sh/habitat/pull/6356) ([raskchanky](https://github.com/raskchanky))
 - Use curl to upload packages rather than pkg upload [#6365](https://github.com/habitat-sh/habitat/pull/6365) ([scotthain](https://github.com/scotthain))
 - Migrate to habitat rust rather than system rust [#6349](https://github.com/habitat-sh/habitat/pull/6349) ([scotthain](https://github.com/scotthain))
@@ -38,7 +39,6 @@
 - Introduce NATS Streaming eventing to the Supervisor [#6218](https://github.com/habitat-sh/habitat/pull/6218) ([christophermaier](https://github.com/christophermaier))
 - Copies /etc/inputrc in studio if available [#5658](https://github.com/habitat-sh/habitat/pull/5658) ([rsertelon](https://github.com/rsertelon))
 - Attempt to implement template debugging tool [#6114](https://github.com/habitat-sh/habitat/pull/6114) ([qubitrenegade](https://github.com/qubitrenegade))
-
 <!-- latest_release -->
 ## [0.78.0](https://github.com/habitat-sh/habitat/tree/0.78.0) (2019-03-13)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.77.0...0.78.0)
