@@ -88,15 +88,35 @@ mapfile -t  supervisor_packages < <(echo "${channel_pkgs_json}" | \
                          map(.origin + "/" + .name + "/" + .version + "/" + .release)
                          | .[]')
 
+targets=("x86_64-linux"
+         "x86_64-linux-kernel2"
+         "x86_64-windows")
+
 for pkg in "${non_supervisor_packages[@]}"; do
     echo "--- :habicat: Promoting '$pkg' to '$to_channel'"
-    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
+    # hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
+    for target in "${targets[@]}"; do
+        if ident_has_target "${pkg}" "${target}"; then
+            echo "--- :star: Found a match: ${pkg} is for ${target}"
+            promote "${pkg}" "${target}" "${to_channel}"
+        else
+            echo "--- :thumbsdown: not a match"
+        fi
+    done
 done
 
 echo "--- :warning: PROMOTING SUPERVISORS TO '$to_channel' :warning:"
 for pkg in "${supervisor_packages[@]}"; do
     echo "--- :habicat: Promoting $pkg to $to_channel"
-    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
+    # hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}"
+    for target in "${targets[@]}"; do
+        if ident_has_target "${pkg}" "${target}"; then
+            echo "--- :star: Found a match: ${pkg} is for ${target}"
+            promote "${pkg}" "${target}" "${to_channel}"
+        else
+            echo "--- :thumbsdown: not a match"
+        fi
+    done
 done
 
 buildkite-agent annotate --style="success" --context="release-manifest"

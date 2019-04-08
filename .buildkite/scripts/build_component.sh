@@ -48,7 +48,32 @@ source results/last_build.env
 # already have this value set.
 : "${pkg_target:=x86_64-linux}"
 
-# TODO (CM): we'll need to scope these by architecture
+
+# TODO: after 0.79.0 we can reenable this. We are explicitly using curl to upload
+# due to this bug: https://github.com/habitat-sh/builder/issues/940
+# echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
+# ${hab_binary} pkg upload \
+#     --channel="${channel}" \
+#     --auth="${HAB_AUTH_TOKEN}" \
+#     "results/${pkg_artifact}"
+#
+# ${hab_binary} pkg promote \
+#     --auth="${HAB_AUTH_TOKEN}" \
+#     "${pkg_ident}" "${channel}" "${pkg_target}"
+
+echo "--- :partyparrot: Manually uploading '${pkg_ident:?}' (${pkg_target}) to Builder"
+curl --request POST \
+     --header "Content-Type: application/octet-stream" \
+     --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
+     --data-binary "@results/${pkg_artifact:?}" \
+     --fail \
+     --verbose \
+    "https://bldr.habitat.sh/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
+
+promote "${pkg_ident}" "${pkg_target}" "${channel}"
+set_target_metadata "${pkg_ident}" "${pkg_target}"
+
+echo "--- :writing_hand: Recording Build Metadata"
 case "${component}" in
     "hab")
         echo "--- :buildkite: Storing artifact ${pkg_ident:?}"
@@ -71,28 +96,3 @@ case "${component}" in
         ;;
 esac
 echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --append --context "release-manifest"
-
-echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
-# TODO: after 0.79.0 we can reenable this. We are explicitly using curl to upload
-# due to this bug: https://github.com/habitat-sh/builder/issues/940
-# ${hab_binary} pkg upload \
-#     --channel="${channel}" \
-#     --auth="${HAB_AUTH_TOKEN}" \
-#     "results/${pkg_artifact}"
-#
-# ${hab_binary} pkg promote \
-#     --auth="${HAB_AUTH_TOKEN}" \
-#     "${pkg_ident}" "${channel}" "${pkg_target}"
-
-curl -v -X POST \
-    -H "Accept: application/json" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
-    --data-binary "@results/${pkg_artifact}.hart" \
-    "http://bldr.habitat.sh/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
-
-curl -v -X PUT \
-    -H "Accept: application/json" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $HAB_AUTH_TOKEN" \
-    "http://bldr.habitat.sh/v1/depot/channels/${pkg_origin:?}/pkgs/${pkg_name:?}/${pkg_version:?}/${pkg_release}/promote?&target=${pkg_target}"
