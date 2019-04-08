@@ -16,9 +16,9 @@ use crate::ui::{UIWriter,
                 UI};
 use habitat_api_client as api_client;
 use habitat_core as hcore;
-use habitat_core::env as henv;
 use lazy_static::lazy_static;
 use std::{collections::HashMap,
+          env,
           iter::FromIterator};
 
 extern crate json;
@@ -50,7 +50,7 @@ pub mod util;
 
 lazy_static::lazy_static! {
     pub static ref PROGRAM_NAME: String = {
-        match std::env::current_exe() {
+        match env::current_exe() {
             Ok(path) => path.file_stem().and_then(|p| p.to_str()).unwrap().to_string(),
             Err(e) => {
                 error!("Error getting path of current_exe: {}", e);
@@ -123,10 +123,12 @@ impl FeatureFlag {
         let mut flags = FeatureFlag::empty();
 
         for (feature, env_var) in ENV_VARS.iter() {
-            if henv::var(env_var).is_ok() {
-                flags.insert(*feature);
-                ui.warn(&format!("Enabling feature: {:?}", feature))
-                  .unwrap();
+            if let Some(val) = env::var_os(env_var) {
+                if !val.is_empty() {
+                    flags.insert(*feature);
+                    ui.warn(&format!("Enabling feature: {:?}", feature))
+                      .unwrap();
+                }
             }
         }
 
@@ -142,10 +144,10 @@ impl FeatureFlag {
             ui.warn("Listing feature flags environment variables:")
               .unwrap();
             for (feature, env_var) in ENV_VARS.iter() {
-                ui.warn(&format!("  * {:?}: {}={}",
+                ui.warn(&format!("  * {:?}: {}={:?}",
                                  feature,
                                  env_var,
-                                 henv::var(env_var).unwrap_or_default()))
+                                 env::var_os(env_var).unwrap_or_default()))
                   .unwrap();
             }
         }
