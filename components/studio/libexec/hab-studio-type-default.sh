@@ -145,9 +145,9 @@ TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
 
 emacs() {
   if type -P emacs > /dev/null; then
-    "$(type -P emacs)" "$@"
+    "$(type -P emacs)" "\$@"
   else
-    mg "$@"
+    mg "\$@"
   fi
 }
 
