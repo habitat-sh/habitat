@@ -42,7 +42,7 @@ TERMINFO=$(hab pkg path core/ncurses)/share/terminfo
 
 emacs() {
   if type -P emacs > /dev/null; then
-    "$(type -P emacs)" "$@"
+    command emacs "$@"
   else
     mg "$@"
   fi
