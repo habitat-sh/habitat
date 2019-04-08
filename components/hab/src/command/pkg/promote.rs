@@ -70,6 +70,9 @@ pub fn start(ui: &mut UI,
         Ok(_) => (),
         Err(e) => {
             println!("Failed to promote '{}': {:?}", ident, e);
+            if let api_client::Error::APIError(StatusCode::NotFound, _) = e {
+                println!("You may need to specify a platform target argument");
+            }
             return Err(Error::from(e));
         }
     }
