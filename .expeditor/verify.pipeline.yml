@@ -454,7 +454,10 @@ steps:
 
   - label: "[build] :linux: hab"
     env:
+      # TODO: this env var should be deleted after
+      # https://github.com/habitat-sh/habitat/pull/6364 merges and is released
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
+      HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh hab
     agents:

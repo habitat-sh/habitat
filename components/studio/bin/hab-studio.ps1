@@ -10,26 +10,6 @@
 #
 # blah
 #
-# # License and Copyright
-#
-# ```
-# Copyright: Copyright (c) 2016 Chef Software, Inc.
-# License: Apache License, Version 2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ```
-#
-#
 
 param (
     [switch]$h,
@@ -86,6 +66,7 @@ SUBCOMMANDS:
     version   Prints version information
 
 ENVIRONMENT VARIABLES:
+    HAB_LICENSE       Set to 'accept' or 'accept-no-persist' to accept the Habitat license
     HAB_ORIGIN        Propagates this variable into any studios
     HAB_ORIGIN_KEYS   Installs secret keys (\`-k' option overrides)
     HAB_STUDIOS_HOME  Sets a home path for all Studios (default: /hab/studios)
@@ -336,7 +317,7 @@ function Enter-Studio {
       mkdir $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default -Force | Out-Null
       [SupervisorBootstrapper]::Run($isAnsiSupported)
     }
-    
+
     Write-Host  "** The Habitat Supervisor has been started in the background." -ForegroundColor Cyan
     Write-Host  "** Use 'hab svc start' and 'hab svc stop' to start and stop services." -ForegroundColor Cyan
     Write-Host  "** Use the 'Get-SupervisorLog' command to stream the Supervisor log." -ForegroundColor Cyan
@@ -360,7 +341,7 @@ function Enter-Studio {
       # If we are not running in a container then the powershell studio was
       # spawned by hab.exe and ctrl+c behaves poorly in this scenario. So
       # we work around the issue by tailing the log in a new window that can
-      # simply be closed. If we are inside a container then we cannot launch 
+      # simply be closed. If we are inside a container then we cannot launch
       # new windows but thats ok because docker run launched the studio directly
       # from powershell so the ctrl+c issue is not a problem so we can do
       # a simple tail
@@ -368,7 +349,7 @@ function Enter-Studio {
         Start-Process "$env:STUDIO_SCRIPT_ROOT\powershell\pwsh.exe" -ArgumentList "-Command `"& {Get-Content $env:HAB_STUDIO_ENTER_ROOT\hab\sup\default\out.log -Tail 100 -Wait}`""
       }
       else {
-        # Container studios run habitat as a service which logs to a 
+        # Container studios run habitat as a service which logs to a
         # configured file location
         $svcPath = Join-Path $env:SystemDrive "hab\svc\windows-service"
         [xml]$configXml = Get-Content (Join-Path $svcPath log4net.xml)
@@ -418,7 +399,7 @@ function Invoke-StudioRun($cmd) {
 function Invoke-StudioBuild($location, $reuse) {
   # This trap will cause powershell to return an exit code of 1
   trap { "An error occured in the build!" }
-  
+
   if($printHelp -or ([String]::IsNullOrEmpty($location))) {
     Write-BuildHelp
     return
@@ -451,7 +432,7 @@ function Test-InContainer {
 }
 
 function Remove-UnsafeSecrets {
-  @('HAB_ORIGIN', 'PATH') | ForEach-Object {
+  @('HAB_ORIGIN', 'PATH', 'HAB_LICENSE') | ForEach-Object {
     if(Test-Path "env:\HAB_STUDIO_SECRET_$_") {
       Remove-Item "env:\HAB_STUDIO_SECRET_$_"
     }
@@ -497,6 +478,7 @@ if(!$env:HAB_STUDIO_ROOT) {
 else {
   $script:HAB_STUDIO_ROOT = $env:HAB_STUDIO_ROOT
 }
+
 if($o) { $script:HAB_STUDIO_ROOT = $o }
 $HAB_STUDIO_ROOT = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($HAB_STUDIO_ROOT)
 
@@ -505,6 +487,10 @@ if($k) {
 }
 else {
   $env:HAB_ORIGIN_KEYS = $env:HAB_ORIGIN
+}
+
+if ((Test-Path "$env:USERPROFILE\.hab\accepted-licenses\habitat") -or (Test-Path "$env:SYSTEMDRIVE\hab\accepted-licenses\habitat")) {
+  $env:HAB_LICENSE = "accept-no-persist"
 }
 
 if($h) { $script:printHelp = $true }

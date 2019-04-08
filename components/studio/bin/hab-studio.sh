@@ -12,26 +12,6 @@
 #
 # blah
 #
-# # License and Copyright
-#
-# ```
-# Copyright: Copyright (c) 2016-2017 Chef Software, Inc.
-# License: Apache License, Version 2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ```
-#
-#
 
 # TESTING CHANGES
 # Documentation on testing local changes to this file and its friends in
@@ -107,6 +87,7 @@ ENVIRONMENT VARIABLES:
     ARTIFACT_PATH          Sets the source artifact cache path (\`-a' option overrides)
     HAB_NOCOLORING         Disables text coloring mode despite TERM capabilities
     HAB_NONINTERACTIVE     Disables interactive progress bars despite tty
+    HAB_LICENSE            Set to 'accept' or 'accept-no-persist' to accept the Habitat license
     HAB_ORIGIN             Propagates this variable into any studios
     HAB_ORIGIN_KEYS        Installs secret keys (\`-k' option overrides)
     HAB_STUDIOS_HOME       Sets a home path for all Studios (default: /hab/studios)
@@ -773,7 +754,7 @@ exit_with() {
 
 # **Internal** Removes any potential malicious secrets
 sanitize_secrets() {
-  for x in HAB_BINLINK_DIR HAB_ORIGIN HOME LC_ALL PATH PWD STUDIO_TYPE TERM TERMINFO; do
+  for x in HAB_BINLINK_DIR HAB_LICENSE HAB_ORIGIN HOME LC_ALL PATH PWD STUDIO_TYPE TERM TERMINFO; do
     unset "HAB_STUDIO_SECRET_$x"
   done
 }
@@ -830,6 +811,12 @@ chroot_env() {
   # environment.
   if [ -n "${HAB_NONINTERACTIVE:-}" ]; then
     env="$env HAB_NONINTERACTIVE=$HAB_NONINTERACTIVE"
+  fi
+  # If the hab license is set, then propagate that into the Studio's environment
+  if [ -f "/hab/accepted-licenses/habitat" ] || [ -f "$HOME/.hab/accepted-licenses/habitat" ]; then
+    env="$env HAB_LICENSE=accept-no-persist"
+  elif [ -n "${HAB_LICENSE:-}" ]; then
+    env="$env HAB_LICENSE=$HAB_LICENSE"
   fi
   # If a Habitat origin name is set, then propagate it into the Studio's
   # environment.

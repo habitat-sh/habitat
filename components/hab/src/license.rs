@@ -160,4 +160,4 @@ fn write_license_file() -> Result<()> {
 
 fn license_file() -> PathBuf { license_path().join("habitat") }
 
-fn license_exists() -> bool { license_file().is_file() }
+pub fn license_exists() -> bool { license_file().is_file() }

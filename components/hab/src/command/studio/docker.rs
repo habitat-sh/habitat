@@ -1,17 +1,3 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
             common::ui::UI,
             error::{Error,
@@ -23,6 +9,7 @@ use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
                          CACHE_KEY_PATH},
                     os::process,
                     package::target},
+            license,
             VERSION};
 use atty;
 use std::{env,
@@ -88,6 +75,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                             String::from("HAB_BLDR_CHANNEL"),
                             String::from("HAB_FEAT_INSTALL_HOOK"),
                             String::from("HAB_NOCOLORING"),
+                            String::from("HAB_LICENSE"),
                             String::from("HAB_ORIGIN"),
                             String::from("HAB_ORIGIN_KEYS"),
                             String::from("HAB_STUDIO_BACKLINE_PKG"),
@@ -256,6 +244,11 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
             debug!("Setting container env var: {:?}='{}'", var.as_ref(), val);
             cmd_args.push("--env".into());
             cmd_args.push(format!("{}={}", var.as_ref(), val).into());
+        } else if var.as_ref() == "HAB_LICENSE" && license::license_exists() {
+            debug!("Hab license already accepted. Setting container env var: \
+                    HAB_LICENSE=accept-no-persist");
+            cmd_args.push("--env".into());
+            cmd_args.push("HAB_LICENSE=accept-no-persist".to_string().into());
         }
     }
 
