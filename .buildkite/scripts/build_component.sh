@@ -61,17 +61,17 @@ source results/last_build.env
 #     --auth="${HAB_AUTH_TOKEN}" \
 #     "${pkg_ident}" "${channel}" "${pkg_target}"
 
-echo "--- :partyparrot: Manually uploading '${pkg_ident}' (${pkg_target}) to Builder"
+echo "--- :partyparrot: Manually uploading '${pkg_ident:?}' (${pkg_target}) to Builder"
 curl --request POST \
      --header "Content-Type: application/octet-stream" \
      --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
-     --data-binary "@results/${pkg_artifact}" \
+     --data-binary "@results/${pkg_artifact:?}" \
      --fail \
      --verbose \
     "https://bldr.habitat.sh/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
 
 promote "${pkg_ident}" "${pkg_target}" "${channel}"
-set_target_metadata "${package_ident}" "${pkg_target}"
+set_target_metadata "${pkg_ident}" "${pkg_target}"
 
 echo "--- :writing_hand: Recording Build Metadata"
 case "${component}" in
