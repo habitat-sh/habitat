@@ -9,7 +9,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.78.0/20190313115951 (linux) | 13 Mar 2019 |
+| hab 0.79.0/20190409150529 (linux) | 9 Apr 2019 |
 
 ## hab
 
@@ -388,7 +388,7 @@ hab bldr job start [FLAGS] [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 
 ```
 <PKG_IDENT>     The origin and name of the package to schedule a job for (eg: core/redis)
-<PKG_TARGET>    A package target (ex: x86_64-windows) (default: x86_64-linux)
+<PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target [env: HAB_PACKAGE_TARGET=]
 ```
 
 
@@ -494,7 +494,7 @@ Sets up the CLI with reasonable defaults.
 **USAGE**
 
 ```
-hab cli setup
+hab cli setup --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -504,6 +504,11 @@ hab cli setup
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to search for or create keys in. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 
 
@@ -545,7 +550,7 @@ Sets a configuration to be shared by members of a Service Group
 **USAGE**
 
 ```
-hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [FILE]
+hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> --cache-key-path <CACHE_KEY_PATH> [FILE]
 ```
 
 **FLAGS**
@@ -558,8 +563,9 @@ hab config apply [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> [FILE]
 **OPTIONS**
 
 ```
--r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
--u, --user <USER>                Name of a user key to use for encryption
+--cache-key-path <CACHE_KEY_PATH>    Path to search for encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+-r, --remote-sup <REMOTE_SUP>            Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+-u, --user <USER>                        Name of a user key to use for encryption
 ```
 
 **ARGS**
@@ -641,7 +647,7 @@ Uploads a file to be shared between members of a Service Group
 **USAGE**
 
 ```
-hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE>
+hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -654,8 +660,9 @@ hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE>
 **OPTIONS**
 
 ```
--r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
--u, --user <USER>                Name of the user key
+--cache-key-path <CACHE_KEY_PATH>    Path to search for encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+-r, --remote-sup <REMOTE_SUP>            Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+-u, --user <USER>                        Name of the user key
 ```
 
 **ARGS**
@@ -757,7 +764,7 @@ hab origin key [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab origin key download](#hab-origin-key-download) | Download origin key(s) to HAB_CACHE_KEY_PATH |
+| [hab origin key download](#hab-origin-key-download) | Download origin key(s) |
 | [hab origin key export](#hab-origin-key-export) | Outputs the latest origin key contents to stdout |
 | [hab origin key generate](#hab-origin-key-generate) | Generates a Habitat origin key |
 | [hab origin key import](#hab-origin-key-import) | Reads a stdin stream containing a public or secret origin key contents and writes the key to disk |
@@ -766,12 +773,12 @@ hab origin key [SUBCOMMAND]
 
 ### hab origin key download
 
-Download origin key(s) to HAB_CACHE_KEY_PATH
+Download origin key(s)
 
 **USAGE**
 
 ```
-hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [REVISION]
+hab origin key download [FLAGS] [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_PATH> [REVISION]
 ```
 
 **FLAGS**
@@ -786,8 +793,9 @@ hab origin key download [FLAGS] [OPTIONS] <ORIGIN> [REVISION]
 **OPTIONS**
 
 ```
--z, --auth <AUTH_TOKEN>    Authentication token for Builder (required for downloading secret keys)
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-z, --auth <AUTH_TOKEN>                  Authentication token for Builder (required for downloading secret keys)
+-u, --url <BLDR_URL>                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path <CACHE_KEY_PATH>    Path to download keys to. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
 ```
 
 **ARGS**
@@ -808,7 +816,7 @@ Outputs the latest origin key contents to stdout
 **USAGE**
 
 ```
-hab origin key export [OPTIONS] <ORIGIN>
+hab origin key export [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -821,7 +829,8 @@ hab origin key export [OPTIONS] <ORIGIN>
 **OPTIONS**
 
 ```
--t, --type <PAIR_TYPE>    Export either the 'public' or 'secret' key
+--cache-key-path <CACHE_KEY_PATH>    Path to export keys from. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+-t, --type <PAIR_TYPE>                   Export either the 'public' or 'secret' key
 ```
 
 **ARGS**
@@ -841,7 +850,7 @@ Generates a Habitat origin key
 **USAGE**
 
 ```
-hab origin key generate [ORIGIN]
+hab origin key generate --cache-key-path <CACHE_KEY_PATH> [ORIGIN]
 ```
 
 **FLAGS**
@@ -851,6 +860,11 @@ hab origin key generate [ORIGIN]
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to store generated keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 **ARGS**
 
@@ -869,7 +883,7 @@ Reads a stdin stream containing a public or secret origin key contents and write
 **USAGE**
 
 ```
-hab origin key import
+hab origin key import --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -879,6 +893,11 @@ hab origin key import
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to import keys to. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 
 
@@ -892,7 +911,7 @@ Upload origin keys to Builder
 **USAGE**
 
 ```
-hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
+hab origin key upload [FLAGS] [OPTIONS] --cache-key-path <CACHE_KEY_PATH> <ORIGIN|--pubfile <PUBLIC_FILE>>
 ```
 
 **FLAGS**
@@ -906,10 +925,11 @@ hab origin key upload [FLAGS] [OPTIONS] <ORIGIN|--pubfile <PUBLIC_FILE>>
 **OPTIONS**
 
 ```
--z, --auth <AUTH_TOKEN>        Authentication token for Builder
--u, --url <BLDR_URL>           Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
-    --pubfile <PUBLIC_FILE>    Path to a local public origin key file on disk
-    --secfile <SECRET_FILE>    Path to a local secret origin key file on disk
+-z, --auth <AUTH_TOKEN>                  Authentication token for Builder
+-u, --url <BLDR_URL>                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path <CACHE_KEY_PATH>    Path to upload keys from. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+    --pubfile <PUBLIC_FILE>              Path to a local public origin key file on disk
+    --secfile <SECRET_FILE>              Path to a local secret origin key file on disk
 ```
 
 **ARGS**
@@ -1023,7 +1043,7 @@ Create and upload a secret for your origin.
 **USAGE**
 
 ```
-hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET>
+hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -1036,9 +1056,10 @@ hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET>
 **OPTIONS**
 
 ```
--z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--o, --origin <ORIGIN>      The origin for which the secret will be uploaded. Default is from 'HAB_ORIGIN' or cli.toml
+-z, --auth <AUTH_TOKEN>                  Authentication token for Builder
+-u, --url <BLDR_URL>                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path <CACHE_KEY_PATH>    Path to public encryption key. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+-o, --origin <ORIGIN>                    The origin for which the secret will be uploaded. Default is from HAB_ORIGIN' or cli.toml
 ```
 
 **ARGS**
@@ -1081,6 +1102,7 @@ hab pkg [SUBCOMMAND]
 | [hab pkg build](#hab-pkg-build) | Builds a Plan using a Studio |
 | [hab pkg channels](#hab-pkg-channels) | Find out what channels a package belongs to |
 | [hab pkg config](#hab-pkg-config) | Displays the default configuration options for a service |
+| [hab pkg delete](#hab-pkg-delete) | Removes a package from Builder |
 | [hab pkg demote](#hab-pkg-demote) | Demote a package from a specified channel |
 | [hab pkg dependencies](#hab-pkg-dependencies) | Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package |
 | [hab pkg env](#hab-pkg-env) | Prints the runtime environment of a specific installed package |
@@ -1149,7 +1171,7 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 **OPTIONS**
 
 ```
--d, --dest <DEST_DIR>    Sets the destination directory (default: /bin)
+-d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=]  [default: /bin]
 ```
 
 **ARGS**
@@ -1170,7 +1192,7 @@ Builds a Plan using a Studio
 **USAGE**
 
 ```
-hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
+hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -1185,9 +1207,10 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT>
 **OPTIONS**
 
 ```
--k, --keys <HAB_ORIGIN_KEYS>    Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
--r, --root <HAB_STUDIO_ROOT>    Sets the Studio root (default: /hab/studios/<DIR_NAME>)
--s, --src <SRC_PATH>            Sets the source path (default: $PWD)
+--cache-key-path <CACHE_KEY_PATH>    Path to search for origin keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+-k, --keys <HAB_ORIGIN_KEYS>             Installs secret origin keys (ex: "unicorn", "acme,other,acme-ops")
+-r, --root <HAB_STUDIO_ROOT>             Sets the Studio root (default: /hab/studios/<DIR_NAME>)
+-s, --src <SRC_PATH>                     Sets the source path (default: $PWD)
 ```
 
 **ARGS**
@@ -1207,7 +1230,7 @@ Find out what channels a package belongs to
 **USAGE**
 
 ```
-hab pkg channels [OPTIONS] <PKG_IDENT>
+hab pkg channels [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 ```
 
 **FLAGS**
@@ -1227,7 +1250,8 @@ hab pkg channels [OPTIONS] <PKG_IDENT>
 **ARGS**
 
 ```
-<PKG_IDENT>    A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+<PKG_IDENT>     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+<PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target [env: HAB_PACKAGE_TARGET=]
 ```
 
 
@@ -1262,14 +1286,14 @@ hab pkg config <PKG_IDENT>
 
 ---
 
-### hab pkg demote
+### hab pkg delete
 
-Demote a package from a specified channel
+Removes a package from Builder
 
 **USAGE**
 
 ```
-hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL>
+hab pkg delete [OPTIONS] <PKG_IDENT> [PKG_TARGET]
 ```
 
 **FLAGS**
@@ -1289,8 +1313,44 @@ hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL>
 **ARGS**
 
 ```
-<PKG_IDENT>    A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
-<CHANNEL>      Demote from the specified release channel
+<PKG_IDENT>     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+<PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target [env: HAB_PACKAGE_TARGET=]
+```
+
+
+
+---
+
+### hab pkg demote
+
+Demote a package from a specified channel
+
+**USAGE**
+
+```
+hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL> [PKG_TARGET]
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+<CHANNEL>       Demote from the specified release channel
+<PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target [env: HAB_PACKAGE_TARGET=]
 ```
 
 
@@ -1583,7 +1643,7 @@ Promote a package to a specified channel
 **USAGE**
 
 ```
-hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL>
+hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL> [PKG_TARGET]
 ```
 
 **FLAGS**
@@ -1603,8 +1663,9 @@ hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL>
 **ARGS**
 
 ```
-<PKG_IDENT>    A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
-<CHANNEL>      Promote to the specified release channel
+<PKG_IDENT>     A fully qualified package identifier (ex: core/busybox-static/1.42.2/20170513215502)
+<CHANNEL>       Promote to the specified release channel
+<PKG_TARGET>    A package target (ex: x86_64-windows) (default: system appropriate target [env: HAB_PACKAGE_TARGET=]
 ```
 
 
@@ -1682,7 +1743,7 @@ Signs an archive with an origin key, generating a Habitat Artifact
 **USAGE**
 
 ```
-hab pkg sign [OPTIONS] <SOURCE> <DEST>
+hab pkg sign [OPTIONS] <SOURCE> <DEST> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -1695,7 +1756,8 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST>
 **OPTIONS**
 
 ```
---origin <ORIGIN>    Origin key used to create signature
+--cache-key-path <CACHE_KEY_PATH>    Path to search for origin keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+    --origin <ORIGIN>                    Origin key used to create signature
 ```
 
 **ARGS**
@@ -1751,7 +1813,7 @@ Uploads a local Habitat Artifact to Builder
 **USAGE**
 
 ```
-hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>...
+hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>... --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -1765,9 +1827,10 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>...
 **OPTIONS**
 
 ```
--z, --auth <AUTH_TOKEN>    Authentication token for Builder
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--c, --channel <CHANNEL>    Optional additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option.
+-z, --auth <AUTH_TOKEN>                  Authentication token for Builder
+-u, --url <BLDR_URL>                     Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path <CACHE_KEY_PATH>    Path to search for public origin keys to upload. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+-c, --channel <CHANNEL>                  Optional additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option.
 ```
 
 **ARGS**
@@ -1787,7 +1850,7 @@ Verifies a Habitat Artifact with an origin key
 **USAGE**
 
 ```
-hab pkg verify <SOURCE>
+hab pkg verify <SOURCE> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -1797,6 +1860,11 @@ hab pkg verify <SOURCE>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to search for public origin keys for verification. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 **ARGS**
 
@@ -1833,6 +1901,7 @@ hab plan [SUBCOMMAND]
 | Command | Description |
 | ------- | ----------- |
 | [hab plan init](#hab-plan-init) | Generates common package specific configuration files. Executing without argument will create a habitat directory in your current folder for the plan. If PKG_NAME is specified it will create a folder with that name. Environment variables (those starting with 'pkg_') that are set will be used in the generated plan |
+| [hab plan render](#hab-plan-render) | Renders plan config files |
 ---
 
 ### hab plan init
@@ -1867,6 +1936,45 @@ hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
 
 ```
 <PKG_NAME>    Name for the new app
+```
+
+
+
+---
+
+### hab plan render
+
+Renders plan config files
+
+**USAGE**
+
+```
+hab plan render [FLAGS] [OPTIONS] <TEMPLATE_PATH>
+```
+
+**FLAGS**
+
+```
+-n, --no-render    Don't write anything to disk, ignores --render-dir
+-p, --print        Prints config to STDOUT
+-q, --quiet        Don't print any helper messages.  When used with --print will only print config file
+-h, --help         Prints help information
+-V, --version      Prints version information
+```
+
+**OPTIONS**
+
+```
+-d, --default-toml <DEFAULT_TOML>    Path to default.toml [default: ./default.toml]
+-m, --mock-data <MOCK_DATA>          Path to json file with mock data for template, defaults to none
+-r, --render-dir <RENDER_DIR>        Path to render templates [default: ./results]
+-u, --user-toml <USER_TOML>          Path to user.toml, defaults to none
+```
+
+**ARGS**
+
+```
+<TEMPLATE_PATH>    Path to config to render
 ```
 
 
@@ -1936,7 +2044,7 @@ Outputs the latest ring key contents to stdout
 **USAGE**
 
 ```
-hab ring key export <RING>
+hab ring key export <RING> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -1946,6 +2054,11 @@ hab ring key export <RING>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to search for keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 **ARGS**
 
@@ -1964,7 +2077,7 @@ Generates a Habitat ring key
 **USAGE**
 
 ```
-hab ring key generate <RING>
+hab ring key generate <RING> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -1974,6 +2087,11 @@ hab ring key generate <RING>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to store generated keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 **ARGS**
 
@@ -1992,7 +2110,7 @@ Reads a stdin stream containing ring key contents and writes the key to disk
 **USAGE**
 
 ```
-hab ring key import
+hab ring key import --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -2002,6 +2120,11 @@ hab ring key import
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to store imported keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 
 
@@ -2253,6 +2376,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --bind <BIND>...                                   One or more service groups to bind to a configuration
     --binding-mode <BINDING_MODE> Governs how the presence or absence of binds affects service startup. strict blocks startup until all binds are present. [default: strict] [values: relaxed, strict]
 -u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+    --cache-key-path <CACHE_KEY_PATH> Path to search for encryption keys. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
     --ca-certs <CA_CERT_FILE> Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. This should contain PEM-format certificate that can be used to validate client requests.
     --certs <CERT_FILE> Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. This should contain PEM-format certificates in the right order (the first certificate should certify KEY_FILE, the last should be a root CA).
     --channel <CHANNEL> Receive Supervisor updates from the specified release channel [default: stable]
@@ -2504,7 +2628,7 @@ Generates a Habitat service key
 **USAGE**
 
 ```
-hab svc key generate <SERVICE_GROUP> [ORG]
+hab svc key generate <SERVICE_GROUP> --cache-key-path <CACHE_KEY_PATH> [ORG]
 ```
 
 **FLAGS**
@@ -2514,6 +2638,11 @@ hab svc key generate <SERVICE_GROUP> [ORG]
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to store generated keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 **ARGS**
 
@@ -2768,7 +2897,7 @@ Generates a Habitat user key
 **USAGE**
 
 ```
-hab user key generate <USER>
+hab user key generate <USER> --cache-key-path <CACHE_KEY_PATH>
 ```
 
 **FLAGS**
@@ -2778,6 +2907,11 @@ hab user key generate <USER>
 -V, --version    Prints version information
 ```
 
+**OPTIONS**
+
+```
+--cache-key-path <CACHE_KEY_PATH>    Path to store generated keys. Default value is hab/cache/keys if root and hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
+```
 
 **ARGS**
 
