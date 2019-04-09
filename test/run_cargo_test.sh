@@ -29,7 +29,7 @@ install_rust_toolchain "$toolchain"
 [ -z "${features:-}" ] && features_string="" || features_string="--features ${features}"
 
 component=${1?component argument required}
-cargo_test_command="cargo +${toolchain:-stable} test ${features_string} -- --nocapture ${test_options:-}"
+cargo_test_command="cargo +${toolchain} test ${features_string} -- --nocapture ${test_options:-}"
 
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
