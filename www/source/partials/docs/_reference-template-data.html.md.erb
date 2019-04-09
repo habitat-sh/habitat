@@ -6,7 +6,21 @@ These configuration settings are referenced using the [Handlebars.js](https://gi
 
 ## sys
 
+Describes the details of how this specific Supervisor was started
 
+| Property | Type | Description |
+| -------- | ---- | ----------- |
+| version | string | Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448` |
+| member_id | string | The member's Supervisor ID, e.g., `3d1e73ff19464a27aea3cdc5c2243f74` |
+| ip | string | The IP address of the running service. |
+| hostname | string | The hostname of the running service. Defaults to `localhost` |
+| gossip_ip | string | Listening address for Supervisor's gossip connection. |
+| gossip_port | integer | Listening port for Supervisor's gossip connection. |
+| http_gateway_ip | string | Listening address for Supervisor's HTTP gateway. |
+| http_gateway_port | integer | Listening port for Supervisor's HTTP gateway. |
+| ctl_gateway_ip | string | Listening address for Supervisor's Control Gateway. |
+| ctl_gateway_port | integer | Listening port for Supervisor's Control Gateway. |
+| permanent | boolean | Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability. |
 
 ## pkg
 
