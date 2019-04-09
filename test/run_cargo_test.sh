@@ -8,7 +8,7 @@ source ./support/ci/shared.sh
 
 while [[ $# -gt 1 ]]; do
   case $1 in
-    --nightly )             toolchain=$(get_current_toolchain)
+    --nightly )             toolchain=$(get_nightly_toolchain)
                             ;;
     -f | --features )       shift
                             features=$1
