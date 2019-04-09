@@ -10,17 +10,17 @@ Describes the details of how this specific Supervisor was started
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| version | string | Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448` |
-| member_id | string | The member's Supervisor ID, e.g., `3d1e73ff19464a27aea3cdc5c2243f74` |
-| ip | string | The IP address of the running service. |
-| hostname | string | The hostname of the running service. Defaults to `localhost` |
-| gossip_ip | string | Listening address for Supervisor's gossip connection. |
-| gossip_port | integer | Listening port for Supervisor's gossip connection. |
-| http_gateway_ip | string | Listening address for Supervisor's HTTP gateway. |
-| http_gateway_port | integer | Listening port for Supervisor's HTTP gateway. |
-| ctl_gateway_ip | string | Listening address for Supervisor's Control Gateway. |
-| ctl_gateway_port | integer | Listening port for Supervisor's Control Gateway. |
-| permanent | boolean | Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability. |
+| sys.version | string | Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448` |
+| sys.member_id | string | The member's Supervisor ID, e.g., `3d1e73ff19464a27aea3cdc5c2243f74` |
+| sys.ip | string | The IP address of the running service. |
+| sys.hostname | string | The hostname of the running service. Defaults to `localhost` |
+| sys.gossip_ip | string | Listening address for Supervisor's gossip connection. |
+| sys.gossip_port | integer | Listening port for Supervisor's gossip connection. |
+| sys.http_gateway_ip | string | Listening address for Supervisor's HTTP gateway. |
+| sys.http_gateway_port | integer | Listening port for Supervisor's HTTP gateway. |
+| sys.ctl_gateway_ip | string | Listening address for Supervisor's Control Gateway. |
+| sys.ctl_gateway_port | integer | Listening port for Supervisor's Control Gateway. |
+| sys.permanent | boolean | Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability. |
 
 ## pkg
 
@@ -28,26 +28,26 @@ Details about the package currently running the service
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| ident | string | The fully-qualified identifier of the running package, e.g., `core/redis/3.2.4/20170514150022` |
-| origin | string | The origin of the Habitat package |
-| name | string | The name of the Habitat package |
-| version | string | The version of the Habitat package |
-| release | string | The release of the Habitat package |
-| deps | array | An array of runtime dependencies for your package based on the `pkg_deps` setting in a plan |
-| env | object | The runtime environment of your package, mirroring the contents of the `RUNTIME_ENVIRONMENT` metadata file. The `PATH` variable is set, containing all dependencies of your package, as well as any other runtime environment variables that have been set by the package. Individual variables can be accessed directly, like `{{pkg.env.PATH}}` (the keys are case sensitive). |
-| exposes | array | The array of ports to expose for an application or service. This value is pulled from the pkg_exposes setting in a plan. |
-| exports | object | A map of export key to internal configuration value key (i.e., the contents of `pkg_exports` in your plan). The key is what external services consume. The value is a key in your `default.toml` file that corresponds to the data being exported. |
-| path | string | The location where the package is installed locally, e.g., `/hab/pkgs/core/redis/3.2.4/20170514150022`. Note that this is _not_ a `PATH` environment variable; for that, please see the `env` key above. |
-| svc_path | string | The root location of the source files for the Habitat service, e.g., `/hab/svc/redis`. |
-| svc_config_path | string | The location of any templated configuration files for the Habitat service, e.g., `/hab/svc/redis/config`. |
-| svc_data_path | string | The location of any data files for the Habitat service, e.g., `/hab/svc/redis/data`. |
-| svc_files_path | string | The location of any gossiped configuration files for the Habitat service, e.g., `/hab/svc/redis/files`. |
-| svc_static_path | string | The location of any static content for the Habitat service, e.g., `/hab/svc/redis/static`. |
-| svc_var_path | string | The location of any variable state data for the Habitat service, e.g., `/hab/svc/redis/var`. |
-| svc_pid_file | string | The location of the Habitat service pid file, e.g., `/hab/svc/redis/PID`. |
-| svc_run | string | The location of the rendered run hook for the Habitat service, e.g., `/hab/svc/redis/run`. |
-| svc_user | string | The value of `pkg_svc_user` specified in a plan. |
-| svc_group | string | The value of `pkg_svc_group` specified in a plan. |
+| pkg.ident | string | The fully-qualified identifier of the running package, e.g., `core/redis/3.2.4/20170514150022` |
+| pkg.origin | string | The origin of the Habitat package |
+| pkg.name | string | The name of the Habitat package |
+| pkg.version | string | The version of the Habitat package |
+| pkg.release | string | The release of the Habitat package |
+| pkg.deps | array | An array of runtime dependencies for your package based on the `pkg_deps` setting in a plan |
+| pkg.env | object | The runtime environment of your package, mirroring the contents of the `RUNTIME_ENVIRONMENT` metadata file. The `PATH` variable is set, containing all dependencies of your package, as well as any other runtime environment variables that have been set by the package. Individual variables can be accessed directly, like `{{pkg.env.PATH}}` (the keys are case sensitive). |
+| pkg.exposes | array | The array of ports to expose for an application or service. This value is pulled from the pkg_exposes setting in a plan. |
+| pkg.exports | object | A map of export key to internal configuration value key (i.e., the contents of `pkg_exports` in your plan). The key is what external services consume. The value is a key in your `default.toml` file that corresponds to the data being exported. |
+| pkg.path | string | The location where the package is installed locally, e.g., `/hab/pkgs/core/redis/3.2.4/20170514150022`. Note that this is _not_ a `PATH` environment variable; for that, please see the `env` key above. |
+| pkg.svc_path | string | The root location of the source files for the Habitat service, e.g., `/hab/svc/redis`. |
+| pkg.svc_config_path | string | The location of any templated configuration files for the Habitat service, e.g., `/hab/svc/redis/config`. |
+| pkg.svc_data_path | string | The location of any data files for the Habitat service, e.g., `/hab/svc/redis/data`. |
+| pkg.svc_files_path | string | The location of any gossiped configuration files for the Habitat service, e.g., `/hab/svc/redis/files`. |
+| pkg.svc_static_path | string | The location of any static content for the Habitat service, e.g., `/hab/svc/redis/static`. |
+| pkg.svc_var_path | string | The location of any variable state data for the Habitat service, e.g., `/hab/svc/redis/var`. |
+| pkg.svc_pid_file | string | The location of the Habitat service pid file, e.g., `/hab/svc/redis/PID`. |
+| pkg.svc_run | string | The location of the rendered run hook for the Habitat service, e.g., `/hab/svc/redis/run`. |
+| pkg.svc_user | string | The value of `pkg_svc_user` specified in a plan. |
+| pkg.svc_group | string | The value of `pkg_svc_group` specified in a plan. |
 
 ## cfg
 
@@ -59,73 +59,73 @@ Information about the current service's service group
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| service | string | The name of the service. If the service is running from the package `core/redis`, the value will be `redis`. |
-| group | string | The group portion of the service's complete group name. In the group name `redis.default`, the group's value is `default`. |
-| org | string | The organization portion of a service group specification. Unused at this time. |
-| election_is_running | boolean | Whether a leader election is currently running for this service |
-| election_is_no_quorum | boolean | Whether there is quorum for a leader election for this service |
-| election_is_finished | boolean | Whether a leader election for this service has finished |
-| update_election_is_running | boolean | Whether an update leader election is currently running for this service |
-| update_election_is_no_quorum | boolean | Whether there is quorum for an update leader election for this service |
-| update_election_is_finished | boolean | Whether an update leader election for this service has finished |
-| me | [svc_member](#svc_member) | An object that provides information about the service running on the local Supervisor |
-| first | [svc_member](#svc_member) | The first member of this service group, or the leader, if running in a leader topology |
-| members | array | All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members |
-| leader | [svc_member](#svc_member) | The current leader of the service group, if any (`null` otherwise) |
-| update_leader | [svc_member](#svc_member) | The current update_leader of the service group, if any (`null` otherwise) |
+| svc.service | string | The name of the service. If the service is running from the package `core/redis`, the value will be `redis`. |
+| svc.group | string | The group portion of the service's complete group name. In the group name `redis.default`, the group's value is `default`. |
+| svc.org | string | The organization portion of a service group specification. Unused at this time. |
+| svc.election_is_running | boolean | Whether a leader election is currently running for this service |
+| svc.election_is_no_quorum | boolean | Whether there is quorum for a leader election for this service |
+| svc.election_is_finished | boolean | Whether a leader election for this service has finished |
+| svc.update_election_is_running | boolean | Whether an update leader election is currently running for this service |
+| svc.update_election_is_no_quorum | boolean | Whether there is quorum for an update leader election for this service |
+| svc.update_election_is_finished | boolean | Whether an update leader election for this service has finished |
+| svc.me | [svc_member](#svc_member) | An object that provides information about the service running on the local Supervisor |
+| svc.first | [svc_member](#svc_member) | The first member of this service group, or the leader, if running in a leader topology |
+| svc.members | array | All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members |
+| svc.leader | [svc_member](#svc_member) | The current leader of the service group, if any (`null` otherwise) |
+| svc.update_leader | [svc_member](#svc_member) | The current update_leader of the service group, if any (`null` otherwise) |
 
 ## bind
 
-Exposes information about the service groups this service is bound to. Each key is the name of a bind, while each value is one of the objects described below
+Exposes information about the service groups this service is bound to. Expressed by referencing a bind as `bind.key.property`. E.g. `bind.elasticsearch.members`
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| first | [svc_member](#svc_member) | The first member of this service group. If the group is running in a leader topology, this will also be the leader. |
-| leader | [svc_member](#svc_member) | The current leader of this service group, if running in a leader topology |
-| members | array | All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members |
+| bind.key.first | [svc_member](#svc_member) | The first member of this service group. If the group is running in a leader topology, this will also be the leader. |
+| bind.key.leader | [svc_member](#svc_member) | The current leader of this service group, if running in a leader topology |
+| bind.key.members | array | All active members (`alive` and `suspect`) of the service group, across the entire ring. As of 0.56.0, does _not_ include `departed` or `confirmed` members |
 
 ## Reference Objects
 
-Some of the template expressions referenced above return objects of a specific shape; for example, the `svc.me` and `svc.first` expressions return "service member" objects, and the `pkg` property of a service member returns a "package identifier" object. These are defined below.
+Some of the template expressions referenced above return objects of a specific shape; for example, the `svc.me` and `svc.first` expressions return "service member" objects, and the `pkg` property of a service member returns a "package identifier" object.
 
 ### package_identifier
 
-A Habitat package identifier, split apart into its constituent components
+A Habitat package identifier, split apart into its constituent components. Expressed as `origin/name/version/release`. E.g. `core/redis/3.2.4/20170514150022`
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| origin | string | The origin of the Habitat package |
-| name | string | The name of the Habitat package |
+| origin | string | The origin of the Habitat package. |
+| name | string | The name of the Habitat package. |
 | version | string | The version of the Habitat package |
 | release | string | The release of the Habitat package |
 
 ### svc_member
 
-Represents a member of a service group
+Represents a member of a service group. Expressed by referencing a svc_member object. E.g. `svc.me.alive`
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| member_id | string | the member's Supervisor id, e.g., 3d1e73ff19464a27aea3cdc5c2243f74 |
-| alive | boolean | Whether this member is considered alive and connected to the ring, from a network perspective. |
-| suspect | boolean | Whether this member is considered "suspect", or possibly unreachable, from a network perspective. |
-| confirmed | boolean | Whether this member is confirmed dead / unreachable, from a network perspective. |
-| departed | boolean | Whether this member has been departed from the ring (i.e., permanently gone, never to return). |
-| election_is_running | boolean | Whether a leader election is currently running for this service |
-| election_is_no_quorum | boolean | Whether there is quorum for a leader election for this service |
-| election_is_finished | boolean | Whether a leader election for this service has finished |
-| update_election_is_running | boolean | Whether an update leader election is currently running for this service |
-| update_election_is_no_quorum | boolean | Whether there is quorum for an update leader election for this service |
-| update_election_is_finished | boolean | Whether an update leader election for this service has finished |
-| leader | boolean | Whether this member is the leader in the service group (only meaningful in a leader topology) |
-| follower | boolean | Whether this member is a follower in the service group (only meaningful in a leader topology) |
-| update_leader | boolean | Whether this member is the update leader in the service group (only meaningful in a leader topology) |
-| update_follower | boolean | Whether this member is an update follower in the service group (only meaningful in a leader topology) |
-| pkg | [package_identifier](#package_identifier) | The identifier of the release the member is running |
-| sys | object | An abbreviated version of the top-level {{sys}} object, containing networking information for the member. |
-| cfg | object | The configuration the member is currently exporting. This is constrained by what is defined in `pkg_exports`, where the values are replaced with the current values (e.g., taking into account things like user.toml, gossiped configuration values, etc.) |
-| persistent | boolean | A misspelling of `permanent`; indicates whether a member is a permanent peer or not |
-| service | string | The name of the service. If the service is running from the package `core/redis`, the value will be `redis`. |
-| group | string | The group portion of the service's complete group name. In the group name `redis.default`, the group's value is `default`. |
-| org | string | The organization portion of a service group specification. Unused at this time. |
-| application | string | The application portion of a service group specification. Unused at this time. |
-| environment | string | The environment portion of a service group specification. Unused at this time. |
+| svc_member.member_id | string | the member's Supervisor id, e.g., 3d1e73ff19464a27aea3cdc5c2243f74 |
+| svc_member.alive | boolean | Whether this member is considered alive and connected to the ring, from a network perspective. |
+| svc_member.suspect | boolean | Whether this member is considered "suspect", or possibly unreachable, from a network perspective. |
+| svc_member.confirmed | boolean | Whether this member is confirmed dead / unreachable, from a network perspective. |
+| svc_member.departed | boolean | Whether this member has been departed from the ring (i.e., permanently gone, never to return). |
+| svc_member.election_is_running | boolean | Whether a leader election is currently running for this service |
+| svc_member.election_is_no_quorum | boolean | Whether there is quorum for a leader election for this service |
+| svc_member.election_is_finished | boolean | Whether a leader election for this service has finished |
+| svc_member.update_election_is_running | boolean | Whether an update leader election is currently running for this service |
+| svc_member.update_election_is_no_quorum | boolean | Whether there is quorum for an update leader election for this service |
+| svc_member.update_election_is_finished | boolean | Whether an update leader election for this service has finished |
+| svc_member.leader | boolean | Whether this member is the leader in the service group (only meaningful in a leader topology) |
+| svc_member.follower | boolean | Whether this member is a follower in the service group (only meaningful in a leader topology) |
+| svc_member.update_leader | boolean | Whether this member is the update leader in the service group (only meaningful in a leader topology) |
+| svc_member.update_follower | boolean | Whether this member is an update follower in the service group (only meaningful in a leader topology) |
+| svc_member.pkg | [package_identifier](#package_identifier) | The identifier of the release the member is running |
+| svc_member.sys | object | An abbreviated version of the top-level {{sys}} object, containing networking information for the member. |
+| svc_member.cfg | object | The configuration the member is currently exporting. This is constrained by what is defined in `pkg_exports`, where the values are replaced with the current values (e.g., taking into account things like user.toml, gossiped configuration values, etc.) |
+| svc_member.persistent | boolean | A misspelling of `permanent`; indicates whether a member is a permanent peer or not |
+| svc_member.service | string | The name of the service. If the service is running from the package `core/redis`, the value will be `redis`. |
+| svc_member.group | string | The group portion of the service's complete group name. In the group name `redis.default`, the group's value is `default`. |
+| svc_member.org | string | The organization portion of a service group specification. Unused at this time. |
+| svc_member.application | string | The application portion of a service group specification. Unused at this time. |
+| svc_member.environment | string | The environment portion of a service group specification. Unused at this time. |
