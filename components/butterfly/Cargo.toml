@@ -48,5 +48,4 @@ tempfile = "*"
 [features]
 default = ["protocols"]
 protocols = []
-ignore_inconsistent_tests = []
 deadlock_detection = ["habitat_butterfly_test/deadlock_detection"]
