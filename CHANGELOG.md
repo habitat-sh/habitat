@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- add studio powershell directory to path on studio creation so it is propogated to supervisor [#6400](https://github.com/habitat-sh/habitat/pull/6400) ([mwrock](https://github.com/mwrock))
+
 #### Merged Pull Requests
 - Fix a boolean mistake that snuck in [#6397](https://github.com/habitat-sh/habitat/pull/6397) ([christophermaier](https://github.com/christophermaier))
 - Consolidate feature flag operations. [#6367](https://github.com/habitat-sh/habitat/pull/6367) ([christophermaier](https://github.com/christophermaier))
