@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Adds blog redirect at top-level and links to each post [#6225](https://github.com/habitat-sh/habitat/pull/6225) ([eeyun](https://github.com/eeyun))
 <!-- latest_release -->
  ## [0.79.0](https://github.com/habitat-sh/habitat/tree/0.79.0) (2019-04-01)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.78.0...0.79.0)
