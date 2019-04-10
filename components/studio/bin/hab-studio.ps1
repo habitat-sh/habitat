@@ -243,6 +243,7 @@ function New-Studio {
   }
 
   $pathArray = @(
+    "$PSScriptRoot\powershell",
     "$PSScriptRoot\hab",
     "$PSScriptRoot\7zip",
     "$PSScriptRoot",
