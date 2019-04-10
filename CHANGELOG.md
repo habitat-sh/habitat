@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Consolidate feature flag operations. [#6367](https://github.com/habitat-sh/habitat/pull/6367) ([christophermaier](https://github.com/christophermaier))
 - Adds blog redirect at top-level and links to each post [#6225](https://github.com/habitat-sh/habitat/pull/6225) ([eeyun](https://github.com/eeyun))
 <!-- latest_release -->
  ## [0.79.0](https://github.com/habitat-sh/habitat/tree/0.79.0) (2019-04-01)
