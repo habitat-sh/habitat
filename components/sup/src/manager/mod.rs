@@ -825,7 +825,7 @@ impl Manager {
             if self.check_for_departure() {
                 break ShutdownMode::Departed;
             }
-            if self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
+            if !self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
                 if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal() {
                     outputln!("Supervisor shutting down for signal");
                     break ShutdownMode::Restarting;
