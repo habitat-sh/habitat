@@ -271,23 +271,22 @@ impl Server {
             return Ok(TickState::Exit(0));
         }
 
-        if cfg!(unix) {
-            match signals::check_for_signal() {
-                Some(SignalEvent::WaitForChild) => {
-                    // We only return Some if we ended up reaping our
-                    // Supervisor; otherwise, we don't need to do anything
-                    // special. If the supervisor exits but reap_zombie_orphans()
-                    // doesn't catch the signal (such as on Windows), we will still
-                    // handle that properly in handle_message().
-                    if let Some(result) = self.reap_zombie_orphans() {
-                        return result;
-                    }
+        #[cfg(unix)]
+        match signals::check_for_signal() {
+            Some(SignalEvent::WaitForChild) => {
+                // We only return Some if we ended up reaping our
+                // Supervisor; otherwise, we don't need to do anything
+                // special. If the supervisor exits but reap_zombie_orphans()
+                // doesn't catch the signal (such as on Windows), we will still
+                // handle that properly in handle_message().
+                if let Some(result) = self.reap_zombie_orphans() {
+                    return result;
                 }
-                Some(SignalEvent::Passthrough(signal)) => {
-                    self.forward_signal(signal);
-                }
-                None => {}
             }
+            Some(SignalEvent::Passthrough(signal)) => {
+                self.forward_signal(signal);
+            }
+            None => {}
         }
 
         self.handle_message()
