@@ -14,7 +14,6 @@
 
 use crate::{error::{Result,
                     SupError},
-            feat,
             manager::{self,
                       service::{HealthCheck,
                                 HealthCheckHook}}};
@@ -35,7 +34,8 @@ use actix_web::{http::{self,
 use habitat_common::{cli::{LISTEN_HTTP_ADDRESS_ENVVAR,
                            LISTEN_HTTP_DEFAULT_IP,
                            LISTEN_HTTP_DEFAULT_PORT},
-                     templating::hooks};
+                     templating::hooks,
+                     FeatureFlag};
 use habitat_core::{crypto,
                    env as henv,
                    env::Config as EnvConfig,
@@ -157,12 +157,14 @@ impl Into<StatusCode> for HealthCheck {
 struct AppState {
     gateway_state: Arc<RwLock<manager::GatewayState>>,
     timer:         Cell<Option<HistogramTimer>>,
+    feature_flags: FeatureFlag,
 }
 
 impl AppState {
-    fn new(gs: Arc<RwLock<manager::GatewayState>>) -> Self {
+    fn new(gs: Arc<RwLock<manager::GatewayState>>, feature_flags: FeatureFlag) -> Self {
         AppState { gateway_state: gs,
-                   timer:         Cell::new(None), }
+                   timer: Cell::new(None),
+                   feature_flags }
     }
 }
 
@@ -254,6 +256,7 @@ impl Server {
     pub fn run(listen_addr: ListenAddr,
                tls_config: Option<ServerConfig>,
                gateway_state: Arc<RwLock<manager::GatewayState>>,
+               feature_flags: FeatureFlag,
                control: Arc<(Mutex<ServerStartup>, Condvar)>) {
         thread::spawn(move || {
             let &(ref lock, ref cvar) = &*control;
@@ -269,7 +272,8 @@ impl Server {
             };
 
             let mut server = server::new(move || {
-                                 let app_state = AppState::new(gateway_state.clone());
+                                 let app_state =
+                                     AppState::new(gateway_state.clone(), feature_flags);
                                  App::with_state(app_state).middleware(Authentication)
                                                            .middleware(Metrics)
                                                            .configure(routes)
@@ -284,7 +288,7 @@ impl Server {
             // shut down services. ctrl+c should simply halt the supervisor. The IgnoreSignals
             // feature is always enabled in the Habitat Windows Service which relies on ctrl+c
             // signals to stop the supervisor.
-            if feat::is_enabled(feat::IgnoreSignals) {
+            if feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
                 server = server.disable_signals();
             }
 
@@ -312,8 +316,10 @@ impl Server {
 
 struct RedactHTTP;
 
-impl<S: 'static> Predicate<S> for RedactHTTP {
-    fn check(&self, _req: &Request, _state: &S) -> bool { !feat::is_enabled(feat::RedactHTTP) }
+impl Predicate<AppState> for RedactHTTP {
+    fn check(&self, _req: &Request, state: &AppState) -> bool {
+        !state.feature_flags.contains(FeatureFlag::REDACT_HTTP)
+    }
 }
 
 fn routes(app: App<AppState>) -> App<AppState> {

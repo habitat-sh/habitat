@@ -8,6 +8,7 @@ workspace = "../../"
 
 [dependencies]
 bimap = "*"
+bitflags = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 glob = "*"
 # The handlebars crate has a few issues that require us to lock at 0.28.3

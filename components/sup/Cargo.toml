@@ -25,12 +25,10 @@ bytes = "*"
 # This is temporary, until this is merged to the mainline
 nitox = { git = "https://github.com/YellowInnovation/nitox", branch="feature/nats-server" }
 actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
-bitflags = "*"
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
 env_logger = "*"
-features = "*"
 futures = "*"
 glob = "*"
 hab = { path = "../hab" }
