@@ -55,7 +55,6 @@ fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
 }
 
 #[test]
-#[cfg_attr(feature = "ignore_inconsistent_tests", ignore)]
 fn six_members_meshed_partition_half_of_nodes_from_each_other_both_sides_confirmed() {
     let mut net = btest::SwimNet::new(6);
     net.mesh();
