@@ -769,6 +769,7 @@ mod test {
                       svc_group: "my_group".to_string(), }
         }
 
+        #[cfg(not(windows))]
         pub fn add_bin(&mut self, bin: &str) -> &mut FakePkg {
             self.bins.push(bin.to_string());
             self
@@ -914,6 +915,7 @@ mod test {
             (ui, stdout_buf, stderr_buf)
         }
 
+        #[cfg(not(windows))]
         fn base_pkgs<P: AsRef<Path>>(rootfs: P) -> BasePkgIdents {
             BasePkgIdents { hab:      fake_hab_install(&rootfs),
                             sup:      fake_sup_install(&rootfs),
@@ -922,27 +924,32 @@ mod test {
                             cacerts:  fake_cacerts_install(&rootfs), }
         }
 
+        #[cfg(not(windows))]
         fn fake_hab_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
             FakePkg::new("acme/hab", rootfs.as_ref()).add_bin("hab")
                                                      .install()
         }
 
+        #[cfg(not(windows))]
         fn fake_sup_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
             FakePkg::new("acme/hab-sup", rootfs.as_ref()).add_bin("hab-sup")
                                                          .install()
         }
 
+        #[cfg(not(windows))]
         fn fake_launcher_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
             FakePkg::new("acme/hab-launcher", rootfs.as_ref()).add_bin("hab-launch")
                                                               .install()
         }
 
+        #[cfg(not(windows))]
         fn fake_busybox_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
             FakePkg::new("acme/busybox", rootfs.as_ref()).add_bin("busybox")
                                                          .add_bin("sh")
                                                          .install()
         }
 
+        #[cfg(not(windows))]
         fn fake_cacerts_install<P: AsRef<Path>>(rootfs: P) -> PackageIdent {
             let ident = FakePkg::new("acme/cacerts", rootfs.as_ref()).install();
 

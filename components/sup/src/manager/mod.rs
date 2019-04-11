@@ -408,6 +408,7 @@ impl Manager {
 
     pub fn term(proc_lock_file: &Path) -> Result<()> {
         match read_process_lock(proc_lock_file) {
+            #[cfg_attr(windows, allow(unused_variables))]
             Ok(pid) => {
                 // TODO (CM): this only ever worked on Linux! It's a no-op
                 // on Windows! See

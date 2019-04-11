@@ -36,9 +36,11 @@ impl ManifestJson {
         let binds = manifest.binds.iter().map(to_json).collect::<Vec<_>>();
         let environment = manifest.environment
                                   .iter()
-                                  .map(|e| e.to_json())
+                                  .map(crate::env::EnvironmentVariable::to_json)
                                   .collect::<Vec<_>>();
-        let persistent_storage = manifest.persistent_storage.as_ref().map(|s| s.to_json());
+        let persistent_storage = manifest.persistent_storage
+                                         .as_ref()
+                                         .map(crate::storage::PersistentStorage::to_json);
 
         ManifestJson { value: json!({
                            "metadata_name": manifest.metadata_name,

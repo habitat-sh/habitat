@@ -49,7 +49,7 @@ impl ChartFile {
                           .to_string();
         let pkg_version = pkg_ident.version.as_ref();
         let version = matches.value_of("VERSION")
-                             .or_else(|| pkg_version.map(|s| s.as_ref()))
+                             .or_else(|| pkg_version.map(String::as_ref))
                              .unwrap_or(DEFAULT_VERSION)
                              .to_owned();
         let app_version = pkg_version.map(|v| {
@@ -58,15 +58,15 @@ impl ChartFile {
                                                   .map(|r| format!("{}-{}", v, r))
                                                   .unwrap_or_else(|| v.to_string())
                                      });
-        let description = matches.value_of("DESCRIPTION").map(|s| s.to_owned());
-        let home = matches.value_of("HOME").map(|s| s.to_owned());
-        let icon = matches.value_of("ICON").map(|s| s.to_owned());
+        let description = matches.value_of("DESCRIPTION").map(str::to_owned);
+        let home = matches.value_of("HOME").map(str::to_owned);
+        let icon = matches.value_of("ICON").map(str::to_owned);
         let deprecated = matches.is_present("DEPRECATED");
         let keywords = matches.values_of("KEYWORD")
-                              .map(|args| args.map(|k| k.to_owned()).collect())
+                              .map(|args| args.map(str::to_owned).collect())
                               .unwrap_or_default();
         let sources = matches.values_of("SOURCE")
-                             .map(|args| args.map(|k| k.to_owned()).collect())
+                             .map(|args| args.map(str::to_owned).collect())
                              .unwrap_or_default();
         let maintainers = Maintainer::from_args(&matches)?;
 
