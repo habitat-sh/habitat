@@ -45,6 +45,5 @@ else
   sudo -E addgroup --system hab || true
 fi
 
-sudo sh /tmp/install.sh
+sudo "$(dirname -- "$0")/../../components/hab/install.sh"
 sudo hab install core/busybox-static core/hab-studio
-sudo rm -rf /tmp/install.sh

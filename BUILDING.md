@@ -21,7 +21,6 @@ cd habitat
 Then, run the system preparation scripts
 
 ```
-cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_latest.sh
 sh support/linux/install_dev_9_linux.sh
 ```
@@ -58,6 +57,13 @@ The binaries will be in `habitat/target/debug` and can be run directly, or you c
 cd components/sup
 cargo run -- --help
 cargo run -- status
+```
+
+Or from the habitat directory:
+
+```
+cargo run -p hab plan --help
+cargo run -p hab sup --help
 ```
 
 ## Compiling launcher
@@ -248,7 +254,6 @@ cd habitat
 Then, run the system preparation scripts and try to compile the project:
 
 ```
-cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_ubuntu_14.04.sh
 sh support/linux/install_dev_9_linux.sh
 . ~/.profile
@@ -278,7 +283,6 @@ cd habitat
 Then, run the system preparation scripts and try to compile the project:
 
 ```
-cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_centos_7.sh
 sh support/linux/install_dev_9_linux.sh
 . ~/.profile
@@ -314,7 +318,6 @@ cd habitat
 Then, run the system preparation scripts and try to compile the project:
 
 ```
-cp components/hab/install.sh /tmp/
 sh support/linux/install_dev_0_arch.sh
 sh support/linux/install_dev_9_linux.sh
 . ~/.profile
