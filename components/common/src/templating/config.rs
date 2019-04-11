@@ -562,7 +562,7 @@ fn load_templates(dir: &Path,
                   context: &Path,
                   mut template: TemplateRenderer)
                   -> Result<TemplateRenderer> {
-    for entry in std::fs::read_dir(dir)?.filter_map(|entry| entry.ok()) {
+    for entry in std::fs::read_dir(dir)?.filter_map(result::Result::ok) {
         // We're storing the pathname relative to the input config directory
         // as the identifier for the template
         let relative_path = context.join(&entry.file_name());
@@ -809,14 +809,10 @@ mod test {
             "#,
         );
 
-        match toml_merge(&mut me, &other) {
-            Err(e) => {
-                match e {
-                    Error::TomlMergeError(_) => assert!(true),
-                    _ => panic!("Should fail with Error::TomlMergeError"),
-                }
-            }
-            Ok(_) => panic!("Should not complete successfully"),
+        if let Err(Error::TomlMergeError(_)) = toml_merge(&mut me, &other) {
+            // expected result
+        } else {
+            panic!("Should fail with Error::TomlMergeError");
         }
     }
 

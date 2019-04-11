@@ -217,14 +217,14 @@ impl SwimNet {
 
     pub fn max_gossip_rounds(&self) -> isize { 5 }
 
-    pub fn rounds(&self) -> Vec<isize> { self.members.iter().map(|m| m.swim_rounds()).collect() }
+    pub fn rounds(&self) -> Vec<isize> { self.members.iter().map(Server::swim_rounds).collect() }
 
     pub fn rounds_in(&self, count: isize) -> Vec<isize> {
         self.rounds().iter().map(|r| r + count).collect()
     }
 
     pub fn gossip_rounds(&self) -> Vec<isize> {
-        self.members.iter().map(|m| m.gossip_rounds()).collect()
+        self.members.iter().map(Server::gossip_rounds).collect()
     }
 
     pub fn gossip_rounds_in(&self, count: isize) -> Vec<isize> {

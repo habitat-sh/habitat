@@ -265,7 +265,7 @@ impl ServiceSpec {
         // binds. In this case, return an `Err`.
         if !svc_binds.is_empty() {
             return Err(sup_error!(Error::InvalidBinds(svc_binds.into_iter()
-                                                               .map(|b| b.to_string())
+                                                               .map(str::to_string)
                                                                .collect())));
         }
 

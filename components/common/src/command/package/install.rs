@@ -686,7 +686,7 @@ impl<'a> InstallTask<'a> {
         } else if retry(RETRIES,
                         RETRY_WAIT,
                         || self.fetch_artifact(ui, (ident, target), token),
-                        |res| res.is_ok()).is_err()
+                        Result::is_ok).is_err()
         {
             return Err(Error::DownloadFailed(format!("We tried {} times but \
                                                       could not download {}. \

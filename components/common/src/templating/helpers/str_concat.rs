@@ -26,7 +26,7 @@ impl HelperDef for StrConcatHelper {
     fn call(&self, h: &Helper<'_>, _: &Handlebars, rc: &mut RenderContext<'_>) -> RenderResult<()> {
         let list: Vec<String> = h.params()
                                  .iter()
-                                 .map(|v| v.value())
+                                 .map(handlebars::ContextJson::value)
                                  .filter(|v| !v.is_object())
                                  .map(|v| v.to_string().replace("\"", ""))
                                  .collect();

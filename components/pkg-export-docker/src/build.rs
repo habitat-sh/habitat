@@ -507,7 +507,7 @@ impl BuildRootContext {
                                          }
                                      })
         {
-            let pkg_exposes_vec: Vec<&str> = svc.exposes.iter().map(|e| e.as_ref()).collect();
+            let pkg_exposes_vec: Vec<&str> = svc.exposes.iter().map(String::as_ref).collect();
             exposes.extend_from_slice(&pkg_exposes_vec);
         }
         exposes

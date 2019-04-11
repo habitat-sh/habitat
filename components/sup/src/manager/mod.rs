@@ -102,6 +102,7 @@ use serde_json;
 use std::{self,
           collections::{HashMap,
                         HashSet},
+          ffi::OsStr,
           fs::{self,
                File,
                OpenOptions},
@@ -555,7 +556,7 @@ impl Manager {
             Ok(entries) => {
                 for entry in entries {
                     if let Ok(entry) = entry {
-                        match entry.path().extension().and_then(|p| p.to_str()) {
+                        match entry.path().extension().and_then(OsStr::to_str) {
                             Some("tmp") | Some("health") => {
                                 fs::remove_file(&entry.path()).map_err(|err| {
                                     sup_error!(Error::BadDataPath(data_path.clone(), err))
@@ -1554,7 +1555,7 @@ impl Suitability for SuitabilityLookup {
             .expect("Services lock is poisoned!")
             .values()
             .find(|s| *s.service_group == service_group)
-            .and_then(|s| s.suitability())
+            .and_then(Service::suitability)
             .unwrap_or(u64::min_value())
     }
 }

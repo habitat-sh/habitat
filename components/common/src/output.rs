@@ -42,8 +42,7 @@ use std::{fmt,
                Write},
           result,
           sync::{atomic::{AtomicBool,
-                          Ordering,
-                          ATOMIC_BOOL_INIT},
+                          Ordering},
                  Mutex}};
 use termcolor::{BufferWriter,
                 Color,
@@ -51,7 +50,7 @@ use termcolor::{BufferWriter,
                 ColorSpec,
                 WriteColor};
 
-static VERBOSITY: AtomicBool = ATOMIC_BOOL_INIT;
+static VERBOSITY: AtomicBool = AtomicBool::new(false);
 
 lazy_static! {
     static ref FORMAT: Mutex<OutputFormat> = Mutex::new(OutputFormat::Color(ColorSpec::default()));

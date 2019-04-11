@@ -19,6 +19,7 @@ use habitat_core as hcore;
 use lazy_static::lazy_static;
 use std::{collections::HashMap,
           env,
+          ffi::OsStr,
           iter::FromIterator};
 
 extern crate json;
@@ -51,7 +52,7 @@ pub mod util;
 lazy_static::lazy_static! {
     pub static ref PROGRAM_NAME: String = {
         match env::current_exe() {
-            Ok(path) => path.file_stem().and_then(|p| p.to_str()).unwrap().to_string(),
+            Ok(path) => path.file_stem().and_then(OsStr::to_str).unwrap().to_string(),
             Err(e) => {
                 error!("Error getting path of current_exe: {}", e);
                 String::from("hab-?")

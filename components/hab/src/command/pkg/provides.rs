@@ -12,14 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{collections::HashSet,
-          path::Path};
-
-use walkdir::WalkDir;
-
 use crate::{error::{Error,
                     Result},
             hcore::fs::PKG_PATH};
+use std::{collections::HashSet,
+          ffi::OsStr,
+          path::Path};
+use walkdir::WalkDir;
 
 pub fn start(filename: &str,
              fs_root_path: &Path,
@@ -36,8 +35,10 @@ pub fn start(filename: &str,
     let mut found_any = false;
 
     // recursively walk the directories in pkg_root looking for matches
-    for entry in WalkDir::new(pkg_root).into_iter().filter_map(|e| e.ok()) {
-        if let Some(f) = entry.path().file_name().and_then(|f| f.to_str()) {
+    for entry in WalkDir::new(pkg_root).into_iter()
+                                       .filter_map(std::result::Result::ok)
+    {
+        if let Some(f) = entry.path().file_name().and_then(OsStr::to_str) {
             if filename == f {
                 found_any = true;
                 let mut comps = entry.path().components();
