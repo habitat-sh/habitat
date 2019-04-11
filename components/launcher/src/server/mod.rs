@@ -17,11 +17,8 @@ mod handlers;
 use crate::{core::{self,
                    fs::{launcher_root_path,
                         FS_ROOT_PATH},
-                   os::{process::{self,
-                                  Pid,
-                                  Signal},
-                        signals::{self,
-                                  SignalEvent}},
+                   os::{process,
+                        signals},
                    package::{PackageIdent,
                              PackageInstall}},
             error::{Error,
@@ -34,6 +31,10 @@ use crate::{core::{self,
             SUP_CMD,
             SUP_PACKAGE_IDENT};
 use habitat_common::outputln;
+#[cfg(unix)]
+use habitat_core::os::{process::{Pid,
+                                 Signal},
+                       signals::SignalEvent};
 use ipc_channel::ipc::{IpcOneShotServer,
                        IpcReceiver,
                        IpcSender};
@@ -41,10 +42,6 @@ use ipc_channel::ipc::{IpcOneShotServer,
 use libc;
 use semver::{Version,
              VersionReq};
-#[cfg(unix)]
-use std::os::unix::process::ExitStatusExt;
-#[cfg(unix)]
-use std::process::ExitStatus;
 use std::{collections::HashMap,
           fs,
           io::Write,
@@ -58,6 +55,9 @@ use std::{collections::HashMap,
                  Mutex},
           thread,
           time::Duration};
+#[cfg(unix)]
+use std::{os::unix::process::ExitStatusExt,
+          process::ExitStatus};
 
 const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
@@ -151,6 +151,8 @@ impl Server {
         Ok(())
     }
 
+    // Signals aren't a thing on Windows
+    #[cfg(unix)]
     fn forward_signal(&self, signal: Signal) {
         if let Err(err) = core::os::process::signal(self.supervisor.id() as Pid, signal) {
             error!("Unable to signal Supervisor, {}, {}",
@@ -263,11 +265,14 @@ impl Server {
         // be done in a way that the basic functionality of process
         // tracking still works on Windows.
         self.reap_services();
+
+        if signals::check_for_shutdown() {
+            self.shutdown();
+            return Ok(TickState::Exit(0));
+        }
+
+        #[cfg(unix)]
         match signals::check_for_signal() {
-            Some(SignalEvent::Shutdown) => {
-                self.shutdown();
-                return Ok(TickState::Exit(0));
-            }
             Some(SignalEvent::WaitForChild) => {
                 // We only return Some if we ended up reaping our
                 // Supervisor; otherwise, we don't need to do anything
@@ -281,8 +286,9 @@ impl Server {
             Some(SignalEvent::Passthrough(signal)) => {
                 self.forward_signal(signal);
             }
-            None => (),
+            None => {}
         }
+
         self.handle_message()
     }
 
@@ -372,12 +378,6 @@ impl Server {
             None
         }
     }
-
-    /// Windows doesn't have the same orphan-reaping behavior as Linux;
-    /// returning `None` means that there's nothing special that needs
-    /// to be done.
-    #[cfg(windows)]
-    fn reap_zombie_orphans(&mut self) -> Option<Result<TickState>> { None }
 }
 
 #[derive(Debug, Default)]

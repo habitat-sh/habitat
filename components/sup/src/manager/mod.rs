@@ -67,15 +67,16 @@ use habitat_butterfly::{member::Member,
 use habitat_common::{outputln,
                      types::ListenCtlAddr,
                      FeatureFlag};
+#[cfg(unix)]
+use habitat_core::os::{process::Signal,
+                       signals::SignalEvent};
 use habitat_core::{crypto::SymKey,
                    env::{self,
                          Config},
                    fs::FS_ROOT_PATH,
                    os::{process::{self,
-                                  Pid,
-                                  Signal},
-                        signals::{self,
-                                  SignalEvent}},
+                                  Pid},
+                        signals},
                    package::{Identifiable,
                              PackageIdent,
                              PackageInstall},
@@ -407,6 +408,10 @@ impl Manager {
     pub fn term(proc_lock_file: &Path) -> Result<()> {
         match read_process_lock(proc_lock_file) {
             Ok(pid) => {
+                // TODO (CM): this only ever worked on Linux! It's a no-op
+                // on Windows! See
+                // https://github.com/habitat-sh/habitat/issues/4945
+                #[cfg(target_os = "linux")]
                 process::signal(pid, Signal::TERM).map_err(|_| sup_error!(Error::SignalFailed))?;
                 Ok(())
             }
@@ -825,11 +830,20 @@ impl Manager {
             if self.check_for_departure() {
                 break ShutdownMode::Departed;
             }
-            if !self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
-                if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal() {
-                    outputln!("Supervisor shutting down for signal");
-                    break ShutdownMode::Restarting;
+
+            // This formulation is gross, but it doesn't seem to compile on Windows otherwise.
+            #[allow(clippy::match_bool)]
+            #[allow(clippy::single_match)]
+            #[cfg(unix)]
+            match self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
+                false => {
+                    if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal()
+                    {
+                        outputln!("Supervisor shutting down for signal");
+                        break ShutdownMode::Restarting;
+                    }
                 }
+                _ => {}
             }
 
             if let Some(package) = self.check_for_updated_supervisor() {
