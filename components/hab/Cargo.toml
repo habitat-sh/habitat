@@ -38,6 +38,7 @@ walkdir = "*"
 tar = "*"
 flate2 = "*"
 chrono = "*"
+atty = "*"
 
 [dependencies.clap]
 version = "*"
