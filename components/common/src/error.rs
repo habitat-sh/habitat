@@ -41,6 +41,7 @@ pub enum Error {
     IO(io::Error),
     /// Errors when joining paths :)
     JoinPathsError(env::JoinPathsError),
+    MissingCLIInputError(String),
     NetParseError(net::AddrParseError),
     OfflineArtifactNotFound(PackageIdent),
     OfflineOriginKeyNotFound(String),
@@ -105,6 +106,9 @@ impl fmt::Display for Error {
                         s)
             }
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::MissingCLIInputError(ref arg) => {
+                format!("Missing required CLI argument!: {}", arg)
+            }
             Error::InstallHookFailed(ref ident) => {
                 format!("Install hook exited unsuccessfully: {}", ident)
             }
@@ -179,6 +183,7 @@ impl error::Error for Error {
             Error::InvalidInstallHookMode(_) => "Invalid InstallHookMode",
             Error::IO(ref err) => err.description(),
             Error::JoinPathsError(ref err) => err.description(),
+            Error::MissingCLIInputError(_) => "Missing required CLI argument!",
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::OfflineArtifactNotFound(_) => "Cached artifact not found in offline mode",
             Error::OfflineOriginKeyNotFound(_) => "Cached origin key not found in offline mode",
