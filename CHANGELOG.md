@@ -1,7 +1,13 @@
 # Habitat CHANGELOG
 
 <!-- latest_release unreleased -->
+## Unreleased
+
+#### Merged Pull Requests
+- Fix error runining install.sh/Dockerfile [#6113](https://github.com/habitat-sh/habitat/pull/6113) ([qubitrenegade](https://github.com/qubitrenegade))
 <!-- latest_release -->
+
+
  ## [0.79.1](https://github.com/habitat-sh/habitat/tree/0.79.1) (2019-04-10)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.79.0...0.79.1)
 
