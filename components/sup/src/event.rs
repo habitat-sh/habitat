@@ -35,14 +35,14 @@ use self::types::{EventMessage,
 use crate::{error::Result,
             manager::{service::{HealthCheck,
                                 Service},
-                      sys::Sys},
-            AutomateAuthToken};
+                      sys::Sys}};
 use clap::ArgMatches;
 use futures::{sync::{mpsc as futures_mpsc,
                      mpsc::UnboundedSender},
               Future,
               Stream};
-use habitat_common::types::EventStreamMetadata;
+use habitat_common::types::{AutomateAuthToken,
+                            EventStreamMetadata};
 use nitox::{commands::ConnectCommand,
             streaming::client::NatsStreamingClient,
             NatsClient,

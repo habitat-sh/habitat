@@ -93,50 +93,8 @@ mod sys;
 #[cfg(test)]
 pub mod test_helpers;
 pub mod util;
-use std::{env::{self,
-                VarError},
-          fmt,
-          str::FromStr};
+
+use std::env;
 
 pub const PRODUCT: &str = "hab-sup";
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
-
-/// This represents an environment variable that holds an authentication token which enables
-/// integration with Automate. Supervisors use this token to connect to the messaging server
-/// on the Automate side in order to send data about the services they're running via event
-/// messages. If the environment variable is present, its value is the auth token. If it's not
-/// present and the feature flag for the Event Stream is enabled, initialization of the Event
-/// Stream will fail.
-#[derive(Clone, Debug)]
-pub struct AutomateAuthToken(String);
-
-impl AutomateAuthToken {
-    // Ideally, we'd like to take advantage of
-    // `habitat_core::env::Config` trait, but that currently requires
-    // a `Default` implementation, and there isn't really a legitimate
-    // default value right now.
-    const ENVVAR: &'static str = "HAB_AUTOMATE_AUTH_TOKEN";
-}
-
-impl AutomateAuthToken {
-    // TODO: @gcp make a real error type for the case where's there no auth token value
-    // refactor: to_string_lossy doesn't return an error if it can't convert the OsString
-    fn from_env() -> Result<AutomateAuthToken, VarError> {
-        // unwrap won't fail; any error would arise from env::var()? (from_str currently doesn't
-        // return an error) we probably won't keep unwrap long-term
-        println!("getting automate auth token from env...");
-        Ok(env::var(AutomateAuthToken::ENVVAR)?.parse().unwrap())
-    }
-}
-
-impl FromStr for AutomateAuthToken {
-    type Err = ();
-
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        Ok(AutomateAuthToken(s.to_string()))
-    }
-}
-
-impl fmt::Display for AutomateAuthToken {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
-}
