@@ -54,7 +54,6 @@ use crate::{census::{CensusRing,
                     Result,
                     SupError},
             event::{self,
-                    EventConnectionInfo,
                     EventCore,
                     EventStreamConfig},
             http_gateway,
@@ -70,8 +69,7 @@ use habitat_butterfly::{member::Member,
                                  Suitability},
                         trace::Trace};
 use habitat_common::{outputln,
-                     types::{AutomateAuthToken,
-                             ListenCtlAddr},
+                     types::ListenCtlAddr,
                      FeatureFlag};
 use habitat_core::{crypto::SymKey,
                    env::{self,
@@ -496,11 +494,10 @@ impl Manager {
             let es_config =
                 cfg.event_stream_config
                    .expect("Config should be present if the EventStream feature is enabled");
-            let ec = EventCore::new(es_config, &sys);
+            let ec = EventCore::new(&es_config, &sys);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
-            event::init_stream(EventConnectionInfo::new(AutomateAuthToken::from_env().unwrap()),
-                               ec);
+            event::init_stream(es_config, ec);
         }
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,

@@ -109,6 +109,8 @@ impl EventStreamMetadata {
 pub struct AutomateAuthToken(String);
 
 impl AutomateAuthToken {
+    /// The name of the Clap argument we'll use for arguments of this type.
+    pub const ARG_NAME: &'static str = "EVENT_STREAM_TOKEN";
     // Ideally, we'd like to take advantage of
     // `habitat_core::env::Config` trait, but that currently requires
     // a `Default` implementation, and there isn't really a legitimate
@@ -124,6 +126,24 @@ impl AutomateAuthToken {
         // return an error) we probably won't keep unwrap long-term
         println!("getting automate auth token from env...");
         Ok(env::var(AutomateAuthToken::ENVVAR)?.parse().unwrap())
+    }
+
+    /// Ensure that user input from Clap can be converted an instance
+    /// of a token.
+    #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+    pub fn validate(value: String) -> result::Result<(), String> {
+        value.parse::<Self>()
+             .map(|_| ())
+             .map_err(|_| "This should be impossible".to_string())
+    }
+
+    /// Create an instance of `AutomateAuthToken` from validated
+    /// user input.
+    pub fn from_matches(m: &ArgMatches) -> result::Result<Self, Error> {
+        m.value_of(Self::ARG_NAME)
+         // This should be a required argument
+         .ok_or_else(|| Error::MissingCLIInputError(Self::ARG_NAME.to_string()))?
+         .parse()
     }
 }
 

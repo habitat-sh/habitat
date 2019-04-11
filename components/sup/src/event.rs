@@ -71,9 +71,9 @@ lazy_static! {
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
-pub fn init_stream(conn_info: EventConnectionInfo, event_core: EventCore) {
+pub fn init_stream(config: EventStreamConfig, event_core: EventCore) {
     INIT.call_once(|| {
-            println!("automate auth token is {}", conn_info.auth_token);
+            let conn_info = EventConnectionInfo::new(config.token);
             let event_stream = init_nats_stream(conn_info).expect("Could not start NATS thread");
             EVENT_STREAM.set(event_stream);
             EVENT_CORE.set(event_core);
@@ -87,6 +87,7 @@ pub struct EventStreamConfig {
     environment: String,
     application: String,
     meta:        EventStreamMetadata,
+    token:       AutomateAuthToken,
 }
 
 impl EventStreamConfig {
@@ -98,7 +99,8 @@ impl EventStreamConfig {
                                application: m.value_of("EVENT_STREAM_APPLICATION")
                                              .map(str::to_string)
                                              .expect("Required option for EventStream feature"),
-                               meta:        EventStreamMetadata::from_matches(m)?, })
+                               meta:        EventStreamMetadata::from_matches(m)?,
+                               token:       AutomateAuthToken::from_matches(m)?, })
     }
 }
 
@@ -146,12 +148,12 @@ pub struct EventCore {
 }
 
 impl EventCore {
-    pub fn new(config: EventStreamConfig, sys: &Sys) -> Self {
+    pub fn new(config: &EventStreamConfig, sys: &Sys) -> Self {
         EventCore { supervisor_id: sys.member_id.clone(),
                     ip_address:    sys.gossip_listen(),
-                    environment:   config.environment,
-                    application:   config.application,
-                    meta:          config.meta, }
+                    environment:   config.environment.clone(),
+                    application:   config.application.clone(),
+                    meta:          config.meta.clone(), }
     }
 }
 
