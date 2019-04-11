@@ -1,4 +1,5 @@
 build: clean
+	gem install bundler
 	bundle install
 	bundle exec middleman build --no-parallel
 .PHONY: build
