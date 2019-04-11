@@ -73,7 +73,7 @@ lazy_static! {
 /// static reference for access later.
 pub fn init_stream(conn_info: EventConnectionInfo, event_core: EventCore) {
     INIT.call_once(|| {
-            println!("automate auth token is {}", conn_info.auth_token.as_str());
+            println!("automate auth token is {}", conn_info.auth_token);
             let event_stream = init_nats_stream(conn_info).expect("Could not start NATS thread");
             EVENT_STREAM.set(event_stream);
             EVENT_CORE.set(event_core);
@@ -246,8 +246,7 @@ fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
                               let cc =
                                   ConnectCommand::builder().name(Some(name))
                                                            .verbose(verbose)
-                                                           .auth_token(Some(auth_token.as_str()
-                                                                                      .to_string()))
+                                                           .auth_token(Some(auth_token.to_string()))
                                                            .tls_required(false)
                                                            .build()
                                                            .unwrap();

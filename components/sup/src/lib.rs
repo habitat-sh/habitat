@@ -94,8 +94,9 @@ mod sys;
 pub mod test_helpers;
 pub mod util;
 
-use std::env::{self,
-               VarError};
+use std::{env::{self,
+                VarError},
+          fmt};
 
 pub const PRODUCT: &str = "hab-sup";
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -123,8 +124,6 @@ impl AutomateAuthToken {
         println!("getting automate auth token from env...");
         Ok(env::var("HAB_AUTOMATE_AUTH_TOKEN")?.parse().unwrap())
     }
-
-    fn as_str(&self) -> &str { self.0.as_str() }
 }
 
 impl std::str::FromStr for AutomateAuthToken {
@@ -133,4 +132,8 @@ impl std::str::FromStr for AutomateAuthToken {
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         Ok(AutomateAuthToken(s.to_string()))
     }
+}
+
+impl fmt::Display for AutomateAuthToken {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
 }
