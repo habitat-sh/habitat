@@ -89,7 +89,7 @@ use habitat_launcher_client::{LauncherCli,
 use habitat_sup_protocol;
 use num_cpus;
 #[cfg(unix)]
-use proc_self;
+use palaver;
 use prometheus::{HistogramVec,
                  IntGauge,
                  IntGaugeVec};
@@ -1662,7 +1662,9 @@ fn get_fd_count() -> std::io::Result<usize> {
 }
 
 #[cfg(unix)]
-fn get_fd_count() -> std::io::Result<usize> { proc_self::FdIter::new().map(|f| f.count()) }
+fn get_fd_count() -> std::io::Result<usize> {
+    palaver::file::FdIter::new().map(palaver::file::FdIter::count)
+}
 
 #[cfg(unix)]
 fn track_memory_stats() {

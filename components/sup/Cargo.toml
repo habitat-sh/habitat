@@ -69,7 +69,8 @@ valico = "*"
 caps = "*"
 
 [target.'cfg(target_family = "unix")'.dependencies]
-proc_self = "0.1.0" # pinning this explicitly because newer versions switched to a different crate that doesn't support stable rust
+# palaver's default features require nightly; see https://github.com/alecmocatta/palaver/blob/master/Cargo.toml
+palaver = { version = "*", default-features = false }
 jemallocator = "*"
 jemalloc-ctl = "*"
 
