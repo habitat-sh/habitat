@@ -21,7 +21,6 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [linux-kernel2 binaries](https://bintray.com/habitat/stable/hab-x86_64-linux-kernel2)
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [windows binaries](https://bintray.com/habitat/stable/hab-x86_64-windows)
 - [ ] Confirm validation in Buildkite to complete promotion
-- [ ] Declare merge thaw and update slack status
 - [ ] [Update builder bootstrap bundle](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-builder-bootstrap-bundle)
 - [ ] [Update chocolately package](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#rerun-chocolatey-validation-tests)
 - [ ] [Publish release](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#publish-release) on GitHub
@@ -30,6 +29,7 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] [Verify updated docs are deployed to https://www.habitat.sh/docs/](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#verify-the-docs)
 - [ ] [Update CHANGELOG.md](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-changelog)
 - [ ] [Bump version](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#bump-version) to new `-dev` version
+- [ ] Declare merge thaw and update slack status
 - [ ] [Update `hab-backline` to new `-dev` version in acceptance environment](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline-1)
 - [ ] [Promote Linux builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confirm build uses new version
 - [ ] [Promote Linux2 builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confirm build uses new version
