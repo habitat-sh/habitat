@@ -93,10 +93,10 @@ mod sys;
 #[cfg(test)]
 pub mod test_helpers;
 pub mod util;
-
 use std::{env::{self,
                 VarError},
-          fmt};
+          fmt,
+          str::FromStr};
 
 pub const PRODUCT: &str = "hab-sup";
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -129,7 +129,7 @@ impl AutomateAuthToken {
     }
 }
 
-impl std::str::FromStr for AutomateAuthToken {
+impl FromStr for AutomateAuthToken {
     type Err = ();
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
