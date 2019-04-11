@@ -107,7 +107,7 @@ pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 /// messages. If the environment variable is present, its value is the auth token. If it's not
 /// present and the feature flag for the Event Stream is enabled, initialization of the Event
 /// Stream will fail.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct AutomateAuthToken(String);
 
 impl AutomateAuthToken {
