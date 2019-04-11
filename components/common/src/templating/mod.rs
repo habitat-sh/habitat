@@ -24,8 +24,11 @@ use std::{fmt,
                 DerefMut},
           result};
 
+use regex::Regex;
+
 use handlebars::{Handlebars,
-                 RenderError};
+                 RenderError,
+                 TemplateFileError};
 use serde::Serialize;
 use serde_json;
 
@@ -37,6 +40,15 @@ use crate::{error::{Error,
                                 InstallHook}};
 
 pub use self::context::RenderContext;
+
+// This is specifically for finding syntax violations to object access in handlebars templates.
+// This should eventually be removed when we have upgraded the handlebars library and provided
+// sufficient time for users to update their templates.
+// For more information https://github.com/habitat-sh/habitat/issues/6323
+lazy_static! {
+    static ref RE: Regex =
+        Regex::new(r"(\{\{[^}]+[^.])(\[)").expect("Failed to compile template deprecation regex");
+}
 
 /// A convenience method that compiles a package's install hook
 /// and any configuration templates in its config_install folder
@@ -91,6 +103,47 @@ impl TemplateRenderer {
             .render(template, &raw)
             .map_err(|e| Error::TemplateRenderError(format!("{}", e)))
     }
+
+    // This method is only implemented so we can intercept the call to Handlebars and display
+    // a deprecation message to users. More information here https://github.com/habitat-sh/habitat/issues/6323.
+    // When Handlebars is upgraded and users have had sufficient time to update their templates this
+    // can be safely removed.
+    pub fn register_template_file<P>(&mut self,
+                                     name: &str,
+                                     path: P)
+                                     -> result::Result<(), TemplateFileError>
+        where P: AsRef<std::path::Path>
+    {
+        let path = path.as_ref();
+        let template_string =
+            std::fs::read_to_string(path).map_err(|e| {
+                                             TemplateFileError::IOError(e, name.to_owned())
+                                         })?;
+
+        // If we detect deprecated object access syntax notify the user.
+        if RE.is_match(&template_string) {
+            // Enumerate over the lines in the template and provide deprecation messages for each
+            // instance.
+            template_string.lines()
+                .enumerate()
+                .filter(|(_i, line)| RE.is_match(&line))
+                .map(|(i, line)| (i, line, fix_handlebars_syntax(&line)))
+                .for_each(|(i, old_line, new_line)| {
+                    println!("\n\n***************************************************\n\
+                              warning: Deprecated object access syntax in handlebars template\n\
+                              Use 'object.[index]' syntax instead of 'object[index]'\n\
+                              See https://github.com/habitat-sh/habitat/issues/6323 for more information\n\n\
+                                --> {}:{}\n\n\
+                              change '{}'\n\
+                              to     '{}'\n\n\
+                              *******************************************************\n\n",
+                             path.display(), i + 1, old_line, new_line)
+                });
+        }
+
+        self.0.register_template_string(name, template_string)?;
+        Ok(())
+    }
 }
 
 impl fmt::Debug for TemplateRenderer {
@@ -111,6 +164,17 @@ impl DerefMut for TemplateRenderer {
 
 /// Disables HTML escaping which is enabled by default in Handlebars.
 fn never_escape(data: &str) -> String { String::from(data) }
+
+// Takes a string of text and replaces all occurrences of the pattern
+// object[key] with object.[key]
+fn fix_handlebars_syntax(text: &str) -> String {
+    let text = text.to_owned();
+    if RE.is_match(&text) {
+        fix_handlebars_syntax(&RE.replace_all(&text, "$1.$2"))
+    } else {
+        text
+    }
+}
 
 #[cfg(test)]
 mod test {
@@ -383,5 +447,48 @@ test: something"#
 
         env::remove_var(fs::FS_ROOT_ENVVAR);
         std::fs::remove_dir_all(root).expect("removing temp root");
+    }
+
+    mod handlebars_syntax_deprecation {
+        use super::fix_handlebars_syntax;
+
+        #[test]
+        fn regex_should_leave_good_syntax_unchanged() {
+            let good_string = "test template\nsome_key: \"{{ foo.[bar] }}\"\nsome_other_key: \"{{ \
+                               foo.[bar] }}\"\n";
+
+            let result_string = fix_handlebars_syntax(good_string);
+            assert_eq!(good_string, result_string);
+        }
+
+        #[test]
+        fn regex_should_update_bad_syntax() {
+            let bad_string = "test template\nsome_key: \"{{ foo.[bar] }}\"\nsome_other_key: \"{{ \
+                              foo[bar] }}\"\n";
+            let good_string = "test template\nsome_key: \"{{ foo.[bar] }}\"\nsome_other_key: \"{{ \
+                               foo.[bar] }}\"\n";
+            let result_string = fix_handlebars_syntax(bad_string);
+            assert_eq!(good_string, result_string);
+        }
+
+        #[test]
+        fn regex_should_work_with_nested_object_access() {
+            let bad_string = "test template\nsome_key: \"{{ foo.[bar] }}\"\nsome_other_key: \"{{ \
+                              foo[bar][baz][bing][bang] }}\"\n";
+            let good_string = "test template\nsome_key: \"{{ foo.[bar] }}\"\nsome_other_key: \"{{ \
+                               foo.[bar].[baz].[bing].[bang] }}\"\n";
+            let result_string = fix_handlebars_syntax(bad_string);
+            assert_eq!(good_string, result_string);
+        }
+
+        #[test]
+        fn regex_should_work_with_inconsistent_nested_object_access() {
+            let bad_string = "test template\nsome_key: \"{{ foo.[bar] }}\"\nsome_other_key: \"{{ \
+                              foo.[bar][baz].[bing][bang] }}\"\n";
+            let good_string = "test template\nsome_key: \"{{ foo.[bar] }}\"\nsome_other_key: \"{{ \
+                               foo.[bar].[baz].[bing].[bang] }}\"\n";
+            let result_string = fix_handlebars_syntax(bad_string);
+            assert_eq!(good_string, result_string);
+        }
     }
 }
