@@ -94,7 +94,8 @@ mod sys;
 pub mod test_helpers;
 pub mod util;
 
-use std::{env, env::VarError};
+use std::env::{self,
+               VarError};
 
 pub const PRODUCT: &str = "hab-sup";
 pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
@@ -117,15 +118,13 @@ impl AutomateAuthToken {
     // TODO: @gcp make a real error type for the case where's there no auth token value
     // refactor: to_string_lossy doesn't return an error if it can't convert the OsString
     fn from_env() -> Result<AutomateAuthToken, VarError> {
-        // unwrap won't fail; any error would arise from env::var()? (from_str currently doesn't return an error)
-        // we probably won't keep unwrap long-term
+        // unwrap won't fail; any error would arise from env::var()? (from_str currently doesn't
+        // return an error) we probably won't keep unwrap long-term
         println!("getting automate auth token from env...");
         Ok(env::var("HAB_AUTOMATE_AUTH_TOKEN")?.parse().unwrap())
     }
 
-    fn as_str(&self) -> &str {
-        self.0.as_str()
-    }
+    fn as_str(&self) -> &str { self.0.as_str() }
 }
 
 impl std::str::FromStr for AutomateAuthToken {
