@@ -401,10 +401,11 @@ impl SwimNet {
 
     pub fn wait_for_health_of(&self, from_entry: usize, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
-        #[cfg(feature = "deadlock_detection")]
-        assert_no_deadlocks();
 
         loop {
+            #[cfg(feature = "deadlock_detection")]
+            assert_no_deadlocks();
+
             if let Some(real_health) = self.health_of(from_entry, to_check) {
                 if real_health == health {
                     trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
