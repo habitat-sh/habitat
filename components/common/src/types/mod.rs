@@ -128,13 +128,31 @@ impl AutomateAuthToken {
 }
 
 impl FromStr for AutomateAuthToken {
-    type Err = ();
+    type Err = Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        Ok(AutomateAuthToken(s.to_string()))
+        if s.is_empty() {
+            Err(Error::InvalidEventStreamToken(s.to_string()))
+        } else {
+            Ok(AutomateAuthToken(s.to_string()))
+        }
     }
 }
 
 impl fmt::Display for AutomateAuthToken {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    mod auth_token {
+        use super::*;
+
+        #[test]
+        fn cannot_parse_from_empty_string() { assert!("".parse::<AutomateAuthToken>().is_err()) }
+
+    }
+
 }
