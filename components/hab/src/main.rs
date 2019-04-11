@@ -21,43 +21,6 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 
-#[cfg(windows)]
-use crate::hcore::crypto::dpapi::encrypt;
-use crate::{common::{cli::{cache_key_path_from_matches,
-                           FS_ROOT},
-                     command::package::install::{InstallHookMode,
-                                                 InstallMode,
-                                                 InstallSource,
-                                                 LocalPackageUsage},
-                     output,
-                     types::ListenCtlAddr,
-                     ui::{Status,
-                          UIWriter,
-                          NONINTERACTIVE_ENVVAR,
-                          UI}},
-            hcore::{crypto::{init,
-                             keys::PairType,
-                             BoxKeyPair,
-                             SigKeyPair},
-                    env as henv,
-                    env::Config as EnvConfig,
-                    fs::{cache_analytics_path,
-                         cache_artifact_path,
-                         launcher_root_path},
-                    package::{target,
-                              PackageIdent,
-                              PackageTarget},
-                    service::{HealthCheckInterval,
-                              ServiceGroup},
-                    url::{bldr_url_from_env,
-                          default_bldr_url},
-                    ChannelIdent},
-            protocol::{codec::*,
-                       ctl::ServiceBindList,
-                       net::ErrCode,
-                       types::*},
-            sup_client::{SrvClient,
-                         SrvClientError}};
 use clap::{ArgMatches,
            Shell};
 use env_logger;
@@ -79,10 +42,47 @@ use hab::{analytics,
           PRODUCT,
           VERSION};
 use habitat_common::{self as common,
+                     cli::{cache_key_path_from_matches,
+                           FS_ROOT},
+                     command::package::install::{InstallHookMode,
+                                                 InstallMode,
+                                                 InstallSource,
+                                                 LocalPackageUsage},
+                     output,
+                     types::ListenCtlAddr,
+                     ui::{Status,
+                          UIWriter,
+                          NONINTERACTIVE_ENVVAR,
+                          UI},
                      FeatureFlag};
-use habitat_core as hcore;
-use habitat_sup_client as sup_client;
-use habitat_sup_protocol as protocol;
+#[cfg(windows)]
+use habitat_core::crypto::dpapi::encrypt;
+#[cfg(unix)]
+use habitat_core::os::process::ShutdownSignal;
+use habitat_core::{crypto::{init,
+                            keys::PairType,
+                            BoxKeyPair,
+                            SigKeyPair},
+                   env as henv,
+                   env::Config as EnvConfig,
+                   fs::{cache_analytics_path,
+                        cache_artifact_path,
+                        launcher_root_path},
+                   os::process::ShutdownTimeout,
+                   package::{target,
+                             PackageIdent,
+                             PackageTarget},
+                   service::{HealthCheckInterval,
+                             ServiceGroup},
+                   url::{bldr_url_from_env,
+                         default_bldr_url},
+                   ChannelIdent};
+use habitat_sup_client::{SrvClient,
+                         SrvClientError};
+use habitat_sup_protocol::{codec::*,
+                           ctl::ServiceBindList,
+                           net::ErrCode,
+                           types::*};
 use pbr;
 use std::{env,
           ffi::OsString,
@@ -165,11 +165,12 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     // https://github.com/kbknapp/clap-rs/issues/86
     let child = thread::Builder::new().stack_size(8 * 1024 * 1024)
                                       .spawn(move || {
-                                          cli::get(feature_flags).get_matches_from_safe_borrow(&mut args.iter())
-                                                    .unwrap_or_else(|e| {
-                                                        analytics::instrument_clap_error(&e);
-                                                        e.exit();
-                                                    })
+                                          cli::get(feature_flags)
+                .get_matches_from_safe_borrow(&mut args.iter())
+                .unwrap_or_else(|e| {
+                    analytics::instrument_clap_error(&e);
+                    e.exit();
+                })
                                       })
                                       .unwrap();
     let app_matches = child.join().unwrap();
@@ -302,9 +303,9 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     }
                 }
                 ("load", Some(m)) => sub_svc_load(m)?,
-                ("unload", Some(m)) => sub_svc_unload(m)?,
+                ("unload", Some(m)) => sub_svc_unload(m, feature_flags)?,
                 ("start", Some(m)) => sub_svc_start(m)?,
-                ("stop", Some(m)) => sub_svc_stop(m)?,
+                ("stop", Some(m)) => sub_svc_stop(m, feature_flags)?,
                 ("status", Some(m)) => sub_svc_status(m)?,
                 _ => unreachable!(),
             }
@@ -326,7 +327,7 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         ("supportbundle", _) => sub_supportbundle(ui)?,
         ("setup", Some(m)) => sub_cli_setup(ui, m)?,
         ("start", Some(m)) => sub_svc_start(m)?,
-        ("stop", Some(m)) => sub_svc_stop(m)?,
+        ("stop", Some(m)) => sub_svc_stop(m, feature_flags)?,
         ("user", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
@@ -919,9 +920,9 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui();
-    let mut validate = protocol::ctl::SvcValidateCfg::default();
+    let mut validate = habitat_sup_protocol::ctl::SvcValidateCfg::default();
     validate.service_group = Some(service_group.clone().into());
-    let mut buf = Vec::with_capacity(protocol::butterfly::MAX_SVC_CFG_SIZE);
+    let mut buf = Vec::with_capacity(habitat_sup_protocol::butterfly::MAX_SVC_CFG_SIZE);
     let cfg_len = match m.value_of("FILE") {
         Some("-") | None => io::stdin().read_to_end(&mut buf)?,
         Some(f) => {
@@ -929,14 +930,14 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
             file.read_to_end(&mut buf)?
         }
     };
-    if cfg_len > protocol::butterfly::MAX_SVC_CFG_SIZE {
+    if cfg_len > habitat_sup_protocol::butterfly::MAX_SVC_CFG_SIZE {
         ui.fatal(format!("Configuration too large. Maximum size allowed is {} bytes.",
-                         protocol::butterfly::MAX_SVC_CFG_SIZE))?;
+                         habitat_sup_protocol::butterfly::MAX_SVC_CFG_SIZE))?;
         process::exit(1);
     }
     validate.cfg = Some(buf.clone());
     let cache = cache_key_path_from_matches(&m);
-    let mut set = protocol::ctl::SvcSetCfg::default();
+    let mut set = habitat_sup_protocol::ctl::SvcSetCfg::default();
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
             let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
@@ -968,7 +969,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                     "NetOk" => Ok(()),
                     "NetErr" => {
                         let m = reply
-                            .parse::<protocol::net::NetErr>()
+                            .parse::<habitat_sup_protocol::net::NetErr>()
                             .map_err(SrvClientError::Decode)?;
                         match ErrCode::from_i32(m.code) {
                             Some(ErrCode::InvalidPayload) => {
@@ -994,7 +995,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
-                        .parse::<protocol::net::NetErr>()
+                        .parse::<habitat_sup_protocol::net::NetErr>()
                         .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
@@ -1014,21 +1015,21 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcGetDefaultCfg::default();
+    let mut msg = habitat_sup_protocol::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                 "ServiceCfg" => {
                     let m = reply
-                        .parse::<protocol::types::ServiceCfg>()
+                        .parse::<habitat_sup_protocol::types::ServiceCfg>()
                         .map_err(SrvClientError::Decode)?;
                     println!("{}", m.default.unwrap_or_default());
                     Ok(())
                 }
                 "NetErr" => {
                     let m = reply
-                        .parse::<protocol::net::NetErr>()
+                        .parse::<habitat_sup_protocol::net::NetErr>()
                         .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
@@ -1046,7 +1047,7 @@ fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcLoad::default();
+    let mut msg = habitat_sup_protocol::ctl::SvcLoad::default();
     update_svc_load_from_input(m, &mut msg)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
@@ -1058,13 +1059,18 @@ fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
+fn sub_svc_unload(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcUnload::default();
-    msg.ident = Some(ident.into());
+
+    let timeout = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
+    let signal = maybe_get_shutdown_signal(m, feature_flags)?;
+
+    let msg = habitat_sup_protocol::ctl::SvcUnload { ident: Some(ident.into()),
+                                                     signal,
+                                                     timeout };
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
                                                              .for_each(|m| handle_ctl_reply(&m))
@@ -1073,12 +1079,49 @@ fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
+#[cfg(windows)]
+fn maybe_get_shutdown_signal(_: &ArgMatches<'_>, _: FeatureFlag) -> Result<Option<String>> {
+    // There are no signals on Windows
+    Ok(None)
+}
+#[cfg(unix)]
+fn maybe_get_shutdown_signal(m: &ArgMatches<'_>,
+                             feature_flags: FeatureFlag)
+                             -> Result<Option<String>> {
+    if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
+        // We convert the parsed ShutdownSignal to a String here
+        // because:
+        //
+        // a) We ultimately need it as a String to create a
+        //    protobuf message anyway, and
+        // b) ShutdownSignal doesn't exist on Windows, and we still
+        //    need to compile this function somehow.
+        Ok(Some(m.value_of("SHUTDOWN_SIGNAL")
+                 .unwrap() // safe because of Clap
+                 .parse::<ShutdownSignal>()?
+                .to_string()))
+    } else {
+        Ok(None)
+    }
+}
+
+fn maybe_get_shutdown_timeout(m: &ArgMatches<'_>,
+                              feature_flags: FeatureFlag)
+                              -> Result<Option<ShutdownTimeout>> {
+    if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
+        // unwrap is safe because we define a default with clap
+        Ok(Some(m.value_of("SHUTDOWN_TIMEOUT").unwrap().parse()?))
+    } else {
+        Ok(None)
+    }
+}
+
 fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcStart::default();
+    let mut msg = habitat_sup_protocol::ctl::SvcStart::default();
     msg.ident = Some(ident.into());
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
@@ -1092,7 +1135,7 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcStatus::default();
+    let mut msg = habitat_sup_protocol::ctl::SvcStatus::default();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
     }
@@ -1128,13 +1171,19 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
+fn sub_svc_stop(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = protocol::ctl::SvcStop::default();
-    msg.ident = Some(ident.into());
+
+    let timeout = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
+    let signal = maybe_get_shutdown_signal(m, feature_flags)?;
+
+    let msg = habitat_sup_protocol::ctl::SvcStop { ident: Some(ident.into()),
+                                                   timeout,
+                                                   signal };
+
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
                                                              .for_each(|m| handle_ctl_reply(&m))
@@ -1149,17 +1198,17 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
-    let mut msg = protocol::ctl::SvcFilePut::default();
+    let mut msg = habitat_sup_protocol::ctl::SvcFilePut::default();
     let file = Path::new(m.value_of("FILE").unwrap());
-    if file.metadata()?.len() > protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
+    if file.metadata()?.len() > habitat_sup_protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
         ui.fatal(format!("File too large. Maximum size allowed is {} bytes.",
-                         protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES))?;
+                         habitat_sup_protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES))?;
         process::exit(1);
     };
     msg.service_group = Some(service_group.clone().into());
     msg.version = Some(value_t!(m, "VERSION_NUMBER", u64).unwrap());
     msg.filename = Some(file.file_name().unwrap().to_string_lossy().into_owned());
-    let mut buf = Vec::with_capacity(protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES);
+    let mut buf = Vec::with_capacity(habitat_sup_protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES);
     let cache = cache_key_path_from_matches(&m);
     ui.begin(format!("Uploading file {} to {} incarnation {}",
                      file.display(),
@@ -1196,7 +1245,7 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
-                        .parse::<protocol::net::NetErr>()
+                        .parse::<habitat_sup_protocol::net::NetErr>()
                         .map_err(SrvClientError::Decode)?;
                     match ErrCode::from_i32(m.code) {
                         Some(ErrCode::InvalidPayload) => {
@@ -1222,7 +1271,7 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
-    let mut msg = protocol::ctl::SupDepart::default();
+    let mut msg = habitat_sup_protocol::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
         ui.begin(format!("Permanently marking {} as departed",
@@ -1238,7 +1287,7 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
-                        .parse::<protocol::net::NetErr>()
+                        .parse::<habitat_sup_protocol::net::NetErr>()
                         .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
@@ -1256,7 +1305,7 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
 fn sub_sup_secret_generate() -> Result<()> {
     let mut ui = ui();
     let mut buf = String::new();
-    protocol::generate_secret_key(&mut buf);
+    habitat_sup_protocol::generate_secret_key(&mut buf);
     ui.info(buf)?;
     Ok(())
 }
@@ -1539,7 +1588,7 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
     progress_bar.message("    ");
     match reply.message_id() {
         "ConsoleLine" => {
-            let m = reply.parse::<protocol::ctl::ConsoleLine>()
+            let m = reply.parse::<habitat_sup_protocol::ctl::ConsoleLine>()
                          .map_err(SrvClientError::Decode)?;
             let mut new_spec = ColorSpec::new();
             let msg_spec = match m.color {
@@ -1552,7 +1601,7 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
             common::ui::print(UI::default_with_env().out(), m.line.as_bytes(), msg_spec)?;
         }
         "NetProgress" => {
-            let m = reply.parse::<protocol::ctl::NetProgress>()
+            let m = reply.parse::<habitat_sup_protocol::ctl::NetProgress>()
                          .map_err(SrvClientError::Decode)?;
             progress_bar.total = m.total;
             if progress_bar.set(m.position) >= m.total {
@@ -1560,7 +1609,7 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
             }
         }
         "NetErr" => {
-            let m = reply.parse::<protocol::net::NetErr>()
+            let m = reply.parse::<habitat_sup_protocol::net::NetErr>()
                          .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(m));
         }
@@ -1577,7 +1626,7 @@ fn print_svc_status<T>(out: &mut T,
 {
     let status = match reply.message_id() {
         "ServiceStatus" => {
-            reply.parse::<protocol::types::ServiceStatus>()
+            reply.parse::<habitat_sup_protocol::types::ServiceStatus>()
                  .map_err(SrvClientError::Decode)?
         }
         "NetOk" => {
@@ -1585,7 +1634,7 @@ fn print_svc_status<T>(out: &mut T,
             return Ok(());
         }
         "NetErr" => {
-            let err = reply.parse::<protocol::net::NetErr>()
+            let err = reply.parse::<habitat_sup_protocol::net::NetErr>()
                            .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(err));
         }
@@ -1648,21 +1697,22 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let cfg = config::load()?;
     let secret_key = ctl_secret_key(&cfg)?;
     let listen_ctl_addr = ListenCtlAddr::default();
-    let msg = protocol::ctl::SvcStatus::default();
+    let msg = habitat_sup_protocol::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                               "ServiceStatus" => {
-                                  let m = reply.parse::<protocol::types::ServiceStatus>()
-                                               .map_err(SrvClientError::Decode)?;
+                                  let m =
+                                      reply.parse::<habitat_sup_protocol::types::ServiceStatus>()
+                                           .map_err(SrvClientError::Decode)?;
                                   out.push(m.ident.into());
                                   Ok(())
                               }
                               "NetOk" => Ok(()),
                               "NetErr" => {
-                                  let err = reply.parse::<protocol::net::NetErr>()
+                                  let err = reply.parse::<habitat_sup_protocol::net::NetErr>()
                                                  .map_err(SrvClientError::Decode)?;
                                   Err(SrvClientError::from(err))
                               }
@@ -1709,7 +1759,8 @@ fn get_binds_from_input(m: &ArgMatches<'_>) -> Result<Option<ServiceBindList>> {
     }
 }
 
-fn get_binding_mode_from_input(m: &ArgMatches<'_>) -> Option<protocol::types::BindingMode> {
+fn get_binding_mode_from_input(m: &ArgMatches<'_>)
+                               -> Option<habitat_sup_protocol::types::BindingMode> {
     // There won't be errors, because we validate with `valid_binding_mode`
     m.value_of("BINDING_MODE")
      .and_then(|b| BindingMode::from_str(b).ok())
@@ -1719,8 +1770,9 @@ fn get_group_from_input(m: &ArgMatches<'_>) -> Option<String> {
     m.value_of("GROUP").map(ToString::to_string)
 }
 
-fn get_health_check_interval_from_input(m: &ArgMatches<'_>)
-                                        -> Option<protocol::types::HealthCheckInterval> {
+fn get_health_check_interval_from_input(
+    m: &ArgMatches<'_>)
+    -> Option<habitat_sup_protocol::types::HealthCheckInterval> {
     // Value will have already been validated by `cli::valid_health_check_interval`
     m.value_of("HEALTH_CHECK_INTERVAL")
      .and_then(|s| HealthCheckInterval::from_str(s).ok())
@@ -1808,7 +1860,9 @@ fn ui() -> UI {
 
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
 /// populates all *shared* options between `run` and `load`.
-fn update_svc_load_from_input(m: &ArgMatches<'_>, msg: &mut protocol::ctl::SvcLoad) -> Result<()> {
+fn update_svc_load_from_input(m: &ArgMatches<'_>,
+                              msg: &mut habitat_sup_protocol::ctl::SvcLoad)
+                              -> Result<()> {
     msg.bldr_url = bldr_url_from_input(m);
     msg.bldr_channel = channel_from_matches(m).map(|c| c.to_string());
     msg.application_environment = get_app_env_from_input(m)?;

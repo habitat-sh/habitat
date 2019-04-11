@@ -90,15 +90,16 @@ bitflags::bitflags! {
     /// environment variable to which it corresponds in the `ENV_VARS`
     /// map below.
     pub struct FeatureFlag: u32 {
-        const LIST             = 0b0000_0000_0001;
-        const TEST_EXIT        = 0b0000_0000_0010;
-        const TEST_BOOT_FAIL   = 0b0000_0000_0100;
-        const REDACT_HTTP      = 0b0000_0000_1000;
-        const IGNORE_SIGNALS   = 0b0000_0001_0000;
-        const OFFLINE_INSTALL  = 0b0000_0100_0000;
-        const IGNORE_LOCAL     = 0b0000_1000_0000;
-        const EVENT_STREAM     = 0b0001_0000_0000;
-        const TRIGGER_ELECTION = 0b0010_0000_0000;
+        const LIST               = 0b0000_0000_0001;
+        const TEST_EXIT          = 0b0000_0000_0010;
+        const TEST_BOOT_FAIL     = 0b0000_0000_0100;
+        const REDACT_HTTP        = 0b0000_0000_1000;
+        const IGNORE_SIGNALS     = 0b0000_0001_0000;
+        const OFFLINE_INSTALL    = 0b0000_0100_0000;
+        const IGNORE_LOCAL       = 0b0000_1000_0000;
+        const EVENT_STREAM       = 0b0001_0000_0000;
+        const TRIGGER_ELECTION   = 0b0010_0000_0000;
+        const CONFIGURE_SHUTDOWN = 0b0100_0000_0000;
     }
 }
 
@@ -112,7 +113,8 @@ lazy_static! {
                            (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
                            (FeatureFlag::IGNORE_LOCAL, "HAB_FEAT_IGNORE_LOCAL"),
                            (FeatureFlag::EVENT_STREAM, "HAB_FEAT_EVENT_STREAM"),
-                           (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION")];
+                           (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
+                           (FeatureFlag::CONFIGURE_SHUTDOWN, "HAB_FEAT_CONFIGURE_SHUTDOWN")];
         HashMap::from_iter(mapping)
     };
 }

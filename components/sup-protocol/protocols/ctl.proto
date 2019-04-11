@@ -104,6 +104,11 @@ message SvcLoad {
 // Request to unload a loaded service.
 message SvcUnload {
   optional sup.types.PackageIdent ident = 1;
+  // Name of the signal to send the service to shut it down (e.g.,
+  // "TERM" and not "SIGTERM"). Only applies to Unix platforms.
+  optional string signal = 2;
+  // Timeout in seconds before killing the service
+  optional uint32 timeout = 3;
 }
 
 // Request to start a loaded and stopped service.
@@ -114,6 +119,11 @@ message SvcStart {
 // Request to stop a loaded and started service.
 message SvcStop {
   optional sup.types.PackageIdent ident = 1;
+  // Name of the signal to send the service to shut it down (e.g.,
+  // "TERM" and not "SIGTERM"). Only applies to Unix platforms.
+  optional string signal = 2;
+  // Timeout in seconds before killing the service
+  optional uint32 timeout = 3;
 }
 
 // Request to retrieve the service status of one or all services.

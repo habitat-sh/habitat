@@ -19,9 +19,13 @@
 
 use crate::types::ListenCtlAddr;
 use clap::ArgMatches;
+
+#[cfg(unix)]
+use habitat_core::os::process::ShutdownSignal;
 use habitat_core::{env as henv,
                    fs::{cache_key_path,
-                        CACHE_KEY_PATH}};
+                        CACHE_KEY_PATH},
+                   os::process::ShutdownTimeout};
 use std::path::PathBuf;
 
 pub const GOSSIP_DEFAULT_IP: &str = "0.0.0.0";
@@ -43,6 +47,13 @@ lazy_static! {
 pub const LISTEN_HTTP_ADDRESS_ENVVAR: &str = "HAB_LISTEN_HTTP";
 
 pub const PACKAGE_TARGET_ENVVAR: &str = "HAB_PACKAGE_TARGET";
+lazy_static! {
+    pub static ref SHUTDOWN_TIMEOUT_DEFAULT: String = ShutdownTimeout::default().to_string();
+}
+#[cfg(unix)]
+lazy_static! {
+    pub static ref SHUTDOWN_SIGNAL_DEFAULT: String = ShutdownSignal::default().to_string();
+}
 
 const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 

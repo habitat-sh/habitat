@@ -156,6 +156,13 @@ pub struct SvcLoad {
 pub struct SvcUnload {
     #[prost(message, optional, tag="1")]
     pub ident: ::std::option::Option<super::types::PackageIdent>,
+    /// Name of the signal to send the service to shut it down (e.g.,
+    /// "TERM" and not "SIGTERM"). Only applies to Unix platforms.
+    #[prost(string, optional, tag="2")]
+    pub signal: ::std::option::Option<std::string::String>,
+    /// Timeout in seconds before killing the service
+    #[prost(uint32, optional, tag="3")]
+    pub timeout: ::std::option::Option<u32>,
 }
 /// Request to start a loaded and stopped service.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -172,6 +179,13 @@ pub struct SvcStart {
 pub struct SvcStop {
     #[prost(message, optional, tag="1")]
     pub ident: ::std::option::Option<super::types::PackageIdent>,
+    /// Name of the signal to send the service to shut it down (e.g.,
+    /// "TERM" and not "SIGTERM"). Only applies to Unix platforms.
+    #[prost(string, optional, tag="2")]
+    pub signal: ::std::option::Option<std::string::String>,
+    /// Timeout in seconds before killing the service
+    #[prost(uint32, optional, tag="3")]
+    pub timeout: ::std::option::Option<u32>,
 }
 /// Request to retrieve the service status of one or all services.
 #[derive(Clone, PartialEq, ::prost::Message)]
