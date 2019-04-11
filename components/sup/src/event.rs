@@ -114,6 +114,16 @@ pub struct EventConnectionInfo {
     pub auth_token:  AutomateAuthToken,
 }
 
+impl EventConnectionInfo {
+    pub fn new(auth_token: AutomateAuthToken) -> Self {
+        EventConnectionInfo { name: String::from("habitat"),
+                              verbose: true,
+                              cluster_uri: String::from("10.0.0.174:4222"),
+                              cluster_id: String::from("event-service"),
+                              auth_token }
+    }
+}
+
 /// A collection of data that will be present in all events. Rather
 /// than baking this into the structure of each event, we represent it
 /// once and merge the information into the final rendered form of the

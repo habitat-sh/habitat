@@ -499,7 +499,7 @@ impl Manager {
             let ec = EventCore::new(es_config, &sys);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
-            event::init_stream(Self::init_conn_info(AutomateAuthToken::from_env().unwrap()),
+            event::init_stream(EventConnectionInfo::new(AutomateAuthToken::from_env().unwrap()),
                                ec);
         }
 
@@ -524,21 +524,6 @@ impl Manager {
                      busy_services: Arc::new(Mutex::new(HashSet::new())),
                      services_need_reconciliation: ReconciliationFlag::new(false),
                      feature_flags: cfg.feature_flags })
-    }
-
-    /// Initialize struct containing the connection information required to
-    /// connect to the Automate messaging server: subject, verbosity, messaging
-    /// cluster id and uri, and authentication token.
-    fn init_conn_info(msg_auth_token: AutomateAuthToken) -> event::EventConnectionInfo {
-        // Messaging connection information is hard-coded for now,
-        // with the exception of the Authomate authentication token.
-        // TODO: Determine what the actual connection parameters
-        // should be, and process them at some point before here.
-        EventConnectionInfo { name:        String::from("habitat"),
-                              verbose:     true,
-                              cluster_uri: String::from("10.0.0.174:4222"),
-                              cluster_id:  String::from("event-service"),
-                              auth_token:  msg_auth_token, }
     }
 
     /// Load the initial Butterly Member which is used in initializing the Butterfly server. This
