@@ -50,7 +50,7 @@ steps:
     command:
       - .\test\run_clippy.ps1 stable .\test\unexamined_lints.txt .\test\allowed_lints.txt .\test\lints_to_fix.txt .\test\denied_lints.txt
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -236,7 +236,7 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit][inconsistent] :linux: sup"
+  - label: "[unit] :linux: sup"
     command:
       - ./test/run_cargo_test.sh --features "ignore_integration_tests"  sup
     agents:
@@ -291,7 +291,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 builder-api-client
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -301,7 +301,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 butterfly -Features "ignore_inconsistent_tests" -TestOptions "--test-threads=1"
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 12 # the butterfly tests usually pass in ~10m
     retry:
       automatic:
@@ -311,7 +311,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1"
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 12 # the butterfly tests usually pass in ~10m
     retry:
       automatic:
@@ -321,7 +321,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -331,7 +331,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 hab
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -341,7 +341,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 launcher-client
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -351,7 +351,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 launcher-protocol
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -361,7 +361,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 pkg-export-docker
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -371,7 +371,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 pkg-export-tar
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -382,7 +382,7 @@ steps:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - ./test/run_cargo_test.ps1 sup -TestOptions "--test-threads=1"
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -392,7 +392,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 sup-client
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -402,7 +402,7 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 sup-protocol
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
