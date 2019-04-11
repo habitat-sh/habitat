@@ -86,9 +86,6 @@ COMMON FLAGS:
     -V  Prints version information
     -D  Use a Docker Studio instead of a chroot Studio
 
-    --no-tty           Disable the --tty default (Docker Studio only)
-    --non-interactive  Disable the --interactive default (Docker Studio only)
-
 COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )

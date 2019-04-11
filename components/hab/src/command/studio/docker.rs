@@ -12,6 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
+            common::ui::UI,
+            error::{Error,
+                    Result},
+            hcore::{crypto::default_cache_key_path,
+                    env as henv,
+                    fs::{find_command,
+                         CACHE_ARTIFACT_PATH,
+                         CACHE_KEY_PATH},
+                    os::process,
+                    package::target},
+            VERSION};
+use atty;
 use std::{env,
           ffi::{OsStr,
                 OsString},
@@ -19,20 +32,6 @@ use std::{env,
                  PathBuf},
           process::{Command,
                     Stdio}};
-
-use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
-            common::ui::UI,
-            hcore::{crypto::default_cache_key_path,
-                    env as henv,
-                    fs::{find_command,
-                         CACHE_ARTIFACT_PATH,
-                         CACHE_KEY_PATH},
-                    os::process,
-                    package::target}};
-
-use crate::{error::{Error,
-                    Result},
-            VERSION};
 
 const DOCKER_CMD: &str = "docker";
 const DOCKER_CMD_ENVVAR: &str = "HAB_DOCKER_BINARY";
@@ -232,26 +231,8 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
         cmd_args.push("--privileged".into());
     }
 
-    // This needs to be a vec so that we can mutate it. Down below, cmd_args is
-    // extended to include everything in args, and since we're accepting args
-    // that are not docker args, we need to remove them if they're present.
-    let mut new_args = args.to_vec();
-
-    // We will apply --interactive and --tty by default, but if you're running
-    // in a CI or other non-interactive environment, you can pass --non-interactive
-    // and/or --no-tty to disable those.
-    let no_tty = OsString::from("--no-tty");
-    let non_interactive = OsString::from("--non-interactive");
-
-    if new_args.contains(&no_tty) {
-        new_args.retain(|a| a != &no_tty);
-    } else {
+    if atty::is(atty::Stream::Stderr) || atty::is(atty::Stream::Stdout) {
         cmd_args.push("--tty".into());
-    }
-
-    if new_args.contains(&non_interactive) {
-        new_args.retain(|a| a != &non_interactive);
-    } else {
         cmd_args.push("--interactive".into());
     }
 
@@ -284,7 +265,7 @@ fn run_container<I, J, S, T>(docker_cmd: PathBuf,
     }
 
     cmd_args.push(image.into());
-    cmd_args.extend(new_args);
+    cmd_args.extend_from_slice(args);
 
     if using_windows_containers {
         cmd_args.push("-n".into());
