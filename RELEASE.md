@@ -194,6 +194,14 @@ https://github.com/habitat-sh/habitat/issues/5948 is fixed, this may require som
 make sure that https://github.com/habitat-sh/habitat/blob/master/www/source/partials/docs/_reference-template-data.html.md.erb doesn't remove the `sys` section. If https://github.com/habitat-sh/habitat/issues/5948 is fixed,
 update these instructions.
 
+## Verify the Docs
+
+After the PR that updates the generated docs is merged, the [deploy_website.sh](https://github.com/habitat-sh/habitat/blob/master/support/ci/deploy_website.sh)
+script will run to redeploy the website with the updated content. Verify that this was successful
+at https://www.habitat.sh/docs. If not, check https://travis-ci.org/habitat-sh/habitat/builds
+and find the "Merge pull request #XXX" run where `XXX` was the number of your PR from the
+previous step to see if there were any errors during the deploy process.
+
 ## Update the Changelog
 
 We currently use Expeditor (an internal tool) to _partially_ manage our changelog. It adds items to `CHANGELOG.md` for every PR that is merged, based on certain labels that are attached to the PR. This is all well and good.

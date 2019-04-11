@@ -27,6 +27,7 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] [Publish release](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#publish-release) on GitHub
 - [ ] [Update `hab-backline` to release version in acceptance environment](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline)
 - [ ] [Update docs](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-docs)
+- [ ] [Verify updated docs are deployed to https://www.habitat.sh/docs/](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#verify-the-docs)
 - [ ] [Update CHANGELOG.md](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-changelog)
 - [ ] [Bump version](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#bump-version) to new `-dev` version
 - [ ] [Update `hab-backline` to new `-dev` version in acceptance environment](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline-1)
