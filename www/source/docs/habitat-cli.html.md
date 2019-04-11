@@ -1,4 +1,5 @@
----
+<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
+ ---
 title: Habitat Docs - hab CLI Reference
 draft: false
 ---
@@ -9,7 +10,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.79.0/20190409150529 (linux) | 9 Apr 2019 |
+| hab 0.79.0/20190409150529 (linux) | 10 Apr 2019 |
 
 ## hab
 
