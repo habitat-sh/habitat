@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Add deprecation message to templates using the foo[bar] syntax [#6360](https://github.com/habitat-sh/habitat/pull/6360) ([mpeck](https://github.com/mpeck))
 - Fix error runining install.sh/Dockerfile [#6113](https://github.com/habitat-sh/habitat/pull/6113) ([qubitrenegade](https://github.com/qubitrenegade))
 <!-- latest_release -->
 
