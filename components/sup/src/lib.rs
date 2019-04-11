@@ -110,10 +110,13 @@ pub const VERSION: &str = include_str!(concat!(env!("OUT_DIR"), "/VERSION"));
 #[derive(Debug)]
 pub struct AutomateAuthToken(String);
 
-// TODO: @gcp figure out if env::Config trait is appropriate here (for clap, etc.)
-// impl env::Config for AutomateAuthToken {
-//     const ENVVAR: &'static str = "HAB_AUTOMATE_AUTH_TOKEN";
-// }
+impl AutomateAuthToken {
+    // Ideally, we'd like to take advantage of
+    // `habitat_core::env::Config` trait, but that currently requires
+    // a `Default` implementation, and there isn't really a legitimate
+    // default value right now.
+    const ENVVAR: &'static str = "HAB_AUTOMATE_AUTH_TOKEN";
+}
 
 impl AutomateAuthToken {
     // TODO: @gcp make a real error type for the case where's there no auth token value
@@ -122,7 +125,7 @@ impl AutomateAuthToken {
         // unwrap won't fail; any error would arise from env::var()? (from_str currently doesn't
         // return an error) we probably won't keep unwrap long-term
         println!("getting automate auth token from env...");
-        Ok(env::var("HAB_AUTOMATE_AUTH_TOKEN")?.parse().unwrap())
+        Ok(env::var(AutomateAuthToken::ENVVAR)?.parse().unwrap())
     }
 }
 
