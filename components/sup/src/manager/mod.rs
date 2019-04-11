@@ -44,7 +44,6 @@ use crate::{census::{CensusRing,
                     EventCore,
                     EventStreamConfig},
             http_gateway,
-            AutomateAuthToken,
             VERSION};
 use cpu_time::ProcessTime;
 use futures::{future,
@@ -57,7 +56,8 @@ use habitat_butterfly::{member::Member,
                                  Suitability},
                         trace::Trace};
 use habitat_common::{outputln,
-                     types::ListenCtlAddr,
+                     types::{AutomateAuthToken,
+                             ListenCtlAddr},
                      FeatureFlag};
 use habitat_core::{crypto::SymKey,
                    env::{self,
