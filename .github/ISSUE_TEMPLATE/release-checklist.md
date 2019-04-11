@@ -15,7 +15,6 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] Fix up any miscategorization in [CHANGELOG.md](https://github.com/habitat-sh/habitat/blob/master/CHANGELOG.md) and add to PR updating [`VERSION`](https://github.com/habitat-sh/habitat/blob/master/VERSION)
 - [ ] [Merge PR](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#prepare-master-branch-for-release) to update [`VERSION`](https://github.com/habitat-sh/habitat/blob/master/VERSION)
 - [ ] Tag the repo when the above PR merges and push. This is the trigger for the Buildkite release pipeline.
-- [ ] [Create blog announcement PR](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#submit-a-release-notes-blog-post-pr) and solicit team member input
 - [ ] [Buildkite](https://buildkite.com/chef/habitat-sh-habitat-master-release) run success
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [darwin binaries](https://bintray.com/habitat/stable/hab-x86_64-darwin)
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [linux binaries](https://bintray.com/habitat/stable/hab-x86_64-linux)
@@ -23,7 +22,6 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] [Validate](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#validate-the-release) [windows binaries](https://bintray.com/habitat/stable/hab-x86_64-windows)
 - [ ] Confirm validation in Buildkite to complete promotion
 - [ ] Declare merge thaw and update slack status
-- [ ] Merge blog announcement PR. Upon publication, this will also automatically trigger a tweet from `@habitatsh`
 - [ ] [Update builder bootstrap bundle](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-builder-bootstrap-bundle)
 - [ ] [Update chocolately package](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#rerun-chocolatey-validation-tests)
 - [ ] [Publish release](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#publish-release) on GitHub
@@ -33,9 +31,11 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] [Bump version](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#bump-version) to new `-dev` version
 - [ ] [Update `hab-backline` to new `-dev` version in acceptance environment](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline-1)
 - [ ] [Promote Linux builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confirm build uses new version
+- [ ] [Promote Linux2 builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confirm build uses new version
 - [ ] [Promote Windows builder worker](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#promote-the-builder-worker) and confirm build uses new version
 - [ ] Post announcement in [Chef discourse](https://discourse.chef.io/c/habitat)
 - [ ] Post announcement in [Habitat forums](https://forums.habitat.sh/c/announcements)
+- [ ] Tweet a release announcement from `@habitatsh`
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`core`](https://github.com/habitat-sh/core)
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`habitat`](https://github.com/habitat-sh/habitat)
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`builder`](https://github.com/habitat-sh/builder)
