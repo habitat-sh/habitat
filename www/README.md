@@ -4,7 +4,7 @@ Static site content for www.habitat.sh
 
 ## Setup
 
-1. Install Ruby 2.3.1 or greater
+1. Install Ruby 2.3.3 or greater
 1. Install Bundler
 
     ```
