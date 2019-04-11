@@ -67,7 +67,7 @@ fn assert_no_deadlocks() {
 
     let deadlocks = deadlock::check_deadlock();
     if deadlocks.is_empty() {
-        log::trace!("No deadlocks detected");
+        println!("assert_no_deadlocks: No deadlocks detected");
     } else {
         println!("{} deadlocks detected", deadlocks.len());
         for (i, threads) in deadlocks.iter().enumerate() {
