@@ -499,8 +499,10 @@ impl Manager {
             let ec = EventCore::new(es_config, &sys);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
-            let c = AutomateAuthToken::from_env().unwrap();
-            event::init_stream(Self::init_conn_info(&c), ec);
+            event::init_stream(
+                Self::init_conn_info(AutomateAuthToken::from_env().unwrap()),
+                ec,
+            );
         }
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
@@ -529,7 +531,7 @@ impl Manager {
     /// Initialize struct containing the connection information required to
     /// connect to the Automate messaging server: subject, verbosity, messaging
     /// cluster id and uri, and authentication token.
-    fn init_conn_info(msg_auth_token: &AutomateAuthToken) -> event::EventConnectionInfo {
+    fn init_conn_info(msg_auth_token: AutomateAuthToken) -> event::EventConnectionInfo {
         // Messaging connection information is hard-coded for now,
         // with the exception of the Authomate authentication token.
         // TODO: Determine what the actual connection parameters

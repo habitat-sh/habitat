@@ -44,8 +44,7 @@ use futures::{sync::{mpsc as futures_mpsc,
               Stream};
 use habitat_common::types::EventStreamMetadata;
 use nitox::{commands::ConnectCommand,
-            streaming::{client::NatsStreamingClient,
-                        error::NatsStreamingError},
+            streaming::client::NatsStreamingClient,
             NatsClient,
             NatsClientOptions};
 use state::Container;
@@ -228,23 +227,6 @@ impl EventStream {
 /// All messages are published under this subject.
 const HABITAT_SUBJECT: &str = "habitat";
 
-/// Defines default connection information for a NATS Streaming server
-/// running on localhost.
-// TODO: As we become clear on the interaction between Habitat and A2,
-// this implementation *may* disappear. It's useful for testing and
-// prototyping, though.
-impl Default for EventConnectionInfo {
-    fn default() -> Self {
-        EventConnectionInfo { name:        String::from("habitat"),
-                              verbose:     true,
-                              cluster_uri: String::from("127.0.0.1:4223"),
-                              cluster_id:  String::from("test-cluster"),
-                              // DON'T LEAVE THIS ADMIN TOKEN IN HERE!
-                              auth_token:
-                                  AutomateAuthToken("D6fHxsfc_FlGG4coaZXdNv-vSUM=".to_string()), }
-    }
-}
-
 fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
     // TODO (CM): Investigate back-pressure scenarios
     let (event_tx, event_rx) = futures_mpsc::unbounded();
@@ -261,17 +243,14 @@ fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
                                                         cluster_uri,
                                                         cluster_id,
                                                         auth_token, } = conn_info;
-
                               let cc =
-                                  ConnectCommand::builder()
-                // .user(Some("nats".to_string()))
-                // .pass(Some("S3Cr3TP@5w0rD".to_string()))
-                .name(Some(name))
-                .verbose(verbose)
-                .auth_token(Some(auth_token.as_str().to_string()))
-                .tls_required(false)
-                .build()
-                .unwrap();
+                                  ConnectCommand::builder().name(Some(name))
+                                                           .verbose(verbose)
+                                                           .auth_token(Some(auth_token.as_str()
+                                                                                      .to_string()))
+                                                           .tls_required(false)
+                                                           .build()
+                                                           .unwrap();
                               let opts =
                                   NatsClientOptions::builder().connect_command(cc)
                                                               .cluster_uri(cluster_uri.as_str())
@@ -281,7 +260,6 @@ fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
                               let publisher = NatsClient::from_options(opts)
                 .map_err(|e| {
                     error!("Error creating Nats Client from options: {}", e);
-                    //Into::<NatsStreamingError>::into(e)
                     e.into()
                 })
                 .and_then(|client| {
