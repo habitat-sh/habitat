@@ -1,4 +1,5 @@
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
+<!-- No-op change to test deploy; this will be automatically removed with the next `make cli_docs` -->
  ---
 title: Habitat Docs - hab CLI Reference
 draft: false
