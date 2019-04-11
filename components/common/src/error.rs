@@ -35,6 +35,7 @@ pub enum Error {
     GossipFileRelativePath(String),
     HabitatCore(hcore::Error),
     InstallHookFailed(PackageIdent),
+    InvalidEventStreamToken(String),
     InvalidInstallHookMode(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
@@ -107,6 +108,9 @@ impl fmt::Display for Error {
             Error::InstallHookFailed(ref ident) => {
                 format!("Install hook exited unsuccessfully: {}", ident)
             }
+            Error::InvalidEventStreamToken(ref s) => {
+                format!("Invalid event stream token provided: '{}'", s)
+            }
             Error::InvalidInstallHookMode(ref e) => {
                 format!("Invalid InstallHookMode conversion from {}", e)
             }
@@ -171,6 +175,7 @@ impl error::Error for Error {
             }
             Error::HabitatCore(ref err) => err.description(),
             Error::InstallHookFailed(_) => "Install hook exited unsuccessfully",
+            Error::InvalidEventStreamToken(_) => "Invalid event stream token provided",
             Error::InvalidInstallHookMode(_) => "Invalid InstallHookMode",
             Error::IO(ref err) => err.description(),
             Error::JoinPathsError(ref err) => err.description(),
