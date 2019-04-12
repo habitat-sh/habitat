@@ -61,7 +61,7 @@ impl FromStr for Bind {
         };
         let exports = match parts.next() {
             None => return Err(Error::MetaFileBadBind),
-            Some(exports) => exports.split(' ').map(ToString::to_string).collect(),
+            Some(exports) => exports.split(' ').map(str::to_string).collect(),
         };
         Ok(Bind { service, exports })
     }

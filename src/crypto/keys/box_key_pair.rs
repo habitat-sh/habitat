@@ -495,15 +495,14 @@ mod test {
         assert_eq!(pair.name_with_rev(), "grohl-201604051449");
 
         assert_eq!(pair.public, None);
-        match pair.public() {
-            Ok(_) => panic!("Empty pair should not have a public key"),
-            Err(Error::CryptoError(_)) => { /* OK */ }
-            e => panic!("Unexpected error: {:?}", e),
+        if let Err(Error::CryptoError(_)) = pair.public() {
+            // OK
+        } else {
+            panic!("Expected Error::CryptoError");
         }
         assert_eq!(pair.secret, None);
-        if pair.secret().is_ok() {
-            panic!("Empty pair should not have a secret key");
-        }
+        assert!(pair.secret().is_err(),
+                "Empty pair should not have a secret key");
     }
 
     #[test]

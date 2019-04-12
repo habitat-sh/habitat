@@ -410,7 +410,7 @@ impl PackageArchive {
 
         match self.read_metadata(file) {
             Ok(Some(body)) => {
-                let ids: Vec<String> = body.lines().map(ToString::to_string).collect();
+                let ids: Vec<String> = body.lines().map(str::to_string).collect();
                 for id in &ids {
                     let package = PackageIdent::from_str(id)?;
                     if !package.fully_qualified() && must_be_fully_qualified {
