@@ -60,7 +60,7 @@ pub fn start(ui: &mut UI,
             Ok(())
         };
 
-        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
+        if retry(RETRIES, RETRY_WAIT, upload_fn, Result::is_ok).is_err() {
             return Err(Error::from(api_client::Error::UploadFailed(format!(
                 "We tried {} times but could not upload {}/{} public origin key. Giving up.",
                 RETRIES, &name, &rev
@@ -91,7 +91,7 @@ pub fn start(ui: &mut UI,
             }
         };
 
-        if retry(RETRIES, RETRY_WAIT, upload_fn, |res| res.is_ok()).is_err() {
+        if retry(RETRIES, RETRY_WAIT, upload_fn, Result::is_ok).is_err() {
             return Err(Error::from(api_client::Error::UploadFailed(format!(
                 "We tried {} times but could not upload {}/{} secret origin key. Giving up.",
                 RETRIES, &name, &rev

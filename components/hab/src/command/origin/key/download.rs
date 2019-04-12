@@ -140,7 +140,7 @@ pub fn download_public_encryption_key(ui: &mut UI,
         Ok(())
     };
 
-    if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
+    if retry(RETRIES, RETRY_WAIT, download_fn, Result::is_ok).is_err() {
         return Err(Error::from(common::error::Error::DownloadFailed(format!(
             "We tried {} times but could not download the latest public encryption key. Giving up.",
             RETRIES,
@@ -164,7 +164,7 @@ fn download_secret_key(ui: &mut UI,
         Ok(())
     };
 
-    if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
+    if retry(RETRIES, RETRY_WAIT, download_fn, Result::is_ok).is_err() {
         return Err(Error::from(common::error::Error::DownloadFailed(format!(
             "We tried {} times but could not download the latest secret origin key. Giving up.",
             RETRIES,
@@ -191,7 +191,7 @@ fn download_key(ui: &mut UI,
                 Ok(())
             };
 
-            if retry(RETRIES, RETRY_WAIT, download_fn, |res| res.is_ok()).is_err() {
+            if retry(RETRIES, RETRY_WAIT, download_fn, Result::is_ok).is_err() {
                 return Err(Error::from(common::error::Error::DownloadFailed(format!(
                     "We tried {} times but could not download {}/{} origin key. Giving up.",
                     RETRIES, &name, &rev

@@ -57,9 +57,8 @@ pub fn assert_valid(json_string: &str, schema: &str) {
                                                                                   parse if we \
                                                                                   get this far"),
                                                  2);
-        assert!(
-                false,
-                r#"
+        panic!(
+               r#"
 JSON does not validate!
 Errors:
 {}
@@ -67,7 +66,7 @@ Errors:
 JSON:
 {}
 "#,
-                error_string, pretty_json
+               error_string, pretty_json
         );
     }
 }

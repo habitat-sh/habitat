@@ -332,7 +332,7 @@ impl<T> RumorStore<T> where T: Rumor
     /// Returns the count of all rumors in the rumor store for the given member's key.
     pub fn len_for_key(&self, key: &str) -> usize {
         let list = self.list.read().expect("Rumor store lock poisoned");
-        list.get(key).map_or(0, |r| r.len())
+        list.get(key).map_or(0, HashMap::len)
     }
 
     /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was

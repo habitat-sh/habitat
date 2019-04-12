@@ -74,9 +74,9 @@ impl Manifest {
                                         .unwrap_or("standalone")
                                         .parse()
                                         .unwrap_or_default();
-        let group = matches.value_of("GROUP").map(|s| s.to_string());
+        let group = matches.value_of("GROUP").map(str::to_string);
         let config_file = matches.value_of("CONFIG");
-        let ring_secret_name = matches.value_of("RING_SECRET_NAME").map(|s| s.to_string());
+        let ring_secret_name = matches.value_of("RING_SECRET_NAME").map(str::to_string);
         // clap ensures that we do have the mandatory args so unwrap() is fine here
         let pkg_ident_str = matches.value_of("PKG_IDENT_OR_ARTIFACT")
                                    .expect("No package specified");
@@ -98,7 +98,7 @@ impl Manifest {
             None => "latest".to_owned(),
         };
         let name = matches.value_of("K8S_NAME")
-                          .map(|s| s.to_string())
+                          .map(str::to_string)
                           .unwrap_or_else(|| format!("{}-{}", pkg_ident.name, version_suffix));
 
         let image_name = match matches.value_of("IMAGE_NAME") {

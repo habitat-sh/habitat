@@ -257,7 +257,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
                     );
                     Ok(default)
                 },
-                |v| v.parse(),
+                str::parse,
             )?
         },
         ctl_listen: m.value_of("LISTEN_CTL").map_or_else(
@@ -269,7 +269,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
                 );
                 Ok(default)
             },
-            |v| v.parse(),
+            str::parse,
         )?,
         http_listen: m.value_of("LISTEN_HTTP").map_or_else(
             || {
@@ -280,7 +280,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
                 );
                 Ok(default)
             },
-            |v| v.parse(),
+            str::parse,
         )?,
         tls_config: m.value_of("KEY_FILE").map(|kf| {
             let cert_path = m

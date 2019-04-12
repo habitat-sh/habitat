@@ -146,7 +146,7 @@ impl<'a> PkgProxy<'a> {
     pub fn new(p: &'a Pkg) -> Self { PkgProxy { pkg: &p } }
 
     pub fn dependencies(&self) -> Vec<String> {
-        self.pkg.deps.iter().map(|m| m.to_string()).collect()
+        self.pkg.deps.iter().map(PackageIdent::to_string).collect()
     }
 }
 

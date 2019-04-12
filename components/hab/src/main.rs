@@ -1692,7 +1692,7 @@ fn get_health_check_interval_from_input(m: &ArgMatches<'_>)
     // Value will have already been validated by `cli::valid_health_check_interval`
     m.value_of("HEALTH_CHECK_INTERVAL")
      .and_then(|s| HealthCheckInterval::from_str(s).ok())
-     .map(|s| s.into())
+     .map(HealthCheckInterval::into)
 }
 
 #[cfg(target_os = "windows")]

@@ -121,7 +121,7 @@ fn assert_matches(matches: &ArgMatches<'_>,
             Values(expected) => {
                 match matches.values_of(flag) {
                     Some(actual_values) => {
-                        let actual = actual_values.map(|v| v.to_string()).collect();
+                        let actual = actual_values.map(str::to_string).collect();
                         if actual != expected {
                             errs.push(CliTestError::MultiValueMismatch(flag.to_string(),
                                                                        expected,

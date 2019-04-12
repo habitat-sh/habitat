@@ -64,7 +64,7 @@ impl EtcGroupEntry {
     {
         Self { name: name.to_string(),
                gid,
-               users: users.iter().map(|u| u.to_string()).collect() }
+               users: users.iter().map(ToString::to_string).collect() }
     }
 }
 
