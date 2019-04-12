@@ -7,6 +7,7 @@ github:
   # The file where our CHANGELOG is kept. This file is updated automatically with
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
   changelog_file: "CHANGELOG.md"
+  delete_branch_on_merge: true
 
 # Slack channel in Chef Software slack to send notifications about Expeditor actions
 slack:
