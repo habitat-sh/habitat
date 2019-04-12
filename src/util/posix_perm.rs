@@ -167,10 +167,16 @@ mod tests {
     fn chmod_fail_test() {
         let mode = 0o745;
         let badpath = Path::new("this_file_should_never_exist_deadbeef");
-        if let Err(Error::PermissionFailed(_)) = set_permissions(badpath, mode) {
-            assert!(true);
-        } else {
-            assert!(false);
+
+        match set_permissions(badpath, mode) {
+            Ok(_) => {
+                panic!("Shouldn't be able to chmod on non-existent file, but did!");
+            }
+            Err(Error::PermissionFailed(_)) => { /* OK */ }
+            Err(e) => {
+                panic!("Got unexpected error chmodding a non-existent file: {:?}",
+                       e);
+            }
         }
     }
 }

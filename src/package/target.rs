@@ -536,7 +536,6 @@ mod test {
     #[test]
     fn active_pacakge_target_returns_valid_value() {
         println!("Active package target is: '{}'", active_package_target());
-        assert!(true);
     }
 
     // The `Type::from_str()` implementation is already tested for every enum variant, so this test

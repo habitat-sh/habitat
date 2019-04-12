@@ -163,10 +163,15 @@ mod tests {
                                                  account::Account::from_name(&current_user).unwrap(),
                                              access_mask: FILE_ALL_ACCESS, }];
 
-        if let Err(Error::PermissionFailed(_)) = set_permissions(badpath, &entries) {
-            assert!(true);
-        } else {
-            assert!(false);
+        match set_permissions(badpath, &entries) {
+            Ok(_) => {
+                panic!("Shouldn't be able to set permissions on non-existent file, but did!");
+            }
+            Err(Error::PermissionFailed(_)) => { /* OK */ }
+            Err(e) => {
+                panic!("Got unexpected error setting permissions a non-existent file: {:?}",
+                       e);
+            }
         }
     }
 }

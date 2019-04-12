@@ -497,13 +497,12 @@ mod test {
         assert_eq!(pair.public, None);
         match pair.public() {
             Ok(_) => panic!("Empty pair should not have a public key"),
-            Err(Error::CryptoError(_)) => assert!(true),
+            Err(Error::CryptoError(_)) => { /* OK */ }
             e => panic!("Unexpected error: {:?}", e),
         }
         assert_eq!(pair.secret, None);
-        match pair.secret() {
-            Ok(_) => panic!("Empty pair should not have a secret key"),
-            Err(_) => assert!(true),
+        if pair.secret().is_ok() {
+            panic!("Empty pair should not have a secret key");
         }
     }
 

@@ -526,9 +526,8 @@ mod tests {
                                   "banana".to_string(),
                                   Some("1.0.0".to_string()),
                                   Some("20150521131555".to_string()));
-        match a.partial_cmp(&b) {
-            Some(_) => panic!("We tried to return an order"),
-            None => assert!(true),
+        if a.partial_cmp(&b).is_some() {
+            panic!("We tried to return an order");
         }
     }
 

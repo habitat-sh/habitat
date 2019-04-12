@@ -744,9 +744,8 @@ mod test {
 
         let cfg = package_install.default_cfg().unwrap();
 
-        match toml::ser::to_string(&cfg) {
-            Ok(_) => (),
-            Err(e) => assert!(false, format!("{:?}", e)),
+        if let Err(e) = toml::ser::to_string(&cfg) {
+            panic!(format!("{:?}", e));
         }
     }
 

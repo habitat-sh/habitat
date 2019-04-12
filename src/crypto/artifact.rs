@@ -297,7 +297,6 @@ mod test {
 
         sign(&fixture("signme.dat"), &dst, &pair).unwrap();
         verify(&dst, cache.path()).unwrap();
-        assert!(true);
     }
 
     #[test]
