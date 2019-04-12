@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fs,
-          io,
-          path::{Path,
-                 PathBuf},
-          str::FromStr};
-
 use super::{metadata::{read_metafile,
                        MetaFile},
             PackageIdent,
             PackageTarget};
-
 use crate::error::{Error,
                    Result};
-
+use std::{ffi::OsStr,
+          fs,
+          io,
+          path::{Path,
+                 PathBuf},
+          str::FromStr};
 use tempfile::{Builder,
                TempDir};
 
@@ -45,7 +43,7 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
     fs::create_dir_all(base)?;
     let temp_install_prefix =
         path.file_name()
-            .and_then(|f| f.to_str())
+            .and_then(OsStr::to_str)
             .and_then(|dirname| Some(format!("{}-{}", INSTALL_TMP_PREFIX, dirname)))
             .ok_or_else(|| {
                 Error::PackageUnpackFailed("Could not generate prefix for temporary package \
@@ -231,7 +229,7 @@ fn package_ident_from_dir(origin: &str,
                           active_target: PackageTarget,
                           dir: &Path)
                           -> Option<PackageIdent> {
-    let release = if let Some(rel) = dir.file_name().and_then(|f| f.to_str()) {
+    let release = if let Some(rel) = dir.file_name().and_then(OsStr::to_str) {
         rel
     } else {
         return None;

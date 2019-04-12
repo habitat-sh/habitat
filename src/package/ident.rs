@@ -12,20 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{error::{Error,
+                    Result},
+            package::PackageTarget};
+use regex::Regex;
+use serde_derive::{Deserialize,
+                   Serialize};
 use std::{borrow::Cow,
           cmp::{Ordering,
                 PartialOrd},
           fmt,
           result,
           str::FromStr};
-
-use regex::Regex;
-use serde_derive::{Deserialize,
-                   Serialize};
-
-use crate::{error::{Error,
-                    Result},
-            package::PackageTarget};
 
 lazy_static::lazy_static! {
     static ref ORIGIN_NAME_RE: Regex =
@@ -86,8 +84,8 @@ impl PackageIdent {
                                 -> Self {
         PackageIdent { origin:  origin.into(),
                        name:    name.into(),
-                       version: version.map(|v| v.into()),
-                       release: release.map(|v| v.into()), }
+                       version: version.map(Into::into),
+                       release: release.map(Into::into), }
     }
 
     pub fn archive_name(&self) -> Result<String> {
@@ -177,9 +175,9 @@ impl Identifiable for PackageIdent {
 
     fn name(&self) -> &str { &self.name }
 
-    fn version(&self) -> Option<&str> { self.version.as_ref().map(|f| f.as_str()) }
+    fn version(&self) -> Option<&str> { self.version.as_ref().map(String::as_str) }
 
-    fn release(&self) -> Option<&str> { self.release.as_ref().map(|f| f.as_str()) }
+    fn release(&self) -> Option<&str> { self.release.as_ref().map(String::as_str) }
 }
 
 impl Default for PackageIdent {

@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::{error::{Error,
+                    Result},
+            package::PackageIdent};
+use serde_derive::Serialize;
 use std::{self,
           collections::HashMap,
           env,
@@ -23,13 +27,8 @@ use std::{self,
           path::{Path,
                  PathBuf},
           str::FromStr,
+          string::ToString,
           vec::IntoIter};
-
-use serde_derive::Serialize;
-
-use crate::{error::{Error,
-                    Result},
-            package::PackageIdent};
 
 #[cfg(not(windows))]
 const ENV_PATH_SEPARATOR: char = ':';
@@ -62,7 +61,7 @@ impl FromStr for Bind {
         };
         let exports = match parts.next() {
             None => return Err(Error::MetaFileBadBind),
-            Some(exports) => exports.split(' ').map(|t| t.to_string()).collect(),
+            Some(exports) => exports.split(' ').map(ToString::to_string).collect(),
         };
         Ok(Bind { service, exports })
     }

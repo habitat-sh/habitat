@@ -12,23 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{cmp::{Ordering,
-                PartialOrd},
-          collections::{HashMap,
-                        HashSet},
-          env,
-          fmt,
-          fs::File,
-          io::Read,
-          path::{Path,
-                 PathBuf},
-          str::FromStr};
-
-use serde_derive::{Deserialize,
-                   Serialize};
-use toml::{self,
-           Value};
-
 use super::{list::package_list_for_ident,
             metadata::{parse_key_value,
                        read_metafile,
@@ -41,6 +24,21 @@ use super::{list::package_list_for_ident,
 use crate::{error::{Error,
                     Result},
             fs};
+use serde_derive::{Deserialize,
+                   Serialize};
+use std::{cmp::{Ordering,
+                PartialOrd},
+          collections::{HashMap,
+                        HashSet},
+          env,
+          fmt,
+          fs::File,
+          io::Read,
+          path::{Path,
+                 PathBuf},
+          str::FromStr};
+use toml::{self,
+           Value};
 
 #[cfg(test)]
 use super::PackageTarget;
@@ -313,7 +311,7 @@ impl PackageInstall {
                         None => return Err(Error::MetaFileBadBind),
                     };
                     let binds: Result<Vec<BindMapping>> = match parts.next() {
-                        Some(binds) => binds.split(' ').map(|b| b.parse()).collect(),
+                        Some(binds) => binds.split(' ').map(str::parse).collect(),
                         None => Err(Error::MetaFileBadBind),
                     };
                     bind_map.insert(package, binds?);

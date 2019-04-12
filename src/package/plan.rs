@@ -12,13 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::io::BufRead;
-
-use serde_derive::{Deserialize,
-                   Serialize};
-
 use crate::error::{Error,
                    Result};
+use serde_derive::{Deserialize,
+                   Serialize};
+use std::io::BufRead;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Plan {
@@ -42,7 +40,7 @@ impl Plan {
                 // or a plan file syntax that's in a different language that we do
                 // have a parser for (LUA!), but both of those things are beyond the
                 // scope of this task.
-                let parts: Vec<&str> = line.splitn(2, '=').map(|x| x.trim()).collect();
+                let parts: Vec<&str> = line.splitn(2, '=').map(str::trim).collect();
 
                 if parts.len() != 2 {
                     continue;

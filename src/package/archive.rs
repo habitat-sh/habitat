@@ -12,24 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{collections::HashMap,
-          error,
-          path::{Path,
-                 PathBuf},
-          result,
-          str::{self,
-                FromStr}};
-
-use libarchive::{archive::{Entry,
-                           ExtractOption,
-                           ExtractOptions,
-                           ReadFilter,
-                           ReadFormat},
-                 reader::{self,
-                          Reader},
-                 writer};
-use regex::Regex;
-
 use super::{metadata::{MetaFile,
                        PackageType},
             Identifiable,
@@ -39,6 +21,23 @@ use crate::{crypto::{artifact,
                      hash},
             error::{Error,
                     Result}};
+use libarchive::{archive::{Entry,
+                           ExtractOption,
+                           ExtractOptions,
+                           ReadFilter,
+                           ReadFormat},
+                 reader::{self,
+                          Reader},
+                 writer};
+use regex::Regex;
+use std::{collections::HashMap,
+          error,
+          path::{Path,
+                 PathBuf},
+          result,
+          str::{self,
+                FromStr},
+          string::ToString};
 
 lazy_static::lazy_static! {
     static ref METAFILE_REGXS: HashMap<MetaFile, Regex> = {
@@ -411,7 +410,7 @@ impl PackageArchive {
 
         match self.read_metadata(file) {
             Ok(Some(body)) => {
-                let ids: Vec<String> = body.lines().map(|d| d.to_string()).collect();
+                let ids: Vec<String> = body.lines().map(ToString::to_string).collect();
                 for id in &ids {
                     let package = PackageIdent::from_str(id)?;
                     if !package.fully_qualified() && must_be_fully_qualified {
