@@ -24,7 +24,6 @@ extern crate log;
 #[cfg(windows)]
 use crate::hcore::crypto::dpapi::encrypt;
 use crate::{common::{cli::{cache_key_path_from_matches,
-                           DEFAULT_BINLINK_DIR,
                            FS_ROOT},
                      command::package::install::{InstallHookMode,
                                                  InstallMode,
@@ -92,7 +91,8 @@ use std::{env,
                prelude::*,
                Read},
           net::ToSocketAddrs,
-          path::Path,
+          path::{Path,
+                 PathBuf},
           process,
           result,
           str::FromStr,
@@ -751,11 +751,11 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) 
                                                      &local_package_usage,
                                                      install_hook_mode)?;
 
-        if m.is_present("BINLINK") {
+        if let Some(dest_dir) = binlink_dest_dir_from_matches(m) {
             let force = m.is_present("FORCE");
             command::pkg::binlink::binlink_all_in_pkg(ui,
                                                       pkg_install.ident(),
-                                                      Path::new(DEFAULT_BINLINK_DIR),
+                                                      &dest_dir,
                                                       &FS_ROOT,
                                                       force)?;
         }
@@ -1474,6 +1474,17 @@ fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
            .map_err(Error::HabitatCore)
 }
 
+/// Return the path to create our binlinks in, or None if no binlinking should occur
+fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
+    // is_present always returns true since BINLINK has a default value, so we need to use
+    // occurrences_of to determine whether we actually want to do the binlinking
+    if matches.occurrences_of("BINLINK") > 0 {
+        matches.value_of("BINLINK").map(PathBuf::from)
+    } else {
+        None
+    }
+}
+
 /// Helper function to determine active package target.
 /// It overrides x86_64-darwin to be x86_64-linux in order
 /// to provide a better user experience (ie, for the 99% case)
@@ -1796,6 +1807,123 @@ fn update_svc_load_from_input(m: &ArgMatches<'_>, msg: &mut protocol::ctl::SvcLo
 #[cfg(test)]
 mod test {
     use super::*;
+
+    mod binlink_dest_dir_from_matches {
+        use super::*;
+
+        habitat_common::locked_env_var!(HAB_BINLINK_DIR, lock_binlink_env_var);
+
+        #[test]
+        fn no_binlink_arg() {
+            let env_var = lock_binlink_env_var();
+            env_var.unset();
+
+            assert!(dest_dir_from_pkg_install(&["origin/pkg"]).is_none(),
+                    "without a --binlink arg, there should be no BINLINK matches");
+        }
+
+        #[test]
+        fn env_var_but_no_binlink_arg() {
+            let env_var = lock_binlink_env_var();
+            env_var.set("/val/from/env/var");
+
+            assert!(dest_dir_from_pkg_install(&["origin/pkg"]).is_none(),
+                    "without a --binlink arg, there should be no BINLINK matches");
+        }
+
+        #[test]
+        #[should_panic(expected = "Invalid value")]
+        fn env_var_empty() {
+            let env_var = lock_binlink_env_var();
+            env_var.set("");
+
+            dest_dir_from_pkg_install(&["origin/pkg"]);
+        }
+
+        #[test]
+        fn env_var_overrides_binlink_default() {
+            let env_var = lock_binlink_env_var();
+            let env_var_val = "/val/from/env/var";
+            env_var.set(env_var_val);
+
+            assert_ne!(env_var_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
+            assert_eq!(dest_dir_from_pkg_install(&["origin/pkg", "--binlink"]),
+                       Some(env_var_val.into()),
+                       "with a no-value --binlink arg, the env var value should override the \
+                        default");
+        }
+
+        #[test]
+        fn arg_val_overrides_default() {
+            let env_var = lock_binlink_env_var();
+            env_var.unset();
+
+            let arg_val = "/val/from/args";
+            assert_ne!(arg_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
+            assert_eq!(dest_dir_from_pkg_install(&["origin/pkg", "--binlink", arg_val]),
+                       Some(arg_val.into()),
+                       "The --binlink value should override the default");
+        }
+
+        #[test]
+        fn arg_val_overrides_env_var() {
+            let env_var = lock_binlink_env_var();
+            let env_var_val = "/val/from/env/var";
+            env_var.set(env_var_val);
+            assert_ne!(env_var_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
+
+            let arg_val = "/val/from/args";
+            assert_ne!(arg_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
+
+            assert_eq!(dest_dir_from_pkg_install(&["origin/pkg", "--binlink", arg_val]),
+                       Some(arg_val.into()),
+                       "The --binlink value should override the env var value");
+        }
+
+        #[test]
+        #[should_panic(expected = "required arguments were not provided")]
+        fn binlink_before_pkg_ident_errors() {
+            let env_var = lock_binlink_env_var();
+            env_var.unset();
+
+            dest_dir_from_pkg_install(&["--binlink", "origin/pkg"]);
+        }
+
+        #[test]
+        #[should_panic(expected = "required arguments were not provided")]
+        fn binlink_before_pkg_ident_with_env_var_errors() {
+            let env_var = lock_binlink_env_var();
+            let env_var_val = "/val/from/env/var";
+            env_var.set(env_var_val);
+            assert_ne!(env_var_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
+
+            dest_dir_from_pkg_install(&["--binlink", "origin/pkg"]);
+        }
+
+        fn matches_for_pkg_install<'a>(pkg_install_args: &'a [&'a str]) -> ArgMatches<'a> {
+            let pre_pkg_install_args = &["hab", "pkg", "install"];
+            let app_matches = cli::get(FeatureFlag::empty())
+                .get_matches_from_safe(pre_pkg_install_args.iter().chain(pkg_install_args.iter()))
+                .unwrap(); // Force panics on CLAP errors, so we can use #[should_panic]
+            match app_matches.subcommand() {
+                ("pkg", Some(matches)) => {
+                    match matches.subcommand() {
+                        ("install", Some(m)) => {
+                            println!("{:#?}", m);
+                            m.clone()
+                        }
+                        _ => unreachable!(),
+                    }
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        fn dest_dir_from_pkg_install(pkg_install_args: &[&str]) -> Option<PathBuf> {
+            let pkg_install_matches = &matches_for_pkg_install(pkg_install_args);
+            binlink_dest_dir_from_matches(pkg_install_matches)
+        }
+    }
 
     mod resolve_listen_ctl_addr {
         use super::*;
