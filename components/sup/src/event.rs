@@ -73,7 +73,7 @@ lazy_static! {
 /// static reference for access later.
 pub fn init_stream(config: EventStreamConfig, event_core: EventCore) {
     INIT.call_once(|| {
-            let conn_info = EventConnectionInfo::new(config.token);
+            let conn_info = EventConnectionInfo::new(config.token, config.url);
             let event_stream = init_nats_stream(conn_info).expect("Could not start NATS thread");
             EVENT_STREAM.set(event_stream);
             EVENT_CORE.set(event_core);
@@ -88,6 +88,7 @@ pub struct EventStreamConfig {
     application: String,
     meta:        EventStreamMetadata,
     token:       AutomateAuthToken,
+    url:         String,
 }
 
 impl EventStreamConfig {
@@ -100,7 +101,10 @@ impl EventStreamConfig {
                                              .map(str::to_string)
                                              .expect("Required option for EventStream feature"),
                                meta:        EventStreamMetadata::from_matches(m)?,
-                               token:       AutomateAuthToken::from_matches(m)?, })
+                               token:       AutomateAuthToken::from_matches(m)?,
+                               url:         m.value_of("EVENT_STREAM_URL")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"), })
     }
 }
 
@@ -117,10 +121,10 @@ pub struct EventConnectionInfo {
 }
 
 impl EventConnectionInfo {
-    pub fn new(auth_token: AutomateAuthToken) -> Self {
+    pub fn new(auth_token: AutomateAuthToken, cluster_uri: String) -> Self {
         EventConnectionInfo { name: String::from("habitat"),
                               verbose: true,
-                              cluster_uri: String::from("10.0.0.174:4222"),
+                              cluster_uri,
                               cluster_id: String::from("event-service"),
                               auth_token }
     }

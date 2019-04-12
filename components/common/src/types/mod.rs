@@ -132,9 +132,7 @@ impl AutomateAuthToken {
     /// of a token.
     #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
     pub fn validate(value: String) -> result::Result<(), String> {
-        value.parse::<Self>()
-             .map(|_| ())
-             .map_err(|_| "This should be impossible".to_string())
+        value.parse::<Self>().map(|_| ()).map_err(|e| e.to_string())
     }
 
     /// Create an instance of `AutomateAuthToken` from validated
