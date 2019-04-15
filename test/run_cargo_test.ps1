@@ -67,6 +67,7 @@ $env:SSL_CERT_FILE              = "$cacertsDir\ssl\certs\cacert.pem"
 $env:SODIUM_STATIC              = "true"
 $env:OPENSSL_STATIC             = "true"
 $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$zlibDir\lib;$xzDir\lib"
+$env:RUST_BACKTRACE             = "1"
 
 # Make sure protoc is on the path, we also need to make sure the DLLs (in \bin) are on the path,
 # because windows library pathing is weird and terrifying.
