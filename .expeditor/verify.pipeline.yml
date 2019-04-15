@@ -283,7 +283,7 @@ steps:
 
   - label: "[unit] :windows: butterfly"
     command:
-      - ./test/run_cargo_test.ps1 butterfly -toolchain "nightly" -Features "deadlock_detection" -TestOptions "--test-threads=1"
+      - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "deadlock_detection" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 20

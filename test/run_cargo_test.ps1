@@ -9,10 +9,14 @@ param (
     [string]$Features,
     # Options to pass to the cargo test command
     [string]$TestOptions,
-    [string]$toolchain = "stable"
+    [switch]$Nightly
 )
 
 $ErrorActionPreference="stop"
+
+$toolchain = "stable"
+if($Nightly) { $toolchain = "nightly" }
+
 $env:RUSTUP_HOME="C:\rust\.rustup"
 $env:CARGO_HOME="C:\rust\.cargo"
 $env:Path="$env:Path;$env:CARGO_HOME\bin"
