@@ -218,7 +218,10 @@ impl SwimNet {
 
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
         assert!(cfg!(feature = "deadlock_detection"),
-                "This test should be run with --features=deadlock_detection");
+                "This test should be run with --features=deadlock_detection. \
+                 Make sure to execute `cargo test` in the butterfly crate subdirectory since \
+                 features cannot be propagated through a virtual manifest \
+                 (See https://github.com/rust-lang/cargo/issues/4942).");
 
         let from = self.members
                        .get(from_entry)
