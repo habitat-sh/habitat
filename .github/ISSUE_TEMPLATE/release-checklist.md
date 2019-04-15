@@ -44,3 +44,4 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`core`](https://github.com/habitat-sh/core)
 - [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`builder`](https://github.com/habitat-sh/builder)
 - [ ] Review release automation and/or [`RELEASE.md`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md) and add necessary fixes
+- [ ] [Schedule release postmortem](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#release-postmortem)
