@@ -87,7 +87,7 @@ steps:
         user: "buildkite-agent"
         group: "buildkite-agent"
         image: "chefes/buildkite"
-    timeout_in_minutes: 10
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
@@ -286,7 +286,7 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -toolchain "nightly" -Features "deadlock_detection" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 12 # the butterfly tests usually pass in ~10m
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
