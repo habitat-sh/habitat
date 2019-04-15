@@ -310,3 +310,16 @@ Wait for a few minutes so that supervisors on all the workers can update to the 
     ```
 1. Open a PR and merge the toolchain update as well as any formatting changes.
 1. Repeat with the `core` and `builder` repos.
+
+# Release postmortem
+
+If there were any problems with the release process that may benefit from changes to code
+(including release automation itself), write up a brief description of what happened and
+schedule a meeting with appropriate stakeholders to scope and prioritize the work. This isn't
+a full-blown postmortem as described in https://github.com/chef/oc_post_mortems, so it should
+be quick and relatively informal, but the fundamental goals are the same:
+1. While context is fresh, help the team understand the what happened and why without placing blame
+or speaking in counter-factuals (🙆: "I did…/I thought…", 🙅‍♂️: "I should've…/I would've…")
+1. Agree on, assign and prioritize remediation items to ensure continuous improvement of our release process and codebase more generally
+
+If the release truly had no problems at all, add a "Yay!" to [the retro board](https://trello.com/b/H3ysuKy9/habitat-retro) and celebrate our success as a team. 
