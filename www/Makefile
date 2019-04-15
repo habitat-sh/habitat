@@ -36,11 +36,15 @@ cli_docs:
 	hab pkg install core/node --binlink && \
 	node scripts/generate-cli-docs > source/docs/habitat-cli.html.md"
 
-template_reference:
-	cp ../components/sup/doc/render_context_schema.json scripts/schema.json.tmp
+node_modules/json-schema-ref-parser:
+	npm install json-schema-ref-parser@6.1.0
+
+template_reference: node_modules/json-schema-ref-parser
+	mkdir tmp
+	cp ../components/sup/doc/* tmp/
 	hab studio run "hab pkg install core/node --binlink && \
-	cat scripts/schema.json.tmp | node scripts/generate-template-reference.js > ./source/partials/docs/_reference-template-data.html.md.erb"
-	rm -f scripts/schema.json.tmp
+	node scripts/generate-template-reference.js tmp/render_context_schema.json > ./source/partials/docs/_reference-template-data.html.md.erb"
+	rm -rf tmp
 
 check-env:
 ifndef AWS_ACCESS_KEY_ID
