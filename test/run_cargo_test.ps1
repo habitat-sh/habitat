@@ -8,13 +8,24 @@ param (
     # Features to pass to cargo
     [string]$Features,
     # Options to pass to the cargo test command
-    [string]$TestOptions
+    [string]$TestOptions,
+    [switch]$Nightly
 )
 
 $ErrorActionPreference="stop"
+
+$toolchain = "stable"
+if($Nightly) { $toolchain = "nightly" }
+
 $env:RUSTUP_HOME="C:\rust\.rustup"
 $env:CARGO_HOME="C:\rust\.cargo"
 $env:Path="$env:Path;$env:CARGO_HOME\bin"
+
+rustup component list --toolchain $toolchain | Out-Null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "Installing rust toolchain $toolchain"
+    rustup toolchain install $toolchain
+}
 
 If($Features) {
     $FeatureString = "--features $Features"
@@ -23,7 +34,7 @@ If($Features) {
 }
 
 # Set cargo test invocation
-$CargoTestCommand = "cargo test $FeatureString -- --nocapture $TestOptions"
+$CargoTestCommand = "cargo +$toolchain test $FeatureString -- --nocapture $TestOptions"
 
 choco install habitat -y
 
@@ -60,6 +71,7 @@ $env:SSL_CERT_FILE              = "$cacertsDir\ssl\certs\cacert.pem"
 $env:SODIUM_STATIC              = "true"
 $env:OPENSSL_STATIC             = "true"
 $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$zlibDir\lib;$xzDir\lib"
+$env:RUST_BACKTRACE             = "1"
 
 # Make sure protoc is on the path, we also need to make sure the DLLs (in \bin) are on the path,
 # because windows library pathing is weird and terrifying.

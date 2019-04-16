@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-get_current_toolchain() {
+get_nightly_toolchain() {
   # It turns out that every nightly version of rustfmt has slight tweaks from the previous version.
   # This means that if we're always using the latest version, then we're going to have enormous
   # churn. Even PRs that don't touch rust code will likely fail CI, since master will have been

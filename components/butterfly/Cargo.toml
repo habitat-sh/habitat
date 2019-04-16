@@ -19,6 +19,7 @@ habitat_core = { git = "https://github.com/habitat-sh/core.git" }
 habitat_common = { path = "../common" }
 log = "*"
 lazy_static = "*"
+parking_lot = "*"
 prometheus = "*"
 prost = "*"
 prost-derive = "*"
@@ -47,4 +48,4 @@ tempfile = "*"
 [features]
 default = ["protocols"]
 protocols = []
-ignore_inconsistent_tests = []
+deadlock_detection = ["habitat_butterfly_test/deadlock_detection"]

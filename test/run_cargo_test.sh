@@ -2,8 +2,14 @@
 
 set -eou pipefail
 
+source ./support/ci/shared.sh
+
+: "${toolchain:=stable}"
+
 while [[ $# -gt 1 ]]; do
   case $1 in
+    --nightly )             toolchain=$(get_nightly_toolchain)
+                            ;;
     -f | --features )       shift
                             features=$1
                             ;;
@@ -16,11 +22,14 @@ while [[ $# -gt 1 ]]; do
   shift
 done
 
+install_rustup
+install_rust_toolchain "$toolchain"
+
 # set the features string if needed
 [ -z "${features:-}" ] && features_string="" || features_string="--features ${features}"
 
 component=${1?component argument required}
-cargo_test_command="cargo test ${features_string} -- --nocapture ${test_options:-}"
+cargo_test_command="cargo +${toolchain} test ${features_string} -- --nocapture ${test_options:-}"
 
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
@@ -54,6 +63,9 @@ PKG_CONFIG_PATH="$(hab pkg path core/libarchive)/lib/pkgconfig:$(hab pkg path co
 # Set testing filesystem root
 export TESTING_FS_ROOT
 TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
+
+export RUST_BACKTRACE=1
+
 echo "--- Running cargo test on $component with command: '$cargo_test_command'"
 cd "components/$component"
 $cargo_test_command

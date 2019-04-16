@@ -301,7 +301,7 @@ Wait for a few minutes so that supervisors on all the workers can update to the 
 
 # Update rustfmt
 1. Using https://mexus.github.io/rustup-components-history/, find the most recent date that all the Tier1 platforms have a present `rustfmt`. For example: `nightly-2019-03-04`.
-1. Update `get_current_toolchain` in [`support/ci/shared.sh`](https://github.com/habitat-sh/habitat/blob/master/support/ci/shared.sh#L16) to output the new nightly date.
+1. Update `get_nightly_toolchain` in [`support/ci/shared.sh`](https://github.com/habitat-sh/habitat/blob/master/support/ci/shared.sh#L16) to output the new nightly date.
 1. Locally install the nightly toolchain and update the formatting. For example:
     ```
     ➤ rustup toolchain install nightly-2019-03-04
