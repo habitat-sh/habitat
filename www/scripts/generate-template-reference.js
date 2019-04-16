@@ -1,6 +1,5 @@
-const stdin = process.stdin;
+let $RefParser = require('json-schema-ref-parser');
 const stdout = process.stdout;
-let input = [];
 let lines = [];
 
 function writeHeader() {
@@ -92,14 +91,11 @@ function getType(prop) {
   return '--';
 }
 
-stdin.on('data', d => {
-  input.push(d);
-});
-
-stdin.on('end', () => {
-  schema = JSON.parse(input.join());
-  writeHeader();
-  writeProperties();
-  writeDefinitions();
-  stdout.write(lines.join('\n'));
+$RefParser.bundle(process.argv[2]).then(function(deref_schema) {
+    console.log("ARGV", process.argv[2]);
+    schema = deref_schema;
+    writeHeader();
+    writeProperties();
+    writeDefinitions();
+    stdout.write(lines.join('\n'));
 });
