@@ -347,7 +347,7 @@ impl Service {
             let hook = self.hooks.reload.as_ref().unwrap();
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+                     self.svc_encrypted_password.clone());
         }
     }
 
@@ -698,7 +698,7 @@ impl Service {
         if let Some(ref hook) = self.hooks.init {
             self.initialized = hook.run(&self.service_group,
                                         &self.pkg,
-                                        self.svc_encrypted_password.as_ref())
+                                        self.svc_encrypted_password.clone())
         }
     }
 
@@ -710,7 +710,7 @@ impl Service {
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+                     self.svc_encrypted_password.clone());
         }
     }
 
@@ -720,7 +720,7 @@ impl Service {
         if let Some(ref hook) = self.hooks.post_run {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+                     self.svc_encrypted_password.clone());
         }
     }
 
@@ -746,7 +746,7 @@ impl Service {
         self.hooks.suitability.as_ref().and_then(|hook| {
                                            hook.run(&self.service_group,
                                                     &self.pkg,
-                                                    self.svc_encrypted_password.as_ref())
+                                                    self.svc_encrypted_password.clone())
                                        })
     }
 
@@ -880,7 +880,7 @@ impl Service {
             if let Some(ref hook) = self.hooks.file_updated {
                 return hook.run(&self.service_group,
                                 &self.pkg,
-                                self.svc_encrypted_password.as_ref());
+                                self.svc_encrypted_password.clone());
             }
         }
 
@@ -929,7 +929,7 @@ impl Service {
         let check_result = if let Some(ref hook) = self.hooks.health_check {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref())
+                     self.svc_encrypted_password.clone())
         } else {
             match self.supervisor.status() {
                 (true, _) => HealthCheck::Ok,

@@ -216,6 +216,8 @@ impl SwimNet {
         from.remove_from_block_list(to.member_id());
     }
 
+    #[allow(clippy::assertions_on_constants)]
+    #[allow(clippy::match_wild_err_arm)]
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
         assert!(cfg!(feature = "deadlock_detection"),
                 "This test should be run with --features=deadlock_detection. \

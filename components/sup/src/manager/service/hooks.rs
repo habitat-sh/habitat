@@ -173,9 +173,7 @@ impl Hook for RunHook {
                   stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn run<T>(&self, _: &str, _: &Pkg, _: Option<T>) -> Self::ExitValue
-        where T: ToString
-    {
+    fn run(&self, _: &str, _: &Pkg, _: Option<String>) -> Self::ExitValue {
         panic!("The run hook is a an exception to the lifetime of a service. It should only be \
                 run by the Supervisor module!");
     }
