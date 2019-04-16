@@ -24,9 +24,9 @@ use winapi::{shared::minwindef::DWORD,
 
 const COMPLEXITY: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/hab-crypt"));
 
-pub fn decrypt(secret: String) -> Result<String> {
+pub fn decrypt(secret: &str) -> Result<String> {
     unsafe {
-        let mut bytes = base64::decode(secret.as_str()).unwrap();
+        let mut bytes = base64::decode(secret).unwrap();
         let mut in_blob = CRYPTOAPI_BLOB { cbData: bytes.len() as DWORD,
                                            pbData: bytes.as_mut_ptr(), };
         let mut out_blob = CRYPTOAPI_BLOB { cbData: 0,
@@ -34,7 +34,7 @@ pub fn decrypt(secret: String) -> Result<String> {
         let mut entropy = ptr::null_mut();
         let mut blob: CRYPTOAPI_BLOB = mem::zeroed::<CRYPTOAPI_BLOB>();
         let mut complexity_vec = COMPLEXITY.to_vec();
-        if complexity_vec.len() > 0 {
+        if !complexity_vec.is_empty() {
             blob.cbData = complexity_vec.len() as DWORD;
             blob.pbData = complexity_vec.as_mut_ptr();
             entropy = &mut blob;
@@ -70,7 +70,7 @@ pub fn encrypt(secret: String) -> Result<String> {
         let mut entropy = ptr::null_mut();
         let mut blob: CRYPTOAPI_BLOB = mem::zeroed::<CRYPTOAPI_BLOB>();
         let mut complexity_vec = COMPLEXITY.to_vec();
-        if complexity_vec.len() > 0 {
+        if !complexity_vec.is_empty() {
             blob.cbData = complexity_vec.len() as DWORD;
             blob.pbData = complexity_vec.as_mut_ptr();
             entropy = &mut blob;

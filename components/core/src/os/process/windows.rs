@@ -18,8 +18,7 @@ use std::{ffi::OsString,
           io,
           path::PathBuf,
           process::{self,
-                    Command},
-          ptr};
+                    Command}};
 use winapi::{shared::minwindef::{DWORD,
                                  FALSE,
                                  LPDWORD},
@@ -49,7 +48,7 @@ pub fn handle_from_pid(pid: Pid) -> Option<HANDLE> {
 
         // we expect this to happen if the process died
         // before OpenProcess completes
-        if proc_handle == ptr::null_mut() {
+        if proc_handle.is_null() {
             None
         } else {
             Some(proc_handle)

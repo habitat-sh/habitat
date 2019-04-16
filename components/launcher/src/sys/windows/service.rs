@@ -160,9 +160,9 @@ fn spawn_pwsh(ps_binary_name: &str, msg: protocol::Spawn) -> Result<Service> {
     };
 
     match Child::spawn(ps_binary_name,
-                       vec!["-NonInteractive", "-command", ps_cmd.as_str()],
+                       &["-NonInteractive", "-command", ps_cmd.as_str()],
                        &msg.env,
-                       user,
+                       &user,
                        password)
     {
         Ok(child) => {

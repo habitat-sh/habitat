@@ -162,10 +162,7 @@ struct ServiceCredential {
 }
 
 impl ServiceCredential {
-    pub fn new<U, P>(svc_user: U, svc_encrypted_password: Option<P>) -> Result<Self>
-        where U: ToString,
-              P: ToString
-    {
+    pub fn new(svc_user: &str, svc_encrypted_password: Option<String>) -> Result<Self> {
         let mut full_user = svc_user.to_string();
         let (domain, user) = match full_user.find('\\') {
             Some(idx) => {
@@ -175,7 +172,7 @@ impl ServiceCredential {
             None => (".".to_string(), full_user),
         };
         let pass = match svc_encrypted_password {
-            Some(password) => decrypt(password.to_string())?,
+            Some(password) => decrypt(&password)?,
             None => String::new(),
         };
         Ok(Self { user,
@@ -184,7 +181,7 @@ impl ServiceCredential {
     }
 
     pub fn is_current_user(&self) -> bool {
-        self.user == get_current_username().unwrap_or(String::new())
+        self.user == get_current_username().unwrap_or_default()
     }
 
     pub fn user_wide(&self) -> WideCString { WideCString::from_str(self.user.as_str()).unwrap() }
@@ -205,15 +202,12 @@ pub struct Child {
 }
 
 impl Child {
-    pub fn spawn<U, P>(program: &str,
-                       args: Vec<&str>,
-                       env: &HashMap<String, String>,
-                       svc_user: U,
-                       svc_encrypted_password: Option<P>)
-                       -> Result<Child>
-        where U: ToString,
-              P: ToString
-    {
+    pub fn spawn(program: &str,
+                 args: &[&str],
+                 env: &HashMap<String, String>,
+                 svc_user: &str,
+                 svc_encrypted_password: Option<String>)
+                 -> Result<Child> {
         let mut os_env: HashMap<OsString, OsString> =
             env::vars_os().map(|(key, val)| (mk_key(key.to_str().unwrap()), val))
                           .collect();
@@ -246,7 +240,7 @@ impl Child {
         si.cb = mem::size_of::<STARTUPINFOW>() as DWORD;
         si.dwFlags = STARTF_USESTDHANDLES;
 
-        let program_path = program_path.unwrap_or(OsStr::new(program).to_os_string());
+        let program_path = program_path.unwrap_or_else(|| OsStr::new(program).to_os_string());
         let mut cmd_str = make_command_line(&program_path, &args)?;
         cmd_str.push(0); // add null terminator
 
@@ -277,9 +271,9 @@ impl Child {
 
         let cred = ServiceCredential::new(svc_user, svc_encrypted_password)?;
         if cred.is_current_user() {
-            create_process(cmd_str.as_mut_ptr(), flags, os_env, &mut si, &mut pi)?;
+            create_process(cmd_str.as_mut_ptr(), flags, &os_env, &mut si, &mut pi)?;
         } else {
-            create_process_as_user(cred, cmd_str.as_mut_ptr(), flags, env, &mut si, &mut pi)?;
+            create_process_as_user(&cred, cmd_str.as_mut_ptr(), flags, env, &mut si, &mut pi)?;
         }
 
         // We close the thread handle because we don't care about keeping
@@ -330,9 +324,9 @@ pub trait FromInner<Inner> {
 pub struct ExitStatus(DWORD);
 
 impl ExitStatus {
-    pub fn success(&self) -> bool { self.0 == 0 }
+    pub fn success(self) -> bool { self.0 == 0 }
 
-    pub fn code(&self) -> Option<i32> { Some(self.0 as i32) }
+    pub fn code(self) -> Option<i32> { Some(self.0 as i32) }
 }
 
 impl From<DWORD> for ExitStatus {
@@ -708,9 +702,9 @@ impl Drop for Handle {
 impl RawHandle {
     pub fn new(handle: HANDLE) -> RawHandle { RawHandle(handle) }
 
-    pub fn raw(&self) -> HANDLE { self.0 }
+    pub fn raw(self) -> HANDLE { self.0 }
 
-    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
+    pub fn read(self, buf: &mut [u8]) -> io::Result<usize> {
         let mut read = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         let res = cvt(unsafe {
@@ -734,7 +728,7 @@ impl RawHandle {
         }
     }
 
-    pub fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
+    pub fn read_at(self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
         let mut read = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         let res = unsafe {
@@ -754,7 +748,7 @@ impl RawHandle {
         }
     }
 
-    pub unsafe fn read_overlapped(&self,
+    pub unsafe fn read_overlapped(self,
                                   buf: &mut [u8],
                                   overlapped: *mut OVERLAPPED)
                                   -> io::Result<Option<usize>> {
@@ -776,37 +770,44 @@ impl RawHandle {
         }
     }
 
-    pub fn overlapped_result(&self, overlapped: *mut OVERLAPPED, wait: bool) -> io::Result<usize> {
-        unsafe {
-            let mut bytes = 0;
-            let wait = if wait { TRUE } else { FALSE };
-            let res =
-                cvt({ ioapiset::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait) });
-            match res {
-                Ok(_) => Ok(bytes as usize),
-                Err(e) => {
-                    if e.raw_os_error() == Some(ERROR_HANDLE_EOF as i32)
-                       || e.raw_os_error() == Some(ERROR_BROKEN_PIPE as i32)
-                    {
-                        Ok(0)
-                    } else {
-                        Err(e)
-                    }
+    pub unsafe fn overlapped_result(self,
+                                    overlapped: *mut OVERLAPPED,
+                                    wait: bool)
+                                    -> io::Result<usize> {
+        let mut bytes = 0;
+        let wait = if wait { TRUE } else { FALSE };
+        let res = cvt({ ioapiset::GetOverlappedResult(self.raw(), overlapped, &mut bytes, wait) });
+        match res {
+            Ok(_) => Ok(bytes as usize),
+            Err(e) => {
+                if e.raw_os_error() == Some(ERROR_HANDLE_EOF as i32)
+                   || e.raw_os_error() == Some(ERROR_BROKEN_PIPE as i32)
+                {
+                    Ok(0)
+                } else {
+                    Err(e)
                 }
             }
         }
     }
 
-    pub fn cancel_io(&self) -> io::Result<()> {
+    pub fn cancel_io(self) -> io::Result<()> {
         unsafe { cvt(ioapiset::CancelIo(self.raw())).map(|_| ()) }
     }
 
+    // This allow is on purpose. If you take clippy's suggestion and change
+    // pub fn read_to_end(&self, buf: &mut Vec<u8>)
+    // to
+    // pub fn read_to_end(self, buf: &mut Vec<u8>)
+    // then the function recurses endlessly. There's likely a better way to fix this that's more
+    // correct, but in the interest of time, right now I'm just going to allow it.
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn read_to_end(&self, buf: &mut Vec<u8>) -> io::Result<usize> {
         let mut me = self;
         (&mut me).read_to_end(buf)
     }
 
-    pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
+    pub fn write(self, buf: &[u8]) -> io::Result<usize> {
         let mut amt = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         cvt(unsafe {
@@ -819,7 +820,7 @@ impl RawHandle {
         Ok(amt as usize)
     }
 
-    pub fn write_at(&self, buf: &[u8], offset: u64) -> io::Result<usize> {
+    pub fn write_at(self, buf: &[u8], offset: u64) -> io::Result<usize> {
         let mut written = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         unsafe {
@@ -846,7 +847,7 @@ impl<'a> Read for &'a RawHandle {
 
 fn create_process(command: LPWSTR,
                   flags: DWORD,
-                  env: HashMap<OsString, OsString>,
+                  env: &HashMap<OsString, OsString>,
                   si: LPSTARTUPINFOW,
                   pi: LPPROCESS_INFORMATION)
                   -> io::Result<i32> {
@@ -866,7 +867,7 @@ fn create_process(command: LPWSTR,
     }
 }
 
-fn create_process_as_user(credential: ServiceCredential,
+fn create_process_as_user(credential: &ServiceCredential,
                           command: LPWSTR,
                           flags: DWORD,
                           env: &HashMap<String, String>,
@@ -900,7 +901,7 @@ fn create_process_as_user(credential: ServiceCredential,
                                  | WRITE_DAC
                                  | sid::DESKTOP_WRITEOBJECTS
                                  | sid::DESKTOP_READOBJECTS);
-        if hdesk == ptr::null_mut() {
+        if hdesk.is_null() {
             return Err(Error::OpenDesktopFailed(format!("Failed calling \
                                                          OpenDesktopW: {}",
                                                         io::Error::last_os_error())));
@@ -977,10 +978,10 @@ fn create_user_environment(token: HANDLE,
         // when it is 0 we know we are done because a propper environment
         // block ends in \0\0
         while tail != 0 {
-            tail = tail << 16;
+            tail <<= 16;
             let next_char = *(block.offset(offset) as *mut u16);
-            tail = tail | (next_char as u32);
-            offset = offset + 2;
+            tail |= u32::from(next_char);
+            offset += 2;
 
             match part {
                 ParsePart::Key => {
@@ -1064,15 +1065,16 @@ fn make_command_line(prog: &OsStr, args: &[&str]) -> io::Result<Vec<u16>> {
             cmd.push('"' as u16);
         }
 
-        let mut iter = arg.encode_wide();
+        let iter = arg.encode_wide();
         let mut backslashes: usize = 0;
-        while let Some(x) = iter.next() {
+
+        for x in iter {
             if x == '\\' as u16 {
                 backslashes += 1;
             } else {
                 if x == '"' as u16 {
                     // Add n+1 backslashes to total 2n+1 before internal '"'.
-                    for _ in 0..(backslashes + 1) {
+                    for _ in 0..=backslashes {
                         cmd.push('\\' as u16);
                     }
                 }
@@ -1119,7 +1121,7 @@ fn null_stdio_handle() -> Result<Handle> {
     opts.read(true);
     opts.write(false);
     opts.security_attributes(&mut sa);
-    Ok(File::open(Path::new("NUL"), &opts).map(|file| file.into_handle())?)
+    Ok(File::open(Path::new("NUL"), &opts).map(File::into_handle)?)
 }
 
 unsafe fn read_to_end_uninitialized(r: &mut Read, buf: &mut Vec<u8>) -> io::Result<usize> {
@@ -1137,8 +1139,8 @@ unsafe fn read_to_end_uninitialized(r: &mut Read, buf: &mut Vec<u8>) -> io::Resu
             buf.reserve(1);
         }
 
-        let buf_slice = from_raw_parts_mut(buf.as_mut_ptr().offset(buf.len() as isize),
-                                           buf.capacity() - buf.len());
+        let buf_slice =
+            from_raw_parts_mut(buf.as_mut_ptr().add(buf.len()), buf.capacity() - buf.len());
 
         match r.read(buf_slice) {
             Ok(0) => {

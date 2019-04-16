@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::error::{Error,
+                   Result};
+use habitat_win_users::account::Account;
 use std::path::Path;
-
 use widestring::WideCString;
 use winapi::{shared::{minwindef::DWORD,
                       ntdef::NULL,
@@ -28,17 +30,12 @@ use winapi::{shared::{minwindef::DWORD,
 use windows_acl::{acl::ACL,
                   helper};
 
-use habitat_win_users::account::Account;
-
-use crate::error::{Error,
-                   Result};
-
 pub struct PermissionEntry {
     pub account:     Account,
     pub access_mask: DWORD,
 }
 
-pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &Vec<PermissionEntry>) -> Result<()> {
+pub fn set_permissions<T: AsRef<Path>>(path: T, entries: &[PermissionEntry]) -> Result<()> {
     let s_path = match path.as_ref().to_str() {
         Some(s) => s,
         None => {
