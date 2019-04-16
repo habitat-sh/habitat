@@ -12,19 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::error::{Error,
+                   Result};
+use base64;
 use std::{io,
           mem,
           ptr};
-
-use base64;
 use winapi::{shared::minwindef::DWORD,
              um::{dpapi,
                   wincrypt::CRYPTOAPI_BLOB}};
 
-use crate::error::{Error,
-                   Result};
-
-const COMPLEXITY: &'static [u8] = include_bytes!(concat!(env!("OUT_DIR"), "/hab-crypt"));
+const COMPLEXITY: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/hab-crypt"));
 
 pub fn decrypt(secret: String) -> Result<String> {
     unsafe {

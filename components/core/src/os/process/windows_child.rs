@@ -16,6 +16,14 @@
 // We will need to create processes using different windows API calls in
 // order to be able to start habitat Supervisor services as different users.
 
+use super::super::{super::crypto::dpapi::decrypt,
+                   users::get_current_username};
+use crate::error::{Error,
+                   Result};
+use habitat_win_users::sid::{self,
+                             Sid};
+use rand::{self,
+           Rng};
 use std::{cmp,
           collections::HashMap,
           env,
@@ -33,9 +41,6 @@ use std::{cmp,
           ptr,
           slice::from_raw_parts_mut,
           sync::Mutex};
-
-use rand::{self,
-           Rng};
 use widestring::WideCString;
 use winapi::{shared::{minwindef::{BOOL,
                                   DWORD,
@@ -105,14 +110,6 @@ use winapi::{shared::{minwindef::{BOOL,
                           READ_CONTROL,
                           WRITE_DAC}}};
 
-use crate::error::{Error,
-                   Result};
-use habitat_win_users::sid::{self,
-                             Sid};
-
-use super::super::{super::crypto::dpapi::decrypt,
-                   users::get_current_username};
-
 lazy_static::lazy_static! {
     static ref CREATE_PROCESS_LOCK: Mutex<()> = Mutex::new(());
 }
@@ -149,7 +146,7 @@ extern "system" {
                     -> HDESK;
 }
 
-const HANDLE_FLAG_INHERIT: DWORD = 0x00000001;
+const HANDLE_FLAG_INHERIT: DWORD = 0x0000_0001;
 
 const LOGON32_LOGON_SERVICE: DWORD = 5;
 
@@ -690,7 +687,7 @@ impl Handle {
     pub fn into_raw(self) -> HANDLE {
         let ret = self.raw();
         mem::forget(self);
-        return ret;
+        ret
     }
 }
 

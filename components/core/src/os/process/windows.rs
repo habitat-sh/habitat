@@ -50,9 +50,9 @@ pub fn handle_from_pid(pid: Pid) -> Option<HANDLE> {
         // we expect this to happen if the process died
         // before OpenProcess completes
         if proc_handle == ptr::null_mut() {
-            return None;
+            None
         } else {
-            return Some(proc_handle);
+            Some(proc_handle)
         }
     }
 }

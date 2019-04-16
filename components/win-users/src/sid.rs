@@ -122,16 +122,16 @@ extern "system" {
                              -> BOOL;
 }
 
-pub const GENERIC_READ: DWORD = 0x80000000;
-pub const GENERIC_WRITE: DWORD = 0x40000000;
-pub const GENERIC_EXECUTE: DWORD = 0x20000000;
-pub const GENERIC_ALL: DWORD = 0x10000000;
+pub const GENERIC_READ: DWORD = 0x8000_0000;
+pub const GENERIC_WRITE: DWORD = 0x4000_0000;
+pub const GENERIC_EXECUTE: DWORD = 0x2000_0000;
+pub const GENERIC_ALL: DWORD = 0x1000_0000;
 
 pub const WINSTA_ALL_ACCESS: DWORD = 0x37F;
-pub const DELETE: DWORD = 0x00010000;
-pub const READ_CONTROL: DWORD = 0x00020000;
-pub const WRITE_DAC: DWORD = 0x00040000;
-pub const WRITE_OWNER: DWORD = 0x00080000;
+pub const DELETE: DWORD = 0x0001_0000;
+pub const READ_CONTROL: DWORD = 0x0002_0000;
+pub const WRITE_DAC: DWORD = 0x0004_0000;
+pub const WRITE_OWNER: DWORD = 0x0008_0000;
 
 pub const DESKTOP_CREATEMENU: DWORD = 0x0004;
 pub const DESKTOP_CREATEWINDOW: DWORD = 0x0002;
@@ -212,20 +212,19 @@ impl Sid {
                                      &mut needed_len)
                == 0
             {
-                match io::Error::last_os_error().raw_os_error() {
-                    Some(error) => {
-                        match error as u32 {
-                            winerror::ERROR_INSUFFICIENT_BUFFER => {
-                                sd = Vec::with_capacity((needed_len) as usize);
-                                sd_new = Vec::with_capacity((needed_len) as usize);
-                            }
-                            _ => return Err(io::Error::last_os_error()),
+                if let Some(error) = io::Error::last_os_error().raw_os_error() {
+                    match error as u32 {
+                        winerror::ERROR_INSUFFICIENT_BUFFER => {
+                            sd = Vec::with_capacity((needed_len) as usize);
+                            sd_new = Vec::with_capacity((needed_len) as usize);
                         }
+                        _ => return Err(io::Error::last_os_error()),
                     }
-                    None => {}
                 }
             }
 
+            // TODO JB: fix this clippy
+            #[allow(clippy::cast_ptr_alignment)]
             cvt(GetUserObjectSecurity(handle,
                                       &mut DACL_SECURITY_INFORMATION,
                                       sd.as_mut_ptr()
@@ -247,7 +246,7 @@ impl Sid {
                                                        aclBytesInUse: mem::size_of::<ACL>()
                                                                       as DWORD,
                                                        aclBytesFree:  0, };
-            if pacl != null_mut() {
+            if !pacl.is_null() {
                 let mut acl_size_buf: Vec<u8> =
                     Vec::with_capacity(mem::size_of::<ACL_SIZE_INFORMATION>());
                 cvt(GetAclInformation(pacl,
@@ -256,6 +255,8 @@ impl Sid {
                                       as DWORD,
                                       2 /* AclSizeInformation */))?;
 
+                // TODO JB: fix this clippy
+                #[allow(clippy::cast_ptr_alignment)]
                 let psize_info = &mut *(acl_size_buf.as_mut_ptr() as *mut ACL_SIZE_INFORMATION);
                 size_info.aceCount = (*psize_info).aceCount;
                 size_info.aclBytesInUse = (*psize_info).aclBytesInUse;
@@ -268,6 +269,9 @@ impl Sid {
                                + (2 * psid_length)
                                - (2 * (mem::size_of::<DWORD>() as DWORD));
             let mut new_acl_buf: Vec<u8> = Vec::with_capacity(new_acl_size as usize);
+
+            // TODO JB: fix this clippy
+            #[allow(clippy::cast_ptr_alignment)]
             cvt(InitializeAcl(new_acl_buf.as_mut_ptr() as PACL,
                               new_acl_size,
                               2 /* ACL_REVISION */))?;
@@ -276,6 +280,10 @@ impl Sid {
                 for i in 0..size_info.aceCount {
                     let mut temp_acl: LPVOID = null_mut();
                     cvt(GetAce(pacl, i, &mut temp_acl))?;
+
+                    // TODO JB: fix this clippy
+                    #[allow(clippy::cast_ptr_alignment)]
+                    #[allow(clippy::cast_lossless)]
                     cvt(AddAce(new_acl_buf.as_mut_ptr() as PACL,
                                2, // ACL_REVISION
                                MAXDWORD,
@@ -284,17 +292,22 @@ impl Sid {
                 }
             }
 
+            // TODO JB: fix this clippy
+            #[allow(clippy::cast_ptr_alignment)]
             cvt(AddAccessAllowedAceEx(new_acl_buf.as_mut_ptr() as PACL,
                                       2, // ACL_REVISION
                                       ace_flags,
                                       access_mask,
                                       self.raw.as_ptr() as PSID))?;
 
+            // TODO JB: fix this clippy
+            #[allow(clippy::cast_ptr_alignment)]
             cvt(SetSecurityDescriptorDacl(sd_new.as_mut_ptr()
                                           as PSECURITY_DESCRIPTOR,
                                           TRUE,
                                           new_acl_buf.as_mut_ptr() as PACL,
                                           FALSE))?;
+
             cvt(SetUserObjectSecurity(handle,
                                       &mut DACL_SECURITY_INFORMATION,
                                       sd_new.as_mut_ptr()
