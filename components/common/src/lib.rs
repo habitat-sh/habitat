@@ -158,3 +158,68 @@ impl FeatureFlag {
         flags
     }
 }
+
+pub mod sync {
+
+    #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+    type InnerLock<T> = parking_lot::RwLock<T>;
+    #[cfg(feature = "lock_as_mutex")]
+    type InnerLock<T> = parking_lot::Mutex<T>;
+
+    #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+    pub type ReadGuard<'a, T> = parking_lot::RwLockReadGuard<'a, T>;
+    #[cfg(feature = "lock_as_mutex")]
+    pub type ReadGuard<'a, T> = parking_lot::MutexGuard<'a, T>;
+
+    #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+    pub type WriteGuard<'a, T> = parking_lot::RwLockWriteGuard<'a, T>;
+    #[cfg(feature = "lock_as_mutex")]
+    pub type WriteGuard<'a, T> = parking_lot::MutexGuard<'a, T>;
+
+    /// A lock which provides the interface of a read/write lock, but which has the option to
+    /// internally use either a RwLock or a Mutex in order to make it easier to expose erroneous
+    /// recursive locking in tests while still using an RwLock in production to avoid deadlocking
+    /// as much as possible.
+    #[derive(Debug)]
+    pub struct Lock<T> {
+        inner: InnerLock<T>,
+    }
+
+    impl<T> Lock<T> {
+        pub fn new(val: T) -> Self {
+            #[cfg(feature = "lock_as_mutex")]
+            println!("Lock::new is using Mutex to help find recursive locking");
+
+            Self { inner: InnerLock::new(val), }
+        }
+
+        /// This acquires a read lock and will not deadlock if the same thread tries do acquire
+        /// the lock recursively. However, it may result in writer starvation. Once we are confident
+        /// that all recursive locking has been eliminated, we may replace this implementation
+        /// and try_read_for (or add an additional methods) to provide fair locking for readers
+        /// and writers.
+        ///
+        /// See https://github.com/habitat-sh/habitat/issues/6435
+        #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+        pub fn read(&self) -> ReadGuard<T> { self.inner.read_recursive() }
+
+        #[cfg(feature = "lock_as_mutex")]
+        pub fn read(&self) -> ReadGuard<T> { self.inner.lock() }
+
+        #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+        pub fn try_read_for(&self, timeout: std::time::Duration) -> Option<ReadGuard<T>> {
+            self.inner.try_read_recursive_for(timeout)
+        }
+
+        #[cfg(feature = "lock_as_mutex")]
+        pub fn try_read_for(&self, timeout: std::time::Duration) -> Option<ReadGuard<T>> {
+            self.inner.try_lock_for(timeout)
+        }
+
+        #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+        pub fn write(&self) -> WriteGuard<T> { self.inner.write() }
+
+        #[cfg(feature = "lock_as_mutex")]
+        pub fn write(&self) -> ReadGuard<T> { self.inner.lock() }
+    }
+}

@@ -29,6 +29,7 @@ json = "*"
 lazy_static = "*"
 libc = "*"
 log = "*"
+parking_lot = "*"
 pbr = "*"
 petgraph = "*"
 regex = "*"
@@ -50,4 +51,6 @@ winapi = { version = "*", features = ["consoleapi", "processenv"] }
 
 [features]
 default = []
+lock_as_rwlock = []
+lock_as_mutex = []
 functional = []
