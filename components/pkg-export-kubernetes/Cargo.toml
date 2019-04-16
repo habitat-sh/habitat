@@ -19,7 +19,7 @@ doc = false
 base64 = "*"
 clap = { version = "*", features = ["suggestions", "color", "unstable"] }
 env_logger = "*"
-habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
 habitat_pkg_export_docker = { path = "../pkg-export-docker" }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.

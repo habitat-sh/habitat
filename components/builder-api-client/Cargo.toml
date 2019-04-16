@@ -8,6 +8,8 @@ workspace = "../../"
 [dependencies]
 broadcast = "*"
 chrono = "*"
+habitat_core = { path = "../core" }
+habitat_http_client = { path = "../http-client" }
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
 hyper-openssl = "*"
@@ -20,9 +22,3 @@ serde_derive = "*"
 serde_json = "*"
 tee = "*"
 url = "*"
-
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/core.git"
-
-[dependencies.habitat_http_client]
-git = "https://github.com/habitat-sh/core.git"

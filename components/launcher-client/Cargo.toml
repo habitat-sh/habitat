@@ -8,7 +8,7 @@ workspace = "../../"
 [dependencies]
 bincode = "*"
 env_logger = "*"
-habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat_core = { path = "../core" }
 habitat-launcher-protocol = { path = "../launcher-protocol" }
 habitat_common = { path = "../common" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }

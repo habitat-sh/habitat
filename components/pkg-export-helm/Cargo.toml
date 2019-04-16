@@ -14,7 +14,7 @@ doc = false
 [dependencies]
 clap = { version = "*", features = ["suggestions", "color", "unstable"] }
 env_logger = "*"
-habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
 habitat_pkg_export_docker = { path = "../pkg-export-docker" }
 habitat_pkg_export_kubernetes = { path = "../pkg-export-kubernetes" }

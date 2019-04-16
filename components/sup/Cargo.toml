@@ -34,7 +34,7 @@ glob = "*"
 hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
 habitat_common = { path = "../common" }
-habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat_core = { path = "../core" }
 habitat_api_client = { path = "../builder-api-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
@@ -79,12 +79,10 @@ ctrlc = "*"
 winapi =  { version = "*", features = ["tlhelp32"] }
 
 [dev-dependencies]
+habitat_core = { path = "../core" }
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
 hyper = "0.10"
 json = "*"
-
-[dev-dependencies.habitat_core]
-git = "https://github.com/habitat-sh/core.git"
 
 [features]
 default = []

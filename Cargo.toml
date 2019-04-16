@@ -7,7 +7,9 @@ members = [
   "components/butterfly",
   "components/butterfly-test",
   "components/common",
+  "components/core",
   "components/hab",
+  "components/http-client",
   "components/launcher",
   "components/launcher-client",
   "components/launcher-protocol",
@@ -18,6 +20,7 @@ members = [
   "components/sup",
   "components/sup-client",
   "components/sup-protocol",
+  "components/win-users",
 ]
 
 # To test local changes to the core crate, uncomment the following and then
