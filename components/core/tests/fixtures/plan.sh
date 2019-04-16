@@ -8,11 +8,12 @@ pkg_deps=()
 pkg_build_deps=()
 
 do_build() {
-  cp -v $PLAN_CONTEXT/signme.dat signme.dat
+  cp -v "$PLAN_CONTEXT/signme.dat" signme.dat
 }
 
+# shellcheck disable=SC2154
 do_install() {
-  install -v -D signme.dat $pkg_prefix/share/signme.dat
+  install -v -D signme.dat "$pkg_prefix/share/signme.dat"
 }
 
 # Turn the remaining default phases into no-ops
