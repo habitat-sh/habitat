@@ -21,7 +21,7 @@ chrono = "*"
 env_logger = "*"
 hab = { path = "../hab" }
 habitat_common = { path = "../common" }
-habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat_core = { path = "../core" }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
 handlebars = { version = "0.29.1", default-features = false }
 lazy_static = "*"

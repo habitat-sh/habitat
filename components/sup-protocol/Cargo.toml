@@ -10,7 +10,7 @@ workspace = "../../"
 base64 = "*"
 bytes = "*"
 futures = "*"
-habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat_core = { path = "../core" }
 lazy_static = "*"
 log = "*"
 prost = "*"

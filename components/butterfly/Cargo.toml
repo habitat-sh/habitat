@@ -15,7 +15,7 @@ doc = false
 byteorder = "*"
 bytes = "*"
 env_logger = "*"
-habitat_core = { git = "https://github.com/habitat-sh/core.git" }
+habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
 log = "*"
 lazy_static = "*"

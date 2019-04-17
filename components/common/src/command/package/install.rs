@@ -418,7 +418,7 @@ fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
         templating::compile_for_package_install(package)?;
         if !hook.run(&package.ident().name,
                      &Pkg::from_install(package)?,
-                     None::<String>)
+                     None::<&str>)
         {
             return Err(Error::InstallHookFailed(package.ident().clone()));
         }

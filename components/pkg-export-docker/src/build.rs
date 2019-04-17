@@ -724,12 +724,10 @@ impl PkgIdentType {
 
 #[cfg(test)]
 mod test {
+    use super::*;
     use crate::hcore::{self,
                        package::PackageTarget};
-
     use clap::ArgMatches;
-
-    use super::*;
 
     /// Generate Clap ArgMatches for the exporter from a vector of arguments.
     fn arg_matches<'a>(args: &[&str]) -> ArgMatches<'a> {
@@ -826,20 +824,16 @@ mod test {
     }
 
     mod build_spec {
+        use super::{super::*,
+                    *};
+        use crate::common::ui::UI;
         use std::{io::{self,
                        Cursor,
                        Write},
                   sync::{Arc,
                          RwLock}};
-        use termcolor::ColorChoice;
-
-        use crate::{common::ui::UI,
-                    hcore};
-
         use tempfile::TempDir;
-
-        use super::{super::*,
-                    *};
+        use termcolor::ColorChoice;
 
         #[test]
         fn artifact_cache_symlink() {
@@ -987,13 +981,11 @@ mod test {
     }
 
     mod build_root_context {
-        use std::str::FromStr;
-
-        use crate::{common::PROGRAM_NAME,
-                    hcore::package::PackageIdent};
-
         use super::{super::*,
                     *};
+        use crate::{common::PROGRAM_NAME,
+                    hcore::package::PackageIdent};
+        use std::str::FromStr;
 
         #[test]
         fn build_context_from_a_spec() {

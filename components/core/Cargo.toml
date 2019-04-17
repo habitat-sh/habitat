@@ -1,0 +1,55 @@
+[package]
+name = "habitat_core"
+version = "0.0.0"
+edition = "2018"
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+workspace = "../../"
+build = "build.rs"
+
+[build-dependencies]
+base64 = "*"
+gcc = "0.3"
+
+[dependencies]
+base64 = "*"
+dirs = "*"
+errno = "*"
+hex = "*"
+lazy_static = "*"
+libarchive = "*"
+libc = "*"
+libsodium-sys = "0.0.16"
+log = "*"
+rand = "*"
+regex = "*"
+rust-crypto = "*"
+serde = "*"
+serde_derive = "*"
+serde_json = "*"
+sodiumoxide = "0.0.16"
+tempfile = "*"
+time = "*"
+toml = { version = "*", default-features = false }
+typemap = "*"
+url = "*"
+
+[target.'cfg(not(windows))'.dependencies]
+users = "*"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+caps = "*"
+
+[target.'cfg(windows)'.dependencies]
+ctrlc = "*"
+habitat_win_users = { path = "../win-users" }
+widestring = "*"
+winapi = { version = "*", features = ["dpapi", "ioapiset", "namedpipeapi", "userenv", "winbase", "wincrypt", "winerror"] }
+windows-acl = "*"
+
+[dev-dependencies]
+# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
+hyper = "0.10"
+
+[features]
+default = []
+functional = []

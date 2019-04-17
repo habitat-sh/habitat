@@ -6,16 +6,12 @@ authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]
+habitat_butterfly = { path = "../butterfly" }
+habitat_core = { path = "../core" }
 lazy_static = "*"
 log = "*"
 parking_lot = "*"
 time = "*"
-
-[dependencies.habitat_butterfly]
-path = "../butterfly"
-
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/core.git"
 
 [features]
 default = []

@@ -11,6 +11,8 @@ bimap = "*"
 bitflags = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 glob = "*"
+habitat_api_client = { path = "../builder-api-client" }
+habitat_core = { path = "../core" }
 # The handlebars crate has a few issues that require us to lock at 0.28.3
 # until further notice.
 #
@@ -42,12 +44,6 @@ time = "*"
 toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }
 valico = "*"
-
-[dependencies.habitat_core]
-git = "https://github.com/habitat-sh/core.git"
-
-[dependencies.habitat_api_client]
-path = "../builder-api-client"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "*", features = ["consoleapi", "processenv"] }
