@@ -45,3 +45,5 @@ pipelines:
       definition: .expeditor/website.pipeline.yml
       trigger: pull_request
   - habitat/build
+  - habitat_release:
+      description: Habitat release process
