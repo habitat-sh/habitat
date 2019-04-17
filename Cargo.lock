@@ -1258,7 +1258,7 @@ dependencies = [
  "lazy_static 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.51 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "nitox 0.1.10 (git+https://github.com/YellowInnovation/nitox?branch=feature/nats-server)",
+ "nitox 0.1.10 (git+https://github.com/habitat-sh/nitox?branch=feature/nats-server)",
  "notify 4.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "num_cpus 1.10.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "palaver 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1914,7 +1914,7 @@ dependencies = [
 [[package]]
 name = "nitox"
 version = "0.1.10"
-source = "git+https://github.com/YellowInnovation/nitox?branch=feature/nats-server#b52bb6dc8fa87bfa9e841fed3542950a6112ef6e"
+source = "git+https://github.com/habitat-sh/nitox?branch=feature/nats-server#b52bb6dc8fa87bfa9e841fed3542950a6112ef6e"
 dependencies = [
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "derive_builder 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -3976,7 +3976,7 @@ dependencies = [
 "checksum multimap 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2eb04b9f127583ed176e163fb9ec6f3e793b87e21deedd5734a69386a18a0151"
 "checksum native-tls 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "ff8e08de0070bbf4c31f452ea2a70db092f36f6f2e4d897adf5674477d488fb2"
 "checksum net2 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)" = "42550d9fb7b6684a6d404d9fa7250c2eb2646df731d1c06afc06dcee9e1bcf88"
-"checksum nitox 0.1.10 (git+https://github.com/YellowInnovation/nitox?branch=feature/nats-server)" = "<none>"
+"checksum nitox 0.1.10 (git+https://github.com/habitat-sh/nitox?branch=feature/nats-server)" = "<none>"
 "checksum nix 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d37e713a259ff641624b6cb20e3b12b2952313ba36b6823c0f16e6cfd9e5de17"
 "checksum nodrop 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)" = "2f9667ddcc6cc8a43afc9b7917599d7216aa09c463919ea32c59ed6cac8bc945"
 "checksum nom 2.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "cf51a729ecf40266a2368ad335a5fdde43471f545a967109cd62146ecf8b66ff"
