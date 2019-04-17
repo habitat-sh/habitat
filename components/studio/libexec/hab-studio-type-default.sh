@@ -144,8 +144,8 @@ export TERMINFO
 TERMINFO=$(_pkgpath_for core/ncurses)/share/terminfo
 
 emacs() {
-  if command -v emacs > /dev/null; then
-    emacs "\$@"
+  if type -P emacs > /dev/null; then
+    command emacs "\$@"
   else
     mg "\$@"
   fi
