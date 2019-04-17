@@ -193,11 +193,13 @@ pub trait Hook: fmt::Debug + Sized + Send {
     }
 
     /// Run a compiled hook.
-    fn run(&self,
-           service_group: &str,
-           pkg: &Pkg,
-           svc_encrypted_password: Option<String>)
-           -> Self::ExitValue {
+    fn run<T>(&self,
+              service_group: &str,
+              pkg: &Pkg,
+              svc_encrypted_password: Option<T>)
+              -> Self::ExitValue
+        where T: ToString
+    {
         let mut child = match Self::exec(self.path(), &pkg, svc_encrypted_password) {
             Ok(child) => child,
             Err(err) => {
@@ -219,8 +221,9 @@ pub trait Hook: fmt::Debug + Sized + Send {
     }
 
     #[cfg(windows)]
-    fn exec<S>(path: S, pkg: &Pkg, svc_encrypted_password: Option<String>) -> Result<Child>
-        where S: AsRef<OsStr>
+    fn exec<T, S>(path: S, pkg: &Pkg, svc_encrypted_password: Option<T>) -> Result<Child>
+        where T: ToString,
+              S: AsRef<OsStr>
     {
         let ps_cmd = format!("iex $(gc {} | out-string)", path.as_ref().to_string_lossy());
         let args = vec!["-NonInteractive", "-command", ps_cmd.as_str()];
@@ -232,8 +235,9 @@ pub trait Hook: fmt::Debug + Sized + Send {
     }
 
     #[cfg(unix)]
-    fn exec<S>(path: S, pkg: &Pkg, _: Option<String>) -> Result<Child>
-        where S: AsRef<OsStr>
+    fn exec<T, S>(path: S, pkg: &Pkg, _: Option<T>) -> Result<Child>
+        where T: ToString,
+              S: AsRef<OsStr>
     {
         use habitat_core::os::users;
         use std::io::Error as IoError;

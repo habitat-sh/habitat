@@ -71,9 +71,9 @@ impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
             thread::Builder::new().name(format!("{}-{}", H::file_name(), self.service_group))
                                   .spawn(move || {
                                       let _timer = hook_timer(H::file_name());
-                                      let exit_value =
-                                          self.hook
-                                              .run(&self.service_group, &self.pkg, self.passwd);
+                                      let exit_value = self.hook.run(&self.service_group,
+                                                                     &self.pkg,
+                                                                     self.passwd.as_ref());
                                       tx.send(exit_value)
                                         .expect("Couldn't send oneshot signal from HookRunner: \
                                                  receiver went away");

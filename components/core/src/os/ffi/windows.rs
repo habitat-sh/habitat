@@ -33,9 +33,11 @@ pub trait OsStrExt2 {
 }
 
 impl OsStrExt3 for OsStr {
+    // TODO JB: fix this allow
+    #[allow(clippy::transmute_ptr_to_ptr)]
     fn from_bytes(b: &[u8]) -> &Self {
         use std::mem;
-        unsafe { mem::transmute(&*(b as *const [u8] as *const OsStr)) }
+        unsafe { mem::transmute(b) }
     }
 
     fn as_bytes(&self) -> &[u8] { self.to_str().map(str::as_bytes).expect(INVALID_UTF8) }

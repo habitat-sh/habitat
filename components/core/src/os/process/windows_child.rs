@@ -162,7 +162,12 @@ struct ServiceCredential {
 }
 
 impl ServiceCredential {
-    pub fn new(svc_user: &str, svc_encrypted_password: Option<String>) -> Result<Self> {
+    // TODO JB: fix this allow
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn new<U, P>(svc_user: U, svc_encrypted_password: Option<P>) -> Result<Self>
+        where U: ToString,
+              P: ToString
+    {
         let mut full_user = svc_user.to_string();
         let (domain, user) = match full_user.find('\\') {
             Some(idx) => {
@@ -172,7 +177,7 @@ impl ServiceCredential {
             None => (".".to_string(), full_user),
         };
         let pass = match svc_encrypted_password {
-            Some(password) => decrypt(&password)?,
+            Some(password) => decrypt(&password.to_string())?,
             None => String::new(),
         };
         Ok(Self { user,
@@ -202,12 +207,15 @@ pub struct Child {
 }
 
 impl Child {
-    pub fn spawn(program: &str,
-                 args: &[&str],
-                 env: &HashMap<String, String>,
-                 svc_user: &str,
-                 svc_encrypted_password: Option<String>)
-                 -> Result<Child> {
+    pub fn spawn<U, P>(program: &str,
+                       args: &[&str],
+                       env: &HashMap<String, String>,
+                       svc_user: U,
+                       svc_encrypted_password: Option<P>)
+                       -> Result<Child>
+        where U: ToString,
+              P: ToString
+    {
         let mut os_env: HashMap<OsString, OsString> =
             env::vars_os().map(|(key, val)| (mk_key(key.to_str().unwrap()), val))
                           .collect();
@@ -324,9 +332,13 @@ pub trait FromInner<Inner> {
 pub struct ExitStatus(DWORD);
 
 impl ExitStatus {
-    pub fn success(self) -> bool { self.0 == 0 }
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn success(&self) -> bool { self.0 == 0 }
 
-    pub fn code(self) -> Option<i32> { Some(self.0 as i32) }
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn code(&self) -> Option<i32> { Some(self.0 as i32) }
 }
 
 impl From<DWORD> for ExitStatus {
@@ -702,9 +714,13 @@ impl Drop for Handle {
 impl RawHandle {
     pub fn new(handle: HANDLE) -> RawHandle { RawHandle(handle) }
 
-    pub fn raw(self) -> HANDLE { self.0 }
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn raw(&self) -> HANDLE { self.0 }
 
-    pub fn read(self, buf: &mut [u8]) -> io::Result<usize> {
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
         let mut read = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         let res = cvt(unsafe {
@@ -728,7 +744,9 @@ impl RawHandle {
         }
     }
 
-    pub fn read_at(self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn read_at(&self, buf: &mut [u8], offset: u64) -> io::Result<usize> {
         let mut read = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         let res = unsafe {
@@ -748,7 +766,9 @@ impl RawHandle {
         }
     }
 
-    pub unsafe fn read_overlapped(self,
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub unsafe fn read_overlapped(&self,
                                   buf: &mut [u8],
                                   overlapped: *mut OVERLAPPED)
                                   -> io::Result<Option<usize>> {
@@ -770,7 +790,9 @@ impl RawHandle {
         }
     }
 
-    pub unsafe fn overlapped_result(self,
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub unsafe fn overlapped_result(&self,
                                     overlapped: *mut OVERLAPPED,
                                     wait: bool)
                                     -> io::Result<usize> {
@@ -791,23 +813,22 @@ impl RawHandle {
         }
     }
 
-    pub fn cancel_io(self) -> io::Result<()> {
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn cancel_io(&self) -> io::Result<()> {
         unsafe { cvt(ioapiset::CancelIo(self.raw())).map(|_| ()) }
     }
 
-    // This allow is on purpose. If you take clippy's suggestion and change
-    // pub fn read_to_end(&self, buf: &mut Vec<u8>)
-    // to
-    // pub fn read_to_end(self, buf: &mut Vec<u8>)
-    // then the function recurses endlessly. There's likely a better way to fix this that's more
-    // correct, but in the interest of time, right now I'm just going to allow it.
+    // TODO JB: fix this allow
     #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn read_to_end(&self, buf: &mut Vec<u8>) -> io::Result<usize> {
         let mut me = self;
         (&mut me).read_to_end(buf)
     }
 
-    pub fn write(self, buf: &[u8]) -> io::Result<usize> {
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
         let mut amt = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         cvt(unsafe {
@@ -820,7 +841,9 @@ impl RawHandle {
         Ok(amt as usize)
     }
 
-    pub fn write_at(self, buf: &[u8], offset: u64) -> io::Result<usize> {
+    // TODO JB: fix this allow
+    #[allow(clippy::trivially_copy_pass_by_ref)]
+    pub fn write_at(&self, buf: &[u8], offset: u64) -> io::Result<usize> {
         let mut written = 0;
         let len = cmp::min(buf.len(), <DWORD>::max_value() as usize) as DWORD;
         unsafe {
