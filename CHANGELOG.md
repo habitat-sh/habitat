@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Bug Fixes
+- Fix detection of emacs in studio [#6390](https://github.com/habitat-sh/habitat/pull/6390) ([smacfarlane](https://github.com/smacfarlane))
+
 #### Behavioral Changes
 - Make --binlink take an value (or env var) for `hab pkg install` [#6423](https://github.com/habitat-sh/habitat/pull/6423) ([baumanj](https://github.com/baumanj))
 
