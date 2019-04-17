@@ -148,22 +148,6 @@ steps:
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
-  - label: ":windows: :habicat: core/hab-bintray-publish"
-    command: .buildkite/scripts/build_component.ps1 -Component bintray-publish
-    agents:
-      queue: default-windows-privileged
-    env:
-      HAB_BLDR_CHANNEL: unstable
-    plugins:
-      - docker#v2.0.0:
-          image: "chefes/windows-base:latest"
-          shell: [ "powershell", "-Command" ]
-          environment:
-            - HAB_BLDR_CHANNEL
-            - HAB_AUTH_TOKEN
-            - BUILDKITE_JOB_ID
-            - BUILDKITE_AGENT_ACCESS_TOKEN
-
   - wait
 
   # This must pull in the core/backline we built ^^^

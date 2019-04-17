@@ -522,15 +522,6 @@ steps:
 # still build. - Windows
 #######################################################################
 
-  - label: "[build] :windows: bintray-publish"
-    command:
-      - ./support/ci/build_component.ps1 bintray-publish
-    agents:
-      queue: 'single-use-windows-privileged'
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[build] :windows: hab"
     command:
       - ./support/ci/build_component.ps1 hab
