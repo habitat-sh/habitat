@@ -8,7 +8,7 @@ steps:
 # Release!
 #######################################################################
 
-  - label: "[lint] :linux: :bash: Shellcheck"
+  - label: "[First step]"
     command:
       - echo "HI"
     agents:
