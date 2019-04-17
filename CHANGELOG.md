@@ -7,6 +7,7 @@
 - Make --binlink take an value (or env var) for `hab pkg install` [#6423](https://github.com/habitat-sh/habitat/pull/6423) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- remove some dead appveyor and bintray-publish code [#6439](https://github.com/habitat-sh/habitat/pull/6439) ([mwrock](https://github.com/mwrock))
 - Merge the core repo back into this one [#6432](https://github.com/habitat-sh/habitat/pull/6432) ([raskchanky](https://github.com/raskchanky))
 - Add temporary hab release pipeline [#6437](https://github.com/habitat-sh/habitat/pull/6437) ([scotthain](https://github.com/scotthain))
 - Follow $refs in generate-template-reference [#6427](https://github.com/habitat-sh/habitat/pull/6427) ([mpeck](https://github.com/mpeck))
