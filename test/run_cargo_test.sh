@@ -4,32 +4,21 @@ set -eou pipefail
 
 source ./support/ci/shared.sh
 
-: "${toolchain:=stable}"
+component=${1?component argument required}
+shift
+cd "components/$component"
 
-while [[ $# -gt 1 ]]; do
-  case $1 in
-    --nightly )             toolchain=$(get_nightly_toolchain)
-                            ;;
-    -f | --features )       shift
-                            features=$1
-                            ;;
-    -t | --test-options )   shift
-                            test_options=$1
-                            ;;
-    * )                     echo "FAIL SCHOONER"
-                            exit 1
-  esac
+if [[ ${1:-} == --nightly ]]; then
   shift
-done
+  toolchain=$(get_nightly_toolchain)
+else
+  toolchain=stable
+fi
+
+# All the remaining args are passed to cargo test +"$toolchain"
 
 install_rustup
 install_rust_toolchain "$toolchain"
-
-# set the features string if needed
-[ -z "${features:-}" ] && features_string="" || features_string="--features ${features}"
-
-component=${1?component argument required}
-cargo_test_command="cargo +${toolchain} test ${features_string} -- --nocapture ${test_options:-}"
 
 # TODO: fix this upstream, it looks like it's not saving correctly.
 sudo chown -R buildkite-agent /home/buildkite-agent
@@ -66,6 +55,5 @@ TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 
 export RUST_BACKTRACE=1
 
-echo "--- Running cargo test on $component with command: '$cargo_test_command'"
-cd "components/$component"
-$cargo_test_command
+echo "--- Running cargo test on $component with $*"
+cargo +"$toolchain" test "$@"

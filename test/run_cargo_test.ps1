@@ -22,13 +22,13 @@ Install-Rustup $toolchain
 Install-RustToolchain $toolchain
 
 If($Features) {
-    $FeatureString = "--features $Features"
+    $FeatureString = "--features `"$Features`""
 } Else {
     $FeatureString = ""
 }
 
 # Set cargo test invocation
-$CargoTestCommand = "cargo +$toolchain test $FeatureString -- --nocapture $TestOptions"
+$CargoTestCommand = "cargo +$toolchain test $FeatureString -- $TestOptions"
 
 Setup-Environment
 

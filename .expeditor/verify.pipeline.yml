@@ -73,7 +73,7 @@ steps:
 
   - label: "[unit] :linux: butterfly"
     command:
-      - ./test/run_cargo_test.sh --nightly --features "lock_as_mutex deadlock_detection" --test-options "--test-threads=1" butterfly
+      - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_mutex deadlock_detection" -- --test-threads=1
     agents:
       queue: 'default-privileged'
     plugins:
@@ -263,7 +263,7 @@ steps:
 
   - label: "[unit] :linux: sup"
     command:
-      - ./test/run_cargo_test.sh --features "ignore_integration_tests lock_as_mutex"  sup
+      - ./test/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_mutex"
     agents:
       queue: 'default-privileged'
     plugins:
