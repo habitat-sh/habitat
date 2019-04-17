@@ -13,14 +13,14 @@
 // limitations under the License.
 
 #[macro_use]
-extern crate habitat_butterfly;
-#[macro_use]
-extern crate habitat_butterfly_test as btest;
-
+mod common;
 mod encryption;
 mod rumor;
 
-use habitat_butterfly::member::Health;
+use common as btest;
+use habitat_butterfly::{self,
+                        member::Health,
+                        trace_it};
 
 #[test]
 fn two_members_meshed_confirm_one_member() {

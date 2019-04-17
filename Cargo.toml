@@ -5,7 +5,6 @@ debug = true
 members = [
   "components/builder-api-client",
   "components/butterfly",
-  "components/butterfly-test",
   "components/common",
   "components/core",
   "components/hab",
