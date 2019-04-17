@@ -244,7 +244,7 @@ impl Myself {
 pub struct Server {
     name:      Arc<String>,
     member_id: Arc<String>,
-    // TODO (CM): This is currently public because butterfly-test
+    // TODO (CM): This is currently public because butterfly tests
     // depends on it being so. Refactor so it can be private.
     pub member:               Arc<RwLock<Myself>>,
     pub member_list:          Arc<MemberList>,

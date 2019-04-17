@@ -1031,7 +1031,6 @@ dependencies = [
  "byteorder 1.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "bytes 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "env_logger 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "habitat_butterfly_test 0.1.0",
  "habitat_common 0.0.0",
  "habitat_core 0.0.0",
  "heck 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1054,18 +1053,6 @@ dependencies = [
  "toml 0.5.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "uuid 0.7.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "zmq 0.8.3 (git+https://github.com/erickt/rust-zmq?branch=release/v0.8)",
-]
-
-[[package]]
-name = "habitat_butterfly_test"
-version = "0.1.0"
-dependencies = [
- "habitat_butterfly 0.1.0",
- "habitat_core 0.0.0",
- "lazy_static 1.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "log 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "parking_lot 0.7.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "time 0.1.42 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

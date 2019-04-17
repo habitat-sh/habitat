@@ -12,12 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[macro_use]
-extern crate habitat_butterfly;
-
-#[macro_use]
-extern crate lazy_static;
-
 use habitat_butterfly::{error::Error,
                         member::{Health,
                                  Member},
@@ -30,7 +24,8 @@ use habitat_butterfly::{error::Error,
                         server::{timing::Timing,
                                  Server,
                                  Suitability},
-                        trace::Trace};
+                        trace::Trace,
+                        trace_it};
 use habitat_core::{crypto::keys::sym_key::SymKey,
                    package::{Identifiable,
                              PackageIdent},
@@ -47,7 +42,7 @@ use std::{net::{IpAddr,
           time::Duration};
 use time::SteadyTime;
 
-lazy_static! {
+lazy_static::lazy_static! {
     static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
 }
 
@@ -169,12 +164,6 @@ impl SwimNet {
         let to = member_from_server(&self.members[to_entry]);
         trace_it!(TEST: &self.members[from_entry], format!("Connected {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         self.members[from_entry].insert_member(to, Health::Alive);
-    }
-
-    pub fn add_member(&mut self) {
-        let number = self.members.len() + 1;
-        self.members
-            .push(start_server(&format!("{}", number), None, 0));
     }
 
     // Fully mesh the network
