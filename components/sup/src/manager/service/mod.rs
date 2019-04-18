@@ -136,7 +136,13 @@ pub struct Service {
 
     #[serde(skip_serializing)]
     config_renderer: CfgRenderer,
-    health_check: HealthCheck,
+    // Note: This field is really only needed for serializing a
+    // Service in the gateway (see ServiceProxy's Serialize
+    // implementation). Ideally, we could get rid of this, since we're
+    // *also* storing the health check result directly (see
+    // manager::GatewayState#health_check_data), but because of how
+    // the data is currently rendered, this is a little complicated.
+    health_check_result: Arc<Mutex<HealthCheck>>,
     last_election_status: ElectionStatus,
     needs_reload: bool,
     needs_reconfiguration: bool,
@@ -207,7 +213,7 @@ impl Service {
                      bldr_url: spec.bldr_url,
                      channel: spec.channel,
                      desired_state: spec.desired_state,
-                     health_check: HealthCheck::default(),
+                     health_check_result: HealthCheck::default(),
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
                                             svc_hooks_path(&service_group.service())),
@@ -966,7 +972,7 @@ impl Service {
                    self.spec_ident, check_result);
             self.schedule_special_health_check();
         }
-        self.health_check = check_result;
+        self.health_check_result = check_result;
         self.cache_health_check(check_result);
     }
 
@@ -1139,7 +1145,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("channel", &s.channel)?;
         strukt.serialize_field("config_from", &s.config_from)?;
         strukt.serialize_field("desired_state", &s.desired_state)?;
-        strukt.serialize_field("health_check", &s.health_check)?;
+        strukt.serialize_field("health_check", &s.health_check_result)?;
         strukt.serialize_field("hooks", &s.hooks)?;
         strukt.serialize_field("initialized", &s.initialized)?;
         strukt.serialize_field("last_election_status", &s.last_election_status)?;
