@@ -392,6 +392,10 @@ impl FromStr for ApplicationEnvironment {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct HealthCheckInterval(Duration);
 
+impl From<u32> for HealthCheckInterval {
+    fn from(seconds: u32) -> Self { Self(Duration::from_secs(seconds.into())) }
+}
+
 impl AsRef<Duration> for HealthCheckInterval {
     fn as_ref(&self) -> &Duration { &self.0 }
 }
@@ -403,16 +407,13 @@ impl fmt::Display for HealthCheckInterval {
 }
 
 impl Default for HealthCheckInterval {
-    fn default() -> Self { HealthCheckInterval(Duration::from_secs(30)) }
+    fn default() -> Self { Self::from(30) }
 }
 
 impl FromStr for HealthCheckInterval {
     type Err = ParseIntError;
 
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        let raw = s.parse::<u32>()?;
-        Ok(Duration::from_secs(u64::from(raw)).into())
-    }
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> { Ok(Self::from(s.parse::<u32>()?)) }
 }
 
 impl From<Duration> for HealthCheckInterval {
@@ -420,7 +421,7 @@ impl From<Duration> for HealthCheckInterval {
 }
 
 impl From<HealthCheckInterval> for Duration {
-    fn from(h: HealthCheckInterval) -> Self { Duration::from_secs(h.as_ref().as_secs()) }
+    fn from(h: HealthCheckInterval) -> Self { h.0 }
 }
 
 impl PartialOrd<Duration> for HealthCheckInterval {
