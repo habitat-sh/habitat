@@ -74,10 +74,12 @@ use std::{self,
           collections::HashSet,
           fmt,
           fs,
+          ops::Deref,
           path::{Path,
                  PathBuf},
           result,
           sync::{Arc,
+                 Mutex,
                  RwLock},
           time::Instant};
 use time::Timespec;
@@ -169,7 +171,7 @@ pub struct Service {
     scheduled_health_check: Option<Instant>,
     manager_fs_cfg: Arc<FsCfg>,
     #[serde(rename = "process")]
-    supervisor: Supervisor,
+    supervisor: Arc<Mutex<Supervisor>>,
     svc_encrypted_password: Option<String>,
     health_check_interval: HealthCheckInterval,
 
@@ -215,7 +217,7 @@ impl Service {
                      needs_reconfiguration: false,
                      user_config_updated: false,
                      manager_fs_cfg,
-                     supervisor: Supervisor::new(&service_group),
+                     supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
                      pkg,
                      service_group,
                      binds: spec.binds,
@@ -274,6 +276,8 @@ impl Service {
 
     fn start(&mut self, launcher: &LauncherCli) {
         if let Some(err) = self.supervisor
+                               .lock()
+                               .expect("Couldn't lock supervisor")
                                .start(&self.pkg,
                                       &self.service_group,
                                       launcher,
@@ -293,13 +297,17 @@ impl Service {
         let service_group = self.service_group.clone();
         let gs = Arc::clone(&self.gateway_state);
 
-        let f = self.supervisor.stop(shutdown_spec).and_then(move |_| {
-                                                       gs.write()
-                                                         .expect("GatewayState lock is poisoned")
-                                                         .health_check_data
-                                                         .remove(&service_group);
-                                                       Ok(())
-                                                   });
+        let f = self.supervisor
+                    .lock()
+                    .expect("Couldn't lock supervisor")
+                    .stop()
+                    .and_then(move |_| {
+                        gs.write()
+                          .expect("GatewayState lock is poisoned")
+                          .health_check_data
+                          .remove(&service_group);
+                        Ok(())
+                    });
 
         // eww
         let service_group_2 = self.service_group.clone();
@@ -321,6 +329,8 @@ impl Service {
         if self.process_down() || self.hooks.reload.is_none() {
             if let Some(err) =
                 self.supervisor
+                    .lock()
+                    .expect("Couldn't lock supervisor")
                     .restart(&self.pkg,
                              &self.service_group,
                              launcher,
@@ -337,7 +347,12 @@ impl Service {
         }
     }
 
-    pub fn last_state_change(&self) -> Timespec { self.supervisor.state_entered }
+    pub fn last_state_change(&self) -> Timespec {
+        self.supervisor
+            .lock()
+            .expect("Couldn't lock supervisor")
+            .state_entered
+    }
 
     /// Performs updates and executes hooks.
     ///
@@ -582,9 +597,20 @@ impl Service {
     }
 
     /// Updates the process state of the service's supervisor
-    fn check_process(&mut self) -> bool { self.supervisor.check_process() }
+    fn check_process(&mut self) -> bool {
+        self.supervisor
+            .lock()
+            .expect("Couldn't lock supervisor")
+            .check_process()
+    }
 
-    fn process_down(&self) -> bool { self.supervisor.state == ProcessState::Down }
+    fn process_down(&self) -> bool {
+        self.supervisor
+            .lock()
+            .expect("Couldn't lock supervisor")
+            .state
+        == ProcessState::Down
+    }
 
     /// Updates the service configuration with data from a census group if the census group has
     /// newer data than the current configuration.
@@ -917,7 +943,11 @@ impl Service {
                      &self.pkg,
                      self.svc_encrypted_password.as_ref())
         } else {
-            match self.supervisor.status() {
+            match self.supervisor
+                      .lock()
+                      .expect("Couldn't lock supervisor")
+                      .status()
+            {
                 (true, _) => HealthCheck::Ok,
                 (false, _) => HealthCheck::Critical,
             }
@@ -1120,7 +1150,11 @@ impl<'a> Serialize for ServiceProxy<'a> {
         let pkg_proxy = PkgProxy::new(&s.pkg);
         strukt.serialize_field("pkg", &pkg_proxy)?;
 
-        strukt.serialize_field("process", &s.supervisor)?;
+        strukt.serialize_field("process",
+                               s.supervisor
+                                .lock()
+                                .expect("Couldn't lock supervisor")
+                                .deref())?;
         strukt.serialize_field("service_group", &s.service_group)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
         strukt.serialize_field("spec_ident", &s.spec_ident)?;
