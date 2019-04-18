@@ -160,6 +160,7 @@ impl FeatureFlag {
 }
 
 pub mod sync {
+    use std::time::Duration;
 
     #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
     type InnerLock<T> = parking_lot::RwLock<T>;
@@ -204,15 +205,46 @@ pub mod sync {
         pub fn read(&self) -> ReadGuard<T> { self.inner.read_recursive() }
 
         #[cfg(feature = "lock_as_mutex")]
-        pub fn read(&self) -> ReadGuard<T> { self.inner.lock() }
+        pub fn read(&self) -> ReadGuard<T> {
+            use parking_lot::deadlock;
+            use std::thread;
+
+            if let Some(guard) = self.inner.try_lock_for(Duration::from_secs(5)) {
+                guard
+            } else {
+                let detector = thread::spawn(move || {
+                    loop {
+                        thread::sleep(Duration::from_secs(1));
+                        let deadlocks = deadlock::check_deadlock();
+                        if deadlocks.is_empty() {
+                            continue;
+                        }
+
+                        println!("{} deadlocks detected", deadlocks.len());
+                        for (i, threads) in deadlocks.iter().enumerate() {
+                            println!("Deadlock #{}", i);
+                            for t in threads {
+                                println!("Thread Id {:#?}", t.thread_id());
+                                println!("{:#?}", t.backtrace());
+                            }
+                        }
+                    }
+                });
+                let guard = self.inner
+                                .try_lock_for(Duration::from_secs(5))
+                                .expect("timed out waiting for lock");
+                detector.join().expect("join deadlock detector thread");
+                guard
+            }
+        }
 
         #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
-        pub fn try_read_for(&self, timeout: std::time::Duration) -> Option<ReadGuard<T>> {
+        pub fn try_read_for(&self, timeout: Duration) -> Option<ReadGuard<T>> {
             self.inner.try_read_recursive_for(timeout)
         }
 
         #[cfg(feature = "lock_as_mutex")]
-        pub fn try_read_for(&self, timeout: std::time::Duration) -> Option<ReadGuard<T>> {
+        pub fn try_read_for(&self, timeout: Duration) -> Option<ReadGuard<T>> {
             self.inner.try_lock_for(timeout)
         }
 
