@@ -392,6 +392,10 @@ impl FromStr for ApplicationEnvironment {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct HealthCheckInterval(Duration);
 
+impl HealthCheckInterval {
+    pub fn immediately() -> Self { Self::from(0) }
+}
+
 impl From<u32> for HealthCheckInterval {
     fn from(seconds: u32) -> Self { Self(Duration::from_secs(seconds.into())) }
 }
