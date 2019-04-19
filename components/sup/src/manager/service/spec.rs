@@ -41,8 +41,7 @@ use std::{collections::HashSet,
           path::{Path,
                  PathBuf},
           result,
-          str::FromStr,
-          time::Duration};
+          str::FromStr};
 use toml;
 
 static LOGKEY: &str = "SS";
@@ -148,7 +147,7 @@ impl IntoServiceSpec for habitat_sup_protocol::ctl::SvcLoad {
             spec.svc_encrypted_password = Some(svc_encrypted_password.to_string());
         }
         if let Some(ref interval) = self.health_check_interval {
-            spec.health_check_interval = Duration::from_secs(interval.seconds).into()
+            spec.health_check_interval = interval.seconds.into()
         }
     }
 }

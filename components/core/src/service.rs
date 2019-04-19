@@ -420,10 +420,6 @@ impl FromStr for HealthCheckInterval {
     fn from_str(s: &str) -> result::Result<Self, Self::Err> { Ok(Self::from(s.parse::<u64>()?)) }
 }
 
-impl From<Duration> for HealthCheckInterval {
-    fn from(d: Duration) -> Self { HealthCheckInterval(d) }
-}
-
 impl From<HealthCheckInterval> for Duration {
     fn from(h: HealthCheckInterval) -> Self { h.0 }
 }
