@@ -17,9 +17,7 @@ use crate::error::{Error,
 use regex::Regex;
 use serde_derive::{Deserialize,
                    Serialize};
-use std::{cmp::{Ordering,
-                PartialOrd},
-          fmt,
+use std::{fmt,
           num::ParseIntError,
           ops::{Deref,
                 DerefMut},
@@ -424,14 +422,6 @@ impl From<HealthCheckInterval> for Duration {
     fn from(h: HealthCheckInterval) -> Self { h.0 }
 }
 
-impl PartialOrd<Duration> for HealthCheckInterval {
-    fn partial_cmp(&self, other: &Duration) -> Option<Ordering> { Some(self.0.cmp(other)) }
-}
-
-impl PartialEq<Duration> for HealthCheckInterval {
-    fn eq(&self, other: &Duration) -> bool { self.0 == *other }
-}
-
 #[cfg(test)]
 mod test {
     use std::str::FromStr;
@@ -751,16 +741,6 @@ mod test {
     fn health_check_interval_must_be_positive() {
         assert!(HealthCheckInterval::from_str("-123").is_err());
         assert!(HealthCheckInterval::from_str("5").is_ok());
-    }
-
-    #[test]
-    fn health_check_interval_correctly_implements_comparison() {
-        let one: HealthCheckInterval = Duration::from_secs(5).into();
-        assert!(one < *HealthCheckInterval::default().as_ref());
-        let two: HealthCheckInterval = Duration::from_secs(50).into();
-        assert!(two > *HealthCheckInterval::default().as_ref());
-        let three: HealthCheckInterval = Duration::from_secs(30).into();
-        assert!(three == *HealthCheckInterval::default().as_ref());
     }
 
     #[test]
