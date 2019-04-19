@@ -122,7 +122,7 @@ pub struct EventConnectionInfo {
 
 impl EventConnectionInfo {
     pub fn new(auth_token: AutomateAuthToken, cluster_uri: String) -> Self {
-        EventConnectionInfo { name: String::from("habitat"),
+        EventConnectionInfo { name: String::from("hab_client"),
                               verbose: true,
                               cluster_uri,
                               cluster_id: String::from("event-service"),
