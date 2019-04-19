@@ -22,8 +22,8 @@ doc = false
 [dependencies]
 actix = "*"
 bytes = "*"
-# This is temporary, until this is merged to the mainline
-nitox = { git = "https://github.com/YellowInnovation/nitox", branch="feature/nats-server" }
+# This is temporary, until this is merged to the mainline and we can use the crate
+nitox = { git = "https://github.com/habitat-sh/nitox", branch="feature/nats-server" }
 actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
