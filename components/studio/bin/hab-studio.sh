@@ -518,95 +518,32 @@ new_studio() {
   # shellcheck disable=1090
   . "$studio_type_dir/hab-studio-type-${STUDIO_TYPE}.sh"
 
-  # If `/etc/passwd` is not present, create a minimal version to satisfy
-  # some software when being built
-  if [ ! -f "$HAB_STUDIO_ROOT/etc/passwd" ]; then
-    if [ -n "$VERBOSE" ]; then
-      echo "> Creating minimal /etc/passwd"
-    fi
-    $bb cat > "$HAB_STUDIO_ROOT/etc/passwd" << "EOF"
-root:x:0:0:root:/root:/bin/sh
-bin:x:1:1:bin:/dev/null:/bin/false
-daemon:x:6:6:Daemon User:/dev/null:/bin/false
-messagebus:x:18:18:D-Bus Message Daemon User:/var/run/dbus:/bin/false
-nobody:x:99:99:Unprivileged User:/dev/null:/bin/false
-EOF
-  fi
+  # These two are needed to satisfy some software builds.
+  #
+  # They're also not overwritten, because we actually *add* entries to
+  # them later on in the process. Since you can re-use studios, that
+  # would wipe out those changes.
+  #
+  # TODO (CM): we should consolidate this stuff.
+  copy_minimal_default_file_if_not_present "/etc/passwd"
+  copy_minimal_default_file_if_not_present "/etc/group"
 
-  # If `/etc/group` is not present, create a minimal version to satisfy
-  # some software when being built
-  if [ ! -f "$HAB_STUDIO_ROOT/etc/group" ]; then
-    if [ -n "$VERBOSE" ]; then
-      echo "> Creating minimal /etc/group"
-    fi
-    $bb cat > "$HAB_STUDIO_ROOT/etc/group" << "EOF"
-root:x:0:
-bin:x:1:daemon
-sys:x:2:
-kmem:x:3:
-tape:x:4:
-tty:x:5:
-daemon:x:6:
-floppy:x:7:
-disk:x:8:
-lp:x:9:
-dialout:x:10:
-audio:x:11:
-video:x:12:
-utmp:x:13:
-usb:x:14:
-cdrom:x:15:
-adm:x:16:
-messagebus:x:18:
-systemd-journal:x:23:
-input:x:24:
-mail:x:34:
-nogroup:x:99:
-users:x:999:
-EOF
-  fi
-
-  # If `/etc/inputrc` is not present, create a minimal version to provide
-  # some standard key mappings in shell
-  if [ ! -f "$HAB_STUDIO_ROOT/etc/inputrc" ]; then
-    if [ -n "$VERBOSE" ]; then
-      echo "> Creating minimal /etc/inputrc"
-    fi
-    $bb cat > "$HAB_STUDIO_ROOT/etc/inputrc" << "EOF"
-# allow the use of the Home/End keys
-"\e[1~": beginning-of-line
-"\e[4~": end-of-line
-
-# mappings for Ctrl-left-arrow and Ctrl-right-arrow for word moving
-"\e[1;5C": forward-word
-"\e[1;5D": backward-word
-"\e[5C": forward-word
-"\e[5D": backward-word
-"\e\e[C": forward-word
-"\e\e[D": backward-word
-EOF
-  fi
+  # This one is nice for interactive work.
+  #
+  # Though we don't do anything else with this file, it's conceivable
+  # that users might modify it and want those changes to persist in a
+  # long-lived studio.
+  copy_minimal_default_file_if_not_present "/etc/inputrc"
 
   # Copy minimal networking and DNS resolution configuration files into the
-  # Studio filesystem so that commands such as `wget(1)` will work
-  for f in /etc/hosts /etc/resolv.conf /etc/nsswitch.conf; do
-    $bb mkdir -p $v "$($bb dirname $f)"
-    if [ $f = "/etc/nsswitch.conf" ] ; then
-      $bb touch "$HAB_STUDIO_ROOT$f"
-      $bb cat <<EOF > "$HAB_STUDIO_ROOT$f"
-passwd:     files
-group:      files
-shadow:     files
-
-hosts:      files dns
-networks:   files
-
-rpc:        files
-services:   files
-EOF
-    else
-      $bb cp $v $f "$HAB_STUDIO_ROOT$f"
-    fi
+  # Studio filesystem so that commands such as `wget(1)` will work.
+  #
+  # TODO (CM): Unsure why we unconditionally copy this file, but
+  # not the two files below.
+  copy_minimal_default_file "/etc/nsswitch.conf"
+  for f in /etc/hosts /etc/resolv.conf; do
+    # Note: These files are copied **from the host**
+    $bb cp $v $f "$HAB_STUDIO_ROOT$f"
   done
 
   # Invoke the type's implementation
@@ -1157,6 +1094,32 @@ set_libexec_path() {
   return 0
 }
 
+# If `file_path` is not present in the studio, copy in a minimal
+# default version from the studio package's `defaults` directory.
+copy_minimal_default_file_if_not_present() {
+    file_path="${1}"
+    if [ -f "${HAB_STUDIO_ROOT}${file_path}" ]; then
+        if [ -n "$VERBOSE" ]; then
+            echo "> Skipping creation of ${file_path}; file exists"
+        fi
+    else
+        copy_minimal_default_file "${file_path}"
+    fi
+}
+
+copy_minimal_default_file() {
+    file_path="${1}"
+    defaults_path="$($bb dirname "${libexec_path}")/defaults"
+    if [ -n "$VERBOSE" ]; then
+        echo "> Creating minimal ${file_path}"
+    fi
+    if [ -f "${defaults_path}${file_path}" ]; then
+        $bb cp -f "${defaults_path}${file_path}" "${HAB_STUDIO_ROOT}${file_path}"
+    else
+        exit_with "Tried to copy default file for '${file_path}', but could not find one! Please report this error." "${ERR_RUNTIME_CODING_ERROR}"
+    fi
+}
+
 # # Main Flow
 
 # Set the `$libexec_path` variable containing an absolute path to `../libexec`
@@ -1180,6 +1143,9 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # The default download root path for package artifacts, used on package
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
+
+# The exit code for a coding error that manifests at runtime
+ERR_RUNTIME_CODING_ERROR=70
 
 # The exit code if unmounting a filesystem fails
 ERR_UMOUNT_FAILED=80
