@@ -79,7 +79,8 @@ use habitat_core::{crypto::{init,
                    ChannelIdent};
 use habitat_sup_client::{SrvClient,
                          SrvClientError};
-use habitat_sup_protocol::{codec::*,
+use habitat_sup_protocol::{self as sup_proto,
+                           codec::*,
                            ctl::ServiceBindList,
                            net::ErrCode,
                            types::*};
@@ -920,9 +921,9 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let mut ui = ui();
-    let mut validate = habitat_sup_protocol::ctl::SvcValidateCfg::default();
+    let mut validate = sup_proto::ctl::SvcValidateCfg::default();
     validate.service_group = Some(service_group.clone().into());
-    let mut buf = Vec::with_capacity(habitat_sup_protocol::butterfly::MAX_SVC_CFG_SIZE);
+    let mut buf = Vec::with_capacity(sup_proto::butterfly::MAX_SVC_CFG_SIZE);
     let cfg_len = match m.value_of("FILE") {
         Some("-") | None => io::stdin().read_to_end(&mut buf)?,
         Some(f) => {
@@ -930,14 +931,14 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
             file.read_to_end(&mut buf)?
         }
     };
-    if cfg_len > habitat_sup_protocol::butterfly::MAX_SVC_CFG_SIZE {
+    if cfg_len > sup_proto::butterfly::MAX_SVC_CFG_SIZE {
         ui.fatal(format!("Configuration too large. Maximum size allowed is {} bytes.",
-                         habitat_sup_protocol::butterfly::MAX_SVC_CFG_SIZE))?;
+                         sup_proto::butterfly::MAX_SVC_CFG_SIZE))?;
         process::exit(1);
     }
     validate.cfg = Some(buf.clone());
     let cache = cache_key_path_from_matches(&m);
-    let mut set = habitat_sup_protocol::ctl::SvcSetCfg::default();
+    let mut set = sup_proto::ctl::SvcSetCfg::default();
     match (service_group.org(), user_param_or_env(&m)) {
         (Some(_org), Some(username)) => {
             let user_pair = BoxKeyPair::get_latest_pair_for(username, &cache)?;
@@ -969,7 +970,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                     "NetOk" => Ok(()),
                     "NetErr" => {
                         let m = reply
-                            .parse::<habitat_sup_protocol::net::NetErr>()
+                            .parse::<sup_proto::net::NetErr>()
                             .map_err(SrvClientError::Decode)?;
                         match ErrCode::from_i32(m.code) {
                             Some(ErrCode::InvalidPayload) => {
@@ -995,7 +996,7 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
-                        .parse::<habitat_sup_protocol::net::NetErr>()
+                        .parse::<sup_proto::net::NetErr>()
                         .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
@@ -1015,21 +1016,21 @@ fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = habitat_sup_protocol::ctl::SvcGetDefaultCfg::default();
+    let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                 "ServiceCfg" => {
                     let m = reply
-                        .parse::<habitat_sup_protocol::types::ServiceCfg>()
+                        .parse::<sup_proto::types::ServiceCfg>()
                         .map_err(SrvClientError::Decode)?;
                     println!("{}", m.default.unwrap_or_default());
                     Ok(())
                 }
                 "NetErr" => {
                     let m = reply
-                        .parse::<habitat_sup_protocol::net::NetErr>()
+                        .parse::<sup_proto::net::NetErr>()
                         .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
@@ -1047,7 +1048,7 @@ fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = habitat_sup_protocol::ctl::SvcLoad::default();
+    let mut msg = sup_proto::ctl::SvcLoad::default();
     update_svc_load_from_input(m, &mut msg)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
@@ -1068,9 +1069,9 @@ fn sub_svc_unload(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> 
     let timeout = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
     let signal = maybe_get_shutdown_signal(m, feature_flags)?;
 
-    let msg = habitat_sup_protocol::ctl::SvcUnload { ident: Some(ident.into()),
-                                                     signal,
-                                                     timeout };
+    let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
+                                          signal,
+                                          timeout };
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
                                                              .for_each(|m| handle_ctl_reply(&m))
@@ -1124,7 +1125,7 @@ fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = habitat_sup_protocol::ctl::SvcStart::default();
+    let mut msg = sup_proto::ctl::SvcStart::default();
     msg.ident = Some(ident.into());
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
@@ -1138,7 +1139,7 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = habitat_sup_protocol::ctl::SvcStatus::default();
+    let mut msg = sup_proto::ctl::SvcStatus::default();
     if let Some(pkg) = m.value_of("PKG_IDENT") {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
     }
@@ -1183,9 +1184,9 @@ fn sub_svc_stop(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let timeout = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
     let signal = maybe_get_shutdown_signal(m, feature_flags)?;
 
-    let msg = habitat_sup_protocol::ctl::SvcStop { ident: Some(ident.into()),
-                                                   timeout,
-                                                   signal };
+    let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
+                                        timeout,
+                                        signal };
 
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
@@ -1201,17 +1202,17 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
-    let mut msg = habitat_sup_protocol::ctl::SvcFilePut::default();
+    let mut msg = sup_proto::ctl::SvcFilePut::default();
     let file = Path::new(m.value_of("FILE").unwrap());
-    if file.metadata()?.len() > habitat_sup_protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
+    if file.metadata()?.len() > sup_proto::butterfly::MAX_FILE_PUT_SIZE_BYTES as u64 {
         ui.fatal(format!("File too large. Maximum size allowed is {} bytes.",
-                         habitat_sup_protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES))?;
+                         sup_proto::butterfly::MAX_FILE_PUT_SIZE_BYTES))?;
         process::exit(1);
     };
     msg.service_group = Some(service_group.clone().into());
     msg.version = Some(value_t!(m, "VERSION_NUMBER", u64).unwrap());
     msg.filename = Some(file.file_name().unwrap().to_string_lossy().into_owned());
-    let mut buf = Vec::with_capacity(habitat_sup_protocol::butterfly::MAX_FILE_PUT_SIZE_BYTES);
+    let mut buf = Vec::with_capacity(sup_proto::butterfly::MAX_FILE_PUT_SIZE_BYTES);
     let cache = cache_key_path_from_matches(&m);
     ui.begin(format!("Uploading file {} to {} incarnation {}",
                      file.display(),
@@ -1248,7 +1249,7 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
-                        .parse::<habitat_sup_protocol::net::NetErr>()
+                        .parse::<sup_proto::net::NetErr>()
                         .map_err(SrvClientError::Decode)?;
                     match ErrCode::from_i32(m.code) {
                         Some(ErrCode::InvalidPayload) => {
@@ -1274,7 +1275,7 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
-    let mut msg = habitat_sup_protocol::ctl::SupDepart::default();
+    let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
         ui.begin(format!("Permanently marking {} as departed",
@@ -1290,7 +1291,7 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
                 "NetOk" => Ok(()),
                 "NetErr" => {
                     let m = reply
-                        .parse::<habitat_sup_protocol::net::NetErr>()
+                        .parse::<sup_proto::net::NetErr>()
                         .map_err(SrvClientError::Decode)?;
                     Err(SrvClientError::from(m))
                 }
@@ -1308,7 +1309,7 @@ fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
 fn sub_sup_secret_generate() -> Result<()> {
     let mut ui = ui();
     let mut buf = String::new();
-    habitat_sup_protocol::generate_secret_key(&mut buf);
+    sup_proto::generate_secret_key(&mut buf);
     ui.info(buf)?;
     Ok(())
 }
@@ -1591,7 +1592,7 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
     progress_bar.message("    ");
     match reply.message_id() {
         "ConsoleLine" => {
-            let m = reply.parse::<habitat_sup_protocol::ctl::ConsoleLine>()
+            let m = reply.parse::<sup_proto::ctl::ConsoleLine>()
                          .map_err(SrvClientError::Decode)?;
             let mut new_spec = ColorSpec::new();
             let msg_spec = match m.color {
@@ -1604,7 +1605,7 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
             common::ui::print(UI::default_with_env().out(), m.line.as_bytes(), msg_spec)?;
         }
         "NetProgress" => {
-            let m = reply.parse::<habitat_sup_protocol::ctl::NetProgress>()
+            let m = reply.parse::<sup_proto::ctl::NetProgress>()
                          .map_err(SrvClientError::Decode)?;
             progress_bar.total = m.total;
             if progress_bar.set(m.position) >= m.total {
@@ -1612,7 +1613,7 @@ fn handle_ctl_reply(reply: &SrvMessage) -> result::Result<(), SrvClientError> {
             }
         }
         "NetErr" => {
-            let m = reply.parse::<habitat_sup_protocol::net::NetErr>()
+            let m = reply.parse::<sup_proto::net::NetErr>()
                          .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(m));
         }
@@ -1629,7 +1630,7 @@ fn print_svc_status<T>(out: &mut T,
 {
     let status = match reply.message_id() {
         "ServiceStatus" => {
-            reply.parse::<habitat_sup_protocol::types::ServiceStatus>()
+            reply.parse::<sup_proto::types::ServiceStatus>()
                  .map_err(SrvClientError::Decode)?
         }
         "NetOk" => {
@@ -1637,7 +1638,7 @@ fn print_svc_status<T>(out: &mut T,
             return Ok(());
         }
         "NetErr" => {
-            let err = reply.parse::<habitat_sup_protocol::net::NetErr>()
+            let err = reply.parse::<sup_proto::net::NetErr>()
                            .map_err(SrvClientError::Decode)?;
             return Err(SrvClientError::from(err));
         }
@@ -1700,7 +1701,7 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let cfg = config::load()?;
     let secret_key = ctl_secret_key(&cfg)?;
     let listen_ctl_addr = ListenCtlAddr::default();
-    let msg = habitat_sup_protocol::ctl::SvcStatus::default();
+    let msg = sup_proto::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
@@ -1708,14 +1709,14 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
                           match reply.message_id() {
                               "ServiceStatus" => {
                                   let m =
-                                      reply.parse::<habitat_sup_protocol::types::ServiceStatus>()
+                                      reply.parse::<sup_proto::types::ServiceStatus>()
                                            .map_err(SrvClientError::Decode)?;
                                   out.push(m.ident.into());
                                   Ok(())
                               }
                               "NetOk" => Ok(()),
                               "NetErr" => {
-                                  let err = reply.parse::<habitat_sup_protocol::net::NetErr>()
+                                  let err = reply.parse::<sup_proto::net::NetErr>()
                                                  .map_err(SrvClientError::Decode)?;
                                   Err(SrvClientError::from(err))
                               }
@@ -1762,8 +1763,7 @@ fn get_binds_from_input(m: &ArgMatches<'_>) -> Result<Option<ServiceBindList>> {
     }
 }
 
-fn get_binding_mode_from_input(m: &ArgMatches<'_>)
-                               -> Option<habitat_sup_protocol::types::BindingMode> {
+fn get_binding_mode_from_input(m: &ArgMatches<'_>) -> Option<sup_proto::types::BindingMode> {
     // There won't be errors, because we validate with `valid_binding_mode`
     m.value_of("BINDING_MODE")
      .and_then(|b| BindingMode::from_str(b).ok())
@@ -1773,9 +1773,8 @@ fn get_group_from_input(m: &ArgMatches<'_>) -> Option<String> {
     m.value_of("GROUP").map(ToString::to_string)
 }
 
-fn get_health_check_interval_from_input(
-    m: &ArgMatches<'_>)
-    -> Option<habitat_sup_protocol::types::HealthCheckInterval> {
+fn get_health_check_interval_from_input(m: &ArgMatches<'_>)
+                                        -> Option<sup_proto::types::HealthCheckInterval> {
     // Value will have already been validated by `cli::valid_health_check_interval`
     m.value_of("HEALTH_CHECK_INTERVAL")
      .and_then(|s| HealthCheckInterval::from_str(s).ok())
@@ -1863,9 +1862,7 @@ fn ui() -> UI {
 
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
 /// populates all *shared* options between `run` and `load`.
-fn update_svc_load_from_input(m: &ArgMatches<'_>,
-                              msg: &mut habitat_sup_protocol::ctl::SvcLoad)
-                              -> Result<()> {
+fn update_svc_load_from_input(m: &ArgMatches<'_>, msg: &mut sup_proto::ctl::SvcLoad) -> Result<()> {
     msg.bldr_url = bldr_url_from_input(m);
     msg.bldr_channel = channel_from_matches(m).map(|c| c.to_string());
     msg.application_environment = get_app_env_from_input(m)?;
