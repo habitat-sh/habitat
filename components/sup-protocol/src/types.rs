@@ -215,9 +215,7 @@ impl Into<core::service::ApplicationEnvironment> for ApplicationEnvironment {
 }
 
 impl From<core::service::HealthCheckInterval> for HealthCheckInterval {
-    fn from(h: core::service::HealthCheckInterval) -> Self {
-        Self { seconds: h.as_ref().as_secs(), }
-    }
+    fn from(h: core::service::HealthCheckInterval) -> Self { Self { seconds: h.into() } }
 }
 
 impl From<package::PackageIdent> for PackageIdent {

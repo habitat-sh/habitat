@@ -396,12 +396,12 @@ impl HealthCheckInterval {
     pub fn immediately() -> Self { Self::from(0) }
 }
 
-impl From<u32> for HealthCheckInterval {
-    fn from(seconds: u32) -> Self { Self(Duration::from_secs(seconds.into())) }
+impl From<u64> for HealthCheckInterval {
+    fn from(seconds: u64) -> Self { Self(Duration::from_secs(seconds)) }
 }
 
-impl AsRef<Duration> for HealthCheckInterval {
-    fn as_ref(&self) -> &Duration { &self.0 }
+impl Into<u64> for HealthCheckInterval {
+    fn into(self) -> u64 { self.0.as_secs() }
 }
 
 impl fmt::Display for HealthCheckInterval {
@@ -417,7 +417,7 @@ impl Default for HealthCheckInterval {
 impl FromStr for HealthCheckInterval {
     type Err = ParseIntError;
 
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> { Ok(Self::from(s.parse::<u32>()?)) }
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> { Ok(Self::from(s.parse::<u64>()?)) }
 }
 
 impl From<Duration> for HealthCheckInterval {
@@ -747,8 +747,8 @@ mod test {
 
     #[test]
     fn default_health_check_interval_has_correct_default() {
-        assert_eq!(*HealthCheckInterval::default().as_ref(),
-                   Duration::from_secs(30));
+        assert_eq!(HealthCheckInterval::default(),
+                   HealthCheckInterval::from(30));
     }
 
     #[test]
