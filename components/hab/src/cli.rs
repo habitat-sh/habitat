@@ -16,8 +16,6 @@ use crate::command::studio;
 use clap::{App,
            AppSettings,
            Arg};
-#[cfg(unix)]
-use habitat_common::cli::SHUTDOWN_SIGNAL_DEFAULT;
 use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            GOSSIP_DEFAULT_ADDR,
@@ -28,6 +26,7 @@ use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            PACKAGE_TARGET_ENVVAR,
                            RING_ENVVAR,
                            RING_KEY_ENVVAR,
+                           SHUTDOWN_SIGNAL_DEFAULT,
                            SHUTDOWN_TIMEOUT_DEFAULT},
                      types::ListenCtlAddr,
                      FeatureFlag};
@@ -1332,43 +1331,31 @@ fn non_empty(val: String) -> result::Result<(), String> {
 ///
 /// These are currently feature-flagged. Eventually, we hope to have
 /// this be definable in a package or at load time.
-#[cfg(unix)]
 fn maybe_add_configurable_shutdown_options(mut app: App<'static, 'static>,
                                            feature_flags: FeatureFlag)
                                            -> App<'static, 'static> {
     if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
         app = app.arg(Arg::with_name("SHUTDOWN_SIGNAL").help("The signal to send to a service \
-                                                              to safely shut it down")
+                                                              to safely shut it down. Only has \
+                                                              meaning when dealing with \
+                                                              services running on non-Windows \
+                                                              platforms.")
                                                        .long("shutdown-signal")
                                                        .takes_value(true)
                                                        .default_value(&SHUTDOWN_SIGNAL_DEFAULT));
-        add_shutdown_timeout_option(app)
+        app = app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after \
+                                                               sending a shutdown signal to \
+                                                               wait before killing a service \
+                                                               process")
+                                                        .long("shutdown-timeout")
+                                                        .takes_value(true)
+                                                        .default_value(&SHUTDOWN_TIMEOUT_DEFAULT));
+        app
     } else {
         app
     }
 }
 
-#[cfg(windows)]
-fn maybe_add_configurable_shutdown_options(mut app: App<'static, 'static>,
-                                           feature_flags: FeatureFlag)
-                                           -> App<'static, 'static> {
-    // Identical to the Unix implementation, but does not include the
-    // SHUTDOWN_SIGNAL option, since that doesn't exist on Windows
-    if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
-        add_shutdown_timeout_option(app)
-    } else {
-        app
-    }
-}
-
-fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'static> {
-    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after sending a \
-                                                     shutdown signal to wait before killing a \
-                                                     service process")
-                                              .long("shutdown-timeout")
-                                              .takes_value(true)
-                                              .default_value(&SHUTDOWN_TIMEOUT_DEFAULT))
-}
 ////////////////////////////////////////////////////////////////////////
 
 #[cfg(test)]

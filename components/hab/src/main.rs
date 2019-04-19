@@ -57,8 +57,6 @@ use habitat_common::{self as common,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
-#[cfg(unix)]
-use habitat_core::os::process::ShutdownSignal;
 use habitat_core::{crypto::{init,
                             keys::PairType,
                             BoxKeyPair,
@@ -68,7 +66,8 @@ use habitat_core::{crypto::{init,
                    fs::{cache_analytics_path,
                         cache_artifact_path,
                         launcher_root_path},
-                   os::process::ShutdownTimeout,
+                   os::process::{ShutdownSignal,
+                                 ShutdownTimeout},
                    package::{target,
                              PackageIdent,
                              PackageTarget},
@@ -1067,7 +1066,7 @@ fn sub_svc_unload(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> 
     let secret_key = ctl_secret_key(&cfg)?;
 
     let timeout_in_seconds = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
-    let signal = maybe_get_shutdown_signal(m, feature_flags)?;
+    let signal = maybe_get_shutdown_signal(m, feature_flags)?.map(|s| s.to_string());
 
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           signal,
@@ -1080,27 +1079,13 @@ fn sub_svc_unload(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> 
     Ok(())
 }
 
-#[cfg(windows)]
-fn maybe_get_shutdown_signal(_: &ArgMatches<'_>, _: FeatureFlag) -> Result<Option<String>> {
-    // There are no signals on Windows
-    Ok(None)
-}
-#[cfg(unix)]
 fn maybe_get_shutdown_signal(m: &ArgMatches<'_>,
                              feature_flags: FeatureFlag)
-                             -> Result<Option<String>> {
+                             -> Result<Option<ShutdownSignal>> {
     if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
-        // We convert the parsed ShutdownSignal to a String here
-        // because:
-        //
-        // a) We ultimately need it as a String to create a
-        //    protobuf message anyway, and
-        // b) ShutdownSignal doesn't exist on Windows, and we still
-        //    need to compile this function somehow.
         let signal = m.value_of("SHUTDOWN_SIGNAL")
-                      .expect("SHUTDOWN_SIGNAL is required")
-                      .parse::<ShutdownSignal>()?
-                      .to_string();
+                      .expect("SHUTDOWN_SIGNAL should have a default value")
+                      .parse()?;
         Ok(Some(signal))
     } else {
         Ok(None)
@@ -1112,7 +1097,7 @@ fn maybe_get_shutdown_timeout(m: &ArgMatches<'_>,
                               -> Result<Option<ShutdownTimeout>> {
     if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
         let timeout = m.value_of("SHUTDOWN_TIMEOUT")
-                       .expect("SHUTDOWN_TIMEOUT is required")
+                       .expect("SHUTDOWN_TIMEOUT should have a default value")
                        .parse()?;
         Ok(Some(timeout))
     } else {
@@ -1182,7 +1167,7 @@ fn sub_svc_stop(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let secret_key = ctl_secret_key(&cfg)?;
 
     let timeout_in_seconds = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
-    let signal = maybe_get_shutdown_signal(m, feature_flags)?;
+    let signal = maybe_get_shutdown_signal(m, feature_flags)?.map(|s| s.to_string());
 
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds,
