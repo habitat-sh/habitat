@@ -1342,10 +1342,10 @@ fn maybe_add_configurable_shutdown_options(mut app: App<'static, 'static>,
                                                        .long("shutdown-signal")
                                                        .takes_value(true)
                                                        .default_value(&SHUTDOWN_SIGNAL_DEFAULT));
-        app = add_shutdown_timeout_option(app);
+        add_shutdown_timeout_option(app)
+    } else {
+        app
     }
-
-    app
 }
 
 #[cfg(windows)]
@@ -1355,9 +1355,10 @@ fn maybe_add_configurable_shutdown_options(mut app: App<'static, 'static>,
     // Identical to the Unix implementation, but does not include the
     // SHUTDOWN_SIGNAL option, since that doesn't exist on Windows
     if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
-        app = add_shutdown_timeout_option(app);
+        add_shutdown_timeout_option(app)
+    } else {
+        app
     }
-    app
 }
 
 fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'static> {
