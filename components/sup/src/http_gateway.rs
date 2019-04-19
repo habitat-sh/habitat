@@ -137,6 +137,25 @@ impl fmt::Display for ListenAddr {
     }
 }
 
+/// This represents an environment variable that holds an authentication token for the supervisor's
+/// HTTP gateway. If the environment variable is present, then its value is the auth token and all
+/// of the HTTP endpoints will require its presence. If it's not present, then everything continues
+/// to work unauthenticated.
+#[derive(Clone, Debug, Default)]
+pub struct GatewayAuthenticationToken(Option<String>);
+
+impl FromStr for GatewayAuthenticationToken {
+    type Err = ::std::string::ParseError;
+
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
+        Ok(GatewayAuthenticationToken(Some(String::from(s))))
+    }
+}
+
+impl EnvConfig for GatewayAuthenticationToken {
+    const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
+}
+
 #[derive(Default, Serialize)]
 struct HealthCheckBody {
     status: String,
@@ -155,14 +174,21 @@ impl Into<StatusCode> for HealthCheck {
 }
 
 struct AppState {
-    gateway_state: Arc<RwLock<manager::GatewayState>>,
-    timer:         Cell<Option<HistogramTimer>>,
-    feature_flags: FeatureFlag,
+    gateway_state:        Arc<RwLock<manager::GatewayState>>,
+    authentication_token: Option<String>,
+    timer:                Cell<Option<HistogramTimer>>,
+    feature_flags:        FeatureFlag,
 }
 
 impl AppState {
-    fn new(gs: Arc<RwLock<manager::GatewayState>>, feature_flags: FeatureFlag) -> Self {
+    fn new(gs: Arc<RwLock<manager::GatewayState>>,
+           authentication_token: GatewayAuthenticationToken,
+           feature_flags: FeatureFlag)
+           -> Self {
         AppState { gateway_state: gs,
+                   // We'll unwrap to the inner type, since the
+                   // GatewayAuthenticationToken type has done its job by this point.
+                   authentication_token: authentication_token.0,
                    timer: Cell::new(None),
                    feature_flags }
     }
@@ -173,26 +199,22 @@ struct Authentication;
 
 impl Middleware<AppState> for Authentication {
     fn start(&self, req: &HttpRequest<AppState>) -> actix_web::Result<Started> {
-        let current_token = &req.state()
-                                .gateway_state
-                                .read()
-                                .expect("GatewayState lock is poisoned")
-                                .auth_token;
-
-        let current_token = match current_token.as_ref() {
+        let current_token = req.state().authentication_token.as_ref();
+        let current_token = match current_token {
             Some(t) => t,
-            // If there's no auth token in the state, just return. Everything will continue to
-            // function unauthenticated.
             None => {
-                debug!("No auth token present. HTTP gateway starting in unauthenticated mode.");
+                debug!("No authentication token present. HTTP gateway starting in \
+                        unauthenticated mode.");
                 return Ok(Started::Done);
             }
         };
 
-        // From this point forward, we know that we have an auth token in the state. Therefore,
-        // anything short of a fully formed Authorization header containing a Bearer token that
-        // matches the value we have in our state, results in an Unauthorized response.
-
+        // From this point forward, we know that we have an
+        // authentication token in the state. Therefore, anything
+        // short of a fully formed Authorization header (yes,
+        // Authorization; HTTP is fun, kids!) containing a Bearer
+        // token that matches the value we have in our state, results
+        // in an Unauthorized response.
         let hdr = match req.headers()
                            .get(http::header::AUTHORIZATION)
                            .ok_or("header missing")
@@ -256,6 +278,7 @@ impl Server {
     pub fn run(listen_addr: ListenAddr,
                tls_config: Option<ServerConfig>,
                gateway_state: Arc<RwLock<manager::GatewayState>>,
+               authentication_token: GatewayAuthenticationToken,
                feature_flags: FeatureFlag,
                control: Arc<(Mutex<ServerStartup>, Condvar)>) {
         thread::spawn(move || {
@@ -272,8 +295,9 @@ impl Server {
             };
 
             let mut server = server::new(move || {
-                                 let app_state =
-                                     AppState::new(gateway_state.clone(), feature_flags);
+                                 let app_state = AppState::new(gateway_state.clone(),
+                                                               authentication_token.clone(),
+                                                               feature_flags);
                                  App::with_state(app_state).middleware(Authentication)
                                                            .middleware(Metrics)
                                                            .configure(routes)

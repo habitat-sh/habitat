@@ -244,25 +244,6 @@ impl ManagerConfig {
     }
 }
 
-/// This represents an environment variable that holds an authentication token for the supervisor's
-/// HTTP gateway. If the environment variable is present, then its value is the auth token and all
-/// of the HTTP endpoints will require its presence. If it's not present, then everything continues
-/// to work unauthenticated.
-#[derive(Debug, Default)]
-struct GatewayAuthToken(Option<String>);
-
-impl FromStr for GatewayAuthToken {
-    type Err = ::std::string::ParseError;
-
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        Ok(GatewayAuthToken(Some(String::from(s))))
-    }
-}
-
-impl env::Config for GatewayAuthToken {
-    const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
-}
-
 /// Once a formerly-busy service is no longer doing something
 /// asynchronously, we mark that we should take a look at the spec
 /// files on disk to ensure that we're still "in sync".
@@ -334,13 +315,19 @@ pub struct ManagerState {
     pub gateway_state: Arc<RwLock<GatewayState>>,
 }
 
+/// All the data that is ultimately served from the Supervisor's HTTP
+/// gateway.
 #[derive(Debug, Default)]
 pub struct GatewayState {
-    pub census_data:       String,
-    pub butterfly_data:    String,
-    pub services_data:     String,
+    /// JSON returned by the /census endpoint
+    pub census_data: String,
+    /// JSON returned by the /butterfly endpoint
+    pub butterfly_data: String,
+    /// JSON returned by the /services endpoint
+    pub services_data: String,
+    /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
+    /// endpoint
     pub health_check_data: HashMap<ServiceGroup, HealthCheck>,
-    pub auth_token:        Option<String>,
 }
 
 pub struct Manager {
@@ -443,10 +430,6 @@ impl Manager {
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::new(RwLock::new(HashMap::new()));
 
-        let gateway_auth_token = GatewayAuthToken::configured_value();
-        let mut gateway_state = GatewayState::default();
-        gateway_state.auth_token = gateway_auth_token.0;
-
         let server = habitat_butterfly::Server::new(sys.gossip_listen(),
                                                     sys.gossip_listen(),
                                                     member,
@@ -489,7 +472,7 @@ impl Manager {
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
                                                     services,
                                                     gateway_state:
-                                                        Arc::new(RwLock::new(gateway_state)) }),
+                                                        Arc::new(RwLock::new(GatewayState::default())) }),
                      self_updater,
                      updater: Arc::new(Mutex::new(ServiceUpdater::new(server.clone()))),
                      census_ring: CensusRing::new(sys.member_id.clone()),
@@ -741,6 +724,7 @@ impl Manager {
             http_gateway::Server::run(http_listen_addr,
                                       tls_server_config,
                                       self.state.gateway_state.clone(),
+                                      http_gateway::GatewayAuthenticationToken::configured_value(),
                                       self.feature_flags,
                                       pair.clone());
 
