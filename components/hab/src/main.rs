@@ -1096,10 +1096,11 @@ fn maybe_get_shutdown_signal(m: &ArgMatches<'_>,
         //    protobuf message anyway, and
         // b) ShutdownSignal doesn't exist on Windows, and we still
         //    need to compile this function somehow.
-        Ok(Some(m.value_of("SHUTDOWN_SIGNAL")
-                 .unwrap() // safe because of Clap
-                 .parse::<ShutdownSignal>()?
-                .to_string()))
+        let signal = m.value_of("SHUTDOWN_SIGNAL")
+                      .expect("SHUTDOWN_SIGNAL is required")
+                      .parse::<ShutdownSignal>()?
+                      .to_string();
+        Ok(Some(signal))
     } else {
         Ok(None)
     }
@@ -1109,8 +1110,10 @@ fn maybe_get_shutdown_timeout(m: &ArgMatches<'_>,
                               feature_flags: FeatureFlag)
                               -> Result<Option<ShutdownTimeout>> {
     if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
-        // unwrap is safe because we define a default with clap
-        Ok(Some(m.value_of("SHUTDOWN_TIMEOUT").unwrap().parse()?))
+        let timeout = m.value_of("SHUTDOWN_TIMEOUT")
+                       .expect("SHUTDOWN_TIMEOUT is required")
+                       .parse()?;
+        Ok(Some(timeout))
     } else {
         Ok(None)
     }
