@@ -160,9 +160,9 @@ pub struct SvcUnload {
     /// "TERM" and not "SIGTERM"). Only applies to Unix platforms.
     #[prost(string, optional, tag="2")]
     pub signal: ::std::option::Option<std::string::String>,
-    /// Timeout in seconds before killing the service
+    /// Timeout in before killing the service
     #[prost(uint32, optional, tag="3")]
-    pub timeout: ::std::option::Option<u32>,
+    pub timeout_in_seconds: ::std::option::Option<u32>,
 }
 /// Request to start a loaded and stopped service.
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -183,9 +183,9 @@ pub struct SvcStop {
     /// "TERM" and not "SIGTERM"). Only applies to Unix platforms.
     #[prost(string, optional, tag="2")]
     pub signal: ::std::option::Option<std::string::String>,
-    /// Timeout in seconds before killing the service
+    /// Timeout in before killing the service
     #[prost(uint32, optional, tag="3")]
-    pub timeout: ::std::option::Option<u32>,
+    pub timeout_in_seconds: ::std::option::Option<u32>,
 }
 /// Request to retrieve the service status of one or all services.
 #[derive(Clone, PartialEq, ::prost::Message)]

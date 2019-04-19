@@ -107,8 +107,8 @@ message SvcUnload {
   // Name of the signal to send the service to shut it down (e.g.,
   // "TERM" and not "SIGTERM"). Only applies to Unix platforms.
   optional string signal = 2;
-  // Timeout in seconds before killing the service
-  optional uint32 timeout = 3;
+  // Timeout in before killing the service
+  optional uint32 timeout_in_seconds = 3;
 }
 
 // Request to start a loaded and stopped service.
@@ -122,8 +122,8 @@ message SvcStop {
   // Name of the signal to send the service to shut it down (e.g.,
   // "TERM" and not "SIGTERM"). Only applies to Unix platforms.
   optional string signal = 2;
-  // Timeout in seconds before killing the service
-  optional uint32 timeout = 3;
+  // Timeout in before killing the service
+  optional uint32 timeout_in_seconds = 3;
 }
 
 // Request to retrieve the service status of one or all services.

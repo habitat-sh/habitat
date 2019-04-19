@@ -1066,12 +1066,12 @@ fn sub_svc_unload(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> 
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
 
-    let timeout = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
+    let timeout_in_seconds = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
     let signal = maybe_get_shutdown_signal(m, feature_flags)?;
 
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           signal,
-                                          timeout };
+                                          timeout_in_seconds };
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
                                                              .for_each(|m| handle_ctl_reply(&m))
@@ -1181,11 +1181,11 @@ fn sub_svc_stop(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
 
-    let timeout = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
+    let timeout_in_seconds = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
     let signal = maybe_get_shutdown_signal(m, feature_flags)?;
 
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
-                                        timeout,
+                                        timeout_in_seconds,
                                         signal };
 
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {

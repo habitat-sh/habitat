@@ -50,7 +50,7 @@ pub type ActionSender = mpsc::Sender<SupervisorAction>;
 #[cfg(unix)]
 impl Into<ShutdownSpec> for habitat_sup_protocol::ctl::SvcUnload {
     fn into(self) -> ShutdownSpec {
-        let timeout = self.timeout.map(Into::into).unwrap_or_default();
+        let timeout = self.timeout_in_seconds.map(Into::into).unwrap_or_default();
         let signal = self.signal
                          .map(|s| s.parse().unwrap_or_default())
                          .unwrap_or_default();
@@ -61,7 +61,7 @@ impl Into<ShutdownSpec> for habitat_sup_protocol::ctl::SvcUnload {
 #[cfg(windows)]
 impl Into<ShutdownSpec> for habitat_sup_protocol::ctl::SvcUnload {
     fn into(self) -> ShutdownSpec {
-        let timeout = self.timeout.map(Into::into).unwrap_or_default();
+        let timeout = self.timeout_in_seconds.map(Into::into).unwrap_or_default();
         ShutdownSpec { timeout }
     }
 }
@@ -69,7 +69,7 @@ impl Into<ShutdownSpec> for habitat_sup_protocol::ctl::SvcUnload {
 #[cfg(unix)]
 impl Into<ShutdownSpec> for habitat_sup_protocol::ctl::SvcStop {
     fn into(self) -> ShutdownSpec {
-        let timeout = self.timeout.map(Into::into).unwrap_or_default();
+        let timeout = self.timeout_in_seconds.map(Into::into).unwrap_or_default();
         let signal = self.signal
                          .map(|s| s.parse().unwrap_or_default())
                          .unwrap_or_default();
@@ -80,7 +80,7 @@ impl Into<ShutdownSpec> for habitat_sup_protocol::ctl::SvcStop {
 #[cfg(windows)]
 impl Into<ShutdownSpec> for habitat_sup_protocol::ctl::SvcStop {
     fn into(self) -> ShutdownSpec {
-        let timeout = self.timeout.map(Into::into).unwrap_or_default();
+        let timeout = self.timeout_in_seconds.map(Into::into).unwrap_or_default();
         ShutdownSpec { timeout }
     }
 }
