@@ -103,6 +103,38 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: core"
+    command:
+      - ./test/run_cargo_test.sh core
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :linux: http-client"
+    command:
+      - ./test/run_cargo_test.sh http-client
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: hab"
     command:
       - ./test/run_cargo_test.sh hab
