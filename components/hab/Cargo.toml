@@ -60,6 +60,9 @@ widestring = "*"
 winapi = { version = "*", features = ["winuser", "windef"] }
 winreg = "*"
 
+[target.'cfg(target_family = "unix")'.dependencies]
+jemallocator = "*"
+
 [dev-dependencies]
 tempfile = "*"
 

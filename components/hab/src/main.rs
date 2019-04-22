@@ -2,6 +2,8 @@
 
 #[macro_use]
 extern crate clap;
+#[cfg(unix)]
+extern crate jemallocator;
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -104,6 +106,10 @@ lazy_static! {
              "group",]
     };
 }
+
+#[cfg(unix)]
+#[global_allocator]
+static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn main() {
     env_logger::init();
