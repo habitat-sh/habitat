@@ -55,7 +55,7 @@ impl Stream for CtlAcceptor {
                 Ok(Async::Ready(None))
             }
             Err(e) => {
-                error!("Error polling CtlAcceptor shutdown trigger: {:?}", e);
+                error!("Error polling CtlAcceptor shutdown trigger: {}", e);
                 Ok(Async::Ready(None))
             }
             Ok(Async::NotReady) => {
