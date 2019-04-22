@@ -27,38 +27,6 @@ mod pull;
 mod push;
 pub mod timing;
 
-use std::{collections::{HashMap,
-                        HashSet},
-          fmt::{self,
-                Debug},
-          fs,
-          io,
-          net::{SocketAddr,
-                ToSocketAddrs,
-                UdpSocket},
-          path::{Path,
-                 PathBuf},
-          result,
-          sync::{atomic::{AtomicBool,
-                          AtomicIsize,
-                          Ordering},
-                 mpsc::{self,
-                        channel},
-                 Arc,
-                 Mutex,
-                 RwLock},
-          thread,
-          time::{Duration,
-                 Instant}};
-
-use habitat_core::crypto::SymKey;
-use prometheus::{HistogramTimer,
-                 HistogramVec,
-                 IntGauge};
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
-
 use self::incarnation_store::IncarnationStore;
 use crate::{error::{Error,
                     Result},
@@ -85,6 +53,37 @@ use crate::{error::{Error,
             swim::Ack,
             trace::{Trace,
                     TraceKind}};
+use habitat_common::FeatureFlag;
+use habitat_core::crypto::SymKey;
+use prometheus::{HistogramTimer,
+                 HistogramVec,
+                 IntGauge};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
+use std::{collections::{HashMap,
+                        HashSet},
+          fmt::{self,
+                Debug},
+          fs,
+          io,
+          net::{SocketAddr,
+                ToSocketAddrs,
+                UdpSocket},
+          path::{Path,
+                 PathBuf},
+          result,
+          sync::{atomic::{AtomicBool,
+                          AtomicIsize,
+                          Ordering},
+                 mpsc::{self,
+                        channel},
+                 Arc,
+                 Mutex,
+                 RwLock},
+          thread,
+          time::{Duration,
+                 Instant}};
 
 /// The maximum number of other members we should notify when we shut
 /// down and leave the ring.
