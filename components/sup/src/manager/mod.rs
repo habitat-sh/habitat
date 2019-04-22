@@ -870,7 +870,7 @@ impl Manager {
                 runtime.spawn(f);
             }
 
-            self.restart_elections();
+            self.restart_elections(self.feature_flags);
             self.census_ring
                 .update_from_rumors(&self.state.cfg.cache_key_path,
                                     &self.butterfly.service_store,
@@ -1153,7 +1153,9 @@ impl Manager {
     }
 
     /// Check if any elections need restarting.
-    fn restart_elections(&mut self) { self.butterfly.restart_elections(); }
+    fn restart_elections(&mut self, feature_flags: FeatureFlag) {
+        self.butterfly.restart_elections(feature_flags);
+    }
 
     /// Create a future for stopping a Service. The Service is assumed
     /// to have been removed from the internal list of active services
