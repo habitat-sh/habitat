@@ -47,7 +47,7 @@ try {
     
 @"
 # escape=``
-FROM microsoft/windowsservercore
+FROM microsoft/windowsservercore:ltsc2016
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ADD rootfs /
 WORKDIR /src
