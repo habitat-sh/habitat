@@ -36,6 +36,7 @@
 //! Also included in this module is `Result<T>`, a type alias for `Result<T, SupError>`. Use
 //! it instead of the longer `Result` form.
 
+use crate::event;
 use futures::sync::oneshot;
 use glob;
 use habitat_api_client;
@@ -52,12 +53,12 @@ use habitat_core::{self,
                              Identifiable}};
 use habitat_launcher_client;
 use habitat_sup_protocol;
-use nitox;
 use notify;
 use rustls;
 use serde_json;
 use std::{env,
-          error,
+          error::{self,
+                  Error as _},
           ffi,
           fmt,
           io,
@@ -121,9 +122,7 @@ pub enum Error {
     APIClient(habitat_api_client::Error),
     EnvJoinPathsError(env::JoinPathsError),
     ExecCommandNotFound(String),
-    EventError(nitox::NatsError),
-    EventStreamError(nitox::streaming::error::NatsStreamingError),
-    EventSerializationError(prost::EncodeError),
+    EventError(event::Error),
     FileNotFound(String),
     FileWatcherFileIsRoot,
     GroupNotFound(String),
@@ -231,8 +230,6 @@ impl fmt::Display for SupError {
                 format!("`{}' was not found on the filesystem or in PATH", c)
             }
             Error::EventError(ref err) => err.to_string(),
-            Error::EventStreamError(ref err) => err.to_string(),
-            Error::EventSerializationError(ref err) => err.to_string(),
             Error::Permissions(ref err) => err.to_string(),
             Error::HabitatCommon(ref err) => err.to_string(),
             Error::HabitatCore(ref err) => err.to_string(),
@@ -332,6 +329,7 @@ impl fmt::Display for SupError {
             Error::UnpackFailed => "Failed to unpack a package".to_string(),
             Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
         };
+
         let progname = PROGRAM_NAME.as_str();
         let so = StructuredOutput::new(progname,
                                        self.logkey,
@@ -341,11 +339,29 @@ impl fmt::Display for SupError {
                                        output::get_format(),
                                        OutputVerbosity::Verbose,
                                        &content);
-        write!(f, "{}", so)
+
+        // TODO (CM): Consider implementing Error::source() for all
+        // our errors as a more formalized way of exposing an
+        // underlying error. This way, our Display implementation can
+        // be used for domain-specific information.
+        if let Some(source) = self.source() {
+            write!(f, "{} -> {}", so, source)
+        } else {
+            write!(f, "{}", so)
+        }
     }
 }
 
 impl error::Error for SupError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        match self.err {
+            // Nothing else implements source yet
+            Error::EventError(ref e) => e.source(),
+            _ => None,
+        }
+    }
+
+    // TODO (CM): this function is "soft deprecated" now; remove it!
     fn description(&self) -> &str {
         match self.err {
             Error::APIClient(ref err) => err.description(),
@@ -363,10 +379,7 @@ impl error::Error for SupError {
             Error::ButterflyError(ref err) => err.description(),
             Error::CtlSecretIo(..) => "IoError while reading ctl secret",
             Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
-            Error::EventError(_) => "event error", // underlying NATS error doesn't implement Error
-            Error::EventStreamError(_) => "event streaming error", // underlying NATS error
-            // doesn't implement Error
-            Error::EventSerializationError(_) => "event serialization error",
+            Error::EventError(_) => "Eventing error",
             Error::GroupNotFound(_) => "No matching GID for group found",
             Error::HabitatCommon(ref err) => err.description(),
             Error::HabitatCore(ref err) => err.description(),
@@ -527,16 +540,6 @@ impl From<oneshot::Canceled> for SupError {
     fn from(err: oneshot::Canceled) -> Self { sup_error!(Error::OneshotCanceled(err)) }
 }
 
-impl From<nitox::NatsError> for SupError {
-    fn from(err: nitox::NatsError) -> Self { sup_error!(Error::EventError(err)) }
-}
-
-impl From<nitox::streaming::error::NatsStreamingError> for SupError {
-    fn from(err: nitox::streaming::error::NatsStreamingError) -> Self {
-        sup_error!(Error::EventStreamError(err))
-    }
-}
-
-impl From<prost::EncodeError> for SupError {
-    fn from(err: prost::EncodeError) -> Self { sup_error!(Error::EventSerializationError(err)) }
+impl From<event::Error> for SupError {
+    fn from(err: event::Error) -> Self { sup_error!(Error::EventError(err)) }
 }

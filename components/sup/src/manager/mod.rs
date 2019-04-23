@@ -497,7 +497,7 @@ impl Manager {
             let ec = EventCore::new(&es_config, &sys);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
-            event::init_stream(es_config, ec);
+            event::init_stream(es_config, ec)?;
         }
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,

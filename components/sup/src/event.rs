@@ -25,6 +25,7 @@
 //!
 //! [1]:https://github.com/nats-io/nats-streaming-server
 
+mod error;
 mod types;
 
 use self::types::{EventMessage,
@@ -32,11 +33,13 @@ use self::types::{EventMessage,
                   HealthCheckEvent,
                   ServiceStartedEvent,
                   ServiceStoppedEvent};
-use crate::{error::Result,
+use crate::{error::Result as SupResult,
             manager::{service::{HealthCheck,
                                 Service},
                       sys::Sys}};
 use clap::ArgMatches;
+pub use error::{Error,
+                Result};
 use futures::{sync::{mpsc as futures_mpsc,
                      mpsc::UnboundedSender},
               Future,
@@ -71,13 +74,27 @@ lazy_static! {
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
-pub fn init_stream(config: EventStreamConfig, event_core: EventCore) {
+pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<()> {
+    // call_once can't return a Result (or anything), so we'll fake it
+    // by hanging onto any error here.
+    let mut init_err: Option<Error> = None;
+
     INIT.call_once(|| {
             let conn_info = EventConnectionInfo::new(config.token, config.url);
-            let event_stream = init_nats_stream(conn_info).expect("Could not start NATS thread");
-            EVENT_STREAM.set(event_stream);
-            EVENT_CORE.set(event_core);
+            match init_nats_stream(conn_info) {
+                Ok(event_stream) => {
+                    EVENT_STREAM.set(event_stream);
+                    EVENT_CORE.set(event_core);
+                }
+                Err(e) => init_err = Some(e),
+            }
         });
+
+    if let Some(err) = init_err {
+        Err(err)
+    } else {
+        Ok(())
+    }
 }
 
 /// Captures all event stream-related configuration options that would
@@ -93,7 +110,8 @@ pub struct EventStreamConfig {
 
 impl EventStreamConfig {
     /// Create an instance from Clap arguments.
-    pub fn from_matches(m: &ArgMatches) -> Result<EventStreamConfig> {
+    // TODO (CM): result type!
+    pub fn from_matches(m: &ArgMatches) -> SupResult<EventStreamConfig> {
         Ok(EventStreamConfig { environment: m.value_of("EVENT_STREAM_ENVIRONMENT")
                                              .map(str::to_string)
                                              .expect("Required option for EventStream feature"),
@@ -243,7 +261,7 @@ impl EventStream {
 /// All messages are published under this subject.
 const HABITAT_SUBJECT: &str = "habitat";
 
-fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
+fn init_nats_stream(conn_info: EventConnectionInfo) -> self::Result<EventStream> {
     // TODO (CM): Investigate back-pressure scenarios
     let (event_tx, event_rx) = futures_mpsc::unbounded();
     let (sync_tx, sync_rx) = std_mpsc::sync_channel(0); // rendezvous channel
@@ -265,44 +283,51 @@ fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
                                                            .auth_token(Some(auth_token.to_string()))
                                                            .tls_required(false)
                                                            .build()
-                                                           .unwrap();
+                                                           .expect("Could not create NATS \
+                                                                    ConnectCommand");
                               let opts =
                                   NatsClientOptions::builder().connect_command(cc)
                                                               .cluster_uri(cluster_uri.as_str())
                                                               .build()
-                                                              .unwrap();
+                                                              .expect("Could not create \
+                                                                       NatsClientOptions");
 
-                              let publisher = NatsClient::from_options(opts)
-                .map_err(|e| {
-                    error!("Error creating Nats Client from options: {}", e);
-                    e.into()
-                })
-                .and_then(|client| {
-                    NatsStreamingClient::from(client)
+                              let publisher = NatsClient::from_options(opts).map_err(|e| {
+                                                  error!("Error connecting to NATS: {}", e);
+                                                  e.into()
+                                              })
+                                              .and_then(|client| {
+                                                  NatsStreamingClient::from(client)
                         .cluster_id(cluster_id)
                         .connect()
-                })
-                .map_err(|streaming_error| error!("{}", streaming_error))
-                .and_then(move |client| {
-                    sync_tx.send(()).expect("Couldn't synchronize!");
-                    event_rx.for_each(move |event: Vec<u8>| {
-                        let publish_event = client
+                                              })
+                                              .map_err(|streaming_error| {
+                                                  error!("Error upgrading to streaming NATS \
+                                                          client: {}",
+                                                         streaming_error)
+                                              })
+                                              .and_then(move |client| {
+                                                  sync_tx.send(()).expect("Couldn't synchronize \
+                                                                           event thread!");
+                                                  event_rx.for_each(move |event: Vec<u8>| {
+                                                              let publish_event = client
                             .publish(HABITAT_SUBJECT.into(), event.into())
                             .map_err(|e| {
-                                error!("Error publishing event: {:?}", e);
+                                error!("Error publishing event: {}", e);
                             });
-                        executor::spawn(publish_event);
-                        Ok(())
-                    })
-                });
+                                                              executor::spawn(publish_event);
+                                                              Ok(())
+                                                          })
+                                              });
 
                               ThreadRuntime::new().expect("Couldn't create event stream runtime!")
                                                   .spawn(publisher)
                                                   .run()
                                                   .expect("something seriously wrong has occurred");
                           })
-                          .expect("Couldn't start events thread!");
+                          .map_err(Error::SpawnEventThreadError)?;
 
-    sync_rx.recv_timeout(Duration::from_secs(5))?; // TODO (CM): nicer error message
+    sync_rx.recv_timeout(Duration::from_secs(5))
+           .map_err(Error::ConnectEventServerError)?;
     Ok(EventStream(event_tx))
 }
