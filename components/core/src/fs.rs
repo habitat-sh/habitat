@@ -1016,10 +1016,11 @@ mod test_atomic_writer {
 
     #[test]
     fn atomic_write_writes_file() {
-        let dest_file = tempfile::NamedTempFile::new().expect("could not create temp file");
-        let dest_file_path = dest_file.path();
-        remove_file(dest_file_path).expect("could not delete temp file");
-
+        let temp_file_path = {
+            let dest_file = tempfile::NamedTempFile::new().expect("could not create temp file");
+            dest_file.path().to_string_lossy().into_owned()
+        };
+        let dest_file_path = std::path::Path::new(&temp_file_path);
         let res = atomic_write(dest_file_path, EXPECTED_CONTENT);
         assert!(res.is_ok());
         let mut f = File::open(dest_file_path).expect("file not found");
@@ -1031,9 +1032,11 @@ mod test_atomic_writer {
 
     #[test]
     fn with_atomic_writer_writes_file() {
-        let dest_file = tempfile::NamedTempFile::new().expect("could not create temp file");
-        let dest_file_path = dest_file.path();
-        remove_file(dest_file_path).expect("could not delete temp file");
+        let temp_file_path = {
+            let dest_file = tempfile::NamedTempFile::new().expect("could not create temp file");
+            dest_file.path().to_string_lossy().into_owned()
+        };
+        let dest_file_path = std::path::Path::new(&temp_file_path);
 
         let w = AtomicWriter::new(dest_file_path).expect("could not create AtomicWriter");
         let res = w.with_writer(|writer| {
