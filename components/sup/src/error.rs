@@ -161,6 +161,7 @@ pub enum Error {
     ProcessLocked(Pid),
     ProcessLockIO(PathBuf, io::Error),
     RecvError(mpsc::RecvError),
+    RecvTimeoutError(mpsc::RecvTimeoutError),
     ServiceDeserializationError(serde_json::Error),
     ServiceNotLoaded(package::PackageIdent),
     ServiceSerializationError(serde_json::Error),
@@ -297,6 +298,7 @@ impl fmt::Display for SupError {
                         err)
             }
             Error::RecvError(ref err) => err.to_string(),
+            Error::RecvTimeoutError(ref err) => err.to_string(),
             Error::ServiceDeserializationError(ref e) => {
                 format!("Can't deserialize service status: {}", e)
             }
@@ -413,6 +415,9 @@ impl error::Error for SupError {
             }
             Error::ProcessLockIO(..) => "Unable to read or write to a process lock",
             Error::RecvError(_) => "A channel failed to receive a response",
+            Error::RecvTimeoutError(_) => {
+                "A channel failed to receive a response in the allotted time"
+            }
             Error::ServiceDeserializationError(_) => "Can't deserialize service status",
             Error::ServiceNotLoaded(_) => "Service status called when service not loaded",
             Error::ServiceSerializationError(_) => "Can't serialize service to file",
@@ -496,6 +501,10 @@ impl From<str::Utf8Error> for SupError {
 
 impl From<mpsc::RecvError> for SupError {
     fn from(err: mpsc::RecvError) -> SupError { sup_error!(Error::RecvError(err)) }
+}
+
+impl From<mpsc::RecvTimeoutError> for SupError {
+    fn from(err: mpsc::RecvTimeoutError) -> SupError { sup_error!(Error::RecvTimeoutError(err)) }
 }
 
 impl From<mpsc::TryRecvError> for SupError {

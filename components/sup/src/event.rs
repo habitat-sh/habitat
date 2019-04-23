@@ -303,6 +303,6 @@ fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
                           })
                           .expect("Couldn't start events thread!");
 
-    sync_rx.recv()?; // TODO (CM): nicer error message
+    sync_rx.recv_timeout(Duration::from_secs(5))?; // TODO (CM): nicer error message
     Ok(EventStream(event_tx))
 }
