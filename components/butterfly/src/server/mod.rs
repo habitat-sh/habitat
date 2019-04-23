@@ -258,7 +258,7 @@ pub struct Server {
     swim_addr:                SocketAddr,
     gossip_addr:              SocketAddr,
     suitability_lookup:       Arc<Box<dyn Suitability>>,
-    data_path:                Arc<Option<PathBuf>>,
+    data_path:                Option<PathBuf>,
     dat_file:                 Option<Arc<Mutex<DatFile>>>,
     socket:                   Option<UdpSocket>,
     departed:                 Arc<AtomicBool>,
@@ -352,7 +352,7 @@ impl Server {
                             swim_addr:            swim_socket_addr,
                             gossip_addr:          gossip_socket_addr,
                             suitability_lookup:   Arc::new(suitability_lookup),
-                            data_path:            Arc::new(data_path.as_ref().map(|p| p.into())),
+                            data_path:            data_path.as_ref().map(|p| p.into()),
                             dat_file:             None,
                             departed:             Arc::new(AtomicBool::new(false)),
                             pause:                Arc::new(AtomicBool::new(false)),
@@ -426,7 +426,7 @@ impl Server {
     pub fn start(&mut self, timing: timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
-        if let Some(ref path) = *self.data_path {
+        if let Some(ref path) = self.data_path {
             if let Some(err) = fs::create_dir_all(path).err() {
                 return Err(Error::BadDataPath(path.to_path_buf(), err));
             }
@@ -868,7 +868,7 @@ impl Server {
                                         |k| self.check_quorum(k),
                                         &self.member_list,
                                         feature_flags,
-                                        self.data_path.clone())
+                                        &self.data_path)
     }
 
     fn elections_to_restart_impl<T>(elections: &RumorStore<T>,
@@ -877,7 +877,7 @@ impl Server {
                                     check_quorum: impl Fn(&str) -> bool,
                                     member_list: &MemberList,
                                     feature_flags: FeatureFlag,
-                                    data_path: Arc<Option<PathBuf>>)
+                                    data_path: &Option<PathBuf>)
                                     -> Vec<(String, u64)>
         where T: Rumor + ElectionRumor + Debug
     {
@@ -895,7 +895,7 @@ impl Server {
 
                          if election_trigger::maybe_trigger(service_group,
                                                             feature_flags,
-                                                            data_path.clone())
+                                                            &data_path)
                          {
                              elections_to_restart.push((String::from(&service_group[..]),
                                                         election.term()));
@@ -1249,9 +1249,7 @@ impl<'a> Serialize for ServerProxy<'a> {
 mod election_trigger {
     use habitat_common::FeatureFlag;
     use std::{fs,
-              ops::Deref,
-              path::PathBuf,
-              sync::Arc};
+              path::PathBuf};
 
     /// If the HAB_FEAT_TRIGGER_ELECTION feature flag is enabled,
     /// we'll look on disk to see if a sentinel file for the
@@ -1270,10 +1268,10 @@ mod election_trigger {
     /// that intent.
     pub(super) fn maybe_trigger(service_group_name: &str,
                                 feature_flags: FeatureFlag,
-                                data_path: Arc<Option<PathBuf>>)
+                                data_path: &Option<PathBuf>)
                                 -> bool {
         if feature_flags.contains(FeatureFlag::TRIGGER_ELECTION) {
-            if let Some(ref path) = data_path.deref() {
+            if let Some(ref path) = data_path {
                 let sentinel_file = path.join(format!("trigger_{}_election", service_group_name));
                 if sentinel_file.is_file() {
                     if let Err(e) = fs::remove_file(&sentinel_file) {
