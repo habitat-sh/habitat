@@ -357,17 +357,17 @@ mod test {
 
     #[test]
     fn create_temp_package_directory_in_same_parentdir() {
-        let p = Path::new("/tmp/foo");
-        let temp_dir = temp_package_directory(&p).unwrap();
+        let p = Builder::new().tempdir().unwrap();
+        let temp_dir = temp_package_directory(p.path()).unwrap();
         let temp_path = temp_dir.path();
 
-        assert_eq!(&p.parent(), &temp_path.parent());
+        assert_eq!(&p.path().parent(), &temp_path.parent());
     }
 
     #[test]
     fn temp_package_directory_starts_with_prefix() {
-        let p = Path::new("/tmp/foo");
-        let temp_dir = temp_package_directory(&p).unwrap();
+        let p = Builder::new().tempdir().unwrap();
+        let temp_dir = temp_package_directory(p.path()).unwrap();
         let temp_filename = temp_dir.path().file_name().unwrap().to_str().unwrap();
 
         assert!(&temp_filename.starts_with(INSTALL_TMP_PREFIX));
@@ -375,9 +375,9 @@ mod test {
 
     #[test]
     fn temp_package_directory_changes() {
-        let p = Path::new("/tmp/foo");
-        let temp_dir1 = temp_package_directory(&p).unwrap();
-        let temp_dir2 = temp_package_directory(&p).unwrap();
+        let p = Builder::new().tempdir().unwrap();
+        let temp_dir1 = temp_package_directory(p.path()).unwrap();
+        let temp_dir2 = temp_package_directory(p.path()).unwrap();
 
         assert_ne!(&temp_dir1.path(), &temp_dir2.path());
     }

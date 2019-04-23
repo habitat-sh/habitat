@@ -328,9 +328,29 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :windows: core"
+    command:
+      - ./test/run_cargo_test.ps1 core
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :windows: hab"
     command:
       - ./test/run_cargo_test.ps1 hab
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: http-client"
+    command:
+      - ./test/run_cargo_test.ps1 http-client
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 20
