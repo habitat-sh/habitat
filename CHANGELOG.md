@@ -11,6 +11,7 @@
 - Make --binlink take an value (or env var) for `hab pkg install` [#6423](https://github.com/habitat-sh/habitat/pull/6423) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- modernize build.ps1 [#6466](https://github.com/habitat-sh/habitat/pull/6466) ([mwrock](https://github.com/mwrock))
 - Use &quot;default files&quot; rather than embedded strings [#6319](https://github.com/habitat-sh/habitat/pull/6319) ([christophermaier](https://github.com/christophermaier))
 - Rebuild pipeline with the correct name [#6449](https://github.com/habitat-sh/habitat/pull/6449) ([scotthain](https://github.com/scotthain))
 - remove some dead appveyor and bintray-publish code [#6439](https://github.com/habitat-sh/habitat/pull/6439) ([mwrock](https://github.com/mwrock))
