@@ -14,11 +14,6 @@
 
 //! All the individual event types that can be sent out by the
 //! Supervisor.
-//!
-//! A key aspect of the current design is that all events are
-//! collections of *references*, rather than owned types. This means
-//! less unnecessary allocations and copying in order to create
-//! events.
 
 use super::EventCore;
 use crate::manager::service::{HealthCheck as DomainHealthCheck,
