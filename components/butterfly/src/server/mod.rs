@@ -1270,35 +1270,37 @@ mod election_trigger {
                                 feature_flags: FeatureFlag,
                                 data_path: &Option<PathBuf>)
                                 -> bool {
-        if feature_flags.contains(FeatureFlag::TRIGGER_ELECTION) {
-            if let Some(ref path) = data_path {
-                let sentinel_file = path.join(format!("trigger_{}_election", service_group_name));
-                if sentinel_file.is_file() {
-                    if let Err(e) = fs::remove_file(&sentinel_file) {
-                        // If we trigger without being able to remove
-                        // the file, then we'll just constantly
-                        // trigger elections.
-                        warn!("HAB_FEAT_TRIGGER_ELECTION: Could not delete sentinel file {:?}; \
-                               NOT triggering election! {:?}",
-                              sentinel_file, e);
-                        false
-                    } else {
-                        info!("HAB_FEAT_TRIGGER_ELECTION: Manually triggering election for {}",
-                              service_group_name);
-                        true
-                    }
-                } else {
-                    trace!("HAB_FEAT_TRIGGER_ELECTION: No trigger file found for {}",
-                           service_group_name);
-                    false
-                }
-            } else {
-                trace!("HAB_FEAT_TRIGGER_ELECTION: In a test");
-                false
-            }
-        } else {
+        if !feature_flags.contains(FeatureFlag::TRIGGER_ELECTION) {
             trace!("HAB_FEAT_TRIGGER_ELECTION: Feature not enabled");
+            return false;
+        }
+
+        if data_path.is_none() {
+            trace!("HAB_FEAT_TRIGGER_ELECTION: In a test");
+            return false;
+        }
+
+        let sentinel_file = data_path.as_ref()
+                                     .unwrap() // safe; data_path is Some
+                                     .join(format!("trigger_{}_election", service_group_name));
+        if !sentinel_file.is_file() {
+            trace!("HAB_FEAT_TRIGGER_ELECTION: No trigger file found for {}",
+                   service_group_name);
+            return false;
+        }
+
+        if let Err(e) = fs::remove_file(&sentinel_file) {
+            // If we trigger without being able to remove
+            // the file, then we'll just constantly
+            // trigger elections.
+            warn!("HAB_FEAT_TRIGGER_ELECTION: Could not delete sentinel file {:?}; NOT \
+                   triggering election! {:?}",
+                  sentinel_file, e);
             false
+        } else {
+            info!("HAB_FEAT_TRIGGER_ELECTION: Manually triggering election for {}",
+                  service_group_name);
+            true
         }
     }
 }
