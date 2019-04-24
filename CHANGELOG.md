@@ -11,6 +11,7 @@
 - Make --binlink take an value (or env var) for `hab pkg install` [#6423](https://github.com/habitat-sh/habitat/pull/6423) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Manually trigger an election (exploratory, unfinshed feature in development) [#6474](https://github.com/habitat-sh/habitat/pull/6474) ([christophermaier](https://github.com/christophermaier))
 - build_component.ps1 should enter a non interactive container and forward exit code [#6476](https://github.com/habitat-sh/habitat/pull/6476) ([mwrock](https://github.com/mwrock))
 - modernize build.ps1 [#6466](https://github.com/habitat-sh/habitat/pull/6466) ([mwrock](https://github.com/mwrock))
 - Use &quot;default files&quot; rather than embedded strings [#6319](https://github.com/habitat-sh/habitat/pull/6319) ([christophermaier](https://github.com/christophermaier))
