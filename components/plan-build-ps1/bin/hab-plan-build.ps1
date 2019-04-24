@@ -886,11 +886,7 @@ function _Set_DependencyArrays {
   # Build `${pkg_deps_resolved[@]}` containing all resolved direct run
   # dependencies.
   foreach($dep in $pkg_deps) {
-    if ($env:HAB_FEAT_INSTALL_HOOK) {
-      _install-dependency $dep "--ignore-install-hook"
-    } else {
-        _install-dependency $dep
-    }
+    _install-dependency $dep "--ignore-install-hook"
     if ($resolved=(_resolve-dependency $dep)) {
       Write-BuildLine "Resolved dependency '$dep' to $resolved"
       $script:pkg_deps_resolved+=$resolved
@@ -1747,7 +1743,7 @@ function Invoke-DefaultBuildConfig {
     if (Test-Path "$PLAN_CONTEXT/config") {
         Copy-Item "$PLAN_CONTEXT/config" $pkg_prefix -Recurse
     }
-    if ((Test-Path "$PLAN_CONTEXT/config_install") -and $env:HAB_FEAT_INSTALL_HOOK) {
+    if (Test-Path "$PLAN_CONTEXT/config_install") {
         Write-BuildLine "Writing install configuration"
         Copy-Item "$PLAN_CONTEXT/config_install" $pkg_prefix -Recurse
     }

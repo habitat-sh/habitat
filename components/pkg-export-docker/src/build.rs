@@ -494,9 +494,6 @@ impl BuildRootContext {
         Ok(pkg_install.ident().clone())
     }
 
-    /// Returns true if the INSTALL_HOOK feature is toggled
-    pub fn install_hook_feat(&self) -> bool { env::var("HAB_FEAT_INSTALL_HOOK").is_ok() }
-
     /// Returns the list of package port exposes over all service packages.
     pub fn svc_exposes(&self) -> Vec<&str> {
         let mut exposes = Vec::new();

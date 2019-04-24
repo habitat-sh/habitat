@@ -32,7 +32,7 @@ All templates located in a package's `config` folder are rendered to a config di
 The path to this directory is available at build time in the plan as the variable `$pkg_svc_config_path` and available at runtime in templates and hooks as `{{pkg.svc_config_path}}`.
 
 All templates located in a package's `config_install` folder are rendered to a config_install directory, `/hab/svc/<pkg_name>/config_install`. These templates are only accesible to the execution of an `install` hook and any changes to the values referenced by these templates at runtime will not result in re-rendering the template.
-The path to this directory is available at build time in the plan as the variable `$pkg_svc_config_install_path` and available at runtime in templates and `install` hooks as `{{pkg.svc_config_install_path}}`. The `HAB_FEAT_INSTALL_HOOK` environment variable must be set in a Studio in order for templates located in a plan's `config_install` folder to be included in the built package's `config_install` directory.
+The path to this directory is available at build time in the plan as the variable `$pkg_svc_config_install_path` and available at runtime in templates and `install` hooks as `{{pkg.svc_config_install_path}}`.
 
 <%= partial '/partials/global/helpers' %>
 

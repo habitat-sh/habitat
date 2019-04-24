@@ -95,7 +95,6 @@ bitflags::bitflags! {
         const TEST_BOOT_FAIL   = 0b0000_0000_0100;
         const REDACT_HTTP      = 0b0000_0000_1000;
         const IGNORE_SIGNALS   = 0b0000_0001_0000;
-        const INSTALL_HOOK     = 0b0000_0010_0000;
         const OFFLINE_INSTALL  = 0b0000_0100_0000;
         const IGNORE_LOCAL     = 0b0000_1000_0000;
         const EVENT_STREAM     = 0b0001_0000_0000;
@@ -110,7 +109,6 @@ lazy_static! {
                            (FeatureFlag::TEST_BOOT_FAIL, "HAB_FEAT_BOOT_FAIL"),
                            (FeatureFlag::REDACT_HTTP, "HAB_FEAT_REDACT_HTTP"),
                            (FeatureFlag::IGNORE_SIGNALS, "HAB_FEAT_IGNORE_SIGNALS"),
-                           (FeatureFlag::INSTALL_HOOK, "HAB_FEAT_INSTALL_HOOK"),
                            (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
                            (FeatureFlag::IGNORE_LOCAL, "HAB_FEAT_IGNORE_LOCAL"),
                            (FeatureFlag::EVENT_STREAM, "HAB_FEAT_EVENT_STREAM"),

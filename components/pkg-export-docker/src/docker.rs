@@ -442,7 +442,6 @@ impl DockerBuildRoot {
             "exposes": ctx.svc_exposes().join(" "),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
             "installed_primary_svc_ident": ctx.installed_primary_svc_ident()?.to_string(),
-            "install_hook_feat": ctx.install_hook_feat(),
             "environment": ctx.environment,
         });
         util::write_file(self.0.workdir().join("Dockerfile"),

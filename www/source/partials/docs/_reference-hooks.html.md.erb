@@ -75,8 +75,6 @@ The exit code returned from an `install` hook will be "remembered". If a previou
 
 An `install` hook, unlike other hooks, will not have access to any census data exposed via binds or the `svc` namespace. Also, configuration in `svc_config_path` is not accesible to an `install` hook. If an `install` hook needs to utilize templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `install` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.
 
-Currently, the `install` hook is only functional when the `INSTALL_HOOK` feature flag is enabled. It is disabled by default. To enable it, set the `HAB_FEAT_INSTALL_HOOK` environment variable to any value.
-
 ###reload
 File location: `<plan>/hooks/reload`
 

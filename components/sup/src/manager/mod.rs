@@ -593,18 +593,16 @@ impl Manager {
             }
         };
 
-        if self.feature_flags.contains(FeatureFlag::INSTALL_HOOK) {
-            if let Ok(package) =
-                PackageInstall::load(&service.pkg.ident, Some(Path::new(&*FS_ROOT_PATH)))
-            {
-                if let Err(err) = habitat_common::command::package::install::check_install_hooks(
-                    &mut habitat_common::ui::UI::with_sinks(),
-                    &package,
-                    Path::new(&*FS_ROOT_PATH),
-                ) {
-                    outputln!("Failed to run install hook for {}, {}", &spec.ident, err);
-                    return;
-                }
+        if let Ok(package) =
+            PackageInstall::load(&service.pkg.ident, Some(Path::new(&*FS_ROOT_PATH)))
+        {
+            if let Err(err) = habitat_common::command::package::install::check_install_hooks(
+                &mut habitat_common::ui::UI::with_sinks(),
+                &package,
+                Path::new(&*FS_ROOT_PATH),
+            ) {
+                outputln!("Failed to run install hook for {}, {}", &spec.ident, err);
+                return;
             }
         }
 

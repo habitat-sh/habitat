@@ -3,15 +3,12 @@ ENV PATH {{path}}
 ADD {{rootfs}} /
 
 EXPOSE 9631 {{exposes}}
-{{~ #if install_hook_feat}}
-    RUN HAB_FEAT_OFFLINE_INSTALL=ON \
-        HAB_FEAT_INSTALL_HOOK=ON \
-        {{~ #if environment}}
-        {{~ #each environment}}
-            {{@key}}={{{this}}} \
-        {{~ /each}}
-        {{~ /if}}
-        {{hab_path}} pkg install {{installed_primary_svc_ident}}
-{{~ /if}}
+RUN HAB_FEAT_OFFLINE_INSTALL=ON \
+    {{~ #if environment}}
+    {{~ #each environment}}
+        {{@key}}={{{this}}} \
+    {{~ /each}}
+    {{~ /if}}
+    {{hab_path}} pkg install {{installed_primary_svc_ident}}
 ENTRYPOINT ["/init.sh"]
 CMD ["run", "{{primary_svc_ident}}"]

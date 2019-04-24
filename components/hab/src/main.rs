@@ -726,9 +726,7 @@ fn sub_pkg_install(ui: &mut UI, m: &ArgMatches<'_>, feature_flags: FeatureFlag) 
             LocalPackageUsage::default()
         };
 
-    let install_hook_mode = if !feature_flags.contains(FeatureFlag::INSTALL_HOOK)
-                               || m.is_present("IGNORE_INSTALL_HOOK")
-    {
+    let install_hook_mode = if m.is_present("IGNORE_INSTALL_HOOK") {
         InstallHookMode::Ignore
     } else {
         InstallHookMode::default()
