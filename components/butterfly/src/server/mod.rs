@@ -27,38 +27,6 @@ mod pull;
 mod push;
 pub mod timing;
 
-use std::{collections::{HashMap,
-                        HashSet},
-          fmt::{self,
-                Debug},
-          fs,
-          io,
-          net::{SocketAddr,
-                ToSocketAddrs,
-                UdpSocket},
-          path::{Path,
-                 PathBuf},
-          result,
-          sync::{atomic::{AtomicBool,
-                          AtomicIsize,
-                          Ordering},
-                 mpsc::{self,
-                        channel},
-                 Arc,
-                 Mutex,
-                 RwLock},
-          thread,
-          time::{Duration,
-                 Instant}};
-
-use habitat_core::crypto::SymKey;
-use prometheus::{HistogramTimer,
-                 HistogramVec,
-                 IntGauge};
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
-
 use self::incarnation_store::IncarnationStore;
 use crate::{error::{Error,
                     Result},
@@ -85,6 +53,37 @@ use crate::{error::{Error,
             swim::Ack,
             trace::{Trace,
                     TraceKind}};
+use habitat_common::FeatureFlag;
+use habitat_core::crypto::SymKey;
+use prometheus::{HistogramTimer,
+                 HistogramVec,
+                 IntGauge};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
+use std::{collections::{HashMap,
+                        HashSet},
+          fmt::{self,
+                Debug},
+          fs,
+          io,
+          net::{SocketAddr,
+                ToSocketAddrs,
+                UdpSocket},
+          path::{Path,
+                 PathBuf},
+          result,
+          sync::{atomic::{AtomicBool,
+                          AtomicIsize,
+                          Ordering},
+                 mpsc::{self,
+                        channel},
+                 Arc,
+                 Mutex,
+                 RwLock},
+          thread,
+          time::{Duration,
+                 Instant}};
 
 /// The maximum number of other members we should notify when we shut
 /// down and leave the ring.
@@ -259,7 +258,7 @@ pub struct Server {
     swim_addr:                SocketAddr,
     gossip_addr:              SocketAddr,
     suitability_lookup:       Arc<Box<dyn Suitability>>,
-    data_path:                Arc<Option<PathBuf>>,
+    data_path:                Option<PathBuf>,
     dat_file:                 Option<Arc<Mutex<DatFile>>>,
     socket:                   Option<UdpSocket>,
     departed:                 Arc<AtomicBool>,
@@ -353,7 +352,7 @@ impl Server {
                             swim_addr:            swim_socket_addr,
                             gossip_addr:          gossip_socket_addr,
                             suitability_lookup:   Arc::new(suitability_lookup),
-                            data_path:            Arc::new(data_path.as_ref().map(|p| p.into())),
+                            data_path:            data_path.as_ref().map(|p| p.into()),
                             dat_file:             None,
                             departed:             Arc::new(AtomicBool::new(false)),
                             pause:                Arc::new(AtomicBool::new(false)),
@@ -427,7 +426,7 @@ impl Server {
     pub fn start(&mut self, timing: timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
-        if let Some(ref path) = *self.data_path {
+        if let Some(ref path) = self.data_path {
             if let Some(err) = fs::create_dir_all(path).err() {
                 return Err(Error::BadDataPath(path.to_path_buf(), err));
             }
@@ -857,21 +856,28 @@ impl Server {
         self.update_store.insert(e);
     }
 
-    fn elections_to_restart<T>(&self, elections: &RumorStore<T>) -> Vec<(String, u64)>
+    fn elections_to_restart<T>(&self,
+                               elections: &RumorStore<T>,
+                               feature_flags: FeatureFlag)
+                               -> Vec<(String, u64)>
         where T: Rumor + ElectionRumor + Debug
     {
         Self::elections_to_restart_impl(elections,
                                         &self.service_store,
                                         &self.member_id(),
                                         |k| self.check_quorum(k),
-                                        &self.member_list)
+                                        &self.member_list,
+                                        feature_flags,
+                                        &self.data_path)
     }
 
     fn elections_to_restart_impl<T>(elections: &RumorStore<T>,
                                     service_store: &RumorStore<Service>,
                                     myself_member_id: &str,
                                     check_quorum: impl Fn(&str) -> bool,
-                                    member_list: &MemberList)
+                                    member_list: &MemberList,
+                                    feature_flags: FeatureFlag,
+                                    data_path: &Option<PathBuf>)
                                     -> Vec<(String, u64)>
         where T: Rumor + ElectionRumor + Debug
     {
@@ -886,33 +892,47 @@ impl Server {
                                             reading it.");
                          debug!("elections_to_restart: checking {} -> {:#?}",
                                 service_group, election);
-                         // If we are finished, and the leader is dead, we should restart the
-                         // election
-                         if election.is_finished() && election.member_id() == myself_member_id {
-                             // If we are the leader, and we have lost quorum, we should restart the
+
+                         if election_trigger::maybe_trigger(service_group,
+                                                            feature_flags,
+                                                            &data_path)
+                         {
+                             elections_to_restart.push((String::from(&service_group[..]),
+                                                        election.term()));
+                         } else {
+                             // We're not manually triggering a new
+                             // election, so we should check to see if
+                             // we need to start a new one the
+                             // old-fashioned way.
+
+                             // If we are finished, and the leader is dead, we should restart the
                              // election
-                             if !check_quorum(election.key()) {
-                                 warn!("Restarting election with a new term as the leader has \
-                                        lost quorum: {:?}",
-                                       election);
-                                 elections_to_restart.push((String::from(&service_group[..]),
-                                                            election.term()));
-                             }
-                         } else if election.is_finished() {
-                             let leader_health = member_list.health_of_by_id(election.member_id())
-                                                            .unwrap_or_else(|| {
-                                                                debug!("No health information \
-                                                                        for {}; treating as \
-                                                                        Departed",
-                                                                       election.member_id());
-                                                                Health::Departed
-                                                            });
-                             if leader_health >= Health::Confirmed {
-                                 warn!("Restarting election with a new term as the leader is \
-                                        dead {}: {:?}",
-                                       myself_member_id, election);
-                                 elections_to_restart.push((String::from(&service_group[..]),
-                                                            election.term()));
+                             if election.is_finished() && election.member_id() == myself_member_id {
+                                 // If we are the leader, and we have lost quorum, we should restart
+                                 // the election
+                                 if !check_quorum(election.key()) {
+                                     warn!("Restarting election with a new term as the leader \
+                                            has lost quorum: {:?}",
+                                           election);
+                                     elections_to_restart.push((String::from(&service_group[..]),
+                                                                election.term()));
+                                 }
+                             } else if election.is_finished() {
+                                 let leader_health =
+                                     member_list.health_of_by_id(election.member_id())
+                                                .unwrap_or_else(|| {
+                                                    debug!("No health information for {}; \
+                                                            treating as Departed",
+                                                           election.member_id());
+                                                    Health::Departed
+                                                });
+                                 if leader_health >= Health::Confirmed {
+                                     warn!("Restarting election with a new term as the leader is \
+                                            dead {}: {:?}",
+                                           myself_member_id, election);
+                                     elections_to_restart.push((String::from(&service_group[..]),
+                                                                election.term()));
+                                 }
                              }
                          }
                      }
@@ -925,9 +945,15 @@ impl Server {
     ///
     /// a) We are the leader, and we have lost quorum with the rest of the group.
     /// b) We are not the leader, and we have detected that the leader is confirmed dead.
-    pub fn restart_elections(&self) {
-        let elections_to_restart = self.elections_to_restart(&self.election_store);
-        let update_elections_to_restart = self.elections_to_restart(&self.update_store);
+    pub fn restart_elections(&self, feature_flags: FeatureFlag) {
+        let elections_to_restart = self.elections_to_restart(&self.election_store, feature_flags);
+
+        // TODO (CM): not currently triggering update elections!
+        // There's only one kind of sentinel file at the moment, and
+        // that's for non-update elections. If that file existed,
+        // it'll be gone by the time we get here.
+        let update_elections_to_restart =
+            self.elections_to_restart(&self.update_store, feature_flags);
 
         for (service_group, old_term) in elections_to_restart {
             let term = old_term + 1;
@@ -1216,6 +1242,69 @@ impl<'a> Serialize for ServerProxy<'a> {
     }
 }
 
+// Note: this is a separate module solely to facilitate targeted
+// logging, e.g.
+//
+//     RUST_LOG=habitat_butterfly::server::election_trigger=trace
+mod election_trigger {
+    use habitat_common::FeatureFlag;
+    use std::{fs,
+              path::PathBuf};
+
+    /// If the HAB_FEAT_TRIGGER_ELECTION feature flag is enabled,
+    /// we'll look on disk to see if a sentinel file for the
+    /// triggering of an election of this service group is present. If
+    /// so, we should trigger that election.
+    ///
+    /// An election for service `foo.default` will be triggered if:
+    ///
+    /// - the supervisor is running with `HAB_FEAT_TRIGGER_ELECTION=1`
+    /// - the file `/hab/sup/default/data/trigger_foo.default_election` is present _and can also be
+    ///   successfully deleted by the Supervisor_.
+    ///
+    /// The latter is important to prevent repeated triggering of an
+    /// election. The user puts the file in place to signal their
+    /// intent, and the Supervisor deletes it as an acknowledgment of
+    /// that intent.
+    pub(super) fn maybe_trigger(service_group_name: &str,
+                                feature_flags: FeatureFlag,
+                                data_path: &Option<PathBuf>)
+                                -> bool {
+        if !feature_flags.contains(FeatureFlag::TRIGGER_ELECTION) {
+            trace!("HAB_FEAT_TRIGGER_ELECTION: Feature not enabled");
+            return false;
+        }
+
+        if data_path.is_none() {
+            trace!("HAB_FEAT_TRIGGER_ELECTION: In a test");
+            return false;
+        }
+
+        let sentinel_file = data_path.as_ref()
+                                     .unwrap() // safe; data_path is Some
+                                     .join(format!("trigger_{}_election", service_group_name));
+        if !sentinel_file.is_file() {
+            trace!("HAB_FEAT_TRIGGER_ELECTION: No trigger file found for {}",
+                   service_group_name);
+            return false;
+        }
+
+        if let Err(e) = fs::remove_file(&sentinel_file) {
+            // If we trigger without being able to remove
+            // the file, then we'll just constantly
+            // trigger elections.
+            warn!("HAB_FEAT_TRIGGER_ELECTION: Could not delete sentinel file {:?}; NOT \
+                   triggering election! {:?}",
+                  sentinel_file, e);
+            false
+        } else {
+            info!("HAB_FEAT_TRIGGER_ELECTION: Manually triggering election for {}",
+                  service_group_name);
+            true
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1261,7 +1350,9 @@ mod tests {
                                                            &service_store,
                                                            &myself.id,
                                                            check_quorum_returns(true),
-                                                           &member_list);
+                                                           &member_list,
+                                                           FeatureFlag::empty(),
+                                                           &None);
 
         assert_eq!(to_restart, vec![(service.service_group.to_string(), term)]);
     }
@@ -1294,7 +1385,9 @@ mod tests {
                                                            &service_store,
                                                            &myself.id,
                                                            check_quorum_returns(true),
-                                                           &member_list);
+                                                           &member_list,
+                                                           FeatureFlag::empty(),
+                                                           &None);
 
         assert_eq!(to_restart, vec![(service.service_group.to_string(), term)]);
     }
