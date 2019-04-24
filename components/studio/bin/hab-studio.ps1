@@ -432,7 +432,7 @@ function Test-InContainer {
 }
 
 function Remove-UnsafeSecrets {
-  @('HAB_ORIGIN', 'PATH', 'HAB_LICENSE') | ForEach-Object {
+  @('HAB_ORIGIN', 'PATH') | ForEach-Object {
     if(Test-Path "env:\HAB_STUDIO_SECRET_$_") {
       Remove-Item "env:\HAB_STUDIO_SECRET_$_"
     }

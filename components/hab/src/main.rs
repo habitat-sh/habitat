@@ -138,7 +138,7 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         license::check_for_license_acceptance_and_prompt(ui)?;
     }
 
-    // JB TODO: this feels like an anti-pattern to me. I get that in certain cases, we want to hand
+    // TODO JB: this feels like an anti-pattern to me. I get that in certain cases, we want to hand
     // off control from hab to a different binary to do the work, but this implementation feels
     // like it's duplicating a lot of what clap does for us. I think we should let clap do the work
     // it was designed to do, and hand off control a little bit later. Maybe there's a tiny

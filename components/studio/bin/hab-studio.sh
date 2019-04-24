@@ -754,7 +754,7 @@ exit_with() {
 
 # **Internal** Removes any potential malicious secrets
 sanitize_secrets() {
-  for x in HAB_BINLINK_DIR HAB_LICENSE HAB_ORIGIN HOME LC_ALL PATH PWD STUDIO_TYPE TERM TERMINFO; do
+  for x in HAB_BINLINK_DIR HAB_ORIGIN HOME LC_ALL PATH PWD STUDIO_TYPE TERM TERMINFO; do
     unset "HAB_STUDIO_SECRET_$x"
   done
 }
