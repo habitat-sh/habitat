@@ -17,9 +17,7 @@ use crate::error::{Error,
 use regex::Regex;
 use serde_derive::{Deserialize,
                    Serialize};
-use std::{cmp::{Ordering,
-                PartialOrd},
-          fmt,
+use std::{fmt,
           num::ParseIntError,
           ops::{Deref,
                 DerefMut},
@@ -392,8 +390,16 @@ impl FromStr for ApplicationEnvironment {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct HealthCheckInterval(Duration);
 
-impl AsRef<Duration> for HealthCheckInterval {
-    fn as_ref(&self) -> &Duration { &self.0 }
+impl HealthCheckInterval {
+    pub fn immediately() -> Self { Self::from(0) }
+}
+
+impl From<u64> for HealthCheckInterval {
+    fn from(seconds: u64) -> Self { Self(Duration::from_secs(seconds)) }
+}
+
+impl Into<u64> for HealthCheckInterval {
+    fn into(self) -> u64 { self.0.as_secs() }
 }
 
 impl fmt::Display for HealthCheckInterval {
@@ -403,32 +409,17 @@ impl fmt::Display for HealthCheckInterval {
 }
 
 impl Default for HealthCheckInterval {
-    fn default() -> Self { HealthCheckInterval(Duration::from_secs(30)) }
+    fn default() -> Self { Self::from(30) }
 }
 
 impl FromStr for HealthCheckInterval {
     type Err = ParseIntError;
 
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        let raw = s.parse::<u32>()?;
-        Ok(Duration::from_secs(u64::from(raw)).into())
-    }
-}
-
-impl From<Duration> for HealthCheckInterval {
-    fn from(d: Duration) -> Self { HealthCheckInterval(d) }
+    fn from_str(s: &str) -> result::Result<Self, Self::Err> { Ok(Self::from(s.parse::<u64>()?)) }
 }
 
 impl From<HealthCheckInterval> for Duration {
-    fn from(h: HealthCheckInterval) -> Self { Duration::from_secs(h.as_ref().as_secs()) }
-}
-
-impl PartialOrd<Duration> for HealthCheckInterval {
-    fn partial_cmp(&self, other: &Duration) -> Option<Ordering> { Some(self.0.cmp(other)) }
-}
-
-impl PartialEq<Duration> for HealthCheckInterval {
-    fn eq(&self, other: &Duration) -> bool { self.0 == *other }
+    fn from(h: HealthCheckInterval) -> Self { h.0 }
 }
 
 #[cfg(test)]
@@ -742,24 +733,14 @@ mod test {
 
     #[test]
     fn default_health_check_interval_has_correct_default() {
-        assert_eq!(*HealthCheckInterval::default().as_ref(),
-                   Duration::from_secs(30));
+        assert_eq!(HealthCheckInterval::default(),
+                   HealthCheckInterval::from(30));
     }
 
     #[test]
     fn health_check_interval_must_be_positive() {
         assert!(HealthCheckInterval::from_str("-123").is_err());
         assert!(HealthCheckInterval::from_str("5").is_ok());
-    }
-
-    #[test]
-    fn health_check_interval_correctly_implements_comparison() {
-        let one: HealthCheckInterval = Duration::from_secs(5).into();
-        assert!(one < *HealthCheckInterval::default().as_ref());
-        let two: HealthCheckInterval = Duration::from_secs(50).into();
-        assert!(two > *HealthCheckInterval::default().as_ref());
-        let three: HealthCheckInterval = Duration::from_secs(30).into();
-        assert!(three == *HealthCheckInterval::default().as_ref());
     }
 
     #[test]

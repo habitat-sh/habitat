@@ -92,8 +92,7 @@ use std::{self,
           result,
           sync::{Arc,
                  RwLock},
-          time::{Duration,
-                 Instant}};
+          time::Instant};
 use time::Timespec;
 
 static LOGKEY: &'static str = "SR";
@@ -964,7 +963,7 @@ impl Service {
     }
 
     fn schedule_health_check_at_next_tick(&mut self) {
-        self.schedule_health_check(HealthCheckInterval::from(Duration::from_secs(0)));
+        self.schedule_health_check(HealthCheckInterval::immediately());
     }
 
     fn schedule_health_check(&mut self, interval: HealthCheckInterval) {
