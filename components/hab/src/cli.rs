@@ -904,6 +904,7 @@ fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
             default_value(DEFAULT_BINLINK_DIR) "Binlink all binaries from installed package(s)")
         (@arg FORCE: -f --force "Overwrite existing binlinks")
         (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+        (@arg IGNORE_INSTALL_HOOK: --("ignore-install-hook") "Do not run any install hooks")
     );
     if feature_flags.contains(FeatureFlag::OFFLINE_INSTALL) {
         sub = sub.arg(Arg::with_name("OFFLINE").help("Install packages in offline mode")
@@ -915,10 +916,6 @@ fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                            package cannot be installed from \
                                                            Builder")
                                                     .long("ignore-local"));
-    };
-    if feature_flags.contains(FeatureFlag::INSTALL_HOOK) {
-        sub = sub.arg(Arg::with_name("IGNORE_INSTALL_HOOK").help("Do not run any install hooks")
-                                                           .long("ignore-install-hook"));
     };
     sub
 }

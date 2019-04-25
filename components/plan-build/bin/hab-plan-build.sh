@@ -1131,11 +1131,7 @@ _resolve_run_dependencies() {
 
   # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
   for dep in "${pkg_deps[@]}"; do
-    if [[ -n "${HAB_FEAT_INSTALL_HOOK:-}" ]]; then
-      _install_dependency "$dep" "--ignore-install-hook"
-    else
-      _install_dependency "$dep"
-    fi
+    _install_dependency "$dep" "--ignore-install-hook"
     if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved dependency '$dep' to $resolved"
       pkg_deps_resolved+=("$resolved")
@@ -1997,9 +1993,7 @@ do_build_config() {
 do_default_build_config() {
   build_line "Writing configuration"
   _do_copy_templates "config"
-  if [[ -n "${HAB_FEAT_INSTALL_HOOK:-}" ]]; then
-    _do_copy_templates "config_install"
-  fi
+  _do_copy_templates "config_install"
   if [[ -d "$PLAN_CONTEXT/hooks" ]]; then
     cp -r "$PLAN_CONTEXT/hooks" "$pkg_prefix"
     chmod 755 "$pkg_prefix"/hooks

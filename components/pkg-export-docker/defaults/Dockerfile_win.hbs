@@ -2,14 +2,11 @@ FROM microsoft/windowsservercore:ltsc2016
 ADD {{rootfs}} /
 
 EXPOSE 9631 {{exposes}}
-{{~ #if install_hook_feat}}
-    RUN SET HAB_FEAT_OFFLINE_INSTALL=ON && \
-        SET HAB_FEAT_INSTALL_HOOK=ON && \
-        {{~ #if environment}}
-        {{~ #each environment}}
-            SET {{@key}}={{{this}}} && \
-        {{~ /each}}
-        {{~ /if}}
-        {{hab_path}} pkg install {{installed_primary_svc_ident}}
-{{~ /if}}
+RUN SET HAB_FEAT_OFFLINE_INSTALL=ON && \
+    {{~ #if environment}}
+    {{~ #each environment}}
+        SET {{@key}}={{{this}}} && \
+    {{~ /each}}
+    {{~ /if}}
+    {{hab_path}} pkg install {{installed_primary_svc_ident}}
 ENTRYPOINT ["{{hab_path}}", "sup", "run", "{{primary_svc_ident}}"]
