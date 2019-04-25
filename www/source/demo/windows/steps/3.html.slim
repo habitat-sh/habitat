@@ -5,9 +5,9 @@ section
 
  h2 Build and runtime dependencies
 
- p Dependencies are broken up into two main types: build dependencies and runtime dependencies. Build dependencies are needed while your package builds and runtime dependencies are those packages needed when your Habitat service is running.
+ p Dependencies are broken up into two main types: build dependencies and runtime dependencies. Build dependencies are needed while your package builds and runtime dependencies are those packages needed when your Chef Habitat service is running.
 
- p You will need to declare the following dependencies for the Contoso University ASP.NET Habitat plan:
+ p You will need to declare the following dependencies for the Contoso University ASP.NET Chef Habitat plan:
 
  = code(:shell) do
    |
@@ -26,17 +26,17 @@ section
  
  h3 .NET Framework
  
- p If this were a .NET Core application, we could simply declare a dependency on <code>core/dotnet-core</code> which would put <code>dotnet.exe</code> on our path and we just point that to our built binary and we are done. The .NET "full framework" on the other hand wants to be in a very specific place on disk, has a key component called the Gloabal Assembly Cache (note "global") and requires some Windows registry entries to be friendly. We will deal with this by leaving the responsibility of installing the correct version of the .NET framework up to our provisioning or configuration management layer. Our ASP.NET application plan will simply assume the presense of the .NET framework in the environment where it is running. The fact of the matter is that any fully patched version of Windows that Habitat supports will have a v4 .NET CLR installed - so often the requirement of the .NET framework will already be present on a fresh Windows image. However it might be a version or two behind the latest version of the .NET 4 runtime and if your application depends on new features in those versions, then you will need to make sure to have them installed before running your application in Habitat.
+ p If this were a .NET Core application, we could simply declare a dependency on <code>core/dotnet-core</code> which would put <code>dotnet.exe</code> on our path and we just point that to our built binary and we are done. The .NET "full framework" on the other hand wants to be in a very specific place on disk, has a key component called the Gloabal Assembly Cache (note "global") and requires some Windows registry entries to be friendly. We will deal with this by leaving the responsibility of installing the correct version of the .NET framework up to our provisioning or configuration management layer. Our ASP.NET application plan will simply assume the presense of the .NET framework in the environment where it is running. The fact of the matter is that any fully patched version of Windows that Chef Habitat supports will have a v4 .NET CLR installed - so often the requirement of the .NET framework will already be present on a fresh Windows image. However it might be a version or two behind the latest version of the .NET 4 runtime and if your application depends on new features in those versions, then you will need to make sure to have them installed before running your application in Chef Habitat.
 
  h3 IIS
 
- p The IIS binaries are actually baked into the Windows OS as a feature. Also, like the .NET framework, all web applications that run on a single node are managed by a single IIS instance. Rather than treating IIS as a traditional Habitat dependency, we will leverage #{link_to 'Powershell DSC (Desired State Configuration)','https://docs.microsoft.com/en-us/powershell/dsc/overview'} to enable and configure IIS to work with our application. This will be handled in our runtime hooks and we will discuss the details there.
+ p The IIS binaries are actually baked into the Windows OS as a feature. Also, like the .NET framework, all web applications that run on a single node are managed by a single IIS instance. Rather than treating IIS as a traditional Chef Habitat dependency, we will leverage #{link_to 'Powershell DSC (Desired State Configuration)','https://docs.microsoft.com/en-us/powershell/dsc/overview'} to enable and configure IIS to work with our application. This will be handled in our runtime hooks and we will discuss the details there.
 
- h2 Use the Habitat Builder UI to search for dependencies
+ h2 Use the Chef Habitat Builder UI to search for dependencies
 
- p By going to #{link_to 'the Habitat website',"#{builder_web_url}/#/pkgs/core"}, you can search for packages built by the Habitat team and members of the community, and use them in your own applications and services.
+ p By going to #{link_to 'the Chef Habitat website',"#{builder_web_url}/#/pkgs/core"}, you can search for packages built by the Chef Habitat team and members of the community, and use them in your own applications and services.
 
- p Type in the name of your dependency (such as <code>git</code>). You will get a search result list back with available public packages. Any packages with the origin "core" are foundational packages managed and maintained by the #{link_to 'Habitat maintainers','https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md'}.
+ p Type in the name of your dependency (such as <code>git</code>). You will get a search result list back with available public packages. Any packages with the origin "core" are foundational packages managed and maintained by the #{link_to 'Chef Habitat maintainers','https://github.com/habitat-sh/habitat/blob/master/MAINTAINERS.md'}.
 
  p Clicking on one of the entries will show you all of the versions of that package that have been uploaded to Builder. By convention, version numbers align with the version of the binary, library, or framework that the package has bundled up. For example, the <code>core/visual-build-tools-2017</code> version 15 package has v15 of the Visual Studio Build Tools binaries and libraries.
 

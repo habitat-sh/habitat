@@ -1,5 +1,5 @@
 ---
-title: Automate Application Updates with Habitat and Kubernetes
+title: Automate Application Updates with Chef Habitat and Kubernetes
 date: 2018-05-01
 author: Tasha Drew
 tags: kubernetes, channels, builder

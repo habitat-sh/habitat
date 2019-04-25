@@ -1,12 +1,12 @@
 # <a name="using-updates" id="using-updates" data-magellan-target="using-updates">Update Strategy</a>
 
-The Habitat Supervisor can be configured to leverage an optional _update strategy_, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
+The Chef Habitat Supervisor can be configured to leverage an optional _update strategy_, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
 
-To use an update strategy, the Supervisor is configured to subscribe to Habitat Builder, and more specifically, a channel for new versions.
+To use an update strategy, the Supervisor is configured to subscribe to Chef Habitat Builder, and more specifically, a channel for new versions.
 
 ## Configuring an Update Strategy
 
-Habitat supports three update strategies: `none`, `rolling`, and `at-once`.
+Chef Habitat supports three update strategies: `none`, `rolling`, and `at-once`.
 
 To start a Supervisor with the auto-update strategy, pass the `--strategy` argument to a Supervisor run command, and optionally specify the depot URL:
 
@@ -31,4 +31,4 @@ It's important to note that because we must perform a leader election to determi
 
 ### At-Once Strategy
 
-This strategy does no peer coordination with other Supervisors in the service group; it merely updates the underlying Habitat package whenever it detects that a new version has either been published to a depot or installed to the local habitat `pkg` cache. No coordination between Supervisors is done, each Supervisor will poll Builder on their own.
+This strategy does no peer coordination with other Supervisors in the service group; it merely updates the underlying Chef Habitat package whenever it detects that a new version has either been published to a depot or installed to the local Chef Habitat `pkg` cache. No coordination between Supervisors is done, each Supervisor will poll Builder on their own.

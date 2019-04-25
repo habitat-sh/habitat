@@ -1,6 +1,6 @@
 ## <a name="origin-secrets" id="origin-secrets" data-magellan-target="origin-secrets">Working with Origin Secrets</a>
 
-With the Habitat CLI and a Builder account, you can encrypt and store secrets to expose at build time as environment variables in your Builder builds.  This feature is helpful for plans requiring access to protected resources at build time, such as private source-code repositories, cloud storage providers and the like. Secrets are defined at the origin level, which makes them usable in any plan belonging to that origin.
+With the Chef Habitat CLI and a Builder account, you can encrypt and store secrets to expose at build time as environment variables in your Builder builds.  This feature is helpful for plans requiring access to protected resources at build time, such as private source-code repositories, cloud storage providers and the like. Secrets are defined at the origin level, which makes them usable in any plan belonging to that origin.
 
 To work with origin secrets, first obtain a [Builder access token](#builder-token), then apply it on the command line using either the `HAB_AUTH_TOKEN` environment variable or the `--auth` option, along with the associated origin. For example, to list the names of all secrets defined for a given origin, use the `list` subcommand:
 
@@ -39,7 +39,7 @@ do_download() {
 ...
 ```
 
-You can delete a secret either with the Habitat CLI:
+You can delete a secret either with the Chef Habitat CLI:
 
 ```
 hab origin secret delete AWS_ACCESS_KEY_ID

@@ -1,10 +1,10 @@
 section
  h1 Build and Test
 
- p The Habitat Studio is a self-contained, minimal, clean environment in which you can develop, build, and package software.
+ p The Chef Habitat Studio is a self-contained, minimal, clean environment in which you can develop, build, and package software.
 
- p Windows based studios run inside a #{link_to 'Powershell Core', 'https://github.com/PowerShell/Powershell'} environment and have a path that only includes the Windows system directories and core Habitat services. The studio includes a Supervisor running in the background and the Habitat build system.
- 
+ p Windows based studios run inside a #{link_to 'Powershell Core', 'https://github.com/PowerShell/Powershell'} environment and have a path that only includes the Windows system directories and core Chef Habitat services. The studio includes a Supervisor running in the background and the Chef Habitat build system.
+
  p There are two "flavors" of Windows Studio available: A Docker-based container Studio and a local Studio. The container studio offers the highest level of isolation and a better guarantee of a clean environment that will have no side effects on your local environment, but it does require Docker for Windows to be installed and running in Windows container mode. A local Studio simply launches a new Powershell Core environment on your local Windows system and creates a new <code>PSDrive</code> targeting an alternative habitat environment separate from your local <code>C:\hab</code> environment. Both types of Studios require a native Windows environment. If you are not running on a Windows host, running on a local Windows VM should be sufficient but you will not be able to use the container Studio due to the Hyper-V requirements with Docker for Windows. You will need to use the local Studio instead. Alternatively you can also use a Windows cloud instance that has Docker preinstalled on AWS or Azure.
 
  p This topic covers the following areas:
@@ -20,7 +20,7 @@ section
  p From the root of your local project, run the following:
 
  = code(:shell) do
-   | 
+   |
      PS C:\contosouniversity> $env:HAB_DOCKER_OPTS="--memory 2gb -p 80:8099"
      PS C:\contosouniversity> hab studio enter -D
 
@@ -31,12 +31,12 @@ section
 
  p You may also add the <code>-w</code> argument to enter a local powershell studio. This will start up much faster but lack some of the isolation benefits of a container.
 
- p The <code>src</code> directory in the Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project.
+ p The <code>src</code> directory in the Chef Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project.
 
  p Run <code>build</code> to build your package.
 
  = code(:studio) do
-   | [HAB-STUDIO] Habitat:\src> build
+   | [HAB-STUDIO] Chef Habitat:\src> build
 
  blockquote
   p <b>Note</b> If you build your web application in a CI/CD workflow, you can use the non-interactive build option to build your package. To do this, change directory to the root of your project and run <code>hab pkg build</code>. A Studio will be created, your package will be built, and then Studio will exit without requiring user input.
@@ -45,7 +45,7 @@ section
 
  h2 <a name="test-locally">Testing your package locally</a>
 
- p Whenever you enter the Habitat Studio, a Supervisor begins running in the background. When you are ready to test your application, run <code>hab svc load myorigin/contosouniversity</code>.
+ p Whenever you enter the Chef Habitat Studio, a Supervisor begins running in the background. When you are ready to test your application, run <code>hab svc load myorigin/contosouniversity</code>.
 
  p You can see the streaming output by running <code>Get-SupervisorLog</code>. Type <code>Ctrl-C</code> to exit the streaming output.
 
@@ -70,12 +70,12 @@ section
  blockquote
   p <b>Note</b> The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
- p The following example shows how to start the Docker container running your Habitat package.
+ p The following example shows how to start the Docker container running your Chef Habitat package.
 
  = code(:shell) do
    | PS C:\contosouniversity> docker run -it myorigin/contosouniversity
 
- p For more information on using the Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
+ p For more information on using the Chef Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
 
  h2 <a name="debug-plan">Debugging your plan</a>
 

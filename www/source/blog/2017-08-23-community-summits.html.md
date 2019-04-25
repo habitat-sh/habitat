@@ -9,11 +9,11 @@ classes: body-article
 
 The Chef Community Summit is a gathering of professionals interested in advancing the state of the art of Continuous Automation with Chef.  We will be hosting three Community Summits this October.  Summits will be held in Seattle on October 2 and 3, New York City on October 5 and 6, and in London on October 10 and 11.  [Registration for all three Summits is now available](https://www.chef.io/summits/).
 
-There will be ample opportunities to discuss and build out the Habitat ecosystem at each of these three Community Summits.
+There will be ample opportunities to discuss and build out the Chef Habitat ecosystem at each of these three Community Summits.
 
 ## Seattle & New York City
 
-The Community Summit will focus on contributing to Chef’s ecosystem of open source software.  The first day of the Summit will consist of updates on the current state of [Habitat](https://github.com/habitat-sh/habitat), [Chef](https://github.com/chef/chef), [InSpec](https://github.com/chef/inspec), and related projects.  After the updates, we will host a number of open space discussions.  The discussion topics will focus on contributing and improving the contribution process.  These topics and outcomes will be determined by Community Summit participants.  
+The Community Summit will focus on contributing to Chef’s ecosystem of open source software.  The first day of the Summit will consist of updates on the current state of [Chef Habitat](https://github.com/habitat-sh/habitat), [Chef](https://github.com/chef/chef), [InSpec](https://github.com/chef/inspec), and related projects.  After the updates, we will host a number of open space discussions.  The discussion topics will focus on contributing and improving the contribution process.  These topics and outcomes will be determined by Community Summit participants.  
 
 After a day of discussions, we will roll up our sleeves, break out the keyboards, and start hacking on some projects.  The second day of the Summit is a chance for you to work with your peers in the community building and shipping code.  Whether this is your first open source contribution or you’ve been contributing for years, there are people here ready to help!  Throughout the day we will demonstrate and celebrate the progress that is being made.
 

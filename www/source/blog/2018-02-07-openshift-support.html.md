@@ -1,5 +1,5 @@
 ---
-title: Habitat Can Now Run in OpenShift
+title: Chef Habitat Can Now Run in OpenShift
 date: 2018-02-07
 author: Christopher Maier
 tags: blog, supervisor, packaging, openshift

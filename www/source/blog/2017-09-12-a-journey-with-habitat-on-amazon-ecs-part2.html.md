@@ -1,5 +1,5 @@
 ---
-title: A journey with Habitat on Amazon ECS, part 2
+title: A journey with Chef Habitat on Amazon ECS, part 2
 date: 2017-09-12
 author: Irving Popovetsky
 tags: containers, docker, aws, ecs, rds, elasticsearch, efs

@@ -1,17 +1,17 @@
 # <a name="kubernetes" id="kubernetes" data-magellan-target="kubernetes">Kubernetes</a>
-[Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [Tectonic](https://tectonic.com/) by [CoreOS](https://coreos.com/), and [OpenShift](https://openshift.com/) by [RedHat](https://redhat.com). Habitat and Kubernetes are complementary: Kubernetes focuses on providing a platform for deployment, scaling, and operations of application containers across clusters of hosts while Habitat manages the build pipeline and lifecycle of those application containers.
+[Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [Tectonic](https://tectonic.com/) by [CoreOS](https://coreos.com/), and [OpenShift](https://openshift.com/) by [RedHat](https://redhat.com). Chef Habitat and Kubernetes are complementary: Kubernetes focuses on providing a platform for deployment, scaling, and operations of application containers across clusters of hosts while Chef Habitat manages the build pipeline and lifecycle of those application containers.
 
-## Habitat Operator
+## Chef Habitat Operator
 
-The [Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator) is on-going work to create an operator that leverages Kubernetes API services to create a native and robust integration between the two technologies.
+The [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator) is on-going work to create an operator that leverages Kubernetes API services to create a native and robust integration between the two technologies.
 
-By using the Habitat Operator, you can abstract from many of the low level details of running a Habitat package in Kubernetes, and jump straight to deploying your application, with support for Habitat features like [service configuration](https://github.com/habitat-sh/habitat-operator/tree/master/examples/config), [binding](https://github.com/habitat-sh/habitat-operator/tree/master/examples/bind), [topologies](https://github.com/habitat-sh/habitat-operator/tree/master/examples/leader) and more.
+By using the Chef Habitat Operator, you can abstract from many of the low level details of running a Chef Habitat package in Kubernetes, and jump straight to deploying your application, with support for Chef Habitat features like [service configuration](https://github.com/habitat-sh/habitat-operator/tree/master/examples/config), [binding](https://github.com/habitat-sh/habitat-operator/tree/master/examples/bind), [topologies](https://github.com/habitat-sh/habitat-operator/tree/master/examples/leader) and more.
 
-For more details on the Habitat Operator, please refer to the [introductory blogpost](https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/), follow along on [github](https://github.com/habitat-sh/habitat-operator), and join us in our [#kubernetes](https://habitat-sh.slack.com/messages/kubernetes/) channel in the [Habitat Slack](https://slack.habitat.sh).
+For more details on the Chef Habitat Operator, please refer to the [introductory blogpost](https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/), follow along on [github](https://github.com/habitat-sh/habitat-operator), and join us in our [#kubernetes](https://habitat-sh.slack.com/messages/kubernetes/) channel in the [Chef Habitat Slack](https://slack.habitat.sh).
 
 ### Kubernetes exporter
 
-When using the Habitat Operator, you can easily convert packages and run them on your Kubernetes cluster using the [Kubernetes exporter](https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/):
+When using the Chef Habitat Operator, you can easily convert packages and run them on your Kubernetes cluster using the [Kubernetes exporter](https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/):
 
 ```shell
 $ hab pkg export kubernetes ORIGIN/NAME
@@ -19,13 +19,13 @@ $ hab pkg export kubernetes ORIGIN/NAME
 
 ## Bare Kubernetes
 
-Users are not required to use the Habitat Operator. Habitat packages exported as containers may be deployed to Kubernetes through the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, the container may be launched like this example:
+Users are not required to use the Chef Habitat Operator. Chef Habitat packages exported as containers may be deployed to Kubernetes through the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, the container may be launched like this example:
 
 ```shell
 $ kubectl run mytutorial --image=myorigin/mytutorial --port=8080
 ```
 
-Assuming the Docker image is pulled from `myorigin/mytutorial` we are exposing port 8080 on the container for access. Networking ports exposed by Habitat need to be passed to `kubectl run` as `--port` options. We can see our deployment with the `kubectl get` command:
+Assuming the Docker image is pulled from `myorigin/mytutorial` we are exposing port 8080 on the container for access. Networking ports exposed by Chef Habitat need to be passed to `kubectl run` as `--port` options. We can see our deployment with the `kubectl get` command:
 
 ```shell
 $ kubectl get pods -l run=mytutorial
@@ -33,18 +33,18 @@ $ kubectl get pods -l run=mytutorial
 
 ## Docker and ACI
 
-Habitat packages can be exported in both Docker and ACI formats (as well as others). Kubernetes currently supports the Docker runtime and integration of the rkt container runtime (an implementation of the App Container spec) is under active development.
+Chef Habitat packages can be exported in both Docker and ACI formats (as well as others). Kubernetes currently supports the Docker runtime and integration of the rkt container runtime (an implementation of the App Container spec) is under active development.
 
 ## Environment variables and Networking
 
-Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers, which can be done [via the Habitat Operator](https://github.com/habitat-sh/habitat-operator/tree/master/examples/env-vars).
+Kubernetes supports passing [environment variables](http://kubernetes.io/docs/user-guide/environment-guide/) into containers, which can be done [via the Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator/tree/master/examples/env-vars).
 
 ## Multi-container Pods
 
-Multi-container pod support through Habitat is still under active development as part of the Habitat Operator.
+Multi-container pod support through Chef Habitat is still under active development as part of the Chef Habitat Operator.
 
 ## Related Reading
 
-* [Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator)
-* [Export a habitat package](/docs/developing-packages/#pkg-exports)
-* [Habitat CLI](/docs/habitat-cli)
+* [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator)
+* [Export a Chef Chef Habitat package](/docs/developing-packages/#pkg-exports)
+* [Chef Habitat CLI](/docs/habitat-cli)

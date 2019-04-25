@@ -1,11 +1,11 @@
-# <a name="running-habitat-linux-containers" id="running-habitat-linux-containers" data-magellan-target="running-habitat-linux-containers">Running Habitat Linux Containers</a>
+# <a name="running-habitat-linux-containers" id="running-habitat-linux-containers" data-magellan-target="running-habitat-linux-containers">Running Chef Habitat Linux Containers</a>
 
 ## Container Setup and Assumptions
-When you run `hab pkg export docker`, you'll get a Docker container that provides a few things. First, a minimal Linux OS filesystem is provided, with just enough configuration (e.g., `/etc/passwd`, `/etc/resolv.conf`, etc.) to run. Second, the contents of the exported Habitat package, along with its complete dependency tree, as well as a complete Habitat Supervisor installation, are provided, unpacked, in the `/hab/pkgs` directory. Finally, an entrypoint script that will start the Supervisor, running the exported Habitat package, is provided, allowing the container itself to behave as though it were the Supervisor.
+When you run `hab pkg export docker`, you'll get a Docker container that provides a few things. First, a minimal Linux OS filesystem is provided, with just enough configuration (e.g., `/etc/passwd`, `/etc/resolv.conf`, etc.) to run. Second, the contents of the exported Chef Habitat package, along with its complete dependency tree, as well as a complete Chef Habitat Supervisor installation, are provided, unpacked, in the `/hab/pkgs` directory. Finally, an entrypoint script that will start the Supervisor, running the exported Chef Habitat package, is provided, allowing the container itself to behave as though it were the Supervisor.
 
-On Linux, the Habitat Supervisor will normally run as the `root` user, and will start Habitat services as the `pkg_svc_user` specified by that service. However, in some deployment scenarios, it is not desirable (or perhaps even possible) to run the Supervisor as `root`. The [OpenShift](https://www.openshift.com/) container platform, for instance, does not run containers as `root` by default, but as randomly-chosen anonymous user IDs. From version 0.53.0 onward, the Habitat Supervisor can now run as an arbitrary user, providing users with more flexibility in how and where the use Habitat.
+On Linux, the Chef Habitat Supervisor will normally run as the `root` user, and will start Chef Habitat services as the `pkg_svc_user` specified by that service. However, in some deployment scenarios, it is not desirable (or perhaps even possible) to run the Supervisor as `root`. The [OpenShift](https://www.openshift.com/) container platform, for instance, does not run containers as `root` by default, but as randomly-chosen anonymous user IDs. From version 0.53.0 onward, the Chef Habitat Supervisor can now run as an arbitrary user, providing users with more flexibility in how and where the use Chef Habitat.
 
-In order to support this in containers and provide maximal flexibility, the contents of the `/hab` directory are both readable _and writable_ by the `root` _group_. When specifying a user to run a container process as, the user's primary group will be reported as `root` if no matching group can be found in `/etc/group`. This will allow the user to create and populate the `/hab/sup` directory for managing Supervisor state, as well as the `/hab/svc` directory, which will contain all the service's state. This is in line with [recommendations from OpenShift](https://docs.openshift.com/container-platform/3.3/creating_images/guidelines.html#openshift-container-platform-specific-guidelines) on how to create containers that can run as a non-root user, but nothing in Habitat's implementation is specific to OpenShift; indeed, all the examples provided below use pure Docker.
+In order to support this in containers and provide maximal flexibility, the contents of the `/hab` directory are both readable _and writable_ by the `root` _group_. When specifying a user to run a container process as, the user's primary group will be reported as `root` if no matching group can be found in `/etc/group`. This will allow the user to create and populate the `/hab/sup` directory for managing Supervisor state, as well as the `/hab/svc` directory, which will contain all the service's state. This is in line with [recommendations from OpenShift](https://docs.openshift.com/container-platform/3.3/creating_images/guidelines.html#openshift-container-platform-specific-guidelines) on how to create containers that can run as a non-root user, but nothing in Chef Habitat's implementation is specific to OpenShift; indeed, all the examples provided below use pure Docker.
 
 ## Caveats To Running as a Non-Root User
 
@@ -17,7 +17,7 @@ Actually, the Supervisor does not actually care what user it is running as; rath
 
 ## Container Deployment Scenarios
 
-### Running a Habitat Container as `root`
+### Running a Chef Habitat Container as `root`
 
 For completeness, we'll quickly cover the base case. If you are fine with running your container as `root`, you can do that directly:
 
@@ -25,9 +25,9 @@ For completeness, we'll quickly cover the base case. If you are fine with runnin
 docker run --rm -it core/redis:latest
 ```
 
-Here, `core/redis:latest` would be the image exported from the `core/redis` Habitat package. The Supervisor will run as normal, with supervised processes running as the desired user.
+Here, `core/redis:latest` would be the image exported from the `core/redis` Chef Habitat package. The Supervisor will run as normal, with supervised processes running as the desired user.
 
-### Running a Habitat Container as a Non-Root User
+### Running a Chef Habitat Container as a Non-Root User
 
 If you cannot run as the `root` user, but you are fine with `root` being the container user's primary group, you can simply specify a user ID to run as. This user need not exist in the container itself, and it's better if it doesn't. Using pure Docker, it might look like this:
 
@@ -35,9 +35,9 @@ If you cannot run as the `root` user, but you are fine with `root` being the con
 docker run --rm -it --user=888888 core/redis:latest
 ```
 
-Again, we use our `core/redis` Habitat package container; the user ID 888888 is simply a number chosen at random (this is how platforms like OpenShift operate). No user inside the container has this ID, meaning that the user will be an anonymous user with `root` as its primary group. Because of how we generate Habitat containers, this fact ensures that the user has write permissions within the `/hab` directory.
+Again, we use our `core/redis` Chef Habitat package container; the user ID 888888 is simply a number chosen at random (this is how platforms like OpenShift operate). No user inside the container has this ID, meaning that the user will be an anonymous user with `root` as its primary group. Because of how we generate Chef Habitat containers, this fact ensures that the user has write permissions within the `/hab` directory.
 
-Due to the current logic around package installation, there is an extra step needed if you would like to have your containerized Supervisors update either themselves or the services they supervise. When installing packages as a non-root user, Habitat will download keys and compressed hart files into the user's `${HOME}/.hab` directory, rather than the global `/hab/cache` directory. You will need to ensure that a user-writable directory is mounted into the container, and specify it as the user's home directory using the `HOME` environment variable. Using pure Docker with a volume that is accessible by the user, that might look like this:
+Due to the current logic around package installation, there is an extra step needed if you would like to have your containerized Supervisors update either themselves or the services they supervise. When installing packages as a non-root user, Chef Habitat will download keys and compressed hart files into the user's `${HOME}/.hab` directory, rather than the global `/hab/cache` directory. You will need to ensure that a user-writable directory is mounted into the container, and specify it as the user's home directory using the `HOME` environment variable. Using pure Docker with a volume that is accessible by the user, that might look like this:
 
 ```sh
 docker volume create --driver local \\
@@ -57,7 +57,7 @@ This is merely an illustration; use whatever volume management approaches and se
 
 As illustrated, updates of this kind are completely optional; you may prefer to move update responsibility to your container scheduler and treat your containers as immutable in this regard.
 
-### Running a Habitat Container as a Non-Root User in a Non-Root Group
+### Running a Chef Habitat Container as a Non-Root User in a Non-Root Group
 
 If for whatever reason you do not want your user to be in the `root` group inside the container, you will need to add some additional volumes in order to create the needed directories. However, since you will (by definition) not have write permissions on the `/hab` directory as a whole, your Supervisor _will not_ be able to update either itself or the services it supervises.
 

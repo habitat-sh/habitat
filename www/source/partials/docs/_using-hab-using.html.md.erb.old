@@ -1,10 +1,10 @@
-# <a name="using-habitat" id="using-habitat" data-magellan-target="using-habitat">Using Habitat</a>
+# <a name="using-habitat" id="using-habitat" data-magellan-target="using-habitat">Using Chef Habitat</a>
 
-This guide will explain the basics of using the Habitat cli to install, run, and configure packages. We'll cover the particulars of a few commonly used `hab` commands and explain how to use Habitat for managing applications.
+This guide will explain the basics of using the Chef Habitat cli to install, run, and configure packages. We'll cover the particulars of a few commonly used `hab` commands and explain how to use Chef Habitat for managing applications.
 
 ## Concepts
 
-Let's level set on a couple of things. If you have the time it would definitely be beneficial for you to read through the [glossary section](/docs/glossary) which is going to contain lots of high-level conceptual information on the various aspects of the habitat framework.
+Let's level set on a couple of things. If you have the time it would definitely be beneficial for you to read through the [glossary section](/docs/glossary) which is going to contain lots of high-level conceptual information on the various aspects of the Chef Habitat framework.
 
 <%= partial "/partials/docs/glossary-plan" %>
 
@@ -14,7 +14,7 @@ Let's level set on a couple of things. If you have the time it would definitely 
 
 # 'Hab Search': Finding packages
 
-The Habitat core team maintains a significant number of packages for public use under the `core` origin on [builder](/docs/glossary/#glossary-builder). Each of these plans have been written to make them as accessible for mass consumption as possible.
+The Chef Habitat core team maintains a significant number of packages for public use under the `core` origin on [builder](/docs/glossary/#glossary-builder). Each of these plans have been written to make them as accessible for mass consumption as possible.
 
 The primary way to discover an available package from the command line is with the `hab pkg search` subcommand.
 
@@ -105,7 +105,7 @@ You can however provide `hab pkg install` a fully qualified package ident and th
 
 # Inspect plan tunables
 
-Habitat core packages will have overrideable options to tune the configuration of the package when you're ready to start it. Those options may not fit your environment. You can get a concise list of the available tuneables of a package with the `hab pkg config` subcommand.
+Chef Habitat core packages will have overrideable options to tune the configuration of the package when you're ready to start it. Those options may not fit your environment. You can get a concise list of the available tuneables of a package with the `hab pkg config` subcommand.
 
 ```shell
 $ hab pkg config core/curl
@@ -131,7 +131,7 @@ require = "All Denied"
 (The above is not the full list of tunables for this package. Truncated for readability.)
 
 # Running a package
-Habitat packages can be exported to run in [several different ways](/docs/glossary/#glossary-packages) however for the sake of this guide we're going to adopt the simplest example.
+Chef Habitat packages can be exported to run in [several different ways](/docs/glossary/#glossary-packages) however for the sake of this guide we're going to adopt the simplest example.
 
 Run the `hab svc start` command with the package ident to start a service.
 

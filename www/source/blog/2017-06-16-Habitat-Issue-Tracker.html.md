@@ -1,5 +1,5 @@
 ---
-title: Habitat.sh Governance and Issue Tracking
+title: Chef Habitat.sh Governance and Issue Tracking
 date: 2017-06-16
 author: Ian Henry
 tags: governance, community

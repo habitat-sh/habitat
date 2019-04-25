@@ -8,7 +8,7 @@ $ hab origin key generate <ORIGIN>
 
 The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
-Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from Habitat Builder by the Supervisor, if needed.
+Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from Chef Habitat Builder by the Supervisor, if needed.
 
 ### Passing origin keys into the Studio
 
@@ -26,12 +26,12 @@ After you create or receive your secret origin key, you can start up the Studio 
 
 ## Interactive Build
 
-An interactive build is one in which you enter a Habitat Studio to perform the build. Doing this allows you to examine the build environment before, during, and after the build.
+An interactive build is one in which you enter a Chef Habitat Studio to perform the build. Doing this allows you to examine the build environment before, during, and after the build.
 
 The directory where your plan is located is known as the plan context.
 
 1. Change to the parent directory of the plan context.
-2. Create and enter a new Habitat Studio. If you have defined an origin and origin key during `hab cli setup` or by explicitly setting the `HAB_ORIGIN` and `HAB_ORIGIN_KEYS` environment variables, then type the following:
+2. Create and enter a new Chef Habitat Studio. If you have defined an origin and origin key during `hab cli setup` or by explicitly setting the `HAB_ORIGIN` and `HAB_ORIGIN_KEYS` environment variables, then type the following:
 
     ```shell
     $ hab studio enter
@@ -55,7 +55,7 @@ Depending on the platform of your host and your Docker configuration, the behavi
 * **Mac** - A Docker container based Linux Studio
 * **Windows** - A Docker container based Studio where the platform depends on the mode your Docker service is running, which can be toggled between Linux Containers and Windows Containers. Make sure your Docker service is running in the correct mode for the kind of studio you wish to enter. You may also use the `-w` flag to enter a local, non-containerized Windows studio.
 
-> Note: For more details related to Windows containers see [Running Habitat Windows Containers](/docs/best-practices/#running-habitat-windows-containers).
+> Note: For more details related to Windows containers see [Running Chef Habitat Windows Containers](/docs/best-practices/#running-habitat-windows-containers).
 
 ### Building Dependent Plans in the Studio
 
@@ -72,7 +72,7 @@ This way, you can `hab studio enter` in `projects/`. If `project-b` depends on `
 
 ## Non-Interactive Build
 
-A non-interactive build is one in which Habitat creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
+A non-interactive build is one in which Chef Habitat creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
 
 1. Change to the parent directory of the plan context.
 2. Build the package in an unattended fashion, passing the name of the origin key to the command.

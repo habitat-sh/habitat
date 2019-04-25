@@ -167,7 +167,7 @@ pkg_binds_optional=(
 ```
 
 ### pkg_interpreters
-**Optional**. An array of interpreters used in [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) lines for scripts. Specify the subdirectory where the binary is relative to the package, for example, `bin/bash` or `libexec/neverland`, since binaries can be located in directories besides `bin`. This list of interpreters will be written to the metadata INTERPRETERS file, located inside a package, with their fully-qualified path.  Then these can be used with the fix_interpreter function. For more information on declaring shebangs in Habitat, see [Plan hooks](#hooks), and for more information on the fix_interpreter function, see [Plan utility functions](#plan-utility-functions).
+**Optional**. An array of interpreters used in [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) lines for scripts. Specify the subdirectory where the binary is relative to the package, for example, `bin/bash` or `libexec/neverland`, since binaries can be located in directories besides `bin`. This list of interpreters will be written to the metadata INTERPRETERS file, located inside a package, with their fully-qualified path.  Then these can be used with the fix_interpreter function. For more information on declaring shebangs in Chef Habitat, see [Plan hooks](#hooks), and for more information on the fix_interpreter function, see [Plan utility functions](#plan-utility-functions).
 
 ```bash
 pkg_interpreters=(bin/bash)
@@ -208,4 +208,3 @@ pkg_description=$(cat << EOF
 ```bash
 pkg_upstream_url=https://github.com/myrepo
 ```
-

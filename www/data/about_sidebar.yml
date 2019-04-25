@@ -1,8 +1,8 @@
 ---
 sidebar_links:
-- title: Why Habitat?
+- title: Why Chef Habitat?
   links:
-  - title: Habitat Announcement Webcast
+  - title: Chef Habitat Announcement Webcast
     link: "/about/announcement/"
   - title: Overview
     link:  "/about/why-habitat/"
@@ -12,7 +12,7 @@ sidebar_links:
     link:  "/about/what-is-modern-app/"
   - title: Why Package the App and Its Automation Together?
     link:  "/about/why-package-automation-with-app/"
-  - title: Habitat and the Modern Application
+  - title: Chef Habitat and the Modern Application
     link:  "/about/habitat-and-modern-app/"
-  - title: Habitat and Workload Placement
+  - title: Chef Habitat and Workload Placement
     link:  "/about/habitat-and-workload-placement/"

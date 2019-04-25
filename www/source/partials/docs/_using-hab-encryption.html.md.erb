@@ -1,6 +1,6 @@
 # <a name="using-encryption" id="using-encryption" data-magellan-target="using-encryption">Supervisor and Encryption</a>
 
-By default, a Supervisor will run with no security. It will communicate with other Supervisors in cleartext, and it will allow any user to apply new configuration without authentication. While this is beneficial for quickly illustrating the concepts of Habitat, users will want to run production deployments of Habitat Supervisor networks with more security.
+By default, a Supervisor will run with no security. It will communicate with other Supervisors in cleartext, and it will allow any user to apply new configuration without authentication. While this is beneficial for quickly illustrating the concepts of Chef Habitat, users will want to run production deployments of Chef Habitat Supervisor networks with more security.
 
 There are several types of security measures that can be undertaken by the operator:
 
@@ -74,7 +74,7 @@ If a running Supervisor cannot decrypt a secret due to a missing key, it will re
 
 ## Identifying Key Types
 
-To aid the user in the visual identification of the many varieties of keys in use by Habitat, a key itself is in plain text and contains a header on the first line indicating what kind of key it is. The file extension and, in some situations, the format of the file name, provide additional guidance to the user in identifying the type of key.
+To aid the user in the visual identification of the many varieties of keys in use by Chef Habitat, a key itself is in plain text and contains a header on the first line indicating what kind of key it is. The file extension and, in some situations, the format of the file name, provide additional guidance to the user in identifying the type of key.
 
 `YYYYMMDDRRRRRR` denotes the creation time and release identifier of that key.
 

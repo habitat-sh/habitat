@@ -13,13 +13,13 @@ The 0.74.0 release introduces a new `hook` to package authors: the `install` hoo
 
 Sometimes installing software involves much more than simply laying files on disk. In many cases, simply extracting the files packaged in a `hart` file to the `/hab/pkgs` folders and ensuring that some environment variables are set at runtime are all that is needed for an application to behave. However in some cases, there may be required system API calls needed to ensure that software components are correctly registered with certain OS sub systems. This is often the case with Windows applications which may require registry keys to be set, Windows features to be enabled or complicated install scripts and binaries to run before the software can be considered installed and ready to use.
 
-Today we manage these kinds of applications in Habitat by including this installation behavior inside of an `init` or `run` hook. This has worked but what if the application is a command line tool, a library, or a stand alone application that runs outside of a Supervisor? In such cases, you must deploy the application as a service and include a `run` hook that simply spins and sleeps. Even if the application is a service, what if it has dependencies like IIS or COM components that require the execution of scripts to fully register and configure those key dependencies. Well we either bundle those dependencies with the parent app or include their installation scripts with the parent package requiring the parent application to "know" intimate details about its dependencies.
+Today we manage these kinds of applications in Chef Habitat by including this installation behavior inside of an `init` or `run` hook. This has worked but what if the application is a command line tool, a library, or a stand alone application that runs outside of a Supervisor? In such cases, you must deploy the application as a service and include a `run` hook that simply spins and sleeps. Even if the application is a service, what if it has dependencies like IIS or COM components that require the execution of scripts to fully register and configure those key dependencies. Well we either bundle those dependencies with the parent app or include their installation scripts with the parent package requiring the parent application to "know" intimate details about its dependencies.
 
-With the `install` hook we can now break these applications up so that any installation behavior needed in a dependant package can be managed by that package. This also means that one can install Habitat packages that run as stand-alone applications and not be required to run them as services in order to execute their installation scripts.
+With the `install` hook we can now break these applications up so that any installation behavior needed in a dependant package can be managed by that package. This also means that one can install Chef Habitat packages that run as stand-alone applications and not be required to run them as services in order to execute their installation scripts.
 
 ## An example install hook scenario
 
-To illustrate where an `install` hook may be convenient, I'll use a [legacy Windows web application](https://github.com/habitat-sh/sqlwebadmin) that we use in some Habitat demonstrations. This application requires IIS and ASP.Net 3.5 as well as a dependency on a COM library. Before leveraging the new `install` hook, its `pkg_deps` looked like:
+To illustrate where an `install` hook may be convenient, I'll use a [legacy Windows web application](https://github.com/habitat-sh/sqlwebadmin) that we use in some Chef Habitat demonstrations. This application requires IIS and ASP.Net 3.5 as well as a dependency on a COM library. Before leveraging the new `install` hook, its `pkg_deps` looked like:
 
 ```
 $pkg_deps=@("core/dsc-core", "core/sql-dmo")
@@ -36,8 +36,8 @@ So my web application needs to know that its `sql-dmo` dependency is COM based a
 It's `run` hook uses the `dsc-core` dependency to execute the following DSC configuration:
 
 ```
-WindowsFeature netfx3 
-{ 
+WindowsFeature netfx3
+{
     Ensure = "Present"
     Name = "NET-Framework-Core"
     {{#if cfg.netfx3_source}}
@@ -45,14 +45,14 @@ WindowsFeature netfx3
     {{/if}}
 }
 
-WindowsFeature ASP 
-{ 
+WindowsFeature ASP
+{
     Ensure = "Present"
     Name = "WEB-ASP-NET"
 }
 
-WindowsFeature static_content 
-{ 
+WindowsFeature static_content
+{
     Ensure = "Present"
     Name = "WEB-STATIC-CONTENT"
 }
@@ -97,7 +97,7 @@ if (!(Test-Feature)) {
 }
 ```
 
-This uses `dism` to check and enable our Windows feature. Not as elegant as DSC but I know this will work back to a vanilla 2008 R2 or Windows 7 OS. If for some reason, enabling the feature is not succesful, I make sure that the hook exits with a non `0` exit code. Depending on what went wrong, `dism` will often exit succesfully even if the feature enablement was not succesful. If the `install` hook returns a non `0` exit code, Habitat considers the `install` hook execution to be a failure and will retry whenever attempting to load the package or any other package that declares a dependency on this package.
+This uses `dism` to check and enable our Windows feature. Not as elegant as DSC but I know this will work back to a vanilla 2008 R2 or Windows 7 OS. If for some reason, enabling the feature is not succesful, I make sure that the hook exits with a non `0` exit code. Depending on what went wrong, `dism` will often exit succesfully even if the feature enablement was not succesful. If the `install` hook returns a non `0` exit code, Chef Habitat considers the `install` hook execution to be a failure and will retry whenever attempting to load the package or any other package that declares a dependency on this package.
 
 ## Templating considerations
 
@@ -125,7 +125,7 @@ The `sql-dmo` plan now adds its own COM registration as mentioned above and the 
 
 ## New windows-service package running .NET Core
 
-To support the installation of .NET 4.x runtimes in an `install` hook where you are running the Habitat Supervisor as a Windows service using the [`windows-service`](https://github.com/habitat-sh/windows-service) package, we have migrated this package to run on .NET Core. At the time it was initially written, .NET Core did not support Windows services. Running as a .NET 4 Full Framework application, .NET 4 runtimes cannot be updated while the service is running without requiring a reboot. Migrating to .NET Core allows .NET 4 runtime packages to install without this issue.
+To support the installation of .NET 4.x runtimes in an `install` hook where you are running the Chef Habitat Supervisor as a Windows service using the [`windows-service`](https://github.com/habitat-sh/windows-service) package, we have migrated this package to run on .NET Core. At the time it was initially written, .NET Core did not support Windows services. Running as a .NET 4 Full Framework application, .NET 4 runtimes cannot be updated while the service is running without requiring a reboot. Migrating to .NET Core allows .NET 4 runtime packages to install without this issue.
 
 In case you edit the service's configuration to adjust logging or debug settings, be aware that the logging configurations have been moved to `c:\hab\svc\windows-service\log4net.xml` and all other settings are now in `c:\hab\svc\windows-service\HabService.dll.config`.
 
@@ -147,9 +147,9 @@ $env:HAB_SQLSERVER="{`"svc_account`":`"NT AUTHORITY\\SYSTEM`"}"
 
 my export should override any settings in the plan's `default.toml` with the toml specified above.
 
-## Enabling the `INSTALL_HOOK` Habitat feature
+## Enabling the `INSTALL_HOOK` Chef Habitat feature
 
-The `install` hook is currently an "experimental" Habitat feature and must be enabled in order for any of the `install` hook behavior to run. To enable this feature, set the `HAB_FEAT_INSTALL_HOOK` environment variable to any value. This must be set in the following contexts:
+The `install` hook is currently an "experimental" Chef Habitat feature and must be enabled in order for any of the `install` hook behavior to run. To enable this feature, set the `HAB_FEAT_INSTALL_HOOK` environment variable to any value. This must be set in the following contexts:
 
 * shell - to enable it for cli commands like `hab pkg install` and `hab pkg export docker`
 * Supervisor service - to enable the execution of any `install` hooks when the Supervisor loads an uninstalled package
@@ -164,4 +164,4 @@ setx HAB_FEAT_INSTALL_HOOK ON /m
 Restart-Service Habitat
 ```
 
-This will set the environment variable at the `machine` scope and restart the Habitat Supervisor for the variable to take effect.
+This will set the environment variable at the `machine` scope and restart the Chef Habitat Supervisor for the variable to take effect.

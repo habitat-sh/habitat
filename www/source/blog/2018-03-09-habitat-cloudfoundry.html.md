@@ -1,5 +1,5 @@
 ---
-title: Exporting Docker Images for Cloud Foundry with Habitat
+title: Exporting Docker Images for Cloud Foundry with Chef Habitat
 date: 2018-03-09
 author: Garrett Amini
 tags: exporter, cloud foundry, docker

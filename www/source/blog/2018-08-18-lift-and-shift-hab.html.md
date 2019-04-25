@@ -1,5 +1,5 @@
 ---
-title: Lifting and Shifting in Practice with Habitat
+title: Lifting and Shifting in Practice with Chef Habitat
 date: 2018-08-18
 author: Stuart Paterson
 tags: gcp, gcr, gke, habitat, kubernetes, python

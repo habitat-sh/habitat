@@ -1,3 +1,4 @@
+
 # WWW
 
 Static site content for www.habitat.sh
@@ -55,7 +56,7 @@ Static site content for www.habitat.sh
     name: "Nell Shamrell-Harrington"
     email: "nshamrell@habitat.sh"
     twitter: "@nellshamrell"
-	bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
+	bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Chef Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef Infra, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
   ```
 
 * Now check out your new post locally by running:

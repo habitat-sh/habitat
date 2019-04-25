@@ -1,5 +1,5 @@
 ---
-title: Introducing Habitat On-Premises Builder Depot
+title: Introducing Chef Habitat On-Premises Builder Depot
 date: 2018-05-21
 author: Salim Alam
 tags: habitat, builder, depot, on-premises
