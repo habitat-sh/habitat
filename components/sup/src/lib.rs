@@ -76,6 +76,7 @@ pub mod error;
 mod event;
 pub mod http_gateway;
 pub mod manager;
+mod sup_futures;
 mod sys;
 #[cfg(test)]
 pub mod test_helpers;
