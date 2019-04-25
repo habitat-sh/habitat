@@ -11,12 +11,15 @@ name = "hab"
 doc = false
 
 [dependencies]
+# Can we keep these alphabetized? We're not savages.
+atty = "*"
 base64 = "*"
+bitflags = "*"
+chrono = {version = "*", features = ["serde"]}
 dirs = "*"
 env_logger = "*"
+flate2 = "*"
 futures = "*"
-# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
-hyper = "0.10"
 habitat_api_client = { path = "../builder-api-client" }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
@@ -25,6 +28,8 @@ habitat-sup-client = { path = "../sup-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
 handlebars = { version = "0.29.1", default-features = false }
+# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
+hyper = "0.10"
 lazy_static = "*"
 libc = "*"
 log = "*"
@@ -32,17 +37,15 @@ pbr = "*"
 protobuf = "1.5.1"
 retry = "*"
 serde = "*"
-serde_json = "*"
 serde_derive = "*"
+serde_json = "*"
+serde_yaml = "*"
 tabwriter = "*"
+tar = "*"
 termcolor = "*"
 toml = { version = "*", default-features = false }
 url = "*"
 walkdir = "*"
-tar = "*"
-flate2 = "*"
-chrono = "*"
-atty = "*"
 
 [dependencies.clap]
 version = "*"
