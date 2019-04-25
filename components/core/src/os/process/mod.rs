@@ -36,7 +36,6 @@ pub use self::windows::{become_command,
                         handle_from_pid,
                         is_alive,
                         Pid};
-
 use crate::error::Error;
 use std::{fmt,
           result,
