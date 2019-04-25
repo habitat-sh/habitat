@@ -11,6 +11,7 @@
 - Make --binlink take an value (or env var) for `hab pkg install` [#6423](https://github.com/habitat-sh/habitat/pull/6423) ([baumanj](https://github.com/baumanj))
 
 #### Merged Pull Requests
+- Add a license agreement prompt to hab [#6364](https://github.com/habitat-sh/habitat/pull/6364) ([raskchanky](https://github.com/raskchanky))
 - make install_hook a permanent feature [#6475](https://github.com/habitat-sh/habitat/pull/6475) ([mwrock](https://github.com/mwrock))
 - Manually trigger an election (exploratory, unfinshed feature in development) [#6474](https://github.com/habitat-sh/habitat/pull/6474) ([christophermaier](https://github.com/christophermaier))
 - build_component.ps1 should enter a non interactive container and forward exit code [#6476](https://github.com/habitat-sh/habitat/pull/6476) ([mwrock](https://github.com/mwrock))
