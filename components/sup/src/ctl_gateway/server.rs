@@ -484,10 +484,12 @@ pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
                                  mgr_sender };
           let state = Rc::new(RefCell::new(state));
           let server =
-              TcpListener::bind(&listen_addr).unwrap()
+              TcpListener::bind(&listen_addr).expect("Could not bind ctl gateway listen address!")
                                              .incoming()
                                              .map(|tcp_stream| {
-                                                 let addr = tcp_stream.peer_addr().unwrap();
+                                                 let addr =
+                                                     tcp_stream.peer_addr().expect("Couldn't get \
+                                                                                    peer address!");
                                                  let io = SrvCodec::new().framed(tcp_stream);
                                                  let client = Client { handle: handle.clone(),
                                                                        state:  state.clone(), };
