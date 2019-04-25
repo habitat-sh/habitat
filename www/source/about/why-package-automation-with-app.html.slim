@@ -1,13 +1,13 @@
 ---
-title: Habitat – Packaging Automation with the Application
-description: The need for automation motivates a central design principle of Habitat. The artifact used for deployment contains both the application and its automation.
+title: Chef Habitat – Packaging Automation with the Application
+description: The need for automation motivates a central design principle of Chef Habitat. The artifact used for deployment contains both the application and its automation.
 ---
 
 h1 Why Package the App and Its Automation Together?
 
 p In the last article,
   #{link_to '"What is a Modern Application,"', '/about/what-is-modern-app.html'}
-  we talked about what those of us on the Habitat project consider to be the
+  we talked about what those of us on the Chef Habitat project consider to be the
   essential qualities a modern application must have. The trend towards
   highly distributed service-oriented architectures has implications for
   how apps are managed and deployed. A more decentralized approach than what is
@@ -18,7 +18,7 @@ p In the last article,
   with each other.
 
 p The need for service-oriented automation motivates a central design principle
-  of Habitat: <em>Habitat is automation that travels with the app</em>. The
+  of Chef Habitat: <em>Chef Habitat is automation that travels with the app</em>. The
   artifact used for deployment contains both the application and its
   automation.
 
@@ -64,7 +64,7 @@ p Another benefit is that reliable systems can be built, even when the
   the remaining healthy components will self-organize and reconverge to satisfy
   the original promise that was made as a group.
 
-p An example of a decentralized approach that is, in fact, used by Habitat, is
+p An example of a decentralized approach that is, in fact, used by Chef Habitat, is
   a #{link_to 'gossip protocol', '/docs/internals-Supervisor.html'} that
   disseminates state changes to other members of the Supervisor network. A
   component that is changing state&mdash;or an observer that notices a change
@@ -86,8 +86,8 @@ p Again, to summarize, rather than having a central overlord that enforces
   policy, it's far better for each component to understand what its standard of
   behavior is, to try and follow those standards, and to let other components
   know about how well it’s complying with those standards. That's the world of
-  Habitat. Habitat organizes autonomous components into a group made up of
-  pieces that can see each other and share policies. With Habitat, the
+  Chef Habitat. Chef Habitat organizes autonomous components into a group made up of
+  pieces that can see each other and share policies. With Chef Habitat, the
   automation, or the intelligence to provision, configure, deploy and manage,
   travels with the application.
 
@@ -158,6 +158,6 @@ p Packaging automation with the application makes the environment simpler to
 
 <hr>
 <ul class="main-content--button-nav">
-  <li><a href="/about/habitat-and-modern-app" class="button cta">Next - Habitat and the Modern Application</a></li>
+  <li><a href="/about/habitat-and-modern-app" class="button cta">Next - Chef Habitat and the Modern Application</a></li>
   <li><a href="/about/what-is-modern-app">Back - What is a Modern Application?</a></li>
 </ul>

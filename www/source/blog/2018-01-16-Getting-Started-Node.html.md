@@ -1,5 +1,5 @@
 ---
-title: "Getting Started with Node & Habitat"
+title: "Getting Started with Node & Chef Habitat"
 date: 2018-01-16
 author: Garrett Amini
 tags: node, javascript, tutorials

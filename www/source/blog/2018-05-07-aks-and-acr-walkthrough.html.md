@@ -1,5 +1,5 @@
 ---
-title: Walkthrough - Publishing Habitat packages to Azure Kubernetes Service (AKS)
+title: Walkthrough - Publishing Chef Habitat packages to Azure Kubernetes Service (AKS)
 date: 2018-05-07
 author: James Casey
 tags: azure, builder, kubernetes

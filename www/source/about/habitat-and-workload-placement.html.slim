@@ -1,46 +1,46 @@
 ---
-title: Habitat - Habitat and Workload Placement
-description: Habitat is agnostic about image formats. It can create Docker container images, Amazon Machine Images, Mesosphere packages or Heroku buildpacks.
+title: Chef Habitat - Chef Habitat and Workload Placement
+description: Chef Habitat is agnostic about image formats. It can create Docker container images, Amazon Machine Images, Mesosphere packages or Heroku buildpacks.
 ---
 
-h1 Habitat and Workload Placement
+h1 Chef Habitat and Workload Placement
 
 p The previous articles in this series discuss why
   intelligent application automation is important. In this
-  article we'll talk about how Habitat packages work with various strategies
-  for workload placement, with a focus on how Habitat applications can run in
+  article we'll talk about how Chef Habitat packages work with various strategies
+  for workload placement, with a focus on how Chef Habitat applications can run in
   container-based infrastructure.
 
-p The Habitat build process includes an optional post-processing step that can
-  create an image for any runtime environment from the Habitat package.  For
-  example, Habitat can create Docker container images, Application Container
+p The Chef Habitat build process includes an optional post-processing step that can
+  create an image for any runtime environment from the Chef Habitat package.  For
+  example, Chef Habitat can create Docker container images, Application Container
   Images (ACIs), or Marathon-native images for Apache Mesos. Eventually this
   approach could be extended to create Amazon Machine Images (AMIs),
-  CloudFoundry buildpacks, or any other image format. Habitat is completely
+  CloudFoundry buildpacks, or any other image format. Chef Habitat is completely
   agnostic about the image format, if any, you use.
 
-p Let's look at the case of Habitat creating container images. After a Habitat
-  package has been used to create a new container image during the Habitat
+p Let's look at the case of Chef Habitat creating container images. After a Chef Habitat
+  package has been used to create a new container image during the Chef Habitat
   build process, the resulting container can be deployed using whatever
   mechanism is desired, including container scheduling systems (such as
   Kubernetes and Mesosphere) or cloud-based container management systems like
-  Amazon EC2 Container Service (ECS). Container images created by Habitat are
+  Amazon EC2 Container Service (ECS). Container images created by Chef Habitat are
   smarter than other containers—they expose all of the automation intelligence
-  of the Habitat app.  For example, Habitat components can self-organize with
+  of the Chef Habitat app.  For example, Chef Habitat components can self-organize with
   peers into leader/follower relationships, and dynamic configuration changes
   can propagate to all running components of the application using robust,
   decentralized, peer-based protocols.
 
-p Of course, as we said earlier, with Habitat containers are just one execution
-  option. Habitat supports workload placement strategies that are not based on
-  containers. Applications packaged with Habitat can be deployed on virtual
+p Of course, as we said earlier, with Chef Habitat containers are just one execution
+  option. Chef Habitat supports workload placement strategies that are not based on
+  containers. Applications packaged with Chef Habitat can be deployed on virtual
   machines (VMs) and non-container PaaS environments. For example, the
   post-processing step could just as easily create an Amazon machine image
   (AMI). The resulting image could be launched using any orchestration system
   that works with Amazon Web Services (AWS). Integration with any cloud or
   virtualization system would work similarly.
 
-p With Habitat, there's an underlying principle at work, which is that the
+p With Chef Habitat, there's an underlying principle at work, which is that the
   concerns of <em>data center</em> management are separate from
   <em>application</em> management. This insight is powerful. For one thing, it
   means you don't have to worry about a particular runtime until you're ready
@@ -50,7 +50,7 @@ p With Habitat, there's an underlying principle at work, which is that the
 
 p In other words, use the operational management system, which is part of the
   runtime environment, to do what it does best&mdash;allocating hardware
-  resources in an optimal way for the desired load level. Use Habitat to manage
+  resources in an optimal way for the desired load level. Use Chef Habitat to manage
   and monitor the application.
 
 p As is often the case with software systems, a carefully chosen separation of
@@ -87,7 +87,7 @@ p You can see that the items on this list are really about the data center and
   they use a command-and-control approach that treats workloads themselves as
   passive components that must be acted upon. As we explained in
   #{link_to '"Why Package the App and Its Automation Together,"', '/about/why-package-automation-with-app.html'}
-  we Habitat folks definitely favor a distributed approach over a centralized
+  we Chef Habitat folks definitely favor a distributed approach over a centralized
   one, and we think applications should have the intelligence to manage
   themselves.
 
@@ -105,8 +105,8 @@ p Container management that has more of a PaaS flavor is arguably more
   ecosystem.
 
 p As we developed our own philosophy of managing applications in the world of
-  microservice workloads, we in the Habitat community decided that that these
-  precepts should be the basis for what is under the control of Habitat and
+  microservice workloads, we in the Chef Habitat community decided that that these
+  precepts should be the basis for what is under the control of Chef Habitat and
   what is under the control of the runtime environment.
 
 p <strong>Convergence still matters</strong>. With Chef, nodes converge to a particular state.
@@ -115,22 +115,22 @@ p <strong>Convergence still matters</strong>. With Chef, nodes converge to a par
   changes is at the beginning, when you set up the container. After that, if you change it,
   you've modified it in a completely unknown, unsafe way.
 
-p With Habitat, configuration changes are convergent. You inject them as rumors
+p With Chef Habitat, configuration changes are convergent. You inject them as rumors
   into the system, and everything will eventually converge to that new state.
 
-p <strong>Automation should prevent vendor lock in, not cause it</strong>. With Habitat, you
+p <strong>Automation should prevent vendor lock in, not cause it</strong>. With Chef Habitat, you
   can use whatever runtime environment suits you best and you can make that decision when you're ready to deploy the package. Because the application is independent of the runtime, you can move your application to a new environment when it's to your advantage and you don't have to retool your application to do it.
 
-p <strong>The workload is the unit of deployment, not the image format</strong>. With Habitat,
+p <strong>The workload is the unit of deployment, not the image format</strong>. With Chef Habitat,
   it's the workload that's immutable. The image format is irrelevant. This means that, with
-  Habitat, update strategies are under the control of the package's Supervisor, not some
+  Chef Habitat, update strategies are under the control of the package's Supervisor, not some
   external management system.
 
-p <strong>All runtime environments are good</strong>. We at Habitat love these runtime
-  environments and we want to make sure that Habitat applications can run in all of them.
+p <strong>All runtime environments are good</strong>. We at Chef Habitat love these runtime
+  environments and we want to make sure that Chef Habitat applications can run in all of them.
   Over time, we'll have more and more integrations that will make this easier.
 
 <hr>
 <ul class="main-content--button-nav">
-  <li><a href="/about/habitat-and-modern-app">Back - Habitat and the Modern Application</a></li>
+  <li><a href="/about/habitat-and-modern-app">Back - Chef Habitat and the Modern Application</a></li>
 </ul>

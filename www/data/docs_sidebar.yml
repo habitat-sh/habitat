@@ -4,10 +4,10 @@ sidebar_links:
   links:
   - title: Docs Home
     link: "/docs"
-  - title: Install Habitat
+  - title: Install Chef Habitat
     link: "/docs/install-habitat"
     sub_links:
-    - title: Download the Habitat CLI
+    - title: Download the Chef Habitat CLI
       link: "/docs/install-habitat/#install-habitat"
     - title: Accept the License
       link: "/docs/install-habitat/#accept-the-license"
@@ -54,7 +54,7 @@ sidebar_links:
     sub_links:
     - title: Overview
       link: "/docs/using-habitat/#overview"
-    - title: Using Habitat Packages
+    - title: Using Chef Habitat Packages
       link: "/docs/using-habitat/#using-packages"
     - title: Setting up a Ring
       link: "/docs/using-habitat/#setting-up-a-ring"
@@ -74,7 +74,7 @@ sidebar_links:
       link: "/docs/using-habitat/#using-updates"
     - title: Continuous Deployment
       link: "/docs/using-habitat/#continuous-deployment"
-  - title: Habitat and Other Software
+  - title: Chef Habitat and Other Software
     link: "/docs/habitat-and-other-software"
   - title: CLI Commands
     link: "/docs/habitat-cli"
@@ -124,16 +124,16 @@ sidebar_links:
       link: "/docs/diagrams/#builder-architecture"
     - title: On-Premises Builder Depot Flow
       link: "/docs/diagrams/#on-premises-builder-depot-flow"
-    - title: Habitat and Kubernetes
+    - title: Chef Habitat and Kubernetes
       link: "/docs/diagrams/#habitat-and-kubernetes"
   - title: Best Practice Guides
     link: "/docs/best-practices"
     sub_links:
-    - title: Running Habitat on Servers
+    - title: Running Chef Habitat on Servers
       link: "/docs/best-practices/#running-habitat-servers"
-    - title: Running Habitat Linux Containers
+    - title: Running Chef Habitat Linux Containers
       link: "/docs/best-practices/#running-habitat-linux-containers"
-    - title: Running Habitat Windows Containers
+    - title: Running Chef Habitat Windows Containers
       link: "/docs/best-practices/#running-habitat-windows-containers"
     - title: Robust Supervisor Networks
       link: "/docs/best-practices/#robust-supervisor-networks"
@@ -141,9 +141,9 @@ sidebar_links:
       link: "/docs/best-practices/#container-orchestration"
     - title: Kubernetes
       link: "/docs/best-practices/#kubernetes"
-    - title: "AKS and Habitat"
+    - title: "AKS and Chef Habitat"
       link: "/docs/best-practices/#aks-and-habitat"
-    - title: "ECS and Habitat"
+    - title: "ECS and Chef Habitat"
       link: "/docs/best-practices/#ecs-and-habitat"
     - title: "Apache Mesos and DC/OS"
       link: "/docs/best-practices/#mesos-dcos"
@@ -187,7 +187,7 @@ sidebar_links:
       link: "/docs/internals/#election-internals"
     - title: Crypto
       link: "/docs/internals/#crypto-internals"
-    - title: Bootstrapping Habitat
+    - title: Bootstrapping Chef Habitat
       link: "/docs/internals/#bootstrap-internals"
   - title: Contribute
     link: "/docs/contribute"

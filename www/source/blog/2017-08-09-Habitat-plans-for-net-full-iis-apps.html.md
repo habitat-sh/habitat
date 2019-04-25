@@ -1,5 +1,5 @@
 ---
-title: Running a Full Framework ASP.NET IIS application in Habitat
+title: Running a Full Framework ASP.NET IIS application in Chef Habitat
 date: 2017-08-09
 author: Matt Wrock
 tags: supervisor, packaging, windows

@@ -6,7 +6,7 @@ section
  ul
   li #{link_to 'Setting service bindings','#setting-bindings'} 
   li #{link_to 'Defining database connection logic','#connection-logic'}
-  li #{link_to 'Connecting to a database running inside the Habitat Studio','#connect-studio'}
+  li #{link_to 'Connecting to a database running inside the Chef Habitat Studio','#connect-studio'}
   li #{link_to 'Connecting to a database running inside a Docker container','#connect-docker'}
 
  h2 <a name="setting-bindings">Setting service bindings</a>
@@ -37,7 +37,7 @@ section
 
  = code(:bash) do
   |
-   [HAB-STUDIO] Habitat:\src> ((Invoke-WebRequest http://127.0.0.1:9631/services/sqlserver/default -UseBasicParsing).Content | ConvertFrom-Json).pkg.exports
+   [HAB-STUDIO] Chef Habitat:\src> ((Invoke-WebRequest http://127.0.0.1:9631/services/sqlserver/default -UseBasicParsing).Content | ConvertFrom-Json).pkg.exports
    instance password     port username
    -------- --------     ---- --------
    instance app_password port app_user
@@ -54,7 +54,7 @@ section
     $pkg_name="contosouniversity"
     $pkg_origin="myorigin"
     $pkg_version="0.1.0"
-    $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+    $pkg_maintainer="The Chef Habitat Maintainers <humans@habitat.sh>"
     $pkg_license=@("Apache-2.0")
     $pkg_deps=@("core/dsc-core")
     $pkg_build_deps=@("core/nuget")
@@ -91,7 +91,7 @@ section
     Set-Location {{pkg.svc_path}}\var
     New-Item -Name Web.config -ItemType SymbolicLink -target "{{pkg.svc_config_path}}/Web.config" -Force | Out-Null
 
- p Lastly we need to edit the permissions of the Habitat rendered <code>web.config</code> template so that the IIS app pool user has the rights to access it. When Habitat renders the template files in out plan's <code>config</code> and <code>hooks</code> directories, the permissions granted to the rendered files include <code>Full Control</code> access for <code>Administrators</code>, <code>SYSTEM</code>, and the user running the Supervisor process. Because these rendered files could possibly include sensitive values, we do not want to grant access to all users. By default, IIS will run our application using a user named after its application pool and this user will not have rightrs to view the rendered <code>web.config</code> which will cause our application to fail. So lets edit our <code>run</code> hook after we apply the <code>DSC</code> configuration that creates and starts our application pool:
+ p Lastly we need to edit the permissions of the Chef Habitat rendered <code>web.config</code> template so that the IIS app pool user has the rights to access it. When Chef Habitat renders the template files in out plan's <code>config</code> and <code>hooks</code> directories, the permissions granted to the rendered files include <code>Full Control</code> access for <code>Administrators</code>, <code>SYSTEM</code>, and the user running the Supervisor process. Because these rendered files could possibly include sensitive values, we do not want to grant access to all users. By default, IIS will run our application using a user named after its application pool and this user will not have rightrs to view the rendered <code>web.config</code> which will cause our application to fail. So lets edit our <code>run</code> hook after we apply the <code>DSC</code> configuration that creates and starts our application pool:
 
  = code(:bash) do
    |
@@ -118,9 +118,9 @@ section
 
  = code(:bash) do
   |
-   [HAB-STUDIO] Habitat:\src> hab svc load core/sqlserver
-   [HAB-STUDIO] Habitat:\src> build
-   [HAB-STUDIO] Habitat:\src> hab svc load myorigin/contosouniversity --bind database:sqlserver.default
+   [HAB-STUDIO] Chef Habitat:\src> hab svc load core/sqlserver
+   [HAB-STUDIO] Chef Habitat:\src> build
+   [HAB-STUDIO] Chef Habitat:\src> hab svc load myorigin/contosouniversity --bind database:sqlserver.default
 
  blockquote
   p <b>Note</b> The first time that the <code>core/sqlserver</code> package is loaded and started, it may take several minutes to initialize because its <code>init</code> hook actually runs the SQL Server installer. This will cause the third command above that loads our application to hang until that initialization completes.

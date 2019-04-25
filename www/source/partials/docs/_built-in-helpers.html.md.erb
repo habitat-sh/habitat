@@ -8,7 +8,7 @@ syntax is the same for all block expressions and looks like this:
       {{expression}}
     {{/helper}}
 
-Habitat supports the standard [built-in helpers](http://handlebarsjs.com/builtin_helpers.html):
+Chef Habitat supports the standard [built-in helpers](http://handlebarsjs.com/builtin_helpers.html):
 
 * `if`
 * `unless`
@@ -54,7 +54,7 @@ When writing your template, you can use the `with` helper to reduce duplication:
       repl-disable-tcp-nodelay {{disable-tcp-nodelay}}
     {{/with ~}}
 
-Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Habitat services  in a leader-follower topology.
+Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services  in a leader-follower topology.
 
     {{#if svc.me.follower ~}}
       replicaof {{svc.leader.sys.ip}} {{svc.leader.cfg.port}}
@@ -98,7 +98,7 @@ And for both `each` and `unless`, you can use `@first` and `@last` to specify wh
       {{/each ~}}
     }
 
-> **Note** The `@first` and `@last` variables also work with the Habitat helper `eachAlive`, and in the example above, it would be preferrable to the built-in `each` helper because it checks whether the service is available before trying to retrieve any values.
+> **Note** The `@first` and `@last` variables also work with the Chef Habitat helper `eachAlive`, and in the example above, it would be preferrable to the built-in `each` helper because it checks whether the service is available before trying to retrieve any values.
 
 For `unless`, using `@last` can also be helpful when you need to optionally include delimiters. In the example below, the IP addresses of the alive members returned by the `servers` binding is comma-separated. The logic check `{{#unless @last}}, {{/unless}}` at the end ensures that the comma is written after each element except the last element.
 

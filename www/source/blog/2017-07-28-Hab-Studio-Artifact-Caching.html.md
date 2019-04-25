@@ -1,5 +1,5 @@
 ---
-title: Habitat Studio Artifact Caching
+title: Chef Habitat Studio Artifact Caching
 date: 2017-07-28
 author: fnichol
 tags: studio, habitat, update

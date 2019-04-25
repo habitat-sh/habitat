@@ -1,7 +1,7 @@
 section
- h1 Build your ASP.NET web application with Habitat
+ h1 Build your ASP.NET web application with Chef Habitat
 
- p This guide shows how to build and run your ASP.NET web application with Habitat on Windows.
+ p This guide shows how to build and run your ASP.NET web application with Chef Habitat on Windows.
 
  h2 In this guide
 
@@ -12,7 +12,7 @@ section
    li #{link_to 'Define Dependencies and Callbacks',"/demo/windows/steps/3"}: Understand how to add runtime dependencies for your web application.
    li #{link_to 'Define Build Logic For Your App',"/demo/windows/steps/4"}: Define how source code for your web application is built and installed as part of the package creation process.
    li #{link_to 'Add Configuration',"/demo/windows/steps/5"}: Specify which settings on your web application can be configured at runtime.
-   li #{link_to 'Leveraging Powershell DSC in Habitat Templates',"/demo/windows/steps/6"}: Use Powershell DSC to enable and configure IIS using Habitat Templates and Handlebars syntax.
+   li #{link_to 'Leveraging Powershell DSC in Chef Habitat Templates',"/demo/windows/steps/6"}: Use Powershell DSC to enable and configure IIS using Chef Habitat Templates and Handlebars syntax.
    li #{link_to 'Define Hooks',"/demo/windows/steps/7"}: Define runtime behavior for your application.
    li #{link_to 'Build and Test',"/demo/windows/steps/8"}: Learn how to build, test, and run your web application package.
    li #{link_to 'Connect your web application',"/demo/windows/steps/9"}: Describes how to connect your web application to a SQL Server database inside of a Studio or a container.
@@ -21,7 +21,7 @@ section
 
  h2 Prerequisites
 
- p #{link_to 'Download and install', '/docs/install-habitat/'} the Habitat CLI (command-line interface) on your Windows workstation or VM. You should complete all steps before doing any local development work with the CLI.
+ p #{link_to 'Download and install', '/docs/install-habitat/'} the Chef Habitat CLI (command-line interface) on your Windows workstation or VM. You should complete all steps before doing any local development work with the CLI.
 
  h2 Download an ASP.NET application
 
@@ -37,6 +37,6 @@ section
 
  h2 What if I get lost?
 
- p As we progress through this guide, we will be progressively adding files and code to our plan and will make other changes here and there. If for any reason you feel that the state of your application of plan files is broken, feel free to reference #{link_to 'this repository', 'https://github.com/habitat-sh/contosouniversity'} which contains a full working Habitat plan and hooks that may get you back to a fixed state:
+ p As we progress through this guide, we will be progressively adding files and code to our plan and will make other changes here and there. If for any reason you feel that the state of your application of plan files is broken, feel free to reference #{link_to 'this repository', 'https://github.com/habitat-sh/contosouniversity'} which contains a full working Chef Habitat plan and hooks that may get you back to a fixed state:
 
 = link_to 'Next: Create Your Plan', "/demo/windows/steps/2", class: 'button cta'

@@ -1,6 +1,6 @@
 # <a name="config-updates" id="config-updates" data-magellan-target="config-updates">Configuration updates</a>
 
-One of the key features of Habitat is the ability to define an immutable package with a default configuration which can then be updated dynamically at runtime. You can update service configuration on two levels: individual services (for testing purposes), or a service group.
+One of the key features of Chef Habitat is the ability to define an immutable package with a default configuration which can then be updated dynamically at runtime. You can update service configuration on two levels: individual services (for testing purposes), or a service group.
 
 
 ## Apply configuration updates to an individual service
@@ -9,18 +9,18 @@ When starting a single service, you can provide alternate configuration values t
 
 ### Using a user.toml file
 
-You can supply a `user.toml` containing any configuration data that you want to override default values. This file should be placed in the habitat `user` directory under the `config` subdirectory of the specific service directory that owns the configuration data. For example, to override the default configuration of the `myservice` service, this `user.toml` would be located at `/hab/user/myservice/config/user.toml`.
+You can supply a `user.toml` containing any configuration data that you want to override default values. This file should be placed in the Chef Habitat `user` directory under the `config` subdirectory of the specific service directory that owns the configuration data. For example, to override the default configuration of the `myservice` service, this `user.toml` would be located at `/hab/user/myservice/config/user.toml`.
 
 ### Using an environment variable
 
 Override default configuration data through the use of an environment variable with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
 
 ```shell
-$ HAB_MYTUTORIALAPP='{"message":"Habitat rocks!"}' hab run <origin>/<packagename>
+$ HAB_MYTUTORIALAPP='{"message":"Chef Habitat rocks!"}' hab run <origin>/<packagename>
 ```
 > Note: The syntax used for applying configuration through environment variables can be either JSON or TOML, but TOML is preferred. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
 
-> Note: The way that environment variable configuration is currently processed means that variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Habitat operator. This may change in the future.
+> Note: The way that environment variable configuration is currently processed means that variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Chef Habitat operator. This may change in the future.
 
 For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a file and pass it in using something like `HAB_PACKAGENAME="$(cat foo.toml)"` or `HAB_PACKAGENAME="$(cat foo.json)"`.
 

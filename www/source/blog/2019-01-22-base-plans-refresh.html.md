@@ -1,5 +1,5 @@
 ---
-title: Base Plans Refresh is Coming to Habitat Core Plans!
+title: Base Plans Refresh is Coming to Chef Habitat Core Plans!
 date: 2019-01-22
 author: Scott Macfarlane
 tags: Core Plans
@@ -12,16 +12,16 @@ Hello, friendly Habicats!
 We will be refreshing the Base Plans of Core Plans on Tuesday, January 29th. Let's go over what this means for us and, more important, what it means for you.
 
 ## Base Plans 101
-Currently, there are about 600 Habitat plans under the Core Origin on Builder.
+Currently, there are about 600 Chef Habitat plans under the Core Origin on Builder.
 
-These include everything from services like Postgresql to binaries like Go to very low level system libraries like GCC, all of which you can easily pull into your own Habitat artifacts.
+These include everything from services like Postgresql to binaries like Go to very low level system libraries like GCC, all of which you can easily pull into your own Chef Habitat artifacts.
 
 ### What's a Base Plan
 
 The Base Plans are a group of plans (mostly low level systems libraries) that:
 
 * are used by nearly every other plan (or a dependency of that plan) on Builder
-* are used to build Habitat itself
+* are used to build Chef Habitat itself
 * need to be built in a certain order.
 
 You can see the [full list of Base Plans](https://github.com/habitat-sh/core-plans/blob/master/CODEOWNERS) in the Core Plans CODEOWNERS file.
@@ -30,9 +30,9 @@ Any time one of these plans is updated (especially ones that are nearly universa
 
 ### Why are you refreshing them?
 
-We perform periodic base plan refreshes to ensure that your applications built on Habitat are secure and performant. Many packages including GCC, OpenSSL, zlib, and glibc form the base cryptographic and security libraries that applications depend on.
+We perform periodic base plan refreshes to ensure that your applications built on Chef Habitat are secure and performant. Many packages including GCC, OpenSSL, zlib, and glibc form the base cryptographic and security libraries that applications depend on.
 
-We also perform periodic base plan refreshes to make it easy for users of Habitat to receive the latest performance improvements, security patches, and bug fixes from the underlying software libraries that power your application. Our periodic base plan refresh means you will receive these updates automatically, and you will never worry about your application being tied to an aging Operating System version.
+We also perform periodic base plan refreshes to make it easy for users of Chef Habitat to receive the latest performance improvements, security patches, and bug fixes from the underlying software libraries that power your application. Our periodic base plan refresh means you will receive these updates automatically, and you will never worry about your application being tied to an aging Operating System version.
 
 This refresh contains OpenSSL version 1.0.2q and brings two significant improvements: the CRIME vulnerability is mitigated by default and FIPS mode is available to all users. FIPS mode is particularly interesting; although it is not enabled by default it can be activated at runtime simply by setting the environment variable `OPENSSL_FIPS=1` - this ensures that any application that is built on OpenSSL can automatically operate in a FIPS compliant manner.
 
@@ -94,7 +94,7 @@ Success!
 I love when a plan.sh comes together!
 ```
 
-Then suppose the Habitat team upgrades core/glibc to 2.27. And let's say for some reason you only update one of the dependencies to use the updated glibc - so nellshamrell/widget will depend on core/glibc/2.27, while nellshamrell/world will still depend on core/glibc/2.22:
+Then suppose the Chef Habitat team upgrades core/glibc to 2.27. And let's say for some reason you only update one of the dependencies to use the updated glibc - so nellshamrell/widget will depend on core/glibc/2.27, while nellshamrell/world will still depend on core/glibc/2.22:
 
 ```
 nellshamrell/widget_world
@@ -169,4 +169,4 @@ So...after the Core Plans refresh gets added to production and promoted to stabl
 
 ### Do I need to do this for all my plans?
 
-If you have plans that depend on Base Plans (which I expect most if not all plans do), you will likely run into this dependency error on at least one of your plans. You can fix it as outlined above (note - the easiest way to rebuild a plan is to click the "Build Latest Version" button in Builder). If you need assistance, have questions, or just want some company through the updating process, please feel free to ask for help in the [Habitat Forums](https://forums.habitat.sh) - we are there during normal business hours and happy to help!
+If you have plans that depend on Base Plans (which I expect most if not all plans do), you will likely run into this dependency error on at least one of your plans. You can fix it as outlined above (note - the easiest way to rebuild a plan is to click the "Build Latest Version" button in Builder). If you need assistance, have questions, or just want some company through the updating process, please feel free to ask for help in the [Chef Habitat Forums](https://forums.habitat.sh) - we are there during normal business hours and happy to help!

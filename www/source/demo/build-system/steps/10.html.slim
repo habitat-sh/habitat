@@ -1,5 +1,5 @@
 ---
-title: Habitat Build System Demo - Step 10
+title: Chef Habitat Build System Demo - Step 10
 classes: demo_step
 ---
 #demo-step.demo--page
@@ -38,7 +38,7 @@ classes: demo_step
           strong  Commit changes
           '  button to update the master branch.
         p
-          ' Habitat Builder will detect the change and start a new build automatically. You can view the resulting output in the Habitat Builder web app.
+          ' Chef Habitat Builder will detect the change and start a new build automatically. You can view the resulting output in the Chef Habitat Builder web app.
           ' Once the build job completes, re-run the docker commands to verify the updated container:
         = code(:shell) do
           | $ docker pull your-docker-org/your-docker-repo
@@ -53,17 +53,17 @@ classes: demo_step
 
         h3.mt-1="That's a wrap!"
         p
-        ' By deploying your application with Habitat, you are now able to take advantage of all
-        ' that Habitat has to offer. Here, you learned how to set up automated builds and publish your
+        ' By deploying your application with Chef Habitat, you are now able to take advantage of all
+        ' that Chef Habitat has to offer. Here, you learned how to set up automated builds and publish your
         ' application to a container registry.
 
         p
         ' In the Process Supervisor demo, you will get a taste for what comes built-in with your newly packaged application.
 
         p
-        ' Return to the Learn Habitat page for additional demos and tutorials.
+        ' Return to the Learn Chef Habitat page for additional demos and tutorials.
     .row.mt-1.step-bottom-nav
       .columns.large-6
         a.previous-step-link href="/demo/build-system/steps/9" Previous Step
       .columns.large-6.text-align-right
-        a.button.cta.mb-0 href="/learn" Return to Learn Habitat
+        a.button.cta.mb-0 href="/learn" Return to Learn Chef Habitat

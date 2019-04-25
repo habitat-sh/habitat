@@ -1,12 +1,12 @@
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
  ---
-title: Habitat Docs - hab CLI Reference
+title: Chef Habitat Docs - hab CLI Reference
 draft: false
 ---
 
-# Habitat Command-Line Interface (CLI) Reference
+# Chef Habitat Command-Line Interface (CLI) Reference
 
-The commands for the Habitat CLI (`hab`) are listed below.
+The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
@@ -47,25 +47,25 @@ term       Alias for: 'sup term'
 
 | Command | Description |
 | ------- | ----------- |
-| [hab bldr](#hab-bldr) | Commands relating to Habitat Builder |
-| [hab cli](#hab-cli) | Commands relating to Habitat runtime config |
+| [hab bldr](#hab-bldr) | Commands relating to Chef Habitat Builder |
+| [hab cli](#hab-cli) | Commands relating to Chef Habitat runtime config |
 | [hab config](#hab-config) | Commands relating to a Service's runtime config |
-| [hab file](#hab-file) | Commands relating to Habitat files |
-| [hab license](#hab-license) | Commands relating to Habitat license agreements |
-| [hab origin](#hab-origin) | Commands relating to Habitat origin keys |
-| [hab pkg](#hab-pkg) | Commands relating to Habitat packages |
+| [hab file](#hab-file) | Commands relating to Chef Habitat files |
+| [hab license](#hab-license) | Commands relating to Chef Habitat license agreements |
+| [hab origin](#hab-origin) | Commands relating to Chef Habitat origin keys |
+| [hab pkg](#hab-pkg) | Commands relating to Chef Habitat packages |
 | [hab plan](#hab-plan) | Commands relating to plans and other app-specific configuration. |
-| [hab ring](#hab-ring) | Commands relating to Habitat rings |
-| [hab studio](#hab-studio) | Commands relating to Habitat Studios |
-| [hab sup](#hab-sup) | The Habitat Supervisor |
-| [hab supportbundle](#hab-supportbundle) | Create a tarball of Habitat Supervisor data to send to support |
-| [hab svc](#hab-svc) | Commands relating to Habitat services |
-| [hab user](#hab-user) | Commands relating to Habitat users |
+| [hab ring](#hab-ring) | Commands relating to Chef Habitat rings |
+| [hab studio](#hab-studio) | Commands relating to Chef Habitat Studios |
+| [hab sup](#hab-sup) | The Chef Habitat Supervisor |
+| [hab supportbundle](#hab-supportbundle) | Create a tarball of Chef Habitat Supervisor data to send to support |
+| [hab svc](#hab-svc) | Commands relating to Chef Habitat services |
+| [hab user](#hab-user) | Commands relating to Chef Habitat users |
 ---
 
 ## hab bldr
 
-Commands relating to Habitat Builder
+Commands relating to Chef Habitat Builder
 
 **USAGE**
 
@@ -87,13 +87,13 @@ hab bldr [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab bldr channel](#hab-bldr-channel) | Commands relating to Habitat Builder channels |
-| [hab bldr job](#hab-bldr-job) | Commands relating to Habitat Builder jobs |
+| [hab bldr channel](#hab-bldr-channel) | Commands relating to Chef Habitat Builder channels |
+| [hab bldr job](#hab-bldr-job) | Commands relating to Chef Habitat Builder jobs |
 ---
 
 ### hab bldr channel
 
-Commands relating to Habitat Builder channels
+Commands relating to Chef Habitat Builder channels
 
 **USAGE**
 
@@ -223,7 +223,7 @@ hab bldr channel list [OPTIONS] [ORIGIN]
 
 ### hab bldr job
 
-Commands relating to Habitat Builder jobs
+Commands relating to Chef Habitat Builder jobs
 
 **USAGE**
 
@@ -435,7 +435,7 @@ hab bldr job status [FLAGS] [OPTIONS] <GROUP_ID|--origin <ORIGIN>>
 
 ## hab cli
 
-Commands relating to Habitat runtime config
+Commands relating to Chef Habitat runtime config
 
 **USAGE**
 
@@ -617,7 +617,7 @@ hab config show [OPTIONS] <PKG_IDENT>
 
 ## hab file
 
-Commands relating to Habitat files
+Commands relating to Chef Habitat files
 
 **USAGE**
 
@@ -731,7 +731,7 @@ hab license accept
 
 ## hab origin
 
-Commands relating to Habitat origin keys
+Commands relating to Chef Habitat origin keys
 
 **USAGE**
 
@@ -754,7 +754,7 @@ hab origin [SUBCOMMAND]
 | Command | Description |
 | ------- | ----------- |
 | [hab origin delete](#hab-origin-delete) | Removes an unused/empty origin |
-| [hab origin key](#hab-origin-key) | Commands relating to Habitat origin key maintenance |
+| [hab origin key](#hab-origin-key) | Commands relating to Chef Habitat origin key maintenance |
 | [hab origin secret](#hab-origin-secret) | Commands related to secret management |
 ---
 
@@ -794,7 +794,7 @@ hab origin delete [OPTIONS] <ORIGIN>
 
 ### hab origin key
 
-Commands relating to Habitat origin key maintenance
+Commands relating to Chef Habitat origin key maintenance
 
 **USAGE**
 
@@ -818,7 +818,7 @@ hab origin key [SUBCOMMAND]
 | ------- | ----------- |
 | [hab origin key download](#hab-origin-key-download) | Download origin key(s) |
 | [hab origin key export](#hab-origin-key-export) | Outputs the latest origin key contents to stdout |
-| [hab origin key generate](#hab-origin-key-generate) | Generates a Habitat origin key |
+| [hab origin key generate](#hab-origin-key-generate) | Generates a Chef Habitat origin key |
 | [hab origin key import](#hab-origin-key-import) | Reads a stdin stream containing a public or secret origin key contents and writes the key to disk |
 | [hab origin key upload](#hab-origin-key-upload) | Upload origin keys to Builder |
 ---
@@ -897,7 +897,7 @@ hab origin key export [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_PATH>
 
 ### hab origin key generate
 
-Generates a Habitat origin key
+Generates a Chef Habitat origin key
 
 **USAGE**
 
@@ -1127,7 +1127,7 @@ hab origin secret upload [OPTIONS] <KEY_NAME> <SECRET> --cache-key-path <CACHE_K
 
 ## hab pkg
 
-Commands relating to Habitat packages
+Commands relating to Chef Habitat packages
 
 **USAGE**
 
@@ -1156,22 +1156,22 @@ hab pkg [SUBCOMMAND]
 | [hab pkg config](#hab-pkg-config) | Displays the default configuration options for a service |
 | [hab pkg delete](#hab-pkg-delete) | Removes a package from Builder |
 | [hab pkg demote](#hab-pkg-demote) | Demote a package from a specified channel |
-| [hab pkg dependencies](#hab-pkg-dependencies) | Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package |
+| [hab pkg dependencies](#hab-pkg-dependencies) | Returns the Chef Habitat Artifact dependencies. By default it will return the direct dependencies of the package |
 | [hab pkg env](#hab-pkg-env) | Prints the runtime environment of a specific installed package |
 | [hab pkg exec](#hab-pkg-exec) | Executes a command using the 'PATH' context of an installed package |
 | [hab pkg export](#hab-pkg-export) | Exports the package to the specified format |
 | [hab pkg hash](#hab-pkg-hash) | Generates a blake2b hashsum from a target at any given filepath |
-| [hab pkg info](#hab-pkg-info) | Returns the Habitat Artifact information |
-| [hab pkg install](#hab-pkg-install) | Installs a Habitat package from Builder or locally from a Habitat Artifact |
+| [hab pkg info](#hab-pkg-info) | Returns the Chef Habitat Artifact information |
+| [hab pkg install](#hab-pkg-install) | Installs a Chef Habitat package from Builder or locally from a Chef Habitat Artifact |
 | [hab pkg list](#hab-pkg-list) | List all versions of installed packages |
 | [hab pkg path](#hab-pkg-path) | Prints the path to a specific installed release of a package |
 | [hab pkg promote](#hab-pkg-promote) | Promote a package to a specified channel |
-| [hab pkg provides](#hab-pkg-provides) | Search installed Habitat packages for a given file |
+| [hab pkg provides](#hab-pkg-provides) | Search installed Chef Habitat packages for a given file |
 | [hab pkg search](#hab-pkg-search) | Search for a package in Builder |
-| [hab pkg sign](#hab-pkg-sign) | Signs an archive with an origin key, generating a Habitat Artifact |
+| [hab pkg sign](#hab-pkg-sign) | Signs an archive with an origin key, generating a Chef Habitat Artifact |
 | [hab pkg uninstall](#hab-pkg-uninstall) | Safely uninstall a package and dependencies from the local filesystem |
-| [hab pkg upload](#hab-pkg-upload) | Uploads a local Habitat Artifact to Builder |
-| [hab pkg verify](#hab-pkg-verify) | Verifies a Habitat Artifact with an origin key |
+| [hab pkg upload](#hab-pkg-upload) | Uploads a local Chef Habitat Artifact to Builder |
+| [hab pkg verify](#hab-pkg-verify) | Verifies a Chef Habitat Artifact with an origin key |
 ---
 
 ### hab pkg binds
@@ -1411,7 +1411,7 @@ hab pkg demote [OPTIONS] <PKG_IDENT> <CHANNEL> [PKG_TARGET]
 
 ### hab pkg dependencies
 
-Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package
+Returns the Chef Habitat Artifact dependencies. By default it will return the direct dependencies of the package
 
 **USAGE**
 
@@ -1525,7 +1525,7 @@ hab pkg export [OPTIONS] <FORMAT> <PKG_IDENT>
 
 ```
 <FORMAT>       The export format (ex: aci, cf, docker, kubernetes, mesos, or tar)
-<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2) or filepath to a Chef Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1562,7 +1562,7 @@ hab pkg hash [SOURCE]
 
 ### hab pkg info
 
-Returns the Habitat Artifact information
+Returns the Chef Habitat Artifact information
 
 **USAGE**
 
@@ -1582,7 +1582,7 @@ hab pkg info [FLAGS] <SOURCE>
 **ARGS**
 
 ```
-<SOURCE>    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<SOURCE>    A path to a Chef Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1591,7 +1591,7 @@ hab pkg info [FLAGS] <SOURCE>
 
 ### hab pkg install
 
-Installs a Habitat package from Builder or locally from a Habitat Artifact
+Installs a Chef Habitat package from Builder or locally from a Chef Habitat Artifact
 
 **USAGE**
 
@@ -1621,7 +1621,7 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 **ARGS**
 
 ```
-<PKG_IDENT_OR_ARTIFACT>...    One or more Habitat package identifiers (ex: acme/redis) and/or filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<PKG_IDENT_OR_ARTIFACT>...    One or more Chef Habitat package identifiers (ex: acme/redis) and/or filepaths to a Chef Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1728,7 +1728,7 @@ hab pkg promote [OPTIONS] <PKG_IDENT> <CHANNEL> [PKG_TARGET]
 
 ### hab pkg provides
 
-Search installed Habitat packages for a given file
+Search installed Chef Habitat packages for a given file
 
 **USAGE**
 
@@ -1792,7 +1792,7 @@ hab pkg search [OPTIONS] <SEARCH_TERM>
 
 ### hab pkg sign
 
-Signs an archive with an origin key, generating a Habitat Artifact
+Signs an archive with an origin key, generating a Chef Habitat Artifact
 
 **USAGE**
 
@@ -1818,7 +1818,7 @@ hab pkg sign [OPTIONS] <SOURCE> <DEST> --cache-key-path <CACHE_KEY_PATH>
 
 ```
 <SOURCE>    A path to a source archive file (ex: /home/acme-redis-3.0.7-21120102031201.tar.xz)
-<DEST>      The destination path to the signed Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201- x86_64-linux.hart)
+<DEST>      The destination path to the signed Chef Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201- x86_64-linux.hart)
 ```
 
 
@@ -1862,7 +1862,7 @@ hab pkg uninstall [FLAGS] [OPTIONS] <PKG_IDENT>
 
 ### hab pkg upload
 
-Uploads a local Habitat Artifact to Builder
+Uploads a local Chef Habitat Artifact to Builder
 
 **USAGE**
 
@@ -1890,7 +1890,7 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>... --cache-key-path <CACHE_KEY_PATH
 **ARGS**
 
 ```
-<HART_FILE>...    One or more filepaths to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64- linux.hart)
+<HART_FILE>...    One or more filepaths to a Chef Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64- linux.hart)
 ```
 
 
@@ -1899,7 +1899,7 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>... --cache-key-path <CACHE_KEY_PATH
 
 ### hab pkg verify
 
-Verifies a Habitat Artifact with an origin key
+Verifies a Chef Habitat Artifact with an origin key
 
 **USAGE**
 
@@ -1923,7 +1923,7 @@ hab pkg verify <SOURCE> --cache-key-path <CACHE_KEY_PATH>
 **ARGS**
 
 ```
-<SOURCE>    A path to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
+<SOURCE>    A path to a Chef Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)
 ```
 
 
@@ -1954,13 +1954,13 @@ hab plan [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab plan init](#hab-plan-init) | Generates common package specific configuration files. Executing without argument will create a habitat directory in your current folder for the plan. If PKG_NAME is specified it will create a folder with that name. Environment variables (those starting with 'pkg_') that are set will be used in the generated plan |
+| [hab plan init](#hab-plan-init) | Generates common package specific configuration files. Executing without argument will create a Chef Habitat directory in your current folder for the plan. If PKG_NAME is specified it will create a folder with that name. Environment variables (those starting with 'pkg_') that are set will be used in the generated plan |
 | [hab plan render](#hab-plan-render) | Renders plan config files |
 ---
 
 ### hab plan init
 
-Generates common package specific configuration files. Executing without argument will create a habitat directory in
+Generates common package specific configuration files. Executing without argument will create a Chef Habitat directory in
 
 **USAGE**
 
@@ -2034,7 +2034,7 @@ hab plan render [FLAGS] [OPTIONS] <TEMPLATE_PATH>
 
 ## hab ring
 
-Commands relating to Habitat rings
+Commands relating to Chef Habitat rings
 
 **USAGE**
 
@@ -2056,12 +2056,12 @@ hab ring [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab ring key](#hab-ring-key) | Commands relating to Habitat ring keys |
+| [hab ring key](#hab-ring-key) | Commands relating to Chef Habitat ring keys |
 ---
 
 ### hab ring key
 
-Commands relating to Habitat ring keys
+Commands relating to Chef Habitat ring keys
 
 **USAGE**
 
@@ -2084,7 +2084,7 @@ hab ring key [SUBCOMMAND]
 | Command | Description |
 | ------- | ----------- |
 | [hab ring key export](#hab-ring-key-export) | Outputs the latest ring key contents to stdout |
-| [hab ring key generate](#hab-ring-key-generate) | Generates a Habitat ring key |
+| [hab ring key generate](#hab-ring-key-generate) | Generates a Chef Habitat ring key |
 | [hab ring key import](#hab-ring-key-import) | Reads a stdin stream containing ring key contents and writes the key to disk |
 ---
 
@@ -2123,7 +2123,7 @@ hab ring key export <RING> --cache-key-path <CACHE_KEY_PATH>
 
 ### hab ring key generate
 
-Generates a Habitat ring key
+Generates a Chef Habitat ring key
 
 **USAGE**
 
@@ -2336,11 +2336,11 @@ hab sup <SUBCOMMAND>
 | ------- | ----------- |
 | [hab sup bash](#hab-sup-bash) | Start an interactive Bash-like shell |
 | [hab sup depart](#hab-sup-depart) | Depart a Supervisor from the gossip ring; kicking and banning the target from joining again with the same member-id |
-| [hab sup run](#hab-sup-run) | Run the Habitat Supervisor |
-| [hab sup secret](#hab-sup-secret) | Commands relating to a Habitat Supervisor's Control Gateway secret |
+| [hab sup run](#hab-sup-run) | Run the Chef Habitat Supervisor |
+| [hab sup secret](#hab-sup-secret) | Commands relating to a Chef Habitat Supervisor's Control Gateway secret |
 | [hab sup sh](#hab-sup-sh) | Start an interactive Bourne-like shell |
-| [hab sup status](#hab-sup-status) | Query the status of Habitat services. |
-| [hab sup term](#hab-sup-term) | Gracefully terminate the Habitat Supervisor and all of its running services |
+| [hab sup status](#hab-sup-status) | Query the status of Chef Habitat services. |
+| [hab sup term](#hab-sup-term) | Gracefully terminate the Chef Habitat Supervisor and all of its running services |
 ---
 
 ### hab sup bash
@@ -2399,7 +2399,7 @@ hab sup depart [OPTIONS] <MEMBER_ID>
 
 ### hab sup run
 
-Run the Habitat Supervisor
+Run the Chef Habitat Supervisor
 
 **USAGE**
 
@@ -2459,7 +2459,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 **ARGS**
 
 ```
-<PKG_IDENT_OR_ARTIFACT>    Load the given Habitat package as part of the Supervisor startup specified by a package identifier (ex: core/redis) or filepath to a Habitat Artifact (ex: home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
+<PKG_IDENT_OR_ARTIFACT>    Load the given Chef Habitat package as part of the Supervisor startup specified by a package identifier (ex: core/redis) or filepath to a Chef Habitat Artifact (ex: home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).
 ```
 
 
@@ -2468,7 +2468,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 
 ### hab sup secret
 
-Commands relating to a Habitat Supervisor's Control Gateway secret
+Commands relating to a Chef Habitat Supervisor's Control Gateway secret
 
 **USAGE**
 
@@ -2539,7 +2539,7 @@ hab sup sh
 
 ### hab sup status
 
-Query the status of Habitat services.
+Query the status of Chef Habitat services.
 
 **USAGE**
 
@@ -2562,7 +2562,7 @@ hab sup status [OPTIONS] [PKG_IDENT]
 **ARGS**
 
 ```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+<PKG_IDENT>    A Chef Habitat package identifier (ex: core/redis)
 ```
 
 
@@ -2571,7 +2571,7 @@ hab sup status [OPTIONS] [PKG_IDENT]
 
 ### hab sup term
 
-Gracefully terminate the Habitat Supervisor and all of its running services
+Gracefully terminate the Chef Habitat Supervisor and all of its running services
 
 **USAGE**
 
@@ -2593,7 +2593,7 @@ hab sup term [OPTIONS]
 
 ## hab supportbundle
 
-Create a tarball of Habitat Supervisor data to send to support
+Create a tarball of Chef Habitat Supervisor data to send to support
 
 **USAGE**
 
@@ -2616,7 +2616,7 @@ hab supportbundle
 
 ## hab svc
 
-Commands relating to Habitat services
+Commands relating to Chef Habitat services
 
 **USAGE**
 
@@ -2638,17 +2638,17 @@ hab svc [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab svc key](#hab-svc-key) | Commands relating to Habitat service keys |
-| [hab svc load](#hab-svc-load) | Load a service to be started and supervised by Habitat from a package identifier. If an installed package doesn't satisfy the given package identifier, a suitable package will be installed from Builder. |
-| [hab svc start](#hab-svc-start) | Start a loaded, but stopped, Habitat service. |
-| [hab svc status](#hab-svc-status) | Query the status of Habitat services. |
-| [hab svc stop](#hab-svc-stop) | Stop a running Habitat service. |
-| [hab svc unload](#hab-svc-unload) | Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped. |
+| [hab svc key](#hab-svc-key) | Commands relating to Chef Habitat service keys |
+| [hab svc load](#hab-svc-load) | Load a service to be started and supervised by Chef Habitat from a package identifier. If an installed package doesn't satisfy the given package identifier, a suitable package will be installed from Builder. |
+| [hab svc start](#hab-svc-start) | Start a loaded, but stopped, Chef Habitat service. |
+| [hab svc status](#hab-svc-status) | Query the status of Chef Habitat services. |
+| [hab svc stop](#hab-svc-stop) | Stop a running Chef Habitat service. |
+| [hab svc unload](#hab-svc-unload) | Unload a service loaded by the Chef Habitat Supervisor. If the service is running it will additionally be stopped. |
 ---
 
 ### hab svc key
 
-Commands relating to Habitat service keys
+Commands relating to Chef Habitat service keys
 
 **USAGE**
 
@@ -2670,12 +2670,12 @@ hab svc key [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab svc key generate](#hab-svc-key-generate) | Generates a Habitat service key |
+| [hab svc key generate](#hab-svc-key-generate) | Generates a Chef Habitat service key |
 ---
 
 ### hab svc key generate
 
-Generates a Habitat service key
+Generates a Chef Habitat service key
 
 **USAGE**
 
@@ -2709,7 +2709,7 @@ hab svc key generate <SERVICE_GROUP> --cache-key-path <CACHE_KEY_PATH> [ORG]
 
 ### hab svc load
 
-Load a service to be started and supervised by Habitat from a package identifier. If an installed package doesn't
+Load a service to be started and supervised by Chef Habitat from a package identifier. If an installed package doesn't
 
 **USAGE**
 
@@ -2750,7 +2750,7 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 **ARGS**
 
 ```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+<PKG_IDENT>    A Chef Habitat package identifier (ex: core/redis)
 ```
 
 
@@ -2759,7 +2759,7 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 
 ### hab svc start
 
-Start a loaded, but stopped, Habitat service.
+Start a loaded, but stopped, Chef Habitat service.
 
 **USAGE**
 
@@ -2783,7 +2783,7 @@ hab svc start [OPTIONS] <PKG_IDENT>
 **ARGS**
 
 ```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+<PKG_IDENT>    A Chef Habitat package identifier (ex: core/redis)
 ```
 
 
@@ -2792,7 +2792,7 @@ hab svc start [OPTIONS] <PKG_IDENT>
 
 ### hab svc status
 
-Query the status of Habitat services.
+Query the status of Chef Habitat services.
 
 **USAGE**
 
@@ -2816,7 +2816,7 @@ hab svc status [OPTIONS] [PKG_IDENT]
 **ARGS**
 
 ```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+<PKG_IDENT>    A Chef Habitat package identifier (ex: core/redis)
 ```
 
 
@@ -2825,7 +2825,7 @@ hab svc status [OPTIONS] [PKG_IDENT]
 
 ### hab svc stop
 
-Stop a running Habitat service.
+Stop a running Chef Habitat service.
 
 **USAGE**
 
@@ -2850,7 +2850,7 @@ hab svc stop [OPTIONS] <PKG_IDENT>
 **ARGS**
 
 ```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+<PKG_IDENT>    A Chef Habitat package identifier (ex: core/redis)
 ```
 
 
@@ -2859,7 +2859,7 @@ hab svc stop [OPTIONS] <PKG_IDENT>
 
 ### hab svc unload
 
-Unload a service loaded by the Habitat Supervisor. If the service is running it will additionally be stopped.
+Unload a service loaded by the Chef Habitat Supervisor. If the service is running it will additionally be stopped.
 
 **USAGE**
 
@@ -2884,7 +2884,7 @@ hab svc unload [OPTIONS] <PKG_IDENT>
 **ARGS**
 
 ```
-<PKG_IDENT>    A Habitat package identifier (ex: core/redis)
+<PKG_IDENT>    A Chef Habitat package identifier (ex: core/redis)
 ```
 
 
@@ -2893,7 +2893,7 @@ hab svc unload [OPTIONS] <PKG_IDENT>
 
 ## hab user
 
-Commands relating to Habitat users
+Commands relating to Chef Habitat users
 
 **USAGE**
 
@@ -2915,12 +2915,12 @@ hab user [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab user key](#hab-user-key) | Commands relating to Habitat user keys |
+| [hab user key](#hab-user-key) | Commands relating to Chef Habitat user keys |
 ---
 
 ### hab user key
 
-Commands relating to Habitat user keys
+Commands relating to Chef Habitat user keys
 
 **USAGE**
 
@@ -2942,12 +2942,12 @@ hab user key [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
-| [hab user key generate](#hab-user-key-generate) | Generates a Habitat user key |
+| [hab user key generate](#hab-user-key-generate) | Generates a Chef Habitat user key |
 ---
 
 ### hab user key generate
 
-Generates a Habitat user key
+Generates a Chef Habitat user key
 
 **USAGE**
 
@@ -2977,4 +2977,3 @@ hab user key generate <USER> --cache-key-path <CACHE_KEY_PATH>
 
 
 ---
-

@@ -1,5 +1,5 @@
 ---
-title: Packaging PHP in Habitat. A Tale Of Two Drupals.
+title: Packaging PHP in Chef Habitat. A Tale Of Two Drupals.
 date: 2017-05-16
 author: Paul Adams
 tags: drupal, php

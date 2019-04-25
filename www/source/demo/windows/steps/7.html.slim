@@ -26,7 +26,7 @@ section
      $ProgressPreference="SilentlyContinue"
 
      # We need to install the xWebAdministration DSC resource.
-     # Habitat runs its hooks inside of Powershell Core but DSC
+     # Chef Habitat runs its hooks inside of Powershell Core but DSC
      # configurations are applied in a hosted WMI process by
      # Windows Powershell. In order for Windows Powershell to locate
      # the installed resource, it must be installed using Windows
@@ -69,7 +69,7 @@ section
      # trying to restart it. The above DSC apply starts our
      # application in IIS. We will continuously poll our app
      # and cleanly shut down only if the application stops
-     # responding or if the Habitat service is stopped or
+     # responding or if the Chef Habitat service is stopped or
      # unloaded.
      try {
          Write-Host "{{pkg.name}} is running"

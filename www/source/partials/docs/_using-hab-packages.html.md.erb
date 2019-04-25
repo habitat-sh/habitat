@@ -1,14 +1,14 @@
-# <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Using Habitat Packages</a>
+# <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Using Chef Habitat Packages</a>
 
-Habitat packages used to start services are run under the Habitat Supervisor. At runtime, you can join services together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
+Chef Habitat packages used to start services are run under the Chef Habitat Supervisor. At runtime, you can join services together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
 
 <%= partial 'partials/global/package_platform_support' %>
 
-Information about [installing Habitat](/docs/install-habitat) and configuring your workstation can be found in the previous section.
+Information about [installing Chef Habitat](/docs/install-habitat) and configuring your workstation can be found in the previous section.
 
 ## Starting the Supervisor
 
-In order to run a Habitat-packaged service, you must first run a Habitat Supervisor. There are two ways to start up a Supervisor, and it is important to know the implications of each, and which method is appropriate for your circumstances. These instructions describe the behavior of the 0.56.0 Supervisor and later, which dramatically simplified how Supervisors start up. These instructions also deal with the Supervisor "by itself"; later on, we'll see how to integrate it into different operational scenarios (e.g., SystemD, Windows Services, etc.). It is useful to understand the underlying concepts first.
+In order to run a Chef Habitat-packaged service, you must first run a Chef Habitat Supervisor. There are two ways to start up a Supervisor, and it is important to know the implications of each, and which method is appropriate for your circumstances. These instructions describe the behavior of the 0.56.0 Supervisor and later, which dramatically simplified how Supervisors start up. These instructions also deal with the Supervisor "by itself"; later on, we'll see how to integrate it into different operational scenarios (e.g., SystemD, Windows Services, etc.). It is useful to understand the underlying concepts first.
 
 For further details about these commands, including all the arguments and options they take, please consult [the hab documentation](/docs/habitat-cli).
 
@@ -69,7 +69,7 @@ PS C:\\> hab sup run yourorigin/yourname --password $cred.GetNetworkCredential()
 
 In all cases, you may wish to run `hab svc unload <yourorigin>/<yourname>` when you are done working with your package, to remove it from the Supervisor. Otherwise, your Supervisor will try to start your service each time it start up.
 
-For more structured ways of running the Habitat Supervisor on servers, please see [Running Habitat on Servers](/docs/best-practices/#running-habitat-servers).
+For more structured ways of running the Chef Habitat Supervisor on servers, please see [Running Chef Habitat on Servers](/docs/best-practices/#running-habitat-servers).
 
 ## Loading a Service for Supervision
 
@@ -109,7 +109,7 @@ To resume running a service which has been loaded but stopped (via the `hab svc 
 $ hab svc start core/redis
 ```
 
-> Note: in Habitat versions prior to 0.56.0, `hab svc start` could also be used to load up a service if it wasn't already loaded. In 0.56.0 and later, however, this has changed; `hab svc start` can only operate on services that have previously been loaded.
+> Note: in Chef Habitat versions prior to 0.56.0, `hab svc start` could also be used to load up a service if it wasn't already loaded. In 0.56.0 and later, however, this has changed; `hab svc start` can only operate on services that have previously been loaded.
 
 ## Querying the Supervisor for service status
 

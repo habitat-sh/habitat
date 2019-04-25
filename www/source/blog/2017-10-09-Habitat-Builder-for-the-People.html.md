@@ -1,5 +1,5 @@
 ---
-title: Habitat Builder for the People!
+title: Chef Habitat Builder for the People!
 date: 2017-10-09
 author: reset
 tags: builder, launch

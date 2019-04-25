@@ -7,18 +7,18 @@ category: supervisor
 classes: build
 ---
 
-Habitat packages modern frameworks and legacy applications. In either case, dependencies within your application may bring you in contact with a legacy, lower level library that is not already packaged by someone else in the [Habitat community](https://bldr.habitat.sh/#/pkgs).
+Chef Habitat packages modern frameworks and legacy applications. In either case, dependencies within your application may bring you in contact with a legacy, lower level library that is not already packaged by someone else in the [Chef Habitat community](https://bldr.habitat.sh/#/pkgs).
 
 An unmaintained library may require updates to correct security issues or address defects. Patching the source is often the preferred approach as it enables you to fix code inline without the creation of a maintenance fork.
 
 Quite often a patch may already exist, but you may find yourself in an instance where that work falls on you. So let's walk through that scenario as an exercise. In this post, you'll learn how to:
 
-* Use Habitat's debugger with `attach`
+* Use Chef Habitat's debugger with `attach`
 * Develop and apply a patch with `diff` and `patch`
 
-I created an initial Habitat plan that downloads a Rust application that fails to build.
+I created an initial Chef Habitat plan that downloads a Rust application that fails to build.
 
-Move to a working directory, clone the project, move to the cloned directory, and enter the Habitat studio.
+Move to a working directory, clone the project, move to the cloned directory, and enter the Chef Habitat studio.
 
 ```shell title:"Grab the source and enter the studio"
 $ cd ~
@@ -71,7 +71,7 @@ The `cargo` command fails to build the source code because there is an issue wit
 
 * reach out to the original maintainers
 * find similar questions and answers posted to forums (e.g. Stack Overflow)
-* ask within the [Habitat Slack](http://slack.habitat.sh/)
+* ask within the [Chef Habitat Slack](http://slack.habitat.sh/)
 
 For this problem, the solution is actually provided by the Rust compiler itself:
 
@@ -108,9 +108,9 @@ To create this patch file you will need:
 * the updated source
 * the results from running the `diff` command
 
-To view the original source requires you could download it and unpack it. Alternatively, you could view the original source while it is built in the `do_build` callback function. Habitat provides a debugger that enables you to pause the build process during any phase.
+To view the original source requires you could download it and unpack it. Alternatively, you could view the original source while it is built in the `do_build` callback function. Chef Habitat provides a debugger that enables you to pause the build process during any phase.
 
-The `attach` function can be added anywhere in a plan file to pause the execution, setting a break point, during a build. Using the `attach` function is a powerful debugging technique that will assist you when developing Habitat packages.
+The `attach` function can be added anywhere in a plan file to pause the execution, setting a break point, during a build. Using the `attach` function is a powerful debugging technique that will assist you when developing Chef Habitat packages.
 
 Within `do_build` add a call to the `attach` function before `cargo` executes.
 
@@ -289,6 +289,6 @@ Type in `Who's there?` and then press enter. Enjoy a laugh at a bad joke!
 
 ## Summary
 
-Habitat excels at packaging modern frameworks and legacy applications. In either situation your package may require skills with debugging or patching. Knowing how to use `diff` and `patch` to fix source code is essential when packaging unmaintained libraries. Using Habitat's `attach` function during build phase callbacks enables you to explore and interactively develop solutions.
+Chef Habitat excels at packaging modern frameworks and legacy applications. In either situation your package may require skills with debugging or patching. Knowing how to use `diff` and `patch` to fix source code is essential when packaging unmaintained libraries. Using Chef Habitat's `attach` function during build phase callbacks enables you to explore and interactively develop solutions.
 
 Good luck and happy packaging!

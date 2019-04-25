@@ -4,7 +4,7 @@ authors:
     name: "Ian Henry"
     email: "ian@chef.io"
     twitter: "@eeyun___"
-    bio: "As the Technical Community Advocate for Habitat, Ian is actively helping the Community and ecosystem grow. He spends much of his time helping people learn about containerization, distributed systems, and the ways that Habitat makes those things easy. Prior to joining Chef, Ian spent a number of years as an operational and tooling engineer."
+    bio: "As the Technical Community Advocate for Chef Habitat, Ian is actively helping the Community and ecosystem grow. He spends much of his time helping people learn about containerization, distributed systems, and the ways that Chef Habitat makes those things easy. Prior to joining Chef, Ian spent a number of years as an operational and tooling engineer."
   robbkidd:
     name: "Robb Kidd"
     email: "rkidd@chef.io"
@@ -13,11 +13,11 @@ authors:
     name: "Fletcher Nichol"
     email: "fnichol@habitat.sh"
     twitter: "@fnichol"
-    bio: "Fletcher Nichol is a senior engineer who works on Habitat. He spends far too much time writing open source software and far too little playing the drums. In previous jobs he has been a web application developer, a systems administrator, and even an infrastructure-as-code koolaid barista."
+    bio: "Fletcher Nichol is a senior engineer who works on Chef Habitat. He spends far too much time writing open source software and far too little playing the drums. In previous jobs he has been a web application developer, a systems administrator, and even an infrastructure-as-code koolaid barista."
   salimalam:
     name: "Salim Alam"
     email: "salam@chef.io"
-    bio: "Salim Alam is a Principal Engineer and core maintainer on the Habitat team. He is versed in all things Builder. Prior to Chef, he worked extensively on large scaled systems at Microsoft and Expedia."
+    bio: "Salim Alam is a Principal Engineer and core maintainer on the Chef Habitat team. He is versed in all things Builder. Prior to Chef, he worked extensively on large scaled systems at Microsoft and Expedia."
   adamleff:
     name: "Adam Leff"
     email: "aleff@chef.io"
@@ -26,7 +26,7 @@ authors:
     name: "Jamie Winsor"
     email: "reset@habitat.sh"
     twitter: "@resetexistence"
-    bio: "Jamie Winsor is the lead engineer of Habitat. Jamie is a versatile programmer with an affinity for network programming and video games. Jamie is focused on enabling all software developers, regardless of their experience, to bring their ideas to life without investing heavily in the details of operationalizing an application."
+    bio: "Jamie Winsor is the lead engineer of Chef Habitat. Jamie is a versatile programmer with an affinity for network programming and video games. Jamie is focused on enabling all software developers, regardless of their experience, to bring their ideas to life without investing heavily in the details of operationalizing an application."
   pauladams:
     name: "Paul Adams"
     email: "paul@baggerspion.net"
@@ -46,22 +46,22 @@ authors:
     name: "Matt Wrock"
     email: "mwrock@habitat.sh"
     twitter: "@mwrockx"
-    bio: "Matt Wrock is a senior engineer on the core Habitat team. Among other things, Matt has been focusing on bringing feature parity to the Habitat build components and the Supervisor on the Windows platform. Matt has 18 years experience in software development mostly in building high traffic distributed web applications in online advertising as well as various Microsoft.com web properties."
+    bio: "Matt Wrock is a senior engineer on the core Chef Habitat team. Among other things, Matt has been focusing on bringing feature parity to the Chef Habitat build components and the Supervisor on the Windows platform. Matt has 18 years experience in software development mostly in building high traffic distributed web applications in online advertising as well as various Microsoft.com web properties."
   nellshamrell-harrington:
     name: "Nell Shamrell-Harrington"
     email: "nshamrell@habitat.sh"
     twitter: "@nellshamrell"
-    bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
+    bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Chef Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
   chrisnunciato:
     name: "Chris Nunciato"
     email: "cnunciato@habitat.sh"
     twitter: "@cnunciato"
-    bio: "Chris Nunciato is a front-end developer at Chef and a Habitat core maintainer. He builds a lot of web sites, and in his spare time, he also builds web sites."
+    bio: "Chris Nunciato is a front-end developer at Chef and a Chef Habitat core maintainer. He builds a lot of web sites, and in his spare time, he also builds web sites."
   nathenharvey:
     name: "Nathen Harvey"
     email: "nharvey@chef.io"
     twitter: "@nathenharvey"
-    bio: "Nathen Harvey, VP of Community Development at Chef, helps the community create and adopt tools and processes for Continuous Automation and building communities. He is focused on the community and ecosystem around Chef, Habitat, and InSpec. Nathen is a co-host of the <a href=\"http://foodfightshow.org\">Food Fight Show</a>, a podcast about Chef and DevOps. He is also an occasional <a href=\"http://ei.chef.io\">farmer</a> who loves <a href=\"http://eggs.chef.io\">eggs</a> and <a href=\"http://hugops.chef.io\">#hugops</a>."
+    bio: "Nathen Harvey, VP of Community Development at Chef, helps the community create and adopt tools and processes for Continuous Automation and building communities. He is focused on the community and ecosystem around Chef, Chef Habitat, and Chef InSpec. Nathen is a co-host of the <a href=\"http://foodfightshow.org\">Food Fight Show</a>, a podcast about Chef and DevOps. He is also an occasional <a href=\"http://ei.chef.io\">farmer</a> who loves <a href=\"http://eggs.chef.io\">eggs</a> and <a href=\"http://hugops.chef.io\">#hugops</a>."
   irvingpopovetsky:
     name: "Irving Popovetsky"
     email: "irving@chef.io"
@@ -71,7 +71,7 @@ authors:
     name: "Christopher Maier"
     email: "cmaier@habitat.sh"
     twitter: "@_cwm_"
-    bio: "Christopher Maier is a Principal Engineer at Chef, and is a core maintainer of Habitat."
+    bio: "Christopher Maier is a Principal Engineer at Chef Software, and is a core maintainer of Chef Habitat."
   franklinwebber:
     name: "Franklin Webber"
     email: "franklin@chef.io"
@@ -81,31 +81,31 @@ authors:
     name: "Garrett Amini"
     email: "garrett@chef.io"
     twitter: "@mgamini"
-    bio: "Garrett is a front-end developer, Node nerd, and Habitat core maintainer, coming to Chef from the game industry."
+    bio: "Garrett is a front-end developer, Node nerd, and Chef Habitat core maintainer, coming to Chef from the game industry."
   elliottdavis:
     name: "Elliott Davis"
     email: "edavis@chef.io"
     twitter: "@libsysguy"
-    bio: "Elliott is a senior engineer on the core Habitat team. He loves disrupting standups with dad jokes."
+    bio: "Elliott is a senior engineer on the core Chef Habitat team. He loves disrupting standups with dad jokes."
   joshblack:
     name: "Josh Black"
     email: "jblack@chef.io"
     twitter: "@raskchanky"
-    bio: "Josh is a senior engineer on the core Habitat team. He loves shaving yaks."
+    bio: "Josh is a senior engineer on the core Chef Habitat team. He loves shaving yaks."
   jamescasey:
     name: "James Casey"
     email: "james@chef.io"
     twitter: "@jamesc_000"
-    bio: "James leads the Partner Engineering team at Chef. He works with the top technology companies in the world to make Chef, InSpec and Habitat the best way to build, deploy and manage any application on any platform."
+    bio: "James leads the Partner Engineering team at Chef Software. He works with the top technology companies in the world to make Chef, InSpec and Chef Habitat the best way to build, deploy and manage any application on any platform."
   jonbauman:
     name: "Jon Bauman"
     email: "jbauman@chef.io"
     twitter: "@AnoYaro"
-    bio: "Jon is a software engineer working on Habitat."
+    bio: "Jon is a software engineer working on Chef Habitat."
   stuartpaterson:
     name: "Stuart Paterson"
     email: "spaterson@chef.io"
-    bio: "Stuart Paterson is a Principal Engineer at Chef. He is based in Belfast and enjoys solving technical challenges in close collaboration with Chef’s partners."
+    bio: "Stuart Paterson is a Principal Engineer at Chef Software. He is based in Belfast and enjoys solving technical challenges in close collaboration with Chef’s partners."
   blakeirvin:
     name: "Blake Irvin"
     email: "blake.irvin@gmail.com"
@@ -114,8 +114,8 @@ authors:
   scottmacfarlane:
     name: "Scott Macfarlane"
     email: "smacfarlane@chef.io"
-    bio: "Scott is a software engineer on the core Habitat team at Chef Software"
+    bio: "Scott is a software engineer on the core Chef Habitat team at Chef Software."
   matthewpeck:
     name: "Matthew Peck"
     email: "mpeck@chef.io"
-    bio: "Matthew is a software engineer on the core Habitat team at Chef Software."
+    bio: "Matthew is a software engineer on the core Chef Habitat team at Chef Software."

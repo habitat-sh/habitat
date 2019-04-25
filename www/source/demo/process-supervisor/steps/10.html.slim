@@ -1,5 +1,5 @@
 ---
-title: Habitat Process Supervisor Demo - Step 10
+title: Chef Habitat Process Supervisor Demo - Step 10
 classes: demo_step
 ---
 #demo-step.demo--page
@@ -22,7 +22,7 @@ classes: demo_step
         h4.h4="Process Supervisor Demo"
       .columns.large-12
         p
-          ' Running your application with the Habitat Supervisor enables you to do things such as
+          ' Running your application with the Chef Habitat Supervisor enables you to do things such as
         ul
           li update runtime configuration,
           li connect application services using built-in topologies,
@@ -31,7 +31,7 @@ classes: demo_step
           ' In this demo, we'll use the
           strong at-once
           '  update strategy to update our running application to the latest stable version. Enter
-          ' the Habitat Studio* and start the application as follows.
+          ' the Chef Habitat Studio* and start the application as follows.
         = code(:shell) do
           | $ hab studio enter
         = code(:shell) do
@@ -39,16 +39,16 @@ classes: demo_step
             [1][default:/src:0]# sup-run
             [2][default:/src:0]# hab svc load yourorigin/sample-node-app --strategy at-once
         p
-          ' The first command starts the Habitat Supervisor, and the second instructs it to download, install
+          ' The first command starts the Chef Habitat Supervisor, and the second instructs it to download, install
             and run the latest stable version of the package from the public
-            <a href="https://bldr.habitat.sh/#/pkgs/" target="_blank" class="link-external">Habitat Builder Depot</a>.
+            <a href="https://bldr.habitat.sh/#/pkgs/" target="_blank" class="link-external">Chef Habitat Builder Depot</a>.
             Passing the <code>--strategy at-once</code> option tells the Supervisor to watch the Depot for new
             packages in the stable channel, and to download, install and run them automatically.
         .footnote
           p.mb-0
             span.asterisk="*"
             ' If you would like to preview the running application locally in your web browser,
-            ' then you will need to expose a port before you enter the Habitat Studio. Since the
+            ' then you will need to expose a port before you enter the Chef Habitat Studio. Since the
             ' Studio is built with Docker, you can do this by running
             strong export HAB_DOCKER_OPTS="-p 8000:8000"
             '  <em>before</em> you enter the studio.

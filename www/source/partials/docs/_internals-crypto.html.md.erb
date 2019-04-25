@@ -1,8 +1,8 @@
 # <a name="crypto-internals" id="crypto-internals" data-magellan-target="crypto-internals">Cryptography</a>
 
-Habitat implements cryptography using a Rust [implementation](https://github.com/jedisct1/libsodium) of [NaCl](https://nacl.cr.yp.to/) called `libsodium`. `libsodium` provides a fast, modern framework for encryption, decryption, signing, and verification.
+Chef Habitat implements cryptography using a Rust [implementation](https://github.com/jedisct1/libsodium) of [NaCl](https://nacl.cr.yp.to/) called `libsodium`. `libsodium` provides a fast, modern framework for encryption, decryption, signing, and verification.
 
-Habitat uses both symmetric encryption (for wire encryption) and asymmetric encryption (for everything else). If you are not familiar with the difference between the two, please consult [this article](https://support.microsoft.com/en-us/kb/246071).
+Chef Habitat uses both symmetric encryption (for wire encryption) and asymmetric encryption (for everything else). If you are not familiar with the difference between the two, please consult [this article](https://support.microsoft.com/en-us/kb/246071).
 
 ## Message Encryption
 
@@ -10,7 +10,7 @@ When you have either wire encryption or service group encryption turned on, the 
 
 ## Package Signing
 
-Habitat packages are signed using [BLAKE2b](https://blake2.net/) checksums. BLAKE2b is a cryptographic hash function faster than MD5, SHA-1, SHA-2 and SHA3, yet provides at least as much security as the latest standard SHA-3.
+Chef Habitat packages are signed using [BLAKE2b](https://blake2.net/) checksums. BLAKE2b is a cryptographic hash function faster than MD5, SHA-1, SHA-2 and SHA3, yet provides at least as much security as the latest standard SHA-3.
 
 You can examine the first four lines of a `.hart` file to extract the signature from it, because it is an `xz`-compressed tarball with a metadata header. The `hab pkg header` command will do this for you.
 

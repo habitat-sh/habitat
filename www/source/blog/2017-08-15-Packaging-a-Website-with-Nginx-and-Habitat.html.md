@@ -1,5 +1,5 @@
 ---
-title: Packaging a Website with Nginx and Habitat
+title: Packaging a Website with Nginx and Chef Habitat
 date: 2017-08-15
 tags: packaging, nginx, websites
 category: web applications

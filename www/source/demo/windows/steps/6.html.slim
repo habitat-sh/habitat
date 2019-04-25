@@ -1,9 +1,9 @@
 section
- h1 Leveraging Powershell DSC in Habitat Templates
+ h1 Leveraging Powershell DSC in Chef Habitat Templates
 
- p #{link_to 'Powershell DSC (Desired State Configuration)','https://docs.microsoft.com/en-us/powershell/dsc/overview'} is a small configuration management engine that ships with modern versions of Windows and can be installed on older versions via the #{link_to 'Windows Management Framework','https://docs.microsoft.com/en-us/powershell/wmf/readme'} (WMF) version 5.1. Many larger scale Configuration management systems like Chef and others now wrap their own resources around Powershell DSC. While the nature of many Windows features and services that act as dependencies of many Windows applications do not lend themselves well to Habitat packages, we have found that leveraging DSC directly from the application's Habitat hooks to wire up these dependencies works extremely well.
+ p #{link_to 'Powershell DSC (Desired State Configuration)','https://docs.microsoft.com/en-us/powershell/dsc/overview'} is a small configuration management engine that ships with modern versions of Windows and can be installed on older versions via the #{link_to 'Windows Management Framework','https://docs.microsoft.com/en-us/powershell/wmf/readme'} (WMF) version 5.1. Many larger scale Configuration management systems like Chef and others now wrap their own resources around Powershell DSC. While the nature of many Windows features and services that act as dependencies of many Windows applications do not lend themselves well to Chef Habitat packages, we have found that leveraging DSC directly from the application's Chef Habitat hooks to wire up these dependencies works extremely well.
 
- p To leverage DSC in a Habitat plan, you need to do two things:
+ p To leverage DSC in a Chef Habitat plan, you need to do two things:
 
  ul
    li Create a DSC Configuration file in the plan's <code>config</code> directory
@@ -61,15 +61,15 @@ section
    
  p This is going to enable the <code>Web-Asp-Net45</code> feature and all dependent Windows features which will include the IIS web server itself. It will also configure all application specific IIS entities (app pool, website, app folder) so that the web server points to our application directory and listens on the configured port. The net result is that when DSC finishes applying this configuration, our web site should be browsable.
 
- h3 Habitat Templating
+ h3 Chef Habitat Templating
 
- p Note that all files in your plan's <code>config</code> or <code>hooks</code> directories are processed by the Habitat Supervisor's template rendering system at runtime before they are ever interpreted by Powershell. Habitat templates use Handlebars syntax to manipulate the final template content and pull in values at runtime that reflect the state of the Supervisor ring environment. The Handlebars syntax uses double curly braces <code>{{ }}</code> for including templating logic.
+ p Note that all files in your plan's <code>config</code> or <code>hooks</code> directories are processed by the Chef Habitat Supervisor's template rendering system at runtime before they are ever interpreted by Powershell. Chef Habitat templates use Handlebars syntax to manipulate the final template content and pull in values at runtime that reflect the state of the Supervisor ring environment. The Handlebars syntax uses double curly braces <code>{{ }}</code> for including templating logic.
 
  h3 Using runtime settings in templates
 
- p Habitat allows you to reference configuration values set at runtime. These can be helpful in your templates if you need to reference port numbers, IP addresses, or other values when performing business logic during the lifecycle of your running service.
+ p Chef Habitat allows you to reference configuration values set at runtime. These can be helpful in your templates if you need to reference port numbers, IP addresses, or other values when performing business logic during the lifecycle of your running service.
  
- p You can use #{link_to 'runtime configuration settings','/docs/reference/#template-data'} in your templates. These include #{link_to 'user-created configuration settings',"/tutorials/build-your-own/#{current_page.data.platform_short}/add-config/"} defined by you in your config file, or built-in values defined by Habitat.
+ p You can use #{link_to 'runtime configuration settings','/docs/reference/#template-data'} in your templates. These include #{link_to 'user-created configuration settings',"/tutorials/build-your-own/#{current_page.data.platform_short}/add-config/"} defined by you in your config file, or built-in values defined by Chef Habitat.
 
  h2 Applying the DSC Configuration
 
@@ -86,7 +86,7 @@ section
 
  p Like the files in your <code>config</code> directory, hooks are also rendered by the Supervisor as templates using Handlebars syntax. In all templates, not only do you have acces to runtime values, you can also use custom helper functions.
 
- p Habitat provides several helper functions when implementing templates. For example, <code>pkgPathFor</code> is used to provide the root path for a package within your application's dependency tree. This is useful if your hook requires a binary or file from a dependent package as we do here when importing the <code>core/dsc-core</code> Powershell module.
+ p Chef Habitat provides several helper functions when implementing templates. For example, <code>pkgPathFor</code> is used to provide the root path for a package within your application's dependency tree. This is useful if your hook requires a binary or file from a dependent package as we do here when importing the <code>core/dsc-core</code> Powershell module.
 
  p For the complete list of helper functions, see #{link_to 'Handlebars Helpers','/docs/reference/#handlebars-helpers'}.
 

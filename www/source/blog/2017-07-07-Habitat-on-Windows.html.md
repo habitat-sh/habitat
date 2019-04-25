@@ -1,5 +1,5 @@
 ---
-title: Habitat on Windows!
+title: Chef Habitat on Windows!
 date: 2017-07-07
 author: Matt Wrock
 tags: supervisor, packaging, windows

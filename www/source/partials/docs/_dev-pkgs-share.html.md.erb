@@ -1,13 +1,13 @@
 ## <a name="sharing-pkgs" id="sharing-pkgs" data-magellan-target="sharing-pkgs">Upload and Promote Packages</a>
 
 
-While you can build and run Habitat packages without sharing them on [Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
+While you can build and run Chef Habitat packages without sharing them on [Chef Habitat Builder](https://bldr.habitat.sh), uploading them there enables greater collaboration and automated package rebuilds as underlying dependencies or your connected GitHub repository are updated.
 
-> Note: Habitat Builder can only build Linux based plans (`plan.sh`) at this time.
+> Note: Chef Habitat Builder can only build Linux based plans (`plan.sh`) at this time.
 
-Setting up Habitat Builder is easily done on the website: these steps take you through connecting your local Studio development experience with Builder.
+Setting up Chef Habitat Builder is easily done on the website: these steps take you through connecting your local Studio development experience with Builder.
 
-You interact with Habitat Builder by:
+You interact with Chef Habitat Builder by:
 
 * Creating an account.
 * Creating an origin, or being invited to join an origin that already exists.
@@ -15,7 +15,7 @@ You interact with Habitat Builder by:
 * Uploading the private and public keys for that origin.
 * Connecting your Github repos and opting into rebuilds.
 
-Habitat Builder supports both public and private origins, packages, and Github repositories.
+Chef Habitat Builder supports both public and private origins, packages, and Github repositories.
 
 ### Create a Builder account
 
@@ -23,11 +23,11 @@ If you haven't created an account yet, see the [Create a Builder Account](/docs/
 
 ### Create or join an existing origin
 
-You can create your own origin in Builder or be invited to join an existing one. If you already built some Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
+You can create your own origin in Builder or be invited to join an existing one. If you already built some Chef Habitat packages on your local computer prior to signing up for an account, you must rename your local packages' `pkg_origin` if the origin you want already exists.
 
 ### Set up hab to authenticate to Builder
 
-When you upload a package to Builder, you are required to supply an auth token as part of the `hab pkg upload` subcommand. You can generate a Habitat personal access token via the Builder site [Profile page](https://bldr.habitat.sh/#/profile) for use with the `hab` command-line utility.
+When you upload a package to Builder, you are required to supply an auth token as part of the `hab pkg upload` subcommand. You can generate a Chef Habitat personal access token via the Builder site [Profile page](https://bldr.habitat.sh/#/profile) for use with the `hab` command-line utility.
 
 Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference#environment-variables) to this value, so that any commands requiring authentication will use it.
 
@@ -65,7 +65,7 @@ For more information on how to use channels, see [Continuous Deployment Using Ch
 
 ### Running packages from Builder
 
-> **Note:** When running private packages from Builder, it's necessary to add your [Habitat access token](/docs/using-builder/#builder-token) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
+> **Note:** When running private packages from Builder, it's necessary to add your [Chef Habitat access token](/docs/using-builder/#builder-token) to the machine where you intend to deploy the package, via `export HAB_AUTH_TOKEN=<token>`.
 
 You can instruct the Supervisor to download and run packages from Builder by using the `hab sup` and `hab svc` commands, for example:
 
@@ -84,7 +84,7 @@ $ hab svc load core/postgresql --channel unstable
 
 ### Running packages from exported tarballs
 
-An exported tarball package contains the Habitat client/binary as well as dependencies specified by your artifact.
+An exported tarball package contains the Chef Habitat client/binary as well as dependencies specified by your artifact.
 
 After deploying the tarball to your target server, extract the contents to the root filesystem (`/`):
 

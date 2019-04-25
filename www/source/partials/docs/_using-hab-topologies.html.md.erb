@@ -1,6 +1,6 @@
 # <a name="topologies" id="topologies" data-magellan-target="topologies">Topologies</a>
 
-A topology describes the intended relationship between peers within a service group. Two topologies ship with Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/docs/internals/#election-internals) to define a leader.
+A topology describes the intended relationship between peers within a service group. Two topologies ship with Chef Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/docs/internals/#election-internals) to define a leader.
 
 ## Standalone
 
@@ -43,7 +43,7 @@ The notion of a permanent peer is an extension to the original [SWIM](http://www
 
 ### Defining Leader and Follower Behavior in Plans
 
-Habitat allows you to use the same immutable package in different deployment scenarios. Here is an example of a configuration template with conditional logic that will cause the running application to behave differently based on whether it is a leader or a follower:
+Chef Habitat allows you to use the same immutable package in different deployment scenarios. Here is an example of a configuration template with conditional logic that will cause the running application to behave differently based on whether it is a leader or a follower:
 
 ```handlebars
 {{#if svc.me.follower}}
