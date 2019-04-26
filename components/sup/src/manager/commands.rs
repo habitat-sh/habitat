@@ -15,19 +15,19 @@
 //! All the code for responding to Supervisor commands
 
 use crate::{ctl_gateway::CtlRequest,
-            error::{Error,
-                    Result},
-            manager::{service::{spec::{IntoServiceSpec,
+            error::Error,
+            manager::{action::{ActionSender,
+                               SupervisorAction},
+                      service::{spec::{IntoServiceSpec,
                                        ServiceSpec},
                                 DesiredState,
-                                Pkg,
                                 ProcessState},
-                      ManagerConfig,
                       ManagerState},
             util};
 use habitat_butterfly as butterfly;
 use habitat_common::{command::package::install::InstallSource,
                      outputln,
+                     templating::package::Pkg,
                      ui::UIWriter};
 use habitat_core::{package::{Identifiable,
                              PackageIdent,
@@ -40,8 +40,6 @@ use habitat_sup_protocol::{self as protocol,
                                  NetResult}};
 use serde_json;
 use std::{fmt,
-          fs,
-          path::PathBuf,
           result};
 use time::{self,
            Duration as TimeDuration,
@@ -210,7 +208,7 @@ pub fn service_load(mgr: &ManagerState,
                            .unwrap_or_default();
     let force = opts.force.unwrap_or(false);
     let source = InstallSource::Ident(ident.clone(), PackageTarget::active_target());
-    match spec_for_ident(&mgr.cfg, source.as_ref()) {
+    match mgr.cfg.spec_for_ident(source.as_ref()) {
         None => {
             let mut spec = ServiceSpec::default();
             opts.into_spec(&mut spec);
@@ -223,7 +221,7 @@ pub fn service_load(mgr: &ManagerState,
             // version from the specified Builder channel.
             util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel)?;
 
-            save_spec_for(&mgr.cfg, &spec)?;
+            mgr.cfg.save_spec_for(&spec)?;
             req.info(format!("The {} service was successfully loaded", spec.ident))?;
         }
         Some(mut spec) => {
@@ -251,7 +249,7 @@ pub fn service_load(mgr: &ManagerState,
             // supposed to be pulling from!
             util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
 
-            save_spec_for(&mgr.cfg, &spec)?;
+            mgr.cfg.save_spec_for(&spec)?;
             req.info(format!("The {} service was successfully loaded", spec.ident))?;
         }
     }
@@ -261,22 +259,25 @@ pub fn service_load(mgr: &ManagerState,
 
 pub fn service_unload(mgr: &ManagerState,
                       req: &mut CtlRequest,
-                      opts: protocol::ctl::SvcUnload)
+                      opts: protocol::ctl::SvcUnload,
+                      action_sender: &ActionSender)
                       -> NetResult<()> {
-    let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
+    let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
+    if let Some(service_spec) = mgr.cfg.spec_for_ident(&ident) {
+        let shutdown_spec = opts.into();
+        let action = SupervisorAction::UnloadService { service_spec,
+                                                       shutdown_spec };
+        send_action(action, action_sender)?;
 
-    if let Some(spec) = spec_for_ident(&mgr.cfg, &ident) {
-        let file = spec_path_for(&mgr.cfg, &spec);
-        if let Err(err) = fs::remove_file(&file) {
-            return Err(net::err(ErrCode::Internal,
-                                format!("{}", sup_error!(Error::ServiceSpecFileIO(file, err)))));
-        };
         // JW TODO: Change this to unloaded from unloading when the Supervisor waits for
         // the work to complete.
         req.info(format!("Unloading {}", ident))?;
+        req.reply_complete(net::ok());
+        Ok(())
+    } else {
+        Err(net::err(ErrCode::Internal,
+                     sup_error!(Error::ServiceNotLoaded(ident))))
     }
-    req.reply_complete(net::ok());
-    Ok(())
 }
 
 pub fn service_start(mgr: &ManagerState,
@@ -284,11 +285,11 @@ pub fn service_start(mgr: &ManagerState,
                      opts: protocol::ctl::SvcStart)
                      -> NetResult<()> {
     let ident = opts.ident.ok_or_else(err_update_client)?.into();
-    match spec_for_ident(&mgr.cfg, &ident) {
+    match mgr.cfg.spec_for_ident(&ident) {
         Some(mut spec) => {
             if spec.desired_state == DesiredState::Down {
                 spec.desired_state = DesiredState::Up;
-                save_spec_for(&mgr.cfg, &spec)?;
+                mgr.cfg.save_spec_for(&spec)?;
 
                 // JW TODO: Change the language of the message below to "started" when we actually
                 // synchronously control services from the ctl gateway.
@@ -307,14 +308,17 @@ pub fn service_start(mgr: &ManagerState,
 
 pub fn service_stop(mgr: &ManagerState,
                     req: &mut CtlRequest,
-                    opts: protocol::ctl::SvcStop)
+                    opts: protocol::ctl::SvcStop,
+                    action_sender: &ActionSender)
                     -> NetResult<()> {
-    let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
-    match spec_for_ident(&mgr.cfg, &ident) {
-        Some(mut spec) => {
-            if spec.desired_state == DesiredState::Up {
-                spec.desired_state = DesiredState::Down;
-                save_spec_for(&mgr.cfg, &spec)?;
+    let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
+    match mgr.cfg.spec_for_ident(&ident) {
+        Some(service_spec) => {
+            if service_spec.desired_state == DesiredState::Up {
+                let shutdown_spec = opts.into();
+                let action = SupervisorAction::StopService { service_spec,
+                                                             shutdown_spec };
+                send_action(action, action_sender)?;
 
                 // JW TODO: Change the langauge of the message below to "stopped" when we actually
                 // synchronously control services from the ctl gateway.
@@ -401,24 +405,6 @@ pub fn service_status(mgr: &ManagerState,
 // Private helper functions
 fn err_update_client() -> net::NetErr { net::err(ErrCode::UpdateClient, "client out of date") }
 
-fn spec_path_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> PathBuf {
-    cfg.sup_root().join("specs").join(spec.file_name())
-}
-
-fn save_spec_for(cfg: &ManagerConfig, spec: &ServiceSpec) -> Result<()> {
-    spec.to_file(spec_path_for(cfg, spec))
-}
-
-/// Given a `PackageIdent`, return current spec if it exists.
-fn spec_for_ident(cfg: &ManagerConfig, ident: &PackageIdent) -> Option<ServiceSpec> {
-    let default_spec = ServiceSpec::default_for(ident.clone());
-    let spec_file = spec_path_for(cfg, &default_spec);
-
-    // JC: This mimics the logic from when we had composites.  But
-    // should we check for Err ?
-    ServiceSpec::from_file(&spec_file).ok()
-}
-
 #[derive(Deserialize)]
 struct ServiceStatus {
     pkg:           Pkg,
@@ -501,4 +487,15 @@ fn deserialize_time<'de, D>(d: D) -> result::Result<TimeDuration, D::Error>
     }
 
     d.deserialize_u64(FromTimespec)
+}
+
+/// Helper function to ensure that all errors in sending are handled identically.
+fn send_action(action: SupervisorAction, sender: &ActionSender) -> NetResult<()> {
+    if sender.send(action).is_err() {
+        // This would happen if the manager somehow went
+        // away... in other words, something has gone *very* wrong.
+        Err(net::err(ErrCode::Internal, "Action could not be completed"))
+    } else {
+        Ok(())
+    }
 }

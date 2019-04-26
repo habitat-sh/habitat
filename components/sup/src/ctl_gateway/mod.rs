@@ -20,6 +20,8 @@
 //! The [`ctl_gateway.client`] and [`ctl_gateway.server`] speak a streaming, multiplexed, binary
 //! protocol defined in [`protocol.codec`].
 
+pub mod acceptor;
+pub mod handler;
 pub mod server;
 
 use crate::error::{Error,
@@ -63,6 +65,14 @@ pub const CTL_SECRET_PERMISSIONS: u32 = 0o600;
 /// a client but needs to perform the same operation. For example, loading an initial service for
 /// the Supervisor has no need to reply back to a networked client, so passing a bare request will
 /// no-op any calls to send messages back to the client.
+// TODO (CM): The ONLY reason we're keeping Default, and thus the
+// `Option` on the `tx` field, is because we're using `Default` to
+// create a request for loading a service if you start a Supervisor
+// with a package (i.e., `hab sup run core/redis`... that's the ONLY
+// PLACE this "bare request" pattern is used.
+//
+// We should look for ways to refactor this so we can simplify this
+// code.
 #[derive(Clone, Default)]
 pub struct CtlRequest {
     /// The sending side of the CtlGateway's server. Replies are sent across this channel and then
@@ -75,12 +85,12 @@ pub struct CtlRequest {
 }
 
 impl CtlRequest {
-    /// Create a new CtlRequest from an optional [`server.CtlSender`] and
+    /// Create a new CtlRequest from [`server.CtlSender`] and optional
     /// [`protocol.codec.SrvTxn`].
-    pub fn new(tx: Option<server::CtlSender>,
+    pub fn new(tx: server::CtlSender,
                transaction: Option<habitat_sup_protocol::codec::SrvTxn>)
                -> Self {
-        CtlRequest { tx,
+        CtlRequest { tx: Some(tx),
                      transaction,
                      current_color_spec: ColorSpec::new(),
                      is_new_line: true }

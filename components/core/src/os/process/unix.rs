@@ -12,38 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::Signal;
+use crate::error::{Error,
+                   Result};
+use libc::{self,
+           pid_t};
 use std::{ffi::OsString,
           io,
           os::unix::process::CommandExt,
           path::PathBuf,
           process::Command};
 
-use libc::{self,
-           pid_t};
-
-use crate::error::{Error,
-                   Result};
-
 pub type Pid = libc::pid_t;
 pub(crate) type SignalCode = libc::c_int;
-
-#[allow(non_snake_case)]
-#[derive(Clone, Copy, Debug)]
-pub enum Signal {
-    INT,
-    ILL,
-    ABRT,
-    FPE,
-    KILL,
-    SEGV,
-    TERM,
-    HUP,
-    QUIT,
-    ALRM,
-    USR1,
-    USR2,
-    CHLD,
-}
 
 pub fn become_command(command: PathBuf, args: &[OsString]) -> Result<()> {
     become_exec_command(command, args)
@@ -75,6 +56,10 @@ pub fn signal(pid: Pid, signal: Signal) -> Result<()> {
     }
 }
 
+// This only makes sense on Unix platforms, because not all of these
+// symbols are actually defined on Windows. Also, this is only used
+// for actually sending the given signal to a process, which only
+// happens on Unix platforms anyway.
 impl From<Signal> for SignalCode {
     fn from(value: Signal) -> SignalCode {
         match value {

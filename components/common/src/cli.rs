@@ -19,9 +19,12 @@
 
 use crate::types::ListenCtlAddr;
 use clap::ArgMatches;
+
 use habitat_core::{env as henv,
                    fs::{cache_key_path,
-                        CACHE_KEY_PATH}};
+                        CACHE_KEY_PATH},
+                   os::process::{ShutdownSignal,
+                                 ShutdownTimeout}};
 use std::path::PathBuf;
 
 pub const GOSSIP_DEFAULT_IP: &str = "0.0.0.0";
@@ -43,6 +46,16 @@ lazy_static! {
 pub const LISTEN_HTTP_ADDRESS_ENVVAR: &str = "HAB_LISTEN_HTTP";
 
 pub const PACKAGE_TARGET_ENVVAR: &str = "HAB_PACKAGE_TARGET";
+lazy_static! {
+    pub static ref SHUTDOWN_TIMEOUT_DEFAULT: String = ShutdownTimeout::default().to_string();
+}
+
+// We allow this on Windows as well as Unix, even though we don't use
+// ShutdownSignal on Windows, because we want to allow Windows CLI
+// users to interact with Unix Supervisors.
+lazy_static! {
+    pub static ref SHUTDOWN_SIGNAL_DEFAULT: String = ShutdownSignal::default().to_string();
+}
 
 const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 
