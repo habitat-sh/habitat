@@ -962,7 +962,7 @@ impl Manager {
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
-                if service.tick(&self.census_ring, &self.launcher) {
+                if service.tick(&self.census_ring, &self.launcher, &runtime.executor()) {
                     self.gossip_latest_service_rumor(&service);
                 }
             }

@@ -65,6 +65,7 @@ toml = { version = "*", default-features = false }
 tokio = "*"
 tokio-core = "*"
 tokio-codec = "*"
+tokio-timer = "*"
 url = "*"
 valico = "*"
 

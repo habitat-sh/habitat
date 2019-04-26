@@ -418,9 +418,11 @@ impl Hook for PostStopHook {
     fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
+// Hooks wrapped in Arcs represent a possibly-temporary state while we
+// refactor hooks to be able to run asynchronously.
 #[derive(Debug, Default, Serialize)]
 pub struct HookTable {
-    pub health_check: Option<HealthCheckHook>,
+    pub health_check: Option<Arc<HealthCheckHook>>,
     pub init:         Option<InitHook>,
     pub file_updated: Option<FileUpdatedHook>,
     pub reload:       Option<ReloadHook>,
@@ -428,9 +430,7 @@ pub struct HookTable {
     pub suitability:  Option<SuitabilityHook>,
     pub run:          Option<RunHook>,
     pub post_run:     Option<PostRunHook>,
-    // This Arc<> business is a possibly-temporary state while
-    // we refactor hooks to be able to run asynchronously.
-    pub post_stop: Option<Arc<PostStopHook>>,
+    pub post_stop:    Option<Arc<PostStopHook>>,
 }
 
 impl HookTable {
@@ -443,7 +443,8 @@ impl HookTable {
         if let Ok(meta) = std::fs::metadata(templates.as_ref()) {
             if meta.is_dir() {
                 table.file_updated = FileUpdatedHook::load(package_name, &hooks_path, &templates);
-                table.health_check = HealthCheckHook::load(package_name, &hooks_path, &templates);
+                table.health_check =
+                    HealthCheckHook::load(package_name, &hooks_path, &templates).map(Arc::new);
                 table.suitability = SuitabilityHook::load(package_name, &hooks_path, &templates);
                 table.init = InitHook::load(package_name, &hooks_path, &templates);
                 table.reload = ReloadHook::load(package_name, &hooks_path, &templates);
@@ -474,7 +475,7 @@ impl HookTable {
             changed |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.health_check {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed |= self.compile_one(hook.as_ref(), service_group, ctx);
         }
         if let Some(ref hook) = self.init {
             changed |= self.compile_one(hook, service_group, ctx);
