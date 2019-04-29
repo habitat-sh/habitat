@@ -48,6 +48,7 @@ prost = "*"
 prost-derive = "*"
 prost-types = "0.5.0" # This is current stable, but for some reason gets pulled in as 0.4.0 if we use "*" (2019-03-28)
 rand = "*"
+ratsio = "*"
 regex = "*"
 rustls = "*"
 serde = { version = "*", features = ["rc"] }
@@ -94,3 +95,5 @@ apidocs = []
 ignore_integration_tests = []
 lock_as_rwlock = ["habitat_common/lock_as_rwlock"]
 lock_as_mutex = ["habitat_common/lock_as_mutex"]
+nitox_stream = []
+ratsio_stream = []
