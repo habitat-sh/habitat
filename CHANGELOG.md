@@ -18,6 +18,7 @@
 - Add a license agreement prompt to hab [#6364](https://github.com/habitat-sh/habitat/pull/6364) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Accept the hab license on all our pipelines [#6488](https://github.com/habitat-sh/habitat/pull/6488) ([raskchanky](https://github.com/raskchanky))
 - make install_hook a permanent feature [#6475](https://github.com/habitat-sh/habitat/pull/6475) ([mwrock](https://github.com/mwrock))
 - modernize build.ps1 [#6466](https://github.com/habitat-sh/habitat/pull/6466) ([mwrock](https://github.com/mwrock))
 - Use &quot;default files&quot; rather than embedded strings [#6319](https://github.com/habitat-sh/habitat/pull/6319) ([christophermaier](https://github.com/christophermaier))
