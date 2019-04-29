@@ -1,3 +1,6 @@
+env:
+  HAB_LICENSE: "accept-no-persist"
+
 steps:
   - label: ":right-facing_fist: :boom: :left-facing_fist: Promote Release for consumption by Builder"
     command: .buildkite/scripts/promote_release_channel.sh builder-live
