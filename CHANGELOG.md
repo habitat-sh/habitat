@@ -5,19 +5,20 @@
 
 #### New Features & Enhancements
 - Configurable Shutdown, Part 1 [#6450](https://github.com/habitat-sh/habitat/pull/6450) ([christophermaier](https://github.com/christophermaier))
+- Manually trigger an election (exploratory, unfinshed feature in development) [#6474](https://github.com/habitat-sh/habitat/pull/6474) ([christophermaier](https://github.com/christophermaier))
+- Auto detect ttys for docker studios [#6404](https://github.com/habitat-sh/habitat/pull/6404) ([raskchanky](https://github.com/raskchanky))
 
 #### Bug Fixes
 - add ltsc2016 tag for windowsservercore base images [#6470](https://github.com/habitat-sh/habitat/pull/6470) ([mwrock](https://github.com/mwrock))
 - Fix detection of emacs in studio [#6390](https://github.com/habitat-sh/habitat/pull/6390) ([smacfarlane](https://github.com/smacfarlane))
+- build_component.ps1 should enter a non interactive container and forward exit code [#6476](https://github.com/habitat-sh/habitat/pull/6476) ([mwrock](https://github.com/mwrock))
 
 #### Behavioral Changes
 - Make --binlink take an value (or env var) for `hab pkg install` [#6423](https://github.com/habitat-sh/habitat/pull/6423) ([baumanj](https://github.com/baumanj))
+- Add a license agreement prompt to hab [#6364](https://github.com/habitat-sh/habitat/pull/6364) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
-- Add a license agreement prompt to hab [#6364](https://github.com/habitat-sh/habitat/pull/6364) ([raskchanky](https://github.com/raskchanky))
 - make install_hook a permanent feature [#6475](https://github.com/habitat-sh/habitat/pull/6475) ([mwrock](https://github.com/mwrock))
-- Manually trigger an election (exploratory, unfinshed feature in development) [#6474](https://github.com/habitat-sh/habitat/pull/6474) ([christophermaier](https://github.com/christophermaier))
-- build_component.ps1 should enter a non interactive container and forward exit code [#6476](https://github.com/habitat-sh/habitat/pull/6476) ([mwrock](https://github.com/mwrock))
 - modernize build.ps1 [#6466](https://github.com/habitat-sh/habitat/pull/6466) ([mwrock](https://github.com/mwrock))
 - Use &quot;default files&quot; rather than embedded strings [#6319](https://github.com/habitat-sh/habitat/pull/6319) ([christophermaier](https://github.com/christophermaier))
 - Rebuild pipeline with the correct name [#6449](https://github.com/habitat-sh/habitat/pull/6449) ([scotthain](https://github.com/scotthain))
@@ -27,7 +28,6 @@
 - Follow $refs in generate-template-reference [#6427](https://github.com/habitat-sh/habitat/pull/6427) ([mpeck](https://github.com/mpeck))
 - Add test habitat pipeline [#6428](https://github.com/habitat-sh/habitat/pull/6428) ([scotthain](https://github.com/scotthain))
 - move thaw after dev bump in release checklist [#6420](https://github.com/habitat-sh/habitat/pull/6420) ([mwrock](https://github.com/mwrock))
-- Auto detect ttys for docker studios [#6404](https://github.com/habitat-sh/habitat/pull/6404) ([raskchanky](https://github.com/raskchanky))
 - Clarify signal behavior [#6332](https://github.com/habitat-sh/habitat/pull/6332) ([christophermaier](https://github.com/christophermaier))
 - Add deprecation message to templates using the foo[bar] syntax [#6360](https://github.com/habitat-sh/habitat/pull/6360) ([mpeck](https://github.com/mpeck))
 - Fix error runining install.sh/Dockerfile [#6113](https://github.com/habitat-sh/habitat/pull/6113) ([qubitrenegade](https://github.com/qubitrenegade))
