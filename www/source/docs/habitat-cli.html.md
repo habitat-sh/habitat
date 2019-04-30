@@ -1,5 +1,4 @@
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
-<!-- No-op change to test deploy; this will be automatically removed with the next `make cli_docs` -->
  ---
 title: Habitat Docs - hab CLI Reference
 draft: false
@@ -11,7 +10,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.79.0/20190409150529 (linux) | 11 Apr 2019 |
+| hab 0.80.0/20190430183929 (linux) | 30 Apr 2019 |
 
 ## hab
 
@@ -52,6 +51,7 @@ term       Alias for: 'sup term'
 | [hab cli](#hab-cli) | Commands relating to Habitat runtime config |
 | [hab config](#hab-config) | Commands relating to a Service's runtime config |
 | [hab file](#hab-file) | Commands relating to Habitat files |
+| [hab license](#hab-license) | Commands relating to Habitat license agreements |
 | [hab origin](#hab-origin) | Commands relating to Habitat origin keys |
 | [hab pkg](#hab-pkg) | Commands relating to Habitat packages |
 | [hab plan](#hab-plan) | Commands relating to plans and other app-specific configuration. |
@@ -679,6 +679,56 @@ hab file upload [OPTIONS] <SERVICE_GROUP> <VERSION_NUMBER> <FILE> --cache-key-pa
 
 ---
 
+## hab license
+
+Commands relating to Habitat license agreements
+
+**USAGE**
+
+```
+hab license [SUBCOMMAND]
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+
+
+**SUBCOMMANDS**
+
+| Command | Description |
+| ------- | ----------- |
+| [hab license accept](#hab-license-accept) | Accept the Chef Binary Distribution Agreement without prompting |
+---
+
+### hab license accept
+
+Accept the Chef Binary Distribution Agreement without prompting
+
+**USAGE**
+
+```
+hab license accept
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+
+
+
+
+---
+
 ## hab origin
 
 Commands relating to Habitat origin keys
@@ -1173,7 +1223,7 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 **OPTIONS**
 
 ```
--d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=]  [default: /bin]
+-d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=/hab/bin]  [default: /bin]
 ```
 
 **ARGS**
@@ -1552,16 +1602,17 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 **FLAGS**
 
 ```
--b, --binlink    Binlink all binaries from installed package(s)
--f, --force      Overwrite existing binlinks
--h, --help       Prints help information
--V, --version    Prints version information
+-f, --force                  Overwrite existing binlinks
+    --ignore-install-hook    Do not run any install hooks
+-h, --help                   Prints help information
+-V, --version                Prints version information
 ```
 
 **OPTIONS**
 
 ```
 -z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-b, --binlink <BINLINK>    Binlink all binaries from installed package(s) [env: HAB_BINLINK_DIR=/hab/bin]  [default: bin]
 -u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -c, --channel <CHANNEL>    Install from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
 ```
