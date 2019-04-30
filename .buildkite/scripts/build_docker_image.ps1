@@ -57,6 +57,7 @@ SHELL ["powershell", "-Command", "`$ErrorActionPreference = 'Stop'; `$ProgressPr
 # view them by tailing the log to the console. Because we are in a Docker studio, it is safe to
 # assume that the terminal supports ANSI sequence codes.
 RUN `$env:HAB_LICENSE='accept-no-persist'; ``
+    SETX HAB_LICENSE accept-no-persist /m; ``
     &/hab/pkgs/$ident/bin/hab/hab.exe pkg exec core/windows-service install; ``
     (Get-Content /hab/svc/windows-service/HabService.dll.config).replace('--no-color', '') | Set-Content /hab/svc/windows-service/HabService.dll.config; ``
     (Get-Content /hab/svc/windows-service/log4net.xml).replace('%date - ', '') | Set-Content /hab/svc/windows-service/log4net.xml
