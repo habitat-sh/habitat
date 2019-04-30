@@ -5,6 +5,7 @@
 set -euo pipefail
 
 source .buildkite/scripts/shared.sh
+export HAB_LICENSE="accept-no-persist"
 
 set_hab_binary
 
@@ -23,7 +24,7 @@ channel=$(get_release_channel)
 # use it here
 
 echo "--- :habicat: Installing core/hab-bintray-publish from '${channel}' channel"
-sudo "${hab_binary:?}" pkg install \
+sudo HAB_LICENSE="accept-no-persist" "${hab_binary:?}" pkg install \
      --channel="${channel}" \
      core/hab-bintray-publish
 
@@ -45,7 +46,7 @@ if [ "$BUILD_PKG_TARGET" = "x86_64-windows" ]; then
     echo "--- Downloading Windows version directly from bldr: $windows_ident"
     sudo curl "https://bldr.habitat.sh/v1/depot/pkgs/$windows_ident/download?target=$BUILD_PKG_TARGET" -o "/hab/cache/artifacts/$hab_artifact"
 else
-    sudo "${hab_binary:?}" pkg install core/hab --channel="${channel}"
+    sudo HAB_LICENSE="accept-no-persist" "${hab_binary:?}" pkg install core/hab --channel="${channel}"
 fi
 
 # We upload to the stable channel, but we don't *publish* until
@@ -53,7 +54,8 @@ fi
 #
 # -s = skip publishing
 # -r = the repository to upload to
-sudo HAB_BLDR_CHANNEL="${channel}" \
+sudo HAB_LICENSE="accept-no-persist" \
+     HAB_BLDR_CHANNEL="${channel}" \
      BINTRAY_USER="${BINTRAY_USER}" \
      BINTRAY_KEY="${BINTRAY_KEY}" \
      BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
