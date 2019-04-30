@@ -2,6 +2,10 @@
 
 <!-- latest_release unreleased -->
 ## Unreleased
+<!-- latest_release -->
+
+ ## [0.80.0](https://github.com/habitat-sh/habitat/tree/0.80.0) (2019-04-30)
+ [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.79.1...0.80.0)
 
 #### New Features & Enhancements
 - Configurable Shutdown, Part 1 [#6450](https://github.com/habitat-sh/habitat/pull/6450) ([christophermaier](https://github.com/christophermaier))
@@ -34,7 +38,6 @@
 - Clarify signal behavior [#6332](https://github.com/habitat-sh/habitat/pull/6332) ([christophermaier](https://github.com/christophermaier))
 - Add deprecation message to templates using the foo[bar] syntax [#6360](https://github.com/habitat-sh/habitat/pull/6360) ([mpeck](https://github.com/mpeck))
 - Fix error runining install.sh/Dockerfile [#6113](https://github.com/habitat-sh/habitat/pull/6113) ([qubitrenegade](https://github.com/qubitrenegade))
-<!-- latest_release -->
 
 
  ## [0.79.1](https://github.com/habitat-sh/habitat/tree/0.79.1) (2019-04-10)
