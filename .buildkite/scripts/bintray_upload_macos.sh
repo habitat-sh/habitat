@@ -40,7 +40,7 @@ sudo HAB_BLDR_CHANNEL="${channel}" \
      BINTRAY_USER="${BINTRAY_USER}" \
      BINTRAY_KEY="${BINTRAY_KEY}" \
      BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
-     HAB_LICENSE="${HAB_LICENSE}"
+     HAB_LICENSE="${HAB_LICENSE}" \
      hab pkg exec core/hab-bintray-publish \
          publish-hab \
          -s \

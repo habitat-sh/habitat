@@ -86,12 +86,12 @@ set_hab_binary() {
         x86_64-linux)
             pkg_target="x86_64-linux"
             install_hab_binary "$pkg_target" "/hab/bin"
-            hab_binary="/hab/bin/hab"
+            hab_binary="/hab/bin/hab-$pkg_target"
             ;;
         x86_64-linux-kernel2)
             pkg_target="x86_64-linux-kernel2"
             install_hab_binary "$pkg_target" "/hab/bin"
-            hab_binary="/hab/bin/hab"
+            hab_binary="/hab/bin/hab-$pkg_target"
             ;;
         x86_64-windows)
             # We're going to use the existing hab binary here.
@@ -104,7 +104,7 @@ set_hab_binary() {
             exit 1
             ;;
     esac
-        
+
     if has_hab_ident "${pkg_target}" && has_studio_ident "${pkg_target}"; then
         echo "Buildkite metadata found; installing new versions of 'core/hab' and 'core/hab-studio'"
         # By definition, these will be fully-qualified identifiers,
@@ -135,9 +135,19 @@ install_hab_binary() {
     target="$1"
     install_path="$2"
 
-    sudo env HAB_LICENSE="${HAB_LICENSE}" ./components/hab/install.sh -t "$target"
-    sudo env HAB_LICENSE="${HAB_LICENSE}" /bin/hab pkg binlink core/hab hab -d $install_path 
+    (
+      bt_uri="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-$target.tar.gz?bt_package=hab-$target"
+      
+      tmpdir="$(mktemp -d hab-install.XXXXXXXX)"
+      cd "$tmpdir"
+      wget "$bt_uri" -O "hab-$target-latest.tar.gz"
+      tar xvf "hab-$target-latest.tar.gz" --strip-components=1 
+      sudo mkdir -p "$install_path"
+      sudo mv --force "hab" "$install_path/hab-$target"
+      sudo chmod +x "$install_path/hab-$target"
+    )
 }
+
 
 # The following get/set functions abstract the meta-data key
 # names to provide consistant access, taking into account the 

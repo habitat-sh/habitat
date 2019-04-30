@@ -41,15 +41,18 @@ else
 fi
 source results/last_build.env
 
-echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
+# TODO (SM): The 0.59.0 hab cli that we rely on for x86_64-linux builds 
+# doesn't emit pkg_target. Until we've sufficiently bootstrapped ourselves
+# we need to set it. This can be removed when studio-ci-common pulls 0.63.0 
+# or newer. This is safe to do because the x86_64-linux-kernel2 builds will
+# already have this value set.
+: "${pkg_target:=x86_64-linux}"
+
+echo "--- :habicat: Uploading ${pkg_ident:-} to Builder in the '${channel}' channel"
 ${hab_binary} pkg upload \
     --channel="${channel}" \
     --auth="${HAB_AUTH_TOKEN}" \
-    "results/${pkg_artifact}"
-
-${hab_binary} pkg promote \
-    --auth="${HAB_AUTH_TOKEN}" \
-    "${pkg_ident}" "${channel}" "${pkg_target}"
+    "results/${pkg_artifact:-}"
 
 echo "--- :writing_hand: Recording Build Metadata"
 case "${component}" in
@@ -71,6 +74,7 @@ case "${component}" in
         set_backline_artifact "${pkg_target}" "${pkg_artifact}"
         ;;
     *)
+        echo "--- :buildkite: Not recording metadata for ${component}" 
         ;;
 esac
 echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --append --context "release-manifest"

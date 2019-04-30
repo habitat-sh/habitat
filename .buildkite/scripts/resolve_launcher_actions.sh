@@ -18,7 +18,7 @@ promote_from_one_channel_to_another() {
 
     artifact="$(latest_from_builder "${target}" "${from_channel}" "${package_name}")"
     echo "--- Promoting ${artifact} (${target}) to ${to_channel}"
-    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${artifact}" "${to_channel}" "${pkg_target}"
+    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${artifact}" "${to_channel}" "${target}"
 }
 
 launcher_action=$(buildkite-agent meta-data get "launcher-action");
