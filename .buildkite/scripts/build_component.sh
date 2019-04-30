@@ -51,8 +51,6 @@ ${hab_binary} pkg promote \
     --auth="${HAB_AUTH_TOKEN}" \
     "${pkg_ident}" "${channel}" "${pkg_target}"
 
-set_target_metadata "${pkg_ident}" "${pkg_target}"
-
 echo "--- :writing_hand: Recording Build Metadata"
 case "${component}" in
     "hab")

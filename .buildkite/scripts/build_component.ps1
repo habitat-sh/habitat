@@ -45,9 +45,6 @@ Push-Location "C:\build"
     Write-Host "Running hab pkg upload for $Component to channel $ReleaseChannel"
     Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$ReleaseChannel"
 
-    # Temporary workaround until 0.79.0 goes out
-    Invoke-Expression "buildkite-agent meta-data set ${pkg_ident}-x86_64-windows true"
-
     If ($Component -eq 'hab') {
         Write-Host "--- :buildkite: Recording metadata $pkg_ident"
         Invoke-Expression "buildkite-agent meta-data set 'hab-version-x86_64-windows' '$pkg_ident'"
