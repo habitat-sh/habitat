@@ -41,14 +41,6 @@ else
 fi
 source results/last_build.env
 
-# TODO (SM): The 0.59.0 hab cli that we rely on for x86_64-linux builds 
-# doesn't emit pkg_target. Until we've sufficiently bootstrapped ourselves
-# we need to set it. This can be removed when studio-ci-common pulls 0.63.0 
-# or newer. This is safe to do because the x86_64-linux-kernel2 builds will
-# already have this value set.
-: "${pkg_target:=x86_64-linux}"
-
-
 echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
 ${hab_binary} pkg upload \
     --channel="${channel}" \
