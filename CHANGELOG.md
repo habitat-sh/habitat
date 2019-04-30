@@ -1,7 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release 0.81.0-dev -->
+## [0.81.0-dev](https://github.com/habitat-sh/habitat/tree/0.81.0-dev) (2019-04-30)
+
+#### Merged Pull Requests
+- Bump to 0.81.0-dev [#6496](https://github.com/habitat-sh/habitat/pull/6496) ([raskchanky](https://github.com/raskchanky))
 <!-- latest_release -->
 
  ## [0.80.0](https://github.com/habitat-sh/habitat/tree/0.80.0) (2019-04-30)
