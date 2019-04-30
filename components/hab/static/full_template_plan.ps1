@@ -1,4 +1,3 @@
-{{#if with_docs ~}}
 # This file is the heart of your application's habitat.
 # See full docs at https://www.habitat.sh/docs/reference/plan-syntax/
 
@@ -36,6 +35,14 @@ $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license="{{ pkg_license }}"
 {{else ~}}
 $pkg_license=@("Apache-2.0")
+{{/if}}
+
+# Optional.
+# The scaffolding base for this plan.
+{{#if scaffolding_ident ~}}
+pkg_scaffolding="{{ scaffolding_ident }}"
+{{else ~}}
+# pkg_scaffolding="some/scaffolding"
 {{/if}}
 
 # Optional.
@@ -192,7 +199,6 @@ $pkg_upstream_url="{{ pkg_upstream_url }}"
 # $pkg_upstream_url="http://example.com/project-name"
 {{/if}}
 
-{{#if with_callbacks ~}}
 # Callback Functions
 #
 # When defining your plan, you have the flexibility to override the default
@@ -277,143 +283,3 @@ function Invoke-Install {
 # package has been built and installed. You can use this callback to remove any
 # temporary files or perform other post-install clean-up actions.
 function Invoke-End {}
-{{/if ~}}
-{{else ~}}
-$pkg_name="{{ pkg_name }}"
-$pkg_origin="{{ pkg_origin }}"
-{{#if pkg_version ~}}
-$pkg_version="{{ pkg_version }}"
-{{else ~}}
-$pkg_version="0.1.0"
-{{/if ~}}
-{{#if pkg_maintainer ~}}
-$pkg_maintainer="{{ pkg_maintainer }}"
-{{else ~}}
-$pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-{{/if~}}
-{{#if pkg_license ~}}
-$pkg_license={{ pkg_license }}
-{{else ~}}
-$pkg_license=@("Apache-2.0")
-{{/if ~}}
-{{#if scaffolding_ident ~}}
-$pkg_scaffolding="{{ scaffolding_ident }}"
-{{/if ~}}
-{{#if pkg_source ~}}
-$pkg_source="{{ pkg_source }}"
-{{else ~}}
-$pkg_source="http://some_source_url/releases/${pkg_name}-${pkg_version}.zip"
-{{/if ~}}
-{{#if pkg_filename ~}}
-$pkg_filename="{{ pkg_filename }}"
-{{else ~}}
-# $pkg_filename="$pkg_name-$pkg_version.zip"
-{{/if ~}}
-{{#if pkg_shasum ~}}
-$pkg_shasum="{{ pkg_shasum }}"
-{{else ~}}
-# $pkg_shasum="TODO"
-{{/if ~}}
-{{#if pkg_deps ~}}
-$pkg_deps={{ pkg_deps }}
-{{else ~}}
-# $pkg_deps=@()
-{{/if ~}}
-{{#if pkg_build_deps ~}}
-$pkg_build_deps={{ pkg_build_deps }}
-{{else ~}}
-# $pkg_build_deps=@()
-{{/if ~}}
-{{#if pkg_lib_dirs ~}}
-$pkg_lib_dirs={{ pkg_lib_dirs }}
-{{else ~}}
-# $pkg_lib_dirs=@("lib")
-{{/if ~}}
-{{#if pkg_include_dirs ~}}
-$pkg_include_dirs={{ pkg_include_dirs }}
-{{else ~}}
-# $pkg_include_dirs=@("include")
-{{/if ~}}
-{{#if pkg_bin_dirs ~}}
-$pkg_bin_dirs={{ pkg_bin_dirs }}
-{{else ~}}
-# $pkg_bin_dirs=@("bin")
-{{/if ~}}
-{{#if pkg_svc_run ~}}
-$pkg_svc_run="{{ pkg_svc_run }}"
-{{else ~}}
-# $pkg_svc_run="MyBinary.exe"
-{{/if ~}}
-{{#if pkg_exports ~}}
-$pkg_exports={{ pkg_exports }}
-{{else ~}}
-# $pkg_exports=@{
-#   host="srv.address"
-#   port="srv.port"
-#   ssl-port="srv.ssl.port"
-# }
-{{/if ~}}
-{{#if pkg_exposes ~}}
-$pkg_exposes={{ pkg_exposes }}
-{{else ~}}
-# $pkg_exposes=@("port", "ssl-port")
-{{/if ~}}
-{{#if pkg_binds ~}}
-$pkg_binds={{ pkg_binds }}
-{{else ~}}
-# $pkg_binds=@{
-#   database="port host"
-# }
-{{/if ~}}
-{{#if pkg_binds_optional ~}}
-$pkg_binds_optional={{ pkg_binds_optional }}
-{{else ~}}
-# $pkg_binds_optional=@{
-#   storage="port host"
-# }
-{{/if ~}}
-{{#if pkg_description ~}}
-$pkg_description="{{ pkg_description }}"
-{{else ~}}
-# $pkg_description="Some description."
-{{/if ~}}
-{{#if pkg_upstream_url ~}}
-$pkg_upstream_url="{{ pkg_upstream_url }}"
-{{else ~}}
-# $pkg_upstream_url="http://example.com/project-name"
-{{/if ~}}
-{{#if with_callbacks ~}}
-function Invoke-Begin {}
-
-function Invoke-Download {
-  Invoke-DefaultDownload
-}
-
-function Invoke-Verify {
-  Invoke-DefaultVerify
-}
-
-function Invoke-Clean {
-  Invoke-DefaultClean
-}
-
-function Invoke-Unpack {
-  Invoke-DefaultUnpack
-}
-
-function Invoke-Prepare {}
-
-function Invoke-Build {
-  Invoke-DefaultBuild
-}
-
-function Invoke-Check {}
-
-function Invoke-Install {
-  Invoke-DefaultInstall
-}
-
-function Invoke-End {}
-
-{{/if ~}}
-{{/if ~}}

@@ -681,11 +681,7 @@ fn sub_bldr_job_status(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let name = m.value_of("PKG_NAME").map(String::from);
     let origin = origin_param_or_env(&m)?;
-    let with_docs = m.is_present("WITH_DOCS");
-    let with_callbacks = m.is_present("WITH_CALLBACKS");
-    let with_all = m.is_present("WITH_ALL");
-    let windows = m.is_present("WINDOWS");
-    let scaffolding_ident = if windows {
+    let scaffolding_ident = if cfg!(windows) {
         match m.value_of("SCAFFOLDING") {
             Some(scaffold) => Some(PackageIdent::from_str(scaffold)?),
             None => None,
@@ -694,14 +690,7 @@ fn sub_plan_init(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         scaffolding::scaffold_check(ui, m.value_of("SCAFFOLDING"))?
     };
 
-    command::plan::init::start(ui,
-                               origin,
-                               with_docs,
-                               with_callbacks,
-                               with_all,
-                               windows,
-                               scaffolding_ident,
-                               name)
+    command::plan::init::start(ui, origin, scaffolding_ident, name)
 }
 
 fn sub_plan_render(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {

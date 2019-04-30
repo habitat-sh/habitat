@@ -1,4 +1,3 @@
-{{#if with_docs ~}}
 # This file is the heart of your application's habitat.
 # See full docs at https://www.habitat.sh/docs/reference/plan-syntax/
 
@@ -36,6 +35,14 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license={{ pkg_license }}
 {{else ~}}
 pkg_license=("Apache-2.0")
+{{/if}}
+
+# Optional.
+# The scaffolding base for this plan.
+{{#if scaffolding_ident ~}}
+pkg_scaffolding="{{ scaffolding_ident }}"
+{{else ~}}
+# pkg_scaffolding="some/scaffolding"
 {{/if}}
 
 # Optional.
@@ -233,7 +240,6 @@ pkg_upstream_url="{{ pkg_upstream_url }}"
 # pkg_upstream_url="http://example.com/project-name"
 {{/if}}
 
-{{#if with_callbacks ~}}
 # Callback Functions
 #
 # When defining your plan, you have the flexibility to override the default
@@ -350,175 +356,3 @@ do_strip() {
 do_end() {
   return 0
 }
-{{/if ~}}
-{{else ~}}
-pkg_name={{ pkg_name }}
-pkg_origin={{ pkg_origin }}
-{{#if pkg_version ~}}
-pkg_version="{{ pkg_version }}"
-{{else ~}}
-pkg_version="0.1.0"
-{{/if ~}}
-{{#if pkg_maintainer ~}}
-pkg_maintainer="{{ pkg_maintainer }}"
-{{else ~}}
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-{{/if~}}
-{{#if pkg_license ~}}
-pkg_license={{ pkg_license }}
-{{else ~}}
-pkg_license=("Apache-2.0")
-{{/if ~}}
-{{#if scaffolding_ident ~}}
-pkg_scaffolding="{{ scaffolding_ident }}"
-{{/if ~}}
-{{#if pkg_source ~}}
-pkg_source="{{ pkg_source }}"
-{{else ~}}
-pkg_source="http://some_source_url/releases/${pkg_name}-${pkg_version}.tar.gz"
-{{/if ~}}
-{{#if pkg_filename ~}}
-pkg_filename="{{ pkg_filename }}"
-{{else ~}}
-# pkg_filename="${pkg_name}-${pkg_version}.tar.gz"
-{{/if ~}}
-{{#if pkg_shasum ~}}
-pkg_shasum="{{ pkg_shasum }}"
-{{else ~}}
-# pkg_shasum="TODO"
-{{/if ~}}
-{{#if pkg_deps ~}}
-pkg_deps={{ pkg_deps }}
-{{else ~}}
-# pkg_deps=(core/glibc)
-{{/if ~}}
-{{#if pkg_build_deps ~}}
-pkg_build_deps={{ pkg_build_deps }}
-{{else ~}}
-# pkg_build_deps=(core/make core/gcc)
-{{/if ~}}
-{{#if pkg_lib_dirs ~}}
-pkg_lib_dirs={{ pkg_lib_dirs }}
-{{else ~}}
-# pkg_lib_dirs=(lib)
-{{/if ~}}
-{{#if pkg_include_dirs ~}}
-pkg_include_dirs={{ pkg_include_dirs }}
-{{else ~}}
-# pkg_include_dirs=(include)
-{{/if ~}}
-{{#if pkg_bin_dirs ~}}
-pkg_bin_dirs={{ pkg_bin_dirs }}
-{{else ~}}
-# pkg_bin_dirs=(bin)
-{{/if ~}}
-{{#if pkg_pconfig_dirs ~}}
-pkg_pconfig_dirs={{ pkg_pconfig_dirs }}
-{{else ~}}
-# pkg_pconfig_dirs=(lib/pconfig)
-{{/if ~}}
-{{#if pkg_svc_run ~}}
-pkg_svc_run="{{ pkg_svc_run }}"
-{{else ~}}
-# pkg_svc_run="haproxy -f $pkg_svc_config_path/haproxy.conf"
-{{/if ~}}
-{{#if pkg_exports ~}}
-pkg_exports={{ pkg_exports }}
-{{else ~}}
-# pkg_exports=(
-#   [host]=srv.address
-#   [port]=srv.port
-#   [ssl-port]=srv.ssl.port
-# )
-{{/if ~}}
-{{#if pkg_exposes ~}}
-pkg_exposes={{ pkg_exposes }}
-{{else ~}}
-# pkg_exposes=(port ssl-port)
-{{/if ~}}
-{{#if pkg_binds ~}}
-pkg_binds={{ pkg_binds }}
-{{else ~}}
-# pkg_binds=(
-#   [database]="port host"
-# )
-{{/if ~}}
-{{#if pkg_binds_optional ~}}
-pkg_binds_optional={{ pkg_binds_optional }}
-{{else ~}}
-# pkg_binds_optional=(
-#   [storage]="port host"
-# )
-{{/if ~}}
-{{#if pkg_interpreters ~}}
-pkg_interpreters={{ pkg_interpreters }}
-{{else ~}}
-# pkg_interpreters=(bin/bash)
-{{/if ~}}
-{{#if pkg_svc_user ~}}
-pkg_svc_user="{{ pkg_svc_user }}"
-{{else ~}}
-# pkg_svc_user="hab"
-{{/if ~}}
-{{#if pkg_svc_group ~}}
-pkg_svc_group="{{ pkg_svc_group }}"
-{{else ~}}
-# pkg_svc_group="$pkg_svc_user"
-{{/if ~}}
-{{#if pkg_description ~}}
-pkg_description="{{ pkg_description }}"
-{{else ~}}
-# pkg_description="Some description."
-{{/if ~}}
-{{#if pkg_upstream_url ~}}
-pkg_upstream_url="{{ pkg_upstream_url }}"
-{{else ~}}
-# pkg_upstream_url="http://example.com/project-name"
-{{/if ~}}
-{{#if with_callbacks ~}}
-do_begin() {
-  return 0
-}
-
-do_download() {
-  do_default_download
-}
-
-do_verify() {
-  do_default_verify
-}
-
-do_clean() {
-  do_default_clean
-}
-
-do_unpack() {
-  do_default_unpack
-}
-
-do_prepare() {
-  return 0
-}
-
-do_build() {
-  do_default_build
-}
-
-do_check() {
-  return 0
-}
-
-do_install() {
-  do_default_install
-}
-
-do_strip() {
-  do_default_strip
-}
-
-do_end() {
-  return 0
-}
-
-{{/if ~}}
-{{/if ~}}
