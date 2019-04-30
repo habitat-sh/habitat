@@ -47,10 +47,6 @@ ${hab_binary} pkg upload \
     --auth="${HAB_AUTH_TOKEN}" \
     "results/${pkg_artifact}"
 
-${hab_binary} pkg promote \
-    --auth="${HAB_AUTH_TOKEN}" \
-    "${pkg_ident}" "${channel}" "${pkg_target}"
-
 echo "--- :writing_hand: Recording Build Metadata"
 case "${component}" in
     "hab")
