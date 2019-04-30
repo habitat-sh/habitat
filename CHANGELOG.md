@@ -18,6 +18,7 @@
 - Add a license agreement prompt to hab [#6364](https://github.com/habitat-sh/habitat/pull/6364) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- set machine scoped HAB_LICENSE variable for windows docker studio supervisor [#6491](https://github.com/habitat-sh/habitat/pull/6491) ([mwrock](https://github.com/mwrock))
 - Add the license env var in the old way for now [#6489](https://github.com/habitat-sh/habitat/pull/6489) ([raskchanky](https://github.com/raskchanky))
 - Accept the hab license on all our pipelines [#6488](https://github.com/habitat-sh/habitat/pull/6488) ([raskchanky](https://github.com/raskchanky))
 - make install_hook a permanent feature [#6475](https://github.com/habitat-sh/habitat/pull/6475) ([mwrock](https://github.com/mwrock))
