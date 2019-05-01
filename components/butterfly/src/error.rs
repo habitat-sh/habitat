@@ -47,8 +47,6 @@ pub enum Error {
     SocketCloneError,
     SocketSetReadTimeout(io::Error),
     SocketSetWriteTimeout(io::Error),
-    Timeout(String),
-    UnknownMember(String),
     ZmqConnectError(zmq::Error),
     ZmqSendError(zmq::Error),
     UnknownIOError(io::Error),
@@ -115,8 +113,6 @@ impl fmt::Display for Error {
             Error::SocketSetWriteTimeout(ref err) => {
                 format!("Cannot set UDP socket write timeout: {}", err)
             }
-            Error::Timeout(ref msg) => format!("Timed out {}", msg),
-            Error::UnknownMember(ref member_id) => format!("Unknown member ID: {}", member_id),
             Error::ZmqConnectError(ref err) => format!("Cannot connect ZMQ socket: {}", err),
             Error::ZmqSendError(ref err) => {
                 format!("Cannot send message through ZMQ socket: {}", err)
@@ -152,8 +148,6 @@ impl error::Error for Error {
             Error::SocketCloneError => "Cannot clone the underlying UDP socket",
             Error::SocketSetReadTimeout(_) => "Cannot set UDP socket read timeout",
             Error::SocketSetWriteTimeout(_) => "Cannot set UDP socket write timeout",
-            Error::Timeout(_) => "Timed out waiting",
-            Error::UnknownMember(_) => "Unknown member",
             Error::ZmqConnectError(_) => "Cannot connect ZMQ socket",
             Error::ZmqSendError(_) => "Cannot send message through ZMQ socket",
         }

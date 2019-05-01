@@ -14,20 +14,19 @@
 
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
-pub use crate::protocol::swim::Health;
-use crate::{error::{Error,
-                    Result},
-            protocol::{self,
-                       newscast,
-                       swim as proto,
-                       FromProto},
-            rumor::{RumorKey,
-                    RumorPayload,
-                    RumorType}};
+use std::{collections::{hash_map,
+                        HashMap},
+          fmt,
+          net::SocketAddr,
+          num::ParseIntError,
+          ops::Add,
+          result,
+          str::FromStr,
+          sync::{atomic::{AtomicUsize,
+                          Ordering},
+                 RwLock}};
+
 use habitat_core::util::ToI64;
-use parking_lot::{RwLock,
-                  RwLockReadGuard,
-                  RwLockWriteGuard};
 use prometheus::IntGaugeVec;
 use rand::{seq::{IteratorRandom,
                  SliceRandom},
@@ -39,19 +38,20 @@ use serde::{de,
             Deserializer,
             Serialize,
             Serializer};
-use std::{collections::{hash_map,
-                        HashMap},
-          fmt,
-          net::SocketAddr,
-          num::ParseIntError,
-          ops::Add,
-          result,
-          str::FromStr,
-          sync::atomic::{AtomicUsize,
-                         Ordering}};
 use time::{Duration,
            SteadyTime};
 use uuid::Uuid;
+
+pub use crate::protocol::swim::Health;
+use crate::{error::{Error,
+                    Result},
+            protocol::{self,
+                       newscast,
+                       swim as proto,
+                       FromProto},
+            rumor::{RumorKey,
+                    RumorPayload,
+                    RumorType}};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -378,20 +378,27 @@ impl MemberList {
                      update_counter:  AtomicUsize::new(0), }
     }
 
-    fn read_entries(&self) -> RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        self.entries.read()
+    fn read_entries(&self)
+                    -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+        self.entries.read().expect("Members read lock")
     }
 
-    fn write_entries(&self) -> RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        self.entries.write()
+    fn write_entries(
+        &self)
+        -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+        self.entries.write().expect("Members write lock")
     }
 
-    fn initial_members_read(&self) -> RwLockReadGuard<'_, Vec<Member>> {
-        self.initial_members.read()
+    fn initial_members_read(&self) -> std::sync::RwLockReadGuard<'_, Vec<Member>> {
+        self.initial_members
+            .read()
+            .expect("Initial members read lock")
     }
 
-    fn initial_members_write(&self) -> RwLockWriteGuard<'_, Vec<Member>> {
-        self.initial_members.write()
+    fn initial_members_write(&self) -> std::sync::RwLockWriteGuard<'_, Vec<Member>> {
+        self.initial_members
+            .write()
+            .expect("Initial members write lock")
     }
 
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
@@ -553,28 +560,6 @@ impl MemberList {
         self.read_entries()
             .get(member_id)
             .map(|member_list::Entry { health, .. }| *health)
-    }
-
-    /// Returns the health of the member, blocking for a limited timeout
-    ///
-    /// Errors:
-    /// * `Error::Timeout` if the health data can't be accessed within `timeout`
-    /// * `Error::UnknownMember` if the member does not exist
-    pub fn health_of_by_id_with_timeout(&self,
-                                        member_id: &str,
-                                        timeout: std::time::Duration)
-                                        -> Result<Health> {
-        let entries = self.entries.try_read_for(timeout);
-
-        if entries.is_none() {
-            debug!("try_lock_for timed out after {:?}", timeout);
-            return Err(Error::Timeout(format!("waiting on {} member health query", member_id)));
-        }
-
-        entries.unwrap()
-               .get(member_id)
-               .map(|member_list::Entry { health, .. }| *health)
-               .ok_or_else(|| Error::UnknownMember(member_id.to_string()))
     }
 
     /// Returns true if the member is alive, suspect, or persistent; used during the target
