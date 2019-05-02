@@ -162,6 +162,43 @@ impl FeatureFlag {
 pub mod sync {
     use std::time::Duration;
 
+    #[cfg(feature = "deadlock_detection")]
+    mod deadlock_detection {
+        use super::*;
+        use parking_lot::deadlock;
+        use std::{sync::Once,
+                  thread};
+
+        static INIT: Once = Once::new();
+
+        pub fn init() { INIT.call_once(spawn_deadlock_detector_thread); }
+
+        fn spawn_deadlock_detector_thread() {
+            thread::spawn(move || {
+                loop {
+                    thread::sleep(Duration::from_secs(10));
+                    let deadlocks = deadlock::check_deadlock();
+                    if deadlocks.is_empty() {
+                        continue;
+                    }
+
+                    println!("{} deadlocks detected", deadlocks.len());
+                    for (i, threads) in deadlocks.iter().enumerate() {
+                        println!("Deadlock #{}", i);
+                        for t in threads {
+                            println!("Thread Id {:#?}", t.thread_id());
+                            println!("{:#?}", t.backtrace());
+                        }
+                    }
+
+                    // Unfortunately, we can't do anything to resolve the deadlock and
+                    // continue, so we have to abort the whole process
+                    std::process::exit(1);
+                }
+            });
+        }
+    }
+
     #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
     type InnerLock<T> = parking_lot::RwLock<T>;
     #[cfg(feature = "lock_as_mutex")]
@@ -191,10 +228,13 @@ pub mod sync {
             #[cfg(feature = "lock_as_mutex")]
             println!("Lock::new is using Mutex to help find recursive locking");
 
+            #[cfg(feature = "deadlock_detection")]
+            deadlock_detection::init();
+
             Self { inner: InnerLock::new(val), }
         }
 
-        /// This acquires a read lock and will not deadlock if the same thread tries do acquire
+        /// This acquires a read lock and will not deadlock if the same thread tries to acquire
         /// the lock recursively. However, it may result in writer starvation. Once we are confident
         /// that all recursive locking has been eliminated, we may replace this implementation
         /// and try_read_for (or add an additional methods) to provide fair locking for readers
@@ -204,39 +244,9 @@ pub mod sync {
         #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
         pub fn read(&self) -> ReadGuard<T> { self.inner.read_recursive() }
 
+        // maybe try_lock_for and panic if not running with deadlock detection?
         #[cfg(feature = "lock_as_mutex")]
-        pub fn read(&self) -> ReadGuard<T> {
-            use parking_lot::deadlock;
-            use std::thread;
-
-            if let Some(guard) = self.inner.try_lock_for(Duration::from_secs(5)) {
-                guard
-            } else {
-                let detector = thread::spawn(move || {
-                    loop {
-                        thread::sleep(Duration::from_secs(1));
-                        let deadlocks = deadlock::check_deadlock();
-                        if deadlocks.is_empty() {
-                            continue;
-                        }
-
-                        println!("{} deadlocks detected", deadlocks.len());
-                        for (i, threads) in deadlocks.iter().enumerate() {
-                            println!("Deadlock #{}", i);
-                            for t in threads {
-                                println!("Thread Id {:#?}", t.thread_id());
-                                println!("{:#?}", t.backtrace());
-                            }
-                        }
-                    }
-                });
-                let guard = self.inner
-                                .try_lock_for(Duration::from_secs(5))
-                                .expect("timed out waiting for lock");
-                detector.join().expect("join deadlock detector thread");
-                guard
-            }
-        }
+        pub fn read(&self) -> ReadGuard<T> { self.inner.lock() }
 
         #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
         pub fn try_read_for(&self, timeout: Duration) -> Option<ReadGuard<T>> {

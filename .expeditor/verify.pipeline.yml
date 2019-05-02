@@ -71,9 +71,23 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: butterfly"
+  - label: "[unit] :linux: butterfly lock_as_mutex"
     command:
       - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_mutex deadlock_detection" -- --test-threads=1
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 20
+    soft_fail: true
+
+  - label: "[unit] :linux: butterfly lock_as_rwlock"
+    command:
+      - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_rwlock deadlock_detection" -- --test-threads=1
     agents:
       queue: 'default-privileged'
     plugins:

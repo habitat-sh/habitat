@@ -28,7 +28,7 @@ If($Features) {
 }
 
 # Set cargo test invocation
-$CargoTestCommand = "cargo +$toolchain test $FeatureString -- $TestOptions"
+$CargoTestCommand = "cargo +$toolchain test --quiet $FeatureString -- $TestOptions"
 
 Setup-Environment
 

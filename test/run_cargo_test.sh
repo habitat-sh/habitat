@@ -57,6 +57,6 @@ TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 
 export RUST_BACKTRACE=1
 
-echo "--- Running cargo test on $component with $*"
+echo "--- Running cargo +$toolchain test with on $component with $*"
 cd "components/$component"
-cargo +"$toolchain" test "$@"
+cargo +"$toolchain" test --quiet "$@"

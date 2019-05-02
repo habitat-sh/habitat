@@ -179,8 +179,6 @@ impl SwimNet {
         from.remove_from_block_list(to.member_id());
     }
 
-    #[allow(clippy::assertions_on_constants)]
-    #[allow(clippy::match_wild_err_arm)]
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
         let from = self.members
                        .get(from_entry)
@@ -189,7 +187,21 @@ impl SwimNet {
         let to = self.members
                      .get(to_entry)
                      .expect("Asked for a network member who is out of bounds");
-        from.member_list.health_of_by_id(to.member_id())
+
+        match from.member_list
+                  .health_of_by_id_with_timeout(to.member_id(), HEALTH_OF_TIMEOUT)
+        {
+            Ok(health) => Some(health),
+            Err(Error::UnknownMember(_)) => None,
+            Err(Error::Timeout(_)) => {
+                panic!("Timed out after waiting {:?} querying member health",
+                       HEALTH_OF_TIMEOUT);
+            }
+            Err(e) => {
+                println!("Unexpected error from health_of_by_id_with_timeout: {}", e);
+                None
+            }
+        }
     }
 
     pub fn network_health_of(&self, to_check: usize) -> Vec<Option<Health>> {
@@ -352,9 +364,6 @@ impl SwimNet {
     pub fn wait_for_health_of(&self, from_entry: usize, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
-            #[cfg(feature = "deadlock_detection")]
-            assert_no_deadlocks();
-
             if let Some(real_health) = self.health_of(from_entry, to_check) {
                 if real_health == health {
                     trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));

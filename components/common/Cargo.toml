@@ -51,6 +51,7 @@ winapi = { version = "*", features = ["consoleapi", "processenv"] }
 
 [features]
 default = []
+deadlock_detection = []
 lock_as_rwlock = []
 lock_as_mutex = []
 functional = []
