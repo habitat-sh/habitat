@@ -39,8 +39,6 @@
 //! * [The Habitat Command Line Reference](command)
 //! * [The Habitat Supervisor Sidecar; http interface to promises](sidecar)
 
-#[cfg(target_os = "linux")]
-extern crate caps;
 extern crate clap;
 extern crate cpu_time;
 #[cfg(windows)]
