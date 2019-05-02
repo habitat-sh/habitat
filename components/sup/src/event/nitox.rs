@@ -1,3 +1,4 @@
+use super::EventThreadStartupWait;
 use crate::event::{Error,
                    EventConnectionInfo,
                    EventStream,
@@ -5,13 +6,13 @@ use crate::event::{Error,
 use futures::{sync::mpsc as futures_mpsc,
               Future,
               Stream};
+use habitat_core::env::Config as _;
 use nitox::{commands::ConnectCommand,
             streaming::client::NatsStreamingClient,
             NatsClient,
             NatsClientOptions};
 use std::{sync::mpsc as std_mpsc,
-          thread,
-          time::Duration};
+          thread};
 use tokio::{executor,
             runtime::current_thread::Runtime as ThreadRuntime};
 /// All messages are published under this subject.
@@ -83,7 +84,7 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
                           })
                           .map_err(Error::SpawnEventThreadError)?;
 
-    sync_rx.recv_timeout(Duration::from_secs(5))
+    sync_rx.recv_timeout(EventThreadStartupWait::configured_value().into())
            .map_err(Error::ConnectEventServerError)?;
     Ok(EventStream(event_tx))
 }

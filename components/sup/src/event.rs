@@ -53,8 +53,11 @@ pub use error::{Error,
 use futures::sync::mpsc::UnboundedSender;
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamMetadata};
+use habitat_core::env::Config as EnvConfig;
 use state::Container;
 use std::{net::SocketAddr,
+          num::ParseIntError,
+          str::FromStr,
           sync::Once,
           time::Duration};
 
@@ -253,4 +256,29 @@ impl EventStream {
             error!("Failed to queue event: {:?}", e);
         }
     }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+/// How long should we for the event thread to start up before
+/// abandoning it and shutting down?
+#[derive(Clone, Debug)]
+struct EventThreadStartupWait(u64);
+
+impl Default for EventThreadStartupWait {
+    fn default() -> Self { Self(5) }
+}
+
+impl FromStr for EventThreadStartupWait {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self(s.parse()?)) }
+}
+
+impl EnvConfig for EventThreadStartupWait {
+    const ENVVAR: &'static str = "HAB_EVENT_THREAD_STARTUP_WAIT_SEC";
+}
+
+impl Into<Duration> for EventThreadStartupWait {
+    fn into(self) -> Duration { Duration::from_secs(self.0) }
 }
