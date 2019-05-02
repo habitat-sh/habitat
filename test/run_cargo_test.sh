@@ -2,11 +2,11 @@
 
 set -eou pipefail
 
+# shellcheck source=./support/ci/shared.sh
 source ./support/ci/shared.sh
 
 component=${1?component argument required}
 shift
-cd "components/$component"
 
 if [[ ${1:-} == --nightly ]]; then
   shift
@@ -21,7 +21,9 @@ install_rustup
 install_rust_toolchain "$toolchain"
 
 # TODO: fix this upstream, it looks like it's not saving correctly.
-sudo chown -R buildkite-agent /home/buildkite-agent
+if ${BUILDKITE:-false}; then
+  sudo chown -R buildkite-agent /home/buildkite-agent
+fi
 
 # TODO: these should be in a shared script?
 sudo hab pkg install core/bzip2
@@ -56,4 +58,5 @@ TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 export RUST_BACKTRACE=1
 
 echo "--- Running cargo test on $component with $*"
+cd "components/$component"
 cargo +"$toolchain" test "$@"
