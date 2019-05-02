@@ -37,31 +37,31 @@ pub fn scaffold_check(ui: &mut UI, maybe_scaffold: Option<&str>) -> Result<Optio
             init();
             match scaffold.to_lowercase().as_ref() {
                 SCAFFOLDING_GO_IDENT | "go" => {
-                    let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT).unwrap();
+                    let ident = PackageIdent::from_str(SCAFFOLDING_GO_IDENT)?;
                     ui.status(Status::Using, &format!("Go Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 SCAFFOLDING_GRADLE_IDENT | "gradle" => {
-                    let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT).unwrap();
+                    let ident = PackageIdent::from_str(SCAFFOLDING_GRADLE_IDENT)?;
                     ui.status(Status::Using, &format!("Gradle Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 SCAFFOLDING_NODE_IDENT | "node" => {
-                    let ident = PackageIdent::from_str(SCAFFOLDING_NODE_IDENT).unwrap();
+                    let ident = PackageIdent::from_str(SCAFFOLDING_NODE_IDENT)?;
                     ui.status(Status::Using, &format!("Node Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 SCAFFOLDING_RUBY_IDENT | "ruby" => {
-                    let ident = PackageIdent::from_str(SCAFFOLDING_RUBY_IDENT).unwrap();
+                    let ident = PackageIdent::from_str(SCAFFOLDING_RUBY_IDENT)?;
                     ui.status(Status::Using, &format!("Ruby Scaffolding '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
                 }
                 _ => {
-                    let ident = PackageIdent::from_str(scaffold).unwrap();
+                    let ident = PackageIdent::from_str(scaffold)?;
                     ui.status(Status::Using, &format!("custom Scaffolding: '{}'", ident))?;
                     ui.para("")?;
                     Ok(Some(ident))
