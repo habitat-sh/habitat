@@ -1,5 +1,8 @@
 #[cfg(windows)]
-fn main() { gcc::compile_library("libsid.a", &["./src/obtain_sid.c"]); }
+fn main() {
+    cc::Build::new().file("./src/obtain_sid.c")
+                    .compile("libsid.a");
+}
 
 #[cfg(not(windows))]
 fn main() {}
