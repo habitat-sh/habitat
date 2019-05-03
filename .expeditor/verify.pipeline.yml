@@ -73,7 +73,7 @@ steps:
 
   - label: "[unit] :linux: butterfly lock_as_mutex"
     command:
-      - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_mutex deadlock_detection" -- --test-threads=1
+      - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_mutex deadlock_detection" -- --test-threads=1 --format=pretty
     agents:
       queue: 'default-privileged'
     plugins:
@@ -87,7 +87,7 @@ steps:
 
   - label: "[unit] :linux: butterfly lock_as_rwlock"
     command:
-      - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_rwlock deadlock_detection" -- --test-threads=1
+      - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_rwlock deadlock_detection" -- --test-threads=1 --format=pretty
     agents:
       queue: 'default-privileged'
     plugins:
@@ -275,9 +275,9 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: sup"
+  - label: "[unit] :linux: sup lock_as_rwlock"
     command:
-      - ./test/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_mutex"
+      - ./test/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_rwlock"
     agents:
       queue: 'default-privileged'
     plugins:
@@ -290,6 +290,20 @@ steps:
     retry:
       automatic:
         limit: 1
+
+  - label: "[unit] :linux: sup lock_as_mutex"
+    command:
+      - ./test/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_mutex"
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    soft_fail: true
 
   - label: "[unit] :linux: sup-client"
     command:
@@ -336,9 +350,17 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :windows: butterfly"
+  - label: "[unit] :windows: butterfly lock_as_mutex"
     command:
       - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_mutex deadlock_detection" -TestOptions "--test-threads=1"
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 20
+    soft_fail: true
+
+  - label: "[unit] :windows: butterfly lock_as_rwlock"
+    command:
+      - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_rwlock deadlock_detection" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 20
@@ -434,10 +456,19 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :windows: sup"
+  - label: "[unit] :windows: sup lock_as_mutex"
     command:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - ./test/run_cargo_test.ps1 sup -Features "lock_as_mutex" -TestOptions "--test-threads=1"
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 40
+    soft_fail: true
+
+  - label: "[unit] :windows: sup lock_as_rwlock"
+    command:
+      # This test has test (not code) concurrency issues and will fail if we don't limit it
+      - ./test/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 40
@@ -686,4 +717,3 @@ steps:
     retry:
       automatic:
         limit: 1
-

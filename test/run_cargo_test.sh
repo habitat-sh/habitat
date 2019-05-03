@@ -59,4 +59,8 @@ export RUST_BACKTRACE=1
 
 echo "--- Running cargo +$toolchain test with on $component with $*"
 cd "components/$component"
+# Always add `--quiet` to avoid the noise of compilation in test output.
+# The invocation to this script can add `--format pretty` to the test runner
+# args (that is, after --, like --nocapture and --test-threads) if the names
+# of the tests being run is desired in the output.
 cargo +"$toolchain" test --quiet "$@"
