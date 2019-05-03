@@ -241,27 +241,37 @@ pub mod sync {
         /// and writers.
         ///
         /// See https://github.com/habitat-sh/habitat/issues/6435
-        #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
-        pub fn read(&self) -> ReadGuard<T> { self.inner.read_recursive() }
-
-        // maybe try_lock_for and panic if not running with deadlock detection?
-        #[cfg(feature = "lock_as_mutex")]
-        pub fn read(&self) -> ReadGuard<T> { self.inner.lock() }
-
-        #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
-        pub fn try_read_for(&self, timeout: Duration) -> Option<ReadGuard<T>> {
-            self.inner.try_read_recursive_for(timeout)
+        pub fn read(&self) -> ReadGuard<T> {
+            #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+            {
+                self.inner.read_recursive()
+            }
+            #[cfg(feature = "lock_as_mutex")]
+            {
+                self.inner.lock()
+            }
         }
 
-        #[cfg(feature = "lock_as_mutex")]
         pub fn try_read_for(&self, timeout: Duration) -> Option<ReadGuard<T>> {
-            self.inner.try_lock_for(timeout)
+            #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+            {
+                self.inner.try_read_recursive_for(timeout)
+            }
+            #[cfg(feature = "lock_as_mutex")]
+            {
+                self.inner.try_lock_for(timeout)
+            }
         }
 
-        #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
-        pub fn write(&self) -> WriteGuard<T> { self.inner.write() }
-
-        #[cfg(feature = "lock_as_mutex")]
-        pub fn write(&self) -> ReadGuard<T> { self.inner.lock() }
+        pub fn write(&self) -> WriteGuard<T> {
+            #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+            {
+                self.inner.write()
+            }
+            #[cfg(feature = "lock_as_mutex")]
+            {
+                self.inner.lock()
+            }
+        }
     }
 }
