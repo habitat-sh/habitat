@@ -14,9 +14,6 @@ studio_build_command="_record_build $HAB_ROOT_PATH/bin/build"
 studio_run_environment=
 studio_run_command="$HAB_ROOT_PATH/bin/hab pkg exec core/hab-backline bash --login"
 
-pkgs="${HAB_STUDIO_BACKLINE_PKG:-core/hab-backline/$(
-  echo "$version" | $bb cut -d / -f 1)}"
-
 run_user="hab"
 run_group="$run_user"
 
@@ -88,17 +85,7 @@ finish_setup() {
   # (This is also why we're not using HAB_BLDR_CHANNEL for this and
   # replicating the fallback logic from hab-plan-build; it'd be too
   # easy to create an unstable studio.)
-  for pkg in $pkgs; do
-    if [ -n "${CI_OVERRIDE_CHANNEL:-}" ]; then
-      info "Override channel set; retrieving ${pkg} from ${CI_OVERRIDE_CHANNEL}"
-      _hab install --channel="${CI_OVERRIDE_CHANNEL}" "${pkg}" || {
-        info "Package not found in ${CI_OVERRIDE_CHANNEL}; falling back to stable"
-        _hab install "${pkg}"
-      }
-    else
-      _hab install "$pkg"
-    fi
-  done
+  _hab install $HAB_STUDIO_BACKLINE_PKG
 
   bash_path=$(_pkgpath_for core/bash)
   coreutils_path=$(_pkgpath_for core/coreutils)

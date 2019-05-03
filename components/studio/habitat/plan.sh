@@ -4,7 +4,9 @@ pkg_origin=core
 pkg_version=$(cat "$SRC_PATH/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_deps=()
+pkg_deps=(
+  core/hab-backline/$pkg_version
+)
 pkg_build_deps=(core/coreutils
                 core/tar
                 core/xz
@@ -12,6 +14,10 @@ pkg_build_deps=(core/coreutils
                 core/busybox-static
                 core/hab)
 pkg_bin_dirs=(bin)
+
+do_prepare() {
+  set_runtime_env "HAB_STUDIO_BACKLINE_PKG" "$(< $(pkg_path_for core/hab-backline)/IDENT)"
+}
 
 do_build() {
   cp -v "$SRC_PATH"/bin/hab-studio.sh hab-studio

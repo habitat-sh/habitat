@@ -63,7 +63,7 @@ mod inner {
                         fs::{am_i_root,
                              find_command},
                         os::process,
-                        package::PackageIdent,
+                        package::{PackageIdent,PackageInstall},
                         users::linux as group},
                 VERSION};
     use std::{env,
@@ -86,6 +86,23 @@ mod inner {
                     let ident = PackageIdent::from_str(&format!("{}/{}",
                                                                 super::STUDIO_PACKAGE_IDENT,
                                                                 version[0]))?;
+                    // TODO(SM): This is the minimum change needed to allow the studio to specify
+                    // its dependencies. This is a duplicate of the code in `hab pkg exec` and
+                    // should be refactored.
+                    let pkg_install = PackageInstall::load(&ident, None)?;
+                    let cmd_env = pkg_install.environment_for_command()?;
+                    for (key, value) in cmd_env.into_iter() {
+                        debug!("Setting: {}='{}'", key, value);
+                        env::set_var(key, value);
+                    }
+
+                    let mut display_args = super::STUDIO_CMD.to_string();
+                    for arg in args {
+                        display_args.push(' ');
+                        display_args.push_str(arg.to_string_lossy().as_ref());
+                    }
+                    debug!("Running: {}", display_args);
+
                     exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident)?
                 }
             };
