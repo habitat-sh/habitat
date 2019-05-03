@@ -1,8 +1,5 @@
 #[cfg(windows)]
 fn main() {
-    extern crate base64;
-    extern crate gcc;
-
     use std::{env,
               fs::File,
               io::prelude::*,
