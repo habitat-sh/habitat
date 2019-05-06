@@ -91,7 +91,9 @@ steps:
 
   - label: "[unit] :linux: butterfly ignored"
     command:
-      - ./test/run_cargo_test.sh --nightly --features "deadlock_detection" --test-options "--test-threads=1 --ignored" butterfly
+      # put this back once the deadlock detection comes back
+      #- ./test/run_cargo_test.sh --nightly --features "deadlock_detection" --test-options "--test-threads=1 --ignored" butterfly
+      - ./test/run_cargo_test.sh --test-options "--test-threads=1 --ignored" butterfly
     agents:
       queue: 'default-privileged'
     plugins:
@@ -338,7 +340,9 @@ steps:
 
   - label: "[unit] :windows: butterfly ignored"
     command:
-      - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "deadlock_detection" -TestOptions "--test-threads=1 --ignored"
+      # put this back once the deadlock detection comes back
+      #- ./test/run_cargo_test.ps1 butterfly -Nightly -Features "deadlock_detection" -TestOptions "--test-threads=1 --ignored"
+      - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1 --ignored"
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 20
