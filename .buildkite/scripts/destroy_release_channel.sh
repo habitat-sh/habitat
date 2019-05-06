@@ -11,6 +11,6 @@ channel="$(get_release_channel)"
 echo "--- Destroying release channel '${channel}'"
 
 # TODO (CM): Once this command takes an --auth token, use that instead
-HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}" hab bldr channel destroy \
+HAB_LICENSE="accept-no-persist" HAB_AUTH_TOKEN="${HAB_AUTH_TOKEN}" hab bldr channel destroy \
     --origin=core \
     "${channel}"
