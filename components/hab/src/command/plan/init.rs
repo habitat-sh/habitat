@@ -31,10 +31,10 @@ use crate::{common::ui::{Status,
                          UI},
             error::Result};
 
-const FULL_PLAN_TEMPLATE: &str =
+const FULL_PLAN_SH_TEMPLATE: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/full_template_plan.sh"));
-const MINIMAL_PLAN_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
-                                                         "/static/minimal_template_plan.sh"));
+const MINIMAL_PLAN_SH_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
+                                                            "/static/minimal_template_plan.sh"));
 const FULL_PLAN_PS1_TEMPLATE: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/full_template_plan.ps1"));
 const MINIMAL_PLAN_PS1_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
@@ -106,9 +106,9 @@ pub fn start(ui: &mut UI,
         create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
     } else {
         let rendered_plan = if minimal {
-            handlebars.template_render(MINIMAL_PLAN_TEMPLATE, &data)?
+            handlebars.template_render(MINIMAL_PLAN_SH_TEMPLATE, &data)?
         } else {
-            handlebars.template_render(FULL_PLAN_TEMPLATE, &data)?
+            handlebars.template_render(FULL_PLAN_SH_TEMPLATE, &data)?
         };
         create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     }
