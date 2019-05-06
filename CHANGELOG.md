@@ -3,17 +3,17 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+ ## [0.81.0](https://github.com/habitat-sh/habitat/tree/0.81.0) (2019-05-06)
+ [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.80.0...0.81.0)
+
+#### Bug Fixes
+- Add HAB_LICENSE to 2 more spots in our release automation [#6497](https://github.com/habitat-sh/habitat/pull/6497) ([raskchanky](https://github.com/raskchanky))
+- Ensure the install script has accepted the license [#6503](https://github.com/habitat-sh/habitat/pull/6503) ([raskchanky](https://github.com/raskchanky))
+
 #### Merged Pull Requests
 - Sets project status and SLA [#6473](https://github.com/habitat-sh/habitat/pull/6473) ([dmccown](https://github.com/dmccown))
 - Revert &quot;Switch to parking_lot&#39;s RwLock and add CI deadlock detection&quot; [#6513](https://github.com/habitat-sh/habitat/pull/6513) ([raskchanky](https://github.com/raskchanky))
-- Add HAB_LICENSE to 2 more spots in our release automation [#6497](https://github.com/habitat-sh/habitat/pull/6497) ([raskchanky](https://github.com/raskchanky))
-- Ensure the install script has accepted the license [#6503](https://github.com/habitat-sh/habitat/pull/6503) ([raskchanky](https://github.com/raskchanky))
 <!-- latest_release -->
-
-## [0.81.0-dev](https://github.com/habitat-sh/habitat/tree/0.81.0-dev) (2019-04-30)
-
-#### Merged Pull Requests
-- Bump to 0.81.0-dev [#6496](https://github.com/habitat-sh/habitat/pull/6496) ([raskchanky](https://github.com/raskchanky))
 
  ## [0.80.0](https://github.com/habitat-sh/habitat/tree/0.80.0) (2019-04-30)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.79.1...0.80.0)
