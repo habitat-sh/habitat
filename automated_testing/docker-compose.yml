@@ -1,0 +1,126 @@
+# This is the latest version with support for `extends`, which we use
+# to abstract some repetitive details. We could use more modern
+# versions, but then we'd have to do some YAML generation of our
+# own. It's not hard, but I'd rather avoid it if possible. (Of course,
+# depending on how this testing setup evolves, we may end up going the
+# generation route eventually, anyway.)
+version: '2.4'
+
+# The basic idea of all this is that we set up a self-contained
+# network of containers, each of which are running a Supervisor. At
+# least one of those Supervisors is a "bastion" Supervisor that all
+# the other Supervisors are peered to, thus forming a single Habitat
+# network.
+#
+# Finally, there is a "tester" container, which is the main entry
+# point of the test. This is a container that is in the same network
+# as the Supervisors, and can communicate remotely with them using the
+# shared CTL_SECRET and `--remote-sup` options for various `hab`
+# commands. Think of this container as your workstation, from which
+# you can start, stop, and otherwise manipulate services across your
+# Habitat network. The command the tester container runs should
+# basically be a straightforward script of Habitat commands and
+# verification steps. If the command exits successfully, then the test
+# has passed; if it exits with an error, the test has failed.
+services:
+
+  # All services should ultimately derive from this definition. This
+  # ensures that they're all in the same network, have the same shared
+  # CTL_SECRET, and have additional metadata set appropriately.
+  base:
+    image: ${SUPERVISOR_IMAGE}
+    domainname: habitat.dev
+    environment:
+      HAB_LICENSE: accept-no-persist
+      HAB_NONINTERACTIVE: '1'
+      TESTCASE: ${TESTCASE}
+      COMPOSE_PROJECT_NAME: ${COMPOSE_PROJECT_NAME}
+    volumes:
+      - source: ./CTL_SECRET
+        target: /hab/sup/default/CTL_SECRET
+        type: bind
+
+  # Defines a basic Supervisor service peered to our bastion
+  # Supervisor. All Supervisors in the network will generally derive
+  # from this definition in one way or another.
+  sup_base:
+    extends:
+      service: base
+    command:
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --peer=bastion.habitat.dev
+
+  # THIS IS THE MAIN ENTRY POINT!
+  #
+  # Defines a testing container can communicate with all the
+  # Supervisors (because it's in the same network and has the same
+  # `CTL_SECRET` file mounted in it that all the other Supervisor
+  # containers do.)
+  #
+  # The container image is built to contain a test case, which is also
+  # its command.
+  #
+  # It should depend on all the Supervisor containers it interacts
+  # with, to ensure they are up before this container starts.
+  #
+  # This assumes you have a Dockerfile in the testcase directory, and
+  # that its command is set to run whatever test scenario you want to
+  # run.
+  test_base:
+    extends:
+      service: base
+    build:
+      context: ${TESTCASE_DIR}
+    image: ${TESTCASE}_image
+
+  # The Supervisor containers are defined below. They're often simply
+  # clones of each other (with different hostnames), but they can be
+  # modified as required by tests.
+
+  bastion:
+    extends:
+      service: sup_base
+    hostname: bastion
+    command:
+      # Note that we override the existing command to make this a
+      # permanent peer, and do not try to peer it to itself.
+      - run
+      - --listen-ctl=0.0.0.0:9632
+      - --permanent-peer
+    networks:
+      default:
+        # This `bastion.habitat.dev` name is important, since other
+        # Supervisors will peer to it by default (see base service
+        # definition)
+        aliases:
+        - bastion.habitat.dev
+
+  # These services define just plain old ordinary Supervisors; they're
+  # not running any services, and they're remotely-accessible to the
+  # testing container.
+
+  alpha:
+    extends:
+      service: sup_base
+    hostname: alpha
+    networks:
+      default:
+        aliases:
+        - alpha.habitat.dev
+    depends_on:
+      - bastion
+
+  beta:
+    extends:
+      service: sup_base
+    hostname: beta
+    networks:
+      default:
+        aliases:
+        - beta.habitat.dev
+    depends_on:
+      - bastion
+
+  # Feel free to add additional stock Supervisors here as test
+  # scenarios get more complex.

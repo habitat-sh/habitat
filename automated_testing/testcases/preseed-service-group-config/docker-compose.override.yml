@@ -1,0 +1,9 @@
+version: '2.4'
+services:
+  tester:
+    extends:
+      service: test_base
+    depends_on:
+      - bastion
+      - alpha
+      - beta

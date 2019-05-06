@@ -1,0 +1,20 @@
+version: '2.4'
+services:
+  tester:
+    extends:
+      service: test_base
+    depends_on:
+      - bastion
+      - alpha
+      - beta
+    volumes:
+      # The test currently requires access to the individual
+      # Supervisor "servers"' file systems. Since this is Docker,
+      # though, we need access to the Docker socket inside the
+      # container, so we can use docker to get into the other docker
+      # containers to check.
+      #
+      # Yo dawg, I heard you like Docker....
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        type: bind

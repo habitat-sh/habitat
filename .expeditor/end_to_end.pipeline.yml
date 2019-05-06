@@ -19,6 +19,18 @@ steps:
 # E2E
 #######################################################################
 
+  - label: ":docker: Docker End-to-End Supervisor Tests"
+    command:
+      - cd automated_testing
+      # TODO (CM): should be DEV, but somehow it doesn't have the packages I need at the moment?!
+      - ./run_all.sh stable
+    expeditor:
+      executor:
+        linux:
+          privileged: true
+    artifact_paths:
+      - "automated_testing/habitat_integration_output/**"
+
   - label: "[:linux: test_hab_help_doesnt_install_hab_sup]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
