@@ -19,7 +19,6 @@ habitat_core = { path = "../core" }
 habitat_common = { path = "../common" }
 log = "*"
 lazy_static = "*"
-parking_lot = "*"
 prometheus = "*"
 prost = "*"
 prost-derive = "*"
@@ -47,4 +46,4 @@ tempfile = "*"
 [features]
 default = ["protocols"]
 protocols = []
-deadlock_detection = ["parking_lot/nightly", "parking_lot/deadlock_detection"]
+ignore_inconsistent_tests = []
