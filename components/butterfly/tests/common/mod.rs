@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use habitat_butterfly::{member::{Health,
+use habitat_butterfly::{error::Error,
+                        member::{Health,
                                  Member},
                         rumor::{departure::Departure,
                                 election::ElectionStatus,
@@ -180,6 +181,10 @@ impl SwimNet {
     }
 
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
+        /// To avoid deadlocking in a test, we use `health_of_by_id_with_timeout` rather than
+        /// `health_of_by_id`.
+        const HEALTH_OF_TIMEOUT: Duration = Duration::from_secs(5);
+
         let from = self.members
                        .get(from_entry)
                        .expect("Asked for a network member who is out of bounds");

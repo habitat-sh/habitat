@@ -20,6 +20,7 @@ habitat_common = { path = "../common" }
 log = "*"
 lazy_static = "*"
 prometheus = "*"
+parking_lot = "*"
 prost = "*"
 prost-derive = "*"
 rand = "*"
