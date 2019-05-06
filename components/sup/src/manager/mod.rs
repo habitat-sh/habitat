@@ -1254,7 +1254,7 @@ impl Manager {
     }
 
     /// Remove the given service from the manager.
-    fn service_stop_future(service: Service,
+    fn service_stop_future(mut service: Service,
                            shutdown_spec: ShutdownSpec,
                            user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
                            updater: Arc<Mutex<ServiceUpdater>>,
