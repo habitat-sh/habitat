@@ -16,34 +16,34 @@ $pkg_origin="{{ pkg_origin }}"
 # Sets the version of the package
 {{#if pkg_version ~}}
 $pkg_version="{{ pkg_version }}"
-{{else ~}}
+{{~ else ~}}
 $pkg_version="0.1.0"
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # The name and email address of the package maintainer.
 {{#if pkg_maintainer ~}}
 $pkg_maintainer="{{ pkg_maintainer }}"
-{{else ~}}
+{{~ else ~}}
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of valid software licenses that relate to this package.
 # Please choose a license from http://spdx.org/licenses/
 {{#if pkg_license ~}}
 $pkg_license="{{ pkg_license }}"
-{{else ~}}
+{{~ else ~}}
 $pkg_license=@("Apache-2.0")
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # The scaffolding base for this plan.
 {{#if scaffolding_ident ~}}
 pkg_scaffolding="{{ scaffolding_ident }}"
-{{else ~}}
+{{~ else ~}}
 # pkg_scaffolding="some/scaffolding"
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # A URL that specifies where to download the source from. Any valid wget url
@@ -52,18 +52,18 @@ pkg_scaffolding="{{ scaffolding_ident }}"
 # required.
 {{#if pkg_source ~}}
 $pkg_source="{{ pkg_source }}"
-{{else ~}}
+{{~ else ~}}
 # $pkg_source="http://some_source_url/releases/$pkg_name-$pkg_version.zip"
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # The resulting filename for the download, typically constructed from the
 # pkg_name and pkg_version values.
 {{#if pkg_filename ~}}
 $pkg_filename="{{ pkg_filename }}"
-{{else ~}}
+{{~ else ~}}
 # $pkg_filename="$pkg_name-$pkg_version.zip"
-{{/if}}
+{{~ /if}}
 
 # Required if a valid URL is provided for pkg_source or unless Invoke-Verify is overridden.
 # The value for pkg_shasum is a sha-256 sum of the downloaded pkg_source. If you
@@ -73,9 +73,9 @@ $pkg_filename="{{ pkg_filename }}"
 # expected value will be shown in the build output of your package.
 {{#if pkg_shasum ~}}
 $pkg_shasum="{{ pkg_shasum }}"
-{{else ~}}
+{{~ else ~}}
 $pkg_shasum="TODO"
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of package dependencies needed at runtime. You can refer to packages
@@ -83,35 +83,35 @@ $pkg_shasum="TODO"
 # `origin/package/version/release`.
 {{#if pkg_deps ~}}
 $pkg_deps={{ pkg_deps }}
-{{else ~}}
+{{~ else ~}}
 $pkg_deps=@()
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of the package dependencies needed only at build time.
 {{#if pkg_build_deps ~}}
 $pkg_build_deps={{ pkg_build_deps }}
-{{else ~}}
+{{~ else ~}}
 $pkg_build_deps=@()
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # libraries can be found for native builds.
 {{#if pkg_lib_dirs ~}}
 $pkg_lib_dirs={{ pkg_lib_dirs }}
-{{else ~}}
+{{~ else ~}}
 # $pkg_lib_dirs=@("lib")
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # headers can be found.
 {{#if pkg_include_dirs ~}}
 $pkg_include_dirs={{ pkg_include_dirs }}
-{{else ~}}
+{{~ else ~}}
 # $pkg_include_dirs=@("include")
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of paths, relative to the final install of the software, where
@@ -119,9 +119,9 @@ $pkg_include_dirs={{ pkg_include_dirs }}
 # your package.
 {{#if pkg_bin_dirs ~}}
 $pkg_bin_dirs={{ pkg_bin_dirs }}
-{{else ~}}
+{{~ else ~}}
 # $pkg_bin_dirs=@("bin")
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # The command for the Supervisor to execute when starting a service. You can
@@ -129,9 +129,9 @@ $pkg_bin_dirs={{ pkg_bin_dirs }}
 # Supervisor of if your plan contains a run hook in hooks/run.
 {{#if pkg_svc_run ~}}
 $pkg_svc_run="{{ pkg_svc_run }}"
-{{else ~}}
+{{~ else ~}}
 # $pkg_svc_run="MyBinary.exe"
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # A hashtable representing configuration data which should be gossiped to peers. The keys
@@ -139,13 +139,13 @@ $pkg_svc_run="{{ pkg_svc_run }}"
 # to read the value.
 {{#if pkg_exports ~}}
 $pkg_exports={{ pkg_exports }}
-{{else ~}}
+{{~ else ~}}
 # $pkg_exports=@{
 #   host="srv.address"
 #   port="srv.port"
 #   ssl-port="srv.ssl.port"
 # }
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of `$pkg_exports` keys containing default values for which ports that this package
@@ -153,9 +153,9 @@ $pkg_exports={{ pkg_exports }}
 # a package to a container format.
 {{#if pkg_exposes ~}}
 $pkg_exposes={{ pkg_exposes }}
-{{else ~}}
+{{~ else ~}}
 # $pkg_exposes=@("port," "ssl-port")
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # A hashtable representing services which you depend on and the configuration keys that
@@ -165,21 +165,21 @@ $pkg_exposes={{ pkg_exposes }}
 # successfully.
 {{#if pkg_binds ~}}
 $pkg_binds={{ pkg_binds }}
-{{else ~}}
+{{~ else ~}}
 # $pkg_binds=@{
 #   database="port host"
 # }
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # Same as `$pkg_binds` but these represent optional services to connect to.
 {{#if pkg_binds_optional ~}}
 $pkg_binds_optional={{ pkg_binds_optional }}
-{{else ~}}
+{{~ else ~}}
 # $pkg_binds_optional=@{
 #   storage="port host"
 # }
-{{/if}}
+{{~ /if}}
 
 # Required for core plans, optional otherwise.
 # A short description of the package. It can be a simple string, or you can
@@ -187,17 +187,17 @@ $pkg_binds_optional={{ pkg_binds_optional }}
 # of your package.
 {{#if pkg_description ~}}
 $pkg_description="{{ pkg_description }}"
-{{else ~}}
+{{~ else ~}}
 # $pkg_description="Some description."
-{{/if}}
+{{~ /if}}
 
 # Required for core plans, optional otherwise.
 # The project home page for the package.
 {{#if pkg_upstream_url ~}}
 $pkg_upstream_url="{{ pkg_upstream_url }}"
-{{else ~}}
+{{~ else ~}}
 # $pkg_upstream_url="http://example.com/project-name"
-{{/if}}
+{{~ /if}}
 
 # Callback Functions
 #
@@ -217,9 +217,11 @@ $pkg_upstream_url="{{ pkg_upstream_url }}"
 # plan build script:
 # https://github.com/habitat-sh/habitat/tree/master/components/plan-build-ps1/bin/hab-plan-build.ps1
 
-# There is no default implementation of this callback. You can use it to execute
-# any arbitrary commands before anything else happens.
-function Invoke-Begin {}
+# The default implmentation does nothing. You can use it to execute any
+# arbitrary commands before anything else happens.
+function Invoke-Begin {
+  Invoke-DefaultBegin
+}
 
 # The default implementation is that the software specified in $pkg_source is
 # downloaded, checksum-verified, and placed in $HAB_CACHE_SRC_PATH/$pkgfilename,
@@ -255,11 +257,13 @@ function Invoke-Unpack {
   Invoke-DefaultUnpack
 }
 
-# There is no default implementation of this callback. At this point in the
-# build process, the zipped source has been downloaded, unpacked, and the build
-# environment variables have been set, so you can use this callback to perform
-# any actions before the package starts building.
-function Invoke-Prepare {}
+# The default implementation does nothing. At this point in the build process,
+# the zipped source has been downloaded, unpacked, and the build environment
+# variables have been set, so you can use this callback to perform any actions
+# before the package starts building.
+function Invoke-Prepare {
+  Invoke-DefaultPrepare
+}
 
 # There is no default implementation of this callback. You should override this
 # callback with the commands necessary to build your application.
@@ -279,7 +283,9 @@ function Invoke-Install {
   Invoke-DefaultInstall
 }
 
-# There is no default implementation of this callback. This is called after the
-# package has been built and installed. You can use this callback to remove any
-# temporary files or perform other post-install clean-up actions.
-function Invoke-End {}
+# The default implmentation does nothing. This is called after the package has
+# been built and installed. You can use this callback to remove any temporary
+# files or perform other post-install clean-up actions.
+function Invoke-End {
+  Invoke-DefaultEnd
+}
