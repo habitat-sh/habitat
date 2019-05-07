@@ -659,11 +659,10 @@ impl MemberList {
         }
     }
 
-    // This could be Result<T> instead, but there's only the one caller now
-    pub fn with_memberships(&self,
-                            mut with_closure: impl FnMut(Membership) -> Result<u64>)
-                            -> Result<u64> {
-        let mut ok: Result<u64> = Ok(0);
+    pub fn with_memberships<T: Default>(&self,
+                                        mut with_closure: impl FnMut(Membership) -> Result<T>)
+                                        -> Result<T> {
+        let mut ok = Ok(T::default());
         for membership in self.read_entries()
                               .values()
                               .map(|member_list::Entry { member, health, .. }| {
@@ -845,6 +844,7 @@ mod tests {
         use crate::member::{Health,
                             Member,
                             MemberList,
+                            Membership,
                             PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
@@ -879,7 +879,11 @@ mod tests {
         #[test]
         fn health_of() {
             let ml = populated_member_list(1);
-            ml.with_members(|m| assert_eq!(ml.health_of(m), Some(Health::Alive)));
+            ml.with_memberships(|Membership { member: _, health }| {
+                  assert_eq!(health, Health::Alive);
+                  Ok(())
+              })
+              .ok();
         }
 
         #[test]
