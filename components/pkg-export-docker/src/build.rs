@@ -1,17 +1,3 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 use super::{BUSYBOX_IDENT,
             CACERTS_IDENT,
             VERSION};
@@ -45,6 +31,7 @@ use clap;
 use failure::SyncFailure;
 #[cfg(unix)]
 use hab;
+use hab::license;
 #[cfg(unix)]
 use std::os::unix::fs::symlink;
 #[cfg(windows)]
@@ -441,12 +428,19 @@ impl BuildRootContext {
         }
 
         tdeps.dedup();
-        let environment = tdeps.into_iter()
-                               .filter_map(|dep| {
-                                   let key = format!("HAB_{}", dep.to_uppercase());
-                                   env::var(&key).ok().map(|v| (key, v))
-                               })
-                               .collect();
+        let mut environment: HashMap<String, String> =
+            tdeps.into_iter()
+                 .filter_map(|dep| {
+                     let key = format!("HAB_{}", dep.to_uppercase());
+                     env::var(&key).ok().map(|v| (key, v))
+                 })
+                 .collect();
+
+        if license::check_for_license_acceptance().unwrap_or(false) {
+            environment.insert(String::from("HAB_LICENSE"),
+                               String::from("accept-no-persist"));
+        }
+
         let bin_path = util::bin_path();
 
         let context = BuildRootContext { idents,
