@@ -68,8 +68,16 @@ impl LicenseData {
     }
 }
 
-pub fn check_for_license_acceptance_and_prompt(ui: &mut UI) -> Result<()> {
+pub fn check_for_license_acceptance() -> Result<bool> {
     if license_exists() || env_var_present()? {
+        return Ok(true);
+    }
+
+    Ok(false)
+}
+
+pub fn check_for_license_acceptance_and_prompt(ui: &mut UI) -> Result<()> {
+    if check_for_license_acceptance()? {
         return Ok(());
     }
 
