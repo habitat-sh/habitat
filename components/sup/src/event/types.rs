@@ -72,6 +72,7 @@ impl EventCore {
         // occurred_at will be set to Some when the event is published.
         EventMetadata { supervisor_id: self.supervisor_id.clone(),
                         ip_address:    self.ip_address.to_string(),
+                        fqdn:          self.fqdn.clone(),
                         application:   self.application.clone(),
                         environment:   self.environment.clone(),
                         occurred_at:   None,

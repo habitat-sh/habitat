@@ -13,6 +13,7 @@ message EventMetadata {
   string application = 4;
   string environment = 5;
   map<string, string> meta = 6;
+  string fqdn = 7;
 }
 
 message ServiceMetadata {
