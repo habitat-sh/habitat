@@ -481,7 +481,12 @@ impl Manager {
             let es_config =
                 cfg.event_stream_config
                    .expect("Config should be present if the EventStream feature is enabled");
-            let ec = EventCore::new(&es_config, &sys);
+
+            // Collect the FQDN of the running machine
+            let fqdn = habitat_core::os::net::fqdn().unwrap_or_else(|| sys.hostname.clone());
+            outputln!("Event FQDN {}", fqdn);
+
+            let ec = EventCore::new(&es_config, &sys, fqdn);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
             event::init_stream(es_config, ec)?;
