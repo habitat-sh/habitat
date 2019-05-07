@@ -29,6 +29,7 @@ serde = "*"
 serde_json = "*"
 failure = "*"
 failure_derive = "*"
+regex = "*"
 
 [features]
 default = []

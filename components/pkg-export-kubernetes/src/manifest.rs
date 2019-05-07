@@ -23,6 +23,7 @@ use crate::{common::ui::UI,
                     service::ServiceBind}};
 use base64;
 use clap::ArgMatches;
+use regex::Regex;
 
 use crate::export_docker::{DockerImage,
                            Result};
@@ -101,6 +102,8 @@ impl Manifest {
                           .map(str::to_string)
                           .unwrap_or_else(|| format!("{}-{}", pkg_ident.name, version_suffix));
 
+        let formatted_resource_name = Manifest::formatted_metadata_name(&name);
+
         let image_name = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
             None => {
@@ -139,7 +142,7 @@ impl Manifest {
         };
 
         Ok(Manifest { pkg_ident,
-                      metadata_name: name,
+                      metadata_name: formatted_resource_name,
                       image: image_name,
                       count,
                       service_topology: topology,
@@ -151,12 +154,19 @@ impl Manifest {
                       environment })
     }
 
-    /// Generates the manifest as a string and writes it to `write`.
+    /// Generates manifest as a string and writes it to `write`.
     pub fn generate(&mut self, write: &mut dyn Write) -> Result<()> {
         let out: String = ManifestJson::new(&self).into();
 
         write.write_all(out.as_bytes())?;
         Ok(())
+    }
+
+    // Replaces any periods in the metadata name with hyphens
+    // To make it a valid Kubernetes resource name
+    fn formatted_metadata_name(metadata_name: &str) -> String {
+        let re = Regex::new(r"\.").unwrap();
+        re.replace_all(metadata_name, "-").to_string()
     }
 }
 
@@ -259,5 +269,13 @@ mod tests {
         let out = String::from_utf8(o).unwrap();
 
         assert_eq!(out, expected);
+    }
+
+    #[test]
+    fn test_metadata_name() {
+        let expected = String::from("sample-node-app-1-1-0-2019050321383");
+        let formatted_metadata_name = Manifest::formatted_metadata_name("sample-node-app-1.1.0-2019050321383");
+
+        assert_eq!(formatted_metadata_name, expected);
     }
 }
