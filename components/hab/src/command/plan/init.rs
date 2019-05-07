@@ -31,14 +31,10 @@ use crate::{common::ui::{Status,
                          UI},
             error::Result};
 
-const FULL_PLAN_SH_TEMPLATE: &str =
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/full_template_plan.sh"));
-const MINIMAL_PLAN_SH_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
-                                                            "/static/minimal_template_plan.sh"));
-const FULL_PLAN_PS1_TEMPLATE: &str =
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/full_template_plan.ps1"));
-const MINIMAL_PLAN_PS1_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
-                                                             "/static/minimal_template_plan.ps1"));
+const PLAN_TEMPLATE_SH: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_plan.sh"));
+const PLAN_TEMPLATE_PS1: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_plan.ps1"));
 const DEFAULT_TOML_TEMPLATE: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_default.toml"));
 const GITIGNORE_TEMPLATE: &str =
@@ -96,20 +92,16 @@ pub fn start(ui: &mut UI,
         }
     }
 
+    if minimal {
+        data.insert("minimal".to_string(), "true".to_string());
+    }
+
     // We want to render the configured variables.
     if cfg!(windows) {
-        let rendered_plan = if minimal {
-            handlebars.template_render(MINIMAL_PLAN_PS1_TEMPLATE, &data)?
-        } else {
-            handlebars.template_render(FULL_PLAN_PS1_TEMPLATE, &data)?
-        };
+        let rendered_plan = handlebars.template_render(PLAN_TEMPLATE_PS1, &data)?;
         create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
     } else {
-        let rendered_plan = if minimal {
-            handlebars.template_render(MINIMAL_PLAN_SH_TEMPLATE, &data)?
-        } else {
-            handlebars.template_render(FULL_PLAN_SH_TEMPLATE, &data)?
-        };
+        let rendered_plan = handlebars.template_render(PLAN_TEMPLATE_SH, &data)?;
         create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     }
     ui.para("`plan.sh` is the foundation of your new habitat. It contains metadata, \

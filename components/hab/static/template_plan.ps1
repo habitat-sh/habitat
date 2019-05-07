@@ -1,69 +1,106 @@
+{{~ #unless minimal ~}}
 # This file is the heart of your application's habitat.
 # See full docs at https://www.habitat.sh/docs/reference/plan-syntax/
+{{~ /unless ~}}
+
+
+{{~ #unless minimal}}
 
 # Required.
 # Sets the name of the package. This will be used along with `$pkg_origin`,
 # and `$pkg_version` to define the fully-qualified package name, which determines
 # where the package is installed to on disk, how it is referred to in package
 # metadata, and so on.
+{{/unless ~}}
 $pkg_name="{{ pkg_name }}"
+
+
+{{~ #unless minimal}}
 
 # Required unless overridden by the `HAB_ORIGIN` environment variable.
 # The origin is used to denote a particular upstream of a package.
+{{~ /unless}}
 $pkg_origin="{{ pkg_origin }}"
+
+
+{{~ #unless minimal}}
 
 # Required.
 # Sets the version of the package
+{{~ /unless}}
 {{#if pkg_version ~}}
 $pkg_version="{{ pkg_version }}"
 {{~ else ~}}
 $pkg_version="0.1.0"
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # The name and email address of the package maintainer.
+{{~ /unless}}
 {{#if pkg_maintainer ~}}
 $pkg_maintainer="{{ pkg_maintainer }}"
 {{~ else ~}}
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # An array of valid software licenses that relate to this package.
 # Please choose a license from http://spdx.org/licenses/
+{{~ /unless}}
 {{#if pkg_license ~}}
 $pkg_license="{{ pkg_license }}"
 {{~ else ~}}
 $pkg_license=@("Apache-2.0")
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # The scaffolding base for this plan.
+{{~ /unless}}
 {{#if scaffolding_ident ~}}
-pkg_scaffolding="{{ scaffolding_ident }}"
+$pkg_scaffolding="{{ scaffolding_ident }}"
 {{~ else ~}}
-# pkg_scaffolding="some/scaffolding"
+# $pkg_scaffolding="some/scaffolding"
 {{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # A URL that specifies where to download the source from. Any valid wget url
 # will work. Typically, the relative path for the URL is partially constructed
 # from the pkg_name and pkg_version values; however, this convention is not
 # required.
+{{~ /unless}}
 {{#if pkg_source ~}}
 $pkg_source="{{ pkg_source }}"
 {{~ else ~}}
 # $pkg_source="http://some_source_url/releases/$pkg_name-$pkg_version.zip"
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # The resulting filename for the download, typically constructed from the
 # pkg_name and pkg_version values.
+{{~ /unless}}
 {{#if pkg_filename ~}}
 $pkg_filename="{{ pkg_filename }}"
 {{~ else ~}}
 # $pkg_filename="$pkg_name-$pkg_version.zip"
 {{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Required if a valid URL is provided for pkg_source or unless Invoke-Verify is overridden.
 # The value for pkg_shasum is a sha-256 sum of the downloaded pkg_source. If you
@@ -71,57 +108,81 @@ $pkg_filename="{{ pkg_filename }}"
 # and using Get-FileHash. Also, if you do not have
 # Invoke-Verify overridden, and you do not have the correct sha-256 sum, then the
 # expected value will be shown in the build output of your package.
+{{~ /unless}}
 {{#if pkg_shasum ~}}
 $pkg_shasum="{{ pkg_shasum }}"
 {{~ else ~}}
 $pkg_shasum="TODO"
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # An array of package dependencies needed at runtime. You can refer to packages
 # at three levels of specificity: `origin/package`, `origin/package/version`, or
 # `origin/package/version/release`.
+{{~ /unless}}
 {{#if pkg_deps ~}}
 $pkg_deps={{ pkg_deps }}
 {{~ else ~}}
 $pkg_deps=@()
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # An array of the package dependencies needed only at build time.
+{{~ /unless}}
 {{#if pkg_build_deps ~}}
 $pkg_build_deps={{ pkg_build_deps }}
 {{~ else ~}}
 $pkg_build_deps=@()
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # libraries can be found for native builds.
+{{~ /unless}}
 {{#if pkg_lib_dirs ~}}
 $pkg_lib_dirs={{ pkg_lib_dirs }}
 {{~ else ~}}
 # $pkg_lib_dirs=@("lib")
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # headers can be found.
+{{~ /unless}}
 {{#if pkg_include_dirs ~}}
 $pkg_include_dirs={{ pkg_include_dirs }}
 {{~ else ~}}
 # $pkg_include_dirs=@("include")
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # binaries can be found. Used to populate $ENV:PATH for software that depends on
 # your package.
+{{~ /unless}}
 {{#if pkg_bin_dirs ~}}
 $pkg_bin_dirs={{ pkg_bin_dirs }}
 {{~ else ~}}
 # $pkg_bin_dirs=@("bin")
 {{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # The command for the Supervisor to execute when starting a service. You can
@@ -180,24 +241,36 @@ $pkg_binds_optional={{ pkg_binds_optional }}
 #   storage="port host"
 # }
 {{~ /if}}
+{{~ /unless}}
+
+
+{{~ #unless minimal}}
 
 # Required for core plans, optional otherwise.
 # A short description of the package. It can be a simple string, or you can
 # create a multi-line description using markdown to provide a rich description
 # of your package.
+{{~ /unless}}
 {{#if pkg_description ~}}
 $pkg_description="{{ pkg_description }}"
 {{~ else ~}}
 # $pkg_description="Some description."
 {{~ /if}}
 
+
+{{~ #unless minimal}}
+
 # Required for core plans, optional otherwise.
 # The project home page for the package.
+{{~ /unless}}
 {{#if pkg_upstream_url ~}}
 $pkg_upstream_url="{{ pkg_upstream_url }}"
 {{~ else ~}}
 # $pkg_upstream_url="http://example.com/project-name"
 {{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Callback Functions
 #
@@ -289,3 +362,14 @@ function Invoke-Install {
 function Invoke-End {
   Invoke-DefaultEnd
 }
+{{~ else}}
+
+function Invoke-Build {
+  Invoke-DefaultBuild
+}
+
+function Invoke-Install {
+  Invoke-DefaultInstall
+}
+
+{{~ /unless}}
