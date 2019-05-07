@@ -495,6 +495,9 @@ impl Manager {
             let es_config =
                 cfg.event_stream_config
                    .expect("Config should be present if the EventStream feature is enabled");
+            // TODO: @afiune We could use a public crate to gather the hostname
+            // instead of the current implementation at: components/core/src/os/net/unix.rs
+            outputln!("Event Hostname {}", sys.hostname);
             let ec = EventCore::new(&es_config, &sys);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.

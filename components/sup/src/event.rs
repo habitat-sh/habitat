@@ -153,6 +153,7 @@ pub struct EventCore {
     /// The unique identifier of the Supervisor sending the event.
     supervisor_id: String,
     ip_address: SocketAddr,
+    fqdn: String,
     application: String,
     environment: String,
     meta: EventStreamMetadata,
@@ -162,6 +163,7 @@ impl EventCore {
     pub fn new(config: &EventStreamConfig, sys: &Sys) -> Self {
         EventCore { supervisor_id: sys.member_id.clone(),
                     ip_address:    sys.gossip_listen(),
+                    fqdn:          sys.hostname.clone(),
                     environment:   config.environment.clone(),
                     application:   config.application.clone(),
                     meta:          config.meta.clone(), }
