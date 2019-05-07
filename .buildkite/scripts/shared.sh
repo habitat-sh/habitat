@@ -84,13 +84,14 @@ set_hab_binary() {
     local pkg_target
     case "${BUILD_PKG_TARGET}" in
         x86_64-linux)
-            hab_binary="$(command -v hab)"
             pkg_target="x86_64-linux"
+            install_hab_binary "$pkg_target" "/hab/bin"
+            hab_binary="/hab/bin/hab"
             ;;
         x86_64-linux-kernel2)
-            install_hab_kernel2_binary
-            hab_binary="$(command -v hab-x86_64-linux-kernel2)"
             pkg_target="x86_64-linux-kernel2"
+            install_hab_binary "$pkg_target" "/hab/bin"
+            hab_binary="/hab/bin/hab"
             ;;
         x86_64-windows)
             # We're going to use the existing hab binary here.
@@ -126,22 +127,16 @@ set_hab_binary() {
     echo "--- :habicat: Using $(${hab_binary} --version)"
 }
 
-# This installation step is a temporary shim until we have done at
-# least one release. Once we have a release, we can update ci-studio-common
-# to fetch this binary from bintray using the install.sh script and the install
-# step is no longer needed. Until then, we need to fetch it from our 
-# bootstrap pipeline. 
-install_hab_kernel2_binary() {
-    local hab_src_url tempdir
-    hab_src_url="http://s3-us-west-2.amazonaws.com/habitat-bootstrap-artifacts/x86_64-linux-kernel2/stage2/hab-stage2-x86_64-linux-kernel2-latest"
-    tempdir=$(mktemp -d hab-kernel2-XXXX)
+# Use the install.sh script which lives in this repository to download the latest version of Habitat
+install_hab_binary() {
+    local target install_path
+    
+    target="$1"
+    install_path="$2"
 
-    pushd "$tempdir" || exit
-    curl "$hab_src_url" -o hab-x86_64-linux-kernel2
-    sudo mv hab-x86_64-linux-kernel2 /bin/hab-x86_64-linux-kernel2
-    sudo chmod +x /bin/hab-x86_64-linux-kernel2
-    popd || exit
-    rm -rf "$tempdir" || exit
+    #sudo env HAB_BINLINK_DIR="$install_path" ./components/hab/install.sh -t "$target"
+    sudo ./components/hab/install.sh -t "$target"
+    sudo /bin/hab pkg binlink core/hab hab -d $install_path 
 }
 
 # The following get/set functions abstract the meta-data key
