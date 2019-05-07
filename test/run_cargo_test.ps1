@@ -16,7 +16,7 @@ $ErrorActionPreference="stop"
 . $PSScriptRoot\..\support\ci\shared.ps1
 
 $toolchain = "stable"
-if($Nightly) { $toolchain = "nightly" }
+if($Nightly) { $toolchain = (gc $PSScriptRoot\..\RUSTFMT_VERSION | out-string).Trim() }
 
 Install-Rustup $toolchain
 Install-RustToolchain $toolchain
