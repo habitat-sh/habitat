@@ -495,10 +495,18 @@ impl Manager {
             let es_config =
                 cfg.event_stream_config
                    .expect("Config should be present if the EventStream feature is enabled");
-            // TODO: @afiune We could use a public crate to gather the hostname
-            // instead of the current implementation at: components/core/src/os/net/unix.rs
-            outputln!("Event Hostname {}", sys.hostname);
-            let ec = EventCore::new(&es_config, &sys);
+
+            // Generating the FQDN by combining the hostname and the domain name,
+            // if the domain name is None, the fqdn will default to be the hostname.
+            let mut fqdn = sys.hostname.clone();
+            let domainname = habitat_core::os::net::domainname().ok();
+            if domainname.is_some() {
+                fqdn.push('.');
+                fqdn.push_str(&domainname.unwrap());
+            }
+            outputln!("Event FQDN {}", fqdn);
+
+            let ec = EventCore::new(&es_config, &sys, fqdn);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
             event::init_stream(es_config, ec)?;
