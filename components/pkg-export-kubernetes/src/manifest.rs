@@ -23,7 +23,6 @@ use crate::{common::ui::UI,
                     service::ServiceBind}};
 use base64;
 use clap::ArgMatches;
-use regex::Regex;
 
 use crate::export_docker::{DockerImage,
                            Result};
@@ -165,8 +164,7 @@ impl Manifest {
     // Replaces any periods in the metadata name with hyphens
     // To make it a valid Kubernetes resource name
     fn formatted_metadata_name(metadata_name: &str) -> String {
-        let re = Regex::new(r"\.").unwrap();
-        re.replace_all(metadata_name, "-").to_string()
+        metadata_name.replace(".", "-")
     }
 }
 
