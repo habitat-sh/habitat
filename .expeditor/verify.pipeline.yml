@@ -339,6 +339,19 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: studio"
+    command:
+      - ./test/run_studio_test.sh "studio-from-source"
+    expeditor:
+      executor:
+        linux: 
+          privileged: true
+          single-use: true 
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1
+
  #################################################################
 
 
@@ -493,6 +506,16 @@ steps:
   - label: "[unit] :windows: sup-protocol"
     command:
       - ./test/run_cargo_test.ps1 sup-protocol
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: studio"
+    command:
+      - ./test/run_studio_test.ps1 "studio-from-source"
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 20
@@ -684,6 +707,7 @@ steps:
     retry:
       automatic:
         limit: 1
+
 
 #######################################################################
 # Things that have no tests but should be built to make sure they
