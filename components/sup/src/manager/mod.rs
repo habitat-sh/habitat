@@ -496,14 +496,8 @@ impl Manager {
                 cfg.event_stream_config
                    .expect("Config should be present if the EventStream feature is enabled");
 
-            // Generating the FQDN by combining the hostname and the domain name,
-            // if the domain name is None, the fqdn will default to be the hostname.
-            let mut fqdn = sys.hostname.clone();
-            let domainname = habitat_core::os::net::domainname().ok();
-            if domainname.is_some() {
-                fqdn.push('.');
-                fqdn.push_str(&domainname.unwrap());
-            }
+            // Collecting the FQDN of the running machine
+            let fqdn = habitat_core::os::net::fqdn().unwrap_or_default();
             outputln!("Event FQDN {}", fqdn);
 
             let ec = EventCore::new(&es_config, &sys, fqdn);

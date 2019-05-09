@@ -163,7 +163,7 @@ impl EventCore {
     pub fn new(config: &EventStreamConfig, sys: &Sys, fqdn: String) -> Self {
         EventCore { supervisor_id: sys.member_id.clone(),
                     ip_address:    sys.gossip_listen(),
-                    fqdn:          fqdn,
+                    fqdn,
                     environment:   config.environment.clone(),
                     application:   config.application.clone(),
                     meta:          config.meta.clone(), }
