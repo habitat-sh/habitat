@@ -163,9 +163,7 @@ impl Manifest {
 
     // Replaces any periods in the `name with hyphens
     // To make it a valid Kubernetes resource name
-    fn formatted_resource_name(resource_name: &str) -> String {
-        resource_name.replace(".", "-")
-    }
+    fn formatted_resource_name(resource_name: &str) -> String { resource_name.replace(".", "-") }
 }
 
 #[cfg(test)]
@@ -272,7 +270,8 @@ mod tests {
     #[test]
     fn test_resource_name() {
         let expected = String::from("sample-node-app-1-1-0-2019050321383");
-        let formatted_resource_name = Manifest::formatted_resource_name("sample-node-app-1.1.0-2019050321383");
+        let formatted_resource_name =
+            Manifest::formatted_resource_name("sample-node-app-1.1.0-2019050321383");
 
         assert_eq!(formatted_resource_name, expected);
     }

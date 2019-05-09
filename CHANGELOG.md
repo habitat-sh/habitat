@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+
  ## [0.81.0](https://github.com/habitat-sh/habitat/tree/0.81.0) (2019-05-06)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.80.0...0.81.0)
 
@@ -18,7 +20,6 @@
 - Propagate host license acceptance into docker containers [#6522](https://github.com/habitat-sh/habitat/pull/6522) ([raskchanky](https://github.com/raskchanky))
 - Sets project status and SLA [#6473](https://github.com/habitat-sh/habitat/pull/6473) ([dmccown](https://github.com/dmccown))
 - Revert &quot;Switch to parking_lot&#39;s RwLock and add CI deadlock detection&quot; [#6513](https://github.com/habitat-sh/habitat/pull/6513) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
  ## [0.80.0](https://github.com/habitat-sh/habitat/tree/0.80.0) (2019-04-30)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.79.1...0.80.0)
