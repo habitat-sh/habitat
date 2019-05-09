@@ -3,7 +3,7 @@
 // going to move over to the Supervisor has been moved, we can take a look at
 // perhaps refactoring some of this a bit.
 
-use crate::{manager::action::ShutdownSpec,
+use crate::{manager::ShutdownConfig,
             sys::ShutdownMethod};
 use habitat_core::os::process::{is_alive,
                                 signal,
@@ -18,9 +18,9 @@ use time::{Duration as TimeDuration,
            SteadyTime};
 
 /// Kill a service process.
-pub fn kill(pid: Pid, shutdown_spec: ShutdownSpec) -> ShutdownMethod {
+pub fn kill(pid: Pid, shutdown_config: ShutdownConfig) -> ShutdownMethod {
     let process = Process::new(pid);
-    process.kill(shutdown_spec)
+    process.kill(shutdown_config)
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -39,9 +39,9 @@ impl Process {
 
     /// Attempt to gracefully terminate a proccess and then forcefully
     /// kill it after 8 seconds if it has not terminated.
-    fn kill(&self, shutdown_spec: ShutdownSpec) -> ShutdownMethod {
-        let ShutdownSpec { signal: shutdown_signal,
-                           timeout, } = shutdown_spec;
+    fn kill(&self, shutdown_config: ShutdownConfig) -> ShutdownMethod {
+        let ShutdownConfig { signal: shutdown_signal,
+                             timeout, } = shutdown_config;
         let shutdown_signal = shutdown_signal.into();
 
         let mut pid_to_kill = self.pid;

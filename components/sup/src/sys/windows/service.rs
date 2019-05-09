@@ -1,4 +1,18 @@
-use crate::{manager::action::ShutdownSpec,
+// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+use crate::{manager::ShutdownConfig,
             sys::ShutdownMethod};
 use habitat_core::os::process::{handle_from_pid,
                                 windows_child::{ExitStatus,
@@ -27,7 +41,7 @@ const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
 
 /// Kill a service process
-pub fn kill(pid: Pid, shutdown_spec: ShutdownSpec) -> ShutdownMethod {
+pub fn kill(pid: Pid, shutdown_config: ShutdownConfig) -> ShutdownMethod {
     match handle_from_pid(pid) {
         None => {
             // Assume it's already gone if we can't resolve a proper process handle
@@ -35,7 +49,7 @@ pub fn kill(pid: Pid, shutdown_spec: ShutdownSpec) -> ShutdownMethod {
         }
         Some(handle_ptr) => {
             let mut process = Process::new(Handle::new(handle_ptr));
-            process.kill(shutdown_spec)
+            process.kill(shutdown_config)
         }
     }
 }
@@ -58,8 +72,8 @@ impl Process {
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.
-    fn kill(&mut self, shutdown_spec: ShutdownSpec) -> ShutdownMethod {
-        let ShutdownSpec { timeout } = shutdown_spec;
+    fn kill(&mut self, shutdown_config: ShutdownConfig) -> ShutdownMethod {
+        let ShutdownConfig { timeout } = shutdown_config;
 
         if self.status().is_some() {
             return ShutdownMethod::AlreadyExited;

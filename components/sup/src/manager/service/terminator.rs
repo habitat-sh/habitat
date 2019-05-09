@@ -1,5 +1,5 @@
 use super::spawned_future::SpawnedFuture;
-use crate::{manager::action::ShutdownSpec,
+use crate::{manager::ShutdownConfig,
             sys::{service,
                   ShutdownMethod}};
 use futures::sync::oneshot;
@@ -15,7 +15,7 @@ static LOGKEY: &str = "ST"; // "Service Terminator"
 /// blocking the rest of the Supervisor.
 pub fn terminate_service(pid: Pid,
                          service_group: String,
-                         shutdown_spec: ShutdownSpec)
+                         shutdown_config: ShutdownConfig)
                          -> SpawnedFuture<ShutdownMethod> {
     let (tx, rx) = oneshot::channel();
 
@@ -23,7 +23,7 @@ pub fn terminate_service(pid: Pid,
         .name(format!("{}-{}", LOGKEY, pid))
         .spawn(move || {
             outputln!(preamble service_group, "Terminating service (PID: {})", pid);
-            let shutdown = service::kill(pid, shutdown_spec);
+            let shutdown = service::kill(pid, shutdown_config);
             outputln!(preamble service_group, "{} (PID: {})", shutdown, pid);
             tx.send(shutdown)
                 .expect("Couldn't send oneshot signal from terminate_service: receiver went away");

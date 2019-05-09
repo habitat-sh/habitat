@@ -244,6 +244,22 @@ _render_metadata_SVC_USER() {
   echo "$pkg_svc_user" > "$pkg_prefix"/SVC_USER
 }
 
+_render_metadata_SHUTDOWN_SIGNAL() {
+  if [[ -n "$pkg_shutdown_signal" ]]; then
+    debug "Rendering SHUTDOWN_SIGNAL metadata file"
+    # shellcheck disable=2154
+    echo "$pkg_shutdown_signal" > "$pkg_prefix"/SHUTDOWN_SIGNAL
+  fi
+}
+
+_render_metadata_SHUTDOWN_TIMEOUT() {
+  if [[ -n "$pkg_shutdown_timeout" ]]; then
+    debug "Rendering SHUTDOWN_TIMEOUT metadata file"
+    # shellcheck disable=2154
+    echo "$pkg_shutdown_timeout" > "$pkg_prefix"/SHUTDOWN_TIMEOUT
+  fi
+}
+
 _render_metadata_TARGET() {
   debug "Rendering TARGET metadata file"
   # shellcheck disable=2154

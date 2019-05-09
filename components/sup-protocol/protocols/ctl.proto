@@ -99,14 +99,13 @@ message SvcLoad {
   optional sup.types.UpdateStrategy update_strategy = 13;
   // Health Check interval for the service
   optional sup.types.HealthCheckInterval health_check_interval = 15;
+  // The shutdown timeout for the service.
+  optional uint32 shutdown_timeout = 16;
 }
 
 // Request to unload a loaded service.
 message SvcUnload {
   optional sup.types.PackageIdent ident = 1;
-  // Name of the signal to send the service to shut it down (e.g.,
-  // "TERM" and not "SIGTERM"). Only applies to Unix platforms.
-  optional string signal = 2;
   // Timeout in before killing the service
   optional uint32 timeout_in_seconds = 3;
 }
@@ -119,9 +118,6 @@ message SvcStart {
 // Request to stop a loaded and started service.
 message SvcStop {
   optional sup.types.PackageIdent ident = 1;
-  // Name of the signal to send the service to shut it down (e.g.,
-  // "TERM" and not "SIGTERM"). Only applies to Unix platforms.
-  optional string signal = 2;
   // Timeout in before killing the service
   optional uint32 timeout_in_seconds = 3;
 }

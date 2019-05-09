@@ -52,8 +52,7 @@ use habitat_core::{crypto::{init,
                    fs::{cache_analytics_path,
                         cache_artifact_path,
                         launcher_root_path},
-                   os::process::{ShutdownSignal,
-                                 ShutdownTimeout},
+                   os::process::ShutdownTimeout,
                    package::{target,
                              PackageIdent,
                              PackageTarget},
@@ -289,9 +288,9 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     }
                 }
                 ("load", Some(m)) => sub_svc_load(m)?,
-                ("unload", Some(m)) => sub_svc_unload(m, feature_flags)?,
+                ("unload", Some(m)) => sub_svc_unload(m)?,
                 ("start", Some(m)) => sub_svc_start(m)?,
-                ("stop", Some(m)) => sub_svc_stop(m, feature_flags)?,
+                ("stop", Some(m)) => sub_svc_stop(m)?,
                 ("status", Some(m)) => sub_svc_status(m)?,
                 _ => unreachable!(),
             }
@@ -313,7 +312,7 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         ("supportbundle", _) => sub_supportbundle(ui)?,
         ("setup", Some(m)) => sub_cli_setup(ui, m)?,
         ("start", Some(m)) => sub_svc_start(m)?,
-        ("stop", Some(m)) => sub_svc_stop(m, feature_flags)?,
+        ("stop", Some(m)) => sub_svc_stop(m)?,
         ("user", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
@@ -1027,6 +1026,8 @@ fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     update_svc_load_from_input(m, &mut msg)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
+    msg.shutdown_timeout =
+        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
                                                              .for_each(|m| handle_ctl_reply(&m))
@@ -1035,17 +1036,16 @@ fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-fn sub_svc_unload(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
+fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
 
-    let timeout_in_seconds = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
-    let signal = maybe_get_shutdown_signal(m, feature_flags)?.map(|s| s.to_string());
+    let timeout_in_seconds =
+        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
 
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
-                                          signal,
                                           timeout_in_seconds };
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
@@ -1053,32 +1053,6 @@ fn sub_svc_unload(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> 
                                                      })
                                                      .wait()?;
     Ok(())
-}
-
-fn maybe_get_shutdown_signal(m: &ArgMatches<'_>,
-                             feature_flags: FeatureFlag)
-                             -> Result<Option<ShutdownSignal>> {
-    if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
-        let signal = m.value_of("SHUTDOWN_SIGNAL")
-                      .expect("SHUTDOWN_SIGNAL should have a default value")
-                      .parse()?;
-        Ok(Some(signal))
-    } else {
-        Ok(None)
-    }
-}
-
-fn maybe_get_shutdown_timeout(m: &ArgMatches<'_>,
-                              feature_flags: FeatureFlag)
-                              -> Result<Option<ShutdownTimeout>> {
-    if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
-        let timeout = m.value_of("SHUTDOWN_TIMEOUT")
-                       .expect("SHUTDOWN_TIMEOUT should have a default value")
-                       .parse()?;
-        Ok(Some(timeout))
-    } else {
-        Ok(None)
-    }
 }
 
 fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
@@ -1136,18 +1110,17 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     Ok(())
 }
 
-fn sub_svc_stop(m: &ArgMatches<'_>, feature_flags: FeatureFlag) -> Result<()> {
+fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
 
-    let timeout_in_seconds = maybe_get_shutdown_timeout(m, feature_flags)?.map(Into::into);
-    let signal = maybe_get_shutdown_signal(m, feature_flags)?.map(|s| s.to_string());
+    let timeout_in_seconds =
+        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
 
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
-                                        timeout_in_seconds,
-                                        signal };
+                                        timeout_in_seconds };
 
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
@@ -1387,6 +1360,16 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
         }
         _ => (env::args_os().collect(), Vec::new()),
     }
+}
+
+fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches<'_>) -> Result<Option<T>>
+    where hab::error::Error: std::convert::From<<T as std::str::FromStr>::Err>
+{
+    m.value_of(name)
+     // Try and parse the value as a T and if there was an error convert it to a hab::error::Error
+     .map(|s| s.parse().map_err(Into::into))
+     //  Convert from Option<Result<_>> to Result<Option<_>>
+     .map_or(Ok(None), |o| o.map(Some))
 }
 
 /// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the

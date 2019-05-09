@@ -23,6 +23,8 @@ pub use self::windows::{become_command,
                         is_alive,
                         Pid};
 use crate::error::Error;
+use serde_derive::{Deserialize,
+                   Serialize};
 use std::{fmt,
           result,
           str::FromStr};
@@ -37,7 +39,7 @@ use time::Duration;
 /// throughout our code, which can be confusing, we can just pass this
 /// around, and turn it into a `time::Duration` at the last possible
 /// moment.)
-#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct ShutdownTimeout(u32);
 
 impl Default for ShutdownTimeout {
@@ -72,7 +74,7 @@ impl From<ShutdownTimeout> for Duration {
 // but we are making it available on Windows as well for situations
 // where a Windows CLI is communicating with a Linux Supervisor.
 #[allow(non_snake_case)]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Copy, Hash)]
 pub enum Signal {
     INT,
     ILL,
@@ -137,7 +139,7 @@ impl fmt::Display for Signal {
 /// Encapsulates logic for defining the default shutdown signal we
 /// send services, and handles translation from external types at the
 /// edges of our system.
-#[derive(Debug, Clone)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
 pub struct ShutdownSignal(Signal);
 
 impl Default for ShutdownSignal {

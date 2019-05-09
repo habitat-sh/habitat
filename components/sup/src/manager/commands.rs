@@ -250,9 +250,9 @@ pub fn service_unload(mgr: &ManagerState,
                       -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
     if let Some(service_spec) = mgr.cfg.spec_for_ident(&ident) {
-        let shutdown_spec = opts.into();
+        let shutdown_input = opts.into();
         let action = SupervisorAction::UnloadService { service_spec,
-                                                       shutdown_spec };
+                                                       shutdown_input };
         send_action(action, action_sender)?;
 
         // JW TODO: Change this to unloaded from unloading when the Supervisor waits for
@@ -300,9 +300,9 @@ pub fn service_stop(mgr: &ManagerState,
     match mgr.cfg.spec_for_ident(&ident) {
         Some(service_spec) => {
             if service_spec.desired_state == DesiredState::Up {
-                let shutdown_spec = opts.into();
+                let shutdown_input = opts.into();
                 let action = SupervisorAction::StopService { service_spec,
-                                                             shutdown_spec };
+                                                             shutdown_input };
                 send_action(action, action_sender)?;
 
                 // JW TODO: Change the langauge of the message below to "stopped" when we actually

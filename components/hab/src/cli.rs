@@ -6,9 +6,7 @@ use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR,
                            RING_ENVVAR,
-                           RING_KEY_ENVVAR,
-                           SHUTDOWN_SIGNAL_DEFAULT,
-                           SHUTDOWN_TIMEOUT_DEFAULT},
+                           RING_KEY_ENVVAR},
                      types::{AutomateAuthToken,
                              EventStreamMetadata,
                              GossipListenAddr,
@@ -47,9 +45,9 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
     let alias_start = sub_svc_start().about("Alias for 'svc start'")
                                      .aliases(&["sta", "star"])
                                      .setting(AppSettings::Hidden);
-    let alias_stop = sub_svc_stop(feature_flags).about("Alias for 'svc stop'")
-                                                .aliases(&["sto"])
-                                                .setting(AppSettings::Hidden);
+    let alias_stop = sub_svc_stop().about("Alias for 'svc stop'")
+                                   .aliases(&["sto"])
+                                   .setting(AppSettings::Hidden);
 
     clap_app!(hab =>
         (about: "\"A Habitat is the natural environment for your services\" - Alan Turing")
@@ -688,8 +686,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (subcommand: sub_svc_load().aliases(&["l", "lo", "loa"]))
             (subcommand: sub_svc_start().aliases(&["star"]))
             (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
-            (subcommand: sub_svc_stop(feature_flags).aliases(&["sto"]))
-            (subcommand: sub_svc_unload(feature_flags).aliases(&["u", "un", "unl", "unlo", "unloa"]))
+            (subcommand: sub_svc_stop().aliases(&["sto"]))
+            (subcommand: sub_svc_unload().aliases(&["u", "un", "unl", "unlo", "unloa"]))
         )
         (@subcommand studio =>
             (about: "Commands relating to Habitat Studios")
@@ -1087,7 +1085,7 @@ pub fn sub_svc_status() -> App<'static, 'static> {
     )
 }
 
-fn sub_svc_stop(feature_flags: FeatureFlag) -> App<'static, 'static> {
+fn sub_svc_stop() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand stop =>
         (about: "Stop a running Habitat service.")
         (@arg PKG_IDENT: +required +takes_value {valid_ident}
@@ -1095,7 +1093,7 @@ fn sub_svc_stop(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     );
-    maybe_add_configurable_shutdown_options(sub, feature_flags)
+    add_configurable_shutdown_options(sub)
 }
 
 fn sub_svc_load() -> App<'static, 'static> {
@@ -1134,6 +1132,8 @@ fn sub_svc_load() -> App<'static, 'static> {
             "The interval (seconds) on which to run health checks [default: 30]")
     );
 
+    sub = add_configurable_shutdown_options(sub);
+
     if cfg!(windows) {
         sub = sub.arg(Arg::with_name("PASSWORD").long("password")
                                                 .takes_value(true)
@@ -1143,7 +1143,7 @@ fn sub_svc_load() -> App<'static, 'static> {
     sub
 }
 
-fn sub_svc_unload(feature_flags: FeatureFlag) -> App<'static, 'static> {
+fn sub_svc_unload() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand unload =>
         (about: "Unload a service loaded by the Habitat Supervisor. If the service is \
             running it will additionally be stopped.")
@@ -1152,7 +1152,7 @@ fn sub_svc_unload(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     );
-    maybe_add_configurable_shutdown_options(sub, feature_flags)
+    add_configurable_shutdown_options(sub)
 }
 
 // TODO (CM): yeah, this is uuuuuuuuuugly. Ideally, we'd just not have
@@ -1370,33 +1370,14 @@ fn non_empty(val: String) -> result::Result<(), String> {
 }
 
 /// Adds extra configuration options for shutting down a service with
-/// a customized shutdown signal and timeout.
-///
-/// These are currently feature-flagged. Eventually, we hope to have
-/// this be definable in a package or at load time.
-fn maybe_add_configurable_shutdown_options(mut app: App<'static, 'static>,
-                                           feature_flags: FeatureFlag)
-                                           -> App<'static, 'static> {
-    if feature_flags.contains(FeatureFlag::CONFIGURE_SHUTDOWN) {
-        app = app.arg(Arg::with_name("SHUTDOWN_SIGNAL").help("The signal to send to a service \
-                                                              to safely shut it down. Only has \
-                                                              meaning when dealing with \
-                                                              services running on non-Windows \
-                                                              platforms.")
-                                                       .long("shutdown-signal")
-                                                       .takes_value(true)
-                                                       .default_value(&SHUTDOWN_SIGNAL_DEFAULT));
-        app = app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after \
-                                                               sending a shutdown signal to \
-                                                               wait before killing a service \
-                                                               process")
-                                                        .long("shutdown-timeout")
-                                                        .takes_value(true)
-                                                        .default_value(&SHUTDOWN_TIMEOUT_DEFAULT));
-        app
-    } else {
-        app
-    }
+/// a customized timeout.
+fn add_configurable_shutdown_options(mut app: App<'static, 'static>) -> App<'static, 'static> {
+    app = app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after sending \
+                                                           a shutdown signal to wait before \
+                                                           killing a service process")
+                                                    .long("shutdown-timeout")
+                                                    .takes_value(true));
+    app
 }
 
 ////////////////////////////////////////////////////////////////////////
