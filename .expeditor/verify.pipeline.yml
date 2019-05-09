@@ -465,6 +465,9 @@ steps:
 #######################################################################
 
   - label: "[build] :linux: backline"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh backline
     agents:
@@ -474,6 +477,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: bintray-publish"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh bintray-publish
     agents:
@@ -484,10 +490,8 @@ steps:
 
   - label: "[build] :linux: hab"
     env:
-      # TODO: this env var should be deleted after
-      # https://github.com/habitat-sh/habitat/pull/6364 merges and is released
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
       HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh hab
     agents:
@@ -497,6 +501,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: launcher"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh launcher
     agents:
@@ -506,6 +513,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-aci"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-aci
     agents:
@@ -515,6 +525,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-cfize"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-cfize
     agents:
@@ -524,6 +537,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-dockerize"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-dockerize
     agents:
@@ -533,6 +549,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-export-docker"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-export-docker
     agents:
@@ -542,6 +561,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-export-helm"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-export-helm
     agents:
@@ -551,6 +573,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-export-kubernetes"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-export-kubernetes
     agents:
@@ -560,6 +585,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-export-tar"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-export-tar
     agents:
@@ -569,6 +597,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-mesosize"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-mesosize
     agents:
@@ -578,6 +609,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: plan-build"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh plan-build
     agents:
@@ -587,6 +621,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh studio
     agents:
@@ -596,6 +633,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: sup"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh sup
     agents:
@@ -610,6 +650,9 @@ steps:
 #######################################################################
 
   - label: "[build] :windows: hab"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 hab
     agents:
@@ -619,6 +662,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: launcher"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 launcher
     agents:
@@ -628,6 +674,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: pkg-export-docker"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 pkg-export-docker
     agents:
@@ -637,6 +686,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: pkg-export-tar"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 pkg-export-tar
     agents:
@@ -646,6 +698,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: plan-build-ps1"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 plan-build-ps1
     agents:
@@ -655,6 +710,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 studio
     agents:
@@ -664,6 +722,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: sup"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 sup
     agents:
@@ -673,6 +734,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: windows-service"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 windows-service
     agents:
