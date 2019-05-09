@@ -59,7 +59,7 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
                                       event_rx.for_each(move |event: Vec<u8>| {
                                                   let stan_msg =
                                                       StanMessage::new(HABITAT_SUBJECT.into(),
-                                                                       event.into());
+                                                                       event);
                                                   let publish_event = client
                             .send(stan_msg)
                             .map_err(|e| {

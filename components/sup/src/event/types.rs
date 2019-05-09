@@ -5,8 +5,7 @@ use super::EventCore;
 use crate::manager::service::{HealthCheckResult as DomainHealthCheckResult,
                               Service,
                               UpdateStrategy as DomainUpdateStrategy};
-use prost::{Enumeration,
-            Message};
+use prost::Message;
 
 include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
 
