@@ -34,7 +34,7 @@ use std::io;
 // Since the underlying crate is platform agnostic, this function is as well,
 // we only implement a single function `ai_canonname()` that returns the right
 // hint flag for the running operating system.
-pub fn lookup_fqdn(hostname: &str) -> io::Result<Vec<String>> {
+pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
     #[cfg(not(windows))]
     let flags = libc::AI_CANONNAME;
 
@@ -45,11 +45,15 @@ pub fn lookup_fqdn(hostname: &str) -> io::Result<Vec<String>> {
     let addrinfos =
         getaddrinfo(Some(hostname), None, Some(hints))?.collect::<std::io::Result<Vec<_>>>()?;
 
-    let canonnames = addrinfos.into_iter()
-                              .filter_map(|info| info.canonname)
-                              .collect();
+    // If 'hints.ai_flags' includes the AI_CANONNAME flag, then the ai_canonname
+    // field of the first of the addrinfo structures in the returned list is set
+    // to point to the official name of the host.
+    if addrinfos.len() > 0 {
+        let addrinfo = addrinfos[0].clone();
+        return Ok(addrinfo.canonname.unwrap_or(hostname.to_string()))
+    }
 
-    Ok(canonnames)
+    Ok(hostname.to_string())
 }
 
 // fqdn returns the fully qualified domain name of the running machine
@@ -58,7 +62,7 @@ pub fn fqdn() -> Option<String> {
     match hostname() {
         Ok(hostname) => {
             match lookup_fqdn(&hostname) {
-                Ok(fqdns) => fqdns.into_iter().find(|ref h| h.contains(&hostname)),
+                Ok(fqdn) => Some(fqdn),
                 // @afiune if the lookup_fqdn returns an Err(), should we
                 // return the hostname instead of None?
                 Err(_) => None,
@@ -84,7 +88,7 @@ fn test_fqdn_lookup() {
     let fqdn = lookup_fqdn("localhost");
     assert!(fqdn.is_ok());
     assert_eq!(fqdn.unwrap(),
-               vec![String::from("localhost")],
+               String::from("localhost"),
                "the fqdn of localhost should be localhost");
 }
 
