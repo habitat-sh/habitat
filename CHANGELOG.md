@@ -11,6 +11,7 @@
 - Ensure the install script has accepted the license [#6503](https://github.com/habitat-sh/habitat/pull/6503) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- Update docs and Makefile for 0.81.0 [#6529](https://github.com/habitat-sh/habitat/pull/6529) ([raskchanky](https://github.com/raskchanky))
 - adds working code and test for altering a package name to make it val… [#6524](https://github.com/habitat-sh/habitat/pull/6524) ([nellshamrell](https://github.com/nellshamrell))
 - Update the docker exporter docs to include HAB_LICENSE instructions [#6525](https://github.com/habitat-sh/habitat/pull/6525) ([raskchanky](https://github.com/raskchanky))
 - Propagate host license acceptance into docker containers [#6522](https://github.com/habitat-sh/habitat/pull/6522) ([raskchanky](https://github.com/raskchanky))
