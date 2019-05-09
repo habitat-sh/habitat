@@ -43,6 +43,19 @@ Static site content for www.habitat.sh
   > Note: values for each of these can be found by logging into your AWS and Fastly control panels.
   > Note: make sure that the AWS credentials you use are for the Habitat AWS account and not the regular Chef AWS account.
 
+### A slight wrinkle
+If you are a Chef employee, you might be (should be) using [okta_aws](https://github.com/chef/okta_aws).
+
+In this case, you will need to run the following:
+
+```sh
+okta_aws habitat
+export AWS_DEFAULT_PROFILE=habitat
+```
+
+This eliminates the need to set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+manually. The other variables still need to be set.
+
 1. Change to the `www` directory
 
    ```
@@ -53,4 +66,14 @@ Static site content for www.habitat.sh
 
     ```
     $ make deploy
+    ```
+
+    > Note: If the above task fails with a 403 Forbidden error, and you're
+    > a Chef employee using okta_aws, you can deploy the web site an alternate
+    > way.
+
+    ```
+    make build
+    cd build
+    aws s3 sync . s3://$AWS_BUCKET
     ```
