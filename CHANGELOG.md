@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- Adjust changelog for 0.81.0 [#6530](https://github.com/habitat-sh/habitat/pull/6530) ([raskchanky](https://github.com/raskchanky))
 <!-- latest_release -->
 
  ## [0.81.0](https://github.com/habitat-sh/habitat/tree/0.81.0) (2019-05-06)
