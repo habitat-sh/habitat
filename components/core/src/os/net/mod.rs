@@ -35,8 +35,13 @@ use std::io;
 // we only implement a single function `ai_canonname()` that returns the right
 // hint flag for the running operating system.
 pub fn lookup_fqdn(hostname: &str) -> io::Result<Vec<String>> {
-    let hints = AddrInfoHints { flags: ai_canonname(),
-                                ..AddrInfoHints::default() };
+    #[cfg(not(windows))]
+    let flags = libc::AI_CANONNAME;
+
+    #[cfg(windows)]
+    let flags = winapi::shared::ws2def::AI_CANONNAME;
+
+    let hints = AddrInfoHints { flags, ..AddrInfoHints::default() };
     let addrinfos =
         getaddrinfo(Some(hostname), None, Some(hints))?.collect::<std::io::Result<Vec<_>>>()?;
 
