@@ -32,7 +32,7 @@ classes: demo_step
           | [1][default:/src:0]# exit
 
         = code(:shell) do
-          | $ docker run -it -p 8000:8000 yourorigin/sample-node-app
+          | $ docker run --env HAB_LICENSE="accept-no-persist" -it -p 8000:8000 yourorigin/sample-node-app
 
         .footnote
           p.mb-0

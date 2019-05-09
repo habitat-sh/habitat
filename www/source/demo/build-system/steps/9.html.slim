@@ -28,7 +28,7 @@ classes: demo_step
         = code(:shell) do
           | $ docker pull your-docker-org/your-docker-repo
         = code(:shell) do
-          | $ docker run -it -p 8000:8000 your-docker-org/your-docker-repo
+          | $ docker run --env HAB_LICENSE="accept-no-persist" -it -p 8000:8000 your-docker-org/your-docker-repo
 
         h3="Preview the application in your browser"
         p
