@@ -87,6 +87,6 @@ fn test_fqdn_lookup() {
 fn test_fqdn_lookup_err() {
     let fqdn = lookup_fqdn("");
     assert!(fqdn.is_err(), "Should be an Err()");
-    assert_eq!(format!("{}",fqdn.unwrap_err()),
+    assert_eq!(format!("{}", fqdn.unwrap_err()),
                "failed to lookup address information: Name or service not known");
 }
