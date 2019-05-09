@@ -11,61 +11,6 @@ Static site content for www.habitat.sh
     $ gem install bundler
     ```
 
-## How To: Add a Blog Post
-
-* Create your new blog post in source/blog
-
-  ```
-  $ touch source/blog/YYYY-MM-DD-your-blog-post-title.html.md
-  ```
-
-* Open up your blog post
-
-  ```
-  $ vim source/blog/YYYY-MM-DD-your-blog-post-title.html.md
-  ```
-
-* And add these headers
-
-  ```
-  ---
-  title: You Blog Post Title
-  date: YYYY-MM-DD (make sure this matches the date in the file name!)
-  author: FirstName LastName
-  tags: related_tags (see other posts for examples)
-  category: category of post (see other posts for examples)
-  classes: body-article
-  ---
-  ```
-
-* Then add your content below that.
-
-* After adding your content, save and close the file, then open this file
-
-  ```
-  $ vim www/data/author_bios.yml
-  ```
-
-* If your bio is not already there, add it in this format, then save and close
-  the file. Specifically, make the yaml key for your name a lowercased version
-  of your name with all spaces removed.
-
-  ```
-  nellshamrell-harrington:
-    name: "Nell Shamrell-Harrington"
-    email: "nshamrell@habitat.sh"
-    twitter: "@nellshamrell"
-	bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
-  ```
-
-* Now check out your new post locally by running:
-
-  ```
-  $ make run
-  ```
-
-* If all looks good, open up a pull request!
-
 ## How-To: Serve Docs Locally
 
 1. Execute the `run` task to build and start the docs server on your local machine
