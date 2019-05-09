@@ -101,7 +101,7 @@ impl Manifest {
                           .map(str::to_string)
                           .unwrap_or_else(|| format!("{}-{}", pkg_ident.name, version_suffix));
 
-        let formatted_resource_name = Manifest::formatted_metadata_name(&name);
+        let formatted_resource_name = Manifest::formatted_resource_name(&name);
 
         let image_name = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
@@ -161,10 +161,10 @@ impl Manifest {
         Ok(())
     }
 
-    // Replaces any periods in the metadata name with hyphens
+    // Replaces any periods in the `name with hyphens
     // To make it a valid Kubernetes resource name
-    fn formatted_metadata_name(metadata_name: &str) -> String {
-        metadata_name.replace(".", "-")
+    fn formatted_resource_name(resource_name: &str) -> String {
+        resource_name.replace(".", "-")
     }
 }
 
@@ -270,10 +270,10 @@ mod tests {
     }
 
     #[test]
-    fn test_metadata_name() {
+    fn test_resource_name() {
         let expected = String::from("sample-node-app-1-1-0-2019050321383");
-        let formatted_metadata_name = Manifest::formatted_metadata_name("sample-node-app-1.1.0-2019050321383");
+        let formatted_resource_name = Manifest::formatted_resource_name("sample-node-app-1.1.0-2019050321383");
 
-        assert_eq!(formatted_metadata_name, expected);
+        assert_eq!(formatted_resource_name, expected);
     }
 }
