@@ -13,6 +13,7 @@ cc = "*"
 [dependencies]
 base64 = "*"
 dirs = "*"
+dns-lookup = "*"
 errno = "*"
 hex = "*"
 lazy_static = "*"
