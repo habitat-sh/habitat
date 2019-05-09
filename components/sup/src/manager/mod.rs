@@ -57,6 +57,8 @@ use habitat_butterfly::{member::Member,
 use habitat_common::{outputln,
                      types::ListenCtlAddr,
                      FeatureFlag};
+#[cfg(unix)]
+use habitat_core::os::signals::SignalEvent;
 use habitat_core::{crypto::SymKey,
                    env::{self,
                          Config},
@@ -64,8 +66,7 @@ use habitat_core::{crypto::SymKey,
                    os::{process::{self,
                                   Pid,
                                   Signal},
-                        signals::{self,
-                                  SignalEvent}},
+                        signals},
                    package::{Identifiable,
                              PackageIdent,
                              PackageInstall},
