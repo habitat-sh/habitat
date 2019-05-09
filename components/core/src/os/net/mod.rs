@@ -34,11 +34,11 @@ use std::io;
 // Since the underlying crate is platform agnostic, this function is as well,
 // we only implement a single function `ai_canonname()` that returns the right
 // hint flag for the running operating system.
-pub fn lookup_fqdn(hostname: String) -> io::Result<Vec<String>> {
-    let hints = AddrInfoHints { flags: flags: ai_canonname(),
+pub fn lookup_fqdn(hostname: &str) -> io::Result<Vec<String>> {
+    let hints = AddrInfoHints { flags: ai_canonname(),
                                 ..AddrInfoHints::default() };
     let addrinfos =
-        getaddrinfo(Some(&hostname), None, Some(hints))?.collect::<std::io::Result<Vec<_>>>()?;
+        getaddrinfo(Some(hostname), None, Some(hints))?.collect::<std::io::Result<Vec<_>>>()?;
 
     let canonnames = addrinfos.into_iter()
                               .filter_map(|info| info.canonname)
@@ -52,11 +52,7 @@ pub fn fqdn() -> Option<String> {
     // Implementation 1 - Using match statements
     match hostname() {
         Ok(hostname) => {
-            // we clone the hostname since we need it to find the
-            // right fqdn that the lookup fn returns
-            let host_to_lookup = hostname.clone();
-
-            match lookup_fqdn(host_to_lookup) {
+            match lookup_fqdn(&hostname) {
                 Ok(fqdns) => fqdns.into_iter().find(|ref h| h.contains(&hostname)),
                 // @afiune if the lookup_fqdn returns an Err(), should we
                 // return the hostname instead of None?
@@ -80,7 +76,7 @@ fn test_fqdn() {
 #[cfg(not(windows))]
 #[test]
 fn test_fqdn_lookup() {
-    let fqdn = lookup_fqdn(String::from("localhost"));
+    let fqdn = lookup_fqdn("localhost");
     assert!(fqdn.is_ok());
     assert_eq!(fqdn.unwrap(),
                vec![String::from("localhost")],
@@ -89,7 +85,7 @@ fn test_fqdn_lookup() {
 
 #[test]
 fn test_fqdn_lookup_err() {
-    let fqdn = lookup_fqdn(String::from(""));
+    let fqdn = lookup_fqdn("");
     assert!(fqdn.is_err(), "Should be an Err()");
     assert_eq!(format!("{}",fqdn.unwrap_err()),
                "failed to lookup address information: Name or service not known");
