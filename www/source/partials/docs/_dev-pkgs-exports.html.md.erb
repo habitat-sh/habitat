@@ -18,9 +18,9 @@ You can create a Docker container image for any package by performing the follow
 
 1. Ensure you have a Docker daemon running on your host system. On Linux, the exporter shares the Docker socket (`unix:///var/run/docker.sock`) into the studio.
 
-2. Create an interactive studio with the `hab studio enter` command.
+1. Create an interactive studio with the `hab studio enter` command.
 
-3. [Build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
+1. [Build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
 
     ```shell
     $ hab pkg export docker ./results/<hart-filename>.hart
@@ -32,7 +32,9 @@ You can create a Docker container image for any package by performing the follow
 
     > **Note** In a Windows container studio, the `export` command will not be able to access the host docker engine. To export a Windows package or hart file built inside of a Windows container studio, first exit the studio and then export the `.hart` file in your local `results` directory.
 
-4. You may now exit the studio. The new Docker image exists on your computer and can be examined with `docker images` or run with `docker run`.
+1. You may now exit the studio. The new Docker image exists on your computer and can be examined with `docker images` or run with `docker run`.
+
+1. Please note that when you run this docker container, you will need to pass the `HAB_LICENSE` environment variable into the container in order to accept the Habitat license. If you don't, your container will abort at a license acceptance prompt. One way to do this would be `docker run --env HAB_LICENSE=accept-no-persist IMAGE`. Alternatively, if you use a scheduler to run these docker containers, you should add that environment variable to your scheduler configuration.
 
 ## Exporting to a tarball
 
@@ -73,7 +75,7 @@ You can create a Docker container image for any package by performing the follow
 
     ```shell
     $ sudo tar xf your-origin-package-version-timestamp.tar.gz
-    $ sudo cp -R hab /hab 
+    $ sudo cp -R hab /hab
     ```
 
 9. Now, start the Supervisor and load your service package using the `hab` binary, which is included in the tar archive:
