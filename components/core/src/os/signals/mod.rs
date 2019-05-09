@@ -36,7 +36,6 @@ static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 // in the `unix` module.
 #[cfg(windows)]
 pub fn init() {
-    use ctrlc;
     ctrlc::set_handler(move || {
         SHUTDOWN.store(true, Ordering::SeqCst);
     }).expect("Error setting Ctrl-C handler");

@@ -798,8 +798,6 @@ mod tty {
 
     #[cfg(unix)]
     pub fn isatty(output: StdStream) -> bool {
-        use libc;
-
         let fd = match output {
             StdStream::Stdin => libc::STDIN_FILENO,
             StdStream::Stdout => libc::STDOUT_FILENO,

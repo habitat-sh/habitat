@@ -16,19 +16,19 @@ $ErrorActionPreference="stop"
 . $PSScriptRoot\..\support\ci\shared.ps1
 
 $toolchain = "stable"
-if($Nightly) { $toolchain = "nightly" }
+if($Nightly) { $toolchain = (gc $PSScriptRoot\..\RUSTFMT_VERSION | out-string).Trim() }
 
 Install-Rustup $toolchain
 Install-RustToolchain $toolchain
 
 If($Features) {
-    $FeatureString = "--features $Features"
+    $FeatureString = "--features `"$Features`""
 } Else {
     $FeatureString = ""
 }
 
 # Set cargo test invocation
-$CargoTestCommand = "cargo +$toolchain test $FeatureString -- --nocapture $TestOptions"
+$CargoTestCommand = "cargo +$toolchain test $FeatureString -- $TestOptions"
 
 Setup-Environment
 

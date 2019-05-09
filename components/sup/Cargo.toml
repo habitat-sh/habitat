@@ -88,3 +88,5 @@ json = "*"
 default = []
 apidocs = []
 ignore_integration_tests = []
+lock_as_rwlock = ["habitat_common/lock_as_rwlock"]
+lock_as_mutex = ["habitat_common/lock_as_mutex"]

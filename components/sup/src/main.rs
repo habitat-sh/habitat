@@ -20,7 +20,6 @@ extern crate habitat_sup as sup;
 extern crate jemalloc_ctl;
 #[cfg(unix)]
 extern crate jemallocator;
-extern crate libc;
 #[macro_use]
 extern crate log;
 #[cfg(test)]

@@ -14,18 +14,19 @@
 
 //! Tracks membership. Contains both the `Member` struct and the `MemberList`.
 
-use std::{collections::{hash_map,
-                        HashMap},
-          fmt,
-          net::SocketAddr,
-          num::ParseIntError,
-          ops::Add,
-          result,
-          str::FromStr,
-          sync::{atomic::{AtomicUsize,
-                          Ordering},
-                 RwLock}};
-
+pub use crate::protocol::swim::Health;
+use crate::{error::{Error,
+                    Result},
+            protocol::{self,
+                       newscast,
+                       swim as proto,
+                       FromProto},
+            rumor::{RumorKey,
+                    RumorPayload,
+                    RumorType}};
+use habitat_common::sync::{Lock,
+                           ReadGuard,
+                           WriteGuard};
 use habitat_core::util::ToI64;
 use prometheus::IntGaugeVec;
 use rand::{seq::{IteratorRandom,
@@ -38,20 +39,19 @@ use serde::{de,
             Deserializer,
             Serialize,
             Serializer};
+use std::{collections::{hash_map,
+                        HashMap},
+          fmt,
+          net::SocketAddr,
+          num::ParseIntError,
+          ops::Add,
+          result,
+          str::FromStr,
+          sync::atomic::{AtomicUsize,
+                         Ordering}};
 use time::{Duration,
            SteadyTime};
 use uuid::Uuid;
-
-pub use crate::protocol::swim::Health;
-use crate::{error::{Error,
-                    Result},
-            protocol::{self,
-                       newscast,
-                       swim as proto,
-                       FromProto},
-            rumor::{RumorKey,
-                    RumorPayload,
-                    RumorType}};
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
@@ -338,8 +338,8 @@ mod member_list {
 /// suspect or confirmed.
 #[derive(Debug)]
 pub struct MemberList {
-    entries:         RwLock<HashMap<UuidSimple, member_list::Entry>>,
-    initial_members: RwLock<Vec<Member>>,
+    entries:         Lock<HashMap<UuidSimple, member_list::Entry>>,
+    initial_members: Lock<Vec<Member>>,
     update_counter:  AtomicUsize,
 }
 
@@ -373,33 +373,22 @@ impl Serialize for MemberList {
 impl MemberList {
     /// Creates a new, empty, MemberList.
     pub fn new() -> MemberList {
-        MemberList { entries:         RwLock::new(HashMap::new()),
-                     initial_members: RwLock::new(Vec::new()),
+        MemberList { entries:         Lock::new(HashMap::new()),
+                     initial_members: Lock::new(Vec::new()),
                      update_counter:  AtomicUsize::new(0), }
     }
 
-    fn read_entries(&self)
-                    -> std::sync::RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        self.entries.read().expect("Members read lock")
+    fn read_entries(&self) -> ReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+        self.entries.read()
     }
 
-    fn write_entries(
-        &self)
-        -> std::sync::RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
-        self.entries.write().expect("Members write lock")
+    fn write_entries(&self) -> WriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+        self.entries.write()
     }
 
-    fn initial_members_read(&self) -> std::sync::RwLockReadGuard<'_, Vec<Member>> {
-        self.initial_members
-            .read()
-            .expect("Initial members read lock")
-    }
+    fn initial_members_read(&self) -> ReadGuard<'_, Vec<Member>> { self.initial_members.read() }
 
-    fn initial_members_write(&self) -> std::sync::RwLockWriteGuard<'_, Vec<Member>> {
-        self.initial_members
-            .write()
-            .expect("Initial members write lock")
-    }
+    fn initial_members_write(&self) -> WriteGuard<'_, Vec<Member>> { self.initial_members.write() }
 
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
@@ -562,6 +551,28 @@ impl MemberList {
             .map(|member_list::Entry { health, .. }| *health)
     }
 
+    /// Returns the health of the member, blocking for a limited timeout
+    ///
+    /// Errors:
+    /// * `Error::Timeout` if the health data can't be accessed within `timeout`
+    /// * `Error::UnknownMember` if the member does not exist
+    pub fn health_of_by_id_with_timeout(&self,
+                                        member_id: &str,
+                                        timeout: std::time::Duration)
+                                        -> Result<Health> {
+        let entries = self.entries.try_read_for(timeout);
+
+        if entries.is_none() {
+            debug!("try_lock_for timed out after {:?}", timeout);
+            return Err(Error::Timeout(format!("waiting on {} member health query", member_id)));
+        }
+
+        entries.unwrap()
+               .get(member_id)
+               .map(|member_list::Entry { health, .. }| *health)
+               .ok_or_else(|| Error::UnknownMember(member_id.to_string()))
+    }
+
     /// Returns true if the member is alive, suspect, or persistent; used during the target
     /// selection phase of the outbound thread.
     pub fn pingable(&self, member: &Member) -> bool {
@@ -648,11 +659,10 @@ impl MemberList {
         }
     }
 
-    // This could be Result<T> instead, but there's only the one caller now
-    pub fn with_memberships(&self,
-                            mut with_closure: impl FnMut(Membership) -> Result<u64>)
-                            -> Result<u64> {
-        let mut ok: Result<u64> = Ok(0);
+    pub fn with_memberships<T: Default>(&self,
+                                        mut with_closure: impl FnMut(Membership) -> Result<T>)
+                                        -> Result<T> {
+        let mut ok = Ok(T::default());
         for membership in self.read_entries()
                               .values()
                               .map(|member_list::Entry { member, health, .. }| {
@@ -834,6 +844,7 @@ mod tests {
         use crate::member::{Health,
                             Member,
                             MemberList,
+                            Membership,
                             PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
@@ -868,7 +879,11 @@ mod tests {
         #[test]
         fn health_of() {
             let ml = populated_member_list(1);
-            ml.with_members(|m| assert_eq!(ml.health_of(m), Some(Health::Alive)));
+            ml.with_memberships(|Membership { member: _, health }| {
+                  assert_eq!(health, Health::Alive);
+                  Ok(())
+              })
+              .ok();
         }
 
         #[test]

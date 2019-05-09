@@ -28,8 +28,7 @@ use users::{self,
 /// able to access their files. Similar logic holds for the reverse.
 #[cfg(target_os = "linux")]
 pub fn can_run_services_as_svc_user() -> bool {
-    use caps::{self,
-               CapSet,
+    use caps::{CapSet,
                Capability};
 
     fn has(cap: Capability) -> bool { caps::has_cap(None, CapSet::Effective, cap).unwrap_or(false) }

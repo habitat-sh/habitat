@@ -1,14 +1,12 @@
 #[cfg(windows)]
 fn main() {
-    extern crate base64;
-    extern crate gcc;
-
     use std::{env,
               fs::File,
               io::prelude::*,
               path::Path};
 
-    gcc::compile_library("libadmincheck.a", &["./src/os/users/admincheck.c"]);
+    cc::Build::new().file("./src/os/users/admincheck.c")
+                    .compile("libadmincheck.a");
     let mut file =
         File::create(Path::new(&env::var("OUT_DIR").unwrap()).join("hab-crypt")).unwrap();
     match env::var("HAB_CRYPTO_KEY") {
