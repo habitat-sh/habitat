@@ -32,3 +32,7 @@ pub fn hostname() -> io::Result<String> {
                                     .collect::<Vec<u8>>();
     Ok(String::from_utf8_lossy(&bytes).into_owned())
 }
+
+pub fn ai_canonname() -> i32 {
+    winapi::shared::ws2def::AI_CANONNAME
+}

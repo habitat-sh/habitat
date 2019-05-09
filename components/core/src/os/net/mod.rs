@@ -29,10 +29,14 @@ use dns_lookup::{getaddrinfo,
                  AddrInfoHints};
 use std::io;
 
-// lookup_fqdn returns a vector of fqdn that resolves the provided hostname
+// lookup_fqdn returns a vector of fqdn that resolves the provided hostname.
+//
+// Since the underlying crate is platform agnostic, this function is as well,
+// we only implement a single function `ai_canonname()` that returns the right
+// hint flag for the running operating system.
 pub fn lookup_fqdn(hostname: String) -> io::Result<Vec<String>> {
   let hints = AddrInfoHints {
-      flags: libc::AI_CANONNAME,
+      flags: ai_canonname(),
       .. AddrInfoHints::default()
   };
   let addrinfos =
@@ -81,6 +85,7 @@ fn test_fqdn() {
         "should match with the configured fqdn in the running machine");
 }
 
+#[cfg(not(windows))]
 #[test]
 fn test_fqdn_lookup() {
     let fqdn = lookup_fqdn(String::from("localhost"));

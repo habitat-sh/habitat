@@ -33,3 +33,7 @@ pub fn hostname() -> io::Result<String> {
 extern "C" {
     pub fn gethostname(name: *mut libc::c_char, size: libc::size_t) -> libc::c_int;
 }
+
+pub fn ai_canonname() -> i32 {
+    libc::AI_CANONNAME
+}
