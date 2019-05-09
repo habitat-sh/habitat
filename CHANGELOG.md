@@ -7,6 +7,7 @@
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.80.0...0.81.0)
 
 #### Bug Fixes
+- Add habitat_common::sync::Lock type for recursive read locking [#6436](https://github.com/habitat-sh/habitat/pull/6436) ([baumanj](https://github.com/baumanj))
 - Add HAB_LICENSE to 2 more spots in our release automation [#6497](https://github.com/habitat-sh/habitat/pull/6497) ([raskchanky](https://github.com/raskchanky))
 - Ensure the install script has accepted the license [#6503](https://github.com/habitat-sh/habitat/pull/6503) ([raskchanky](https://github.com/raskchanky))
 
