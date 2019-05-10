@@ -496,7 +496,7 @@ impl Manager {
                 cfg.event_stream_config
                    .expect("Config should be present if the EventStream feature is enabled");
 
-            // Collecting the FQDN of the running machine
+            // Collect the FQDN of the running machine
             let fqdn = habitat_core::os::net::fqdn().unwrap_or_default();
             outputln!("Event FQDN {}", fqdn);
 

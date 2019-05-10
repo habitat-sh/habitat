@@ -32,8 +32,8 @@ use std::io;
 // lookup_fqdn returns a vector of fqdn that resolves the provided hostname.
 //
 // Since the underlying crate is platform agnostic, this function is as well,
-// we only implement a single function `ai_canonname()` that returns the right
-// hint flag for the running operating system.
+// we only implement a single variable `flags` that has the right hint for
+// the running operating system.
 pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
     #[cfg(not(windows))]
     let flags = libc::AI_CANONNAME;
@@ -41,16 +41,17 @@ pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
     #[cfg(windows)]
     let flags = winapi::shared::ws2def::AI_CANONNAME;
 
-    let hints = AddrInfoHints { flags, ..AddrInfoHints::default() };
+    let hints = AddrInfoHints { flags,
+                                ..AddrInfoHints::default() };
     let addrinfos =
         getaddrinfo(Some(hostname), None, Some(hints))?.collect::<std::io::Result<Vec<_>>>()?;
 
     // If 'hints.ai_flags' includes the AI_CANONNAME flag, then the ai_canonname
     // field of the first of the addrinfo structures in the returned list is set
     // to point to the official name of the host.
-    if addrinfos.len() > 0 {
+    if !addrinfos.is_empty() {
         let addrinfo = addrinfos[0].clone();
-        return Ok(addrinfo.canonname.unwrap_or(hostname.to_string()))
+        return Ok(addrinfo.canonname.unwrap_or_else(|| hostname.to_string()));
     }
 
     Ok(hostname.to_string())
