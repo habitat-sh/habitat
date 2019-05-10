@@ -105,7 +105,7 @@ steps:
     command:
       # put this back once the deadlock detection comes back
       #- ./test/run_cargo_test.sh --nightly --features "deadlock_detection" --test-options "--test-threads=1 --ignored" butterfly
-      - ./test/run_cargo_test.sh --test-options "--test-threads=1 --ignored" butterfly
+      - ./test/run_cargo_test.sh butterfly --test-options "--test-threads=1 --ignored"
     agents:
       queue: 'default-privileged'
     plugins:
