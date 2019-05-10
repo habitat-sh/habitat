@@ -59,16 +59,8 @@ pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
 
 // fqdn returns the fully qualified domain name of the running machine
 pub fn fqdn() -> Option<String> {
-    // Implementation 1 - Using match statements
     match hostname() {
-        Ok(hostname) => {
-            match lookup_fqdn(&hostname) {
-                Ok(fqdn) => Some(fqdn),
-                // @afiune if the lookup_fqdn returns an Err(), should we
-                // return the hostname instead of None?
-                Err(_) => None,
-            }
-        }
+        Ok(hostname) => lookup_fqdn(&hostname).ok(),
         Err(_) => None,
     }
 }
