@@ -5,7 +5,7 @@ EXPOSE 9631 {{exposes}}
 RUN SET HAB_FEAT_OFFLINE_INSTALL=ON && \
     {{~ #if environment}}
     {{~ #each environment}}
-        SET {{@key}}={{{this}}} && \
+        SET {{@key}}={{{this}}}&& \
     {{~ /each}}
     {{~ /if}}
     {{hab_path}} pkg install {{installed_primary_svc_ident}}
