@@ -23,17 +23,9 @@ mod imp;
 
 pub use self::imp::*;
 
-extern crate dns_lookup;
-
-use dns_lookup::{getaddrinfo,
-                 AddrInfoHints};
 use std::io;
 
-// lookup_fqdn returns a vector of fqdn that resolves the provided hostname.
-//
-// Since the underlying crate is platform agnostic, this function is as well,
-// we only implement a single variable `flags` that has the right hint for
-// the running operating system.
+/// Returns the fqdn from the provided hostname.
 pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
     #[cfg(not(windows))]
     let flags = libc::AI_CANONNAME;
@@ -41,38 +33,33 @@ pub fn lookup_fqdn(hostname: &str) -> io::Result<String> {
     #[cfg(windows)]
     let flags = winapi::shared::ws2def::AI_CANONNAME;
 
-    let hints = AddrInfoHints { flags,
-                                ..AddrInfoHints::default() };
-    let addrinfos =
-        getaddrinfo(Some(hostname), None, Some(hints))?.collect::<std::io::Result<Vec<_>>>()?;
+    let hints = dns_lookup::AddrInfoHints { flags,
+                                            ..dns_lookup::AddrInfoHints::default() };
 
-    // If 'hints.ai_flags' includes the AI_CANONNAME flag, then the ai_canonname
+    // If 'hints.flags' includes the AI_CANONNAME flag, then the ai_canonname
     // field of the first of the addrinfo structures in the returned list is set
     // to point to the official name of the host.
-    if !addrinfos.is_empty() {
-        let addrinfo = addrinfos[0].clone();
-        return Ok(addrinfo.canonname.unwrap_or_else(|| hostname.to_string()));
+    if let Some(first_result) = dns_lookup::getaddrinfo(Some(hostname), None, Some(hints))?.next() {
+        match first_result {
+            Ok(f) => Ok(f.canonname.expect("Some(canonname) if requested")),
+            Err(e) => {
+                debug!("lookup_fqdn() was unable to lookup the machine fqdn. {:?}",
+                       e);
+                Ok(hostname.to_string())
+            }
+        }
+    } else {
+        Ok(hostname.to_string())
     }
-
-    Ok(hostname.to_string())
 }
 
-// fqdn returns the fully qualified domain name of the running machine
+/// Returns the fully qualified domain name of the running machine.
 pub fn fqdn() -> Option<String> {
-    match hostname() {
-        Ok(hostname) => lookup_fqdn(&hostname).ok(),
-        Err(_) => None,
+    let result = dns_lookup::get_hostname().and_then(|hostname| lookup_fqdn(&hostname));
+    if let Err(ref e) = result {
+        debug!("fqdn() was unable to lookup the machine fqdn. {:?}", e);
     }
-}
-
-#[test]
-#[ignore]
-fn test_fqdn() {
-    // @afiune This test is ignore because it is testing the actual
-    // fqdn of the running machine, mine has 'afiune-ubuntu-vb.lala.com'
-    assert_eq!(fqdn().unwrap(),
-               String::from("afiune-ubuntu-vb.lala.com"),
-               "should match with the configured fqdn in the running machine");
+    result.ok()
 }
 
 #[cfg(not(windows))]
@@ -85,6 +72,7 @@ fn test_fqdn_lookup() {
                "the fqdn of localhost should be localhost");
 }
 
+#[cfg(not(windows))]
 #[test]
 fn test_fqdn_lookup_err() {
     let fqdn = lookup_fqdn("");
