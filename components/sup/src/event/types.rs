@@ -9,19 +9,6 @@ use prost::Message;
 
 include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
 
-// Note: `UpdateStrategy` here is the protobuf-generated type for the
-// event we're sending out; `DomainUpdateStrategy` is the one we use
-// elsewhere in the Supervisor.
-impl Into<UpdateStrategy> for DomainUpdateStrategy {
-    fn into(self) -> UpdateStrategy {
-        match self {
-            DomainUpdateStrategy::None => UpdateStrategy::None,
-            DomainUpdateStrategy::AtOnce => UpdateStrategy::AtOnce,
-            DomainUpdateStrategy::Rolling => UpdateStrategy::Rolling,
-        }
-    }
-}
-
 // Note: `HealthCheck` here is the protobuf-generated type for the
 // event we're sending out; `DomainHealthCheckResult` is the one we use
 // elsewhere in the Supervisor.
@@ -44,11 +31,28 @@ impl Service {
     // kick off the health checking future for a service, rather than
     // cloning the entire service for eventing.
     pub fn to_service_metadata(&self) -> ServiceMetadata {
-        ServiceMetadata { package_ident:   self.pkg.ident.to_string(),
-                          spec_ident:      self.spec_ident.to_string(),
-                          service_group:   self.service_group.to_string(),
-                          update_channel:  self.channel.to_string(),
-                          update_strategy: self.update_strategy.into(), }
+        ServiceMetadata { package_ident: self.pkg.ident.to_string(),
+                          spec_ident:    self.spec_ident.to_string(),
+                          service_group: self.service_group.to_string(),
+                          update:        self.update(), }
+    }
+
+    /// `Update` is a (currently protobuf-only) type that encapsulates
+    /// a channel and update strategy. Importantly, the existing
+    /// `UpdateStrategy::None` variant is essentially converted to
+    /// `Option::None`, whereas the other variants are coupled with the
+    /// channel from which the Supervisor pulls updates.
+    fn update(&self) -> Option<Update> {
+        let strategy = match self.update_strategy {
+            DomainUpdateStrategy::None => {
+                return None;
+            }
+            DomainUpdateStrategy::AtOnce => UpdateStrategy::AtOnce,
+            DomainUpdateStrategy::Rolling => UpdateStrategy::Rolling,
+        };
+
+        Some(Update { strategy: strategy.into(),
+                      channel:  self.channel.to_string(), })
     }
 }
 

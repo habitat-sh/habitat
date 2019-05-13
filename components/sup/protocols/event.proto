@@ -23,22 +23,26 @@ message ServiceMetadata {
   string spec_ident = 2;
   // todo: make / reuse a real type?
   string service_group = 3;
-  // The channel a service was initially downloaded from, and (if an
-  // update strategy is set) the channel from which updates will be
-  // pulled.
-  string update_channel = 4;
-  UpdateStrategy update_strategy = 5;
+  Update update = 4;
 }
 
+// Note that there is no `None` value, as currently exists in the Rust
+// code for the Supervisor. Here we are only going to deal with the
+// actual update strategies (because `None` isn't really a strategy!)
 enum UpdateStrategy {
-  // The service will not update itself.
-  None = 0;
   // Service updates are applied immediately as they are available,
   // with no additional coordination.
-  AtOnce = 1;
+  AtOnce = 0;
   // Updates are applied one-by-one throughout a service group to
   // prevent everything from updating all at once.
-  Rolling = 2;
+  Rolling = 1;
+}
+
+message Update {
+  UpdateStrategy strategy = 1;
+  // The channel the Supervisor will monitor for updates to this
+  // service.
+  string channel = 2;
 }
 
 enum HealthCheck {
