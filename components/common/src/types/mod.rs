@@ -1,7 +1,6 @@
 mod listen_ctl_addr;
 pub use self::listen_ctl_addr::ListenCtlAddr;
-use crate::error::{Error,
-                   Result};
+use crate::error::Error;
 use clap::ArgMatches;
 use std::{collections::HashMap,
           env::{self,
@@ -52,17 +51,20 @@ impl EventStreamMetadata {
     #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
     pub fn validate(value: String) -> result::Result<(), String> {
         Self::split_raw(&value).map(|_| ())
-                               .map_err(|e| e.to_string())
     }
 
     /// Utility function to create a key-value pair tuple from a
     /// user-provided value in Clap.
-    fn split_raw(raw: &str) -> Result<(String, String)> {
+    fn split_raw(raw: &str) -> result::Result<(String, String), String> {
         match raw.split('=').collect::<Vec<_>>().as_slice() {
             [key, value] if !key.is_empty() && !value.is_empty() => {
                 Ok((key.to_string(), value.to_string()))
             }
-            _ => Err(Error::EventStreamMetadataError(raw.to_string())),
+            _ => {
+                Err(format!("Invalid key-value pair given (must be \
+                             '='-delimited pair of non-empty strings): {}",
+                            raw))
+            }
         }
     }
 
