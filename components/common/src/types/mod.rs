@@ -69,13 +69,6 @@ impl EventStreamMetadata {
                                .map_err(|e| e.to_string())
     }
 
-    /// Create an instance of `EventStreamMetadata` from validated
-    /// user input.
-    pub fn from_matches(m: &ArgMatches) -> Self {
-        let raw_meta = m.values_of(Self::ARG_NAME).unwrap_or_default();
-        Self(raw_meta.map(Self::split_validated).collect())
-    }
-
     /// Utility function to create a key-value pair tuple from a
     /// user-provided value in Clap.
     fn split_raw(raw: &str) -> Result<(String, String)> {
@@ -98,6 +91,15 @@ impl EventStreamMetadata {
     fn split_validated(validated_input: &str) -> (String, String) {
         Self::split_raw(validated_input).expect("EVENT_STREAM_METADATA should be validated at \
                                                  this point")
+    }
+}
+
+impl<'a> From<&'a ArgMatches<'a>> for EventStreamMetadata {
+    /// Create an instance of `EventStreamMetadata` from validated
+    /// user input.
+    fn from(m: &ArgMatches) -> Self {
+        let raw_meta = m.values_of(Self::ARG_NAME).unwrap_or_default();
+        Self(raw_meta.map(Self::split_validated).collect())
     }
 }
 
