@@ -18,6 +18,6 @@ Write-Host "--- :key: Generating fake origin key"
 hab origin key generate
 Write-Host "--- :hab: Running hab pkg build for $Component"
 
-hab studio build -D --no-tty --non-interactive components/$Component
+hab studio build -D components/$Component
 
 exit $LASTEXITCODE
