@@ -27,7 +27,8 @@ use self::types::{EventMessage,
                   EventMetadata,
                   HealthCheckEvent,
                   ServiceStartedEvent,
-                  ServiceStoppedEvent};
+                  ServiceStoppedEvent,
+                  ServiceUpdateStartedEvent};
 use crate::manager::{service::{HealthCheckResult,
                                Service},
                      sys::Sys};
@@ -37,7 +38,8 @@ pub use error::{Error,
 use futures::sync::mpsc::UnboundedSender;
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamMetadata};
-use habitat_core::env::Config as EnvConfig;
+use habitat_core::{env::Config as EnvConfig,
+                   package::ident::PackageIdent};
 use state::Container;
 use std::{net::SocketAddr,
           num::ParseIntError,
@@ -177,6 +179,22 @@ pub fn service_stopped(service: &Service) {
     }
 }
 
+/// Send an event at the start of a Service update.
+pub fn service_update_started(service: &Service, update: &PackageIdent) {
+    if stream_initialized() {
+        publish(ServiceUpdateStartedEvent { event_metadata:   None,
+                                            service_metadata: Some(service.to_service_metadata()),
+                                            update_origin:    update.origin.clone(),
+                                            update_name:      update.name.clone(),
+                                            update_version:   update.version
+                                                                    .clone()
+                                                                    .unwrap_or_default(),
+                                            update_release:   update.release
+                                                                    .clone()
+                                                                    .unwrap_or_default(), });
+    }
+}
+
 // Takes metadata directly, rather than a `&Service` like other event
 // functions, because of how the asynchronous health checking
 // currently works. Revisit when async/await + Pin is all stabilized.
@@ -219,6 +237,7 @@ fn publish(mut event: impl EventMessage) {
         // one.
         //
         // The ugliness is at least contained, though.
+        debug!("Publishing to event stream: event {:?} ", event);
         event.event_metadata(EventMetadata { occurred_at:
                                                  Some(std::time::SystemTime::now().into()),
                                              ..EVENT_CORE.get::<EventCore>().to_event_metadata() });

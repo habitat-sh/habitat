@@ -72,6 +72,48 @@ message ServiceStoppedEvent {
   ServiceMetadata service_metadata = 2;
 }
 
+message ServiceUpdateStartedEvent {
+  EventMetadata event_metadata = 1;
+  ServiceMetadata service_metadata = 2;
+  // Details of the service pkg to which 
+  // we're attempting to update.These
+  // are implemented as strings for now,
+  // but at some point we'll likely want
+  // to create a type for this set of
+  // attributes (PackageIdent)
+  string update_origin = 3;
+  string update_name = 4;
+  string update_version = 5;
+  string update_release = 6;
+}
+
+message ServiceUpdateCompleteEvent {
+  EventMetadata event_metadata = 1;
+  ServiceMetadata service_metadata = 2;
+  // Details of the service pkg to
+  // which we've successfully updated.
+  // These are implemented as strings for now,
+  // but at some point we'll likely want
+  // to create a type for this set of
+  // attributes (PackageIdent)
+  string update_origin = 3;
+  string update_name = 4;
+  string update_version = 5;
+  string update_release = 6;
+}
+
+message FailureDetail {}
+
+message ServiceUpdateFailedEvent {
+  EventMetadata event_metadata = 1;
+  ServiceMetadata service_metadata = 2;
+  // Details of the service pkg to
+  // which we've failed to update
+  ServiceMetadata update_metadata = 3;
+  // service update failure detail
+  FailureDetail failure_detail = 4;
+}
+
 message HealthCheckEvent {
   EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;

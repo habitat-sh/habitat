@@ -51,7 +51,7 @@ prost = "*"
 prost-derive = "*"
 prost-types = "0.5.0" # This is current stable, but for some reason gets pulled in as 0.4.0 if we use "*" (2019-03-28)
 rand = "*"
-ratsio = "*"
+ratsio = "^0.2"
 regex = "*"
 rustls = "*"
 serde = { version = "*", features = ["rc"] }

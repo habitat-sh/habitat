@@ -105,6 +105,12 @@ impl EventMessage for ServiceStoppedEvent {
     }
 }
 
+impl EventMessage for ServiceUpdateStartedEvent {
+    fn event_metadata(&mut self, event_metadata: EventMetadata) {
+        self.event_metadata = Some(event_metadata);
+    }
+}
+
 impl EventMessage for HealthCheckEvent {
     fn event_metadata(&mut self, event_metadata: EventMetadata) {
         self.event_metadata = Some(event_metadata);
