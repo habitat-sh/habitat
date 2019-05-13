@@ -57,14 +57,9 @@ impl EventStreamMetadata {
 
     /// Create an instance of `EventStreamMetadata` from validated
     /// user input.
-    pub fn from_matches(m: &ArgMatches) -> result::Result<Self, Error> {
+    pub fn from_matches(m: &ArgMatches) -> Self {
         let raw_meta = m.values_of(Self::ARG_NAME).unwrap_or_default();
-        let mut pairs = HashMap::with_capacity(raw_meta.len());
-        for raw_pair in raw_meta {
-            let (k, v) = Self::split_raw(raw_pair)?;
-            pairs.insert(k, v);
-        }
-        Ok(Self(pairs))
+        Self(raw_meta.map(Self::split_validated).collect())
     }
 
     /// Utility function to create a key-value pair tuple from a
@@ -82,6 +77,13 @@ impl EventStreamMetadata {
         } else {
             Err(Error::EventStreamMetadataError(raw.to_string()))
         }
+    }
+
+    /// Same as `split_raw`, but for running on already-validated
+    /// input (thus, this function cannot fail).
+    fn split_validated(validated_input: &str) -> (String, String) {
+        Self::split_raw(validated_input).expect("EVENT_STREAM_METADATA should be validated at \
+                                                 this point")
     }
 }
 
