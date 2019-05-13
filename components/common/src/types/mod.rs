@@ -58,17 +58,11 @@ impl EventStreamMetadata {
     /// Utility function to create a key-value pair tuple from a
     /// user-provided value in Clap.
     fn split_raw(raw: &str) -> Result<(String, String)> {
-        let mut pair = raw.splitn(2, '=')
-                          .map(ToString::to_string)
-                          .collect::<Vec<_>>();
-        if pair.len() == 2 {
-            if pair[0].is_empty() || pair[1].is_empty() {
-                Err(Error::EventStreamMetadataError(raw.to_string()))
-            } else {
-                Ok((pair.remove(0), pair.remove(0)))
+        match raw.split('=').collect::<Vec<_>>().as_slice() {
+            [key, value] if !key.is_empty() && !value.is_empty() => {
+                Ok((key.to_string(), value.to_string()))
             }
-        } else {
-            Err(Error::EventStreamMetadataError(raw.to_string()))
+            _ => Err(Error::EventStreamMetadataError(raw.to_string())),
         }
     }
 
