@@ -322,4 +322,45 @@ be quick and relatively informal, but the fundamental goals are the same:
 or speaking in counter-factuals (🙆: "I did…/I thought…", 🙅‍♂️: "I should've…/I would've…")
 1. Agree on, assign and prioritize remediation items to ensure continuous improvement of our release process and codebase more generally
 
-If the release truly had no problems at all, add a "Yay!" to [the retro board](https://trello.com/b/H3ysuKy9/habitat-retro) and celebrate our success as a team. 
+If the release truly had no problems at all, add a "Yay!" to [the retro board](https://trello.com/b/H3ysuKy9/habitat-retro) and celebrate our success as a team.
+
+# Running a "Fake" Release
+
+Whenever you make a change to code that affects the release (i.e., the
+definitions of the Buildkite pipeline itself, code for the Studio or
+`hab-plan-build`, etc.), you should try to run a "fake" release, to
+ensure that nothing broke. It's much nicer to discover this before the
+code merges, than in the middle of a real release, after all.
+
+A fake release can be run at any time, and from any branch (including
+`master`), whether they are attached to pull requests or not. You will
+need to have access to the Buildkite release pipeline, however, so
+this is limited to core Habitat team members.
+
+1. Go to the [release pipeline](https://buildkite.com/chef/habitat-sh-habitat-master-release) page on Buildkite.
+2. Click the "New Build" button, which presents you with a form to fill in.
+3. Set the "Message" field to something that helps identify what this run is for (e.g., "Testing pipeline change to add more foo to the baz")
+4. Ensure that the "Commit" field has the value `HEAD`
+5. Set the "Branch" field to the name of the branch you want to test.
+6. Under "Options" you *MUST* add a value for the special environment variable `FAKE_RELEASE_TAG`.
+
+   Our release is currently driven by Git tags, with the name of the
+   tag becoming the release identifier (which in turn is incorporated
+   into various internal bookkeeping identifiers, including the
+   release candidate channel name in Builder). Since we won't have a
+   tag in this case, we use this environment variable to "fake
+   it". (If we _did_ have a tag, that would kick off a *real* release,
+   which we explicitly do not want!) Try something like:
+
+       FAKE_RELEASE_TAG=my_super_nifty_test_release
+
+7. Press the "Create Build Button".
+
+In a moment, you should see a new run of the release pipeline
+start. This run is as close to the real release process as
+possible. It will run through all build steps and logic, but will not
+actually push artifacts to the real release channels.
+
+Also note that there is no additional automation around this
+currently. If you want to initiate a fake release, you must take that
+action yourself.

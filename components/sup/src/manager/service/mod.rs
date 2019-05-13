@@ -46,7 +46,8 @@ use crate::{census::{CensusGroup,
             error::{Error,
                     Result,
                     SupError},
-            manager::{FsCfg,
+            manager::{action::ShutdownSpec,
+                      FsCfg,
                       GatewayState,
                       Sys}};
 use futures::{future,
@@ -302,17 +303,17 @@ impl Service {
 
     /// Return a future that will shut down a service, performing any
     /// necessary cleanup, and run its post-stop hook, if any.
-    pub fn stop(&self) -> impl Future<Item = (), Error = SupError> {
+    pub fn stop(&self, shutdown_spec: ShutdownSpec) -> impl Future<Item = (), Error = SupError> {
         let service_group = self.service_group.clone();
         let gs = Arc::clone(&self.gateway_state);
 
-        let f = self.supervisor.stop().and_then(move |_| {
-                                          gs.write()
-                                            .expect("GatewayState lock is poisoned")
-                                            .health_check_data
-                                            .remove(&service_group);
-                                          Ok(())
-                                      });
+        let f = self.supervisor.stop(shutdown_spec).and_then(move |_| {
+                                                       gs.write()
+                                                         .expect("GatewayState lock is poisoned")
+                                                         .health_check_data
+                                                         .remove(&service_group);
+                                                       Ok(())
+                                                   });
 
         // eww
         let service_group_2 = self.service_group.clone();

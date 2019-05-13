@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::sys::ShutdownMethod;
+use crate::{manager::action::ShutdownSpec,
+            sys::ShutdownMethod};
 use habitat_core::os::process::{handle_from_pid,
                                 windows_child::{ExitStatus,
                                                 Handle},
@@ -22,7 +23,7 @@ use std::{collections::HashMap,
           mem,
           thread,
           time::Duration as StdDuration};
-use time::{Duration,
+use time::{Duration as TimeDuration,
            SteadyTime};
 use winapi::{shared::minwindef::{DWORD,
                                  LPDWORD,
@@ -40,7 +41,7 @@ const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
 
 /// Kill a service process
-pub fn kill(pid: Pid) -> ShutdownMethod {
+pub fn kill(pid: Pid, shutdown_spec: ShutdownSpec) -> ShutdownMethod {
     match handle_from_pid(pid) {
         None => {
             // Assume it's already gone if we can't resolve a proper process handle
@@ -48,7 +49,7 @@ pub fn kill(pid: Pid) -> ShutdownMethod {
         }
         Some(handle_ptr) => {
             let mut process = Process::new(Handle::new(handle_ptr));
-            process.kill()
+            process.kill(shutdown_spec)
         }
     }
 }
@@ -71,7 +72,9 @@ impl Process {
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.
-    fn kill(&mut self) -> ShutdownMethod {
+    fn kill(&mut self, shutdown_spec: ShutdownSpec) -> ShutdownMethod {
+        let ShutdownSpec { timeout } = shutdown_spec;
+
         if self.status().is_some() {
             return ShutdownMethod::AlreadyExited;
         }
@@ -82,7 +85,11 @@ impl Process {
                    io::Error::last_os_error());
         }
 
-        let stop_time = SteadyTime::now() + Duration::seconds(8);
+        let timeout: TimeDuration = timeout.into();
+        trace!("Waiting up to {} seconds before terminating process {}",
+               timeout.num_seconds(),
+               self.id());
+        let stop_time = SteadyTime::now() + timeout;
         loop {
             if ret == 0 || SteadyTime::now() > stop_time {
                 let proc_table = build_proc_table();

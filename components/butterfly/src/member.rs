@@ -24,10 +24,10 @@ use crate::{error::{Error,
             rumor::{RumorKey,
                     RumorPayload,
                     RumorType}};
+use habitat_common::sync::{Lock,
+                           ReadGuard,
+                           WriteGuard};
 use habitat_core::util::ToI64;
-use parking_lot::{RwLock,
-                  RwLockReadGuard,
-                  RwLockWriteGuard};
 use prometheus::IntGaugeVec;
 use rand::{seq::{IteratorRandom,
                  SliceRandom},
@@ -338,8 +338,8 @@ mod member_list {
 /// suspect or confirmed.
 #[derive(Debug)]
 pub struct MemberList {
-    entries:         RwLock<HashMap<UuidSimple, member_list::Entry>>,
-    initial_members: RwLock<Vec<Member>>,
+    entries:         Lock<HashMap<UuidSimple, member_list::Entry>>,
+    initial_members: Lock<Vec<Member>>,
     update_counter:  AtomicUsize,
 }
 
@@ -373,26 +373,22 @@ impl Serialize for MemberList {
 impl MemberList {
     /// Creates a new, empty, MemberList.
     pub fn new() -> MemberList {
-        MemberList { entries:         RwLock::new(HashMap::new()),
-                     initial_members: RwLock::new(Vec::new()),
+        MemberList { entries:         Lock::new(HashMap::new()),
+                     initial_members: Lock::new(Vec::new()),
                      update_counter:  AtomicUsize::new(0), }
     }
 
-    fn read_entries(&self) -> RwLockReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+    fn read_entries(&self) -> ReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.read()
     }
 
-    fn write_entries(&self) -> RwLockWriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
+    fn write_entries(&self) -> WriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.write()
     }
 
-    fn initial_members_read(&self) -> RwLockReadGuard<'_, Vec<Member>> {
-        self.initial_members.read()
-    }
+    fn initial_members_read(&self) -> ReadGuard<'_, Vec<Member>> { self.initial_members.read() }
 
-    fn initial_members_write(&self) -> RwLockWriteGuard<'_, Vec<Member>> {
-        self.initial_members.write()
-    }
+    fn initial_members_write(&self) -> WriteGuard<'_, Vec<Member>> { self.initial_members.write() }
 
     /// We don't care if this repeats - it just needs to be unique for any given two states, which
     /// it will be.
@@ -663,11 +659,10 @@ impl MemberList {
         }
     }
 
-    // This could be Result<T> instead, but there's only the one caller now
-    pub fn with_memberships(&self,
-                            mut with_closure: impl FnMut(Membership) -> Result<u64>)
-                            -> Result<u64> {
-        let mut ok: Result<u64> = Ok(0);
+    pub fn with_memberships<T: Default>(&self,
+                                        mut with_closure: impl FnMut(Membership) -> Result<T>)
+                                        -> Result<T> {
+        let mut ok = Ok(T::default());
         for membership in self.read_entries()
                               .values()
                               .map(|member_list::Entry { member, health, .. }| {
@@ -849,6 +844,7 @@ mod tests {
         use crate::member::{Health,
                             Member,
                             MemberList,
+                            Membership,
                             PINGREQ_TARGETS};
 
         fn populated_member_list(size: u64) -> MemberList {
@@ -883,7 +879,11 @@ mod tests {
         #[test]
         fn health_of() {
             let ml = populated_member_list(1);
-            ml.with_members(|m| assert_eq!(ml.health_of(m), Some(Health::Alive)));
+            ml.with_memberships(|Membership { member: _, health }| {
+                  assert_eq!(health, Health::Alive);
+                  Ok(())
+              })
+              .ok();
         }
 
         #[test]

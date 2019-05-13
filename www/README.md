@@ -11,61 +11,6 @@ Static site content for www.habitat.sh
     $ gem install bundler
     ```
 
-## How To: Add a Blog Post
-
-* Create your new blog post in source/blog
-
-  ```
-  $ touch source/blog/YYYY-MM-DD-your-blog-post-title.html.md
-  ```
-
-* Open up your blog post
-
-  ```
-  $ vim source/blog/YYYY-MM-DD-your-blog-post-title.html.md
-  ```
-
-* And add these headers
-
-  ```
-  ---
-  title: You Blog Post Title
-  date: YYYY-MM-DD (make sure this matches the date in the file name!)
-  author: FirstName LastName
-  tags: related_tags (see other posts for examples)
-  category: category of post (see other posts for examples)
-  classes: body-article
-  ---
-  ```
-
-* Then add your content below that.
-
-* After adding your content, save and close the file, then open this file
-
-  ```
-  $ vim www/data/author_bios.yml
-  ```
-
-* If your bio is not already there, add it in this format, then save and close
-  the file. Specifically, make the yaml key for your name a lowercased version
-  of your name with all spaces removed.
-
-  ```
-  nellshamrell-harrington:
-    name: "Nell Shamrell-Harrington"
-    email: "nshamrell@habitat.sh"
-    twitter: "@nellshamrell"
-	bio: "Nell Shamrell-Harrington is a Software Development Engineer at Chef and core maintainer of the Habitat and Supermarket open source projects. She also sits on the advisory board for the University of Washington Certificates in Ruby Programming and DevOps. She specializes in Chef, Ruby, Rails, Rust Regular Expressions, and Test Driven Development and has traveled the world speaking on these topics. Prior to entering the world of software development, she studied and worked in the field of theatre."
-  ```
-
-* Now check out your new post locally by running:
-
-  ```
-  $ make run
-  ```
-
-* If all looks good, open up a pull request!
-
 ## How-To: Serve Docs Locally
 
 1. Execute the `run` task to build and start the docs server on your local machine
@@ -98,6 +43,19 @@ Static site content for www.habitat.sh
   > Note: values for each of these can be found by logging into your AWS and Fastly control panels.
   > Note: make sure that the AWS credentials you use are for the Habitat AWS account and not the regular Chef AWS account.
 
+### A slight wrinkle
+If you are a Chef employee, you might be (should be) using [okta_aws](https://github.com/chef/okta_aws).
+
+In this case, you will need to run the following:
+
+```sh
+okta_aws habitat
+export AWS_DEFAULT_PROFILE=habitat
+```
+
+This eliminates the need to set `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+manually. The other variables still need to be set.
+
 1. Change to the `www` directory
 
    ```
@@ -108,4 +66,14 @@ Static site content for www.habitat.sh
 
     ```
     $ make deploy
+    ```
+
+    > Note: If the above task fails with a 403 Forbidden error, and you're
+    > a Chef employee using okta_aws, you can deploy the web site an alternate
+    > way.
+
+    ```
+    make build
+    cd build
+    aws s3 sync . s3://$AWS_BUCKET
     ```

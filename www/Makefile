@@ -33,8 +33,8 @@ cli_docs:
 	hab studio run "hab pkg install core/hab-studio && \
 	hab pkg install core/hab-sup && \
 	hab pkg install core/hab-launcher && \
-	hab pkg install core/node --binlink && \
-	node scripts/generate-cli-docs > source/docs/habitat-cli.html.md"
+	hab pkg install core/node --binlink /bin && \
+	/bin/node scripts/generate-cli-docs > source/docs/habitat-cli.html.md"
 
 node_modules/json-schema-ref-parser:
 	npm install json-schema-ref-parser@6.1.0
@@ -42,29 +42,20 @@ node_modules/json-schema-ref-parser:
 template_reference: node_modules/json-schema-ref-parser
 	mkdir tmp
 	cp ../components/sup/doc/* tmp/
-	hab studio run "hab pkg install core/node --binlink && \
-	node scripts/generate-template-reference.js tmp/render_context_schema.json > ./source/partials/docs/_reference-template-data.html.md.erb"
+	hab studio run "hab pkg install core/node --binlink /bin && \
+	/bin/node scripts/generate-template-reference.js tmp/render_context_schema.json > ./source/partials/docs/_reference-template-data.html.md.erb"
 	rm -rf tmp
 
 check-env:
-ifndef AWS_ACCESS_KEY_ID
-	$(error AWS_ACCESS_KEY_ID is undefined)
-endif
 ifndef AWS_BUCKET
 	$(error AWS_BUCKET is undefined)
 endif
 ifndef AWS_DEFAULT_REGION
 	$(error AWS_DEFAULT_REGION is undefined)
 endif
-ifndef AWS_SECRET_ACCESS_KEY
-	$(error AWS_SECRET_ACCESS_KEY is undefined)
-endif
 ifndef FASTLY_API_KEY
 	$(error FASTLY_API_KEY is undefined)
 endif
 ifndef FASTLY_SERVICE_KEY
 	$(error FASTLY_SERVICE_KEY is undefined)
-endif
-ifndef NETLIFYKEY
-	$(error NETLIFYKEY is undefined)
 endif

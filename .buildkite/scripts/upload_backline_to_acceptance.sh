@@ -19,10 +19,10 @@ backline_artifact="$(get_backline_artifact "${BUILD_PKG_TARGET}")"
 
 # Ensure we have the package in our local artifact cache
 echo "--- :drum_with_drumsticks: Downloading ${backline_ident} locally"
-sudo "${hab_binary}" pkg install "${backline_ident}"
+sudo HAB_LICENSE="accept-no-persist" "${hab_binary}" pkg install "${backline_ident}"
 
 echo "--- :drum_with_drumsticks: Uploading ${backline_ident} to acceptance"
-sudo "${hab_binary}" pkg upload \
+sudo HAB_LICENSE="accept-no-persist" "${hab_binary}" pkg upload \
   --url https://bldr.acceptance.habitat.sh \
   --channel "$(acceptance_channel)" \
   --auth "${HAB_AUTH_TOKEN}" \

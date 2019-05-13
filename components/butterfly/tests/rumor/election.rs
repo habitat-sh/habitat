@@ -14,6 +14,7 @@
 
 use habitat_butterfly::{member::Health,
                         rumor::election::ElectionStatus};
+use habitat_common::FeatureFlag;
 
 use crate::btest;
 
@@ -75,9 +76,9 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     let paused_id = net[paused].member_id();
     assert_wait_for_health_of!(net, paused, Health::Confirmed);
     if paused == 0 {
-        net[1].restart_elections();
+        net[1].restart_elections(FeatureFlag::empty());
     } else {
-        net[0].restart_elections();
+        net[0].restart_elections(FeatureFlag::empty());
     }
 
     for i in 0..5 {
@@ -143,8 +144,8 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     let mut new_leader_id = String::from("");
     net.partition(0..2, 2..5);
     assert_wait_for_health_of!(net, [0..2, 2..5], Health::Confirmed);
-    net[0].restart_elections();
-    net[4].restart_elections();
+    net[0].restart_elections(FeatureFlag::empty());
+    net[4].restart_elections(FeatureFlag::empty());
     assert_wait_for_election_status!(net, 0, "witcher.prod", ElectionStatus::NoQuorum);
     assert_wait_for_election_status!(net, 1, "witcher.prod", ElectionStatus::NoQuorum);
     assert_wait_for_election_status!(net, 2, "witcher.prod", ElectionStatus::Finished);

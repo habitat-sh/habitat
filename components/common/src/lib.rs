@@ -90,15 +90,16 @@ bitflags::bitflags! {
     /// environment variable to which it corresponds in the `ENV_VARS`
     /// map below.
     pub struct FeatureFlag: u32 {
-        const LIST            = 0b0000_0000_0001;
-        const TEST_EXIT       = 0b0000_0000_0010;
-        const TEST_BOOT_FAIL  = 0b0000_0000_0100;
-        const REDACT_HTTP     = 0b0000_0000_1000;
-        const IGNORE_SIGNALS  = 0b0000_0001_0000;
-        const INSTALL_HOOK    = 0b0000_0010_0000;
-        const OFFLINE_INSTALL = 0b0000_0100_0000;
-        const IGNORE_LOCAL    = 0b0000_1000_0000;
-        const EVENT_STREAM    = 0b0001_0000_0000;
+        const LIST               = 0b0000_0000_0001;
+        const TEST_EXIT          = 0b0000_0000_0010;
+        const TEST_BOOT_FAIL     = 0b0000_0000_0100;
+        const REDACT_HTTP        = 0b0000_0000_1000;
+        const IGNORE_SIGNALS     = 0b0000_0001_0000;
+        const OFFLINE_INSTALL    = 0b0000_0100_0000;
+        const IGNORE_LOCAL       = 0b0000_1000_0000;
+        const EVENT_STREAM       = 0b0001_0000_0000;
+        const TRIGGER_ELECTION   = 0b0010_0000_0000;
+        const CONFIGURE_SHUTDOWN = 0b0100_0000_0000;
     }
 }
 
@@ -109,10 +110,11 @@ lazy_static! {
                            (FeatureFlag::TEST_BOOT_FAIL, "HAB_FEAT_BOOT_FAIL"),
                            (FeatureFlag::REDACT_HTTP, "HAB_FEAT_REDACT_HTTP"),
                            (FeatureFlag::IGNORE_SIGNALS, "HAB_FEAT_IGNORE_SIGNALS"),
-                           (FeatureFlag::INSTALL_HOOK, "HAB_FEAT_INSTALL_HOOK"),
                            (FeatureFlag::OFFLINE_INSTALL, "HAB_FEAT_OFFLINE_INSTALL"),
                            (FeatureFlag::IGNORE_LOCAL, "HAB_FEAT_IGNORE_LOCAL"),
-                           (FeatureFlag::EVENT_STREAM, "HAB_FEAT_EVENT_STREAM")];
+                           (FeatureFlag::EVENT_STREAM, "HAB_FEAT_EVENT_STREAM"),
+                           (FeatureFlag::TRIGGER_ELECTION, "HAB_FEAT_TRIGGER_ELECTION"),
+                           (FeatureFlag::CONFIGURE_SHUTDOWN, "HAB_FEAT_CONFIGURE_SHUTDOWN")];
         HashMap::from_iter(mapping)
     };
 }
@@ -154,5 +156,122 @@ impl FeatureFlag {
         }
 
         flags
+    }
+}
+
+pub mod sync {
+    use std::time::Duration;
+
+    #[cfg(feature = "deadlock_detection")]
+    mod deadlock_detection {
+        use super::*;
+        use parking_lot::deadlock;
+        use std::{sync::Once,
+                  thread};
+
+        static INIT: Once = Once::new();
+
+        pub fn init() { INIT.call_once(spawn_deadlock_detector_thread); }
+
+        fn spawn_deadlock_detector_thread() {
+            thread::spawn(move || {
+                loop {
+                    thread::sleep(Duration::from_secs(10));
+                    let deadlocks = deadlock::check_deadlock();
+                    if deadlocks.is_empty() {
+                        continue;
+                    }
+
+                    println!("{} deadlocks detected", deadlocks.len());
+                    for (i, threads) in deadlocks.iter().enumerate() {
+                        println!("Deadlock #{}", i);
+                        for t in threads {
+                            println!("Thread Id {:#?}", t.thread_id());
+                            println!("{:#?}", t.backtrace());
+                        }
+                    }
+
+                    // Unfortunately, we can't do anything to resolve the deadlock and
+                    // continue, so we have to abort the whole process
+                    std::process::exit(1);
+                }
+            });
+        }
+    }
+
+    #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+    type InnerLock<T> = parking_lot::RwLock<T>;
+    #[cfg(feature = "lock_as_mutex")]
+    type InnerLock<T> = parking_lot::Mutex<T>;
+
+    #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+    pub type ReadGuard<'a, T> = parking_lot::RwLockReadGuard<'a, T>;
+    #[cfg(feature = "lock_as_mutex")]
+    pub type ReadGuard<'a, T> = parking_lot::MutexGuard<'a, T>;
+
+    #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+    pub type WriteGuard<'a, T> = parking_lot::RwLockWriteGuard<'a, T>;
+    #[cfg(feature = "lock_as_mutex")]
+    pub type WriteGuard<'a, T> = parking_lot::MutexGuard<'a, T>;
+
+    /// A lock which provides the interface of a read/write lock, but which has the option to
+    /// internally use either a RwLock or a Mutex in order to make it easier to expose erroneous
+    /// recursive locking in tests while still using an RwLock in production to avoid deadlocking
+    /// as much as possible.
+    #[derive(Debug)]
+    pub struct Lock<T> {
+        inner: InnerLock<T>,
+    }
+
+    impl<T> Lock<T> {
+        pub fn new(val: T) -> Self {
+            #[cfg(feature = "lock_as_mutex")]
+            println!("Lock::new is using Mutex to help find recursive locking");
+
+            #[cfg(feature = "deadlock_detection")]
+            deadlock_detection::init();
+
+            Self { inner: InnerLock::new(val), }
+        }
+
+        /// This acquires a read lock and will not deadlock if the same thread tries to acquire
+        /// the lock recursively. However, it may result in writer starvation. Once we are confident
+        /// that all recursive locking has been eliminated, we may replace this implementation
+        /// and try_read_for (or add an additional methods) to provide fair locking for readers
+        /// and writers.
+        ///
+        /// See https://github.com/habitat-sh/habitat/issues/6435
+        pub fn read(&self) -> ReadGuard<T> {
+            #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+            {
+                self.inner.read_recursive()
+            }
+            #[cfg(feature = "lock_as_mutex")]
+            {
+                self.inner.lock()
+            }
+        }
+
+        pub fn try_read_for(&self, timeout: Duration) -> Option<ReadGuard<T>> {
+            #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+            {
+                self.inner.try_read_recursive_for(timeout)
+            }
+            #[cfg(feature = "lock_as_mutex")]
+            {
+                self.inner.try_lock_for(timeout)
+            }
+        }
+
+        pub fn write(&self) -> WriteGuard<T> {
+            #[cfg(any(feature = "lock_as_rwlock", not(feature = "lock_as_mutex")))]
+            {
+                self.inner.write()
+            }
+            #[cfg(feature = "lock_as_mutex")]
+            {
+                self.inner.lock()
+            }
+        }
     }
 }

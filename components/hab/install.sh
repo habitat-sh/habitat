@@ -1,27 +1,14 @@
 #!/bin/bash
 #
-# Copyright (c) 2010-2016 Chef Software, Inc. and/or applicable contributors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+set -eou pipefail
 
-# Fails on unset variables & whenever a command returns a non-zero exit code.
-set -eu
 # If the variable `$DEBUG` is set, then print the shell commands as we execute.
 if [ -n "${DEBUG:-}" ]; then set -x; fi
 
 BT_ROOT="https://api.bintray.com/content/habitat"
 BT_SEARCH="https://api.bintray.com/packages/habitat"
+
+export HAB_LICENSE="accept-no-persist"
 
 main() {
   # Use stable Bintray channel by default
@@ -109,6 +96,7 @@ create_workdir() {
   else
     local _tmp=/tmp
   fi
+
   workdir="$(mktemp -d -p "$_tmp" 2> /dev/null || mktemp -d "${_tmp}/hab.XXXX")"
   # Add a trap to clean up any interrupted file downloads
   # shellcheck disable=SC2154
@@ -151,7 +139,7 @@ get_platform() {
       ;;
   esac
 
-  if [ -z "${target:-}" ]; then 
+  if [ -z "${target:-}" ]; then
     target="${arch}-${sys}"
   fi
 }
@@ -193,10 +181,10 @@ get_version() {
 }
 
 # Validate the CLI Target requested.  In most cases ${arch}-${sys}
-# for the current system is the only valid Target.  In the case of 
+# for the current system is the only valid Target.  In the case of
 # x86_64-linux systems we also need to support the x86_64-linux-kernel2
 # Target. Creates an array of valid Targets for the current system,
-# adding any valid alternate Targets, and checks if the requested 
+# adding any valid alternate Targets, and checks if the requested
 # Target is present in the array.
 validate_target() {
   local valid_targets=("${arch}-${sys}")
@@ -291,20 +279,23 @@ install_hab() {
       ;;
     linux)
       local _ident="core/hab"
+
       if [ -n "${version-}" ]; then
         _ident+="/$version";
       fi
+
       info "Installing Habitat package using temporarily downloaded hab"
-      # Install hab release using the extracted version and add/update symlink
-      "${archive_dir}/hab" install --channel "$channel" "$_ident"
-      # TODO fn: The updated binlink behavior is to skip targets that already
-      # exist so we want to use the `--force` flag. Unfortunetly, old versions
-      # of `hab` don't have this flag. For now, we'll run with the new flag and
-      # fall back to running the older behavior. This can be removed at a
-      # future date when we no lnger are worrying about Habitat versions 0.33.2
-      # and older. (2017-09-29)
-      "${archive_dir}/hab" pkg binlink "$_ident" hab --force \
-        || "${archive_dir}/hab" pkg binlink "$_ident" hab
+      # NOTE: For people (rightly) wondering why we download hab only to use it
+      # to install hab from Builder, the main reason is because it allows /bin/hab
+      # to be a binlink, meaning that future upgrades can be easily done via
+      # hab pkg install core/hab -bf and everything will Just Work. If we put
+      # the hab we downloaded into /bin, then future hab upgrades done via hab
+      # itself won't work - you'd need to run this script every time you wanted
+      # to upgrade hab, which is not intuitive. Putting it into a place other than
+      # /bin means now you have multiple copies of hab on your system and pathing
+      # shenanigans might ensue. Rather than deal with that mess, we do it this
+      # way.
+      "${archive_dir}/hab" pkg install --binlink --force --channel "$channel" "$_ident"
       ;;
     *)
       exit_with "Unrecognized sys when installing: ${sys}" 5
@@ -358,12 +349,15 @@ dl_file() {
   # Attempt to download with wget, if found. If successful, quick return
   if command -v wget > /dev/null; then
     info "Downloading via wget: ${_url}"
+
     if [ -n "${SSL_CERT_FILE:-}" ]; then
       wget ${_wget_extra_args:+"--ca-certificate=${SSL_CERT_FILE}"} -q -O "${_dst}" "${_url}"
     else
       wget -q -O "${_dst}" "${_url}"
     fi
+
     _code="$?"
+
     if [ $_code -eq 0 ]; then
       return 0
     else
@@ -376,12 +370,15 @@ dl_file() {
   # Attempt to download with curl, if found. If successful, quick return
   if command -v curl > /dev/null; then
     info "Downloading via curl: ${_url}"
+
     if [ -n "${SSL_CERT_FILE:-}" ]; then
       curl ${_curl_extra_args:+"--cacert ${SSL_CERT_FILE}"} -sSfL "${_url}" -o "${_dst}"
     else
       curl -sSfL "${_url}" -o "${_dst}"
     fi
+
     _code="$?"
+
     if [ $_code -eq 0 ]; then
       return 0
     else

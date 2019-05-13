@@ -45,6 +45,7 @@ pub mod command;
 pub mod config;
 pub mod error;
 mod exec;
+pub mod license;
 pub mod scaffolding;
 
 pub const PRODUCT: &str = "hab";

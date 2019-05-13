@@ -1131,11 +1131,7 @@ _resolve_run_dependencies() {
 
   # Append to `${pkg_deps_resolved[@]}` all resolved direct run dependencies.
   for dep in "${pkg_deps[@]}"; do
-    if [[ -n "${HAB_FEAT_INSTALL_HOOK:-}" ]]; then
-      _install_dependency "$dep" "--ignore-install-hook"
-    else
-      _install_dependency "$dep"
-    fi
+    _install_dependency "$dep" "--ignore-install-hook"
     if resolved="$(_resolve_dependency "$dep")"; then
       build_line "Resolved dependency '$dep' to $resolved"
       pkg_deps_resolved+=("$resolved")
@@ -1997,9 +1993,7 @@ do_build_config() {
 do_default_build_config() {
   build_line "Writing configuration"
   _do_copy_templates "config"
-  if [[ -n "${HAB_FEAT_INSTALL_HOOK:-}" ]]; then
-    _do_copy_templates "config_install"
-  fi
+  _do_copy_templates "config_install"
   if [[ -d "$PLAN_CONTEXT/hooks" ]]; then
     cp -r "$PLAN_CONTEXT/hooks" "$pkg_prefix"
     chmod 755 "$pkg_prefix"/hooks
@@ -2090,10 +2084,10 @@ do_strip() {
 
 # Default implementation for the `do_strip()` phase.
 # TODO(SM): Previous versions of the `file` utility reported x-pie-exectuable
-# as x-sharedlib. This means that while the intent was to `--strip-all` for 
-# x-executable, in reality we have been running `--strip-unneeded`. In order to 
+# as x-sharedlib. This means that while the intent was to `--strip-all` for
+# x-executable, in reality we have been running `--strip-unneeded`. In order to
 # be consistant with past behavior we will pass `--strip-unneeded` when stripping
-# x-pie-executable. In the future, we will need to make a decision as to the behavior 
+# x-pie-executable. In the future, we will need to make a decision as to the behavior
 # we want and introduce it at an appropriate time, such as a core-plans refresh.
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81498
 # https://bugs.launchpad.net/ubuntu/+source/file/+bug/1747711

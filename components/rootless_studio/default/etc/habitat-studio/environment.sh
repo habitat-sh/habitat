@@ -23,6 +23,9 @@ fi
 if [ -n "${HAB_AUTH_TOKEN:-}" ]; then
 info "Exported: HAB_AUTH_TOKEN=[redacted]"
 fi
+if [ -n "${HAB_LICENSE:-}" ]; then
+info "Exported: HAB_LICENSE=$HAB_LICENSE"
+fi
 if [ -n "${HAB_ORIGIN:-}" ]; then
 info "Exported: HAB_ORIGIN=$HAB_ORIGIN"
 fi

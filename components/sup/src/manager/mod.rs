@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+pub(crate) mod action;
 pub mod service;
 #[macro_use]
 mod debug;
@@ -26,7 +27,9 @@ mod spec_watcher;
 mod sys;
 mod user_config_watcher;
 
-use self::{peer_watcher::PeerWatcher,
+use self::{action::{ShutdownSpec,
+                    SupervisorAction},
+           peer_watcher::PeerWatcher,
            self_updater::{SelfUpdater,
                           SUP_PKG_IDENT},
            service::{ConfigRendering,
@@ -45,6 +48,7 @@ use crate::{census::{CensusRing,
                      CensusRingProxy},
             config::GossipListenAddr,
             ctl_gateway::{self,
+                          acceptor::CtlAcceptor,
                           CtlRequest},
             error::{Error,
                     Result,
@@ -57,7 +61,7 @@ use crate::{census::{CensusRing,
 use cpu_time::ProcessTime;
 use futures::{future,
               prelude::*,
-              sync::{mpsc,
+              sync::{mpsc as fut_mpsc,
                      oneshot}};
 use habitat_butterfly::{member::Member,
                         server::{timing::Timing,
@@ -99,8 +103,7 @@ use rustls::{internal::pemfile,
              RootCertStore,
              ServerConfig};
 use serde_json;
-use std::{self,
-          collections::{HashMap,
+use std::{collections::{HashMap,
                         HashSet},
           ffi::OsStr,
           fs::{self,
@@ -118,12 +121,13 @@ use std::{self,
           str::FromStr,
           sync::{atomic::{AtomicBool,
                           Ordering},
+                 mpsc as std_mpsc,
                  Arc,
                  Condvar,
                  Mutex,
                  RwLock},
           thread,
-          time::Duration};
+          time::Duration as StdDuration};
 use time::{self,
            Duration as TimeDuration,
            SteadyTime,
@@ -241,6 +245,26 @@ pub struct TLSConfig {
 impl ManagerConfig {
     pub fn sup_root(&self) -> PathBuf {
         habitat_sup_protocol::sup_root(self.custom_state_path.as_ref())
+    }
+
+    // TODO (CM): this may be able to be private after some
+    // refactorings in commands.rs
+    pub fn spec_path_for(&self, spec: &ServiceSpec) -> PathBuf {
+        self.sup_root().join("specs").join(spec.file_name())
+    }
+
+    pub fn save_spec_for(&self, spec: &ServiceSpec) -> Result<()> {
+        spec.to_file(self.spec_path_for(spec))
+    }
+
+    /// Given a `PackageIdent`, return current spec if it exists.
+    pub fn spec_for_ident(&self, ident: &PackageIdent) -> Option<ServiceSpec> {
+        let default_spec = ServiceSpec::default_for(ident.clone());
+        let spec_file = self.spec_path_for(&default_spec);
+
+        // JC: This mimics the logic from when we had composites.  But
+        // should we check for Err ?
+        ServiceSpec::from_file(&spec_file).ok()
     }
 }
 
@@ -393,17 +417,18 @@ impl Manager {
         Self::new(cfg, fs_cfg, launcher)
     }
 
-    #[cfg_attr(windows, allow(unused_variables))]
     pub fn term(proc_lock_file: &Path) -> Result<()> {
         match read_process_lock(proc_lock_file) {
+            #[cfg(unix)]
             Ok(pid) => {
                 // TODO (CM): this only ever worked on Linux! It's a no-op
                 // on Windows! See
                 // https://github.com/habitat-sh/habitat/issues/4945
-                #[cfg(target_os = "linux")]
                 process::signal(pid, Signal::TERM).map_err(|_| sup_error!(Error::SignalFailed))?;
                 Ok(())
             }
+            #[cfg(windows)]
+            Ok(_) => Ok(()),
             Err(err) => Err(err),
         }
     }
@@ -593,18 +618,16 @@ impl Manager {
             }
         };
 
-        if self.feature_flags.contains(FeatureFlag::INSTALL_HOOK) {
-            if let Ok(package) =
-                PackageInstall::load(&service.pkg.ident, Some(Path::new(&*FS_ROOT_PATH)))
-            {
-                if let Err(err) = habitat_common::command::package::install::check_install_hooks(
-                    &mut habitat_common::ui::UI::with_sinks(),
-                    &package,
-                    Path::new(&*FS_ROOT_PATH),
-                ) {
-                    outputln!("Failed to run install hook for {}, {}", &spec.ident, err);
-                    return;
-                }
+        if let Ok(package) =
+            PackageInstall::load(&service.pkg.ident, Some(Path::new(&*FS_ROOT_PATH)))
+        {
+            if let Err(err) = habitat_common::command::package::install::check_install_hooks(
+                &mut habitat_common::ui::UI::with_sinks(),
+                &package,
+                Path::new(&*FS_ROOT_PATH),
+            ) {
+                outputln!("Failed to run install hook for {}, {}", &spec.ident, err);
+                return;
             }
         }
 
@@ -668,13 +691,23 @@ impl Manager {
                                  .build()
                                  .expect("Couldn't build Tokio Runtime!");
 
-        let (ctl_tx, ctl_rx) = mpsc::unbounded();
+        // TODO (CM): consider bundling up these disparate channel
+        // ends into a single struct that handles the communication
+        // between the CtlAcceptor and this main loop.
+        //
+        // Well, mgr_sender needs to go into the gateway server, but
+        // you get the gist.
+        let (mgr_sender, mgr_receiver) = fut_mpsc::unbounded();
         let (ctl_shutdown_tx, ctl_shutdown_rx) = oneshot::channel();
-        let ctl_handler =
-            CtlAcceptor::new(self.state.clone(), ctl_rx, ctl_shutdown_rx).for_each(move |handler| {
-                executor::spawn(handler);
-                Ok(())
-            });
+        let (action_sender, action_receiver) = std_mpsc::channel();
+
+        let ctl_handler = CtlAcceptor::new(self.state.clone(),
+                                           mgr_receiver,
+                                           ctl_shutdown_rx,
+                                           action_sender).for_each(move |handler| {
+                                                             executor::spawn(handler);
+                                                             Ok(())
+                                                         });
         runtime.spawn(ctl_handler);
 
         if let Some(svc_load) = svc {
@@ -694,7 +727,7 @@ impl Manager {
         let ctl_listen_addr = self.sys.ctl_listen();
         let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
         outputln!("Starting ctl-gateway on {}", &ctl_listen_addr);
-        ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, ctl_tx);
+        ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, mgr_sender);
         debug!("ctl-gateway started");
 
         if self.http_disable {
@@ -737,7 +770,8 @@ impl Manager {
             loop {
                 match *started {
                     http_gateway::ServerStartup::NotStarted => {
-                        started = match cvar.wait_timeout(started, Duration::from_millis(10000)) {
+                        started = match cvar.wait_timeout(started, StdDuration::from_millis(10000))
+                        {
                             Ok((mutex, timeout_result)) => {
                                 if timeout_result.timed_out() {
                                     return Err(sup_error!(Error::BindTimeout(
@@ -838,6 +872,50 @@ impl Manager {
                 break ShutdownMode::Restarting;
             }
 
+            // TODO (CM): eventually, make this a future receiver
+            for action in action_receiver.try_iter() {
+                match action {
+                    SupervisorAction::StopService { mut service_spec,
+                                                    shutdown_spec, } => {
+                        service_spec.desired_state = DesiredState::Down;
+                        if let Err(err) = self.state.cfg.save_spec_for(&service_spec) {
+                            warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
+                                  service_spec.ident, err);
+                        }
+                        if let Some(future) =
+                            self.remove_service_from_state(&service_spec)
+                                .map(|service| self.stop_with_spec(service, shutdown_spec))
+                        {
+                            runtime.spawn(future);
+                        } else {
+                            warn!("Tried to stop '{}', but couldn't find it in our list of \
+                                   running services!",
+                                  service_spec.ident);
+                        }
+                    }
+                    SupervisorAction::UnloadService { service_spec,
+                                                      shutdown_spec, } => {
+                        let file = self.state.cfg.spec_path_for(&service_spec);
+                        if let Err(err) = fs::remove_file(&file) {
+                            warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
+                                  service_spec.ident,
+                                  file.display(),
+                                  err);
+                        };
+                        if let Some(future) =
+                            self.remove_service_from_state(&service_spec)
+                                .map(|service| self.stop_with_spec(service, shutdown_spec))
+                        {
+                            runtime.spawn(future);
+                        } else {
+                            warn!("Tried to unload '{}', but couldn't find it in our list of \
+                                   running services!",
+                                  service_spec.ident);
+                        }
+                    }
+                }
+            }
+
             // Indicates if we need to examine our on-disk specfiles
             // in order to reconcile them with whatever we're
             // currently running.
@@ -870,7 +948,7 @@ impl Manager {
                 runtime.spawn(f);
             }
 
-            self.restart_elections();
+            self.restart_elections(self.feature_flags);
             self.census_ring
                 .update_from_rumors(&self.state.cfg.cache_key_path,
                                     &self.butterfly.service_store,
@@ -1153,14 +1231,36 @@ impl Manager {
     }
 
     /// Check if any elections need restarting.
-    fn restart_elections(&mut self) { self.butterfly.restart_elections(); }
+    fn restart_elections(&mut self, feature_flags: FeatureFlag) {
+        self.butterfly.restart_elections(feature_flags);
+    }
 
     /// Create a future for stopping a Service. The Service is assumed
     /// to have been removed from the internal list of active services
     /// already (see, e.g., take_services_with_updates and
     /// remove_service_from_state).
+
+    // NOTE: this stop / stop_with_spec division is just until
+    // the parameterized shutdown is fully plumbed through everything.
+    fn stop_with_spec(&self,
+                      service: Service,
+                      shutdown_spec: ShutdownSpec)
+                      -> impl Future<Item = (), Error = ()> {
+        Self::service_stop_future(service,
+                                  shutdown_spec,
+                                  Arc::clone(&self.user_config_watcher),
+                                  Arc::clone(&self.updater),
+                                  Arc::clone(&self.busy_services),
+                                  self.services_need_reconciliation.clone())
+    }
+
     fn stop(&self, service: Service) -> impl Future<Item = (), Error = ()> {
         Self::service_stop_future(service,
+                                  // TODO (CM): when services can
+                                  // store their shutdown
+                                  // configuration in their spec file,
+                                  // we can pull this data from there
+                                  ShutdownSpec::default(),
                                   Arc::clone(&self.user_config_watcher),
                                   Arc::clone(&self.updater),
                                   Arc::clone(&self.busy_services),
@@ -1169,6 +1269,7 @@ impl Manager {
 
     /// Remove the given service from the manager.
     fn service_stop_future(service: Service,
+                           shutdown_spec: ShutdownSpec,
                            user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
                            updater: Arc<Mutex<ServiceUpdater>>,
                            busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
@@ -1178,20 +1279,21 @@ impl Manager {
         // cluster
         // TODO (CM): But only if we're not going down for a restart.
         let ident = service.spec_ident.clone();
-        let stop_it = service.stop().then(move |_| {
-                                        event::publish(&event::ServiceStopped {
+        let stop_it = service.stop(shutdown_spec).then(move |_| {
+                                                     event::publish(&event::ServiceStopped {
                 ident: &service.pkg.ident,
                 //                spec_ident: &service.spec.ident,
                 service_group: &service.service_group,
             });
-                                        user_config_watcher.write()
-                                                           .expect("Watcher lock poisoned")
-                                                           .remove(&service);
-                                        updater.lock()
-                                               .expect("Updater lock poisoned")
-                                               .remove(&service);
-                                        Ok(())
-                                    });
+                                                     user_config_watcher.write()
+                                                                        .expect("Watcher lock \
+                                                                                 poisoned")
+                                                                        .remove(&service);
+                                                     updater.lock()
+                                                            .expect("Updater lock poisoned")
+                                                            .remove(&service);
+                                                     Ok(())
+                                                 });
         Self::wrap_async_service_operation(ident,
                                            busy_services,
                                            services_need_reconciliation,
@@ -1453,6 +1555,8 @@ impl Manager {
     }
 }
 
+////////////////////////////////////////////////////////////////////////
+
 fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     let client_auth = match &config.ca_cert_path {
         Some(path) => {
@@ -1674,84 +1778,6 @@ fn track_memory_stats() {
 // This is a no-op on purpose because windows doesn't support jemalloc
 #[cfg(windows)]
 fn track_memory_stats() {}
-
-struct CtlAcceptor {
-    rx:               ctl_gateway::server::MgrReceiver,
-    state:            Arc<ManagerState>,
-    shutdown_trigger: oneshot::Receiver<()>,
-}
-
-impl CtlAcceptor {
-    fn new(state: Arc<ManagerState>,
-           rx: ctl_gateway::server::MgrReceiver,
-           shutdown_trigger: oneshot::Receiver<()>)
-           -> Self {
-        CtlAcceptor { state,
-                      rx,
-                      shutdown_trigger }
-    }
-}
-
-impl Stream for CtlAcceptor {
-    type Error = ();
-    type Item = CtlHandler;
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.shutdown_trigger.poll() {
-            Ok(Async::Ready(())) => {
-                info!("Signal received; stopping CtlAcceptor");
-                Ok(Async::Ready(None))
-            }
-            Err(e) => {
-                error!("Error polling CtlAcceptor shutdown trigger: {:?}", e);
-                Ok(Async::Ready(None))
-            }
-            Ok(Async::NotReady) => {
-                match self.rx.poll() {
-                    Ok(Async::Ready(Some(cmd))) => {
-                        let task = CtlHandler::new(cmd, self.state.clone());
-                        Ok(Async::Ready(Some(task)))
-                    }
-                    Ok(Async::Ready(None)) => Ok(Async::Ready(None)),
-                    Ok(Async::NotReady) => Ok(Async::NotReady),
-                    Err(e) => {
-                        debug!("CtlAcceptor error, {:?}", e);
-                        Err(())
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct CtlHandler {
-    cmd:   ctl_gateway::server::CtlCommand,
-    state: Arc<ManagerState>,
-}
-
-impl CtlHandler {
-    fn new(cmd: ctl_gateway::server::CtlCommand, state: Arc<ManagerState>) -> Self {
-        CtlHandler { cmd, state }
-    }
-}
-
-impl Future for CtlHandler {
-    type Error = ();
-    type Item = ();
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        match self.cmd.run(&self.state) {
-            Ok(()) => (),
-            Err(err) => {
-                debug!("CtlHandler failed, {:?}", err);
-                if self.cmd.req.transactional() {
-                    self.cmd.req.reply_complete(err);
-                }
-            }
-        }
-        Ok(Async::Ready(()))
-    }
-}
 
 #[cfg(test)]
 mod test {

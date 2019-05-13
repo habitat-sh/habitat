@@ -1,3 +1,7 @@
+env:
+  HAB_LICENSE: "accept-no-persist"
+  HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
+
 steps:
 
   # Set up build metadata
@@ -59,7 +63,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
-  
+
   - label: ":linux: :two: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
     agents:
@@ -108,7 +112,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
-  
+
   - label: ":linux: :two: :habicat: :hammer_and_wrench: core/hab-plan-build"
     command: .buildkite/scripts/build_component.sh plan-build
     agents:
@@ -140,7 +144,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
-  
+
   - label: ":linux: :two: :habicat: core/hab-bintray-publish"
     command: .buildkite/scripts/build_component.sh bintray-publish
     agents:
@@ -157,7 +161,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
-  
+
   - label: ":drum_with_drumsticks: :habicat: :two: :drum_with_drumsticks: core/hab-backline"
     command: .buildkite/scripts/build_component.sh backline
     agents:
@@ -206,7 +210,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
-  
+
   - label: ":linux: :two: :habicat: core/hab-sup"
     command: .buildkite/scripts/build_component.sh sup
     agents:
@@ -264,7 +268,7 @@ steps:
             - HAB_AUTH_TOKEN
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
-      
+
 
   - label: ":k8s: core/hab-pkg-export-kubernetes"
     command: .buildkite/scripts/build_component.sh pkg-export-kubernetes
@@ -286,7 +290,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
-  
+
   - label: ":linux: :two: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
     agents:
@@ -357,7 +361,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
-  
+
   - label: ":linux: :two: Upload (but don't publish!) artifacts to Bintray"
     command: .buildkite/scripts/bintray_upload.sh
     agents:

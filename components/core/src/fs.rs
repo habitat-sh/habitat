@@ -1003,8 +1003,7 @@ mod test_find_command {
 mod test_atomic_writer {
     use super::{atomic_write,
                 AtomicWriter};
-    use std::{fs::{remove_file,
-                   File},
+    use std::{fs::File,
               io::{Read,
                    Seek,
                    SeekFrom,

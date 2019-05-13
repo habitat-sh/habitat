@@ -4,13 +4,52 @@
 ## Unreleased
 
 #### Bug Fixes
+- remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
+
+#### Merged Pull Requests
+- Update rustfmt version [#6543](https://github.com/habitat-sh/habitat/pull/6543) ([raskchanky](https://github.com/raskchanky))
+- A handful of fixes [#6537](https://github.com/habitat-sh/habitat/pull/6537) ([raskchanky](https://github.com/raskchanky))
+- Adjust changelog for 0.81.0 [#6530](https://github.com/habitat-sh/habitat/pull/6530) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
+ ## [0.81.0](https://github.com/habitat-sh/habitat/tree/0.81.0) (2019-05-06)
+ [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.80.0...0.81.0)
+
+#### Bug Fixes
+- Add habitat_common::sync::Lock type for recursive read locking [#6436](https://github.com/habitat-sh/habitat/pull/6436) ([baumanj](https://github.com/baumanj))
+- Add HAB_LICENSE to 2 more spots in our release automation [#6497](https://github.com/habitat-sh/habitat/pull/6497) ([raskchanky](https://github.com/raskchanky))
+- Ensure the install script has accepted the license [#6503](https://github.com/habitat-sh/habitat/pull/6503) ([raskchanky](https://github.com/raskchanky))
+
+#### Merged Pull Requests
+- Update docs and Makefile for 0.81.0 [#6529](https://github.com/habitat-sh/habitat/pull/6529) ([raskchanky](https://github.com/raskchanky))
+- adds working code and test for altering a package name to make it val… [#6524](https://github.com/habitat-sh/habitat/pull/6524) ([nellshamrell](https://github.com/nellshamrell))
+- Update the docker exporter docs to include HAB_LICENSE instructions [#6525](https://github.com/habitat-sh/habitat/pull/6525) ([raskchanky](https://github.com/raskchanky))
+- Propagate host license acceptance into docker containers [#6522](https://github.com/habitat-sh/habitat/pull/6522) ([raskchanky](https://github.com/raskchanky))
+- Sets project status and SLA [#6473](https://github.com/habitat-sh/habitat/pull/6473) ([dmccown](https://github.com/dmccown))
+- Revert &quot;Switch to parking_lot&#39;s RwLock and add CI deadlock detection&quot; [#6513](https://github.com/habitat-sh/habitat/pull/6513) ([raskchanky](https://github.com/raskchanky))
+
+ ## [0.80.0](https://github.com/habitat-sh/habitat/tree/0.80.0) (2019-04-30)
+ [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.79.1...0.80.0)
+
+#### New Features & Enhancements
+- Configurable Shutdown, Part 1 [#6450](https://github.com/habitat-sh/habitat/pull/6450) ([christophermaier](https://github.com/christophermaier))
+- Manually trigger an election (exploratory, unfinshed feature in development) [#6474](https://github.com/habitat-sh/habitat/pull/6474) ([christophermaier](https://github.com/christophermaier))
+- Auto detect ttys for docker studios [#6404](https://github.com/habitat-sh/habitat/pull/6404) ([raskchanky](https://github.com/raskchanky))
+
+#### Bug Fixes
 - add ltsc2016 tag for windowsservercore base images [#6470](https://github.com/habitat-sh/habitat/pull/6470) ([mwrock](https://github.com/mwrock))
 - Fix detection of emacs in studio [#6390](https://github.com/habitat-sh/habitat/pull/6390) ([smacfarlane](https://github.com/smacfarlane))
+- build_component.ps1 should enter a non interactive container and forward exit code [#6476](https://github.com/habitat-sh/habitat/pull/6476) ([mwrock](https://github.com/mwrock))
 
 #### Behavioral Changes
 - Make --binlink take an value (or env var) for `hab pkg install` [#6423](https://github.com/habitat-sh/habitat/pull/6423) ([baumanj](https://github.com/baumanj))
+- Add a license agreement prompt to hab [#6364](https://github.com/habitat-sh/habitat/pull/6364) ([raskchanky](https://github.com/raskchanky))
 
 #### Merged Pull Requests
+- set machine scoped HAB_LICENSE variable for windows docker studio supervisor [#6491](https://github.com/habitat-sh/habitat/pull/6491) ([mwrock](https://github.com/mwrock))
+- Add the license env var in the old way for now [#6489](https://github.com/habitat-sh/habitat/pull/6489) ([raskchanky](https://github.com/raskchanky))
+- Accept the hab license on all our pipelines [#6488](https://github.com/habitat-sh/habitat/pull/6488) ([raskchanky](https://github.com/raskchanky))
+- make install_hook a permanent feature [#6475](https://github.com/habitat-sh/habitat/pull/6475) ([mwrock](https://github.com/mwrock))
 - modernize build.ps1 [#6466](https://github.com/habitat-sh/habitat/pull/6466) ([mwrock](https://github.com/mwrock))
 - Use &quot;default files&quot; rather than embedded strings [#6319](https://github.com/habitat-sh/habitat/pull/6319) ([christophermaier](https://github.com/christophermaier))
 - Rebuild pipeline with the correct name [#6449](https://github.com/habitat-sh/habitat/pull/6449) ([scotthain](https://github.com/scotthain))
@@ -20,11 +59,9 @@
 - Follow $refs in generate-template-reference [#6427](https://github.com/habitat-sh/habitat/pull/6427) ([mpeck](https://github.com/mpeck))
 - Add test habitat pipeline [#6428](https://github.com/habitat-sh/habitat/pull/6428) ([scotthain](https://github.com/scotthain))
 - move thaw after dev bump in release checklist [#6420](https://github.com/habitat-sh/habitat/pull/6420) ([mwrock](https://github.com/mwrock))
-- Auto detect ttys for docker studios [#6404](https://github.com/habitat-sh/habitat/pull/6404) ([raskchanky](https://github.com/raskchanky))
 - Clarify signal behavior [#6332](https://github.com/habitat-sh/habitat/pull/6332) ([christophermaier](https://github.com/christophermaier))
 - Add deprecation message to templates using the foo[bar] syntax [#6360](https://github.com/habitat-sh/habitat/pull/6360) ([mpeck](https://github.com/mpeck))
 - Fix error runining install.sh/Dockerfile [#6113](https://github.com/habitat-sh/habitat/pull/6113) ([qubitrenegade](https://github.com/qubitrenegade))
-<!-- latest_release -->
 
 
  ## [0.79.1](https://github.com/habitat-sh/habitat/tree/0.79.1) (2019-04-10)

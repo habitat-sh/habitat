@@ -1,3 +1,7 @@
+env:
+  HAB_LICENSE: "accept-no-persist"
+  HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
+
 steps:
   - label: ":linux: :habicat: core/hab-launcher"
     command: .buildkite/scripts/build_component.sh launcher
@@ -32,7 +36,7 @@ steps:
 
   - wait
   - label: ":windows: Build windows service"
-    command: .buildkite/scripts/build_component.ps1 -Component windows-service 
+    command: .buildkite/scripts/build_component.ps1 -Component windows-service
     agents:
       queue: default-windows-privileged
     env:

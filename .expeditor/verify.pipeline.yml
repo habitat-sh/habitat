@@ -71,9 +71,23 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: butterfly"
+  - label: "[unit] :linux: butterfly lock_as_mutex"
     command:
-      - ./test/run_cargo_test.sh --nightly --features "deadlock_detection" --test-options "--test-threads=1" butterfly
+      - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_mutex deadlock_detection" -- --test-threads=1 --format=pretty
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 20
+    soft_fail: true
+
+  - label: "[unit] :linux: butterfly lock_as_rwlock"
+    command:
+      - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_rwlock deadlock_detection" -- --test-threads=1 --format=pretty
     agents:
       queue: 'default-privileged'
     plugins:
@@ -86,6 +100,22 @@ steps:
     retry:
       automatic:
         limit: 1
+
+  - label: "[unit] :linux: butterfly ignored"
+    command:
+      # put this back once the deadlock detection comes back
+      #- ./test/run_cargo_test.sh --nightly --features "deadlock_detection" --test-options "--test-threads=1 --ignored" butterfly
+      - ./test/run_cargo_test.sh --test-options "--test-threads=1 --ignored" butterfly
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 20
+    soft_fail: true
 
   - label: "[unit] :linux: common"
     command:
@@ -247,9 +277,9 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: sup"
+  - label: "[unit] :linux: sup lock_as_rwlock"
     command:
-      - ./test/run_cargo_test.sh --features "ignore_integration_tests"  sup
+      - ./test/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_rwlock"
     agents:
       queue: 'default-privileged'
     plugins:
@@ -262,6 +292,20 @@ steps:
     retry:
       automatic:
         limit: 1
+
+  - label: "[unit] :linux: sup lock_as_mutex"
+    command:
+      - ./test/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_mutex"
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    soft_fail: true
 
   - label: "[unit] :linux: sup-client"
     command:
@@ -308,15 +352,33 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :windows: butterfly"
+  - label: "[unit] :windows: butterfly lock_as_mutex"
     command:
-      - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "deadlock_detection" -TestOptions "--test-threads=1"
+      - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_mutex deadlock_detection" -TestOptions "--test-threads=1"
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 20
+    soft_fail: true
+
+  - label: "[unit] :windows: butterfly lock_as_rwlock"
+    command:
+      - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_rwlock deadlock_detection" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
+
+  - label: "[unit] :windows: butterfly ignored"
+    command:
+      # put this back once the deadlock detection comes back
+      #- ./test/run_cargo_test.ps1 butterfly -Nightly -Features "deadlock_detection" -TestOptions "--test-threads=1 --ignored"
+      - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1 --ignored"
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 20
+    soft_fail: true
 
   - label: "[unit] :windows: common"
     command:
@@ -398,10 +460,19 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :windows: sup"
+  - label: "[unit] :windows: sup lock_as_mutex"
     command:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
-      - ./test/run_cargo_test.ps1 sup -TestOptions "--test-threads=1"
+      - ./test/run_cargo_test.ps1 sup -Features "lock_as_mutex" -TestOptions "--test-threads=1"
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 40
+    soft_fail: true
+
+  - label: "[unit] :windows: sup lock_as_rwlock"
+    command:
+      # This test has test (not code) concurrency issues and will fail if we don't limit it
+      - ./test/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 40
@@ -435,6 +506,9 @@ steps:
 #######################################################################
 
   - label: "[build] :linux: backline"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh backline
     agents:
@@ -444,6 +518,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: bintray-publish"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh bintray-publish
     agents:
@@ -453,6 +530,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: hab"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh hab
     agents:
@@ -462,6 +542,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: launcher"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh launcher
     agents:
@@ -471,6 +554,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-aci"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-aci
     agents:
@@ -480,6 +566,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-cfize"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-cfize
     agents:
@@ -489,6 +578,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-dockerize"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-dockerize
     agents:
@@ -498,6 +590,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-export-docker"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-export-docker
     agents:
@@ -507,6 +602,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-export-helm"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-export-helm
     agents:
@@ -516,6 +614,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-export-kubernetes"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-export-kubernetes
     agents:
@@ -525,6 +626,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-export-tar"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-export-tar
     agents:
@@ -534,6 +638,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: pkg-mesosize"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh pkg-mesosize
     agents:
@@ -543,6 +650,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: plan-build"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh plan-build
     agents:
@@ -552,6 +662,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh studio
     agents:
@@ -561,6 +674,9 @@ steps:
         limit: 1
 
   - label: "[build] :linux: sup"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.sh sup
     agents:
@@ -575,6 +691,9 @@ steps:
 #######################################################################
 
   - label: "[build] :windows: hab"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 hab
     agents:
@@ -584,6 +703,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: launcher"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 launcher
     agents:
@@ -593,6 +715,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: pkg-export-docker"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 pkg-export-docker
     agents:
@@ -602,6 +727,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: pkg-export-tar"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 pkg-export-tar
     agents:
@@ -611,6 +739,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: plan-build-ps1"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 plan-build-ps1
     agents:
@@ -620,6 +751,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: studio"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 studio
     agents:
@@ -629,6 +763,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: sup"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 sup
     agents:
@@ -638,6 +775,9 @@ steps:
         limit: 1
 
   - label: "[build] :windows: windows-service"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - ./support/ci/build_component.ps1 windows-service
     agents:
@@ -645,4 +785,3 @@ steps:
     retry:
       automatic:
         limit: 1
-

@@ -28,6 +28,7 @@ use crate::{api_client,
             protocol::net,
             sup_client::SrvClientError};
 use handlebars;
+use serde_yaml;
 use toml;
 
 pub type Result<T> = result::Result<T, Error>;
@@ -63,6 +64,7 @@ pub enum Error {
     JobGroupCancel(api_client::Error),
     JobGroupPromoteOrDemoteUnprocessable(bool /* promote */),
     JsonErr(serde_json::Error),
+    LicenseNotAccepted,
     NameLookup,
     NetErr(net::NetErr),
     PackageArchiveMalformed(String),
@@ -77,6 +79,7 @@ pub enum Error {
     TomlDeserializeError(toml::de::Error),
     TomlSerializeError(toml::ser::Error),
     Utf8Error(String),
+    YamlError(serde_yaml::Error),
 }
 
 impl fmt::Display for Error {
@@ -159,6 +162,7 @@ impl fmt::Display for Error {
             }
             Error::JsonErr(ref e) => e.to_string(),
             Error::JobGroupCancel(ref e) => format!("Failed to cancel job group: {:?}", e),
+            Error::LicenseNotAccepted => "License agreement not accepted".to_string(),
             Error::NameLookup => "Error resolving a name or IP address".to_string(),
             Error::NetErr(ref e) => e.to_string(),
             Error::PackageArchiveMalformed(ref e) => {
@@ -183,6 +187,7 @@ impl fmt::Display for Error {
             Error::TomlDeserializeError(ref e) => format!("Can't deserialize TOML: {}", e),
             Error::TomlSerializeError(ref e) => format!("Can't serialize TOML: {}", e),
             Error::Utf8Error(ref e) => format!("Error processing a string as UTF-8: {}", e),
+            Error::YamlError(ref e) => format!("{}", e),
         };
         write!(f, "{}", msg)
     }
@@ -230,8 +235,9 @@ impl error::Error for Error {
             }
             Error::JobGroupPromoteOrDemote(ref err, _) => err.description(),
             Error::JobGroupCancel(ref err) => err.description(),
-            Error::NetErr(ref err) => err.description(),
+            Error::LicenseNotAccepted => "License agreement not accepted",
             Error::NameLookup => "Error resolving a name or IP address",
+            Error::NetErr(ref err) => err.description(),
             Error::PackageArchiveMalformed(_) => {
                 "Package archive was unreadable or had unexpected contents"
             }
@@ -251,6 +257,7 @@ impl error::Error for Error {
             Error::TomlDeserializeError(_) => "Can't deserialize TOML",
             Error::TomlSerializeError(_) => "Can't serialize TOML",
             Error::Utf8Error(_) => "Error processing string as UTF-8",
+            Error::YamlError(ref err) => err.description(),
         }
     }
 }
@@ -306,4 +313,8 @@ impl From<net::NetErr> for Error {
 
 impl From<serde_json::Error> for Error {
     fn from(err: serde_json::Error) -> Self { Error::JsonErr(err) }
+}
+
+impl From<serde_yaml::Error> for Error {
+    fn from(err: serde_yaml::Error) -> Error { Error::YamlError(err) }
 }

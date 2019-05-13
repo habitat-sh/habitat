@@ -1,38 +1,22 @@
-// Copyright (c) 2016-2017 Chef Software Inc. and/or applicable contributors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
+use super::{Credentials,
+            Naming};
+use crate::{build::BuildRoot,
+            common::ui::{Status,
+                         UIWriter,
+                         UI},
+            error::{Error,
+                    Result},
+            hcore::{fs as hfs,
+                    package::PackageIdent},
+            util};
+use failure::SyncFailure;
+use handlebars::Handlebars;
+use serde_json;
 use std::{fs,
           path::{Path,
                  PathBuf},
           process::Command,
           str::FromStr};
-
-use crate::{common::ui::{Status,
-                         UIWriter,
-                         UI},
-            hcore::{fs as hfs,
-                    package::PackageIdent}};
-use failure::SyncFailure;
-use handlebars::Handlebars;
-
-use super::{Credentials,
-            Naming};
-use crate::{build::BuildRoot,
-            error::{Error,
-                    Result},
-            util};
-use serde_json;
 
 /// The `Dockerfile` template.
 #[cfg(unix)]
@@ -442,7 +426,6 @@ impl DockerBuildRoot {
             "exposes": ctx.svc_exposes().join(" "),
             "primary_svc_ident": ctx.primary_svc_ident().to_string(),
             "installed_primary_svc_ident": ctx.installed_primary_svc_ident()?.to_string(),
-            "install_hook_feat": ctx.install_hook_feat(),
             "environment": ctx.environment,
         });
         util::write_file(self.0.workdir().join("Dockerfile"),

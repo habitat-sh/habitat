@@ -101,6 +101,8 @@ impl Manifest {
                           .map(str::to_string)
                           .unwrap_or_else(|| format!("{}-{}", pkg_ident.name, version_suffix));
 
+        let formatted_resource_name = Manifest::formatted_resource_name(&name);
+
         let image_name = match matches.value_of("IMAGE_NAME") {
             Some(i) => i.to_string(),
             None => {
@@ -139,7 +141,7 @@ impl Manifest {
         };
 
         Ok(Manifest { pkg_ident,
-                      metadata_name: name,
+                      metadata_name: formatted_resource_name,
                       image: image_name,
                       count,
                       service_topology: topology,
@@ -151,13 +153,17 @@ impl Manifest {
                       environment })
     }
 
-    /// Generates the manifest as a string and writes it to `write`.
+    /// Generates manifest as a string and writes it to `write`.
     pub fn generate(&mut self, write: &mut dyn Write) -> Result<()> {
         let out: String = ManifestJson::new(&self).into();
 
         write.write_all(out.as_bytes())?;
         Ok(())
     }
+
+    // Replaces any periods in the `name with hyphens
+    // To make it a valid Kubernetes resource name
+    fn formatted_resource_name(resource_name: &str) -> String { resource_name.replace(".", "-") }
 }
 
 #[cfg(test)]
@@ -259,5 +265,14 @@ mod tests {
         let out = String::from_utf8(o).unwrap();
 
         assert_eq!(out, expected);
+    }
+
+    #[test]
+    fn test_resource_name() {
+        let expected = String::from("sample-node-app-1-1-0-2019050321383");
+        let formatted_resource_name =
+            Manifest::formatted_resource_name("sample-node-app-1.1.0-2019050321383");
+
+        assert_eq!(formatted_resource_name, expected);
     }
 }

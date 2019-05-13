@@ -46,35 +46,10 @@ lazy_static::lazy_static! {
     static ref SERVER_PORT: Mutex<u16> = Mutex::new(6666);
 }
 
-/// To avoid deadlocking in a test, we use `health_of_by_id_with_timeout` rather than
-/// `health_of_by_id`.
-const HEALTH_OF_TIMEOUT: Duration = Duration::from_secs(5);
-
 #[derive(Debug)]
 struct NSuitability(u64);
 impl Suitability for NSuitability {
     fn get(&self, _service_group: &str) -> u64 { self.0 }
-}
-
-#[cfg(feature = "deadlock_detection")]
-fn assert_no_deadlocks() {
-    use parking_lot::deadlock;
-
-    let deadlocks = deadlock::check_deadlock();
-    if deadlocks.is_empty() {
-        log::trace!("No deadlocks detected");
-    } else {
-        println!("{} deadlocks detected", deadlocks.len());
-        for (i, threads) in deadlocks.iter().enumerate() {
-            println!("Deadlock #{}", i);
-            for t in threads {
-                println!("Thread {:#?}", t.thread_id());
-                println!("{:#?}", t.backtrace());
-            }
-        }
-    }
-
-    assert!(deadlocks.is_empty());
 }
 
 pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
@@ -205,14 +180,10 @@ impl SwimNet {
         from.remove_from_block_list(to.member_id());
     }
 
-    #[allow(clippy::assertions_on_constants)]
-    #[allow(clippy::match_wild_err_arm)]
     pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
-        assert!(cfg!(feature = "deadlock_detection"),
-                "This test should be run with --features=deadlock_detection. \
-                 Make sure to execute `cargo test` in the butterfly crate subdirectory since \
-                 features cannot be propagated through a virtual manifest \
-                 (See https://github.com/rust-lang/cargo/issues/4942).");
+        /// To avoid deadlocking in a test, we use `health_of_by_id_with_timeout` rather than
+        /// `health_of_by_id`.
+        const HEALTH_OF_TIMEOUT: Duration = Duration::from_secs(5);
 
         let from = self.members
                        .get(from_entry)
@@ -227,11 +198,13 @@ impl SwimNet {
         {
             Ok(health) => Some(health),
             Err(Error::UnknownMember(_)) => None,
-            Err(_) => {
-                #[cfg(feature = "deadlock_detection")]
-                assert_no_deadlocks();
+            Err(Error::Timeout(_)) => {
                 panic!("Timed out after waiting {:?} querying member health",
                        HEALTH_OF_TIMEOUT);
+            }
+            Err(e) => {
+                println!("Unexpected error from health_of_by_id_with_timeout: {}", e);
+                None
             }
         }
     }
@@ -395,11 +368,7 @@ impl SwimNet {
 
     pub fn wait_for_health_of(&self, from_entry: usize, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
-
         loop {
-            #[cfg(feature = "deadlock_detection")]
-            assert_no_deadlocks();
-
             if let Some(real_health) = self.health_of(from_entry, to_check) {
                 if real_health == health {
                     trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
