@@ -19,7 +19,10 @@ message EventMetadata {
 message ServiceMetadata {
   // todo: make a FQPI type
   string package_ident = 1;
-  // not necessarily FQPI
+  // This is the identifier the service was loaded with (e.g., the
+  // `core/redis` in `hab svc load core/redis`). While it _can_ be a
+  // fully-qualified package identifier, it is more commonly a 2- or
+  // 3-part identifier variant.
   string spec_ident = 2;
   // todo: make / reuse a real type?
   string service_group = 3;
