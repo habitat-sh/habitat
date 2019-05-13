@@ -134,14 +134,16 @@ impl AutomateAuthToken {
     pub fn validate(value: String) -> result::Result<(), String> {
         value.parse::<Self>().map(|_| ()).map_err(|e| e.to_string())
     }
+}
 
+impl<'a> From<&'a ArgMatches<'a>> for AutomateAuthToken {
     /// Create an instance of `AutomateAuthToken` from validated
     /// user input.
-    pub fn from_matches(m: &ArgMatches) -> result::Result<Self, Error> {
+    fn from(m: &ArgMatches) -> Self {
         m.value_of(Self::ARG_NAME)
-         // This should be a required argument
-         .ok_or_else(|| Error::MissingCLIInputError(Self::ARG_NAME.to_string()))?
+         .expect("HAB_AUTOMATE_AUTH_TOKEN should be set")
          .parse()
+         .expect("HAB_AUTOMATE_AUTH_TOKEN should be validated at this point")
     }
 }
 

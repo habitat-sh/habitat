@@ -121,7 +121,7 @@ impl EventStreamConfig {
                                              .map(str::to_string)
                                              .expect("Required option for EventStream feature"),
                                meta:        EventStreamMetadata::from(m),
-                               token:       AutomateAuthToken::from_matches(m)?,
+                               token:       AutomateAuthToken::from(m),
                                url:         m.value_of("EVENT_STREAM_URL")
                                              .map(str::to_string)
                                              .expect("Required option for EventStream feature"), })
