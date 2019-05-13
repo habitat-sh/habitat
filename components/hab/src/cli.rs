@@ -1093,7 +1093,7 @@ fn sub_svc_stop() -> App<'static, 'static> {
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     );
-    add_configurable_shutdown_options(sub)
+    add_shutdown_timeout_option(sub)
 }
 
 fn sub_svc_load() -> App<'static, 'static> {
@@ -1132,15 +1132,13 @@ fn sub_svc_load() -> App<'static, 'static> {
             "The interval (seconds) on which to run health checks [default: 30]")
     );
 
-    sub = add_configurable_shutdown_options(sub);
-
     if cfg!(windows) {
         sub = sub.arg(Arg::with_name("PASSWORD").long("password")
                                                 .takes_value(true)
                                                 .help("Password of the service user"));
     }
 
-    sub
+    add_shutdown_timeout_option(sub)
 }
 
 fn sub_svc_unload() -> App<'static, 'static> {
@@ -1152,7 +1150,7 @@ fn sub_svc_unload() -> App<'static, 'static> {
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     );
-    add_configurable_shutdown_options(sub)
+    add_shutdown_timeout_option(sub)
 }
 
 // TODO (CM): yeah, this is uuuuuuuuuugly. Ideally, we'd just not have
@@ -1369,15 +1367,13 @@ fn non_empty(val: String) -> result::Result<(), String> {
     }
 }
 
-/// Adds extra configuration options for shutting down a service with
-/// a customized timeout.
-fn add_configurable_shutdown_options(mut app: App<'static, 'static>) -> App<'static, 'static> {
-    app = app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after sending \
-                                                           a shutdown signal to wait before \
-                                                           killing a service process")
-                                                    .long("shutdown-timeout")
-                                                    .takes_value(true));
-    app
+/// Adds extra configuration option for shutting down a service with a customized timeout.
+fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'static> {
+    app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after sending a \
+                                                     shutdown signal to wait before killing a \
+                                                     service process")
+                                              .long("shutdown-timeout")
+                                              .takes_value(true))
 }
 
 ////////////////////////////////////////////////////////////////////////
