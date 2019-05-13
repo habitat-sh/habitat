@@ -94,36 +94,36 @@ pub struct Pkg {
 impl Pkg {
     pub fn from_install(package: &PackageInstall) -> Result<Self> {
         let (svc_user, svc_group) = get_user_and_group(&package)?;
-        let pkg =
-            Pkg { svc_path: fs::svc_path(&package.ident.name),
-                  svc_config_path: fs::svc_config_path(&package.ident.name),
-                  svc_config_install_path: fs::svc_config_install_path(&package.ident.name),
-                  svc_data_path: fs::svc_data_path(&package.ident.name),
-                  svc_files_path: fs::svc_files_path(&package.ident.name),
-                  svc_run: fs::svc_path(&package.ident.name).join("run"),
-                  svc_static_path: fs::svc_static_path(&package.ident.name),
-                  svc_var_path: fs::svc_var_path(&package.ident.name),
-                  svc_pid_file: fs::svc_pid_file(&package.ident.name),
-                  svc_user,
-                  svc_group,
-                  env: Env::new(&package)?,
-                  deps: package.tdeps()?,
-                  exposes: package.exposes()?,
-                  exports: package.exports()?,
-                  path: package.installed_path.clone(),
-                  ident: package.ident.clone(),
-                  origin: package.ident.origin.clone(),
-                  name: package.ident.name.clone(),
-                  version: package.ident
-                                  .version
-                                  .clone()
-                                  .expect("No package version in PackageInstall"),
-                  release: package.ident
-                                  .release
-                                  .clone()
-                                  .expect("No package release in PackageInstall"),
-                  shutdown_signal: package.shutdown_signal()?.unwrap_or_else(Default::default),
-                  shutdown_timeout: package.shutdown_timeout()?.unwrap_or_else(Default::default) };
+        let pkg = Pkg { svc_path: fs::svc_path(&package.ident.name),
+                        svc_config_path: fs::svc_config_path(&package.ident.name),
+                        svc_config_install_path: fs::svc_config_install_path(&package.ident
+                                                                                     .name),
+                        svc_data_path: fs::svc_data_path(&package.ident.name),
+                        svc_files_path: fs::svc_files_path(&package.ident.name),
+                        svc_run: fs::svc_path(&package.ident.name).join("run"),
+                        svc_static_path: fs::svc_static_path(&package.ident.name),
+                        svc_var_path: fs::svc_var_path(&package.ident.name),
+                        svc_pid_file: fs::svc_pid_file(&package.ident.name),
+                        svc_user,
+                        svc_group,
+                        env: Env::new(&package)?,
+                        deps: package.tdeps()?,
+                        exposes: package.exposes()?,
+                        exports: package.exports()?,
+                        path: package.installed_path.clone(),
+                        ident: package.ident.clone(),
+                        origin: package.ident.origin.clone(),
+                        name: package.ident.name.clone(),
+                        version: package.ident
+                                        .version
+                                        .clone()
+                                        .expect("No package version in PackageInstall"),
+                        release: package.ident
+                                        .release
+                                        .clone()
+                                        .expect("No package release in PackageInstall"),
+                        shutdown_signal: package.shutdown_signal()?.unwrap_or_default(),
+                        shutdown_timeout: package.shutdown_timeout()?.unwrap_or_default() };
         Ok(pkg)
     }
 }
