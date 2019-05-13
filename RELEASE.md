@@ -9,12 +9,6 @@ from the master branch on a bi-weekly schedule occurring every other Monday.
 1. Check off the items in the list as you go.
 1. If you make any changes to the release automation or documentation to include in the next release, you can mark those PRs as resolving the issue. Otherwise, just close it when the release is done.
 
-## Releasing Launcher
-
-The [`core/hab-launcher` package](https://bldr.habitat.sh/#/pkgs/core/hab-launcher), which contains
-the `hab-launch` binary has a separate release process. See
-[its README](components/launcher/README.md) for details. The Buildkite pipeline does not build a `core/hab-launcher` package; that must currently be built out-of-band and uploaded to Builder. The Buildkite pipeline _will_ however take care of _promoting_ it for you. The pipeline will guide you as appropriate.
-
 ## Prepare Master Branch for Release
 
 1. Call for a "Freeze" on all merges to master and set the topic in #hab-team to indicate that it
@@ -107,7 +101,7 @@ As an example, immediately after provisioning you can SSH into the machine and r
 
 ### Addressing issues with a Release
 
-If you find issues when validating the release binaries that must be fixed before promoting the release, you will need to fix those issues and then have Buildkite and AppVeyor rerun the deployment. After you merge the necessary PRs to fix the release issues:
+If you find issues when validating the release binaries that must be fixed before promoting the release, you will need to fix those issues and then have Buildkite rerun the deployment. After you merge the necessary PRs to fix the release issues:
 
 ```
      $ make re-tag-release
@@ -297,10 +291,10 @@ Wait for a few minutes so that supervisors on all the workers can update to the 
 1. In the [habitat](https://github.com/habitat-sh/habitat) repo, run `cargo update`, `cargo check --all --tests`.
 1. If there are warnings or errors that are simple, fix them. Otherwise, lock the appropriate versions in `Cargo.toml` files that lets the build succeed and file an issue to resolve the failure and relax the version lock.
 1. Open a PR for the `Cargo.lock` updates and any accompanying fixes which are necessary.
-1. Repeat with the [core](https://github.com/habitat-sh/core) and [builder](https://github.com/habitat-sh/builder) repos (omit the `habitat-launcher` build).
+1. Repeat with the [builder](https://github.com/habitat-sh/builder) repo (omit the `habitat-launcher` build).
 
 # Update rustfmt
-1. Using https://mexus.github.io/rustup-components-history/, find the most recent date that all the Tier1 platforms have a present `rustfmt`. For example: `nightly-2019-03-04`.
+1. Using https://rust-lang.github.io/rustup-components-history/, find the most recent date that all the Tier1 platforms have a present `rustfmt`. For example: `nightly-2019-03-04`.
 1. Update `RUSTFMT_VERSION` in the root of the habitat repo.
 1. Locally install the nightly toolchain and update the formatting. For example:
     ```
@@ -309,7 +303,7 @@ Wait for a few minutes so that supervisors on all the workers can update to the 
     ➤ cargo +nightly-2019-03-04 fmt
     ```
 1. Open a PR and merge the toolchain update as well as any formatting changes.
-1. Repeat with the `core` and `builder` repos.
+1. Repeat with the `builder` repo.
 
 # Release postmortem
 
