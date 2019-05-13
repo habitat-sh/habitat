@@ -628,14 +628,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (aliases: &["i", "in", "ini"])
                 (@arg PKG_NAME: +takes_value "Name for the new app")
                 (@arg ORIGIN: --origin -o +takes_value {valid_origin} "Origin for the new app")
-                (@arg WITH_DOCS: --("with-docs") "Include plan options documentation")
-                (@arg WITH_CALLBACKS: --("with-callbacks")
-                    "Include callback functions in template")
-                (@arg WITH_ALL: --("with-all")
-                    "Generate omnibus plan with all available plan options")
-                (@arg WINDOWS: --("windows")
-                    "Use a Windows Powershell plan template")
-                (@arg SCAFFOLDING: --scaffolding -s +takes_value
+                (@arg MIN: --min -m "Create a minimal plan file")
+                (@arg SCAFFOLDING: --scaffolding -s
                     "Specify explicit Scaffolding for your app (ex: node, ruby)")
             )
             (@subcommand render =>

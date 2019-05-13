@@ -31,14 +31,10 @@ use crate::{common::ui::{Status,
                          UI},
             error::Result};
 
-const DEFAULT_PLAN_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
-                                                         "/static/default_template_plan.sh"));
-const FULL_PLAN_TEMPLATE: &str =
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/full_template_plan.sh"));
-const DEFAULT_PLAN_PS1_TEMPLATE: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"),
-                                                             "/static/default_template_plan.ps1"));
-const FULL_PLAN_PS1_TEMPLATE: &str =
-    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/full_template_plan.ps1"));
+const PLAN_TEMPLATE_SH: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_plan.sh"));
+const PLAN_TEMPLATE_PS1: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_plan.ps1"));
 const DEFAULT_TOML_TEMPLATE: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/static/template_default.toml"));
 const GITIGNORE_TEMPLATE: &str =
@@ -51,10 +47,7 @@ const DEFAULT_PKG_VERSION: &str = "0.1.0";
 #[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              origin: String,
-             with_docs: bool,
-             with_callbacks: bool,
-             with_all: bool,
-             windows: bool,
+             minimal: bool,
              scaffolding_ident: Option<PackageIdent>,
              maybe_name: Option<String>)
              -> Result<()> {
@@ -87,17 +80,10 @@ pub fn start(ui: &mut UI,
     data.insert("pkg_origin".to_string(), origin);
     data.insert("pkg_version".to_string(), DEFAULT_PKG_VERSION.to_string());
 
-    let scaffold = match scaffolding_ident {
-        Some(ident) => Some(data.insert("scaffolding_ident".to_string(), ident.to_string())),
-        None => None,
-    };
+    if let Some(ident) = scaffolding_ident {
+        data.insert("scaffolding_ident".to_string(), ident.to_string());
+    }
 
-    if with_callbacks {
-        data.insert("with_callbacks".to_string(), "true".to_string());
-    }
-    if with_docs {
-        data.insert("with_docs".to_string(), "true".to_string());
-    }
     // Add all environment variables that start with "pkg_" as variables in
     // the template.
     for (key, value) in env::vars() {
@@ -106,20 +92,16 @@ pub fn start(ui: &mut UI,
         }
     }
 
+    if minimal {
+        data.insert("minimal".to_string(), "true".to_string());
+    }
+
     // We want to render the configured variables.
-    if windows {
-        if with_all || scaffold.is_none() {
-            let rendered_plan = handlebars.template_render(FULL_PLAN_PS1_TEMPLATE, &data)?;
-            create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
-        } else {
-            let rendered_plan = handlebars.template_render(DEFAULT_PLAN_PS1_TEMPLATE, &data)?;
-            create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
-        }
-    } else if with_all || scaffold.is_none() {
-        let rendered_plan = handlebars.template_render(FULL_PLAN_TEMPLATE, &data)?;
-        create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
+    if cfg!(windows) {
+        let rendered_plan = handlebars.template_render(PLAN_TEMPLATE_PS1, &data)?;
+        create_with_template(ui, &format!("{}/plan.ps1", root), &rendered_plan)?;
     } else {
-        let rendered_plan = handlebars.template_render(DEFAULT_PLAN_TEMPLATE, &data)?;
+        let rendered_plan = handlebars.template_render(PLAN_TEMPLATE_SH, &data)?;
         create_with_template(ui, &format!("{}/plan.sh", root), &rendered_plan)?;
     }
     ui.para("`plan.sh` is the foundation of your new habitat. It contains metadata, \

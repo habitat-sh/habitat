@@ -1970,10 +1970,6 @@ hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
 **FLAGS**
 
 ```
---windows           Use a Windows Powershell plan template
-    --with-all          Generate omnibus plan with all available plan options
-    --with-callbacks    Include callback functions in template
-    --with-docs         Include plan options documentation
 -h, --help              Prints help information
 -V, --version           Prints version information
 ```

@@ -1,62 +1,106 @@
-{{#if with_docs ~}}
+{{~ #unless minimal ~}}
 # This file is the heart of your application's habitat.
 # See full docs at https://www.habitat.sh/docs/reference/plan-syntax/
+{{~ /unless ~}}
+
+
+{{~ #unless minimal}}
 
 # Required.
 # Sets the name of the package. This will be used in along with `pkg_origin`,
 # and `pkg_version` to define the fully-qualified package name, which determines
 # where the package is installed to on disk, how it is referred to in package
 # metadata, and so on.
+{{/unless ~}}
 pkg_name={{ pkg_name }}
+
+
+{{~ #unless minimal}}
 
 # Required unless overridden by the `HAB_ORIGIN` environment variable.
 # The origin is used to denote a particular upstream of a package.
+{{~ /unless}}
 pkg_origin={{ pkg_origin }}
+
+
+{{~ #unless minimal}}
 
 # Required.
 # Sets the version of the package
+{{~ /unless}}
 {{#if pkg_version ~}}
 pkg_version="{{ pkg_version }}"
-{{else ~}}
+{{~ else ~}}
 pkg_version="0.1.0"
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # The name and email address of the package maintainer.
+{{~ /unless}}
 {{#if pkg_maintainer ~}}
 pkg_maintainer="{{ pkg_maintainer }}"
-{{else ~}}
+{{~ else ~}}
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # An array of valid software licenses that relate to this package.
 # Please choose a license from http://spdx.org/licenses/
+{{~ /unless}}
 {{#if pkg_license ~}}
 pkg_license={{ pkg_license }}
-{{else ~}}
+{{~ else ~}}
 pkg_license=("Apache-2.0")
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
+
+# Optional.
+# The scaffolding base for this plan.
+{{~ /unless}}
+{{#if scaffolding_ident ~}}
+pkg_scaffolding="{{ scaffolding_ident }}"
+{{~ else ~}}
+# pkg_scaffolding="some/scaffolding"
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # A URL that specifies where to download the source from. Any valid wget url
 # will work. Typically, the relative path for the URL is partially constructed
 # from the pkg_name and pkg_version values; however, this convention is not
 # required.
+{{~ /unless}}
 {{#if pkg_source ~}}
 pkg_source="{{ pkg_source }}"
-{{else ~}}
+{{~ else ~}}
 # pkg_source="http://some_source_url/releases/${pkg_name}-${pkg_version}.tar.gz"
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # The resulting filename for the download, typically constructed from the
 # pkg_name and pkg_version values.
+{{~ /unless}}
 {{#if pkg_filename ~}}
 pkg_filename="{{ pkg_filename }}"
-{{else ~}}
+{{~ else ~}}
 # pkg_filename="${pkg_name}-${pkg_version}.tar.gz"
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Required if a valid URL is provided for pkg_source or unless do_verify() is overridden.
 # The value for pkg_shasum is a sha-256 sum of the downloaded pkg_source. If you
@@ -64,69 +108,97 @@ pkg_filename="{{ pkg_filename }}"
 # and using the sha256sum or gsha256sum tools. Also, if you do not have
 # do_verify() overridden, and you do not have the correct sha-256 sum, then the
 # expected value will be shown in the build output of your package.
+{{~ /unless}}
 {{#if pkg_shasum ~}}
 pkg_shasum="{{ pkg_shasum }}"
-{{else ~}}
+{{~ else ~}}
 pkg_shasum="TODO"
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # An array of package dependencies needed at runtime. You can refer to packages
 # at three levels of specificity: `origin/package`, `origin/package/version`, or
 # `origin/package/version/release`.
+{{~ /unless}}
 {{#if pkg_deps ~}}
 pkg_deps={{ pkg_deps }}
-{{else ~}}
+{{~ else ~}}
 pkg_deps=(core/glibc)
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # An array of the package dependencies needed only at build time.
+{{~ /unless}}
 {{#if pkg_build_deps ~}}
 pkg_build_deps={{ pkg_build_deps }}
-{{else ~}}
+{{~ else ~}}
 pkg_build_deps=(core/make core/gcc)
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # libraries can be found. Used to populate LD_FLAGS and LD_RUN_PATH for
 # software that depends on your package.
+{{~ /unless}}
 {{#if pkg_lib_dirs ~}}
 pkg_lib_dirs={{ pkg_lib_dirs }}
-{{else ~}}
+{{~ else ~}}
 # pkg_lib_dirs=(lib)
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # headers can be found. Used to populate CFLAGS for software that depends on
 # your package.
+{{~ /unless}}
 {{#if pkg_include_dirs ~}}
 pkg_include_dirs={{ pkg_include_dirs }}
-{{else ~}}
+{{~ else ~}}
 # pkg_include_dirs=(include)
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # binaries can be found. Used to populate PATH for software that depends on
 # your package.
+{{~ /unless}}
 {{#if pkg_bin_dirs ~}}
 pkg_bin_dirs={{ pkg_bin_dirs }}
-{{else ~}}
+{{~ else ~}}
 # pkg_bin_dirs=(bin)
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # An array of paths, relative to the final install of the software, where
 # pkg-config metadata (.pc files) can be found. Used to populate
 # PKG_CONFIG_PATH for software that depends on your package.
+{{~ /unless}}
 {{#if pkg_pconfig_dirs ~}}
 pkg_pconfig_dirs={{ pkg_pconfig_dirs }}
-{{else ~}}
+{{~ else ~}}
 # pkg_pconfig_dirs=(lib/pconfig)
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Optional.
 # The command for the Supervisor to execute when starting a service. You can
@@ -134,9 +206,9 @@ pkg_pconfig_dirs={{ pkg_pconfig_dirs }}
 # Supervisor of if your plan contains a run hook in hooks/run.
 {{#if pkg_svc_run ~}}
 pkg_svc_run="{{ pkg_svc_run }}"
-{{else ~}}
+{{~ else ~}}
 # pkg_svc_run="haproxy -f $pkg_svc_config_path/haproxy.conf"
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An associative array representing configuration data which should be gossiped to peers. The keys
@@ -144,13 +216,13 @@ pkg_svc_run="{{ pkg_svc_run }}"
 # to read the value.
 {{#if pkg_exports ~}}
 pkg_exports={{ pkg_exports }}
-{{else ~}}
+{{~ else ~}}
 # pkg_exports=(
 #   [host]=srv.address
 #   [port]=srv.port
 #   [ssl-port]=srv.ssl.port
 # )
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of `pkg_exports` keys containing default values for which ports that this package
@@ -158,9 +230,9 @@ pkg_exports={{ pkg_exports }}
 # a package to a container format.
 {{#if pkg_exposes ~}}
 pkg_exposes={{ pkg_exposes }}
-{{else ~}}
+{{~ else ~}}
 # pkg_exposes=(port ssl-port)
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An associative array representing services which you depend on and the configuration keys that
@@ -170,21 +242,21 @@ pkg_exposes={{ pkg_exposes }}
 # successfully.
 {{#if pkg_binds ~}}
 pkg_binds={{ pkg_binds }}
-{{else ~}}
+{{~ else ~}}
 # pkg_binds=(
 #   [database]="port host"
 # )
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # Same as `pkg_binds` but these represent optional services to connect to.
 {{#if pkg_binds_optional ~}}
 pkg_binds_optional={{ pkg_binds_optional }}
-{{else ~}}
+{{~ else ~}}
 # pkg_binds_optional=(
 #   [storage]="port host"
 # )
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # An array of interpreters used in shebang lines for scripts. Specify the
@@ -195,45 +267,56 @@ pkg_binds_optional={{ pkg_binds_optional }}
 # Then these can be used with the fix_interpreter function.
 {{#if pkg_interpreters ~}}
 pkg_interpreters={{ pkg_interpreters }}
-{{else ~}}
+{{~ else ~}}
 # pkg_interpreters=(bin/bash)
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # The user to run the service as. The default is hab.
 {{#if pkg_svc_user ~}}
 pkg_svc_user="{{ pkg_svc_user }}"
-{{else ~}}
+{{~ else ~}}
 # pkg_svc_user="hab"
-{{/if}}
+{{~ /if}}
 
 # Optional.
 # The group to run the service as. The default is hab.
 {{#if pkg_svc_group ~}}
 pkg_svc_group="{{ pkg_svc_group }}"
-{{else ~}}
+{{~ else ~}}
 # pkg_svc_group="$pkg_svc_user"
-{{/if}}
+{{~ /if}}
+{{~ /unless}}
+
+
+{{~ #unless minimal}}
 
 # Required for core plans, optional otherwise.
 # A short description of the package. It can be a simple string, or you can
 # create a multi-line description using markdown to provide a rich description
 # of your package.
+{{~ /unless}}
 {{#if pkg_description ~}}
 pkg_description="{{ pkg_description }}"
-{{else ~}}
+{{~ else ~}}
 # pkg_description="Some description."
-{{/if}}
+{{~ /if}}
+
+
+{{~ #unless minimal}}
 
 # Required for core plans, optional otherwise.
 # The project home page for the package.
+{{~ /unless}}
 {{#if pkg_upstream_url ~}}
 pkg_upstream_url="{{ pkg_upstream_url }}"
-{{else ~}}
+{{~ else ~}}
 # pkg_upstream_url="http://example.com/project-name"
-{{/if}}
+{{~ /if}}
 
-{{#if with_callbacks ~}}
+
+{{~ #unless minimal}}
+
 # Callback Functions
 #
 # When defining your plan, you have the flexibility to override the default
@@ -253,10 +336,10 @@ pkg_upstream_url="{{ pkg_upstream_url }}"
 # plan build script:
 # https://github.com/habitat-sh/habitat/tree/master/components/plan-build/bin/hab-plan-build.sh
 
-# There is no default implementation of this callback. You can use it to execute
-# any arbitrary commands before anything else happens.
+# The default implmentation does nothing. You can use it to execute any
+# arbitrary commands before anything else happens.
 do_begin() {
-  return 0
+  do_default_begin
 }
 
 # The default implementation is that the software specified in $pkg_source is
@@ -296,13 +379,13 @@ do_unpack() {
   do_default_unpack
 }
 
-# There is no default implementation of this callback. At this point in the
-# build process, the tarball source has been downloaded, unpacked, and the build
-# environment variables have been set, so you can use this callback to perform
-# any actions before the package starts building, such as exporting variables,
-# adding symlinks, and so on.
+# The default implementation does nothing. At this point in the build process,
+# the tarball source has been downloaded, unpacked, and the build environment
+# variables have been set, so you can use this callback to perform any actions
+# before the package starts building, such as exporting variables, adding
+# symlinks, and so on.
 do_prepare() {
-  return 0
+  do_default_prepare
 }
 
 # The default implementation is to update the prefix path for the configure
@@ -344,181 +427,20 @@ do_strip() {
   do_default_strip
 }
 
-# There is no default implementation of this callback. This is called after the
-# package has been built and installed. You can use this callback to remove any
-# temporary files or perform other post-install clean-up actions.
+# The default implmentation does nothing. This is called after the package has
+# been built and installed. You can use this callback to remove any temporary
+# files or perform other post-install clean-up actions.
 do_end() {
-  return 0
+  do_default_end
 }
-{{/if ~}}
-{{else ~}}
-pkg_name={{ pkg_name }}
-pkg_origin={{ pkg_origin }}
-{{#if pkg_version ~}}
-pkg_version="{{ pkg_version }}"
-{{else ~}}
-pkg_version="0.1.0"
-{{/if ~}}
-{{#if pkg_maintainer ~}}
-pkg_maintainer="{{ pkg_maintainer }}"
-{{else ~}}
-pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
-{{/if~}}
-{{#if pkg_license ~}}
-pkg_license={{ pkg_license }}
-{{else ~}}
-pkg_license=("Apache-2.0")
-{{/if ~}}
-{{#if scaffolding_ident ~}}
-pkg_scaffolding="{{ scaffolding_ident }}"
-{{/if ~}}
-{{#if pkg_source ~}}
-pkg_source="{{ pkg_source }}"
-{{else ~}}
-pkg_source="http://some_source_url/releases/${pkg_name}-${pkg_version}.tar.gz"
-{{/if ~}}
-{{#if pkg_filename ~}}
-pkg_filename="{{ pkg_filename }}"
-{{else ~}}
-# pkg_filename="${pkg_name}-${pkg_version}.tar.gz"
-{{/if ~}}
-{{#if pkg_shasum ~}}
-pkg_shasum="{{ pkg_shasum }}"
-{{else ~}}
-# pkg_shasum="TODO"
-{{/if ~}}
-{{#if pkg_deps ~}}
-pkg_deps={{ pkg_deps }}
-{{else ~}}
-# pkg_deps=(core/glibc)
-{{/if ~}}
-{{#if pkg_build_deps ~}}
-pkg_build_deps={{ pkg_build_deps }}
-{{else ~}}
-# pkg_build_deps=(core/make core/gcc)
-{{/if ~}}
-{{#if pkg_lib_dirs ~}}
-pkg_lib_dirs={{ pkg_lib_dirs }}
-{{else ~}}
-# pkg_lib_dirs=(lib)
-{{/if ~}}
-{{#if pkg_include_dirs ~}}
-pkg_include_dirs={{ pkg_include_dirs }}
-{{else ~}}
-# pkg_include_dirs=(include)
-{{/if ~}}
-{{#if pkg_bin_dirs ~}}
-pkg_bin_dirs={{ pkg_bin_dirs }}
-{{else ~}}
-# pkg_bin_dirs=(bin)
-{{/if ~}}
-{{#if pkg_pconfig_dirs ~}}
-pkg_pconfig_dirs={{ pkg_pconfig_dirs }}
-{{else ~}}
-# pkg_pconfig_dirs=(lib/pconfig)
-{{/if ~}}
-{{#if pkg_svc_run ~}}
-pkg_svc_run="{{ pkg_svc_run }}"
-{{else ~}}
-# pkg_svc_run="haproxy -f $pkg_svc_config_path/haproxy.conf"
-{{/if ~}}
-{{#if pkg_exports ~}}
-pkg_exports={{ pkg_exports }}
-{{else ~}}
-# pkg_exports=(
-#   [host]=srv.address
-#   [port]=srv.port
-#   [ssl-port]=srv.ssl.port
-# )
-{{/if ~}}
-{{#if pkg_exposes ~}}
-pkg_exposes={{ pkg_exposes }}
-{{else ~}}
-# pkg_exposes=(port ssl-port)
-{{/if ~}}
-{{#if pkg_binds ~}}
-pkg_binds={{ pkg_binds }}
-{{else ~}}
-# pkg_binds=(
-#   [database]="port host"
-# )
-{{/if ~}}
-{{#if pkg_binds_optional ~}}
-pkg_binds_optional={{ pkg_binds_optional }}
-{{else ~}}
-# pkg_binds_optional=(
-#   [storage]="port host"
-# )
-{{/if ~}}
-{{#if pkg_interpreters ~}}
-pkg_interpreters={{ pkg_interpreters }}
-{{else ~}}
-# pkg_interpreters=(bin/bash)
-{{/if ~}}
-{{#if pkg_svc_user ~}}
-pkg_svc_user="{{ pkg_svc_user }}"
-{{else ~}}
-# pkg_svc_user="hab"
-{{/if ~}}
-{{#if pkg_svc_group ~}}
-pkg_svc_group="{{ pkg_svc_group }}"
-{{else ~}}
-# pkg_svc_group="$pkg_svc_user"
-{{/if ~}}
-{{#if pkg_description ~}}
-pkg_description="{{ pkg_description }}"
-{{else ~}}
-# pkg_description="Some description."
-{{/if ~}}
-{{#if pkg_upstream_url ~}}
-pkg_upstream_url="{{ pkg_upstream_url }}"
-{{else ~}}
-# pkg_upstream_url="http://example.com/project-name"
-{{/if ~}}
-{{#if with_callbacks ~}}
-do_begin() {
-  return 0
-}
-
-do_download() {
-  do_default_download
-}
-
-do_verify() {
-  do_default_verify
-}
-
-do_clean() {
-  do_default_clean
-}
-
-do_unpack() {
-  do_default_unpack
-}
-
-do_prepare() {
-  return 0
-}
+{{~ else}}
 
 do_build() {
   do_default_build
-}
-
-do_check() {
-  return 0
 }
 
 do_install() {
   do_default_install
 }
 
-do_strip() {
-  do_default_strip
-}
-
-do_end() {
-  return 0
-}
-
-{{/if ~}}
-{{/if ~}}
+{{~ /unless}}
