@@ -81,7 +81,8 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
                               ThreadRuntime::new().expect("Couldn't create event stream runtime!")
                                                   .spawn(publisher)
                                                   .run()
-                                                  .expect("something seriously wrong has occurred");
+                                                  .expect("Could not create Tokio runtime for \
+                                                           event publication thread");
                           })
                           .map_err(Error::SpawnEventThreadError)?;
 
