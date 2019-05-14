@@ -217,7 +217,7 @@ fn publish(mut event: impl EventMessage) {
         // one.
         //
         // The ugliness is at least contained, though.
-        event.event_metadata(EventMetadata { timestamp:
+        event.event_metadata(EventMetadata { occurred_at:
                                                  Some(std::time::SystemTime::now().into()),
                                              ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
 
