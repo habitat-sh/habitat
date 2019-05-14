@@ -73,9 +73,8 @@ message ServiceStoppedEvent {
 message HealthCheckEvent {
   EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;
-  // The result of the health check execution
   HealthCheck result = 3;
   // If the service has a health check hook script, how long it took
   // to execute.
-  google.protobuf.Duration duration = 4;
+  google.protobuf.Duration execution = 4;
 }

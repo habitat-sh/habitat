@@ -182,13 +182,15 @@ pub fn service_stopped(service: &Service) {
     }
 }
 
-pub fn health_check(service: &Service, check_result: HealthCheck, duration: Option<Duration>) {
+/// `execution` will be `Some` if the service had a hook to run, and
+/// records how long it took that hook to execute completely.
+pub fn health_check(service: &Service, check_result: HealthCheck, execution: Option<Duration>) {
     if stream_initialized() {
         let check_result: types::HealthCheck = check_result.into();
         publish(HealthCheckEvent { service_metadata: Some(service.to_service_metadata()),
                                    event_metadata:   None,
                                    result:           i32::from(check_result),
-                                   duration:         duration.map(Into::into), });
+                                   execution:        execution.map(Into::into), });
     }
 }
 

@@ -936,14 +936,14 @@ impl Service {
         // Additionally, we'll only send the time with the health
         // check event if there's actually a hook that runs. We'll
         // default to there not being a hook, though.
-        let mut event_duration = None;
+        let mut execution_duration = None;
 
         let check_result = if let Some(ref hook) = self.hooks.health_check {
             let event_start = Instant::now();
             let result = hook.run(&self.service_group,
                                   &self.pkg,
                                   self.svc_encrypted_password.as_ref());
-            event_duration = Some(event_start.elapsed());
+            execution_duration = Some(event_start.elapsed());
             result
         } else {
             match self.supervisor.status() {
@@ -966,7 +966,7 @@ impl Service {
             self.schedule_special_health_check();
         }
         self.health_check = check_result;
-        event::health_check(&self, check_result, event_duration);
+        event::health_check(&self, check_result, execution_duration);
         self.cache_health_check(check_result);
     }
 
