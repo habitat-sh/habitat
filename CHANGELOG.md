@@ -7,6 +7,7 @@
 - remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Update docs for 0.81.0 release [#6548](https://github.com/habitat-sh/habitat/pull/6548) ([raskchanky](https://github.com/raskchanky))
 - Update to install for Windows [#6478](https://github.com/habitat-sh/habitat/pull/6478) ([kagarmoe](https://github.com/kagarmoe))
 - Streamline plan initialization [#6495](https://github.com/habitat-sh/habitat/pull/6495) ([davidMcneil](https://github.com/davidMcneil))
 - Update rustfmt version [#6543](https://github.com/habitat-sh/habitat/pull/6543) ([raskchanky](https://github.com/raskchanky))
