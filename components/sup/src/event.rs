@@ -123,8 +123,6 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
 
 /// All the information needed to establish a connection to a NATS
 /// Streaming server.
-// TODO: This will change as we firm up what the interaction between
-// Habitat and A2 looks like.
 pub struct EventConnectionInfo {
     pub name:        String,
     pub verbose:     bool,
@@ -157,11 +155,9 @@ pub struct EventCore {
     /// The unique identifier of the Supervisor sending the event.
     supervisor_id: String,
     ip_address: SocketAddr,
-    // TODO (CM): could add application and environment to the meta
-    // map directly... hrmm
     application: String,
     environment: String,
-    meta:        EventStreamMetadata,
+    meta: EventStreamMetadata,
 }
 
 impl EventCore {
