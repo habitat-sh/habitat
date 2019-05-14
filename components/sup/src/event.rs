@@ -187,10 +187,10 @@ pub fn health_check(metadata: ServiceMetadata,
                     check_result: HealthCheckResult,
                     duration: Option<Duration>) {
     if stream_initialized() {
+        let check_result: types::HealthCheck = check_result.into();
         publish(HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata:   None,
-                                   result:           Into::<types::HealthCheck>::into(check_result)
-                                                     as i32,
+                                   result:           i32::from(check_result),
                                    duration:         duration.map(Duration::into), });
     }
 }
