@@ -24,7 +24,6 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] [Update builder bootstrap bundle](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-builder-bootstrap-bundle)
 - [ ] [Update chocolately package](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#rerun-chocolatey-validation-tests)
 - [ ] [Publish release](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#publish-release) on GitHub
-- [ ] [Update `hab-backline` to release version in acceptance environment](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-acceptance-environment-with-the-new-hab-backline)
 - [ ] [Update docs](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-docs)
 - [ ] [Verify updated docs are deployed to https://www.habitat.sh/docs/](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#verify-the-docs)
 - [ ] [Update CHANGELOG.md](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-the-changelog)
@@ -37,11 +36,9 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] Post announcement in [Chef discourse](https://discourse.chef.io/c/habitat)
 - [ ] Post announcement in [Habitat forums](https://forums.habitat.sh/c/announcements)
 - [ ] Tweet a release announcement from `@habitatsh`
-- [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`core`](https://github.com/habitat-sh/core)
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`habitat`](https://github.com/habitat-sh/habitat)
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`builder`](https://github.com/habitat-sh/builder)
 - [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`habitat`](https://github.com/habitat-sh/habitat)
-- [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`core`](https://github.com/habitat-sh/core)
 - [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`builder`](https://github.com/habitat-sh/builder)
 - [ ] Review release automation and/or [`RELEASE.md`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md) and add necessary fixes
 - [ ] [Schedule release postmortem](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#release-postmortem)
