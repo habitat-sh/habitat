@@ -43,10 +43,9 @@ use self::types::{EventMessage,
                   HealthCheckEvent,
                   ServiceStartedEvent,
                   ServiceStoppedEvent};
-use crate::{error::Result as SupResult,
-            manager::{service::{HealthCheck,
-                                Service},
-                      sys::Sys}};
+use crate::manager::{service::{HealthCheck,
+                               Service},
+                     sys::Sys};
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
@@ -106,21 +105,19 @@ pub struct EventStreamConfig {
     url:         String,
 }
 
-impl EventStreamConfig {
-    /// Create an instance from Clap arguments.
-    // TODO (CM): result type!
-    pub fn from_matches(m: &ArgMatches) -> SupResult<EventStreamConfig> {
-        Ok(EventStreamConfig { environment: m.value_of("EVENT_STREAM_ENVIRONMENT")
-                                             .map(str::to_string)
-                                             .expect("Required option for EventStream feature"),
-                               application: m.value_of("EVENT_STREAM_APPLICATION")
-                                             .map(str::to_string)
-                                             .expect("Required option for EventStream feature"),
-                               meta:        EventStreamMetadata::from(m),
-                               token:       AutomateAuthToken::from(m),
-                               url:         m.value_of("EVENT_STREAM_URL")
-                                             .map(str::to_string)
-                                             .expect("Required option for EventStream feature"), })
+impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
+    fn from(m: &ArgMatches) -> Self {
+        EventStreamConfig { environment: m.value_of("EVENT_STREAM_ENVIRONMENT")
+                                          .map(str::to_string)
+                                          .expect("Required option for EventStream feature"),
+                            application: m.value_of("EVENT_STREAM_APPLICATION")
+                                          .map(str::to_string)
+                                          .expect("Required option for EventStream feature"),
+                            meta:        EventStreamMetadata::from(m),
+                            token:       AutomateAuthToken::from(m),
+                            url:         m.value_of("EVENT_STREAM_URL")
+                                          .map(str::to_string)
+                                          .expect("Required option for EventStream feature"), }
     }
 }
 
