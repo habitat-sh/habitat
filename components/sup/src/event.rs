@@ -198,10 +198,10 @@ pub fn health_check(service: &Service,
                     duration: Duration,
                     has_hook: bool) {
     if stream_initialized() {
+        let check_result: types::HealthCheck = check_result.into();
         publish(HealthCheckEvent { service_metadata: Some(service.to_service_metadata()),
                                    event_metadata: None,
-                                   result: Into::<types::HealthCheck>::into(check_result)
-                                           as i32,
+                                   result: i32::from(check_result),
                                    duration: Some(duration.into()),
                                    has_hook });
     }
