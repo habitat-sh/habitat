@@ -60,11 +60,12 @@ impl Service {
 impl EventCore {
     /// Create a protobuf metadata struct for all event messages.
     pub(super) fn to_event_metadata(&self) -> EventMetadata {
+        // occurred_at will be set to Some when the event is published.
         EventMetadata { supervisor_id: self.supervisor_id.clone(),
                         ip_address:    self.ip_address.to_string(),
                         application:   self.application.clone(),
                         environment:   self.environment.clone(),
-                        timestamp:     None,
+                        occurred_at:   None,
                         meta:          self.meta.clone().into(), }
     }
 }
