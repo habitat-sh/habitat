@@ -342,8 +342,8 @@ impl fmt::Display for SupError {
 
         // TODO (CM): Consider implementing Error::source() for all
         // our errors as a more formalized way of exposing an
-        // underlying error. This way, our Display implementation can
-        // be used for domain-specific information.
+        // underlying error. See
+        // https://github.com/habitat-sh/habitat/issues/6556 for details.
         if let Some(source) = self.source() {
             write!(f, "{} -> {}", so, source)
         } else {
