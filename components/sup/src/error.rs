@@ -361,7 +361,6 @@ impl error::Error for SupError {
         }
     }
 
-    // TODO (CM): this function is "soft deprecated" now; remove it!
     fn description(&self) -> &str {
         match self.err {
             Error::APIClient(ref err) => err.description(),
