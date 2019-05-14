@@ -138,10 +138,10 @@ pub struct EventConnectionInfo {
 
 impl EventConnectionInfo {
     pub fn new(auth_token: AutomateAuthToken, cluster_uri: String) -> Self {
-        EventConnectionInfo { name: String::from("hab_client"),
+        EventConnectionInfo { name: "hab_client".to_string(),
                               verbose: true,
                               cluster_uri,
-                              cluster_id: String::from("event-service"),
+                              cluster_id: "event-service".to_string(),
                               auth_token }
     }
 }
