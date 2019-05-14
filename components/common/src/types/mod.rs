@@ -3,8 +3,6 @@ pub use self::listen_ctl_addr::ListenCtlAddr;
 use crate::error::Error;
 use clap::ArgMatches;
 use std::{collections::HashMap,
-          env::{self,
-                VarError},
           fmt,
           result,
           str::FromStr};
@@ -105,15 +103,6 @@ impl AutomateAuthToken {
 }
 
 impl AutomateAuthToken {
-    // TODO: @gcp make a real error type for the case where's there no auth token value
-    // refactor: to_string_lossy doesn't return an error if it can't convert the OsString
-    pub fn from_env() -> result::Result<AutomateAuthToken, VarError> {
-        // unwrap won't fail; any error would arise from env::var()? (from_str currently doesn't
-        // return an error) we probably won't keep unwrap long-term
-        println!("getting automate auth token from env...");
-        Ok(env::var(AutomateAuthToken::ENVVAR)?.parse().unwrap())
-    }
-
     /// Ensure that user input from Clap can be converted an instance
     /// of a token.
     #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
