@@ -1,7 +1,8 @@
 use crate::command::studio;
 use clap::{App,
            AppSettings,
-           Arg};
+           Arg,
+           ArgMatches};
 use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR,
@@ -1037,11 +1038,12 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
                              "The interval (seconds) on which to run health checks [default: 30]")
     );
 
-    if feature_flags.contains(FeatureFlag::EVENT_STREAM) {
+    let sub = if feature_flags.contains(FeatureFlag::EVENT_STREAM) {
         add_event_stream_options(sub)
     } else {
         sub
-    }
+    };
+    add_shutdown_timeout_option(sub)
 }
 
 pub fn sub_sup_sh() -> App<'static, 'static> {
@@ -1083,6 +1085,16 @@ pub fn sub_svc_status() -> App<'static, 'static> {
         (@arg REMOTE_SUP: --("remote-sup") -r +takes_value
         "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     )
+}
+
+pub fn parse_optional_arg<T: FromStr, E>(name: &str, m: &ArgMatches) -> Result<Option<T>, E>
+    where E: std::convert::From<<T as std::str::FromStr>::Err>
+{
+    m.value_of(name)
+     // Try and parse the value as a T and if there was an error convert it to an E
+     .map(|s| s.parse().map_err(Into::into))
+     //  Convert from Option<Result<_>> to Result<Option<_>>
+     .map_or(Ok(None), |o| o.map(Some))
 }
 
 fn sub_svc_stop() -> App<'static, 'static> {

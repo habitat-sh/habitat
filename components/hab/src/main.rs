@@ -12,7 +12,8 @@ use clap::{ArgMatches,
 use env_logger;
 use futures::prelude::*;
 use hab::{analytics,
-          cli,
+          cli::{self,
+                parse_optional_arg},
           command::{self,
                     pkg::list::ListingType},
           config::{self,
@@ -1022,12 +1023,9 @@ fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-    let mut msg = sup_proto::ctl::SvcLoad::default();
-    update_svc_load_from_input(m, &mut msg)?;
+    let mut msg = svc_load_from_input(m)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
-    msg.shutdown_timeout =
-        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
                                                              .for_each(|m| handle_ctl_reply(&m))
@@ -1041,9 +1039,8 @@ fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-
     let timeout_in_seconds =
-        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
+        parse_optional_arg::<ShutdownTimeout, Error>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
 
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
@@ -1115,13 +1112,11 @@ fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
-
     let timeout_in_seconds =
-        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
+        parse_optional_arg::<ShutdownTimeout, Error>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
 
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
-
     SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
                                                          conn.call(msg)
                                                              .for_each(|m| handle_ctl_reply(&m))
@@ -1360,16 +1355,6 @@ fn raw_parse_args() -> (Vec<OsString>, Vec<OsString>) {
         }
         _ => (env::args_os().collect(), Vec::new()),
     }
-}
-
-fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches<'_>) -> Result<Option<T>>
-    where hab::error::Error: std::convert::From<<T as std::str::FromStr>::Err>
-{
-    m.value_of(name)
-     // Try and parse the value as a T and if there was an error convert it to a hab::error::Error
-     .map(|s| s.parse().map_err(Into::into))
-     //  Convert from Option<Result<_>> to Result<Option<_>>
-     .map_or(Ok(None), |o| o.map(Some))
 }
 
 /// Check to see if the user has passed in an AUTH_TOKEN param. If not, check the
@@ -1806,7 +1791,8 @@ fn ui() -> UI {
 
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
 /// populates all *shared* options between `run` and `load`.
-fn update_svc_load_from_input(m: &ArgMatches<'_>, msg: &mut sup_proto::ctl::SvcLoad) -> Result<()> {
+fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
+    let mut msg = sup_proto::ctl::SvcLoad::default();
     msg.bldr_url = bldr_url_from_input(m);
     msg.bldr_channel = channel_from_matches(m).map(|c| c.to_string());
     msg.application_environment = get_app_env_from_input(m)?;
@@ -1820,7 +1806,9 @@ fn update_svc_load_from_input(m: &ArgMatches<'_>, msg: &mut sup_proto::ctl::SvcL
     msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
-    Ok(())
+    msg.shutdown_timeout =
+        parse_optional_arg::<ShutdownTimeout, Error>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
+    Ok(msg)
 }
 
 #[cfg(test)]

@@ -105,8 +105,10 @@ message SvcLoad {
 
 // Request to unload a loaded service.
 message SvcUnload {
+  reserved 2;
+  reserved "signal";
   optional sup.types.PackageIdent ident = 1;
-  // Timeout in before killing the service
+  // Timeout in seconds before killing the service
   optional uint32 timeout_in_seconds = 3;
 }
 
@@ -117,8 +119,10 @@ message SvcStart {
 
 // Request to stop a loaded and started service.
 message SvcStop {
+  reserved 2;
+  reserved "signal";
   optional sup.types.PackageIdent ident = 1;
-  // Timeout in before killing the service
+  // Timeout in seconds before killing the service
   optional uint32 timeout_in_seconds = 3;
 }
 
