@@ -172,15 +172,17 @@ pub fn service_stopped(service: &Service) {
 // Takes metadata directly, rather than a `&Service` like other event
 // functions, because of how the asynchronous health checking
 // currently works. Revisit when async/await + Pin is all stabilized.
+/// `execution` will be `Some` if the service had a hook to run, and
+/// records how long it took that hook to execute completely.
 pub fn health_check(metadata: ServiceMetadata,
                     check_result: HealthCheckResult,
-                    duration: Option<Duration>) {
+                    execution: Option<Duration>) {
     if stream_initialized() {
         let check_result: types::HealthCheck = check_result.into();
         publish(HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata:   None,
                                    result:           i32::from(check_result),
-                                   duration:         duration.map(Duration::into), });
+                                   execution:        execution.map(Duration::into), });
     }
 }
 
