@@ -13,16 +13,6 @@ function Get-NightlyToolchain {
 }
 
 function Install-Rustup($Toolchain) {
-    # On buildkite, the rust binaries will be directly in C:
-    if($env:BUILDKITE) {
-        $env:CARGO_HOME="C:\rust\.cargo"
-        $env:path = New-PathString -StartingPath $env:path -Path "C:\rust\.cargo\bin"
-        # this will avoid a path length limit from the long buildkite working dir path
-        $env:CARGO_TARGET_DIR = "c:\target"
-        $env:RUSTUP_HOME="C:\rust\.rustup"
-        $env:path = New-PathString -StartingPath $env:path -Path "C:\rust\.rustup\bin"
-    }
-
     if(Test-Path $env:USERPROFILE\.cargo\bin) {
         $env:path = New-PathString -StartingPath $env:path -Path "$env:USERPROFILE\.cargo\bin"
     }
@@ -37,6 +27,7 @@ function Install-Rustup($Toolchain) {
         $env:path += ";$env:USERPROFILE\.cargo\bin"
     }
 }
+
 function Install-RustToolchain($Toolchain) {
     rustup component list --toolchain $toolchain | Out-Null
     if ($LASTEXITCODE -ne 0) {
@@ -51,6 +42,17 @@ function Install-Rustfmt($Toolchain) {
   local toolchain="${1?toolchain argument required}"
   Install-RustToolchain $Toolchain
   rustup component add --toolchain $Toolchain rustfmt
+}
+
+function Install-Habitat {
+    if (-not (get-command choco -ErrorAction SilentlyContinue)) {
+        Write-Host "Installing Chocolatey"
+        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | out-null
+    }
+
+    if (!((choco list habitat --local-only) -match '^1 packages installed\.$')) {
+        choco install habitat -y
+    }
 }
 
 function Install-HabPkg([string[]]$idents) {
@@ -84,16 +86,22 @@ function New-PathString([string]$StartingPath, [string]$Path) {
 }
 
 function Setup-Environment {
+    $env:HAB_LICENSE = "accept-no-persist"
+    Install-Habitat
+
     Install-HabPkg @(
         "core/cacerts",
         "core/libarchive",
         "core/libsodium",
         "core/openssl",
         "core/protobuf",
+        "core/visual-cpp-build-tools-2015",
         "core/xz",
         "core/zeromq",
         "core/zlib"
     )
+    # we always want the latest rust
+    hab pkg install core/rust
 
     # Set up some path variables for ease of use later
     $cacertsDir     = & hab pkg path core/cacerts
@@ -119,11 +127,18 @@ function Setup-Environment {
     $env:LD_LIBRARY_PATH            = "$env:LIBZMQ_PREFIX\lib;$env:SODIUM_LIB_DIR;$zlibDir\lib;$xzDir\lib"
     $env:PATH                       = New-PathString -StartingPath $env:PATH -Path "$protobufDir\bin;$zeromqDir\bin;$libarchiveDir\bin;$libsodiumDir\bin;$zlibDir\bin;$xzDir\bin;$opensslDir\bin"
 
-    if(!$env:BUILDKITE) {
-        Install-HabPkg "core/visual-cpp-build-tools-2015"
-        $vsDir = & hab pkg path core/visual-cpp-build-tools-2015
-        $env:LIB = (Get-Content "$vsDir\LIB_DIRS")
-        $env:INCLUDE = (Get-Content "$vsDir\INCLUDE_DIRS")
-        $env:PATH = New-PathString -StartingPath $env:PATH -Path (Get-Content "$vsDir\PATH")
-    }
+    $vsDir = & hab pkg path core/visual-cpp-build-tools-2015
+    $env:LIB = (Get-Content "$vsDir\LIB_DIRS")
+    $env:INCLUDE = (Get-Content "$vsDir\INCLUDE_DIRS")
+    $env:PATH = New-PathString -StartingPath $env:PATH -Path (Get-Content "$vsDir\PATH")
+}
+
+# On buildkite, the rust binaries will be directly in C:
+if($env:BUILDKITE) {
+    $env:CARGO_HOME="C:\rust\.cargo"
+    $env:path = New-PathString -StartingPath $env:path -Path "C:\rust\.cargo\bin"
+    # this will avoid a path length limit from the long buildkite working dir path
+    $env:CARGO_TARGET_DIR = "c:\target"
+    $env:RUSTUP_HOME="C:\rust\.rustup"
+    $env:path = New-PathString -StartingPath $env:path -Path "C:\rust\.rustup\bin"
 }
