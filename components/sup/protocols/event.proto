@@ -26,7 +26,7 @@ message ServiceMetadata {
   string spec_ident = 2;
   // todo: make / reuse a real type?
   string service_group = 3;
-  Update update = 4;
+  UpdateConfig update_config = 4;
 }
 
 // Note that there is no `None` value, as currently exists in the Rust
@@ -41,7 +41,9 @@ enum UpdateStrategy {
   Rolling = 1;
 }
 
-message Update {
+// Encapsulates an update strategy with the channel that is checked
+// for updates. Both must be present for either to be meaningful.a
+message UpdateConfig {
   UpdateStrategy strategy = 1;
   // The channel the Supervisor will monitor for updates to this
   // service.
