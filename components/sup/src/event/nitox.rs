@@ -28,6 +28,9 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
     // it in the Supervisor's Tokio runtime, but there's currently a
     // bug: https://github.com/YellowInnovation/nitox/issues/24
 
+    // Disabling rustfmt on this... I think we might be running into
+    // https://github.com/rust-lang/rustfmt/issues/1762
+    #[rustfmt::skip] 
     thread::Builder::new().name("events".to_string())
                           .spawn(move || {
                               let EventConnectionInfo { name,
@@ -56,8 +59,8 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
                                               })
                                               .and_then(|client| {
                                                   NatsStreamingClient::from(client)
-                        .cluster_id(cluster_id)
-                        .connect()
+                                                      .cluster_id(cluster_id)
+                                                      .connect()
                                               })
                                               .map_err(|streaming_error| {
                                                   error!("Error upgrading to streaming NATS \
@@ -68,14 +71,14 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
                                                   sync_tx.send(()).expect("Couldn't synchronize \
                                                                            event thread!");
                                                   event_rx.for_each(move |event: Vec<u8>| {
-                                                              let publish_event = client
-                            .publish(HABITAT_SUBJECT.into(), event.into())
-                            .map_err(|e| {
-                                error!("Error publishing event: {}", e);
-                            });
-                                                              executor::spawn(publish_event);
-                                                              Ok(())
-                                                          })
+                                                      let publish_event = client
+                                                          .publish(HABITAT_SUBJECT.into(), event.into())
+                                                          .map_err(|e| {
+                                                              error!("Error publishing event: {}", e);
+                                                          });
+                                                      executor::spawn(publish_event);
+                                                      Ok(())
+                                                  })
                                               });
 
                               ThreadRuntime::new().expect("Couldn't create event stream runtime!")
