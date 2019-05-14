@@ -15,6 +15,7 @@ use std::{sync::mpsc as std_mpsc,
           thread};
 use tokio::{executor,
             runtime::current_thread::Runtime as ThreadRuntime};
+
 /// All messages are published under this subject.
 const HABITAT_SUBJECT: &str = "habitat";
 
