@@ -34,15 +34,16 @@ impl Service {
         ServiceMetadata { package_ident: self.pkg.ident.to_string(),
                           spec_ident:    self.spec_ident.to_string(),
                           service_group: self.service_group.to_string(),
-                          update:        self.update(), }
+                          update_config: self.update_config(), }
     }
 
-    /// `Update` is a (currently protobuf-only) type that encapsulates
-    /// a channel and update strategy. Importantly, the existing
-    /// `UpdateStrategy::None` variant is essentially converted to
-    /// `Option::None`, whereas the other variants are coupled with the
-    /// channel from which the Supervisor pulls updates.
-    fn update(&self) -> Option<Update> {
+    /// `UpdateConfig` is a (currently protobuf-only) type that
+    /// encapsulates a channel and update strategy. Importantly, the
+    /// existing `UpdateStrategy::None` variant is essentially
+    /// converted to `Option::None`, whereas the other variants are
+    /// coupled with the channel from which the Supervisor pulls
+    /// updates.
+    fn update_config(&self) -> Option<UpdateConfig> {
         let strategy = match self.update_strategy {
             DomainUpdateStrategy::None => {
                 return None;
@@ -51,8 +52,8 @@ impl Service {
             DomainUpdateStrategy::Rolling => UpdateStrategy::Rolling,
         };
 
-        Some(Update { strategy: strategy.into(),
-                      channel:  self.channel.to_string(), })
+        Some(UpdateConfig { strategy: strategy.into(),
+                            channel:  self.channel.to_string(), })
     }
 }
 
