@@ -946,10 +946,7 @@ impl Service {
             }
         };
         let event_stop = SteadyTime::now();
-        let event_duration = (event_stop - event_start).to_std().unwrap_or_else(|_|
-                            // This shouldn't really happen, given
-                            // that we're using SteadyTime...
-                            Duration::from_secs(0));
+        let event_duration = (event_stop - event_start).to_std().unwrap_or_default();
 
         // We have just ran a check; therefore we must unset the next scheduled check time
         // in anticipation of `None` value being used in the next scheduled check time calculation.
