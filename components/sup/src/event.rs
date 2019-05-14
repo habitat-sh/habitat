@@ -78,8 +78,8 @@ lazy_static! {
 /// static reference for access later.
 pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<()> {
     // call_once can't return a Result (or anything), so we'll fake it
-    // by hanging onto any error here.
-    let mut init_err: Option<Error> = None;
+    // by hanging onto any error we might receive.
+    let mut return_value: Result<()> = Ok(());
 
     INIT.call_once(|| {
             let conn_info = EventConnectionInfo::new(config.token, config.url);
@@ -88,15 +88,11 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
                     EVENT_STREAM.set(event_stream);
                     EVENT_CORE.set(event_core);
                 }
-                Err(e) => init_err = Some(e),
+                Err(e) => return_value = Err(e),
             }
         });
 
-    if let Some(err) = init_err {
-        Err(err)
-    } else {
-        Ok(())
-    }
+    return_value
 }
 
 /// Captures all event stream-related configuration options that would
