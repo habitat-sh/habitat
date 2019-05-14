@@ -22,7 +22,8 @@ pub use self::windows::{become_command,
                         handle_from_pid,
                         is_alive,
                         Pid};
-use crate::error::Error;
+use crate::{error::Error,
+            util::serde_string};
 use serde_derive::{Deserialize,
                    Serialize};
 use std::{fmt,
@@ -40,7 +41,7 @@ use time::Duration;
 /// around, and turn it into a `time::Duration` at the last possible
 /// moment.)
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
-pub struct ShutdownTimeout(u32);
+pub struct ShutdownTimeout(#[serde(with = "serde_string")] u32);
 
 impl Default for ShutdownTimeout {
     /// Unless otherwise specified, the Supervisor will wait 8 seconds
@@ -74,7 +75,7 @@ impl From<ShutdownTimeout> for Duration {
 // but we are making it available on Windows as well for situations
 // where a Windows CLI is communicating with a Linux Supervisor.
 #[allow(non_snake_case)]
-#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Copy, Hash)]
+#[derive(Deserialize, PartialEq, Debug, Clone, Copy)]
 pub enum Signal {
     INT,
     ILL,
@@ -139,8 +140,8 @@ impl fmt::Display for Signal {
 /// Encapsulates logic for defining the default shutdown signal we
 /// send services, and handles translation from external types at the
 /// edges of our system.
-#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
-pub struct ShutdownSignal(Signal);
+#[derive(Deserialize, Debug, Clone)]
+pub struct ShutdownSignal(#[serde(with = "serde_string")] Signal);
 
 impl Default for ShutdownSignal {
     /// Unless otherwise specified, the Supervisor will shut down

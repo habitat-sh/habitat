@@ -11,8 +11,7 @@ use habitat_core::{fs::atomic_write,
                              HealthCheckInterval,
                              ServiceBind},
                    url::DEFAULT_BLDR_URL,
-                   util::{deserialize_using_from_str,
-                          serialize_using_to_string},
+                   util::serde_string,
                    ChannelIdent};
 use habitat_sup_protocol;
 use serde::{self,
@@ -141,8 +140,7 @@ impl IntoServiceSpec for habitat_sup_protocol::ctl::SvcLoad {
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(with = "serde_string")]
     pub ident: PackageIdent,
     pub group: String,
     #[serde(deserialize_with = "deserialize_application_environment",
@@ -155,8 +153,7 @@ pub struct ServiceSpec {
     pub binds: Vec<ServiceBind>,
     pub binding_mode: BindingMode,
     pub config_from: Option<PathBuf>,
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(with = "serde_string")]
     pub desired_state: DesiredState,
     pub shutdown_timeout: Option<ShutdownTimeout>,
     pub health_check_interval: HealthCheckInterval,
