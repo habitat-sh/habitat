@@ -76,8 +76,7 @@ message HealthCheckEvent {
   ServiceMetadata service_metadata = 2;
   // The result of the health check execution
   HealthCheck result = 3;
-  // How long the health check took to run
+  // If the service has a health check hook script, how long it took
+  // to execute.
   google.protobuf.Duration duration = 4;
-  // Whether or not the health check is defined in a hook
-  bool has_hook = 5;
 }

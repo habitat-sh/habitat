@@ -94,10 +94,8 @@ use std::{self,
           result,
           sync::{Arc,
                  RwLock},
-          time::{Duration,
-                 Instant}};
-use time::{SteadyTime,
-           Timespec};
+          time::Instant};
+use time::Timespec;
 
 static LOGKEY: &'static str = "SR";
 
@@ -934,19 +932,25 @@ impl Service {
         // for Prometheus (see `_timer`, above), but we can't inspect
         // that and get the elapsed time. Thus, we keep track of time
         // ourselves.
-        let event_start = SteadyTime::now();
+        //
+        // Additionally, we'll only send the time with the health
+        // check event if there's actually a hook that runs. We'll
+        // default to there not being a hook, though.
+        let mut event_duration = None;
+
         let check_result = if let Some(ref hook) = self.hooks.health_check {
-            hook.run(&self.service_group,
-                     &self.pkg,
-                     self.svc_encrypted_password.as_ref())
+            let event_start = Instant::now();
+            let result = hook.run(&self.service_group,
+                                  &self.pkg,
+                                  self.svc_encrypted_password.as_ref());
+            event_duration = Some(event_start.elapsed());
+            result
         } else {
             match self.supervisor.status() {
                 (true, _) => HealthCheck::Ok,
                 (false, _) => HealthCheck::Critical,
             }
         };
-        let event_stop = SteadyTime::now();
-        let event_duration = (event_stop - event_start).to_std().unwrap_or_default();
 
         // We have just ran a check; therefore we must unset the next scheduled check time
         // in anticipation of `None` value being used in the next scheduled check time calculation.
@@ -962,12 +966,7 @@ impl Service {
             self.schedule_special_health_check();
         }
         self.health_check = check_result;
-        event::health_check(&self,
-                            check_result,
-                            event_duration,
-                            // TODO (CM): self.hooks is not public,
-                            // and it's not clear that it should be.
-                            self.hooks.health_check.is_some());
+        event::health_check(&self, check_result, event_duration);
         self.cache_health_check(check_result);
     }
 
