@@ -247,16 +247,18 @@ impl EventStream {
 /// How long should we for the event thread to start up before
 /// abandoning it and shutting down?
 #[derive(Clone, Debug)]
-struct EventThreadStartupWait(u64);
+struct EventThreadStartupWait {
+    secs: u64,
+}
 
 impl Default for EventThreadStartupWait {
-    fn default() -> Self { Self(5) }
+    fn default() -> Self { Self { secs: 5 } }
 }
 
 impl FromStr for EventThreadStartupWait {
     type Err = ParseIntError;
 
-    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self(s.parse()?)) }
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self { secs: s.parse()? }) }
 }
 
 impl EnvConfig for EventThreadStartupWait {
@@ -264,5 +266,5 @@ impl EnvConfig for EventThreadStartupWait {
 }
 
 impl Into<Duration> for EventThreadStartupWait {
-    fn into(self) -> Duration { Duration::from_secs(self.0) }
+    fn into(self) -> Duration { Duration::from_secs(self.secs) }
 }
