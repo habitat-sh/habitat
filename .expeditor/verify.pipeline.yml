@@ -347,7 +347,7 @@ steps:
         linux: 
           privileged: true
           single-use: true 
-    timeout_in_minutes: 10
+    timeout_in_minutes: 5
     retry:
       automatic:
         limit: 1
@@ -518,7 +518,7 @@ steps:
       - ./test/run_studio_test.ps1 "studio-from-source"
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 20
+    timeout_in_minutes: 5
     retry:
       automatic:
         limit: 1
