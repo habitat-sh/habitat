@@ -73,7 +73,7 @@ section
  p The following example shows how to start the Docker container running your Habitat package.
 
  = code(:shell) do
-   | PS C:\contosouniversity> docker run -it myorigin/contosouniversity
+   | PS C:\contosouniversity> docker run --env HAB_LICENSE="accept-no-persist" -it myorigin/contosouniversity
 
  p For more information on using the Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
 

@@ -2,8 +2,8 @@
   p
     | In order to start packaging applications with Habitat, you'll need two bits of software on your workstation:
   ol
-    li The Habitat CLI tool
-    li Docker*
+    li The Habitat CLI tool*
+    li Docker**
   p
     ' Instructions for
     a.link-external target="_bank" href="https://www.habitat.sh/docs/install-habitat/" installing Habitat and Docker
@@ -12,8 +12,16 @@
   = code(:shell) do
     | $ hab --version
 
+  .footnote 
+    p.mb-0
+      span.asterisk * 
+      | The first time you run Habitat, you will be asked to accept the License Agreement. 
+      |  More details about the license can be found 
+      a href="https://docs.chef.io/chef_license.html" here.
+
   .footnote
     p.mb-0
+      span.asterisk *
       span.asterisk *
       | Habitat uses Docker to create a clean build room environment known as the Habitat Studio.
       |  You'll learn more about the Studio later in this demo.

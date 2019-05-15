@@ -141,9 +141,9 @@ section
 
  = code(:shell) do
    |
-    PS C:\contosouniversity> $sql = docker run -d --memory 2GB core/sqlserver
+    PS C:\contosouniversity> $sql = docker run --env HAB_LICENSE="accept-no-persist" -d --memory 2GB core/sqlserver
     PS C:\contosouniversity> $ip = docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $sql
-    PS C:\contosouniversity> docker run -it -p 80:8099 myorigin/contosouniversity --peer $ip --bind database:sqlserver.default
+    PS C:\contosouniversity> docker run --env HAB_LICENSE="accept-no-persist" -it -p 80:8099 myorigin/contosouniversity --peer $ip --bind database:sqlserver.default
 
  p You should now be able to access the web application and receive a <code>200 OK</code> response:
 
