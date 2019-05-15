@@ -22,7 +22,7 @@ set timeout 30
 spawn {*}$studio_enter_command
 expect {
   {\[default:/src:0]#} { 
-    log "Studio entered successfully -alpha "
+    log "Studio entered successfully"
   }
   eof {
     error "Unable to enter studio"
