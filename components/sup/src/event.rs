@@ -28,9 +28,11 @@
 mod error;
 // ratsio_stream is the default, but setting it as a default in Cargo.toml
 // makes it trickier to use nitox instead.
-#[cfg_attr(feature = "nitox_stream", path = "event/nitox.rs")]
-#[cfg_attr(any(feature = "ratsio_stream", not(feature = "nitox_stream")),
-           path = "event/ratsio.rs")]
+#[cfg(feature = "nitox_stream")]
+#[path = "event/nitox.rs"]
+mod stream_impl;
+#[cfg(any(feature = "ratsio_stream", not(feature = "nitox_stream")))]
+#[path = "event/ratsio.rs"]
 mod stream_impl;
 mod types;
 

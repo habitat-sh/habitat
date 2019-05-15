@@ -30,7 +30,7 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
 
     // Disabling rustfmt on this... I think we might be running into
     // https://github.com/rust-lang/rustfmt/issues/1762
-    #[rustfmt::skip] 
+    #[rustfmt::skip]
     thread::Builder::new().name("events".to_string())
                           .spawn(move || {
                               let EventConnectionInfo { name,
