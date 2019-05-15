@@ -21,7 +21,6 @@ use self::{action::{ShutdownInput,
            service::{ConfigRendering,
                      DesiredState,
                      HealthCheckResult,
-                     Pkg,
                      Service,
                      ServiceProxy,
                      ServiceSpec,
@@ -189,32 +188,37 @@ pub struct ShutdownConfig {
 
 #[cfg(unix)]
 impl ShutdownConfig {
-    fn new(shutdown_input: &ShutdownInput, service_spec: &ServiceSpec, pkg: &Pkg) -> Self {
-        let timeout = shutdown_input.timeout.unwrap_or_else(|| {
-                                                service_spec.shutdown_timeout
-                                                            .unwrap_or_else(|| pkg.shutdown_timeout)
-                                            });
-        let signal = pkg.shutdown_signal;
-        Self { signal, timeout }
+    fn new(shutdown_input: &ShutdownInput, service: &Service) -> Self {
+        let mut config = Self::new_from_service(service);
+        if let Some(timeout) = shutdown_input.timeout {
+            config.timeout = timeout;
+        }
+        config
     }
 
-    fn new_from_pkg(pkg: &Pkg) -> Self {
-        Self { signal:  pkg.shutdown_signal,
-               timeout: pkg.shutdown_timeout, }
+    fn new_from_service(service: &Service) -> Self {
+        let timeout = service.shutdown_timeout
+                             .unwrap_or_else(|| service.pkg.shutdown_timeout);
+        Self { signal: service.pkg.shutdown_signal,
+               timeout }
     }
 }
 
 #[cfg(windows)]
 impl ShutdownConfig {
-    fn new(shutdown_input: &ShutdownInput, service_spec: &ServiceSpec, pkg: &Pkg) -> Self {
-        let timeout = shutdown_input.timeout.unwrap_or_else(|| {
-                                                service_spec.shutdown_timeout
-                                                            .unwrap_or_else(|| pkg.shutdown_timeout)
-                                            });
-        Self { timeout }
+    fn new(shutdown_input: &ShutdownInput, service: &Service) -> Self {
+        let mut config = Self::new_from_service(service);
+        if let Some(timeout) = shutdown_input.timeout {
+            config.timeout = timeout;
+        }
+        config
     }
 
-    fn new_from_pkg(pkg: &Pkg) -> Self { Self { timeout: pkg.shutdown_timeout, } }
+    fn new_from_service(service: &Service) -> Self {
+        let timeout = service.shutdown_timeout
+                             .unwrap_or_else(|| service.pkg.shutdown_timeout);
+        Self { timeout }
+    }
 }
 
 /// FileSystem paths that the Manager uses to persist data to disk.
@@ -923,9 +927,8 @@ impl Manager {
                         if let Some(future) =
                             self.remove_service_from_state(&service_spec)
                                 .map(|service| {
-                                    let shutdown_config = ShutdownConfig::new(&shutdown_input,
-                                                                              &service_spec,
-                                                                              &service.pkg);
+                                    let shutdown_config =
+                                        ShutdownConfig::new(&shutdown_input, &service);
                                     self.stop_with_config(service, shutdown_config)
                                 })
                         {
@@ -948,9 +951,8 @@ impl Manager {
                         if let Some(future) =
                             self.remove_service_from_state(&service_spec)
                                 .map(|service| {
-                                    let shutdown_config = ShutdownConfig::new(&shutdown_input,
-                                                                              &service_spec,
-                                                                              &service.pkg);
+                                    let shutdown_config =
+                                        ShutdownConfig::new(&shutdown_input, &service);
                                     self.stop_with_config(service, shutdown_config)
                                 })
                         {
@@ -1288,9 +1290,6 @@ impl Manager {
     /// to have been removed from the internal list of active services
     /// already (see, e.g., take_services_with_updates and
     /// remove_service_from_state).
-
-    // NOTE: this stop / stop_with_spec division is just until
-    // the parameterized shutdown is fully plumbed through everything.
     fn stop_with_config(&self,
                         service: Service,
                         shutdown_config: ShutdownConfig)
@@ -1303,11 +1302,8 @@ impl Manager {
                                   self.services_need_reconciliation.clone())
     }
 
-    // TODO: This stop does not have access to the `ServiceSpec` and so it cannot
-    // use the shutdown timeout that occured on `load`. How can we get access
-    // to the `ServiceSpec`
     fn stop(&self, service: Service) -> impl Future<Item = (), Error = ()> {
-        let shutdown_config = ShutdownConfig::new_from_pkg(&service.pkg);
+        let shutdown_config = ShutdownConfig::new_from_service(&service);
         self.stop_with_config(service, shutdown_config)
     }
 
