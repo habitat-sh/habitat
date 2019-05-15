@@ -8,10 +8,10 @@ $env:HAB_NOCOLORING = "true"
 # Await has trouble parsing non-ascii glyphs
 $env:HAB_GLYPH_STYLE = "ascii"  
 $exit_code = 0
-
+$studio_name = "/hab/studios/studio-internals-test"
 try { 
     Start-AwaitSession 
-    Send-AwaitCommand "$studio_command enter" 
+    Send-AwaitCommand "$studio_command enter -o $studio_name" 
     $prompt = Wait-AwaitResponse "[HAB-STUDIO] Habitat:\src>"
     Write-Host $prompt
 
@@ -28,13 +28,25 @@ try {
     Send-AwaitCommand "exit"
     
     # Await won't block on "Waiting for supervisor to finish..." 
-    # and there's no output to match afterwords to wait on.
-    # This sleep is required to give the studio a chance to finish 
-    # exiting before we issue the `rm`.
-    sleep 10
+    # Copy the studio shutdown behavior and block for a bit until the supervisor has finished
+    $retry = 0
+    while(($retry -lt 5) -and (Test-Path "$studio_name\hab\sup\default\LOCK")) {
+      $retry += 1
+      Write-Host "Waiting for Supervisor to finish..."
+      Start-Sleep -Seconds 5
+    }
 
     Send-AwaitCommand "$studio_command rm"
-    sleep 2
+    
+    # Add the same behavior for `hab studio rm` to ensure that the studio is fully cleaned up before 
+    # stopping the Await session.
+    $retry = 0
+    while(($retry -lt 5) -and (Test-Path "$studio_name")) {
+      $retry += 1
+      Write-Host "Waiting for Studio to exit..."
+      Start-Sleep -Seconds 2
+    }
+
     Stop-AwaitSession
 }
 
