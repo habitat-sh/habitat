@@ -1,28 +1,16 @@
-// Copyright (c) 2018 Chef Software Inc. and/or applicable contributors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
 use clap::ArgMatches;
 use serde_json;
-use std::{result, str::FromStr};
+use std::{result,
+          str::FromStr};
 
-use crate::{export_docker::Result, hcore::service::ServiceGroup};
+use crate::{export_docker::Result,
+            hcore::service::ServiceGroup};
 
 use crate::error::Error;
 
 #[derive(Clone, Debug)]
 pub struct ServiceBind {
-    pub name: String,
+    pub name:          String,
     pub service_group: ServiceGroup,
 }
 
@@ -59,9 +47,7 @@ impl FromStr for ServiceBind {
             return Err(Error::InvalidBinding(bind_str.to_string()));
         }
 
-        Ok(ServiceBind {
-            name: values[0].to_string(),
-            service_group: ServiceGroup::from_str(values[1])?,
-        })
+        Ok(ServiceBind { name:          values[0].to_string(),
+                         service_group: ServiceGroup::from_str(values[1])?, })
     }
 }

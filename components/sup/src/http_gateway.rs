@@ -251,7 +251,7 @@ impl Middleware<AppState> for Metrics {
 
 // End middleware
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ServerStartup {
     NotStarted,
     Started,
