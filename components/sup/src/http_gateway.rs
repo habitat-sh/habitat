@@ -320,9 +320,7 @@ impl Server {
 
             cvar.notify_one();
 
-            if let Err(e) = sys.run() {
-                error!("The actix system experienced an error: {}", e);
-            }
+            sys.run();
         });
     }
 }
