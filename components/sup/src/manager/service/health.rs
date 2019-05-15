@@ -73,7 +73,7 @@ pub struct State {
     /// The configured interval at which to run health checks for this
     /// service. The interval actually used may differ based on the
     /// previous health check result.
-    configured_interval: HealthCheckInterval,
+    nominal_interval: HealthCheckInterval,
 
     /// A reference to the service's current health check status. We
     /// store the result of the health check here.
@@ -92,7 +92,7 @@ impl State {
                package: Pkg,
                svc_encrypted_password: Option<String>,
                supervisor: Arc<Mutex<Supervisor>>,
-               configured_interval: HealthCheckInterval,
+               nominal_interval: HealthCheckInterval,
                service_health_result: Arc<Mutex<HealthCheck>>,
                gateway_state: Arc<RwLock<GatewayState>>)
                -> Self {
@@ -101,7 +101,7 @@ impl State {
                 package,
                 svc_encrypted_password,
                 supervisor,
-                configured_interval,
+                nominal_interval,
                 service_health_result,
                 gateway_state }
     }
@@ -115,7 +115,7 @@ impl State {
                     package,
                     svc_encrypted_password,
                     supervisor,
-                    configured_interval,
+                    nominal_interval,
                     service_health_result,
                     gateway_state, } = self;
 
@@ -155,7 +155,7 @@ impl State {
 
              let interval = if check_result == HealthCheck::Ok {
                  // routine health check
-                 configured_interval
+                 nominal_interval
              } else {
                  // special health check interval
                  HealthCheckInterval::default()
