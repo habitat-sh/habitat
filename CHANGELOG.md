@@ -7,6 +7,7 @@
 - remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Temporarily fix actix version [#6562](https://github.com/habitat-sh/habitat/pull/6562) ([davidMcneil](https://github.com/davidMcneil))
 - Document habitat license acceptance [#6552](https://github.com/habitat-sh/habitat/pull/6552) ([raskchanky](https://github.com/raskchanky))
 - 0.81.0 Cargo update [#6542](https://github.com/habitat-sh/habitat/pull/6542) ([raskchanky](https://github.com/raskchanky))
 - Fix shellcheck ignores [#6554](https://github.com/habitat-sh/habitat/pull/6554) ([davidMcneil](https://github.com/davidMcneil))
