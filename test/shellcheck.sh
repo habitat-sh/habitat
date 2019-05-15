@@ -25,9 +25,10 @@ shellcheck --version
 find . -type f \
   -and \( -name "*.*sh" \
       -or -exec sh -c 'file -b "$1" | grep -q "shell script"' -- {} \; \) \
-  -and \! -path "*_template_plan.sh" \
   -and \! -path "*.sample" \
   -and \! -path "*.ps1" \
+  -and \! -path "./components/hab/static/template_plan.sh" \
+  -and \! -path "./target/*" \
   -and \! -path "./test/integration/helpers.bash" \
   -and \! -path "./test/integration/test_helper/bats-assert/*" \
   -and \! -path "./test/integration/test_helper/bats-file/*" \
