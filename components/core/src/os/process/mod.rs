@@ -40,7 +40,7 @@ use time::Duration;
 /// throughout our code, which can be confusing, we can just pass this
 /// around, and turn it into a `time::Duration` at the last possible
 /// moment.)
-#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
+#[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Copy, Hash)]
 pub struct ShutdownTimeout(#[serde(with = "serde_string")] u32);
 
 impl Default for ShutdownTimeout {
@@ -140,7 +140,7 @@ impl fmt::Display for Signal {
 /// Encapsulates logic for defining the default shutdown signal we
 /// send services, and handles translation from external types at the
 /// edges of our system.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Clone, Copy)]
 pub struct ShutdownSignal(#[serde(with = "serde_string")] Signal);
 
 impl Default for ShutdownSignal {

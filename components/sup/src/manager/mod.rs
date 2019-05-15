@@ -190,20 +190,17 @@ pub struct ShutdownConfig {
 #[cfg(unix)]
 impl ShutdownConfig {
     fn new(shutdown_input: &ShutdownInput, service_spec: &ServiceSpec, pkg: &Pkg) -> Self {
-        let timeout = shutdown_input.timeout.clone().unwrap_or_else(|| {
-                                                        service_spec.shutdown_timeout
-                                                                    .clone()
-                                                                    .unwrap_or_else(|| {
-                                                                        pkg.shutdown_timeout.clone()
-                                                                    })
-                                                    });
-        let signal = pkg.shutdown_signal.clone();
+        let timeout = shutdown_input.timeout.unwrap_or_else(|| {
+                                                service_spec.shutdown_timeout
+                                                            .unwrap_or_else(|| pkg.shutdown_timeout)
+                                            });
+        let signal = pkg.shutdown_signal;
         Self { signal, timeout }
     }
 
     fn new_from_pkg(pkg: &Pkg) -> Self {
-        Self { signal:  pkg.shutdown_signal.clone(),
-               timeout: pkg.shutdown_timeout.clone(), }
+        Self { signal:  pkg.shutdown_signal,
+               timeout: pkg.shutdown_timeout, }
     }
 }
 
@@ -212,12 +209,12 @@ impl ShutdownConfig {
     fn new(shutdown_input: &ShutdownInput, service_spec: &ServiceSpec, pkg: &Pkg) -> Self {
         let timeout = shutdown_input.timeout.unwrap_or_else(|| {
                                                 service_spec.shutdown_timeout
-                                                  .unwrap_or_else(|| pkg.shutdown_timeout.clone())
+                                                            .unwrap_or_else(|| pkg.shutdown_timeout)
                                             });
         Self { timeout }
     }
 
-    fn new_from_pkg(pkg: &Pkg) -> Self { Self { timeout: pkg.shutdown_timeout.clone(), } }
+    fn new_from_pkg(pkg: &Pkg) -> Self { Self { timeout: pkg.shutdown_timeout, } }
 }
 
 /// FileSystem paths that the Manager uses to persist data to disk.

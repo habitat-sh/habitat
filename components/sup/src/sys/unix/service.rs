@@ -18,7 +18,7 @@ use time::{Duration as TimeDuration,
            SteadyTime};
 
 /// Kill a service process.
-pub fn kill(pid: Pid, shutdown_config: ShutdownConfig) -> ShutdownMethod {
+pub fn kill(pid: Pid, shutdown_config: &ShutdownConfig) -> ShutdownMethod {
     let process = Process::new(pid);
     process.kill(shutdown_config)
 }
@@ -39,9 +39,9 @@ impl Process {
 
     /// Attempt to gracefully terminate a proccess and then forcefully
     /// kill it after 8 seconds if it has not terminated.
-    fn kill(&self, shutdown_config: ShutdownConfig) -> ShutdownMethod {
+    fn kill(&self, shutdown_config: &ShutdownConfig) -> ShutdownMethod {
         let ShutdownConfig { signal: shutdown_signal,
-                             timeout, } = shutdown_config;
+                             timeout, } = *shutdown_config;
         let shutdown_signal = shutdown_signal.into();
 
         let mut pid_to_kill = self.pid;

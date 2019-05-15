@@ -23,7 +23,7 @@ pub fn terminate_service(pid: Pid,
         .name(format!("{}-{}", LOGKEY, pid))
         .spawn(move || {
             outputln!(preamble service_group, "Terminating service (PID: {})", pid);
-            let shutdown = service::kill(pid, shutdown_config);
+            let shutdown = service::kill(pid, &shutdown_config);
             outputln!(preamble service_group, "{} (PID: {})", shutdown, pid);
             tx.send(shutdown)
                 .expect("Couldn't send oneshot signal from terminate_service: receiver went away");
