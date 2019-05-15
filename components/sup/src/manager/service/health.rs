@@ -115,7 +115,6 @@ impl State {
                     package,
                     svc_encrypted_password,
                     supervisor,
-
                     configured_interval,
                     service_health_result,
                     gateway_state, } = self;
