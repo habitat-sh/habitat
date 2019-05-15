@@ -7,6 +7,7 @@
 - remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Document habitat license acceptance [#6552](https://github.com/habitat-sh/habitat/pull/6552) ([raskchanky](https://github.com/raskchanky))
 - 0.81.0 Cargo update [#6542](https://github.com/habitat-sh/habitat/pull/6542) ([raskchanky](https://github.com/raskchanky))
 - Fix shellcheck ignores [#6554](https://github.com/habitat-sh/habitat/pull/6554) ([davidMcneil](https://github.com/davidMcneil))
 - make sure all build prereqs exist on windows, run cargo test against core/rust and use a local studio for builds [#6547](https://github.com/habitat-sh/habitat/pull/6547) ([mwrock](https://github.com/mwrock))
