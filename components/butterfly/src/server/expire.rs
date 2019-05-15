@@ -22,6 +22,8 @@ impl Expire {
 
     pub fn run(&self) {
         loop {
+            habitat_common::sync::mark_thread_alive();
+
             let newly_confirmed_members =
                 self.server
                     .member_list

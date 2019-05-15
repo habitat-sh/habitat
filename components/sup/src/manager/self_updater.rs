@@ -62,6 +62,8 @@ impl SelfUpdater {
         // and thus a valid InstallSource
         let install_source: InstallSource = SUP_PKG_IDENT.parse().unwrap();
         loop {
+            habitat_common::sync::mark_thread_alive();
+
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
 
             match util::pkg::install(// We don't want anything in here to print

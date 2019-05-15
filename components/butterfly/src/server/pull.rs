@@ -49,6 +49,8 @@ impl Pull {
         socket.bind(&format!("tcp://{}", self.server.gossip_addr()))
               .expect("Failure to bind the ZMQ Pull socket to the port");
         'recv: loop {
+            habitat_common::sync::mark_thread_alive();
+
             if self.server.paused() {
                 thread::sleep(Duration::from_millis(100));
                 continue;

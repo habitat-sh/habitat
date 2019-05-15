@@ -209,6 +209,8 @@ impl Worker {
                                 let _ = started_watching.try_send(());
 
                                 loop {
+                                    habitat_common::sync::mark_thread_alive();
+
                                     match stop_running.try_recv() {
                                         // As long as the `stop_running` channel is
                                         // empty, this branch will execute on every

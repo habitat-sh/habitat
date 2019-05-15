@@ -114,6 +114,7 @@ fn start(feature_flags: FeatureFlag) -> Result<()> {
         outputln!("Simulating boot failure");
         return Err(sup_error!(Error::TestBootFail));
     }
+    habitat_common::sync::spawn_thread_alive_checker();
     let launcher = boot();
     let app_matches = match cli().get_matches_safe() {
         Ok(matches) => matches,

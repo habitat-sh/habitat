@@ -1263,6 +1263,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 
     pub fn run(&mut self) -> Result<()> {
         loop {
+            habitat_common::sync::mark_thread_alive();
             self.single_iteration()?;
             thread::sleep(Duration::from_secs(1));
         }

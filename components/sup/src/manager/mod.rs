@@ -802,6 +802,8 @@ impl Manager {
         // errors or panics generated in this loop and performing some
         // kind of controlled shutdown.
         let shutdown_mode = loop {
+            habitat_common::sync::mark_thread_alive();
+
             // time will be recorded automatically by HistogramTimer's drop implementation when
             // this var goes out of scope
             #[allow(unused_variables)]

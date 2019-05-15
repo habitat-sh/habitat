@@ -40,7 +40,8 @@ use crate::{error::{Error,
             trace::{Trace,
                     TraceKind}};
 use habitat_common::FeatureFlag;
-use habitat_core::crypto::SymKey;
+use habitat_core::{crypto::SymKey,
+                   env::Config as EnvConfig};
 use prometheus::{HistogramTimer,
                  HistogramVec,
                  IntGauge};
@@ -1168,16 +1169,34 @@ impl fmt::Display for Server {
 }
 
 fn persist_loop(server: &Server) {
-    // TODO: Make this configurable with EnvConfig. That trait needs to move
-    // to common or core first
-    const MIN_LOOP_PERIOD: Duration = Duration::from_secs(30);
+    struct PersistLoopPeriod(Duration);
+
+    impl EnvConfig for PersistLoopPeriod {
+        const ENVVAR: &'static str = "HAB_PERSIST_LOOP_PERIOD_SECS";
+    }
+
+    impl Default for PersistLoopPeriod {
+        fn default() -> Self { Self(Duration::from_secs(30)) }
+    }
+
+    impl std::str::FromStr for PersistLoopPeriod {
+        type Err = std::num::ParseIntError;
+
+        fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+            Ok(Self(Duration::from_secs(s.parse()?)))
+        }
+    }
 
     loop {
+        habitat_common::sync::mark_thread_alive();
+
         let before_persist = Instant::now();
         server.persist_data();
         let time_to_persist = before_persist.elapsed();
         trace!("persist_data took {:?}", time_to_persist);
-        match MIN_LOOP_PERIOD.checked_sub(time_to_persist) {
+        match PersistLoopPeriod::configured_value().0
+                                                   .checked_sub(time_to_persist)
+        {
             Some(time_to_wait) => thread::sleep(time_to_wait),
             None => {
                 warn!("Persisting data took longer than expected: {:?}",
