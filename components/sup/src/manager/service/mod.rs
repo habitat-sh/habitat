@@ -20,7 +20,7 @@ mod terminator;
 use self::{context::RenderContext,
            hooks::HookTable,
            supervisor::Supervisor};
-pub use self::{health::HealthCheck,
+pub use self::{health::HealthCheckResult,
                hooks::HealthCheckHook,
                spec::{DesiredState,
                       IntoServiceSpec,
@@ -147,7 +147,7 @@ pub struct Service {
     // In order to access this field in an asynchronous health check
     // hook, we need to wrap some Arc<Mutex<_>> protection around it
     // :(
-    health_check_result: Arc<Mutex<HealthCheck>>,
+    health_check_result: Arc<Mutex<HealthCheckResult>>,
     last_election_status: ElectionStatus,
     needs_reload: bool,
     needs_reconfiguration: bool,
@@ -222,7 +222,7 @@ impl Service {
                      bldr_url: spec.bldr_url,
                      channel: spec.channel,
                      desired_state: spec.desired_state,
-                     health_check_result: Arc::new(Mutex::new(HealthCheck::default())),
+                     health_check_result: Default::default(),
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
                                             svc_hooks_path(&service_group.service())),

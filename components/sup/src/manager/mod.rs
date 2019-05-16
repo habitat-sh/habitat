@@ -20,7 +20,7 @@ use self::{action::{ShutdownSpec,
                           SUP_PKG_IDENT},
            service::{ConfigRendering,
                      DesiredState,
-                     HealthCheck,
+                     HealthCheckResult,
                      Service,
                      ServiceProxy,
                      ServiceSpec,
@@ -337,7 +337,7 @@ pub struct GatewayState {
     pub services_data: String,
     /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
     /// endpoint
-    pub health_check_data: HashMap<ServiceGroup, HealthCheck>,
+    pub health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
 }
 
 pub struct Manager {

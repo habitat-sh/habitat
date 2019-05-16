@@ -59,7 +59,7 @@ pub struct HealthCheckHook {
 }
 
 impl Hook for HealthCheckHook {
-    type ExitValue = health::HealthCheck;
+    type ExitValue = health::HealthCheckResult;
 
     fn file_name() -> &'static str { "health-check" }
 
@@ -72,18 +72,18 @@ impl Hook for HealthCheckHook {
     fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
         let pkg_name = &pkg.name;
         match status.code() {
-            Some(0) => health::HealthCheck::Ok,
-            Some(1) => health::HealthCheck::Warning,
-            Some(2) => health::HealthCheck::Critical,
-            Some(3) => health::HealthCheck::Unknown,
+            Some(0) => health::HealthCheckResult::Ok,
+            Some(1) => health::HealthCheckResult::Warning,
+            Some(2) => health::HealthCheckResult::Critical,
+            Some(3) => health::HealthCheckResult::Unknown,
             Some(code) => {
                 outputln!(preamble pkg_name,
                     "Health check exited with an unknown status code, {}", code);
-                health::HealthCheck::default()
+                health::HealthCheckResult::default()
             }
             None => {
                 Self::output_termination_message(pkg_name, status);
-                health::HealthCheck::default()
+                health::HealthCheckResult::default()
             }
         }
     }

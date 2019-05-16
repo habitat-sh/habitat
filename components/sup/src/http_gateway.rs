@@ -1,8 +1,8 @@
 use crate::{error::{Result,
                     SupError},
             manager::{self,
-                      service::{HealthCheck,
-                                HealthCheckHook}}};
+                      service::{HealthCheckHook,
+                                HealthCheckResult}}};
 use actix;
 use actix_web::{http::{self,
                        StatusCode},
@@ -149,12 +149,12 @@ struct HealthCheckBody {
     stderr: String,
 }
 
-impl Into<StatusCode> for HealthCheck {
+impl Into<StatusCode> for HealthCheckResult {
     fn into(self) -> StatusCode {
         match self {
-            HealthCheck::Ok | HealthCheck::Warning => StatusCode::OK,
-            HealthCheck::Critical => StatusCode::SERVICE_UNAVAILABLE,
-            HealthCheck::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
+            HealthCheckResult::Ok | HealthCheckResult::Warning => StatusCode::OK,
+            HealthCheckResult::Critical => StatusCode::SERVICE_UNAVAILABLE,
+            HealthCheckResult::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 }

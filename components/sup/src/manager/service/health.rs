@@ -20,37 +20,37 @@ use std::{fmt,
 
 /// The possible results of running a health check hook.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize)]
-pub enum HealthCheck {
+pub enum HealthCheckResult {
     Ok,
     Warning,
     Critical,
     Unknown,
 }
 
-impl Default for HealthCheck {
-    fn default() -> HealthCheck { HealthCheck::Unknown }
+impl Default for HealthCheckResult {
+    fn default() -> HealthCheckResult { HealthCheckResult::Unknown }
 }
 
-/// Convert health check hook exit codes into `HealthCheck` statuses.
-impl From<i8> for HealthCheck {
-    fn from(value: i8) -> HealthCheck {
+/// Convert health check hook exit codes into `HealthCheckResult` statuses.
+impl From<i8> for HealthCheckResult {
+    fn from(value: i8) -> HealthCheckResult {
         match value {
-            0 => HealthCheck::Ok,
-            1 => HealthCheck::Warning,
-            2 => HealthCheck::Critical,
-            3 => HealthCheck::Unknown,
-            _ => HealthCheck::Unknown,
+            0 => HealthCheckResult::Ok,
+            1 => HealthCheckResult::Warning,
+            2 => HealthCheckResult::Critical,
+            3 => HealthCheckResult::Unknown,
+            _ => HealthCheckResult::Unknown,
         }
     }
 }
 
-impl fmt::Display for HealthCheck {
+impl fmt::Display for HealthCheckResult {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let msg = match *self {
-            HealthCheck::Ok => "OK",
-            HealthCheck::Warning => "WARNING",
-            HealthCheck::Critical => "CRITICAL",
-            HealthCheck::Unknown => "UNKNOWN",
+            HealthCheckResult::Ok => "OK",
+            HealthCheckResult::Warning => "WARNING",
+            HealthCheckResult::Critical => "CRITICAL",
+            HealthCheckResult::Unknown => "UNKNOWN",
         };
         write!(f, "{}", msg)
     }
@@ -77,7 +77,7 @@ pub struct State {
 
     /// A reference to the service's current health check status. We
     /// store the result of the health check here.
-    service_health_result: Arc<Mutex<HealthCheck>>,
+    service_health_result: Arc<Mutex<HealthCheckResult>>,
 
     /// A reference to the Supervisor's gateway state. We also store
     /// the status in here for making it available via the HTTP
@@ -93,7 +93,7 @@ impl State {
                svc_encrypted_password: Option<String>,
                supervisor: Arc<Mutex<Supervisor>>,
                nominal_interval: HealthCheckInterval,
-               service_health_result: Arc<Mutex<HealthCheck>>,
+               service_health_result: Arc<Mutex<HealthCheckResult>>,
                gateway_state: Arc<RwLock<GatewayState>>)
                -> Self {
         State { hook,
@@ -134,8 +134,8 @@ impl State {
                                          .expect("couldn't unlock supervisor")
                                          .status()
             {
-                (true, _) => HealthCheck::Ok,
-                (false, _) => HealthCheck::Critical,
+                (true, _) => HealthCheckResult::Ok,
+                (false, _) => HealthCheckResult::Critical,
             };
             Either::B(lazy(move || Ok(status)))
         }.map_err(move |e| {
@@ -143,7 +143,7 @@ impl State {
                     service_group_ref, e)
          })
          .and_then(move |check_result| {
-             debug!("Caching HealthCheck = '{}' for '{}'",
+             debug!("Caching HealthCheckResult = '{}' for '{}'",
                     check_result, service_group);
 
              *service_health_result.lock()
@@ -153,7 +153,7 @@ impl State {
                           .health_check_data
                           .insert(service_group.deref().clone(), check_result);
 
-             let interval = if check_result == HealthCheck::Ok {
+             let interval = if check_result == HealthCheckResult::Ok {
                  // routine health check
                  nominal_interval
              } else {
