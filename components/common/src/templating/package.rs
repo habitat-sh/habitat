@@ -168,6 +168,8 @@ impl<'a> Serialize for PkgProxy<'a> {
         strukt.serialize_field("svc_run", &p.svc_run)?;
         strukt.serialize_field("svc_user", &p.svc_user)?;
         strukt.serialize_field("svc_group", &p.svc_group)?;
+        strukt.serialize_field("shutdown_signal", &p.shutdown_signal)?;
+        strukt.serialize_field("shutdown_timeout", &p.shutdown_timeout)?;
         strukt.end()
     }
 }

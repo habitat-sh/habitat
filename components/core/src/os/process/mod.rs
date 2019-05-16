@@ -75,7 +75,7 @@ impl From<ShutdownTimeout> for Duration {
 // but we are making it available on Windows as well for situations
 // where a Windows CLI is communicating with a Linux Supervisor.
 #[allow(non_snake_case)]
-#[derive(Deserialize, PartialEq, Debug, Clone, Copy)]
+#[derive(Deserialize, Serialize, PartialEq, Debug, Clone, Copy)]
 pub enum Signal {
     INT,
     ILL,
@@ -140,7 +140,7 @@ impl fmt::Display for Signal {
 /// Encapsulates logic for defining the default shutdown signal we
 /// send services, and handles translation from external types at the
 /// edges of our system.
-#[derive(Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy)]
 pub struct ShutdownSignal(#[serde(with = "serde_string")] Signal);
 
 impl Default for ShutdownSignal {
