@@ -838,8 +838,7 @@ fn arg_cache_key_path(help_text: &'static str) -> Arg<'static, 'static> {
 }
 
 fn arg_target() -> Arg<'static, 'static> {
-    Arg::with_name("PKG_TARGET").required(false)
-                                .takes_value(true)
+    Arg::with_name("PKG_TARGET").takes_value(true)
                                 .validator(valid_target)
                                 .env(PACKAGE_TARGET_ENVVAR)
                                 .help("A package target (ex: x86_64-windows) (default: system \
@@ -1217,7 +1216,6 @@ fn maybe_add_event_stream_options(mut app: App<'static, 'static>,
                                                                 Supervisor is running. It is used \
                                                                 for event stream purposes.")
                                                          .long("event-stream-site")
-                                                         .required(false)
                                                          .takes_value(true)
                                                          .validator(non_empty));
         app = app.arg(
@@ -1243,8 +1241,7 @@ fn maybe_add_event_stream_options(mut app: App<'static, 'static>,
                 .long("event-meta")
                 .takes_value(true)
                 .multiple(true)
-                .validator(EventStreamMetadata::validate)
-                .required(false),
+                .validator(EventStreamMetadata::validate),
         );
     }
 
