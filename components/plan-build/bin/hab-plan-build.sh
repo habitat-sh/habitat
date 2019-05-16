@@ -2467,7 +2467,7 @@ done
 
 # Test to ensure package name contains only valid characters
 for var in pkg_name pkg_origin; do
-  if [[ ! "${!var}" =~ ^[A-Za-z0-9_-]+$ ]];
+  if [[ ! "${!var}" =~ ^[A-Za-z0-9_\.-]+$ ]];
   then
     exit_with "Failed to build. Package $var '${!var}' contains invalid characters." 1
   fi

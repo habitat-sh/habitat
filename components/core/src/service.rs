@@ -13,7 +13,7 @@ use std::{fmt,
 
 lazy_static::lazy_static! {
     static ref SG_FROM_STR_RE: Regex =
-        Regex::new(r"\A((?P<application_environment>[^#@]+)#)?(?P<service>[^#@.]+)\.(?P<group>[^#@.]+)(@(?P<organization>[^#@.]+))?\z").unwrap();
+        Regex::new(r"\A((?P<application_environment>[^#@]+)#)?(?P<service>[^#@]+)\.(?P<group>[^#@.]+)(@(?P<organization>[^#@.]+))?\z").unwrap();
 
     static ref AE_FROM_STR_RE: Regex =
         Regex::new(r"\A(?P<application>[^#.@]+)\.(?P<environment>[^#.@]+)\z").unwrap();
@@ -150,6 +150,9 @@ impl ServiceGroup {
         where S1: AsRef<str>,
               S2: AsRef<str>
     {
+        if group.as_ref().contains('.') {
+            return Err(Error::InvalidGroupName(group.as_ref().to_string()));
+        }
         let formatted = Self::format(app_env, service, group, organization);
         Self::validate(&formatted)?;
         Ok(ServiceGroup(formatted))
@@ -482,17 +485,11 @@ mod test {
     }
 
     #[test]
-    fn service_group_from_str_too_many_periods() {
-        let group = "only.one.period@allowed";
-        match ServiceGroup::from_str(group) {
-            Err(e) => {
-                match e {
-                    Error::InvalidServiceGroup(val) => assert_eq!(group, val),
-                    wrong => panic!("Unexpected error returned: {:?}", wrong),
-                }
-            }
-            Ok(_) => panic!("String should fail to parse"),
-        }
+    fn service_group_from_str_with_period_in_service() {
+        let x = ServiceGroup::from_str("svc.one.group").unwrap();
+        assert_eq!(x.service(), "svc.one");
+        assert_eq!(x.group(), "group");
+        assert!(x.org().is_none());
     }
 
     #[test]
@@ -530,6 +527,21 @@ mod test {
             Err(e) => {
                 match e {
                     Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
+            Ok(_) => panic!("String should fail to parse"),
+        }
+    }
+
+    #[test]
+    fn service_group_name_with_periods() {
+        let service = "service";
+        let group = "oh.noes";
+        match ServiceGroup::new(None, service, group, None) {
+            Err(e) => {
+                match e {
+                    Error::InvalidGroupName(val) => assert_eq!(group, val),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
             }
