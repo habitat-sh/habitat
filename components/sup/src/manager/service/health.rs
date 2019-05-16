@@ -193,19 +193,16 @@ impl State {
             // it.
             let service_group = state.service_group.clone();
             state.clone().single_iteration().then(move |res| {
-                                                match res {
-                                                    Ok(_) => {
-                                                        trace!("Health check future for {} \
-                                                                succeeded; continuing loop",
-                                                               service_group);
-                                                        Ok(Loop::Continue(state))
-                                                    }
-                                                    Err(_) => {
-                                                        trace!("Health check future for {} \
-                                                                failed failed; continuing loop.",
-                                                               service_group);
-                                                        Ok(Loop::Continue(state))
-                                                    }
+                                                if res.is_ok() {
+                                                    trace!("Health check future for {} \
+                                                            succeeded; continuing loop",
+                                                           service_group);
+                                                    Ok(Loop::Continue(state))
+                                                } else {
+                                                    trace!("Health check future for {} failed \
+                                                            failed; continuing loop.",
+                                                           service_group);
+                                                    Ok(Loop::Continue(state))
                                                 }
                                             })
         })
