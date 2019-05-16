@@ -45,6 +45,19 @@ Check that `cargo` is correctly installed by running
 cargo --version
 ```
 
+Next, install the nightly version of rustfmt
+```
+rustup toolchain install nightly
+rustup component add rustfmt --toolchain nightly
+```
+
+To run rustfmt on a cargo project
+```
+cargo +nightly fmt
+```
+
+You may also be able to configure your editor to automatically run rustfmt every time you save.
+
 # Compiling habitat binaries
 
 In the root of the `habitat` repo:
