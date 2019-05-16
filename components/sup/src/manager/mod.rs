@@ -173,20 +173,13 @@ enum ShutdownMode {
     Restarting,
 }
 
-#[cfg(windows)]
 #[derive(Clone, Debug, Default)]
 pub struct ShutdownConfig {
+    #[cfg(not(windows))]
+    pub signal: ShutdownSignal,
     pub timeout: ShutdownTimeout,
 }
 
-#[cfg(unix)]
-#[derive(Clone, Debug, Default)]
-pub struct ShutdownConfig {
-    pub signal:  ShutdownSignal,
-    pub timeout: ShutdownTimeout,
-}
-
-#[cfg(unix)]
 impl ShutdownConfig {
     fn new(shutdown_input: &ShutdownInput, service: &Service) -> Self {
         let mut config = Self::new_from_service(service);
@@ -196,24 +189,15 @@ impl ShutdownConfig {
         config
     }
 
+    #[cfg(not(windows))]
     fn new_from_service(service: &Service) -> Self {
         let timeout = service.shutdown_timeout
                              .unwrap_or_else(|| service.pkg.shutdown_timeout);
         Self { signal: service.pkg.shutdown_signal,
                timeout }
     }
-}
 
-#[cfg(windows)]
-impl ShutdownConfig {
-    fn new(shutdown_input: &ShutdownInput, service: &Service) -> Self {
-        let mut config = Self::new_from_service(service);
-        if let Some(timeout) = shutdown_input.timeout {
-            config.timeout = timeout;
-        }
-        config
-    }
-
+    #[cfg(windows)]
     fn new_from_service(service: &Service) -> Self {
         let timeout = service.shutdown_timeout
                              .unwrap_or_else(|| service.pkg.shutdown_timeout);
