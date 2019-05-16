@@ -14,7 +14,7 @@ pub struct FutureHandle(oneshot::Sender<()>);
 impl FutureHandle {
     /// A more explicit way to cancel a future instead of relying on
     /// dropping the handle.
-    pub fn terminate(self) { let _ = self.0.send(()); }
+    pub fn terminate(self) { self.0.send(()).ok(); }
 }
 
 // TODO (CM): I'm not super thrilled with the error type being
