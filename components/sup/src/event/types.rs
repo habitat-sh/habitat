@@ -66,6 +66,7 @@ impl EventCore {
                         fqdn:          self.fqdn.clone(),
                         application:   self.application.clone(),
                         environment:   self.environment.clone(),
+                        site:          self.site.clone().unwrap_or_default(),
                         occurred_at:   None,
                         meta:          self.meta.clone().into(), }
     }
