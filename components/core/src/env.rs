@@ -72,6 +72,56 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
     }
 }
 
+#[macro_export]
+macro_rules! env_config {
+    (
+        $wrapping_type:ident,
+        $wrapped_type:ty,
+        $env_var:ident,
+        $default_value:expr,
+        $from_str_err_type:ty,
+        $from_str_input:ident,
+        $from_str_return:expr
+    ) => {
+        struct $wrapping_type($wrapped_type);
+        // A little trickery to avoid env var name collisions:
+        // This enum can't ever be instantiated, but the compiler will give
+        // an error if two invocations in a namespace give the same env_var
+        // It'd be nice to make this work globally, but I don't see a good way
+        #[allow(non_camel_case_types, dead_code)]
+        enum $env_var {}
+
+        impl $crate::env::Config for $wrapping_type {
+            const ENVVAR: &'static str = "$env_var";
+        }
+
+        impl Default for $wrapping_type {
+            fn default() -> Self { Self($default_value) }
+        }
+
+        impl std::str::FromStr for $wrapping_type {
+            type Err = $from_str_err_type;
+
+            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Err> {
+                $from_str_return
+            }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! env_config_duration {
+    ($wrapping_type:ident, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!($wrapping_type,
+                            std::time::Duration,
+                            $env_var,
+                            $default_value,
+                            std::num::ParseIntError,
+                            s,
+                            Ok(Self(std::time::Duration::from_secs(s.parse()?))));
+    };
+}
+
 /// Enable the creation of a value based on an environment variable
 /// that can be supplied at runtime by the user.
 pub trait Config: Default + FromStr {
