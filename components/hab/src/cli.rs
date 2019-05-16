@@ -18,6 +18,7 @@ use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
                    env::Config,
                    fs::CACHE_KEY_PATH,
+                   os::process::ShutdownTimeout,
                    package::{ident,
                              Identifiable,
                              PackageIdent,
@@ -1087,14 +1088,10 @@ pub fn sub_svc_status() -> App<'static, 'static> {
     )
 }
 
-pub fn parse_optional_arg<T: FromStr, E>(name: &str, m: &ArgMatches) -> Result<Option<T>, E>
-    where E: std::convert::From<<T as std::str::FromStr>::Err>
+pub fn parse_optional_arg<T: FromStr>(name: &str, m: &ArgMatches) -> Option<T>
+    where <T as std::str::FromStr>::Err: std::fmt::Debug
 {
-    m.value_of(name)
-     // Try and parse the value as a T and if there was an error convert it to an E
-     .map(|s| s.parse().map_err(Into::into))
-     //  Convert from Option<Result<_>> to Result<Option<_>>
-     .map_or(Ok(None), |o| o.map(Some))
+    m.value_of(name).map(|s| s.parse().expect("Valid argument"))
 }
 
 fn sub_svc_stop() -> App<'static, 'static> {
@@ -1371,6 +1368,18 @@ fn valid_origin(val: String) -> result::Result<(), String> {
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+fn valid_shutdown_timeout(val: String) -> result::Result<(), String> {
+    match ShutdownTimeout::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(e) => {
+            Err(format!("'{}' is not a valid value for shutdown timeout: \
+                         {}",
+                        val, e))
+        }
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn non_empty(val: String) -> result::Result<(), String> {
     if val.is_empty() {
         Err("must not be empty (check env overrides)".to_string())
@@ -1385,6 +1394,7 @@ fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'stat
                                                      shutdown signal to wait before killing a \
                                                      service process")
                                               .long("shutdown-timeout")
+                                              .validator(valid_shutdown_timeout)
                                               .takes_value(true))
 }
 

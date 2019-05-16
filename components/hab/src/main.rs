@@ -1040,7 +1040,7 @@ fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let timeout_in_seconds =
-        parse_optional_arg::<ShutdownTimeout, Error>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
+        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(Into::into);
 
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
@@ -1113,7 +1113,7 @@ fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let timeout_in_seconds =
-        parse_optional_arg::<ShutdownTimeout, Error>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
+        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(Into::into);
 
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
@@ -1807,7 +1807,7 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
     msg.shutdown_timeout =
-        parse_optional_arg::<ShutdownTimeout, Error>("SHUTDOWN_TIMEOUT", m)?.map(Into::into);
+        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(Into::into);
     Ok(msg)
 }
 
