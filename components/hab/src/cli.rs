@@ -1213,6 +1213,13 @@ fn maybe_add_event_stream_options(mut app: App<'static, 'static>,
                                                         .required(true)
                                                         .takes_value(true)
                                                         .validator(non_empty));
+        app = app.arg(Arg::with_name("EVENT_STREAM_SITE").help("The name of the site where this \
+                                                                Supervisor is running. It is used \
+                                                                for event stream purposes.")
+                                                         .long("event-stream-site")
+                                                         .required(false)
+                                                         .takes_value(true)
+                                                         .validator(non_empty));
         app = app.arg(
             Arg::with_name(AutomateAuthToken::ARG_NAME)
                 .help(
@@ -1749,6 +1756,46 @@ mod tests {
                 "",
                 "--event-stream-url",
                 "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+        }
+
+        #[test]
+        fn site_option_must_take_a_value() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+                "--event-stream-site",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
+            assert_eq!(error.info, Some(vec!["EVENT_STREAM_SITE".to_string()]));
+        }
+
+        #[test]
+        fn site_option_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+                "--event-stream-site",
+                "",
             ]);
             assert!(matches.is_err());
             let error = matches.unwrap_err();
