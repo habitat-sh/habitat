@@ -121,7 +121,7 @@ impl State {
 
         // Use an Arc to avoid having to have full clones everywhere. :/
         let service_group = Arc::new(service_group);
-        let service_group_copy = service_group.clone();
+        let service_group_ref = Arc::clone(&service_group);
 
         if let Some(hook) = hook {
             let hr = hook_runner::HookRunner::new(hook,
@@ -140,7 +140,7 @@ impl State {
             Either::B(lazy(move || Ok(status)))
         }.map_err(move |e| {
              error!("Error running health check hook for {}: {:?}",
-                    service_group_copy, e)
+                    service_group_ref, e)
          })
          .and_then(move |check_result| {
              debug!("Caching HealthCheck = '{}' for '{}'",
