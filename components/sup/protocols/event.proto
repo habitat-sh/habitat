@@ -50,7 +50,7 @@ message UpdateConfig {
   string channel = 2;
 }
 
-enum HealthCheck {
+enum HealthCheckResult {
   Ok = 0;
   Warning = 1;
   Critical = 2;
@@ -74,7 +74,7 @@ message ServiceStoppedEvent {
 message HealthCheckEvent {
   EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;
-  HealthCheck result = 3;
+  HealthCheckResult result = 3;
   // If the service has a health check hook script, how long it took
   // to execute.
   google.protobuf.Duration execution = 4;

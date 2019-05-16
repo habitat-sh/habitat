@@ -9,16 +9,16 @@ use prost::Message;
 
 include!(concat!(env!("OUT_DIR"), "/chef.habitat.supervisor.event.rs"));
 
-// Note: `HealthCheck` here is the protobuf-generated type for the
-// event we're sending out; `DomainHealthCheckResult` is the one we use
+// Note: `HealthCheckResult` here is the protobuf-generated type for
+// the event we're sending out; `DomainHealthCheckResult` is the one we use
 // elsewhere in the Supervisor.
-impl Into<HealthCheck> for DomainHealthCheckResult {
-    fn into(self) -> HealthCheck {
+impl Into<HealthCheckResult> for DomainHealthCheckResult {
+    fn into(self) -> HealthCheckResult {
         match self {
-            DomainHealthCheckResult::Ok => HealthCheck::Ok,
-            DomainHealthCheckResult::Warning => HealthCheck::Warning,
-            DomainHealthCheckResult::Critical => HealthCheck::Critical,
-            DomainHealthCheckResult::Unknown => HealthCheck::Unknown,
+            DomainHealthCheckResult::Ok => HealthCheckResult::Ok,
+            DomainHealthCheckResult::Warning => HealthCheckResult::Warning,
+            DomainHealthCheckResult::Critical => HealthCheckResult::Critical,
+            DomainHealthCheckResult::Unknown => HealthCheckResult::Unknown,
         }
     }
 }
