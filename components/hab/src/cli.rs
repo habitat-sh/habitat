@@ -1199,8 +1199,8 @@ fn maybe_add_event_stream_options(mut app: App<'static, 'static>,
                                                         .takes_value(true)
                                                         .validator(non_empty));
         app = app.arg(Arg::with_name("EVENT_STREAM_SITE").help("The name of the site where this \
-                                                                Supervisor is running. It is used \
-                                                                for event stream purposes.")
+                                                                Supervisor is running. It is \
+                                                                used for event stream purposes.")
                                                          .long("event-stream-site")
                                                          .takes_value(true)
                                                          .validator(non_empty));
