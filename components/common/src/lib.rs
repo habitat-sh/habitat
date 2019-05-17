@@ -218,7 +218,7 @@ pub mod sync {
                       if time_since_last_heartbeat < threshold {
                           None
                       } else {
-                          Some((thread_name.clone(), last_heartbeat.clone()))
+                          Some((thread_name.clone(), *last_heartbeat))
                       }
                   })
                   .collect::<Vec<_>>()
