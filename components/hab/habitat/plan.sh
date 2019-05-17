@@ -7,7 +7,9 @@ pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 # The result is a portable, static binary in a zero-dependency package.
 pkg_deps=()
-pkg_build_deps=(core/musl
+pkg_build_deps=(core/make
+                core/jemalloc-musl
+                core/musl
                 core/zlib-musl
                 core/xz-musl
                 core/bzip2-musl
@@ -72,6 +74,10 @@ do_prepare() {
   # package proper--it won't find its way into the final binaries.
   export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
   build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+
+  # Credit to @smacfarlane for discovering this gem
+  export JEMALLOC_OVERRIDE="$(pkg_path_for jemalloc-musl)/lib/libjemalloc.a"
+  export JEMALLOC_STATIC="true"
 }
 
 do_build() {
