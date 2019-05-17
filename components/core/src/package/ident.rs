@@ -13,7 +13,7 @@ use std::{borrow::Cow,
 
 lazy_static::lazy_static! {
     static ref ORIGIN_NAME_RE: Regex =
-        Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile regex");
+        Regex::new(r"\A[a-z0-9][a-z0-9_\.-]*\z").expect("Unable to compile regex");
 }
 
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
@@ -33,7 +33,7 @@ pub trait Identifiable: fmt::Display + Into<PackageIdent> {
     fn fully_qualified(&self) -> bool { self.version().is_some() && self.release().is_some() }
 
     fn valid(&self) -> bool {
-        let re = Regex::new(r"^[A-Za-z0-9_-]+$").unwrap();
+        let re = Regex::new(r"^[A-Za-z0-9_\.-]+$").unwrap();
         re.is_match(self.name())
     }
 
@@ -641,15 +641,15 @@ mod tests {
         let valid2 = PackageIdent::new("acme", "rocket-one", Some("1.2.3"), Some("1234"));
         let valid3 = PackageIdent::new("acme", "rocket_one", Some("1.2.3"), Some("1234"));
         let valid4 = PackageIdent::new("acme", "rocket_one", Some("foo-bar"), Some("1234"));
-        let invalid1 = PackageIdent::new("acme", "rocket.one", Some("1.2.3"), Some("1234"));
-        let invalid2 = PackageIdent::new("acme", "rocket%one", Some("1.2.3"), Some("1234"));
+        let valid5 = PackageIdent::new("acme", "rocket.one", Some("1.2.3"), Some("1234"));
+        let invalid1 = PackageIdent::new("acme", "rocket%one", Some("1.2.3"), Some("1234"));
 
         assert!(valid1.valid());
         assert!(valid2.valid());
         assert!(valid3.valid());
         assert!(valid4.valid());
+        assert!(valid5.valid());
         assert!(!invalid1.valid());
-        assert!(!invalid2.valid());
     }
 
     #[test]
@@ -657,6 +657,7 @@ mod tests {
         assert!(super::is_valid_origin_name("foo"));
         assert!(super::is_valid_origin_name("foo_bar"));
         assert!(super::is_valid_origin_name("foo-bar"));
+        assert!(super::is_valid_origin_name("foo.bar"));
         assert!(super::is_valid_origin_name("0xdeadbeef"));
 
         assert!(!super::is_valid_origin_name("Core"));
