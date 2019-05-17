@@ -13,7 +13,7 @@ use std::{borrow::Cow,
 
 lazy_static::lazy_static! {
     static ref ORIGIN_NAME_RE: Regex =
-        Regex::new(r"\A[a-z0-9][a-z0-9_\.-]*\z").expect("Unable to compile regex");
+        Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile regex");
 }
 
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Hash)]
@@ -657,7 +657,6 @@ mod tests {
         assert!(super::is_valid_origin_name("foo"));
         assert!(super::is_valid_origin_name("foo_bar"));
         assert!(super::is_valid_origin_name("foo-bar"));
-        assert!(super::is_valid_origin_name("foo.bar"));
         assert!(super::is_valid_origin_name("0xdeadbeef"));
 
         assert!(!super::is_valid_origin_name("Core"));
