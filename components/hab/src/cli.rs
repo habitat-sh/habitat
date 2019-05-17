@@ -14,7 +14,9 @@ use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            RING_KEY_ENVVAR,
                            SHUTDOWN_SIGNAL_DEFAULT,
                            SHUTDOWN_TIMEOUT_DEFAULT},
-                     types::ListenCtlAddr,
+                     types::{AutomateAuthToken,
+                             EventStreamMetadata,
+                             ListenCtlAddr},
                      FeatureFlag};
 use habitat_core::{crypto::{keys::PairType,
                             CACHE_KEY_PATH_ENV_VAR},
@@ -666,7 +668,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 )
             )
         )
-        (subcommand: sup_commands())
+        (subcommand: sup_commands(feature_flags))
         (@subcommand svc =>
             (about: "Commands relating to Habitat services")
             (aliases: &["sv", "ser", "serv", "service"])
@@ -761,7 +763,7 @@ fn sub_cli_setup() -> App<'static, 'static> {
     )
 }
 
-pub fn sup_commands() -> App<'static, 'static> {
+pub fn sup_commands(feature_flags: FeatureFlag) -> App<'static, 'static> {
     // Define all of the `hab sup *` subcommands in one place.
     // This removes the need to duplicate this in `hab-sup`.
     // The 'sup' App name here is significant for the `hab` binary as it
@@ -780,7 +782,7 @@ pub fn sup_commands() -> App<'static, 'static> {
     (@setting SubcommandRequiredElseHelp)
     (subcommand: sub_sup_bash().aliases(&["b", "ba", "bas"]))
     (subcommand: sub_sup_depart().aliases(&["d", "de", "dep", "depa", "depart"]))
-    (subcommand: sub_sup_run().aliases(&["r", "ru"]))
+    (subcommand: sub_sup_run(feature_flags).aliases(&["r", "ru"]))
     (subcommand: sub_sup_secret().aliases(&["sec", "secr"]))
     (subcommand: sub_sup_sh().aliases(&[]))
     (subcommand: sub_svc_status().aliases(&["stat", "statu"]))
@@ -822,8 +824,7 @@ fn arg_cache_key_path(help_text: &'static str) -> Arg<'static, 'static> {
 }
 
 fn arg_target() -> Arg<'static, 'static> {
-    Arg::with_name("PKG_TARGET").required(false)
-                                .takes_value(true)
+    Arg::with_name("PKG_TARGET").takes_value(true)
                                 .validator(valid_target)
                                 .env(PACKAGE_TARGET_ENVVAR)
                                 .help("A package target (ex: x86_64-windows) (default: system \
@@ -951,93 +952,99 @@ pub fn sub_sup_bash() -> App<'static, 'static> {
     )
 }
 
-pub fn sub_sup_run() -> App<'static, 'static> {
-    clap_app!(@subcommand run =>
-    (about: "Run the Habitat Supervisor")
-    // set custom usage string, otherwise the binary
-    // is displayed confusingly as `hab-sup`
-    // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
-    (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-    (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
-        "The listen address for the Gossip System Gateway.")
-    (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
-        "Start the supervisor in local mode.")
-    (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
-        "The listen address for the HTTP Gateway.")
-    (@arg HTTP_DISABLE: --("http-disable") -D
-        "Disable the HTTP Gateway completely [default: false]")
-    (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(&LISTEN_CTL_DEFAULT_ADDR_STRING) {valid_socket_addr}
-        "The listen address for the Control Gateway. If not specified, the value will \
-        be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
-    (@arg ORGANIZATION: --org +takes_value
-        "The organization that the Supervisor and its subsequent services are part of.")
-    (@arg PEER: --peer +takes_value +multiple
-        "The listen address of one or more initial peers (IP[:PORT])")
-    (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
-    (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
-        "Watch this file for connecting to the ring"
-    )
-    (arg: arg_cache_key_path("Path to search for encryption keys. \
-        Default value is hab/cache/keys if root and .hab/cache/keys under the home \
-        directory otherwise."))
-    (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
-        "The name of the ring used by the Supervisor when running with wire encryption. \
-         (ex: hab sup run --ring myring)")
-    (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
-        "The contents of the ring key when running with wire encryption. \
-             (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
+pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
+    let sub = clap_app!(@subcommand run =>
+                            (about: "Run the Habitat Supervisor")
+                            // set custom usage string, otherwise the binary
+                            // is displayed confusingly as `hab-sup`
+                            // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
+                            (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
+                            (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
+                             "The listen address for the Gossip System Gateway.")
+                            (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
+                             "Start the supervisor in local mode.")
+                            (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
+                             "The listen address for the HTTP Gateway.")
+                            (@arg HTTP_DISABLE: --("http-disable") -D
+                             "Disable the HTTP Gateway completely [default: false]")
+                            (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(&LISTEN_CTL_DEFAULT_ADDR_STRING) {valid_socket_addr}
+                             "The listen address for the Control Gateway. If not specified, the value will \
+                              be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
+                            (@arg ORGANIZATION: --org +takes_value
+                             "The organization that the Supervisor and its subsequent services are part of.")
+                            (@arg PEER: --peer +takes_value +multiple
+                             "The listen address of one or more initial peers (IP[:PORT])")
+                            (@arg PERMANENT_PEER: --("permanent-peer") -I "If this Supervisor is a permanent peer")
+                            (@arg PEER_WATCH_FILE: --("peer-watch-file") +takes_value conflicts_with("PEER")
+                             "Watch this file for connecting to the ring"
+                            )
+                            (arg: arg_cache_key_path("Path to search for encryption keys. \
+                                                      Default value is hab/cache/keys if root and .hab/cache/keys under the home \
+                                                      directory otherwise."))
+                            (@arg RING: --ring -r env(RING_ENVVAR) conflicts_with("RING_KEY") {non_empty}
+                             "The name of the ring used by the Supervisor when running with wire encryption. \
+                              (ex: hab sup run --ring myring)")
+                            (@arg RING_KEY: --("ring-key") env(RING_KEY_ENVVAR) conflicts_with("RING") +hidden {non_empty}
+                             "The contents of the ring key when running with wire encryption. \
+                              (Note: This option is explicitly undocumented and for testing purposes only. Do not use it in a production system. Use the corresponding environment variable instead.)
              (ex: hab sup run --ring-key 'SYM-SEC-1 \
-              foo-20181113185935 \
+             foo-20181113185935 \
 
                   GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
-    (@arg CHANNEL: --channel +takes_value default_value[stable]
-        "Receive Supervisor updates from the specified release channel")
-    (@arg BLDR_URL: -u --url +takes_value {valid_url}
-        "Specify an alternate Builder endpoint. If not specified, the value will \
-         be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-         https://bldr.habitat.sh)")
+                            (@arg CHANNEL: --channel +takes_value default_value[stable]
+                             "Receive Supervisor updates from the specified release channel")
+                            (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                             "Specify an alternate Builder endpoint. If not specified, the value will \
+                              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
+                              https://bldr.habitat.sh)")
 
-    (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
-        "Use package config from this path, rather than the package itself")
-    (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
-        itself")
-    (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
-        "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
-         This should be a RSA private key or PKCS8-encoded private key, in PEM format.")
-    (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
-        "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
-         This should contain PEM-format certificates in the right order (the first certificate \
-         should certify KEY_FILE, the last should be a root CA).")
-    (@arg CA_CERT_FILE: --("ca-certs") +takes_value {file_exists} requires[CERT_FILE] requires[KEY_FILE]
-        "Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. \
-         This should contain PEM-format certificate that can be used to validate client requests.")
-    // === Optional arguments to additionally load an initial service for the Supervisor
-    (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
-        the Supervisor startup specified by a package identifier \
-        (ex: core/redis) or filepath to a Habitat Artifact \
-        (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
-    (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
-        "Application name; [default: not set].")
-    (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
-        "Environment name; [default: not set].")
-    (@arg GROUP: --group +takes_value
-        "The service group; shared config and topology [default: default].")
-    (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
-        "Service topology; [default: none]")
-    (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
-        "The update strategy; [default: none] [values: none, at-once, rolling]")
-    (@arg BIND: --bind +takes_value +multiple
-        "One or more service groups to bind to a configuration")
-    (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
-        "Governs how the presence or absence of binds affects service startup. `strict` blocks \
-         startup until all binds are present. [default: strict] [values: relaxed, strict]")
-    (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
-    (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
-    (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
-        Implies NO_COLOR")
-    (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
-        "The interval (seconds) on which to run health checks [default: 30]")
-    )
+                            (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
+                             "Use package config from this path, rather than the package itself")
+                            (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \
+                                                                     itself")
+                            (@arg KEY_FILE: --key +takes_value {file_exists} requires[CERT_FILE]
+                             "Used for enabling TLS for the HTTP gateway. Read private key from KEY_FILE. \
+                              This should be a RSA private key or PKCS8-encoded private key, in PEM format.")
+                            (@arg CERT_FILE: --certs +takes_value {file_exists} requires[KEY_FILE]
+                             "Used for enabling TLS for the HTTP gateway. Read server certificates from CERT_FILE. \
+                              This should contain PEM-format certificates in the right order (the first certificate \
+                              should certify KEY_FILE, the last should be a root CA).")
+                            (@arg CA_CERT_FILE: --("ca-certs") +takes_value {file_exists} requires[CERT_FILE] requires[KEY_FILE]
+                             "Used for enabling client-authentication with TLS for the HTTP gateway. Read CA certificate from CA_CERT_FILE. \
+                              This should contain PEM-format certificate that can be used to validate client requests.")
+                            // === Optional arguments to additionally load an initial service for the Supervisor
+                            (@arg PKG_IDENT_OR_ARTIFACT: +takes_value "Load the given Habitat package as part of \
+                                                                       the Supervisor startup specified by a package identifier \
+                                                                       (ex: core/redis) or filepath to a Habitat Artifact \
+                                                                       (ex: /home/core-redis-3.0.7-21120102031201-x86_64-linux.hart).")
+                            (@arg APPLICATION: --application -a +takes_value requires[ENVIRONMENT]
+                             "Application name; [default: not set].")
+                            (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
+                             "Environment name; [default: not set].")
+                            (@arg GROUP: --group +takes_value
+                             "The service group; shared config and topology [default: default].")
+                            (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
+                             "Service topology; [default: none]")
+                            (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
+                             "The update strategy; [default: none] [values: none, at-once, rolling]")
+                            (@arg BIND: --bind +takes_value +multiple
+                             "One or more service groups to bind to a configuration")
+                            (@arg BINDING_MODE: --("binding-mode") +takes_value {valid_binding_mode}
+                             "Governs how the presence or absence of binds affects service startup. `strict` blocks \
+                              startup until all binds are present. [default: strict] [values: relaxed, strict]")
+                            (@arg VERBOSE: -v "Verbose output; shows file and line/column numbers")
+                            (@arg NO_COLOR: --("no-color") "Turn ANSI color off")
+                            (@arg JSON: --("json-logging") "Use structured JSON logging for the Supervisor. \
+                                                            Implies NO_COLOR")
+                            (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
+                             "The interval (seconds) on which to run health checks [default: 30]")
+    );
+
+    if feature_flags.contains(FeatureFlag::EVENT_STREAM) {
+        add_event_stream_options(sub)
+    } else {
+        sub
+    }
 }
 
 pub fn sub_sup_sh() -> App<'static, 'static> {
@@ -1147,6 +1154,63 @@ fn sub_svc_unload(feature_flags: FeatureFlag) -> App<'static, 'static> {
             "Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]")
     );
     maybe_add_configurable_shutdown_options(sub, feature_flags)
+}
+
+// TODO (CM): yeah, this is uuuuuuuuuugly. Ideally, we'd just not have
+// the `--application` and `--environment` flags, or they would become
+// this, and then disappear from the `hab svc load` command.
+//
+// For now, though, these at least provide a place to supply the
+// information; we can revise as we go.
+fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static> {
+    app.arg(Arg::with_name("EVENT_STREAM_APPLICATION").help("The name of the application for \
+                                                             event stream purposes. This is \
+                                                             distinct from the `--application` \
+                                                             flag (which may be going away), and \
+                                                             will be attached to all events \
+                                                             generated by this Supervisor.")
+                                                      .long("event-stream-application")
+                                                      .required(true)
+                                                      .takes_value(true)
+                                                      .validator(non_empty))
+       .arg(Arg::with_name("EVENT_STREAM_ENVIRONMENT").help("The name of the environment for \
+                                                             event stream purposes. This is \
+                                                             distinct from the `--environment` \
+                                                             flag (which may be going away), and \
+                                                             will be attached to all events \
+                                                             generated by this Supervisor.")
+                                                      .long("event-stream-environment")
+                                                      .required(true)
+                                                      .takes_value(true)
+                                                      .validator(non_empty))
+       .arg(Arg::with_name("EVENT_STREAM_URL").help("The event stream connection string \
+                                                     (host:port) used by this Supervisor to send \
+                                                     events to a messaging server.")
+                                              .long("event-stream-url")
+                                              .required(true)
+                                              .takes_value(true)
+                                              .validator(non_empty))
+       .arg(Arg::with_name("EVENT_STREAM_SITE").help("The name of the site where this Supervisor \
+                                                      is running. It is used for event stream \
+                                                      purposes.")
+                                               .long("event-stream-site")
+                                               .takes_value(true)
+                                               .validator(non_empty))
+       .arg(Arg::with_name(AutomateAuthToken::ARG_NAME).help("An authentication token for \
+                                                              streaming events to an messaging \
+                                                              server.")
+                                                       .long("event-stream-token")
+                                                       .required(true)
+                                                       .takes_value(true)
+                                                       .validator(AutomateAuthToken::validate)
+                                                       .env(AutomateAuthToken::ENVVAR))
+       .arg(Arg::with_name(EventStreamMetadata::ARG_NAME).help("An arbitrary key-value pair to \
+                                                                add to each event generated by \
+                                                                this Supervisor")
+                                                         .long("event-meta")
+                                                         .takes_value(true)
+                                                         .multiple(true)
+                                                         .validator(EventStreamMetadata::validate))
 }
 
 // CLAP Validation Functions
@@ -1373,5 +1437,368 @@ mod tests {
             let run_matches = run_matches.expect("Error while getting run matches");
             assert_eq!(run_matches.value_of("PEER"), Some("1.1.1.1"));
         }
+
+    }
+
+    mod event_stream_feature {
+        use super::*;
+
+        fn event_stream_enabled() -> FeatureFlag {
+            let mut f = FeatureFlag::empty();
+            f.insert(FeatureFlag::EVENT_STREAM);
+            f
+        }
+
+        #[test]
+        fn run_requires_app_and_env_and_token_and_url() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec!["run"]);
+            assert!(matches.is_err());
+            assert_eq!(matches.unwrap_err().kind,
+                       clap::ErrorKind::MissingRequiredArgument);
+
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_ok());
+        }
+
+        #[test]
+        fn app_and_env_and_token_and_url_options_require_event_stream_feature() {
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::UnknownArgument);
+            assert_eq!(error.info,
+                       Some(vec!["--event-stream-application".to_string()]));
+        }
+
+        #[test]
+        fn app_option_must_take_a_value() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
+            assert_eq!(error.info,
+                       Some(vec!["EVENT_STREAM_APPLICATION".to_string()]));
+        }
+
+        #[test]
+        fn app_option_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+        }
+
+        #[test]
+        fn env_option_must_take_a_value() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
+            assert_eq!(error.info,
+                       Some(vec!["EVENT_STREAM_ENVIRONMENT".to_string()]));
+        }
+
+        #[test]
+        fn env_option_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+        }
+
+        #[test]
+        fn event_meta_flag_requires_event_stream_feature() {
+            let matches = sub_sup_run(no_feature_flags()).get_matches_from_safe(vec![
+                "run",
+                "--event-meta",
+                "foo=bar",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::UnknownArgument);
+            assert_eq!(error.info, Some(vec!["--event-meta".to_string()]));
+        }
+
+        #[test]
+        fn event_meta_can_be_repeated() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-meta",
+                "foo=bar",
+                "--event-meta",
+                "blah=boo",
+                "--event-meta",
+                "monkey=pants",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_ok());
+            let matches = matches.unwrap();
+            let meta = matches.values_of(EventStreamMetadata::ARG_NAME)
+                              .expect("didn't have metadata")
+                              .collect::<Vec<_>>();
+            assert_eq!(meta, ["foo=bar", "blah=boo", "monkey=pants"]);
+        }
+
+        #[test]
+        fn event_meta_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-meta",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            assert_eq!(matches.unwrap_err().kind, clap::ErrorKind::EmptyValue);
+        }
+
+        #[test]
+        fn event_meta_must_have_an_equal_sign() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-meta",
+                "foobar",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            assert_eq!(matches.unwrap_err().kind, clap::ErrorKind::ValueValidation);
+        }
+
+        #[test]
+        fn event_meta_key_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-meta",
+                "=bar",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            assert_eq!(matches.unwrap_err().kind, clap::ErrorKind::ValueValidation);
+        }
+
+        #[test]
+        fn event_meta_value_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-meta",
+                "foo=",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            assert_eq!(matches.unwrap_err().kind, clap::ErrorKind::ValueValidation);
+        }
+
+        #[test]
+        fn token_option_must_take_a_value() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+                "--event-stream-token",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
+            assert_eq!(error.info,
+                       Some(vec![AutomateAuthToken::ARG_NAME.to_string()]));
+        }
+
+        #[test]
+        fn token_option_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+        }
+
+        #[test]
+        fn site_option_must_take_a_value() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+                "--event-stream-site",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
+            assert_eq!(error.info, Some(vec!["EVENT_STREAM_SITE".to_string()]));
+        }
+
+        #[test]
+        fn site_option_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "127.0.0.1:4222",
+                "--event-stream-site",
+                "",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+        }
+
+        #[test]
+        fn url_option_must_take_a_value() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::EmptyValue);
+            assert_eq!(error.info, Some(vec!["EVENT_STREAM_URL".to_string()]));
+        }
+
+        #[test]
+        fn url_option_cannot_be_empty() {
+            let matches = sub_sup_run(event_stream_enabled()).get_matches_from_safe(vec![
+                "run",
+                "--event-stream-application",
+                "MY_APP",
+                "--event-stream-environment",
+                "MY_ENV",
+                "--event-stream-token",
+                "MY_TOKEN",
+                "--event-stream-url",
+                "",
+            ]);
+            assert!(matches.is_err());
+            let error = matches.unwrap_err();
+            assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
+        }
+
     }
 }

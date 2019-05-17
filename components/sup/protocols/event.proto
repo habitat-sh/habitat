@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package chef.habitat.supervisor.event;
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+message EventMetadata {
+  // The unique ID of this Supervisor.
+  string supervisor_id = 1;
+  // The IP address on which the Supervisor is listening for gossip.
+  string ip_address = 2;
+  google.protobuf.Timestamp occurred_at = 3;
+  string application = 4;
+  string environment = 5;
+  map<string, string> meta = 6;
+  string fqdn = 7;
+  string site = 8;
+}
+
+message ServiceMetadata {
+  // The fully-qualified identifier of the package that is currently
+  // running.
+  string package_ident = 1;
+  // This is the identifier the service was loaded with (e.g., the
+  // `core/redis` in `hab svc load core/redis`). While it _can_ be a
+  // fully-qualified package identifier, it is more commonly a 2- or
+  // 3-part identifier variant.
+  string spec_ident = 2;
+  string service_group = 3;
+  UpdateConfig update_config = 4;
+}
+
+// Note that there is no `None` value, as currently exists in the Rust
+// code for the Supervisor. Here we are only going to deal with the
+// actual update strategies (because `None` isn't really a strategy!)
+enum UpdateStrategy {
+  // Service updates are applied immediately as they are available,
+  // with no additional coordination.
+  AtOnce = 0;
+  // Updates are applied one-by-one throughout a service group to
+  // prevent everything from updating all at once.
+  Rolling = 1;
+}
+
+// Encapsulates an update strategy with the channel that is checked
+// for updates. Both must be present for either to be meaningful.a
+message UpdateConfig {
+  UpdateStrategy strategy = 1;
+  // The channel the Supervisor will monitor for updates to this
+  // service.
+  string channel = 2;
+}
+
+enum HealthCheckResult {
+  Ok = 0;
+  Warning = 1;
+  Critical = 2;
+  Unknown = 3;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Concrete Event Types
+////////////////////////////////////////////////////////////////////////
+
+message ServiceStartedEvent {
+  EventMetadata event_metadata = 1;
+  ServiceMetadata service_metadata = 2;
+}
+
+message ServiceStoppedEvent {
+  EventMetadata event_metadata = 1;
+  ServiceMetadata service_metadata = 2;
+}
+
+message HealthCheckEvent {
+  EventMetadata event_metadata = 1;
+  ServiceMetadata service_metadata = 2;
+  HealthCheckResult result = 3;
+  // If the service has a health check hook script, how long it took
+  // to execute.
+  google.protobuf.Duration execution = 4;
+}

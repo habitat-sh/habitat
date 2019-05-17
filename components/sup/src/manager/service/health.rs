@@ -1,4 +1,6 @@
-use crate::manager::{service::{hook_runner,
+use crate::manager::{event::{self,
+                             ServiceMetadata as ServiceEventMetadata},
+                     service::{hook_runner,
                                hooks::HealthCheckHook,
                                supervisor::Supervisor},
                      GatewayState};
@@ -16,7 +18,8 @@ use std::{fmt,
           sync::{Arc,
                  Mutex,
                  RwLock},
-          time::Instant};
+          time::{Duration,
+                 Instant}};
 
 /// The possible results of running a health check hook.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize)]
@@ -65,6 +68,8 @@ pub struct State {
     package:                Pkg,
     svc_encrypted_password: Option<String>,
 
+    service_event_metadata: ServiceEventMetadata,
+
     /// A reference to the process supervisor for the service. This is
     /// used to create a "proxy health check" for services that do not
     /// provide their own health check hook.
@@ -91,6 +96,7 @@ impl State {
                service_group: ServiceGroup,
                package: Pkg,
                svc_encrypted_password: Option<String>,
+               service_event_metadata: ServiceEventMetadata,
                supervisor: Arc<Mutex<Supervisor>>,
                nominal_interval: HealthCheckInterval,
                service_health_result: Arc<Mutex<HealthCheckResult>>,
@@ -100,6 +106,7 @@ impl State {
                 service_group,
                 package,
                 svc_encrypted_password,
+                service_event_metadata,
                 supervisor,
                 nominal_interval,
                 service_health_result,
@@ -114,6 +121,7 @@ impl State {
                     service_group,
                     package,
                     svc_encrypted_password,
+                    service_event_metadata,
                     supervisor,
                     nominal_interval,
                     service_health_result,
@@ -128,7 +136,8 @@ impl State {
                                                   service_group.deref().clone(),
                                                   package,
                                                   svc_encrypted_password);
-            Either::A(hr.into_future())
+            Either::A(hr.into_future()
+                        .map(|(result, duration)| (result, Some(duration))))
         } else {
             let status = match supervisor.lock()
                                          .expect("couldn't unlock supervisor")
@@ -137,12 +146,14 @@ impl State {
                 (true, _) => HealthCheckResult::Ok,
                 (false, _) => HealthCheckResult::Critical,
             };
-            Either::B(lazy(move || Ok(status)))
+            // no hook means no execution time!
+            Either::B(lazy(move || Ok((status, None::<Duration>))))
         }.map_err(move |e| {
              error!("Error running health check hook for {}: {:?}",
                     service_group_ref, e)
          })
-         .and_then(move |check_result| {
+         .and_then(move |(check_result, duration)| {
+             event::health_check(service_event_metadata, check_result, duration);
              debug!("Caching HealthCheckResult = '{}' for '{}'",
                     check_result, service_group);
 

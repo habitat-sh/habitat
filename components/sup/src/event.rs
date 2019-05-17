@@ -11,26 +11,39 @@
 //!
 //! [1]:https://github.com/nats-io/nats-streaming-server
 
+mod error;
+// ratsio_stream is the default, but setting it as a default in Cargo.toml
+// makes it trickier to use nitox instead.
+#[cfg(feature = "nitox_stream")]
+#[path = "event/nitox.rs"]
+mod stream_impl;
+#[cfg(any(feature = "ratsio_stream", not(feature = "nitox_stream")))]
+#[path = "event/ratsio.rs"]
+mod stream_impl;
 mod types;
 
-use crate::error::Result;
-use futures::{sync::{mpsc as futures_mpsc,
-                     mpsc::UnboundedSender},
-              Future,
-              Stream};
-use nitox::{commands::ConnectCommand,
-            streaming::{client::NatsStreamingClient,
-                        error::NatsStreamingError},
-            NatsClient,
-            NatsClientOptions};
+pub(crate) use self::types::ServiceMetadata;
+use self::types::{EventMessage,
+                  EventMetadata,
+                  HealthCheckEvent,
+                  ServiceStartedEvent,
+                  ServiceStoppedEvent};
+use crate::manager::{service::{HealthCheckResult,
+                               Service},
+                     sys::Sys};
+use clap::ArgMatches;
+pub use error::{Error,
+                Result};
+use futures::sync::mpsc::UnboundedSender;
+use habitat_common::types::{AutomateAuthToken,
+                            EventStreamMetadata};
+use habitat_core::env::Config as EnvConfig;
 use state::Container;
-use std::{fmt::Debug,
-          sync::{mpsc as std_mpsc,
-                 Once},
-          thread};
-use tokio::{executor,
-            runtime::current_thread::Runtime as ThreadRuntime};
-pub use types::*;
+use std::{net::SocketAddr,
+          num::ParseIntError,
+          str::FromStr,
+          sync::Once,
+          time::Duration};
 
 static INIT: Once = Once::new();
 lazy_static! {
@@ -47,36 +60,71 @@ lazy_static! {
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
-pub fn init_stream(conn_info: EventConnectionInfo, event_core: EventCore) {
+pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<()> {
+    // call_once can't return a Result (or anything), so we'll fake it
+    // by hanging onto any error we might receive.
+    let mut return_value: Result<()> = Ok(());
+
     INIT.call_once(|| {
-            let event_stream = init_nats_stream(conn_info).expect("Could not start NATS thread");
-            EVENT_STREAM.set(event_stream);
-            EVENT_CORE.set(event_core);
+            let conn_info = EventConnectionInfo::new(config.token, config.url);
+            match stream_impl::init_stream(conn_info) {
+                Ok(event_stream) => {
+                    EVENT_STREAM.set(event_stream);
+                    EVENT_CORE.set(event_core);
+                }
+                Err(e) => return_value = Err(e),
+            }
         });
+
+    return_value
 }
 
-/// Publish an event. This is the main interface that client code will
-/// use.
-///
-/// If `init_stream` has not been called already, this function will
-/// be a no-op.
-// NOTE: we can take advantage of this to "disable" the event
-// subsystem if users don't wish to send events out; just don't call
-// `init_stream` if they don't want it.
-pub fn publish(event: &impl Event) {
-    // TODO: incorporate the current timestamp into the rendered event
-    // (which will require tweaks to the rendering logic, but we know
-    // that'll need to be updated anyway).
+/// Captures all event stream-related configuration options that would
+/// be passed in by a user
+#[derive(Clone, Debug)]
+pub struct EventStreamConfig {
+    environment: String,
+    application: String,
+    site:        Option<String>,
+    meta:        EventStreamMetadata,
+    token:       AutomateAuthToken,
+    url:         String,
+}
 
-    // We render the event to bytes here, rather than over in the
-    // publication thread, because it allows our Event types to deal
-    // with references, which means less allocations and unnecessary
-    // copying (otherwise, we'd have to have copies of everything to
-    // send it over to the other thread, or much more complicated
-    // thread-safe types!). It also makes the publication thread logic
-    // a bit simpler; it just takes bytes and sends them out.
-    if let Some(e) = EVENT_STREAM.try_get::<EventStream>() {
-        e.send(event.render(EVENT_CORE.get::<EventCore>()));
+impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
+    fn from(m: &ArgMatches) -> Self {
+        EventStreamConfig { environment: m.value_of("EVENT_STREAM_ENVIRONMENT")
+                                          .map(str::to_string)
+                                          .expect("Required option for EventStream feature"),
+                            application: m.value_of("EVENT_STREAM_APPLICATION")
+                                          .map(str::to_string)
+                                          .expect("Required option for EventStream feature"),
+                            site:        m.value_of("EVENT_STREAM_SITE").map(str::to_string),
+                            meta:        EventStreamMetadata::from(m),
+                            token:       AutomateAuthToken::from(m),
+                            url:         m.value_of("EVENT_STREAM_URL")
+                                          .map(str::to_string)
+                                          .expect("Required option for EventStream feature"), }
+    }
+}
+
+/// All the information needed to establish a connection to a NATS
+/// Streaming server.
+pub struct EventConnectionInfo {
+    pub name:        String,
+    pub verbose:     bool,
+    pub cluster_uri: String,
+    pub cluster_id:  String,
+    pub auth_token:  AutomateAuthToken,
+}
+
+impl EventConnectionInfo {
+    pub fn new(auth_token: AutomateAuthToken, cluster_uri: String) -> Self {
+        EventConnectionInfo { name: "hab_client".to_string(),
+                              verbose: true,
+                              cluster_uri,
+                              cluster_id: "event-service".to_string(),
+                              auth_token }
     }
 }
 
@@ -92,12 +140,96 @@ pub fn publish(event: &impl Event) {
 #[derive(Clone, Debug)]
 pub struct EventCore {
     /// The unique identifier of the Supervisor sending the event.
-    pub supervisor_id: String,
+    supervisor_id: String,
+    ip_address: SocketAddr,
+    fqdn: String,
+    application: String,
+    environment: String,
+    site: Option<String>,
+    meta: EventStreamMetadata,
+}
+
+impl EventCore {
+    pub fn new(config: &EventStreamConfig, sys: &Sys, fqdn: String) -> Self {
+        EventCore { supervisor_id: sys.member_id.clone(),
+                    ip_address: sys.gossip_listen(),
+                    fqdn,
+                    environment: config.environment.clone(),
+                    application: config.application.clone(),
+                    site: config.site.clone(),
+                    meta: config.meta.clone() }
+    }
+}
+
+/// Send an event for the start of a Service.
+pub fn service_started(service: &Service) {
+    if stream_initialized() {
+        publish(ServiceStartedEvent { service_metadata: Some(service.to_service_metadata()),
+                                      event_metadata:   None, });
+    }
+}
+
+/// Send an event for the stop of a Service.
+pub fn service_stopped(service: &Service) {
+    if stream_initialized() {
+        publish(ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
+                                      event_metadata:   None, });
+    }
+}
+
+// Takes metadata directly, rather than a `&Service` like other event
+// functions, because of how the asynchronous health checking
+// currently works. Revisit when async/await + Pin is all stabilized.
+/// `execution` will be `Some` if the service had a hook to run, and
+/// records how long it took that hook to execute completely.
+pub fn health_check(metadata: ServiceMetadata,
+                    check_result: HealthCheckResult,
+                    execution: Option<Duration>) {
+    if stream_initialized() {
+        let check_result: types::HealthCheckResult = check_result.into();
+        publish(HealthCheckEvent { service_metadata: Some(metadata),
+                                   event_metadata:   None,
+                                   result:           i32::from(check_result),
+                                   execution:        execution.map(Duration::into), });
+    }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+/// Internal helper function to know whether or not to go to the trouble of
+/// creating event structures. If the event stream hasn't been
+/// initialized, then we shouldn't need to do anything.
+fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some() }
+
+/// Publish an event. This is the main interface that client code will
+/// use.
+///
+/// If `init_stream` has not been called already, this function will
+/// be a no-op.
+fn publish(mut event: impl EventMessage) {
+    if let Some(e) = EVENT_STREAM.try_get::<EventStream>() {
+        // TODO (CM): Yeah... this is looking pretty gross. The
+        // intention is to be able to timestamp the events right as
+        // they go out.
+        //
+        // We *could* set the time when we convert the EventCore to a
+        // EventMetadata struct, but that seems odd.
+        //
+        // It probably means that this structure just isn't the right
+        // one.
+        //
+        // The ugliness is at least contained, though.
+        event.event_metadata(EventMetadata { occurred_at:
+                                                 Some(std::time::SystemTime::now().into()),
+                                             ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
+
+        e.send(event.to_bytes());
+    }
 }
 
 /// A lightweight handle for the event stream. All events get to the
 /// event stream through this.
-pub(self) struct EventStream(UnboundedSender<Vec<u8>>);
+struct EventStream(UnboundedSender<Vec<u8>>);
 
 impl EventStream {
     /// Queues an event to be sent out.
@@ -109,106 +241,29 @@ impl EventStream {
     }
 }
 
-/// Defines the logic for transforming concrete event into a
-/// byte representation to publish to the event stream.
-// TODO: The ultimate format we need is not well defined yet, so we're
-// using the absolute simplest thing that could possibly "work". Maybe
-// it'll be JSON, maybe it'll be protobuf, maybe it'll be something
-// else. Whatever it ultimately becomes, this is where the
-// transformation logic will live.
-pub trait Event: Debug {
-    fn render(&self, core: &EventCore) -> Vec<u8> {
-        format!("{:?} - {:?}", core, self).into_bytes()
-    }
-}
-
 ////////////////////////////////////////////////////////////////////////
 
-/// All messages are published under this subject.
-const HABITAT_SUBJECT: &str = "habitat";
-
-/// All the information needed to establish a connection to a NATS
-/// Streaming server.
-// TODO: This will change as we firm up what the interaction between
-// Habitat and A2 looks like.
-pub struct EventConnectionInfo {
-    pub name:        String,
-    pub verbose:     bool,
-    pub cluster_uri: String,
-    pub cluster_id:  String,
+/// How long should we for the event thread to start up before
+/// abandoning it and shutting down?
+#[derive(Clone, Debug)]
+struct EventThreadStartupWait {
+    secs: u64,
 }
 
-/// Defines default connection information for a NATS Streaming server
-/// running on localhost.
-// TODO: As we become clear on the interaction between Habitat and A2,
-// this implementation *may* disappear. It's useful for testing and
-// prototyping, though.
-impl Default for EventConnectionInfo {
-    fn default() -> Self {
-        EventConnectionInfo { name:        String::from("habitat"),
-                              verbose:     true,
-                              cluster_uri: String::from("127.0.0.1:4223"),
-                              cluster_id:  String::from("test-cluster"), }
-    }
+impl Default for EventThreadStartupWait {
+    fn default() -> Self { Self { secs: 5 } }
 }
 
-fn init_nats_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
-    // TODO (CM): Investigate back-pressure scenarios
-    let (event_tx, event_rx) = futures_mpsc::unbounded();
-    let (sync_tx, sync_rx) = std_mpsc::sync_channel(0); // rendezvous channel
+impl FromStr for EventThreadStartupWait {
+    type Err = ParseIntError;
 
-    // TODO (CM): We could theoretically create this future and spawn
-    // it in the Supervisor's Tokio runtime, but there's currently a
-    // bug: https://github.com/YellowInnovation/nitox/issues/24
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self { secs: s.parse()? }) }
+}
 
-    thread::Builder::new().name("events".to_string())
-                          .spawn(move || {
-                              let EventConnectionInfo { name,
-                                                        verbose,
-                                                        cluster_uri,
-                                                        cluster_id, } = conn_info;
+impl EnvConfig for EventThreadStartupWait {
+    const ENVVAR: &'static str = "HAB_EVENT_THREAD_STARTUP_WAIT_SEC";
+}
 
-                              let cc = ConnectCommand::builder()
-                // .user(Some("nats".to_string()))
-                // .pass(Some("S3Cr3TP@5w0rD".to_string()))
-                .name(Some(name))
-                .verbose(verbose)
-                .build()
-                .unwrap();
-                              let opts =
-                                  NatsClientOptions::builder().connect_command(cc)
-                                                              .cluster_uri(cluster_uri.as_str())
-                                                              .build()
-                                                              .unwrap();
-
-                              let publisher = NatsClient::from_options(opts)
-                .map_err(Into::<NatsStreamingError>::into)
-                .and_then(|client| {
-                    NatsStreamingClient::from(client)
-                        .cluster_id(cluster_id)
-                        .connect()
-                })
-                .map_err(|streaming_error| error!("{}", streaming_error))
-                .and_then(move |client| {
-                    sync_tx.send(()).expect("Couldn't synchronize!");
-                    event_rx.for_each(move |event: Vec<u8>| {
-                        let publish_event = client
-                            .publish(HABITAT_SUBJECT.into(), event.into())
-                            .map_err(|e| {
-                                error!("Error publishing event: {:?}", e);
-                            });
-                        executor::spawn(publish_event);
-                        Ok(())
-                    })
-                });
-
-                              ThreadRuntime::new().expect("Couldn't create event stream runtime!")
-                                                  .spawn(publisher)
-                                                  .run()
-                                                  .expect("something seriously wrong has occurred");
-                          })
-                          .expect("Couldn't start events thread!");
-
-    sync_rx.recv()?; // TODO (CM): nicer error message
-    Ok(EventStream(event_tx))
+impl Into<Duration> for EventThreadStartupWait {
+    fn into(self) -> Duration { Duration::from_secs(self.secs) }
 }

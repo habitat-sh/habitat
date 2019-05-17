@@ -40,7 +40,6 @@ extern crate palaver;
 #[macro_use]
 extern crate prometheus;
 extern crate prost;
-extern crate protobuf;
 extern crate rand;
 extern crate regex;
 extern crate rustls;
@@ -73,7 +72,7 @@ pub mod command;
 pub mod config;
 pub mod ctl_gateway;
 pub mod error;
-mod event;
+pub mod event;
 pub mod http_gateway;
 pub mod manager;
 mod sup_futures;

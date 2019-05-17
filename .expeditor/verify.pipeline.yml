@@ -104,7 +104,7 @@ steps:
   - label: "[unit] :linux: butterfly ignored"
     command:
       # put this back once the deadlock detection comes back
-      #- ./test/run_cargo_test.sh --nightly --features "deadlock_detection" --test-options "--test-threads=1 --ignored" butterfly
+      #- ./test/run_cargo_test.sh butterfly --nightly --features "deadlock_detection" --test-options "--test-threads=1 --ignored"
       - ./test/run_cargo_test.sh butterfly --test-options "--test-threads=1 --ignored"
     agents:
       queue: 'default-privileged'
@@ -307,6 +307,20 @@ steps:
     timeout_in_minutes: 10
     soft_fail: true
 
+  - label: "[unit] :linux: sup nitox_stream"
+    command:
+      - ./test/run_cargo_test.sh sup --features "ignore_integration_tests nitox_stream"
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 10
+    soft_fail: true
+
   - label: "[unit] :linux: sup-client"
     command:
       - ./test/run_cargo_test.sh sup-client
@@ -473,6 +487,17 @@ steps:
     command:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - ./test/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
+    agents:
+      queue: 'default-windows-privileged'
+    timeout_in_minutes: 40
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: sup nitox_stream"
+    command:
+      # This test has test (not code) concurrency issues and will fail if we don't limit it
+      - ./test/run_cargo_test.ps1 sup -Features "nitox_stream" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
     timeout_in_minutes: 40

@@ -10,7 +10,7 @@ mod self_updater;
 mod service_updater;
 mod spec_dir;
 mod spec_watcher;
-mod sys;
+pub(crate) mod sys;
 mod user_config_watcher;
 
 use self::{action::{ShutdownSpec,
@@ -40,8 +40,8 @@ use crate::{census::{CensusRing,
                     Result,
                     SupError},
             event::{self,
-                    EventConnectionInfo,
-                    EventCore},
+                    EventCore,
+                    EventStreamConfig},
             http_gateway,
             VERSION};
 use cpu_time::ProcessTime;
@@ -58,14 +58,14 @@ use habitat_common::{outputln,
                      types::ListenCtlAddr,
                      FeatureFlag};
 #[cfg(unix)]
-use habitat_core::os::{process::Signal,
-                       signals::SignalEvent};
+use habitat_core::os::signals::SignalEvent;
 use habitat_core::{crypto::SymKey,
                    env::{self,
                          Config},
                    fs::FS_ROOT_PATH,
                    os::{process::{self,
-                                  Pid},
+                                  Pid,
+                                  Signal},
                         signals},
                    package::{Identifiable,
                              PackageIdent,
@@ -203,22 +203,23 @@ impl FsCfg {
 
 #[derive(Clone, Debug)]
 pub struct ManagerConfig {
-    pub auto_update:       bool,
-    pub custom_state_path: Option<PathBuf>,
-    pub cache_key_path:    PathBuf,
-    pub update_url:        String,
-    pub update_channel:    ChannelIdent,
-    pub gossip_listen:     GossipListenAddr,
-    pub ctl_listen:        ListenCtlAddr,
-    pub http_listen:       http_gateway::ListenAddr,
-    pub http_disable:      bool,
-    pub gossip_peers:      Vec<SocketAddr>,
-    pub gossip_permanent:  bool,
-    pub ring_key:          Option<SymKey>,
-    pub organization:      Option<String>,
-    pub watch_peer_file:   Option<String>,
-    pub tls_config:        Option<TLSConfig>,
-    pub feature_flags:     FeatureFlag,
+    pub auto_update:         bool,
+    pub custom_state_path:   Option<PathBuf>,
+    pub cache_key_path:      PathBuf,
+    pub update_url:          String,
+    pub update_channel:      ChannelIdent,
+    pub gossip_listen:       GossipListenAddr,
+    pub ctl_listen:          ListenCtlAddr,
+    pub http_listen:         http_gateway::ListenAddr,
+    pub http_disable:        bool,
+    pub gossip_peers:        Vec<SocketAddr>,
+    pub gossip_permanent:    bool,
+    pub ring_key:            Option<SymKey>,
+    pub organization:        Option<String>,
+    pub watch_peer_file:     Option<String>,
+    pub tls_config:          Option<TLSConfig>,
+    pub feature_flags:       FeatureFlag,
+    pub event_stream_config: Option<EventStreamConfig>,
 }
 
 #[derive(Clone, Debug)]
@@ -471,13 +472,24 @@ impl Manager {
 
         if cfg.feature_flags.contains(FeatureFlag::EVENT_STREAM) {
             // Putting configuration of the stream behind a feature
-            // flag for now.  If the flag isn't set, just don't
+            // flag for now. If the flag isn't set, just don't
             // initialize the stream; everything else will turn into a
             // no-op automatically.
-            let ec = EventCore { supervisor_id: sys.member_id.clone(), };
+
             // TODO: Determine what the actual connection parameters
             // should be, and process them at some point before here.
-            event::init_stream(EventConnectionInfo::default(), ec);
+            let es_config =
+                cfg.event_stream_config
+                   .expect("Config should be present if the EventStream feature is enabled");
+
+            // Collect the FQDN of the running machine
+            let fqdn = habitat_core::os::net::fqdn().unwrap_or_else(|| sys.hostname.clone());
+            outputln!("Event FQDN {}", fqdn);
+
+            let ec = EventCore::new(&es_config, &sys, fqdn);
+            // unwrap won't fail here; if there were an issue, from_env()
+            // would have already propagated an error up the stack.
+            event::init_stream(es_config, ec)?;
         }
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
@@ -649,9 +661,7 @@ impl Manager {
             .expect("Updater lock poisoned")
             .add(&service);
 
-        event::publish(&event::ServiceStarted { ident:         &service.pkg.ident,
-                                                spec_ident:    &spec.ident,
-                                                service_group: &service.service_group, });
+        event::service_started(&service);
 
         self.state
             .services
@@ -1266,11 +1276,7 @@ impl Manager {
         // TODO (CM): But only if we're not going down for a restart.
         let ident = service.spec_ident.clone();
         let stop_it = service.stop(shutdown_spec).then(move |_| {
-                                                     event::publish(&event::ServiceStopped {
-                ident: &service.pkg.ident,
-                //                spec_ident: &service.spec.ident,
-                service_group: &service.service_group,
-            });
+                                                     event::service_stopped(&service);
                                                      user_config_watcher.write()
                                                                         .expect("Watcher lock \
                                                                                  poisoned")
@@ -1793,22 +1799,23 @@ mod test {
     // code, so only implement it under test configuration.
     impl Default for ManagerConfig {
         fn default() -> Self {
-            ManagerConfig { auto_update:       false,
-                            custom_state_path: None,
-                            cache_key_path:    cache_key_path(Some(&*FS_ROOT)),
-                            update_url:        "".to_string(),
-                            update_channel:    ChannelIdent::default(),
-                            gossip_listen:     GossipListenAddr::default(),
-                            ctl_listen:        ListenCtlAddr::default(),
-                            http_listen:       http_gateway::ListenAddr::default(),
-                            http_disable:      false,
-                            gossip_peers:      vec![],
-                            gossip_permanent:  false,
-                            ring_key:          None,
-                            organization:      None,
-                            watch_peer_file:   None,
-                            tls_config:        None,
-                            feature_flags:     FeatureFlag::empty(), }
+            ManagerConfig { auto_update:         false,
+                            custom_state_path:   None,
+                            cache_key_path:      cache_key_path(Some(&*FS_ROOT)),
+                            update_url:          "".to_string(),
+                            update_channel:      ChannelIdent::default(),
+                            gossip_listen:       GossipListenAddr::default(),
+                            ctl_listen:          ListenCtlAddr::default(),
+                            http_listen:         http_gateway::ListenAddr::default(),
+                            http_disable:        false,
+                            gossip_peers:        vec![],
+                            gossip_permanent:    false,
+                            ring_key:            None,
+                            organization:        None,
+                            watch_peer_file:     None,
+                            tls_config:          None,
+                            feature_flags:       FeatureFlag::empty(),
+                            event_stream_config: None, }
         }
     }
 

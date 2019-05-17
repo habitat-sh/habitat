@@ -315,6 +315,7 @@ impl Service {
                            self.service_group.clone(),
                            self.pkg.clone(),
                            self.svc_encrypted_password.clone(),
+                           self.to_service_metadata(),
                            Arc::clone(&self.supervisor),
                            self.health_check_interval,
                            Arc::clone(&self.health_check_result),

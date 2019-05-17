@@ -34,11 +34,13 @@ pub enum Error {
     GossipFileRelativePath(String),
     HabitatCore(hcore::Error),
     InstallHookFailed(PackageIdent),
+    InvalidEventStreamToken(String),
     InvalidInstallHookMode(String),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
     /// Errors when joining paths :)
     JoinPathsError(env::JoinPathsError),
+    MissingCLIInputError(String),
     NetParseError(net::AddrParseError),
     OfflineArtifactNotFound(PackageIdent),
     OfflineOriginKeyNotFound(String),
@@ -98,8 +100,14 @@ impl fmt::Display for Error {
                         s)
             }
             Error::HabitatCore(ref e) => format!("{}", e),
+            Error::MissingCLIInputError(ref arg) => {
+                format!("Missing required CLI argument!: {}", arg)
+            }
             Error::InstallHookFailed(ref ident) => {
                 format!("Install hook exited unsuccessfully: {}", ident)
+            }
+            Error::InvalidEventStreamToken(ref s) => {
+                format!("Invalid event stream token provided: '{}'", s)
             }
             Error::InvalidInstallHookMode(ref e) => {
                 format!("Invalid InstallHookMode conversion from {}", e)
@@ -164,9 +172,11 @@ impl error::Error for Error {
             }
             Error::HabitatCore(ref err) => err.description(),
             Error::InstallHookFailed(_) => "Install hook exited unsuccessfully",
+            Error::InvalidEventStreamToken(_) => "Invalid event stream token provided",
             Error::InvalidInstallHookMode(_) => "Invalid InstallHookMode",
             Error::IO(ref err) => err.description(),
             Error::JoinPathsError(ref err) => err.description(),
+            Error::MissingCLIInputError(_) => "Missing required CLI argument!",
             Error::NetParseError(_) => "Can't parse IP:port",
             Error::OfflineArtifactNotFound(_) => "Cached artifact not found in offline mode",
             Error::OfflineOriginKeyNotFound(_) => "Cached origin key not found in offline mode",
