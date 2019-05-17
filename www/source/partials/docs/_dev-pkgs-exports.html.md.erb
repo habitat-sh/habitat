@@ -140,6 +140,63 @@ The Kubernetes exporter is an additional command line subcommand to the standard
     ```shell
     $ hab pkg export kubernetes --push-image --username <your_docker_hub_username> --password <your_docker_hub_password> -o my_app.yaml
     ```
+6. Please note that you will need to add the HAB_LICENSE environment variable to the generated manifest yaml file. One way to do this is to add the environmental variable directly to the generated manifest like this example:
+
+    ```yaml
+    ---
+    apiVersion: habitat.sh/v1beta1
+    kind: Habitat
+    customVersion: v1beta2
+    metadata:
+    ## Name of the Kubernetes resource.
+    name: sample-node-app-1-1-0-20190516204636
+    spec:
+    v1beta2:
+        ## Name of the Habitat service package exported as a Docker image.
+        image: nellshamrell/sample-node-app:1.1.0-20190516204636
+        ## Number of desired instances.
+        count: 1
+        ## An object containing parameters that affects how the Habitat service
+        ## is executed.
+        service:
+        ## Name of the Habitat service.
+        name: sample-node-app
+        ## Habitat topology of the service.
+        topology: standalone
+        env:
+        - name: HAB_LICENSE
+          value: accept-no-persist
+    ```
+
+7. You can run this manifest in your Kubernetes cluster with:
+
+    ```shell
+    $ kubectl create -f my_app.yaml
+    ```
+
+8. This will create a Kubernetes StatefulSet running your package. To access the pod running your package from the outside internet, you will need to add a Kubernetes service (i.e. a Kubernetes load balancer) with an external IP. Here is an example.
+
+    ```shell
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+    name: app-0
+    spec:
+    type: LoadBalancer
+    selector:
+        habitat-name: sample-node-app-1-1-0-20190516204636
+    ports:
+    - protocol: TCP
+        port: 8000
+        targetPort: 8000
+    ```
+
+9. You can add this service to your Kubernetes cluster with:
+
+    ```shell
+    kubectl create -f ./service.yml
+    ```
 
 ## Export to a Helm chart
 
@@ -164,6 +221,8 @@ Additionally, the Kubernetes Habitat operator is automatically added to the Helm
     You can run `hab pkg export helm --help` to see the full list of available options and general help.
 
 4. More information on how to setup Helm and use of the Helm exporter can be found on the [announcement blog](https://www.habitat.sh/blog/2018/02/Habitat-Helm/)
+
+5. Please note that you will need to add the HAB_LICENSE environment variable to the generated chart (most likely in the templates/habitat.yaml file).
 
 ## Exporting to Apache Mesos and DC/OS
 
