@@ -486,10 +486,12 @@ mod test {
 
     #[test]
     fn service_group_from_str_with_period_in_service() {
-        let x = ServiceGroup::from_str("svc.one.group").unwrap();
+        let x = ServiceGroup::from_str("oz.prod#svc.one.group@baz").unwrap();
+        assert_eq!(x.application_environment(),
+                   Some(ApplicationEnvironment::from_str("oz.prod").unwrap()));
         assert_eq!(x.service(), "svc.one");
         assert_eq!(x.group(), "group");
-        assert!(x.org().is_none());
+        assert_eq!(x.org(), Some("baz"));
     }
 
     #[test]
