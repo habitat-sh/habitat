@@ -128,6 +128,19 @@ macro_rules! env_config_duration {
     };
 }
 
+#[macro_export]
+macro_rules! env_config_int {
+    ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!($wrapping_type,
+                            $type,
+                            $env_var,
+                            $default_value,
+                            std::num::ParseIntError,
+                            s,
+                            Ok(Self((s.parse()?))));
+    };
+}
+
 /// Enable the creation of a value based on an environment variable
 /// that can be supplied at runtime by the user.
 pub trait Config: Default + FromStr {
