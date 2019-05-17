@@ -83,16 +83,18 @@ macro_rules! env_config {
         $from_str_input:ident,
         $from_str_return:expr
     ) => {
+        use $crate::env::Config as _;
+
         struct $wrapping_type($wrapped_type);
         // A little trickery to avoid env var name collisions:
         // This enum can't ever be instantiated, but the compiler will give
-        // an error if two invocations in a namespace give the same env_var
+        // an error if two invocations in a namespace give the same env_var.
         // It'd be nice to make this work globally, but I don't see a good way
         #[allow(non_camel_case_types, dead_code)]
         enum $env_var {}
 
         impl $crate::env::Config for $wrapping_type {
-            const ENVVAR: &'static str = "$env_var";
+            const ENVVAR: &'static str = stringify!($env_var);
         }
 
         impl Default for $wrapping_type {
@@ -105,6 +107,10 @@ macro_rules! env_config {
             fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Err> {
                 $from_str_return
             }
+        }
+
+        impl std::convert::From<$wrapping_type> for $wrapped_type {
+            fn from(x: $wrapping_type) -> $wrapped_type { x.0 }
         }
     };
 }

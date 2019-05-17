@@ -146,7 +146,6 @@ impl FeatureFlag {
 }
 
 pub mod sync {
-    use habitat_core::env::Config as EnvConfig;
     use std::{collections::HashMap,
               sync::Mutex,
               thread::{self,
@@ -186,8 +185,8 @@ pub mod sync {
     pub fn spawn_thread_alive_checker() {
         thread::Builder::new().name("thread-alive-check".to_string())
                               .spawn(|| {
-                                  let delay = ThreadAliveCheckDelay::configured_value().0;
-                                  let threshold = ThreadAliveThreshold::configured_value().0;
+                                  let delay = ThreadAliveCheckDelay::configured_value().into();
+                                  let threshold = ThreadAliveThreshold::configured_value().into();
                                   loop {
                                       check_thread_heartbeats(threshold);
                                       thread::sleep(delay);
