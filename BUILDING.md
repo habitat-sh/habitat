@@ -45,15 +45,17 @@ Check that `cargo` is correctly installed by running
 cargo --version
 ```
 
-Next, install the nightly version of rustfmt
+Next, head to https://rust-lang.github.io/rustup-components-history/ and find the most recent date that all the Tier1 platforms have a present rustfmt. For example: nightly-2019-03-04.
+
+Next, install that nightly version of rustfmt
 ```
-rustup toolchain install nightly
-rustup component add rustfmt --toolchain nightly
+rustup toolchain install nightly nightly-2019-03-04
+rustup component add rustfmt --toolchain nightly-2019-03-04 rustfmt
 ```
 
 To run rustfmt on a cargo project
 ```
-cargo +nightly fmt
+cargo +nightly-2019-03-04 fmt
 ```
 
 You may also be able to configure your editor to automatically run rustfmt every time you save.
