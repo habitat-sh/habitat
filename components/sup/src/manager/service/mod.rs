@@ -20,7 +20,7 @@ mod terminator;
 use self::{context::RenderContext,
            hooks::HookTable,
            supervisor::Supervisor};
-pub use self::{health::HealthCheck,
+pub use self::{health::HealthCheckResult,
                hooks::HealthCheckHook,
                spec::{DesiredState,
                       IntoServiceSpec,
@@ -35,7 +35,8 @@ use crate::{census::{CensusGroup,
             manager::{action::ShutdownSpec,
                       FsCfg,
                       GatewayState,
-                      Sys}};
+                      Sys},
+            sup_futures};
 use futures::{future,
               Future,
               IntoFuture};
@@ -74,13 +75,15 @@ use std::{self,
           collections::HashSet,
           fmt,
           fs,
+          ops::Deref,
           path::{Path,
                  PathBuf},
           result,
           sync::{Arc,
-                 RwLock},
-          time::Instant};
+                 Mutex,
+                 RwLock}};
 use time::Timespec;
+use tokio::runtime::TaskExecutor;
 
 static LOGKEY: &'static str = "SR";
 
@@ -134,7 +137,17 @@ pub struct Service {
 
     #[serde(skip_serializing)]
     config_renderer: CfgRenderer,
-    health_check: HealthCheck,
+    // Note: This field is really only needed for serializing a
+    // Service in the gateway (see ServiceProxy's Serialize
+    // implementation). Ideally, we could get rid of this, since we're
+    // *also* storing the health check result directly (see
+    // manager::GatewayState#health_check_data), but because of how
+    // the data is currently rendered, this is a little complicated.
+    //
+    // In order to access this field in an asynchronous health check
+    // hook, we need to wrap some Arc<Mutex<_>> protection around it
+    // :(
+    health_check_result: Arc<Mutex<HealthCheckResult>>,
     last_election_status: ElectionStatus,
     needs_reload: bool,
     needs_reconfiguration: bool,
@@ -165,11 +178,9 @@ pub struct Service {
     unsatisfied_binds: HashSet<ServiceBind>,
     hooks: HookTable,
     config_from: Option<PathBuf>,
-    #[serde(skip_serializing)]
-    scheduled_health_check: Option<Instant>,
     manager_fs_cfg: Arc<FsCfg>,
     #[serde(rename = "process")]
-    supervisor: Supervisor,
+    supervisor: Arc<Mutex<Supervisor>>,
     svc_encrypted_password: Option<String>,
     health_check_interval: HealthCheckInterval,
 
@@ -179,6 +190,12 @@ pub struct Service {
     defaults_updated: bool,
     #[serde(skip_serializing)]
     gateway_state: Arc<RwLock<GatewayState>>,
+
+    /// A "handle" to the never-ending future that periodically runs
+    /// health checks on this service. This is the means by which we
+    /// can stop that future.
+    #[serde(skip_serializing)]
+    health_check_handle: Option<sup_futures::FutureHandle>,
 }
 
 impl Service {
@@ -205,7 +222,7 @@ impl Service {
                      bldr_url: spec.bldr_url,
                      channel: spec.channel,
                      desired_state: spec.desired_state,
-                     health_check: HealthCheck::default(),
+                     health_check_result: Default::default(),
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
                                             svc_hooks_path(&service_group.service())),
@@ -215,7 +232,7 @@ impl Service {
                      needs_reconfiguration: false,
                      user_config_updated: false,
                      manager_fs_cfg,
-                     supervisor: Supervisor::new(&service_group),
+                     supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
                      pkg,
                      service_group,
                      binds: spec.binds,
@@ -227,11 +244,11 @@ impl Service {
                      topology: spec.topology,
                      update_strategy: spec.update_strategy,
                      config_from: spec.config_from,
-                     scheduled_health_check: Some(Instant::now()),
                      svc_encrypted_password: spec.svc_encrypted_password,
                      health_check_interval: spec.health_check_interval,
                      defaults_updated: false,
-                     gateway_state })
+                     gateway_state,
+                     health_check_handle: None })
     }
 
     /// Returns the config root given the package and optional config-from path.
@@ -272,8 +289,10 @@ impl Service {
         Ok(())
     }
 
-    fn start(&mut self, launcher: &LauncherCli) {
+    fn start(&mut self, launcher: &LauncherCli, executor: &TaskExecutor) {
         if let Some(err) = self.supervisor
+                               .lock()
+                               .expect("Couldn't lock supervisor")
                                .start(&self.pkg,
                                       &self.service_group,
                                       launcher,
@@ -285,21 +304,84 @@ impl Service {
             self.needs_reload = false;
             self.needs_reconfiguration = false;
         }
+
+        self.start_health_checks(executor);
+    }
+
+    /// Create the state necessary for managing a repeatedly-running
+    /// health check hook.
+    fn health_state(&self) -> health::State {
+        health::State::new(self.hooks.health_check.clone(),
+                           self.service_group.clone(),
+                           self.pkg.clone(),
+                           self.svc_encrypted_password.clone(),
+                           Arc::clone(&self.supervisor),
+                           self.health_check_interval,
+                           Arc::clone(&self.health_check_result),
+                           Arc::clone(&self.gateway_state))
+    }
+
+    /// Initiate an endless future that performs periodic health
+    /// checks for the service
+    fn start_health_checks(&mut self, executor: &TaskExecutor) {
+        let (handle, f) = sup_futures::cancelable_future(self.health_state().check_repeatedly());
+
+        self.health_check_handle = Some(handle);
+
+        let service_group_copy = self.service_group.clone();
+        executor.spawn(f.map_err(move |err| {
+                                                   if err.is_some() {
+                                                       warn!("Health checking for {} \
+                                                              unexpectedly errored!",
+                                                             service_group_copy);
+                                                   } else {
+                                                       outputln!(preamble service_group_copy,
+                                                                 "Health checking has been stopped");
+                                                   }
+                                               }));
+    }
+
+    /// Stop the endless future that performs health checks for the
+    /// service.
+    ///
+    /// Consumes the handle to that future in the process.
+    fn stop_health_checks(&mut self) {
+        if let Some(h) = self.health_check_handle.take() {
+            h.terminate();
+        }
+    }
+
+    /// Any currently-running health check future will be terminated
+    /// and a new one started in its place.
+    ///
+    /// This is mainly good for "resetting" the checks, and will
+    /// initiate a new health check immediately.
+    fn restart_health_checks(&mut self, executor: &TaskExecutor) {
+        self.stop_health_checks();
+        self.start_health_checks(executor);
     }
 
     /// Return a future that will shut down a service, performing any
     /// necessary cleanup, and run its post-stop hook, if any.
-    pub fn stop(&self, shutdown_spec: ShutdownSpec) -> impl Future<Item = (), Error = SupError> {
+    pub fn stop(&mut self,
+                shutdown_spec: ShutdownSpec)
+                -> impl Future<Item = (), Error = SupError> {
+        self.stop_health_checks();
+
         let service_group = self.service_group.clone();
         let gs = Arc::clone(&self.gateway_state);
 
-        let f = self.supervisor.stop(shutdown_spec).and_then(move |_| {
-                                                       gs.write()
-                                                         .expect("GatewayState lock is poisoned")
-                                                         .health_check_data
-                                                         .remove(&service_group);
-                                                       Ok(())
-                                                   });
+        let f = self.supervisor
+                    .lock()
+                    .expect("Couldn't lock supervisor")
+                    .stop(shutdown_spec)
+                    .and_then(move |_| {
+                        gs.write()
+                          .expect("GatewayState lock is poisoned")
+                          .health_check_data
+                          .remove(&service_group);
+                        Ok(())
+                    });
 
         // eww
         let service_group_2 = self.service_group.clone();
@@ -321,6 +403,8 @@ impl Service {
         if self.process_down() || self.hooks.reload.is_none() {
             if let Some(err) =
                 self.supervisor
+                    .lock()
+                    .expect("Couldn't lock supervisor")
                     .restart(&self.pkg,
                              &self.service_group,
                              launcher,
@@ -337,12 +421,21 @@ impl Service {
         }
     }
 
-    pub fn last_state_change(&self) -> Timespec { self.supervisor.state_entered }
+    pub fn last_state_change(&self) -> Timespec {
+        self.supervisor
+            .lock()
+            .expect("Couldn't lock supervisor")
+            .state_entered
+    }
 
     /// Performs updates and executes hooks.
     ///
     /// Returns `true` if the service was updated.
-    pub fn tick(&mut self, census_ring: &CensusRing, launcher: &LauncherCli) -> bool {
+    pub fn tick(&mut self,
+                census_ring: &CensusRing,
+                launcher: &LauncherCli,
+                executor: &TaskExecutor)
+                -> bool {
         // We may need to block the service from starting until all
         // its binds are satisfied
         if !self.initialized {
@@ -372,7 +465,7 @@ impl Service {
 
         match self.topology {
             Topology::Standalone => {
-                self.execute_hooks(launcher);
+                self.execute_hooks(launcher, executor);
             }
             Topology::Leader => {
                 let census_group =
@@ -412,13 +505,23 @@ impl Service {
                                       leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks(launcher)
+                        self.execute_hooks(launcher, executor)
                     }
                 }
             }
         }
         if svc_updated {
-            self.schedule_health_check_at_next_tick();
+            // The intention here is to do a health check soon after a
+            // service's configuration changes, as a way to (among
+            // other things) detect potential impacts when bound
+            // services change exported configuration.
+            //
+            // TODO (CM): Rather than restarting health checks
+            // immediately (and correspondingly, immediately after a
+            // service starts for the first time), should we instead
+            // have an initial delay of X seconds, and _then_ start
+            // the "normal" sequence of checks?
+            self.restart_health_checks(executor);
         }
 
         svc_updated
@@ -582,9 +685,20 @@ impl Service {
     }
 
     /// Updates the process state of the service's supervisor
-    fn check_process(&mut self) -> bool { self.supervisor.check_process() }
+    fn check_process(&mut self) -> bool {
+        self.supervisor
+            .lock()
+            .expect("Couldn't lock supervisor")
+            .check_process()
+    }
 
-    fn process_down(&self) -> bool { self.supervisor.state == ProcessState::Down }
+    fn process_down(&self) -> bool {
+        self.supervisor
+            .lock()
+            .expect("Couldn't lock supervisor")
+            .state
+        == ProcessState::Down
+    }
 
     /// Updates the service configuration with data from a census group if the census group has
     /// newer data than the current configuration.
@@ -641,8 +755,6 @@ impl Service {
 
                 (reload, reconfigure)
             };
-
-            self.schedule_special_health_check();
 
             self.needs_reload = reload;
             self.needs_reconfiguration = reconfigure;
@@ -736,16 +848,6 @@ impl Service {
                                        })
     }
 
-    fn cache_health_check(&self, check_result: HealthCheck) {
-        debug!("Caching HealthCheck = '{}' for '{}'",
-               check_result, self.service_group);
-        self.gateway_state
-            .write()
-            .expect("GatewayState lock is poisoned")
-            .health_check_data
-            .insert(self.service_group.clone(), check_result);
-    }
-
     /// Helper for compiling configuration templates into configuration files.
     ///
     /// Returns `true` if the configuration has changed.
@@ -821,7 +923,7 @@ impl Service {
         win_perm::harden_path(path.as_ref())
     }
 
-    fn execute_hooks(&mut self, launcher: &LauncherCli) {
+    fn execute_hooks(&mut self, launcher: &LauncherCli, executor: &TaskExecutor) {
         if !self.initialized {
             if self.check_process() {
                 outputln!("Reattached to {}", self.service_group);
@@ -830,22 +932,11 @@ impl Service {
             }
             self.initialize();
             if self.initialized {
-                self.start(launcher);
+                self.start(launcher, executor);
                 self.post_run();
             }
         } else {
             self.check_process();
-
-            let now = Instant::now();
-            match self.scheduled_health_check {
-                Some(scheduled_check_instant) if scheduled_check_instant > now => {
-                    trace!("Skipping health check; next scheduled for {:?} (now: {:?})",
-                           scheduled_check_instant,
-                           now);
-                }
-                _ => self.run_health_check_hook(),
-            }
-
             // NOTE: if you need reconfiguration and you DON'T have a
             // reload script, you're going to restart anyway.
             if self.needs_reload || self.process_down() || self.needs_reconfiguration {
@@ -907,67 +998,6 @@ impl Service {
                            self.binds
                                .iter()
                                .filter(|b| !self.unsatisfied_binds.contains(b)))
-    }
-
-    fn run_health_check_hook(&mut self) {
-        let _timer = hook_timer("health-check");
-        debug!("Running Health Check hook for ({})", self.spec_ident);
-        let check_result = if let Some(ref hook) = self.hooks.health_check {
-            hook.run(&self.service_group,
-                     &self.pkg,
-                     self.svc_encrypted_password.as_ref())
-        } else {
-            match self.supervisor.status() {
-                (true, _) => HealthCheck::Ok,
-                (false, _) => HealthCheck::Critical,
-            }
-        };
-
-        // We have just ran a check; therefore we must unset the next scheduled check time
-        // in anticipation of `None` value being used in the next scheduled check time calculation.
-        self.scheduled_health_check = None;
-
-        if check_result == HealthCheck::Ok {
-            self.schedule_routine_health_check();
-            debug!("Service ({}) health check is: {}",
-                   self.spec_ident, check_result);
-        } else {
-            debug!("Service ({}) health check is: {}; scheduling special health check",
-                   self.spec_ident, check_result);
-            self.schedule_special_health_check();
-        }
-        self.health_check = check_result;
-        self.cache_health_check(check_result);
-    }
-
-    fn schedule_routine_health_check(&mut self) {
-        let interval = self.health_check_interval;
-        self.schedule_health_check(interval);
-    }
-
-    fn schedule_special_health_check(&mut self) {
-        self.schedule_health_check(HealthCheckInterval::default());
-    }
-
-    fn schedule_health_check_at_next_tick(&mut self) {
-        self.schedule_health_check(HealthCheckInterval::immediately());
-    }
-
-    fn schedule_health_check(&mut self, interval: HealthCheckInterval) {
-        let instant_to_schedule = Instant::now() + interval.into();
-        match self.scheduled_health_check {
-            Some(already_scheduled_instant) if instant_to_schedule > already_scheduled_instant => {
-                trace!("Skipping health check schedule request for {:?}; there is already one \
-                        scheduled sooner at {:?}",
-                       instant_to_schedule,
-                       already_scheduled_instant);
-            }
-            _ => {
-                debug!("Scheduling next health check for ({}) in {}",
-                       self.spec_ident, interval);
-                self.scheduled_health_check = Some(instant_to_schedule);
-            }
-        }
     }
 
     // Returns `false` if the write fails.
@@ -1109,7 +1139,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("channel", &s.channel)?;
         strukt.serialize_field("config_from", &s.config_from)?;
         strukt.serialize_field("desired_state", &s.desired_state)?;
-        strukt.serialize_field("health_check", &s.health_check)?;
+        strukt.serialize_field("health_check", &s.health_check_result)?;
         strukt.serialize_field("hooks", &s.hooks)?;
         strukt.serialize_field("initialized", &s.initialized)?;
         strukt.serialize_field("last_election_status", &s.last_election_status)?;
@@ -1120,7 +1150,11 @@ impl<'a> Serialize for ServiceProxy<'a> {
         let pkg_proxy = PkgProxy::new(&s.pkg);
         strukt.serialize_field("pkg", &pkg_proxy)?;
 
-        strukt.serialize_field("process", &s.supervisor)?;
+        strukt.serialize_field("process",
+                               s.supervisor
+                                .lock()
+                                .expect("Couldn't lock supervisor")
+                                .deref())?;
         strukt.serialize_field("service_group", &s.service_group)?;
         strukt.serialize_field("spec_file", &s.spec_file)?;
         strukt.serialize_field("spec_ident", &s.spec_ident)?;
@@ -1178,15 +1212,6 @@ mod tests {
         let gs = Arc::new(RwLock::new(GatewayState::default()));
         Service::new(asys, &install, spec, afs, Some("haha"), gs).expect("I wanted a service to \
                                                                           load, but it didn't")
-    }
-
-    #[test]
-    fn health_check_is_due_at_creation() {
-        let service = initialize_test_service();
-        assert!(service.scheduled_health_check.is_some(),
-                "Expected a scheduled health check");
-        assert!(service.scheduled_health_check.unwrap() < Instant::now(),
-                "Expected health check due at creation");
     }
 
     #[test]

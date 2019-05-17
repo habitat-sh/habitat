@@ -20,7 +20,7 @@ use self::{action::{ShutdownSpec,
                           SUP_PKG_IDENT},
            service::{ConfigRendering,
                      DesiredState,
-                     HealthCheck,
+                     HealthCheckResult,
                      Service,
                      ServiceProxy,
                      ServiceSpec,
@@ -337,7 +337,7 @@ pub struct GatewayState {
     pub services_data: String,
     /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
     /// endpoint
-    pub health_check_data: HashMap<ServiceGroup, HealthCheck>,
+    pub health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
 }
 
 pub struct Manager {
@@ -962,7 +962,7 @@ impl Manager {
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
-                if service.tick(&self.census_ring, &self.launcher) {
+                if service.tick(&self.census_ring, &self.launcher, &runtime.executor()) {
                     self.gossip_latest_service_rumor(&service);
                 }
             }
@@ -1254,7 +1254,7 @@ impl Manager {
     }
 
     /// Remove the given service from the manager.
-    fn service_stop_future(service: Service,
+    fn service_stop_future(mut service: Service,
                            shutdown_spec: ShutdownSpec,
                            user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
                            updater: Arc<Mutex<ServiceUpdater>>,
