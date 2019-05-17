@@ -98,10 +98,10 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
 pub struct EventStreamConfig {
     environment: String,
     application: String,
+    site:        Option<String>,
     meta:        EventStreamMetadata,
     token:       AutomateAuthToken,
     url:         String,
-    site:        Option<String>,
 }
 
 impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
@@ -112,12 +112,12 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
                             application: m.value_of("EVENT_STREAM_APPLICATION")
                                           .map(str::to_string)
                                           .expect("Required option for EventStream feature"),
+                            site:        m.value_of("EVENT_STREAM_SITE").map(str::to_string),
                             meta:        EventStreamMetadata::from(m),
                             token:       AutomateAuthToken::from(m),
                             url:         m.value_of("EVENT_STREAM_URL")
                                           .map(str::to_string)
-                                          .expect("Required option for EventStream feature"),
-                            site:        m.value_of("EVENT_STREAM_SITE").map(str::to_string), }
+                                          .expect("Required option for EventStream feature"), }
     }
 }
 
@@ -167,9 +167,9 @@ impl EventCore {
         EventCore { supervisor_id: sys.member_id.clone(),
                     ip_address: sys.gossip_listen(),
                     fqdn,
-                    site: config.site.clone(),
                     environment: config.environment.clone(),
                     application: config.application.clone(),
+                    site: config.site.clone(),
                     meta: config.meta.clone() }
     }
 }
