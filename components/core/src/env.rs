@@ -72,6 +72,26 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
     }
 }
 
+/// Declare a struct that implements the `Config` trait with a minimum of boilerplate.
+/// This declares a simple newtype struct whose name comes from `$wrapping_type`,
+/// which wraps the provided `$wrapped_type` and can be overridden by setting the
+/// environment variable specified in `$env_var`.
+///
+/// Additionally, this macro provides a `From` (and implicitly `Into`) implementation
+/// so the `$wrapping_type` can be ergonomically converted to `$wrapped_type`.
+///
+/// For example, if `$wrapping_type` were `Foo`, to access the overridden value and
+/// pass it to a function `bar` which accepts `$wrapped_type`:
+///
+/// ```ignore
+/// bar(Foo::configured_value().into());
+/// ```
+///
+/// See `Config::configured_value`'s documentation for more.
+///
+/// In general this exists to make the work of other macros which implement wrappers for
+/// specific wrapped types simpler since the remaining arguments which specify the
+/// `FromStr` implementation will generally be the same for a given wrapped type.
 #[macro_export]
 macro_rules! env_config {
     (
@@ -115,12 +135,23 @@ macro_rules! env_config {
     };
 }
 
+/// Declare a struct `$wrapping_type` that stores a `std::time::Duration` and
+/// implements the `Config` trait so that its value can be overridden by `$env_var_as_secs`.
+///
+/// This is a thin wrapper around `env_config`. See its documentation for more details.
+///
+/// Example usage:
+/// ```
+/// habitat_core::env_config_duration!(PersistLoopPeriod,
+///                                    HAB_PERSIST_LOOP_PERIOD_SECS,
+///                                    Duration::from_secs(30));
+/// ```
 #[macro_export]
 macro_rules! env_config_duration {
-    ($wrapping_type:ident, $env_var:ident, $default_value:expr) => {
+    ($wrapping_type:ident, $env_var_as_secs:ident, $default_value:expr) => {
         $crate::env_config!($wrapping_type,
                             std::time::Duration,
-                            $env_var,
+                            $env_var_as_secs,
                             $default_value,
                             std::num::ParseIntError,
                             s,
@@ -128,6 +159,17 @@ macro_rules! env_config_duration {
     };
 }
 
+/// Declare a struct `$wrapping_type` that stores an integer of type `$type` and
+/// implements the `Config` trait so that its value can be overridden by `$env_var`.
+///
+/// This is a thin wrapper around `env_config`. See its documentation for more details.
+///
+/// Example usage:
+/// ```
+/// habitat_core::env_config_duration!(ThreadAliveThreshold,
+///                                    HAB_THREAD_ALIVE_THRESHOLD_SECS,
+///                                    Duration::from_secs(5 * 60));
+/// ```
 #[macro_export]
 macro_rules! env_config_int {
     ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {

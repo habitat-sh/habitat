@@ -53,7 +53,11 @@ impl Pull {
         socket.bind(&format!("tcp://{}", self.server.gossip_addr()))
               .expect("Failure to bind the ZMQ Pull socket to the port");
         'recv: loop {
-            habitat_common::sync::mark_thread_alive();
+            if let Ok(-1) = socket.get_rcvtimeo() {
+                trace!("Skipping thread liveliness checks due to infinite recv timeout");
+            } else {
+                habitat_common::sync::mark_thread_alive();
+            }
 
             if self.server.paused() {
                 thread::sleep(Duration::from_millis(100));
@@ -63,6 +67,8 @@ impl Pull {
             let msg = match socket.recv_msg(0) {
                 Ok(msg) => msg,
                 Err(e) => {
+                    // We intentionally set a timeout above so that `mark_thread_alive` can be
+                    // used to show this thread is alive even when there's no data to receive.
                     if e != zmq::Error::EAGAIN {
                         error!("Error receiving message: {:?}", e);
                     }
