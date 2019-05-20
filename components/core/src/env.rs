@@ -72,6 +72,119 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
     }
 }
 
+/// Declare a struct that implements the `Config` trait with a minimum of boilerplate.
+/// This declares a simple newtype struct whose name comes from `$wrapping_type`,
+/// which wraps the provided `$wrapped_type` and can be overridden by setting the
+/// environment variable specified in `$env_var`.
+///
+/// Additionally, this macro provides a `From` (and implicitly `Into`) implementation
+/// so the `$wrapping_type` can be ergonomically converted to `$wrapped_type`.
+///
+/// For example, if `$wrapping_type` were `Foo`, to access the overridden value and
+/// pass it to a function `bar` which accepts `$wrapped_type`:
+///
+/// ```ignore
+/// bar(Foo::configured_value().into());
+/// ```
+///
+/// See `Config::configured_value`'s documentation for more.
+///
+/// In general this exists to make the work of other macros which implement wrappers for
+/// specific wrapped types simpler since the remaining arguments which specify the
+/// `FromStr` implementation will generally be the same for a given wrapped type.
+#[macro_export]
+macro_rules! env_config {
+    (
+        $wrapping_type:ident,
+        $wrapped_type:ty,
+        $env_var:ident,
+        $default_value:expr,
+        $from_str_err_type:ty,
+        $from_str_input:ident,
+        $from_str_return:expr
+    ) => {
+        use $crate::env::Config as _;
+
+        struct $wrapping_type($wrapped_type);
+        // A little trickery to avoid env var name collisions:
+        // This enum can't ever be instantiated, but the compiler will give
+        // an error if two invocations in a namespace give the same env_var.
+        // It'd be nice to make this work globally, but I don't see a good way
+        #[allow(non_camel_case_types, dead_code)]
+        enum $env_var {}
+
+        impl $crate::env::Config for $wrapping_type {
+            const ENVVAR: &'static str = stringify!($env_var);
+        }
+
+        impl Default for $wrapping_type {
+            fn default() -> Self { Self($default_value) }
+        }
+
+        impl std::str::FromStr for $wrapping_type {
+            type Err = $from_str_err_type;
+
+            fn from_str($from_str_input: &str) -> std::result::Result<Self, Self::Err> {
+                $from_str_return
+            }
+        }
+
+        impl std::convert::From<$wrapping_type> for $wrapped_type {
+            fn from(x: $wrapping_type) -> $wrapped_type { x.0 }
+        }
+    };
+}
+
+/// Declare a struct `$wrapping_type` that stores a `std::time::Duration` and
+/// implements the `Config` trait so that its value can be overridden by `$env_var_as_secs`.
+///
+/// This is a thin wrapper around `env_config`. See its documentation for more details.
+///
+/// Example usage:
+/// ```
+/// use std::time::Duration;
+/// habitat_core::env_config_duration!(PersistLoopPeriod,
+///                                    HAB_PERSIST_LOOP_PERIOD_SECS,
+///                                    Duration::from_secs(30));
+/// ```
+#[macro_export]
+macro_rules! env_config_duration {
+    ($wrapping_type:ident, $env_var_as_secs:ident, $default_value:expr) => {
+        $crate::env_config!($wrapping_type,
+                            std::time::Duration,
+                            $env_var_as_secs,
+                            $default_value,
+                            std::num::ParseIntError,
+                            s,
+                            Ok(Self(std::time::Duration::from_secs(s.parse()?))));
+    };
+}
+
+/// Declare a struct `$wrapping_type` that stores an integer of type `$type` and
+/// implements the `Config` trait so that its value can be overridden by `$env_var`.
+///
+/// This is a thin wrapper around `env_config`. See its documentation for more details.
+///
+/// Example usage:
+/// ```
+/// use std::time::Duration;
+/// habitat_core::env_config_duration!(ThreadAliveThreshold,
+///                                    HAB_THREAD_ALIVE_THRESHOLD_SECS,
+///                                    Duration::from_secs(5 * 60));
+/// ```
+#[macro_export]
+macro_rules! env_config_int {
+    ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!($wrapping_type,
+                            $type,
+                            $env_var,
+                            $default_value,
+                            std::num::ParseIntError,
+                            s,
+                            Ok(Self((s.parse()?))));
+    };
+}
+
 /// Enable the creation of a value based on an environment variable
 /// that can be supplied at runtime by the user.
 pub trait Config: Default + FromStr {

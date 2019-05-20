@@ -1168,16 +1168,20 @@ impl fmt::Display for Server {
 }
 
 fn persist_loop(server: &Server) {
-    // TODO: Make this configurable with EnvConfig. That trait needs to move
-    // to common or core first
-    const MIN_LOOP_PERIOD: Duration = Duration::from_secs(30);
+    habitat_core::env_config_duration!(PersistLoopPeriod,
+                                       HAB_PERSIST_LOOP_PERIOD_SECS,
+                                       Duration::from_secs(30));
+
+    let min_loop_period: Duration = PersistLoopPeriod::configured_value().into();
 
     loop {
+        habitat_common::sync::mark_thread_alive();
+
         let before_persist = Instant::now();
         server.persist_data();
         let time_to_persist = before_persist.elapsed();
         trace!("persist_data took {:?}", time_to_persist);
-        match MIN_LOOP_PERIOD.checked_sub(time_to_persist) {
+        match min_loop_period.checked_sub(time_to_persist) {
             Some(time_to_wait) => thread::sleep(time_to_wait),
             None => {
                 warn!("Persisting data took longer than expected: {:?}",

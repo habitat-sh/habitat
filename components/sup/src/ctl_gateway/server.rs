@@ -375,6 +375,8 @@ impl Future for SrvHandler {
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
         loop {
+            habitat_common::sync::mark_thread_alive();
+
             match self.state {
                 SrvHandlerState::Receiving => {
                     match try_ready!(self.io.poll()) {

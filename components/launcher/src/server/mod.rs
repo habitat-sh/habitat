@@ -418,6 +418,8 @@ pub fn run(args: Vec<String>) -> Result<i32> {
     let mut server = Server::new(args)?;
     signals::init();
     loop {
+        habitat_common::sync::mark_thread_alive();
+
         match server.tick() {
             Ok(TickState::Continue) => thread::sleep(Duration::from_millis(100)),
             Ok(TickState::Exit(code)) => {

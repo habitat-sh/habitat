@@ -52,6 +52,8 @@ impl PeerWatcher {
 
         ThreadBuilder::new().name(format!("peer-watcher-[{}]", path.display()))
                             .spawn(move || {
+                                habitat_common::sync::mark_thread_alive();
+
                                 // debug!("PeerWatcher({}) thread starting", abs_path.display());
                                 loop {
                                     let have_events_for_loop = Arc::clone(&have_events_for_thread);

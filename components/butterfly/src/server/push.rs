@@ -53,6 +53,8 @@ impl Push {
     /// exceed that time.
     pub fn run(&mut self) {
         loop {
+            habitat_common::sync::mark_thread_alive();
+
             if self.server.paused() {
                 thread::sleep(Duration::from_millis(100));
                 continue;

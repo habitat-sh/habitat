@@ -95,6 +95,8 @@ impl Outbound {
     pub fn run(&mut self) {
         let mut have_members = false;
         loop {
+            habitat_common::sync::mark_thread_alive();
+
             if !have_members {
                 let num_initial = self.server.member_list.len_initial_members();
                 if num_initial != 0 {

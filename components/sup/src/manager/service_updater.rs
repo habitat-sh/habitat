@@ -508,6 +508,8 @@ impl Worker {
         let mut next_time = SteadyTime::now();
 
         loop {
+            habitat_common::sync::mark_thread_alive();
+
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");

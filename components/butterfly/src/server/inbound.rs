@@ -53,6 +53,8 @@ impl Inbound {
         let mut recv_buffer: Vec<u8> = vec![0; 1024];
 
         loop {
+            habitat_common::sync::mark_thread_alive();
+
             if self.server.paused() {
                 thread::sleep(Duration::from_millis(100));
                 continue;
