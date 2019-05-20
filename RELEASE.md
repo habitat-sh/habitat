@@ -358,3 +358,100 @@ actually push artifacts to the real release channels.
 Also note that there is no additional automation around this
 currently. If you want to initiate a fake release, you must take that
 action yourself.
+
+# "Yanking" a Release
+
+In general, if an escaped defect is discovered in a Habitat release,
+the first solution should be to "roll forward". That is, a patch that
+addresses the defect (either by fixing it or reverting the code
+responsible) should be merged to master, and then a new release is
+built from that. This is the desired solution because it requires no
+extraordinary measures by end-users to take advantage of the fix; they
+only need to update their software as they would for any "normal"
+release.
+
+In the rare case that that is _not_ possible (e.g., the cause of the
+defect is not readily apparent), you can remove or "yank" the
+offending release, and fall back to the previous release. This is not
+a perfect solution, however. The process and drawbacks are detailed
+here.
+
+## Steps for Yanking a Release
+
+1. Demote all packages produced during a release from the `stable` channel in Builder.
+
+   This includes not only the `hab` CLI and Supervisor-related
+   binaries, but _everything_, including Studio and exporters, and for
+   all supported platforms. The list of specific package releases can
+   be found at the top of the Buildkite page for the specific release
+   pipeline execution that created the failed release.
+
+2. Delete the Bintray releases for all supported platforms.
+
+   - https://bintray.com/habitat/stable/hab-x86_64-linux
+   - https://bintray.com/habitat/stable/hab-x86_64-linux-kernel2
+   - https://bintray.com/habitat/stable/hab-x86_64-windows
+   - https://bintray.com/habitat/stable/hab-x86_64-darwin
+
+   Select the offending version from the list, and then click `Edit`
+   from that version's page. Press the `Delete Version` button.
+
+3. Revert the version's change for the Homebrew tap
+
+   Clone the repository from
+   https://github.com/habitat-sh/homebrew-habitat and revert the
+   commit for the offending release (see [this
+   example](https://github.com/habitat-sh/homebrew-habitat/commit/ee8d5d6857879ce067a84ad7819446f1bfff35f3)).
+
+4. Unlist the Chocolatey version for Windows
+
+   Chocolatey versions cannot, strictly speaking, be deleted, but only
+   unlisted. However, since the Chocolatey release ultimately pulls
+   binaries from Bintray currently, it ends up being a distinction
+   without a difference.
+
+   To unlist a version, go to https://chocolatey.org/packages/habitat/
+   and scroll down to the `Version History` listing. Find the
+   offending version and click the link for it in the `Listed` column
+   (the link text will be "yes"). This will take you to a page where
+   you can choose to unlist the package.
+
+5. Container Images
+
+   There are no steps currently needed to yank any container images,
+   since the binaries pull them in specifially by version tag.
+
+6. User Remediation Steps
+
+   Though the above steps will prevent _future_ users from installing
+   the offending release, it does nothing to fix users that have
+   already downloaded the release. These are the steps they will need
+   to take to "roll back" to the last stable release. These steps
+   should be included in any communications that are sent out about
+   the release.
+
+   (These examples are for the 0.80.0 release; change the versions as required.)
+
+   On Linux:
+
+       rm -rf /hab/pkgs/core/hab/0.80.0
+       rm /hab/cache/artifacts/core-hab-0.80.0-*
+       rm -rf /hab/pkgs/core/hab-sup/0.80.0
+       rm /hab/cache/artifacts/core-hab-sup-0.80.0-*
+
+   If a Launcher release must be pulled, make note of the version and
+   delete any installed versions of it:
+
+       rm -rf /hab/pkgs/core/hab-launcher/${VERSION}
+       rm /hab/cache/artifacts/core-hab-launcher-${VERSION}-*
+
+   On Windows (Chocolatey) :
+
+       choco uninstall habitat --version 0.80.0
+       Remove-Item c:\hab\pkgs\core\hab-sup\0.80.0 -Recurse -Force
+       choco install habitat
+
+   On macOS (Homebrew):
+
+       brew uninstall hab
+       brew install hab
