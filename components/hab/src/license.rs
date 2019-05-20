@@ -179,6 +179,6 @@ fn write_license_file() -> Result<()> {
 }
 
 pub fn license_exists() -> bool {
-    license_file(&license_path(&superuser_license_root())).is_file()
-    || license_file(&license_path(&user_license_root())).is_file()
+    license_file(&license_path(&user_license_root())).is_file()
+    || license_file(&license_path(&superuser_license_root())).is_file()
 }
