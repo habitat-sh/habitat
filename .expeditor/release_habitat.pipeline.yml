@@ -1,25 +1,409 @@
 expeditor:
+  secrets:
+    ACCEPTANCE_HAB_AUTH_TOKEN:
+      path: account/static/habitat/chef-ci
+      field: scotthain-sig-key
   defaults:
     buildkite:
       timeout_in_minutes: 30
+      env:
+        HAB_ORIGIN: "core"
+        ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+        # HAB_LICENSE: "accept-no-persist"
+        # HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
 
 steps:
 #######################################################################
 # Release!
 #######################################################################
 
-  - label: "[First step]"
+  # TODO If you add quotes around the target currently breaks a bash case statement :/
+  - label: "[:linux: build hab]"
     command:
-      - echo "HI"
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    retry:
-      automatic:
-        limit: 1
+      - .expeditor/scripts/build_component.sh hab
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+  
+  - label: "[:linux: :two: build hab]"
+    command:
+      - .expeditor/scripts/build_component.sh hab
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  - label: "[:windows: build hab]"
+    command:
+      - powershell .expeditor/scripts/build_component.ps1 hab
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          os_version: 2016
+          propagate-environment: true
+          always-pull: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - wait
+
+  - label: "[:linux: build hab-plan-build]"
+    command:
+      - .expeditor/scripts/build_component.sh plan-build
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: build hab-plan-build]"
+    command:
+      - .expeditor/scripts/build_component.sh plan-build
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  # Until we can use the expeditor executors
+  - label: "[:windows: build plan-build-ps1]"
+    command:
+      - powershell .expeditor/scripts/build_component.ps1 plan-build-ps1
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          os_version: 2016
+          propagate-environment: true
+          always-pull: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - wait
+
+  - label: "[:linux: build hab-backline]"
+    command:
+      - .expeditor/scripts/build_component.sh backline
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: build hab-backline]"
+    command:
+      - .expeditor/scripts/build_component.sh backline
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  - wait
+
+  - label: "[:linux: build hab-studio]"
+    command:
+      - .expeditor/scripts/build_component.sh studio
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: build hab-studio]"
+    command:
+      - .expeditor/scripts/build_component.sh studio
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  # Until we can use the expeditor executors
+  - label: "[:windows: build studio]"
+    command:
+      - powershell .expeditor/scripts/build_component.ps1 studio
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          os_version: 2016
+          propagate-environment: true
+          always-pull: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - wait
+
+  - label: "[:linux: build launcher]"
+    command:
+      - .expeditor/scripts/build_component.sh launcher
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: build launcher]"
+    command:
+      - .expeditor/scripts/build_component.sh launcher
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  # Until we can use the expeditor executors
+  - label: "[:windows: build launcher]"
+    command:
+      - powershell .expeditor/scripts/build_component.ps1 launcher
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          os_version: 2016
+          propagate-environment: true
+          always-pull: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - wait
+
+  - label: "[:linux: build hab-sup]"
+    command:
+      - .expeditor/scripts/build_component.sh sup
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: build hab-sup]"
+    command:
+      - .expeditor/scripts/build_component.sh sup
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  # Until we can use the expeditor executors
+  - label: "[:windows: build hab-sup]"
+    command:
+      - powershell .expeditor/scripts/build_component.ps1 sup
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          os_version: 2016
+          propagate-environment: true
+          always-pull: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - wait
+
+  - label: "[:linux: build hab-pkg-aci]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-aci
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: build hab-pkg-export-docker]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-export-docker
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  # Until we can use the expeditor executors
+  - label: "[:windows: build hab-pkg-export-docker]"
+    command:
+      - powershell .expeditor/scripts/build_component.ps1 pkg-export-docker
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          os_version: 2016
+          propagate-environment: true
+          always-pull: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - label: "[:linux: build hab-pkg-export-kubernetes]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-export-kubernetes
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: build hab-pkg-export-helm]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-export-helm
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: build hab-pkg-export-tar]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-export-tar
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: build hab-pkg-export-tar]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-export-tar
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  # Until we can use the expeditor executors
+  - label: "[:windows: build hab-pkg-export-tar]"
+    command:
+      - powershell .expeditor/scripts/build_component.ps1 pkg-export-tar
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          os_version: 2016
+          propagate-environment: true
+          always-pull: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - label: "[:linux: build hab-pkg-mesosize]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-mesosize
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: build hab-pkg-export-tar]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-export-tar
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  - wait
+
+  # The cfize export currently has a dependency on
+  # hab-pkg-export-docker, so it must be built after that.
+  - label: "[:linux: build hab-pkg-cfize]"
+    command:
+      - .expeditor/scripts/build_component.sh pkg-cfize
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - wait
+
+  # Promote all packages to the DEV channel
+  - label: "[:linux: promote to dev]"
+    command:
+      - .expeditor/scripts/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: promote to dev]"
+    command:
+      - .expeditor/scripts/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  - label: "[:windows: promote to dev]"
+    command:
+      - .expeditor/scripts/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          propagate-environment: true
+          always-pull: true
+          environment:
+            - ACCEPTANCE_HAB_AUTH_TOKEN=$SCOTTHAIN_HAB_AUTH_TOKEN
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN

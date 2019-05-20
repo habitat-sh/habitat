@@ -30,9 +30,13 @@ while ps -p "$launcher_pid" &>/dev/null; do
 	if [[ $((retries++)) -gt $max_retries ]]; then
 		echo
 		echo "Failure! Launcher failed to exit before timeout"
+    contents=$(cat $sup_log)
+    echo "--- FAILURE LOG: ${contents}"
 		exit 2
 	else
 		sleep 1
+    contents=$(cat $sup_log)
+    echo "--- LOG: ${contents}"
 	fi
 done
 echo
