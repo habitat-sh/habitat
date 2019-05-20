@@ -376,6 +376,9 @@ offending release, and fall back to the previous release. This is not
 a perfect solution, however. The process and drawbacks are detailed
 here.
 
+It should be noted that yanking a release is a *last resort* action;
+all efforts should be made to roll forward first.
+
 ## Steps for Yanking a Release
 
 1. Demote all packages produced during a release from the `stable` channel in Builder.
@@ -430,6 +433,9 @@ here.
    should be included in any communications that are sent out about
    the release.
 
+   Rolling forward is preferable to yanking a release, because rolling
+   forward does not require these manual remediation steps.
+
    (These examples are for the 0.80.0 release; change the versions as required.)
 
    On Linux:
@@ -446,6 +452,9 @@ here.
        rm /hab/cache/artifacts/core-hab-launcher-${VERSION}-*
 
    On Windows (Chocolatey) :
+
+       hab pkg exec core/windows-service uninstall
+       hab pkg uninstall core/windows-service
 
        choco uninstall habitat --version 0.80.0
        Remove-Item c:\hab\pkgs\core\hab-sup\0.80.0 -Recurse -Force
