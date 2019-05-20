@@ -10,6 +10,7 @@
 - remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Be more liberal in our license acceptance checking. [#6574](https://github.com/habitat-sh/habitat/pull/6574) ([raskchanky](https://github.com/raskchanky))
 - Initial protobufs for events [#6344](https://github.com/habitat-sh/habitat/pull/6344) ([christophermaier](https://github.com/christophermaier))
 - Fixing a corrupt Gemfile.lock [#6561](https://github.com/habitat-sh/habitat/pull/6561) ([raskchanky](https://github.com/raskchanky))
 - Update tutorials with license acceptance information [#6535](https://github.com/habitat-sh/habitat/pull/6535) ([smacfarlane](https://github.com/smacfarlane))
