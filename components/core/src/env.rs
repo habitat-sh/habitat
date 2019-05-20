@@ -142,6 +142,7 @@ macro_rules! env_config {
 ///
 /// Example usage:
 /// ```
+/// use std::time::Duration;
 /// habitat_core::env_config_duration!(PersistLoopPeriod,
 ///                                    HAB_PERSIST_LOOP_PERIOD_SECS,
 ///                                    Duration::from_secs(30));
@@ -166,6 +167,7 @@ macro_rules! env_config_duration {
 ///
 /// Example usage:
 /// ```
+/// use std::time::Duration;
 /// habitat_core::env_config_duration!(ThreadAliveThreshold,
 ///                                    HAB_THREAD_ALIVE_THRESHOLD_SECS,
 ///                                    Duration::from_secs(5 * 60));
