@@ -128,17 +128,29 @@ pub fn accept_license(ui: &mut UI) -> Result<()> {
     Ok(())
 }
 
-fn license_path() -> PathBuf {
-    let hab_dir = if am_i_root() {
-        PathBuf::from(&*FS_ROOT_PATH).join("hab")
-    } else if let Some(home) = dirs::home_dir() {
+fn superuser_license_root() -> PathBuf { PathBuf::from(&*FS_ROOT_PATH).join("hab") }
+
+fn user_license_root() -> PathBuf {
+    if let Some(home) = dirs::home_dir() {
         home.join(".hab")
     } else {
         panic!("No home directory available. Unable to find a suitable place to write a license \
                 file.");
+    }
+}
+
+fn license_path(root_path: &PathBuf) -> PathBuf { root_path.join("accepted-licenses") }
+
+fn license_file(license_path: &PathBuf) -> PathBuf { license_path.join("habitat") }
+
+fn writeable_license_path() -> PathBuf {
+    let root_dir = if am_i_root() {
+        superuser_license_root()
+    } else {
+        user_license_root()
     };
 
-    hab_dir.join("accepted-licenses")
+    license_path(&root_dir)
 }
 
 fn env_var_present() -> Result<bool> {
@@ -160,12 +172,13 @@ fn env_var_present() -> Result<bool> {
 fn write_license_file() -> Result<()> {
     let license = LicenseData::new();
     let content = serde_yaml::to_string(&license)?;
-    fs::create_dir_all(license_path())?;
-    let mut file = File::create(license_file())?;
+    fs::create_dir_all(writeable_license_path())?;
+    let mut file = File::create(license_file(&writeable_license_path()))?;
     file.write_all(content.as_bytes())?;
     Ok(())
 }
 
-fn license_file() -> PathBuf { license_path().join("habitat") }
-
-pub fn license_exists() -> bool { license_file().is_file() }
+pub fn license_exists() -> bool {
+    license_file(&license_path(&user_license_root())).is_file()
+    || license_file(&license_path(&superuser_license_root())).is_file()
+}
