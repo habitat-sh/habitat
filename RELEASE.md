@@ -377,7 +377,17 @@ a perfect solution, however. The process and drawbacks are detailed
 here.
 
 It should be noted that yanking a release is a *last resort* action;
-all efforts should be made to roll forward first.
+all efforts should be made to roll forward first. Here is a
+(non-exhaustive) list of possible situations that may call for yanking
+a release:
+
+* The cause of the defect isn't apparent, but definitely isn't present
+  in the previous release.
+* The defect is severe enough that waiting for a new release isn't
+  acceptable (becomes less an issue as our release automation matures).
+* A simple revert wouldn't work due to infrastructure dependencies
+  such as schema changes and properly testing the forward fix will be
+  too time-consuming.
 
 ## Steps for Yanking a Release
 
