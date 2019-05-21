@@ -171,10 +171,13 @@ macro_rules! env_config_duration {
 ///
 /// Example usage:
 /// ```
-/// use std::time::Duration;
-/// habitat_core::env_config_duration!(ThreadAliveThreshold,
-///                                    HAB_THREAD_ALIVE_THRESHOLD_SECS,
-///                                    Duration::from_secs(5 * 60));
+/// habitat_core::env_config_int!(RecvTimeoutMillis, i32, HAB_PULL_RECV_TIMEOUT_MS, 5_000);
+///
+/// habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)],
+///                               TokioThreadCount,
+///                               usize,
+///                               HAB_TOKIO_THREAD_COUNT,
+///                               num_cpus::get().max(1));
 /// ```
 #[macro_export]
 macro_rules! env_config_int {
