@@ -8,13 +8,9 @@
 //! Note that the "heat" of a rumor is tracked *per member*, and is
 //! not global.
 
-use crate::{error::Error,
-            rumor::{RumorKey,
-                    RumorType}};
-use habitat_core::env::Config as EnvConfig;
+use crate::rumor::{RumorKey,
+                   RumorType};
 use std::{collections::HashMap,
-          result,
-          str::FromStr,
           sync::{Arc,
                  RwLock}};
 
@@ -35,31 +31,11 @@ use std::{collections::HashMap,
 /// a per rumor basis, though, instead of a per rumor/member basis. As
 /// it is, this Supervisor will share each rumor `RumorShareLimit*n`
 /// times, where `n` is the number of Supervisors in the network.)
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
-struct RumorShareLimit(usize);
-
-impl Default for RumorShareLimit {
-    /// Share a rumor with a member twice.
-    fn default() -> Self { RumorShareLimit(2) }
-}
-
-impl FromStr for RumorShareLimit {
-    type Err = Error;
-
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        let raw = s.parse::<usize>()
-                   .map_err(|_| Error::InvalidRumorShareLimit)?;
-        if raw > 0 {
-            Ok(RumorShareLimit(raw))
-        } else {
-            Err(Error::InvalidRumorShareLimit)
-        }
-    }
-}
-
-impl EnvConfig for RumorShareLimit {
-    const ENVVAR: &'static str = "HAB_RUMOR_SHARE_LIMIT";
-}
+habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)],
+                              RumorShareLimit,
+                              usize,
+                              HAB_RUMOR_SHARE_LIMIT,
+                              2);
 
 /// Tracks the number of times a given rumor has been sent to each
 /// member of the supervision ring. This models the "heat" of a
