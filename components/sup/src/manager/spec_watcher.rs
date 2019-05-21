@@ -172,8 +172,6 @@ mod tests {
 
     #[test]
     fn can_get_events_for_spec_files() {
-        env_logger::try_init().ok();
-        error!("can_get_events_for_spec_files starting");
         let _delay = lock_delay_var();
 
         let dir = TempDir::new().expect("Could not create directory");
@@ -193,7 +191,6 @@ mod tests {
 
         assert!(!sw.has_events(),
                 "Should be no more events after you've checked");
-        error!("can_get_events_for_spec_files done");
     }
 
     /// Currently, the spec watcher will respond to changes to any
@@ -204,8 +201,6 @@ mod tests {
     /// to their final `*.spec` form.
     #[test]
     fn can_get_events_for_non_spec_files() {
-        env_logger::try_init().ok();
-        error!("can_get_events_for_non_spec_files starting");
         let _delay = lock_delay_var();
 
         let dir = TempDir::new().expect("Could not create directory");
@@ -225,13 +220,10 @@ mod tests {
 
         assert!(!sw.has_events(),
                 "Should be no more events after you've checked");
-        error!("can_get_events_for_non_spec_files done");
     }
 
     #[test]
     fn short_debounce_delays_also_work() {
-        env_logger::try_init().ok();
-        error!("short_debounce_delays_also_work starting");
         let delay = lock_delay_var();
         delay.set("1");
 
@@ -256,6 +248,5 @@ mod tests {
 
         assert!(!sw.has_events(),
                 "Should be no more events after you've checked");
-        error!("short_debounce_delays_also_work starting");
     }
 }

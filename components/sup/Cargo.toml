@@ -33,7 +33,6 @@ actix-web = { version = "= 0.7.19", default-features = false, features = [ "rust
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
-env_logger = "*"
 futures = "*"
 glob = "*"
 hab = { path = "../hab" }
@@ -50,6 +49,7 @@ lazy_static = "*"
 # and https://github.com/alecmocatta/palaver/pull/16 merged is made.
 libc = "= 0.2.54" 
 log = "*"
+log4rs = "*"
 notify = "*"
 num_cpus = "*"
 prometheus = "*"
