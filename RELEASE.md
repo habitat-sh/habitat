@@ -450,15 +450,16 @@ a release:
 
    On Linux:
 
-       rm -rf /hab/pkgs/core/hab/0.80.0
+       hab pkg uninstall core/hab/0.80.0
+       hab pkg uninstall core/hab-sup/0.80.0
+
        rm /hab/cache/artifacts/core-hab-0.80.0-*
-       rm -rf /hab/pkgs/core/hab-sup/0.80.0
        rm /hab/cache/artifacts/core-hab-sup-0.80.0-*
 
    If a Launcher release must be pulled, make note of the version and
    delete any installed versions of it:
 
-       rm -rf /hab/pkgs/core/hab-launcher/${VERSION}
+       hab pkg uninstall core/hab-launcher/${VERSION}
        rm /hab/cache/artifacts/core-hab-launcher-${VERSION}-*
 
    On Windows (Chocolatey) :
@@ -467,7 +468,7 @@ a release:
        hab pkg uninstall core/windows-service
 
        choco uninstall habitat --version 0.80.0
-       Remove-Item c:\hab\pkgs\core\hab-sup\0.80.0 -Recurse -Force
+       hab pkg uninstall core/hab-sup/0.80.0
        choco install habitat
 
    On macOS (Homebrew):
