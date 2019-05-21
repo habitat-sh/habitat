@@ -95,7 +95,8 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
 #[macro_export]
 macro_rules! env_config {
     (
-        $wrapping_type:ident,
+        #[$attr:meta],
+        $vis:vis $wrapping_type:ident,
         $wrapped_type:ty,
         $env_var:ident,
         $default_value:expr,
@@ -103,9 +104,11 @@ macro_rules! env_config {
         $from_str_input:ident,
         $from_str_return:expr
     ) => {
+        #[allow(unused_imports)]
         use $crate::env::Config as _;
 
-        struct $wrapping_type($wrapped_type);
+        #[$attr]
+        $vis struct $wrapping_type($wrapped_type);
         // A little trickery to avoid env var name collisions:
         // This enum can't ever be instantiated, but the compiler will give
         // an error if two invocations in a namespace give the same env_var.
@@ -150,7 +153,8 @@ macro_rules! env_config {
 #[macro_export]
 macro_rules! env_config_duration {
     ($wrapping_type:ident, $env_var_as_secs:ident, $default_value:expr) => {
-        $crate::env_config!($wrapping_type,
+        $crate::env_config!(#[derive(Debug)],
+                            $wrapping_type,
                             std::time::Duration,
                             $env_var_as_secs,
                             $default_value,
@@ -175,13 +179,48 @@ macro_rules! env_config_duration {
 #[macro_export]
 macro_rules! env_config_int {
     ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
-        $crate::env_config!($wrapping_type,
+        $crate::env_config!(#[derive(Debug)],
+                            $wrapping_type,
                             $type,
                             $env_var,
                             $default_value,
                             std::num::ParseIntError,
                             s,
                             Ok(Self((s.parse()?))));
+    };
+}
+
+/// Declare a struct `$wrapping_type` that stores a `String` and
+/// implements the `Config` trait so that its value can be overridden by `$env_var`.
+///
+/// This is a thin wrapper around `env_config`. See its documentation for more details.
+///
+/// Example usage:
+/// ```
+/// habitat_core::env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)],
+///                                  pub ChannelIdent,
+///                                  HAB_BLDR_CHANNEL,
+///                                  STABLE_CHANNEL_IDENT.to_string());
+/// ```
+#[macro_export]
+macro_rules! env_config_string {
+    (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!(#[$attr],
+                            $vis $wrapping_type,
+                            String,
+                            $env_var,
+                            $default_value,
+                            $crate::Impossible,
+                            s,
+                            Ok(Self(s.to_string())));
+
+        impl std::convert::From<&str> for $wrapping_type {
+            fn from(s: &str) -> Self { Self(s.to_string()) }
+        }
+
+        impl std::convert::From<String> for $wrapping_type {
+            fn from(s: String) -> Self { Self(s) }
+        }
     };
 }
 
