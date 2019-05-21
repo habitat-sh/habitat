@@ -235,6 +235,32 @@ macro_rules! env_config_string {
     };
 }
 
+/// Declare a struct `$wrapping_type` that stores a `SocketAddr` and
+/// implements the `Config` trait so that its value can be overridden by `$env_var`.
+///
+/// This is a thin wrapper around `env_config`. See its documentation for more details.
+///
+/// Example usage:
+/// ```
+/// habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
+///                                      pub ListenCtlAddr,
+///                                      HAB_LISTEN_CTL,
+///                                      SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT)));
+/// ```
+#[macro_export]
+macro_rules! env_config_socketaddr {
+    (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!(#[$attr],
+                            $vis $wrapping_type,
+                            SocketAddr,
+                            $env_var,
+                            $default_value,
+                            std::net::AddrParseError,
+                            val,
+                            Ok(val.parse::<SocketAddr>()?.into()));
+    };
+}
+
 /// Enable the creation of a value based on an environment variable
 /// that can be supplied at runtime by the user.
 pub trait Config: Default + FromStr {

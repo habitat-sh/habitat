@@ -1,16 +1,14 @@
-use crate::error::{Error,
-                   Result};
-use habitat_core::env;
 use std::{fmt,
           net::{IpAddr,
                 Ipv4Addr,
                 SocketAddr,
                 SocketAddrV4},
-          result,
-          str::FromStr};
+          result};
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct ListenCtlAddr(SocketAddr);
+habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
+                                     pub ListenCtlAddr,
+                                     HAB_LISTEN_CTL,
+                                     SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT)));
 
 impl ListenCtlAddr {
     pub const DEFAULT_PORT: u16 = 9632;
@@ -22,22 +20,6 @@ impl ListenCtlAddr {
     pub fn ip(&self) -> IpAddr { self.0.ip() }
 
     pub fn port(&self) -> u16 { self.0.port() }
-}
-
-impl Default for ListenCtlAddr {
-    fn default() -> ListenCtlAddr {
-        ListenCtlAddr::new(Ipv4Addr::LOCALHOST, ListenCtlAddr::DEFAULT_PORT)
-    }
-}
-
-impl env::Config for ListenCtlAddr {
-    const ENVVAR: &'static str = "HAB_LISTEN_CTL";
-}
-
-impl FromStr for ListenCtlAddr {
-    type Err = Error;
-
-    fn from_str(val: &str) -> Result<Self> { Ok(val.parse::<SocketAddr>()?.into()) }
 }
 
 impl fmt::Display for ListenCtlAddr {
