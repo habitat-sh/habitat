@@ -102,7 +102,6 @@ use std::{collections::{HashMap,
           net::SocketAddr,
           path::{Path,
                  PathBuf},
-          result,
           str::FromStr,
           sync::{atomic::{AtomicBool,
                           Ordering},
@@ -1587,38 +1586,13 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
 }
 
 /// Represents how many threads to start for our main Tokio runtime
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
-struct TokioThreadCount(usize);
-
-impl Default for TokioThreadCount {
-    fn default() -> Self {
-        // This is the same internal logic used in Tokio itself.
-        // https://docs.rs/tokio/0.1.12/src/tokio/runtime/builder.rs.html#68
-        TokioThreadCount(num_cpus::get().max(1))
-    }
-}
-
-impl FromStr for TokioThreadCount {
-    type Err = Error;
-
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        let raw = s.parse::<usize>()
-                   .map_err(|_| Error::InvalidTokioThreadCount)?;
-        if raw > 0 {
-            Ok(TokioThreadCount(raw))
-        } else {
-            Err(Error::InvalidTokioThreadCount)
-        }
-    }
-}
-
-impl env::Config for TokioThreadCount {
-    const ENVVAR: &'static str = "HAB_TOKIO_THREAD_COUNT";
-}
-
-impl Into<usize> for TokioThreadCount {
-    fn into(self) -> usize { self.0 }
-}
+habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)],
+                              TokioThreadCount,
+                              usize,
+                              HAB_TOKIO_THREAD_COUNT,
+                              // This is the same internal logic used in Tokio itself.
+                              // https://docs.rs/tokio/0.1.12/src/tokio/runtime/builder.rs.html#68
+                              num_cpus::get().max(1));
 
 #[derive(Debug)]
 struct SuitabilityLookup(Arc<RwLock<HashMap<PackageIdent, Service>>>);
@@ -1846,15 +1820,6 @@ mod test {
             let tc = lock_thread_count();
             tc.set("128");
             assert_eq!(TokioThreadCount::configured_value().0, 128);
-        }
-
-        #[test]
-        fn cannot_be_overridden_to_zero() {
-            let tc = lock_thread_count();
-            tc.set("0");
-
-            assert_ne!(TokioThreadCount::configured_value().0, 0);
-            assert_eq!(TokioThreadCount::configured_value().0, num_cpus::get());
         }
 
     }

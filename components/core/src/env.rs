@@ -178,6 +178,17 @@ macro_rules! env_config_duration {
 /// ```
 #[macro_export]
 macro_rules! env_config_int {
+    (#[$attr:meta], $wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!(#[$attr],
+                            $wrapping_type,
+                            $type,
+                            $env_var,
+                            $default_value,
+                            std::num::ParseIntError,
+                            s,
+                            Ok(Self((s.parse()?))));
+    };
+
     ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
         $crate::env_config!(#[derive(Debug)],
                             $wrapping_type,
