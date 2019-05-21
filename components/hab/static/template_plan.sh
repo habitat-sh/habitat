@@ -286,6 +286,23 @@ pkg_svc_group="{{ pkg_svc_group }}"
 {{~ else ~}}
 # pkg_svc_group="$pkg_svc_user"
 {{~ /if}}
+
+# Optional.
+# The signal to send the service to shutdown. The default is TERM.
+{{#if pkg_shutdown_signal ~}}
+pkg_shutdown_signal="{{ pkg_shutdown_signal }}"
+{{~ else ~}}
+# pkg_shutdown_signal="TERM"
+{{~ /if}}
+
+# Optional.
+# The number of seconds to wait for a service to shutdown. After this interval
+# the service will forcibly be killed. The default is 8.
+{{#if pkg_shutdown_timeout ~}}
+pkg_shutdown_timeout="{{ pkg_shutdown_timeout }}"
+{{~ else ~}}
+# pkg_shutdown_timeout=8
+{{~ /if}}
 {{~ /unless}}
 
 

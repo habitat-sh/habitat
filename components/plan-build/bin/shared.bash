@@ -245,7 +245,7 @@ _render_metadata_SVC_USER() {
 }
 
 _render_metadata_SHUTDOWN_SIGNAL() {
-  if [[ -n "$pkg_shutdown_signal" ]]; then
+  if [[ -n "${pkg_shutdown_signal:-}" ]]; then
     debug "Rendering SHUTDOWN_SIGNAL metadata file"
     # shellcheck disable=2154
     echo "$pkg_shutdown_signal" > "$pkg_prefix"/SHUTDOWN_SIGNAL
@@ -253,7 +253,7 @@ _render_metadata_SHUTDOWN_SIGNAL() {
 }
 
 _render_metadata_SHUTDOWN_TIMEOUT() {
-  if [[ -n "$pkg_shutdown_timeout" ]]; then
+  if [[ -n "${pkg_shutdown_timeout:-}" ]]; then
     debug "Rendering SHUTDOWN_TIMEOUT metadata file"
     # shellcheck disable=2154
     echo "$pkg_shutdown_timeout" > "$pkg_prefix"/SHUTDOWN_TIMEOUT
