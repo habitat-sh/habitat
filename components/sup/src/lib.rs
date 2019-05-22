@@ -60,7 +60,6 @@ pub mod cli_test_helpers;
 pub mod census;
 pub mod cli;
 pub mod command;
-pub mod config;
 pub mod ctl_gateway;
 pub mod error;
 pub mod event;

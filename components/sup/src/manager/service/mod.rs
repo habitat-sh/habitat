@@ -1170,10 +1170,10 @@ impl<'a> Serialize for ServiceProxy<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{config::GossipListenAddr,
-                http_gateway,
+    use crate::{http_gateway,
                 test_helpers::*};
-    use habitat_common::types::ListenCtlAddr;
+    use habitat_common::types::{GossipListenAddr,
+                                ListenCtlAddr};
     use serde_json;
     use std::str::FromStr;
 

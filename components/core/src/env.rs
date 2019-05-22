@@ -261,6 +261,16 @@ macro_rules! env_config_socketaddr {
                             std::net::AddrParseError,
                             val,
                             Ok(val.parse::<SocketAddr>()?.into()));
+
+        impl From<SocketAddr> for $wrapping_type {
+            fn from(socket_addr: SocketAddr) -> Self { Self(socket_addr) }
+        }
+
+        impl std::fmt::Display for $wrapping_type {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+                write!(f, "{}", self.0)
+            }
+        }
     };
 }
 

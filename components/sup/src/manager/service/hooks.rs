@@ -521,7 +521,6 @@ mod tests {
     use super::{super::RenderContext,
                 *};
     use crate::{census::CensusRing,
-                config::GossipListenAddr,
                 http_gateway,
                 manager::sys::Sys};
     use habitat_butterfly::{member::MemberList,
@@ -537,7 +536,8 @@ mod tests {
                          templating::{config::Cfg,
                                       package::Pkg,
                                       test_helpers::*},
-                         types::ListenCtlAddr};
+                         types::{GossipListenAddr,
+                                 ListenCtlAddr}};
     use habitat_core::{fs::cache_key_path,
                        package::{PackageIdent,
                                  PackageInstall},

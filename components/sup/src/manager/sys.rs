@@ -1,11 +1,11 @@
-use crate::{config::GossipListenAddr,
-            error::{Error,
+use crate::{error::{Error,
                     Result},
             http_gateway,
             VERSION};
 use habitat_butterfly::rumor::service::SysInfo;
 use habitat_common::{outputln,
-                     types::ListenCtlAddr};
+                     types::{GossipListenAddr,
+                             ListenCtlAddr}};
 use habitat_core;
 use std::{net::{IpAddr,
                 Ipv4Addr,

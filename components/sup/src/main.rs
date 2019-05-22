@@ -235,11 +235,11 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         gossip_listen: if m.is_present("LOCAL_GOSSIP_MODE") {
             // When local gossip mode is used we still startup the gossip layer but set
             // it to listen on 127.0.0.2 to scope it to the local node.
-            sup::config::GossipListenAddr::new(Ipv4Addr::new(127, 0, 0, 2), GOSSIP_DEFAULT_PORT)
+            habitat_common::types::GossipListenAddr::new(Ipv4Addr::new(127, 0, 0, 2), GOSSIP_DEFAULT_PORT)
         } else {
             m.value_of("LISTEN_GOSSIP").map_or_else(
                 || {
-                    let default = sup::config::GossipListenAddr::default();
+                    let default = habitat_common::types::GossipListenAddr::default();
                     error!(
                         "Value for LISTEN_GOSSIP has not been set. Using default: {}",
                         default
@@ -491,10 +491,10 @@ fn update_svc_load_from_input(m: &ArgMatches,
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::sup::{config::GossipListenAddr,
-                     http_gateway};
+    use crate::sup::http_gateway;
     use habitat_common::{locked_env_var,
-                         types::ListenCtlAddr};
+                         types::{GossipListenAddr,
+                                 ListenCtlAddr}};
 
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 

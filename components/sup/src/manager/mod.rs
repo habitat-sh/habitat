@@ -32,7 +32,6 @@ use self::{action::{ShutdownSpec,
            user_config_watcher::UserConfigWatcher};
 use crate::{census::{CensusRing,
                      CensusRingProxy},
-            config::GossipListenAddr,
             ctl_gateway::{self,
                           acceptor::CtlAcceptor,
                           CtlRequest},
@@ -54,13 +53,13 @@ use habitat_butterfly::{member::Member,
                                  Suitability},
                         trace::Trace};
 use habitat_common::{outputln,
-                     types::ListenCtlAddr,
+                     types::{GossipListenAddr,
+                             ListenCtlAddr},
                      FeatureFlag};
 #[cfg(unix)]
 use habitat_core::os::signals::SignalEvent;
 use habitat_core::{crypto::SymKey,
-                   env::{self,
-                         Config},
+                   env,
                    fs::FS_ROOT_PATH,
                    os::{process::{self,
                                   Pid,
