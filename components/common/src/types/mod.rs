@@ -1,5 +1,8 @@
+// TODO: move into env_config_socketaddr macro
 use crate::cli::{GOSSIP_DEFAULT_IP,
-                 GOSSIP_DEFAULT_PORT};
+                 GOSSIP_DEFAULT_PORT,
+                 LISTEN_HTTP_DEFAULT_IP,
+                 LISTEN_HTTP_DEFAULT_PORT};
 use std::{io,
           net::{IpAddr,
                 Ipv4Addr,
@@ -194,6 +197,32 @@ impl DerefMut for GossipListenAddr {
 }
 
 impl ToSocketAddrs for GossipListenAddr {
+    type Iter = option::IntoIter<SocketAddr>;
+
+    fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
+}
+
+habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)],
+                                     pub HttpListenAddr,
+                                     HAB_LISTEN_HTTP,
+                                     SocketAddr::V4(SocketAddrV4::new(LISTEN_HTTP_DEFAULT_IP.parse()
+                                                                                            .expect("GOSSIP_DEFAULT_IP can not be parsed."),
+                                                                      LISTEN_HTTP_DEFAULT_PORT)));
+impl HttpListenAddr {
+    pub fn new(ip: IpAddr, port: u16) -> Self { Self(SocketAddr::new(ip, port)) }
+}
+
+impl Deref for HttpListenAddr {
+    type Target = SocketAddr;
+
+    fn deref(&self) -> &SocketAddr { &self.0 }
+}
+
+impl DerefMut for HttpListenAddr {
+    fn deref_mut(&mut self) -> &mut SocketAddr { &mut self.0 }
+}
+
+impl ToSocketAddrs for HttpListenAddr {
     type Iter = option::IntoIter<SocketAddr>;
 
     fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }

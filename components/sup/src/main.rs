@@ -33,6 +33,7 @@ use habitat_common::{cli::{cache_key_path_from_matches,
                               OutputFormat,
                               OutputVerbosity},
                      outputln,
+                     types::HttpListenAddr,
                      ui::{NONINTERACTIVE_ENVVAR,
                           UI},
                      FeatureFlag};
@@ -262,7 +263,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         )?,
         http_listen: m.value_of("LISTEN_HTTP").map_or_else(
             || {
-                let default = sup::http_gateway::ListenAddr::default();
+                let default = HttpListenAddr::default();
                 error!(
                     "Value for LISTEN_HTTP has not been set. Using default: {}",
                     default
@@ -491,9 +492,9 @@ fn update_svc_load_from_input(m: &ArgMatches,
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::sup::http_gateway;
     use habitat_common::{locked_env_var,
                          types::{GossipListenAddr,
+                                 HttpListenAddr,
                                  ListenCtlAddr}};
 
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
@@ -575,15 +576,15 @@ mod test {
         fn http_listen_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --listen-http 2.2.2.2:2222");
             let expected_addr =
-                http_gateway::ListenAddr::from_str("2.2.2.2:2222").expect("Could not create http \
-                                                                           listen addr");
+                HttpListenAddr::from_str("2.2.2.2:2222").expect("Could not create http listen \
+                                                                 addr");
             assert_eq!(config.http_listen, expected_addr);
         }
 
         #[test]
         fn http_listen_is_set_default_when_not_specified() {
             let config = config_from_cmd_str("hab-sup run");
-            let expected_addr = http_gateway::ListenAddr::default();
+            let expected_addr = HttpListenAddr::default();
             assert_eq!(config.http_listen, expected_addr);
         }
 

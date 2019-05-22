@@ -15,11 +15,11 @@ use std::path::PathBuf;
 
 pub const GOSSIP_DEFAULT_IP: &str = "0.0.0.0";
 pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
+// TODO: move into env_config_socketaddr macro
 lazy_static! {
     pub static ref GOSSIP_DEFAULT_ADDR: String =
         { format!("{}:{}", GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT) };
 }
-pub const GOSSIP_LISTEN_ADDRESS_ENVVAR: &str = "HAB_LISTEN_GOSSIP";
 pub const RING_ENVVAR: &str = "HAB_RING";
 pub const RING_KEY_ENVVAR: &str = "HAB_RING_KEY";
 
@@ -29,7 +29,6 @@ lazy_static! {
     pub static ref LISTEN_HTTP_DEFAULT_ADDR: String =
         { format!("{}:{}", LISTEN_HTTP_DEFAULT_IP, LISTEN_HTTP_DEFAULT_PORT) };
 }
-pub const LISTEN_HTTP_ADDRESS_ENVVAR: &str = "HAB_LISTEN_HTTP";
 
 pub const PACKAGE_TARGET_ENVVAR: &str = "HAB_PACKAGE_TARGET";
 lazy_static! {

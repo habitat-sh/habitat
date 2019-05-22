@@ -6,7 +6,6 @@ use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            GOSSIP_DEFAULT_ADDR,
                            LISTEN_CTL_DEFAULT_ADDR_STRING,
-                           LISTEN_HTTP_ADDRESS_ENVVAR,
                            LISTEN_HTTP_DEFAULT_ADDR,
                            PACKAGE_TARGET_ENVVAR,
                            RING_ENVVAR,
@@ -16,6 +15,7 @@ use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                      types::{AutomateAuthToken,
                              EventStreamMetadata,
                              GossipListenAddr,
+                             HttpListenAddr,
                              ListenCtlAddr},
                      FeatureFlag};
 use habitat_core::{crypto::{keys::PairType,
@@ -965,7 +965,7 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
                              "The listen address for the Gossip System Gateway.")
                             (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
                              "Start the supervisor in local mode.")
-                            (@arg LISTEN_HTTP: --("listen-http") env(LISTEN_HTTP_ADDRESS_ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
+                            (@arg LISTEN_HTTP: --("listen-http") env(HttpListenAddr::ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
                              "The listen address for the HTTP Gateway.")
                             (@arg HTTP_DISABLE: --("http-disable") -D
                              "Disable the HTTP Gateway completely [default: false]")

@@ -54,6 +54,7 @@ use habitat_butterfly::{member::Member,
                         trace::Trace};
 use habitat_common::{outputln,
                      types::{GossipListenAddr,
+                             HttpListenAddr,
                              ListenCtlAddr},
                      FeatureFlag};
 #[cfg(unix)]
@@ -207,7 +208,7 @@ pub struct ManagerConfig {
     pub update_channel:      ChannelIdent,
     pub gossip_listen:       GossipListenAddr,
     pub ctl_listen:          ListenCtlAddr,
-    pub http_listen:         http_gateway::ListenAddr,
+    pub http_listen:         HttpListenAddr,
     pub http_disable:        bool,
     pub gossip_peers:        Vec<SocketAddr>,
     pub gossip_permanent:    bool,
@@ -1760,7 +1761,7 @@ mod test {
                             update_channel:      ChannelIdent::default(),
                             gossip_listen:       GossipListenAddr::default(),
                             ctl_listen:          ListenCtlAddr::default(),
-                            http_listen:         http_gateway::ListenAddr::default(),
+                            http_listen:         HttpListenAddr::default(),
                             http_disable:        false,
                             gossip_peers:        vec![],
                             gossip_permanent:    false,
