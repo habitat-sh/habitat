@@ -21,7 +21,6 @@ use habitat_common::{self,
                      FeatureFlag};
 use habitat_core::{crypto,
                    env as henv,
-                   env::Config as EnvConfig,
                    service::ServiceGroup};
 use prometheus::{self,
                  CounterVec,
@@ -36,8 +35,6 @@ use std::{self,
           cell::Cell,
           fs::File,
           io::Read,
-          result,
-          str::FromStr,
           sync::{Arc,
                  Condvar,
                  Mutex,
@@ -66,20 +63,14 @@ lazy_static! {
 /// HTTP gateway. If the environment variable is present, then its value is the auth token and all
 /// of the HTTP endpoints will require its presence. If it's not present, then everything continues
 /// to work unauthenticated.
-#[derive(Clone, Debug, Default)]
-pub struct GatewayAuthenticationToken(Option<String>);
-
-impl FromStr for GatewayAuthenticationToken {
-    type Err = ::std::string::ParseError;
-
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        Ok(GatewayAuthenticationToken(Some(String::from(s))))
-    }
-}
-
-impl EnvConfig for GatewayAuthenticationToken {
-    const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
-}
+habitat_core::env_config!(#[derive(Clone, Debug)],
+                          pub GatewayAuthenticationToken,
+                          Option<String>,
+                          HAB_SUP_GATEWAY_AUTH_TOKEN,
+                          None,
+                          std::string::ParseError,
+                          s,
+                          Ok(GatewayAuthenticationToken(Some(String::from(s)))));
 
 #[derive(Default, Serialize)]
 struct HealthCheckBody {
