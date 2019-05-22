@@ -50,7 +50,7 @@ impl protocol::Message<proto::Swim> for Ack {}
 impl From<Ack> for proto::Ack {
     fn from(value: Ack) -> Self {
         proto::Ack { from:       Some(value.from.into()),
-                     forward_to: value.forward_to.map(Into::into), }
+                     forward_to: value.forward_to.map(proto::Member::from), }
     }
 }
 
@@ -60,7 +60,7 @@ impl From<Ack> for proto::Swim {
                       membership: value.membership
                                        .clone()
                                        .into_iter()
-                                       .map(Into::into)
+                                       .map(proto::Membership::from)
                                        .collect(),
                       payload:    Some(SwimPayload::Ack(value.into())), }
     }
@@ -135,7 +135,7 @@ impl protocol::Message<proto::Swim> for Ping {}
 impl From<Ping> for proto::Ping {
     fn from(value: Ping) -> Self {
         proto::Ping { from:       Some(value.from.into()),
-                      forward_to: value.forward_to.map(Into::into), }
+                      forward_to: value.forward_to.map(proto::Member::from), }
     }
 }
 
@@ -145,7 +145,7 @@ impl From<Ping> for proto::Swim {
                       membership: value.membership
                                        .clone()
                                        .into_iter()
-                                       .map(Into::into)
+                                       .map(proto::Membership::from)
                                        .collect(),
                       payload:    Some(SwimPayload::Ping(value.into())), }
     }
@@ -201,7 +201,7 @@ impl From<PingReq> for proto::Swim {
                       membership: value.membership
                                        .clone()
                                        .into_iter()
-                                       .map(Into::into)
+                                       .map(proto::Membership::from)
                                        .collect(),
                       payload:    Some(SwimPayload::Pingreq(value.into())), }
     }
@@ -285,7 +285,10 @@ impl Swim {
 impl From<Swim> for proto::Swim {
     fn from(value: Swim) -> Self {
         proto::Swim { r#type:     value.r#type as i32,
-                      membership: value.membership.into_iter().map(Into::into).collect(),
+                      membership: value.membership
+                                       .into_iter()
+                                       .map(proto::Membership::from)
+                                       .collect(),
                       payload:    Some(value.kind.into()), }
     }
 }

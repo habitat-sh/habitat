@@ -17,7 +17,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<(
     match api_client.delete_origin(origin, token) {
         Ok(_) => {
             ui.status(Status::Deleted, format!("origin {}.", origin))
-              .map_err(Into::into)
+              .map_err(Error::from)
         }
         Err(api_client::Error::APIError(StatusCode::Conflict, msg)) => {
             ui.fatal(format!("Unable to delete origin {}", origin))?;

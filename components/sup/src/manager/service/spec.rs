@@ -133,7 +133,7 @@ impl IntoServiceSpec for habitat_sup_protocol::ctl::SvcLoad {
         if let Some(ref interval) = self.health_check_interval {
             spec.health_check_interval = interval.seconds.into()
         }
-        spec.shutdown_timeout = self.shutdown_timeout.map(Into::into);
+        spec.shutdown_timeout = self.shutdown_timeout.map(ShutdownTimeout::from);
     }
 }
 

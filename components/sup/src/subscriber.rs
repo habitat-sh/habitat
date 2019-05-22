@@ -6,8 +6,9 @@ use futures::{future::{ok,
                        Future},
               Stream};
 use nitox::{commands::ConnectCommand,
-            streaming::client::{NatsStreamingClient,
-                                SubscribeOptionsBuilder},
+            streaming::{client::{NatsStreamingClient,
+                                 SubscribeOptionsBuilder},
+                        error::NatsStreamingError},
             NatsClient,
             NatsClientOptions};
 
@@ -22,7 +23,7 @@ fn main() {
                                               .unwrap();
 
     let listener =
-        NatsClient::from_options(options).map_err(Into::into)
+        NatsClient::from_options(options).map_err(NatsStreamingError::from)
                                          .and_then(|client| {
                                              NatsStreamingClient::from(client)
                 .cluster_id("test-cluster".to_string())

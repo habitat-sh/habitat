@@ -453,7 +453,7 @@ fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
     msg.shutdown_timeout =
-        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(Into::into);
+        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
     Ok(msg)
 }
 

@@ -34,12 +34,12 @@ pub type ActionSender = mpsc::Sender<SupervisorAction>;
 
 impl Into<ShutdownInput> for habitat_sup_protocol::ctl::SvcUnload {
     fn into(self) -> ShutdownInput {
-        ShutdownInput { timeout: self.timeout_in_seconds.map(Into::into), }
+        ShutdownInput { timeout: self.timeout_in_seconds.map(ShutdownTimeout::from), }
     }
 }
 
 impl Into<ShutdownInput> for habitat_sup_protocol::ctl::SvcStop {
     fn into(self) -> ShutdownInput {
-        ShutdownInput { timeout: self.timeout_in_seconds.map(Into::into), }
+        ShutdownInput { timeout: self.timeout_in_seconds.map(ShutdownTimeout::from), }
     }
 }
