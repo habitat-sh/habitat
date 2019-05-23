@@ -216,6 +216,52 @@ impl BuilderAPIClient {
     }
 }
 
+impl BuilderAPIClient {
+    fn seach_package_with_range(&self,
+                                search_term: &str,
+                                token: Option<&str>,
+                                range: usize)
+                                -> Result<(PackageResults<PackageIdent>, bool)> {
+        let req = self.0
+                      .get_with_custom_url(&package_search(search_term), |url| {
+                          url.set_query(Some(&format!("range={:?}&distinct=true", range)));
+                      });
+        let mut res = self.maybe_add_authz(req, token).send()?;
+        let mut encoded = String::new();
+        res.read_to_string(&mut encoded)
+           .map_err(Error::BadResponseBody)?;
+        let package_results = serde_json::from_str(&encoded)?;
+        match res.status {
+            StatusCode::Ok => Ok((package_results, false)),
+            StatusCode::PartialContent => Ok((package_results, true)),
+            _ => Err(err_from_response(res)),
+        }
+    }
+
+    fn search_package_impl(&self,
+                           search_term: &str,
+                           limit: usize,
+                           token: Option<&str>,
+                           search_with_range: impl Fn(&BuilderAPIClient,
+                              &str,
+                              Option<&str>,
+                              usize)
+                              -> Result<(PackageResults<PackageIdent>, bool)>)
+                           -> Result<(Vec<PackageIdent>, usize)> {
+        let mut packages = Vec::new();
+        loop {
+            let (mut package_results, more_to_come) =
+                search_with_range(self, search_term, token, packages.len())?;
+            packages.append(&mut package_results.data);
+
+            if packages.len() >= limit || !more_to_come {
+                packages.truncate(limit);
+                return Ok((packages, package_results.total_count as usize));
+            }
+        }
+    }
+}
+
 impl BuilderAPIProvider for BuilderAPIClient {
     type Progress = Box<dyn DisplayProgress>;
 
@@ -984,21 +1030,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// * Remote depot unavailable
     fn search_package(&self,
                       search_term: &str,
+                      limit: usize,
                       token: Option<&str>)
-                      -> Result<(Vec<PackageIdent>, bool)> {
-        let mut res = self.maybe_add_authz(self.0.get(&package_search(search_term)), token)
-                          .send()?;
-        match res.status {
-            StatusCode::Ok | StatusCode::PartialContent => {
-                let mut encoded = String::new();
-                res.read_to_string(&mut encoded)
-                   .map_err(Error::BadResponseBody)?;
-                let package_results: PackageResults<PackageIdent> = serde_json::from_str(&encoded)?;
-                let packages: Vec<PackageIdent> = package_results.data;
-                Ok((packages, res.status == StatusCode::PartialContent))
-            }
-            _ => Err(err_from_response(res)),
-        }
+                      -> Result<(Vec<PackageIdent>, usize)> {
+        self.search_package_impl(search_term, limit, token, Self::seach_package_with_range)
     }
 
     /// Return a list of channels for a given origin
