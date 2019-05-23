@@ -1199,8 +1199,10 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         where P: Into<PathBuf>
     {
         let (tx, rx) = channel();
-        let mut watcher = W::new(tx, Duration::from_millis(WATCHER_DELAY_MS))
-            .map_err(|err| sup_error!(Error::NotifyCreateError(err)))?;
+        let mut watcher =
+            W::new(tx, Duration::from_millis(WATCHER_DELAY_MS)).map_err(|err| {
+                                                                   Error::NotifyCreateError(err)
+                                                               })?;
         let start_path = Self::watcher_path(path.into())?;
         // Initialize the Paths struct, which will hold all state
         // relative to file watching.
@@ -1212,7 +1214,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         // Start watcher on each path.
         for directory in directories {
             watcher.watch(&directory, RecursiveMode::NonRecursive)
-                   .map_err(|err| sup_error!(Error::NotifyError(err)))?;
+                   .map_err(|err| Error::NotifyError(err))?;
         }
         let initial_real_file = if send_initial_event {
             paths.real_file.clone()
@@ -1250,13 +1252,13 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         let abs_path = if p.is_absolute() {
             p.clone()
         } else {
-            let cwd = env::current_dir().map_err(|e| sup_error!(Error::Io(e)))?;
+            let cwd = env::current_dir().map_err(|e| Error::Io(e))?;
             cwd.join(p)
         };
         let simplified_abs_path = simplify_abs_path(&abs_path);
         match DirFileName::split_path(&simplified_abs_path) {
             Some(_) => Ok(simplified_abs_path),
-            None => Err(sup_error!(Error::FileWatcherFileIsRoot)),
+            None => Err(Error::FileWatcherFileIsRoot),
         }
     }
 
@@ -1316,7 +1318,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                             // we wanted to drop the watch anyway.
                             Err(notify::Error::PathNotFound)
                             | Err(notify::Error::WatchNotFound) => (),
-                            Err(e) => return Err(sup_error!(Error::NotifyError(e))),
+                            Err(e) => return Err(Error::NotifyError(e)),
                         }
                     }
                 }
@@ -1344,7 +1346,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
                             // we wanted to drop the watch anyway.
                             Err(notify::Error::PathNotFound)
                             | Err(notify::Error::WatchNotFound) => (),
-                            Err(e) => return Err(sup_error!(Error::NotifyError(e))),
+                            Err(e) => return Err(Error::NotifyError(e)),
                         }
                     }
                     let process_args = Paths::path_for_processing(&self.paths.start_path);

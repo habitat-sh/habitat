@@ -54,14 +54,6 @@ extern crate time as time_crate;
 #[cfg(test)]
 extern crate json;
 
-#[macro_export]
-macro_rules! sup_error {
-    ($p:expr) => {{
-        use $crate::error::SupError;
-        SupError::new($p)
-    }};
-}
-
 #[cfg(test)]
 #[macro_use]
 pub mod cli_test_helpers;

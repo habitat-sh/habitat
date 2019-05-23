@@ -28,20 +28,7 @@ use std::{env,
 use toml;
 
 /// Our result type alias, for easy coding.
-pub type Result<T> = result::Result<T, SupError>;
-
-#[derive(Debug)]
-/// All errors in the Supervisor are kept in this struct. We store `Error`, an enum with a variant
-/// for every type of error we produce. It also stores the location the error was created.
-pub struct SupError {
-    pub err: Error,
-}
-
-impl SupError {
-    /// Create a new `SupError`. Usually accessed through the `sup_error!` macro, rather than
-    /// called directly.
-    pub fn new(err: Error) -> SupError { SupError { err } }
-}
+pub type Result<T> = result::Result<T, Error>;
 
 /// All the kinds of errors we produce.
 #[derive(Debug)]
@@ -120,11 +107,11 @@ pub enum Error {
     UserNotFound(String),
 }
 
-impl fmt::Display for SupError {
+impl fmt::Display for Error {
     // We create a string for each type of error, then create a `StructuredOutput` for it, flip
     // verbose on, and print it.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let content = match self.err {
+        let content = match self {
             Error::APIClient(ref err) => err.to_string(),
             Error::BadAddress(ref err) => format!("Unable to bind to address {}.", err),
             Error::Departed => "This Supervisor has been manually departed.\n\nFor the safety of \
@@ -282,193 +269,103 @@ impl fmt::Display for SupError {
     }
 }
 
-impl error::Error for SupError {
+impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        match self.err {
+        match self {
             // Nothing else implements source yet
             Error::EventError(ref e) => e.source(),
             _ => None,
         }
     }
-
-    fn description(&self) -> &str {
-        match self.err {
-            Error::APIClient(ref err) => err.description(),
-            Error::BadAddress(_) => "Unable to bind to address",
-            Error::Departed => "Supervisor has been manually departed",
-            Error::BadDataFile(..) => "Unable to read or write to a data file",
-            Error::BadDataPath(..) => "Unable to read or write to data directory",
-            Error::BadElectionStatus(_) => "Unknown election status",
-            Error::BadDesiredState(_) => "Unknown desired state in service spec",
-            Error::BadSpecsPath(..) => "Unable to create the specs directory",
-            Error::BadStartStyle(_) => "Unknown start style in service spec",
-            Error::BindTimeout(_) => "Timeout waiting to bind to an address",
-            Error::LockPoisoned => "A mutex or read/write lock has failed",
-            Error::TestBootFail => "Simulated boot failure",
-            Error::ButterflyError(ref err) => err.description(),
-            Error::CtlSecretIo(..) => "IoError while reading ctl secret",
-            Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
-            Error::EventError(_) => "Eventing error",
-            Error::GroupNotFound(_) => "No matching GID for group found",
-            Error::HabitatCommon(ref err) => err.description(),
-            Error::HabitatCore(ref err) => err.description(),
-            Error::EnvJoinPathsError(ref err) => err.description(),
-            Error::FileNotFound(_) => "File not found",
-            Error::FileWatcherFileIsRoot => "Watched file is root",
-            Error::InvalidBinds(_) => {
-                "Service binds detected that are neither required nor optional package binds"
-            }
-            Error::InvalidCertFile(_) => "Invalid cert file",
-            Error::InvalidKeyFile(_) => "Invalid key file",
-            Error::InvalidKeyParameter(_) => "Key parameter error",
-            Error::InvalidPidFile => "Invalid child process PID file",
-            Error::InvalidTokioThreadCount => "Invalid Tokio thread count",
-            Error::InvalidTopology(_) => "Invalid topology",
-            Error::InvalidUpdateStrategy(_) => "Invalid update strategy",
-            Error::Io(ref err) => err.description(),
-            Error::IPFailed => "Failed to discover the outbound IP address",
-            Error::Launcher(ref err) => err.description(),
-            Error::MissingRequiredBind(_) => {
-                "A service to start without specifying a service group for all required binds"
-            }
-            Error::MissingRequiredIdent => {
-                "Missing required ident field: (example: ident = \"core/redis\")"
-            }
-            Error::NetErr(ref err) => err.description(),
-            Error::NetParseError(_) => "Can't parse IP:port",
-            Error::NameLookup(_) => "Error resolving a name or IP address",
-            Error::NoActiveMembers(_) => "Group has no active members",
-            Error::NoLauncher => "Supervisor must be run from `hab-launch`",
-            Error::NoSuchBind(_) => "No such bind found for this service",
-            Error::NotifyCreateError(_) => "Notify create error",
-            Error::NotifyError(_) => "Notify error",
-            Error::NulError(_) => {
-                "An attempt was made to build a CString with a null byte inside it"
-            }
-            Error::OneshotCanceled(ref e) => e.description(),
-            Error::PackageNotFound(_) => "Cannot find a package",
-            Error::PackageNotRunnable(_) => "The package is not runnable",
-            Error::Permissions(_) => "File system permissions error",
-            Error::PidFileCorrupt(_) => "Unable to decode contents of PID file",
-            Error::PidFileIO(..) => "Unable to read or write to PID file",
-            Error::ProcessLockCorrupt => "Unable to decode contents of process lock",
-            Error::ProcessLocked(_) => {
-                "Another instance of the Habitat Supervisor is already running"
-            }
-            Error::ProcessLockIO(..) => "Unable to read or write to a process lock",
-            Error::RecvError(_) => "A channel failed to receive a response",
-            Error::RecvTimeoutError(_) => {
-                "A channel failed to receive a response in the allotted time"
-            }
-            Error::ServiceDeserializationError(_) => "Can't deserialize service status",
-            Error::ServiceNotLoaded(_) => "Service status called when service not loaded",
-            Error::ServiceSerializationError(_) => "Can't serialize service to file",
-            Error::ServiceSpecFileIO(..) => "Unable to write or read to a service spec file",
-            Error::ServiceSpecParse(_) => "Service spec could not be parsed successfully",
-            Error::ServiceSpecRender(_) => "Service spec TOML could not be rendered successfully",
-            Error::SignalFailed => "Failed to send a signal to the child process",
-            Error::SpecWatcherNotCreated => "Failed to create a SpecWatcher",
-            Error::SpecDirNotFound(_) => "Spec directory not created or is not a directory",
-            Error::SpecWatcherGlob(_) => "Spec watcher file globbing error",
-            Error::StrFromUtf8Error(_) => "Failed to convert a str from a &[u8] as UTF-8",
-            Error::StringFromUtf8Error(_) => "Failed to convert a string from a Vec<u8> as UTF-8",
-            Error::TLSError(_) => "TLS Error!",
-            Error::TomlEncode(_) => "Failed to encode toml!",
-            Error::TryRecvError(_) => "A channel failed to receive a response",
-            Error::UnpackFailed => "Failed to unpack a package",
-            Error::UserNotFound(_) => "No matching UID for user found",
-        }
-    }
 }
 
-impl From<rustls::TLSError> for SupError {
-    fn from(err: rustls::TLSError) -> SupError { sup_error!(Error::TLSError(err)) }
+impl From<rustls::TLSError> for Error {
+    fn from(err: rustls::TLSError) -> Error { Error::TLSError(err) }
 }
 
-impl From<habitat_api_client::Error> for SupError {
-    fn from(err: habitat_api_client::Error) -> SupError { sup_error!(Error::APIClient(err)) }
+impl From<habitat_api_client::Error> for Error {
+    fn from(err: habitat_api_client::Error) -> Error { Error::APIClient(err) }
 }
 
-impl From<SupError> for habitat_sup_protocol::net::NetErr {
-    fn from(err: SupError) -> habitat_sup_protocol::net::NetErr {
+// TODO (CM): not sure if this works or not
+impl From<Error> for habitat_sup_protocol::net::NetErr {
+    fn from(err: Error) -> habitat_sup_protocol::net::NetErr {
         habitat_sup_protocol::net::err(habitat_sup_protocol::net::ErrCode::Internal, err)
     }
 }
 
-impl From<net::AddrParseError> for SupError {
-    fn from(err: net::AddrParseError) -> SupError { sup_error!(Error::NetParseError(err)) }
+impl From<net::AddrParseError> for Error {
+    fn from(err: net::AddrParseError) -> Error { Error::NetParseError(err) }
 }
 
-impl From<habitat_butterfly::error::Error> for SupError {
-    fn from(err: habitat_butterfly::error::Error) -> SupError {
-        sup_error!(Error::ButterflyError(err))
-    }
+impl From<habitat_butterfly::error::Error> for Error {
+    fn from(err: habitat_butterfly::error::Error) -> Error { Error::ButterflyError(err) }
 }
 
-impl From<habitat_common::Error> for SupError {
-    fn from(err: habitat_common::Error) -> SupError { sup_error!(Error::HabitatCommon(err)) }
+impl From<habitat_common::Error> for Error {
+    fn from(err: habitat_common::Error) -> Error { Error::HabitatCommon(err) }
 }
 
-impl From<glob::PatternError> for SupError {
-    fn from(err: glob::PatternError) -> SupError { sup_error!(Error::SpecWatcherGlob(err)) }
+impl From<glob::PatternError> for Error {
+    fn from(err: glob::PatternError) -> Error { Error::SpecWatcherGlob(err) }
 }
 
-impl From<habitat_core::Error> for SupError {
-    fn from(err: habitat_core::Error) -> SupError { sup_error!(Error::HabitatCore(err)) }
+impl From<habitat_core::Error> for Error {
+    fn from(err: habitat_core::Error) -> Error { Error::HabitatCore(err) }
 }
 
-impl From<ffi::NulError> for SupError {
-    fn from(err: ffi::NulError) -> SupError { sup_error!(Error::NulError(err)) }
+impl From<ffi::NulError> for Error {
+    fn from(err: ffi::NulError) -> Error { Error::NulError(err) }
 }
 
-impl From<io::Error> for SupError {
-    fn from(err: io::Error) -> SupError { sup_error!(Error::Io(err)) }
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error { Error::Io(err) }
 }
 
-impl From<env::JoinPathsError> for SupError {
-    fn from(err: env::JoinPathsError) -> SupError { sup_error!(Error::EnvJoinPathsError(err)) }
+impl From<env::JoinPathsError> for Error {
+    fn from(err: env::JoinPathsError) -> Error { Error::EnvJoinPathsError(err) }
 }
 
-impl From<habitat_launcher_client::Error> for SupError {
-    fn from(err: habitat_launcher_client::Error) -> SupError { sup_error!(Error::Launcher(err)) }
+impl From<habitat_launcher_client::Error> for Error {
+    fn from(err: habitat_launcher_client::Error) -> Error { Error::Launcher(err) }
 }
 
-impl From<string::FromUtf8Error> for SupError {
-    fn from(err: string::FromUtf8Error) -> SupError { sup_error!(Error::StringFromUtf8Error(err)) }
+impl From<string::FromUtf8Error> for Error {
+    fn from(err: string::FromUtf8Error) -> Error { Error::StringFromUtf8Error(err) }
 }
 
-impl From<str::Utf8Error> for SupError {
-    fn from(err: str::Utf8Error) -> SupError { sup_error!(Error::StrFromUtf8Error(err)) }
+impl From<str::Utf8Error> for Error {
+    fn from(err: str::Utf8Error) -> Error { Error::StrFromUtf8Error(err) }
 }
 
-impl From<mpsc::RecvError> for SupError {
-    fn from(err: mpsc::RecvError) -> SupError { sup_error!(Error::RecvError(err)) }
+impl From<mpsc::RecvError> for Error {
+    fn from(err: mpsc::RecvError) -> Error { Error::RecvError(err) }
 }
 
-impl From<mpsc::RecvTimeoutError> for SupError {
-    fn from(err: mpsc::RecvTimeoutError) -> SupError { sup_error!(Error::RecvTimeoutError(err)) }
+impl From<mpsc::RecvTimeoutError> for Error {
+    fn from(err: mpsc::RecvTimeoutError) -> Error { Error::RecvTimeoutError(err) }
 }
 
-impl From<mpsc::TryRecvError> for SupError {
-    fn from(err: mpsc::TryRecvError) -> SupError { sup_error!(Error::TryRecvError(err)) }
+impl From<mpsc::TryRecvError> for Error {
+    fn from(err: mpsc::TryRecvError) -> Error { Error::TryRecvError(err) }
 }
 
-impl From<notify::Error> for SupError {
-    fn from(err: notify::Error) -> SupError { sup_error!(Error::NotifyError(err)) }
+impl From<notify::Error> for Error {
+    fn from(err: notify::Error) -> Error { Error::NotifyError(err) }
 }
 
-impl From<toml::ser::Error> for SupError {
-    fn from(err: toml::ser::Error) -> Self { sup_error!(Error::TomlEncode(err)) }
+impl From<toml::ser::Error> for Error {
+    fn from(err: toml::ser::Error) -> Error { Error::TomlEncode(err) }
 }
 
-impl From<habitat_sup_protocol::net::NetErr> for SupError {
-    fn from(err: habitat_sup_protocol::net::NetErr) -> Self { sup_error!(Error::NetErr(err)) }
+impl From<habitat_sup_protocol::net::NetErr> for Error {
+    fn from(err: habitat_sup_protocol::net::NetErr) -> Error { Error::NetErr(err) }
 }
 
-impl From<oneshot::Canceled> for SupError {
-    fn from(err: oneshot::Canceled) -> Self { sup_error!(Error::OneshotCanceled(err)) }
+impl From<oneshot::Canceled> for Error {
+    fn from(err: oneshot::Canceled) -> Error { Error::OneshotCanceled(err) }
 }
 
-impl From<event::Error> for SupError {
-    fn from(err: event::Error) -> Self { sup_error!(Error::EventError(err)) }
+impl From<event::Error> for Error {
+    fn from(err: event::Error) -> Error { Error::EventError(err) }
 }

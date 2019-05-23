@@ -5,7 +5,7 @@
 //! It's essentially a tailored version `futures::FutureResult`,
 //! except that it polls its `Ok` variant.
 
-use crate::error::SupError;
+use crate::error::Error;
 use futures::{sync::oneshot,
               Future,
               Poll};
@@ -23,7 +23,7 @@ impl<T> From<io::Error> for SpawnedFuture<T> {
 }
 
 impl<T> Future for SpawnedFuture<T> {
-    type Error = SupError;
+    type Error = Error;
     type Item = T;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {

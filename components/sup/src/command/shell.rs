@@ -38,7 +38,7 @@ fn set_path() -> Result<()> {
 fn exec_shell(cmd: &str) -> Result<()> {
     let cmd_path = match find_command(cmd) {
         Some(p) => p,
-        None => return Err(sup_error!(Error::ExecCommandNotFound(cmd.to_string()))),
+        None => return Err(Error::ExecCommandNotFound(cmd.to_string())),
     };
     let c_cmd = CString::new(cmd_path.to_string_lossy().into_owned())?;
     let mut argv = [c_cmd.as_ptr(), ptr::null()];

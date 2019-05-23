@@ -37,8 +37,7 @@ use crate::{census::{CensusRing,
                           acceptor::CtlAcceptor,
                           CtlRequest},
             error::{Error,
-                    Result,
-                    SupError},
+                    Result},
             event::{self,
                     EventCore,
                     EventStreamConfig},
@@ -411,7 +410,7 @@ impl Manager {
                 // TODO (CM): this only ever worked on Linux! It's a no-op
                 // on Windows! See
                 // https://github.com/habitat-sh/habitat/issues/4945
-                process::signal(pid, Signal::TERM).map_err(|_| sup_error!(Error::SignalFailed))?;
+                process::signal(pid, Signal::TERM).map_err(|_| Error::SignalFailed)?;
                 Ok(())
             }
             #[cfg(windows)]
@@ -532,21 +531,20 @@ impl Manager {
             Ok(mut file) => {
                 let mut member_id = String::new();
                 file.read_to_string(&mut member_id).map_err(|e| {
-                    sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
-                })?;
+                                                        Error::BadDataFile(fs_cfg.member_id_file
+                                                                                 .clone(),
+                                                                           e)
+                                                    })?;
                 member.id = member_id;
             }
             Err(_) => {
                 match File::create(&fs_cfg.member_id_file) {
                     Ok(mut file) => {
-                        file.write(member.id.as_bytes()).map_err(|e| {
-                        sup_error!(Error::BadDataFile(fs_cfg.member_id_file.clone(), e))
-                    })?;
+                        file.write(member.id.as_bytes())
+                            .map_err(|e| Error::BadDataFile(fs_cfg.member_id_file.clone(), e))?;
                     }
                     Err(err) => {
-                        return Err(sup_error!(Error::BadDataFile(fs_cfg.member_id_file
-                                                                       .clone(),
-                                                                 err)));
+                        return Err(Error::BadDataFile(fs_cfg.member_id_file.clone(), err));
                     }
                 }
             }
@@ -566,7 +564,7 @@ impl Manager {
                         match entry.path().extension().and_then(OsStr::to_str) {
                             Some("tmp") | Some("health") => {
                                 fs::remove_file(&entry.path()).map_err(|err| {
-                                    sup_error!(Error::BadDataPath(data_path.clone(), err))
+                                    Error::BadDataPath(data_path.clone(), err)
                                 })?;
                             }
                             _ => continue,
@@ -575,7 +573,7 @@ impl Manager {
                 }
                 Ok(())
             }
-            Err(err) => Err(sup_error!(Error::BadDataPath(data_path.clone(), err))),
+            Err(err) => Err(Error::BadDataPath(data_path.clone(), err)),
         }
     }
 
@@ -583,12 +581,12 @@ impl Manager {
         let data_path = &fs_cfg.data_path;
         debug!("Creating data directory: {}", data_path.display());
         if let Some(err) = fs::create_dir_all(&data_path).err() {
-            return Err(sup_error!(Error::BadDataPath(data_path.clone(), err)));
+            return Err(Error::BadDataPath(data_path.clone(), err));
         }
         let specs_path = &fs_cfg.specs_path;
         debug!("Creating specs directory: {}", specs_path.display());
         if let Some(err) = fs::create_dir_all(&specs_path).err() {
-            return Err(sup_error!(Error::BadSpecsPath(specs_path.clone(), err)));
+            return Err(Error::BadSpecsPath(specs_path.clone(), err));
         }
 
         Ok(())
@@ -769,21 +767,19 @@ impl Manager {
                         {
                             Ok((mutex, timeout_result)) => {
                                 if timeout_result.timed_out() {
-                                    return Err(sup_error!(Error::BindTimeout(
-                                        http_listen_addr.to_string()
-                                    )));
+                                    return Err(Error::BindTimeout(http_listen_addr.to_string()));
                                 } else {
                                     mutex
                                 }
                             }
                             Err(e) => {
                                 error!("Mutex for the HTTP gateway was poisoned. e = {:?}", e);
-                                return Err(sup_error!(Error::LockPoisoned));
+                                return Err(Error::LockPoisoned);
                             }
                         };
                     }
                     http_gateway::ServerStartup::BindFailed => {
-                        return Err(sup_error!(Error::BadAddress(http_listen_addr.to_string())));
+                        return Err(Error::BadAddress(http_listen_addr.to_string()));
                     }
                     http_gateway::ServerStartup::Started => break,
                 }
@@ -1038,7 +1034,7 @@ impl Manager {
 
         match shutdown_mode {
             ShutdownMode::Normal | ShutdownMode::Restarting => Ok(()),
-            ShutdownMode::Departed => Err(sup_error!(Error::Departed)),
+            ShutdownMode::Departed => Err(Error::Departed),
         }
     }
 
@@ -1563,7 +1559,7 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
                               Ok(AllowAnyAuthenticatedClient::new(root_store))
                           }
                       })
-                      .map_err(|_| sup_error!(Error::InvalidCertFile(path.clone())))?
+                      .map_err(|_| Error::InvalidCertFile(path.clone()))?
         }
         None => NoClientAuth::new(),
     };
@@ -1577,16 +1573,12 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     // different errors for each.
     let cert_chain =
         pemfile::certs(cert_file).and_then(|c| if c.is_empty() { Err(()) } else { Ok(c) })
-                                 .map_err(|_| {
-                                     sup_error!(Error::InvalidCertFile(config.cert_path.clone()))
-                                 })?;
+                                 .map_err(|_| Error::InvalidCertFile(config.cert_path.clone()))?;
 
-    let key =
-        pemfile::rsa_private_keys(key_file).and_then(|mut k| k.pop().ok_or(()))
-                                           .map_err(|_| {
-                                               sup_error!(Error::InvalidKeyFile(config.key_path
-                                                                                      .clone()))
-                                           })?;
+    let key = pemfile::rsa_private_keys(key_file).and_then(|mut k| k.pop().ok_or(()))
+                                                 .map_err(|_| {
+                                                     Error::InvalidKeyFile(config.key_path.clone())
+                                                 })?;
 
     server_config.set_single_cert(cert_chain, key)?;
     server_config.ignore_client_order = true;
@@ -1649,13 +1641,12 @@ fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
             match read_process_lock(&fs_cfg.proc_lock_file) {
                 Ok(pid) => {
                     if process::is_alive(pid) {
-                        return Err(sup_error!(Error::ProcessLocked(pid)));
+                        return Err(Error::ProcessLocked(pid));
                     }
                     release_process_lock(&fs_cfg);
                     write_process_lock(&fs_cfg.proc_lock_file)
                 }
-                Err(SupError { err: Error::ProcessLockCorrupt,
-                               .. }) => {
+                Err(Error::ProcessLockCorrupt) => {
                     release_process_lock(&fs_cfg);
                     write_process_lock(&fs_cfg.proc_lock_file)
                 }
@@ -1675,17 +1666,13 @@ fn read_process_lock<T>(lock_path: T) -> Result<Pid>
                 Some(Ok(line)) => {
                     match line.parse::<Pid>() {
                         Ok(pid) => Ok(pid),
-                        Err(_) => Err(sup_error!(Error::ProcessLockCorrupt)),
+                        Err(_) => Err(Error::ProcessLockCorrupt),
                     }
                 }
-                _ => Err(sup_error!(Error::ProcessLockCorrupt)),
+                _ => Err(Error::ProcessLockCorrupt),
             }
         }
-        Err(err) => {
-            Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref()
-                                                         .to_path_buf(),
-                                                err)))
-        }
+        Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
     }
 }
 
@@ -1709,18 +1696,10 @@ fn write_process_lock<T>(lock_path: T) -> Result<()>
             };
             match write!(&mut file, "{}", pid) {
                 Ok(()) => Ok(()),
-                Err(err) => {
-                    Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref()
-                                                                 .to_path_buf(),
-                                                        err)))
-                }
+                Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
             }
         }
-        Err(err) => {
-            Err(sup_error!(Error::ProcessLockIO(lock_path.as_ref()
-                                                         .to_path_buf(),
-                                                err)))
-        }
+        Err(err) => Err(Error::ProcessLockIO(lock_path.as_ref().to_path_buf(), err)),
     }
 }
 

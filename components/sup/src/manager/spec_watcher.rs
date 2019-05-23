@@ -96,7 +96,7 @@ impl SpecWatcher {
                       .join()
                       .map_err(|_| {
                           error!("SpecWatcher spawning thread panicked!");
-                          sup_error!(Error::SpecWatcherNotCreated)
+                          Error::SpecWatcherNotCreated
                       })?
     }
 

@@ -1,6 +1,5 @@
 use crate::{error::{Error,
-                    Result,
-                    SupError},
+                    Result},
             PRODUCT,
             VERSION};
 use habitat_common::{self,
@@ -37,33 +36,41 @@ pub fn install<T>(ui: &mut T,
     };
 
     habitat_common::command::package::install::start(ui,
-                                             url,
-                                             // We currently need this to be an option due to how
-                                             // the depot
-                                             // client is written. Anything that calls the current
-                                             // function, though, should always have a channel. We
-                                             // should
-                                             // push this "Option-ness" as far down the stack as we
-                                             // can,
-                                             // with the ultimate goal of eliminating it
-                                             // altogether.
-                                             channel,
-                                             install_source,
-                                             PRODUCT,
-                                             VERSION,
-                                             fs_root_path,
-                                             &fs::cache_artifact_path(None::<String>),
-                                             auth_token.as_ref().map(String::as_str),
-                                             // TODO fn: pass through and enable offline install
-                                             // mode
-                                             &InstallMode::default(),
-                                             // TODO (CM): pass through and enable ignore-local
-                                             // mode
-                                             &LocalPackageUsage::default(),
-                                             // Install hooks are run when the supervisor loads the
-                                             // package
-                                             // in add_service so it is repetitive to run them here
-                                             InstallHookMode::Ignore).map_err(SupError::from)
+                                                     url,
+                                                     // We currently need this to be an option due
+                                                     // to how
+                                                     // the depot
+                                                     // client is written. Anything that calls the
+                                                     // current
+                                                     // function, though, should always have a
+                                                     // channel. We
+                                                     // should
+                                                     // push this "Option-ness" as far down the
+                                                     // stack as we
+                                                     // can,
+                                                     // with the ultimate goal of eliminating it
+                                                     // altogether.
+                                                     channel,
+                                                     install_source,
+                                                     PRODUCT,
+                                                     VERSION,
+                                                     fs_root_path,
+                                                     &fs::cache_artifact_path(None::<String>),
+                                                     auth_token.as_ref().map(String::as_str),
+                                                     // TODO fn: pass through and enable offline
+                                                     // install
+                                                     // mode
+                                                     &InstallMode::default(),
+                                                     // TODO (CM): pass through and enable
+                                                     // ignore-local
+                                                     // mode
+                                                     &LocalPackageUsage::default(),
+                                                     // Install hooks are run when the supervisor
+                                                     // loads the
+                                                     // package
+                                                     // in add_service so it is repetitive to run
+                                                     // them here
+                                                     InstallHookMode::Ignore).map_err(Error::from)
 }
 
 /// Given an InstallSource, install a new package only if an existing
@@ -87,7 +94,7 @@ pub fn satisfy_or_install<T>(ui: &mut T,
              Ok(installed)
          } else {
              outputln!("Can't start non-runnable service: {}", installed.ident());
-             Err(sup_error!(Error::PackageNotRunnable(installed.ident().clone())))
+             Err(Error::PackageNotRunnable(installed.ident().clone()))
          }
      })
 }

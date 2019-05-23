@@ -23,8 +23,8 @@ use std::{fmt,
           result,
           str::FromStr};
 
-use crate::error::{Result,
-                   SupError};
+use crate::error::{Error,
+                   Result};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct GossipListenAddr(SocketAddr);
@@ -74,7 +74,7 @@ impl DerefMut for GossipListenAddr {
 }
 
 impl FromStr for GossipListenAddr {
-    type Err = SupError;
+    type Err = Error;
 
     fn from_str(val: &str) -> Result<Self> { Ok(GossipListenAddr(SocketAddr::from_str(val)?)) }
 }

@@ -28,7 +28,7 @@ impl SpecDir {
         if path.is_dir() {
             Ok(SpecDir(path))
         } else {
-            Err(sup_error!(Error::SpecDirNotFound(path.display().to_string())))
+            Err(Error::SpecDirNotFound(path.display().to_string()))
         }
     }
 

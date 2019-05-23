@@ -1,5 +1,4 @@
-use crate::error::{Error,
-                   SupError};
+use crate::error::Error;
 use habitat_butterfly::{member::{Health,
                                  Member,
                                  MemberList},
@@ -260,7 +259,7 @@ impl fmt::Display for ElectionStatus {
 }
 
 impl FromStr for ElectionStatus {
-    type Err = SupError;
+    type Err = Error;
 
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value.to_lowercase().as_ref() {
@@ -268,7 +267,7 @@ impl FromStr for ElectionStatus {
             "no-quorum" => Ok(ElectionStatus::ElectionNoQuorum),
             "finished" => Ok(ElectionStatus::ElectionFinished),
             "none" => Ok(ElectionStatus::None),
-            _ => Err(sup_error!(Error::BadElectionStatus(value.to_string()))),
+            _ => Err(Error::BadElectionStatus(value.to_string())),
         }
     }
 }
@@ -506,10 +505,10 @@ impl CensusGroup {
     /// what the group exports. Until that time, the best we can do is
     /// ask an active member what *they* export (if there is a leader,
     /// though, we'll just ask them).
-    pub fn group_exports<'a>(&'a self) -> Result<HashSet<&'a String>, SupError> {
+    pub fn group_exports<'a>(&'a self) -> Result<HashSet<&'a String>, Error> {
         self.leader()
             .or_else(|| self.active_members().next())
-            .ok_or(sup_error!(Error::NoActiveMembers(self.service_group.clone())))
+            .ok_or(Error::NoActiveMembers(self.service_group.clone()))
             .map(|m| m.cfg.keys().collect())
     }
 }

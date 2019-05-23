@@ -91,13 +91,13 @@ impl Sys {
 pub fn lookup_ip() -> Result<IpAddr> {
     match habitat_core::util::sys::ip() {
         Ok(s) => Ok(s),
-        Err(e) => Err(sup_error!(Error::HabitatCore(e))),
+        Err(e) => Err(Error::HabitatCore(e)),
     }
 }
 
 pub fn lookup_hostname() -> Result<String> {
     match habitat_core::os::net::hostname() {
         Ok(hostname) => Ok(hostname),
-        Err(_) => Err(sup_error!(Error::IPFailed)),
+        Err(_) => Err(Error::IPFailed),
     }
 }

@@ -17,10 +17,10 @@ pub enum Error {
 // TODO (CM): I would have like to have derived Fail on our Error
 // type, thus getting rid of these Display and error::Error
 // impls. However, until we can cleanly interoperate between Error and
-// Fail's source/cause methods in the top-level SupError, we'll keep
-// these for the time being.
+// Fail's source/cause methods in the top-level Supervisor Error,
+// we'll keep these for the time being.
 //
-// Perhaps if SupError became a Fail, we could do it?
+// Perhaps if the Supervisor's Error became a Fail, we could do it?
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

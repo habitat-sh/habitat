@@ -260,8 +260,7 @@ pub fn readgen_secret_key<T>(sup_root: T) -> Result<String>
 {
     let mut out = String::new();
     fs::create_dir_all(&sup_root).map_err(|e| {
-                                     sup_error!(Error::CtlSecretIo(sup_root.as_ref().to_path_buf(),
-                                                                   e))
+                                     Error::CtlSecretIo(sup_root.as_ref().to_path_buf(), e)
                                  })?;
     if habitat_sup_protocol::read_secret_key(&sup_root, &mut out).ok()
                                                                  .unwrap_or(false)

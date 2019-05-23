@@ -1,5 +1,5 @@
-use crate::{error::{Result,
-                    SupError},
+use crate::{error::{Error,
+                    Result},
             manager::{self,
                       service::{HealthCheckHook,
                                 HealthCheckResult}}};
@@ -106,7 +106,7 @@ impl DerefMut for ListenAddr {
 }
 
 impl FromStr for ListenAddr {
-    type Err = SupError;
+    type Err = Error;
 
     fn from_str(val: &str) -> Result<Self> { Ok(ListenAddr(SocketAddr::from_str(val)?)) }
 }
