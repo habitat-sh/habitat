@@ -16,8 +16,6 @@ use std::{num::ParseIntError,
           thread::Builder,
           time::Duration};
 
-static LOGKEY: &'static str = "SW";
-
 /// How long should we wait to consolidate filesystem events?
 ///
 /// This should strike a balance between responsiveness and

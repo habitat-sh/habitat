@@ -30,7 +30,6 @@ use std::{collections::HashSet,
           str::FromStr};
 use toml;
 
-static LOGKEY: &str = "SS";
 static DEFAULT_GROUP: &str = "default";
 const SPEC_FILE_EXT: &str = "spec";
 

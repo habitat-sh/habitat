@@ -26,7 +26,6 @@ use crate::manager::debug::{IndentedStructFormatter,
                             IndentedToString};
 
 pub const WATCHER_DELAY_MS: u64 = 2_000;
-static LOGKEY: &'static str = "FW";
 
 /// A set of callbacks for the watched file events.
 pub trait Callbacks {

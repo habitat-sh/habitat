@@ -55,11 +55,10 @@ extern crate time as time_crate;
 extern crate json;
 
 #[macro_export]
-/// Creates a new SupError, embedding the current file name, line number, column, and module path.
 macro_rules! sup_error {
     ($p:expr) => {{
         use $crate::error::SupError;
-        SupError::new($p, LOGKEY, file!(), line!(), column!())
+        SupError::new($p)
     }};
 }
 

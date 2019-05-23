@@ -1,38 +1,9 @@
-//! Error handling for the Supervisor.
-//!
-//! Errors in the Supervisor are of the type `SupError`, which contains an `Error` along with
-//! information about where the error was created in the code base, in the same way that the
-//! `output` module does. To simplify the creation of these annotated errors, we provide the
-//! `sup_error!` macro, which takes only an `Error` as its argument.
-//!
-//! To match on `Error`, do something like this:
-//!
-//! ```ignore
-//! let error = sup_error!(Error::CommandNotImplemented);
-//! let result = match error {
-//!     SupError{err: Error::CommandNotImplemented, ..} => true,
-//!     _ => false
-//! };
-//! assert_eq!(result, true);
-//! ```
-//!
-//! When printing errors, we automatically create a `StructuredOutput` with the `verbose` flag set,
-//! ensuring that you can see the file, line number, and column it was created from.
-//!
-//! Also included in this module is `Result<T>`, a type alias for `Result<T, SupError>`. Use
-//! it instead of the longer `Result` form.
-
 use crate::event;
 use futures::sync::oneshot;
 use glob;
 use habitat_api_client;
 use habitat_butterfly;
-use habitat_common::{self,
-                     output::{self,
-                              OutputContext,
-                              OutputVerbosity,
-                              StructuredOutput},
-                     PROGRAM_NAME};
+use habitat_common;
 use habitat_core::{self,
                    os::process::Pid,
                    package::{self,
@@ -56,8 +27,6 @@ use std::{env,
           sync::mpsc};
 use toml;
 
-static LOGKEY: &'static str = "ER";
-
 /// Our result type alias, for easy coding.
 pub type Result<T> = result::Result<T, SupError>;
 
@@ -66,27 +35,12 @@ pub type Result<T> = result::Result<T, SupError>;
 /// for every type of error we produce. It also stores the location the error was created.
 pub struct SupError {
     pub err: Error,
-    logkey:  &'static str,
-    file:    &'static str,
-    line:    u32,
-    column:  u32,
 }
 
 impl SupError {
     /// Create a new `SupError`. Usually accessed through the `sup_error!` macro, rather than
     /// called directly.
-    pub fn new(err: Error,
-               logkey: &'static str,
-               file: &'static str,
-               line: u32,
-               column: u32)
-               -> SupError {
-        SupError { err,
-                   logkey,
-                   file,
-                   line,
-                   column }
-    }
+    pub fn new(err: Error) -> SupError { SupError { err } }
 }
 
 /// All the kinds of errors we produce.
@@ -316,24 +270,14 @@ impl fmt::Display for SupError {
             Error::UserNotFound(ref e) => format!("No UID for user '{}' could be found", e),
         };
 
-        let progname = PROGRAM_NAME.as_str();
-        let so = StructuredOutput::new(progname,
-                                       self.logkey,
-                                       OutputContext { line:   self.line,
-                                                       file:   self.file,
-                                                       column: self.column, },
-                                       output::get_format(),
-                                       OutputVerbosity::Verbose,
-                                       &content);
-
         // TODO (CM): Consider implementing Error::source() for all
         // our errors as a more formalized way of exposing an
         // underlying error. See
         // https://github.com/habitat-sh/habitat/issues/6556 for details.
         if let Some(source) = self.source() {
-            write!(f, "{} -> {}", so, source)
+            write!(f, "{} -> {}", content, source)
         } else {
-            write!(f, "{}", so)
+            write!(f, "{}", content)
         }
     }
 }
