@@ -160,10 +160,10 @@ pub mod sync {
     }
 
     habitat_core::env_config_duration!(ThreadAliveThreshold,
-                                       HAB_THREAD_ALIVE_THRESHOLD_SECS,
+                                       HAB_THREAD_ALIVE_THRESHOLD_SECS => from_secs,
                                        Duration::from_secs(5 * 60));
     habitat_core::env_config_duration!(ThreadAliveCheckDelay,
-                                       HAB_THREAD_ALIVE_CHECK_DELAY_SECS,
+                                       HAB_THREAD_ALIVE_CHECK_DELAY_SECS => from_secs,
                                        Duration::from_secs(60));
 
     /// Call periodically from a thread which has a work loop to indicate that the thread is

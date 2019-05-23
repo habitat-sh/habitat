@@ -139,7 +139,7 @@ macro_rules! env_config {
 }
 
 /// Declare a struct `$wrapping_type` that stores a `std::time::Duration` and
-/// implements the `Config` trait so that its value can be overridden by `$env_var_as_secs`.
+/// implements the `Config` trait so that its value can be overridden by `$env_var`.
 ///
 /// This is a thin wrapper around `env_config`. See its documentation for more details.
 ///
@@ -147,20 +147,20 @@ macro_rules! env_config {
 /// ```
 /// use std::time::Duration;
 /// habitat_core::env_config_duration!(PersistLoopPeriod,
-///                                    HAB_PERSIST_LOOP_PERIOD_SECS,
+///                                    HAB_PERSIST_LOOP_PERIOD_SECS => from_secs
 ///                                    Duration::from_secs(30));
 /// ```
 #[macro_export]
 macro_rules! env_config_duration {
-    ($wrapping_type:ident, $env_var_as_secs:ident, $default_value:expr) => {
+    ($wrapping_type:ident, $env_var:ident => $from_str_fn:ident, $default_value:expr) => {
         $crate::env_config!(#[derive(Debug)],
                             $wrapping_type,
                             std::time::Duration,
-                            $env_var_as_secs,
+                            $env_var,
                             $default_value,
                             std::num::ParseIntError,
                             s,
-                            Ok(Self(std::time::Duration::from_secs(s.parse()?))));
+                            Ok(Self(std::time::Duration::$from_str_fn(s.parse()?))));
     };
 }
 
