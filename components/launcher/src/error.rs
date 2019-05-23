@@ -56,26 +56,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::AcceptConn => "Unable to accept connection from Supervisor",
-            Error::Connect(_) => "Unable to connect to Supervisor's pipe",
-            Error::GroupNotFound(_) => "No matching GID for group found",
-            Error::ExecWait(_) => "OS Error while waiting on PID",
-            Error::OpenPipe(_) => "Unable to open Launcher's pipe",
-            Error::Protocol(_) => "Error with the Supervisor protocol",
-            Error::Send(_) => "Unable to send to Launcher's pipe",
-            Error::Spawn(_) => "Unable to spawn process",
-            Error::SupBinaryVersion => "Unsupported Supervisor binary version",
-            Error::SupBinaryNotFound => "Unable to locate Supervisor binary in package",
-            Error::SupPackageNotFound => "Unable to locate Supervisor package on disk",
-            Error::SupShutdown => "Error waiting for Supervisor to shutdown",
-            Error::SupSpawn(_) => "Unable to spawn Supervisor",
-            Error::UserNotFound(_) => "No matching UID for user found",
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<Error> for protocol::ErrCode {
     fn from(err: Error) -> protocol::ErrCode {

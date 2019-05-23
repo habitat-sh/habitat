@@ -179,74 +179,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::APIClient(ref err) => err.description(),
-            Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
-            Error::ButterflyError(_) => "Butterfly has had an error",
-            Error::CannotParseBinlinkBinaryName(_) => "Cannot parse binlink binary name",
-            Error::CannotParseBinlinkSource(_) => "Cannot parse binlink source path",
-            Error::CannotRemoveFromChannel(_) => {
-                "Package cannot be removed from the specified channel"
-            }
-            Error::CannotRemoveDockerStudio => {
-                "Docker Studios are not persistent and cannot be removed"
-            }
-            Error::CannotRemovePackage(..) => {
-                "A package can only be removed if it is not a dependency of any other package"
-            }
-            Error::CommandNotFoundInPkg(_) => {
-                "Command was not found under any 'PATH' directories in the package"
-            }
-            Error::CryptoCLI(_) => "A cryptographic error has occurred",
-            Error::CtlClient(ref err) => err.description(),
-            Error::DockerDaemonDown => "The Docker daemon could not be found.",
-            Error::DockerFileSharingNotEnabled => "Docker file sharing is not enabled.",
-            Error::DockerImageNotFound(_) => "The Docker image was not found.",
-            Error::DockerNetworkDown(_) => "The Docker registry is unreachable.",
-            Error::EnvJoinPathsError(ref err) => err.description(),
-            Error::ExecCommandNotFound(_) => "Exec command was not found on filesystem or in PATH",
-            Error::FFINulError(ref err) => err.description(),
-            Error::FileNotFound(_) => "File not found",
-            Error::HabitatCommon(ref err) => err.description(),
-            Error::HabitatCore(ref err) => err.description(),
-            Error::HandlebarsRenderError(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
-            Error::JobGroupPromoteOrDemoteUnprocessable(true) => {
-                "Failed to promote job group, the build job is still in progress"
-            }
-            Error::JobGroupPromoteOrDemoteUnprocessable(false) => {
-                "Failed to demote job group, the build job is still in progress"
-            }
-            Error::JobGroupPromoteOrDemote(ref err, _) => err.description(),
-            Error::JobGroupCancel(ref err) => err.description(),
-            Error::LicenseNotAccepted => "License agreement not accepted",
-            Error::NameLookup => "Error resolving a name or IP address",
-            Error::NetErr(ref err) => err.description(),
-            Error::PackageArchiveMalformed(_) => {
-                "Package archive was unreadable or had unexpected contents"
-            }
-            Error::ParseIntError(ref err) => err.description(),
-            Error::PathPrefixError(ref err) => err.description(),
-            Error::ProvidesError(_) => {
-                "Can't find a package that provides the given search parameter"
-            }
-            Error::JsonErr(ref err) => err.description(),
-            Error::RemoteSupResolutionError(_, ref err) => err.description(),
-            Error::RootRequired => {
-                "Root or administrator permissions required to complete operation"
-            }
-            Error::ScheduleStatus(ref err) => err.description(),
-            Error::SubcommandNotSupported(_) => "Subcommand not supported on this operating system",
-            Error::UnsupportedExportFormat(_) => "Unsupported export format",
-            Error::TomlDeserializeError(_) => "Can't deserialize TOML",
-            Error::TomlSerializeError(_) => "Can't serialize TOML",
-            Error::Utf8Error(_) => "Error processing string as UTF-8",
-            Error::YamlError(ref err) => err.description(),
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<api_client::Error> for Error {
     fn from(err: api_client::Error) -> Error { Error::APIClient(err) }

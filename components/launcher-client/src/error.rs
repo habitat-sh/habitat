@@ -35,19 +35,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::AcceptConn => "Unable to accept connection from Launcher",
-            Error::BadPipe(_) => "Unable to open pipe to Launcher",
-            Error::Connect(_) => "Unable to connect to Launcher's pipe",
-            Error::IPCBincode(_) => "Unable to encode/decode message framing to/from Launcher",
-            Error::IPCIO(_) => "Unable to receive message from Launcher",
-            Error::Protocol(_) => "Received an error from Launcher",
-            Error::Send(_) => "Unable to send to Launcher's pipe",
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<ipc_channel::ErrorKind> for Error {
     fn from(err: ipc_channel::ErrorKind) -> Error {

@@ -75,35 +75,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::APIError(..) => "Received a non-2XX response code from API",
-            Error::BadResponseBody(_) => "Failed to read response body",
-            Error::DownloadWrite(..) => "Failed to write response contents to file",
-            Error::HabitatCore(ref err) => err.description(),
-            Error::HabitatHttpClient(ref err) => err.description(),
-            Error::HyperError(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
-            Error::Json(ref err) => err.description(),
-            Error::KeyReadError(..) => "Failed to read origin key from disk",
-            Error::NoFilePart => {
-                "An invalid path was passed - we needed a filename, and this path does not have one"
-            }
-            Error::PackageReadError(..) => "Failed to read package artifact from disk",
-            Error::ParseIntError(ref err) => err.description(),
-            Error::IdentNotFullyQualified => {
-                "Cannot perform the specified operation. Specify a fully qualifed package \
-                 identifier (ex: core/busybox-static/1.42.2/20170513215502)"
-            }
-            Error::UploadFailed(_) => "Upload failed",
-            Error::UrlParseError(ref err) => err.description(),
-            Error::WriteSyncFailed => {
-                "Could not write to destination; bytes written was 0 on a non-0 buffer"
-            }
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<hab_core::Error> for Error {
     fn from(err: hab_core::Error) -> Error { Error::HabitatCore(err) }

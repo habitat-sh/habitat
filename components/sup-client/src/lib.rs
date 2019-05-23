@@ -64,18 +64,7 @@ pub enum SrvClientError {
     ParseColor(termcolor::ParseColorError),
 }
 
-impl error::Error for SrvClientError {
-    fn description(&self) -> &str {
-        match *self {
-            SrvClientError::ConnectionClosed => "Connection closed",
-            SrvClientError::CtlSecretNotFound(_) => "Ctl secret key not found",
-            SrvClientError::Decode(ref err) => err.description(),
-            SrvClientError::Io(ref err) => err.description(),
-            SrvClientError::NetErr(ref err) => err.description(),
-            SrvClientError::ParseColor(ref err) => err.description(),
-        }
-    }
-}
+impl error::Error for SrvClientError {}
 
 impl fmt::Display for SrvClientError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
