@@ -2450,6 +2450,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
     --peer <PEER>...                                   The listen address of one or more initial peers (IP[:PORT])
     --peer-watch-file <PEER_WATCH_FILE>                Watch this file for connecting to the ring
 -r, --ring <RING> The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup run --ring myring) [env: HAB_RING=]
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service proces (default: set in plan)
 -s, --strategy <STRATEGY> The update strategy; [default: none] [values: none, at-once, rolling]
 
 -t, --topology <TOPOLOGY> Service topology; [default: none] [possible values: standalone, leader]
@@ -2739,6 +2740,7 @@ hab svc load [FLAGS] [OPTIONS] <PKG_IDENT>
 -i, --health-check-interval <HEALTH_CHECK_INTERVAL> The interval (seconds) on which to run health checks [default: 30]
 
 -r, --remote-sup <REMOTE_SUP> Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
 
 -s, --strategy <STRATEGY> The update strategy; [default: none] [values: none, at-once, rolling]
 
@@ -2842,6 +2844,7 @@ hab svc stop [OPTIONS] <PKG_IDENT>
 
 ```
 -r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
 ```
 
 **ARGS**
@@ -2875,6 +2878,7 @@ hab svc unload [OPTIONS] <PKG_IDENT>
 
 ```
 -r, --remote-sup <REMOTE_SUP>    Address to a remote Supervisor's Control Gateway [default: 127.0.0.1:9632]
+    --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
 ```
 
 **ARGS**

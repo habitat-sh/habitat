@@ -1392,7 +1392,7 @@ fn non_empty(val: String) -> result::Result<(), String> {
 fn add_shutdown_timeout_option(app: App<'static, 'static>) -> App<'static, 'static> {
     app.arg(Arg::with_name("SHUTDOWN_TIMEOUT").help("The number of seconds after sending a \
                                                      shutdown signal to wait before killing a \
-                                                     service process")
+                                                     service process (default: set in plan)")
                                               .long("shutdown-timeout")
                                               .validator(valid_shutdown_timeout)
                                               .takes_value(true))
