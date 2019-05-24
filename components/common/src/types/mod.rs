@@ -145,19 +145,6 @@ impl fmt::Display for AutomateAuthToken {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    mod auth_token {
-        use super::*;
-
-        #[test]
-        fn cannot_parse_from_empty_string() { assert!("".parse::<AutomateAuthToken>().is_err()) }
-
-    }
-}
-
 habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
                                      pub GossipListenAddr,
                                      HAB_LISTEN_GOSSIP,
@@ -256,6 +243,14 @@ impl AsRef<SocketAddr> for ListenCtlAddr {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    mod auth_token {
+        use super::*;
+
+        #[test]
+        fn cannot_parse_from_empty_string() { assert!("".parse::<AutomateAuthToken>().is_err()) }
+
+    }
 
     mod gossip_listen_addr {
         use super::*;
