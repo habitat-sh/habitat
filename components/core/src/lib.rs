@@ -33,7 +33,7 @@ pub enum Impossible {}
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
 // A Builder channel
-env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)],
+env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
                    pub ChannelIdent,
                    HAB_BLDR_CHANNEL,
                    ChannelIdent::STABLE);

@@ -59,18 +59,19 @@ lazy_static! {
                                 &["path"]).unwrap();
 }
 
-/// This represents an environment variable that holds an authentication token for the supervisor's
-/// HTTP gateway. If the environment variable is present, then its value is the auth token and all
-/// of the HTTP endpoints will require its presence. If it's not present, then everything continues
-/// to work unauthenticated.
-habitat_core::env_config!(#[derive(Clone, Debug)],
-                          pub GatewayAuthenticationToken,
-                          Option<String>,
-                          HAB_SUP_GATEWAY_AUTH_TOKEN,
-                          None,
-                          std::string::ParseError,
-                          s,
-                          Ok(GatewayAuthenticationToken(Some(String::from(s)))));
+habitat_core::env_config!(
+    /// This represents an environment variable that holds an authentication token for the supervisor's
+    /// HTTP gateway. If the environment variable is present, then its value is the auth token and all
+    /// of the HTTP endpoints will require its presence. If it's not present, then everything continues
+    /// to work unauthenticated.
+    #[derive(Clone, Debug)]
+    pub GatewayAuthenticationToken,
+    Option<String>,
+    HAB_SUP_GATEWAY_AUTH_TOKEN,
+    None,
+    std::string::ParseError,
+    s,
+    Ok(GatewayAuthenticationToken(Some(String::from(s)))));
 
 #[derive(Default, Serialize)]
 struct HealthCheckBody {

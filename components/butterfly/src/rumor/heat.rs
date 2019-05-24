@@ -19,19 +19,20 @@ use std::{collections::HashMap,
 // TODO (CM): what do we do with rumors that have officially
 // "cooled off"? Can we just remove them?
 
-/// The number of times that a rumor will be shared with a given
-/// member before we stop sending it to that same member.
-///
-/// This is roughly analogous to the parameter `k` (used as a
-/// blind counter) in the paper _Epidemic Algorithms for
-/// Replicated Database Maintenance_ by Demers, et al., Section
-/// 1.4 "Complex Epidemics", subsection "Variations".
-///
-/// (To correspond more closely with the paper, this should be used on
-/// a per rumor basis, though, instead of a per rumor/member basis. As
-/// it is, this Supervisor will share each rumor `RumorShareLimit*n`
-/// times, where `n` is the number of Supervisors in the network.)
-habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)],
+habitat_core::env_config_int!(/// The number of times that a rumor will be shared with a given
+                              /// member before we stop sending it to that same member.
+                              ///
+                              /// This is roughly analogous to the parameter `k` (used as a
+                              /// blind counter) in the paper _Epidemic Algorithms for
+                              /// Replicated Database Maintenance_ by Demers, et al., Section
+                              /// 1.4 "Complex Epidemics", subsection "Variations".
+                              ///
+                              /// (To correspond more closely with the paper, this should be used
+                              /// on a per rumor basis, though,
+                              /// instead of a per rumor/member basis. As
+                              /// it is, this Supervisor will share each rumor `RumorShareLimit*n`
+                              /// times, where `n` is the number of Supervisors in the network.)
+                              #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
                               RumorShareLimit,
                               usize,
                               HAB_RUMOR_SHARE_LIMIT,

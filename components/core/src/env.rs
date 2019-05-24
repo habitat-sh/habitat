@@ -95,7 +95,7 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
 #[macro_export]
 macro_rules! env_config {
     (
-        #[$attr:meta],
+        $(#[$attr:meta])*
         $vis:vis $wrapping_type:ident,
         $wrapped_type:ty,
         $env_var:ident,
@@ -107,7 +107,7 @@ macro_rules! env_config {
         #[allow(unused_imports)]
         use $crate::env::Config as _;
 
-        #[$attr]
+        $(#[$attr])*
         $vis struct $wrapping_type($wrapped_type);
         // A little trickery to avoid env var name collisions:
         // This enum can't ever be instantiated, but the compiler will give
@@ -153,7 +153,7 @@ macro_rules! env_config {
 #[macro_export]
 macro_rules! env_config_duration {
     ($wrapping_type:ident, $env_var:ident => $from_str_fn:ident, $default_value:expr) => {
-        $crate::env_config!(#[derive(Debug)],
+        $crate::env_config!(#[derive(Debug)]
                             $wrapping_type,
                             std::time::Duration,
                             $env_var,
@@ -173,7 +173,7 @@ macro_rules! env_config_duration {
 /// ```
 /// habitat_core::env_config_int!(RecvTimeoutMillis, i32, HAB_PULL_RECV_TIMEOUT_MS, 5_000);
 ///
-/// habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)],
+/// habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
 ///                               TokioThreadCount,
 ///                               usize,
 ///                               HAB_TOKIO_THREAD_COUNT,
@@ -181,8 +181,8 @@ macro_rules! env_config_duration {
 /// ```
 #[macro_export]
 macro_rules! env_config_int {
-    (#[$attr:meta], $wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
-        $crate::env_config!(#[$attr],
+    ($(#[$attr:meta])* $wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!($(#[$attr])*
                             $wrapping_type,
                             $type,
                             $env_var,
@@ -215,15 +215,15 @@ macro_rules! env_config_int {
 ///    const STABLE: &'static str = "stable";
 /// }
 ///
-/// habitat_core::env_config_string!(#[derive(Clone, Debug, Eq, Hash, PartialEq)],
+/// habitat_core::env_config_string!(#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 ///                                  pub ChannelIdent,
 ///                                  HAB_BLDR_CHANNEL,
 ///                                  ChannelIdent::STABLE);
 /// ```
 #[macro_export]
 macro_rules! env_config_string {
-    (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_value:expr) => {
-        $crate::env_config!(#[$attr],
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!($(#[$attr])*
                             $vis $wrapping_type,
                             String,
                             $env_var,
@@ -264,7 +264,7 @@ macro_rules! default_as_str {
 /// Example usage:
 /// ```
 /// use std::net::Ipv4Addr;
-/// habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
+/// habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 ///                                      pub ListenCtlAddr,
 ///                                      HAB_LISTEN_CTL,
 ///                                      Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT);
@@ -273,15 +273,15 @@ macro_rules! default_as_str {
 ///    pub const DEFAULT_PORT: u16 = 9632;
 /// }
 ///
-/// habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)],
+/// habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 ///                                      pub HttpListenAddr,
 ///                                      HAB_LISTEN_HTTP,
 ///                                      0, 0, 0, 0, 9631);
 /// ```
 #[macro_export]
 macro_rules! env_config_socketaddr {
-    (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip:expr, $default_port:expr) => {
-        $crate::env_config!(#[$attr],
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip:expr, $default_port:expr) => {
+        $crate::env_config!($(#[$attr])*
                             $vis $wrapping_type,
                             std::net::SocketAddr,
                             $env_var,
@@ -303,8 +303,8 @@ macro_rules! env_config_socketaddr {
         }
     };
 
-    (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip_a:literal, $default_ip_b:literal, $default_ip_c:literal, $default_ip_d:literal, $default_port:expr) => {
-        $crate::env_config!(#[$attr],
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip_a:literal, $default_ip_b:literal, $default_ip_c:literal, $default_ip_d:literal, $default_port:expr) => {
+        $crate::env_config!($(#[$attr])*
                             $vis $wrapping_type,
                             std::net::SocketAddr,
                             $env_var,

@@ -145,7 +145,7 @@ impl fmt::Display for AutomateAuthToken {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
-habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
+habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)]
                                      pub GossipListenAddr,
                                      HAB_LISTEN_GOSSIP,
                                      0, 0, 0, 0, Self::DEFAULT_PORT);
@@ -195,7 +195,7 @@ impl ToSocketAddrs for GossipListenAddr {
     fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
 }
 
-habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)],
+habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)]
                                      pub HttpListenAddr,
                                      HAB_LISTEN_HTTP,
                                      0, 0, 0, 0, 9631);
@@ -219,7 +219,7 @@ impl ToSocketAddrs for HttpListenAddr {
     fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
 }
 
-habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
+habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)]
                                      pub ListenCtlAddr,
                                      HAB_LISTEN_CTL,
                                      Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT);
