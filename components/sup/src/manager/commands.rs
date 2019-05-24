@@ -355,7 +355,7 @@ pub fn service_status(mgr: &ManagerState,
                             .expect("GatewayState lock is poisoned")
                             .services_data;
     let statuses: Vec<ServiceStatus> =
-        serde_json::from_str(&services_data).map_err(|e| Error::ServiceDeserializationError(e))?;
+        serde_json::from_str(&services_data).map_err(Error::ServiceDeserializationError)?;
 
     if let Some(ident) = opts.ident {
         for status in statuses {

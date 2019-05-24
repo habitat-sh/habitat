@@ -1214,7 +1214,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         // Start watcher on each path.
         for directory in directories {
             watcher.watch(&directory, RecursiveMode::NonRecursive)
-                   .map_err(|err| Error::NotifyError(err))?;
+                   .map_err(Error::NotifyError)?;
         }
         let initial_real_file = if send_initial_event {
             paths.real_file.clone()
@@ -1252,7 +1252,7 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
         let abs_path = if p.is_absolute() {
             p.clone()
         } else {
-            let cwd = env::current_dir().map_err(|e| Error::Io(e))?;
+            let cwd = env::current_dir().map_err(Error::Io)?;
             cwd.join(p)
         };
         let simplified_abs_path = simplify_abs_path(&abs_path);

@@ -85,11 +85,14 @@ impl Supervisor {
         if users::can_run_services_as_svc_user() {
             // We have the ability to run services as a user / group other
             // than ourselves, so they better exist
-            let uid =
-                users::get_uid_by_name(&pkg.svc_user).ok_or(Error::UserNotFound(pkg.svc_user
-                                                                                   .to_string()))?;
-            let gid = users::get_gid_by_name(&pkg.svc_group)
-                .ok_or(Error::GroupNotFound(pkg.svc_group.to_string(),))?;
+            let uid = users::get_uid_by_name(&pkg.svc_user).ok_or_else(|| {
+                                                               Error::UserNotFound(pkg.svc_user
+                                                                                      .to_string())
+                                                           })?;
+            let gid = users::get_gid_by_name(&pkg.svc_group).ok_or_else(|| {
+                                                                Error::GroupNotFound(pkg.svc_group
+                                                                                  .to_string())
+                                                            })?;
 
             Ok(UserInfo { username:  Some(pkg.svc_user.clone()),
                           uid:       Some(uid),

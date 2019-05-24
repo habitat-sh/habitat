@@ -678,7 +678,7 @@ impl Service {
         self.all_pkg_binds
             .iter()
             .find(|b| b.service == binding_name)
-            .ok_or(Error::NoSuchBind(binding_name.to_string()))
+            .ok_or_else(|| Error::NoSuchBind(binding_name.to_string()))
             .map(|b| b.exports.iter().collect())
     }
 

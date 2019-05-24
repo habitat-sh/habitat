@@ -104,9 +104,7 @@ impl PeerWatcher {
             self.have_events.store(false, Ordering::Relaxed);
             return Ok(Vec::new());
         }
-        let file = File::open(&self.path).map_err(|err| {
-                                             return Error::Io(err);
-                                         })?;
+        let file = File::open(&self.path).map_err(Error::Io)?;
         let reader = BufReader::new(file);
         let mut members: Vec<Member> = Vec::new();
         for line in reader.lines() {

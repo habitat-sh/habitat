@@ -508,7 +508,7 @@ impl CensusGroup {
     pub fn group_exports<'a>(&'a self) -> Result<HashSet<&'a String>, Error> {
         self.leader()
             .or_else(|| self.active_members().next())
-            .ok_or(Error::NoActiveMembers(self.service_group.clone()))
+            .ok_or_else(|| Error::NoActiveMembers(self.service_group.clone()))
             .map(|m| m.cfg.keys().collect())
     }
 }

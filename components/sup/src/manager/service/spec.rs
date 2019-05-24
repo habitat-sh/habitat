@@ -171,7 +171,7 @@ impl ServiceSpec {
         if self.ident == PackageIdent::default() {
             return Err(Error::MissingRequiredIdent);
         }
-        toml::to_string(self).map_err(|err| Error::ServiceSpecRender(err))
+        toml::to_string(self).map_err(Error::ServiceSpecRender)
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
@@ -272,7 +272,7 @@ impl FromStr for ServiceSpec {
     type Err = Error;
 
     fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
-        let spec: ServiceSpec = toml::from_str(toml).map_err(|e| Error::ServiceSpecParse(e))?;
+        let spec: ServiceSpec = toml::from_str(toml).map_err(Error::ServiceSpecParse)?;
         if spec.ident == PackageIdent::default() {
             return Err(Error::MissingRequiredIdent);
         }
@@ -361,7 +361,7 @@ mod test {
 
         match ServiceSpec::from_str(toml) {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredIdent => (), // expected outcome
                     e => panic!("Unexpected error returned: {:?}", e),
                 }
@@ -379,7 +379,7 @@ mod test {
 
         match ServiceSpec::from_str(toml) {
             Err(e) => {
-                match e.err {
+                match e {
                     ServiceSpecParse(_) => (), // expected outcome
                     e => panic!("Unexpected error returned: {:?}", e),
                 }
@@ -398,7 +398,7 @@ mod test {
 
         match ServiceSpec::from_str(toml) {
             Err(e) => {
-                match e.err {
+                match e {
                     ServiceSpecParse(_) => (), // expected outcome
                     e => panic!("Unexpected error returned: {:?}", e),
                 }
@@ -455,7 +455,7 @@ mod test {
 
         match spec.to_toml_string() {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredIdent => (), // expected outcome,
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -535,7 +535,7 @@ mod test {
 
         match ServiceSpec::from_file(&path) {
             Err(e) => {
-                match e.err {
+                match e {
                     ServiceSpecFileIO(p, _) => assert_eq!(path, p),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -552,7 +552,7 @@ mod test {
 
         match ServiceSpec::from_file(&path) {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredIdent => (), // expected outcome,
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -569,7 +569,7 @@ mod test {
 
         match ServiceSpec::from_file(&path) {
             Err(e) => {
-                match e.err {
+                match e {
                     ServiceSpecParse(_) => (), // expected outcome,
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -631,7 +631,7 @@ mod test {
 
         match spec.to_file(path) {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredIdent => (), // expected outcome,
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -678,7 +678,7 @@ mod test {
         let mut spec = ServiceSpec::default_for(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap()];
         if let Err(e) = spec.validate(&package) {
-            panic!("Unexpected error returned: {:?}", e.err);
+            panic!("Unexpected error returned: {:?}", e);
         }
     }
 
@@ -690,7 +690,7 @@ mod test {
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
                           ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),];
         if let Err(e) = spec.validate(&package) {
-            panic!("Unexpected error returned: {:?}", e.err);
+            panic!("Unexpected error returned: {:?}", e);
         }
     }
 
@@ -703,7 +703,7 @@ mod test {
         spec.binds = vec![];
         match spec.validate(&package) {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredBind(b) => assert_eq!(vec!["database".to_string()], b),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -723,7 +723,7 @@ mod test {
                           ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),];
         match spec.validate(&package) {
             Err(e) => {
-                match e.err {
+                match e {
                     InvalidBinds(b) => assert_eq!(vec!["backend".to_string()], b),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
