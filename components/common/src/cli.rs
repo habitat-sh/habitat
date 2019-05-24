@@ -3,7 +3,6 @@
 //! Eventually this will be composed of fully typed default values. But as a first step we
 //! need a spot to consolidate those values and help simplify some of the logic around them.
 
-use crate::types::ListenCtlAddr;
 use clap::ArgMatches;
 
 use habitat_core::{env as henv,
@@ -13,13 +12,6 @@ use habitat_core::{env as henv,
                                  ShutdownTimeout}};
 use std::path::PathBuf;
 
-pub const GOSSIP_DEFAULT_IP: &str = "0.0.0.0";
-pub const GOSSIP_DEFAULT_PORT: u16 = 9638;
-// TODO: move into env_config_socketaddr macro
-lazy_static! {
-    pub static ref GOSSIP_DEFAULT_ADDR: String =
-        { format!("{}:{}", GOSSIP_DEFAULT_IP, GOSSIP_DEFAULT_PORT) };
-}
 pub const RING_ENVVAR: &str = "HAB_RING";
 pub const RING_KEY_ENVVAR: &str = "HAB_RING_KEY";
 
@@ -45,9 +37,6 @@ lazy_static! {
 const SYSTEMDRIVE_ENVVAR: &str = "SYSTEMDRIVE";
 
 lazy_static! {
-    pub static ref LISTEN_CTL_DEFAULT_ADDR_STRING: String =
-        { ListenCtlAddr::default().to_string() };
-
     /// The default filesystem root path to base all commands from. This is lazily generated on
     /// first call and reflects on the presence and value of the environment variable keyed as
     /// `FS_ROOT_ENVVAR`.

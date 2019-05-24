@@ -3,8 +3,8 @@ use crate::{error::{Error,
             manager::file_watcher::{default_file_watcher,
                                     Callbacks}};
 use habitat_butterfly::member::Member;
-use habitat_common::{cli::GOSSIP_DEFAULT_PORT,
-                     outputln};
+use habitat_common::{outputln,
+                     types::GossipListenAddr};
 use std::{fs::File,
           io::{BufRead,
                BufReader},
@@ -112,7 +112,7 @@ impl PeerWatcher {
                 let peer_addr = if peer.find(':').is_some() {
                     peer
                 } else {
-                    format!("{}:{}", peer, GOSSIP_DEFAULT_PORT)
+                    format!("{}:{}", peer, GossipListenAddr::DEFAULT_PORT)
                 };
                 let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
                     Ok(addrs) => addrs.collect(),
@@ -136,9 +136,8 @@ impl PeerWatcher {
 
 #[cfg(test)]
 mod tests {
-    use super::PeerWatcher;
+    use super::*;
     use habitat_butterfly::member::Member;
-    use habitat_common::cli::GOSSIP_DEFAULT_PORT;
     use std::{fs::{File,
                    OpenOptions},
               io::Write};
@@ -183,8 +182,8 @@ mod tests {
         let mut member2 = Member::default();
         member2.id = String::new();
         member2.address = String::from("4.3.2.1");
-        member2.swim_port = GOSSIP_DEFAULT_PORT;
-        member2.gossip_port = GOSSIP_DEFAULT_PORT;
+        member2.swim_port = GossipListenAddr::DEFAULT_PORT;
+        member2.gossip_port = GossipListenAddr::DEFAULT_PORT;
         let expected_members = vec![member1, member2];
         let mut members = watcher.get_members().unwrap();
         for mut member in &mut members {

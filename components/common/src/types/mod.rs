@@ -1,8 +1,3 @@
-// TODO: move into env_config_socketaddr macro
-use crate::cli::{GOSSIP_DEFAULT_IP,
-                 GOSSIP_DEFAULT_PORT,
-                 LISTEN_HTTP_DEFAULT_IP,
-                 LISTEN_HTTP_DEFAULT_PORT};
 use std::{io,
           net::{IpAddr,
                 Ipv4Addr,
@@ -160,13 +155,18 @@ mod test {
 habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
                                      pub GossipListenAddr,
                                      HAB_LISTEN_GOSSIP,
-                                     SocketAddr::V4(SocketAddrV4::new(GOSSIP_DEFAULT_IP.parse()
-                                                                                       .expect("GOSSIP_DEFAULT_IP can not be parsed."),
-                                                                      GOSSIP_DEFAULT_PORT)));
+                                     0, 0, 0, 0, Self::DEFAULT_PORT);
 
 impl GossipListenAddr {
-    pub fn new(ip: Ipv4Addr, port: u16) -> Self {
-        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(ip, port)))
+    pub const DEFAULT_PORT: u16 = 9638;
+
+    /// When local gossip mode is used we still startup the gossip layer but set
+    /// it to listen on 127.0.0.2 to scope it to the local node but ignore connections from
+    /// 127.0.0.1. This turns out to be much simpler than the cascade of changes that would
+    /// be involved in not setting up a gossip listener at all.
+    pub fn local_only() -> Self {
+        GossipListenAddr(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 2),
+                                                          Self::DEFAULT_PORT)))
     }
 
     /// Generate an address at which a server configured with this
@@ -205,9 +205,7 @@ impl ToSocketAddrs for GossipListenAddr {
 habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)],
                                      pub HttpListenAddr,
                                      HAB_LISTEN_HTTP,
-                                     SocketAddr::V4(SocketAddrV4::new(LISTEN_HTTP_DEFAULT_IP.parse()
-                                                                                            .expect("GOSSIP_DEFAULT_IP can not be parsed."),
-                                                                      LISTEN_HTTP_DEFAULT_PORT)));
+                                     0, 0, 0, 0, 9631);
 impl HttpListenAddr {
     pub fn new(ip: IpAddr, port: u16) -> Self { Self(SocketAddr::new(ip, port)) }
 }
@@ -231,7 +229,7 @@ impl ToSocketAddrs for HttpListenAddr {
 habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
                                      pub ListenCtlAddr,
                                      HAB_LISTEN_CTL,
-                                     SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT)));
+                                     Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT);
 
 impl ListenCtlAddr {
     pub const DEFAULT_PORT: u16 = 9632;

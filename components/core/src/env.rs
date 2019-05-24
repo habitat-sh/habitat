@@ -238,6 +238,20 @@ macro_rules! env_config_string {
     };
 }
 
+#[macro_export]
+macro_rules! default_as_str {
+    ($wrapping_type:ident) => {
+        impl $wrapping_type {
+            pub fn default_as_str() -> &'static str {
+                lazy_static! {
+                    pub static ref DEFAULT: String = { $wrapping_type::default().to_string() };
+                }
+                &DEFAULT
+            }
+        }
+    };
+}
+
 /// Declare a struct `$wrapping_type` that stores a `SocketAddr` and
 /// implements the `Config` trait so that its value can be overridden by `$env_var`.
 ///
@@ -252,15 +266,17 @@ macro_rules! env_config_string {
 /// ```
 #[macro_export]
 macro_rules! env_config_socketaddr {
-    (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_value:expr) => {
+    (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip:expr, $default_port:expr) => {
         $crate::env_config!(#[$attr],
                             $vis $wrapping_type,
                             SocketAddr,
                             $env_var,
-                            $default_value,
+                            SocketAddr::V4(SocketAddrV4::new($default_ip, $default_port)),
                             std::net::AddrParseError,
                             val,
                             Ok(val.parse::<SocketAddr>()?.into()));
+
+        $crate::default_as_str!($wrapping_type);
 
         impl From<SocketAddr> for $wrapping_type {
             fn from(socket_addr: SocketAddr) -> Self { Self(socket_addr) }
@@ -272,6 +288,34 @@ macro_rules! env_config_socketaddr {
             }
         }
     };
+
+    (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip_a:literal, $default_ip_b:literal, $default_ip_c:literal, $default_ip_d:literal, $default_port:expr) => {
+        $crate::env_config!(#[$attr],
+                            $vis $wrapping_type,
+                            SocketAddr,
+                            $env_var,
+                            SocketAddr::V4(SocketAddrV4::new(std::net::Ipv4Addr::new($default_ip_a,
+                                                                                     $default_ip_b,
+                                                                                     $default_ip_c,
+                                                                                     $default_ip_d),
+                                                             $default_port)),
+                            std::net::AddrParseError,
+                            val,
+                            Ok(val.parse::<SocketAddr>()?.into()));
+
+        $crate::default_as_str!($wrapping_type);
+
+        impl From<SocketAddr> for $wrapping_type {
+            fn from(socket_addr: SocketAddr) -> Self { Self(socket_addr) }
+        }
+
+        impl std::fmt::Display for $wrapping_type {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+                write!(f, "{}", self.0)
+            }
+        }
+    };
+
 }
 
 /// Enable the creation of a value based on an environment variable

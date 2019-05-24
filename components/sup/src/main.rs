@@ -26,14 +26,14 @@ use crate::sup::{cli::cli,
                            PROC_LOCK_FILE},
                  util};
 use clap::ArgMatches;
-use habitat_common::{cli::{cache_key_path_from_matches,
-                           GOSSIP_DEFAULT_PORT},
+use habitat_common::{cli::cache_key_path_from_matches,
                      command::package::install::InstallSource,
                      output::{self,
                               OutputFormat,
                               OutputVerbosity},
                      outputln,
-                     types::HttpListenAddr,
+                     types::{GossipListenAddr,
+                             HttpListenAddr},
                      ui::{NONINTERACTIVE_ENVVAR,
                           UI},
                      FeatureFlag};
@@ -55,8 +55,7 @@ use habitat_sup_protocol::{ctl::ServiceBindList,
 use std::{env,
           io::{self,
                Write},
-          net::{Ipv4Addr,
-                SocketAddr,
+          net::{SocketAddr,
                 ToSocketAddrs},
           path::{Path,
                  PathBuf},
@@ -234,9 +233,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
         // TODO: Refactor this to remove the duplication
         gossip_listen: if m.is_present("LOCAL_GOSSIP_MODE") {
-            // When local gossip mode is used we still startup the gossip layer but set
-            // it to listen on 127.0.0.2 to scope it to the local node.
-            habitat_common::types::GossipListenAddr::new(Ipv4Addr::new(127, 0, 0, 2), GOSSIP_DEFAULT_PORT)
+            habitat_common::types::GossipListenAddr::local_only()
         } else {
             m.value_of("LISTEN_GOSSIP").map_or_else(
                 || {
@@ -303,7 +300,7 @@ fn get_peers(matches: &ArgMatches) -> Result<Vec<SocketAddr>> {
             let peer_addr = if peer.find(':').is_some() {
                 peer.to_string()
             } else {
-                format!("{}:{}", peer, GOSSIP_DEFAULT_PORT)
+                format!("{}:{}", peer, GossipListenAddr::DEFAULT_PORT)
             };
             let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
                 Ok(addrs) => addrs.collect(),
@@ -649,7 +646,9 @@ mod test {
             let expected_peers: Vec<SocketAddr> =
                 vec!["1.1.1.1", "2.2.2.2", "3.3.3.3"].into_iter()
                                                      .map(|peer| {
-                                                         format!("{}:{}", peer, GOSSIP_DEFAULT_PORT)
+                                                         format!("{}:{}",
+                                                                 peer,
+                                                                 GossipListenAddr::DEFAULT_PORT)
                                                      })
                                                      .flat_map(|peer| {
                                                          peer.to_socket_addrs()

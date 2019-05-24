@@ -4,9 +4,6 @@ use clap::{App,
            Arg};
 use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
-                           GOSSIP_DEFAULT_ADDR,
-                           LISTEN_CTL_DEFAULT_ADDR_STRING,
-                           LISTEN_HTTP_DEFAULT_ADDR,
                            PACKAGE_TARGET_ENVVAR,
                            RING_ENVVAR,
                            RING_KEY_ENVVAR,
@@ -961,15 +958,15 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
                             // is displayed confusingly as `hab-sup`
                             // see: https://github.com/kbknapp/clap-rs/blob/2724ec5399c500b12a1a24d356f4090f4816f5e2/src/app/mod.rs#L373-L394
                             (usage: "hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]")
-                            (@arg LISTEN_GOSSIP: --("listen-gossip") env(GOSSIP_LISTEN_ADDRESS_ENVVAR) default_value(&GOSSIP_DEFAULT_ADDR) {valid_socket_addr}
+                            (@arg LISTEN_GOSSIP: --("listen-gossip") env(GossipListenAddr::ENVVAR) default_value(GossipListenAddr::default_as_str()) {valid_socket_addr}
                              "The listen address for the Gossip System Gateway.")
                             (@arg LOCAL_GOSSIP_MODE: --("local-gossip-mode") conflicts_with("LISTEN_GOSSIP") conflicts_with("PEER") conflicts_with("PEER_WATCH_FILE")
                              "Start the supervisor in local mode.")
-                            (@arg LISTEN_HTTP: --("listen-http") env(HttpListenAddr::ENVVAR) default_value(&LISTEN_HTTP_DEFAULT_ADDR) {valid_socket_addr}
+                            (@arg LISTEN_HTTP: --("listen-http") env(HttpListenAddr::ENVVAR) default_value(HttpListenAddr::default_as_str()) {valid_socket_addr}
                              "The listen address for the HTTP Gateway.")
                             (@arg HTTP_DISABLE: --("http-disable") -D
                              "Disable the HTTP Gateway completely [default: false]")
-                            (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(&LISTEN_CTL_DEFAULT_ADDR_STRING) {valid_socket_addr}
+                            (@arg LISTEN_CTL: --("listen-ctl") env(ListenCtlAddr::ENVVAR) default_value(ListenCtlAddr::default_as_str()) {valid_socket_addr}
                              "The listen address for the Control Gateway. If not specified, the value will \
                               be taken from the HAB_LISTEN_CTL environment variable if defined. [default: 127.0.0.1:9632]")
                             (@arg ORGANIZATION: --org +takes_value
