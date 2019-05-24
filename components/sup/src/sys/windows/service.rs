@@ -41,7 +41,7 @@ const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
 
 /// Kill a service process
-pub fn kill(pid: Pid, shutdown_config: ShutdownConfig) -> ShutdownMethod {
+pub fn kill(pid: Pid, shutdown_config: &ShutdownConfig) -> ShutdownMethod {
     match handle_from_pid(pid) {
         None => {
             // Assume it's already gone if we can't resolve a proper process handle
@@ -72,8 +72,8 @@ impl Process {
 
     /// Attempt to gracefully terminate a process and then forcefully kill it after
     /// 8 seconds if it has not terminated.
-    fn kill(&mut self, shutdown_config: ShutdownConfig) -> ShutdownMethod {
-        let ShutdownConfig { timeout } = shutdown_config;
+    fn kill(&mut self, shutdown_config: &ShutdownConfig) -> ShutdownMethod {
+        let ShutdownConfig { timeout } = *shutdown_config;
 
         if self.status().is_some() {
             return ShutdownMethod::AlreadyExited;
