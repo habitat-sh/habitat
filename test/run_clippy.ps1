@@ -33,6 +33,8 @@ $clippyArgs += Convert-ArrayToArgs -arg D -list (Get-Content $DeniedLintsPath)
 $clippyCommand = "cargo +$toolchain clippy --all-targets --tests -- $clippyArgs"
 Write-Host "--- Running clippy!"
 Write-Host "Clippy rules: $clippyCommand"
+Invoke-Expression "cargo +$toolchain version"
+Invoke-Expression "cargo +$toolchain clippy --version"
 Invoke-Expression $clippyCommand
 
 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}
