@@ -32,8 +32,7 @@ use habitat_common::{cli::cache_key_path_from_matches,
                               OutputFormat,
                               OutputVerbosity},
                      outputln,
-                     types::{GossipListenAddr,
-                             HttpListenAddr},
+                     types::GossipListenAddr,
                      ui::{NONINTERACTIVE_ENVVAR,
                           UI},
                      FeatureFlag};
@@ -219,6 +218,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         None
     };
 
+    #[rustfmt::skip]
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
         custom_state_path: None, // remove entirely?
@@ -231,44 +231,13 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         ring_key: get_ring_key(m, &cache_key_path_from_matches(m))?,
         gossip_peers: get_peers(m)?,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
-        // TODO: Refactor this to remove the duplication
         gossip_listen: if m.is_present("LOCAL_GOSSIP_MODE") {
-            habitat_common::types::GossipListenAddr::local_only()
+            GossipListenAddr::local_only()
         } else {
-            m.value_of("LISTEN_GOSSIP").map_or_else(
-                || {
-                    let default = habitat_common::types::GossipListenAddr::default();
-                    error!(
-                        "Value for LISTEN_GOSSIP has not been set. Using default: {}",
-                        default
-                    );
-                    Ok(default)
-                },
-                str::parse,
-            )?
+            m.value_of("LISTEN_GOSSIP").and_then(|s| s.parse().ok()).unwrap_or_default()
         },
-        ctl_listen: m.value_of("LISTEN_CTL").map_or_else(
-            || {
-                let default = habitat_common::types::ListenCtlAddr::default();
-                error!(
-                    "Value for LISTEN_CTL has not been set. Using default: {}",
-                    default
-                );
-                Ok(default)
-            },
-            str::parse,
-        )?,
-        http_listen: m.value_of("LISTEN_HTTP").map_or_else(
-            || {
-                let default = HttpListenAddr::default();
-                error!(
-                    "Value for LISTEN_HTTP has not been set. Using default: {}",
-                    default
-                );
-                Ok(default)
-            },
-            str::parse,
-        )?,
+        ctl_listen: m.value_of("LISTEN_CTL").and_then(|s| s.parse().ok()).unwrap_or_default(),
+        http_listen: m.value_of("LISTEN_HTTP").and_then(|s| s.parse().ok()).unwrap_or_default(),
         tls_config: m.value_of("KEY_FILE").map(|kf| {
             let cert_path = m
                 .value_of("CERT_FILE")
