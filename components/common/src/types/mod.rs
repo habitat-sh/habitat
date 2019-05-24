@@ -1,4 +1,8 @@
-use std::{io,
+use crate::error::Error;
+use clap::ArgMatches;
+use std::{collections::HashMap,
+          fmt,
+          io,
           net::{IpAddr,
                 Ipv4Addr,
                 SocketAddr,
@@ -6,7 +10,9 @@ use std::{io,
                 ToSocketAddrs},
           ops::{Deref,
                 DerefMut},
-          option};
+          option,
+          result,
+          str::FromStr};
 
 /// Bundles up information about the user and group that a supervised
 /// service should be run as. If the Supervisor itself is running with
