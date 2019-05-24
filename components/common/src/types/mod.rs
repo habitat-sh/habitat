@@ -274,7 +274,6 @@ mod tests {
         }
     }
 
-    // TODO: move to alongside env::Config itself; will need to move locked_env_var -> core
     mod env_config {
         use habitat_core::env::Config as EnvConfig;
         use std::{env,
