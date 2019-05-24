@@ -32,21 +32,21 @@ pub enum Impossible {}
 
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
-const STABLE_CHANNEL_IDENT: &str = "stable";
-const UNSTABLE_CHANNEL_IDENT: &str = "unstable";
-
 // A Builder channel
 env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)],
                    pub ChannelIdent,
                    HAB_BLDR_CHANNEL,
-                   STABLE_CHANNEL_IDENT.to_string());
+                   ChannelIdent::STABLE);
 
 impl ChannelIdent {
+    const STABLE: &'static str = "stable";
+    const UNSTABLE: &'static str = "unstable";
+
     pub fn as_str(&self) -> &str { self.0.as_str() }
 
-    pub fn stable() -> Self { Self::from(STABLE_CHANNEL_IDENT) }
+    pub fn stable() -> Self { Self::from(Self::STABLE) }
 
-    pub fn unstable() -> Self { Self::from(UNSTABLE_CHANNEL_IDENT) }
+    pub fn unstable() -> Self { Self::from(Self::UNSTABLE) }
 }
 
 impl fmt::Display for ChannelIdent {

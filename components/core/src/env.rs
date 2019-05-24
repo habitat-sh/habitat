@@ -147,7 +147,7 @@ macro_rules! env_config {
 /// ```
 /// use std::time::Duration;
 /// habitat_core::env_config_duration!(PersistLoopPeriod,
-///                                    HAB_PERSIST_LOOP_PERIOD_SECS => from_secs
+///                                    HAB_PERSIST_LOOP_PERIOD_SECS => from_secs,
 ///                                    Duration::from_secs(30));
 /// ```
 #[macro_export]
@@ -211,10 +211,14 @@ macro_rules! env_config_int {
 ///
 /// Example usage:
 /// ```
-/// habitat_core::env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)],
+/// impl ChannelIdent {
+///    const STABLE: &'static str = "stable";
+/// }
+///
+/// habitat_core::env_config_string!(#[derive(Clone, Debug, Eq, Hash, PartialEq)],
 ///                                  pub ChannelIdent,
 ///                                  HAB_BLDR_CHANNEL,
-///                                  STABLE_CHANNEL_IDENT.to_string());
+///                                  ChannelIdent::STABLE);
 /// ```
 #[macro_export]
 macro_rules! env_config_string {
@@ -223,7 +227,7 @@ macro_rules! env_config_string {
                             $vis $wrapping_type,
                             String,
                             $env_var,
-                            $default_value,
+                            $default_value.to_string(),
                             $crate::Impossible,
                             s,
                             Ok(Self(s.to_string())));
@@ -243,7 +247,7 @@ macro_rules! default_as_str {
     ($wrapping_type:ident) => {
         impl $wrapping_type {
             pub fn default_as_str() -> &'static str {
-                lazy_static! {
+                lazy_static::lazy_static! {
                     pub static ref DEFAULT: String = { $wrapping_type::default().to_string() };
                 }
                 &DEFAULT
@@ -259,27 +263,37 @@ macro_rules! default_as_str {
 ///
 /// Example usage:
 /// ```
+/// use std::net::Ipv4Addr;
 /// habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)],
 ///                                      pub ListenCtlAddr,
 ///                                      HAB_LISTEN_CTL,
-///                                      SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT)));
+///                                      Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT);
+///
+/// impl ListenCtlAddr {
+///    pub const DEFAULT_PORT: u16 = 9632;
+/// }
+///
+/// habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)],
+///                                      pub HttpListenAddr,
+///                                      HAB_LISTEN_HTTP,
+///                                      0, 0, 0, 0, 9631);
 /// ```
 #[macro_export]
 macro_rules! env_config_socketaddr {
     (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip:expr, $default_port:expr) => {
         $crate::env_config!(#[$attr],
                             $vis $wrapping_type,
-                            SocketAddr,
+                            std::net::SocketAddr,
                             $env_var,
-                            SocketAddr::V4(SocketAddrV4::new($default_ip, $default_port)),
+                            std::net::SocketAddr::V4(std::net::SocketAddrV4::new($default_ip, $default_port)),
                             std::net::AddrParseError,
                             val,
-                            Ok(val.parse::<SocketAddr>()?.into()));
+                            Ok(val.parse::<std::net::SocketAddr>()?.into()));
 
         $crate::default_as_str!($wrapping_type);
 
-        impl From<SocketAddr> for $wrapping_type {
-            fn from(socket_addr: SocketAddr) -> Self { Self(socket_addr) }
+        impl From<std::net::SocketAddr> for $wrapping_type {
+            fn from(socket_addr: std::net::SocketAddr) -> Self { Self(socket_addr) }
         }
 
         impl std::fmt::Display for $wrapping_type {
@@ -292,21 +306,21 @@ macro_rules! env_config_socketaddr {
     (#[$attr:meta], $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip_a:literal, $default_ip_b:literal, $default_ip_c:literal, $default_ip_d:literal, $default_port:expr) => {
         $crate::env_config!(#[$attr],
                             $vis $wrapping_type,
-                            SocketAddr,
+                            std::net::SocketAddr,
                             $env_var,
-                            SocketAddr::V4(SocketAddrV4::new(std::net::Ipv4Addr::new($default_ip_a,
+                            std::net::SocketAddr::V4(std::net::SocketAddrV4::new(std::net::Ipv4Addr::new($default_ip_a,
                                                                                      $default_ip_b,
                                                                                      $default_ip_c,
                                                                                      $default_ip_d),
                                                              $default_port)),
                             std::net::AddrParseError,
                             val,
-                            Ok(val.parse::<SocketAddr>()?.into()));
+                            Ok(val.parse::<std::net::SocketAddr>()?.into()));
 
         $crate::default_as_str!($wrapping_type);
 
-        impl From<SocketAddr> for $wrapping_type {
-            fn from(socket_addr: SocketAddr) -> Self { Self(socket_addr) }
+        impl From<std::net::SocketAddr> for $wrapping_type {
+            fn from(socket_addr: std::net::SocketAddr) -> Self { Self(socket_addr) }
         }
 
         impl std::fmt::Display for $wrapping_type {
