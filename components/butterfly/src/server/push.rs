@@ -143,7 +143,7 @@ impl PushWorker {
     /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
     /// method can lose messages.
     // If we ever need to modify this function, it would be an excellent opportunity to
-    // simplify the redundant aspects and remove this allow(clippy::cyclomatic_complexity),
+    // simplify the redundant aspects and remove this allow(clippy::cognitive_complexity),
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
     fn send_rumors(&self, member: &Member, rumors: &[RumorKey]) {
