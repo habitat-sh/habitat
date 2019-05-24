@@ -1974,6 +1974,10 @@ function _Write-Metadata {
         "$pkg_svc_group" |
             Out-File "$pkg_prefix\SVC_GROUP" -Encoding ascii
     }
+    if (-Not ([string]::IsNullOrEmpty($pkg_shutdown_timeout))) {
+        "$pkg_shutdown_timeout" |
+            Out-File "$pkg_prefix\SHUTDOWN_TIMEOUT" -Encoding ascii
+    }
 
     # Generate the blake2b hashes of all the files in the package. This
     # is not in the resulting MANIFEST because MANIFEST is included!

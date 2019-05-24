@@ -241,6 +241,15 @@ $pkg_binds_optional={{ pkg_binds_optional }}
 #   storage="port host"
 # }
 {{~ /if}}
+
+# Optional.
+# The number of seconds to wait for a service to shutdown. After this interval
+# the service will forcibly be killed. The default is 8.
+{{#if pkg_shutdown_timeout ~}}
+$pkg_shutdown_timeout={{ pkg_shutdown_timeout }}
+{{~ else ~}}
+# $pkg_shutdown_timeout=8
+{{~ /if}}
 {{~ /unless}}
 
 
