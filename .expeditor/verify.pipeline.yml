@@ -46,7 +46,7 @@ steps:
 
   - label: "[lint] :windows: :paperclip: clippy!"
     command:
-      - .\test\run_clippy.ps1 stable .\test\unexamined_lints.txt .\test\allowed_lints.txt .\test\lints_to_fix.txt .\test\denied_lints.txt
+      - .\test\run_clippy.ps1 .\test\unexamined_lints.txt .\test\allowed_lints.txt .\test\lints_to_fix.txt .\test\denied_lints.txt
     agents:
       queue: 'default-windows-privileged'
     plugins:

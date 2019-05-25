@@ -15,7 +15,7 @@ param (
 $ErrorActionPreference="stop"
 . $PSScriptRoot\..\support\ci\shared.ps1
 
-$toolchain = "stable"
+$toolchain = Rust-Toolchain
 if($Nightly) { $toolchain = (gc $PSScriptRoot\..\RUSTFMT_VERSION | out-string).Trim() }
 
 Setup-Environment
@@ -27,18 +27,13 @@ If($Features) {
 }
 
 # Set cargo test invocation
-if($Nightly) {
-    Install-Rustup $toolchain
-    Install-RustToolchain $toolchain
-    $CargoTestCommand = "cargo +$toolchain"
-} else {
-    $env:path = "$(hab pkg path core/rust)\bin;$env:path"
-    $CargoTestCommand = "cargo"
-}
-$CargoTestCommand += " test $FeatureString -- $TestOptions"
+Install-Rustup $toolchain
+Install-RustToolchain $toolchain
+$CargoTestCommand = "cargo +$toolchain test $FeatureString -- $TestOptions"
 
-Write-Host "--- Running cargo test on $Component with command: '$CargoTestCommand'"
+Write-Host "--- Running cargo +$toolchain test on $Component with command: '$CargoTestCommand'"
 cd components/$Component
+cargo +$toolchain version
 Invoke-Expression $CargoTestCommand
 
 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}

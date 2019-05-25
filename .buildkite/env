@@ -8,7 +8,9 @@ set -euo pipefail
 # Use this to specify a toolchain for Rustup on platforms where that's
 # how we get Rust (e.g., macOS)
 if [[ -z "${RUST_TOOLCHAIN:-}" ]]; then
-    export RUST_TOOLCHAIN="1.35.0"
+    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+    RUST_TOOLCHAIN="$(< "$dir"/../rust-toolchain)"
+    export RUST_TOOLCHAIN
 else
     echo "--- :warning: Using RUST_TOOLCHAIN=\"${RUST_TOOLCHAIN}\", previously set in the environment"
 fi

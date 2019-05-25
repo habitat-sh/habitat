@@ -1,7 +1,6 @@
 #Requires -Version 5
 
 param (
-    [string]$toolchain = "stable",
     [string]$UnexaminedLintsPath,
     [string]$AllowedLintsPath,
     [string]$LintsToFixPath,
@@ -17,11 +16,12 @@ function Convert-ArrayToArgs ($arg, $list) {
     }
 }
 
+$toolchain = Rust-Toolchain
 Install-Rustup $toolchain
 Install-RustToolchain $toolchain
 
 Write-Host "Installing clippy"
-rustup component add clippy
+rustup component add --toolchain "$toolchain" clippy
 
 Setup-Environment
 
@@ -33,8 +33,8 @@ $clippyArgs += Convert-ArrayToArgs -arg D -list (Get-Content $DeniedLintsPath)
 $clippyCommand = "cargo +$toolchain clippy --all-targets --tests -- $clippyArgs"
 Write-Host "--- Running clippy!"
 Write-Host "Clippy rules: $clippyCommand"
-Invoke-Expression "cargo +$toolchain version"
-Invoke-Expression "cargo +$toolchain clippy --version"
+cargo +$toolchain version
+cargo +$toolchain clippy --version
 Invoke-Expression $clippyCommand
 
 if ($LASTEXITCODE -ne 0) {exit $LASTEXITCODE}

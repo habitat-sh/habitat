@@ -20,7 +20,7 @@ function Install-Rustup($Toolchain) {
     if (get-command -Name rustup.exe -ErrorAction SilentlyContinue) {
         Write-Host "rustup is currently installed"
         rustup set default-host x86_64-pc-windows-msvc
-        rustup default stable-x86_64-pc-windows-msvc
+        rustup default "$(Rust-Toolchain)-x86_64-pc-windows-msvc"
     } else {
         Write-Host "Installing rustup and $toolchain-x86_64-pc-windows-msvc Rust."
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -28,6 +28,10 @@ function Install-Rustup($Toolchain) {
         ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path
         $env:path += ";$env:USERPROFILE\.cargo\bin"
     }
+}
+
+function Rust-Toolchain {
+    "$(Get-Content $PSScriptRoot\..\..\rust-toolchain)"
 }
 
 function Install-RustToolchain($Toolchain) {

@@ -2,6 +2,8 @@
 
 set -euo pipefail
 
+dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
 get_nightly_toolchain() {
   # It turns out that every nightly version of rustfmt has slight tweaks from the previous version.
   # This means that if we're always using the latest version, then we're going to have enormous
@@ -13,8 +15,11 @@ get_nightly_toolchain() {
   # break the way rustfmt uses rustc. Therefore, before updating the pin below, double check
   # that the nightly version you're going to update it to includes rustfmt. You can do that
   # using https://mexus.github.io/rustup-components-history/x86_64-unknown-linux-gnu.html
-  dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
   cat "$dir/../../RUSTFMT_VERSION"
+}
+
+get_toolchain() {
+  cat "$dir/../../rust-toolchain"
 }
 
 install_rustup() {
