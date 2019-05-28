@@ -10,6 +10,7 @@
 - remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- First pass at test framework to validate studio changes [#6528](https://github.com/habitat-sh/habitat/pull/6528) ([smacfarlane](https://github.com/smacfarlane))
 - Adding info on accepting license via environment vars [#6526](https://github.com/habitat-sh/habitat/pull/6526) ([tyler-ball](https://github.com/tyler-ball))
 - Be more liberal in our license acceptance checking. [#6574](https://github.com/habitat-sh/habitat/pull/6574) ([raskchanky](https://github.com/raskchanky))
 - Initial protobufs for events [#6344](https://github.com/habitat-sh/habitat/pull/6344) ([christophermaier](https://github.com/christophermaier))
