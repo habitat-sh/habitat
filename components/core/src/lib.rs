@@ -25,11 +25,6 @@ use serde_derive::{Deserialize,
 pub use crate::os::{filesystem,
                     users};
 
-/// A type which can't be instantiated
-/// Use this when a generic requires a type which will never be used.
-/// For example, FromStr::Err on an infallible conversion
-pub enum Impossible {}
-
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
 // A Builder channel

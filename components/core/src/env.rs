@@ -228,7 +228,7 @@ macro_rules! env_config_string {
                             String,
                             $env_var,
                             $default_value.to_string(),
-                            $crate::Impossible,
+                            std::convert::Infallible,
                             s,
                             Ok(Self(s.to_string())));
 
