@@ -189,6 +189,22 @@ pkg_svc_group=$pkg_svc_user
 
 > Note: `pkg_svc_group` is not used in a `plan.ps1`.
 
+### pkg_shutdown_signal
+**Optional**. The signal to send the service to shutdown. The default is `TERM`.
+
+```bash
+pkg_shutdown_signal=$pkg_shutdown_signal
+```
+
+> Note: `pkg_shutdown_signal` is not used in a `plan.ps1`.
+
+### pkg_shutdown_timeout_sec
+**Optional**. The number of seconds to wait for a service to shutdown. After this interval the service will forcibly be killed. The default is `8`.
+
+```bash
+pkg_shutdown_timeout_sec=$pkg_shutdown_timeout_sec
+```
+
 ### pkg_description
 **Required** for [core](https://github.com/habitat-sh/core-plans) plans, optional otherwise. A short description of the package. It can be a simple string, or you can create a multi-line description using markdown to provide a rich description of your package. **This description will be displayed on the Web app when users search for or browse to your package.**
 
