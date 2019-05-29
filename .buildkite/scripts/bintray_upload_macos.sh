@@ -19,7 +19,8 @@ channel=$(get_release_channel)
 # use it here
 
 echo "--- :habicat: Installing core/hab-bintray-publish from '${channel}' channel"
-sudo hab pkg install \
+sudo HAB_LICENSE="${HAB_LICENSE}" \
+     hab pkg install \
      --channel="${channel}" \
      core/hab-bintray-publish
 
@@ -39,6 +40,7 @@ sudo HAB_BLDR_CHANNEL="${channel}" \
      BINTRAY_USER="${BINTRAY_USER}" \
      BINTRAY_KEY="${BINTRAY_KEY}" \
      BINTRAY_PASSPHRASE="${BINTRAY_PASSPHRASE}" \
+     HAB_LICENSE="${HAB_LICENSE}"
      hab pkg exec core/hab-bintray-publish \
          publish-hab \
          -s \

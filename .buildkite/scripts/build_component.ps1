@@ -38,7 +38,7 @@ Push-Location "C:\build"
     $ReleaseChannel = & buildkite-agent meta-data get release-channel
     Write-Host "--- Setting HAB_BLDR_CHANNEL channel to $ReleaseChannel"
     $Env:HAB_BLDR_CHANNEL="$ReleaseChannel"
-
+    Write-Host "--- HAB_LICENSE is $Env:HAB_LICENSE"
     Write-Host "--- Running hab pkg build for $Component"
     Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
     . "results\last_build.ps1"

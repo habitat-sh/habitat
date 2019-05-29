@@ -116,8 +116,8 @@ set_hab_binary() {
         # Note that we are explicitly not binlinking here; this is to
         # prevent accidentally polluting the builder for any future
         # runs that may take place on it.
-        sudo "${hab_binary:?}" pkg install "${hab_ident}"
-        sudo "${hab_binary:?}" pkg install "$(get_studio_ident $pkg_target)"
+        sudo env HAB_LICENSE="${HAB_LICENSE}" "${hab_binary:?}" pkg install "${hab_ident}"
+        sudo env HAB_LICENSE="${HAB_LICENSE}" "${hab_binary:?}" pkg install "$(get_studio_ident $pkg_target)"
         hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
         declare -g new_studio=1
     else
@@ -127,6 +127,7 @@ set_hab_binary() {
     echo "--- :habicat: Using $(${hab_binary} --version)"
 }
 
+
 # Use the install.sh script which lives in this repository to download the latest version of Habitat
 install_hab_binary() {
     local target install_path
@@ -134,9 +135,8 @@ install_hab_binary() {
     target="$1"
     install_path="$2"
 
-    #sudo env HAB_BINLINK_DIR="$install_path" ./components/hab/install.sh -t "$target"
-    sudo ./components/hab/install.sh -t "$target"
-    sudo /bin/hab pkg binlink core/hab hab -d $install_path 
+    sudo env HAB_LICENSE="${HAB_LICENSE}" ./components/hab/install.sh -t "$target"
+    sudo env HAB_LICENSE="${HAB_LICENSE}" /bin/hab pkg binlink core/hab hab -d $install_path 
 }
 
 # The following get/set functions abstract the meta-data key
