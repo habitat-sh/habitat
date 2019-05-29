@@ -2,14 +2,17 @@
 components/backline @baumanj
 components/builder-api-client @chefsalim @raskchanky
 components/butterfly* @christophermaier @baumanj @raskchanky
+components/core @christophermaier @chefsalim @raskchanky @baumanj
 components/common @baumanj @raskchanky
 components/hab @christophermaier @chefsalim @baumanj @raskchanky @eeyun
+components/http-client @chefsalim @raskchanky
 components/launcher* @christophermaier @baumanj @raskchanky
 components/pkg-* @christophermaier @eeyun
 components/plan-build @christophermaier @scotthain
 components/studio @baumanj @eeyun
 components/sup* @christophermaier @baumanj @raskchanky
-support @baumanj @raskchanky
+components/win-users @mwrock
+support @christophermaier @raskchanky @baumanj
 tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky
 www @raskchanky
 www/site/content/* @kagarmoe @mjingle
