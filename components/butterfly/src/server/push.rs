@@ -146,7 +146,6 @@ impl PushWorker {
     // simplify the redundant aspects and remove this allow(clippy::cyclomatic_complexity),
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
-    #[allow(clippy::cyclomatic_complexity)]
     fn send_rumors(&self, member: &Member, rumors: &[RumorKey]) {
         let socket = (**ZMQ_CONTEXT).as_mut()
                                     .socket(zmq::PUSH)

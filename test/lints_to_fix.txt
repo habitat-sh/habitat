@@ -1,0 +1,1 @@
+clippy::cyclomatic_complexity

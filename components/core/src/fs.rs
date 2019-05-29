@@ -517,6 +517,8 @@ pub fn find_command_in_pkg<T, U>(command: T,
     where T: AsRef<Path>,
           U: AsRef<Path>
 {
+    // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+    #[allow(clippy::identity_conversion)]
     for path in pkg_install.paths()? {
         let stripped =
             path.strip_prefix("/")
