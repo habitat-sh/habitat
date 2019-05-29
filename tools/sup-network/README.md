@@ -15,8 +15,11 @@ I had just made with a minimum of hassle and fuss. That's why I made this.
 To start the network, run `make up`. This will build `hab`, `hab-launch`, and
 `hab-sup`, write out a `CTL_SECRET` file, and start the network. By default it
 will start 1 bastion node and 3 peer nodes. The number of peer nodes that are
-started can be controlled via the `HAB_SUP_TEST_NETWORK_SIZE` environment
-variable.
+started can be controlled via `HAB_SUP_TEST_NETWORK_SIZE`.
+
+```
+make up HAB_SUP_TEST_NETWORK_SIZE=5
+```
 
 To stop the network, run `make down`. This not only stops the network and all
 the containers, but also removes them, as well as removes the `CTL_SECRET`
@@ -26,13 +29,21 @@ file. If you want to just stop containers, without removing them, you can run
 Nodes are started up in detached mode. Presumably, you'd like to look at the
 logs for a service at some point. You can do that via `make logs`. This shows
 the logs for the `rando` service by default but you can display the logs of the
-bastion service by setting the `HAB_SUP_TEST_NETWORK_LOG_SERVICE` environment
-variable to `bastion`.
+bastion service by setting the `HAB_SUP_TEST_NETWORK_LOG_SERVICE` variable to
+`bastion`.
+
+```
+make logs HAB_SUP_TEST_NETWORK_LOG_SERVICE=bastion
+```
 
 If you would like to get a shell prompt into one of the containers, you can run
 `make console`. This will get you into the `rando_1` container by default. You
 can specify a different container using the `HAB_SUP_TEST_NETWORK_PEER_NAME`
-environment variable.
+variable.
+
+```
+make console HAB_SUP_TEST_NETWORK_PEER_NAME=rando_2
+```
 
 If you wish to simulate a departure, you can kill a container using `make
 kill`. Which container is killed works the same as `make console`.
