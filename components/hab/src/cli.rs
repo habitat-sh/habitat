@@ -881,8 +881,10 @@ fn sub_pkg_install(feature_flags: FeatureFlag) -> App<'static, 'static> {
         (@arg PKG_IDENT_OR_ARTIFACT: +required +multiple
             "One or more Habitat package identifiers (ex: acme/redis) and/or filepaths \
             to a Habitat Artifact (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-        (@arg BINLINK: -b --binlink +takes_value {non_empty} env(BINLINK_DIR_ENVVAR)
-            default_value(DEFAULT_BINLINK_DIR) "Binlink all binaries from installed package(s)")
+        (@arg BINLINK: -b --binlink
+            "Binlink all binaries from installed package(s)")
+        (@arg BINLINK_DIR: --("binlink-dir") +takes_value {non_empty} env(BINLINK_DIR_ENVVAR)
+            default_value(DEFAULT_BINLINK_DIR) "Binlink all binaries from installed package(s) into BINLINK_DIR")
         (@arg FORCE: -f --force "Overwrite existing binlinks")
         (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
         (@arg IGNORE_INSTALL_HOOK: --("ignore-install-hook") "Do not run any install hooks")
