@@ -475,7 +475,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     environment variable if defined. (default: https://bldr.habitat.sh)")
                 (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 (@arg LIMIT: -l --limit +takes_value default_value("50") {valid_numeric::<usize>}
-                    "Limit how many packages to retrieve (default: 50)")
+                    "Limit how many packages to retrieve")
             )
             (@subcommand sign =>
                 (about: "Signs an archive with an origin key, generating a Habitat Artifact")

@@ -16,7 +16,7 @@ pub fn start(st: &str, bldr_url: &str, limit: usize, token: Option<&str>) -> Res
                     println!("{}/{}", p.origin, p.name);
                 }
             }
-            if packages.len() != total as usize {
+            if packages.len() < total {
                 eprintln!("Search returned too many items, only showing the first {} of {}",
                           packages.len(),
                           total);

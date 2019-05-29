@@ -214,9 +214,7 @@ impl BuilderAPIClient {
          .map_err(Error::BadResponseBody)?;
         Ok(dst_file_path)
     }
-}
 
-impl BuilderAPIClient {
     fn seach_package_with_range(&self,
                                 search_term: &str,
                                 token: Option<&str>,
@@ -1176,5 +1174,101 @@ mod tests {
         assert_eq!(pre.id, post.id);
         assert_eq!(pre.origin_id, post.origin_id);
         assert_eq!(pre.owner_id, post.owner_id);
+    }
+
+    fn get_test_ident(name: &str) -> PackageIdent {
+        PackageIdent { origin:  String::from("test"),
+                       name:    String::from(name),
+                       version: None,
+                       release: None, }
+    }
+
+    fn seach_generator<'a>(
+        data: &'a [&str],
+        step: usize)
+        -> impl Fn(&BuilderAPIClient,
+                  &str,
+                  Option<&str>,
+                  usize) -> Result<(PackageResults<PackageIdent>, bool)>
+               + 'a {
+        move |_client, search_term, _token, range| {
+            let filtered = data.iter()
+                               .filter(|d| d.contains(search_term))
+                               .collect::<Vec<_>>();
+
+            if filtered.is_empty() {
+                return Ok((PackageResults { range_start: 0,
+                                            range_end:   0,
+                                            total_count: 0,
+                                            data:        vec![], },
+                           false));
+            }
+
+            let total = filtered.len();
+            let last = total - 1;
+            let (start, end) = if range >= last {
+                (last, last)
+            } else {
+                (range, (range + step).min(last))
+            };
+            let filtered_range = filtered[start..=end].iter()
+                                                      .map(|s| get_test_ident(**s))
+                                                      .collect::<Vec<_>>();
+            let result = PackageResults { range_start: start as isize,
+                                          range_end:   end as isize,
+                                          total_count: total as isize,
+                                          data:        filtered_range, };
+            Ok((result, end < last))
+        }
+    }
+
+    #[test]
+    fn package_search() {
+        let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
+
+        let sample_data = vec!["one_a", "one_b", "one_c", "one_d", "one_e", "two_a", "two_b",
+                               "two_c", "two_d", "two_e"];
+
+        let searcher = seach_generator(sample_data.as_slice(), 2);
+        let r = client.search_package_impl("one", 10, None, searcher)
+                      .expect("valid search");
+        assert_eq!(r.0.iter().map(|i| i.name.clone()).collect::<Vec<_>>(),
+                   vec!["one_a", "one_b", "one_c", "one_d", "one_e"]);
+        assert_eq!(r.1, 5);
+
+        let searcher = seach_generator(sample_data.as_slice(), 2);
+        let r = client.search_package_impl("_", 3, None, searcher)
+                      .expect("valid search");
+        assert_eq!(r.0.iter().map(|i| i.name.clone()).collect::<Vec<_>>(),
+                   vec!["one_a", "one_b", "one_c"]);
+        assert_eq!(r.1, 10);
+
+        let searcher = seach_generator(sample_data.as_slice(), 10);
+        let r = client.search_package_impl("a", 2, None, searcher)
+                      .expect("valid search");
+        assert_eq!(r.0.iter().map(|i| i.name.clone()).collect::<Vec<_>>(),
+                   vec!["one_a", "two_a"]);
+        assert_eq!(r.1, 2);
+
+        let searcher = seach_generator(sample_data.as_slice(), 10);
+        let r = client.search_package_impl("does_not_exist", 100, None, searcher)
+                      .expect("valid search");
+        assert_eq!(r.0.iter().map(|i| i.name.clone()).collect::<Vec<_>>(),
+                   Vec::<String>::new());
+        assert_eq!(r.1, 0);
+    }
+
+    #[ignore]
+    #[test]
+    fn package_search_large() {
+        let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
+
+        let count = 100_000;
+        let sample_data = std::iter::repeat("test").take(count).collect::<Vec<_>>();
+
+        let searcher = seach_generator(sample_data.as_slice(), 50);
+        let r = client.search_package_impl("test", count, None, searcher)
+                      .expect("valid search");
+        assert_eq!(r.1, count);
     }
 }

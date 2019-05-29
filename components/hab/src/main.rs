@@ -783,8 +783,11 @@ fn sub_pkg_provides(m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_search(m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
-    let search_term = m.value_of("SEARCH_TERM").unwrap(); // Required via clap
-    let limit = m.value_of("LIMIT").unwrap().parse().unwrap(); // Required via clap
+    let search_term = m.value_of("SEARCH_TERM").expect("required opt SEARCH_TERM");
+    let limit = m.value_of("LIMIT")
+                 .expect("required opt LIMIT")
+                 .parse()
+                 .expect("valid LIMIT");
     let token = maybe_auth_token(&m);
     command::pkg::search::start(&search_term,
                                 &url,
