@@ -1003,6 +1003,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "habitat-rst-reader"
+version = "0.0.0"
+dependencies = [
+ "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "env_logger 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "habitat_butterfly 0.1.0",
+ "log 0.3.9 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "habitat-sup-client"
 version = "0.0.0"
 dependencies = [

@@ -416,7 +416,8 @@ impl Server {
             if let Some(err) = fs::create_dir_all(path).err() {
                 return Err(Error::BadDataPath(path.to_path_buf(), err));
             }
-            let mut file = DatFile::new(&self.member_id, path);
+            let dat_path = path.join(format!("{}.rst", &self.member_id));
+            let mut file = DatFile::new(dat_path);
             if file.path().exists() {
                 match file.read_into(self) {
                     Ok(_) => {
