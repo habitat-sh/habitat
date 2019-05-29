@@ -298,10 +298,10 @@ pkg_shutdown_signal="{{ pkg_shutdown_signal }}"
 # Optional.
 # The number of seconds to wait for a service to shutdown. After this interval
 # the service will forcibly be killed. The default is 8.
-{{#if pkg_shutdown_timeout ~}}
-pkg_shutdown_timeout="{{ pkg_shutdown_timeout }}"
+{{#if pkg_shutdown_timeout_sec ~}}
+pkg_shutdown_timeout_sec="{{ pkg_shutdown_timeout_sec }}"
 {{~ else ~}}
-# pkg_shutdown_timeout=8
+# pkg_shutdown_timeout_sec=8
 {{~ /if}}
 {{~ /unless}}
 

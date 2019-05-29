@@ -253,10 +253,10 @@ _render_metadata_SHUTDOWN_SIGNAL() {
 }
 
 _render_metadata_SHUTDOWN_TIMEOUT() {
-  if [[ -n "${pkg_shutdown_timeout:-}" ]]; then
+  if [[ -n "${pkg_shutdown_timeout_sec:-}" ]]; then
     debug "Rendering SHUTDOWN_TIMEOUT metadata file"
     # shellcheck disable=2154
-    echo "$pkg_shutdown_timeout" > "$pkg_prefix"/SHUTDOWN_TIMEOUT
+    echo "$pkg_shutdown_timeout_sec" > "$pkg_prefix"/SHUTDOWN_TIMEOUT
   fi
 }
 

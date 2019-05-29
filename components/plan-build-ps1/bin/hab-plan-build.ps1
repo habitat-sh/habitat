@@ -1974,8 +1974,8 @@ function _Write-Metadata {
         "$pkg_svc_group" |
             Out-File "$pkg_prefix\SVC_GROUP" -Encoding ascii
     }
-    if (-Not ([string]::IsNullOrEmpty($pkg_shutdown_timeout))) {
-        "$pkg_shutdown_timeout" |
+    if (-Not ([string]::IsNullOrEmpty($pkg_shutdown_timeout_sec))) {
+        "$pkg_shutdown_timeout_sec" |
             Out-File "$pkg_prefix\SHUTDOWN_TIMEOUT" -Encoding ascii
     }
 
