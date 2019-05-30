@@ -19,3 +19,4 @@ test/builder-api/built/*
 test/builder-api/node_modules
 test/builder-api/services.log
 tmp/
+CTL_SECRET
