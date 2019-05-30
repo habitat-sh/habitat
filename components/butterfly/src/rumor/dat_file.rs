@@ -4,14 +4,8 @@ use crate::{error::{Error,
                      Membership},
             protocol::{newscast,
                        Message},
-            rumor::{Departure,
-                    Election,
-                    ElectionUpdate,
-                    Rumor,
-                    RumorStore,
-                    Service,
-                    ServiceConfig,
-                    ServiceFile},
+            rumor::{Rumor,
+                    RumorStore},
             server::Server};
 use byteorder::{ByteOrder,
                 LittleEndian};
@@ -52,6 +46,20 @@ impl DatFile {
                   header_size: 0,
                   header:      Header::default(), }
     }
+
+    pub fn member_len(&self) -> u64 { self.header.member_len }
+
+    pub fn service_len(&self) -> u64 { self.header.service_len }
+
+    pub fn service_config_len(&self) -> u64 { self.header.service_config_len }
+
+    pub fn service_file_len(&self) -> u64 { self.header.service_file_len }
+
+    pub fn election_len(&self) -> u64 { self.header.election_len }
+
+    pub fn update_len(&self) -> u64 { self.header.update_len }
+
+    pub fn departure_len(&self) -> u64 { self.header.departure_len }
 
     pub fn path(&self) -> &Path { &self.path }
 
@@ -106,61 +114,30 @@ impl DatFile {
         Ok(())
     }
 
-    fn read_rumor<F>(&mut self,
-                     rumor_type: &str,
-                     mut reader: &mut BufReader<File>,
-                     offset: u64,
-                     op: F)
-                     -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
+    pub fn read_rumors<T>(&mut self,
+                          mut reader: &mut BufReader<File>,
+                          offset: u64)
+                          -> Result<Vec<T>>
+        where T: Message<newscast::Rumor>
     {
-        debug!("Reading {} rumors from {}",
-               rumor_type,
-               self.path().display());
-        self.read_and_process(&mut reader, offset, op)?;
-        Ok(())
+        let mut rumors = Vec::new();
+
+        self.read_and_process(&mut reader, offset, |r| {
+                rumors.push(T::from_bytes(&r)?);
+                Ok(())
+            })?;
+
+        Ok(rumors)
     }
 
-    pub fn read_members<F>(&mut self, reader: &mut BufReader<File>, op: F) -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
-    {
-        self.read_rumor("membership", reader, self.header.member_len, op)
-    }
-
-    pub fn read_services<F>(&mut self, reader: &mut BufReader<File>, op: F) -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
-    {
-        self.read_rumor("service", reader, self.header.service_len, op)
-    }
-
-    pub fn read_service_configs<F>(&mut self, reader: &mut BufReader<File>, op: F) -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
-    {
-        self.read_rumor("service-config", reader, self.header.service_config_len, op)
-    }
-
-    pub fn read_service_files<F>(&mut self, reader: &mut BufReader<File>, op: F) -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
-    {
-        self.read_rumor("service-file", reader, self.header.service_file_len, op)
-    }
-
-    pub fn read_elections<F>(&mut self, reader: &mut BufReader<File>, op: F) -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
-    {
-        self.read_rumor("election", reader, self.header.election_len, op)
-    }
-
-    pub fn read_update_elections<F>(&mut self, reader: &mut BufReader<File>, op: F) -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
-    {
-        self.read_rumor("update election", reader, self.header.update_len, op)
-    }
-
-    pub fn read_departures<F>(&mut self, reader: &mut BufReader<File>, op: F) -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
-    {
-        self.read_rumor("departure", reader, self.header.departure_len, op)
+    pub fn read_members(&mut self, reader: &mut BufReader<File>) -> Result<Vec<Membership>> {
+        let mut members = Vec::new();
+        debug!("Reading membership rumors from {}", self.path().display());
+        self.read_and_process(reader, self.member_len(), |r| {
+                members.push(Membership::from_bytes(&r)?);
+                Ok(())
+            })?;
+        Ok(members)
     }
 
     pub fn read_into(&mut self, server: &Server) -> Result<()> {
@@ -168,51 +145,35 @@ impl DatFile {
         let mut reader = self.reader_for_file()?;
 
         self.read_header(&mut version, &mut reader)?;
-        self.read_members(&mut reader, |r| {
-                match Membership::from_bytes(&r) {
-                    Ok(membership) => server.insert_member(membership.member, membership.health),
-                    Err(err) => warn!("Error reading membership rumor from dat file, {}", err),
-                }
 
-                Ok(())
-            })?;
+        for Membership { member, health } in self.read_members(&mut reader)? {
+            server.insert_member(member, health);
+        }
 
-        self.read_services(&mut reader, |r| {
-                let rumor = Service::from_bytes(&r)?;
-                server.insert_service(rumor);
-                Ok(())
-            })?;
+        for service in self.read_rumors(&mut reader, self.service_len())? {
+            server.insert_service(service);
+        }
 
-        self.read_service_configs(&mut reader, |r| {
-                let rumor = ServiceConfig::from_bytes(&r)?;
-                server.insert_service_config(rumor);
-                Ok(())
-            })?;
+        for service_config in self.read_rumors(&mut reader, self.service_config_len())? {
+            server.insert_service_config(service_config);
+        }
 
-        self.read_service_files(&mut reader, |r| {
-                let rumor = ServiceFile::from_bytes(&r)?;
-                server.insert_service_file(rumor);
-                Ok(())
-            })?;
+        for service_file in self.read_rumors(&mut reader, self.service_file_len())? {
+            server.insert_service_file(service_file);
+        }
 
-        self.read_elections(&mut reader, |r| {
-                let rumor = Election::from_bytes(&r)?;
-                server.insert_election(rumor);
-                Ok(())
-            })?;
+        for election in self.read_rumors(&mut reader, self.election_len())? {
+            server.insert_election(election);
+        }
 
-        self.read_update_elections(&mut reader, |r| {
-                let rumor = ElectionUpdate::from_bytes(&r)?;
-                server.insert_update_election(rumor);
-                Ok(())
-            })?;
+        for update_election in self.read_rumors(&mut reader, self.update_len())? {
+            server.insert_update_election(update_election);
+        }
 
         if version[0] >= 2 {
-            self.read_departures(&mut reader, |r| {
-                    let rumor = Departure::from_bytes(&r)?;
-                    server.insert_departure(rumor);
-                    Ok(())
-                })?;
+            for departure in self.read_rumors(&mut reader, self.departure_len())? {
+                server.insert_departure(departure);
+            }
         }
 
         Ok(())
@@ -260,26 +221,6 @@ impl DatFile {
     }
 
     fn member_offset(&self) -> u64 { 1 + self.header_size }
-
-    #[allow(dead_code)]
-    fn service_offset(&self) -> u64 { self.member_offset() + self.header.member_len }
-
-    #[allow(dead_code)]
-    fn service_config_offset(&self) -> u64 { self.service_offset() + self.header.service_len }
-
-    #[allow(dead_code)]
-    fn service_file_offset(&self) -> u64 {
-        self.service_config_offset() + self.header.service_config_len
-    }
-
-    #[allow(dead_code)]
-    fn election_offset(&self) -> u64 { self.service_file_offset() + self.header.service_file_len }
-
-    #[allow(dead_code)]
-    fn update_offset(&self) -> u64 { self.election_offset() + self.header.election_len }
-
-    #[allow(dead_code)]
-    fn departure_offset(&self) -> u64 { self.update_offset() + self.header.update_len }
 
     fn write_header<W>(&self, writer: &mut W, header: &Header) -> Result<usize>
         where W: Write

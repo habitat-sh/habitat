@@ -5,15 +5,13 @@ use crate::error::Result;
 use clap::{App,
            Arg};
 use env_logger;
-use habitat_butterfly::{member::Membership,
-                        protocol::Message,
-                        rumor::{dat_file,
-                                Departure,
-                                Election,
-                                ElectionUpdate,
-                                Service,
-                                ServiceConfig,
-                                ServiceFile}};
+use habitat_butterfly::rumor::{dat_file,
+                               Departure,
+                               Election,
+                               ElectionUpdate,
+                               Service,
+                               ServiceConfig,
+                               ServiceFile};
 use log::error;
 use std::{path::Path,
           process};
@@ -58,51 +56,41 @@ fn output_rumors(mut dat_file: dat_file::DatFile) -> Result<()> {
     let mut reader = dat_file.reader_for_file()?;
 
     dat_file.read_header(&mut version, &mut reader)?;
-    dat_file.read_members(&mut reader, |r| {
-                match Membership::from_bytes(&r) {
-                    Ok(m) => println!("{}", m),
-                    Err(err) => warn!("Error reading membership rumor from dat file, {}", err),
-                }
 
-                Ok(())
-            })?;
+    for member in dat_file.read_members(&mut reader)? {
+        println!("{}", member);
+    }
 
-    dat_file.read_services(&mut reader, |r| {
-                let rumor = Service::from_bytes(&r)?;
-                println!("{}", rumor);
-                Ok(())
-            })?;
+    for service in dat_file.read_rumors::<Service>(&mut reader, dat_file.service_len())? {
+        println!("{}", service);
+    }
 
-    dat_file.read_service_configs(&mut reader, |r| {
-                let rumor = ServiceConfig::from_bytes(&r)?;
-                println!("{}", rumor);
-                Ok(())
-            })?;
+    for service_config in
+        dat_file.read_rumors::<ServiceConfig>(&mut reader, dat_file.service_config_len())?
+    {
+        println!("{}", service_config);
+    }
 
-    dat_file.read_service_files(&mut reader, |r| {
-                let rumor = ServiceFile::from_bytes(&r)?;
-                println!("{}", rumor);
-                Ok(())
-            })?;
+    for service_file in
+        dat_file.read_rumors::<ServiceFile>(&mut reader, dat_file.service_file_len())?
+    {
+        println!("{}", service_file);
+    }
 
-    dat_file.read_elections(&mut reader, |r| {
-                let rumor = Election::from_bytes(&r)?;
-                println!("{}", rumor);
-                Ok(())
-            })?;
+    for election in dat_file.read_rumors::<Election>(&mut reader, dat_file.election_len())? {
+        println!("{}", election);
+    }
 
-    dat_file.read_update_elections(&mut reader, |r| {
-                let rumor = ElectionUpdate::from_bytes(&r)?;
-                println!("{}", rumor);
-                Ok(())
-            })?;
+    for update_election in
+        dat_file.read_rumors::<ElectionUpdate>(&mut reader, dat_file.update_len())?
+    {
+        println!("{}", update_election);
+    }
 
     if version[0] >= 2 {
-        dat_file.read_departures(&mut reader, |r| {
-                    let rumor = Departure::from_bytes(&r)?;
-                    println!("{}", rumor);
-                    Ok(())
-                })?;
+        for departure in dat_file.read_rumors::<Departure>(&mut reader, dat_file.departure_len())? {
+            println!("{}", departure);
+        }
     }
 
     Ok(())
@@ -121,51 +109,23 @@ fn output_stats(mut dat_file: dat_file::DatFile) -> Result<()> {
     let mut reader = dat_file.reader_for_file()?;
 
     dat_file.read_header(&mut version, &mut reader)?;
-    dat_file.read_members(&mut reader, |r| {
-                match Membership::from_bytes(&r) {
-                    Ok(_) => membership += 1,
-                    Err(err) => warn!("Error reading membership rumor from dat file, {}", err),
-                }
+    membership += dat_file.read_members(&mut reader)?.len();
 
-                Ok(())
-            })?;
-
-    dat_file.read_services(&mut reader, |r| {
-                let _ = Service::from_bytes(&r)?;
-                services += 1;
-                Ok(())
-            })?;
-
-    dat_file.read_service_configs(&mut reader, |r| {
-                let _ = ServiceConfig::from_bytes(&r)?;
-                service_configs += 1;
-                Ok(())
-            })?;
-
-    dat_file.read_service_files(&mut reader, |r| {
-                let _ = ServiceFile::from_bytes(&r)?;
-                service_files += 1;
-                Ok(())
-            })?;
-
-    dat_file.read_elections(&mut reader, |r| {
-                let _ = Election::from_bytes(&r)?;
-                elections += 1;
-                Ok(())
-            })?;
-
-    dat_file.read_update_elections(&mut reader, |r| {
-                let _ = ElectionUpdate::from_bytes(&r)?;
-                update_elections += 1;
-                Ok(())
-            })?;
+    services += dat_file.read_rumors::<Service>(&mut reader, dat_file.service_len())?
+                        .len();
+    service_configs += dat_file.read_rumors::<ServiceConfig>(&mut reader,
+                                                             dat_file.service_config_len())?
+                               .len();
+    service_files += dat_file.read_rumors::<ServiceFile>(&mut reader, dat_file.service_file_len())?
+                             .len();
+    elections += dat_file.read_rumors::<Election>(&mut reader, dat_file.election_len())?
+                         .len();
+    update_elections += dat_file.read_rumors::<ElectionUpdate>(&mut reader, dat_file.update_len())?
+                                .len();
 
     if version[0] >= 2 {
-        dat_file.read_departures(&mut reader, |r| {
-                    let _ = Departure::from_bytes(&r)?;
-                    departures += 1;
-                    Ok(())
-                })?;
+        departures += dat_file.read_rumors::<Departure>(&mut reader, dat_file.departure_len())?
+                              .len();
     }
 
     println!("Summary:");
