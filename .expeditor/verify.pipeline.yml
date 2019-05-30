@@ -49,12 +49,12 @@ steps:
       - .\test\run_clippy.ps1 stable .\test\unexamined_lints.txt .\test\allowed_lints.txt .\test\lints_to_fix.txt .\test\denied_lints.txt
     agents:
       queue: 'default-windows-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    # plugins:
+    #   docker#v3.2.0:
+    #     image: "chefes/buildkite-windows"
+    #     shell: [ "powershell", "-Command" ]
+    #     always-pull: true
+    #     propagate-environment: true
     timeout_in_minutes: 25
 
 #######################################################################
@@ -410,12 +410,13 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_rwlock deadlock_detection" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    # TODO: enable once we've figured out why this fails in docker
+    # plugins:
+    #   docker#v3.2.0:
+    #     image: "chefes/buildkite-windows"
+    #     shell: [ "powershell", "-Command" ]
+    #     always-pull: true
+    #     propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -458,12 +459,13 @@ steps:
       - ./test/run_cargo_test.ps1 core
     agents:
       queue: 'default-windows-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    # TODO: enable once we've figured out why this fails in docker
+    # plugins:
+    #   docker#v3.2.0:
+    #     image: "chefes/buildkite-windows"
+    #     shell: [ "powershell", "-Command" ]
+    #     always-pull: true
+    #     propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -474,12 +476,13 @@ steps:
       - ./test/run_cargo_test.ps1 hab
     agents:
       queue: 'default-windows-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    # TODO: enable once we've figured out why this fails in docker
+    # plugins:
+    #   docker#v3.2.0:
+    #     image: "chefes/buildkite-windows"
+    #     shell: [ "powershell", "-Command" ]
+    #     always-pull: true
+    #     propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -635,12 +638,13 @@ steps:
       - ./test/run_cargo_test.ps1 sup-protocol
     agents:
       queue: 'default-windows-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    # TODO: enable once we've figured out why this fails in docker
+    # plugins:
+    #   docker#v3.2.0:
+    #     image: "chefes/buildkite-windows"
+    #     shell: [ "powershell", "-Command" ]
+    #     always-pull: true
+    #     propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -651,12 +655,13 @@ steps:
       - ./test/run_studio_test.ps1 "studio-from-source"
     agents:
       queue: 'default-windows-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    # TODO: enable once we've figured out why this fails in docker
+    # plugins:
+    #   docker#v3.2.0:
+    #     image: "chefes/buildkite-windows"
+    #     shell: [ "powershell", "-Command" ]
+    #     always-pull: true
+    #     propagate-environment: true
     timeout_in_minutes: 5
     retry:
       automatic:
