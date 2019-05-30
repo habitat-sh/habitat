@@ -60,17 +60,14 @@ impl DatFile {
         Ok(BufReader::new(file))
     }
 
-    pub fn read_header(&mut self,
-                       mut version: &mut [u8],
-                       mut reader: &mut BufReader<File>)
-                       -> Result<()> {
-        reader.read_exact(&mut version)
+    pub fn read_header(&mut self, version: &mut [u8], reader: &mut BufReader<File>) -> Result<()> {
+        reader.read_exact(version)
               .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         debug!("Header Version: {}", version[0]);
         let (header_size, real_header) =
-            Header::from_file(&mut reader, version[0]).map_err(|err| {
-                                                          Error::DatFileIO(self.path.clone(), err)
-                                                      })?;
+            Header::from_file(reader, version[0]).map_err(|err| {
+                                                     Error::DatFileIO(self.path.clone(), err)
+                                                 })?;
         self.header = real_header;
         self.header_size = header_size;
         debug!("Header Size: {:?}", self.header_size);
