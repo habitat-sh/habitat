@@ -1,0 +1,41 @@
+# ALWAYS keep this key in the configuration; removing it means changes
+# to config won't get picked up without a restart.
+#
+# Uses humantime to parse the duration; see
+# https://docs.rs/humantime/1.2.0/humantime/fn.parse_duration.html
+refresh_rate: 5 seconds
+
+appenders:
+  stdout:
+    kind: console
+    encoder:
+      # See https://docs.rs/log4rs/0.8.3/log4rs/#configuration for
+      # formatting options
+      pattern: "[{d(%Y-%m-%dT%H:%M:%SZ)(utc)} {l} {module}] {message}{n}"
+
+root:
+  level: info
+  appenders:
+    - stdout
+
+loggers:
+  habitat_common::sync:
+    # "warn" will show "deadlock likely" messages;
+    # "trace" will also show which threads are stuck
+    level: warn
+  habitat_butterfly::server::expire:
+    level: trace
+  habitat_butterfly::server::push:
+    level: trace
+  habitat_butterfly::server::pull:
+    level: trace
+  habitat_butterfly::server::outbound:
+    level: debug
+  habitat_butterfly::member:
+    level: debug
+  habitat_butterfly::rumor:
+    level: debug
+  habitat_butterfly::server:
+    level: debug
+  habitat_sup::manager:
+    level: debug

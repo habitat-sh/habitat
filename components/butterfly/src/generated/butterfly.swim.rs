@@ -16,6 +16,8 @@ pub struct Member {
     pub persistent: ::std::option::Option<bool>,
     #[prost(bool, optional, tag="7", default="false")]
     pub departed: ::std::option::Option<bool>,
+    #[prost(string, optional, tag="8")]
+    pub expiration: ::std::option::Option<std::string::String>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]

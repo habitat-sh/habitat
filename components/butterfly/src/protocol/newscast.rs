@@ -42,12 +42,14 @@ impl From<CDeparture> for Rumor {
 
 impl From<CElection> for Rumor {
     fn from(value: CElection) -> Self {
+        let exp = value.expiration.for_proto();
         let payload = Election { member_id:     Some(value.member_id.clone()),
                                  service_group: Some(value.service_group.to_string()),
                                  term:          Some(value.term),
                                  suitability:   Some(value.suitability),
                                  status:        Some(value.status as i32),
-                                 votes:         value.votes.clone(), };
+                                 votes:         value.votes.clone(),
+                                 expiration:    Some(exp), };
         Rumor { r#type:  RumorType::Election as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id),
@@ -57,12 +59,14 @@ impl From<CElection> for Rumor {
 
 impl From<CElectionUpdate> for Rumor {
     fn from(value: CElectionUpdate) -> Self {
+        let exp = value.expiration.for_proto();
         let payload = Election { member_id:     Some(value.member_id.clone()),
                                  service_group: Some(value.service_group.to_string()),
                                  term:          Some(value.term),
                                  suitability:   Some(value.suitability),
                                  status:        Some(value.status as i32),
-                                 votes:         value.votes.clone(), };
+                                 votes:         value.votes.clone(),
+                                 expiration:    Some(exp), };
         Rumor { r#type:  RumorType::ElectionUpdate as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id.clone()),
@@ -72,13 +76,15 @@ impl From<CElectionUpdate> for Rumor {
 
 impl From<CService> for Rumor {
     fn from(value: CService) -> Self {
+        let exp = value.expiration.for_proto();
         let payload = Service { member_id:     Some(value.member_id.clone()),
                                 service_group: Some(value.service_group.to_string()),
                                 incarnation:   Some(value.incarnation),
                                 initialized:   Some(value.initialized),
                                 pkg:           Some(value.pkg),
                                 cfg:           Some(value.cfg),
-                                sys:           Some(value.sys.into()), };
+                                sys:           Some(value.sys.into()),
+                                expiration:    Some(exp), };
         Rumor { r#type:  RumorType::Service as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.member_id),
@@ -88,10 +94,12 @@ impl From<CService> for Rumor {
 
 impl From<CServiceConfig> for Rumor {
     fn from(value: CServiceConfig) -> Self {
+        let exp = value.expiration.for_proto();
         let payload = ServiceConfig { service_group: Some(value.service_group.to_string()),
                                       incarnation:   Some(value.incarnation),
                                       encrypted:     Some(value.encrypted),
-                                      config:        Some(value.config), };
+                                      config:        Some(value.config),
+                                      expiration:    Some(exp), };
         Rumor { r#type:  RumorType::ServiceConfig as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.from_id),
@@ -101,11 +109,13 @@ impl From<CServiceConfig> for Rumor {
 
 impl From<CServiceFile> for Rumor {
     fn from(value: CServiceFile) -> Self {
+        let exp = value.expiration.for_proto();
         let payload = ServiceFile { service_group: Some(value.service_group.to_string()),
                                     incarnation:   Some(value.incarnation),
                                     encrypted:     Some(value.encrypted),
                                     filename:      Some(value.filename),
-                                    body:          Some(value.body), };
+                                    body:          Some(value.body),
+                                    expiration:    Some(exp), };
         Rumor { r#type:  RumorType::ServiceFile as i32,
                 tag:     Vec::default(),
                 from_id: Some(value.from_id),

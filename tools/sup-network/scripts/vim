@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if command -v vim >/dev/null 2>&1; then
+	vim "$@"
+elif exists hab; then
+	if ! hab pkg path core/vim; then
+		hab pkg install core/vim
+	fi
+
+	hab pkg exec core/vim "$@"
+else
+	echo "Can't find vim"
+	exit 1
+fi

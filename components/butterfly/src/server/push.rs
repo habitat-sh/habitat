@@ -73,7 +73,6 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
             for member in check_list.drain(0..drain_length) {
                 if server.is_member_blocked(&member.id) {
                     debug!("Not sending rumors to {} - it is blocked", member.id);
-
                     continue;
                 }
                 // Unlike the SWIM mechanism, we don't actually want to send gossip traffic to
@@ -82,7 +81,9 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                 if server.member_list.pingable_mlr(&member)
                    && !server.member_list.persistent_and_confirmed_mlr(&member)
                 {
-                    let rumors = server.rumor_heat.currently_hot_rumors(&member.id);
+                    let rumors = server.rumor_keys();
+                    trace!("Rumors to send: {:?}", &rumors);
+
                     if !rumors.is_empty() {
                         let sc = server.clone();
                         let guard = match thread::Builder::new().name(String::from("push-worker"))
@@ -150,6 +151,7 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
     socket.set_sndtimeo(500)
           .expect("Failure to set the ZMQ send timeout");
     let to_addr = format!("{}:{}", member.address, member.gossip_port);
+
     match socket.connect(&format!("tcp://{}", to_addr)) {
         Ok(()) => debug!("Connected push socket to {:?}", member),
         Err(e) => {
@@ -160,6 +162,7 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
             return;
         }
     }
+
     'rumorlist: for rumor_key in rumors.iter() {
         let rumor_as_bytes = match rumor_key.kind {
             RumorType::Member => {
@@ -185,10 +188,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::Service => {
-                // trace_it!(GOSSIP: &server,
-                //           TraceKind::SendRumor,
-                //           &member.id,
-                //           &send_rumor);
                 match server.service_store.lock_rsr().encode_rumor_for(&rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -203,10 +202,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::ServiceConfig => {
-                // trace_it!(GOSSIP: &server,
-                //           TraceKind::SendRumor,
-                //           &member.id,
-                //           &send_rumor);
                 match server.service_config_store
                             .lock_rsr()
                             .encode_rumor_for(&rumor_key)
@@ -224,10 +219,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::ServiceFile => {
-                // trace_it!(GOSSIP: &server,
-                //           TraceKind::SendRumor,
-                //           &member.id,
-                //           &send_rumor);
                 match server.service_file_store
                             .lock_rsr()
                             .encode_rumor_for(&rumor_key)
@@ -262,10 +253,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::Election => {
-                // trace_it!(GOSSIP: &server,
-                //           TraceKind::SendRumor,
-                //           &member.id,
-                //           &send_rumor);
                 match server.election_store
                             .lock_rsr()
                             .encode_rumor_for(&rumor_key)
@@ -327,7 +314,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
             }
         }
     }
-    server.rumor_heat.cool_rumors(&member.id, &rumors);
 }
 
 /// Given a rumorkey, creates a protobuf rumor for sharing.
@@ -335,7 +321,13 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
 fn create_member_rumor_mlr(server: &Server, rumor_key: &RumorKey) -> Option<RumorEnvelope> {
-    let member = server.member_list.get_cloned_mlr(&rumor_key.to_string())?;
+    let mut member = server.member_list.get_cloned_mlr(&rumor_key.to_string())?;
+
+    // We should refresh our own Member rumor before we send it out
+    if member.id == server.member_id() {
+        member.refresh();
+    }
+
     let payload = Membership { member,
                                health: server.member_list
                                              .health_of_by_id_mlr(&rumor_key.to_string())

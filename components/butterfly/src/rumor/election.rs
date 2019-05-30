@@ -17,9 +17,11 @@ use crate::{error::{Error,
                                   Rumor as ProtoRumor},
                        FromProto},
             rumor::{ConstIdRumor,
+                    Expiration,
                     Rumor,
                     RumorPayload,
-                    RumorType}};
+                    RumorType,
+                    Transient}};
 use std::{fmt,
           ops::{Deref,
                 DerefMut}};
@@ -32,8 +34,6 @@ pub trait ElectionRumor: ConstIdRumor {
     fn term(&self) -> u64;
 }
 
-pub type Term = u64;
-
 #[derive(Debug, Clone, Serialize)]
 pub struct Election {
     pub member_id:     String,
@@ -42,13 +42,19 @@ pub struct Election {
     pub suitability:   u64,
     pub status:        ElectionStatus,
     pub votes:         Vec<String>,
+    pub expiration:    Expiration,
 }
 
 impl fmt::Display for Election {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "Election m/{} sg/{}, t/{}, su/{}, st/{:?}",
-               self.member_id, self.service_group, self.term, self.suitability, self.status)
+               "Election m/{} sg/{}, t/{}, su/{}, st/{:?} e/{}",
+               self.member_id,
+               self.service_group,
+               self.term,
+               self.suitability,
+               self.status,
+               self.expiration)
     }
 }
 
@@ -73,7 +79,8 @@ impl Election {
                    } else {
                        ElectionStatus::NoQuorum
                    },
-                   votes: vec![from_id] }
+                   votes: vec![from_id],
+                   expiration: Expiration::soon() }
     }
 
     /// Insert a vote for the election.
@@ -108,6 +115,8 @@ impl ElectionRumor for Election {
     fn term(&self) -> u64 { self.term }
 }
 
+// Unlike the other rumors, Election doesn't require an implementation of PartialOrd because we
+// never directly compare it to other Election rumors, only the individual pieces.
 impl PartialEq for Election {
     /// We ignore id in equality checking, because we only have one per service group
     fn eq(&self, other: &Election) -> bool {
@@ -131,26 +140,30 @@ impl FromProto<ProtoRumor> for Election {
             _ => panic!("from-bytes election"),
         };
         let from_id = rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?;
-        Ok(Election { member_id:     from_id.clone(),
+        let expiration = Expiration::from_proto(payload.expiration)?;
+        Ok(Election { member_id: from_id.clone(),
                       service_group: payload.service_group
                                             .ok_or(Error::ProtocolMismatch("service-group"))?,
-                      term:          payload.term.unwrap_or(0),
-                      suitability:   payload.suitability.unwrap_or(0),
-                      status:        payload.status
-                                            .and_then(ElectionStatus::from_i32)
-                                            .unwrap_or(ElectionStatus::Running),
-                      votes:         payload.votes, })
+                      term: payload.term.unwrap_or(0),
+                      suitability: payload.suitability.unwrap_or(0),
+                      status: payload.status
+                                     .and_then(ElectionStatus::from_i32)
+                                     .unwrap_or(ElectionStatus::Running),
+                      votes: payload.votes,
+                      expiration })
     }
 }
 
 impl From<Election> for newscast::Election {
     fn from(value: Election) -> Self {
+        let exp = value.expiration.for_proto();
         newscast::Election { member_id:     Some(value.member_id),
                              service_group: Some(value.service_group.to_string()),
                              term:          Some(value.term),
                              suitability:   Some(value.suitability),
                              status:        Some(value.status as i32),
-                             votes:         value.votes, }
+                             votes:         value.votes,
+                             expiration:    Some(exp), }
     }
 }
 
@@ -199,7 +212,13 @@ impl Rumor for Election {
 
     fn id(&self) -> &str { Self::const_id() }
 
-    fn key(&self) -> &str { self.service_group.as_ref() }
+    fn key(&self) -> &str { &self.service_group }
+}
+
+impl Transient for Election {
+    fn expiration(&self) -> &Expiration { &self.expiration }
+
+    fn expiration_mut(&mut self) -> &mut Expiration { &mut self.expiration }
 }
 
 impl ConstIdRumor for Election {
@@ -212,12 +231,13 @@ pub struct ElectionUpdate(Election);
 impl fmt::Display for ElectionUpdate {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "ElectionUpdate m/{} sg/{}, t/{}, su/{}, st/{:?}",
+               "ElectionUpdate m/{} sg/{}, t/{}, su/{}, st/{:?} e/{}",
                self.0.member_id,
                self.0.service_group,
                self.0.term,
                self.0.suitability,
-               self.0.status)
+               self.0.status,
+               self.0.expiration)
     }
 }
 
@@ -285,11 +305,16 @@ impl ConstIdRumor for ElectionUpdate {
     fn const_id() -> &'static str { "election" }
 }
 
+impl Transient for ElectionUpdate {
+    fn expiration(&self) -> &Expiration { self.0.expiration() }
+
+    fn expiration_mut(&mut self) -> &mut Expiration { self.0.expiration_mut() }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::rumor::{election::{Election,
-                                  ElectionUpdate,
-                                  Term},
+                                  ElectionUpdate},
                        ConstIdRumor as _,
                        Rumor,
                        RumorStore};
@@ -302,7 +327,7 @@ mod tests {
     fn create_election(member_id: &str, suitability: u64) -> Election {
         Election::new(member_id,
                       &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
-                      Term::default(),
+                      u64::default(),
                       suitability,
                       true /* has_quorum */)
     }
@@ -310,7 +335,7 @@ mod tests {
     fn create_election_update(member_id: &str, suitability: u64) -> ElectionUpdate {
         ElectionUpdate::new(member_id,
                             &ServiceGroup::new(None, "tdep", "prod", None).unwrap(),
-                            Term::default(),
+                            u64::default(),
                             suitability,
                             true /* has_quorum */)
     }

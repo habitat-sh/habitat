@@ -7,9 +7,12 @@ use crate::{error::{Error,
                        newscast,
                        swim as proto,
                        FromProto},
-            rumor::{RumorKey,
+            rumor::{Expiration,
+                    RumorKey,
                     RumorPayload,
                     RumorType}};
+use chrono::{offset::Utc,
+             DateTime};
 use habitat_common::sync::{Lock,
                            ReadGuard,
                            WriteGuard};
@@ -41,6 +44,15 @@ use uuid::Uuid;
 
 /// How many nodes do we target when we need to run PingReq.
 const PINGREQ_TARGETS: usize = 5;
+
+/// This number represents the number of RumorKeys to piggyback on a SWIM message. The original
+/// code that this is replacing used 5, and out of an abundance of caution, this code does the
+/// same. Some cursory reading suggests that UDP packets are best kept under 512 bytes in size,
+/// as this is the size packets that DNS uses. Measurements taken before this work started
+/// indicated that the average SWIM packet was roughly 120 bytes in size, so in theory, there
+/// is some room to expand this number if necessary. However, as we don't have a good reason
+/// to do so at this moment, I'm keeping the number fixed at 5, as it was before.
+const PIGGYBACK_RUMOR_KEYS: usize = 5;
 
 lazy_static! {
     static ref PEER_HEALTH_COUNT: IntGaugeVec =
@@ -127,7 +139,7 @@ pub type UuidSimple = String;
 
 /// A member in the swim group. Passes most of its functionality along to the internal protobuf
 /// representation.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Member {
     pub id:          String,
     pub incarnation: Incarnation,
@@ -136,6 +148,20 @@ pub struct Member {
     pub gossip_port: u16,
     pub persistent:  bool,
     pub departed:    bool,
+    pub expiration:  Expiration,
+}
+
+// We can't derive this any more because we don't want Expiration to factor into equality
+impl PartialEq for Member {
+    fn eq(&self, other: &Member) -> bool {
+        self.id == other.id
+        && self.incarnation == other.incarnation
+        && self.address == other.address
+        && self.swim_port == other.swim_port
+        && self.gossip_port == other.gossip_port
+        && self.persistent == other.persistent
+        && self.departed == other.departed
+    }
 }
 
 impl Member {
@@ -154,6 +180,12 @@ impl Member {
             }
         }
     }
+
+    pub fn refresh(&mut self) { self.expiration.refresh(); }
+
+    pub fn expired(&self, expiration_date: DateTime<Utc>) -> bool {
+        self.expiration.expired(expiration_date)
+    }
 }
 
 impl Default for Member {
@@ -169,7 +201,8 @@ impl Default for Member {
                  swim_port:   0,
                  gossip_port: 0,
                  persistent:  false,
-                 departed:    false, }
+                 departed:    false,
+                 expiration:  Expiration::soon(), }
     }
 }
 
@@ -187,13 +220,15 @@ impl<'a> From<&'a &'a Member> for RumorKey {
 
 impl From<Member> for proto::Member {
     fn from(value: Member) -> Self {
+        let exp = value.expiration.for_proto();
         proto::Member { id:          Some(value.id),
                         incarnation: Some(value.incarnation.to_u64()),
                         address:     Some(value.address),
                         swim_port:   Some(value.swim_port.into()),
                         gossip_port: Some(value.gossip_port.into()),
                         persistent:  Some(value.persistent),
-                        departed:    Some(value.departed), }
+                        departed:    Some(value.departed),
+                        expiration:  Some(exp), }
     }
 }
 
@@ -206,7 +241,7 @@ pub struct Membership {
 impl fmt::Display for Membership {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "Member i/{} m/{} ad/{} sp/{} gp/{} p/{} d/{} h/{:?}",
+               "Member i/{} m/{} ad/{} sp/{} gp/{} p/{} d/{} e/{} h/{:?}",
                self.member.incarnation,
                self.member.id,
                self.member.address,
@@ -214,6 +249,7 @@ impl fmt::Display for Membership {
                self.member.gossip_port,
                self.member.persistent,
                self.member.departed,
+               self.member.expiration,
                self.health)
     }
 }
@@ -254,7 +290,8 @@ fn as_port(x: i32) -> Option<u16> {
 
 impl FromProto<proto::Member> for Member {
     fn from_proto(proto: proto::Member) -> Result<Self> {
-        Ok(Member { id:          proto.id.ok_or(Error::ProtocolMismatch("id"))?,
+        let expiration = Expiration::from_proto(proto.expiration)?;
+        Ok(Member { id: proto.id.ok_or(Error::ProtocolMismatch("id"))?,
                     incarnation: proto.incarnation
                                       .map_or_else(Incarnation::default, Incarnation::from),
 
@@ -297,14 +334,15 @@ impl FromProto<proto::Member> for Member {
                     // two uses of our Member protobuf, or both.
                     address: proto.address.unwrap_or_default(),
 
-                    swim_port:   proto.swim_port
-                                      .and_then(as_port)
-                                      .ok_or(Error::ProtocolMismatch("swim-port"))?,
+                    swim_port: proto.swim_port
+                                    .and_then(as_port)
+                                    .ok_or(Error::ProtocolMismatch("swim-port"))?,
                     gossip_port: proto.gossip_port
                                       .and_then(as_port)
                                       .ok_or(Error::ProtocolMismatch("gossip-port"))?,
-                    persistent:  proto.persistent.unwrap_or(false),
-                    departed:    proto.departed.unwrap_or(false), })
+                    persistent: proto.persistent.unwrap_or(false),
+                    departed: proto.departed.unwrap_or(false),
+                    expiration })
     }
 }
 
@@ -334,11 +372,12 @@ mod member_list {
         pub member:            super::Member,
         pub health:            super::Health,
         pub health_updated_at: super::SteadyTime,
+        pub update_count:      u64,
     }
 }
 
-/// Tracks lists of members, their health, and how long they have been
-/// suspect or confirmed.
+/// Tracks lists of members, their health, how long they have been
+/// suspect or confirmed, and how many times we've sent them updates.
 #[derive(Debug)]
 pub struct MemberList {
     entries:         Lock<HashMap<UuidSimple, member_list::Entry>>,
@@ -512,7 +551,8 @@ impl MemberList {
                 if incoming.newer_or_less_healthy_than(val.member.incarnation, val.health) {
                     *val = member_list::Entry { member:            incoming.member,
                                                 health:            incoming.health,
-                                                health_updated_at: SteadyTime::now(), };
+                                                health_updated_at: SteadyTime::now(),
+                                                update_count:      val.update_count, };
                     true
                 } else {
                     false
@@ -521,7 +561,8 @@ impl MemberList {
             hash_map::Entry::Vacant(entry) => {
                 entry.insert(member_list::Entry { member:            incoming.member,
                                                   health:            incoming.health,
-                                                  health_updated_at: SteadyTime::now(), });
+                                                  health_updated_at: SteadyTime::now(),
+                                                  update_count:      0, });
                 true
             }
         };
@@ -647,6 +688,17 @@ impl MemberList {
                 Membership { member: member.clone(),
                              health: *health, }
             })
+    }
+
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn update_swim_count_mlw(&self, member_id: &str) {
+        if let Some(member_list::Entry { update_count, .. }) =
+            self.write_entries().get_mut(member_id)
+        {
+            *update_count = update_count.wrapping_add(1);
+        }
     }
 
     /// Returns the number of entries.
@@ -786,6 +838,7 @@ impl MemberList {
                     if *health == precursor_health && now >= *health_updated_at + timeout {
                         *health = expiring_to;
                         *health_updated_at = now;
+
                         Some(id.clone())
                     } else {
                         None
@@ -804,6 +857,26 @@ impl MemberList {
     /// * `MemberList::entries` (read)
     pub fn contains_member_mlr(&self, member_id: &str) -> bool {
         self.read_entries().contains_key(member_id)
+    }
+
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn rumor_keys_mlr(&self) -> Vec<RumorKey> {
+        let mut members: Vec<_> = self.read_entries().values().cloned().collect();
+        members.sort_by(|m, n| m.update_count.cmp(&n.update_count));
+        members.iter()
+               .take(PIGGYBACK_RUMOR_KEYS)
+               .map(|member_list::Entry { member, .. }| RumorKey::from(member))
+               .collect()
+    }
+
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn purge_expired_mlw(&self, expiration_date: DateTime<Utc>) {
+        self.write_entries()
+            .retain(|_, v| !v.member.expired(expiration_date));
     }
 }
 

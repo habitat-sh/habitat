@@ -1,3 +1,6 @@
+use chrono;
+use habitat_core;
+use prost;
 use std::{error,
           fmt,
           io,
@@ -5,9 +8,6 @@ use std::{error,
           path::PathBuf,
           result,
           str};
-
-use habitat_core;
-use prost;
 use toml;
 use zmq;
 
@@ -18,6 +18,7 @@ pub enum Error {
     BadDataPath(PathBuf, io::Error),
     BadDatFile(PathBuf, io::Error),
     CannotBind(io::Error),
+    DateParseError(chrono::ParseError),
     DatFileIO(PathBuf, io::Error),
     DecodeError(prost::DecodeError),
     EncodeError(prost::EncodeError),
@@ -54,6 +55,7 @@ impl fmt::Display for Error {
                         err)
             }
             Error::CannotBind(ref err) => format!("Cannot bind to port: {:?}", err),
+            Error::DateParseError(ref err) => format!("Cannot parse date: {:?}", err),
             Error::DatFileIO(ref path, ref err) => {
                 format!("Error reading or writing to DatFile, {}, {}",
                         path.display(),
@@ -118,6 +120,7 @@ impl error::Error for Error {
             Error::BadDataPath(..) => "Unable to read or write to data directory",
             Error::BadDatFile(..) => "Unable to decode contents of DatFile",
             Error::CannotBind(_) => "Cannot bind to port",
+            Error::DateParseError(_) => "Cannot parse date",
             Error::DatFileIO(..) => "Error reading or writing to DatFile",
             Error::UnknownIOError(_) => "Unknown I/O error",
             Error::DecodeError(ref err) => err.description(),
@@ -146,6 +149,10 @@ impl error::Error for Error {
     }
 }
 
+impl From<chrono::ParseError> for Error {
+    fn from(err: chrono::ParseError) -> Error { Error::DateParseError(err) }
+}
+
 impl From<prost::DecodeError> for Error {
     fn from(err: prost::DecodeError) -> Error { Error::DecodeError(err) }
 }
@@ -153,9 +160,11 @@ impl From<prost::DecodeError> for Error {
 impl From<prost::EncodeError> for Error {
     fn from(err: prost::EncodeError) -> Error { Error::EncodeError(err) }
 }
+
 impl From<habitat_core::error::Error> for Error {
     fn from(err: habitat_core::error::Error) -> Error { Error::HabitatCore(err) }
 }
+
 impl From<io::Error> for Error {
     fn from(err: io::Error) -> Error { Error::UnknownIOError(err) }
 }

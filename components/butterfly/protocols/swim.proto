@@ -10,6 +10,7 @@ message Member {
   optional int32 gossip_port = 5;
   optional bool persistent = 6 [default = false];
   optional bool departed = 7 [default = false];
+  optional string expiration = 8;
 }
 
 message Ping {

@@ -989,6 +989,7 @@ impl Manager {
                 if service.tick(&self.census_ring, &self.launcher, &runtime.executor()) {
                     self.gossip_latest_service_rumor_rsw_mlw(&service);
                 }
+                self.refresh_rumors_for_service(&service);
             }
 
             // This is really only needed until everything is running
@@ -1149,6 +1150,12 @@ impl Manager {
 
         self.butterfly
             .insert_service_rsw_mlw(service.to_rumor(incarnation));
+    }
+
+    /// Refresh the rumors related to this service
+    fn refresh_rumors_for_service(&self, service: &Service) {
+        self.butterfly
+            .refresh_rumors_for_service_group(&service.service_group);
     }
 
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }

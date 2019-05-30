@@ -12,6 +12,7 @@ message Election {
   optional uint64 suitability = 4;
   optional Status status = 5;
   repeated string votes = 6;
+  optional string expiration = 7;
 }
 
 message Service {
@@ -22,6 +23,7 @@ message Service {
   optional string pkg = 9;
   optional bytes cfg = 10;
   optional SysInfo sys = 12;
+  optional string expiration = 13;
 }
 
 message ServiceConfig {
@@ -29,6 +31,7 @@ message ServiceConfig {
   optional uint64 incarnation = 2;
   optional bool encrypted = 3;
   optional bytes config = 4;
+  optional string expiration = 5;
 }
 
 message ServiceFile {
@@ -37,6 +40,7 @@ message ServiceFile {
   optional bool encrypted = 3;
   optional string filename = 4;
   optional bytes body = 5;
+  optional string expiration = 6;
 }
 
 message SysInfo {

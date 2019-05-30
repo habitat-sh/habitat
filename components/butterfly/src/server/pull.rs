@@ -98,6 +98,8 @@ fn run_loop(server: &Server) -> ! {
             }
         };
 
+        trace!("Rumor received: {:?}", &proto);
+
         let blocked = server.is_member_blocked(&proto.from_id);
         let blocked_label = if blocked { "true" } else { "false" };
         let label_values = &[&proto.r#type.to_string(), "success", blocked_label];

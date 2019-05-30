@@ -7,9 +7,11 @@ use crate::{error::{Error,
             protocol::{self,
                        newscast,
                        FromProto},
-            rumor::{Rumor,
+            rumor::{Expiration,
+                    Rumor,
                     RumorPayload,
-                    RumorType}};
+                    RumorType,
+                    Transient}};
 use habitat_core::{package::Identifiable,
                    service::ServiceGroup};
 use serde::{ser::SerializeStruct,
@@ -17,7 +19,6 @@ use serde::{ser::SerializeStruct,
             Serializer};
 use std::{cmp::Ordering,
           fmt,
-          mem,
           result,
           str::FromStr};
 use toml;
@@ -31,13 +32,14 @@ pub struct Service {
     pub pkg:           String,
     pub cfg:           Vec<u8>,
     pub sys:           SysInfo,
+    pub expiration:    Expiration,
 }
 
 impl fmt::Display for Service {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "Service i/{} m/{} sg/{}",
-               self.incarnation, self.member_id, self.service_group)
+               "Service i/{} m/{} sg/{} e/{}",
+               self.incarnation, self.member_id, self.service_group, self.expiration)
     }
 }
 
@@ -55,6 +57,7 @@ impl Serialize for Service {
         strukt.serialize_field("cfg", &cfg)?;
         strukt.serialize_field("sys", &self.sys)?;
         strukt.serialize_field("initialized", &self.initialized)?;
+        strukt.serialize_field("expiration", &self.expiration)?;
         strukt.end()
     }
 }
@@ -107,7 +110,8 @@ impl Service {
                               toml::ser::to_vec(&toml::value::Value::Table(v))
                         .expect("Struct should serialize to bytes")
                           })
-                          .unwrap_or_default() }
+                          .unwrap_or_default(),
+                  expiration: Expiration::soon() }
     }
 }
 
@@ -121,42 +125,46 @@ impl FromProto<newscast::Rumor> for Service {
             RumorPayload::Service(payload) => payload,
             _ => panic!("from-bytes service"),
         };
-        Ok(Service { member_id:     payload.member_id
-                                           .ok_or(Error::ProtocolMismatch("member-id"))?,
+        let expiration = Expiration::from_proto(payload.expiration)?;
+        Ok(Service { member_id: payload.member_id
+                                       .ok_or(Error::ProtocolMismatch("member-id"))?,
                      service_group:
                          payload.service_group
                                 .ok_or(Error::ProtocolMismatch("service-group"))
                                 .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
-                     incarnation:   payload.incarnation.unwrap_or(0),
-                     initialized:   payload.initialized.unwrap_or(false),
-                     pkg:           payload.pkg.ok_or(Error::ProtocolMismatch("pkg"))?,
-                     cfg:           payload.cfg.unwrap_or_default(),
-                     sys:           payload.sys
-                                           .ok_or(Error::ProtocolMismatch("sys"))
-                                           .and_then(SysInfo::from_proto)?, })
+                     incarnation: payload.incarnation.unwrap_or(0),
+                     initialized: payload.initialized.unwrap_or(false),
+                     pkg: payload.pkg.ok_or(Error::ProtocolMismatch("pkg"))?,
+                     cfg: payload.cfg.unwrap_or_default(),
+                     sys: payload.sys
+                                 .ok_or(Error::ProtocolMismatch("sys"))
+                                 .and_then(SysInfo::from_proto)?,
+                     expiration })
     }
 }
 
 impl From<Service> for newscast::Service {
     fn from(value: Service) -> Self {
+        let exp = value.expiration.for_proto();
         newscast::Service { member_id:     Some(value.member_id),
                             service_group: Some(value.service_group.to_string()),
                             incarnation:   Some(value.incarnation),
                             initialized:   Some(value.initialized),
                             pkg:           Some(value.pkg),
                             cfg:           Some(value.cfg),
-                            sys:           Some(value.sys.into()), }
+                            sys:           Some(value.sys.into()),
+                            expiration:    Some(exp), }
     }
 }
 
 impl Rumor for Service {
     /// Follows a simple pattern; if we have a newer incarnation than the one we already have, the
     /// new one wins. So far, these never change.
-    fn merge(&mut self, mut other: Service) -> bool {
+    fn merge(&mut self, other: Service) -> bool {
         if *self >= other {
             false
         } else {
-            mem::swap(self, &mut other);
+            *self = other;
             true
         }
     }
@@ -165,7 +173,13 @@ impl Rumor for Service {
 
     fn id(&self) -> &str { &self.member_id }
 
-    fn key(&self) -> &str { self.service_group.as_ref() }
+    fn key(&self) -> &str { &self.service_group }
+}
+
+impl Transient for Service {
+    fn expiration(&self) -> &Expiration { &self.expiration }
+
+    fn expiration_mut(&mut self) -> &mut Expiration { &mut self.expiration }
 }
 
 #[derive(Debug, Clone, Serialize)]

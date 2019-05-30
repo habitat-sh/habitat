@@ -1,46 +1,54 @@
 //! Periodically check membership rumors to automatically "time out"
 //! `Suspect` rumors to `Confirmed`, and `Confirmed` rumors to
-//! `Departed`.
+//! `Departed`. Also purge any rumors that have expired.
 
-use crate::{rumor::{RumorKey,
-                    RumorType},
-            server::{timing::Timing,
-                     Server}};
+use crate::server::{timing::Timing,
+                    Server};
+use chrono::offset::Utc;
 use habitat_common::liveliness_checker;
 use std::{thread,
           time::Duration};
 
-const LOOP_DELAY_MS: u64 = 500;
+pub fn spawn_thread(name: String, mut server: Server, timing: Timing) -> std::io::Result<()> {
+    habitat_core::env_config_duration!(ExpireThreadSleepMillis, HAB_EXPIRE_THREAD_SLEEP_MS => from_millis, Duration::from_millis(500));
+    let sleep_ms: Duration = ExpireThreadSleepMillis::configured_value().into();
 
-pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Result<()> {
+    habitat_core::env_config_duration!(ExpireThreadPurgeSecs, HAB_EXPIRE_THREAD_PURGE_SECS => from_secs, Duration::from_secs(60));
+    let purge_secs: Duration = ExpireThreadPurgeSecs::configured_value().into();
+
     thread::Builder::new().name(name)
-                          .spawn(move || -> ! { run_loop(&server, &timing) })
+                          .spawn(move || -> ! {
+                              run_loop(&mut server, &timing, sleep_ms, purge_secs)
+                          })
                           .map(|_| ())
 }
 
-fn run_loop(server: &Server, timing: &Timing) -> ! {
+fn run_loop(server: &mut Server, timing: &Timing, sleep_ms: Duration, purge_secs: Duration) -> ! {
+    let mut purge_counter = Duration::from_secs(0);
+
     loop {
         liveliness_checker::mark_thread_alive().and_divergent();
 
-        let newly_confirmed_members =
-            server.member_list
-                  .members_expired_to_confirmed_mlw(timing.suspicion_timeout_duration());
+        server.member_list
+              .members_expired_to_confirmed_mlw(timing.suspicion_timeout_duration());
 
-        for id in newly_confirmed_members {
-            server.rumor_heat
-                  .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));
+        server.member_list
+              .members_expired_to_departed_mlw(timing.departure_timeout_duration());
+
+        purge_counter += sleep_ms;
+
+        // Rather than trying to do this potentially expensive operation every loop iteration,
+        // let's only do it every once in awhile.
+        if purge_counter >= purge_secs {
+            trace!("Purge counter {:?} has exceeded purge seconds {:?}. Expired rumors will now \
+                    be purged.",
+                   purge_counter,
+                   purge_secs);
+            let now = Utc::now();
+            server.purge_expired(now);
+            purge_counter = Duration::from_secs(0);
         }
 
-        let newly_departed_members =
-            server.member_list
-                  .members_expired_to_departed_mlw(timing.departure_timeout_duration());
-
-        for id in newly_departed_members {
-            server.rumor_heat.purge(&id);
-            server.rumor_heat
-                  .start_hot_rumor(RumorKey::new(RumorType::Member, &id, ""));
-        }
-
-        thread::sleep(Duration::from_millis(LOOP_DELAY_MS));
+        thread::sleep(sleep_ms);
     }
 }

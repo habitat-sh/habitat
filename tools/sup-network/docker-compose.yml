@@ -27,15 +27,23 @@ x-service: &srv
       source: "${PWD}/../../target/debug/hab-launch"
       target: /bin/hab-launch
       read_only: false
+    - type: bind
+      source: "${PWD}/../../target/debug/rst-reader"
+      target: /bin/rst-reader
+      read_only: false
   environment:
     - HAB_NONINTERACTIVE=1
     - HAB_SUP_BINARY=/bin/hab-sup
     - HAB_LAUNCH_BINARY=/bin/hab-launch
     - HAB_LAUNCH_NO_SUP_VERSION_CHECK=1
     - HAB_LICENSE=accept-no-persist
-    - RUST_LOG=info,rustc_metadata=error,cargo=error,jobserver=error,rustc_trans=error,rustc_driver=error,rustc_mir=error,rustc=error,tokio_core=info
     - PATH=/bin:/usr/bin
-  entrypoint: /bin/hab
+    - HAB_PERSIST_LOOP_PERIOD_SECS=2
+    - HAB_EXPIRE_THREAD_SLEEP_MS=1000
+    - HAB_EXPIRE_THREAD_PURGE_SECS=5
+    - HAB_RUMOR_EXPIRATION_SECS=30
+    - HAB_DEPARTURE_TIMEOUT_MS=15000
+    - HAB_FEAT_TRIGGER_ELECTION=1
 
 services:
   bastion:
@@ -45,21 +53,47 @@ services:
       sup:
         aliases:
           - bastion
-    command:
-      - "run"
-      - "--listen-ctl=0.0.0.0:9632"
-      - "--permanent-peer"
+        ipv4_address: 10.10.10.2
+    command: hab sup run --listen-ctl=0.0.0.0:9632 --permanent-peer
 
-  rando:
+  peer_1:
     <<: *srv
+    hostname: peer_1
     networks:
       sup:
-    command:
-      - "run"
-      - "--listen-ctl=0.0.0.0:9632"
-      - "--peer=bastion"
+        aliases:
+          - peer_1
+        ipv4_address: 10.10.10.3
+    command: hab sup run --listen-ctl=0.0.0.0:9632 --peer=10.10.10.2
+    depends_on:
+      - bastion
+
+  peer_2:
+    <<: *srv
+    hostname: peer_2
+    networks:
+      sup:
+        aliases:
+          - peer_2
+        ipv4_address: 10.10.10.4
+    command: hab sup run --listen-ctl=0.0.0.0:9632 --peer=10.10.10.2
+    depends_on:
+      - bastion
+
+  peer_3:
+    <<: *srv
+    hostname: peer_3
+    networks:
+      sup:
+        aliases:
+          - peer_3
+        ipv4_address: 10.10.10.5
+    command: hab sup run --listen-ctl=0.0.0.0:9632 --peer=10.10.10.2
     depends_on:
       - bastion
 
 networks:
   sup:
+    ipam:
+      config:
+        - subnet: "10.10.10.0/24"

@@ -5,19 +5,19 @@
 use crate::{error::{Error,
                     Result},
             protocol::{self,
-                       newscast::{self,
-                                  Rumor as ProtoRumor},
+                       newscast,
                        FromProto},
             rumor::{ConstIdRumor,
+                    Expiration,
                     Rumor,
                     RumorPayload,
-                    RumorType}};
+                    RumorType,
+                    Transient}};
 use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
                             BoxKeyPair},
                    service::ServiceGroup};
 use std::{cmp::Ordering,
           fmt,
-          mem,
           path::Path,
           str::{self,
                 FromStr}};
@@ -30,13 +30,14 @@ pub struct ServiceConfig {
     pub incarnation:   u64,
     pub encrypted:     bool,
     pub config:        Vec<u8>, // TODO: make this a String
+    pub expiration:    Expiration,
 }
 
 impl fmt::Display for ServiceConfig {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "ServiceConfig i/{} m/{} sg/{}",
-               self.incarnation, self.from_id, self.service_group)
+               "ServiceConfig i/{} m/{} sg/{} e/{}",
+               self.incarnation, self.from_id, self.service_group, self.expiration)
     }
 }
 
@@ -68,7 +69,8 @@ impl ServiceConfig {
                         service_group,
                         incarnation: 0,
                         encrypted: false,
-                        config }
+                        config,
+                        expiration: Expiration::soon() }
     }
 
     pub fn encrypt(&mut self, user_pair: &BoxKeyPair, service_pair: &BoxKeyPair) -> Result<()> {
@@ -107,47 +109,49 @@ impl ServiceConfig {
     }
 }
 
-impl protocol::Message<ProtoRumor> for ServiceConfig {
+impl protocol::Message<newscast::Rumor> for ServiceConfig {
     const MESSAGE_ID: &'static str = "ServiceConfig";
 }
 
-impl FromProto<ProtoRumor> for ServiceConfig {
-    fn from_proto(rumor: ProtoRumor) -> Result<Self> {
+impl FromProto<newscast::Rumor> for ServiceConfig {
+    fn from_proto(rumor: newscast::Rumor) -> Result<Self> {
         let payload = match rumor.payload.ok_or(Error::ProtocolMismatch("payload"))? {
             RumorPayload::ServiceConfig(payload) => payload,
             _ => panic!("from-bytes service-config"),
         };
-        Ok(ServiceConfig { from_id:       rumor.from_id
-                                               .ok_or(Error::ProtocolMismatch("from-id"))?,
-                           service_group:
-                               payload.service_group
-                                      .ok_or(Error::ProtocolMismatch("service-group"))
-                                      .and_then(|s| {
-                                          ServiceGroup::from_str(&s).map_err(Error::from)
-                                      })?,
-                           incarnation:   payload.incarnation.unwrap_or(0),
-                           encrypted:     payload.encrypted.unwrap_or(false),
-                           config:        payload.config.unwrap_or_default(), })
+        let expiration = Expiration::from_proto(payload.expiration)?;
+        Ok(ServiceConfig { from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
+                           service_group: payload.service_group
+                                                 .ok_or(Error::ProtocolMismatch("service-group"))
+                                                 .and_then(|s| {
+                                                     ServiceGroup::from_str(&s).map_err(Error::from)
+                                                 })?,
+                           incarnation: payload.incarnation.unwrap_or(0),
+                           encrypted: payload.encrypted.unwrap_or(false),
+                           config: payload.config.unwrap_or_default(),
+                           expiration })
     }
 }
 
 impl From<ServiceConfig> for newscast::ServiceConfig {
     fn from(value: ServiceConfig) -> Self {
+        let exp = value.expiration.for_proto();
         newscast::ServiceConfig { service_group: Some(value.service_group.to_string()),
                                   incarnation:   Some(value.incarnation),
                                   encrypted:     Some(value.encrypted),
-                                  config:        Some(value.config), }
+                                  config:        Some(value.config),
+                                  expiration:    Some(exp), }
     }
 }
 
 impl Rumor for ServiceConfig {
     /// Follows a simple pattern; if we have a newer incarnation than the one we already have, the
     /// new one wins. So far, these never change.
-    fn merge(&mut self, mut other: ServiceConfig) -> bool {
+    fn merge(&mut self, other: ServiceConfig) -> bool {
         if *self >= other {
             false
         } else {
-            mem::swap(self, &mut other);
+            *self = other;
             true
         }
     }
@@ -161,6 +165,12 @@ impl Rumor for ServiceConfig {
 
 impl ConstIdRumor for ServiceConfig {
     fn const_id() -> &'static str { "service_config" }
+}
+
+impl Transient for ServiceConfig {
+    fn expiration(&self) -> &Expiration { &self.expiration }
+
+    fn expiration_mut(&mut self) -> &mut Expiration { &mut self.expiration }
 }
 
 #[cfg(test)]

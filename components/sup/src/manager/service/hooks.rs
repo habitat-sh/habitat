@@ -577,8 +577,7 @@ mod tests {
     use crate::{census::CensusRing,
                 manager::sys::Sys};
     use habitat_butterfly::{member::MemberList,
-                            rumor::{election::{self,
-                                               Election as ElectionRumor,
+                            rumor::{election::{Election as ElectionRumor,
                                                ElectionUpdate as ElectionUpdateRumor},
                                     service::{Service as ServiceRumor,
                                               SysInfo},
@@ -692,16 +691,16 @@ mod tests {
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
         let service_one = ServiceRumor::new("member-a", &pg_id, sg_one.clone(), sys_info, None);
-        service_store.insert_rsw(service_one);
+        service_store.insert_transient_rsw(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
         let mut election = ElectionRumor::new("member-a",
                                               &sg_one,
-                                              election::Term::default(),
+                                              u64::default(),
                                               10,
                                               true /* has_quorum */);
         election.finish();
-        election_store.insert_rsw(election);
+        election_store.insert_transient_rsw(election);
 
         let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
 

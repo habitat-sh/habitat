@@ -8,15 +8,16 @@ use crate::{error::{Error,
                        newscast::{self,
                                   Rumor as ProtoRumor},
                        FromProto},
-            rumor::{Rumor,
+            rumor::{Expiration,
+                    Rumor,
                     RumorPayload,
-                    RumorType}};
+                    RumorType,
+                    Transient}};
 use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
                             BoxKeyPair},
                    service::ServiceGroup};
 use std::{cmp::Ordering,
           fmt,
-          mem,
           path::Path,
           str::FromStr};
 
@@ -28,13 +29,14 @@ pub struct ServiceFile {
     pub encrypted:     bool,
     pub filename:      String,
     pub body:          Vec<u8>, // TODO: make this a String
+    pub expiration:    Expiration,
 }
 
 impl fmt::Display for ServiceFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
-               "ServiceFile i/{} m/{} sg/{} fn/{}",
-               self.incarnation, self.from_id, self.service_group, self.filename)
+               "ServiceFile i/{} m/{} sg/{} fn/{} e/{}",
+               self.incarnation, self.from_id, self.service_group, self.filename, self.expiration)
     }
 }
 
@@ -73,7 +75,8 @@ impl ServiceFile {
                       incarnation: 0,
                       encrypted: false,
                       filename: filename.into(),
-                      body }
+                      body,
+                      expiration: Expiration::soon() }
     }
 
     /// Encrypt the contents of the service file
@@ -110,37 +113,41 @@ impl FromProto<ProtoRumor> for ServiceFile {
             RumorPayload::ServiceFile(payload) => payload,
             _ => panic!("from-bytes service-config"),
         };
-        Ok(ServiceFile { from_id:       rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
+        let expiration = Expiration::from_proto(payload.expiration)?;
+        Ok(ServiceFile { from_id: rumor.from_id.ok_or(Error::ProtocolMismatch("from-id"))?,
                          service_group:
                              payload.service_group
                                     .ok_or(Error::ProtocolMismatch("service-group"))
                                     .and_then(|s| ServiceGroup::from_str(&s).map_err(Error::from))?,
-                         incarnation:   payload.incarnation.unwrap_or(0),
-                         encrypted:     payload.encrypted.unwrap_or(false),
-                         filename:      payload.filename
-                                               .ok_or(Error::ProtocolMismatch("filename"))?,
-                         body:          payload.body.unwrap_or_default(), })
+                         incarnation: payload.incarnation.unwrap_or(0),
+                         encrypted: payload.encrypted.unwrap_or(false),
+                         filename: payload.filename
+                                          .ok_or(Error::ProtocolMismatch("filename"))?,
+                         body: payload.body.unwrap_or_default(),
+                         expiration })
     }
 }
 
 impl From<ServiceFile> for newscast::ServiceFile {
     fn from(value: ServiceFile) -> Self {
+        let exp = value.expiration.for_proto();
         newscast::ServiceFile { service_group: Some(value.service_group.to_string()),
                                 incarnation:   Some(value.incarnation),
                                 encrypted:     Some(value.encrypted),
                                 filename:      Some(value.filename),
-                                body:          Some(value.body), }
+                                body:          Some(value.body),
+                                expiration:    Some(exp), }
     }
 }
 
 impl Rumor for ServiceFile {
     /// Follows a simple pattern; if we have a newer incarnation than the one we already have, the
     /// new one wins. So far, these never change.
-    fn merge(&mut self, mut other: ServiceFile) -> bool {
+    fn merge(&mut self, other: ServiceFile) -> bool {
         if *self >= other {
             false
         } else {
-            mem::swap(self, &mut other);
+            *self = other;
             true
         }
     }
@@ -150,6 +157,12 @@ impl Rumor for ServiceFile {
     fn id(&self) -> &str { &self.filename }
 
     fn key(&self) -> &str { &self.service_group }
+}
+
+impl Transient for ServiceFile {
+    fn expiration(&self) -> &Expiration { &self.expiration }
+
+    fn expiration_mut(&mut self) -> &mut Expiration { &mut self.expiration }
 }
 
 #[cfg(test)]

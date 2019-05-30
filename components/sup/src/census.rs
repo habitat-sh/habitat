@@ -738,8 +738,7 @@ mod tests {
     use crate::test_helpers::*;
     use habitat_butterfly::{member::{Health,
                                      MemberList},
-                            rumor::{election::{self,
-                                               Election as ElectionRumor,
+                            rumor::{election::{Election as ElectionRumor,
                                                ElectionUpdate as ElectionUpdateRumor},
                                     service::{Service as ServiceRumor,
                                               SysInfo},
@@ -811,27 +810,27 @@ mod tests {
                                               sys_info.clone(),
                                               None);
 
-        service_store.insert_rsw(service_one);
-        service_store.insert_rsw(service_two);
-        service_store.insert_rsw(service_three);
+        service_store.insert_transient_rsw(service_one);
+        service_store.insert_transient_rsw(service_two);
+        service_store.insert_transient_rsw(service_three);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
         let mut election = ElectionRumor::new("member-a",
                                               &sg_one,
-                                              election::Term::default(),
+                                              u64::default(),
                                               10,
                                               true /* has_quorum */);
         election.finish();
-        election_store.insert_rsw(election);
+        election_store.insert_transient_rsw(election);
 
         let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
         let mut election_update = ElectionUpdateRumor::new("member-b",
                                                            &sg_two,
-                                                           election::Term::default(),
+                                                           u64::default(),
                                                            10,
                                                            true /* has_quorum */);
         election_update.finish();
-        election_update_store.insert_rsw(election_update);
+        election_update_store.insert_transient_rsw(election_update);
 
         let member_list = MemberList::new();
 

@@ -1,14 +1,12 @@
 use env_logger;
-
-use std::{env,
-          net::SocketAddr,
-          thread,
-          time::Duration};
-
 use habitat_butterfly::{member,
                         server::{self,
                                  Suitability},
                         trace};
+use std::{env,
+          net::SocketAddr,
+          thread,
+          time::Duration};
 
 #[derive(Debug)]
 struct ZeroSuitability;

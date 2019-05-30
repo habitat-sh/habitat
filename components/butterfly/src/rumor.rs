@@ -9,29 +9,9 @@
 pub mod dat_file;
 pub mod departure;
 pub mod election;
-pub mod heat;
 pub mod service;
 pub mod service_config;
 pub mod service_file;
-
-use crate::{error::{Error,
-                    Result},
-            member::Membership,
-            protocol::{FromProto,
-                       Message},
-            rumor::election::ElectionRumor};
-use bytes::BytesMut;
-use prometheus::IntCounterVec;
-use prost::Message as ProstMessage;
-use serde;
-use std::{collections::{hash_map::Entry,
-                        HashMap},
-          default::Default,
-          fmt,
-          result,
-          sync::{atomic::{AtomicUsize,
-                          Ordering},
-                 Arc}};
 
 pub use self::{departure::Departure,
                election::{Election,
@@ -44,12 +24,69 @@ pub use self::{departure::Departure,
 pub use crate::protocol::newscast::{Rumor as ProtoRumor,
                                     RumorPayload,
                                     RumorType};
+use crate::{error::{Error,
+                    Result},
+            member::Membership,
+            protocol::{FromProto,
+                       Message},
+            rumor::election::ElectionRumor};
+use bytes::BytesMut;
+use chrono::{offset::Utc,
+             DateTime,
+             Duration};
+use prometheus::IntCounterVec;
+use prost::Message as ProstMessage;
+use serde;
+use std::{collections::{hash_map::Entry,
+                        HashMap},
+          default::Default,
+          fmt,
+          result,
+          sync::{atomic::{AtomicUsize,
+                          Ordering},
+                 Arc},
+          time};
 
 lazy_static! {
     static ref IGNORED_RUMOR_COUNT: IntCounterVec =
         register_int_counter_vec!("hab_butterfly_ignored_rumor_total",
                                   "How many rumors we ignore",
                                   &["rumor"]).unwrap();
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Expiration(DateTime<Utc>);
+
+impl fmt::Display for Expiration {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0.to_rfc3339())
+    }
+}
+
+impl Expiration {
+    pub(crate) fn soon() -> Self { Self(Self::soon_date()) }
+
+    pub(crate) fn refresh(&mut self) { self.0 = Self::soon_date(); }
+
+    pub(crate) fn expired(&self, now: DateTime<Utc>) -> bool { now > self.0 }
+
+    fn soon_date() -> DateTime<Utc> {
+        habitat_core::env_config_duration!(ExpirationSeconds, HAB_RUMOR_EXPIRATION_SECS => from_secs, time::Duration::from_secs(60 * 60)); // 1 hour
+        let exp_secs: time::Duration = ExpirationSeconds::configured_value().into();
+        Utc::now() + Duration::from_std(exp_secs).expect("Rumor Expiration seconds")
+    }
+
+    pub(crate) fn for_proto(&self) -> String { self.0.to_rfc3339() }
+
+    pub(crate) fn from_proto(expiration: Option<String>) -> Result<Self> {
+        match expiration {
+            Some(e) => {
+                let exp = DateTime::parse_from_rfc3339(&e)?;
+                Ok(Self(exp.with_timezone(&Utc)))
+            }
+            None => Ok(Self::soon()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -117,11 +154,20 @@ impl fmt::Display for RumorKey {
 
 /// A representation of a Rumor; implemented by all the concrete types we share as rumors. The
 /// exception is the Membership rumor, since it's not actually a rumor in the same vein.
-pub trait Rumor: Message<ProtoRumor> + Sized {
+pub trait Rumor: Message<ProtoRumor> + Sized + fmt::Debug + fmt::Display {
     fn kind(&self) -> RumorType;
     fn key(&self) -> &str;
     fn id(&self) -> &str;
     fn merge(&mut self, other: Self) -> bool;
+}
+
+pub trait Transient: Rumor {
+    fn expiration(&self) -> &Expiration;
+    fn expiration_mut(&mut self) -> &mut Expiration;
+    fn refresh(&mut self) { self.expiration_mut().refresh(); }
+    fn expired(&self, expiration_date: DateTime<Utc>) -> bool {
+        self.expiration().expired(expiration_date)
+    }
 }
 
 pub trait ConstKeyRumor: Rumor {
@@ -239,6 +285,15 @@ mod storage {
         }
     }
 
+    impl<'a, T: Transient> IterableGuard<'a, RumorMap<T>> {
+        pub fn live_keys(&self) -> Vec<RumorKey> {
+            self.rumors()
+                .filter(|r| !r.expiration().expired(Utc::now()))
+                .map(RumorKey::from)
+                .collect()
+        }
+    }
+
     impl<'a, C: ConstKeyRumor> IterableGuard<'a, RumorMap<C>> {
         pub fn contains_id(&self, member_id: &str) -> bool {
             self.get(C::const_key())
@@ -332,6 +387,48 @@ mod storage {
                 kind_ignored_count.inc();
             }
             result
+        }
+
+        pub fn keys_rsr(&self) -> Vec<RumorKey> {
+            self.list
+                .read()
+                .values()
+                .flat_map(HashMap::values)
+                .map(RumorKey::from)
+                .collect()
+        }
+    }
+
+    impl<T: Transient> RumorStore<T> {
+        pub fn insert_transient_rsw(&self, rumor: T) -> bool {
+            if !rumor.expired(Utc::now()) {
+                self.insert_rsw(rumor)
+            } else {
+                false
+            }
+        }
+
+        /// Remove all rumors that have expired from our rumor store.
+        pub fn purge_expired_rsr(&self, expiration_date: DateTime<Utc>) {
+            self.lock_rsr()
+                .rumors()
+                .filter(|r| r.expiration().expired(expiration_date))
+                .for_each(|r| {
+                    trace!("About to remove a transient rumor because it expired: {}",
+                           &r);
+                    self.remove_rsw(r.key(), r.id());
+                });
+        }
+
+        pub fn with_rumors_transient_rsw<F>(&self, key: &str, closure: F)
+            where F: FnMut(&mut T)
+        {
+            self.list
+                .write()
+                .values_mut()
+                .flat_map(HashMap::values_mut)
+                .filter(|r| r.key() == key)
+                .for_each(closure);
         }
     }
 
@@ -530,6 +627,7 @@ mod tests {
                 rumor::{Rumor,
                         RumorKey,
                         RumorType}};
+    use std::fmt;
     use uuid::Uuid;
 
     #[derive(Clone, Debug, Serialize)]
@@ -542,6 +640,12 @@ mod tests {
         fn default() -> FakeRumor {
             FakeRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
                         key: String::from("fakerton"), }
+        }
+    }
+
+    impl fmt::Display for FakeRumor {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "FakeRumor i/{} k/{}", self.id, self.key)
         }
     }
 
@@ -583,6 +687,12 @@ mod tests {
         fn default() -> TrumpRumor {
             TrumpRumor { id:  format!("{}", Uuid::new_v4().to_simple_ref()),
                          key: String::from("fakerton"), }
+        }
+    }
+
+    impl fmt::Display for TrumpRumor {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "TrumpRumor i/{} k/{}", self.id, self.key)
         }
     }
 

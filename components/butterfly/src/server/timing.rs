@@ -34,20 +34,6 @@ impl Default for Timing {
 }
 
 impl Timing {
-    /// Set up a new Timing
-    pub fn new(ping_ms: i64,
-               pingreq_ms: i64,
-               gossip_period_ms: i64,
-               suspicion_timeout_protocol_periods: i64,
-               departure_timeout_ms: i64)
-               -> Timing {
-        Timing { ping_ms,
-                 pingreq_ms,
-                 gossip_period_ms,
-                 suspicion_timeout_protocol_periods,
-                 departure_timeout_ms }
-    }
-
     /// When should this gossip period expire
     pub fn gossip_timeout(&self) -> SteadyTime {
         SteadyTime::now() + TimeDuration::milliseconds(self.gossip_period_ms)
@@ -78,6 +64,11 @@ impl Timing {
     }
 
     pub fn departure_timeout_duration(&self) -> TimeDuration {
-        TimeDuration::milliseconds(self.departure_timeout_ms)
+        habitat_core::env_config_int!(DepartureTimeoutMillis,
+                                      i64,
+                                      HAB_DEPARTURE_TIMEOUT_MS,
+                                      DEPARTURE_TIMEOUT_DEFAULT_MS);
+        let departure_timeout_ms: i64 = DepartureTimeoutMillis::configured_value().into();
+        TimeDuration::milliseconds(departure_timeout_ms)
     }
 }
