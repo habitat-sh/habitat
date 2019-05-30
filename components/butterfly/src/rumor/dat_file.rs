@@ -38,13 +38,18 @@ pub struct DatFile {
     header:      Header,
     header_size: u64,
     path:        PathBuf,
+    reader:      BufReader<File>,
 }
 
 impl DatFile {
-    pub fn new(data_path: PathBuf) -> Self {
-        DatFile { path:        data_path,
-                  header_size: 0,
-                  header:      Header::default(), }
+    pub fn new(data_path: PathBuf) -> Result<Self> {
+        let file = File::open(&data_path).map_err(|err| Error::DatFileIO(data_path.clone(), err))?;
+        let reader = BufReader::new(file);
+
+        Ok(DatFile { path: data_path,
+                     header_size: 0,
+                     header: Header::default(),
+                     reader })
     }
 
     pub fn member_len(&self) -> u64 { self.header.member_len }
@@ -63,34 +68,28 @@ impl DatFile {
 
     pub fn path(&self) -> &Path { &self.path }
 
-    pub fn reader_for_file(&mut self) -> Result<BufReader<File>> {
-        let file = File::open(&self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-        Ok(BufReader::new(file))
-    }
-
-    pub fn read_header(&mut self, version: &mut [u8], reader: &mut BufReader<File>) -> Result<()> {
-        reader.read_exact(version)
-              .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+    pub fn read_header(&mut self, version: &mut [u8]) -> Result<()> {
+        self.reader
+            .read_exact(version)
+            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         debug!("Header Version: {}", version[0]);
         let (header_size, real_header) =
-            Header::from_file(reader, version[0]).map_err(|err| {
-                                                     Error::DatFileIO(self.path.clone(), err)
-                                                 })?;
+            Header::from_file(&mut self.reader, version[0]).map_err(|err| {
+                                                               Error::DatFileIO(self.path.clone(),
+                                                                                err)
+                                                           })?;
         self.header = real_header;
         self.header_size = header_size;
         debug!("Header Size: {:?}", self.header_size);
         debug!("Header: {:?}", self.header);
 
-        reader.seek(SeekFrom::Start(self.member_offset()))
-              .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        self.reader
+            .seek(SeekFrom::Start(self.member_offset()))
+            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         Ok(())
     }
 
-    fn read_and_process<F>(&mut self,
-                           reader: &mut BufReader<File>,
-                           offset: u64,
-                           mut op: F)
-                           -> Result<()>
+    fn read_and_process<F>(&mut self, offset: u64, mut op: F) -> Result<()>
         where F: FnMut(&mut Vec<u8>) -> Result<()>
     {
         let mut bytes_read = 0;
@@ -101,12 +100,14 @@ impl DatFile {
             if bytes_read >= offset {
                 break;
             }
-            reader.read_exact(&mut size_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+            self.reader
+                .read_exact(&mut size_buf)
+                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             let rumor_size = LittleEndian::read_u64(&size_buf);
             rumor_buf.resize(rumor_size as usize, 0);
-            reader.read_exact(&mut rumor_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+            self.reader
+                .read_exact(&mut rumor_buf)
+                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             bytes_read += size_buf.len() as u64 + rumor_size;
             op(&mut rumor_buf)?;
         }
@@ -114,15 +115,12 @@ impl DatFile {
         Ok(())
     }
 
-    pub fn read_rumors<T>(&mut self,
-                          mut reader: &mut BufReader<File>,
-                          offset: u64)
-                          -> Result<Vec<T>>
+    pub fn read_rumors<T>(&mut self, offset: u64) -> Result<Vec<T>>
         where T: Message<newscast::Rumor>
     {
         let mut rumors = Vec::new();
 
-        self.read_and_process(&mut reader, offset, |r| {
+        self.read_and_process(offset, |r| {
                 rumors.push(T::from_bytes(&r)?);
                 Ok(())
             })?;
@@ -130,10 +128,10 @@ impl DatFile {
         Ok(rumors)
     }
 
-    pub fn read_members(&mut self, reader: &mut BufReader<File>) -> Result<Vec<Membership>> {
+    pub fn read_members(&mut self) -> Result<Vec<Membership>> {
         let mut members = Vec::new();
         debug!("Reading membership rumors from {}", self.path().display());
-        self.read_and_process(reader, self.member_len(), |r| {
+        self.read_and_process(self.member_len(), |r| {
                 members.push(Membership::from_bytes(&r)?);
                 Ok(())
             })?;
@@ -142,36 +140,35 @@ impl DatFile {
 
     pub fn read_into(&mut self, server: &Server) -> Result<()> {
         let mut version = [0; 1];
-        let mut reader = self.reader_for_file()?;
 
-        self.read_header(&mut version, &mut reader)?;
+        self.read_header(&mut version)?;
 
-        for Membership { member, health } in self.read_members(&mut reader)? {
+        for Membership { member, health } in self.read_members()? {
             server.insert_member(member, health);
         }
 
-        for service in self.read_rumors(&mut reader, self.service_len())? {
+        for service in self.read_rumors(self.service_len())? {
             server.insert_service(service);
         }
 
-        for service_config in self.read_rumors(&mut reader, self.service_config_len())? {
+        for service_config in self.read_rumors(self.service_config_len())? {
             server.insert_service_config(service_config);
         }
 
-        for service_file in self.read_rumors(&mut reader, self.service_file_len())? {
+        for service_file in self.read_rumors(self.service_file_len())? {
             server.insert_service_file(service_file);
         }
 
-        for election in self.read_rumors(&mut reader, self.election_len())? {
+        for election in self.read_rumors(self.election_len())? {
             server.insert_election(election);
         }
 
-        for update_election in self.read_rumors(&mut reader, self.update_len())? {
+        for update_election in self.read_rumors(self.update_len())? {
             server.insert_update_election(update_election);
         }
 
         if version[0] >= 2 {
-            for departure in self.read_rumors(&mut reader, self.departure_len())? {
+            for departure in self.read_rumors(self.departure_len())? {
                 server.insert_departure(departure);
             }
         }

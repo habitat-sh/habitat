@@ -37,7 +37,13 @@ fn main() {
     let stats = matches.is_present("STATS");
 
     let path = Path::new(file);
-    let dat_file = dat_file::DatFile::new(path.to_path_buf());
+    let dat_file = match dat_file::DatFile::new(path.to_path_buf()) {
+        Ok(d) => d,
+        Err(e) => {
+            error!("Could not read dat file: {:?}", e);
+            process::exit(1);
+        }
+    };
 
     let result = if stats {
         output_stats(dat_file)
@@ -53,42 +59,35 @@ fn main() {
 
 fn output_rumors(mut dat_file: dat_file::DatFile) -> Result<()> {
     let mut version = [0; 1];
-    let mut reader = dat_file.reader_for_file()?;
 
-    dat_file.read_header(&mut version, &mut reader)?;
+    dat_file.read_header(&mut version)?;
 
-    for member in dat_file.read_members(&mut reader)? {
+    for member in dat_file.read_members()? {
         println!("{}", member);
     }
 
-    for service in dat_file.read_rumors::<Service>(&mut reader, dat_file.service_len())? {
+    for service in dat_file.read_rumors::<Service>(dat_file.service_len())? {
         println!("{}", service);
     }
 
-    for service_config in
-        dat_file.read_rumors::<ServiceConfig>(&mut reader, dat_file.service_config_len())?
-    {
+    for service_config in dat_file.read_rumors::<ServiceConfig>(dat_file.service_config_len())? {
         println!("{}", service_config);
     }
 
-    for service_file in
-        dat_file.read_rumors::<ServiceFile>(&mut reader, dat_file.service_file_len())?
-    {
+    for service_file in dat_file.read_rumors::<ServiceFile>(dat_file.service_file_len())? {
         println!("{}", service_file);
     }
 
-    for election in dat_file.read_rumors::<Election>(&mut reader, dat_file.election_len())? {
+    for election in dat_file.read_rumors::<Election>(dat_file.election_len())? {
         println!("{}", election);
     }
 
-    for update_election in
-        dat_file.read_rumors::<ElectionUpdate>(&mut reader, dat_file.update_len())?
-    {
+    for update_election in dat_file.read_rumors::<ElectionUpdate>(dat_file.update_len())? {
         println!("{}", update_election);
     }
 
     if version[0] >= 2 {
-        for departure in dat_file.read_rumors::<Departure>(&mut reader, dat_file.departure_len())? {
+        for departure in dat_file.read_rumors::<Departure>(dat_file.departure_len())? {
             println!("{}", departure);
         }
     }
@@ -106,25 +105,23 @@ fn output_stats(mut dat_file: dat_file::DatFile) -> Result<()> {
     let mut departures = 0;
 
     let mut version = [0; 1];
-    let mut reader = dat_file.reader_for_file()?;
 
-    dat_file.read_header(&mut version, &mut reader)?;
-    membership += dat_file.read_members(&mut reader)?.len();
+    dat_file.read_header(&mut version)?;
+    membership += dat_file.read_members()?.len();
 
-    services += dat_file.read_rumors::<Service>(&mut reader, dat_file.service_len())?
+    services += dat_file.read_rumors::<Service>(dat_file.service_len())?
                         .len();
-    service_configs += dat_file.read_rumors::<ServiceConfig>(&mut reader,
-                                                             dat_file.service_config_len())?
+    service_configs += dat_file.read_rumors::<ServiceConfig>(dat_file.service_config_len())?
                                .len();
-    service_files += dat_file.read_rumors::<ServiceFile>(&mut reader, dat_file.service_file_len())?
+    service_files += dat_file.read_rumors::<ServiceFile>(dat_file.service_file_len())?
                              .len();
-    elections += dat_file.read_rumors::<Election>(&mut reader, dat_file.election_len())?
+    elections += dat_file.read_rumors::<Election>(dat_file.election_len())?
                          .len();
-    update_elections += dat_file.read_rumors::<ElectionUpdate>(&mut reader, dat_file.update_len())?
+    update_elections += dat_file.read_rumors::<ElectionUpdate>(dat_file.update_len())?
                                 .len();
 
     if version[0] >= 2 {
-        departures += dat_file.read_rumors::<Departure>(&mut reader, dat_file.departure_len())?
+        departures += dat_file.read_rumors::<Departure>(dat_file.departure_len())?
                               .len();
     }
 

@@ -417,7 +417,8 @@ impl Server {
                 return Err(Error::BadDataPath(path.to_path_buf(), err));
             }
             let dat_path = path.join(format!("{}.rst", &self.member_id));
-            let mut file = DatFile::new(dat_path);
+            let mut file = DatFile::new(dat_path)?;
+
             if file.path().exists() {
                 match file.read_into(self) {
                     Ok(_) => {
@@ -428,6 +429,7 @@ impl Server {
                     Err(err) => return Err(err),
                 };
             }
+
             self.dat_file = Some(Arc::new(Mutex::new(file)));
 
             {
