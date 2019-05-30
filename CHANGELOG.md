@@ -10,6 +10,7 @@
 - remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Add a tool for simulating a supervisor network [#6596](https://github.com/habitat-sh/habitat/pull/6596) ([raskchanky](https://github.com/raskchanky))
 - Two minor fixes for vagrant based bootstrap [#6589](https://github.com/habitat-sh/habitat/pull/6589) ([markan](https://github.com/markan))
 - First pass at test framework to validate studio changes [#6528](https://github.com/habitat-sh/habitat/pull/6528) ([smacfarlane](https://github.com/smacfarlane))
 - Adding info on accepting license via environment vars [#6526](https://github.com/habitat-sh/habitat/pull/6526) ([tyler-ball](https://github.com/tyler-ball))
