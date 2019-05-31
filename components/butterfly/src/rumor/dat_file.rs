@@ -1,3 +1,15 @@
+use crate::{error::{Error,
+                    Result},
+            member::{MemberList,
+                     Membership},
+            protocol::{newscast,
+                       Message},
+            rumor::{Rumor,
+                    RumorStore},
+            server::Server};
+use byteorder::{ByteOrder,
+                LittleEndian};
+use habitat_core::fs::AtomicWriter;
 use std::{fs::File,
           io::{self,
                BufReader,
@@ -9,26 +21,6 @@ use std::{fs::File,
           mem,
           path::{Path,
                  PathBuf}};
-
-use byteorder::{ByteOrder,
-                LittleEndian};
-use habitat_core::fs::AtomicWriter;
-
-use crate::{error::{Error,
-                    Result},
-            member::{MemberList,
-                     Membership},
-            protocol::{newscast,
-                       Message},
-            rumor::{Departure,
-                    Election,
-                    ElectionUpdate,
-                    Rumor,
-                    RumorStore,
-                    Service,
-                    ServiceConfig,
-                    ServiceFile},
-            server::Server};
 
 const HEADER_VERSION: u8 = 2;
 
@@ -46,163 +38,138 @@ pub struct DatFile {
     header:      Header,
     header_size: u64,
     path:        PathBuf,
+    reader:      BufReader<File>,
 }
 
 impl DatFile {
-    pub fn new<T: AsRef<Path>>(member_id: &str, data_path: T) -> Self {
-        DatFile { path:        data_path.as_ref().join(format!("{}.rst", member_id)),
-                  header_size: 0,
-                  header:      Header::default(), }
+    pub fn new(data_path: PathBuf) -> Result<Self> {
+        let file = File::open(&data_path).map_err(|err| Error::DatFileIO(data_path.clone(), err))?;
+        let reader = BufReader::new(file);
+
+        Ok(DatFile { path: data_path,
+                     header_size: 0,
+                     header: Header::default(),
+                     reader })
     }
+
+    pub fn member_len(&self) -> u64 { self.header.member_len }
+
+    pub fn service_len(&self) -> u64 { self.header.service_len }
+
+    pub fn service_config_len(&self) -> u64 { self.header.service_config_len }
+
+    pub fn service_file_len(&self) -> u64 { self.header.service_file_len }
+
+    pub fn election_len(&self) -> u64 { self.header.election_len }
+
+    pub fn update_len(&self) -> u64 { self.header.update_len }
+
+    pub fn departure_len(&self) -> u64 { self.header.departure_len }
 
     pub fn path(&self) -> &Path { &self.path }
 
-    pub fn read_into(&mut self, server: &Server) -> Result<()> {
-        let mut version = [0; 1];
-        let mut size_buf = [0; 8];
-        // JW: Resizing this buffer is terrible for performance, but it's the easiest way to
-        // read exactly N bytes from a file. I'm not sure what the right approach is but this
-        // won't be a performance issue for a long time anyway, if ever.
-        let mut rumor_buf: Vec<u8> = vec![];
-        let mut bytes_read = 0;
-        let file = File::open(&self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-        let mut reader = BufReader::new(file);
-        reader.read_exact(&mut version)
-              .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+    pub fn read_header(&mut self, version: &mut [u8]) -> Result<()> {
+        self.reader
+            .read_exact(version)
+            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         debug!("Header Version: {}", version[0]);
         let (header_size, real_header) =
-            Header::from_file(&mut reader, version[0]).map_err(|err| {
-                                                          Error::DatFileIO(self.path.clone(), err)
-                                                      })?;
+            Header::from_file(&mut self.reader, version[0]).map_err(|err| {
+                                                               Error::DatFileIO(self.path.clone(),
+                                                                                err)
+                                                           })?;
         self.header = real_header;
         self.header_size = header_size;
         debug!("Header Size: {:?}", self.header_size);
         debug!("Header: {:?}", self.header);
 
-        reader.seek(SeekFrom::Start(self.member_offset()))
-              .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-        debug!("Reading membership list from {}", self.path().display());
+        self.reader
+            .seek(SeekFrom::Start(self.member_offset()))
+            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        Ok(())
+    }
+
+    fn read_and_process<F>(&mut self, offset: u64, mut op: F) -> Result<()>
+        where F: FnMut(&mut Vec<u8>) -> Result<()>
+    {
+        let mut bytes_read = 0;
+        let mut size_buf = [0; 8];
+        let mut rumor_buf: Vec<u8> = vec![];
+
         loop {
-            if bytes_read >= self.header.member_len {
+            if bytes_read >= offset {
                 break;
             }
-            reader.read_exact(&mut size_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+            self.reader
+                .read_exact(&mut size_buf)
+                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             let rumor_size = LittleEndian::read_u64(&size_buf);
             rumor_buf.resize(rumor_size as usize, 0);
-            reader.read_exact(&mut rumor_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+            self.reader
+                .read_exact(&mut rumor_buf)
+                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             bytes_read += size_buf.len() as u64 + rumor_size;
-            match Membership::from_bytes(&rumor_buf) {
-                Ok(membership) => server.insert_member(membership.member, membership.health),
-                Err(err) => warn!("Error reading membership rumor from dat file, {}", err),
-            }
+            op(&mut rumor_buf)?;
         }
 
-        debug!("Reading service rumors from {}", self.path().display());
-        bytes_read = 0;
-        loop {
-            if bytes_read >= self.header.service_len {
-                break;
-            }
-            reader.read_exact(&mut size_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor_size = LittleEndian::read_u64(&size_buf);
-            rumor_buf.resize(rumor_size as usize, 0);
-            reader.read_exact(&mut rumor_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor = Service::from_bytes(&rumor_buf)?;
-            server.insert_service(rumor);
-            bytes_read += size_buf.len() as u64 + rumor_size;
+        Ok(())
+    }
+
+    pub fn read_rumors<T>(&mut self, offset: u64) -> Result<Vec<T>>
+        where T: Message<newscast::Rumor>
+    {
+        let mut rumors = Vec::new();
+
+        self.read_and_process(offset, |r| {
+                rumors.push(T::from_bytes(&r)?);
+                Ok(())
+            })?;
+
+        Ok(rumors)
+    }
+
+    pub fn read_members(&mut self) -> Result<Vec<Membership>> {
+        let mut members = Vec::new();
+        debug!("Reading membership rumors from {}", self.path().display());
+        self.read_and_process(self.member_len(), |r| {
+                members.push(Membership::from_bytes(&r)?);
+                Ok(())
+            })?;
+        Ok(members)
+    }
+
+    pub fn read_into(&mut self, server: &Server) -> Result<()> {
+        let mut version = [0; 1];
+
+        self.read_header(&mut version)?;
+
+        for Membership { member, health } in self.read_members()? {
+            server.insert_member(member, health);
         }
 
-        debug!("Reading service-config rumors from {}",
-               self.path().display());
-        bytes_read = 0;
-        loop {
-            if bytes_read >= self.header.service_config_len {
-                break;
-            }
-            reader.read_exact(&mut size_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor_size = LittleEndian::read_u64(&size_buf);
-            rumor_buf.resize(rumor_size as usize, 0);
-            reader.read_exact(&mut rumor_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor = ServiceConfig::from_bytes(&rumor_buf)?;
-            server.insert_service_config(rumor);
-            bytes_read += size_buf.len() as u64 + rumor_size;
+        for service in self.read_rumors(self.service_len())? {
+            server.insert_service(service);
         }
 
-        debug!("Reading service-file rumors from {}", self.path().display());
-        bytes_read = 0;
-        loop {
-            if bytes_read >= self.header.service_file_len {
-                break;
-            }
-            reader.read_exact(&mut size_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor_size = LittleEndian::read_u64(&size_buf);
-            rumor_buf.resize(rumor_size as usize, 0);
-            reader.read_exact(&mut rumor_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor = ServiceFile::from_bytes(&rumor_buf)?;
-            server.insert_service_file(rumor);
-            bytes_read += size_buf.len() as u64 + rumor_size;
+        for service_config in self.read_rumors(self.service_config_len())? {
+            server.insert_service_config(service_config);
         }
 
-        debug!("Reading election rumors from {}", self.path().display());
-        bytes_read = 0;
-        loop {
-            if bytes_read >= self.header.election_len {
-                break;
-            }
-            reader.read_exact(&mut size_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor_size = LittleEndian::read_u64(&size_buf);
-            rumor_buf.resize(rumor_size as usize, 0);
-            reader.read_exact(&mut rumor_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor = Election::from_bytes(&rumor_buf)?;
-            server.insert_election(rumor);
-            bytes_read += size_buf.len() as u64 + rumor_size;
+        for service_file in self.read_rumors(self.service_file_len())? {
+            server.insert_service_file(service_file);
         }
 
-        debug!("Reading update election rumors list from {}",
-               self.path().display());
-        bytes_read = 0;
-        loop {
-            if bytes_read >= self.header.update_len {
-                break;
-            }
-            reader.read_exact(&mut size_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor_size = LittleEndian::read_u64(&size_buf);
-            rumor_buf.resize(rumor_size as usize, 0);
-            reader.read_exact(&mut rumor_buf)
-                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor = ElectionUpdate::from_bytes(&rumor_buf)?;
-            server.insert_update_election(rumor);
-            bytes_read += size_buf.len() as u64 + rumor_size;
+        for election in self.read_rumors(self.election_len())? {
+            server.insert_election(election);
+        }
+
+        for update_election in self.read_rumors(self.update_len())? {
+            server.insert_update_election(update_election);
         }
 
         if version[0] >= 2 {
-            debug!("Reading departure rumors list from {}",
-                   self.path().display());
-            bytes_read = 0;
-            loop {
-                if bytes_read >= self.header.departure_len {
-                    break;
-                }
-                reader.read_exact(&mut size_buf)
-                      .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-                let rumor_size = LittleEndian::read_u64(&size_buf);
-                rumor_buf.resize(rumor_size as usize, 0);
-                reader.read_exact(&mut rumor_buf)
-                      .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-                let rumor = Departure::from_bytes(&rumor_buf)?;
-                server.insert_departure(rumor);
-                bytes_read += size_buf.len() as u64 + rumor_size;
+            for departure in self.read_rumors(self.departure_len())? {
+                server.insert_departure(departure);
             }
         }
 
@@ -251,26 +218,6 @@ impl DatFile {
     }
 
     fn member_offset(&self) -> u64 { 1 + self.header_size }
-
-    #[allow(dead_code)]
-    fn service_offset(&self) -> u64 { self.member_offset() + self.header.member_len }
-
-    #[allow(dead_code)]
-    fn service_config_offset(&self) -> u64 { self.service_offset() + self.header.service_len }
-
-    #[allow(dead_code)]
-    fn service_file_offset(&self) -> u64 {
-        self.service_config_offset() + self.header.service_config_len
-    }
-
-    #[allow(dead_code)]
-    fn election_offset(&self) -> u64 { self.service_file_offset() + self.header.service_file_len }
-
-    #[allow(dead_code)]
-    fn update_offset(&self) -> u64 { self.election_offset() + self.header.election_len }
-
-    #[allow(dead_code)]
-    fn departure_offset(&self) -> u64 { self.update_offset() + self.header.update_len }
 
     fn write_header<W>(&self, writer: &mut W, header: &Header) -> Result<usize>
         where W: Write
