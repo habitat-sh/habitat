@@ -126,7 +126,7 @@ fn output_stats(mut dat_file: dat_file::DatFile) -> Result<()> {
     }
 
     println!("Summary:");
-    println!("");
+    println!();
     println!("Membership: {}", membership);
     println!("Services: {}", services);
     println!("Service Configs: {}", service_configs);
