@@ -16,7 +16,8 @@ lazy_static::lazy_static! {
         Regex::new(r"(?x)\A(
         (?P<application_environment>[^\#@]+)
         \#)?
-        (?P<service>[^\#@]+)
+        # allow periods in service name but not at start or end
+        (?P<service>[A-Za-z0-9_-]+([A-Za-z0-9_.-]+[A-Za-z0-9_-]+)?)
         \.
         (?P<group>[^\#@.]+)
         (@
@@ -509,6 +510,34 @@ mod test {
     #[test]
     fn service_group_from_str_too_many_hashes() {
         let group = "only#one#hash@allowed";
+        match ServiceGroup::from_str(group) {
+            Err(e) => {
+                match e {
+                    Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
+            Ok(_) => panic!("String should fail to parse"),
+        }
+    }
+
+    #[test]
+    fn service_group_from_str_with_service_ending_with_dot() {
+        let group = "prod#svc.one..group@baz";
+        match ServiceGroup::from_str(group) {
+            Err(e) => {
+                match e {
+                    Error::InvalidServiceGroup(val) => assert_eq!(group, val),
+                    wrong => panic!("Unexpected error returned: {:?}", wrong),
+                }
+            }
+            Ok(_) => panic!("String should fail to parse"),
+        }
+    }
+
+    #[test]
+    fn service_group_from_str_with_service_starting_with_dot() {
+        let group = "prod#.svc.one.group@baz";
         match ServiceGroup::from_str(group) {
             Err(e) => {
                 match e {

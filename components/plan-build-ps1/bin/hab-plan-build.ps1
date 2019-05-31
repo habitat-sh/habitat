@@ -2157,7 +2157,8 @@ try {
     if (-Not ($pkg_origin -match '^[A-Za-z0-9_-]+$')) {
         _Exit-With "Failed to build. Origin '$pkg_origin' contains invalid characters." 1
     }
-    if (-Not ($pkg_name -match '^[A-Za-z0-9_.-]+$')) {
+    # Name can include periods but cannot begin or end with one
+    if (-Not ($pkg_name -match '^[A-Za-z0-9_-]+([A-Za-z0-9_.-]+[A-Za-z0-9_-]+)?$')) {
         _Exit-With "Failed to build. Package '$pkg_name' contains invalid characters." 1
     }
 
