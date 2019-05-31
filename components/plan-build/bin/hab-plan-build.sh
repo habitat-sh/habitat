@@ -2470,7 +2470,7 @@ if [[ ! "$pkg_origin" =~ ^[A-Za-z0-9_-]+$ ]];
 then
   exit_with "Failed to build. Origin $var '$pkg_origin' contains invalid characters." 1
 fi
-if [[ ! "$pkg_name" =~ ^[A-Za-z0-9_\.-]+$ ]];
+if [[ ! "$pkg_name" =~ ^[A-Za-z0-9_.-]+$ ]];
 then
   exit_with "Failed to build. Package $var '$pkg_name' contains invalid characters." 1
 fi

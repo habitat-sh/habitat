@@ -33,7 +33,7 @@ pub trait Identifiable: fmt::Display + Into<PackageIdent> {
     fn fully_qualified(&self) -> bool { self.version().is_some() && self.release().is_some() }
 
     fn valid(&self) -> bool {
-        let re = Regex::new(r"^[A-Za-z0-9_\.-]+$").unwrap();
+        let re = Regex::new(r"^[A-Za-z0-9_.-]+$").unwrap();
         re.is_match(self.name())
     }
 
