@@ -647,7 +647,7 @@ mod tests {
         let invalid1 = PackageIdent::new("acme", "rocket%one", Some("1.2.3"), Some("1234"));
         let invalid2 = PackageIdent::new("acme", ".rocketone", Some("1.2.3"), Some("1234"));
         let invalid3 = PackageIdent::new("acme", "rocket.", Some("1.2.3"), Some("1234"));
-        
+
         assert!(valid1.valid());
         assert!(valid2.valid());
         assert!(valid3.valid());
