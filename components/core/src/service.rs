@@ -151,7 +151,7 @@ impl ServiceGroup {
               S2: AsRef<str>
     {
         if group.as_ref().contains('.') {
-            return Err(Error::InvalidGroupName(group.as_ref().to_string()));
+            return Err(Error::DotInGroupName(group.as_ref().to_string()));
         }
         let formatted = Self::format(app_env, service, group, organization);
         Self::validate(&formatted)?;
@@ -543,7 +543,7 @@ mod test {
         match ServiceGroup::new(None, service, group, None) {
             Err(e) => {
                 match e {
-                    Error::InvalidGroupName(val) => assert_eq!(group, val),
+                    Error::DotInGroupName(val) => assert_eq!(group, val),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
             }

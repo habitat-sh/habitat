@@ -75,6 +75,8 @@ pub enum Error {
     CryptProtectDataFailed(String),
     /// Occurs when a call to CryptUnprotectData fails
     CryptUnprotectDataFailed(String),
+    /// Occurs when a group has a period in it.
+    DotInGroupName(String),
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
     /// Occurs when a fully-qualified package identifier is required,
@@ -85,8 +87,6 @@ pub enum Error {
     InvalidApplicationEnvironment(String),
     /// Occurs when a service binding cannot be successfully parsed.
     InvalidBinding(String),
-    /// Occurs when a group is in an invalid format.
-    InvalidGroupName(String),
     /// Occurs when a package identifier string cannot be successfully parsed.
     InvalidPackageIdent(String),
     /// Occurs when a package target string cannot be successfully parsed.
@@ -250,6 +250,9 @@ impl fmt::Display for Error {
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::CryptProtectDataFailed(ref e) => e.to_string(),
             Error::CryptUnprotectDataFailed(ref e) => e.to_string(),
+            Error::DotInGroupName(ref e) => {
+                format!("Service group name must not contain a '.': {}.", e)
+            }
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FullyQualifiedPackageIdentRequired(ref ident) => {
                 format!("Fully-qualified package identifier was expected, but found: {:?}",
@@ -265,7 +268,6 @@ impl fmt::Display for Error {
                          <NAME> is a service name, and <SERVICE_GROUP> is a valid service group",
                         binding)
             }
-            Error::InvalidGroupName(ref e) => format!("Invalid group: {}.", e),
             Error::InvalidPackageIdent(ref e) => {
                 format!("Invalid package identifier: {:?}. A valid identifier is in the form \
                          origin/name (example: acme/redis)",
@@ -420,6 +422,7 @@ impl error::Error for Error {
             Error::CryptoError(_) => "Crypto error",
             Error::CryptProtectDataFailed(_) => "CryptProtectData failed",
             Error::CryptUnprotectDataFailed(_) => "CryptUnprotectData failed",
+            Error::DotInGroupName(_) => "Service group name must not contain a '.'",
             Error::FileNotFound(_) => "File not found",
             Error::FullyQualifiedPackageIdentRequired(_) => {
                 "A fully-qualified package identifier was expected"
@@ -432,7 +435,6 @@ impl error::Error for Error {
                 "Service Bind strings must be in name:service_group format (example \
                  cache:redis.cache@organization)."
             }
-            Error::InvalidGroupName(_) => "Service group name must not contain a '.'",
             Error::InvalidPackageIdent(_) => {
                 "Package identifiers must be in origin/name format (example: acme/redis)"
             }
