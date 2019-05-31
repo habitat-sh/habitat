@@ -2471,7 +2471,7 @@ then
   exit_with "Failed to build. Origin $var '$pkg_origin' contains invalid characters." 1
 fi
 # Name can include periods but cannot begin or end with one
-if [[ ! "$pkg_name" =~ ^[A-Za-z0-9_-]+([A-Za-z0-9_.-]+[A-Za-z0-9_-]+)?$ ]];
+if [[ ! "$pkg_name" =~ ^[A-Za-z0-9_-]+(?:[A-Za-z0-9_.-]+[A-Za-z0-9_-]+)?$ ]];
 then
   exit_with "Failed to build. Package $var '$pkg_name' contains invalid characters." 1
 fi

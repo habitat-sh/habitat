@@ -1,5 +1,6 @@
-use crate::error::{Error,
-                   Result};
+use crate::{error::{Error,
+                    Result},
+            package::ident::PACKAGE_NAME_RE_STR};
 use regex::Regex;
 use serde_derive::{Deserialize,
                    Serialize};
@@ -12,17 +13,15 @@ use std::{fmt,
           time::Duration};
 
 lazy_static::lazy_static! {
-    static ref SG_FROM_STR_RE: Regex =
-        Regex::new(r"(?x)\A(
-        (?P<application_environment>[^\#@]+)
-        \#)?
-        # allow periods in service name but not at start or end
-        (?P<service>[A-Za-z0-9_-]+([A-Za-z0-9_.-]+[A-Za-z0-9_-]+)?)
-        \.
-        (?P<group>[^\#@.]+)
-        (@
-        (?P<organization>[^\#@.]+)
-        )?\z").unwrap();
+    static ref SG_FROM_STR_RE: Regex = {
+        let svc_capture = format!("(?P<service>{})", PACKAGE_NAME_RE_STR);
+        let regex_str = format!(r"\A({}#)?{}\.{}(@{})?\z",
+        "(?P<application_environment>[^#@]+)",
+        svc_capture,
+        "(?P<group>[^#@.]+)",
+        "(?P<organization>[^#@.]+)");
+        Regex::new(&regex_str).unwrap()
+    };
 
     static ref AE_FROM_STR_RE: Regex =
         Regex::new(r"(?x)\A

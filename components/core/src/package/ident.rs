@@ -11,6 +11,9 @@ use std::{borrow::Cow,
           result,
           str::FromStr};
 
+// allow periods in package name but not at start or end
+pub const PACKAGE_NAME_RE_STR: &str = r"[A-Za-z0-9_-]+(?:[A-Za-z0-9_.-]+[A-Za-z0-9_-]+)?";
+
 lazy_static::lazy_static! {
     static ref ORIGIN_NAME_RE: Regex =
         Regex::new(r"\A[a-z0-9][a-z0-9_-]*\z").expect("Unable to compile regex");
@@ -33,9 +36,8 @@ pub trait Identifiable: fmt::Display + Into<PackageIdent> {
     fn fully_qualified(&self) -> bool { self.version().is_some() && self.release().is_some() }
 
     fn valid(&self) -> bool {
-        // allow periods in ident name but not at start or end
-        let re = Regex::new(r"^[A-Za-z0-9_-]+([A-Za-z0-9_.-]+[A-Za-z0-9_-]+)?$").unwrap();
-        re.is_match(self.name())
+        Regex::new(&format!("^{}$", PACKAGE_NAME_RE_STR)).unwrap()
+                                                         .is_match(self.name())
     }
 
     fn satisfies<I: Identifiable>(&self, other: &I) -> bool {
