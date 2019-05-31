@@ -13,10 +13,22 @@ use std::{fmt,
 
 lazy_static::lazy_static! {
     static ref SG_FROM_STR_RE: Regex =
-        Regex::new(r"\A((?P<application_environment>[^#@]+)#)?(?P<service>[^#@]+)\.(?P<group>[^#@.]+)(@(?P<organization>[^#@.]+))?\z").unwrap();
+        Regex::new(r"(?x)\A(
+        (?P<application_environment>[^\#@]+)
+        \#)?
+        (?P<service>[^\#@]+)
+        \.
+        (?P<group>[^\#@.]+)
+        (@
+        (?P<organization>[^\#@.]+)
+        )?\z").unwrap();
 
     static ref AE_FROM_STR_RE: Regex =
-        Regex::new(r"\A(?P<application>[^#.@]+)\.(?P<environment>[^#.@]+)\z").unwrap();
+        Regex::new(r"(?x)\A
+        (?P<application>[^\#.@]+)
+        \.
+        (?P<environment>[^\#.@]+)
+        \z").unwrap();
 }
 
 /// Determines how the presence of bound service groups affects the
