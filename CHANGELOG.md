@@ -3,6 +3,9 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Behavioral Changes
+- Add `--binlink-dir` argument to `hab pkg install` [#6597](https://github.com/habitat-sh/habitat/pull/6597) ([baumanj](https://github.com/baumanj))
+
 #### New Features & Enhancements
 - Run health checks asynchronously [#6482](https://github.com/habitat-sh/habitat/pull/6482) ([christophermaier](https://github.com/christophermaier))
 
