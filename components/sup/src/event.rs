@@ -186,12 +186,16 @@ pub fn service_update_started(service: &Service, update: &PackageIdent) {
                                             service_metadata: Some(service.to_service_metadata()),
                                             update_origin:    update.origin.clone(),
                                             update_name:      update.name.clone(),
-                                            update_version:   update.version
-                                                                    .clone()
-                                                                    .unwrap_or_default(),
-                                            update_release:   update.release
-                                                                    .clone()
-                                                                    .unwrap_or_default(), });
+                                            update_version:
+                                                update.version
+                                                      .clone()
+                                                      .expect("Can't send service update started \
+                                                               event; invalid update version"),
+                                            update_release:
+                                                update.release
+                                                      .clone()
+                                                      .expect("Can't send service update started \
+                                                               event; invalid update release"), });
     }
 }
 

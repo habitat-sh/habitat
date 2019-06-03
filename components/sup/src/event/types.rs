@@ -90,29 +90,19 @@ pub trait EventMessage: Message + Sized {
     }
 }
 
-// TODO (CM): these are repetitive, and will only get more so as we
-// add events. Consider implementing via macro instead.
-
-impl EventMessage for ServiceStartedEvent {
-    fn event_metadata(&mut self, event_metadata: EventMetadata) {
-        self.event_metadata = Some(event_metadata);
-    }
+macro_rules! event_msg_impl {
+    ($($t:ty)*) => {$(
+        impl EventMessage for $t {
+            fn event_metadata(&mut self, event_metadata: EventMetadata) {
+                self.event_metadata = Some(event_metadata);
+            }
+        }
+    )*};
 }
 
-impl EventMessage for ServiceStoppedEvent {
-    fn event_metadata(&mut self, event_metadata: EventMetadata) {
-        self.event_metadata = Some(event_metadata);
-    }
-}
-
-impl EventMessage for ServiceUpdateStartedEvent {
-    fn event_metadata(&mut self, event_metadata: EventMetadata) {
-        self.event_metadata = Some(event_metadata);
-    }
-}
-
-impl EventMessage for HealthCheckEvent {
-    fn event_metadata(&mut self, event_metadata: EventMetadata) {
-        self.event_metadata = Some(event_metadata);
-    }
-}
+event_msg_impl! (
+    ServiceStartedEvent
+    ServiceStoppedEvent
+    ServiceUpdateStartedEvent
+    HealthCheckEvent
+);
