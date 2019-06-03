@@ -143,31 +143,45 @@ impl DatFile {
 
         self.read_header(&mut version)?;
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for Membership { member, health } in self.read_members()? {
             server.insert_member(member, health);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for service in self.read_rumors(self.service_len())? {
             server.insert_service(service);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for service_config in self.read_rumors(self.service_config_len())? {
             server.insert_service_config(service_config);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for service_file in self.read_rumors(self.service_file_len())? {
             server.insert_service_file(service_file);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for election in self.read_rumors(self.election_len())? {
             server.insert_election(election);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for update_election in self.read_rumors(self.update_len())? {
             server.insert_update_election(update_election);
         }
 
         if version[0] >= 2 {
+            // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+            #[allow(clippy::identity_conversion)]
             for departure in self.read_rumors(self.departure_len())? {
                 server.insert_departure(departure);
             }
