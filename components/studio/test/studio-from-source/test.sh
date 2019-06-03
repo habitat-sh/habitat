@@ -16,9 +16,10 @@ cp "$(hab pkg path core/hab)"/bin/hab libexec/hab
 HAB_STUDIO_BACKLINE_PKG="$(< "$(hab pkg path core/hab-backline)"/IDENT)"
 
 export HAB_STUDIO_BACKLINE_PKG
-export STUDIO_ENTER_COMMAND="sudo --preserve-env bin/hab-studio.sh enter"
+export STUDIO_COMMAND="sudo --preserve-env $(realpath bin/hab-studio.sh)"
 
 ./test/shared/test-all.sh
+
 
 rm libexec/hab
 rm libexec/busybox
