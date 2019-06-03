@@ -84,13 +84,14 @@ set_hab_binary() {
     local pkg_target
     case "${BUILD_PKG_TARGET}" in
         x86_64-linux)
-            hab_binary="$(command -v hab)"
             pkg_target="x86_64-linux"
+            install_hab_binary "$pkg_target" "/hab/bin"
+            hab_binary="/hab/bin/hab-$pkg_target"
             ;;
         x86_64-linux-kernel2)
-            install_hab_kernel2_binary
-            hab_binary="$(command -v hab-x86_64-linux-kernel2)"
             pkg_target="x86_64-linux-kernel2"
+            install_hab_binary "$pkg_target" "/hab/bin"
+            hab_binary="/hab/bin/hab-$pkg_target"
             ;;
         x86_64-windows)
             # We're going to use the existing hab binary here.
@@ -103,7 +104,7 @@ set_hab_binary() {
             exit 1
             ;;
     esac
-        
+
     if has_hab_ident "${pkg_target}" && has_studio_ident "${pkg_target}"; then
         echo "Buildkite metadata found; installing new versions of 'core/hab' and 'core/hab-studio'"
         # By definition, these will be fully-qualified identifiers,
@@ -115,8 +116,8 @@ set_hab_binary() {
         # Note that we are explicitly not binlinking here; this is to
         # prevent accidentally polluting the builder for any future
         # runs that may take place on it.
-        sudo "${hab_binary:?}" pkg install "${hab_ident}"
-        sudo "${hab_binary:?}" pkg install "$(get_studio_ident $pkg_target)"
+        sudo env HAB_LICENSE="${HAB_LICENSE}" "${hab_binary:?}" pkg install "${hab_ident}"
+        sudo env HAB_LICENSE="${HAB_LICENSE}" "${hab_binary:?}" pkg install "$(get_studio_ident $pkg_target)"
         hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
         declare -g new_studio=1
     else
@@ -126,23 +127,27 @@ set_hab_binary() {
     echo "--- :habicat: Using $(${hab_binary} --version)"
 }
 
-# This installation step is a temporary shim until we have done at
-# least one release. Once we have a release, we can update ci-studio-common
-# to fetch this binary from bintray using the install.sh script and the install
-# step is no longer needed. Until then, we need to fetch it from our 
-# bootstrap pipeline. 
-install_hab_kernel2_binary() {
-    local hab_src_url tempdir
-    hab_src_url="http://s3-us-west-2.amazonaws.com/habitat-bootstrap-artifacts/x86_64-linux-kernel2/stage2/hab-stage2-x86_64-linux-kernel2-latest"
-    tempdir=$(mktemp -d hab-kernel2-XXXX)
 
-    pushd "$tempdir" || exit
-    curl "$hab_src_url" -o hab-x86_64-linux-kernel2
-    sudo mv hab-x86_64-linux-kernel2 /bin/hab-x86_64-linux-kernel2
-    sudo chmod +x /bin/hab-x86_64-linux-kernel2
-    popd || exit
-    rm -rf "$tempdir" || exit
+# Use the install.sh script which lives in this repository to download the latest version of Habitat
+install_hab_binary() {
+    local target install_path
+    
+    target="$1"
+    install_path="$2"
+
+    (
+      bt_uri="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-$target.tar.gz?bt_package=hab-$target"
+      
+      tmpdir="$(mktemp -d hab-install.XXXXXXXX)"
+      cd "$tmpdir"
+      wget "$bt_uri" -O "hab-$target-latest.tar.gz"
+      tar xvf "hab-$target-latest.tar.gz" --strip-components=1 
+      sudo mkdir -p "$install_path"
+      sudo mv --force "hab" "$install_path/hab-$target"
+      sudo chmod +x "$install_path/hab-$target"
+    )
 }
+
 
 # The following get/set functions abstract the meta-data key
 # names to provide consistant access, taking into account the 
@@ -240,58 +245,4 @@ get_version() {
 set_version() {
     local version=$1
     buildkite-agent meta-data set "version" "${version}"
-}
-
-# curl-based promotion function to work around https://github.com/habitat-sh/builder/issues/940
-# Remove after 0.79.0
-promote() {
-    package_ident="${1}"
-    target="${2}"
-    to_channel="${3}"
-
-    # Extract the individual bits of the fully-qualified identifier
-    IFS="/" read -r origin package version release <<< "${package_ident}"
-
-    # Create the channel, if necessary.
-    #
-    # Don't use --fail here, because trying to create a channel that
-    # already exists returns a 409, and we don't want to fail in that case.
-    echo "--- :partyparrot: Manually creating '${to_channel}' channel (if it doesn't exist already)"
-    curl --request POST \
-         --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
-         --verbose \
-         "https://bldr.habitat.sh/v1/depot/channels/${origin}/${to_channel}"
-
-    echo "--- :partyparrot: Manually promoting '${package_ident}' (${target}) to the '${to_channel}' channel"
-    curl --request PUT \
-         --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
-         --fail \
-         --verbose \
-         "https://bldr.habitat.sh/v1/depot/channels/${origin}/${to_channel}/pkgs/${package}/${version}/${release}/promote?&target=${target}"
-}
-
-# Until we can reliably deal with packages that have the same
-# identifier, but different target, we'll track the information in
-# Buildkite metadata.
-#
-# Each time we put a package into our release channel, we'll record
-# what target it was built for.
-set_target_metadata() {
-    package_ident="${1}"
-    target="${2}"
-
-    echo "--- :partyparrot: Setting target metadata for '${package_ident}' (${target})"
-    buildkite-agent meta-data set "${package_ident}-${target}" "true"
-}
-
-# When we do the final promotions, we need to know the target of each
-# package in order to properly get the promotion done. If Buildkite metadata for
-# an ident/target pair exists, then that means that's a valid
-# combination, and we can use the target in the promotion call.
-ident_has_target() {
-    package_ident="${1}"
-    target="${2}"
-
-    echo "--- :partyparrot: Checking target metadata for '${package_ident}' (${target})"
-    buildkite-agent meta-data exists "${package_ident}-${target}"
 }

@@ -48,30 +48,11 @@ source results/last_build.env
 # already have this value set.
 : "${pkg_target:=x86_64-linux}"
 
-
-# TODO: after 0.79.0 we can reenable this. We are explicitly using curl to upload
-# due to this bug: https://github.com/habitat-sh/builder/issues/940
-# echo "--- :habicat: Uploading ${pkg_ident} to Builder in the '${channel}' channel"
-# ${hab_binary} pkg upload \
-#     --channel="${channel}" \
-#     --auth="${HAB_AUTH_TOKEN}" \
-#     "results/${pkg_artifact}"
-#
-# ${hab_binary} pkg promote \
-#     --auth="${HAB_AUTH_TOKEN}" \
-#     "${pkg_ident}" "${channel}" "${pkg_target}"
-
-echo "--- :partyparrot: Manually uploading '${pkg_ident:?}' (${pkg_target}) to Builder"
-curl --request POST \
-     --header "Content-Type: application/octet-stream" \
-     --header "Authorization: Bearer $HAB_AUTH_TOKEN" \
-     --data-binary "@results/${pkg_artifact:?}" \
-     --fail \
-     --verbose \
-    "https://bldr.habitat.sh/v1/depot/pkgs/${pkg_ident}?checksum=${pkg_blake2bsum:?}&target=${pkg_target}"
-
-promote "${pkg_ident}" "${pkg_target}" "${channel}"
-set_target_metadata "${pkg_ident}" "${pkg_target}"
+echo "--- :habicat: Uploading ${pkg_ident:-} to Builder in the '${channel}' channel"
+${hab_binary} pkg upload \
+    --channel="${channel}" \
+    --auth="${HAB_AUTH_TOKEN}" \
+    "results/${pkg_artifact:-}"
 
 echo "--- :writing_hand: Recording Build Metadata"
 case "${component}" in
@@ -93,6 +74,7 @@ case "${component}" in
         set_backline_artifact "${pkg_target}" "${pkg_artifact}"
         ;;
     *)
+        echo "--- :buildkite: Not recording metadata for ${component}" 
         ;;
 esac
 echo "<br>* ${pkg_ident:?} (${pkg_target:?})" | buildkite-agent annotate --append --context "release-manifest"

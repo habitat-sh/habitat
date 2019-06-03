@@ -38,16 +38,12 @@ Push-Location "C:\build"
     $ReleaseChannel = & buildkite-agent meta-data get release-channel
     Write-Host "--- Setting HAB_BLDR_CHANNEL channel to $ReleaseChannel"
     $Env:HAB_BLDR_CHANNEL="$ReleaseChannel"
-
     Write-Host "--- Running hab pkg build for $Component"
     Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
     . "results\last_build.ps1"
 
     Write-Host "Running hab pkg upload for $Component to channel $ReleaseChannel"
     Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$ReleaseChannel"
-
-    # Temporary workaround until 0.79.0 goes out
-    Invoke-Expression "buildkite-agent meta-data set ${pkg_ident}-x86_64-windows true"
 
     If ($Component -eq 'hab') {
         Write-Host "--- :buildkite: Recording metadata $pkg_ident"

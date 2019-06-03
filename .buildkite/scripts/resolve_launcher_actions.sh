@@ -18,11 +18,7 @@ promote_from_one_channel_to_another() {
 
     artifact="$(latest_from_builder "${target}" "${from_channel}" "${package_name}")"
     echo "--- Promoting ${artifact} (${target}) to ${to_channel}"
-    # TODO: after 0.79.0 we can reenable this. We are explicitly using curl to upload
-    # due to this bug: https://github.com/habitat-sh/builder/issues/940
-    # hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${artifact}" "${to_channel}"
-    promote "${artifact}" "${target}" "${to_channel}"
-    set_target_metadata "${artifact}" "${target}"
+    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${artifact}" "${to_channel}" "${target}"
 }
 
 launcher_action=$(buildkite-agent meta-data get "launcher-action");

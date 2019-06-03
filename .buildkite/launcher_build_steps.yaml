@@ -31,6 +31,7 @@ steps:
             - HAB_BLDR_CHANNEL
             - HAB_AUTH_TOKEN
             - HAB_CRYPTO_KEY
+            - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
@@ -48,5 +49,6 @@ steps:
           environment:
             - HAB_BLDR_CHANNEL
             - HAB_AUTH_TOKEN
+            - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
