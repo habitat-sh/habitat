@@ -1511,10 +1511,10 @@ fn target_from_matches(matches: &ArgMatches<'_>) -> Result<PackageTarget> {
 
 /// Return the path to create our binlinks in, or None if no binlinking should occur
 fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
-    // is_present always returns true since BINLINK has a default value, so we need to use
+    // is_present always returns true since BINLINK_DIR has a default value, so we need to use
     // occurrences_of to determine whether we actually want to do the binlinking
-    if matches.occurrences_of("BINLINK") > 0 {
-        matches.value_of("BINLINK").map(PathBuf::from)
+    if matches.is_present("BINLINK") || matches.occurrences_of("BINLINK_DIR") > 0 {
+        matches.value_of("BINLINK_DIR").map(PathBuf::from)
     } else {
         None
     }
@@ -1863,8 +1863,7 @@ mod test {
             let env_var = lock_binlink_env_var();
             env_var.set("/val/from/env/var");
 
-            assert!(dest_dir_from_pkg_install(&["origin/pkg"]).is_none(),
-                    "without a --binlink arg, there should be no BINLINK matches");
+            assert!(dest_dir_from_pkg_install(&["origin/pkg"]).is_none());
         }
 
         #[test]
@@ -1890,13 +1889,27 @@ mod test {
         }
 
         #[test]
+        fn binlink_dir_implies_binlink() {
+            let env_var = lock_binlink_env_var();
+            env_var.unset();
+
+            let arg_val = "/val/from/args";
+            assert_ne!(arg_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
+            assert_eq!(dest_dir_from_pkg_install(&["origin/pkg", "--binlink-dir", arg_val]),
+                       Some(arg_val.into()));
+        }
+
+        #[test]
         fn arg_val_overrides_default() {
             let env_var = lock_binlink_env_var();
             env_var.unset();
 
             let arg_val = "/val/from/args";
             assert_ne!(arg_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
-            assert_eq!(dest_dir_from_pkg_install(&["origin/pkg", "--binlink", arg_val]),
+            assert_eq!(dest_dir_from_pkg_install(&["origin/pkg",
+                                                   "--binlink",
+                                                   "--binlink-dir",
+                                                   arg_val]),
                        Some(arg_val.into()),
                        "The --binlink value should override the default");
         }
@@ -1911,29 +1924,32 @@ mod test {
             let arg_val = "/val/from/args";
             assert_ne!(arg_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
 
-            assert_eq!(dest_dir_from_pkg_install(&["origin/pkg", "--binlink", arg_val]),
+            assert_eq!(dest_dir_from_pkg_install(&["origin/pkg",
+                                                   "--binlink",
+                                                   "--binlink-dir",
+                                                   arg_val]),
                        Some(arg_val.into()),
                        "The --binlink value should override the env var value");
         }
 
         #[test]
-        #[should_panic(expected = "required arguments were not provided")]
-        fn binlink_before_pkg_ident_errors() {
+        fn binlink_before_pkg_ident_ok() {
             let env_var = lock_binlink_env_var();
             env_var.unset();
 
-            dest_dir_from_pkg_install(&["--binlink", "origin/pkg"]);
+            assert_eq!(dest_dir_from_pkg_install(&["--binlink", "origin/pkg"]),
+                       Some(habitat_common::cli::DEFAULT_BINLINK_DIR.into()));
         }
 
         #[test]
-        #[should_panic(expected = "required arguments were not provided")]
-        fn binlink_before_pkg_ident_with_env_var_errors() {
+        fn binlink_before_pkg_ident_with_env_var_ok() {
             let env_var = lock_binlink_env_var();
             let env_var_val = "/val/from/env/var";
             env_var.set(env_var_val);
             assert_ne!(env_var_val, habitat_common::cli::DEFAULT_BINLINK_DIR);
 
-            dest_dir_from_pkg_install(&["--binlink", "origin/pkg"]);
+            assert_eq!(dest_dir_from_pkg_install(&["--binlink", "origin/pkg"]),
+                       Some(env_var_val.into()));
         }
 
         fn matches_for_pkg_install<'a>(pkg_install_args: &'a [&'a str]) -> ArgMatches<'a> {
