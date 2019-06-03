@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.82.0 -->
+<!-- latest_release unreleased -->
+## Unreleased
+
+#### Merged Pull Requests
+- Use previous release to build Release Candidate [#6601](https://github.com/habitat-sh/habitat/pull/6601) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [0.82.0](https://github.com/habitat-sh/habitat/tree/0.82.0) (2019-06-03)
 
 #### Merged Pull Requests
 - Release 0.82.0 [#6613](https://github.com/habitat-sh/habitat/pull/6613) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
  ## [0.82.0](https://github.com/habitat-sh/habitat/tree/0.82.0) (2019-05-06)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.81.0...0.82.0)
