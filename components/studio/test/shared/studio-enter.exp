@@ -1,8 +1,8 @@
 #!/usr/bin/env expect
 
 set env(HAB_NOCOLORING) true
-set studio_command $::env(STUDIO_COMMAND)
-set studio_test [lindex $argv 0]
+set studio_command [lindex $argv 0]
+set studio_test [lindex $argv 1]
 # Print out some helpful tracing messages in the test output.
 
 proc log {message} {

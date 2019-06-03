@@ -2,6 +2,8 @@
 
 set -euo pipefail 
 
+studio_command="${1}"
+
 sudo hab pkg install core/e2fsprogs
 
 # Maximum directory name length is 255 characters so we need to create
@@ -13,7 +15,7 @@ mnt_path="/mnt/$(printf "$directory/%.0s" {1..10})"
 cleanup() { 
   sudo umount "$mnt_path" || true
   sudo rm -rf "$mnt_path"
-  ( cd "$tmpdir"/studio && $STUDIO_COMMAND rm )
+  ( cd "$tmpdir"/studio && $studio_command rm )
   rm -rf "$tmpdir" 
 }
 
@@ -34,6 +36,8 @@ trap cleanup EXIT
 
   mkdir studio 
   cd studio
-  $STUDIO_COMMAND new 
-  $STUDIO_COMMAND rm 
+  $studio_command new 
+  # Print out the mount table using the system tools before removing it
+  mount 
+  $studio_command rm 
 )

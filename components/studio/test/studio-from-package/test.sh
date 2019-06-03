@@ -6,7 +6,7 @@ export HAB_LICENSE="accept-no-persist"
 
 hab studio rm
 
-export STUDIO_COMMAND="hab studio"
+studio_command="hab studio"
 
-./test/shared/test-all.sh
+./test/shared/test-all.sh "${studio_command}"
 
