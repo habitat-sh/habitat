@@ -3,8 +3,6 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
-#### Merged Pull Requests
-- Use previous release to build Release Candidate [#6601](https://github.com/habitat-sh/habitat/pull/6601) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 ## [0.82.0](https://github.com/habitat-sh/habitat/tree/0.82.0) (2019-06-03)
@@ -28,6 +26,7 @@
 - remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
+- Use previous release to build Release Candidate [#6601](https://github.com/habitat-sh/habitat/pull/6601) ([smacfarlane](https://github.com/smacfarlane))
 - Move deadlock error to trace - stop spam [#6609](https://github.com/habitat-sh/habitat/pull/6609) ([chefsalim](https://github.com/chefsalim))
 - Add rst-reader to assist in debugging butterfly. [#6599](https://github.com/habitat-sh/habitat/pull/6599) ([raskchanky](https://github.com/raskchanky))
 - Add a tool for simulating a supervisor network [#6596](https://github.com/habitat-sh/habitat/pull/6596) ([raskchanky](https://github.com/raskchanky))
