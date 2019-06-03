@@ -2,25 +2,30 @@
 
 <!-- latest_release unreleased -->
 ## Unreleased
+<!-- latest_release -->
+
+ ## [0.82.0](https://github.com/habitat-sh/habitat/tree/0.82.0) (2019-05-06)
+ [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.81.0...0.82.0)
+
 
 #### Behavioral Changes
 - Add `--binlink-dir` argument to `hab pkg install` [#6597](https://github.com/habitat-sh/habitat/pull/6597) ([baumanj](https://github.com/baumanj))
 
 #### New Features & Enhancements
 - Run health checks asynchronously [#6482](https://github.com/habitat-sh/habitat/pull/6482) ([christophermaier](https://github.com/christophermaier))
+- Be more liberal in our license acceptance checking. [#6574](https://github.com/habitat-sh/habitat/pull/6574) ([raskchanky](https://github.com/raskchanky))
+- Update error handling for origin deletion [#6467](https://github.com/habitat-sh/habitat/pull/6467) ([chefsalim](https://github.com/chefsalim))
 
 #### Bug Fixes
 - remove trailing space from env vars set in export docker build [#6540](https://github.com/habitat-sh/habitat/pull/6540) ([mwrock](https://github.com/mwrock))
 
 #### Merged Pull Requests
 - Move deadlock error to trace - stop spam [#6609](https://github.com/habitat-sh/habitat/pull/6609) ([chefsalim](https://github.com/chefsalim))
-- Update error handling for origin deletion [#6467](https://github.com/habitat-sh/habitat/pull/6467) ([chefsalim](https://github.com/chefsalim))
 - Add rst-reader to assist in debugging butterfly. [#6599](https://github.com/habitat-sh/habitat/pull/6599) ([raskchanky](https://github.com/raskchanky))
 - Add a tool for simulating a supervisor network [#6596](https://github.com/habitat-sh/habitat/pull/6596) ([raskchanky](https://github.com/raskchanky))
 - Two minor fixes for vagrant based bootstrap [#6589](https://github.com/habitat-sh/habitat/pull/6589) ([markan](https://github.com/markan))
 - First pass at test framework to validate studio changes [#6528](https://github.com/habitat-sh/habitat/pull/6528) ([smacfarlane](https://github.com/smacfarlane))
 - Adding info on accepting license via environment vars [#6526](https://github.com/habitat-sh/habitat/pull/6526) ([tyler-ball](https://github.com/tyler-ball))
-- Be more liberal in our license acceptance checking. [#6574](https://github.com/habitat-sh/habitat/pull/6574) ([raskchanky](https://github.com/raskchanky))
 - Initial protobufs for events [#6344](https://github.com/habitat-sh/habitat/pull/6344) ([christophermaier](https://github.com/christophermaier))
 - Fixing a corrupt Gemfile.lock [#6561](https://github.com/habitat-sh/habitat/pull/6561) ([raskchanky](https://github.com/raskchanky))
 - Update tutorials with license acceptance information [#6535](https://github.com/habitat-sh/habitat/pull/6535) ([smacfarlane](https://github.com/smacfarlane))
@@ -35,7 +40,6 @@
 - Update rustfmt version [#6543](https://github.com/habitat-sh/habitat/pull/6543) ([raskchanky](https://github.com/raskchanky))
 - A handful of fixes [#6537](https://github.com/habitat-sh/habitat/pull/6537) ([raskchanky](https://github.com/raskchanky))
 - Adjust changelog for 0.81.0 [#6530](https://github.com/habitat-sh/habitat/pull/6530) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
  ## [0.81.0](https://github.com/habitat-sh/habitat/tree/0.81.0) (2019-05-06)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.80.0...0.81.0)
