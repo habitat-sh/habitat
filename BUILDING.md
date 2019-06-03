@@ -70,7 +70,7 @@ returns "nightly-2019-05-10"
 You would run:
 
 ```
-cargo +nightly-2019-03-04 fmt
+cargo +nightly-2019-05-10 fmt
 ```
 
 You may also be able to configure your editor to automatically run rustfmt every time you save.
