@@ -140,7 +140,7 @@ The Kubernetes exporter is an additional command line subcommand to the standard
     ```shell
     $ hab pkg export kubernetes --push-image --username <your_docker_hub_username> --password <your_docker_hub_password> -o my_app.yaml
     ```
-6. Please note that you will need to add the HAB_LICENSE environment variable to the generated manifest yaml file. One way to do this is to add the environmental variable directly to the generated manifest like this example:
+6. Add the HAB_LICENSE environment variable to the generated manifest YAML file. For example, add the environmental variable directly to the generated manifest:
 
     ```yaml
     ---
