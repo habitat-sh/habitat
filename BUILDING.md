@@ -45,15 +45,30 @@ Check that `cargo` is correctly installed by running
 cargo --version
 ```
 
-Next, head to https://rust-lang.github.io/rustup-components-history/ and find the most recent date that all the Tier1 platforms have a present rustfmt. For example: nightly-2019-03-04.
-
-Next, install that nightly version of rustfmt
+Next, use our installation script to install rustfmt
 ```
-rustup toolchain install nightly nightly-2019-03-04
-rustup component add rustfmt --toolchain nightly-2019-03-04 rustfmt
+./support/ci/rustfmt.sh
 ```
 
-To run rustfmt on a cargo project
+At any time, you can find the version of rustfmt we are using by running this command at the root level
+of the Habitat repo:
+
+```
+echo $(< RUSTFMT_VERSION)
+```
+
+Then you can run that version of rustfmt on any cargo project.
+
+For example, if:
+
+```
+echo $(< RUSTFMT_VERSION)
+```
+
+returns "nightly-2019-05-10"
+
+You would run:
+
 ```
 cargo +nightly-2019-03-04 fmt
 ```
