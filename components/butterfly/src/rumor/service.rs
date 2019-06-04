@@ -2,6 +2,19 @@
 //!
 //! Service rumors declare that a given `Server` is running this Service.
 
+use std::{cmp::Ordering,
+          mem,
+          result,
+          str::FromStr};
+
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
+use toml;
+
+use habitat_core::{package::Identifiable,
+                   service::ServiceGroup};
+
 use crate::{error::{Error,
                     Result},
             protocol::{self,
@@ -10,17 +23,6 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
-use habitat_core::{package::Identifiable,
-                   service::ServiceGroup};
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
-use std::{cmp::Ordering,
-          fmt,
-          mem,
-          result,
-          str::FromStr};
-use toml;
 
 #[derive(Debug, Clone)]
 pub struct Service {
@@ -31,14 +33,6 @@ pub struct Service {
     pub pkg:           String,
     pub cfg:           Vec<u8>,
     pub sys:           SysInfo,
-}
-
-impl fmt::Display for Service {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "Service i/{} m/{} sg/{}",
-               self.incarnation, self.member_id, self.service_group)
-    }
 }
 
 // Ensures that `cfg` is rendered as a map, and not an array of bytes
