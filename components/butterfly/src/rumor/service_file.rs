@@ -15,6 +15,7 @@ use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
                             BoxKeyPair},
                    service::ServiceGroup};
 use std::{cmp::Ordering,
+          fmt,
           mem,
           path::Path,
           str::FromStr};
@@ -27,6 +28,14 @@ pub struct ServiceFile {
     pub encrypted:     bool,
     pub filename:      String,
     pub body:          Vec<u8>, // TODO: make this a String
+}
+
+impl fmt::Display for ServiceFile {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f,
+               "ServiceFile i/{} m/{} sg/{} fn/{}",
+               self.incarnation, self.from_id, self.service_group, self.filename)
+    }
 }
 
 impl PartialOrd for ServiceFile {
@@ -91,7 +100,9 @@ impl ServiceFile {
     }
 }
 
-impl protocol::Message<ProtoRumor> for ServiceFile {}
+impl protocol::Message<ProtoRumor> for ServiceFile {
+    const MESSAGE_ID: &'static str = "ServiceFile";
+}
 
 impl FromProto<ProtoRumor> for ServiceFile {
     fn from_proto(rumor: ProtoRumor) -> Result<Self> {

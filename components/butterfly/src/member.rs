@@ -203,6 +203,21 @@ pub struct Membership {
     pub health: Health,
 }
 
+impl fmt::Display for Membership {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f,
+               "Member i/{} m/{} ad/{} sp/{} gp/{} p/{} d/{} h/{:?}",
+               self.member.incarnation,
+               self.member.id,
+               self.member.address,
+               self.member.swim_port,
+               self.member.gossip_port,
+               self.member.persistent,
+               self.member.departed,
+               self.health)
+    }
+}
+
 impl Membership {
     /// See MemberList::insert
     fn newer_or_less_healthy_than(&self,
@@ -214,7 +229,9 @@ impl Membership {
     }
 }
 
-impl protocol::Message<proto::Membership> for Membership {}
+impl protocol::Message<proto::Membership> for Membership {
+    const MESSAGE_ID: &'static str = "Membership";
+}
 
 impl From<Membership> for proto::Membership {
     fn from(value: Membership) -> Self {
