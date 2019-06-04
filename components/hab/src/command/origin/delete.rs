@@ -21,8 +21,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<(
         }
         Err(api_client::Error::APIError(StatusCode::Conflict, msg)) => {
             ui.fatal(format!("Unable to delete origin {}", origin))?;
-            ui.fatal(format!("Origins may only be deleted if they have no packages, linked \
-                              projects"))?;
+            ui.fatal("Origins may only be deleted if they have no packages, linked projects")?;
             ui.fatal("or other dependencies. Please check your origin and try again.")?;
             Err(Error::APIClient(api_client::Error::APIError(StatusCode::Conflict, msg)))
         }
