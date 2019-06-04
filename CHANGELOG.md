@@ -28,7 +28,6 @@
 #### Merged Pull Requests
 - Use previous release to build Release Candidate [#6601](https://github.com/habitat-sh/habitat/pull/6601) ([smacfarlane](https://github.com/smacfarlane))
 - Move deadlock error to trace - stop spam [#6609](https://github.com/habitat-sh/habitat/pull/6609) ([chefsalim](https://github.com/chefsalim))
-- Add rst-reader to assist in debugging butterfly. [#6599](https://github.com/habitat-sh/habitat/pull/6599) ([raskchanky](https://github.com/raskchanky))
 - Add a tool for simulating a supervisor network [#6596](https://github.com/habitat-sh/habitat/pull/6596) ([raskchanky](https://github.com/raskchanky))
 - Two minor fixes for vagrant based bootstrap [#6589](https://github.com/habitat-sh/habitat/pull/6589) ([markan](https://github.com/markan))
 - First pass at test framework to validate studio changes [#6528](https://github.com/habitat-sh/habitat/pull/6528) ([smacfarlane](https://github.com/smacfarlane))
