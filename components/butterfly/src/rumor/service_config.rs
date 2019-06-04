@@ -15,7 +15,6 @@ use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
                             BoxKeyPair},
                    service::ServiceGroup};
 use std::{cmp::Ordering,
-          fmt,
           mem,
           path::Path,
           str::{self,
@@ -29,14 +28,6 @@ pub struct ServiceConfig {
     pub incarnation:   u64,
     pub encrypted:     bool,
     pub config:        Vec<u8>, // TODO: make this a String
-}
-
-impl fmt::Display for ServiceConfig {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "ServiceConfig i/{} m/{} sg/{}",
-               self.incarnation, self.from_id, self.service_group)
-    }
 }
 
 impl PartialOrd for ServiceConfig {

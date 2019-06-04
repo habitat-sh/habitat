@@ -8,6 +8,9 @@
 //! devolve to a single, universal rumor, which when it is received by the winner will result in
 //! the election finishing. There can, in the end, be only one.
 
+use std::ops::{Deref,
+               DerefMut};
+
 pub use crate::protocol::newscast::{election::Status as ElectionStatus,
                                     Election as ProtoElection};
 use crate::{error::{Error,
@@ -19,9 +22,6 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
-use std::{fmt,
-          ops::{Deref,
-                DerefMut}};
 
 pub trait ElectionRumor {
     fn member_id(&self) -> &str;
@@ -41,14 +41,6 @@ pub struct Election {
     pub suitability:   u64,
     pub status:        ElectionStatus,
     pub votes:         Vec<String>,
-}
-
-impl fmt::Display for Election {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "Election m/{} sg/{}, t/{}, su/{}, st/{:?}",
-               self.member_id, self.service_group, self.term, self.suitability, self.status)
-    }
 }
 
 impl Election {
@@ -203,18 +195,6 @@ impl Rumor for Election {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct ElectionUpdate(Election);
-
-impl fmt::Display for ElectionUpdate {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f,
-               "ElectionUpdate m/{} sg/{}, t/{}, su/{}, st/{:?}",
-               self.0.member_id,
-               self.0.service_group,
-               self.0.term,
-               self.0.suitability,
-               self.0.status)
-    }
-}
 
 impl ElectionUpdate {
     pub fn new<S1>(member_id: S1,
