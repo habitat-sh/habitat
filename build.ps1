@@ -87,7 +87,7 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
             Install-RustToolchain $toolchain
             rustup component add --toolchain $Toolchain rustfmt
             Setup-Environment
-            Invoke-Expression "cargo +$ToolChain $Command --all -- --check"
+            Invoke-Expression "cargo +$ToolChain $Command --all"
             break
         }
         "clippy" {

@@ -450,10 +450,10 @@ impl<'a> SvcDir<'a> {
 /// ```
 /// use habitat_core::fs::find_command;
 /// use std::{env,
-///           fs};
+///           path::PathBuf};
 ///
-/// let first_path = fs::canonicalize("./tests/fixtures").unwrap();
-/// let second_path = fs::canonicalize("./tests/fixtures/bin").unwrap();
+/// let first_path = PathBuf::from("tests/fixtures");
+/// let second_path = PathBuf::from("tests/fixtures/bin");
 /// let path_bufs = vec![first_path, second_path];
 /// let new_path = env::join_paths(path_bufs).unwrap();
 /// env::set_var("PATH", &new_path);
@@ -467,10 +467,10 @@ impl<'a> SvcDir<'a> {
 /// ```
 /// use habitat_core::fs::find_command;
 /// use std::{env,
-///           fs};
+///           path::PathBuf};
 ///
-/// let first_path = fs::canonicalize("./tests/fixtures").unwrap();
-/// let second_path = fs::canonicalize("./tests/fixtures/bin").unwrap();
+/// let first_path = PathBuf::from("tests/fixtures");
+/// let second_path = PathBuf::from("tests/fixtures/bin");
 /// let path_bufs = vec![first_path, second_path];
 /// let new_path = env::join_paths(path_bufs).unwrap();
 /// env::set_var("PATH", &new_path);
@@ -803,7 +803,6 @@ mod test_find_command {
 
     pub use super::find_command;
     use std::{env,
-              fs,
               path::PathBuf};
 
     #[allow(dead_code)]
@@ -822,8 +821,8 @@ mod test_find_command {
     fn setup_path() {
         let orig_path = env::var_os("PATH").unwrap();
         let mut os_paths: Vec<PathBuf> = env::split_paths(&orig_path).collect();
-        let first_path = fs::canonicalize("./tests/fixtures").unwrap();
-        let second_path = fs::canonicalize("./tests/fixtures/bin").unwrap();
+        let first_path = PathBuf::from("tests/fixtures");
+        let second_path = PathBuf::from("tests/fixtures/bin");
         let mut path_bufs = vec![first_path, second_path];
         path_bufs.append(&mut os_paths);
         let new_path = env::join_paths(path_bufs).unwrap();
@@ -869,7 +868,7 @@ mod test_find_command {
         mod argument_with_extension {
             use super::{find_command,
                         setup_environment};
-            use std::fs::canonicalize;
+            use std::path::PathBuf;
 
             #[test]
             fn command_exists() {
@@ -895,7 +894,7 @@ mod test_find_command {
             #[test]
             fn first_command_on_path_found() {
                 setup_environment();
-                let target_path = canonicalize("./tests/fixtures/plan.sh").unwrap();
+                let target_path = PathBuf::from("tests/fixtures/plan.sh");
                 let result = find_command("plan.sh");
                 let found_path = result.unwrap();
                 assert_eq!(found_path, target_path);
@@ -952,7 +951,7 @@ mod test_find_command {
         mod argument_with_extension {
             use super::{find_command,
                         setup_environment};
-            use std::fs::canonicalize;
+            use std::path::PathBuf;
 
             #[test]
             fn command_exists() {
@@ -978,7 +977,7 @@ mod test_find_command {
             #[test]
             fn first_command_on_path_found() {
                 setup_environment();
-                let target_path = canonicalize("./tests/fixtures/plan.sh").unwrap();
+                let target_path = PathBuf::from("tests/fixtures/plan.sh");
                 let result = find_command("plan.sh");
                 let found_path = result.unwrap();
                 assert_eq!(found_path, target_path);

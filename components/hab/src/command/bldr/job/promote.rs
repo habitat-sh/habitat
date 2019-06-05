@@ -229,25 +229,4 @@ mod test {
                    ["core/project1/1.0.0/20180101000000",
                     "core/project2/1.0.0/20180101000000",])
     }
-
-    #[test]
-    fn test_get_ident_list_interactive() {
-        let (mut ui, _stdout, _stderr) = ui();
-        let group_status = SchedulerResponse { id:           "12345678".to_string(),
-                                               state:        "Finished".to_string(),
-                                               projects:     sample_project_list(),
-                                               created_at:
-                                                   "Properly formated timestamp".to_string(),
-                                               project_name: "Test Project".to_string(),
-                                               target:       "x86_64-linux".to_string(), };
-        env::set_var("EDITOR", "cat");
-
-        let ident_list =
-            get_ident_list(&mut ui, &group_status, Some("core"), true).expect("Error fetching \
-                                                                               ident list");
-
-        assert_eq!(ident_list,
-                   ["core/project1/1.0.0/20180101000000",
-                    "core/project2/1.0.0/20180101000000",])
-    }
 }

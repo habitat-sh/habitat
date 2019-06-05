@@ -37,24 +37,6 @@ fn generate_protocols() {
     config.compile_protos(&protocol_files(), &protocol_includes())
           .expect("protocols");
     compile_proto_impls(&protocol_files(), &protocol_includes()).expect("protocol-impls");
-    for file in generated_files() {
-        fs::rename(&file,
-                   format!("src/generated/{}",
-                           file.file_name().unwrap().to_string_lossy())).unwrap();
-    }
-}
-
-fn generated_files() -> Vec<PathBuf> {
-    let mut files = vec![];
-    for entry in fs::read_dir(env::var("OUT_DIR").unwrap()).unwrap() {
-        let file = entry.unwrap();
-        if file.file_name().to_str().unwrap().ends_with(".rs") {
-            if file.metadata().unwrap().is_file() {
-                files.push(file.path());
-            }
-        }
-    }
-    files
 }
 
 fn protocol_files() -> Vec<String> {
@@ -77,13 +59,7 @@ fn protocol_includes() -> Vec<String> { vec!["protocols".to_string()] }
 fn compile_proto_impls<P>(protos: &[P], includes: &[P]) -> Result<()>
     where P: AsRef<Path>
 {
-    let target: PathBuf = env::var_os("OUT_DIR").ok_or_else(|| {
-                                                    Error::new(ErrorKind::Other,
-                                                               "OUT_DIR environment variable is \
-                                                                not set")
-                                                })?
-                                                .into();
-
+    let target = PathBuf::from("src/generated");
     let tmp = tempfile::TempDir::new()?;
     let descriptor_set = tmp.path().join("prost-descriptor-set");
 

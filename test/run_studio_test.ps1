@@ -6,6 +6,14 @@ param (
 
 $ErrorActionPreference="stop"
 
+. $PSScriptRoot\..\support\ci\shared.ps1
+Install-Habitat
+
+if(!(Get-PackageProvider -Name nuget -ErrorAction SilentlyContinue -ListAvailable)) {
+    Write-Host "Installing Nuget provider..."
+    Install-PackageProvider -Name NuGet -Force | Out-Null
+}
+
 if(!(Get-Module Await -ListAvailable)) {
   Write-Host "Installing Await PS Module..."
   Install-Module Await -Force | Out-Null
