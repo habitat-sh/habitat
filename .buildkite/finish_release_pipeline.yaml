@@ -7,6 +7,8 @@ steps:
     command: .buildkite/scripts/promote_release_channel.sh builder-live
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - block: ":habicat: Ensure that Builder is stable on the new release"
     prompt: |
@@ -22,6 +24,8 @@ steps:
     command: .buildkite/scripts/promote_release_channel.sh stable
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   - wait
 

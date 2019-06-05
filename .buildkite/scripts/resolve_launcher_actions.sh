@@ -17,8 +17,10 @@ promote_from_one_channel_to_another() {
     to_channel="${4}"   # e.g. "rc-0.75.0"
 
     artifact="$(latest_from_builder "${target}" "${from_channel}" "${package_name}")"
+
     echo "--- Promoting ${artifact} (${target}) to ${to_channel}"
-    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${artifact}" "${to_channel}" "${target}"
+    ${hab_binary} pkg promote --auth="${HAB_AUTH_TOKEN}" "${artifact}" "${to_channel}" "${target}"
+    set_target_metadata "${artifact}" "${target}"
 }
 
 launcher_action=$(buildkite-agent meta-data get "launcher-action");
@@ -28,12 +30,14 @@ case "${launcher_action}" in
         buildkite-agent pipeline upload .buildkite/launcher_build_steps.yaml
         ;;
     "use-stable-launcher")
+        set_hab_binary
         release_channel=$(get_release_channel)
         echo "--- Adding stable Launcher artifacts to channel '${release_channel}'"
         # We don't build the launcher on macOS
         launcher_platforms=("x86_64-linux"
                             "x86_64-linux-kernel2"
                             "x86_64-windows")
+    
 
         for target in "${launcher_platforms[@]}"; do
             promote_from_one_channel_to_another "${target}" "hab-launcher" "stable" "${release_channel}"

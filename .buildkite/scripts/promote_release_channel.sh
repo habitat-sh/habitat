@@ -35,6 +35,8 @@ source .buildkite/scripts/shared.sh
 to_channel=${1}
 from_channel=$(get_release_channel)
 
+set_hab_binary
+
 echo "--- :thinking_face: Determining which channel to promote to"
 if is_fake_release; then
     echo "This isn't a \"real\" release!"
@@ -94,13 +96,27 @@ targets=("x86_64-linux"
 
 for pkg in "${non_supervisor_packages[@]}"; do
     echo "--- :habicat: Promoting '$pkg' to '$to_channel'"
-    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}" "${pkg_target}"
+    for target in "${targets[@]}"; do
+      if ident_has_target "${pkg}" "${target}"; then
+          echo "--- :star: Found a match: ${pkg} is for ${target}"
+          ${hab_binary} pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}" "${target}"
+      else
+          echo "--- :thumbsdown: not a match"
+      fi
+    done
 done
 
 echo "--- :warning: PROMOTING SUPERVISORS TO '$to_channel' :warning:"
 for pkg in "${supervisor_packages[@]}"; do
     echo "--- :habicat: Promoting $pkg to $to_channel"
-    hab pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}" "${pkg_target}"
+    for target in "${targets[@]}"; do
+      if ident_has_target "${pkg}" "${target}"; then
+          echo "--- :star: Found a match: ${pkg} is for ${target}"
+          ${hab_binary} pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${to_channel}" "${target}"
+      else
+          echo "--- :thumbsdown: not a match"
+      fi
+    done
 done
 
 buildkite-agent annotate --style="success" --context="release-manifest"
