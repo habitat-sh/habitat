@@ -52,6 +52,8 @@ steps:
     command: .buildkite/scripts/resolve_launcher_actions.sh
     agents:
       queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
 
   # New Launcher build steps are automatically added here, if applicable.
 

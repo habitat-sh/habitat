@@ -54,6 +54,8 @@ ${hab_binary} pkg upload \
     --auth="${HAB_AUTH_TOKEN}" \
     "results/${pkg_artifact:-}"
 
+set_target_metadata "${pkg_ident}" "${pkg_target}"
+
 echo "--- :writing_hand: Recording Build Metadata"
 case "${component}" in
     "hab")
