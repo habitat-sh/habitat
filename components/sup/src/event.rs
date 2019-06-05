@@ -66,8 +66,8 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
     let mut return_value: Result<()> = Ok(());
 
     INIT.call_once(|| {
-            let conn_info = EventConnectionInfo::new(config.token, config.url,
-                                                     event_core.supervisor_id.clone());
+            let conn_info =
+                EventConnectionInfo::new(config.token, config.url, &event_core.supervisor_id);
             match stream_impl::init_stream(conn_info) {
                 Ok(event_stream) => {
                     EVENT_STREAM.set(event_stream);
@@ -120,7 +120,7 @@ pub struct EventConnectionInfo {
 }
 
 impl EventConnectionInfo {
-    pub fn new(auth_token: AutomateAuthToken, cluster_uri: String, supervisor_id: String) -> Self {
+    pub fn new(auth_token: AutomateAuthToken, cluster_uri: String, supervisor_id: &str) -> Self {
         EventConnectionInfo { name: format!("hab_client_{}", supervisor_id),
                               verbose: true,
                               cluster_uri,
