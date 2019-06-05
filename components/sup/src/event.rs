@@ -182,20 +182,10 @@ pub fn service_stopped(service: &Service) {
 /// Send an event at the start of a Service update.
 pub fn service_update_started(service: &Service, update: &PackageIdent) {
     if stream_initialized() {
-        publish(ServiceUpdateStartedEvent { event_metadata:   None,
-                                            service_metadata: Some(service.to_service_metadata()),
-                                            update_origin:    update.origin.clone(),
-                                            update_name:      update.name.clone(),
-                                            update_version:
-                                                update.version
-                                                      .clone()
-                                                      .expect("Can't send service update started \
-                                                               event; invalid update version"),
-                                            update_release:
-                                                update.release
-                                                      .clone()
-                                                      .expect("Can't send service update started \
-                                                               event; invalid update release"), });
+        publish(ServiceUpdateStartedEvent { event_metadata:       None,
+                                            service_metadata:
+                                                Some(service.to_service_metadata()),
+                                            update_package_ident: format!("{}", update.clone()), });
     }
 }
 
