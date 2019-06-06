@@ -91,18 +91,16 @@ pub trait EventMessage: Message + Sized {
 }
 
 macro_rules! event_msg_impl {
-    ($($t:ty)*) => {$(
+    ($t:ty) => {
         impl EventMessage for $t {
             fn event_metadata(&mut self, event_metadata: EventMetadata) {
                 self.event_metadata = Some(event_metadata);
             }
         }
-    )*};
+    };
 }
 
-event_msg_impl! (
-    ServiceStartedEvent
-    ServiceStoppedEvent
-    ServiceUpdateStartedEvent
-    HealthCheckEvent
-);
+event_msg_impl!(ServiceStartedEvent);
+event_msg_impl!(ServiceStoppedEvent);
+event_msg_impl!(ServiceUpdateStartedEvent);
+event_msg_impl!(HealthCheckEvent);

@@ -185,7 +185,7 @@ pub fn service_update_started(service: &Service, update: &PackageIdent) {
         publish(ServiceUpdateStartedEvent { event_metadata:       None,
                                             service_metadata:
                                                 Some(service.to_service_metadata()),
-                                            update_package_ident: format!("{}", update.clone()), });
+                                            update_package_ident: update.clone().to_string(), });
     }
 }
 
