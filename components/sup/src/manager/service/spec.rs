@@ -447,7 +447,7 @@ mod test {
         assert!(toml.contains(r#"[health_check_interval]"#));
         assert!(toml.contains(r#"secs = 123"#));
         assert!(toml.contains(r#"nanos = 0"#));
-        assert!(toml.contains(r#"shutdown_timeout = "10""#));
+        assert!(toml.contains(r#"shutdown_timeout = 10"#));
     }
 
     #[test]

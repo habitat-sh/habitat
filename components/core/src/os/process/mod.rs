@@ -41,7 +41,8 @@ use time::Duration;
 /// around, and turn it into a `time::Duration` at the last possible
 /// moment.)
 #[derive(Deserialize, Serialize, Eq, PartialEq, Debug, Clone, Copy, Hash)]
-pub struct ShutdownTimeout(#[serde(with = "serde_string")] u32);
+#[serde(from = "u32")]
+pub struct ShutdownTimeout(u32);
 
 impl Default for ShutdownTimeout {
     /// Unless otherwise specified, the Supervisor will wait 8 seconds
