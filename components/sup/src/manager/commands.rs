@@ -261,8 +261,7 @@ pub fn service_unload(mgr: &ManagerState,
         req.reply_complete(net::ok());
         Ok(())
     } else {
-        Err(net::err(ErrCode::Internal,
-                     sup_error!(Error::ServiceNotLoaded(ident))))
+        Err(net::err(ErrCode::Internal, Error::ServiceNotLoaded(ident)))
     }
 }
 
@@ -355,9 +354,8 @@ pub fn service_status(mgr: &ManagerState,
                             .read()
                             .expect("GatewayState lock is poisoned")
                             .services_data;
-    let statuses: Vec<ServiceStatus> = serde_json::from_str(&services_data).map_err(|e| {
-                                           sup_error!(Error::ServiceDeserializationError(e))
-                                       })?;
+    let statuses: Vec<ServiceStatus> =
+        serde_json::from_str(&services_data).map_err(Error::ServiceDeserializationError)?;
 
     if let Some(ident) = opts.ident {
         for status in statuses {

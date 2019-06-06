@@ -30,8 +30,7 @@ use crate::{census::{CensusGroup,
                      ElectionStatus,
                      ServiceFile},
             error::{Error,
-                    Result,
-                    SupError},
+                    Result},
             manager::{action::ShutdownSpec,
                       FsCfg,
                       GatewayState,
@@ -116,7 +115,7 @@ enum BindStatus<'a> {
     /// satisfies the contract of the bind.
     Satisfied,
     /// An error was encountered determining the status
-    Unknown(SupError),
+    Unknown(Error),
 }
 
 #[derive(Debug, Serialize)]
@@ -364,9 +363,7 @@ impl Service {
 
     /// Return a future that will shut down a service, performing any
     /// necessary cleanup, and run its post-stop hook, if any.
-    pub fn stop(&mut self,
-                shutdown_spec: ShutdownSpec)
-                -> impl Future<Item = (), Error = SupError> {
+    pub fn stop(&mut self, shutdown_spec: ShutdownSpec) -> impl Future<Item = (), Error = Error> {
         self.stop_health_checks();
 
         let service_group = self.service_group.clone();
@@ -681,7 +678,7 @@ impl Service {
         self.all_pkg_binds
             .iter()
             .find(|b| b.service == binding_name)
-            .ok_or(sup_error!(Error::NoSuchBind(binding_name.to_string())))
+            .ok_or_else(|| Error::NoSuchBind(binding_name.to_string()))
             .map(|b| b.exports.iter().collect())
     }
 

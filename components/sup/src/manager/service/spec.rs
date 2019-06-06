@@ -2,8 +2,7 @@ use super::{BindingMode,
             Topology,
             UpdateStrategy};
 use crate::error::{Error,
-                   Result,
-                   SupError};
+                   Result};
 use habitat_core::{fs::atomic_write,
                    package::{PackageIdent,
                              PackageInstall},
@@ -30,7 +29,6 @@ use std::{collections::HashSet,
           str::FromStr};
 use toml;
 
-static LOGKEY: &str = "SS";
 static DEFAULT_GROUP: &str = "default";
 const SPEC_FILE_EXT: &str = "spec";
 
@@ -55,13 +53,13 @@ impl fmt::Display for DesiredState {
 }
 
 impl FromStr for DesiredState {
-    type Err = SupError;
+    type Err = Error;
 
     fn from_str(value: &str) -> result::Result<Self, Self::Err> {
         match value.to_lowercase().as_ref() {
             "down" => Ok(DesiredState::Down),
             "up" => Ok(DesiredState::Up),
-            _ => Err(sup_error!(Error::BadDesiredState(value.to_string()))),
+            _ => Err(Error::BadDesiredState(value.to_string())),
         }
     }
 }
@@ -171,24 +169,19 @@ impl ServiceSpec {
 
     fn to_toml_string(&self) -> Result<String> {
         if self.ident == PackageIdent::default() {
-            return Err(sup_error!(Error::MissingRequiredIdent));
+            return Err(Error::MissingRequiredIdent);
         }
-        toml::to_string(self).map_err(|err| sup_error!(Error::ServiceSpecRender(err)))
+        toml::to_string(self).map_err(Error::ServiceSpecRender)
     }
 
     pub fn from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
         let file = File::open(&path).map_err(|err| {
-                                        sup_error!(Error::ServiceSpecFileIO(path.as_ref()
-                                                                                .to_path_buf(),
-                                                                            err))
+                                        Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)
                                     })?;
         let mut file = BufReader::new(file);
         let mut buf = String::new();
-        file.read_to_string(&mut buf).map_err(|err| {
-                                          sup_error!(Error::ServiceSpecFileIO(path.as_ref()
-                                                                                  .to_path_buf(),
-                                                                              err))
-                                      })?;
+        file.read_to_string(&mut buf)
+            .map_err(|err| Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))?;
         Self::from_str(&buf)
     }
 
@@ -200,14 +193,13 @@ impl ServiceSpec {
                            .parent()
                            .expect("Cannot determine parent directory for service spec");
         fs::create_dir_all(dst_path).map_err(|err| {
-                                        sup_error!(Error::ServiceSpecFileIO(path.as_ref()
-                                                                                .to_path_buf(),
-                                                                            err))
+                                        Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err)
                                     })?;
         let toml = self.to_toml_string()?;
         atomic_write(path.as_ref(), toml).map_err(|err| {
-            sup_error!(Error::ServiceSpecFileIO(path.as_ref().to_path_buf(), err))
-        })?;
+                                             Error::ServiceSpecFileIO(path.as_ref().to_path_buf(),
+                                                                      err)
+                                         })?;
         Ok(())
     }
 
@@ -237,7 +229,7 @@ impl ServiceSpec {
         }
         // If we have missing required binds, return an `Err`.
         if !missing_req_binds.is_empty() {
-            return Err(sup_error!(Error::MissingRequiredBind(missing_req_binds)));
+            return Err(Error::MissingRequiredBind(missing_req_binds));
         }
 
         // Remove each service bind that matches an optional package bind.
@@ -249,9 +241,9 @@ impl ServiceSpec {
         // If we have remaining service binds then they are neither required nor optional package
         // binds. In this case, return an `Err`.
         if !svc_binds.is_empty() {
-            return Err(sup_error!(Error::InvalidBinds(svc_binds.into_iter()
-                                                               .map(str::to_string)
-                                                               .collect())));
+            return Err(Error::InvalidBinds(svc_binds.into_iter()
+                                                    .map(str::to_string)
+                                                    .collect()));
         }
 
         Ok(())
@@ -277,13 +269,12 @@ impl Default for ServiceSpec {
 }
 
 impl FromStr for ServiceSpec {
-    type Err = SupError;
+    type Err = Error;
 
     fn from_str(toml: &str) -> result::Result<Self, Self::Err> {
-        let spec: ServiceSpec =
-            toml::from_str(toml).map_err(|e| sup_error!(Error::ServiceSpecParse(e)))?;
+        let spec: ServiceSpec = toml::from_str(toml).map_err(Error::ServiceSpecParse)?;
         if spec.ident == PackageIdent::default() {
-            return Err(sup_error!(Error::MissingRequiredIdent));
+            return Err(Error::MissingRequiredIdent);
         }
         Ok(spec)
     }
@@ -370,7 +361,7 @@ mod test {
 
         match ServiceSpec::from_str(toml) {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredIdent => (), // expected outcome
                     e => panic!("Unexpected error returned: {:?}", e),
                 }
@@ -388,7 +379,7 @@ mod test {
 
         match ServiceSpec::from_str(toml) {
             Err(e) => {
-                match e.err {
+                match e {
                     ServiceSpecParse(_) => (), // expected outcome
                     e => panic!("Unexpected error returned: {:?}", e),
                 }
@@ -407,7 +398,7 @@ mod test {
 
         match ServiceSpec::from_str(toml) {
             Err(e) => {
-                match e.err {
+                match e {
                     ServiceSpecParse(_) => (), // expected outcome
                     e => panic!("Unexpected error returned: {:?}", e),
                 }
@@ -464,7 +455,7 @@ mod test {
 
         match spec.to_toml_string() {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredIdent => (), // expected outcome,
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -544,7 +535,7 @@ mod test {
 
         match ServiceSpec::from_file(&path) {
             Err(e) => {
-                match e.err {
+                match e {
                     ServiceSpecFileIO(p, _) => assert_eq!(path, p),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -561,7 +552,7 @@ mod test {
 
         match ServiceSpec::from_file(&path) {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredIdent => (), // expected outcome,
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -578,7 +569,7 @@ mod test {
 
         match ServiceSpec::from_file(&path) {
             Err(e) => {
-                match e.err {
+                match e {
                     ServiceSpecParse(_) => (), // expected outcome,
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -640,7 +631,7 @@ mod test {
 
         match spec.to_file(path) {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredIdent => (), // expected outcome,
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -687,7 +678,7 @@ mod test {
         let mut spec = ServiceSpec::default_for(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap()];
         if let Err(e) = spec.validate(&package) {
-            panic!("Unexpected error returned: {:?}", e.err);
+            panic!("Unexpected error returned: {:?}", e);
         }
     }
 
@@ -699,7 +690,7 @@ mod test {
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
                           ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),];
         if let Err(e) = spec.validate(&package) {
-            panic!("Unexpected error returned: {:?}", e.err);
+            panic!("Unexpected error returned: {:?}", e);
         }
     }
 
@@ -712,7 +703,7 @@ mod test {
         spec.binds = vec![];
         match spec.validate(&package) {
             Err(e) => {
-                match e.err {
+                match e {
                     MissingRequiredBind(b) => assert_eq!(vec!["database".to_string()], b),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }
@@ -732,7 +723,7 @@ mod test {
                           ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),];
         match spec.validate(&package) {
             Err(e) => {
-                match e.err {
+                match e {
                     InvalidBinds(b) => assert_eq!(vec!["backend".to_string()], b),
                     wrong => panic!("Unexpected error returned: {:?}", wrong),
                 }

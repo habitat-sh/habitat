@@ -1,6 +1,5 @@
 extern crate clap;
 extern crate env_logger;
-#[macro_use]
 extern crate habitat_sup as sup;
 #[cfg(unix)]
 extern crate jemalloc_ctl;
@@ -19,8 +18,7 @@ extern crate url;
 use crate::sup::{cli::cli,
                  command,
                  error::{Error,
-                         Result,
-                         SupError},
+                         Result},
                  event::EventStreamConfig,
                  manager::{Manager,
                            ManagerConfig,
@@ -112,7 +110,7 @@ fn boot() -> Option<LauncherCli> {
 fn start(feature_flags: FeatureFlag) -> Result<()> {
     if feature_flags.contains(FeatureFlag::TEST_BOOT_FAIL) {
         outputln!("Simulating boot failure");
-        return Err(sup_error!(Error::TestBootFail));
+        return Err(Error::TestBootFail);
     }
     habitat_common::sync::spawn_thread_alive_checker();
     let launcher = boot();
@@ -138,7 +136,7 @@ fn start(feature_flags: FeatureFlag) -> Result<()> {
     match app_matches.subcommand() {
         ("bash", Some(_)) => sub_bash(),
         ("run", Some(m)) => {
-            let launcher = launcher.ok_or(sup_error!(Error::NoLauncher))?;
+            let launcher = launcher.ok_or(Error::NoLauncher)?;
             sub_run(m, launcher, feature_flags)
         }
         ("sh", Some(_)) => sub_sh(),
@@ -199,8 +197,7 @@ fn sub_term() -> Result<()> {
     // a function to generate said config, we can just explicitly pass the default.
     let proc_lock_file = habitat_sup_protocol::sup_root(None).join(PROC_LOCK_FILE);
     match Manager::term(&proc_lock_file) {
-        Err(SupError { err: Error::ProcessLockIO(..),
-                       .. }) => {
+        Err(Error::ProcessLockIO(..)) => {
             println!("Supervisor not started.");
             Ok(())
         }
@@ -311,7 +308,7 @@ fn get_peers(matches: &ArgMatches) -> Result<Vec<SocketAddr>> {
                 Ok(addrs) => addrs.collect(),
                 Err(e) => {
                     outputln!("Failed to resolve peer: {}", peer_addr);
-                    return Err(sup_error!(Error::NameLookup(e)));
+                    return Err(Error::NameLookup(e));
                 }
             };
             if let Some(addr) = addrs.get(0) {

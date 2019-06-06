@@ -11,7 +11,7 @@
 use super::{hook_timer,
             spawned_future::SpawnedFuture,
             Pkg};
-use crate::error::SupError;
+use crate::error::Error;
 use futures::{sync::oneshot,
               IntoFuture};
 use habitat_common::templating::hooks::Hook;
@@ -42,7 +42,7 @@ impl<H> HookRunner<H> where H: Hook + Sync
     }
 }
 impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
-    type Error = SupError;
+    type Error = Error;
     type Future = SpawnedFuture<Self::Item>;
     type Item = (H::ExitValue, Duration);
 
