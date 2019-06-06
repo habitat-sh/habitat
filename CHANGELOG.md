@@ -3,6 +3,8 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- update kubernetes and helm exporter docs to include information about license acceptance [#6573](https://github.com/habitat-sh/habitat/pull/6573) ([nellshamrell](https://github.com/nellshamrell))
 <!-- latest_release -->
 
 ## [0.82.0](https://github.com/habitat-sh/habitat/tree/0.82.0) (2019-06-03)
