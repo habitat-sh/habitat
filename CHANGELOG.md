@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Generate a unique NATS client id for event msgs [#6623](https://github.com/habitat-sh/habitat/pull/6623) ([afiune](https://github.com/afiune))
 - update kubernetes and helm exporter docs to include information about license acceptance [#6573](https://github.com/habitat-sh/habitat/pull/6573) ([nellshamrell](https://github.com/nellshamrell))
 <!-- latest_release -->
 
