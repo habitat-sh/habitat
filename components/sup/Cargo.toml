@@ -27,7 +27,9 @@ actix = "0.7.9"
 bytes = "*"
 # This is temporary, until this is merged to the mainline and we can use the crate
 nitox = { git = "https://github.com/habitat-sh/nitox", branch="feature/nats-server" }
-actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
+# Pin actix web to the version currently in use. 1.0.0 introduces some breaking changes
+# This will be resolved by https://github.com/habitat-sh/habitat/issues/6620
+actix-web = { version = "= 0.7.19", default-features = false, features = [ "rust-tls" ] }
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
@@ -42,7 +44,11 @@ habitat_api_client = { path = "../builder-api-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"
-libc = "*"
+# Temporarily pin libc. The palaver crate uses the shorthand for semver compatible updates,
+# but the libc crate changed the types of some of the consts and functions it provides.
+# This pin can be removed once a release with https://github.com/alecmocatta/palaver/pull/15
+# and https://github.com/alecmocatta/palaver/pull/16 merged is made.
+libc = "= 0.2.54" 
 log = "*"
 notify = "*"
 num_cpus = "*"

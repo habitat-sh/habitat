@@ -30,7 +30,8 @@ use std::{borrow::Cow,
           path::{Path,
                  PathBuf},
           result::Result as StdResult,
-          str::FromStr};
+          str::FromStr,
+          time::Duration};
 
 use crate::{api_client::{self,
                          Client,
@@ -49,6 +50,7 @@ use crate::{api_client::{self,
                               PackageIdent,
                               PackageInstall,
                               PackageTarget},
+                    util::wait_for,
                     ChannelIdent}};
 use glob;
 use hyper::status::StatusCode;
@@ -63,8 +65,8 @@ use crate::{error::{Error,
             ui::{Status,
                  UIWriter}};
 
-pub const RETRIES: u64 = 5;
-pub const RETRY_WAIT: u64 = 3000;
+pub const RETRIES: usize = 5;
+pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
 
 /// Represents a locally-available `.hart` file for package
 /// installation purposes only.
@@ -664,16 +666,13 @@ impl<'a> InstallTask<'a> {
                               -> Result<PackageArchive>
         where T: UIWriter
     {
+        let fetch_artifact = || self.fetch_artifact(ui, (ident, target), token);
         if self.is_artifact_cached(&ident) {
             debug!("Found {} in artifact cache, skipping remote download",
                    ident);
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
-        } else if retry(RETRIES,
-                        RETRY_WAIT,
-                        || self.fetch_artifact(ui, (ident, target), token),
-                        Result::is_ok).is_err()
-        {
+        } else if retry(wait_for(RETRY_WAIT, RETRIES), fetch_artifact).is_err() {
             return Err(Error::DownloadFailed(format!("We tried {} times but \
                                                       could not download {}. \
                                                       Giving up.",
