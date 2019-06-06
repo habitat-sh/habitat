@@ -1061,6 +1061,7 @@ impl Manager {
                     updater.check_for_updated_package(&service, &self.census_ring)
                 {
                     outputln!("Updating from {} to {}", current_ident, new_ident);
+                    event::service_update_started(&service, &new_ident);
                     Some(current_ident.clone())
                 } else {
                     trace!("No update found for {}", current_ident);

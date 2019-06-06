@@ -72,6 +72,18 @@ message ServiceStoppedEvent {
   ServiceMetadata service_metadata = 2;
 }
 
+message ServiceUpdateStartedEvent {
+  EventMetadata event_metadata = 1;
+  ServiceMetadata service_metadata = 2;
+  // Details of the service pkg to which 
+  // we're attempting to update.This is
+  // implemented as a string for now,
+  // but at some point we'll may want
+  // to create a type for this set of
+  // attributes (FullyQualifiedPackageIdent)
+  string update_package_ident = 3;
+}
+
 message HealthCheckEvent {
   EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;
