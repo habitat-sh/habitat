@@ -48,8 +48,14 @@ steps:
     command:
       - .\test\run_clippy.ps1 stable .\test\unexamined_lints.txt .\test\allowed_lints.txt .\test\lints_to_fix.txt .\test\denied_lints.txt
     agents:
-      queue: 'single-use-windows-privileged'
-    timeout_in_minutes: 25
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 40
 
 #######################################################################
 # Unit Tests - Linux!
@@ -374,6 +380,12 @@ steps:
       - ./test/run_cargo_test.ps1 builder-api-client
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -384,7 +396,13 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_mutex deadlock_detection" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 20
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 25
     soft_fail: true
 
   - label: "[unit] :windows: butterfly lock_as_rwlock"
@@ -392,7 +410,13 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_rwlock deadlock_detection" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 20
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 40
     retry:
       automatic:
         limit: 1
@@ -404,7 +428,13 @@ steps:
       - ./test/run_cargo_test.ps1 butterfly -TestOptions "--test-threads=1 --ignored"
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 20
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 25
     soft_fail: true
 
   - label: "[unit] :windows: common"
@@ -412,7 +442,13 @@ steps:
       - ./test/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 20
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 25
     retry:
       automatic:
         limit: 1
@@ -422,6 +458,12 @@ steps:
       - ./test/run_cargo_test.ps1 core
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -432,7 +474,13 @@ steps:
       - ./test/run_cargo_test.ps1 hab
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 20
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 25
     retry:
       automatic:
         limit: 1
@@ -442,6 +490,12 @@ steps:
       - ./test/run_cargo_test.ps1 http-client
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -452,7 +506,13 @@ steps:
       - ./test/run_cargo_test.ps1 launcher-client
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 10
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
@@ -462,7 +522,13 @@ steps:
       - ./test/run_cargo_test.ps1 launcher-protocol
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 10
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
@@ -472,7 +538,13 @@ steps:
       - ./test/run_cargo_test.ps1 pkg-export-docker
     agents:
       queue: 'default-windows-privileged'
-    timeout_in_minutes: 20
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 25
     retry:
       automatic:
         limit: 1
@@ -482,6 +554,12 @@ steps:
       - ./test/run_cargo_test.ps1 pkg-export-tar
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -493,6 +571,12 @@ steps:
       - ./test/run_cargo_test.ps1 sup -Features "lock_as_mutex" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 40
     soft_fail: true
 
@@ -502,6 +586,12 @@ steps:
       - ./test/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -513,6 +603,12 @@ steps:
       - ./test/run_cargo_test.ps1 sup -Features "nitox_stream" -TestOptions "--test-threads=1"
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -523,6 +619,12 @@ steps:
       - ./test/run_cargo_test.ps1 sup-client
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -533,6 +635,12 @@ steps:
       - ./test/run_cargo_test.ps1 sup-protocol
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -543,6 +651,12 @@ steps:
       - ./test/run_studio_test.ps1 "studio-from-source"
     agents:
       queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     timeout_in_minutes: 5
     retry:
       automatic:
@@ -746,7 +860,14 @@ steps:
     command:
       - ./support/ci/build_component.ps1 hab
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 40
     retry:
       automatic:
         limit: 1
@@ -758,7 +879,13 @@ steps:
     command:
       - ./support/ci/build_component.ps1 launcher
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     retry:
       automatic:
         limit: 1
@@ -770,7 +897,13 @@ steps:
     command:
       - ./support/ci/build_component.ps1 pkg-export-docker
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     retry:
       automatic:
         limit: 1
@@ -782,7 +915,14 @@ steps:
     command:
       - ./support/ci/build_component.ps1 pkg-export-tar
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 40
     retry:
       automatic:
         limit: 1
@@ -794,7 +934,13 @@ steps:
     command:
       - ./support/ci/build_component.ps1 plan-build-ps1
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     retry:
       automatic:
         limit: 1
@@ -806,7 +952,13 @@ steps:
     command:
       - ./support/ci/build_component.ps1 studio
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     retry:
       automatic:
         limit: 1
@@ -818,7 +970,13 @@ steps:
     command:
       - ./support/ci/build_component.ps1 sup
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     retry:
       automatic:
         limit: 1
@@ -830,7 +988,13 @@ steps:
     command:
       - ./support/ci/build_component.ps1 windows-service
     agents:
-      queue: 'single-use-windows-privileged'
+      queue: 'default-windows-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
     retry:
       automatic:
         limit: 1
