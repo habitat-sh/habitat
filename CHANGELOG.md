@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Adds service update started event [#6611](https://github.com/habitat-sh/habitat/pull/6611) ([gpeers](https://github.com/gpeers))
 - Update docs for 0.82.0 [#6627](https://github.com/habitat-sh/habitat/pull/6627) ([smacfarlane](https://github.com/smacfarlane))
 - Decouple logging concerns from Supervisor errors [#6590](https://github.com/habitat-sh/habitat/pull/6590) ([christophermaier](https://github.com/christophermaier))
 - Generate a unique NATS client id for event msgs [#6623](https://github.com/habitat-sh/habitat/pull/6623) ([afiune](https://github.com/afiune))
