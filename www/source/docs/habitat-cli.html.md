@@ -10,7 +10,7 @@ The commands for the Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.81.0/20190507225645 (linux) | 8 May 2019 |
+| hab 0.82.0/20190605214032 (linux) | 6 Jun 2019 |
 
 ## hab
 
@@ -1223,7 +1223,7 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 **OPTIONS**
 
 ```
--d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=/hab/bin]  [default: /bin]
+-d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=]  [default: /bin]
 ```
 
 **ARGS**
@@ -1602,6 +1602,7 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 **FLAGS**
 
 ```
+-b, --binlink                Binlink all binaries from installed package(s) into BINLINK_DIR
 -f, --force                  Overwrite existing binlinks
     --ignore-install-hook    Do not run any install hooks
 -h, --help                   Prints help information
@@ -1611,10 +1612,10 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 **OPTIONS**
 
 ```
--z, --auth <AUTH_TOKEN>    Authentication token for Builder
--b, --binlink <BINLINK>    Binlink all binaries from installed package(s) [env: HAB_BINLINK_DIR=/hab/bin]  [default: bin]
--u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
--c, --channel <CHANNEL>    Install from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
+-z, --auth <AUTH_TOKEN>            Authentication token for Builder
+    --binlink-dir <BINLINK_DIR>    Binlink all binaries from installed package(s) into BINLINK_DIR [env: HAB_BINLINK_DIR=]  [default: /bin]
+-u, --url <BLDR_URL>               Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel <CHANNEL>            Install from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
 ```
 
 **ARGS**
@@ -1970,15 +1971,16 @@ hab plan init [FLAGS] [OPTIONS] [PKG_NAME]
 **FLAGS**
 
 ```
--h, --help              Prints help information
--V, --version           Prints version information
+-m, --min            Create a minimal plan file
+-s, --scaffolding    Specify explicit Scaffolding for your app (ex: node, ruby)
+-h, --help           Prints help information
+-V, --version        Prints version information
 ```
 
 **OPTIONS**
 
 ```
--o, --origin <ORIGIN>              Origin for the new app
--s, --scaffolding <SCAFFOLDING>    Specify explicit Scaffolding for your app (ex: node, ruby)
+-o, --origin <ORIGIN>    Origin for the new app
 ```
 
 **ARGS**

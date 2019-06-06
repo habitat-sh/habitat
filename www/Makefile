@@ -33,16 +33,16 @@ cli_docs:
 	hab studio run "hab pkg install core/hab-studio && \
 	hab pkg install core/hab-sup && \
 	hab pkg install core/hab-launcher && \
-	hab pkg install core/node --binlink /bin && \
+	hab pkg install core/node && \
+	hab pkg binlink core/node --dest=/bin && \
 	/bin/node scripts/generate-cli-docs > source/docs/habitat-cli.html.md"
 
-node_modules/json-schema-ref-parser:
-	npm install json-schema-ref-parser@6.1.0
-
-template_reference: node_modules/json-schema-ref-parser
+template_reference:
 	mkdir tmp
 	cp ../components/sup/doc/* tmp/
-	hab studio run "hab pkg install core/node --binlink /bin && \
+	hab studio run "hab pkg install core/node && \
+	hab pkg binlink core/node --dest=/bin && \
+	npm install json-schema-ref-parser@6.1.0 && \
 	/bin/node scripts/generate-template-reference.js tmp/render_context_schema.json > ./source/partials/docs/_reference-template-data.html.md.erb"
 	rm -rf tmp
 
