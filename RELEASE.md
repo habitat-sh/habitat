@@ -183,10 +183,7 @@ make cli_docs
 make template_reference
 ```
 
-Verify the diff looks reasonable and matches the newly released version, then submit your PR. Until
-https://github.com/habitat-sh/habitat/issues/5948 is fixed, this may require some manual fixup. In particular,
-make sure that https://github.com/habitat-sh/habitat/blob/master/www/source/partials/docs/_reference-template-data.html.md.erb doesn't remove the `sys` section. If https://github.com/habitat-sh/habitat/issues/5948 is fixed,
-update these instructions.
+Verify the diff looks reasonable and matches the newly released version, then submit your PR.
 
 ## Verify the Docs
 
