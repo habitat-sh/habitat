@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Add Builder provider interface [#6626](https://github.com/habitat-sh/habitat/pull/6626) ([chefsalim](https://github.com/chefsalim))
 - Swap windows jobs to docker (as much as possible) [#6603](https://github.com/habitat-sh/habitat/pull/6603) ([scotthain](https://github.com/scotthain))
 - Adds service update started event [#6611](https://github.com/habitat-sh/habitat/pull/6611) ([gpeers](https://github.com/gpeers))
 - Update docs for 0.82.0 [#6627](https://github.com/habitat-sh/habitat/pull/6627) ([smacfarlane](https://github.com/smacfarlane))
