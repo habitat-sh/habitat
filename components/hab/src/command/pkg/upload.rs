@@ -69,17 +69,14 @@ pub fn start(ui: &mut UI,
     let ident = archive.ident()?;
     let target = archive.target()?;
 
-    match api_client.show_package((&ident, target), &ChannelIdent::unstable(), Some(token)) {
+    match api_client.check_package((&ident, target), Some(token)) {
         Ok(_) if !force_upload => {
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
         Err(api_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
-                match api_client.show_package((&dep, target),
-                                              &ChannelIdent::unstable(),
-                                              Some(token))
-                {
+                match api_client.check_package((&dep, target), Some(token)) {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
                     Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
                         let candidate_path = match archive_path.parent() {

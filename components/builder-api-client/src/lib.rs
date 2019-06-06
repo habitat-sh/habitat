@@ -12,8 +12,14 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
+pub mod artifactory;
 pub mod builder;
 pub mod error;
+
+use std::str::FromStr;
+
+extern crate regex;
+use regex::Regex;
 
 use std::{fmt,
           io::Write,
@@ -26,8 +32,10 @@ use hyper::client::IntoUrl;
 pub use crate::error::{Error,
                        Result};
 
-use crate::{builder::BuilderAPIClient,
+use crate::{artifactory::ArtifactoryClient,
+            builder::BuilderAPIClient,
             hab_core::{crypto::keys::box_key_pair::WrappedSealedBox,
+                       env,
                        package::{PackageArchive,
                                  PackageIdent,
                                  PackageTarget},
@@ -35,8 +43,6 @@ use crate::{builder::BuilderAPIClient,
 
 header! { (XFileName, "X-Filename") => [String] }
 header! { (ETag, "ETag") => [String] }
-
-const DEFAULT_API_PATH: &str = "/v1";
 
 pub trait DisplayProgress: Write {
     fn size(&mut self, size: u64);
@@ -206,11 +212,29 @@ pub struct OriginSecret {
     pub value:     String,
 }
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct OriginKeyIdent {
     pub origin:   String,
     pub revision: String,
     pub location: String,
+}
+
+// Expected format: "origin-revision.extension"
+impl FromStr for OriginKeyIdent {
+    type Err = Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let re = Regex::new(r"([\w]+)([-])([\d]+)").unwrap();
+
+        let caps = match re.captures(s) {
+            Some(caps) => caps,
+            None => return Err(Error::NotSupported),
+        };
+
+        Ok(OriginKeyIdent { origin:   caps.get(1).unwrap().as_str().to_string(),
+                            revision: caps.get(3).unwrap().as_str().to_string(),
+                            location: "".to_string(), })
+    }
 }
 
 #[derive(Deserialize)]
@@ -281,6 +305,11 @@ pub trait BuilderAPIProvider: Sync + Send {
                      progress: Option<Self::Progress>)
                      -> Result<PackageArchive>;
 
+    fn check_package(&self,
+                     ident_and_target: (&PackageIdent, PackageTarget),
+                     token: Option<&str>)
+                     -> Result<()>;
+
     fn show_package(&self,
                     ident_and_target: (&PackageIdent, PackageTarget),
                     channel: &ChannelIdent,
@@ -326,6 +355,7 @@ pub trait BuilderAPIProvider: Sync + Send {
     fn fetch_origin_key(&self,
                         origin: &str,
                         revision: &str,
+                        token: Option<&str>,
                         dst_path: &Path,
                         progress: Option<Self::Progress>)
                         -> Result<PathBuf>;
@@ -365,14 +395,12 @@ impl Client {
                   -> Result<BoxedClient>
         where U: IntoUrl
     {
-        let mut endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
-        if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
-            endpoint.set_path(DEFAULT_API_PATH);
+        let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
+
+        match &env::var("HAB_BLDR_PROVIDER").unwrap_or_else(|_| "builder".to_string())[..] {
+            "artifactory" => ArtifactoryClient::new(endpoint, product, version, fs_root_path),
+            _ => BuilderAPIClient::new(endpoint, product, version, fs_root_path),
         }
-
-        let client = BuilderAPIClient::new(endpoint, product, version, fs_root_path)?;
-
-        Ok(Box::new(client))
     }
 }
 

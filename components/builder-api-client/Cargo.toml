@@ -8,6 +8,7 @@ workspace = "../../"
 [dependencies]
 broadcast = "*"
 chrono = "*"
+env = "*"
 habitat_core = { path = "../core" }
 habitat_http_client = { path = "../http-client" }
 # Pending upgrade activities in https://github.com/habitat-sh/core/issues/72

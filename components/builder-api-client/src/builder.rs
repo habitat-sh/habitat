@@ -33,6 +33,7 @@ use crate::{error::{Error,
                        ChannelIdent},
             hab_http::{util::decoded_response,
                        ApiClient},
+            BoxedClient,
             BuilderAPIProvider,
             DisplayProgress,
             OriginKeyIdent,
@@ -148,17 +149,18 @@ impl BuilderAPIClient {
                   product: &str,
                   version: &str,
                   fs_root_path: Option<&Path>)
-                  -> Result<Self>
+                  -> Result<BoxedClient>
         where U: IntoUrl
     {
         let mut endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
         if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
             endpoint.set_path(DEFAULT_API_PATH);
         }
-        Ok(BuilderAPIClient(
+        let client = BuilderAPIClient(
             ApiClient::new(endpoint, product, version, fs_root_path)
                 .map_err(Error::HabitatHttpClient)?,
-        ))
+        );
+        Ok(Box::new(client))
     }
 
     fn maybe_add_authz<'a>(&'a self,
@@ -509,6 +511,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
     fn fetch_origin_key(&self,
                         origin: &str,
                         revision: &str,
+                        _token: Option<&str>,
                         dst_path: &Path,
                         progress: Option<Self::Progress>)
                         -> Result<PathBuf> {
@@ -713,6 +716,37 @@ impl BuilderAPIProvider for BuilderAPIClient {
         match self.download(req_builder, dst_path.as_ref(), token, progress) {
             Ok(file) => Ok(PackageArchive::new(file)),
             Err(e) => Err(e),
+        }
+    }
+
+    /// Checks whether a specified package exists
+    ///
+    /// The package ident must be fully qualified
+    ///
+    /// # Failures
+    ///
+    /// * Package cannot be found
+    /// * Remote Builder is not available
+    fn check_package(&self,
+                     (package, target): (&PackageIdent, PackageTarget),
+                     token: Option<&str>)
+                     -> Result<()> {
+        if !package.fully_qualified() {
+            return Err(Error::IdentNotFullyQualified);
+        }
+
+        let url = channel_package_path(&ChannelIdent::unstable(), package);
+
+        let res = self.maybe_add_authz(self.0.get_with_custom_url(&url, |u| {
+                                                 u.set_query(Some(&format!("target={}", target)))
+                                             }),
+                                       token)
+                      .send()?;
+
+        if res.status != StatusCode::Ok {
+            Err(err_from_response(res))
+        } else {
+            Ok(())
         }
     }
 

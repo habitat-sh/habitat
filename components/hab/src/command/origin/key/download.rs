@@ -35,7 +35,7 @@ pub fn start(ui: &mut UI,
     } else if encryption {
         handle_encryption(ui, &api_client, origin, token, cache)
     } else {
-        handle_public(ui, &api_client, origin, revision, cache)
+        handle_public(ui, &api_client, origin, revision, token, cache)
     }
 }
 
@@ -43,13 +43,14 @@ fn handle_public(ui: &mut UI,
                  api_client: &BoxedClient,
                  origin: &str,
                  revision: Option<&str>,
+                 token: Option<&str>,
                  cache: &Path)
                  -> Result<()> {
     match revision {
         Some(revision) => {
             let nwr = format!("{}-{}", origin, revision);
             ui.begin(format!("Downloading public origin key {}", &nwr))?;
-            match download_key(ui, api_client, &nwr, origin, revision, cache) {
+            match download_key(ui, api_client, &nwr, origin, revision, token, cache) {
                 Ok(()) => {
                     let msg = format!("Download of {} public origin key completed.", nwr);
                     ui.end(msg)?;
@@ -68,7 +69,13 @@ fn handle_public(ui: &mut UI,
                 Ok(keys) => {
                     for key in keys {
                         let nwr = format!("{}-{}", key.origin, key.revision);
-                        download_key(ui, api_client, &nwr, &key.origin, &key.revision, cache)?;
+                        download_key(ui,
+                                     api_client,
+                                     &nwr,
+                                     &key.origin,
+                                     &key.revision,
+                                     token,
+                                     cache)?;
                     }
                     ui.end(format!("Download of {} public origin keys completed.", &origin))?;
                     Ok(())
@@ -167,6 +174,7 @@ fn download_key(ui: &mut UI,
                 nwr: &str,
                 name: &str,
                 rev: &str,
+                token: Option<&str>,
                 cache: &Path)
                 -> Result<()> {
     match SigKeyPair::get_public_key_path(&nwr, &cache) {
@@ -174,7 +182,7 @@ fn download_key(ui: &mut UI,
         Err(_) => {
             let download_fn = || -> Result<()> {
                 ui.status(Status::Downloading, &nwr)?;
-                api_client.fetch_origin_key(name, rev, cache, ui.progress())?;
+                api_client.fetch_origin_key(name, rev, token, cache, ui.progress())?;
                 ui.status(Status::Cached, &format!("{} to {}", nwr, cache.display()))?;
                 Ok(())
             };
