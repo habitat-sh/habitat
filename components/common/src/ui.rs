@@ -293,7 +293,7 @@ pub trait UIWriter {
     /// Messages sent to the error IO stream will be formatted for a terminal if true.
     fn is_err_a_terminal(&self) -> bool;
     /// Returns a progress bar widget implementation for writing operation's progress to.
-    fn progress(&self) -> Option<Self::ProgressBar>;
+    fn progress(&self) -> Option<Box<dyn DisplayProgress>>;
 
     /// Write a message formatted with `begin`.
     fn begin<T>(&mut self, message: T) -> io::Result<()>
@@ -487,9 +487,9 @@ impl UIWriter for UI {
 
     fn is_err_a_terminal(&self) -> bool { self.shell.err.is_a_terminal() }
 
-    fn progress(&self) -> Option<Self::ProgressBar> {
+    fn progress(&self) -> Option<Box<dyn DisplayProgress>> {
         if self.is_out_a_terminal() {
-            Some(Self::ProgressBar::default())
+            Some(Box::new(Self::ProgressBar::default()))
         } else {
             None
         }

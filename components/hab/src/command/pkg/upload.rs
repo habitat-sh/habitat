@@ -24,6 +24,7 @@ use retry::retry;
 
 // Local Dependencies
 use crate::{api_client::{self,
+                         BoxedClient,
                          Client},
             common::{command::package::install::{RETRIES,
                                                  RETRY_WAIT},
@@ -137,7 +138,7 @@ pub fn start(ui: &mut UI,
 /// `additional_release_channel` is provided, packages will be
 /// promoted to that channel as well.
 fn upload_into_depot(ui: &mut UI,
-                     api_client: &Client,
+                     api_client: &BoxedClient,
                      token: &str,
                      (ident, target): (&PackageIdent, PackageTarget),
                      additional_release_channel: &Option<ChannelIdent>,
@@ -196,7 +197,7 @@ fn upload_into_depot(ui: &mut UI,
 
 #[allow(clippy::too_many_arguments)]
 fn attempt_upload_dep(ui: &mut UI,
-                      api_client: &Client,
+                      api_client: &BoxedClient,
                       token: &str,
                       (ident, target): (&PackageIdent, PackageTarget),
                       additional_release_channel: &Option<ChannelIdent>,
@@ -230,7 +231,7 @@ fn attempt_upload_dep(ui: &mut UI,
 
 fn upload_public_key(ui: &mut UI,
                      token: &str,
-                     api_client: &Client,
+                     api_client: &BoxedClient,
                      archive: &mut PackageArchive,
                      key_path: &Path)
                      -> Result<()> {

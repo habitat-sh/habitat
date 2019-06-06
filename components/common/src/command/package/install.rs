@@ -33,6 +33,7 @@ use std::{borrow::Cow,
           str::FromStr};
 
 use crate::{api_client::{self,
+                         BoxedClient,
                          Client,
                          Error::APIError},
             hcore::{self,
@@ -415,7 +416,7 @@ fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
 struct InstallTask<'a> {
     install_mode: &'a InstallMode,
     local_package_usage: &'a LocalPackageUsage,
-    api_client: Client,
+    api_client: BoxedClient,
     channel: &'a ChannelIdent,
     fs_root_path: &'a Path,
     /// The path to the local artifact cache (e.g., /hab/cache/artifacts)
@@ -626,8 +627,7 @@ impl<'a> InstallTask<'a> {
             } else {
                 artifacts_to_install.push(self.get_cached_artifact(
                     ui,
-                    (&FullyQualifiedPackageIdent::from(dependency)?,
-                                        target),
+                    (&FullyQualifiedPackageIdent::from(dependency)?, target),
                     token,
                 )?);
             }

@@ -31,7 +31,7 @@ pub fn start(ui: &mut UI,
 }
 
 fn do_job_group_status(ui: &mut UI,
-                       api_client: &api_client::Client,
+                       api_client: &api_client::BoxedClient,
                        group_id: &str,
                        show_jobs: bool)
                        -> Result<()> {
@@ -78,7 +78,7 @@ fn do_job_group_status(ui: &mut UI,
 }
 
 fn do_origin_status(ui: &mut UI,
-                    api_client: &api_client::Client,
+                    api_client: &api_client::BoxedClient,
                     origin: &str,
                     limit: usize)
                     -> Result<()> {

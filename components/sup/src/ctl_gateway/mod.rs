@@ -126,9 +126,9 @@ impl UIWriter for CtlRequest {
 
     fn is_err_a_terminal(&self) -> bool { true }
 
-    fn progress(&self) -> Option<Self::ProgressBar> {
+    fn progress(&self) -> Option<Box<dyn DisplayProgress>> {
         if self.is_out_a_terminal() {
-            Some(Self::ProgressBar::new(self.clone()))
+            Some(Box::new(Self::ProgressBar::new(self.clone())))
         } else {
             None
         }
