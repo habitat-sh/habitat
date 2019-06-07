@@ -52,6 +52,12 @@ function Install-Habitat {
         Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | out-null
     }
 
+    if($env:BUILDKITE) {
+        choco source Add -Name artifactory -Source http://artifactory.chef.co/api/nuget/chocolatey
+        choco source enable --name artifactory
+        choco source disable --name chocolatey
+    }
+
     if (!((choco list habitat --local-only) -match '^1 packages installed\.$')) {
         choco install habitat -y
     }
