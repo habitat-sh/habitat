@@ -1,1 +1,1 @@
-clippy::cyclomatic_complexity
+clippy::cognitive_complexity

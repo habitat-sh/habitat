@@ -9,6 +9,7 @@ clippy::collapsible_if
 clippy::const_static_lifetime
 clippy::correctness
 clippy::deref_addrof
+clippy::drop_bounds
 clippy::expect_fun_call
 clippy::for_kv_map
 clippy::get_unwrap
@@ -37,6 +38,7 @@ clippy::println_empty_string
 clippy::ptr_arg
 clippy::question_mark
 clippy::redundant_closure
+clippy::redundant_closure_for_method_calls
 clippy::redundant_field_names
 clippy::redundant_pattern_matching
 clippy::single_char_pattern
