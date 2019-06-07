@@ -15,7 +15,7 @@ param (
 $ErrorActionPreference="stop"
 . $PSScriptRoot\..\support\ci\shared.ps1
 
-$toolchain = Rust-Toolchain
+$toolchain = Get-Toolchain
 if($Nightly) { $toolchain = (gc $PSScriptRoot\..\RUSTFMT_VERSION | out-string).Trim() }
 
 Setup-Environment

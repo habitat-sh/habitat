@@ -16,7 +16,7 @@ function Convert-ArrayToArgs ($arg, $list) {
     }
 }
 
-$toolchain = Rust-Toolchain
+$toolchain = Get-Toolchain
 Install-Rustup $toolchain
 Install-RustToolchain $toolchain
 
