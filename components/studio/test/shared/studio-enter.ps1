@@ -41,10 +41,10 @@ try {
     # Add the same behavior for `hab studio rm` to ensure that the studio is fully cleaned up before 
     # stopping the Await session.
     $retry = 0
-    while(($retry -lt 5) -and (Test-Path "$studio_name")) {
+    while(($retry -lt 10) -and (Test-Path "$studio_name")) {
       $retry += 1
       Write-Host "Waiting for Studio to exit..."
-      Start-Sleep -Seconds 2
+      Start-Sleep -Seconds 5
     }
 
     Stop-AwaitSession
