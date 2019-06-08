@@ -142,8 +142,7 @@ pub fn start(ui: &mut UI,
 
 #[cfg(test)]
 mod test {
-    use std::{env,
-              io::{self,
+    use std::{io::{self,
                    Cursor,
                    Write},
               sync::{Arc,
