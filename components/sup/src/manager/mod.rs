@@ -672,6 +672,7 @@ impl Manager {
     // simplify the redundant aspects and remove this allow(clippy::cyclomatic_complexity),
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
+    #[allow(clippy::cyclomatic_complexity)]
     pub fn run(mut self, svc: Option<habitat_sup_protocol::ctl::SvcLoad>) -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);

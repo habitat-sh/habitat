@@ -154,6 +154,7 @@ impl ServiceUpdater {
     // simplify the redundant aspects and remove this allow(clippy::cyclomatic_complexity),
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
+    #[allow(clippy::cyclomatic_complexity)]
     pub fn check_for_updated_package(&mut self,
                                      service: &Service,
                                      // TODO (CM): Strictly speaking, we don't need to pass

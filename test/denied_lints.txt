@@ -8,6 +8,7 @@ clippy::cmp_owned
 clippy::collapsible_if
 clippy::const_static_lifetime
 clippy::correctness
+clippy::cyclomatic_complexity
 clippy::deref_addrof
 clippy::drop_bounds
 clippy::expect_fun_call
