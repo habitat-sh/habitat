@@ -38,6 +38,7 @@ use crate::{api_client::{self,
                     package::{PackageArchive,
                               PackageIdent,
                               PackageTarget},
+                    util::wait_for,
                     ChannelIdent},
             PRODUCT,
             VERSION};
@@ -94,7 +95,7 @@ pub fn start(ui: &mut UI,
                                                &candidate_path,
                                                key_path)
                         };
-                        match retry(RETRIES, RETRY_WAIT, upload, Result::is_ok) {
+                        match retry(wait_for(RETRY_WAIT, RETRIES), upload) {
                             Ok(_) => trace!("attempt_upload_dep succeeded"),
                             Err(_) => {
                                 return Err(Error::from(api_client::Error::UploadFailed(format!(
@@ -117,7 +118,7 @@ pub fn start(ui: &mut UI,
                                   force_upload,
                                   &mut archive)
             };
-            match retry(RETRIES, RETRY_WAIT, upload, Result::is_ok) {
+            match retry(wait_for(RETRY_WAIT, RETRIES), upload) {
                 Ok(_) => trace!("upload_into_depot succeeded"),
                 Err(_) => {
                     return Err(Error::from(api_client::Error::UploadFailed(format!(

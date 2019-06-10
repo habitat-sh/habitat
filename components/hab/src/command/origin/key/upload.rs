@@ -7,9 +7,10 @@ use crate::{api_client::{self,
                      ui::{Status,
                           UIWriter,
                           UI}},
-            hcore::crypto::{keys::parse_name_with_rev,
-                            PUBLIC_SIG_KEY_VERSION,
-                            SECRET_SIG_KEY_VERSION}};
+            hcore::{crypto::{keys::parse_name_with_rev,
+                             PUBLIC_SIG_KEY_VERSION,
+                             SECRET_SIG_KEY_VERSION},
+                    util::wait_for}};
 use hyper::status::StatusCode;
 use retry::retry;
 
@@ -46,7 +47,7 @@ pub fn start(ui: &mut UI,
             Ok(())
         };
 
-        if retry(RETRIES, RETRY_WAIT, upload_fn, Result::is_ok).is_err() {
+        if retry(wait_for(RETRY_WAIT, RETRIES), upload_fn).is_err() {
             return Err(Error::from(api_client::Error::UploadFailed(format!(
                 "We tried {} times but could not upload {}/{} public origin key. Giving up.",
                 RETRIES, &name, &rev
@@ -77,7 +78,7 @@ pub fn start(ui: &mut UI,
             }
         };
 
-        if retry(RETRIES, RETRY_WAIT, upload_fn, Result::is_ok).is_err() {
+        if retry(wait_for(RETRY_WAIT, RETRIES), upload_fn).is_err() {
             return Err(Error::from(api_client::Error::UploadFailed(format!(
                 "We tried {} times but could not upload {}/{} secret origin key. Giving up.",
                 RETRIES, &name, &rev

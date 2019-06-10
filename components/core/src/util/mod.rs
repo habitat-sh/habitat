@@ -9,7 +9,8 @@ use std::{error,
           marker::PhantomData,
           mem,
           result,
-          str::FromStr};
+          str::FromStr,
+          time::Duration};
 
 use serde;
 
@@ -90,6 +91,10 @@ impl ToI64 for u64 {
             self as i64
         }
     }
+}
+
+pub fn wait_for(delay: Duration, times: usize) -> impl IntoIterator<Item = Duration> {
+    vec![delay].into_iter().cycle().take(times)
 }
 
 #[cfg(test)]
