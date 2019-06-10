@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- adds rustfmt instructions to supported dev env [#6570](https://github.com/habitat-sh/habitat/pull/6570) ([nellshamrell](https://github.com/nellshamrell))
 - updates ruby version [#6631](https://github.com/habitat-sh/habitat/pull/6631) ([nellshamrell](https://github.com/nellshamrell))
 - use chocolatey mirror on buildkite [#6638](https://github.com/habitat-sh/habitat/pull/6638) ([mwrock](https://github.com/mwrock))
 - Update to Rust 1.35.0 [#6615](https://github.com/habitat-sh/habitat/pull/6615) ([raskchanky](https://github.com/raskchanky))
