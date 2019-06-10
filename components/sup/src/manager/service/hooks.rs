@@ -223,49 +223,6 @@ impl Hook for PostRunHook {
 }
 
 #[derive(Debug, Serialize)]
-pub struct ReloadHook {
-    render_pair:     RenderPair,
-    stdout_log_path: PathBuf,
-    stderr_log_path: PathBuf,
-}
-
-impl Hook for ReloadHook {
-    type ExitValue = ExitCode;
-
-    fn file_name() -> &'static str { "reload" }
-
-    fn new(package_name: &str, pair: RenderPair) -> Self {
-        ReloadHook { render_pair:     pair,
-                     stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                     stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
-    }
-
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
-        let pkg_name = &pkg.name;
-        match status.code() {
-            Some(0) => ExitCode(0),
-            Some(code) => {
-                outputln!(preamble pkg_name, "Reload failed! '{}' exited with \
-                    status code {}", Self::file_name(), code);
-                ExitCode(code)
-            }
-            None => {
-                Self::output_termination_message(pkg_name, status);
-                ExitCode::default()
-            }
-        }
-    }
-
-    fn path(&self) -> &Path { &self.render_pair.path }
-
-    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
-
-    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
-
-    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
-}
-
-#[derive(Debug, Serialize)]
 pub struct ReconfigureHook {
     render_pair:     RenderPair,
     stdout_log_path: PathBuf,
@@ -418,6 +375,44 @@ impl Hook for PostStopHook {
     fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
+#[derive(Clone, Copy, Default)]
+pub struct HookChangeTable {
+    pub health_check: bool,
+    pub init:         bool,
+    pub file_updated: bool,
+    pub reconfigure:  bool,
+    pub suitability:  bool,
+    pub run:          bool,
+    pub post_run:     bool,
+    pub post_stop:    bool,
+}
+
+impl HookChangeTable {
+    pub fn new() -> Self { Self::default() }
+
+    pub fn changed(self) -> bool {
+        match self {
+            Self { health_check,
+                   init,
+                   file_updated,
+                   reconfigure,
+                   suitability,
+                   run,
+                   post_run,
+                   post_stop, } => {
+                health_check
+                || init
+                || file_updated
+                || reconfigure
+                || suitability
+                || run
+                || post_run
+                || post_stop
+            }
+        }
+    }
+}
+
 // Hooks wrapped in Arcs represent a possibly-temporary state while we
 // refactor hooks to be able to run asynchronously.
 #[derive(Debug, Default, Serialize)]
@@ -425,7 +420,6 @@ pub struct HookTable {
     pub health_check: Option<Arc<HealthCheckHook>>,
     pub init:         Option<InitHook>,
     pub file_updated: Option<FileUpdatedHook>,
-    pub reload:       Option<ReloadHook>,
     pub reconfigure:  Option<ReconfigureHook>,
     pub suitability:  Option<SuitabilityHook>,
     pub run:          Option<RunHook>,
@@ -447,7 +441,6 @@ impl HookTable {
                     HealthCheckHook::load(package_name, &hooks_path, &templates).map(Arc::new);
                 table.suitability = SuitabilityHook::load(package_name, &hooks_path, &templates);
                 table.init = InitHook::load(package_name, &hooks_path, &templates);
-                table.reload = ReloadHook::load(package_name, &hooks_path, &templates);
                 table.reconfigure = ReconfigureHook::load(package_name, &hooks_path, &templates);
                 table.run = RunHook::load(package_name, &hooks_path, &templates);
                 table.post_run = PostRunHook::load(package_name, &hooks_path, &templates);
@@ -464,39 +457,36 @@ impl HookTable {
 
     /// Compile all loaded hooks from the table into their destination service directory.
     ///
-    /// Returns `true` if compiling any of the hooks resulted in new
-    /// content being written to the hook scripts on disk.
-    pub fn compile<T>(&self, service_group: &str, ctx: &T) -> bool
+    /// Returns a `HookChangeTable` with the hook set to true if compiling the hook resulted
+    /// in new content being written to the hook script on disk.
+    pub fn compile<T>(&self, service_group: &str, ctx: &T) -> HookChangeTable
         where T: Serialize
     {
         debug!("{:?}", self);
-        let mut changed = false;
+        let mut changed = HookChangeTable::new();
         if let Some(ref hook) = self.file_updated {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.file_updated = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.health_check {
-            changed |= self.compile_one(hook.as_ref(), service_group, ctx);
+            changed.health_check = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         if let Some(ref hook) = self.init {
-            changed |= self.compile_one(hook, service_group, ctx);
-        }
-        if let Some(ref hook) = self.reload {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.init = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reconfigure {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.reconfigure = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.suitability {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.suitability = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.run {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.run = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_run {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.post_run = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_stop {
-            changed |= self.compile_one(hook.as_ref(), service_group, ctx);
+            changed.post_stop = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         changed
     }
@@ -566,7 +556,6 @@ mod tests {
                       InitHook
                       PostRunHook
                       ReconfigureHook
-                      ReloadHook
                       RunHook
                       SuitabilityHook
                       PostStopHook);
@@ -673,7 +662,7 @@ mod tests {
         ////////////////////////////////////////////////////////////////////////
 
         let hook_table = HookTable::load(&service_group, &template_path, &hooks_path);
-        assert_eq!(hook_table.compile(&service_group, &ctx), true);
+        assert!(hook_table.compile(&service_group, &ctx).changed(), true);
 
         // Verify init hook
         let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
@@ -686,7 +675,7 @@ mod tests {
         assert_eq!(run_hook_content, expected_run_hook);
 
         // Recompiling again results in no changes
-        assert_eq!(hook_table.compile(&service_group, &ctx), false);
+        assert!(!hook_table.compile(&service_group, &ctx).changed());
 
         // Re-Verify init hook
         let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));

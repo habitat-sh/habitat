@@ -41,8 +41,6 @@
       "specs_path": "/hab/sup/default/specs",
       "sup_root": "/hab/sup/default"
     },
-    "needs_reconfiguration": false,
-    "needs_reload": false,
     "pkg": {
       "deps": [
         {

@@ -18,7 +18,8 @@ mod supervisor;
 mod terminator;
 
 use self::{context::RenderContext,
-           hooks::HookTable,
+           hooks::{HookChangeTable,
+                   HookTable},
            supervisor::Supervisor};
 pub use self::{health::HealthCheckResult,
                hooks::HealthCheckHook,
@@ -135,6 +136,7 @@ pub struct Service {
     pub initialized:         bool,
     pub user_config_updated: bool,
     pub shutdown_timeout:    Option<ShutdownTimeout>,
+    pub needs_restart:       bool,
 
     config_renderer: CfgRenderer,
     // Note: This field is really only needed for serializing a
@@ -149,8 +151,6 @@ pub struct Service {
     // :(
     health_check_result: Arc<Mutex<HealthCheckResult>>,
     last_election_status: ElectionStatus,
-    needs_reload: bool,
-    needs_reconfiguration: bool,
     /// The mapping of bind name to a service group, specified by the
     /// user when the service definition was loaded into the Supervisor.
     binds: Vec<ServiceBind>,
@@ -182,9 +182,6 @@ pub struct Service {
     svc_encrypted_password: Option<String>,
     health_check_interval: HealthCheckInterval,
 
-    /// Whether a service's default configuration changed on a package
-    /// update. Used to control when templates are re-rendered.
-    defaults_updated: bool,
     gateway_state: Arc<RwLock<GatewayState>>,
 
     /// A "handle" to the never-ending future that periodically runs
@@ -223,9 +220,8 @@ impl Service {
                                             svc_hooks_path(&service_group.service())),
                      initialized: false,
                      last_election_status: ElectionStatus::None,
-                     needs_reload: false,
-                     needs_reconfiguration: false,
                      user_config_updated: false,
+                     needs_restart: false,
                      manager_fs_cfg,
                      supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
                      pkg,
@@ -241,7 +237,6 @@ impl Service {
                      config_from: spec.config_from,
                      svc_encrypted_password: spec.svc_encrypted_password,
                      health_check_interval: spec.health_check_interval,
-                     defaults_updated: false,
                      gateway_state,
                      health_check_handle: None,
                      shutdown_timeout: spec.shutdown_timeout })
@@ -297,8 +292,7 @@ impl Service {
         {
             outputln!(preamble self.service_group, "Service start failed: {}", err);
         } else {
-            self.needs_reload = false;
-            self.needs_reconfiguration = false;
+            self.needs_restart = false;
         }
 
         self.start_health_checks(executor);
@@ -417,31 +411,6 @@ impl Service {
          })
     }
 
-    /// Runs the reconfigure hook if present, otherwise restarts the service.
-    fn reload(&mut self, launcher: &LauncherCli) {
-        let _timer = hook_timer("reload");
-        self.needs_reload = false;
-        if self.process_down() || self.hooks.reload.is_none() {
-            if let Some(err) =
-                self.supervisor
-                    .lock()
-                    .expect("Couldn't lock supervisor")
-                    .restart(&self.pkg,
-                             &self.service_group,
-                             launcher,
-                             self.svc_encrypted_password.as_ref().map(String::as_ref))
-                    .err()
-            {
-                outputln!(preamble self.service_group, "Service restart failed: {}", err);
-            }
-        } else {
-            let hook = self.hooks.reload.as_ref().unwrap();
-            hook.run(&self.service_group,
-                     &self.pkg,
-                     self.svc_encrypted_password.as_ref());
-        }
-    }
-
     pub fn last_state_change(&self) -> Timespec {
         self.supervisor
             .lock()
@@ -479,14 +448,14 @@ impl Service {
             self.validate_binds(census_ring);
         }
 
-        let svc_updated = self.update_templates(census_ring);
+        let (svc_updated, hook_update_table, config_change) = self.update_templates(census_ring);
         if self.update_service_files(census_ring) {
             self.file_updated();
         }
 
         match self.topology {
             Topology::Standalone => {
-                self.execute_hooks(launcher, executor);
+                self.execute_hooks(launcher, executor, hook_update_table, config_change);
             }
             Topology::Leader => {
                 let census_group =
@@ -526,7 +495,7 @@ impl Service {
                                       leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks(launcher, executor)
+                        self.execute_hooks(launcher, executor, hook_update_table, config_change)
                     }
                 }
             }
@@ -743,14 +712,13 @@ impl Service {
     /// Compares the current state of the service to the current state of the census ring and the
     /// user-config, and re-renders all templatable content to disk.
     ///
-    /// Returns `true` if any modifications were made.
-    fn update_templates(&mut self, census_ring: &CensusRing) -> bool {
+    /// TODO (DM): Comment the return type
+    fn update_templates(&mut self, census_ring: &CensusRing) -> (bool, HookChangeTable, bool) {
         let census_group =
             census_ring.census_group_for(&self.service_group)
                        .expect("Service update failed; unable to find own service group");
         let cfg_updated_from_rumors = self.update_gossip(census_group);
-        let cfg_changed =
-            self.defaults_updated || cfg_updated_from_rumors || self.user_config_updated;
+        let cfg_changed = cfg_updated_from_rumors || self.user_config_updated;
 
         if self.user_config_updated {
             if let Err(e) = self.cfg.reload_user() {
@@ -760,29 +728,14 @@ impl Service {
             self.user_config_updated = false;
         }
 
-        self.defaults_updated = false;
-
+        // TODO (DM): Do we need to return cfg_changed? What does it actually indicate?
+        // Can we just check if HookChangeTable and config_changed?
         if cfg_changed || census_ring.changed() {
-            let (reload, reconfigure) = {
-                let ctx = self.render_context(census_ring);
-
-                // If any hooks have changed, execute the `reload` hook (if present) or restart the
-                // service.
-                let reload = self.compile_hooks(&ctx);
-
-                // If the configuration has changed, execute the `reload` and `reconfigure` hooks.
-                // Note that the configuration does not necessarily change every time the user
-                // config has (e.g. when only a comment has been added to the latter)
-                let reconfigure = self.compile_configuration(&ctx);
-
-                (reload, reconfigure)
-            };
-
-            self.needs_reload = reload;
-            self.needs_reconfiguration = reconfigure;
+            let ctx = self.render_context(census_ring);
+            (cfg_changed, self.compile_hooks(&ctx), self.compile_configuration(&ctx))
+        } else {
+            (cfg_changed, HookChangeTable::new(), false)
         }
-
-        cfg_changed
     }
 
     pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
@@ -826,7 +779,6 @@ impl Service {
     fn reconfigure(&mut self) {
         let _timer = hook_timer("reconfigure");
 
-        self.needs_reconfiguration = false;
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group,
                      &self.pkg,
@@ -893,17 +845,15 @@ impl Service {
     /// Helper for compiling hook templates into hooks.
     ///
     /// This function will also perform any necessary post-compilation tasks.
-    ///
-    /// Returns `true` if any hooks have changed.
-    fn compile_hooks(&self, ctx: &RenderContext<'_>) -> bool {
-        let changed = self.hooks.compile(&self.service_group, ctx);
+    fn compile_hooks(&self, ctx: &RenderContext<'_>) -> HookChangeTable {
+        let hook_update_table = self.hooks.compile(&self.service_group, ctx);
         if let Some(err) = self.copy_run().err() {
             outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
         }
-        if changed {
+        if hook_update_table.changed() {
             outputln!(preamble self.service_group, "Hooks recompiled");
         }
-        changed
+        hook_update_table
     }
 
     // Copy the "run" file to the svc path.
@@ -945,7 +895,11 @@ impl Service {
         win_perm::harden_path(path.as_ref())
     }
 
-    fn execute_hooks(&mut self, launcher: &LauncherCli, executor: &TaskExecutor) {
+    fn execute_hooks(&mut self,
+                     launcher: &LauncherCli,
+                     executor: &TaskExecutor,
+                     hook_update_table: HookChangeTable,
+                     config_change: bool) {
         if !self.initialized {
             if self.check_process() {
                 self.reattach(executor);
@@ -958,14 +912,17 @@ impl Service {
             }
         } else {
             self.check_process();
-            // NOTE: if you need reconfiguration and you DON'T have a
-            // reload script, you're going to restart anyway.
-            if self.needs_reload || self.process_down() || self.needs_reconfiguration {
-                self.reload(launcher);
-                if self.needs_reconfiguration {
-                    // NOTE this only runs the hook if it's defined
-                    self.reconfigure()
-                }
+            if hook_update_table.run
+               || hook_update_table.post_run
+               || self.process_down()
+               || (self.hooks.reconfigure.is_none() && config_change)
+            {
+                // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could just
+                // schedule the `stop` future, but the `Manager` wraps the `stop` future with
+                // additional functionality. Can we refactor to make this flag unnecessary?
+                self.needs_restart = true;
+            } else if config_change || hook_update_table.reconfigure {
+                self.reconfigure();
             }
         }
     }
@@ -1165,8 +1122,6 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("initialized", &s.initialized)?;
         strukt.serialize_field("last_election_status", &s.last_election_status)?;
         strukt.serialize_field("manager_fs_cfg", &s.manager_fs_cfg)?;
-        strukt.serialize_field("needs_reconfiguration", &s.needs_reconfiguration)?;
-        strukt.serialize_field("needs_reload", &s.needs_reload)?;
 
         let pkg_proxy = PkgProxy::new(&s.pkg);
         strukt.serialize_field("pkg", &pkg_proxy)?;

@@ -332,14 +332,6 @@
         ],
         "type": "object"
       },
-      "needs_reconfiguration": {
-        "description": "Does this service need to be reconfigured",
-        "type": "boolean"
-      },
-      "needs_reload": {
-        "description": "Does this service need to be reloaded",
-        "type": "boolean"
-      },
       "pkg": {
         "description": "The habitat package that this service was spawned from",
         "properties": {
@@ -560,8 +552,6 @@
       "initialized",
       "last_election_status",
       "manager_fs_cfg",
-      "needs_reconfiguration",
-      "needs_reload",
       "pkg",
       "process",
       "service_group",
