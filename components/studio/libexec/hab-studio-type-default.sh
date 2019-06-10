@@ -23,6 +23,7 @@ finish_setup() {
     # will use the outside cache key path, whereas the `_hab` function has
     # the `$FS_ROOT` set for the inside of the Studio. We're copying from
     # the outside in, using `hab` twice. I love my job.
+    # shellcheck disable=SC2154
     for key in $(echo "$HAB_ORIGIN_KEYS" | $bb tr ',' ' '); do
       # Import the secret origin key, required for signing packages
       info "Importing '$key' secret origin key"
@@ -85,7 +86,7 @@ finish_setup() {
   # (This is also why we're not using HAB_BLDR_CHANNEL for this and
   # replicating the fallback logic from hab-plan-build; it'd be too
   # easy to create an unstable studio.)
-  _hab install $HAB_STUDIO_BACKLINE_PKG
+  _hab install "$HAB_STUDIO_BACKLINE_PKG"
 
   bash_path=$(_pkgpath_for core/bash)
   coreutils_path=$(_pkgpath_for core/coreutils)

@@ -5,7 +5,7 @@ pkg_version=$(cat "$SRC_PATH/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(
-  core/hab-backline/$pkg_version
+  core/hab-backline
 )
 pkg_build_deps=(core/coreutils
                 core/tar
@@ -16,7 +16,7 @@ pkg_build_deps=(core/coreutils
 pkg_bin_dirs=(bin)
 
 do_prepare() {
-  set_runtime_env "HAB_STUDIO_BACKLINE_PKG" "$(< $(pkg_path_for core/hab-backline)/IDENT)"
+  set_runtime_env "HAB_STUDIO_BACKLINE_PKG" "$(< "$(pkg_path_for core/hab-backline)"/IDENT)"
 }
 
 do_build() {
