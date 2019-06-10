@@ -28,39 +28,22 @@ pub use crate::os::{filesystem,
 pub const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 
 // A Builder channel
-#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
-pub struct ChannelIdent(String);
-
-impl env::Config for ChannelIdent {
-    const ENVVAR: &'static str = "HAB_BLDR_CHANNEL";
-}
+env_config_string!(#[derive(Deserialize, Serialize, Clone, Debug, Eq, Hash, PartialEq)]
+                   pub ChannelIdent,
+                   HAB_BLDR_CHANNEL,
+                   ChannelIdent::STABLE);
 
 impl ChannelIdent {
+    const STABLE: &'static str = "stable";
+    const UNSTABLE: &'static str = "unstable";
+
     pub fn as_str(&self) -> &str { self.0.as_str() }
 
-    pub fn stable() -> Self { Self::from("stable") }
+    pub fn stable() -> Self { Self::from(Self::STABLE) }
 
-    pub fn unstable() -> Self { Self::from("unstable") }
-}
-
-impl From<&str> for ChannelIdent {
-    fn from(s: &str) -> Self { ChannelIdent(s.to_string()) }
-}
-
-impl From<String> for ChannelIdent {
-    fn from(s: String) -> Self { ChannelIdent(s) }
-}
-
-impl std::str::FromStr for ChannelIdent {
-    type Err = ();
-
-    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> { Ok(Self::from(s)) }
+    pub fn unstable() -> Self { Self::from(Self::UNSTABLE) }
 }
 
 impl fmt::Display for ChannelIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
-}
-
-impl Default for ChannelIdent {
-    fn default() -> Self { Self::stable() }
 }

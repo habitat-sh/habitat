@@ -1,8 +1,6 @@
-use crate::{error::{Error,
-                    Result},
-            manager::{self,
-                      service::{HealthCheckHook,
-                                HealthCheckResult}}};
+use crate::manager::{self,
+                     service::{HealthCheckHook,
+                               HealthCheckResult}};
 use actix;
 use actix_web::{http::{self,
                        StatusCode},
@@ -17,14 +15,12 @@ use actix_web::{http::{self,
                 HttpResponse,
                 Path,
                 Request};
-use habitat_common::{cli::{LISTEN_HTTP_ADDRESS_ENVVAR,
-                           LISTEN_HTTP_DEFAULT_IP,
-                           LISTEN_HTTP_DEFAULT_PORT},
+use habitat_common::{self,
                      templating::hooks,
+                     types::HttpListenAddr,
                      FeatureFlag};
 use habitat_core::{crypto,
                    env as henv,
-                   env::Config as EnvConfig,
                    service::ServiceGroup};
 use prometheus::{self,
                  CounterVec,
@@ -35,20 +31,10 @@ use prometheus::{self,
 use rustls::ServerConfig;
 use serde_json::{self,
                  Value as Json};
-use std::{cell::Cell,
-          fmt,
+use std::{self,
+          cell::Cell,
           fs::File,
-          io::{self,
-               Read},
-          net::{IpAddr,
-                SocketAddr,
-                SocketAddrV4,
-                ToSocketAddrs},
-          ops::{Deref,
-                DerefMut},
-          option,
-          result,
-          str::FromStr,
+          io::Read,
           sync::{Arc,
                  Condvar,
                  Mutex,
@@ -73,74 +59,19 @@ lazy_static! {
                                 &["path"]).unwrap();
 }
 
-#[derive(PartialEq, Eq, Debug, Clone, Copy)]
-pub struct ListenAddr(SocketAddr);
-
-impl ListenAddr {
-    pub fn new(ip: IpAddr, port: u16) -> ListenAddr { ListenAddr(SocketAddr::new(ip, port)) }
-}
-
-impl Default for ListenAddr {
-    fn default() -> ListenAddr {
-        ListenAddr(SocketAddr::V4(SocketAddrV4::new(
-            LISTEN_HTTP_DEFAULT_IP
-                .parse()
-                .expect("LISTEN_HTTP_DEFAULT_IP can not be parsed."),
-            LISTEN_HTTP_DEFAULT_PORT,
-        )))
-    }
-}
-
-impl EnvConfig for ListenAddr {
-    const ENVVAR: &'static str = LISTEN_HTTP_ADDRESS_ENVVAR;
-}
-
-impl Deref for ListenAddr {
-    type Target = SocketAddr;
-
-    fn deref(&self) -> &SocketAddr { &self.0 }
-}
-
-impl DerefMut for ListenAddr {
-    fn deref_mut(&mut self) -> &mut SocketAddr { &mut self.0 }
-}
-
-impl FromStr for ListenAddr {
-    type Err = Error;
-
-    fn from_str(val: &str) -> Result<Self> { Ok(ListenAddr(SocketAddr::from_str(val)?)) }
-}
-
-impl ToSocketAddrs for ListenAddr {
-    type Iter = option::IntoIter<SocketAddr>;
-
-    fn to_socket_addrs(&self) -> io::Result<Self::Iter> { self.0.to_socket_addrs() }
-}
-
-impl fmt::Display for ListenAddr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
-        write!(f, "{}", self.0)
-    }
-}
-
-/// This represents an environment variable that holds an authentication token for the supervisor's
-/// HTTP gateway. If the environment variable is present, then its value is the auth token and all
-/// of the HTTP endpoints will require its presence. If it's not present, then everything continues
-/// to work unauthenticated.
-#[derive(Clone, Debug, Default)]
-pub struct GatewayAuthenticationToken(Option<String>);
-
-impl FromStr for GatewayAuthenticationToken {
-    type Err = ::std::string::ParseError;
-
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        Ok(GatewayAuthenticationToken(Some(String::from(s))))
-    }
-}
-
-impl EnvConfig for GatewayAuthenticationToken {
-    const ENVVAR: &'static str = "HAB_SUP_GATEWAY_AUTH_TOKEN";
-}
+habitat_core::env_config!(
+    /// This represents an environment variable that holds an authentication token for the supervisor's
+    /// HTTP gateway. If the environment variable is present, then its value is the auth token and all
+    /// of the HTTP endpoints will require its presence. If it's not present, then everything continues
+    /// to work unauthenticated.
+    #[derive(Clone, Debug)]
+    pub GatewayAuthenticationToken,
+    Option<String>,
+    HAB_SUP_GATEWAY_AUTH_TOKEN,
+    None,
+    std::string::ParseError,
+    s,
+    Ok(GatewayAuthenticationToken(Some(String::from(s)))));
 
 #[derive(Default, Serialize)]
 struct HealthCheckBody {
@@ -261,7 +192,7 @@ pub enum ServerStartup {
 pub struct Server;
 
 impl Server {
-    pub fn run(listen_addr: ListenAddr,
+    pub fn run(listen_addr: HttpListenAddr,
                tls_config: Option<ServerConfig>,
                gateway_state: Arc<RwLock<manager::GatewayState>>,
                authentication_token: GatewayAuthenticationToken,

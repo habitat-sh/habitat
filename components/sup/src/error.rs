@@ -60,7 +60,6 @@ pub enum Error {
     InvalidKeyFile(PathBuf),
     InvalidKeyParameter(String),
     InvalidPidFile,
-    InvalidTokioThreadCount,
     InvalidTopology(String),
     InvalidUpdateStrategy(String),
     Io(io::Error),
@@ -171,9 +170,6 @@ impl fmt::Display for Error {
                 format!("Invalid parameter for key generation: {:?}", e)
             }
             Error::InvalidPidFile => "Invalid child process PID file".to_string(),
-            Error::InvalidTokioThreadCount => {
-                "Tokio thread count should be a positive integer".to_string()
-            }
             Error::InvalidTopology(ref t) => format!("Invalid topology: {}", t),
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => err.to_string(),

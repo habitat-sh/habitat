@@ -1,11 +1,11 @@
-use crate::{config::GossipListenAddr,
-            error::{Error,
+use crate::{error::{Error,
                     Result},
-            http_gateway,
             VERSION};
 use habitat_butterfly::rumor::service::SysInfo;
 use habitat_common::{outputln,
-                     types::ListenCtlAddr};
+                     types::{GossipListenAddr,
+                             HttpListenAddr,
+                             ListenCtlAddr}};
 use habitat_core;
 use std::{net::{IpAddr,
                 Ipv4Addr,
@@ -33,7 +33,7 @@ impl Sys {
     pub fn new(permanent: bool,
                gossip: GossipListenAddr,
                ctl: ListenCtlAddr,
-               http: http_gateway::ListenAddr)
+               http: HttpListenAddr)
                -> Sys {
         let ip = match lookup_ip() {
             Ok(ip) => ip,
@@ -83,8 +83,8 @@ impl Sys {
 
     pub fn gossip_listen(&self) -> SocketAddr { SocketAddr::new(self.gossip_ip, self.gossip_port) }
 
-    pub fn http_listen(&self) -> http_gateway::ListenAddr {
-        http_gateway::ListenAddr::new(self.http_gateway_ip, self.http_gateway_port)
+    pub fn http_listen(&self) -> HttpListenAddr {
+        HttpListenAddr::new(self.http_gateway_ip, self.http_gateway_port)
     }
 }
 

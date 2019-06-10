@@ -1169,7 +1169,7 @@ impl fmt::Display for Server {
 
 fn persist_loop(server: &Server) {
     habitat_core::env_config_duration!(PersistLoopPeriod,
-                                       HAB_PERSIST_LOOP_PERIOD_SECS,
+                                       HAB_PERSIST_LOOP_PERIOD_SECS => from_secs,
                                        Duration::from_secs(30));
 
     let min_loop_period: Duration = PersistLoopPeriod::configured_value().into();

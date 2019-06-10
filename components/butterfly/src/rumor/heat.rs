@@ -8,13 +8,9 @@
 //! Note that the "heat" of a rumor is tracked *per member*, and is
 //! not global.
 
-use crate::{error::Error,
-            rumor::{RumorKey,
-                    RumorType}};
-use habitat_core::env::Config as EnvConfig;
+use crate::rumor::{RumorKey,
+                   RumorType};
 use std::{collections::HashMap,
-          result,
-          str::FromStr,
           sync::{Arc,
                  RwLock}};
 
@@ -23,43 +19,24 @@ use std::{collections::HashMap,
 // TODO (CM): what do we do with rumors that have officially
 // "cooled off"? Can we just remove them?
 
-/// The number of times that a rumor will be shared with a given
-/// member before we stop sending it to that same member.
-///
-/// This is roughly analogous to the parameter `k` (used as a
-/// blind counter) in the paper _Epidemic Algorithms for
-/// Replicated Database Maintenance_ by Demers, et al., Section
-/// 1.4 "Complex Epidemics", subsection "Variations".
-///
-/// (To correspond more closely with the paper, this should be used on
-/// a per rumor basis, though, instead of a per rumor/member basis. As
-/// it is, this Supervisor will share each rumor `RumorShareLimit*n`
-/// times, where `n` is the number of Supervisors in the network.)
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
-struct RumorShareLimit(usize);
-
-impl Default for RumorShareLimit {
-    /// Share a rumor with a member twice.
-    fn default() -> Self { RumorShareLimit(2) }
-}
-
-impl FromStr for RumorShareLimit {
-    type Err = Error;
-
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        let raw = s.parse::<usize>()
-                   .map_err(|_| Error::InvalidRumorShareLimit)?;
-        if raw > 0 {
-            Ok(RumorShareLimit(raw))
-        } else {
-            Err(Error::InvalidRumorShareLimit)
-        }
-    }
-}
-
-impl EnvConfig for RumorShareLimit {
-    const ENVVAR: &'static str = "HAB_RUMOR_SHARE_LIMIT";
-}
+habitat_core::env_config_int!(/// The number of times that a rumor will be shared with a given
+                              /// member before we stop sending it to that same member.
+                              ///
+                              /// This is roughly analogous to the parameter `k` (used as a
+                              /// blind counter) in the paper _Epidemic Algorithms for
+                              /// Replicated Database Maintenance_ by Demers, et al., Section
+                              /// 1.4 "Complex Epidemics", subsection "Variations".
+                              ///
+                              /// (To correspond more closely with the paper, this should be used
+                              /// on a per rumor basis, though,
+                              /// instead of a per rumor/member basis. As
+                              /// it is, this Supervisor will share each rumor `RumorShareLimit*n`
+                              /// times, where `n` is the number of Supervisors in the network.)
+                              #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+                              RumorShareLimit,
+                              usize,
+                              HAB_RUMOR_SHARE_LIMIT,
+                              2);
 
 /// Tracks the number of times a given rumor has been sent to each
 /// member of the supervision ring. This models the "heat" of a

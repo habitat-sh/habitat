@@ -32,7 +32,6 @@ use self::{action::{ShutdownSpec,
            user_config_watcher::UserConfigWatcher};
 use crate::{census::{CensusRing,
                      CensusRingProxy},
-            config::GossipListenAddr,
             ctl_gateway::{self,
                           acceptor::CtlAcceptor,
                           CtlRequest},
@@ -54,13 +53,14 @@ use habitat_butterfly::{member::Member,
                                  Suitability},
                         trace::Trace};
 use habitat_common::{outputln,
-                     types::ListenCtlAddr,
+                     types::{GossipListenAddr,
+                             HttpListenAddr,
+                             ListenCtlAddr},
                      FeatureFlag};
 #[cfg(unix)]
 use habitat_core::os::signals::SignalEvent;
 use habitat_core::{crypto::SymKey,
-                   env::{self,
-                         Config},
+                   env,
                    fs::FS_ROOT_PATH,
                    os::{process::{self,
                                   Pid,
@@ -102,7 +102,6 @@ use std::{collections::{HashMap,
           net::SocketAddr,
           path::{Path,
                  PathBuf},
-          result,
           str::FromStr,
           sync::{atomic::{AtomicBool,
                           Ordering},
@@ -209,7 +208,7 @@ pub struct ManagerConfig {
     pub update_channel:      ChannelIdent,
     pub gossip_listen:       GossipListenAddr,
     pub ctl_listen:          ListenCtlAddr,
-    pub http_listen:         http_gateway::ListenAddr,
+    pub http_listen:         HttpListenAddr,
     pub http_disable:        bool,
     pub gossip_peers:        Vec<SocketAddr>,
     pub gossip_permanent:    bool,
@@ -1588,38 +1587,13 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
 }
 
 /// Represents how many threads to start for our main Tokio runtime
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
-struct TokioThreadCount(usize);
-
-impl Default for TokioThreadCount {
-    fn default() -> Self {
-        // This is the same internal logic used in Tokio itself.
-        // https://docs.rs/tokio/0.1.12/src/tokio/runtime/builder.rs.html#68
-        TokioThreadCount(num_cpus::get().max(1))
-    }
-}
-
-impl FromStr for TokioThreadCount {
-    type Err = Error;
-
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        let raw = s.parse::<usize>()
-                   .map_err(|_| Error::InvalidTokioThreadCount)?;
-        if raw > 0 {
-            Ok(TokioThreadCount(raw))
-        } else {
-            Err(Error::InvalidTokioThreadCount)
-        }
-    }
-}
-
-impl env::Config for TokioThreadCount {
-    const ENVVAR: &'static str = "HAB_TOKIO_THREAD_COUNT";
-}
-
-impl Into<usize> for TokioThreadCount {
-    fn into(self) -> usize { self.0 }
-}
+habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+                              TokioThreadCount,
+                              usize,
+                              HAB_TOKIO_THREAD_COUNT,
+                              // This is the same internal logic used in Tokio itself.
+                              // https://docs.rs/tokio/0.1.12/src/tokio/runtime/builder.rs.html#68
+                              num_cpus::get().max(1));
 
 #[derive(Debug)]
 struct SuitabilityLookup(Arc<RwLock<HashMap<PackageIdent, Service>>>);
@@ -1788,7 +1762,7 @@ mod test {
                             update_channel:      ChannelIdent::default(),
                             gossip_listen:       GossipListenAddr::default(),
                             ctl_listen:          ListenCtlAddr::default(),
-                            http_listen:         http_gateway::ListenAddr::default(),
+                            http_listen:         HttpListenAddr::default(),
                             http_disable:        false,
                             gossip_peers:        vec![],
                             gossip_permanent:    false,
@@ -1847,15 +1821,6 @@ mod test {
             let tc = lock_thread_count();
             tc.set("128");
             assert_eq!(TokioThreadCount::configured_value().0, 128);
-        }
-
-        #[test]
-        fn cannot_be_overridden_to_zero() {
-            let tc = lock_thread_count();
-            tc.set("0");
-
-            assert_ne!(TokioThreadCount::configured_value().0, 0);
-            assert_eq!(TokioThreadCount::configured_value().0, num_cpus::get());
         }
 
     }

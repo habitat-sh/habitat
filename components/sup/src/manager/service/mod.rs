@@ -1170,21 +1170,20 @@ impl<'a> Serialize for ServiceProxy<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{config::GossipListenAddr,
-                http_gateway,
-                test_helpers::*};
-    use habitat_common::types::ListenCtlAddr;
+    use crate::test_helpers::*;
+    use habitat_common::types::{GossipListenAddr,
+                                HttpListenAddr,
+                                ListenCtlAddr};
     use serde_json;
     use std::str::FromStr;
 
     fn initialize_test_service() -> Service {
         let listen_ctl_addr =
             ListenCtlAddr::from_str("127.0.0.1:1234").expect("Can't parse IP into SocketAddr");
-        let http_addr = http_gateway::ListenAddr::default();
         let sys = Sys::new(false,
                            GossipListenAddr::default(),
                            listen_ctl_addr,
-                           http_addr);
+                           HttpListenAddr::default());
 
         let ident = if cfg!(target_os = "linux") {
             PackageIdent::new("core", "tree", Some("1.7.0"), Some("20180609045201"))

@@ -26,13 +26,13 @@ use crate::sup::{cli::cli,
                            PROC_LOCK_FILE},
                  util};
 use clap::ArgMatches;
-use habitat_common::{cli::{cache_key_path_from_matches,
-                           GOSSIP_DEFAULT_PORT},
+use habitat_common::{cli::cache_key_path_from_matches,
                      command::package::install::InstallSource,
                      output::{self,
                               OutputFormat,
                               OutputVerbosity},
                      outputln,
+                     types::GossipListenAddr,
                      ui::{NONINTERACTIVE_ENVVAR,
                           UI},
                      FeatureFlag};
@@ -54,8 +54,7 @@ use habitat_sup_protocol::{ctl::ServiceBindList,
 use std::{env,
           io::{self,
                Write},
-          net::{Ipv4Addr,
-                SocketAddr,
+          net::{SocketAddr,
                 ToSocketAddrs},
           path::{Path,
                  PathBuf},
@@ -219,6 +218,7 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         None
     };
 
+    #[rustfmt::skip]
     let cfg = ManagerConfig {
         auto_update: m.is_present("AUTO_UPDATE"),
         custom_state_path: None, // remove entirely?
@@ -231,46 +231,13 @@ fn mgrcfg_from_sup_run_matches(m: &ArgMatches,
         ring_key: get_ring_key(m, &cache_key_path_from_matches(m))?,
         gossip_peers: get_peers(m)?,
         watch_peer_file: m.value_of("PEER_WATCH_FILE").map(str::to_string),
-        // TODO: Refactor this to remove the duplication
         gossip_listen: if m.is_present("LOCAL_GOSSIP_MODE") {
-            // When local gossip mode is used we still startup the gossip layer but set
-            // it to listen on 127.0.0.2 to scope it to the local node.
-            sup::config::GossipListenAddr::new(Ipv4Addr::new(127, 0, 0, 2), GOSSIP_DEFAULT_PORT)
+            GossipListenAddr::local_only()
         } else {
-            m.value_of("LISTEN_GOSSIP").map_or_else(
-                || {
-                    let default = sup::config::GossipListenAddr::default();
-                    error!(
-                        "Value for LISTEN_GOSSIP has not been set. Using default: {}",
-                        default
-                    );
-                    Ok(default)
-                },
-                str::parse,
-            )?
+            m.value_of("LISTEN_GOSSIP").and_then(|s| s.parse().ok()).unwrap_or_default()
         },
-        ctl_listen: m.value_of("LISTEN_CTL").map_or_else(
-            || {
-                let default = habitat_common::types::ListenCtlAddr::default();
-                error!(
-                    "Value for LISTEN_CTL has not been set. Using default: {}",
-                    default
-                );
-                Ok(default)
-            },
-            str::parse,
-        )?,
-        http_listen: m.value_of("LISTEN_HTTP").map_or_else(
-            || {
-                let default = sup::http_gateway::ListenAddr::default();
-                error!(
-                    "Value for LISTEN_HTTP has not been set. Using default: {}",
-                    default
-                );
-                Ok(default)
-            },
-            str::parse,
-        )?,
+        ctl_listen: m.value_of("LISTEN_CTL").and_then(|s| s.parse().ok()).unwrap_or_default(),
+        http_listen: m.value_of("LISTEN_HTTP").and_then(|s| s.parse().ok()).unwrap_or_default(),
         tls_config: m.value_of("KEY_FILE").map(|kf| {
             let cert_path = m
                 .value_of("CERT_FILE")
@@ -302,7 +269,7 @@ fn get_peers(matches: &ArgMatches) -> Result<Vec<SocketAddr>> {
             let peer_addr = if peer.find(':').is_some() {
                 peer.to_string()
             } else {
-                format!("{}:{}", peer, GOSSIP_DEFAULT_PORT)
+                format!("{}:{}", peer, GossipListenAddr::DEFAULT_PORT)
             };
             let addrs: Vec<SocketAddr> = match peer_addr.to_socket_addrs() {
                 Ok(addrs) => addrs.collect(),
@@ -491,10 +458,10 @@ fn update_svc_load_from_input(m: &ArgMatches,
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::sup::{config::GossipListenAddr,
-                     http_gateway};
     use habitat_common::{locked_env_var,
-                         types::ListenCtlAddr};
+                         types::{GossipListenAddr,
+                                 HttpListenAddr,
+                                 ListenCtlAddr}};
 
     fn no_feature_flags() -> FeatureFlag { FeatureFlag::empty() }
 
@@ -575,15 +542,15 @@ mod test {
         fn http_listen_should_be_set() {
             let config = config_from_cmd_str("hab-sup run --listen-http 2.2.2.2:2222");
             let expected_addr =
-                http_gateway::ListenAddr::from_str("2.2.2.2:2222").expect("Could not create http \
-                                                                           listen addr");
+                HttpListenAddr::from_str("2.2.2.2:2222").expect("Could not create http listen \
+                                                                 addr");
             assert_eq!(config.http_listen, expected_addr);
         }
 
         #[test]
         fn http_listen_is_set_default_when_not_specified() {
             let config = config_from_cmd_str("hab-sup run");
-            let expected_addr = http_gateway::ListenAddr::default();
+            let expected_addr = HttpListenAddr::default();
             assert_eq!(config.http_listen, expected_addr);
         }
 
@@ -648,7 +615,9 @@ mod test {
             let expected_peers: Vec<SocketAddr> =
                 vec!["1.1.1.1", "2.2.2.2", "3.3.3.3"].into_iter()
                                                      .map(|peer| {
-                                                         format!("{}:{}", peer, GOSSIP_DEFAULT_PORT)
+                                                         format!("{}:{}",
+                                                                 peer,
+                                                                 GossipListenAddr::DEFAULT_PORT)
                                                      })
                                                      .flat_map(|peer| {
                                                          peer.to_socket_addrs()

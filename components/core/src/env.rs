@@ -95,7 +95,8 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
 #[macro_export]
 macro_rules! env_config {
     (
-        $wrapping_type:ident,
+        $(#[$attr:meta])*
+        $vis:vis $wrapping_type:ident,
         $wrapped_type:ty,
         $env_var:ident,
         $default_value:expr,
@@ -103,9 +104,11 @@ macro_rules! env_config {
         $from_str_input:ident,
         $from_str_return:expr
     ) => {
+        #[allow(unused_imports)]
         use $crate::env::Config as _;
 
-        struct $wrapping_type($wrapped_type);
+        $(#[$attr])*
+        $vis struct $wrapping_type($wrapped_type);
         // A little trickery to avoid env var name collisions:
         // This enum can't ever be instantiated, but the compiler will give
         // an error if two invocations in a namespace give the same env_var.
@@ -136,7 +139,7 @@ macro_rules! env_config {
 }
 
 /// Declare a struct `$wrapping_type` that stores a `std::time::Duration` and
-/// implements the `Config` trait so that its value can be overridden by `$env_var_as_secs`.
+/// implements the `Config` trait so that its value can be overridden by `$env_var`.
 ///
 /// This is a thin wrapper around `env_config`. See its documentation for more details.
 ///
@@ -144,19 +147,20 @@ macro_rules! env_config {
 /// ```
 /// use std::time::Duration;
 /// habitat_core::env_config_duration!(PersistLoopPeriod,
-///                                    HAB_PERSIST_LOOP_PERIOD_SECS,
+///                                    HAB_PERSIST_LOOP_PERIOD_SECS => from_secs,
 ///                                    Duration::from_secs(30));
 /// ```
 #[macro_export]
 macro_rules! env_config_duration {
-    ($wrapping_type:ident, $env_var_as_secs:ident, $default_value:expr) => {
-        $crate::env_config!($wrapping_type,
+    ($wrapping_type:ident, $env_var:ident => $from_str_fn:ident, $default_value:expr) => {
+        $crate::env_config!(#[derive(Debug)]
+                            $wrapping_type,
                             std::time::Duration,
-                            $env_var_as_secs,
+                            $env_var,
                             $default_value,
                             std::num::ParseIntError,
                             s,
-                            Ok(Self(std::time::Duration::from_secs(s.parse()?))));
+                            Ok(Self(std::time::Duration::$from_str_fn(s.parse()?))));
     };
 }
 
@@ -167,15 +171,19 @@ macro_rules! env_config_duration {
 ///
 /// Example usage:
 /// ```
-/// use std::time::Duration;
-/// habitat_core::env_config_duration!(ThreadAliveThreshold,
-///                                    HAB_THREAD_ALIVE_THRESHOLD_SECS,
-///                                    Duration::from_secs(5 * 60));
+/// habitat_core::env_config_int!(RecvTimeoutMillis, i32, HAB_PULL_RECV_TIMEOUT_MS, 5_000);
+///
+/// habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+///                               TokioThreadCount,
+///                               usize,
+///                               HAB_TOKIO_THREAD_COUNT,
+///                               num_cpus::get().max(1));
 /// ```
 #[macro_export]
 macro_rules! env_config_int {
-    ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
-        $crate::env_config!($wrapping_type,
+    ($(#[$attr:meta])* $wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!($(#[$attr])*
+                            $wrapping_type,
                             $type,
                             $env_var,
                             $default_value,
@@ -183,6 +191,145 @@ macro_rules! env_config_int {
                             s,
                             Ok(Self((s.parse()?))));
     };
+
+    ($wrapping_type:ident, $type:ty, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!(#[derive(Debug)],
+                            $wrapping_type,
+                            $type,
+                            $env_var,
+                            $default_value,
+                            std::num::ParseIntError,
+                            s,
+                            Ok(Self((s.parse()?))));
+    };
+}
+
+/// Declare a struct `$wrapping_type` that stores a `String` and
+/// implements the `Config` trait so that its value can be overridden by `$env_var`.
+///
+/// This is a thin wrapper around `env_config`. See its documentation for more details.
+///
+/// Example usage:
+/// ```
+/// impl ChannelIdent {
+///    const STABLE: &'static str = "stable";
+/// }
+///
+/// habitat_core::env_config_string!(#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+///                                  pub ChannelIdent,
+///                                  HAB_BLDR_CHANNEL,
+///                                  ChannelIdent::STABLE);
+/// ```
+#[macro_export]
+macro_rules! env_config_string {
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_value:expr) => {
+        $crate::env_config!($(#[$attr])*
+                            $vis $wrapping_type,
+                            String,
+                            $env_var,
+                            $default_value.to_string(),
+                            std::convert::Infallible,
+                            s,
+                            Ok(Self(s.to_string())));
+
+        impl std::convert::From<&str> for $wrapping_type {
+            fn from(s: &str) -> Self { Self(s.to_string()) }
+        }
+
+        impl std::convert::From<String> for $wrapping_type {
+            fn from(s: String) -> Self { Self(s) }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! default_as_str {
+    ($wrapping_type:ident) => {
+        impl $wrapping_type {
+            pub fn default_as_str() -> &'static str {
+                lazy_static::lazy_static! {
+                    pub static ref DEFAULT: String = { $wrapping_type::default().to_string() };
+                }
+                &DEFAULT
+            }
+        }
+    };
+}
+
+/// Declare a struct `$wrapping_type` that stores a `SocketAddr` and
+/// implements the `Config` trait so that its value can be overridden by `$env_var`.
+///
+/// This is a thin wrapper around `env_config`. See its documentation for more details.
+///
+/// Example usage:
+/// ```
+/// use std::net::Ipv4Addr;
+/// habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+///                                      pub ListenCtlAddr,
+///                                      HAB_LISTEN_CTL,
+///                                      Ipv4Addr::LOCALHOST, Self::DEFAULT_PORT);
+///
+/// impl ListenCtlAddr {
+///    pub const DEFAULT_PORT: u16 = 9632;
+/// }
+///
+/// habitat_core::env_config_socketaddr!(#[derive(PartialEq, Eq, Debug, Clone, Copy)]
+///                                      pub HttpListenAddr,
+///                                      HAB_LISTEN_HTTP,
+///                                      0, 0, 0, 0, 9631);
+/// ```
+#[macro_export]
+macro_rules! env_config_socketaddr {
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip:expr, $default_port:expr) => {
+        $crate::env_config!($(#[$attr])*
+                            $vis $wrapping_type,
+                            std::net::SocketAddr,
+                            $env_var,
+                            std::net::SocketAddr::V4(std::net::SocketAddrV4::new($default_ip, $default_port)),
+                            std::net::AddrParseError,
+                            val,
+                            Ok(val.parse::<std::net::SocketAddr>()?.into()));
+
+        $crate::default_as_str!($wrapping_type);
+
+        impl From<std::net::SocketAddr> for $wrapping_type {
+            fn from(socket_addr: std::net::SocketAddr) -> Self { Self(socket_addr) }
+        }
+
+        impl std::fmt::Display for $wrapping_type {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+                write!(f, "{}", self.0)
+            }
+        }
+    };
+
+    ($(#[$attr:meta])* $vis:vis $wrapping_type:ident, $env_var:ident, $default_ip_a:literal, $default_ip_b:literal, $default_ip_c:literal, $default_ip_d:literal, $default_port:expr) => {
+        $crate::env_config!($(#[$attr])*
+                            $vis $wrapping_type,
+                            std::net::SocketAddr,
+                            $env_var,
+                            std::net::SocketAddr::V4(std::net::SocketAddrV4::new(std::net::Ipv4Addr::new($default_ip_a,
+                                                                                     $default_ip_b,
+                                                                                     $default_ip_c,
+                                                                                     $default_ip_d),
+                                                             $default_port)),
+                            std::net::AddrParseError,
+                            val,
+                            Ok(val.parse::<std::net::SocketAddr>()?.into()));
+
+        $crate::default_as_str!($wrapping_type);
+
+        impl From<std::net::SocketAddr> for $wrapping_type {
+            fn from(socket_addr: std::net::SocketAddr) -> Self { Self(socket_addr) }
+        }
+
+        impl std::fmt::Display for $wrapping_type {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {
+                write!(f, "{}", self.0)
+            }
+        }
+    };
+
 }
 
 /// Enable the creation of a value based on an environment variable

@@ -8,34 +8,25 @@ use habitat_butterfly;
 use habitat_common::{outputln,
                      ui::UI};
 use habitat_core::{env as henv,
-                   env::Config as EnvConfig,
                    package::{PackageIdent,
                              PackageInstall,
                              PackageTarget},
                    service::ServiceGroup,
                    ChannelIdent};
-use std::{cmp::{Ordering,
-                PartialOrd},
+use std::{self,
           collections::HashMap,
-          num::ParseIntError,
-          result,
-          str::FromStr,
           sync::mpsc::{channel,
                        Receiver,
                        Sender,
                        TryRecvError},
           thread,
-          time};
-use time_crate::{Duration,
-                 SteadyTime};
+          time::{Duration,
+                 Instant}};
 
 static LOGKEY: &'static str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not
 // "frequency"... we need to fix that.
 const PERIOD_BYPASS_CHECK_ENVVAR: &str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";
-lazy_static! {
-    static ref MIN_ALLOWED_PERIOD: Duration = Duration::seconds(60);
-}
 
 type UpdaterStateList = HashMap<ServiceGroup, UpdaterState>;
 
@@ -344,43 +335,14 @@ impl ServiceUpdater {
 
 /// Represents how far apart checks for updates to individual services
 /// are, in milliseconds.
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct ServiceUpdatePeriod(Duration);
+habitat_core::env_config_duration!(ServiceUpdatePeriod,
+                                   // TODO (CM): Yes, the variable value should be "period" and not
+                                   // "frequency"... we need to fix that.
+                                   HAB_UPDATE_STRATEGY_FREQUENCY_MS => from_millis,
+                                   ServiceUpdatePeriod::MIN_ALLOWED);
 
-impl Default for ServiceUpdatePeriod {
-    fn default() -> Self { ServiceUpdatePeriod(*MIN_ALLOWED_PERIOD) }
-}
-
-impl FromStr for ServiceUpdatePeriod {
-    type Err = ParseIntError;
-
-    fn from_str(s: &str) -> result::Result<Self, Self::Err> {
-        // Parsing as a u32 gives us an effective range of 49+ days
-        let raw = s.parse::<u32>()?;
-        Ok(Duration::milliseconds(i64::from(raw)).into())
-    }
-}
-
-impl From<Duration> for ServiceUpdatePeriod {
-    fn from(d: Duration) -> Self { ServiceUpdatePeriod(d) }
-}
-
-impl Into<Duration> for ServiceUpdatePeriod {
-    fn into(self) -> Duration { self.0 }
-}
-
-impl PartialOrd<Duration> for ServiceUpdatePeriod {
-    fn partial_cmp(&self, other: &Duration) -> Option<Ordering> { Some(self.0.cmp(other)) }
-}
-
-impl PartialEq<Duration> for ServiceUpdatePeriod {
-    fn eq(&self, other: &Duration) -> bool { self.0 == *other }
-}
-
-impl EnvConfig for ServiceUpdatePeriod {
-    // TODO (CM): Yes, the variable value should be "period" and not
-    // "frequency"... we need to fix that.
-    const ENVVAR: &'static str = "HAB_UPDATE_STRATEGY_FREQUENCY_MS";
+impl ServiceUpdatePeriod {
+    const MIN_ALLOWED: Duration = Duration::from_secs(60);
 }
 
 struct Worker {
@@ -395,10 +357,11 @@ impl Periodic for Worker {
     // instead of re-checking every time.
     fn update_period(&self) -> Duration {
         let val = ServiceUpdatePeriod::configured_value().into();
-        if val >= *MIN_ALLOWED_PERIOD || henv::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok() {
+        if val >= ServiceUpdatePeriod::MIN_ALLOWED || henv::var(PERIOD_BYPASS_CHECK_ENVVAR).is_ok()
+        {
             val
         } else {
-            *MIN_ALLOWED_PERIOD
+            ServiceUpdatePeriod::MIN_ALLOWED
         }
     }
 }
@@ -464,7 +427,7 @@ impl Worker {
         // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
         let install_source = (ident, PackageTarget::active_target()).into();
-        let mut next_time = SteadyTime::now();
+        let mut next_time = Instant::now();
 
         loop {
             match kill_rx.try_recv() {
@@ -479,7 +442,7 @@ impl Worker {
                 }
             }
 
-            if SteadyTime::now() >= next_time {
+            if Instant::now() >= next_time {
                 match util::pkg::install(// We don't want anything in here to print
                                          &mut UI::with_sinks(),
                                          &self.builder_url,
@@ -497,7 +460,7 @@ impl Worker {
                 next_time = self.next_period_start();
             }
 
-            thread::sleep(time::Duration::from_secs(1));
+            thread::sleep(Duration::from_secs(1));
         }
     }
 
@@ -505,7 +468,7 @@ impl Worker {
     /// when found.
     fn run_poll(&mut self, sender: &Sender<PackageInstall>, kill_rx: &Receiver<()>) {
         let install_source = (self.spec_ident.clone(), PackageTarget::active_target()).into();
-        let mut next_time = SteadyTime::now();
+        let mut next_time = Instant::now();
 
         loop {
             habitat_common::sync::mark_thread_alive();
@@ -522,7 +485,7 @@ impl Worker {
                 }
             }
 
-            if SteadyTime::now() >= next_time {
+            if Instant::now() >= next_time {
                 match util::pkg::install(// We don't want anything in here to print
                                          &mut UI::with_sinks(),
                                          &self.builder_url,
@@ -549,7 +512,7 @@ impl Worker {
                 next_time = self.next_period_start();
             }
 
-            thread::sleep(time::Duration::from_secs(1));
+            thread::sleep(Duration::from_secs(1));
         }
     }
 }
@@ -561,7 +524,8 @@ mod tests {
 
     #[test]
     fn default_update_period_is_equal_to_minimum_allowed_value() {
-        assert_eq!(ServiceUpdatePeriod::default().0, *MIN_ALLOWED_PERIOD);
+        assert_eq!(ServiceUpdatePeriod::default().0,
+                   ServiceUpdatePeriod::MIN_ALLOWED);
     }
 
     locked_env_var!(HAB_UPDATE_STRATEGY_FREQUENCY_MS, lock_period_var);
@@ -577,6 +541,7 @@ mod tests {
 
     #[test]
     fn service_update_period_must_be_positive() {
+        use std::str::FromStr as _;
         assert!(ServiceUpdatePeriod::from_str("-123").is_err());
         assert!(ServiceUpdatePeriod::from_str("0").is_ok());
         assert!(ServiceUpdatePeriod::from_str("5").is_ok());
@@ -591,8 +556,8 @@ mod tests {
         period.set("123");
         bypass.set(""); // empty string isn't allowed
 
-        assert_ne!(worker.update_period(), Duration::milliseconds(123));
-        assert_eq!(ServiceUpdatePeriod::default(), worker.update_period());
+        assert_ne!(worker.update_period(), Duration::from_millis(123));
+        assert_eq!(ServiceUpdatePeriod::default().0, worker.update_period());
     }
 
     #[test]
@@ -604,7 +569,7 @@ mod tests {
         period.unset();
         bypass.unset();
 
-        assert_eq!(ServiceUpdatePeriod::default(), worker.update_period());
+        assert_eq!(ServiceUpdatePeriod::default().0, worker.update_period());
     }
 
     #[test]
@@ -615,9 +580,10 @@ mod tests {
 
         period.set("120000");
         bypass.unset();
-        let expected_period: ServiceUpdatePeriod = Duration::milliseconds(120_000).into();
-        assert!(expected_period >= *MIN_ALLOWED_PERIOD);
-        assert_eq!(expected_period, worker.update_period());
+        let expected_period: ServiceUpdatePeriod =
+            ServiceUpdatePeriod(Duration::from_millis(120_000));
+        assert!(expected_period.0 >= ServiceUpdatePeriod::MIN_ALLOWED);
+        assert_eq!(expected_period.0, worker.update_period());
     }
 
     #[test]
@@ -628,8 +594,8 @@ mod tests {
 
         period.set("1"); // This is TOO low
         bypass.unset();
-        assert!(Duration::milliseconds(1) < *MIN_ALLOWED_PERIOD);
-        assert_eq!(ServiceUpdatePeriod::default(), worker.update_period());
+        assert!(Duration::from_millis(1) < ServiceUpdatePeriod::MIN_ALLOWED);
+        assert_eq!(ServiceUpdatePeriod::default().0, worker.update_period());
     }
 
     #[test]
@@ -640,7 +606,7 @@ mod tests {
 
         period.set("this is not a number");
         bypass.unset();
-        assert_eq!(ServiceUpdatePeriod::default(), worker.update_period());
+        assert_eq!(ServiceUpdatePeriod::default().0, worker.update_period());
     }
 
     #[test]
@@ -651,8 +617,8 @@ mod tests {
 
         period.set("5000");
         bypass.set("1");
-        let expected_period: ServiceUpdatePeriod = Duration::milliseconds(5000).into();
-        assert!(expected_period < *MIN_ALLOWED_PERIOD);
-        assert_eq!(expected_period, worker.update_period());
+        let expected_period: ServiceUpdatePeriod = ServiceUpdatePeriod(Duration::from_millis(5000));
+        assert!(expected_period.0 < ServiceUpdatePeriod::MIN_ALLOWED);
+        assert_eq!(expected_period.0, worker.update_period());
     }
 }

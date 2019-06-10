@@ -5,14 +5,11 @@
 use super::spec_dir::SpecDir;
 use crate::error::{Error,
                    Result};
-use habitat_core::env::Config as EnvConfig;
 use notify::{DebouncedEvent,
              RecommendedWatcher,
              RecursiveMode,
              Watcher};
-use std::{num::ParseIntError,
-          str::FromStr,
-          sync::mpsc,
+use std::{sync::mpsc,
           thread::Builder,
           time::Duration};
 
@@ -22,37 +19,17 @@ use std::{num::ParseIntError,
 /// too-granular a series of events.
 ///
 /// See https://docs.rs/notify/4.0.6/notify/trait.Watcher.html#tymethod.new
-struct SpecWatcherDelay(Duration);
-
-impl From<Duration> for SpecWatcherDelay {
-    fn from(d: Duration) -> SpecWatcherDelay { SpecWatcherDelay(d) }
-}
-
-impl Default for SpecWatcherDelay {
-    fn default() -> Self {
-        // There's nothing particularly magical about 2s, particularly
-        // since we're monitoring at such a coarse level ("something
-        // happened in this directory").
-        //
-        // Smaller is probably fine, but you wouldn't want to go much
-        // higher, as this could extend the amount of time you'd need
-        // to wait before realizing you need to take action on a
-        // service.
-        Duration::from_secs(2).into()
-    }
-}
-
-impl FromStr for SpecWatcherDelay {
-    type Err = ParseIntError;
-
-    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
-        Ok(Duration::from_millis(s.parse()?).into())
-    }
-}
-
-impl EnvConfig for SpecWatcherDelay {
-    const ENVVAR: &'static str = "HAB_SPEC_WATCHER_DELAY_MS";
-}
+habitat_core::env_config_duration!(SpecWatcherDelay,
+                                   HAB_SPEC_WATCHER_DELAY_MS => from_millis,
+                                   // There's nothing particularly magical about 2s, particularly
+                                   // since we're monitoring at such a coarse level ("something
+                                   // happened in this directory").
+                                   //
+                                   // Smaller is probably fine, but you wouldn't want to go much
+                                   // higher, as this could extend the amount of time you'd need
+                                   // to wait before realizing you need to take action on a
+                                   // service.
+                                   Duration::from_secs(2));
 
 // TODO (CM): A strong argument could be made for folding the
 // SpecWatcher functionality into SpecDir itself.
