@@ -29,10 +29,14 @@ param (
     # Options to pass to the cargo test command
     [string]$TestOptions,
     # The Rust toolchain to use and enjoy
-    [string]$Toolchain="stable"
+    [string]$Toolchain
 )
 $ErrorActionPreference="stop"
 . $PSScriptRoot\support\ci\shared.ps1
+
+if (!$Toolchain) {
+    $Toolchain = Get-Toolchain
+}
 
 if($Command -eq "Fmt") {
     $toolchain = "$(Get-Content $PSScriptRoot/RUSTFMT_VERSION)"

@@ -12,7 +12,7 @@ if [[ ${1:-} == --nightly ]]; then
   shift
   toolchain=$(get_nightly_toolchain)
 else
-  toolchain=stable
+  toolchain=$(get_toolchain)
 fi
 
 # All the remaining args are passed to cargo test +"$toolchain"

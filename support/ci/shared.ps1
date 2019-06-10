@@ -30,6 +30,10 @@ function Install-Rustup($Toolchain) {
     }
 }
 
+function Get-Toolchain {
+    "$(Get-Content $PSScriptRoot\..\..\rust-toolchain)"
+}
+
 function Install-RustToolchain($Toolchain) {
     rustup component list --toolchain $toolchain | Out-Null
     if ($LASTEXITCODE -ne 0) {
