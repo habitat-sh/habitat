@@ -152,8 +152,8 @@ macro_rules! env_config {
 /// ```
 #[macro_export]
 macro_rules! env_config_duration {
-    ($wrapping_type:ident, $env_var:ident => $from_str_fn:ident, $default_value:expr) => {
-        $crate::env_config!(#[derive(Debug)]
+    ($(#[$attr:meta])* $wrapping_type:ident, $env_var:ident => $from_str_fn:ident, $default_value:expr) => {
+        $crate::env_config!($(#[$attr])*
                             $wrapping_type,
                             std::time::Duration,
                             $env_var,

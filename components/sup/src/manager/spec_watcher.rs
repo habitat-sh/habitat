@@ -13,23 +13,24 @@ use std::{sync::mpsc,
           thread::Builder,
           time::Duration};
 
-/// How long should we wait to consolidate filesystem events?
-///
-/// This should strike a balance between responsiveness and
-/// too-granular a series of events.
-///
-/// See https://docs.rs/notify/4.0.6/notify/trait.Watcher.html#tymethod.new
-habitat_core::env_config_duration!(SpecWatcherDelay,
-                                   HAB_SPEC_WATCHER_DELAY_MS => from_millis,
-                                   // There's nothing particularly magical about 2s, particularly
-                                   // since we're monitoring at such a coarse level ("something
-                                   // happened in this directory").
-                                   //
-                                   // Smaller is probably fine, but you wouldn't want to go much
-                                   // higher, as this could extend the amount of time you'd need
-                                   // to wait before realizing you need to take action on a
-                                   // service.
-                                   Duration::from_secs(2));
+habitat_core::env_config_duration!(
+    /// How long should we wait to consolidate filesystem events?
+    ///
+    /// This should strike a balance between responsiveness and
+    /// too-granular a series of events.
+    ///
+    /// See https://docs.rs/notify/4.0.6/notify/trait.Watcher.html#tymethod.new
+    SpecWatcherDelay,
+    HAB_SPEC_WATCHER_DELAY_MS => from_millis,
+    // There's nothing particularly magical about 2s, particularly
+    // since we're monitoring at such a coarse level ("something
+    // happened in this directory").
+    //
+    // Smaller is probably fine, but you wouldn't want to go much
+    // higher, as this could extend the amount of time you'd need
+    // to wait before realizing you need to take action on a
+    // service.
+    Duration::from_secs(2));
 
 // TODO (CM): A strong argument could be made for folding the
 // SpecWatcher functionality into SpecDir itself.
