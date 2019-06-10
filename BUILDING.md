@@ -45,6 +45,36 @@ Check that `cargo` is correctly installed by running
 cargo --version
 ```
 
+Next, use our installation script to install rustfmt
+```
+./support/ci/rustfmt.sh
+```
+
+At any time, you can find the version of rustfmt we are using by running this command at the root level
+of the Habitat repo:
+
+```
+echo $(< RUSTFMT_VERSION)
+```
+
+Then you can run that version of rustfmt on any cargo project.
+
+For example, if:
+
+```
+echo $(< RUSTFMT_VERSION)
+```
+
+returns "nightly-2019-05-10"
+
+You would run:
+
+```
+cargo +nightly-2019-05-10 fmt
+```
+
+You may also be able to configure your editor to automatically run rustfmt every time you save.
+
 # Compiling habitat binaries
 
 In the root of the `habitat` repo:
