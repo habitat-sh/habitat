@@ -151,9 +151,10 @@ impl ServiceUpdater {
     /// of the newly-updated service if a new version was installed,
     /// thus signalling that the service should be restarted.
     // If we ever need to modify this function, it would be an excellent opportunity to
-    // simplify the redundant aspects and remove this allow(clippy::cyclomatic_complexity),
+    // simplify the redundant aspects and remove this allow(clippy::cognitive_complexity),
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
+    #[allow(clippy::cognitive_complexity)]
     pub fn check_for_updated_package(&mut self,
                                      service: &Service,
                                      // TODO (CM): Strictly speaking, we don't need to pass
