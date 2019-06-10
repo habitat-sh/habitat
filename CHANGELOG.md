@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- updates ruby version [#6631](https://github.com/habitat-sh/habitat/pull/6631) ([nellshamrell](https://github.com/nellshamrell))
 - use chocolatey mirror on buildkite [#6638](https://github.com/habitat-sh/habitat/pull/6638) ([mwrock](https://github.com/mwrock))
 - Update to Rust 1.35.0 [#6615](https://github.com/habitat-sh/habitat/pull/6615) ([raskchanky](https://github.com/raskchanky))
 - Add Builder provider interface [#6626](https://github.com/habitat-sh/habitat/pull/6626) ([chefsalim](https://github.com/chefsalim))
