@@ -231,7 +231,7 @@ pub mod sync {
                                  Ordering},
                         Arc};
 
-        const TEST_THRESHOLD: Duration = Duration::from_millis(10);
+        const TEST_THRESHOLD: Duration = Duration::from_secs(1);
 
         #[test]
         fn no_tracking_without_mark_thread_alive() {
