@@ -956,6 +956,16 @@ mod tests {
         }
 
         #[test]
+        fn health_of_with_memberships() {
+            let ml = populated_member_list(1);
+            ml.with_memberships(|Membership { member: _, health }| {
+                  assert_eq!(health, Health::Alive);
+                  Ok(0)
+              })
+              .ok();
+        }
+
+        #[test]
         fn pingreq_targets() {
             let ml = populated_member_list(10);
             ml.with_member_iter(|mut i| {
