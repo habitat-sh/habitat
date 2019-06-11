@@ -330,6 +330,9 @@ pub struct MemberList {
 }
 
 impl Serialize for MemberList {
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -364,10 +367,16 @@ impl MemberList {
                      update_counter:  AtomicUsize::new(0), }
     }
 
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn read_entries(&self) -> ReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.read()
     }
 
+    /// Locking:
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn write_entries(&self) -> WriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.write()
     }
@@ -459,12 +468,19 @@ impl MemberList {
     /// | Suspect   |       |           | propagate | propagate |
     /// | Confirmed |       |           |           | propagate |
     /// | Departed  |       |           |           |           |
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert(&self, incoming_member: Member, incoming_health: Health) -> bool {
         self.insert_membership(Membership { member: incoming_member,
                                             health: incoming_health, })
     }
 
+    /// Locking:
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn insert_membership(&self, incoming: Membership) -> bool {
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
@@ -496,6 +512,9 @@ impl MemberList {
         modified
     }
 
+    /// Locking:
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn set_departed(&self, member_id: &str) {
         if let Some(member_list::Entry { member, health, .. }) =
             self.write_entries().get_mut(member_id)
@@ -510,6 +529,9 @@ impl MemberList {
         }
     }
 
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn calculate_peer_health_metrics(&self) {
         let mut health_counts: HashMap<Health, i64> = HashMap::new();
 
@@ -528,9 +550,16 @@ impl MemberList {
     }
 
     /// Returns the health of the member, if the member exists.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read)
     pub fn health_of(&self, member: &Member) -> Option<Health> { self.health_of_by_id(&member.id) }
 
     /// Returns the health of the member, if the member exists.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn health_of_by_id(&self, member_id: &str) -> Option<Health> {
         self.read_entries()
             .get(member_id)
@@ -578,6 +607,10 @@ impl MemberList {
     }
 
     /// Returns a protobuf membership record for the given member id.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn membership_for(&self, member_id: &str) -> Option<Membership> {
         self.read_entries()
             .get(member_id)
@@ -588,11 +621,22 @@ impl MemberList {
     }
 
     /// Returns the number of entries.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn len(&self) -> usize { self.read_entries().len() }
 
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn is_empty(&self) -> bool { self.read_entries().is_empty() }
 
     /// A randomized list of members to check.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn check_list(&self, exclude_id: &str) -> Vec<Member> {
         let mut members: Vec<_> = self.read_entries()
                                       .values()
@@ -605,6 +649,11 @@ impl MemberList {
     }
 
     /// Takes a function whose first argument is a member, and calls it for every pingreq target.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
+    ///   must not call any functions which take this lock.
     pub fn with_pingreq_targets(&self,
                                 sending_member_id: &str,
                                 target_member_id: &str,
@@ -625,6 +674,10 @@ impl MemberList {
 
     /// If an owned `Member` is required, use this. If a shared reference is
     /// good enough, use `with_member`.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn get_cloned(&self, member_id: &str) -> Option<Member> {
         self.read_entries()
             .get(member_id)
@@ -632,6 +685,11 @@ impl MemberList {
     }
 
     /// Calls a function whose argument is a reference to a membership entry matching the given ID.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
+    ///   must not call any functions which take this lock.
     pub fn with_member(&self, member_id: &str, mut with_closure: impl FnMut(Option<&Member>)) {
         with_closure(self.read_entries()
                          .get(member_id)
@@ -639,12 +697,24 @@ impl MemberList {
     }
 
     /// Iterates over the member list, calling the function for each member.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
+    ///   must not call any functions which take this lock.
     pub fn with_members(&self, mut with_closure: impl FnMut(&Member)) {
         for member_list::Entry { member, .. } in self.read_entries().values() {
             with_closure(member);
         }
     }
 
+    /// Iterates over the memberships list, calling the function for each membership.
+    /// This could be return Result<T> instead, but there's only the one caller now.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
+    ///   must not call any functions which take this lock.
     pub fn with_memberships<T: Default>(&self,
                                         mut with_closure: impl FnMut(Membership) -> Result<T>)
                                         -> Result<T> {
@@ -687,6 +757,10 @@ impl MemberList {
     /// `Confirmed` for longer than the given `timeout`.
     ///
     /// The newly-updated health status is recorded properly.
+    ///
+    /// Locking:
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     // TODO (CM): Better return type than Vec<String>
     fn members_expired_to(&self, expiring_to: Health, timeout: Duration) -> Vec<String> {
         let now = SteadyTime::now();
@@ -720,6 +794,9 @@ impl MemberList {
         expired
     }
 
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn contains_member(&self, member_id: &str) -> bool {
         self.read_entries().contains_key(member_id)
     }
@@ -733,6 +810,9 @@ impl<'a> MemberListProxy<'a> {
 }
 
 impl<'a> Serialize for MemberListProxy<'a> {
+    /// Locking:
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -779,6 +859,9 @@ mod tests {
         // This is a remnant of when the MemberList::members entries were
         // simple Member structs. The tests that use this should be replaced,
         // but until then, this keeps them working.
+        /// Locking:
+        /// * `MemberList::entries` (read) This method must not be called while any
+        ///   MemberList::entries lock is held.
         fn with_member_iter<T>(&self,
                                mut with_closure: impl FnMut(hash_map::Values<'_, String, Member>)
                                      -> T)
