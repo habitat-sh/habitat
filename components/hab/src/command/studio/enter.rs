@@ -13,25 +13,44 @@ use crate::{config,
 
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 
-const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
 const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
+const BLDR_URL_ENVVAR: &str = "HAB_BLDR_URL";
+const CTL_SECRET_ENVVAR: &str= "HAB_CTL_SECRET";
+const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
 const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
 pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
+    if henv::var(AUTH_TOKEN_ENVVAR).is_err() {
+        let config = config::load()?;
+        if let Some(auth_token) = config.auth_token {
+            debug!("Setting {}={} via config file", AUTH_TOKEN_ENVVAR, &auth_token);
+            env::set_var("HAB_AUTH_TOKEN", auth_token);
+        }
+    }
+
+    if henv::var(BLDR_URL_ENVVAR).is_err() {
+        let config = config::load()?;
+        if let Some(bldr_url) = config.bldr_url {
+            debug!("Setting {}={} via config file", BLDR_URL_ENVVAR, &bldr_url);
+            env::set_var("HAB_BLDR_URL", bldr_url);
+        }
+    }
+
+    if henv::var(CTL_SECRET_ENVVAR).is_err() {
+        let config = config::load()?;
+        if let Some(ctl_secret) = config.ctl_secret {
+            debug!("Setting {}={} via config file", CTL_SECRET_ENVVAR, &ctl_secret);
+            env::set_var("CTL_SECRET_ENVVAR", ctl_secret);
+        }
+    }
+
     if henv::var(ORIGIN_ENVVAR).is_err() {
         let config = config::load()?;
         if let Some(default_origin) = config.origin {
             debug!("Setting default origin {} via CLI config", &default_origin);
             env::set_var("HAB_ORIGIN", default_origin);
-        }
-    }
-    if henv::var(AUTH_TOKEN_ENVVAR).is_err() {
-        let config = config::load()?;
-        if let Some(auth_token) = config.auth_token {
-            debug!("Setting default origin {} via CLI config", &auth_token);
-            env::set_var("HAB_AUTH_TOKEN", auth_token);
         }
     }
 
