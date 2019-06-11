@@ -15,7 +15,7 @@ pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 
 const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 const BLDR_URL_ENVVAR: &str = "HAB_BLDR_URL";
-const CTL_SECRET_ENVVAR: &str= "HAB_CTL_SECRET";
+const CTL_SECRET_ENVVAR: &str = "HAB_CTL_SECRET";
 const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
 const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
