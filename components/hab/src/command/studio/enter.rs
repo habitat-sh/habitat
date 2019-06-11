@@ -14,7 +14,7 @@ use crate::{config,
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 
 const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
-const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN"
+const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
 const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
@@ -31,7 +31,7 @@ pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         let config = config::load()?;
         if let Some(auth_token) = config.auth_token {
             debug!("Setting default origin {} via CLI config", &auth_token);
-            env::set_var("HAB_AUTH_TOKEN", auth_token;
+            env::set_var("HAB_AUTH_TOKEN", auth_token);
         }
     }
 
