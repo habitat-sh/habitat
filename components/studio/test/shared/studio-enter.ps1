@@ -8,7 +8,7 @@ $env:HAB_NOCOLORING = "true"
 # Await has trouble parsing non-ascii glyphs
 $env:HAB_GLYPH_STYLE = "ascii"  
 $exit_code = 0
-$studio_name = "/hab/studios/studio-internals-test"
+$studio_name = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("/hab/studios/studio-internals-test")
 try { 
     Start-AwaitSession 
     Send-AwaitCommand "$studio_command enter -o $studio_name" 
@@ -25,8 +25,10 @@ try {
 
 } finally { 
     Write-Host "Cleaning up"
-    Send-AwaitCommand "exit"
     
+    Send-AwaitCommand "exit"
+    Receive-AwaitResponse
+
     # Await won't block on "Waiting for supervisor to finish..." 
     # Copy the studio shutdown behavior and block for a bit until the supervisor has finished
     $retry = 0
@@ -36,8 +38,9 @@ try {
       Start-Sleep -Seconds 5
     }
 
-    Send-AwaitCommand "$studio_command rm"
-    
+    Send-AwaitCommand "$studio_command rm -o $studio_name"
+    Receive-AwaitResponse -Stream
+
     # Add the same behavior for `hab studio rm` to ensure that the studio is fully cleaned up before 
     # stopping the Await session.
     $retry = 0
