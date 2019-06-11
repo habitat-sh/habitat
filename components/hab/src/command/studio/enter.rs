@@ -21,49 +21,22 @@ const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
-// fn set_env_var(env_var: &str) -> Result<()> {
-//   let config = config::load()?;
-//   if henv::var(env_var).is_err() {
-//     if let Some(config_val) = match env_var {
-//       AUTH_TOKEN_ENVVAR => config.auth_token,
-//       _ => println!("uh oh, this shouldn't happen"),
-//     };
-//     println!("config var is: {}", config_val);
-//     env::set_var(env_var, config_val)
-//   }
-// }
-
-fn set_env_var(env_var: &str, val: String) -> Result<()> {
-    debug!("Setting {}={} via config file", env_var, &val);
-    env::set_var(env_var, val);
-    Ok(())
+fn set_env_var_from_config(env_var: &str, config_val: Option<String>) {
+    if henv::var(env_var).is_err() {
+        if let Some(val) = config_val {
+            debug!("Setting {}={} via config file", env_var, val);
+            env::set_var(env_var, val);
+        }
+    }
 }
 
 pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let config = config::load()?;
-    if henv::var(AUTH_TOKEN_ENVVAR).is_err() {
-        if let Some(auth_token) = config.auth_token {
-          set_env_var(AUTH_TOKEN_ENVVAR, auth_token)?;
-        }
-    }
 
-    if henv::var(BLDR_URL_ENVVAR).is_err() {
-        if let Some(bldr_url) = config.bldr_url {
-            set_env_var(BLDR_URL_ENVVAR, bldr_url)?;
-        }
-    }
-
-    if henv::var(CTL_SECRET_ENVVAR).is_err() {
-        if let Some(ctl_secret) = config.ctl_secret {
-            set_env_var(CTL_SECRET_ENVVAR, ctl_secret)?;
-        }
-    }
-
-    if henv::var(ORIGIN_ENVVAR).is_err() {
-        if let Some(default_origin) = config.origin {
-            set_env_var(ORIGIN_ENVVAR, default_origin)?;
-        }
-    }
+    set_env_var_from_config(AUTH_TOKEN_ENVVAR, config.auth_token);
+    set_env_var_from_config(BLDR_URL_ENVVAR, config.bldr_url);
+    set_env_var_from_config(CTL_SECRET_ENVVAR, config.ctl_secret);
+    set_env_var_from_config(ORIGIN_ENVVAR, config.origin);
 
     if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
         let path = fs::cache_key_path(None::<&str>);
