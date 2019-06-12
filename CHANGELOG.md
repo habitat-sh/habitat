@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
+- Update bldr.toml to reflect changes to the repository [#6595](https://github.com/habitat-sh/habitat/pull/6595) ([smacfarlane](https://github.com/smacfarlane))
 - [Studio][Tests] Use absolute drive path for windows studio name [#6645](https://github.com/habitat-sh/habitat/pull/6645) ([smacfarlane](https://github.com/smacfarlane))
 - adds rustfmt instructions to supported dev env [#6570](https://github.com/habitat-sh/habitat/pull/6570) ([nellshamrell](https://github.com/nellshamrell))
 - updates ruby version [#6631](https://github.com/habitat-sh/habitat/pull/6631) ([nellshamrell](https://github.com/nellshamrell))
