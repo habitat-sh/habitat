@@ -9,14 +9,15 @@ use crate::{common::ui::UI,
                     fs}};
 
 use crate::{config,
-            error::Result};
+            error::Result,
+            BLDR_URL_ENVVAR,
+            CTL_SECRET_ENVVAR,
+            ORIGIN_ENVVAR};
+
+use habitat_core::AUTH_TOKEN_ENVVAR;
 
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 
-const AUTH_TOKEN_ENVVAR: &str = "HAB_AUTH_TOKEN";
-const BLDR_URL_ENVVAR: &str = "HAB_BLDR_URL";
-const CTL_SECRET_ENVVAR: &str = "HAB_CTL_SECRET";
-const ORIGIN_ENVVAR: &str = "HAB_ORIGIN";
 const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
@@ -26,7 +27,7 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
     if henv::var(env_var).is_err() {
         if let Some(val) = config_val {
             if sensitive {
-              debug!("Setting Sensitive value {} via config file", env_var)
+              debug!("Setting {}=REDACTED (sensitive) via config file", env_var)
             }
             else {
               debug!("Setting {}={} via config file", env_var, val)
