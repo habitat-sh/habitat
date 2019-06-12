@@ -7,6 +7,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Make studio backline dependency explicit [#6549](https://github.com/habitat-sh/habitat/pull/6549) ([smacfarlane](https://github.com/smacfarlane))
 - Update bldr.toml to reflect changes to the repository [#6595](https://github.com/habitat-sh/habitat/pull/6595) ([smacfarlane](https://github.com/smacfarlane))
 - [Studio][Tests] Use absolute drive path for windows studio name [#6645](https://github.com/habitat-sh/habitat/pull/6645) ([smacfarlane](https://github.com/smacfarlane))
 - adds rustfmt instructions to supported dev env [#6570](https://github.com/habitat-sh/habitat/pull/6570) ([nellshamrell](https://github.com/nellshamrell))
