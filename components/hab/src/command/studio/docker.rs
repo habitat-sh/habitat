@@ -2,9 +2,10 @@ use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
             common::ui::UI,
             error::{Error,
                     Result},
-            hcore::{crypto::default_cache_key_path,
+            hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
                     env as henv,
-                    fs::{find_command,
+                    fs::{cache_key_path,
+                         find_command,
                          CACHE_ARTIFACT_PATH,
                          CACHE_KEY_PATH},
                     os::process,
@@ -51,7 +52,10 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         ""
     };
 
-    let local_cache_key_path = default_cache_key_path(None);
+    let local_cache_key_path = match henv::var(CACHE_KEY_PATH_ENV_VAR) {
+        Ok(val) => PathBuf::from(val),
+        Err(_) => cache_key_path(None::<PathBuf>),
+    };
     if !local_cache_key_path.exists() {
         return Err(Error::FileNotFound(
             format!(
