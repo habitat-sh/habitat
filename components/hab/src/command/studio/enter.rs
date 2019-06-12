@@ -26,10 +26,9 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
     if henv::var(env_var).is_err() {
         if let Some(val) = config_val {
             if sensitive {
-              debug!("Setting {}=REDACTED (sensitive) via config file", env_var)
-            }
-            else {
-              debug!("Setting {}={} via config file", env_var, val)
+                debug!("Setting {}=REDACTED (sensitive) via config file", env_var)
+            } else {
+                debug!("Setting {}={} via config file", env_var, val)
             }
             env::set_var(env_var, val);
         }
