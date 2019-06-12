@@ -442,7 +442,7 @@ pub fn ack(server: &Server,
            forward_to: Option<Member>) {
     let ack = Ack { membership: vec![],
                     from:       server.member.read().unwrap().as_member(),
-                    forward_to: forward_to.map(Into::into), };
+                    forward_to: forward_to.map(Member::from), };
     let member_id = ack.from.id.clone();
     let mut swim: Swim = ack.into();
     populate_membership_rumors(server, target, &mut swim);

@@ -9,7 +9,9 @@ use super::{list::package_list_for_ident,
             PackageIdent};
 use crate::{error::{Error,
                     Result},
-            fs};
+            fs,
+            os::process::{ShutdownSignal,
+                          ShutdownTimeout}};
 use serde_derive::{Deserialize,
                    Serialize};
 use std::{cmp::{Ordering,
@@ -573,6 +575,26 @@ impl PackageInstall {
         match self.read_metafile(MetaFile::SvcGroup) {
             Ok(body) => Ok(Some(body)),
             Err(Error::MetaFileNotFound(MetaFile::SvcGroup)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Returns the shutdown signal that the package is specified to shutdown with
+    /// or None if the package doesn't contain a SHUTDOWN_SIGNAL Metafile
+    pub fn shutdown_signal(&self) -> Result<Option<ShutdownSignal>> {
+        match self.read_metafile(MetaFile::ShutdownSignal) {
+            Ok(body) => Ok(Some(body.parse()?)),
+            Err(Error::MetaFileNotFound(MetaFile::ShutdownSignal)) => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    /// Returns the shutdown timeout that the package is specified to shutdown with
+    /// or None if the package doesn't contain a SHUTDOWN_TIMEOUT Metafile
+    pub fn shutdown_timeout(&self) -> Result<Option<ShutdownTimeout>> {
+        match self.read_metafile(MetaFile::ShutdownTimeout) {
+            Ok(body) => Ok(Some(body.parse()?)),
+            Err(Error::MetaFileNotFound(MetaFile::ShutdownTimeout)) => Ok(None),
             Err(e) => Err(e),
         }
     }

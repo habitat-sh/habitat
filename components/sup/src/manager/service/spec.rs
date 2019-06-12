@@ -4,14 +4,14 @@ use super::{BindingMode,
 use crate::error::{Error,
                    Result};
 use habitat_core::{fs::atomic_write,
+                   os::process::ShutdownTimeout,
                    package::{PackageIdent,
                              PackageInstall},
                    service::{ApplicationEnvironment,
                              HealthCheckInterval,
                              ServiceBind},
                    url::DEFAULT_BLDR_URL,
-                   util::{deserialize_using_from_str,
-                          serialize_using_to_string},
+                   util::serde_string,
                    ChannelIdent};
 use habitat_sup_protocol;
 use serde::{self,
@@ -133,14 +133,14 @@ impl IntoServiceSpec for habitat_sup_protocol::ctl::SvcLoad {
         if let Some(ref interval) = self.health_check_interval {
             spec.health_check_interval = interval.seconds.into()
         }
+        spec.shutdown_timeout = self.shutdown_timeout.map(ShutdownTimeout::from);
     }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(with = "serde_string")]
     pub ident: PackageIdent,
     pub group: String,
     #[serde(deserialize_with = "deserialize_application_environment",
@@ -153,9 +153,9 @@ pub struct ServiceSpec {
     pub binds: Vec<ServiceBind>,
     pub binding_mode: BindingMode,
     pub config_from: Option<PathBuf>,
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(with = "serde_string")]
     pub desired_state: DesiredState,
+    pub shutdown_timeout: Option<ShutdownTimeout>,
     pub health_check_interval: HealthCheckInterval,
     pub svc_encrypted_password: Option<String>,
 }
@@ -264,7 +264,8 @@ impl Default for ServiceSpec {
                       config_from:             None,
                       desired_state:           DesiredState::default(),
                       health_check_interval:   HealthCheckInterval::default(),
-                      svc_encrypted_password:  None, }
+                      svc_encrypted_password:  None,
+                      shutdown_timeout:        None, }
     }
 }
 
@@ -427,7 +428,8 @@ mod test {
                           health_check_interval:   HealthCheckInterval::from_str("123").unwrap(),
                           config_from:             Some(PathBuf::from("/only/for/development")),
                           desired_state:           DesiredState::Down,
-                          svc_encrypted_password:  None, };
+                          svc_encrypted_password:  None,
+                          shutdown_timeout:        Some(ShutdownTimeout::from_str("10").unwrap()), };
         let toml = spec.to_toml_string().unwrap();
 
         assert!(toml.contains(r#"ident = "origin/name/1.2.3/20170223130020""#,));
@@ -445,6 +447,7 @@ mod test {
         assert!(toml.contains(r#"[health_check_interval]"#));
         assert!(toml.contains(r#"secs = 123"#));
         assert!(toml.contains(r#"nanos = 0"#));
+        assert!(toml.contains(r#"shutdown_timeout = 10"#));
     }
 
     #[test]
@@ -600,7 +603,8 @@ mod test {
                           health_check_interval:   HealthCheckInterval::from_str("23").unwrap(),
                           config_from:             Some(PathBuf::from("/only/for/development")),
                           desired_state:           DesiredState::Down,
-                          svc_encrypted_password:  None, };
+                          svc_encrypted_password:  None,
+                          shutdown_timeout:        Some(ShutdownTimeout::default()), };
         spec.to_file(&path).unwrap();
         let toml = string_from_file(path);
 

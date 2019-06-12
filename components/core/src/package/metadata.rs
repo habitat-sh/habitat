@@ -156,6 +156,8 @@ pub enum MetaFile {
     ResolvedServices, // Composite-only
     RuntimeEnvironment,
     RuntimePath,
+    ShutdownSignal,
+    ShutdownTimeout,
     Services, // Composite-only
     SvcGroup,
     SvcUser,
@@ -188,6 +190,8 @@ impl fmt::Display for MetaFile {
             MetaFile::RuntimeEnvironment => "RUNTIME_ENVIRONMENT",
             MetaFile::RuntimePath => "RUNTIME_PATH",
             MetaFile::Services => "SERVICES",
+            MetaFile::ShutdownSignal => "SHUTDOWN_SIGNAL",
+            MetaFile::ShutdownTimeout => "SHUTDOWN_TIMEOUT",
             MetaFile::SvcGroup => "SVC_GROUP",
             MetaFile::SvcUser => "SVC_USER",
             MetaFile::Target => "TARGET",

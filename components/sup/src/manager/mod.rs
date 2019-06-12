@@ -13,7 +13,7 @@ mod spec_watcher;
 pub(crate) mod sys;
 mod user_config_watcher;
 
-use self::{action::{ShutdownSpec,
+use self::{action::{ShutdownInput,
                     SupervisorAction},
            peer_watcher::PeerWatcher,
            self_updater::{SelfUpdater,
@@ -58,13 +58,15 @@ use habitat_common::{outputln,
                              ListenCtlAddr},
                      FeatureFlag};
 #[cfg(unix)]
-use habitat_core::os::signals::SignalEvent;
+use habitat_core::os::{process::{ShutdownSignal,
+                                 Signal},
+                       signals::SignalEvent};
 use habitat_core::{crypto::SymKey,
                    env,
                    fs::FS_ROOT_PATH,
                    os::{process::{self,
                                   Pid,
-                                  Signal},
+                                  ShutdownTimeout},
                         signals},
                    package::{Identifiable,
                              PackageIdent,
@@ -170,6 +172,38 @@ enum ShutdownMode {
     /// A Supervisor is updating itself, or is otherwise simply
     /// restarting. Services _do not_ get shut down.
     Restarting,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ShutdownConfig {
+    #[cfg(not(windows))]
+    pub signal: ShutdownSignal,
+    pub timeout: ShutdownTimeout,
+}
+
+impl ShutdownConfig {
+    fn new(shutdown_input: &ShutdownInput, service: &Service) -> Self {
+        let mut config = Self::new_from_service(service);
+        if let Some(timeout) = shutdown_input.timeout {
+            config.timeout = timeout;
+        }
+        config
+    }
+
+    #[cfg(not(windows))]
+    fn new_from_service(service: &Service) -> Self {
+        let timeout = service.shutdown_timeout
+                             .unwrap_or_else(|| service.pkg.shutdown_timeout);
+        Self { signal: service.pkg.shutdown_signal,
+               timeout }
+    }
+
+    #[cfg(windows)]
+    fn new_from_service(service: &Service) -> Self {
+        let timeout = service.shutdown_timeout
+                             .unwrap_or_else(|| service.pkg.shutdown_timeout);
+        Self { timeout }
+    }
 }
 
 /// FileSystem paths that the Manager uses to persist data to disk.
@@ -869,7 +903,7 @@ impl Manager {
             for action in action_receiver.try_iter() {
                 match action {
                     SupervisorAction::StopService { mut service_spec,
-                                                    shutdown_spec, } => {
+                                                    shutdown_input, } => {
                         service_spec.desired_state = DesiredState::Down;
                         if let Err(err) = self.state.cfg.save_spec_for(&service_spec) {
                             warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
@@ -877,7 +911,11 @@ impl Manager {
                         }
                         if let Some(future) =
                             self.remove_service_from_state(&service_spec)
-                                .map(|service| self.stop_with_spec(service, shutdown_spec))
+                                .map(|service| {
+                                    let shutdown_config =
+                                        ShutdownConfig::new(&shutdown_input, &service);
+                                    self.stop_with_config(service, shutdown_config)
+                                })
                         {
                             runtime.spawn(future);
                         } else {
@@ -887,7 +925,7 @@ impl Manager {
                         }
                     }
                     SupervisorAction::UnloadService { service_spec,
-                                                      shutdown_spec, } => {
+                                                      shutdown_input, } => {
                         let file = self.state.cfg.spec_path_for(&service_spec);
                         if let Err(err) = fs::remove_file(&file) {
                             warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
@@ -897,7 +935,11 @@ impl Manager {
                         };
                         if let Some(future) =
                             self.remove_service_from_state(&service_spec)
-                                .map(|service| self.stop_with_spec(service, shutdown_spec))
+                                .map(|service| {
+                                    let shutdown_config =
+                                        ShutdownConfig::new(&shutdown_input, &service);
+                                    self.stop_with_config(service, shutdown_config)
+                                })
                         {
                             runtime.spawn(future);
                         } else {
@@ -1233,15 +1275,12 @@ impl Manager {
     /// to have been removed from the internal list of active services
     /// already (see, e.g., take_services_with_updates and
     /// remove_service_from_state).
-
-    // NOTE: this stop / stop_with_spec division is just until
-    // the parameterized shutdown is fully plumbed through everything.
-    fn stop_with_spec(&self,
-                      service: Service,
-                      shutdown_spec: ShutdownSpec)
-                      -> impl Future<Item = (), Error = ()> {
+    fn stop_with_config(&self,
+                        service: Service,
+                        shutdown_config: ShutdownConfig)
+                        -> impl Future<Item = (), Error = ()> {
         Self::service_stop_future(service,
-                                  shutdown_spec,
+                                  shutdown_config,
                                   Arc::clone(&self.user_config_watcher),
                                   Arc::clone(&self.updater),
                                   Arc::clone(&self.busy_services),
@@ -1249,21 +1288,13 @@ impl Manager {
     }
 
     fn stop(&self, service: Service) -> impl Future<Item = (), Error = ()> {
-        Self::service_stop_future(service,
-                                  // TODO (CM): when services can
-                                  // store their shutdown
-                                  // configuration in their spec file,
-                                  // we can pull this data from there
-                                  ShutdownSpec::default(),
-                                  Arc::clone(&self.user_config_watcher),
-                                  Arc::clone(&self.updater),
-                                  Arc::clone(&self.busy_services),
-                                  self.services_need_reconciliation.clone())
+        let shutdown_config = ShutdownConfig::new_from_service(&service);
+        self.stop_with_config(service, shutdown_config)
     }
 
     /// Remove the given service from the manager.
     fn service_stop_future(mut service: Service,
-                           shutdown_spec: ShutdownSpec,
+                           shutdown_config: ShutdownConfig,
                            user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
                            updater: Arc<Mutex<ServiceUpdater>>,
                            busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
@@ -1273,17 +1304,17 @@ impl Manager {
         // cluster
         // TODO (CM): But only if we're not going down for a restart.
         let ident = service.spec_ident.clone();
-        let stop_it = service.stop(shutdown_spec).then(move |_| {
-                                                     event::service_stopped(&service);
-                                                     user_config_watcher.write()
-                                                                        .expect("Watcher lock \
-                                                                                 poisoned")
-                                                                        .remove(&service);
-                                                     updater.lock()
-                                                            .expect("Updater lock poisoned")
-                                                            .remove(&service);
-                                                     Ok(())
-                                                 });
+        let stop_it = service.stop(shutdown_config).then(move |_| {
+                                                       event::service_stopped(&service);
+                                                       user_config_watcher.write()
+                                                                          .expect("Watcher lock \
+                                                                                   poisoned")
+                                                                          .remove(&service);
+                                                       updater.lock()
+                                                              .expect("Updater lock poisoned")
+                                                              .remove(&service);
+                                                       Ok(())
+                                                   });
         Self::wrap_async_service_operation(ident,
                                            busy_services,
                                            services_need_reconciliation,

@@ -26,6 +26,7 @@ use crate::sup::{cli::cli,
                            PROC_LOCK_FILE},
                  util};
 use clap::ArgMatches;
+use hab::cli::parse_optional_arg;
 use habitat_common::{cli::cache_key_path_from_matches,
                      command::package::install::InstallSource,
                      output::{self,
@@ -40,12 +41,14 @@ use habitat_common::{cli::cache_key_path_from_matches,
 use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{crypto::{self,
                             SymKey},
+                   os::process::ShutdownTimeout,
                    url::{bldr_url_from_env,
                          default_bldr_url},
                    ChannelIdent};
 use habitat_launcher_client::{LauncherCli,
                               ERR_NO_RETRY_EXCODE};
-use habitat_sup_protocol::{ctl::ServiceBindList,
+use habitat_sup_protocol::{self as sup_proto,
+                           ctl::ServiceBindList,
                            types::{ApplicationEnvironment,
                                    BindingMode,
                                    ServiceBind,
@@ -154,8 +157,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli, feature_flags: FeatureFlag) ->
 
     // We need to determine if we have an initial service to start
     let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
-        let mut msg = habitat_sup_protocol::ctl::SvcLoad::default();
-        update_svc_load_from_input(m, &mut msg)?;
+        let mut msg = svc_load_from_input(m)?;
         // Always force - running with a package ident is a "do what I mean" operation. You
         // don't care if a service was loaded previously or not and with what options. You
         // want one loaded right now and in this way.
@@ -174,8 +176,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli, feature_flags: FeatureFlag) ->
                                        &msg.bldr_channel
                                            .clone()
                                            .map(ChannelIdent::from)
-                                           .expect("update_svc_load_from_input to always set to \
-                                                    Some"))?;
+                                           .expect("svc_load_from_input to always set to Some"))?;
                 install.ident.into()
             }
             InstallSource::Ident(ident, _) => ident.into(),
@@ -436,9 +437,8 @@ fn ui() -> UI {
 
 /// Set all fields for an `SvcLoad` message that we can from the given opts. This function
 /// populates all *shared* options between `run` and `load`.
-fn update_svc_load_from_input(m: &ArgMatches,
-                              msg: &mut habitat_sup_protocol::ctl::SvcLoad)
-                              -> Result<()> {
+fn svc_load_from_input(m: &ArgMatches) -> Result<sup_proto::ctl::SvcLoad> {
+    let mut msg = sup_proto::ctl::SvcLoad::default();
     msg.bldr_url = Some(bldr_url(m));
     msg.bldr_channel = Some(channel(m).to_string());
     msg.application_environment = get_app_env_from_input(m)?;
@@ -452,7 +452,9 @@ fn update_svc_load_from_input(m: &ArgMatches,
     msg.binding_mode = get_binding_mode_from_input(m).map(|v| v as i32);
     msg.topology = get_topology_from_input(m).map(|v| v as i32);
     msg.update_strategy = get_strategy_from_input(m).map(|v| v as i32);
-    Ok(())
+    msg.shutdown_timeout =
+        parse_optional_arg::<ShutdownTimeout>("SHUTDOWN_TIMEOUT", m).map(u32::from);
+    Ok(msg)
 }
 
 #[cfg(test)]

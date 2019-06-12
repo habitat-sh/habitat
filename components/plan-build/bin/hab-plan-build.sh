@@ -1949,6 +1949,8 @@ _build_metadata() {
   _render_metadata_RUNTIME_PATH
   _render_metadata_RUNTIME_ENVIRONMENT
   _render_metadata_RUNTIME_ENVIRONMENT_PROVENANCE
+  _render_metadata_SHUTDOWN_SIGNAL
+  _render_metadata_SHUTDOWN_TIMEOUT
 
   # Only generate `SVC_USER` & `SVC_GROUP` files if this package is a service.
   # We determine this by checking if there is a `hooks/run` script and/or

@@ -5,11 +5,12 @@ use std::{collections::HashMap,
           result};
 
 use crate::hcore::{fs,
-                   os::users,
+                   os::{process::{ShutdownSignal,
+                                  ShutdownTimeout},
+                        users},
                    package::{PackageIdent,
                              PackageInstall},
-                   util::{deserialize_using_from_str,
-                          serialize_using_to_string}};
+                   util::serde_string};
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};
@@ -60,10 +61,9 @@ impl Env {
     }
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Pkg {
-    #[serde(deserialize_with = "deserialize_using_from_str",
-            serialize_with = "serialize_using_to_string")]
+    #[serde(with = "serde_string")]
     pub ident: PackageIdent,
     pub origin: String,
     pub name: String,
@@ -85,6 +85,8 @@ pub struct Pkg {
     pub svc_run: PathBuf,
     pub svc_user: String,
     pub svc_group: String,
+    pub shutdown_signal: ShutdownSignal,
+    pub shutdown_timeout: ShutdownTimeout,
 }
 
 impl Pkg {
@@ -117,7 +119,9 @@ impl Pkg {
                         release: package.ident
                                         .release
                                         .clone()
-                                        .expect("No package release in PackageInstall") };
+                                        .expect("No package release in PackageInstall"),
+                        shutdown_signal: package.shutdown_signal()?.unwrap_or_default(),
+                        shutdown_timeout: package.shutdown_timeout()?.unwrap_or_default() };
         Ok(pkg)
     }
 }
@@ -164,6 +168,8 @@ impl<'a> Serialize for PkgProxy<'a> {
         strukt.serialize_field("svc_run", &p.svc_run)?;
         strukt.serialize_field("svc_user", &p.svc_user)?;
         strukt.serialize_field("svc_group", &p.svc_group)?;
+        strukt.serialize_field("shutdown_signal", &p.shutdown_signal)?;
+        strukt.serialize_field("shutdown_timeout", &p.shutdown_timeout)?;
         strukt.end()
     }
 }
