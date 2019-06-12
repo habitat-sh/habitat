@@ -61,7 +61,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
             format!(
                 "{}\nRun `hab setup` to create an origin or \
                 use `hab origin key` to configure your keys.",
-                local_cache_key_path.to_string_lossy().into_owned()
+                local_cache_key_path.display()
             )
         ));
     }
@@ -71,7 +71,7 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                                    mnt_prefix,
                                    "/src"),
                            format!("{}:{}/{}",
-                                   local_cache_key_path.to_string_lossy(),
+                                   local_cache_key_path.display(),
                                    mnt_prefix,
                                    CACHE_KEY_PATH),];
     if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
