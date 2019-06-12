@@ -184,9 +184,6 @@ mod tests {
 
         file_with_content(&dir, "foo.spec", "fooooooo").expect("couldn't create file");
 
-        assert!(!sw.has_events(),
-                "Need to allow for the debounce interval to pass before you can expect events");
-
         while !sw.has_events() {
             wait_for_debounce_interval();
         }
@@ -216,9 +213,6 @@ mod tests {
 
         file_with_content(&dir, "foo.abc123xyz", "fooooooo").expect("couldn't create file");
 
-        assert!(!sw.has_events(),
-                "Need to allow for the debounce interval to pass before you can expect events");
-
         while !sw.has_events() {
             wait_for_debounce_interval();
         }
@@ -246,9 +240,6 @@ mod tests {
         assert!(!sw.has_events(), "There should be no events to start");
 
         file_with_content(&dir, "foo.spec", "fooooooo").expect("couldn't create file");
-
-        assert!(!sw.has_events(),
-                "Need to allow for the debounce interval to pass before you can expect events");
 
         while !sw.has_events() {
             wait_for_debounce_interval();
