@@ -74,7 +74,7 @@ namespace HabService
             try
             {
                 ConfigureDebug();
-                ConfigureSupSignal();
+                ConfigureEnvironment();
 
                 // DataReceivedEventArgs.Data will return text in the default system
                 // locale. We can change that via System.Console.OutputEncoding for a console
@@ -108,6 +108,17 @@ namespace HabService
             }
         }
 
+        private static void ConfigureEnvironment()
+        {
+            var envPrefix = "ENV_";
+            foreach(var key in ConfigurationManager.AppSettings.AllKeys) {
+                var i = key.Trim().ToUpper();
+                if (i.StartsWith(envPrefix)) {
+                    Environment.SetEnvironmentVariable(i.Substring(envPrefix.Length), ConfigurationManager.AppSettings[key]);
+                }
+            }
+        }
+
         private static void ConfigureDebug()
         {
             if (ConfigurationManager.AppSettings["debug"] != null)
@@ -124,25 +135,6 @@ namespace HabService
             else
             {
                 Environment.SetEnvironmentVariable("RUST_LOG", null);
-            }
-        }
-
-        private static void ConfigureSupSignal()
-        {
-            if (ConfigurationManager.AppSettings["HAB_FEAT_IGNORE_SIGNALS"] != null)
-            {
-                if (ConfigurationManager.AppSettings["HAB_FEAT_IGNORE_SIGNALS"].ToLower() != "false")
-                {
-                    Environment.SetEnvironmentVariable("HAB_FEAT_IGNORE_SIGNALS", "true");
-                }
-                else
-                {
-                    Environment.SetEnvironmentVariable("HAB_FEAT_IGNORE_SIGNALS", null);
-                }
-            }
-            else
-            {
-                Environment.SetEnvironmentVariable("HAB_FEAT_IGNORE_SIGNALS", null);
             }
         }
 
