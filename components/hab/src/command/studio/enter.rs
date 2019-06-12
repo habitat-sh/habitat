@@ -22,7 +22,6 @@ const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
-// fn set_env_var_from_config<T: Into<Option<bool>>>(env_var: &str, config_val: Option<String>, sensitive: T) {
 fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive: bool) {
     if henv::var(env_var).is_err() {
         if let Some(val) = config_val {
