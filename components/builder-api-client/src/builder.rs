@@ -1258,7 +1258,6 @@ mod tests {
         assert_eq!(r.1, 0);
     }
 
-    #[ignore]
     #[test]
     fn package_search_large() {
         let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
