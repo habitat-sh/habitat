@@ -8,6 +8,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- remove assert for no events in spec watcher tests after adding files to be watched [#6651](https://github.com/habitat-sh/habitat/pull/6651) ([mwrock](https://github.com/mwrock))
 - Update README.md for serving docs [#6652](https://github.com/habitat-sh/habitat/pull/6652) ([kagarmoe](https://github.com/kagarmoe))
 - spell check [#6654](https://github.com/habitat-sh/habitat/pull/6654) ([kagarmoe](https://github.com/kagarmoe))
 - Add limit option to hab pkg search [#6581](https://github.com/habitat-sh/habitat/pull/6581) ([davidMcneil](https://github.com/davidMcneil))
