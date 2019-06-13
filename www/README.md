@@ -13,21 +13,31 @@ Static site content for www.habitat.sh
 
 ## How-To: Serve Docs Locally
 
-1. Execute the `run` task to build and start the docs server on your local machine
+1. Execute the `build` task to build the docs your local machine
 
     `make run`
 
-1. The task will contain server output indicating what URL you should load in your browser to preview it
+2. View the docs locally with
+
+    `bundle exec middleman server`
+
+3. The task will contain server output indicating what URL you should load in your browser to preview it
 
     `== View your site at "http://mylaptop.example.com:4567", "http://192.168.1.101:4567"`
 
-1. You can continue to make changes to the documentation files and Middleman will reload them live
-1. Press `Ctrl-C` to terminate the server when you are finished
+4. You can continue to make changes to the documentation files and Middleman will reload them live
+5. Press `Ctrl-C` to terminate the server when you are finished
+
+### Troubleshooting
+
+In some cases, you may need to install `gawk` in order to obtain the `ffi` gem. Use [Homebrew](https://brew.sh/):
+
+  `brew install gawk`
 
 ## How-To: Deploy
 
 1. [Setup your workstation](#setup)
-1. Configure your environment
+2. Configure your environment
 
   * AWS_BUCKET - for production deploys, this should be `habitat-www`, for acceptance deploys `habitat-www-acceptance`
   * AWS_DEFAULT_REGION - this should be `us-west-2`
