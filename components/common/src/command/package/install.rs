@@ -681,7 +681,7 @@ impl<'a> InstallTask<'a> {
 
         let mut artifact = PackageArchive::new(self.cached_artifact_path(ident));
         ui.status(Status::Verifying, artifact.ident()?)?;
-        self.verify_artifact(ui, ident, &mut artifact)?;
+        self.verify_artifact(ui, ident, token, &mut artifact)?;
         Ok(artifact)
     }
 
@@ -863,7 +863,11 @@ impl<'a> InstallTask<'a> {
         }
     }
 
-    fn fetch_origin_key<T>(&self, ui: &mut T, name_with_rev: &str) -> Result<()>
+    fn fetch_origin_key<T>(&self,
+                           ui: &mut T,
+                           name_with_rev: &str,
+                           token: Option<&str>)
+                           -> Result<()>
         where T: UIWriter
     {
         if self.is_offline() {
@@ -872,8 +876,11 @@ impl<'a> InstallTask<'a> {
             ui.status(Status::Downloading,
                       format!("{} public origin key", &name_with_rev))?;
             let (name, rev) = parse_name_with_rev(&name_with_rev)?;
-            self.api_client
-                .fetch_origin_key(&name, &rev, self.key_cache_path, ui.progress())?;
+            self.api_client.fetch_origin_key(&name,
+                                              &rev,
+                                              token,
+                                              self.key_cache_path,
+                                              ui.progress())?;
             ui.status(Status::Cached,
                       format!("{} public origin key", &name_with_rev))?;
             Ok(())
@@ -922,6 +929,7 @@ impl<'a> InstallTask<'a> {
     fn verify_artifact<T>(&self,
                           ui: &mut T,
                           ident: &FullyQualifiedPackageIdent<'_>,
+                          token: Option<&str>,
                           artifact: &mut PackageArchive)
                           -> Result<()>
         where T: UIWriter
@@ -948,7 +956,7 @@ impl<'a> InstallTask<'a> {
 
         let nwr = artifact::artifact_signer(&artifact.path)?;
         if SigKeyPair::get_public_key_path(&nwr, self.key_cache_path).is_err() {
-            self.fetch_origin_key(ui, &nwr)?;
+            self.fetch_origin_key(ui, &nwr, token)?;
         }
 
         artifact.verify(&self.key_cache_path)?;

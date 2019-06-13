@@ -32,6 +32,7 @@ pub enum Error {
     UploadFailed(String),
     UrlParseError(url::ParseError),
     WriteSyncFailed,
+    NotSupported,
 }
 
 impl fmt::Display for Error {
@@ -70,6 +71,7 @@ impl fmt::Display for Error {
             Error::WriteSyncFailed => {
                 "Could not write to destination; perhaps the disk is full?".to_string()
             }
+            Error::NotSupported => "The specified operation is not supported.".to_string(),
         };
         write!(f, "{}", msg)
     }
@@ -101,6 +103,7 @@ impl error::Error for Error {
             Error::WriteSyncFailed => {
                 "Could not write to destination; bytes written was 0 on a non-0 buffer"
             }
+            Error::NotSupported => "The specified operation is not supported.",
         }
     }
 }
