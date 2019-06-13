@@ -1,6 +1,6 @@
 ## <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Create an Access Token</a>
 
-You can build and install Habitat artifacts without authenticating to Builder; however, some operations, like uploading your artifacts to Builder, or checking status of your build jobs from the Habitat CLI, will require an access token.
+You can build and install Habitat artifacts without authenticating to Builder; however, some operations, like uploading your artifacts to Builder, or checking the status of your build jobs from the Habitat CLI, will require an access token.
 
 From the Builder site, select your user icon in the upper right-hand side, and select **Profile**.
 
@@ -14,7 +14,15 @@ Copy your token from this page.
 
 ### Windows
 
-Save your Habitat authorization token as an environment variable in Windows using the graphical user interface. In your Windows help bar, enter `environment` and select `Edit the system environment variables` from the list of suggestions.
+Save your Habitat authorization token as a permanent environment variable in Windows using:
+
+```powershell
+SETX HAB_AUTH_TOKEN <token> /m
+```
+
+Replacing <token> with the contents of your generated token.
+
+You can also save your Habitat authorization token as a permanent environment variable using the Wundows user interface. In your Windows help bar, enter `environment` and select `Edit the system environment variables` from the list of suggestions.
 
 This opens the `System Properties` window on the `Advanced` tab. Select the `Environment Variables` button.
 
@@ -32,12 +40,9 @@ To test that your new token works correctly, open the Command Prompt---which you
 
 <img src='/images/screenshots/environment_variable_set.png'>
 
-<img src='/images/screenshots/environment_variable_echo.png'>
-
-
 ### MacOS
 
-To set the HAB_AUTH_TOKEN in the CLI by running:
+Set the HAB_AUTH_TOKEN in the CLI by running:
 
 ```bash
 export HAB_AUTH_TOKEN=<token>

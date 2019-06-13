@@ -1,6 +1,6 @@
 # <a name="glossary-artifacts" id="glossary-artifacts" data-magellan-target="glossary-artifacts">Artifacts</a>
 
-A Habitat artifact refers to a binary distribution for a given package built with Habitat. A Habitat artifact is a signed tarball with a `.hart` file extension. Habitat artifacts are composed of a software library or application, the configuration information for that software, and lifecycle hooks. They are created from a the plan file, a `plan.sh` on Linux systems or a `plan.ps1` on Windows systems, and are built with Habitat tools. Habitat artifacts can be exported to a specific format, such as when creating a Docker container.
+A Habitat artifact refers to a binary distribution for a given package built with Habitat. A Habitat artifact is a signed tarball with a `.hart` file extension. Habitat artifacts are composed of a software library or application, the configuration information for that software, and lifecycle hooks. They are created from a the plan file, a `plan.sh` on Linux systems or a `plan.ps1` on Windows systems, and are built with Habitat tools. Habitat artifacts can be exported to a specific format, such as when creating a Docker image.
 
 Habitat artifacts are identified using a four-part fully-qualified package identifier (FQPI) that takes the form: `origin/name/version/release`, where origin, name, version, and release are replaced with their corresponding values.
 
@@ -24,9 +24,9 @@ Fully-qualified Habitat artifact identifier
 
 If the Habitat artifact identifier isn't fully qualified (having fewer than four components), and exactly one artifact is required, then the missing components are assumed to be the most recent values. For example:
 
-- `core/glibc` assumes that version and release values are for the latest version of chef/glibc.
+- `core/glibc` assumes that version and release values are for the latest version of core/glibc.
 
-- `core/glibc/2.22` assumes that the version of chef/glibc is 2.22 and that the release is for the most recent value of chef/glibc/2.22.
+- `core/glibc/2.22` assumes that the version of core/glibc is 2.22 and that the release is for the most recent value of core/glibc/2.22.
 
 - `core/glibc/2.22/20160310192356` only refers to the specific Habitat artifact 20160310192356.
 
