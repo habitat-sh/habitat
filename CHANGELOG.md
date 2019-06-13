@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### New Features & Enhancements
+- Switch to log4rs in the Supervisor [#6622](https://github.com/habitat-sh/habitat/pull/6622) ([christophermaier](https://github.com/christophermaier))
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
