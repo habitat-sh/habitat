@@ -22,13 +22,17 @@ const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
-fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive: bool) {
+enum Sensitivity {
+    PrintValue,
+    NoPrintValue,
+}
+
+fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive: Sensitivity) {
     if henv::var(env_var).is_err() {
         if let Some(val) = config_val {
-            if sensitive {
-                debug!("Setting {}=REDACTED (sensitive) via config file", env_var)
-            } else {
-                debug!("Setting {}={} via config file", env_var, val)
+            match sensitive {
+                Sensitivity::NoPrintValue =>  debug!("Setting {}=REDACTED (sensitive) via config file", env_var),
+                Sensitivity::PrintValue => debug!("Setting {}={} via config file", env_var, val),
             }
             env::set_var(env_var, val);
         }
@@ -38,10 +42,10 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
 pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let config = config::load()?;
 
-    set_env_var_from_config(AUTH_TOKEN_ENVVAR, config.auth_token, true);
-    set_env_var_from_config(BLDR_URL_ENVVAR, config.bldr_url, false);
-    set_env_var_from_config(CTL_SECRET_ENVVAR, config.ctl_secret, true);
-    set_env_var_from_config(ORIGIN_ENVVAR, config.origin, false);
+    set_env_var_from_config(AUTH_TOKEN_ENVVAR, config.auth_token, Sensitivity::NoPrintValue);
+    set_env_var_from_config(BLDR_URL_ENVVAR, config.bldr_url, Sensitivity::PrintValue);
+    set_env_var_from_config(CTL_SECRET_ENVVAR, config.ctl_secret, Sensitivity::NoPrintValue);
+    set_env_var_from_config(ORIGIN_ENVVAR, config.origin, Sensitivity::PrintValue);
 
     if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
         let path = fs::cache_key_path(None::<&str>);
