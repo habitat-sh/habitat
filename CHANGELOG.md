@@ -8,6 +8,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Update README.md for serving docs [#6652](https://github.com/habitat-sh/habitat/pull/6652) ([kagarmoe](https://github.com/kagarmoe))
 - spell check [#6654](https://github.com/habitat-sh/habitat/pull/6654) ([kagarmoe](https://github.com/kagarmoe))
 - Add limit option to hab pkg search [#6581](https://github.com/habitat-sh/habitat/pull/6581) ([davidMcneil](https://github.com/davidMcneil))
 - Make studio backline dependency explicit [#6549](https://github.com/habitat-sh/habitat/pull/6549) ([smacfarlane](https://github.com/smacfarlane))
