@@ -8,6 +8,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Replace `busybox mount` with direct read of /proc/mounts [#6608](https://github.com/habitat-sh/habitat/pull/6608) ([smacfarlane](https://github.com/smacfarlane))
 - 6345 danielhertenstein [#6656](https://github.com/habitat-sh/habitat/pull/6656) ([baumanj](https://github.com/baumanj))
 - Check for missing cache key path when entering dockerized studio [#6345](https://github.com/habitat-sh/habitat/pull/6345) ([danielhertenstein](https://github.com/danielhertenstein))
 - Add Artifactory as BuilderAPIProvider [#6653](https://github.com/habitat-sh/habitat/pull/6653) ([chefsalim](https://github.com/chefsalim))
