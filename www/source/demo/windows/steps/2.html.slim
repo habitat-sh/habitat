@@ -7,9 +7,9 @@ section
  
  = code(:shell) do
    |
-     PS C:\contosouniversity> hab plan init --windows
+     PS C:\contosouniversity> hab plan init
 
- p Using <code>hab plan init</code> will result in a new directory located at <code>/path/to/repo/habitat</code> on your workstation. A <code>plan.ps1</code> file will be created and the <code>$pkg_name</code> variable in it will be set to the name of the parent directory. Also, any environment variables that you have previouly set (such as <code>HAB_ORIGIN</code>) will be used to populate the respective <code>$pkg_*</code> variables. Because you specified the <code>--windows</code> argument, your plan is a <code>.ps1</code> file with Powershell syntax, if you had not used the <code>--windows</code> argument, a plan.sh bash file would have been generated.
+ p Using <code>hab plan init</code> will result in a new directory located at <code>C:\contosouniversity\habitat</code> on your workstation. A <code>plan.ps1</code> file will be created and the <code>$pkg_name</code> variable in it will be set to the name of the parent directory. Also, any environment variables that you have previously set (such as <code>HAB_ORIGIN</code>) will be used to populate the respective <code>$pkg_*</code> variables.
  p See #{link_to 'hab plan init', '/docs/habitat-cli/#hab-plan-init'} for more information on how to use this subcommand.
 
  p The basic structure of a plan is shown below:
