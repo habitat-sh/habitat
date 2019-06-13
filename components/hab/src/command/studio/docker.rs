@@ -57,13 +57,11 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         Err(_) => cache_key_path(None::<PathBuf>),
     };
     if !local_cache_key_path.exists() {
-        return Err(Error::FileNotFound(
-            format!(
-                "{}\nRun `hab setup` to create an origin or \
-                use `hab origin key` to configure your keys.",
-                local_cache_key_path.display()
-            )
-        ));
+        return Err(Error::FileNotFound(format!("{}\nRun `hab setup` to \
+                                                create an origin or use \
+                                                `hab origin key` to \
+                                                configure your keys.",
+                                               local_cache_key_path.display())));
     }
 
     let mut volumes = vec![format!("{}:{}{}",
