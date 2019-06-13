@@ -134,7 +134,7 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
     ui.heading("Habitat Personal Access Token")?;
     ui.para("While you can perform tasks like building and running Habitat packages without \
              needing to authenticate with Builder, some operations like uploading your packages \
-             to Builder, or checking status of your build jobs from the Habitat client will \
+             to Builder, or checking the status of your build jobs from the Habitat client will \
              require you to use an access token.")?;
     ui.para("The Habitat Personal Access Token can be generated via the Builder  Profile page \
              (https://bldr.habitat.sh/#/profile). Once you have generated your token, you can \
