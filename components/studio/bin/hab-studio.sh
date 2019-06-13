@@ -1015,7 +1015,7 @@ is_fs_mounted() {
   # scenario.  
 
   # NOTE(SM): This makes this studio implementation Linux specific. 
-  $bb cut -d' ' -f2 /proc/mounts | $bb grep -q "$_mount_point" 
+  $bb cut -d' ' -f2 /proc/mounts | $bb grep -q -x "$_mount_point" 
 }
 
 # **Internal** Unmounts file system mounts if mounted. The order of file system
