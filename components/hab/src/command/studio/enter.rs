@@ -31,7 +31,9 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
     if henv::var(env_var).is_err() {
         if let Some(val) = config_val {
             match sensitive {
-                Sensitivity::NoPrintValue =>  debug!("Setting {}=REDACTED (sensitive) via config file", env_var),
+                Sensitivity::NoPrintValue => {
+                    debug!("Setting {}=REDACTED (sensitive) via config file", env_var)
+                }
                 Sensitivity::PrintValue => debug!("Setting {}={} via config file", env_var, val),
             }
             env::set_var(env_var, val);
@@ -42,9 +44,13 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
 pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
     let config = config::load()?;
 
-    set_env_var_from_config(AUTH_TOKEN_ENVVAR, config.auth_token, Sensitivity::NoPrintValue);
+    set_env_var_from_config(AUTH_TOKEN_ENVVAR,
+                            config.auth_token,
+                            Sensitivity::NoPrintValue);
     set_env_var_from_config(BLDR_URL_ENVVAR, config.bldr_url, Sensitivity::PrintValue);
-    set_env_var_from_config(CTL_SECRET_ENVVAR, config.ctl_secret, Sensitivity::NoPrintValue);
+    set_env_var_from_config(CTL_SECRET_ENVVAR,
+                            config.ctl_secret,
+                            Sensitivity::NoPrintValue);
     set_env_var_from_config(ORIGIN_ENVVAR, config.origin, Sensitivity::PrintValue);
 
     if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
