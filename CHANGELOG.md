@@ -8,6 +8,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Add Artifactory as BuilderAPIProvider [#6653](https://github.com/habitat-sh/habitat/pull/6653) ([chefsalim](https://github.com/chefsalim))
 - remove assert for no events in spec watcher tests after adding files to be watched [#6651](https://github.com/habitat-sh/habitat/pull/6651) ([mwrock](https://github.com/mwrock))
 - Update README.md for serving docs [#6652](https://github.com/habitat-sh/habitat/pull/6652) ([kagarmoe](https://github.com/kagarmoe))
 - spell check [#6654](https://github.com/habitat-sh/habitat/pull/6654) ([kagarmoe](https://github.com/kagarmoe))
