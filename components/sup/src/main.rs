@@ -1,5 +1,4 @@
 extern crate clap;
-extern crate env_logger;
 extern crate habitat_sup as sup;
 #[cfg(unix)]
 extern crate jemalloc_ctl;
@@ -20,6 +19,7 @@ use crate::sup::{cli::cli,
                  error::{Error,
                          Result},
                  event::EventStreamConfig,
+                 logger,
                  manager::{Manager,
                            ManagerConfig,
                            TLSConfig,
@@ -75,7 +75,7 @@ static LOGKEY: &'static str = "MN";
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn main() {
-    env_logger::init();
+    logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
     let result = start(flags);

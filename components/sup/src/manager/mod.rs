@@ -1617,8 +1617,8 @@ fn tls_config(config: &TLSConfig) -> Result<rustls::ServerConfig> {
     Ok(server_config)
 }
 
-/// Represents how many threads to start for our main Tokio runtime
-habitat_core::env_config_int!(#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
+habitat_core::env_config_int!(/// Represents how many threads to start for our main Tokio runtime
+                              #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq)]
                               TokioThreadCount,
                               usize,
                               HAB_TOKIO_THREAD_COUNT,

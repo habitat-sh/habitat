@@ -333,13 +333,14 @@ impl ServiceUpdater {
     }
 }
 
-/// Represents how far apart checks for updates to individual services
-/// are, in milliseconds.
-habitat_core::env_config_duration!(ServiceUpdatePeriod,
-                                   // TODO (CM): Yes, the variable value should be "period" and not
-                                   // "frequency"... we need to fix that.
-                                   HAB_UPDATE_STRATEGY_FREQUENCY_MS => from_millis,
-                                   ServiceUpdatePeriod::MIN_ALLOWED);
+habitat_core::env_config_duration!(
+    /// Represents how far apart checks for updates to individual services
+    /// are, in milliseconds.
+    ServiceUpdatePeriod,
+    // TODO (CM): Yes, the variable value should be "period" and not
+    // "frequency"... we need to fix that.
+    HAB_UPDATE_STRATEGY_FREQUENCY_MS => from_millis,
+    ServiceUpdatePeriod::MIN_ALLOWED);
 
 impl ServiceUpdatePeriod {
     const MIN_ALLOWED: Duration = Duration::from_secs(60);
