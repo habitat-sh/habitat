@@ -1004,8 +1004,18 @@ persisted. Check that the filesystem is no longer in the mounted using \
 # if true and non-zero otherwise.
 is_fs_mounted() {
   _mount_point="${1:?}"
+  
+  # Work around bug in musl's implementation of getmntent_r. 
+  # https://github.com/habitat-sh/habitat/issues/6591#issuecomment-498292168 
+  #$bb mount | $bb grep -q "on $_mount_point type"
 
-  $bb mount | $bb grep -q "on $_mount_point type"
+  # NOTE(SM): There is still a chance for failure here. Mount points with a 
+  # space in their name will not be detected. However, given that we control
+  # the name of all mount points, it is unlikely that we will encounter this 
+  # scenario.  
+
+  # NOTE(SM): This makes this studio implementation Linux specific. 
+  $bb cut -d' ' -f2 /proc/mounts | $bb grep -q -x "$_mount_point" 
 }
 
 # **Internal** Unmounts file system mounts if mounted. The order of file system

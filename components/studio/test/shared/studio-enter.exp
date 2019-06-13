@@ -1,8 +1,8 @@
 #!/usr/bin/env expect
 
 set env(HAB_NOCOLORING) true
-set studio_enter_command $::env(STUDIO_ENTER_COMMAND)
-set studio_test [lindex $argv 0]
+set studio_command [lindex $argv 0]
+set studio_test [lindex $argv 1]
 # Print out some helpful tracing messages in the test output.
 
 proc log {message} {
@@ -11,7 +11,7 @@ proc log {message} {
 
 # Cleanup after the test
 exit -onexit {
-    exec hab studio rm
+    exec $studio_command rm
 }
 
 # Installing packages can take time
@@ -19,7 +19,7 @@ set timeout 30
 
 # {*} Syntax explanation:
 # https://www.tcl.tk/man/tcl/TclCmd/Tcl.htm [5] Argument Expansion
-spawn {*}$studio_enter_command
+spawn {*}$studio_command enter
 expect {
   {\[default:/src:0]#} { 
     log "Studio entered successfully"
