@@ -2,9 +2,10 @@ use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
             common::ui::UI,
             error::{Error,
                     Result},
-            hcore::{crypto::default_cache_key_path,
+            hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
                     env as henv,
-                    fs::{find_command,
+                    fs::{cache_key_path,
+                         find_command,
                          CACHE_ARTIFACT_PATH,
                          CACHE_KEY_PATH},
                     os::process,
@@ -50,12 +51,25 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
     } else {
         ""
     };
+
+    let local_cache_key_path = match henv::var(CACHE_KEY_PATH_ENV_VAR) {
+        Ok(val) => PathBuf::from(val),
+        Err(_) => cache_key_path(None::<PathBuf>),
+    };
+    if !local_cache_key_path.exists() {
+        return Err(Error::FileNotFound(format!("{}\nRun `hab setup` to \
+                                                create an origin or use \
+                                                `hab origin key` to \
+                                                configure your keys.",
+                                               local_cache_key_path.display())));
+    }
+
     let mut volumes = vec![format!("{}:{}{}",
                                    env::current_dir().unwrap().to_string_lossy(),
                                    mnt_prefix,
                                    "/src"),
                            format!("{}:{}/{}",
-                                   default_cache_key_path(None).to_string_lossy(),
+                                   local_cache_key_path.display(),
                                    mnt_prefix,
                                    CACHE_KEY_PATH),];
     if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
