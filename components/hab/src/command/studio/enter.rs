@@ -22,6 +22,7 @@ const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
 const STUDIO_PACKAGE_IDENT: &str = "core/hab-studio";
 
+#[derive(Clone, Copy)]
 enum Sensitivity {
     PrintValue,
     NoPrintValue,
