@@ -294,8 +294,9 @@ pub trait BuilderAPIProvider: Sync + Send {
 
     fn search_package(&self,
                       search_term: &str,
+                      limit: usize,
                       token: Option<&str>)
-                      -> Result<(Vec<PackageIdent>, bool)>;
+                      -> Result<(Vec<PackageIdent>, usize)>;
 
     fn create_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()>;
 
