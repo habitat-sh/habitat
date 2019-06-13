@@ -12,8 +12,8 @@ You interact with Habitat Builder by:
 * Creating an account.
 * Creating an origin, or being invited to join an origin that already exists.
 * Setting up `hab` to authenticate with Builder.
-* Uploading the keys for that origin.
-* Connecting your Github Repos and opting into rebuilds.
+* Uploading the private and public keys for that origin.
+* Connecting your Github repos and opting into rebuilds.
 
 Habitat Builder supports both public and private origins, packages, and Github repositories.
 
@@ -31,23 +31,23 @@ When you upload a package to Builder, you are required to supply an auth token a
 
 Once you have this token, you can set the `HAB_AUTH_TOKEN` [environment variable](/docs/reference#environment-variables) to this value, so that any commands requiring authentication will use it.
 
-### Create origin keys
+### Create an origin key pair
 
-After you have done the basic account creation steps, you need to create your origin keys. The private key will be used to sign your packages and the public key will be used by supervisors to verify the integrity of your packages (`.hart` files).
+After finishing the basic account creation steps, you need to create your origin key pair. Habitat will use the private origin key to sign the artifacts (`.hart` files) created by building your plan and verify the integrity of your artifacts with the public origin key.
 
-You can either create an origin key pair by running `hab cli setup` from your host machine, or running `hab origin key generate <ORIGIN>` from either the host machine or from within the studio.
+You can create an origin key pair by running `hab cli setup` from your host machine, or by running `hab origin key generate <ORIGIN>` from either the host machine or from within the studio.
 
-Your keys are located at `~/.hab/cache/keys` on your host machine and `/hab/cache/keys` inside the studio environment.
+Your public and private origin keys are located at `~/.hab/cache/keys` on your host machine and at `/hab/cache/keys` inside the studio environment.
 
 ### Upload the keys for your origin
 
-If you created a new origin and/or Builder does not have the public key that corresponds to the private key used to build your package, you must upload it. You also have the ability to upload your private key; however, if you do not upload at least the public key, Builder will reject the upload of your packages for that origin.
+If you created a new Habitat origin from your host machine or from the Studio, Builder will not have either of the origin keys corresponding to your artifact. Builder will not accept uploaded artifacts without first having the correct origin public key.
 
-You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must be authenticated using the access token described earlier before you can upload keys.
+You can upload keys for the origin through the web interface for Builder, or by using the `hab origin key upload` command. You must have the access token for authentication, as described earlier, before you can upload keys.
 
 ### Upload packages to Builder
 
-Once Builder possesses at least the public key of the origin, you may upload one or more packages to that origin by using the `hab pkg upload` command. Builder will check the cryptographic integrity of the package before allowing you to upload it. Uploading packages is also a privileged operation for which you must have the access token.
+As long as you are already member of the Habitat origin, once Builder possesses at least the public origin key, then you may upload one or more artifacts to that origin with the `hab pkg upload` command. After Habitat validates the cryptographic integrity of the artifact, it is then uploaded and stored on Builder. Uploading artifacts is a privileged operation for which you must have the access token.
 
 ### Promote packages
 

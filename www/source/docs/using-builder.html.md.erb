@@ -11,8 +11,9 @@ description: Documentation for Habitat uploading, auto-building, and deploying a
 
   - [Create a Builder Account](#builder-account)
   - [Create an Origin on Builder](#builder-origin)
-  - [Generate an Access Token](#builder-token)
-  - [Working with Origin Secrets](#origin-secrets)
+  - [Create an Access Token](#builder-token)
+  - [Using Origin Keys](#origin-keys)
+  - [Using Origin Secrets](#origin-secrets)
   - [Upload and Promote Packages](#sharing-pkgs)
   - [Using Multiple Plans](#multiple-plans-builder)
   - [Set up Automated Builds](#automated-builds)
@@ -21,28 +22,14 @@ description: Documentation for Habitat uploading, auto-building, and deploying a
 ---
 <%= partial "/partials/docs/using-builder-create-account"%>
 ---
+<%= partial "/partials/docs/using-builder-access-tokens"%>
+---
 <%= partial "/partials/docs/using-builder-create-origin"%>
 ---
-## <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Generate an Access Token</a>
-
-You can build and run Habitat packages without authenticating to Builder; however some operations, like uploading your packages to Builder, or checking status of your build jobs from the Habitat client, will require an access token.
-
-From the Builder site, select your user icon in the upper right-hand side, and select **Profile**.
-
-<img src="/images/screenshots/profile.png">
-
-At the bottom of the profile page, select **Generate Token**.
-
-<img src="/images/screenshots/generate-token.png">
-
-Copy your token, and then set it in the CLI by running:
-
-```bash
-export HAB_AUTH_TOKEN=<token>
-```
-
-Replacing `<token>` with the contents of your generated token.
-
+<%= partial "/partials/docs/using-builder-origin-keys"%>
+---
+<%= partial "/partials/docs/using-builder-access-tokens"%>
+---
 <%= partial "/partials/docs/using-builder-origin-secrets"%>
 ---
 <%= partial "/partials/docs/dev-pkgs-share"%>

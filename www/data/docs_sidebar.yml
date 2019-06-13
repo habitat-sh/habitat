@@ -39,7 +39,9 @@ sidebar_links:
       link: "/docs/using-builder/#builder-origin"
     - title: Generate an Access Token
       link: "/docs/using-builder/#builder-token"
-    - title: Working with Origin Secrets
+    - title: Using Origin Keys
+      link: "/docs/using-builder/#origin-keys"
+    - title: Using Origin Secrets
       link: "/docs/using-builder/#origin-secrets"
     - title: Upload and Promote
       link: "/docs/using-builder/#sharing-pkgs"
@@ -154,28 +156,28 @@ sidebar_links:
   - title: Glossary
     link: "/docs/glossary"
     sub_links:
+    - title: Application Lifecycle Hooks
+      link: "/docs/glossary/#glossary-hooks"
+    - title: Artifacts
+      link: "/docs/glossary/#glossary-artifacts"
+    - title: Builder
+      link: "/docs/glossary/#glossary-builder"
     - title: Hab
       link: "/docs/glossary/#glossary-hab"
-    - title: Supervisor
-      link: "/docs/glossary/#glossary-supervisor"
+    - title: Keys
+      link: "/docs/glossary/#glossary-keys"
     - title: Launcher
       link: "/docs/glossary/#glossary-launcher"
     - title: Plans
       link: "/docs/glossary/#glossary-plan"
-    - title: Application Lifecycle Hooks
-      link: "/docs/glossary/#glossary-hooks"
     - title: Scaffolding
       link: "/docs/glossary/#glossary-scaffolding"
-    - title: Packages
-      link: "/docs/glossary/#glossary-packages"
-    - title: Keys
-      link: "/docs/glossary/#glossary-keys"
-    - title: Studio
-      link: "/docs/glossary/#glossary-studio"
     - title: Services
       link: "/docs/glossary/#glossary-services"
-    - title: Builder
-      link: "/docs/glossary/#glossary-builder"
+    - title: Studio
+      link: "/docs/glossary/#glossary-studio"
+    - title: Supervisor
+      link: "/docs/glossary/#glossary-supervisor"
   - title: Internals
     link: "/docs/internals"
     sub_links:

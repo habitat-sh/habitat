@@ -259,34 +259,34 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@subcommand download =>
                     (about: "Download origin key(s)")
                     (aliases: &["d", "do", "dow", "down", "downl", "downlo", "downloa"])
-                    (arg: arg_cache_key_path("Path to download keys to. \
+                    (arg: arg_cache_key_path("Path to download origin keys to. \
                         Default value is hab/cache/keys if root and .hab/cache/keys under the home \
                         directory otherwise."))
                     (@arg ORIGIN: +required {valid_origin} "The origin name" )
-                    (@arg REVISION: "The key revision")
+                    (@arg REVISION: "The origin key revision")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \
                          https://bldr.habitat.sh)")
                     (@arg WITH_SECRET: -s --secret
-                        "Download secret signing key instead of public signing key")
+                        "Download origin private key instead of origin public key")
                     (@arg WITH_ENCRYPTION: -e --encryption
-                        "Download public encryption key instead of public signing key")
+                        "Download public encryption key instead of origin public key")
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder \
-                        (required for downloading secret keys)")
+                        (required for downloading origin private keys)")
                 )
                 (@subcommand export =>
                     (about: "Outputs the latest origin key contents to stdout")
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
                     (@arg ORIGIN: +required +takes_value {valid_origin})
                     (@arg PAIR_TYPE: -t --type +takes_value {valid_pair_type}
-                        "Export either the 'public' or 'secret' key")
-                    (arg: arg_cache_key_path("Path to export keys from. \
+                        "Export either the 'public' or 'private' key")
+                    (arg: arg_cache_key_path("Path to export origin keys from. \
                         Default value is hab/cache/keys if root and .hab/cache/keys under the home \
                         directory otherwise."))
                 )
                 (@subcommand generate =>
-                    (about: "Generates a Habitat origin key")
+                    (about: "Generates a Habitat origin key pair")
                     (aliases: &["g", "ge", "gen", "gene", "gener", "genera", "generat"])
                     (@arg ORIGIN: {valid_origin} "The origin name")
                     (arg: arg_cache_key_path("Path to store generated keys. \
@@ -295,10 +295,10 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
 
                 )
                 (@subcommand import =>
-                    (about: "Reads a stdin stream containing a public or secret origin key \
+                    (about: "Reads a stdin stream containing a public or private origin key \
                         contents and writes the key to disk")
                     (aliases: &["i", "im", "imp", "impo", "impor"])
-                    (arg: arg_cache_key_path("Path to import keys to. \
+                    (arg: arg_cache_key_path("Path to import origin keys to. \
                         Default value is hab/cache/keys if root and .hab/cache/keys under the home \
                         directory otherwise."))
                 )
@@ -311,13 +311,13 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     )
                     (about: "Upload origin keys to Builder")
                     (aliases: &["u", "up", "upl", "uplo", "uploa"])
-                    (arg: arg_cache_key_path("Path to upload keys from. \
+                    (arg: arg_cache_key_path("Path to upload origin keys from. \
                         Default value is hab/cache/keys if root and .hab/cache/keys under the home \
                         directory otherwise."))
                     (@arg WITH_SECRET: -s --secret conflicts_with[PUBLIC_FILE]
-                        "Upload secret key in addition to the public key")
+                        "Upload origin private key in addition to the public key")
                     (@arg SECRET_FILE: --secfile +takes_value {file_exists} conflicts_with[ORIGIN]
-                        "Path to a local secret origin key file on disk")
+                        "Path to a local origin private key file on disk")
                     (@arg BLDR_URL: -u --url +takes_value {valid_url}
                         "Specify an alternate Builder endpoint. If not specified, the value will \
                          be taken from the HAB_BLDR_URL environment variable if defined. (default: \

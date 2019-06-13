@@ -131,7 +131,7 @@ require = "All Denied"
 (The above is not the full list of tunables for this package. Truncated for readability.)
 
 # Running a package
-Habitat packages can be exported to run in [several different ways](/docs/glossary/#glossary-packages) however for the sake of this guide we're going to adopt the simplest example.
+Habitat artifacts can be exported to run in [several different ways](/docs/glossary/#glossary-artifacts) however for the sake of this guide we're going to adopt the simplest example.
 
 Run the `hab svc start` command with the package ident to start a service.
 
