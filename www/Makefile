@@ -1,5 +1,7 @@
 build: clean
-	gem install bundler
+    # See https://bundler.io/blog/2019/01/04/an-update-on-the-bundler-2-release.html
+	# Due to bug in ruby 2.x, need to install same version of bundler lock file was built with
+	gem install bundler --version 2.0.1
 	bundle install
 	bundle exec middleman build --no-parallel
 .PHONY: build

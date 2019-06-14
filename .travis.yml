@@ -18,14 +18,14 @@ matrix:
 # Job for building and deploying the web site
 #
     - language: ruby
-      rvm: 2.3.3
+      rvm: 2.5.3
       sudo: false
       cache:
         bundle: true
         directories:
           - www/build
       env:
-        - AFFECTED_FILES=""
+        - AFFECTED_FILES="support/ci/deploy_website.sh"
         - AFFECTED_DIRS="www"
         - AWS_BUCKET=habitat-www
         - AWS_DEFAULT_REGION=us-west-2
