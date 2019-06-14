@@ -8,6 +8,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Remove duplication in BuilderAPI create [#6660](https://github.com/habitat-sh/habitat/pull/6660) ([davidMcneil](https://github.com/davidMcneil))
 - Fix conflict in search interface [#6659](https://github.com/habitat-sh/habitat/pull/6659) ([chefsalim](https://github.com/chefsalim))
 - correct documentation to reflect removal of --windows arg from plan init [#6641](https://github.com/habitat-sh/habitat/pull/6641) ([mwrock](https://github.com/mwrock))
 - Replace `busybox mount` with direct read of /proc/mounts [#6608](https://github.com/habitat-sh/habitat/pull/6608) ([smacfarlane](https://github.com/smacfarlane))
