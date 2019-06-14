@@ -1,10 +1,11 @@
 # <a name="glossary-builder" id="glossary-builder" data-magellan-target="glossary-builder">Builder</a>
 
-Builder consists of a continuous build service and a searchable package repository.
+Habitat Builder consists of the Builder service and the Depot.
 
 ## Habitat Builder
 
-Users have the option to connect their GitHub repos to Builder to enable continuous builds of their plans as either they checkin new code to GitHub, which will then initiate a new build via a Github hook, or as underlying package dependencies are updated. If  you've added your Habitat plan to the root of your source code repository and a package you depend on (e.g. openssl, ruby, node) needs to be rebuilt due to a new release, your software will be rebuilt automatically and posted to your software's `unstable` channel for you to review and promote per your regular procedure.
+Users have the option to connect their GitHub repositories to Builder to enable continuous builds of their plans. Checking in new code to GitHub initiates a new build through a GitHub hook. If you've added your Habitat plan to the root of your source code repository and your project depends on any of the Habitat Core Packages (for example, openssl, ruby, or node), when these packages are updated, Builder automatically rebuilds your software and posts the updated package to your project's `unstable` channel, where it will wait until you review and promote it according to your regular release procedure.
 
 ## Depot
-Habitat Builder's depot is a repository that stores packages for download and upload by Supervisors and Studios.
+
+The Depot is a searchable repository that stores artifacts for use in Habitat.

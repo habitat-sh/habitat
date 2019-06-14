@@ -1,37 +1,52 @@
 # <a name="plan-builds" id="plan-builds" data-magellan-target="plan-builds">Plan Builds</a>
 
-Packages need to be signed with a secret origin key at buildtime. Generate an origin key pair manually by running the following command on your host machine:
+Packages need to be signed with a private origin key at buildtime. Generate an origin key pair manually by running the following command on your host machine:
 
 ```shell
 $ hab origin key generate <ORIGIN>
 ```
 
-The `hab-origin` subcommand will place originname-_timestamp_.sig.key and originname-_timestamp_.pub files (the origin key pair) in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
+The `hab-origin` subcommand will place the origin key files, originname-_timestamp_.sig.key (the private key) and originname-_timestamp_.pub files (the public key), in the `$HOME/.hab/cache/keys` directory. If you're creating origin keys in the Studio container, or you are running as root on a Linux machine, your keys will be stored in `/hab/cache/keys`.
 
-Because the secret key is used to sign your package, it should not be shared freely; however, if anyone wants to download and use your package, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. Public keys will be downloaded from Habitat Builder by the Supervisor, if needed.
+Because the private key is used to sign your artifact, it should not be shared freely; however, if anyone wants to download and use your artifact, then they must have your public key (.pub) installed in their local `$HOME/.hab/cache/keys` or `/hab/cache/keys` directory. If the origin's public key is not present, Habitat attempts to download it from the Builder endpoint specified by the `--url` argument (https://bldr.habitat.sh by default) to `hab pkg install`.
 
 ### Passing origin keys into the Studio
 
-When you enter the Studio environment, your origin keys are not automatically shared into it. This is to keep the Studio environment as clean as possible. However, because you need to reference a secret origin key to sign your package, you can do this in three ways:
+The Habitat Studio is a self-contained and minimal environment, which means that you'll need to share your private origin keys with the Studio to sign artifacts. You can do this in three ways:
 
-* Set `HAB_ORIGIN` to the name of the secret origin key you intend to use before entering the Studio like `export HAB_ORIGIN=originname`.
-* Set `HAB_ORIGIN_KEYS` to one or more key names, separated by commas like `export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname`.
-* Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with `hab studio -k originname-internal,originname-test enter`.
+1. Set `HAB_ORIGIN` to the name of the origin you intend to use before entering the Studio:
+  
+  ```bash
+  export HAB_ORIGIN=originname
+  ```
+  
+  This approach overrides the `HAB_ORIGIN` environment variable and imports your public and private origin keys into the Studio environment. It also overrides any `pkg_origin` values in the packages that you build. This is useful because you can use it to build your own artifact, as well as to build your own artifacts from other packages' source code, for example, `originname/node` or `originname/glibc`.
 
-The first way overrides the `HAB_ORIGIN` environment variable to import public and secret keys into the Studio environment and override any `pkg_origin` values in the packages that you build. This is useful if you want to not only build your package, but also you can use this to build your own versions of other packages, such as `originname/node` or `originname/glibc`.
+1. Set `HAB_ORIGIN_KEYS` to the names of your origins. If you're using more than one origin, separate them with commas:
+  
+  ```bash
+  export HAB_ORIGIN_KEYS=originname-internal,originname-test,originname
+  ```
 
-The second and third way import multiple secret keys that must match the origin names for the plans you intend to build.
+  This imports the private origin keys, which must exactly match the origin names for the plans you intend to build.
 
-After you create or receive your secret origin key, you can start up the Studio and build your package.
+1. Use the `-k` flag (short for “keys”) which accepts one or more key names separated by commas with 
+
+  ```bash
+  hab studio -k originname-internal,originname-test enter
+  ````
+  This imports the private origin keys, which must exactly match the origin names for the plans you intend to build.
+
+After you create or receive your private origin key, you can start up the Studio and build your artifact.
 
 ## Interactive Build
 
-An interactive build is one in which you enter a Habitat Studio to perform the build. Doing this allows you to examine the build environment before, during, and after the build.
+Any build that you perform from a Habitat Studio is an interactive build. Studio interactive builds allow you to examine the build environment before, during, and after the build.
 
 The directory where your plan is located is known as the plan context.
 
 1. Change to the parent directory of the plan context.
-2. Create and enter a new Habitat Studio. If you have defined an origin and origin key during `hab cli setup` or by explicitly setting the `HAB_ORIGIN` and `HAB_ORIGIN_KEYS` environment variables, then type the following:
+1. Create and enter a new Habitat Studio. If you have defined an origin and origin key during `hab cli setup` or by explicitly setting the `HAB_ORIGIN` and `HAB_ORIGIN_KEYS` environment variables, then type the following:
 
     ```shell
     $ hab studio enter
@@ -51,7 +66,7 @@ The directory where your plan is located is known as the plan context.
 
 Depending on the platform of your host and your Docker configuration, the behavior of `hab studio enter` may vary. Here is the default behavior listed by host platform:
 
-* **Linux** - A local chrooted Linux Studio. You can force a Docker based studio by using the `-D`` flag.
+* **Linux** - A local chrooted Linux Studio. You can force a Docker based studio by adding the `-D` flag to the `hab studio enter` command.
 * **Mac** - A Docker container based Linux Studio
 * **Windows** - A Docker container based Studio where the platform depends on the mode your Docker service is running, which can be toggled between Linux Containers and Windows Containers. Make sure your Docker service is running in the correct mode for the kind of studio you wish to enter. You may also use the `-w` flag to enter a local, non-containerized Windows studio.
 
@@ -75,7 +90,7 @@ This way, you can `hab studio enter` in `projects/`. If `project-b` depends on `
 A non-interactive build is one in which Habitat creates a Studio for you, builds the package inside it, and then destroys the Studio, leaving the resulting `.hart` on your computer. Use a non-interactive build when you are sure the build will succeed, or in conjunction with a continuous integration system.
 
 1. Change to the parent directory of the plan context.
-2. Build the package in an unattended fashion, passing the name of the origin key to the command.
+1. Build the artifact in an unattended fashion, passing the name of the origin key to the command.
 
     ```shell
     $ hab pkg build yourpackage -k yourname
@@ -83,7 +98,7 @@ A non-interactive build is one in which Habitat creates a Studio for you, builds
 
     > Similar to the `hab studio enter` command above, the type of studio where the build runs is determined by your host platform and `hab pkg build` takes the same `-w` and `-D` flags to adjust the studio environment if desired.
 
-3. The resulting package is inside a directory called `results`, along with any build logs and a build report (`last_build.env`) that includes machine-parseable metadata about the build.
+1. The resulting artifact is inside a directory called `results`, along with any build logs and a build report (`last_build.env`) that includes machine-parsable metadata about the build.
 
 By default, the Studio is reset to a clean state after the package is built; however, *if you are using the Linux version of `hab`*, you can reuse a previous Studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
 

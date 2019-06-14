@@ -1,14 +1,28 @@
 # <a name="glossary-keys" id="glossary-keys" data-magellan-target="glossary-keys">Keys</a>
 
-Habitat has strong cryptography built into both Habitat Builder and the Supervisor. This means there are several different kinds of keys.
+Habitat has strong cryptography built into Habitat Builder, the Supervisor, and the `hab` CLI commands. This means there are several different kinds of keys.
 
-## Origin Keys
+## Origin Key Pairs
 
-As described in the [packages documentation](/docs/glossary/#glossary-packages), every package in Habitat belongs to an origin and is cryptographically signed with that origin's private key.
+Every Habitat artifact belongs to an [origin](/docs/glossary/#glossary-artifacts) and is cryptographically signed with that origin's private key. Habitat requires the private key for producing artifacts and requires the public key for verification of artifacts before installation. If it is present on Builder, Habitat will automatically download the public key for an origin when necessary.
 
 Origin key cryptography is asymmetric: it has a public key that you can distribute freely, and a private key that you should keep safe.
 
-Supervisors, by default, will refuse to run packages for which they do not have the public key. They use this public key to verify the integrity of the Habitat package they download before running it. Supervisors can be provided the public key by pointing them at a depot that has it, or by putting the key on disk outside of Habitat.
+Habitat uses the public origin key to verify the integrity of downloaded artifacts before installing them.
+Habitat will only install artifacts for which it has the public origin key.
+
+You can provide a public origin key to Habitat by pointing it to a Builder site that has the origin key with the `--url` argument to `hab pkg install` or using the `hab origin key import` command.
+Use `hab origin key upload` to upload origin keys to Builder.
+Use `hab origin key download` to download your origin keys from Builder to your environment.
+Use `hab origin key import` to read the key from a standard input stream or local file:
+
+```bash
+hab origin key import <enter or paste key>
+hab origin key import < <PATH_TO_KEY>
+curl <URL_THAT_RETURNS_KEY> | hab origin key import
+```
+
+See the [hab origin key](docs/habitat-cli/#hab-origin-key) command documentation for more information about working with origin keys from the command line.
 
 ## User and Service Group Keys
 
@@ -20,4 +34,4 @@ User and service group keys also utilize asymmetric cryptography. To apply confi
 
 ## Ring Encryption Key
 
-A Supervisor ring can be optionally set up to encrypt *all* communication across the network. This requires the use of a symmetric pre-shared key. Any Supervisor joining the ring that does not present this key will be rejected.
+A Supervisor network can be optionally set up to encrypt *all* supervisor-to-supervisor communication. This requires the use of a symmetric, pre-shared key.

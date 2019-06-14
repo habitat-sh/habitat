@@ -60,7 +60,7 @@ And build an isolated package for our app:
 [1][default:/src:0]# build
 ```
 
-After a lot of output flies by, we should have our first Habitat package built and installed! Mine is called `fnichol/expresso` because my origin name is part of the [Package Identifier](/docs/glossary#glossary-packages).
+After a lot of output flies by, we should have our first Habitat package built and installed! Mine is called `fnichol/expresso` because my origin name is part of the [Package Identifier](/docs/glossary#glossary-artifacts).
 
 Now let's start our app! When you enter a Habitat Studio these days, a [Supervisor](/docs/glossary#glossary-supervisor) will be running in the background waiting to start services, so we can start ours with:
 

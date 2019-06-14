@@ -1,8 +1,8 @@
 <h1><a name="write-plans" id="write-plans" data-magellan-target="write-plans">Writing plans</a></h1>
 
-Packages are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Habitat. They are built from shell scripts known as plans, but may also include application lifecycle hooks and service configuration files that describe the behavior and configuration of a running package.
+Artifacts are the cryptographically-signed tarballs that are uploaded, downloaded, unpacked, and installed in Habitat. They are built from shell scripts known as plans, but may also include application lifecycle hooks and service configuration files that describe the behavior and configuration of a running service.
 
-At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. For more conceptual information on packages can be found in the [Packages glossary topic](/docs/glossary#glossary-packages).
+At the center of Habitat packaging is the plan. This is a directory comprised of shell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the artifact. More conceptual information on artifacts can be found in the [Artifacts glossary topic](/docs/glossary#glossary-artifacts).
 
 As a way to start to understand plans, let's look at an example `plan.sh` for [sqlite](http://www.sqlite.org/):
 
@@ -33,13 +33,13 @@ It has the name of the software, the version, where to download it, a checksum t
 
 When you have finished creating your plan and call `build` in Habitat studio, the following occurs:
 
-1.  The build script ensures that the origin key is available to sign the package.
+1.  The build script ensures that the private origin key is available to sign the artifact.
 2.  If specified in `pkg_source`, a compressed file containing the source code is downloaded.
 3.  The checksum of that file, specified in `pkg_shasum`, is validated.
 4.  The source is extracted into a temporary cache.
 5.  Unless overridden, the callback methods will build and install the binary or library via `make` and `make install`, respectively for Linux based builds.
 6.  Your package contents (binaries, runtine dependencies, libraries, assets, etc.) are then compressed into a tarball.
-7.  The tarball is signed with your origin key and given a .hart file extension.
+7.  The tarball is signed with your private origin key and given a `.hart` file extension.
 
 After the build script completes, you can then upload your package to Habitat Builder, or install and start your package locally.
 
@@ -94,7 +94,7 @@ The following sections describe each of these steps in more detail.
 #### Create your package identifier
 The origin is a place for you to set default privacy rules, store your packages, and collaborate with teammates. For example, the "core" origin is where the core maintainers of Habitat share packages that are foundational to building other packages. If you would like to browse them, they are located in the [core-plans repo](https://github.com/habitat-sh/core-plans), and on [Habitat Builder's Core Origin](https://bldr.habitat.sh/#/pkgs/core).
 
-Creating packages for a specific origin requires that you have access to the secret key for that origin. The secret key will be used to sign the package when it is built by the hab-plan-build command. Keys are kept in `$HOME/.hab/cache/keys` on the host machine and `/hab/cache/keys` while in the studio. For more information on keys, see [Keys](/docs/glossary/#glossary-keys).
+Creating artifacts for a specific origin requires that you have access to the that origin's private key. The private origin key will be used to sign the artifact when it is built by the `hab plan build` command. Origin keys are kept in `$HOME/.hab/cache/keys` on the host machine when running `hab` as a non-root user and `/hab/cache/keys` when running as root (including in the studio). For more information on origin keys, see [Keys](/docs/glossary/#glossary-keys).
 
 The next important part of your package identifier is the name of the package. Standard naming convention is to base the name of the package off of the name of the source or project you download and install into the package.
 

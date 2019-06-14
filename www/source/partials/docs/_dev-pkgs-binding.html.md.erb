@@ -8,7 +8,7 @@ Let's look at how we set up this relationship in detail.
 
 ## Defining the Producer Contract: `pkg_exports`
 
-A producer defines its contract by "exporting" a subset of its runtime configuration. This is done by setting keys in the `pkg_exports` associative array defined in your package's `plan.sh`. For example, a database server named `amnesia` might define the following exports:
+A producer defines its contract by "exporting" a subset of its runtime configuration. This is done by defining values in the `pkg_exports` associative array defined in your package's `plan.sh`. For example, a database server named `amnesia` might define the following exports:
 
 ```bash
 pkg_exports=(
@@ -44,7 +44,7 @@ pkg_binds=(
 )
 ```
 
-Here, `pkg_binds` is an associative array. The key (here, "database") is the binding name, while the value (here, "port ssl-port") is a space-delimited list of the exported configuration the binding requires. A consumer can have specify multiple binds; each would be an individual entry in this associative array. Judging from this, the producer we described above would be a good candidate for this application server to bind to, because it exports both a "port" and an "ssl-port".
+Here, `pkg_binds` is an associative array. The key ("database") is the binding name, while the value ("port ssl-port") is a space-delimited list of the exported configuration the binding requires. A consumer can specify multiple binds; each would be an individual entry in this associative array. Judging from this, the producer we described above would be a good candidate for this application server to bind to, because it exports both a "port" and an "ssl-port".
 
 A bound service group may export additional values, but they cannot export less and still satisfy the contract.
 
