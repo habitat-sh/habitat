@@ -149,7 +149,25 @@ impl BuilderAPIClient {
                   product: &str,
                   version: &str,
                   fs_root_path: Option<&Path>)
-                  -> Result<BoxedClient>
+                  -> Result<Self>
+        where U: IntoUrl
+    {
+        let mut endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
+        if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
+            endpoint.set_path(DEFAULT_API_PATH);
+        }
+        let client = BuilderAPIClient(
+            ApiClient::new(endpoint, product, version, fs_root_path)
+                .map_err(Error::HabitatHttpClient)?,
+        );
+        Ok(client)
+    }
+
+    pub fn create<U>(endpoint: U,
+                     product: &str,
+                     version: &str,
+                     fs_root_path: Option<&Path>)
+                     -> Result<BoxedClient>
         where U: IntoUrl
     {
         let mut endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
@@ -1292,6 +1310,7 @@ mod tests {
         assert_eq!(r.1, 0);
     }
 
+    #[ignore]
     #[test]
     fn package_search_large() {
         let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
