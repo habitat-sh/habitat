@@ -112,6 +112,10 @@ impl CensusRing {
     ///
     /// (Butterfly provides the health, the ServiceRumors provide the
     /// rest).
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn populate_census(&mut self,
                        service_rumors: &RumorStore<ServiceRumor>,
                        member_list: &MemberList) {
@@ -136,7 +140,7 @@ impl CensusRing {
                           }
                       });
 
-        member_list.with_members(|member| {
+        member_list.with_members_mlr(|member| {
                        let health = member_list.health_of(&member).unwrap();
                        for group in self.census_groups.values_mut() {
                            if let Some(census_member) = group.find_member_mut(&member.id) {

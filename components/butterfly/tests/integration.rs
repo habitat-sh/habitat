@@ -121,7 +121,7 @@ fn six_members_unmeshed_allows_graceful_departure() {
     net.connect(4, 5);
     assert_wait_for_health_of!(net, [0..6, 0..6], Health::Alive);
     trace_it!(TEST: &net[0], "Departing");
-    net[0].set_departed();
+    net[0].set_departed_mlw();
     trace_it!(TEST: &net[0], "Paused");
     net[0].pause();
     assert_wait_for_health_of!(net, 0, Health::Departed);

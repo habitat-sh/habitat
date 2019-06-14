@@ -57,7 +57,10 @@ impl DatFile {
 
     pub fn path(&self) -> &Path { &self.path }
 
-    pub fn read_into(&mut self, server: &Server) -> Result<()> {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn read_into_mlr(&mut self, server: &Server) -> Result<()> {
         let mut version = [0; 1];
         let mut size_buf = [0; 8];
         // JW: Resizing this buffer is terrible for performance, but it's the easiest way to
@@ -164,7 +167,7 @@ impl DatFile {
             reader.read_exact(&mut rumor_buf)
                   .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             let rumor = Election::from_bytes(&rumor_buf)?;
-            server.insert_election(rumor);
+            server.insert_election_mlr(rumor);
             bytes_read += size_buf.len() as u64 + rumor_size;
         }
 
@@ -182,7 +185,7 @@ impl DatFile {
             reader.read_exact(&mut rumor_buf)
                   .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             let rumor = ElectionUpdate::from_bytes(&rumor_buf)?;
-            server.insert_update_election(rumor);
+            server.insert_update_election_mlr(rumor);
             bytes_read += size_buf.len() as u64 + rumor_size;
         }
 
@@ -209,6 +212,9 @@ impl DatFile {
         Ok(())
     }
 
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn write(&self, server: &Server) -> Result<usize> {
         let mut header = Header::default();
         let w =
@@ -216,7 +222,7 @@ impl DatFile {
         w.with_writer(|mut f| {
              let mut writer = BufWriter::new(&mut f);
              self.init(&mut writer)?;
-             header.member_len = self.write_member_list(&mut writer, &server.member_list)?;
+             header.member_len = self.write_member_list_mlr(&mut writer, &server.member_list)?;
              header.service_len = self.write_rumor_store(&mut writer, &server.service_store)?;
              header.service_config_len =
                  self.write_rumor_store(&mut writer, &server.service_config_store)?;
@@ -281,11 +287,15 @@ impl DatFile {
         Ok(total)
     }
 
-    fn write_member_list<W>(&self, writer: &mut W, member_list: &MemberList) -> Result<u64>
-        where W: Write
-    {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn write_member_list_mlr(&self,
+                             writer: &mut impl Write,
+                             member_list: &MemberList)
+                             -> Result<u64> {
         let mut total = 0;
-        member_list.with_memberships(|membership| {
+        member_list.with_memberships_mlr(|membership| {
                        total += self.write_member(writer, &membership)?;
                        Ok(total)
                    })

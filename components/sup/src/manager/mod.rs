@@ -423,7 +423,11 @@ impl Manager {
     ///
     /// The returned Manager will be pre-populated with any cached data from disk from a previous
     /// run if available.
-    pub fn load(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
+    ///
+    /// # Locking
+    /// * `MemberList::intitial_entries` (write) This method must not be called while any
+    ///   MemberList::intitial_entries lock is held.
+    pub fn load_imlw(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
         let state_path = cfg.sup_root();
         let fs_cfg = FsCfg::new(state_path);
         Self::create_state_path_dirs(&fs_cfg)?;
@@ -433,7 +437,7 @@ impl Manager {
         }
         obtain_process_lock(&fs_cfg)?;
 
-        Self::new(cfg, fs_cfg, launcher)
+        Self::new_imlw(cfg, fs_cfg, launcher)
     }
 
     pub fn term(proc_lock_file: &Path) -> Result<()> {
@@ -452,7 +456,10 @@ impl Manager {
         }
     }
 
-    fn new(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
+    /// # Locking
+    /// * `MemberList::intitial_entries` (write) This method must not be called while any
+    ///   MemberList::intitial_entries lock is held.
+    fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
         outputln!("{} ({})", SUP_PKG_IDENT, current);
@@ -488,7 +495,7 @@ impl Manager {
             peer.address = format!("{}", peer_addr.ip());
             peer.swim_port = peer_addr.port();
             peer.gossip_port = peer_addr.port();
-            server.member_list.add_initial_member(peer);
+            server.member_list.add_initial_member_imlw(peer);
         }
 
         let peer_watcher = if let Some(path) = cfg.watch_peer_file {
@@ -705,8 +712,13 @@ impl Manager {
     // simplify the redundant aspects and remove this allow(clippy::cognitive_complexity),
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    /// * `MemberList::intitial_entries` (write) This method must not be called while any
+    ///   MemberList::intitial_entries lock is held.
     #[allow(clippy::cognitive_complexity)]
-    pub fn run(mut self, svc: Option<habitat_sup_protocol::ctl::SvcLoad>) -> Result<()> {
+    pub fn run_mlw_imlw(mut self, svc: Option<habitat_sup_protocol::ctl::SvcLoad>) -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
         let mut next_cpu_measurement = SteadyTime::now();
@@ -747,9 +759,9 @@ impl Manager {
 
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
-        self.butterfly.start(Timing::default())?;
+        self.butterfly.start_mlr(Timing::default())?;
         debug!("gossip-listener started");
-        self.persist_state();
+        self.persist_state_mlr();
         let http_listen_addr = self.sys.http_listen();
         let ctl_listen_addr = self.sys.ctl_listen();
         let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
@@ -976,14 +988,14 @@ impl Manager {
                 self.maybe_spawn_service_futures(&mut runtime);
             }
 
-            self.update_peers_from_watch_file()?;
+            self.update_peers_from_watch_file_mlr_imlw()?;
             self.update_running_services_from_user_config_watcher();
 
             for f in self.stop_services_with_updates() {
                 runtime.spawn(f);
             }
 
-            self.restart_elections(self.feature_flags);
+            self.restart_elections_mlr(self.feature_flags);
             self.census_ring
                 .update_from_rumors(&self.state.cfg.cache_key_path,
                                     &self.butterfly.service_store,
@@ -994,11 +1006,11 @@ impl Manager {
                                     &self.butterfly.service_file_store);
 
             if self.check_for_changed_services() {
-                self.persist_state();
+                self.persist_state_mlr();
             }
 
             if self.census_ring.changed() {
-                self.persist_state();
+                self.persist_state_mlr();
             }
 
             for service in self.state
@@ -1053,7 +1065,7 @@ impl Manager {
             ShutdownMode::Restarting => {}
             ShutdownMode::Normal | ShutdownMode::Departed => {
                 outputln!("Gracefully departing from butterfly network.");
-                self.butterfly.set_departed();
+                self.butterfly.set_departed_mlw();
 
                 let mut svcs = self.state
                                    .services
@@ -1188,11 +1200,14 @@ impl Manager {
         }
     }
 
-    fn persist_state(&self) {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn persist_state_mlr(&self) {
         debug!("Updating census state");
         self.persist_census_state();
         debug!("Updating butterfly state");
-        self.persist_butterfly_state();
+        self.persist_butterfly_state_mlr();
         debug!("Updating services state");
         self.persist_services_state();
     }
@@ -1207,7 +1222,10 @@ impl Manager {
             .census_data = json;
     }
 
-    fn persist_butterfly_state(&self) {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn persist_butterfly_state_mlr(&self) {
         let bs = ServerProxy::new(&self.butterfly);
         let json = serde_json::to_string(&bs).unwrap();
         self.state
@@ -1267,8 +1285,8 @@ impl Manager {
     }
 
     /// Check if any elections need restarting.
-    fn restart_elections(&mut self, feature_flags: FeatureFlag) {
-        self.butterfly.restart_elections(feature_flags);
+    fn restart_elections_mlr(&mut self, feature_flags: FeatureFlag) {
+        self.butterfly.restart_elections_mlr(feature_flags);
     }
 
     /// Create a future for stopping a Service. The Service is assumed
@@ -1541,8 +1559,13 @@ impl Manager {
                   .collect()
     }
 
-    fn update_peers_from_watch_file(&mut self) -> Result<()> {
-        if !self.butterfly.need_peer_seeding() {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    /// * `MemberList::intitial_entries` (write) This method must not be called while any
+    ///   MemberList::intitial_entries lock is held.
+    fn update_peers_from_watch_file_mlr_imlw(&mut self) -> Result<()> {
+        if !self.butterfly.need_peer_seeding_mlr() {
             return Ok(());
         }
         match self.peer_watcher {
@@ -1550,7 +1573,7 @@ impl Manager {
             Some(ref watcher) => {
                 if watcher.has_fs_events() {
                     let members = watcher.get_members()?;
-                    self.butterfly.member_list.set_initial_members(members);
+                    self.butterfly.member_list.set_initial_members_imlw(members);
                 }
                 Ok(())
             }

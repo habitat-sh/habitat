@@ -78,7 +78,7 @@ fn main() {
     logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
-    let result = start(flags);
+    let result = start_mlr(flags);
     let exit_code = match result {
         Ok(_) => 0,
         Err(ref err) => {
@@ -109,7 +109,10 @@ fn boot() -> Option<LauncherCli> {
     }
 }
 
-fn start(feature_flags: FeatureFlag) -> Result<()> {
+/// # Locking
+/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
+///   is held.
+fn start_mlr(feature_flags: FeatureFlag) -> Result<()> {
     if feature_flags.contains(FeatureFlag::TEST_BOOT_FAIL) {
         outputln!("Simulating boot failure");
         return Err(Error::TestBootFail);
@@ -139,7 +142,7 @@ fn start(feature_flags: FeatureFlag) -> Result<()> {
         ("bash", Some(_)) => sub_bash(),
         ("run", Some(m)) => {
             let launcher = launcher.ok_or(Error::NoLauncher)?;
-            sub_run(m, launcher, feature_flags)
+            sub_run_mlw_imlw(m, launcher, feature_flags)
         }
         ("sh", Some(_)) => sub_sh(),
         ("term", Some(_)) => sub_term(),
@@ -149,11 +152,19 @@ fn start(feature_flags: FeatureFlag) -> Result<()> {
 
 fn sub_bash() -> Result<()> { command::shell::bash() }
 
-fn sub_run(m: &ArgMatches, launcher: LauncherCli, feature_flags: FeatureFlag) -> Result<()> {
+/// # Locking
+/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+///   lock is held.
+/// * `MemberList::intitial_entries` (write) This method must not be called while any
+///   MemberList::intitial_entries lock is held.
+fn sub_run_mlw_imlw(m: &ArgMatches,
+                    launcher: LauncherCli,
+                    feature_flags: FeatureFlag)
+                    -> Result<()> {
     set_supervisor_logging_options(m);
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
-    let manager = Manager::load(cfg, launcher)?;
+    let manager = Manager::load_imlw(cfg, launcher)?;
 
     // We need to determine if we have an initial service to start
     let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {
@@ -186,7 +197,7 @@ fn sub_run(m: &ArgMatches, launcher: LauncherCli, feature_flags: FeatureFlag) ->
     } else {
         None
     };
-    manager.run(svc)
+    manager.run_mlw_imlw(svc)
 }
 
 fn sub_sh() -> Result<()> { command::shell::sh() }

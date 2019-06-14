@@ -66,224 +66,231 @@ impl fmt::Display for AckFrom {
     }
 }
 
-/// The outbound thread
-pub struct Outbound {
-    pub server:     Server,
-    pub socket:     UdpSocket,
-    pub rx_inbound: AckReceiver,
-    pub timing:     Timing,
+pub fn spawn_thread(name: String,
+                    server: Server,
+                    socket: UdpSocket,
+                    rx_inbound: AckReceiver,
+                    timing: Timing)
+                    -> std::io::Result<()> {
+    thread::Builder::new().name(name)
+                          .spawn(|| run_loop(server, socket, rx_inbound, timing))
+                          .map(|_| ())
 }
 
-impl Outbound {
-    /// Creates a new Outbound struct.
-    pub fn new(server: Server,
-               socket: UdpSocket,
-               rx_inbound: AckReceiver,
-               timing: Timing)
-               -> Outbound {
-        Outbound { server,
-                   socket,
-                   rx_inbound,
-                   timing }
+/// Run the outbound thread. Gets a list of members to ping, then walks the list, probing each
+/// member.
+///
+/// If the probe completes before the next protocol period is scheduled, waits for the protocol
+/// period to finish before starting the next probe.
+///
+/// # Locking
+/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
+///   is held.
+/// * `MemberList::intitial_entries` (read) This method must not be called while any
+///   MemberList::intitial_entries lock is held.
+fn run_loop(server: Server, socket: UdpSocket, rx_inbound: AckReceiver, timing: Timing) -> ! {
+    let mut have_members = false;
+    loop {
+        habitat_common::sync::mark_thread_alive();
+
+        if !have_members {
+            let num_initial = server.member_list.len_initial_members_imlr();
+            if num_initial != 0 {
+                // The minimum that's strictly more than half
+                let min_to_start = num_initial / 2 + 1;
+
+                if server.member_list.len_mlr() >= min_to_start {
+                    have_members = true;
+                } else {
+                    server.member_list.with_initial_members_imlr(|member| {
+                                          ping_mlr(&server,
+                                                   &socket,
+                                                   &member,
+                                                   member.swim_socket_address(),
+                                                   None);
+                                      });
+                }
+            }
+        }
+
+        if server.paused() {
+            thread::sleep(Duration::from_millis(100));
+            continue;
+        }
+
+        server.update_swim_round();
+
+        let long_wait = timing.next_protocol_period();
+
+        let check_list = server.member_list.check_list_mlr(&server.member_id);
+
+        for member in check_list {
+            if server.member_list.pingable(&member) {
+                // This is the timeout for the next protocol period - if we
+                // complete faster than this, we want to wait in the end
+                // until this timer expires.
+                let next_protocol_period = timing.next_protocol_period();
+
+                probe_mlr(&server, &socket, &rx_inbound, &timing, member);
+
+                if SteadyTime::now() <= next_protocol_period {
+                    let wait_time = (next_protocol_period - SteadyTime::now()).num_milliseconds();
+                    if wait_time > 0 {
+                        debug!("Waiting {} until the next protocol period", wait_time);
+                        thread::sleep(Duration::from_millis(wait_time as u64));
+                    }
+                }
+            }
+        }
+
+        if SteadyTime::now() <= long_wait {
+            let wait_time = (long_wait - SteadyTime::now()).num_milliseconds();
+            if wait_time > 0 {
+                thread::sleep(Duration::from_millis(wait_time as u64));
+            }
+        }
+    }
+}
+
+/// Probe Loop
+///
+/// First, we send the ping to the remote address. This operation never blocks - we just
+/// pass the data straight on to the kernel for UDP goodness. Then we grab a timer for how
+/// long we're willing to run this phase, and start listening for Ack packets from the
+/// Inbound thread. If we receive an Ack that is for any Member other than the one we are
+/// currently pinging, we discard it. Otherwise, we set the address for the Member whose Ack
+/// we received to the one we saw on the wire, and insert it into the MemberList.
+///
+/// If we don't receive anything on the channel, we check if the current time has exceeded
+/// our timeout. If it has, we break out of the Ping loop, and proceed to the PingReq loop.
+/// If the timer has not been exceeded, we park this thread for
+/// PING_RECV_QUEUE_EMPTY_SLEEP_MS, and try again.
+///
+/// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
+///
+/// # Locking
+/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
+///   is held.
+fn probe_mlr(server: &Server,
+             socket: &UdpSocket,
+             rx_inbound: &AckReceiver,
+             timing: &Timing,
+             member: Member) {
+    let pa_timer = SWIM_PROBE_DURATION.with_label_values(&["ping/ack"])
+                                      .start_timer();
+    let mut pr_timer: Option<HistogramTimer> = None;
+    let addr = member.swim_socket_address();
+
+    trace_it!(PROBE: server, TraceKind::ProbeBegin, &member.id, addr);
+
+    // Ping the member, and wait for the ack.
+    SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
+    ping_mlr(server, socket, &member, addr, None);
+
+    if recv_ack(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
+        trace_it!(PROBE: server, TraceKind::ProbeAckReceived, &member.id, addr);
+        trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
+        SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
+        pa_timer.observe_duration();
+        return;
     }
 
-    /// Run the outbound thread. Gets a list of members to ping, then walks the list, probing each
-    /// member.
-    ///
-    /// If the probe completes before the next protocol period is scheduled, waits for the protocol
-    /// period to finish before starting the next probe.
-    pub fn run(&mut self) {
-        let mut have_members = false;
-        loop {
-            habitat_common::sync::mark_thread_alive();
+    server.member_list
+          .with_pingreq_targets_mlr(server.member_id(), &member.id, |pingreq_target| {
+              trace_it!(PROBE: server,
+                        TraceKind::ProbePingReq,
+                        &pingreq_target.id,
+                        &pingreq_target.address);
+              SWIM_PROBES_SENT.with_label_values(&["pingreq"]).inc();
+              pr_timer = Some(SWIM_PROBE_DURATION.with_label_values(&["pingreq/ack"])
+                                                 .start_timer());
+              // XXX recursive lock!
+              pingreq_mlr(server, socket, pingreq_target, &member);
+          });
 
-            if !have_members {
-                let num_initial = self.server.member_list.len_initial_members();
-                if num_initial != 0 {
-                    // The minimum that's strictly more than half
-                    let min_to_start = num_initial / 2 + 1;
+    if recv_ack(server, rx_inbound, timing, &member, addr, AckFrom::PingReq) {
+        SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
+        trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
+    } else {
+        // We mark as suspect when we fail to get a response from the PingReq. That moves us
+        // into the suspicion phase, where anyone marked as suspect has a certain number of
+        // protocol periods to recover.
+        warn!("Marking {} as Suspect", &member.id);
+        trace_it!(PROBE: server, TraceKind::ProbeSuspect, &member.id, addr);
+        trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
+        server.insert_member(member, Health::Suspect);
+        SWIM_PROBES_SENT.with_label_values(&["pingreq/failure"])
+                        .inc();
+    }
 
-                    if self.server.member_list.len() >= min_to_start {
-                        have_members = true;
+    if pr_timer.is_some() {
+        pr_timer.unwrap().observe_duration();
+    }
+}
+
+/// Listen for an ack from the `Inbound` thread.
+fn recv_ack(server: &Server,
+            rx_inbound: &AckReceiver,
+            timing: &Timing,
+            member: &Member,
+            addr: SocketAddr,
+            ack_from: AckFrom)
+            -> bool {
+    let timeout = match ack_from {
+        AckFrom::Ping => timing.ping_timeout(),
+        AckFrom::PingReq => timing.pingreq_timeout(),
+    };
+    loop {
+        match rx_inbound.try_recv() {
+            Ok((real_addr, mut ack)) => {
+                // If this was forwarded to us, we want to retain the address of the member who
+                // sent the ack, not the one we received on the socket.
+                if ack.forward_to.is_none() {
+                    ack.from.address = real_addr.ip().to_string();
+                }
+                if member.id != ack.from.id {
+                    if ack.from.departed {
+                        server.insert_member(ack.from, Health::Departed);
                     } else {
-                        self.server.member_list.with_initial_members(|member| {
-                                                   ping(&self.server,
-                                                        &self.socket,
-                                                        &member,
-                                                        member.swim_socket_address(),
-                                                        None);
-                                               });
+                        server.insert_member(ack.from, Health::Alive);
                     }
-                }
-            }
-
-            if self.server.paused() {
-                thread::sleep(Duration::from_millis(100));
-                continue;
-            }
-
-            self.server.update_swim_round();
-
-            let long_wait = self.timing.next_protocol_period();
-
-            let check_list = self.server.member_list.check_list(&self.server.member_id);
-
-            for member in check_list {
-                if self.server.member_list.pingable(&member) {
-                    // This is the timeout for the next protocol period - if we
-                    // complete faster than this, we want to wait in the end
-                    // until this timer expires.
-                    let next_protocol_period = self.timing.next_protocol_period();
-
-                    self.probe(member);
-
-                    if SteadyTime::now() <= next_protocol_period {
-                        let wait_time =
-                            (next_protocol_period - SteadyTime::now()).num_milliseconds();
-                        if wait_time > 0 {
-                            debug!("Waiting {} until the next protocol period", wait_time);
-                            thread::sleep(Duration::from_millis(wait_time as u64));
-                        }
-                    }
-                }
-            }
-
-            if SteadyTime::now() <= long_wait {
-                let wait_time = (long_wait - SteadyTime::now()).num_milliseconds();
-                if wait_time > 0 {
-                    thread::sleep(Duration::from_millis(wait_time as u64));
-                }
-            }
-        }
-    }
-
-    /// Probe Loop
-    ///
-    /// First, we send the ping to the remote address. This operation never blocks - we just
-    /// pass the data straight on to the kernel for UDP goodness. Then we grab a timer for how
-    /// long we're willing to run this phase, and start listening for Ack packets from the
-    /// Inbound thread. If we receive an Ack that is for any Member other than the one we are
-    /// currently pinging, we discard it. Otherwise, we set the address for the Member whose Ack
-    /// we received to the one we saw on the wire, and insert it into the MemberList.
-    ///
-    /// If we don't receive anything on the channel, we check if the current time has exceeded
-    /// our timeout. If it has, we break out of the Ping loop, and proceed to the PingReq loop.
-    /// If the timer has not been exceeded, we park this thread for
-    /// PING_RECV_QUEUE_EMPTY_SLEEP_MS, and try again.
-    ///
-    /// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
-    fn probe(&mut self, member: Member) {
-        let pa_timer = SWIM_PROBE_DURATION.with_label_values(&["ping/ack"])
-                                          .start_timer();
-        let mut pr_timer: Option<HistogramTimer> = None;
-        let addr = member.swim_socket_address();
-
-        trace_it!(PROBE: &self.server, TraceKind::ProbeBegin, &member.id, addr);
-
-        // Ping the member, and wait for the ack.
-        SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
-        ping(&self.server, &self.socket, &member, addr, None);
-
-        if self.recv_ack(&member, addr, AckFrom::Ping) {
-            trace_it!(PROBE: &self.server, TraceKind::ProbeAckReceived, &member.id, addr);
-            trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, &member.id, addr);
-            SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
-            pa_timer.observe_duration();
-            return;
-        }
-
-        self.server.member_list.with_pingreq_targets(
-            self.server.member_id(),
-            &member.id,
-            |pingreq_target| {
-                trace_it!(PROBE: &self.server,
-                          TraceKind::ProbePingReq,
-                          &pingreq_target.id,
-                          &pingreq_target.address);
-                SWIM_PROBES_SENT.with_label_values(&["pingreq"]).inc();
-                pr_timer = Some(
-                    SWIM_PROBE_DURATION
-                        .with_label_values(&["pingreq/ack"])
-                        .start_timer(),
-                );
-                pingreq(&self.server, &self.socket, pingreq_target, &member);
-            },
-        );
-
-        if self.recv_ack(&member, addr, AckFrom::PingReq) {
-            SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
-            trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, &member.id, addr);
-        } else {
-            // We mark as suspect when we fail to get a response from the PingReq. That moves us
-            // into the suspicion phase, where anyone marked as suspect has a certain number of
-            // protocol periods to recover.
-            warn!("Marking {} as Suspect", &member.id);
-            trace_it!(PROBE: &self.server, TraceKind::ProbeSuspect, &member.id, addr);
-            trace_it!(PROBE: &self.server, TraceKind::ProbeComplete, &member.id, addr);
-            self.server.insert_member(member, Health::Suspect);
-            SWIM_PROBES_SENT.with_label_values(&["pingreq/failure"])
-                            .inc();
-        }
-
-        if pr_timer.is_some() {
-            pr_timer.unwrap().observe_duration();
-        }
-    }
-
-    /// Listen for an ack from the `Inbound` thread.
-    fn recv_ack(&mut self, member: &Member, addr: SocketAddr, ack_from: AckFrom) -> bool {
-        let timeout = match ack_from {
-            AckFrom::Ping => self.timing.ping_timeout(),
-            AckFrom::PingReq => self.timing.pingreq_timeout(),
-        };
-        loop {
-            match self.rx_inbound.try_recv() {
-                Ok((real_addr, mut ack)) => {
-                    // If this was forwarded to us, we want to retain the address of the member who
-                    // sent the ack, not the one we received on the socket.
-                    if ack.forward_to.is_none() {
-                        ack.from.address = real_addr.ip().to_string();
-                    }
-                    if member.id != ack.from.id {
-                        if ack.from.departed {
-                            self.server.insert_member(ack.from, Health::Departed);
-                        } else {
-                            self.server.insert_member(ack.from, Health::Alive);
-                        }
-                        // Keep listening, we want the ack we expected
-                        continue;
+                    // Keep listening, we want the ack we expected
+                    continue;
+                } else {
+                    // We got the ack we are looking for; return.
+                    if ack.from.departed {
+                        server.insert_member(ack.from, Health::Departed);
                     } else {
-                        // We got the ack we are looking for; return.
-                        if ack.from.departed {
-                            self.server.insert_member(ack.from, Health::Departed);
-                        } else {
-                            self.server.insert_member(ack.from, Health::Alive);
-                        }
-                        return true;
+                        server.insert_member(ack.from, Health::Alive);
                     }
+                    return true;
                 }
-                Err(mpsc::TryRecvError::Empty) => {
-                    if SteadyTime::now() > timeout {
-                        warn!("Timed out waiting for Ack from {}@{}", &member.id, addr);
-                        return false;
-                    }
-                    thread::sleep(Duration::from_millis(PING_RECV_QUEUE_EMPTY_SLEEP_MS));
+            }
+            Err(mpsc::TryRecvError::Empty) => {
+                if SteadyTime::now() > timeout {
+                    warn!("Timed out waiting for Ack from {}@{}", &member.id, addr);
+                    return false;
                 }
-                Err(mpsc::TryRecvError::Disconnected) => {
-                    panic!("Outbound thread has disconnected! This is fatal.");
-                }
+                thread::sleep(Duration::from_millis(PING_RECV_QUEUE_EMPTY_SLEEP_MS));
+            }
+            Err(mpsc::TryRecvError::Disconnected) => {
+                panic!("Outbound thread has disconnected! This is fatal.");
             }
         }
     }
 }
 
 /// Populate a SWIM message with rumors.
-pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut Swim) {
+///
+/// # Locking
+/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
+///   is held.
+pub fn populate_membership_rumors_mlr(server: &Server, target: &Member, swim: &mut Swim) {
     // If this isn't the first time we are communicating with this target, we want to include this
     // targets current status. This ensures that members always get a "Confirmed" rumor, before we
     // have the chance to flip it to "Alive", which helps make sure we heal from a partition.
-    if server.member_list.contains_member(&target.id) {
-        if let Some(always_target) = server.member_list.membership_for(&target.id) {
+    if server.member_list.contains_member_mlr(&target.id) {
+        if let Some(always_target) = server.member_list.membership_for_mlr(&target.id) {
             swim.membership.push(always_target);
         }
     }
@@ -299,7 +306,7 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
         .collect();
 
     for rkey in rumors.iter() {
-        if let Some(member) = server.member_list.membership_for(&rkey.key()) {
+        if let Some(member) = server.member_list.membership_for_mlr(&rkey.key()) {
             swim.membership.push(member);
         }
     }
@@ -312,13 +319,17 @@ pub fn populate_membership_rumors(server: &Server, target: &Member, swim: &mut S
 }
 
 /// Send a PingReq.
-pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, target: &Member) {
+///
+/// # Locking
+/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
+///   is held.
+pub fn pingreq_mlr(server: &Server, socket: &UdpSocket, pingreq_target: &Member, target: &Member) {
     let pingreq = PingReq { membership: vec![],
                             from:       server.member.read().unwrap().as_member(),
                             target:     target.clone(), };
     let mut swim: Swim = pingreq.into();
     let addr = pingreq_target.swim_socket_address();
-    populate_membership_rumors(server, target, &mut swim);
+    populate_membership_rumors_mlr(server, target, &mut swim);
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {
@@ -362,18 +373,22 @@ pub fn pingreq(server: &Server, socket: &UdpSocket, pingreq_target: &Member, tar
 }
 
 /// Send a Ping.
-pub fn ping(server: &Server,
-            socket: &UdpSocket,
-            target: &Member,
-            addr: SocketAddr,
-            forward_to: Option<&Member>) {
+///
+/// # Locking
+/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
+///   is held.
+pub fn ping_mlr(server: &Server,
+                socket: &UdpSocket,
+                target: &Member,
+                addr: SocketAddr,
+                forward_to: Option<&Member>) {
     let ping = Ping {
         membership: vec![],
         from: server.member.read().unwrap().as_member(),
         forward_to: forward_to.cloned(), // TODO: see if we can eliminate this clone
     };
     let mut swim: Swim = ping.into();
-    populate_membership_rumors(server, target, &mut swim);
+    populate_membership_rumors_mlr(server, target, &mut swim);
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {
@@ -435,6 +450,10 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, msg: A
 }
 
 /// Send an Ack.
+///
+/// # Locking
+/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
+///   is held.
 pub fn ack(server: &Server,
            socket: &UdpSocket,
            target: &Member,
@@ -445,7 +464,7 @@ pub fn ack(server: &Server,
                     forward_to: forward_to.map(Member::from), };
     let member_id = ack.from.id.clone();
     let mut swim: Swim = ack.into();
-    populate_membership_rumors(server, target, &mut swim);
+    populate_membership_rumors_mlr(server, target, &mut swim);
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {
