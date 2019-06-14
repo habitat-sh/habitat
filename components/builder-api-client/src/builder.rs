@@ -170,15 +170,7 @@ impl BuilderAPIClient {
                      -> Result<BoxedClient>
         where U: IntoUrl
     {
-        let mut endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
-        if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
-            endpoint.set_path(DEFAULT_API_PATH);
-        }
-        let client = BuilderAPIClient(
-            ApiClient::new(endpoint, product, version, fs_root_path)
-                .map_err(Error::HabitatHttpClient)?,
-        );
-        Ok(Box::new(client))
+        Self::new(endpoint, product, version, fs_root_path).map(|c| Box::new(c) as _)
     }
 
     fn maybe_add_authz<'a>(&'a self,
