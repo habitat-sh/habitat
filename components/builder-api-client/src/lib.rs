@@ -385,7 +385,7 @@ pub trait BuilderAPIProvider: Sync + Send {
 }
 
 pub struct Client;
-pub type BoxedClient = Box<BuilderAPIProvider<Progress = Box<dyn DisplayProgress>>>;
+pub type BoxedClient = Box<dyn BuilderAPIProvider<Progress = Box<dyn DisplayProgress>>>;
 
 impl Client {
     #[allow(clippy::new_ret_no_self)]

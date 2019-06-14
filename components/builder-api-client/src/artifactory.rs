@@ -87,14 +87,7 @@ impl ArtifactoryClient {
                      -> Result<BoxedClient>
         where U: IntoUrl
     {
-        let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
-
-        debug!("ArtifactoryClient::new, endpoint = {:?}", endpoint);
-        let client = ArtifactoryClient(
-            ApiClient::new(endpoint, product, version, fs_root_path)
-                .map_err(Error::HabitatHttpClient)?,
-        );
-        Ok(Box::new(client))
+        Self::new(endpoint, product, version, fs_root_path).map(|c| Box::new(c) as _)
     }
 
     fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder<'_> {
