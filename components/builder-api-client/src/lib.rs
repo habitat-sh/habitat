@@ -399,8 +399,8 @@ impl Client {
         let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
 
         match &env::var("HAB_BLDR_PROVIDER").unwrap_or_else(|_| "builder".to_string())[..] {
-            "artifactory" => ArtifactoryClient::new(endpoint, product, version, fs_root_path),
-            _ => BuilderAPIClient::new(endpoint, product, version, fs_root_path),
+            "artifactory" => ArtifactoryClient::create(endpoint, product, version, fs_root_path),
+            _ => BuilderAPIClient::create(endpoint, product, version, fs_root_path),
         }
     }
 }

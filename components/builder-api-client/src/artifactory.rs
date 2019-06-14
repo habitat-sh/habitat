@@ -67,7 +67,24 @@ impl ArtifactoryClient {
                   product: &str,
                   version: &str,
                   fs_root_path: Option<&Path>)
-                  -> Result<BoxedClient>
+                  -> Result<Self>
+        where U: IntoUrl
+    {
+        let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
+
+        debug!("ArtifactoryClient::new, endpoint = {:?}", endpoint);
+        let client = ArtifactoryClient(
+            ApiClient::new(endpoint, product, version, fs_root_path)
+                .map_err(Error::HabitatHttpClient)?,
+        );
+        Ok(client)
+    }
+
+    pub fn create<U>(endpoint: U,
+                     product: &str,
+                     version: &str,
+                     fs_root_path: Option<&Path>)
+                     -> Result<BoxedClient>
         where U: IntoUrl
     {
         let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
@@ -637,8 +654,9 @@ impl BuilderAPIProvider for ArtifactoryClient {
 
     fn search_package(&self,
                       _search_term: &str,
+                      _limit: usize,
                       _token: Option<&str>)
-                      -> Result<(Vec<PackageIdent>, bool)> {
+                      -> Result<(Vec<PackageIdent>, usize)> {
         Err(Error::NotSupported)
     }
 
