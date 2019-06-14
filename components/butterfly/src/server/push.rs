@@ -38,7 +38,7 @@ lazy_static! {
 
 pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(|| run_loop(server, timing))
+                          .spawn(move || run_loop(&server, &timing))
                           .map(|_| ())
 }
 
@@ -46,7 +46,7 @@ pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Re
 /// proceeds to process the list in `FANOUT` sized chunks. If we finish sending the messages to
 /// all FANOUT targets faster than `Timing::GOSSIP_PERIOD_DEFAULT_MS`, we will block until we
 /// exceed that time.
-fn run_loop(server: Server, timing: Timing) -> ! {
+fn run_loop(server: &Server, timing: &Timing) -> ! {
     loop {
         habitat_common::sync::mark_thread_alive();
 
@@ -88,7 +88,7 @@ fn run_loop(server: Server, timing: Timing) -> ! {
                         let sc = server.clone();
                         let guard = match thread::Builder::new().name(String::from("push-worker"))
                                                                 .spawn(move || {
-                                                                    send_rumors(sc, &member,
+                                                                    send_rumors(&sc, &member,
                                                                                 &rumors)
                                                                 }) {
                             Ok(guard) => guard,
@@ -135,7 +135,7 @@ fn run_loop(server: Server, timing: Timing) -> ! {
 // but changing it in the absence of other necessity seems like too much risk for the
 // expected reward.
 #[allow(clippy::cognitive_complexity)]
-fn send_rumors(server: Server, member: &Member, rumors: &[RumorKey]) {
+fn send_rumors(server: &Server, member: &Member, rumors: &[RumorKey]) {
     let socket = (**ZMQ_CONTEXT).as_mut()
                                 .socket(zmq::PUSH)
                                 .expect("Failure to create the ZMQ push socket");

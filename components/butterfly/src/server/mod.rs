@@ -413,7 +413,7 @@ impl Server {
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
-    pub fn start_mlr(&mut self, timing: timing::Timing) -> Result<()> {
+    pub fn start_mlr(&mut self, timing: &timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = self.data_path {
@@ -1176,11 +1176,11 @@ impl fmt::Display for Server {
 
 fn spawn_persist_thread(name: String, server: Server) -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(|| persist_loop(server))
+                          .spawn(move || persist_loop(&server))
                           .map(|_| ())
 }
 
-fn persist_loop(server: Server) -> ! {
+fn persist_loop(server: &Server) -> ! {
     habitat_core::env_config_duration!(PersistLoopPeriod,
                                        HAB_PERSIST_LOOP_PERIOD_SECS => from_secs,
                                        Duration::from_secs(30));
@@ -1673,14 +1673,14 @@ mod tests {
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
-            server.start_mlr(Timing::default())
+            server.start_mlr(&Timing::default())
                   .expect("Server failed to start");
         }
 
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start_mlr(Timing::default())
+            server.start_mlr(&Timing::default())
                   .expect("Server failed to start");
         }
     }

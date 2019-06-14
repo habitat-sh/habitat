@@ -983,7 +983,7 @@ mod tests {
         #[test]
         fn health_of_with_memberships() {
             let ml = populated_member_list(1);
-            ml.with_memberships_mlr(|Membership { member: _, health }| {
+            ml.with_memberships_mlr(|Membership { health, .. }| {
                   assert_eq!(health, Health::Alive);
                   Ok(0)
               })

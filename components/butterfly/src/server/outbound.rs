@@ -73,7 +73,7 @@ pub fn spawn_thread(name: String,
                     timing: Timing)
                     -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(|| run_loop(server, socket, rx_inbound, timing))
+                          .spawn(move || run_loop(&server, &socket, &rx_inbound, &timing))
                           .map(|_| ())
 }
 
@@ -88,7 +88,7 @@ pub fn spawn_thread(name: String,
 ///   is held.
 /// * `MemberList::intitial_entries` (read) This method must not be called while any
 ///   MemberList::intitial_entries lock is held.
-fn run_loop(server: Server, socket: UdpSocket, rx_inbound: AckReceiver, timing: Timing) -> ! {
+fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing) -> ! {
     let mut have_members = false;
     loop {
         habitat_common::sync::mark_thread_alive();

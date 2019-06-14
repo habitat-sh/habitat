@@ -759,7 +759,7 @@ impl Manager {
 
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
-        self.butterfly.start_mlr(Timing::default())?;
+        self.butterfly.start_mlr(&Timing::default())?;
         debug!("gossip-listener started");
         self.persist_state_mlr();
         let http_listen_addr = self.sys.http_listen();

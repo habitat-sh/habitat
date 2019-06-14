@@ -55,7 +55,7 @@ fn main() {
         server.member_list.add_initial_member_imlw(member);
     }
 
-    server.start_mlr(server::timing::Timing::default())
+    server.start_mlr(&server::timing::Timing::default())
           .expect("Cannot start server");
     loop {
         println!("{:#?}", server.member_list);

@@ -39,7 +39,7 @@ pub fn spawn_thread(name: String,
                     tx_outbound: AckSender)
                     -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(|| run_loop(server, socket, tx_outbound))
+                          .spawn(move || run_loop(&server, &socket, &tx_outbound))
                           .map(|_| ())
 }
 
@@ -49,7 +49,7 @@ pub fn spawn_thread(name: String,
 /// # Locking
 /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
 ///   is held.
-pub fn run_loop(server: Server, socket: UdpSocket, tx_outbound: AckSender) -> ! {
+pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) -> ! {
     let mut recv_buffer: Vec<u8> = vec![0; 1024];
 
     loop {
@@ -107,7 +107,7 @@ pub fn run_loop(server: Server, socket: UdpSocket, tx_outbound: AckSender) -> ! 
                                    ping.from.id);
                             continue;
                         }
-                        process_ping(&server, &socket, addr, ping);
+                        process_ping(server, socket, addr, ping);
                     }
                     SwimKind::Ack(ack) => {
                         if server.is_member_blocked(&ack.from.id) && ack.forward_to.is_none() {
@@ -115,7 +115,7 @@ pub fn run_loop(server: Server, socket: UdpSocket, tx_outbound: AckSender) -> ! 
                                    ack.from.id);
                             continue;
                         }
-                        process_ack(&server, &socket, &tx_outbound, addr, ack);
+                        process_ack(server, socket, tx_outbound, addr, ack);
                     }
                     SwimKind::PingReq(pingreq) => {
                         if server.is_member_blocked(&pingreq.from.id) {
@@ -123,7 +123,7 @@ pub fn run_loop(server: Server, socket: UdpSocket, tx_outbound: AckSender) -> ! 
                                    pingreq.from.id);
                             continue;
                         }
-                        process_pingreq_mlr(&server, &socket, addr, pingreq);
+                        process_pingreq_mlr(server, socket, addr, pingreq);
                     }
                 }
             }

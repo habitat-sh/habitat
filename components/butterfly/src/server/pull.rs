@@ -29,11 +29,11 @@ lazy_static! {
 
 pub fn spawn_thread(name: String, server: Server) -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(|| run_loop(server))
+                          .spawn(move || run_loop(&server))
                           .map(|_| ())
 }
 
-fn run_loop(server: Server) -> ! {
+fn run_loop(server: &Server) -> ! {
     habitat_core::env_config_int!(RecvTimeoutMillis, i32, HAB_PULL_RECV_TIMEOUT_MS, 5_000);
 
     let socket = (**ZMQ_CONTEXT).as_mut()
@@ -114,10 +114,7 @@ fn run_loop(server: Server) -> ! {
             continue 'recv;
         }
 
-        trace_it!(GOSSIP: &server,
-                  TraceKind::RecvRumor,
-                  &proto.from_id,
-                  &proto);
+        trace_it!(GOSSIP: server, TraceKind::RecvRumor, &proto.from_id, &proto);
         match proto.kind {
             RumorKind::Membership(membership) => {
                 server.insert_member_from_rumor(membership.member, membership.health);
