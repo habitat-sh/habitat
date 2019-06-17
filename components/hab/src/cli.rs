@@ -616,7 +616,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg PKG_NAME: +takes_value "Name for the new app")
                 (@arg ORIGIN: --origin -o +takes_value {valid_origin} "Origin for the new app")
                 (@arg MIN: --min -m "Create a minimal plan file")
-                (@arg SCAFFOLDING: --scaffolding -s
+                (@arg SCAFFOLDING: --scaffolding -s +takes_value
                     "Specify explicit Scaffolding for your app (ex: node, ruby)")
             )
             (@subcommand render =>
