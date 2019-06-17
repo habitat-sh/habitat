@@ -1,0 +1,25 @@
+expeditor:
+  defaults:
+    buildkite:
+      timeout_in_minutes: 30
+
+steps:
+#######################################################################
+# E2E!
+#######################################################################
+
+  - label: "[First step]"
+    command:
+      - echo "HI"
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "ubuntu"
+    timeout_in_minutes: 10
+    retry:
+      automatic:
+        limit: 1

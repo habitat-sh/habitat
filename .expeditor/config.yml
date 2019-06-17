@@ -47,3 +47,12 @@ pipelines:
   - habitat/build
   - release_habitat:
       description: Habitat release process
+  - end_to_end:
+      description: Habitat long running end to end tests - always runs on DEV environment
+
+subscriptions:
+  # These actions are taken, in order they are specified
+  - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
+    actions:
+      - trigger_pipeline:end_to_end:
+          post_commit: true
