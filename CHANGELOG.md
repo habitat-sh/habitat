@@ -8,6 +8,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Fix --scaffolding flag [#6666](https://github.com/habitat-sh/habitat/pull/6666) ([davidMcneil](https://github.com/davidMcneil))
 - bump travis ruby and build www in a pr [#6663](https://github.com/habitat-sh/habitat/pull/6663) ([mwrock](https://github.com/mwrock))
 - Qubitrenegade 6644 [#6655](https://github.com/habitat-sh/habitat/pull/6655) ([baumanj](https://github.com/baumanj))
 - Load config variables from cli.toml when entering hab-studio [#6644](https://github.com/habitat-sh/habitat/pull/6644) ([qubitrenegade](https://github.com/qubitrenegade))
