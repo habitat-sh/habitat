@@ -141,7 +141,8 @@ impl CensusRing {
                       });
 
         member_list.with_members_mlr(|member| {
-                       let health = member_list.health_of(&member).unwrap();
+                       // XXX Recursive lock!
+                       let health = member_list.health_of_mlr(&member).unwrap();
                        for group in self.census_groups.values_mut() {
                            if let Some(census_member) = group.find_member_mut(&member.id) {
                                census_member.update_from_member(&member);

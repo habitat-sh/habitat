@@ -1443,7 +1443,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
 
         Server::insert_service_impl(alive_member_service_rumor.clone(),
@@ -1452,7 +1452,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Departed));
     }
 
@@ -1493,7 +1493,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
     }
 
@@ -1516,7 +1516,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(true));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
 
         Server::insert_service_impl(alive_member_service_rumor.clone(),
@@ -1525,7 +1525,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(true));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
     }
     mod myself {

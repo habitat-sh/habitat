@@ -60,7 +60,7 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     }
     net[paused].pause();
     let paused_id = net[paused].member_id();
-    assert_wait_for_health_of!(net, paused, Health::Confirmed);
+    assert_wait_for_health_of_mlr!(net, paused, Health::Confirmed);
     if paused == 0 {
         net[1].restart_elections_mlr(FeatureFlag::empty());
     } else {
@@ -107,7 +107,7 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     net.connect(1, 2);
     net.connect(2, 3);
     net.connect(3, 4);
-    assert_wait_for_health_of!(net, [0..5, 0..5], Health::Alive);
+    assert_wait_for_health_of_mlr!(net, [0..5, 0..5], Health::Alive);
     assert_wait_for_election_status!(net, [0..5], "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
@@ -129,7 +129,7 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
 
     let mut new_leader_id = String::from("");
     net.partition(0..2, 2..5);
-    assert_wait_for_health_of!(net, [0..2, 2..5], Health::Confirmed);
+    assert_wait_for_health_of_mlr!(net, [0..2, 2..5], Health::Confirmed);
     net[0].restart_elections_mlr(FeatureFlag::empty());
     net[4].restart_elections_mlr(FeatureFlag::empty());
     assert_wait_for_election_status!(net, 0, "witcher.prod", ElectionStatus::NoQuorum);
@@ -150,7 +150,7 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert!(leader_id != new_leader_id);
     println!("Leader {} New {}", leader_id, new_leader_id);
     net.unpartition(0..2, 2..5);
-    assert_wait_for_health_of!(net, [0..5, 0..5], Health::Alive);
+    assert_wait_for_health_of_mlr!(net, [0..5, 0..5], Health::Alive);
     assert_wait_for_election_status!(net, 0, "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_election_status!(net, 1, "witcher.prod", ElectionStatus::Finished);
 

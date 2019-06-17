@@ -82,12 +82,6 @@ pub fn spawn_thread(name: String,
 ///
 /// If the probe completes before the next protocol period is scheduled, waits for the protocol
 /// period to finish before starting the next probe.
-///
-/// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
-/// * `MemberList::intitial_entries` (read) This method must not be called while any
-///   MemberList::intitial_entries lock is held.
 fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing) -> ! {
     let mut have_members = false;
     loop {
@@ -125,7 +119,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
         let check_list = server.member_list.check_list_mlr(&server.member_id);
 
         for member in check_list {
-            if server.member_list.pingable(&member) {
+            if server.member_list.pingable_mlr(&member) {
                 // This is the timeout for the next protocol period - if we
                 // complete faster than this, we want to wait in the end
                 // until this timer expires.
@@ -313,7 +307,7 @@ pub fn populate_membership_rumors_mlr(server: &Server, target: &Member, swim: &m
     // We don't want to update the heat for rumors that we know we are sending to a target that is
     // confirmed dead; the odds are, they won't receive them. Lets spam them a little harder with
     // rumors.
-    if !server.member_list.persistent_and_confirmed(target) {
+    if !server.member_list.persistent_and_confirmed_mlr(target) {
         server.rumor_heat.cool_rumors(&target.id, &rumors);
     }
 }

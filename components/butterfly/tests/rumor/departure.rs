@@ -27,5 +27,5 @@ fn departure_via_client() {
     net.wait_for_gossip_rounds(1);
     assert!(net[2].departure_store
                   .contains_rumor("departure", net[1].member_id()));
-    assert_wait_for_health_of!(net, 1, Health::Departed);
+    assert_wait_for_health_of_mlr!(net, 1, Health::Departed);
 }

@@ -413,7 +413,7 @@ impl MemberList {
     /// # Locking
     /// * `MemberList::intitial_entries` (read) This method must not be called while any
     ///   MemberList::intitial_entries lock is held.
-    pub fn with_initial_members_imlr(&self, mut with_closure: impl FnMut(&Member)) {
+    pub fn with_initial_members_imlr(&self, with_closure: impl Fn(&Member)) {
         for member in self.initial_members_read().iter() {
             with_closure(member);
         }
@@ -568,7 +568,7 @@ impl MemberList {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    pub fn health_of(&self, member: &Member) -> Option<Health> {
+    pub fn health_of_mlr(&self, member: &Member) -> Option<Health> {
         self.health_of_by_id_mlr(&member.id)
     }
 
@@ -585,13 +585,17 @@ impl MemberList {
 
     /// Returns the health of the member, blocking for a limited timeout
     ///
-    /// Errors:
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    ///
+    /// # Errors:
     /// * `Error::Timeout` if the health data can't be accessed within `timeout`
     /// * `Error::UnknownMember` if the member does not exist
-    pub fn health_of_by_id_with_timeout(&self,
-                                        member_id: &str,
-                                        timeout: std::time::Duration)
-                                        -> Result<Health> {
+    pub fn health_of_by_id_with_timeout_mlr(&self,
+                                            member_id: &str,
+                                            timeout: std::time::Duration)
+                                            -> Result<Health> {
         let entries = self.entries.try_read_for(timeout);
 
         if entries.is_none() {
@@ -607,11 +611,15 @@ impl MemberList {
 
     /// Returns true if the member is alive, suspect, or persistent; used during the target
     /// selection phase of the outbound thread.
-    pub fn pingable(&self, member: &Member) -> bool {
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn pingable_mlr(&self, member: &Member) -> bool {
         if member.persistent {
             return true;
         }
-        match self.health_of(member) {
+        match self.health_of_mlr(member) {
             Some(Health::Alive) | Some(Health::Suspect) => true,
             _ => false,
         }
@@ -619,8 +627,12 @@ impl MemberList {
 
     /// Returns true if we are pinging this member because they are persistent, but we think they
     /// are gone.
-    pub fn persistent_and_confirmed(&self, member: &Member) -> bool {
-        member.persistent && self.health_of(member) == Some(Health::Confirmed)
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn persistent_and_confirmed_mlr(&self, member: &Member) -> bool {
+        member.persistent && self.health_of_mlr(member) == Some(Health::Confirmed)
     }
 
     /// Returns a protobuf membership record for the given member id.
@@ -707,7 +719,7 @@ impl MemberList {
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
     ///   must not call any functions which take this lock.
-    pub fn with_member_mlr(&self, member_id: &str, mut with_closure: impl FnMut(Option<&Member>)) {
+    pub fn with_member_mlr(&self, member_id: &str, with_closure: impl Fn(Option<&Member>)) {
         with_closure(self.read_entries()
                          .get(member_id)
                          .map(|member_list::Entry { member, .. }| member));
@@ -1052,7 +1064,7 @@ mod tests {
             let member = Member::default();
             let mcheck = member.clone();
             assert_eq!(ml.insert_mlw(member, Health::Alive), true);
-            assert_eq!(ml.health_of(&mcheck), Some(Health::Alive));
+            assert_eq!(ml.health_of_mlr(&mcheck), Some(Health::Alive));
         }
 
         /// Tests of MemberList::insert
@@ -1083,7 +1095,7 @@ mod tests {
                            initial_update_counter_value + 1,
                            "Update counter should have incremented by one");
 
-                assert_eq!(ml.health_of(&member),
+                assert_eq!(ml.health_of_mlr(&member),
                            Some(from_health),
                            "Member should have had health {:?}, but didn't",
                            from_health);
@@ -1103,7 +1115,7 @@ mod tests {
                            update_counter_value_checkpoint_1,
                            "Update counter should not have been incremented after trying to \
                             insert a lower-incarnation-number rumor");
-                assert_eq!(ml.health_of(&member),
+                assert_eq!(ml.health_of_mlr(&member),
                            Some(from_health),
                            "Member should have still have health {:?} following attempt to \
                             insert lower-incarnation-number rumor, but didn't",
@@ -1162,7 +1174,7 @@ mod tests {
                            initial_update_counter_value + 1,
                            "Update counter should have incremented by one");
 
-                assert_eq!(ml.health_of(&member),
+                assert_eq!(ml.health_of_mlr(&member),
                            Some(from_health),
                            "Member should have had health {:?}, but didn't",
                            from_health);
@@ -1182,7 +1194,7 @@ mod tests {
                            update_counter_value_checkpoint_1 + 1,
                            "Update counter should increment by 1 when inserting a \
                             higher-incarnation-number rumor");
-                assert_eq!(ml.health_of(&member),
+                assert_eq!(ml.health_of_mlr(&member),
                            Some(to_health),
                            "Member should have health {:?} following insertion of \
                             higher-incarnation-number rumor",
@@ -1241,7 +1253,7 @@ mod tests {
                            initial_update_counter_value + 1,
                            "Update counter should have incremented by one");
 
-                assert_eq!(ml.health_of(&member),
+                assert_eq!(ml.health_of_mlr(&member),
                            Some(from_health),
                            "Member should have had health {:?}, but didn't",
                            from_health);
@@ -1258,7 +1270,7 @@ mod tests {
                                update_counter_value_checkpoint_1 + 1,
                                "Update counter should increment by 1 when inserting a \
                                 same-incarnation-number rumor with worse health");
-                    assert_eq!(ml.health_of(&member),
+                    assert_eq!(ml.health_of_mlr(&member),
                                Some(to_health),
                                "Member should have health {:?} following insertion of \
                                 same-incarnation-number rumor with worse health",
@@ -1273,7 +1285,7 @@ mod tests {
                                update_counter_value_checkpoint_1,
                                "Update counter should not increment when inserting a \
                                 same-incarnation-number rumor without worse health");
-                    assert_eq!(ml.health_of(&member),
+                    assert_eq!(ml.health_of_mlr(&member),
                                Some(from_health),
                                "Member should still have health {:?} following insertion of \
                                 same-incarnation-number rumor without worse health",
@@ -1323,7 +1335,7 @@ mod tests {
                 assert!(ml.insert_mlw(member_one.clone(), from_health),
                         "Should be able to insert initial health of {:?} into empty MemberList",
                         from_health);
-                assert_eq!(ml.health_of(&member_one)
+                assert_eq!(ml.health_of_mlr(&member_one)
                              .expect("Expected member to exist in health after initial insert, \
                                       but it didn't"),
                            from_health,
@@ -1343,7 +1355,7 @@ mod tests {
                                 increment update counter",
                                from_health,
                                to_health);
-                    assert_eq!(ml.health_of(&member_one)
+                    assert_eq!(ml.health_of_mlr(&member_one)
                                  .expect("Expected member to exist in health after update, but \
                                           it didn't"),
                                from_health,
@@ -1361,7 +1373,7 @@ mod tests {
                                 increment update counter by one",
                                from_health,
                                to_health);
-                    assert_eq!(ml.health_of(&member_one)
+                    assert_eq!(ml.health_of_mlr(&member_one)
                                  .expect("Expected member to exist in health after update, but \
                                           it didn't"),
                                to_health,
@@ -1380,7 +1392,7 @@ mod tests {
                                 not increment update counter",
                                from_health,
                                to_health);
-                    assert_eq!(ml.health_of(&member_one)
+                    assert_eq!(ml.health_of_mlr(&member_one)
                                  .expect("Expected member to exist in health after update, but \
                                           it didn't"),
                                from_health,
@@ -1468,7 +1480,7 @@ mod tests {
                 assert!(newly_confirmed.contains(&member_one.id),
                         "Member should be newly Confirmed after timing out");
 
-                assert_eq!(ml.health_of(&member_one),
+                assert_eq!(ml.health_of_mlr(&member_one),
                            Some(Health::Confirmed),
                            "Member should have a health of Confirmed after timing out");
             }
@@ -1513,7 +1525,7 @@ mod tests {
                 assert!(newly_departed.contains(&member_one.id),
                         "Member should be newly Departed after timing out");
 
-                assert_eq!(ml.health_of(&member_one),
+                assert_eq!(ml.health_of_mlr(&member_one),
                            Some(Health::Departed),
                            "Member should have a health of Departed after timing out");
             }
@@ -1541,13 +1553,13 @@ mod tests {
                 assert!(!newly_confirmed.contains(&member_3.id),
                         "Member 3 should NOT be newly Confirmed, because it hasn't timed out yet");
 
-                assert_eq!(ml.health_of(&member_1),
+                assert_eq!(ml.health_of_mlr(&member_1),
                            Some(Health::Confirmed),
                            "Member 1 should have a health of Confirmed after timing out");
-                assert_eq!(ml.health_of(&member_2),
+                assert_eq!(ml.health_of_mlr(&member_2),
                            Some(Health::Confirmed),
                            "Member 2 should have a health of Confirmed after timing out");
-                assert_eq!(ml.health_of(&member_3),
+                assert_eq!(ml.health_of_mlr(&member_3),
                            Some(Health::Suspect),
                            "Member 3 should still have a health of Suspect, because it hasn't \
                             timed out yet");
@@ -1576,13 +1588,13 @@ mod tests {
                 assert!(!newly_departed.contains(&member_3.id),
                         "Member 3 should NOT be newly Departed, because it hasn't timed out yet");
 
-                assert_eq!(ml.health_of(&member_1),
+                assert_eq!(ml.health_of_mlr(&member_1),
                            Some(Health::Departed),
                            "Member 1 should have a health of Departed after timing out");
-                assert_eq!(ml.health_of(&member_2),
+                assert_eq!(ml.health_of_mlr(&member_2),
                            Some(Health::Departed),
                            "Member 2 should have a health of Departed after timing out");
-                assert_eq!(ml.health_of(&member_3),
+                assert_eq!(ml.health_of_mlr(&member_3),
                            Some(Health::Confirmed),
                            "Member 3 should still have a health of Confirmed, because it hasn't \
                             timed out yet");

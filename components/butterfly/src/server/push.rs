@@ -80,8 +80,8 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                 // Unlike the SWIM mechanism, we don't actually want to send gossip traffic to
                 // persistent members that are confirmed dead. When the failure detector thread
                 // finds them alive again, we'll go ahead and get back to the business at hand.
-                if server.member_list.pingable(&member)
-                   && !server.member_list.persistent_and_confirmed(&member)
+                if server.member_list.pingable_mlr(&member)
+                   && !server.member_list.persistent_and_confirmed_mlr(&member)
                 {
                     let rumors = server.rumor_heat.currently_hot_rumors(&member.id);
                     if !rumors.is_empty() {
