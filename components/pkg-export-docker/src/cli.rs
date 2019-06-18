@@ -279,6 +279,18 @@ impl<'a, 'b> Cli<'a, 'b> {
 
         Cli { app }
     }
+
+    pub fn add_base_image_arg(self) -> Self {
+        let app = self.app
+                      .arg(Arg::with_name("BASE_IMAGE").value_name("BASE_IMAGE")
+                                                       .long("base-image")
+                                                       .help("Base image of the final exported \
+                                                              image --base-image \
+                                                              mcr.microsoft.com/windows/\
+                                                              servercore:ltsc2019"));
+
+        Cli { app }
+    }
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP

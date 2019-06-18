@@ -7,14 +7,12 @@ use crate::error::Result;
 pub fn start(ui: &mut UI,
              args: &[OsString],
              export_cmd: &str,
-             export_cmd_envvar: &str,
              export_pkg_ident: &str,
              export_pkg_ident_envvar: &str)
              -> Result<()> {
     inner::start(ui,
                  args,
                  export_cmd,
-                 export_cmd_envvar,
                  export_pkg_ident,
                  export_pkg_ident_envvar)
 }
@@ -22,14 +20,13 @@ pub fn start(ui: &mut UI,
 #[cfg(not(target_os = "macos"))]
 mod inner {
     use std::{ffi::OsString,
-              path::PathBuf,
               str::FromStr};
 
-    use crate::{common::ui::UI,
-                hcore::{crypto::init,
+    use crate::{command,
+                common::ui::UI,
+                hcore::{crypto,
                         env as henv,
                         fs::find_command,
-                        os::process,
                         package::PackageIdent}};
 
     use crate::{error::{Error,
@@ -40,27 +37,22 @@ mod inner {
     pub fn start(ui: &mut UI,
                  args: &[OsString],
                  export_cmd: &str,
-                 export_cmd_envvar: &str,
                  export_pkg_ident: &str,
                  export_pkg_ident_envvar: &str)
                  -> Result<()> {
-        let command = match henv::var(export_cmd_envvar) {
-            Ok(command) => PathBuf::from(command),
+        crypto::init();
+        let ident = match henv::var(export_pkg_ident_envvar) {
+            Ok(ref ident_str) => PackageIdent::from_str(ident_str)?,
             Err(_) => {
-                init();
-                let ident = match henv::var(export_pkg_ident_envvar) {
-                    Ok(ref ident_str) => PackageIdent::from_str(ident_str)?,
-                    Err(_) => {
-                        let version: Vec<&str> = VERSION.split('/').collect();
-                        PackageIdent::from_str(&format!("{}/{}", export_pkg_ident, version[0]))?
-                    }
-                };
-                exec::command_from_min_pkg(ui, export_cmd, &ident)?
+                let version: Vec<&str> = VERSION.split('/').collect();
+                PackageIdent::from_str(&format!("{}/{}", export_pkg_ident, version[0]))?
             }
         };
+
+        let command = exec::command_from_min_pkg(ui, export_cmd, &ident)?;
+
         if let Some(cmd) = find_command(&command) {
-            process::become_command(cmd, args)?;
-            Ok(())
+            command::pkg::exec::start(&ident, cmd, args)
         } else {
             Err(Error::ExecCommandNotFound(command))
         }
@@ -80,7 +72,6 @@ mod inner {
     pub fn start(ui: &mut UI,
                  _args: &[OsString],
                  export_cmd: &str,
-                 _export_cmd_envvar: &str,
                  _export_pkg_ident: &str,
                  _export_pkg_ident_envvar: &str)
                  -> Result<()> {

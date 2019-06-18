@@ -1,4 +1,4 @@
-FROM microsoft/windowsservercore:ltsc2016
+FROM {{base_image}}
 ADD {{rootfs}} /
 
 EXPOSE 9631 {{exposes}}

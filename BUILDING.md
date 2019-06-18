@@ -107,7 +107,6 @@ release. For details on building and releasing the launcher see
 
 The `hab` command execs various other binaries such as `hab-sup`. By default, this will run the latest installed habitat package version of the binary. To use your development version, this behavior can be overridden with the following environment variables:
 * HAB_BUTTERFLY_BINARY
-* HAB_DOCKER_BINARY
 * HAB_LAUNCH_BINARY
 * HAB_STUDIO_BINARY
 * HAB_SUP_BINARY

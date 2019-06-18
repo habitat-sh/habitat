@@ -75,6 +75,8 @@ pub enum Error {
     CryptProtectDataFailed(String),
     /// Occurs when a call to CryptUnprotectData fails
     CryptUnprotectDataFailed(String),
+    /// Occurs when unable to locate the docker cli on the path
+    DockerCommandNotFound(&'static str),
     /// Occurs when a file that should exist does not or could not be read.
     FileNotFound(String),
     /// Occurs when a fully-qualified package identifier is required,
@@ -152,6 +154,8 @@ pub enum Error {
     WaitForSingleObjectFailed(String),
     /// Occurs when a `TerminateProcess` win32 call returns an error.
     TerminateProcessFailed(String),
+    /// Occurs if the host os kernel does not have a supported docker image
+    UnsupportedDockerHostKernel(String),
     /// When an error occurs attempting to interpret a sequence of u8 as a string.
     Utf8Error(str::Utf8Error),
     /// When a `PackageTaget` for a package does not match the active `PackageTarget` for this
@@ -248,6 +252,10 @@ impl fmt::Display for Error {
             Error::CryptoError(ref e) => format!("Crypto error: {}", e),
             Error::CryptProtectDataFailed(ref e) => e.to_string(),
             Error::CryptUnprotectDataFailed(ref e) => e.to_string(),
+            Error::DockerCommandNotFound(ref c) => {
+                format!("Docker command `{}' was not found on the filesystem or in PATH",
+                        c)
+            }
             Error::FileNotFound(ref e) => format!("File not found at: {}", e),
             Error::FullyQualifiedPackageIdentRequired(ref ident) => {
                 format!("Fully-qualified package identifier was expected, but found: {:?}",
@@ -336,6 +344,9 @@ impl fmt::Display for Error {
             Error::CreateToolhelp32SnapshotFailed(ref e) => e.to_string(),
             Error::WaitForSingleObjectFailed(ref e) => e.to_string(),
             Error::TerminateProcessFailed(ref e) => e.to_string(),
+            Error::UnsupportedDockerHostKernel(ref e) => {
+                format!("Unsupported Docker host kernel: {}", e)
+            }
             Error::Utf8Error(ref e) => format!("{}", e),
             Error::WrongActivePackageTarget(ref active, ref wrong) => {
                 format!("Package target '{}' is not supported as this system has a different \
@@ -417,6 +428,9 @@ impl error::Error for Error {
             Error::CryptoError(_) => "Crypto error",
             Error::CryptProtectDataFailed(_) => "CryptProtectData failed",
             Error::CryptUnprotectDataFailed(_) => "CryptUnprotectData failed",
+            Error::DockerCommandNotFound(_) => {
+                "Docker command was not found on filesystem or in PATH"
+            }
             Error::FileNotFound(_) => "File not found",
             Error::FullyQualifiedPackageIdentRequired(_) => {
                 "A fully-qualified package identifier was expected"
@@ -476,6 +490,7 @@ impl error::Error for Error {
             Error::GetExitCodeProcessFailed(_) => "GetExitCodeProcess failed",
             Error::WaitForSingleObjectFailed(_) => "WaitForSingleObjectFailed failed",
             Error::TerminateProcessFailed(_) => "Failed to call TerminateProcess",
+            Error::UnsupportedDockerHostKernel(_) => "Unsupported Docker host kernel",
             Error::Utf8Error(_) => "Failed to interpret a sequence of bytes as a string",
             Error::WrongActivePackageTarget(..) => {
                 "Package target is not supported as this system has a different active package \
