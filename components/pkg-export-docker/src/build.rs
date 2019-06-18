@@ -1,6 +1,8 @@
 use super::{BUSYBOX_IDENT,
             CACERTS_IDENT,
             VERSION};
+#[cfg(windows)]
+use crate::hcore::util::docker;
 #[cfg(unix)]
 use crate::rootfs;
 use crate::{accounts::{EtcGroupEntry,
@@ -48,6 +50,11 @@ use tempfile::TempDir;
 // the future for use with further exporters.
 // https://github.com/habitat-sh/habitat/issues/4522
 
+#[cfg(unix)]
+const DEFAULT_BASE_IMAGE: &str = "scratch";
+#[cfg(windows)]
+const DEFAULT_BASE_IMAGE: &str = "mcr.microsoft.com/windows/servercore";
+
 const DEFAULT_HAB_IDENT: &str = "core/hab";
 const DEFAULT_LAUNCHER_IDENT: &str = "core/hab-launcher";
 const DEFAULT_SUP_IDENT: &str = "core/hab-sup";
@@ -55,6 +62,20 @@ const DEFAULT_USER_AND_GROUP_ID: u32 = 42;
 
 const DEFAULT_HAB_UID: u32 = 84;
 const DEFAULT_HAB_GID: u32 = 84;
+
+fn default_docker_base_image() -> Result<String> {
+    #[cfg(unix)]
+    {
+        Ok(DEFAULT_BASE_IMAGE.to_string())
+    }
+
+    #[cfg(windows)]
+    {
+        Ok(format!("{}:{}",
+                   DEFAULT_BASE_IMAGE,
+                   docker::default_base_tag_for_host()?))
+    }
+}
 
 /// The specification for creating a temporary file system build root, based on Habitat packages.
 ///
@@ -82,27 +103,35 @@ pub struct BuildSpec<'a> {
     pub idents_or_archives: Vec<&'a str>,
     /// The Builder Auth Token to use in the request
     pub auth: Option<&'a str>,
+    /// Base image used in From of dockerfile
+    pub base_image: String,
 }
 
 impl<'a> BuildSpec<'a> {
     /// Creates a `BuildSpec` from cli arguments.
-    pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>, default_url: &'a str) -> Self {
-        BuildSpec { hab:                m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
-                    hab_launcher:       m.value_of("HAB_LAUNCHER_PKG")
-                                         .unwrap_or(DEFAULT_LAUNCHER_IDENT),
-                    hab_sup:            m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
-                    url:                m.value_of("BLDR_URL").unwrap_or(&default_url),
-                    channel:            m.value_of("CHANNEL")
-                                         .map(ChannelIdent::from)
-                                         .unwrap_or_default(),
-                    base_pkgs_url:      m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
-                    base_pkgs_channel:  m.value_of("BASE_PKGS_CHANNEL")
-                                         .map(ChannelIdent::from)
-                                         .unwrap_or_default(),
-                    auth:               m.value_of("BLDR_AUTH_TOKEN"),
-                    idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
-                                         .expect("No package specified")
-                                         .collect(), }
+    pub fn new_from_cli_matches(m: &'a clap::ArgMatches<'_>, default_url: &'a str) -> Result<Self> {
+        Ok(BuildSpec { hab:                m.value_of("HAB_PKG").unwrap_or(DEFAULT_HAB_IDENT),
+                       hab_launcher:       m.value_of("HAB_LAUNCHER_PKG")
+                                            .unwrap_or(DEFAULT_LAUNCHER_IDENT),
+                       hab_sup:            m.value_of("HAB_SUP_PKG").unwrap_or(DEFAULT_SUP_IDENT),
+                       url:                m.value_of("BLDR_URL").unwrap_or(&default_url),
+                       channel:            m.value_of("CHANNEL")
+                                            .map(ChannelIdent::from)
+                                            .unwrap_or_default(),
+                       base_pkgs_url:      m.value_of("BASE_PKGS_BLDR_URL").unwrap_or(&default_url),
+                       base_pkgs_channel:  m.value_of("BASE_PKGS_CHANNEL")
+                                            .map(ChannelIdent::from)
+                                            .unwrap_or_default(),
+                       auth:               m.value_of("BLDR_AUTH_TOKEN"),
+                       idents_or_archives: m.values_of("PKG_IDENT_OR_ARTIFACT")
+                                            .expect("No package specified")
+                                            .collect(),
+                       base_image:         m.value_of("BASE_IMAGE")
+                                            .map(str::to_string)
+                                            .unwrap_or_else(|| {
+                                                default_docker_base_image().expect("No base image \
+                                                                                    supported")
+                                            }), })
     }
 
     /// Creates a `BuildRoot` for the given specification.
@@ -386,6 +415,8 @@ pub struct BuildRootContext {
     channel: ChannelIdent,
     /// The path to the root of the file system.
     rootfs: PathBuf,
+    /// Base image used in From of dockerfile
+    base_image: String,
 }
 
 impl BuildRootContext {
@@ -448,7 +479,8 @@ impl BuildRootContext {
                                          bin_path: bin_path.into(),
                                          env_path: bin_path.to_string_lossy().into_owned(),
                                          channel: spec.channel.clone(),
-                                         rootfs };
+                                         rootfs,
+                                         base_image: spec.base_image.clone() };
         context.validate()?;
 
         Ok(context)
@@ -654,6 +686,9 @@ impl BuildRootContext {
     /// Returns the root file system which is used to export an image.
     pub fn rootfs(&self) -> &Path { self.rootfs.as_ref() }
 
+    /// Returns the base image for the dockerfile From
+    pub fn base_image(&self) -> &str { self.base_image.as_str() }
+
     fn validate(&self) -> Result<()> {
         // A valid context for a build root will contain at least one service package, called the
         // primary service package.
@@ -735,7 +770,8 @@ mod test {
                     base_pkgs_url:      "base_pkgs_url",
                     base_pkgs_channel:  ChannelIdent::from("base_pkgs_channel"),
                     idents_or_archives: Vec::new(),
-                    auth:               Some("heresafakeauthtokenduh"), }
+                    auth:               Some("heresafakeauthtokenduh"),
+                    base_image:         String::from("scratch"), }
     }
 
     struct FakePkg {
@@ -1023,10 +1059,14 @@ mod test {
                                                                         .set_svc_user("root")
                                                                         .set_svc_group("root")
                                                                         .install();
-
+            #[cfg(unix)]
             let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg"]);
-            let build_spec = BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh");
+            #[cfg(windows)]
+            let matches =
+                arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg", "--base-image", "some/image"]);
 
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh").unwrap();
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();
@@ -1046,9 +1086,14 @@ mod test {
                                                           .set_svc_group("some_other_group")
                                                           .install();
 
+            #[cfg(unix)]
             let matches = arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg"]);
-            let build_spec = BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh");
+            #[cfg(windows)]
+            let matches =
+                arg_matches(&[&*PROGRAM_NAME, "acme/my_pkg", "--base-image", "some/image"]);
 
+            let build_spec =
+                BuildSpec::new_from_cli_matches(&matches, "https://bldr.habitat.sh").unwrap();
             let ctx = BuildRootContext::from_spec(&build_spec, rootfs.path()).unwrap();
 
             let (users, groups) = ctx.svc_users_and_groups().unwrap();

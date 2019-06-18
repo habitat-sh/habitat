@@ -5,9 +5,30 @@
 param (
   # The builder channel to install packages from. Defaults to unstable
   [string]$ReleaseChannel="unstable",
-  # The docker image name. Defaults to "habitat-docker-registry.bintray.io/win-studio-x86_64-windows
-  [string]$imageName = "habitat-docker-registry.bintray.io/win-studio-x86_64-windows"
+  # The docker image name. Defaults to "habitat/win-studio-x86_64-windows
+  [string]$imageName = "habitat/win-studio-x86_64-windows",
+  # the tag to use for the base image
+  [string]$BaseTag
 )
+
+# Makes a best attempt to retrieve the appropriate image tag based on
+# https://hub.docker.com/_/microsoft-windows-servercore
+# Note that changes here should be mirrored in components/core/src/util/docker.rs
+function Get-DefaultTagForHost {
+    if((docker info --format='{{.Isolation}}') -eq 'hyperv') {
+        # hyperv isolation can build any version so we will default to 2016
+        "ltsc2016"
+    } else {
+      $osVersion = [Version]::new((Get-CimInstance -ClassName Win32_OperatingSystem).Version)
+      switch($osVersion.Build) {
+          14393 { "ltsc2016" }
+          17134 { "1803" }
+          17763 { "ltsc2019" }
+          18362 { "1903" }
+          Default { Write-Error "Cannot determine the base image tag for this windows build ${osVersion.Build}" }
+      }
+    }
+}
 
 $ErrorActionPreference = "Stop"
 
@@ -44,10 +65,11 @@ try {
     $ident = [String]::Join("/", $pathParts[-4..-1])
     $shortVersion = $pathParts[-2]
     $version = "$($pathParts[-2])-$($pathParts[-1])"
+    if(!$BaseTag) { $BaseTag = Get-DefaultTagForHost }
     
 @"
 # escape=``
-FROM microsoft/windowsservercore:ltsc2016
+FROM mcr.microsoft.com/windows/servercore:$BaseTag
 MAINTAINER The Habitat Maintainers <humans@habitat.sh>
 ADD rootfs /
 WORKDIR /src
@@ -64,17 +86,19 @@ RUN `$env:HAB_LICENSE='accept-no-persist'; ``
 ENTRYPOINT ["/hab/pkgs/$ident/bin/powershell/pwsh.exe", "-ExecutionPolicy", "bypass", "-NoLogo", "-file", "/hab/pkgs/$ident/bin/hab-studio.ps1"]
 "@ | Out-File "$tmpRoot/Dockerfile" -Encoding ascii
     
-Write-Host "Building Docker image ${imageName}:$version'"
-docker build --no-cache -t ${imageName}:$version .
+Write-Host "Building Docker image ${imageName}:$version for base tag $BaseTag"
+docker build --no-cache -t ${imageName}:$BaseTag-$version .
 if ($LASTEXITCODE -ne 0) {
     Write-Error "docker build failed, aborting"
 }
 
-Write-Host "Tagging latest image to ${imageName}:$version"
-docker tag ${imageName}:$version ${imageName}:latest
+if($BaseTag -eq "ltsc2016") {
+    Write-Host "Tagging latest image to ${imageName}:$BaseTag-$version"
+    docker tag ${imageName}:$BaseTag-$version ${imageName}:latest
+}
 
-Write-Host "Tagging latest image to ${imageName}:$shortVersion"
-docker tag ${imageName}:$version ${imageName}:$shortVersion
+Write-Host "Tagging latest image to ${imageName}:$BaseTag-$shortVersion"
+docker tag ${imageName}:$BaseTag-$version ${imageName}:$BaseTag-$shortVersion
 
 # Ensure the results directory exists before writing to it
 New-Item -ItemType directory -Path "$startDir/results" -Force
@@ -82,9 +106,10 @@ New-Item -ItemType directory -Path "$startDir/results" -Force
 `$docker_image="$imageName"
 `$docker_image_version="$version"
 `$docker_image_short_version="$shortVersion"
+`$docker_base_image_tag="$BaseTag"
 "@ | Out-File "$startDir/results/last_image.ps1" -Encoding ascii
     
-    Write-Host "Docker Image: ${imageName}:$version"
+    Write-Host "Docker Image: ${imageName}:$BaseTag-$version"
     Write-Host "Build Report: $startDir/results/last_image.ps1"
 }
 finally {

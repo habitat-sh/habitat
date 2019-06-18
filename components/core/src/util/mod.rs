@@ -1,3 +1,4 @@
+pub mod docker;
 #[cfg(not(windows))]
 pub mod posix_perm;
 pub mod serde_string;

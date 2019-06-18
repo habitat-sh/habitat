@@ -6,8 +6,8 @@ use crate::{build::BuildRoot,
                          UI},
             error::{Error,
                     Result},
-            hcore::{fs as hfs,
-                    package::PackageIdent},
+            hcore::{package::PackageIdent,
+                    util::docker},
             util};
 use failure::SyncFailure;
 use handlebars::Handlebars;
@@ -25,14 +25,6 @@ const DOCKERFILE: &str = include_str!("../defaults/Dockerfile.hbs");
 const DOCKERFILE: &str = include_str!("../defaults/Dockerfile_win.hbs");
 /// The build report template.
 const BUILD_REPORT: &str = include_str!("../defaults/last_docker_export.env.hbs");
-
-lazy_static! {
-    /// Absolute path to the Docker program
-    static ref DOCKER_PROGRAM: PathBuf = hfs::resolve_cmd_in_pkg(
-        "docker",
-        include_str!(concat!(env!("OUT_DIR"), "/DOCKER_PKG_IDENT")),
-    );
-}
 
 /// A builder used to create a Docker image.
 pub struct DockerBuilder<'a> {
@@ -414,6 +406,7 @@ impl DockerBuildRoot {
         ui.status(Status::Creating, "image Dockerfile")?;
         let ctx = self.0.ctx();
         let json = json!({
+            "base_image": ctx.base_image(),
             "rootfs": ctx.rootfs().file_name().expect("file_name exists")
                 .to_string_lossy()
                 .as_ref(),
@@ -486,4 +479,6 @@ impl DockerBuildRoot {
 }
 
 /// Returns a `Command` for the Docker program.
-fn docker_cmd() -> Command { Command::new(&*DOCKER_PROGRAM) }
+fn docker_cmd() -> Command {
+    Command::new(docker::command_path().expect("Unable to locate docker"))
+}

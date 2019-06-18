@@ -74,10 +74,6 @@ do_prepare() {
   # package proper--it won't find its way into the final binaries.
   export LD_LIBRARY_PATH=$(pkg_path_for gcc)/lib
   build_line "Setting LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
-
-  PLAN_DOCKER_PKG_IDENT=$(pkg_path_for docker | sed "s,^$HAB_PKG_PATH/,,")
-  export PLAN_DOCKER_PKG_IDENT
-  build_line "Setting PLAN_DOCKER_PKG_IDENT=$PLAN_DOCKER_PKG_IDENT"
 }
 
 do_build() {

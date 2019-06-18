@@ -4,8 +4,6 @@ use habitat_common as common;
 use habitat_core as hcore;
 
 #[macro_use]
-extern crate lazy_static;
-#[macro_use]
 extern crate log;
 
 use rusoto_credential as aws_creds;
@@ -218,7 +216,7 @@ pub fn export_for_cli_matches(ui: &mut UI,
                               matches: &clap::ArgMatches<'_>)
                               -> Result<Option<DockerImage>> {
     let default_url = hurl::default_bldr_url();
-    let spec = BuildSpec::new_from_cli_matches(&matches, &default_url);
+    let spec = BuildSpec::new_from_cli_matches(&matches, &default_url)?;
     let naming = Naming::new_from_cli_matches(&matches);
 
     let docker_image = export(ui, spec, &naming, matches.value_of("MEMORY_LIMIT"))?;
@@ -246,11 +244,14 @@ pub fn cli<'a, 'b>() -> App<'a, 'b> {
     let name: &str = &*PROGRAM_NAME;
     let about = "Creates (and optionally pushes) a Docker image from a set of Habitat packages";
 
-    Cli::new(name, about).add_base_packages_args()
-                         .add_builder_args()
-                         .add_tagging_args()
-                         .add_publishing_args()
-                         .add_memory_arg()
-                         .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true })
-                         .app
+    let mut cli = Cli::new(name, about).add_base_packages_args()
+                                       .add_builder_args()
+                                       .add_tagging_args()
+                                       .add_publishing_args()
+                                       .add_memory_arg()
+                                       .add_pkg_ident_arg(PkgIdentArgOptions { multiple: true });
+    if cfg!(windows) {
+        cli = cli.add_base_image_arg();
+    }
+    cli.app
 }
