@@ -1133,7 +1133,7 @@ fn null_stdio_handle() -> Result<Handle> {
     Ok(File::open(Path::new("NUL"), &opts).map(File::into_handle)?)
 }
 
-unsafe fn read_to_end_uninitialized(r: &mut Read, buf: &mut Vec<u8>) -> io::Result<usize> {
+unsafe fn read_to_end_uninitialized(r: &mut impl Read, buf: &mut Vec<u8>) -> io::Result<usize> {
     let start_len = buf.len();
     buf.reserve(16);
 
