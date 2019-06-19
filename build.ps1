@@ -113,7 +113,12 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
         "build" {
             Install-Rustup $toolchain
             Install-RustToolchain $toolchain
-            rustup component add --toolchain $Toolchain rustfmt
+            Setup-Environment
+            Invoke-Expression "cargo +$ToolChain $Command $(if ($Release) { '--release' }) $FeatureString"
+        }
+        "check" {
+            Install-Rustup $toolchain
+            Install-RustToolchain $toolchain
             Setup-Environment
             Invoke-Expression "cargo +$ToolChain $Command $(if ($Release) { '--release' }) $FeatureString"
         }
