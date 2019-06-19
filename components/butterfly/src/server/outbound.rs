@@ -189,6 +189,11 @@ fn probe_mlr(server: &Server,
         return;
     }
 
+    let mut swim: Swim = PingReq { membership: vec![],
+                                   from:       server.member.read().unwrap().as_member(),
+                                   target:     member.clone(), }.into();
+    populate_membership_rumors_mlr(server, &member, &mut swim);
+
     server.member_list
           .with_pingreq_targets_mlr(server.member_id(), &member.id, |pingreq_target| {
               trace_it!(PROBE: server,
@@ -198,8 +203,7 @@ fn probe_mlr(server: &Server,
               SWIM_PROBES_SENT.with_label_values(&["pingreq"]).inc();
               pr_timer = Some(SWIM_PROBE_DURATION.with_label_values(&["pingreq/ack"])
                                                  .start_timer());
-              // XXX recursive lock!
-              pingreq_mlr(server, socket, pingreq_target, &member);
+              pingreq(server, socket, pingreq_target, &member, &swim);
           });
 
     if recv_ack(server, rx_inbound, timing, &member, addr, AckFrom::PingReq) {
@@ -279,7 +283,7 @@ fn recv_ack(server: &Server,
 /// # Locking
 /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
 ///   is held.
-pub fn populate_membership_rumors_mlr(server: &Server, target: &Member, swim: &mut Swim) {
+fn populate_membership_rumors_mlr(server: &Server, target: &Member, swim: &mut Swim) {
     // If this isn't the first time we are communicating with this target, we want to include this
     // targets current status. This ensures that members always get a "Confirmed" rumor, before we
     // have the chance to flip it to "Alive", which helps make sure we heal from a partition.
@@ -312,18 +316,15 @@ pub fn populate_membership_rumors_mlr(server: &Server, target: &Member, swim: &m
     }
 }
 
-/// Send a PingReq.
-///
-/// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
-pub fn pingreq_mlr(server: &Server, socket: &UdpSocket, pingreq_target: &Member, target: &Member) {
-    let pingreq = PingReq { membership: vec![],
-                            from:       server.member.read().unwrap().as_member(),
-                            target:     target.clone(), };
-    let mut swim: Swim = pingreq.into();
+/// Send a PingReq: request `pingreq_target` to ping `target` on the behalf of `server` to see if
+/// `target` is alive despite not being directly reachable from `server`. In other words,
+/// `pingreq_target` is the proxy and `target` is the final destination.
+fn pingreq(server: &Server, // TODO: eliminate this arg
+           socket: &UdpSocket,
+           pingreq_target: &Member,
+           target: &Member,
+           swim: &Swim) {
     let addr = pingreq_target.swim_socket_address();
-    populate_membership_rumors_mlr(server, target, &mut swim);
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {
