@@ -189,10 +189,10 @@ fn probe_mlr(server: &Server,
         return;
     }
 
-    let mut swim: Swim = PingReq { membership: vec![],
-                                   from:       server.member.read().unwrap().as_member(),
-                                   target:     member.clone(), }.into();
-    populate_membership_rumors_mlr(server, &member, &mut swim);
+    let pingreq_message = PingReq { membership: vec![],
+                                    from:       server.member.read().unwrap().as_member(),
+                                    target:     member.clone(), };
+    let swim = populate_membership_rumors_mlr(server, &member, pingreq_message);
 
     server.member_list
           .with_pingreq_targets_mlr(server.member_id(), &member.id, |pingreq_target| {
@@ -278,12 +278,17 @@ fn recv_ack(server: &Server,
     }
 }
 
-/// Populate a SWIM message with rumors.
+/// Created a SWIM message from the given `message` template and populate it with rumors.
 ///
 /// # Locking
 /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
 ///   is held.
-fn populate_membership_rumors_mlr(server: &Server, target: &Member, swim: &mut Swim) {
+pub fn populate_membership_rumors_mlr(server: &Server,
+                                      target: &Member,
+                                      message: impl Into<Swim>)
+                                      -> Swim {
+    let mut swim = message.into();
+
     // If this isn't the first time we are communicating with this target, we want to include this
     // targets current status. This ensures that members always get a "Confirmed" rumor, before we
     // have the chance to flip it to "Alive", which helps make sure we heal from a partition.
@@ -314,6 +319,8 @@ fn populate_membership_rumors_mlr(server: &Server, target: &Member, swim: &mut S
     if !server.member_list.persistent_and_confirmed_mlr(target) {
         server.rumor_heat.cool_rumors(&target.id, &rumors);
     }
+
+    swim
 }
 
 /// Send a PingReq: request `pingreq_target` to ping `target` on the behalf of `server` to see if
@@ -377,13 +384,48 @@ pub fn ping_mlr(server: &Server,
                 target: &Member,
                 addr: SocketAddr,
                 forward_to: Option<&Member>) {
-    let ping = Ping {
-        membership: vec![],
-        from: server.member.read().unwrap().as_member(),
-        forward_to: forward_to.cloned(), // TODO: see if we can eliminate this clone
+    let ping_msg = Ping { membership: vec![],
+                          from:       server.member.read().unwrap().as_member(),
+                          forward_to: forward_to.cloned(), /* TODO: see if we can eliminate this
+                                                            * clone */ };
+    let swim = populate_membership_rumors_mlr(server, target, ping_msg);
+    let bytes = match swim.clone().encode() {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            error!("Generating protocol message failed: {}", e);
+            return;
+        }
     };
-    let mut swim: Swim = ping.into();
-    populate_membership_rumors_mlr(server, target, &mut swim);
+    let payload = match server.generate_wire(bytes) {
+        Ok(payload) => payload,
+        Err(e) => {
+            error!("Generating protocol message failed: {}", e);
+            return;
+        }
+    };
+    match socket.send_to(&payload, addr) {
+        Ok(_s) => {
+            let label_values = &["ping"];
+            SWIM_MESSAGES_SENT.with_label_values(label_values).inc();
+            SWIM_BYTES_SENT.with_label_values(label_values)
+                           .set(payload.len().to_i64());
+            let on_behalf_of = match forward_to {
+                Some(x) => format!(" on behalf of {}@{}", x.id, x.address),
+                None => "".into(),
+            };
+            trace!("Sent Ping to {}{}", addr, on_behalf_of);
+        }
+        Err(e) => error!("Failed Ping to {}: {}", addr, e),
+    }
+    trace_it!(SWIM: server, TraceKind::SendPing, &target.id, addr, &swim);
+}
+
+pub fn ping(server: &Server,
+            socket: &UdpSocket,
+            target: &Member,
+            addr: SocketAddr,
+            forward_to: Option<&Member>,
+            swim: &Swim) {
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {
@@ -454,12 +496,11 @@ pub fn ack(server: &Server,
            target: &Member,
            addr: SocketAddr,
            forward_to: Option<Member>) {
-    let ack = Ack { membership: vec![],
-                    from:       server.member.read().unwrap().as_member(),
-                    forward_to: forward_to.map(Member::from), };
-    let member_id = ack.from.id.clone();
-    let mut swim: Swim = ack.into();
-    populate_membership_rumors_mlr(server, target, &mut swim);
+    let ack_msg = Ack { membership: vec![],
+                        from:       server.member.read().unwrap().as_member(),
+                        forward_to: forward_to.map(Member::from), };
+    let member_id = ack_msg.from.id.clone();
+    let swim = populate_membership_rumors_mlr(server, target, ack_msg);
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {
