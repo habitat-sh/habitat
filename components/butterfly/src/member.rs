@@ -713,30 +713,6 @@ impl MemberList {
             .map(|member_list::Entry { member, .. }| member.clone())
     }
 
-    /// Calls a function whose argument is a reference to a membership entry matching the given ID.
-    ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
-    ///   must not call any functions which take this lock.
-    pub fn with_member_mlr(&self, member_id: &str, with_closure: impl Fn(Option<&Member>)) {
-        with_closure(self.read_entries()
-                         .get(member_id)
-                         .map(|member_list::Entry { member, .. }| member));
-    }
-
-    /// Iterates over the member list, calling the function for each member.
-    ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
-    ///   must not call any functions which take this lock.
-    pub fn with_members_mlr(&self, mut with_closure: impl FnMut(&Member)) {
-        for member_list::Entry { member, .. } in self.read_entries().values() {
-            with_closure(member);
-        }
-    }
-
     /// Iterates over the memberships list, calling the function for each membership.
     /// This could be return Result<T> instead, but there's only the one caller now.
     ///

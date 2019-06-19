@@ -1,7 +1,8 @@
 use crate::error::Error;
 use habitat_butterfly::{member::{Health,
                                  Member,
-                                 MemberList},
+                                 MemberList,
+                                 Membership},
                         rumor::{election::{Election as ElectionRumor,
                                            ElectionStatus as ElectionStatusRumor,
                                            ElectionUpdate as ElectionUpdateRumor},
@@ -140,16 +141,16 @@ impl CensusRing {
                           }
                       });
 
-        member_list.with_members_mlr(|member| {
-                       // XXX Recursive lock!
-                       let health = member_list.health_of_mlr(&member).unwrap();
+        member_list.with_memberships_mlr(|Membership { member, health }| {
                        for group in self.census_groups.values_mut() {
                            if let Some(census_member) = group.find_member_mut(&member.id) {
                                census_member.update_from_member(&member);
                                census_member.update_from_health(health);
                            }
                        }
-                   });
+                       Ok(())
+                   })
+                   .ok();
     }
 
     fn update_from_election_store(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
