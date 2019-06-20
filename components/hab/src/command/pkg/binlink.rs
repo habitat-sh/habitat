@@ -1,11 +1,9 @@
-#[cfg(windows)]
-use std::fs::File;
-#[cfg(windows)]
-use std::io::{BufRead,
-              BufReader};
-use std::{env,
-          fs,
-          io::Write,
+use std::{collections::HashMap,
+          env,
+          fs::{self,
+               File},
+          io::{BufRead,
+               BufReader},
           path::{Path,
                  PathBuf}};
 
@@ -13,7 +11,6 @@ use crate::{common::ui::{Status,
                          UIWriter,
                          UI},
             hcore::{fs as hfs,
-                    fs::ROOT_PATH,
                     package::{PackageIdent,
                               PackageInstall}}};
 
@@ -21,7 +18,13 @@ use crate::error::{Error,
                    Result};
 
 #[cfg(windows)]
-const BAT_COMMENT_MARKER: &str = "REM";
+const COMMENT_MARKER: &str = "REM";
+#[cfg(unix)]
+const COMMENT_MARKER: &str = "#";
+#[cfg(windows)]
+const SET_OR_EXPORT: &str = "SET";
+#[cfg(unix)]
+const SET_OR_EXPORT: &str = "export";
 
 pub fn start(ui: &mut UI,
              ident: &PackageIdent,
@@ -47,34 +50,23 @@ pub fn start(ui: &mut UI,
     if cfg!(target_os = "windows") {
         src = fs_root_path.join(src.strip_prefix("/")?);
     }
-
-    let stub = fs_root_path.join(ROOT_PATH)
-                           .join("binlinks")
-                           .join(src.strip_prefix(hfs::pkg_root_path(Some(fs_root_path)))?);
-
-    match stub.parent() {
-        Some(s) => fs::create_dir_all(&s)?,
-        None => return Err(Error::CannotParseBinlinkSource(src.to_path_buf())),
-    };
-
     if !dst_path.is_dir() {
         ui.status(Status::Creating,
                   format!("parent directory {}", dst_path.display()))?;
         fs::create_dir_all(&dst_path)?
     }
-    let binlink = Binlink::new(&src, &dst_path, &stub, pkg_install.ident())?;
+    let binlink = Binlink::new(&src, &dst_path)?;
     let ui_binlinked = format!("Binlinked {} from {} to {}",
                                &binary,
                                &pkg_install.ident(),
                                &binlink.dest.display(),);
-
     match Binlink::from_file(&binlink.dest) {
         Ok(link) => {
-            if force && link.src != binlink.src {
+            if force && link.src != src {
                 fs::remove_file(&link.dest)?;
-                binlink.link()?;
+                binlink.link(pkg_install.environment_for_command()?)?;
                 ui.end(&ui_binlinked)?;
-            } else if link.src != binlink.src {
+            } else if link.src != src {
                 ui.warn(format!("Skipping binlink because {} already exists at {}. Use --force \
                                  to overwrite",
                                 &binary,
@@ -84,7 +76,7 @@ pub fn start(ui: &mut UI,
             }
         }
         Err(_) => {
-            binlink.link()?;
+            binlink.link(pkg_install.environment_for_command()?)?;
             ui.end(&ui_binlinked)?;
         }
     }
@@ -148,9 +140,9 @@ pub fn binlink_all_in_pkg(ui: &mut UI,
     Ok(())
 }
 
-fn is_dest_on_path<T: AsRef<Path>>(dest_dir: T) -> bool {
+fn is_dest_on_path(dest_dir: &Path) -> bool {
     if let Some(val) = env::var_os("PATH") {
-        env::split_paths(&val).any(|p| p == dest_dir.as_ref())
+        env::split_paths(&val).any(|p| p == dest_dir)
     } else {
         false
     }
@@ -161,113 +153,96 @@ struct Binlink {
     src:  PathBuf,
 }
 
-#[cfg(not(target_os = "windows"))]
 impl Binlink {
-    pub fn new<T: AsRef<Path>>(src: T,
-                               dest_dir: T,
-                               stub: T,
-                               pkg_ident: &PackageIdent)
-                               -> Result<Self> {
-        use std::os::unix::fs::OpenOptionsExt;
-
-        let bin_name = match src.as_ref().file_name() {
-            Some(name) => name,
-            None => return Err(Error::CannotParseBinlinkSource(src.as_ref().to_path_buf())),
-        };
-
-        let template = format!(
-                               "\
-#!/bin/sh 
-if ! [ -x \"$(command -v hab)\" ]; then 
-    echo 'ERROR: The core/hab package needs to be on the path'
-    echo 'This can be achieved by binlinking core/hab'
-    echo
-    exit 1 
-fi 
-hab pkg exec {0} {1} \"$@\"",
-                               pkg_ident,
-                               bin_name.to_string_lossy()
-        );
-
-        // Need to treat core/hab differently otherwise we get into a link loop
-        if pkg_ident.origin == "core" && pkg_ident.name == "hab" {
-            Ok(Self { dest: dest_dir.as_ref().join(bin_name),
-                      src:  src.as_ref().to_path_buf(), })
-        } else {
-            fs::OpenOptions::new().create(true)
-                                  .write(true)
-                                  .truncate(true)
-                                  .mode(0o770)
-                                  .open(&stub)?
-                                  .write_all(template.as_bytes())?;
-
-            Ok(Self { dest: dest_dir.as_ref().join(bin_name),
-                      src:  stub.as_ref().to_path_buf(), })
-        }
+    pub fn new(src: &Path, dest_dir: &Path) -> Result<Self> {
+        Ok(Self { dest: Self::binstub_path(&src, dest_dir)?,
+                  src:  src.to_path_buf(), })
     }
 
-    pub fn from_file<T: AsRef<Path>>(dest: T) -> Result<Self> {
-        Ok(Self { dest: dest.as_ref().to_path_buf(),
-                  src:  fs::read_link(&dest)?, })
-    }
-
-    pub fn link(&self) -> Result<()> {
-        use crate::hcore::os::filesystem;
-
-        filesystem::symlink(&self.src, &self.dest)?;
-        Ok(())
-    }
-}
-
-#[cfg(target_os = "windows")]
-impl Binlink {
-    pub fn new<T: AsRef<Path>>(src: T,
-                               dest_dir: T,
-                               _stub: T,
-                               _pkg_ident: &PackageIdent)
-                               -> Result<Self> {
-        let bin_name = match src.as_ref().file_stem() {
-            Some(name) => name,
-            None => return Err(Error::CannotParseBinlinkSource(src.as_ref().to_path_buf())),
-        };
-        let mut path = dest_dir.as_ref().join(bin_name);
-        path.set_extension("bat");
-
-        Ok(Binlink { dest: path,
-                     src:  src.as_ref().to_path_buf(), })
-    }
-
-    pub fn from_file<T: AsRef<Path>>(path: T) -> Result<Self> {
+    pub fn from_file(path: &Path) -> Result<Self> {
         use toml::Value::Table;
 
-        let file = File::open(&path)?;
+        let file = File::open(path)?;
         for line in BufReader::new(file).lines() {
             let ln = line?;
-            if ln.to_uppercase().starts_with(BAT_COMMENT_MARKER) {
-                let (_, rest) = ln.split_at(BAT_COMMENT_MARKER.len());
+            if ln.to_uppercase().starts_with(COMMENT_MARKER) {
+                let (_, rest) = ln.split_at(COMMENT_MARKER.len());
                 if let Ok(Table(toml_exp)) = rest.parse() {
                     if let Some(src) = toml_exp.get("source") {
                         if let Some(val) = src.as_str() {
-                            return Ok(Binlink { dest: path.as_ref().to_path_buf(),
+                            return Ok(Binlink { dest: path.to_path_buf(),
                                                 src:  PathBuf::from(val), });
                         }
                     }
                 }
             }
         }
-        Err(Error::CannotParseBinlinkSource(path.as_ref().to_path_buf()))
+        Err(Error::CannotParseBinlinkSource(path.to_path_buf()))
     }
 
-    pub fn link(&self) -> Result<()> {
-        let template = format!("@echo off\nREM source='{0}'\n\"{0}\" %*",
-                               self.src.display());
-        fs::write(&self.dest, template)?;
-        Ok(())
+    pub fn link(&self, env: HashMap<String, String>) -> Result<()> {
+        #[cfg(windows)]
+        {
+            fs::write(&self.dest, self.stub_template(env).as_bytes())?;
+            Ok(())
+        }
+
+        #[cfg(unix)]
+        {
+            use std::{io::Write,
+                      os::unix::fs::OpenOptionsExt};
+            fs::OpenOptions::new().create(true)
+                                  .write(true)
+                                  .truncate(true)
+                                  .mode(0o775)
+                                  .open(&self.dest)?
+                                  .write_all(self.stub_template(env).as_bytes())?;
+            Ok(())
+        }
+    }
+
+    fn binstub_path(src: &Path, dest_dir: &Path) -> Result<PathBuf> {
+        #[cfg(windows)]
+        {
+            let bin_name = match src.file_stem() {
+                Some(name) => name,
+                None => return Err(Error::CannotParseBinlinkSource(src.to_path_buf())),
+            };
+            let mut path = dest_dir.join(bin_name);
+            path.set_extension("bat");
+            Ok(path)
+        }
+
+        #[cfg(unix)]
+        match src.file_name() {
+            Some(name) => Ok(dest_dir.join(name)),
+            None => Err(Error::CannotParseBinlinkSource(src.to_path_buf())),
+        }
+    }
+
+    fn stub_template(&self, env: HashMap<String, String>) -> String {
+        let mut exports = String::new();
+        for (key, value) in env.into_iter() {
+            exports.push_str(&format!("{} {}={}\n", SET_OR_EXPORT, key, value));
+        }
+
+        #[cfg(windows)]
+        {
+            format!(include_str!("../../../static/template_binstub.bat"),
+                    src = self.src.display(),
+                    env = exports)
+        }
+
+        #[cfg(unix)]
+        {
+            format!(include_str!("../../../static/template_binstub.sh"),
+                    src = self.src.display(),
+                    env = exports)
+        }
     }
 }
 
 #[cfg(test)]
-#[cfg(any(target_os = "linux", target_os = "windows"))]
 mod test {
     use std::{collections::HashMap,
               env,
@@ -326,9 +301,10 @@ mod test {
               &dst_path,
               rootfs.path(),
               force).unwrap();
+        assert!(fs::read_to_string(rootfs_bin_dir.join(magicate_link)).unwrap().contains(&format!("PATH={}", rootfs_src_dir.to_string_lossy())));
         assert_eq!(rootfs_src_dir.join("magicate.exe"),
-                   Binlink::from_file(rootfs_bin_dir.join(magicate_link)).unwrap()
-                                                                         .src);
+                   Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap()
+                                                                          .src);
 
         start(&mut ui,
               &ident,
@@ -336,9 +312,10 @@ mod test {
               &dst_path,
               rootfs.path(),
               force).unwrap();
+        assert!(fs::read_to_string(rootfs_bin_dir.join(hypnoanalyze_link)).unwrap().contains(&format!("PATH={}", rootfs_src_dir.to_string_lossy())));
         assert_eq!(rootfs_src_dir.join("hypnoanalyze.exe"),
-                   Binlink::from_file(rootfs_bin_dir.join(hypnoanalyze_link)).unwrap()
-                                                                             .src);
+                   Binlink::from_file(&rootfs_bin_dir.join(hypnoanalyze_link)).unwrap()
+                                                                              .src);
     }
 
     #[test]
@@ -375,14 +352,14 @@ mod test {
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
-                   Binlink::from_file(rootfs_bin_dir.join(magicate_link)).unwrap()
-                                                                         .src);
+                   Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap()
+                                                                          .src);
         assert_eq!(rootfs_src_dir.join("bin/hypnoanalyze.exe"),
-                   Binlink::from_file(rootfs_bin_dir.join(hypnoanalyze_link)).unwrap()
-                                                                             .src);
+                   Binlink::from_file(&rootfs_bin_dir.join(hypnoanalyze_link)).unwrap()
+                                                                              .src);
         assert_eq!(rootfs_src_dir.join("sbin/securitize.exe"),
-                   Binlink::from_file(rootfs_bin_dir.join(securitize_link)).unwrap()
-                                                                           .src);
+                   Binlink::from_file(&rootfs_bin_dir.join(securitize_link)).unwrap()
+                                                                            .src);
     }
 
     #[test]
@@ -405,9 +382,9 @@ mod test {
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
-                   Binlink::from_file(rootfs_bin_dir.join("magicate.bat")).unwrap()
-                                                                          .src);
-        assert!(Binlink::from_file(rootfs_bin_dir.join("hypnoanalyze.bat")).is_err());
+                   Binlink::from_file(&rootfs_bin_dir.join("magicate.bat")).unwrap()
+                                                                           .src);
+        assert!(Binlink::from_file(&rootfs_bin_dir.join("hypnoanalyze.bat")).is_err());
     }
 
     #[test]
@@ -447,11 +424,11 @@ mod test {
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
-                   Binlink::from_file(rootfs_bin_dir.join(magicate_link)).unwrap()
-                                                                         .src);
+                   Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap()
+                                                                          .src);
         assert_eq!(rootfs_src_dir.join("bin/moar/bonus-round.exe"),
-                   Binlink::from_file(rootfs_bin_dir.join(bonus_round_link)).unwrap()
-                                                                            .src);
+                   Binlink::from_file(&rootfs_bin_dir.join(bonus_round_link)).unwrap()
+                                                                             .src);
     }
 
     fn ui() -> (UI, OutputBuffer, OutputBuffer) {
