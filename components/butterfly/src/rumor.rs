@@ -131,8 +131,8 @@ pub struct RumorStore<T: Rumor> {
 impl<T> Default for RumorStore<T> where T: Rumor
 {
     fn default() -> RumorStore<T> {
-        RumorStore { list:           Arc::new(Lock::new(HashMap::new())),
-                     update_counter: Arc::new(AtomicUsize::new(0)), }
+        RumorStore { list:           Arc::default(),
+                     update_counter: Arc::default(), }
     }
 }
 
