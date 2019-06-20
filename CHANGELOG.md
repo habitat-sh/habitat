@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Bug Fixes
+- Remove recusive memberlist locking [#6662](https://github.com/habitat-sh/habitat/pull/6662) ([baumanj](https://github.com/baumanj))
 - allow windows service to set arbitrary environment variables [#6648](https://github.com/habitat-sh/habitat/pull/6648) ([mwrock](https://github.com/mwrock))
 
 #### New Features & Enhancements
