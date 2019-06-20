@@ -657,7 +657,7 @@ steps:
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
-    timeout_in_minutes: 5
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
