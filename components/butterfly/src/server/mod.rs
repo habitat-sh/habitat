@@ -404,12 +404,16 @@ impl Server {
     /// Start the server, along with a `Timing` for outbound connections. Spawns the `inbound`,
     /// `outbound`, and `expire` threads.
     ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    ///
     /// # Errors
     ///
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
-    pub fn start(&mut self, timing: timing::Timing) -> Result<()> {
+    pub fn start_mlr(&mut self, timing: &timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = self.data_path {
@@ -418,7 +422,7 @@ impl Server {
             }
             let mut file = DatFile::new(&self.member_id, path);
             if file.path().exists() {
-                match file.read_into(self) {
+                match file.read_into_mlr(self) {
                     Ok(_) => {
                         debug!("Successfully ingested rumors from {}",
                                file.path().display())
@@ -442,81 +446,47 @@ impl Server {
             }
         }
 
-        let socket = match UdpSocket::bind(self.swim_addr) {
-            Ok(socket) => socket,
-            Err(e) => return Err(Error::CannotBind(e)),
-        };
+        let socket = UdpSocket::bind(self.swim_addr)?;
         socket.set_read_timeout(Some(Duration::from_millis(1000)))
               .map_err(Error::SocketSetReadTimeout)?;
         socket.set_write_timeout(Some(Duration::from_millis(1000)))
               .map_err(Error::SocketSetReadTimeout)?;
 
-        let server_a = self.clone();
-        let socket_a = match socket.try_clone() {
-            Ok(socket_a) => socket_a,
-            Err(_) => return Err(Error::SocketCloneError),
-        };
-        let socket_expire = match socket.try_clone() {
-            Ok(socket_expire) => socket_expire,
-            Err(_) => return Err(Error::SocketCloneError),
-        };
-        self.socket = Some(socket_expire);
+        self.socket = Some(socket.try_clone()?);
 
-        let _ =
-            thread::Builder::new().name(format!("inbound-{}", self.name()))
-                                  .spawn(move || {
-                                      inbound::Inbound::new(server_a, socket_a, tx_outbound).run();
-                                      panic!("You should never, ever get here, judy");
-                                  });
+        inbound::spawn_thread(format!("inbound-{}", self.name()),
+                              self.clone(),
+                              socket.try_clone()?,
+                              tx_outbound)?;
 
-        let server_b = self.clone();
-        let socket_b = match socket.try_clone() {
-            Ok(socket_b) => socket_b,
-            Err(_) => return Err(Error::SocketCloneError),
-        };
-        let timing_b = timing.clone();
-        let _ = thread::Builder::new().name(format!("outbound-{}", self.name()))
-                                      .spawn(move || {
-                                          outbound::Outbound::new(server_b, socket_b, rx_inbound,
-                                                                  timing_b).run();
-                                          panic!("You should never, ever get here, bob");
-                                      });
+        outbound::spawn_thread(format!("outbound-{}", self.name()),
+                               self.clone(),
+                               socket,
+                               rx_inbound,
+                               timing.clone())?;
 
-        let server_c = self.clone();
-        let timing_c = timing.clone();
-        let _ = thread::Builder::new().name(format!("expire-{}", self.name()))
-                                      .spawn(move || {
-                                          expire::Expire::new(server_c, timing_c).run();
-                                          panic!("You should never, ever get here, frank");
-                                      });
+        expire::spawn_thread(format!("expire-{}", self.name()),
+                             self.clone(),
+                             timing.clone())?;
 
-        let server_d = self.clone();
-        let _ = thread::Builder::new().name(format!("pull-{}", self.name()))
-                                      .spawn(move || {
-                                          pull::Pull::new(server_d).run();
-                                          panic!("You should never, ever get here, davey");
-                                      });
+        pull::spawn_thread(format!("pull-{}", self.name()), self.clone())?;
 
-        let server_e = self.clone();
-        let _ = thread::Builder::new().name(format!("push-{}", self.name()))
-                                      .spawn(move || {
-                                          push::Push::new(server_e, timing).run();
-                                          panic!("You should never, ever get here, liu");
-                                      });
+        push::spawn_thread(format!("push-{}", self.name()),
+                           self.clone(),
+                           timing.clone())?;
 
         if self.dat_file.is_some() {
-            let server_f = self.clone();
-            let _ = thread::Builder::new().name(format!("persist-{}", self.name()))
-                                          .spawn(move || {
-                                              persist_loop(&server_f);
-                                              panic!("Data persistence loop unexpectedly quit!");
-                                          });
+            spawn_persist_thread(format!("persist-{}", self.name()), self.clone())?;
         }
 
         Ok(())
     }
 
-    pub fn need_peer_seeding(&self) -> bool { self.member_list.is_empty() }
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
+    ///   must not call any functions which take this lock.
+    pub fn need_peer_seeding_mlr(&self) -> bool { self.member_list.is_empty_mlr() }
 
     /// Persistently block a given address, causing no traffic to be seen.
     pub fn add_to_block_list(&self, member_id: String) {
@@ -567,6 +537,10 @@ impl Server {
     pub fn name(&self) -> &str { &self.name }
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn insert_member(&self, member: Member, health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
@@ -575,7 +549,7 @@ impl Server {
         let member_id = member.id.clone();
         let trace_incarnation = member.incarnation;
         let trace_health = health;
-        if self.member_list.insert(member, health) {
+        if self.member_list.insert_mlw(member, health) {
             trace_it!(MEMBERSHIP: self,
                       TraceKind::MemberUpdate,
                       member_id,
@@ -596,7 +570,11 @@ impl Server {
 
     /// Set our member to departed, then send up to 10 out of order ack messages to other
     /// members to seed our status.
-    pub fn set_departed(&self) {
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn set_departed_mlw(&self) {
         if self.socket.is_some() {
             {
                 let mut me = self.member.write().expect("Member lock is poisoned");
@@ -605,7 +583,7 @@ impl Server {
                 // actually needed.
                 me.mark_departed();
 
-                self.member_list.set_departed(&self.member_id);
+                self.member_list.set_departed_mlw(&self.member_id);
                 trace_it!(MEMBERSHIP: self,
                           TraceKind::MemberUpdate,
                           self.member_id.clone(),
@@ -622,7 +600,7 @@ impl Server {
             self.rumor_heat
                 .start_hot_rumor(RumorKey::new(RumorType::Member, &self.member_id, ""));
 
-            let check_list = self.member_list.check_list(&self.member_id);
+            let check_list = self.member_list.check_list_mlr(&self.member_id);
 
             // TODO (CM): Even though we marked the rumor as hot
             // above, when we gossip, we send out the 5 "coolest but
@@ -641,6 +619,10 @@ impl Server {
     }
 
     /// Given a membership record and some health, insert it into the Member List.
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() && health != Health::Alive {
@@ -657,7 +639,7 @@ impl Server {
         let trace_incarnation = member.incarnation;
         let trace_health = health;
 
-        if self.member_list.insert(member, health) {
+        if self.member_list.insert_mlw(member, health) {
             trace_it!(MEMBERSHIP: self,
                       TraceKind::MemberUpdate,
                       member_id,
@@ -682,6 +664,10 @@ impl Server {
     ///
     /// See https://github.com/habitat-sh/habitat/issues/1994
     /// See Server::check_quorum
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn insert_service(&self, service: Service) {
         Self::insert_service_impl(service,
                                   &self.service_store,
@@ -707,10 +693,10 @@ impl Server {
             if inserting_new_group_member && !check_quorum(service_group) {
                 if let Some(member_id_to_depart) =
                     service_store.min_member_id_with(service_group, |id| {
-                                     member_list.health_of_by_id(id) == Some(Health::Confirmed)
+                                     member_list.health_of_by_id_mlr(id) == Some(Health::Confirmed)
                                  })
                 {
-                    member_list.set_departed(&member_id_to_depart);
+                    member_list.set_departed_mlw(&member_id_to_depart);
                     rumor_heat.purge(&member_id_to_depart);
                     rumor_heat.start_hot_rumor(RumorKey::new(RumorType::Member,
                                                              &member_id_to_depart,
@@ -738,6 +724,10 @@ impl Server {
     }
 
     /// Insert a departure rumor into the departure store.
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
     pub fn insert_departure(&self, departure: Departure) {
         let rk = RumorKey::from(&departure);
         if *self.member_id == departure.member_id {
@@ -745,7 +735,7 @@ impl Server {
                 .compare_and_swap(false, true, Ordering::Relaxed);
         }
 
-        self.member_list.set_departed(&departure.member_id);
+        self.member_list.set_departed_mlw(&departure.member_id);
 
         self.rumor_heat.purge(&departure.member_id);
         self.rumor_heat
@@ -758,10 +748,14 @@ impl Server {
 
     /// Get all the Member ID's who are present in a given service group, and eligible to vote
     /// (alive)
-    fn get_electorate(&self, key: &str) -> Vec<String> {
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn get_electorate_mlr(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
         self.service_store.with_rumors(key, |s| {
-                              if self.member_list.health_of_by_id(&s.member_id)
+                              if self.member_list.health_of_by_id_mlr(&s.member_id)
                                  == Some(Health::Alive)
                               {
                                   electorate.push(s.member_id.clone());
@@ -770,18 +764,25 @@ impl Server {
         electorate
     }
 
-    fn check_in_voting_population_by_id(&self, member_id: &str) -> bool {
-        match self.member_list.health_of_by_id(member_id) {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn check_in_voting_population_by_id_mlr(&self, member_id: &str) -> bool {
+        match self.member_list.health_of_by_id_mlr(member_id) {
             Some(Health::Alive) | Some(Health::Suspect) | Some(Health::Confirmed) => true,
             Some(Health::Departed) | None => false,
         }
     }
 
     /// Get all the Member ID's who are present in a given service group, and count towards quorum.
-    fn get_total_population(&self, key: &str) -> Vec<String> {
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn get_total_population_mlr(&self, key: &str) -> Vec<String> {
         let mut total_pop = vec![];
         self.service_store.with_rumors(key, |s| {
-                              if self.check_in_voting_population_by_id(&s.member_id) {
+                              if self.check_in_voting_population_by_id_mlr(&s.member_id) {
                                   total_pop.push(s.member_id.clone());
                               }
                           });
@@ -791,9 +792,13 @@ impl Server {
     /// Check if a given service group has quorum to run an election.
     ///
     /// A group has quorum if a majority of its non-departed members are alive.
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn check_quorum(&self, key: &str) -> bool {
-        let electorate = self.get_electorate(key);
-        let service_group_members = self.get_total_population(key);
+        let electorate = self.get_electorate_mlr(key);
+        let service_group_members = self.get_total_population_mlr(key);
         let total_population = service_group_members.len();
         let alive_population = electorate.len();
         let has_quorum = alive_population > total_population / 2;
@@ -842,10 +847,13 @@ impl Server {
         self.update_store.insert(e);
     }
 
-    fn elections_to_restart<T>(&self,
-                               elections: &RumorStore<T>,
-                               feature_flags: FeatureFlag)
-                               -> Vec<(String, u64)>
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn elections_to_restart_mlr<T>(&self,
+                                   elections: &RumorStore<T>,
+                                   feature_flags: FeatureFlag)
+                                   -> Vec<(String, u64)>
         where T: Rumor + ElectionRumor + Debug
     {
         Self::elections_to_restart_impl(elections,
@@ -857,6 +865,9 @@ impl Server {
                                         &self.data_path)
     }
 
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn elections_to_restart_impl<T>(elections: &RumorStore<T>,
                                     service_store: &RumorStore<Service>,
                                     myself_member_id: &str,
@@ -905,7 +916,7 @@ impl Server {
                                  }
                              } else if election.is_finished() {
                                  let leader_health =
-                                     member_list.health_of_by_id(election.member_id())
+                                     member_list.health_of_by_id_mlr(election.member_id())
                                                 .unwrap_or_else(|| {
                                                     debug!("No health information for {}; \
                                                             treating as Departed",
@@ -931,15 +942,20 @@ impl Server {
     ///
     /// a) We are the leader, and we have lost quorum with the rest of the group.
     /// b) We are not the leader, and we have detected that the leader is confirmed dead.
-    pub fn restart_elections(&self, feature_flags: FeatureFlag) {
-        let elections_to_restart = self.elections_to_restart(&self.election_store, feature_flags);
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn restart_elections_mlr(&self, feature_flags: FeatureFlag) {
+        let elections_to_restart =
+            self.elections_to_restart_mlr(&self.election_store, feature_flags);
 
         // TODO (CM): not currently triggering update elections!
         // There's only one kind of sentinel file at the moment, and
         // that's for non-update elections. If that file existed,
         // it'll be gone by the time we get here.
         let update_elections_to_restart =
-            self.elections_to_restart(&self.update_store, feature_flags);
+            self.elections_to_restart_mlr(&self.update_store, feature_flags);
 
         for (service_group, old_term) in elections_to_restart {
             let term = old_term + 1;
@@ -959,7 +975,11 @@ impl Server {
     /// Insert an election into the election store. Handles creating a new election rumor for this
     /// member on receipt of an election rumor for a service this server cares about. Also handles
     /// stopping the election if we are the winner and we have enough votes.
-    pub fn insert_election(&self, mut election: Election) {
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn insert_election_mlr(&self, mut election: Election) {
         debug!("insert_election: {:?}", election);
         let rk = RumorKey::from(&election);
 
@@ -989,7 +1009,7 @@ impl Server {
                 // election is over! If it is, mark this election as final before you process it.
                 if self.member_id() == election.member_id {
                     if self.check_quorum(election.key()) {
-                        let electorate = self.get_electorate(election.key());
+                        let electorate = self.get_electorate_mlr(election.key());
                         let mut num_votes = 0;
                         for vote in election.votes.iter() {
                             if electorate.contains(vote) {
@@ -1049,7 +1069,10 @@ impl Server {
         }
     }
 
-    pub fn insert_update_election(&self, mut election: ElectionUpdate) {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn insert_update_election_mlr(&self, mut election: ElectionUpdate) {
         debug!("insert_update_election: {:?}", election);
         let rk = RumorKey::from(&election);
 
@@ -1079,7 +1102,7 @@ impl Server {
                 // election is over! If it is, mark this election as final before you process it.
                 if self.member_id() == election.member_id {
                     if self.check_quorum(election.key()) {
-                        let electorate = self.get_electorate(election.key());
+                        let electorate = self.get_electorate_mlr(election.key());
                         let mut num_votes = 0;
                         for vote in election.votes.iter() {
                             if electorate.contains(vote) {
@@ -1141,22 +1164,6 @@ impl Server {
     pub fn is_departed(&self) -> bool { self.departed.load(Ordering::Relaxed) }
 }
 
-impl Serialize for Server {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let mut strukt = serializer.serialize_struct("butterfly", 7)?;
-        strukt.serialize_field("member", &self.member_list)?;
-        strukt.serialize_field("service", &self.service_store)?;
-        strukt.serialize_field("service_config", &self.service_config_store)?;
-        strukt.serialize_field("service_file", &self.service_file_store)?;
-        strukt.serialize_field("election", &self.election_store)?;
-        strukt.serialize_field("election_update", &self.update_store)?;
-        strukt.serialize_field("departure", &self.departure_store)?;
-        strukt.end()
-    }
-}
-
 impl fmt::Display for Server {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f,
@@ -1167,7 +1174,13 @@ impl fmt::Display for Server {
     }
 }
 
-fn persist_loop(server: &Server) {
+fn spawn_persist_thread(name: String, server: Server) -> std::io::Result<()> {
+    thread::Builder::new().name(name)
+                          .spawn(move || persist_loop(&server))
+                          .map(|_| ())
+}
+
+fn persist_loop(server: &Server) -> ! {
     habitat_core::env_config_duration!(PersistLoopPeriod,
                                        HAB_PERSIST_LOOP_PERIOD_SECS => from_secs,
                                        Duration::from_secs(30));
@@ -1202,6 +1215,9 @@ impl<'a> ServerProxy<'a> {
 }
 
 impl<'a> Serialize for ServerProxy<'a> {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -1369,7 +1385,7 @@ mod tests {
 
         service_store.insert(service.clone());
 
-        member_list.insert(departed_leader, Health::Departed);
+        member_list.insert_mlw(departed_leader, Health::Departed);
 
         let to_restart = Server::elections_to_restart_impl(&elections,
                                                            &service_store,
@@ -1418,8 +1434,8 @@ mod tests {
         let member_list = MemberList::new();
         let rumor_heat = RumorHeat::default();
 
-        member_list.insert(alive_member.clone(), Health::Alive);
-        member_list.insert(confirmed_member.clone(), Health::Confirmed);
+        member_list.insert_mlw(alive_member.clone(), Health::Alive);
+        member_list.insert_mlw(confirmed_member.clone(), Health::Confirmed);
 
         Server::insert_service_impl(confirmed_member_service_rumor.clone(),
                                     &service_store,
@@ -1427,7 +1443,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
 
         Server::insert_service_impl(alive_member_service_rumor.clone(),
@@ -1436,7 +1452,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Departed));
     }
 
@@ -1450,10 +1466,10 @@ mod tests {
         let member_list = MemberList::new();
         let rumor_heat = RumorHeat::default();
 
-        member_list.insert(alive_member.clone(), Health::Alive);
+        member_list.insert_mlw(alive_member.clone(), Health::Alive);
         // This member will become confirmed later. If it's already Confirmed
         // when inserted, it could be departed immediately
-        member_list.insert(confirmed_member.clone(), Health::Alive);
+        member_list.insert_mlw(confirmed_member.clone(), Health::Alive);
 
         Server::insert_service_impl(alive_member_service_rumor.clone(),
                                     &service_store,
@@ -1467,7 +1483,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        member_list.insert(confirmed_member.clone(), Health::Confirmed);
+        member_list.insert_mlw(confirmed_member.clone(), Health::Confirmed);
 
         Server::insert_service_impl(Service { incarnation: alive_member_service_rumor.incarnation
                                                            + 1,
@@ -1477,7 +1493,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
     }
 
@@ -1491,8 +1507,8 @@ mod tests {
         let member_list = MemberList::new();
         let rumor_heat = RumorHeat::default();
 
-        member_list.insert(alive_member.clone(), Health::Alive);
-        member_list.insert(confirmed_member.clone(), Health::Confirmed);
+        member_list.insert_mlw(alive_member.clone(), Health::Alive);
+        member_list.insert_mlw(confirmed_member.clone(), Health::Confirmed);
 
         Server::insert_service_impl(confirmed_member_service_rumor.clone(),
                                     &service_store,
@@ -1500,7 +1516,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(true));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
 
         Server::insert_service_impl(alive_member_service_rumor.clone(),
@@ -1509,7 +1525,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(true));
 
-        assert_eq!(member_list.health_of(&confirmed_member),
+        assert_eq!(member_list.health_of_mlr(&confirmed_member),
                    Some(Health::Confirmed));
     }
     mod myself {
@@ -1657,14 +1673,14 @@ mod tests {
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
-            server.start(Timing::default())
+            server.start_mlr(&Timing::default())
                   .expect("Server failed to start");
         }
 
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start(Timing::default())
+            server.start_mlr(&Timing::default())
                   .expect("Server failed to start");
         }
     }

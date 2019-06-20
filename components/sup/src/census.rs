@@ -1,7 +1,8 @@
 use crate::error::Error;
 use habitat_butterfly::{member::{Health,
                                  Member,
-                                 MemberList},
+                                 MemberList,
+                                 Membership},
                         rumor::{election::{Election as ElectionRumor,
                                            ElectionStatus as ElectionStatusRumor,
                                            ElectionUpdate as ElectionUpdateRumor},
@@ -112,6 +113,10 @@ impl CensusRing {
     ///
     /// (Butterfly provides the health, the ServiceRumors provide the
     /// rest).
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     fn populate_census(&mut self,
                        service_rumors: &RumorStore<ServiceRumor>,
                        member_list: &MemberList) {
@@ -136,15 +141,16 @@ impl CensusRing {
                           }
                       });
 
-        member_list.with_members(|member| {
-                       let health = member_list.health_of(&member).unwrap();
+        member_list.with_memberships_mlr(|Membership { member, health }| {
                        for group in self.census_groups.values_mut() {
                            if let Some(census_member) = group.find_member_mut(&member.id) {
                                census_member.update_from_member(&member);
                                census_member.update_from_health(health);
                            }
                        }
-                   });
+                       Ok(())
+                   })
+                   .ok();
     }
 
     fn update_from_election_store(&mut self, election_rumors: &RumorStore<ElectionRumor>) {

@@ -9,7 +9,7 @@ fn symmetric_encryption_of_wire_payloads() {
                                                                        memory symkey");
     let mut net = btest::SwimNet::new_ring_encryption(2, &ring_key);
     net.connect(0, 1);
-    assert_wait_for_health_of!(net, [0..2, 0..2], Health::Alive);
+    assert_wait_for_health_of_mlr!(net, [0..2, 0..2], Health::Alive);
     net.add_service(0, "core/beast/1.2.3/20161208121212");
     net.wait_for_gossip_rounds(2);
     assert!(net[1].service_store

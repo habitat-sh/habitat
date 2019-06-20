@@ -52,10 +52,10 @@ fn main() {
         member.address = format!("{}", addr.ip());
         member.swim_port = addr.port();
         member.gossip_port = addr.port();
-        server.member_list.add_initial_member(member);
+        server.member_list.add_initial_member_imlw(member);
     }
 
-    server.start(server::timing::Timing::default())
+    server.start_mlr(&server::timing::Timing::default())
           .expect("Cannot start server");
     loop {
         println!("{:#?}", server.member_list);

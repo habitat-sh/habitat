@@ -61,7 +61,7 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                                  Some(String::from(name)),
                                  None,
                                  Box::new(NSuitability(suitability))).unwrap();
-    server.start(Timing::default())
+    server.start_mlr(&Timing::default())
           .expect("Cannot start server");
     server
 }
@@ -166,7 +166,10 @@ impl SwimNet {
         from.remove_from_block_list(to.member_id());
     }
 
-    pub fn health_of(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn health_of_mlr(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
         /// To avoid deadlocking in a test, we use `health_of_by_id_with_timeout` rather than
         /// `health_of_by_id`.
         const HEALTH_OF_TIMEOUT: Duration = Duration::from_secs(5);
@@ -180,7 +183,7 @@ impl SwimNet {
                      .expect("Asked for a network member who is out of bounds");
 
         match from.member_list
-                  .health_of_by_id_with_timeout(to.member_id(), HEALTH_OF_TIMEOUT)
+                  .health_of_by_id_with_timeout_mlr(to.member_id(), HEALTH_OF_TIMEOUT)
         {
             Ok(health) => Some(health),
             Err(Error::UnknownMember(_)) => None,
@@ -195,14 +198,17 @@ impl SwimNet {
         }
     }
 
-    pub fn network_health_of(&self, to_check: usize) -> Vec<Option<Health>> {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn network_health_of_mlr(&self, to_check: usize) -> Vec<Option<Health>> {
         let mut health_summary = Vec::with_capacity(self.members.len() - 1);
         let length = self.members.len();
         for x in 0..length {
             if x == to_check {
                 continue;
             }
-            health_summary.push(self.health_of(x, to_check));
+            health_summary.push(self.health_of_mlr(x, to_check));
         }
         health_summary
     }
@@ -352,10 +358,17 @@ impl SwimNet {
         }
     }
 
-    pub fn wait_for_health_of(&self, from_entry: usize, to_check: usize, health: Health) -> bool {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn wait_for_health_of_mlr(&self,
+                                  from_entry: usize,
+                                  to_check: usize,
+                                  health: Health)
+                                  -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
-            if let Some(real_health) = self.health_of(from_entry, to_check) {
+            if let Some(real_health) = self.health_of_mlr(from_entry, to_check) {
                 if real_health == health {
                     trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                     return true;
@@ -371,10 +384,13 @@ impl SwimNet {
         }
     }
 
-    pub fn wait_for_network_health_of(&self, to_check: usize, health: Health) -> bool {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn wait_for_network_health_of_mlr(&self, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
-            let network_health = self.network_health_of(to_check);
+            let network_health = self.network_health_of_mlr(to_check);
             if network_health.iter().all(|&x| x == Some(health)) {
                 trace_it!(TEST_NET: self,
                           format!("Health {} {} as {}",
@@ -453,7 +469,7 @@ impl SwimNet {
 #[macro_export]
 macro_rules! assert_health_of {
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.network_health_of($to)
+        assert!($network.network_health_of_mlr($to)
                         .into_iter()
                         .all(|x| x == $health),
                 "Member {} does not always have health {}",
@@ -470,7 +486,7 @@ macro_rules! assert_health_of {
 }
 
 #[macro_export]
-macro_rules! assert_wait_for_health_of {
+macro_rules! assert_wait_for_health_of_mlr {
     ($network:expr,[$from:expr, $to:expr], $health:expr) => {
         let left: Vec<usize> = $from.collect();
         let right: Vec<usize> = $to.collect();
@@ -479,12 +495,12 @@ macro_rules! assert_wait_for_health_of {
                 if l == r {
                     continue;
                 }
-                assert!($network.wait_for_health_of(*l, *r, $health),
+                assert!($network.wait_for_health_of_mlr(*l, *r, $health),
                         "Member {} does not see {} as {}",
                         l,
                         r,
                         $health);
-                assert!($network.wait_for_health_of(*r, *l, $health),
+                assert!($network.wait_for_health_of_mlr(*r, *l, $health),
                         "Member {} does not see {} as {}",
                         r,
                         l,
@@ -493,13 +509,13 @@ macro_rules! assert_wait_for_health_of {
         }
     };
     ($network:expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_network_health_of($to, $health),
+        assert!($network.wait_for_network_health_of_mlr($to, $health),
                 "Member {} does not always have health {}",
                 $to,
                 $health);
     };
     ($network:expr, $from:expr, $to:expr, $health:expr) => {
-        assert!($network.wait_for_health_of($from, $to, $health),
+        assert!($network.wait_for_health_of_mlr($from, $to, $health),
                 "Member {} does not see {} as {}",
                 $from,
                 $to,
