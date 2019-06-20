@@ -94,7 +94,7 @@ mod tests {
         rs.insert(d1);
         rs.insert(d2);
 
-        let list = rs.list.read().expect("Rumor store lock poisoned");
+        let list = rs.list.read();
         assert_eq!(list.len(), 1); // for the "departure" key
 
         let sub_list = list.get("departure").unwrap();

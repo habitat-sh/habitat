@@ -1191,7 +1191,6 @@ impl Manager {
                                                    .service_store
                                                    .list
                                                    .read()
-                                                   .expect("Rumor store lock poisoned")
                                                    .get(&*service.service_group)
                                                    .and_then(|r| r.get(&self.sys.member_id))
         {

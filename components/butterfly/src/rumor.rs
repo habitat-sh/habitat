@@ -14,17 +14,13 @@ pub mod service;
 pub mod service_config;
 pub mod service_file;
 
-use std::{collections::{hash_map::Entry,
-                        HashMap},
-          default::Default,
-          ops::Deref,
-          result,
-          sync::{atomic::{AtomicUsize,
-                          Ordering},
-                 Arc,
-                 RwLock}};
-
+use crate::{error::{Error,
+                    Result},
+            member::Membership,
+            protocol::{FromProto,
+                       Message}};
 use bytes::BytesMut;
+use habitat_common::sync::Lock;
 use prometheus::IntCounterVec;
 use prost::Message as ProstMessage;
 use serde::{ser::{SerializeMap,
@@ -32,6 +28,14 @@ use serde::{ser::{SerializeMap,
                   SerializeStruct},
             Serialize,
             Serializer};
+use std::{collections::{hash_map::Entry,
+                        HashMap},
+          default::Default,
+          ops::Deref,
+          result,
+          sync::{atomic::{AtomicUsize,
+                          Ordering},
+                 Arc}};
 
 pub use self::{departure::Departure,
                election::{Election,
@@ -42,11 +46,6 @@ pub use self::{departure::Departure,
 pub use crate::protocol::newscast::{Rumor as ProtoRumor,
                                     RumorPayload,
                                     RumorType};
-use crate::{error::{Error,
-                    Result},
-            member::Membership,
-            protocol::{FromProto,
-                       Message}};
 
 lazy_static! {
     static ref IGNORED_RUMOR_COUNT: IntCounterVec =
@@ -125,21 +124,21 @@ impl<'a, T: Rumor> From<&'a T> for RumorKey {
 /// Generic over the type of rumor it stores.
 #[derive(Debug, Clone)]
 pub struct RumorStore<T: Rumor> {
-    pub list:       Arc<RwLock<HashMap<String, HashMap<String, T>>>>,
+    pub list:       Arc<Lock<HashMap<String, HashMap<String, T>>>>,
     update_counter: Arc<AtomicUsize>,
 }
 
 impl<T> Default for RumorStore<T> where T: Rumor
 {
     fn default() -> RumorStore<T> {
-        RumorStore { list:           Arc::new(RwLock::new(HashMap::new())),
+        RumorStore { list:           Arc::new(Lock::new(HashMap::new())),
                      update_counter: Arc::new(AtomicUsize::new(0)), }
     }
 }
 
 impl<T> Deref for RumorStore<T> where T: Rumor
 {
-    type Target = RwLock<HashMap<String, HashMap<String, T>>>;
+    type Target = Lock<HashMap<String, HashMap<String, T>>>;
 
     fn deref(&self) -> &Self::Target { &*self.list }
 }
@@ -150,7 +149,7 @@ impl<T> Serialize for RumorStore<T> where T: Rumor
         where S: Serializer
     {
         let mut strukt = serializer.serialize_struct("rumor_store", 2)?;
-        strukt.serialize_field("list", &*(self.list.read().unwrap()))?;
+        strukt.serialize_field("list", &*(self.list.read()))?;
         strukt.serialize_field("update_counter", &self.get_update_counter())?;
         strukt.end()
     }
@@ -172,7 +171,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let map = self.0.list.read();
         let inner_map = map.get("departure");
         let len = if inner_map.is_some() {
             inner_map.unwrap().len()
@@ -196,7 +195,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, Election> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let map = self.0.list.read();
         let mut new_map = HashMap::new();
 
         for (k, v) in map.iter() {
@@ -219,7 +218,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let map = self.0.list.read();
         let mut new_map = HashMap::new();
 
         for (k, v) in map.iter() {
@@ -241,7 +240,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, Service> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let map = self.0.list.read();
         let mut m = serializer.serialize_map(Some(map.len()))?;
 
         for (key, val) in map.iter() {
@@ -256,7 +255,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let map = self.0.list.read();
         let mut new_map = HashMap::new();
 
         for (k, v) in map.iter() {
@@ -278,7 +277,7 @@ impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
-        let map = self.0.list.read().expect("Rumor store lock poisoned");
+        let map = self.0.list.read();
         let mut m = serializer.serialize_map(Some(map.len()))?;
 
         for (key, val) in map.iter() {
@@ -300,13 +299,13 @@ impl<T> RumorStore<T> where T: Rumor
 
     /// Clear all rumors and reset update counter of RumorStore.
     pub fn clear(&self) -> usize {
-        let mut list = self.list.write().expect("Rumor store lock poisoned");
+        let mut list = self.list.write();
         list.clear();
         self.update_counter.swap(0, Ordering::Relaxed)
     }
 
     pub fn encode(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
-        let list = self.list.read().expect("Rumor store lock poisoned");
+        let list = self.list.read();
         match list.get(key).and_then(|l| l.get(member_id)) {
             Some(rumor) => rumor.clone().write_to_bytes(),
             None => Err(Error::NonExistentRumor(String::from(member_id), String::from(key))),
@@ -317,14 +316,14 @@ impl<T> RumorStore<T> where T: Rumor
 
     /// Returns the count of all rumors in the rumor store for the given member's key.
     pub fn len_for_key(&self, key: &str) -> usize {
-        let list = self.list.read().expect("Rumor store lock poisoned");
+        let list = self.list.read();
         list.get(key).map_or(0, HashMap::len)
     }
 
     /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
     /// mutated; if nothing changed, returns false.
     pub fn insert(&self, rumor: T) -> bool {
-        let mut list = self.list.write().expect("Rumor store lock poisoned");
+        let mut list = self.list.write();
         let rumors = list.entry(String::from(rumor.key()))
                          .or_insert_with(HashMap::new);
         let kind_ignored_count =
@@ -348,14 +347,14 @@ impl<T> RumorStore<T> where T: Rumor
     }
 
     pub fn remove(&self, key: &str, id: &str) {
-        let mut list = self.list.write().expect("Rumor store lock poisoned");
+        let mut list = self.list.write();
         list.get_mut(key).and_then(|r| r.remove(id));
     }
 
     pub fn with_keys<F>(&self, mut with_closure: F)
         where F: FnMut((&String, &HashMap<String, T>))
     {
-        let list = self.list.read().expect("Rumor store lock poisoned");
+        let list = self.list.read();
         for x in list.iter() {
             with_closure(x);
         }
@@ -364,7 +363,7 @@ impl<T> RumorStore<T> where T: Rumor
     pub fn with_rumors<F>(&self, key: &str, mut with_closure: F)
         where F: FnMut(&T)
     {
-        let list = self.list.read().expect("Rumor store lock poisoned");
+        let list = self.list.read();
         if list.contains_key(key) {
             for x in list.get(key).unwrap().values() {
                 with_closure(x);
@@ -375,7 +374,7 @@ impl<T> RumorStore<T> where T: Rumor
     pub fn with_rumor<F>(&self, key: &str, member_id: &str, mut with_closure: F)
         where F: FnMut(&T)
     {
-        let list = self.list.read().expect("Rumor store lock poisoned");
+        let list = self.list.read();
         if let Some(sublist) = list.get(key) {
             if let Some(rumor) = sublist.get(member_id) {
                 with_closure(rumor);
@@ -386,7 +385,7 @@ impl<T> RumorStore<T> where T: Rumor
     pub fn assert_rumor_is<P>(&self, key: &str, member_id: &str, mut predicate: P)
         where P: FnMut(&T) -> bool
     {
-        let list = self.list.read().expect("Rumor store lock poisoned");
+        let list = self.list.read();
         if let Some(sublist) = list.get(key) {
             if let Some(rumor) = sublist.get(member_id) {
                 assert!(predicate(rumor), "{} failed predicate", member_id);
@@ -399,7 +398,7 @@ impl<T> RumorStore<T> where T: Rumor
     }
 
     pub fn contains_rumor(&self, key: &str, id: &str) -> bool {
-        let list = self.list.read().expect("Rumor store lock poisoned");
+        let list = self.list.read();
         list.get(key).and_then(|l| l.get(id)).is_some()
     }
 
@@ -414,11 +413,7 @@ impl RumorStore<Service> {
     /// Returns true if there exist rumors for the given service's service
     /// group, but none containing the given member.
     pub fn contains_group_without_member(&self, service_group: &str, member_id: &str) -> bool {
-        match self.list
-                  .read()
-                  .expect("Rumor store lock poisoned")
-                  .get(service_group)
-        {
+        match self.list.read().get(service_group) {
             Some(group_rumors) => !group_rumors.contains_key(member_id),
             None => false,
         }
@@ -434,7 +429,7 @@ impl RumorStore<Service> {
                               service_group: &str,
                               predicate: impl FnMut(&&String) -> bool)
                               -> Option<String> {
-        let list = self.list.read().expect("Rumor store lock poisoned");
+        let list = self.list.read();
         list.get(service_group)
             .and_then(|rumor_map| rumor_map.keys().filter(predicate).min().cloned())
     }
@@ -628,24 +623,10 @@ mod tests {
 
             assert!(rs.insert(f1));
             assert!(rs.insert(f2));
-            assert_eq!(rs.list.read().unwrap().len(), 1);
-            assert_eq!(rs.list
-                         .read()
-                         .unwrap()
-                         .get(&key)
-                         .unwrap()
-                         .get(&f1_id)
-                         .unwrap()
-                         .id,
+            assert_eq!(rs.list.read().len(), 1);
+            assert_eq!(rs.list.read().get(&key).unwrap().get(&f1_id).unwrap().id,
                        f1_id);
-            assert_eq!(rs.list
-                         .read()
-                         .unwrap()
-                         .get(&key)
-                         .unwrap()
-                         .get(&f2_id)
-                         .unwrap()
-                         .id,
+            assert_eq!(rs.list.read().get(&key).unwrap().get(&f2_id).unwrap().id,
                        f2_id);
         }
 
@@ -657,7 +638,7 @@ mod tests {
             let f2 = FakeRumor::default();
             assert!(rs.insert(f1));
             assert!(rs.insert(f2));
-            assert_eq!(rs.list.read().unwrap().get(&key).unwrap().len(), 2);
+            assert_eq!(rs.list.read().get(&key).unwrap().len(), 2);
         }
 
         #[test]

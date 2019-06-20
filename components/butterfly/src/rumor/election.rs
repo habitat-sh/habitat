@@ -315,7 +315,7 @@ mod tests {
         rs.insert(e1);
         rs.insert(e2);
 
-        let list = rs.list.read().expect("Rumor store lock poisoned");
+        let list = rs.list.read();
         assert_eq!(list.len(), 1); // because we only have 1 service group
 
         let sub_list = list.get("tdep.prod").unwrap();
@@ -331,7 +331,7 @@ mod tests {
         rs.insert(e1);
         rs.insert(e2);
 
-        let list = rs.list.read().expect("Rumor store lock poisoned");
+        let list = rs.list.read();
         assert_eq!(list.len(), 1); // because we only have 1 service group
 
         let sub_list = list.get("tdep.prod").unwrap();
