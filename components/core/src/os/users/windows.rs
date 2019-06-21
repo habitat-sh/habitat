@@ -68,6 +68,12 @@ mod tests {
     use super::*;
 
     #[test]
+    fn get_uid_of_current_user() {
+        assert!(get_current_username().map(|s| get_uid_by_name(&s))
+                                      .is_some())
+    }
+
+    #[test]
     fn downcase_current_username() {
         let orig_user = get_current_username().unwrap();
         env::set_var("USERNAME", "uSer");
