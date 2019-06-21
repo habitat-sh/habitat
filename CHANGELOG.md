@@ -14,6 +14,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- remove deprecated -w/--windows arg for studio [#6678](https://github.com/habitat-sh/habitat/pull/6678) ([mwrock](https://github.com/mwrock))
 - use explicit version of powershell [#6676](https://github.com/habitat-sh/habitat/pull/6676) ([mwrock](https://github.com/mwrock))
 - Disable artifactory mirror for choco [#6673](https://github.com/habitat-sh/habitat/pull/6673) ([scotthain](https://github.com/scotthain))
 - fix cargo check in windows build script [#6672](https://github.com/habitat-sh/habitat/pull/6672) ([mwrock](https://github.com/mwrock))
