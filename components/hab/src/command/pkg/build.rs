@@ -12,7 +12,6 @@ pub fn start(ui: &mut UI,
              src: Option<&str>,
              keys: Option<&str>,
              reuse: bool,
-             windows: bool,
              docker: bool)
              -> Result<()> {
     let mut args: Vec<OsString> = Vec::new();
@@ -33,9 +32,6 @@ pub fn start(ui: &mut UI,
         args.push("-R".into());
     }
     args.push(plan_context.into());
-    if cfg!(target_os = "windows") && windows {
-        args.push("-w".into());
-    }
     if studio::native_studio_support() && docker {
         args.push("-D".into());
     }

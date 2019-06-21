@@ -493,9 +493,8 @@ fn sub_pkg_build(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     };
     let docker = m.is_present("DOCKER");
     let reuse = m.is_present("REUSE");
-    let windows = m.is_present("WINDOWS");
 
-    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, windows, docker)
+    command::pkg::build::start(ui, plan_context, root, src, keys, reuse, docker)
 }
 
 fn sub_pkg_config(m: &ArgMatches<'_>) -> Result<()> {

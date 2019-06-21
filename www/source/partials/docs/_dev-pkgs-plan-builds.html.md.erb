@@ -68,7 +68,7 @@ Depending on the platform of your host and your Docker configuration, the behavi
 
 * **Linux** - A local chrooted Linux Studio. You can force a Docker based studio by adding the `-D` flag to the `hab studio enter` command.
 * **Mac** - A Docker container based Linux Studio
-* **Windows** - A Docker container based Studio where the platform depends on the mode your Docker service is running, which can be toggled between Linux Containers and Windows Containers. Make sure your Docker service is running in the correct mode for the kind of studio you wish to enter. You may also use the `-w` flag to enter a local, non-containerized Windows studio.
+* **Windows** - A local Windows studio. You can force a Docker based studio by adding the `-D` flag to the `hab studio enter` command. The platform of the spawned container depends on the mode your Docker service is running, which can be toggled between Linux Containers and Windows Containers. Make sure your Docker service is running in the correct mode for the kind of studio you wish to enter.
 
 > Note: For more details related to Windows containers see [Running Habitat Windows Containers](/docs/best-practices/#running-habitat-windows-containers).
 
@@ -96,7 +96,7 @@ A non-interactive build is one in which Habitat creates a Studio for you, builds
     $ hab pkg build yourpackage -k yourname
     ```
 
-    > Similar to the `hab studio enter` command above, the type of studio where the build runs is determined by your host platform and `hab pkg build` takes the same `-w` and `-D` flags to adjust the studio environment if desired.
+    > Similar to the `hab studio enter` command above, the type of studio where the build runs is determined by your host platform and `hab pkg build` takes the same `-D` flag to force a Docker environment if desired.
 
 1. The resulting artifact is inside a directory called `results`, along with any build logs and a build report (`last_build.env`) that includes machine-parsable metadata about the build.
 

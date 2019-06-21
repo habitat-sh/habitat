@@ -858,13 +858,6 @@ fn sub_pkg_build() -> App<'static, 'static> {
                                               .long("docker"));
     }
 
-    if cfg!(windows) {
-        sub = sub.arg(Arg::with_name("WINDOWS").help("Use a local Windows Studio instead of a \
-                                                      Docker Studio")
-                                               .short("w")
-                                               .long("windows"));
-    }
-
     sub
 }
 
