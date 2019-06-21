@@ -20,16 +20,10 @@ path = "src/subscriber.rs"
 doc = false
 
 [dependencies]
-# For now hardcode the version. If the version of actix is not the same as the
-# one used by actix-web it causes errors https://github.com/actix/actix-web/issues/46.
-# When actix-web updates to a 0.8.x version of actix we can change this back.
-actix = "0.7.9"
 bytes = "*"
 # This is temporary, until this is merged to the mainline and we can use the crate
 nitox = { git = "https://github.com/habitat-sh/nitox", branch="feature/nats-server" }
-# Pin actix web to the version currently in use. 1.0.0 introduces some breaking changes
-# This will be resolved by https://github.com/habitat-sh/habitat/issues/6620
-actix-web = { version = "= 0.7.19", default-features = false, features = [ "rust-tls" ] }
+actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
