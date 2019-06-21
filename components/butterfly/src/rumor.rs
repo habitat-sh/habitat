@@ -31,7 +31,6 @@ use serde::{ser::{SerializeMap,
 use std::{collections::{hash_map::Entry,
                         HashMap},
           default::Default,
-          ops::Deref,
           result,
           sync::{atomic::{AtomicUsize,
                           Ordering},
@@ -118,14 +117,27 @@ impl<'a, T: Rumor> From<&'a T> for RumorKey {
     fn from(rumor: &'a T) -> RumorKey { RumorKey::new(rumor.kind(), rumor.id(), rumor.key()) }
 }
 
+type ServiceGroupName = String;
+type MemberId = String;
+
 /// Storage for Rumors. It takes a rumor and stores it according to the member that produced it,
 /// and the service group it is related to.
 ///
 /// Generic over the type of rumor it stores.
 #[derive(Debug, Clone)]
 pub struct RumorStore<T: Rumor> {
-    pub list:       Arc<Lock<HashMap<String, HashMap<String, T>>>>,
+    list:           Arc<Lock<HashMap<ServiceGroupName, HashMap<MemberId, T>>>>,
     update_counter: Arc<AtomicUsize>,
+}
+
+impl<T: Rumor> RumorStore<T> {
+    pub fn get_rumor_cloned(&self, service_group: &str, member_id: &str) -> Option<T> {
+        self.list
+            .read()
+            .get(service_group)
+            .and_then(|sg_rumors| sg_rumors.get(member_id))
+            .cloned()
+    }
 }
 
 impl<T> Default for RumorStore<T> where T: Rumor
@@ -134,13 +146,6 @@ impl<T> Default for RumorStore<T> where T: Rumor
         RumorStore { list:           Arc::default(),
                      update_counter: Arc::default(), }
     }
-}
-
-impl<T> Deref for RumorStore<T> where T: Rumor
-{
-    type Target = Lock<HashMap<String, HashMap<String, T>>>;
-
-    fn deref(&self) -> &Self::Target { &*self.list }
 }
 
 impl<T> Serialize for RumorStore<T> where T: Rumor

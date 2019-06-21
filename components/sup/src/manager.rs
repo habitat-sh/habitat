@@ -1187,14 +1187,12 @@ impl Manager {
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
     fn gossip_latest_service_rumor_mlw(&self, service: &Service) {
-        let incarnation = if let Some(rumor) = self.butterfly
-                                                   .service_store
-                                                   .list
-                                                   .read()
-                                                   .get(&*service.service_group)
-                                                   .and_then(|r| r.get(&self.sys.member_id))
+        let incarnation = if let Some(rumor) =
+            self.butterfly
+                .service_store
+                .get_rumor_cloned(&service.service_group, &self.sys.member_id)
         {
-            rumor.clone().incarnation + 1
+            rumor.incarnation + 1
         } else {
             1
         };
