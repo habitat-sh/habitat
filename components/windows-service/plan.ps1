@@ -4,7 +4,10 @@ $pkg_version="0.5.0"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@('Apache-2.0')
 $pkg_description="A Windows Service for runnung the Habitat Supervisor"
-$pkg_deps=@("core/hab-launcher", "core/powershell")
+$pkg_deps=@(
+  "core/hab-launcher",
+  "core/powershell/$(Get-Content "$PLAN_CONTEXT/../../POWERSHELL_VERSION")"
+)
 $pkg_build_deps=@("core/dotnet-core-sdk")
 $pkg_bin_dirs=@("bin")
 
