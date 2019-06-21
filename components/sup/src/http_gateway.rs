@@ -124,13 +124,11 @@ fn authentication_middleware<S>(req: ServiceRequest,
     let current_token = &req.app_data::<AppState>()
                             .expect("app data")
                             .authentication_token;
-    let current_token = match current_token {
-        Some(t) => t,
-        None => {
-            debug!("No authentication token present. HTTP gateway starting in unauthenticated \
-                    mode.");
-            return Either::A(srv.call(req));
-        }
+    let current_token = if let Some(t) = current_token {
+        t
+    } else {
+        debug!("No authentication token present. HTTP gateway starting in unauthenticated mode.");
+        return Either::A(srv.call(req));
     };
 
     // From this point forward, we know that we have an
@@ -177,13 +175,13 @@ fn metrics_middleware<S>(req: ServiceRequest,
        .set(Some(timer));
 
     srv.call(req).and_then(|res| {
-                     let timer = res.request()
-                                    .app_data::<AppState>()
-                                    .expect("app data")
-                                    .timer
-                                    .replace(None);
-                     if timer.is_some() {
-                         timer.unwrap().observe_duration();
+                     if let Some(timer) = res.request()
+                                             .app_data::<AppState>()
+                                             .expect("app data")
+                                             .timer
+                                             .replace(None)
+                     {
+                         timer.observe_duration();
                      }
                      Ok(res)
                  })
