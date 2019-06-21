@@ -8,6 +8,7 @@
 - allow windows service to set arbitrary environment variables [#6648](https://github.com/habitat-sh/habitat/pull/6648) ([mwrock](https://github.com/mwrock))
 
 #### New Features & Enhancements
+- cross platform binstubs with package environment [#6670](https://github.com/habitat-sh/habitat/pull/6670) ([mwrock](https://github.com/mwrock))
 - allow windows docker studio and exported images to run on kernels later than 2016ltsc [#6643](https://github.com/habitat-sh/habitat/pull/6643) ([mwrock](https://github.com/mwrock))
 - Switch to log4rs in the Supervisor [#6622](https://github.com/habitat-sh/habitat/pull/6622) ([christophermaier](https://github.com/christophermaier))
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
