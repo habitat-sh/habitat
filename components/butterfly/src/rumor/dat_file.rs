@@ -165,31 +165,45 @@ impl DatFile {
 
         self.read_header(&mut version)?;
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for Membership { member, health } in self.read_members()? {
             server.insert_member(member, health);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for service in self.read_rumors::<Service>()? {
             server.insert_service(service);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for service_config in self.read_rumors::<ServiceConfig>()? {
             server.insert_service_config(service_config);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for service_file in self.read_rumors::<ServiceFile>()? {
             server.insert_service_file(service_file);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for election in self.read_rumors::<Election>()? {
             server.insert_election_mlr(election);
         }
 
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
         for update_election in self.read_rumors::<ElectionUpdate>()? {
             server.insert_update_election_mlr(update_election);
         }
 
         if version[0] >= 2 {
+            // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+            #[allow(clippy::identity_conversion)]
             for departure in self.read_rumors::<Departure>()? {
                 server.insert_departure(departure);
             }
