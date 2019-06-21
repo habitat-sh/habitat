@@ -37,7 +37,7 @@ const HEADER_VERSION: u8 = 2;
 // a struct consisting of 7 fields, each u64, plus an additional 8 bytes to store the
 // size of the header itself, within the header. (8 * 7) + 8 = 64, which is where that
 // number comes from. It's necessary to hard code these numbers because since switching the
-// Header to hold a HashMap of MESSAGE_ID -> offset, we can't rely on size_of to give us
+// Header to hold a HashMap of MESSAGE_ID -> offset, we can't rely on std::mem::size_of to give us
 // the correct information any more.
 const HEADER_VERSION_1_SIZE: usize = 48;
 const HEADER_VERSION_2_SIZE: usize = 64;
@@ -440,11 +440,21 @@ impl Header {
 mod tests {
     use super::*;
     use rand;
-    use std::mem;
 
     #[test]
     fn read_write_header() {
-        // TODO fix this
-        assert!(true);
+        let mut original = Header::default();
+        original.insert_member_offset(rand::random::<u64>());
+        original.insert_offset_for_rumor(Service::MESSAGE_ID, rand::random::<u64>());
+        original.insert_offset_for_rumor(ServiceConfig::MESSAGE_ID, rand::random::<u64>());
+        original.insert_offset_for_rumor(ServiceFile::MESSAGE_ID, rand::random::<u64>());
+        original.insert_offset_for_rumor(Election::MESSAGE_ID, rand::random::<u64>());
+        original.insert_offset_for_rumor(ElectionUpdate::MESSAGE_ID, rand::random::<u64>());
+        original.insert_offset_for_rumor(Departure::MESSAGE_ID, rand::random::<u64>());
+
+        let bytes = original.write_to_bytes().unwrap();
+        let (size_of_header, restored) = Header::from_bytes(&bytes, HEADER_VERSION);
+        assert_eq!(bytes.len() as u64, size_of_header);
+        assert_eq!(original, restored);
     }
 }
