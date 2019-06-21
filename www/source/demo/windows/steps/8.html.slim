@@ -29,7 +29,7 @@ section
  blockquote
   p <b>Note</b> If you use a "fancy" console like conemu, console2, etc, you will want to use a standard Powershell or CMD based elevated (run as administrator) console when entering a container based Studio. Otherwise standard input and output render extremely awkwardly and eventually becomes nearly impossible to navigate.
 
- p You may also add the <code>-w</code> argument to enter a local powershell studio. This will start up much faster but lack some of the isolation benefits of a container.
+ p You may also remove the <code>-D</code> argument to enter a local powershell studio. This will start up much faster but lack some of the isolation benefits of a container.
 
  p The <code>src</code> directory in the Habitat Studio environment is the directory you were in when you entered the Studio. In this case, because you are in the root of your local project repo, the default <code>src</code> directory is the root of your project.
 
@@ -40,8 +40,6 @@ section
 
  blockquote
   p <b>Note</b> If you build your web application in a CI/CD workflow, you can use the non-interactive build option to build your package. To do this, change directory to the root of your project and run <code>hab pkg build</code>. A Studio will be created, your package will be built, and then Studio will exit without requiring user input.
-
-  p <b>Note</b> The same <code>-w</code> argument applies to <code>hab pkg build</code> if you want to build in a local studio instead of a container.
 
  h2 <a name="test-locally">Testing your package locally</a>
 

@@ -254,14 +254,6 @@ mod inner {
             }
         }
 
-        // -w/--windows is deprecated and should be removed in a post 0.64.0 release
-        for arg in args.iter() {
-            let str_arg = arg.to_string_lossy().to_lowercase();
-            if str_arg == "--windows" || str_arg == "-w" {
-                return true;
-            }
-        }
-
         true
     }
 }

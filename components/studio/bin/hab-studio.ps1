@@ -18,7 +18,6 @@ param (
     [switch]$v,
     [switch]$R,
     [switch]$D,
-    [switch]$w,
     [string]$command,
     [string]$commandVal,
     [string]$k,
@@ -48,8 +47,6 @@ COMMON FLAGS:
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -D  Use a Docker Studio instead of a native Studio
-DEPRECATED FLAG:
-    -w  Use a local Windows studio instead of a Docker Studio
 
 COMMON OPTIONS:
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
@@ -500,13 +497,7 @@ if($q) { $script:quiet = $true }
 $currentVerbose = $VerbosePreference
 if($v) { $VerbosePreference = "Continue" }
 
-if($w) {
-  Write-Warning "The -w argument has been deprecated."
-  Write-Warning "A local Studio is now the default on Windows."
-  Write-Warning "Alternatively you may use the -D argument to use a Docker Studio."
-}
-
-if(!$w -and !(Test-InContainer)) {
+if(!(Test-InContainer)) {
   Write-Warning "Using a local Studio. To use a Docker studio, use the -D argument."
 }
 
