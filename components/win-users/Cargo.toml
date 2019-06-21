@@ -14,8 +14,5 @@ cc = "*"
 log = "*"
 
 [target.'cfg(windows)'.dependencies]
-# Moving to 0.4.0 is breaking some of our windows API calls
-# pinning to 0.3.0 until we can get to the bottom of those
-# breakages. See https://github.com/habitat-sh/core/issues/127
-widestring = "0.3.0"
+widestring = "*"
 winapi = { version = "*", features = ["winbase", "winerror", "handleapi"] }
