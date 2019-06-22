@@ -15,7 +15,7 @@ pkg_build_deps=(core/musl
                 core/openssl-musl
                 core/libsodium-musl
                 core/coreutils
-                core/rust
+                core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
                 core/gcc)
 pkg_bin_dirs=(bin)
 
