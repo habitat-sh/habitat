@@ -1,20 +1,23 @@
 use crate::manager::{self,
                      service::{HealthCheckHook,
                                HealthCheckResult}};
-use actix;
-use actix_web::{http::{self,
+use actix_web::{dev::{Body,
+                      Service,
+                      ServiceRequest,
+                      ServiceResponse},
+                http::{self,
                        StatusCode},
-                middleware::{Finished,
-                             Middleware,
-                             Started},
-                pred::Predicate,
-                server,
+                web::{self,
+                      Data,
+                      Path},
                 App,
-                FromRequest,
-                HttpRequest,
+                Error,
                 HttpResponse,
-                Path,
-                Request};
+                HttpServer,
+                Scope};
+use futures::future::{ok,
+                      Either,
+                      Future};
 use habitat_common::{self,
                      templating::hooks,
                      types::HttpListenAddr,
@@ -112,71 +115,91 @@ impl AppState {
 }
 
 // Begin middleware
-struct Authentication;
 
-impl Middleware<AppState> for Authentication {
-    fn start(&self, req: &HttpRequest<AppState>) -> actix_web::Result<Started> {
-        let current_token = req.state().authentication_token.as_ref();
-        let current_token = match current_token {
-            Some(t) => t,
-            None => {
-                debug!("No authentication token present. HTTP gateway starting in \
-                        unauthenticated mode.");
-                return Ok(Started::Done);
-            }
-        };
+fn authentication_middleware<S>(req: ServiceRequest,
+                                srv: &mut S)
+                                -> impl Future<Item = ServiceResponse<Body>, Error = Error>
+    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+{
+    let current_token = &req.app_data::<AppState>()
+                            .expect("app data")
+                            .authentication_token;
+    let current_token = if let Some(t) = current_token {
+        t
+    } else {
+        debug!("No authentication token present. HTTP gateway starting in unauthenticated mode.");
+        return Either::A(srv.call(req));
+    };
 
-        // From this point forward, we know that we have an
-        // authentication token in the state. Therefore, anything
-        // short of a fully formed Authorization header (yes,
-        // Authorization; HTTP is fun, kids!) containing a Bearer
-        // token that matches the value we have in our state, results
-        // in an Unauthorized response.
-        let hdr = match req.headers()
-                           .get(http::header::AUTHORIZATION)
-                           .ok_or("header missing")
-                           .and_then(|hv| hv.to_str().or(Err("can't convert to str")))
-        {
-            Ok(h) => h,
-            Err(e) => {
-                debug!("Error reading required Authorization header: {:?}.", e);
-                return Ok(Started::Response(HttpResponse::Unauthorized().finish()));
-            }
-        };
-
-        let hdr_components: Vec<&str> = hdr.split_whitespace().collect();
-
-        match hdr_components.as_slice() {
-            ["Bearer", incoming_token] if crypto::secure_eq(current_token, incoming_token) => {
-                Ok(Started::Done)
-            }
-            _ => Ok(Started::Response(HttpResponse::Unauthorized().finish())),
+    // From this point forward, we know that we have an
+    // authentication token in the state. Therefore, anything
+    // short of a fully formed Authorization header (yes,
+    // Authorization; HTTP is fun, kids!) containing a Bearer
+    // token that matches the value we have in our state, results
+    // in an Unauthorized response.
+    let hdr = match req.headers()
+                       .get(http::header::AUTHORIZATION)
+                       .ok_or("header missing")
+                       .and_then(|hv| hv.to_str().or(Err("can't convert to str")))
+    {
+        Ok(h) => h,
+        Err(e) => {
+            debug!("Error reading required Authorization header: {:?}.", e);
+            return Either::B(ok(req.into_response(HttpResponse::Unauthorized().finish())));
         }
+    };
+
+    let hdr_components: Vec<&str> = hdr.split_whitespace().collect();
+
+    match hdr_components.as_slice() {
+        ["Bearer", incoming_token] if crypto::secure_eq(current_token, incoming_token) => {
+            Either::A(srv.call(req))
+        }
+        _ => Either::B(ok(req.into_response(HttpResponse::Unauthorized().finish()))),
     }
 }
 
-struct Metrics;
+fn metrics_middleware<S>(req: ServiceRequest,
+                         srv: &mut S)
+                         -> impl Future<Item = ServiceResponse<Body>, Error = Error>
+    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+{
+    let label_values = &[req.path()];
 
-impl Middleware<AppState> for Metrics {
-    fn start(&self, req: &HttpRequest<AppState>) -> actix_web::Result<Started> {
-        let label_values = &[req.path()];
+    HTTP_GATEWAY_REQUESTS.with_label_values(label_values).inc();
+    let timer = HTTP_GATEWAY_REQUEST_DURATION.with_label_values(label_values)
+                                             .start_timer();
+    req.app_data::<AppState>()
+       .expect("app data")
+       .timer
+       .set(Some(timer));
 
-        HTTP_GATEWAY_REQUESTS.with_label_values(label_values).inc();
-        let timer = HTTP_GATEWAY_REQUEST_DURATION.with_label_values(label_values)
-                                                 .start_timer();
-        req.state().timer.set(Some(timer));
+    srv.call(req).and_then(|res| {
+                     if let Some(timer) = res.request()
+                                             .app_data::<AppState>()
+                                             .expect("app data")
+                                             .timer
+                                             .replace(None)
+                     {
+                         timer.observe_duration();
+                     }
+                     Ok(res)
+                 })
+}
 
-        Ok(Started::Done)
-    }
-
-    fn finish(&self, req: &HttpRequest<AppState>, _resp: &HttpResponse) -> Finished {
-        let timer = req.state().timer.replace(None);
-
-        if timer.is_some() {
-            timer.unwrap().observe_duration();
-        }
-
-        Finished::Done
+fn redact_http_middleware<S>(req: ServiceRequest,
+                             srv: &mut S)
+                             -> impl Future<Item = ServiceResponse<Body>, Error = Error>
+    where S: Service<Request = ServiceRequest, Response = ServiceResponse<Body>, Error = Error>
+{
+    if req.app_data::<AppState>()
+          .expect("app data")
+          .feature_flags
+          .contains(FeatureFlag::REDACT_HTTP)
+    {
+        Either::B(ok(req.into_response(HttpResponse::NotFound().finish())))
+    } else {
+        Either::A(srv.call(req))
     }
 }
 
@@ -200,7 +223,6 @@ impl Server {
                control: Arc<(Mutex<ServerStartup>, Condvar)>) {
         thread::spawn(move || {
             let &(ref lock, ref cvar) = &*control;
-            let sys = actix::System::new("sup-http-gateway");
             let thread_count = match henv::var(HTTP_THREADS_ENVVAR) {
                 Ok(val) => {
                     match val.parse::<usize>() {
@@ -211,13 +233,14 @@ impl Server {
                 Err(_) => HTTP_THREAD_COUNT,
             };
 
-            let mut server = server::new(move || {
+            let mut server = HttpServer::new(move || {
                                  let app_state = AppState::new(gateway_state.clone(),
                                                                authentication_token.clone(),
                                                                feature_flags);
-                                 App::with_state(app_state).middleware(Authentication)
-                                                           .middleware(Metrics)
-                                                           .configure(routes)
+                                 App::new().data(app_state)
+                                           .wrap_fn(authentication_middleware)
+                                           .wrap_fn(metrics_middleware)
+                                           .service(routes())
                              }).workers(thread_count);
 
             // On Windows the default actix signal handler will create a ctrl+c handler for the
@@ -239,11 +262,8 @@ impl Server {
             };
 
             *lock.lock().expect("Control mutex is poisoned") = match bind {
-                Ok(b) => {
-                    b.start();
-                    ServerStartup::Started
-                }
-                Err(e) => {
+                Ok(_) => ServerStartup::Started,
+                Err(ref e) => {
                     error!("HTTP gateway failed to bind: {}", e);
                     ServerStartup::BindFailed
                 }
@@ -251,43 +271,33 @@ impl Server {
 
             cvar.notify_one();
 
-            sys.run();
+            if let Ok(b) = bind {
+                b.run().expect("to start http server");
+            }
         });
     }
 }
 
-struct RedactHTTP;
-
-impl Predicate<AppState> for RedactHTTP {
-    fn check(&self, _req: &Request, state: &AppState) -> bool {
-        !state.feature_flags.contains(FeatureFlag::REDACT_HTTP)
-    }
+fn services_routes() -> Scope {
+    web::scope("/services").route("", web::get().to(services))
+                           .route("/{svc}/{group}", web::get().to(service_without_org))
+                           .route("/{svc}/{group}/config", web::get().to(config_without_org))
+                           .route("/{svc}/{group}/health", web::get().to(health_without_org))
+                           .route("/{svc}/{group}/{org}", web::get().to(service_with_org))
+                           .route("/{svc}/{group}/{org}/config",
+                                  web::get().to(config_with_org))
+                           .route("/{svc}/{group}/{org}/health",
+                                  web::get().to(health_with_org))
 }
 
-fn routes(app: App<AppState>) -> App<AppState> {
-    app.resource("/", |r| r.get().f(doc))
-       .resource("/services", |r| r.get().f(services))
-       .resource("/services/{svc}/{group}", |r| {
-           r.get().f(service_without_org)
-       })
-       .resource("/services/{svc}/{group}/config", |r| {
-           r.get().f(config_without_org)
-       })
-       .resource("/services/{svc}/{group}/health", |r| {
-           r.get().f(health_without_org)
-       })
-       .resource("/services/{svc}/{group}/{org}", |r| {
-           r.get().f(service_with_org)
-       })
-       .resource("/services/{svc}/{group}/{org}/config", |r| {
-           r.get().f(config_with_org)
-       })
-       .resource("/services/{svc}/{group}/{org}/health", |r| {
-           r.get().f(health_with_org)
-       })
-       .resource("/butterfly", |r| r.get().filter(RedactHTTP).f(butterfly))
-       .resource("/census", |r| r.get().filter(RedactHTTP).f(census))
-       .resource("/metrics", |r| r.get().f(metrics))
+fn routes() -> Scope {
+    web::scope("/").route("", web::get().to(doc))
+                   .service(services_routes())
+                   .service(web::resource("/butterfly").route(web::get().to(butterfly))
+                                                       .wrap_fn(redact_http_middleware))
+                   .service(web::resource("/census").route(web::get().to(census))
+                                                    .wrap_fn(redact_http_middleware))
+                   .route("/metrics", web::get().to(metrics))
 }
 
 fn json_response(data: String) -> HttpResponse {
@@ -296,57 +306,52 @@ fn json_response(data: String) -> HttpResponse {
 }
 
 // Begin route handlers
-fn butterfly(req: &HttpRequest<AppState>) -> HttpResponse {
-    let data = &req.state()
-                   .gateway_state
-                   .read()
-                   .expect("GatewayState lock is poisoned")
-                   .butterfly_data;
+#[allow(clippy::needless_pass_by_value)]
+fn butterfly(state: Data<AppState>) -> HttpResponse {
+    let data = &state.gateway_state
+                     .read()
+                     .expect("GatewayState lock is poisoned")
+                     .butterfly_data;
     json_response(data.to_string())
 }
 
-fn census(req: &HttpRequest<AppState>) -> HttpResponse {
-    let data = &req.state()
-                   .gateway_state
-                   .read()
-                   .expect("GatewayState lock is poisoned")
-                   .census_data;
+#[allow(clippy::needless_pass_by_value)]
+fn census(state: Data<AppState>) -> HttpResponse {
+    let data = &state.gateway_state
+                     .read()
+                     .expect("GatewayState lock is poisoned")
+                     .census_data;
     json_response(data.to_string())
 }
 
-fn services(req: &HttpRequest<AppState>) -> HttpResponse {
-    let data = &req.state()
-                   .gateway_state
-                   .read()
-                   .expect("GatewayState lock is poisoned")
-                   .services_data;
+#[allow(clippy::needless_pass_by_value)]
+fn services(state: Data<AppState>) -> HttpResponse {
+    let data = &state.gateway_state
+                     .read()
+                     .expect("GatewayState lock is poisoned")
+                     .services_data;
     json_response(data.to_string())
 }
 
 // Honestly, this doesn't feel great, but it's the pattern builder-api uses, and at the
 // moment, I don't have a better way of doing it.
-fn config_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group, org) = Path::<(String, String, String)>::extract(&req).unwrap()
-                                                                           .into_inner();
-    config(req, svc, group, Some(&org))
+#[allow(clippy::needless_pass_by_value)]
+fn config_with_org(path: Path<(String, String, String)>, state: Data<AppState>) -> HttpResponse {
+    let (svc, group, org) = path.into_inner();
+    config(svc, group, Some(&org), &state)
 }
 
-fn config_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group) = Path::<(String, String)>::extract(&req).unwrap()
-                                                              .into_inner();
-    config(req, svc, group, None)
+#[allow(clippy::needless_pass_by_value)]
+fn config_without_org(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+    let (svc, group) = path.into_inner();
+    config(svc, group, None, &state)
 }
 
-fn config(req: &HttpRequest<AppState>,
-          svc: String,
-          group: String,
-          org: Option<&str>)
-          -> HttpResponse {
-    let data = &req.state()
-                   .gateway_state
-                   .read()
-                   .expect("GatewayState lock is poisoned")
-                   .services_data;
+fn config(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
+    let data = &state.gateway_state
+                     .read()
+                     .expect("GatewayState lock is poisoned")
+                     .services_data;
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
@@ -358,32 +363,27 @@ fn config(req: &HttpRequest<AppState>,
     }
 }
 
-fn health_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group, org) = Path::<(String, String, String)>::extract(&req).unwrap()
-                                                                           .into_inner();
-    health(req, svc, group, Some(&org))
+#[allow(clippy::needless_pass_by_value)]
+fn health_with_org(path: Path<(String, String, String)>, state: Data<AppState>) -> HttpResponse {
+    let (svc, group, org) = path.into_inner();
+    health(svc, group, Some(&org), &state)
 }
 
-fn health_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group) = Path::<(String, String)>::extract(&req).unwrap()
-                                                              .into_inner();
-    health(req, svc, group, None)
+#[allow(clippy::needless_pass_by_value)]
+fn health_without_org(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+    let (svc, group) = path.into_inner();
+    health(svc, group, None, &state)
 }
 
-fn health(req: &HttpRequest<AppState>,
-          svc: String,
-          group: String,
-          org: Option<&str>)
-          -> HttpResponse {
+fn health(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
-    let gateway_state = &req.state()
-                            .gateway_state
-                            .read()
-                            .expect("GatewayState lock is poisoned");
+    let gateway_state = &state.gateway_state
+                              .read()
+                              .expect("GatewayState lock is poisoned");
     let health_check = gateway_state.health_check_data.get(&service_group);
 
     if health_check.is_some() {
@@ -408,28 +408,23 @@ fn health(req: &HttpRequest<AppState>,
     }
 }
 
-fn service_with_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group, org) = Path::<(String, String, String)>::extract(&req).unwrap()
-                                                                           .into_inner();
-    service(req, svc, group, Some(&org))
+#[allow(clippy::needless_pass_by_value)]
+fn service_with_org(path: Path<(String, String, String)>, state: Data<AppState>) -> HttpResponse {
+    let (svc, group, org) = path.into_inner();
+    service(svc, group, Some(&org), &state)
 }
 
-fn service_without_org(req: &HttpRequest<AppState>) -> HttpResponse {
-    let (svc, group) = Path::<(String, String)>::extract(&req).unwrap()
-                                                              .into_inner();
-    service(req, svc, group, None)
+#[allow(clippy::needless_pass_by_value)]
+fn service_without_org(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+    let (svc, group) = path.into_inner();
+    service(svc, group, None, &state)
 }
 
-fn service(req: &HttpRequest<AppState>,
-           svc: String,
-           group: String,
-           org: Option<&str>)
-           -> HttpResponse {
-    let data = &req.state()
-                   .gateway_state
-                   .read()
-                   .expect("GatewayState lock is poisoned")
-                   .services_data;
+fn service(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
+    let data = &state.gateway_state
+                     .read()
+                     .expect("GatewayState lock is poisoned")
+                     .services_data;
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
@@ -441,7 +436,7 @@ fn service(req: &HttpRequest<AppState>,
     }
 }
 
-fn metrics(_req: &HttpRequest<AppState>) -> HttpResponse {
+fn metrics() -> HttpResponse {
     let encoder = TextEncoder::new();
     let metric_families = prometheus::gather();
     let mut buffer = vec![];
@@ -462,9 +457,7 @@ fn metrics(_req: &HttpRequest<AppState>) -> HttpResponse {
                       .body(resp)
 }
 
-fn doc(_req: &HttpRequest<AppState>) -> HttpResponse {
-    HttpResponse::Ok().content_type("text/html").body(APIDOCS)
-}
+fn doc() -> HttpResponse { HttpResponse::Ok().content_type("text/html").body(APIDOCS) }
 // End route handlers
 
 fn service_from_services(service_group: &ServiceGroup, services_json: &str) -> Option<Json> {
