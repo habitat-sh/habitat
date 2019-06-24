@@ -7,7 +7,7 @@ pkg_deps=(core/busybox-static)
 pkg_build_deps=(
   core/musl core/zlib-musl core/xz-musl core/bzip2-musl core/libarchive-musl
   core/openssl-musl core/libsodium-musl
-  core/coreutils core/cacerts core/rust core/gcc
+  core/coreutils core/cacerts core/rust/"$(cat "$SRC_PATH/../../../rust-toolchain")" core/gcc
 )
 
 do_begin() {
