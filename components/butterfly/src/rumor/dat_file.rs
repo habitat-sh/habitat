@@ -26,21 +26,25 @@ use std::{collections::HashMap,
                Seek,
                SeekFrom,
                Write},
+          mem,
           path::{Path,
                  PathBuf}};
 
 const HEADER_VERSION: u8 = 2;
 
-// Yay, it's magic number time! 48 below represents the size of the version 1 header, which
-// was a struct consisting of 6 fields, each u64. Each u64 is 8 bytes in size, so
-// 8 * 6 gives us 48. 64 below represents the size of the version 2 header, which was
-// a struct consisting of 7 fields, each u64, plus an additional 8 bytes to store the
-// size of the header itself, within the header. (8 * 7) + 8 = 64, which is where that
-// number comes from. It's necessary to hard code these numbers because since switching the
-// Header to hold a HashMap of MESSAGE_ID -> offset, we can't rely on std::mem::size_of to give us
-// the correct information any more.
-const HEADER_VERSION_1_SIZE: usize = 48;
-const HEADER_VERSION_2_SIZE: usize = 64;
+// And now for a riveting discussion on version 1 vs version 2 headers in this magical file. The
+// version 1 header was a struct consisting of 6 u64 fields. It did not contain any information on
+// its own size, and thus that size was hardcoded into this file. The version 2 header contained
+// 7 u64 fields, plus the size of the header itself, also a u64. The tidy bundle of constants below
+// are necessary because after switching the Header to hold a HashMap of MESSAGE_ID -> offset, we
+// can't rely on std::mem::size_of to give us the correct size of the header any more. This ensures
+// that parsing and writing files continues to work.
+const SIZE_OF_HEADER_FIELD: usize = mem::size_of::<u64>();
+const HEADER_VERSION_1_NUM_FIELDS: usize = 6;
+const HEADER_VERSION_2_NUM_FIELDS: usize = 7;
+const HEADER_VERSION_1_SIZE: usize = SIZE_OF_HEADER_FIELD * HEADER_VERSION_1_NUM_FIELDS;
+const HEADER_VERSION_2_SIZE: usize =
+    (SIZE_OF_HEADER_FIELD * HEADER_VERSION_2_NUM_FIELDS) + SIZE_OF_HEADER_FIELD;
 
 /// A versioned binary file containing rumors exchanged by the butterfly server which have
 /// been periodically persisted to disk.
