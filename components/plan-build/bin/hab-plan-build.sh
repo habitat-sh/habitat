@@ -1144,8 +1144,8 @@ _populate_dependency_arrays() {
   # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
   # dependencies. The build dependencies appear before the run dependencies.
   pkg_all_deps_resolved=(
-    "${pkg_deps_resolved[@]}"
     "${pkg_build_deps_resolved[@]}"
+    "${pkg_deps_resolved[@]}"
   )
 
   # Build an ordered set of all build and run dependencies (direct and
@@ -1153,15 +1153,15 @@ _populate_dependency_arrays() {
   # `$PATH` ordering in the build environment. To give priority to direct
   # dependencies over transitive ones the order of packages is the following:
   #
-  # 1. All direct run dependencies
-  # 2. All direct build dependencies
-  # 3. All unique transitive run dependencies that aren't already added
-  # 4. All unique transitive build dependencies that aren't already added
+  # 1. All direct build dependencies
+  # 2. All direct run dependencies
+  # 3. All unique transitive build dependencies that aren't already added
+  # 4. All unique transitive run dependencies that aren't already added
   pkg_all_tdeps_resolved=(
-    "${pkg_deps_resolved[@]}"
     "${pkg_build_deps_resolved[@]}"
+    "${pkg_deps_resolved[@]}"
   )
-  for dep in "${pkg_tdeps_resolved[@]}" "${pkg_build_tdeps_resolved[@]}"; do
+  for dep in "${pkg_build_tdeps_resolved[@]}" "${pkg_tdeps_resolved[@]}"; do
     read -r -a pkg_all_tdeps_resolved <<< "$(_return_or_append_to_set "$dep" "${pkg_all_tdeps_resolved[@]}")" # See syntax note @ _return_or_append_to_set
   done
 }

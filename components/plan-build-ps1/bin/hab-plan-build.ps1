@@ -830,18 +830,18 @@ function _Resolve-ScaffoldingDependencies {
 function _Set_DependencyArrays {
   # Build `${pkg_all_deps_resolved[@]}` containing all direct build and run
   # dependencies. The build dependencies appear before the run dependencies.
-  $script:pkg_all_deps_resolved = $pkg_deps_resolved + $pkg_build_deps_resolved
+  $script:pkg_all_deps_resolved = $pkg_build_deps_resolved + $pkg_deps_resolved
   # Build an ordered set of all build and run dependencies (direct and
   # transitive). The order is important as this gets used when setting the
   # `$PATH` ordering in the build environment. To give priority to direct
   # dependencies over transitive ones the order of packages is the following:
   #
-  # 1. All direct run dependencies
-  # 2. All direct build dependencies
-  # 3. All unique transitive run dependencies that aren't already added
-  # 4. All unique transitive build dependencies that aren't already added
-  $script:pkg_all_tdeps_resolved = $pkg_deps_resolved + $pkg_build_deps_resolved
-  foreach($dep in ($pkg_tdeps_resolved + $pkg_build_tdeps_resolved)) {
+  # 1. All direct build dependencies
+  # 2. All direct run dependencies
+  # 3. All unique transitive build dependencies that aren't already added
+  # 4. All unique transitive run dependencies that aren't already added
+  $script:pkg_all_tdeps_resolved = $pkg_build_deps_resolved + $pkg_deps_resolved
+  foreach($dep in ($pkg_build_tdeps_resolved + $pkg_tdeps_resolved)) {
     $script:pkg_all_tdeps_resolved = @(_return_or_append_to_set $dep $pkg_all_tdeps_resolved)
   }
 }
