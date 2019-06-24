@@ -1672,6 +1672,7 @@ mod tests {
         fn new() { start_server(); }
 
         #[test]
+        #[should_panic]
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);

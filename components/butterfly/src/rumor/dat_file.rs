@@ -106,6 +106,15 @@ impl DatFile {
             .read_exact(&mut version)
             .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         debug!("Header Version: {}", version[0]);
+
+        // If this has happened, it's likely that the file is corrupt
+        if version[0] > HEADER_VERSION {
+            let msg = format!("Unable to read Dat File {}: corrupt file header.",
+                              self.path.display());
+            let err = io::Error::new(io::ErrorKind::InvalidData, msg);
+            return Err(Error::DatFileIO(self.path.clone(), err));
+        }
+
         let (header_size, real_header) =
             Header::from_file(&mut self.reader, version[0]).map_err(|err| {
                                                                Error::DatFileIO(self.path.clone(),
@@ -481,7 +490,7 @@ mod tests {
         original.insert_offset_for_rumor(ElectionUpdate::MESSAGE_ID, rand::random::<u64>());
         original.insert_offset_for_rumor(Departure::MESSAGE_ID, rand::random::<u64>());
 
-        let bytes = original.write_to_bytes().unwrap();
+        let bytes = original.write_to_bytes();
         let (size_of_header, restored) = Header::from_bytes(&bytes, HEADER_VERSION);
         assert_eq!(bytes.len() as u64, size_of_header);
         assert_eq!(original, restored);
