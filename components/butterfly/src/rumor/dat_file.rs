@@ -472,6 +472,7 @@ mod tests {
     #[test]
     fn read_write_header() {
         let mut original = Header::default();
+        original.version = 2;
         original.insert_member_offset(rand::random::<u64>());
         original.insert_offset_for_rumor(Service::MESSAGE_ID, rand::random::<u64>());
         original.insert_offset_for_rumor(ServiceConfig::MESSAGE_ID, rand::random::<u64>());
