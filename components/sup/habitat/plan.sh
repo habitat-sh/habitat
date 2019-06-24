@@ -15,7 +15,7 @@ pkg_deps=(core/busybox-static
 pkg_build_deps=(core/coreutils
                 core/cacerts
                 core/make
-                core/rust
+                core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
                 core/gcc
                 core/raml2html
                 core/protobuf)

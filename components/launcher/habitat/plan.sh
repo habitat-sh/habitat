@@ -10,7 +10,7 @@ pkg_deps=(core/glibc
           core/libsodium
           core/openssl)
 pkg_build_deps=(core/coreutils
-                core/rust
+                core/rust/"$(cat "$SRC_PATH/../../rust-toolchain")"
                 core/gcc
                 core/git
                 core/protobuf)
