@@ -14,6 +14,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Make the plans&#39; build use rust-toolchain version [#6680](https://github.com/habitat-sh/habitat/pull/6680) ([baumanj](https://github.com/baumanj))
 - resolve build deps before run deps [#6683](https://github.com/habitat-sh/habitat/pull/6683) ([mwrock](https://github.com/mwrock))
 - Changed &#39;Habitat&#39; to &#39;Chef Habitat&#39; in documentation &amp; blog. [#6667](https://github.com/habitat-sh/habitat/pull/6667) ([IanMadd](https://github.com/IanMadd))
 - Upgrade to actix 1.0 [#6677](https://github.com/habitat-sh/habitat/pull/6677) ([davidMcneil](https://github.com/davidMcneil))
