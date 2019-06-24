@@ -74,30 +74,36 @@ impl DatFile {
                        .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
                        .len();
         let reader = BufReader::new(file);
-        let dat_file = DatFile { path: data_path,
-                                 header_size: 0,
-                                 header: Header::default(),
-                                 reader };
+        let mut dat_file = DatFile { path: data_path,
+                                     header_size: 0,
+                                     header: Header::default(),
+                                     reader };
 
         if size == 0 {
             dat_file.write(server)?;
         }
 
+        dat_file.read_header()?;
         Ok(dat_file)
     }
 
-    pub fn read(data_path: &Path) -> io::Result<Self> {
-        Ok(DatFile { header:      Default::default(),
-                     header_size: Default::default(),
-                     path:        data_path.to_path_buf(),
-                     reader:      BufReader::new(File::open(&data_path)?), })
+    pub fn read(data_path: &Path) -> Result<Self> {
+        let mut dat_file = DatFile { header:      Default::default(),
+                                     header_size: Default::default(),
+                                     path:        data_path.to_path_buf(),
+                                     reader:      BufReader::new(File::open(&data_path)?), };
+
+        dat_file.read_header()?;
+        Ok(dat_file)
     }
 
     pub fn path(&self) -> &Path { &self.path }
 
-    pub fn read_header(&mut self, version: &mut [u8]) -> Result<()> {
+    fn read_header(&mut self) -> Result<()> {
+        let mut version = [0; 1];
+
         self.reader
-            .read_exact(version)
+            .read_exact(&mut version)
             .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         debug!("Header Version: {}", version[0]);
         let (header_size, real_header) =
@@ -146,11 +152,14 @@ impl DatFile {
         where T: Message<newscast::Rumor>
     {
         let mut rumors = Vec::new();
-        let offset = self.header.offset_for_rumor(T::MESSAGE_ID);
-        self.read_and_process(offset, |r| {
-                rumors.push(T::from_bytes(&r)?);
-                Ok(())
-            })?;
+
+        if let Some(offset) = self.header.offset_for_rumor(T::MESSAGE_ID) {
+            self.read_and_process(offset, |r| {
+                    rumors.push(T::from_bytes(&r)?);
+                    Ok(())
+                })?;
+        }
+
         Ok(rumors)
     }
 
@@ -165,10 +174,6 @@ impl DatFile {
     }
 
     pub fn read_into_mlr(&mut self, server: &Server) -> Result<()> {
-        let mut version = [0; 1];
-
-        self.read_header(&mut version)?;
-
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
         for Membership { member, health } in self.read_members()? {
@@ -205,12 +210,10 @@ impl DatFile {
             server.insert_update_election_mlr(update_election);
         }
 
-        if version[0] >= 2 {
-            // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
-            #[allow(clippy::identity_conversion)]
-            for departure in self.read_rumors::<Departure>()? {
-                server.insert_departure(departure);
-            }
+        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
+        #[allow(clippy::identity_conversion)]
+        for departure in self.read_rumors::<Departure>()? {
+            server.insert_departure(departure);
         }
 
         Ok(())
@@ -346,6 +349,7 @@ impl DatFile {
 #[derive(Debug, Default, PartialEq)]
 pub struct Header {
     offsets: HashMap<String, u64>,
+    version: u8,
 }
 
 impl Header {
@@ -369,8 +373,8 @@ impl Header {
         self.offsets.insert(message_id.to_string(), offset);
     }
 
-    pub fn offset_for_rumor(&self, message_id: &str) -> u64 {
-        *self.offsets.get(message_id).expect("Rumor offset")
+    pub fn offset_for_rumor(&self, message_id: &str) -> Option<u64> {
+        self.offsets.get(message_id).copied()
     }
 
     pub fn member_offset(&self) -> u64 {
@@ -400,7 +404,7 @@ impl Header {
                 offsets.insert(ElectionUpdate::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[40..48]));
                 offsets.insert(Departure::MESSAGE_ID.to_string(), 0);
-                (HEADER_VERSION_1_SIZE as u64, Header { offsets })
+                (HEADER_VERSION_1_SIZE as u64, Header { offsets, version })
             }
             // This should be the latest version of the header. As we deprecate
             // header versions, just roll this code up, and match it, then add
@@ -427,29 +431,34 @@ impl Header {
                 offsets.insert(Departure::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[56..64]));
 
-                (LittleEndian::read_u64(&bytes[0..8]), Header { offsets })
+                (LittleEndian::read_u64(&bytes[0..8]), Header { offsets, version })
             }
         }
     }
 
     pub fn write_to_bytes(&self) -> Result<Vec<u8>> {
-        // The header is the size of the struct plus 8 bytes for the length of the header itself.
         let header_size = HEADER_VERSION_2_SIZE;
         let mut bytes = vec![0; header_size];
         LittleEndian::write_u64(&mut bytes[0..8], header_size as u64);
         LittleEndian::write_u64(&mut bytes[8..16], self.member_offset());
         LittleEndian::write_u64(&mut bytes[16..24],
-                                self.offset_for_rumor(Service::MESSAGE_ID));
+                                self.offset_for_rumor(Service::MESSAGE_ID)
+                                    .expect("service offset"));
         LittleEndian::write_u64(&mut bytes[24..32],
-                                self.offset_for_rumor(ServiceConfig::MESSAGE_ID));
+                                self.offset_for_rumor(ServiceConfig::MESSAGE_ID)
+                                    .expect("service config offset"));
         LittleEndian::write_u64(&mut bytes[32..40],
-                                self.offset_for_rumor(ServiceFile::MESSAGE_ID));
+                                self.offset_for_rumor(ServiceFile::MESSAGE_ID)
+                                    .expect("service file offset"));
         LittleEndian::write_u64(&mut bytes[40..48],
-                                self.offset_for_rumor(Election::MESSAGE_ID));
+                                self.offset_for_rumor(Election::MESSAGE_ID)
+                                    .expect("election offset"));
         LittleEndian::write_u64(&mut bytes[48..56],
-                                self.offset_for_rumor(ElectionUpdate::MESSAGE_ID));
+                                self.offset_for_rumor(ElectionUpdate::MESSAGE_ID)
+                                    .expect("election update offset"));
         LittleEndian::write_u64(&mut bytes[56..64],
-                                self.offset_for_rumor(Departure::MESSAGE_ID));
+                                self.offset_for_rumor(Departure::MESSAGE_ID)
+                                    .expect("departure offset"));
         Ok(bytes)
     }
 }

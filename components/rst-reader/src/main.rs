@@ -55,10 +55,6 @@ fn main() {
 }
 
 fn output_rumors(mut dat_file: dat_file::DatFile) -> Result<()> {
-    let mut version = [0; 1];
-
-    dat_file.read_header(&mut version)?;
-
     for member in dat_file.read_members()? {
         println!("{}", member);
     }
@@ -83,10 +79,8 @@ fn output_rumors(mut dat_file: dat_file::DatFile) -> Result<()> {
         println!("{}", update_election);
     }
 
-    if version[0] >= 2 {
-        for departure in dat_file.read_rumors::<Departure>()? {
-            println!("{}", departure);
-        }
+    for departure in dat_file.read_rumors::<Departure>()? {
+        println!("{}", departure);
     }
 
     Ok(())
@@ -101,20 +95,13 @@ fn output_stats(mut dat_file: dat_file::DatFile) -> Result<()> {
     let mut update_elections = 0;
     let mut departures = 0;
 
-    let mut version = [0; 1];
-
-    dat_file.read_header(&mut version)?;
     membership += dat_file.read_members()?.len();
-
     services += dat_file.read_rumors::<Service>()?.len();
     service_configs += dat_file.read_rumors::<ServiceConfig>()?.len();
     service_files += dat_file.read_rumors::<ServiceFile>()?.len();
     elections += dat_file.read_rumors::<Election>()?.len();
     update_elections += dat_file.read_rumors::<ElectionUpdate>()?.len();
-
-    if version[0] >= 2 {
-        departures += dat_file.read_rumors::<Departure>()?.len();
-    }
+    departures += dat_file.read_rumors::<Departure>()?.len();
 
     println!("Summary:");
     println!();
