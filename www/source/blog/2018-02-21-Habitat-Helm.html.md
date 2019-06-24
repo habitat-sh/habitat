@@ -1,5 +1,5 @@
 ---
-title: Habitat and Helm!
+title: Chef Habitat and Helm!
 date: 2018-02-21
 author: Tasha Drew
 tags: helm, exporter, kubernetes

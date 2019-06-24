@@ -6,9 +6,9 @@ To define a hook, simply create a bash file of the same name in `/my_plan_name/h
 > **Important** You cannot block the thread in a hook unless it is in the `run` hook. Never call `hab` or `sleep` in a hook that is not the `run` hook.
 
 # Related article: Runtime settings
-[Habitat's runtime settings](/docs/reference#template-data) can be used in any of the plan hooks and also in any templatized configuration file for your application or service.
+[Chef Habitat's runtime settings](/docs/reference#template-data) can be used in any of the plan hooks and also in any templatized configuration file for your application or service.
 
-> Note: In habitat 0.68.0 and less, some hooks used `_` in their names. This is now deprecated; if you used them, please use `-` instead.
+> Note: In Chef Habitat 0.68.0 and less, some hooks used `_` in their names. This is now deprecated; if you used them, please use `-` instead.
 
 ## Available hooks
 * [file-updated](#file-updated)
@@ -29,7 +29,7 @@ This hook is run whenever a configuration file that is not related to a user or 
 ###health-check
 File location: `<plan>/hooks/health-check`
 
-This hook is run when the Habitat HTTP API receives a request at `/health`.
+This hook is run when the Chef Habitat HTTP API receives a request at `/health`.
 
 The `health-check` script must return a valid exit code from the list below.
 
@@ -64,7 +64,7 @@ exit $rc
 ###init
 File location: `<plan>/hooks/init`
 
-This hook is run when a Habitat topology starts.
+This hook is run when a Chef Habitat topology starts.
 
 ###install
 File location: `<plan>/hooks/install`

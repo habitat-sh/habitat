@@ -1,6 +1,6 @@
 # <a name="planwriting-guide" id="planwriting-guide" data-magellan-target="planwriting-guide">Advanced Plan Writing Guide</a>
 
-The following is a best practice guide to how to write a production quality plan. These best practices are reflected in the requirements for a user to contribute a plan to the Habitat [Core Plans](https://github.com/habitat-sh/core-plans/). 
+The following is a best practice guide to how to write a production quality plan. These best practices are reflected in the requirements for a user to contribute a plan to the Chef Habitat [Core Plans](https://github.com/habitat-sh/core-plans/).
 
 If you haven't already, a good first step is to read [the Developing Packages articles.](/docs/developing-packages/)
 
@@ -16,7 +16,7 @@ Each package plan should contain a value adhering to the guidelines for each of 
 
 - `pkg_description`
 - `pkg_license` (in [SPDX format](http://spdx.org/licenses/))
-- `pkg_maintainer` in the format of "The Habitat Maintainers <humans@habitat.sh>"
+- `pkg_maintainer` in the format of "The Chef Habitat Maintainers <humans@habitat.sh>"
 - `pkg_name` see the section of this document on "Package Name Conventions"
 - `pkg_origin` must be set to `core`
 - `pkg_source`
@@ -73,7 +73,7 @@ You can read more about [callbacks](/docs/reference/#reference-callbacks) here. 
 
 - You should never call `exit` within a build phase. In a `plan.sh`, you should instead return an exit code such as `return 1` for failure, and `return 0` for success. In a `plan.ps1` you should call `Write-Exception` or `throw` an exception upon failure.
 - If you clone a repo from git, you must override `do_verify()` to `return 0` in a `plan.sh` or if you are authoring a `plan.ps1` then override `Invoke-Verify` with an empty implementation.
-- Never use `pkg_source` unless you are downloading something as a third party.  
+- Never use `pkg_source` unless you are downloading something as a third party.
 - You should never shell out to `hab` from within a callback. If you think you want to, you should use a [utility function](/docs/reference/#utility-functions) instead.
 - You should not call any function or helper that begin with an underscore, for example `_dont_call_this_function()`. Those are internal only functions that are not supported for external use and will break your plan if you call them.
 - Don't run any code or run anything outside of a build phase or a function.
@@ -91,7 +91,7 @@ The Supervisor dynamically invokes hooks at run-time, triggered by an applicatio
 - Attempting to execute commands as a `root` user or trying to do `sudo hab pkg install` are not good practice.
 - Don't edit any of the Supervisor rendered templates.
   - You can only write to: `/var/`, `/static/`, `/data/` directories. You should only access these with your `runtime configuration setting` variable.
-  - No one should ever edit anything in `/hab/` directly.  
+  - No one should ever edit anything in `/hab/` directly.
   - No one should write to anything in `/hab/` directly.
 
 ### README
@@ -99,7 +99,7 @@ The Supervisor dynamically invokes hooks at run-time, triggered by an applicatio
 All plans should have a README. Items to strongly consider including:
 
 - Your name as maintainer and supporter of this plan.
-- What habitat topology it uses (and the plan should have the correct topology for the technology).
+- What Chef Habitat topology it uses (and the plan should have the correct topology for the technology).
 - Clear, step by step instructions as to how to use the package successfully.
 - What is the best update strategy for different deployments?
 - What are some configuration updates a user can make, or do they always need to do a full rebuild?

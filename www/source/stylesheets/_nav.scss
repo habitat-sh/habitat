@@ -55,7 +55,7 @@ $main-nav-breakpoint: 1060px;
     .main-nav--logo {
       @include large-nav {
         h1 {
-          background: url("../images/habitat-logo-by-chef-white.svg") no-repeat left 40%;
+          background: url("../images/chef-habitat-inverse.svg") no-repeat left 50%;
           background-size: contain;
         }
       }
@@ -115,17 +115,15 @@ $main-nav-breakpoint: 1060px;
       overflow: hidden;
       text-indent: 400%;
       white-space: nowrap;
-      background: url("../images/habitat-logo-by-chef-white.svg") no-repeat left 40%;
-      background-size: rem-calc(89) auto;
+      background: url("../images/chef-habitat-inverse.svg") no-repeat left 50%;
       color: $white;
       height: $header-height-mobile;
       margin-bottom: 0;
-      min-width: rem-calc(89);
-      max-width: rem-calc(140);
+      min-width: rem-calc(140);
+      max-width: rem-calc(180);
 
       @include large-nav {
-        background-size: rem-calc(120) auto;
-        min-width: rem-calc(170);
+        min-width: rem-calc(250);
         height: $header-height;
       }
 

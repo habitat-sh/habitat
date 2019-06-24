@@ -1,17 +1,17 @@
-h2: a name="install-habitat" id="install-habitat" data-magellan-target="install-habitat" Download and Install the Habitat CLI Tool
+h2: a name="install-habitat" id="install-habitat" data-magellan-target="install-habitat" Download and Install the Chef Habitat CLI Tool
 
-p From building packages to running services, everything in Habitat is done through the hab command-line interface (CLI) tool. To get started using Habitat, you need to download and install the hab CLI tool that corresponds to your workstation OS.
+p From building packages to running services, everything in Chef Habitat is done through the hab command-line interface (CLI) tool. To get started using Chef Habitat, you need to download and install the hab CLI tool that corresponds to your workstation OS.
 hr
 .hab-cli-os.linux.mb-2
   .row
     .description.small-12.columns
-      h3: a name="hab-for-linux" id="hab-for-linux" data-magellan-target="hab-for-linux" Habitat for Linux
-      <blockquote> Habitat for Linux requires a 64-bit processor with kernel 2.6.32 or later. On Linux, exporting your Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported. </blockquote>
+      h3: a name="hab-for-linux" id="hab-for-linux" data-magellan-target="hab-for-linux" Chef Habitat for Linux
+      <blockquote> Chef Habitat for Linux requires a 64-bit processor with kernel 2.6.32 or later. On Linux, exporting your Chef Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported. </blockquote>
       p Once you have downloaded the package, extract the hab binary with tar to <code>/usr/local/bin</code> or add its location to your <code>PATH</code> (e.g. <code>tar -xvzf hab.tgz -C /usr/local/bin --strip-components 1</code>).
-      = link_to 'Download Habitat for Linux', 'https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux', class: 'button cta'
+      = link_to 'Download Chef Habitat for Linux', 'https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-x86_64-linux.tar.gz?bt_package=hab-x86_64-linux', class: 'button cta'
 
-      h4.mt-2 Install Habitat from the Command Line
-      p Alternatively, you can install Habitat via the command line by downloading and running the installation script:
+      h4.mt-2 Install Chef Habitat from the Command Line
+      p Alternatively, you can install Chef Habitat via the command line by downloading and running the installation script:
       = code(:shell) do
           |
            curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
@@ -19,14 +19,14 @@ hr
 .hab-cli-os.mac.mb-2
   .row
     .description.small-12.columns
-      h3: a name="hab-for-mac" id="hab-for-mac" data-magellan-target="hab-for-mac" Habitat for Mac
+      h3: a name="hab-for-mac" id="hab-for-mac" data-magellan-target="hab-for-mac" Chef Habitat for Mac
       blockquote Requires 64-bit processor running 10.9 or later
-      p Once you have downloaded the <code>hab</code> CLI, unzip it onto your machine. Unzipping to <code>/usr/local/bin</code> should place it on your <code>PATH</code>. In order to use the Habitat Studio, you'll also need to install Docker for Mac.
-      = link_to 'Download Habitat for Mac', 'https://api.bintray.com/content/habitat/stable/darwin/x86_64/hab-%24latest-x86_64-darwin.zip?bt_package=hab-x86_64-darwin', class: 'button cta'
+      p Once you have downloaded the <code>hab</code> CLI, unzip it onto your machine. Unzipping to <code>/usr/local/bin</code> should place it on your <code>PATH</code>. In order to use the Chef Habitat Studio, you'll also need to install Docker for Mac.
+      = link_to 'Download Chef Habitat for Mac', 'https://api.bintray.com/content/habitat/stable/darwin/x86_64/hab-%24latest-x86_64-darwin.zip?bt_package=hab-x86_64-darwin', class: 'button cta'
       = link_to 'Download Docker for Mac', 'https://store.docker.com/editions/community/docker-ce-desktop-mac', class: 'button outline contrast', target: '_blank'
 
-      h4.mt-2 Install Habitat Using Homebrew
-      p Habitat can also be installed with Homebrew, by running the following commands:
+      h4.mt-2 Install Chef Habitat Using Homebrew
+      p Chef Habitat can also be installed with Homebrew, by running the following commands:
       = code(:shell) do
           |
            $ brew tap habitat-sh/habitat
@@ -35,7 +35,7 @@ hr
 .hab-cli-os.windows.mb-2
   .row
     .description.small-12.columns
-      h3: a name="hab-for-win" id="hab-for-win" data-magellan-target="hab-for-win" Habitat for Windows
+      h3: a name="hab-for-win" id="hab-for-win" data-magellan-target="hab-for-win" Chef Habitat for Windows
       blockquote Minimum Windows version supported: Windows Server 2008 R2 or Windows 7 64-bit
       p Chocolatey is a package manager for Windows. You can use it to easily install, configure, upgrade, and even uninstall Windows software packages. We recommend using Chocolatey for installing Chef Habitat.
 
@@ -48,9 +48,7 @@ hr
       = code(:powershell) do
         | $ $env:PATH += ";C:\habitat\hab-0.79.1-20190410221450-x86_64-windows\"
 
-      p To use a Docker Habitat Studio as an isolated environment, you'll also need to install Docker for Windows.
+      p To use a Docker Chef Habitat Studio as an isolated environment, you'll also need to install Docker for Windows.
       blockquote Docker for Windows requires 64-bit Windows 10 Pro, Enterprise, or Education editions  (1607 Anniversary Update, Build 14393 or later) with Hyper-V enabled
-      = link_to 'Download Habitat for Windows', 'https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows', class: 'button cta'
+      = link_to 'Download Chef Habitat for Windows', 'https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-%24latest-x86_64-windows.zip?bt_package=hab-x86_64-windows', class: 'button cta'
       = link_to 'Download Docker for Windows', 'https://store.docker.com/editions/community/docker-ce-desktop-windows', class: 'button outline contrast', target: '_blank'
-
-

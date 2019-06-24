@@ -4,7 +4,7 @@ sidebar_links:
   links:
   - title: Fork the sample application
     link: /demo/build-system/steps/1
-  - title: Sign in to Habitat Builder
+  - title: Sign in to Chef Habitat Builder
     link: /demo/build-system/steps/2
   - title: Create an origin
     link: /demo/build-system/steps/3

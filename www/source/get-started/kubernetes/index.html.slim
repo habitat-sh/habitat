@@ -1,78 +1,78 @@
 ---
-title: Habitat - Get Started with Habitat and Kubernetes
-description: Everything you neeed to know in order to build, configure, deploy, and manage your containerized applications with Habitat on Kubernetes.
+title: Chef Habitat - Get Started with Chef Habitat and Kubernetes
+description: Everything you neeed to know in order to build, configure, deploy, and manage your containerized applications with Chef Habitat on Kubernetes.
 ---
 
 .heading.small-10.small-centered
   .logo-pair
     img class="logo-pair--image" src="/images/solutions-logos/icon-kubernetes.svg" alt="Kubernetes"
   h1
-    | Habitat and Kubernetes
+    | Chef Habitat and Kubernetes
 = partial "partials/global/github_contribute"
 
 div.get-started--container
-  h2.h2 Getting Started with Habitat and Kubernetes
+  h2.h2 Getting Started with Chef Habitat and Kubernetes
   / TODO: add this link back once the get-started page is built out
   / ul.small-links
     li.small-links--item
       = link_to 'Return to Get Started home', '/get-started/'
 
   section.get-started--boxes
-    h3.h3 Introducing the Habitat Operator
+    h3.h3 Introducing the Chef Habitat Operator
     p.description
       | Kubernetes Operators are application-specific controllers that extend the Kubernetes API.&nbsp;
-      | Use the Habitat Operator to run and manage applications - built with Habitat - on&nbsp;
+      | Use the Chef Habitat Operator to run and manage applications - built with Chef Habitat - on&nbsp;
       = link_to 'Kubernetes', 'https://kubernetes.io'
       | .
     div.row
       div.columns.small-12.large-6.np-left
         a.get-started--boxes--item.card.feature-card href="https://github.com/habitat-sh/habitat-operator"
-          h4.h4 Learn about the Habitat Operator for Kubernetes
+          h4.h4 Learn about the Chef Habitat Operator for Kubernetes
           h6.h6 GITHUB
           p
-            | The Habitat Operator is a Kubernetes controller designed to solve running and auto-managing Habitat Services on Kubernetes. It does this by making use of Custom Resource Definitions.&nbsp;
-            | Explore the Habitat Operator project on GitHub.
+            | The Chef Habitat Operator is a Kubernetes controller designed to solve running and auto-managing Chef Habitat Services on Kubernetes. It does this by making use of Custom Resource Definitions.&nbsp;
+            | Explore the Chef Habitat Operator project on GitHub.
       div.columns.small-12.large-6.np-right
         a.get-started--boxes--item.card href="/docs/best-practices/#kubernetes"
-          h4.h4 Best Practices for Habitat with Kubernetes
+          h4.h4 Best Practices for Chef Habitat with Kubernetes
           h6.h6 DOCS
           p
-            | Habitat and Kubernetes are complementary: Kubernetes focuses on providing a platform for deployment, scaling, and operations of application containers across clusters of hosts,&nbsp;
-            | while Habitat manages the build pipeline and lifecycle of those application containers.
+            | Chef Habitat and Kubernetes are complementary: Kubernetes focuses on providing a platform for deployment, scaling, and operations of application containers across clusters of hosts,&nbsp;
+            | while Chef Habitat manages the build pipeline and lifecycle of those application containers.
 
   hr
   section.get-started--boxes
-    h3.h3 Run and manage your Habitat applications on Kubernetes
+    h3.h3 Run and manage your Chef Habitat applications on Kubernetes
     p.description
-      | Habitat provides application development teams with a consistent way to build, deploy, and run their applications on any platform.&nbsp;
-      | At runtime, the Habitat Supervisor provides you with a host of capabilities that are exposed to Kubernetes users via the Habitat Operator.
+      | Chef Habitat provides application development teams with a consistent way to build, deploy, and run their applications on any platform.&nbsp;
+      | At runtime, the Chef Habitat Supervisor provides you with a host of capabilities that are exposed to Kubernetes users via the Chef Habitat Operator.
     div.row
       div.columns.small-12.large-4.np-left
         a.get-started--boxes--item.card href="https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/"
-          h4.h4 Introducing Habitat’s Kubernetes Exporter
+          h4.h4 Introducing Chef Habitat’s Kubernetes Exporter
           h6.h6 Kinvolk.io Blog
           p
-            | The Habitat team at Chef has teamed up with Kinvolk to make the deployment of Habitat-packaged applications on Kubernetes even easier.
+            | The Chef Habitat team at Chef has teamed up with Kinvolk to make the deployment of Chef Habitat-packaged applications on Kubernetes even easier.
       div.columns.small-12.large-4
         a.get-started--boxes--item.card href="https://kinvolk.io/blog/2017/12/get-started-with-habitat-on-kubernetes/"
-          h4.h4 Getting started with Habitat on Kubernetes
+          h4.h4 Getting started with Chef Habitat on Kubernetes
           h6.h6 Kinvolk.io Blog
           p
-            | In this guide, the team at Kinvolk explains how to use the Habitat Operator to run and manage a Habitat-packaged application in a Kubernetes cluster on Google Kubernetes Engine (GKE).
+            | In this guide, the team at Kinvolk explains how to use the Chef Habitat Operator to run and manage a Chef Habitat-packaged application in a Kubernetes cluster on Google Kubernetes Engine (GKE).
       div.columns.small-12.large-4.np-right
         a.get-started--boxes--item.card href="https://kinvolk.io/blog/2017/12/automated-build-to-kubernetes-with-habitat-builder/"
-          h4.h4 Automated Build to Kubernetes with Habitat Builder
+          h4.h4 Automated Build to Kubernetes with Chef Habitat Builder
           h6.h6 Kinvolk.io Blog
           p
-            | Learn about Kinvolk's experimental pipeline which uses Habitat Builder to automatically build your codebase, test the resulting artifact, and deploy it to a Kubernetes cluster.
+            | Learn about Kinvolk's experimental pipeline which uses Chef Habitat Builder to automatically build your codebase, test the resulting artifact, and deploy it to a Kubernetes cluster.
 
   hr
 
   section.get-started--boxes
     h3.h3 News & announcements
     p.description
-      | The Habitat and Kubernetes story is continually developing. Following are additional articles that highlight&nbsp;
-      | recent progress and announcements. If you're new to Habitat, check out the reference links&nbsp;
+      | The Chef Habitat and Kubernetes story is continually developing. Following are additional articles that highlight&nbsp;
+      | recent progress and announcements. If you're new to Chef Habitat, check out the reference links&nbsp;
       | to learn how you can more easily and consistently manage your applications.
     div.row
       div.columns.small-12.large-8.np-left
@@ -81,23 +81,23 @@ div.get-started--container
           h6.h6 Blog
           ul.link-list
             li.link-list--item
-              = link_to 'Kubecon, Habitat, and Kubernetes!', 'https://www.habitat.sh/blog/2017/12/Kubecon-Habitat-Kubernetes/'
+              = link_to 'Kubecon, Chef Habitat, and Kubernetes!', 'https://www.habitat.sh/blog/2017/12/Kubecon-Chef Habitat-Kubernetes/'
             li.link-list--item
-              = link_to 'Chef blog: Application Automation with Habitat and Kubernetes', 'https://blog.chef.io/2017/12/06/application-automation-with-habitat-and-kubernetes/'
+              = link_to 'Chef blog: Application Automation with Chef Habitat and Kubernetes', 'https://blog.chef.io/2017/12/06/application-automation-with-habitat-and-kubernetes/'
             li.link-list--item
-              = link_to 'Kubernetes the Hab way: How to use Habitat to set up Kubernetes clusters', 'https://kinvolk.io/blog/2017/12/kubernetes-the-hab-way/'
+              = link_to 'Kubernetes the Hab way: How to use Chef Habitat to set up Kubernetes clusters', 'https://kinvolk.io/blog/2017/12/kubernetes-the-hab-way/'
             li.link-list--item
-              = link_to 'Learn about the Habitat Operator for Kubernetes: running Habitat services with Kubernetes', 'https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/'
+              = link_to 'Learn about the Chef Habitat Operator for Kubernetes: running Chef Habitat services with Kubernetes', 'https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/'
       div.columns.small-12.large-4
         .get-started--boxes--item
           h4.h4 Related links
           h6.h6 Reference
           ul.link-list
             li.link-list--item
-              = link_to 'Habitat on GitHub', 'https://github.com/habitat-sh/'
+              = link_to 'Chef Habitat on GitHub', 'https://github.com/habitat-sh/'
             li.link-list--item
-              = link_to 'Habitat Operator for Kubernetes on GitHub', 'https://github.com/habitat-sh/habitat-operator'
+              = link_to 'Chef Habitat Operator for Kubernetes on GitHub', 'https://github.com/habitat-sh/habitat-operator'
             li.link-list--item
-              = link_to 'Habitat Demo', '/demo/'
+              = link_to 'Chef Habitat Demo', '/demo/'
             li.link-list--item
-              = link_to 'Habitat Docs', '/docs/'
+              = link_to 'Chef Habitat Docs', '/docs/'

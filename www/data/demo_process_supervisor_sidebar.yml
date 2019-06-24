@@ -4,7 +4,7 @@ sidebar_links:
   links:
   - title: Fork the sample application
     link: /demo/process-supervisor/steps/1
-  - title: Sign in to Habitat Builder
+  - title: Sign in to Chef Habitat Builder
     link: /demo/process-supervisor/steps/2
   - title: Create an origin
     link: /demo/process-supervisor/steps/3
@@ -18,7 +18,7 @@ sidebar_links:
     link: /demo/process-supervisor/steps/7
   - title: Install the tools
     link: /demo/process-supervisor/steps/8
-  - title: Finish setting up Habitat
+  - title: Finish setting up Chef Habitat
     link: /demo/process-supervisor/steps/9
   - title: Start the application
     link: /demo/process-supervisor/steps/10

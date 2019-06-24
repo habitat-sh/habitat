@@ -1,5 +1,5 @@
 ---
-title: Habitat Packaging System Demo - Step 6
+title: Chef Habitat Packaging System Demo - Step 6
 classes: demo_step
 ---
 #demo-step.demo--page
@@ -19,10 +19,10 @@ classes: demo_step
         p
           ' Now that the build is complete, let's test it out by running the package. Two common ways of running a package include:
         ul
-          li Start services directly from the Studio* using the Habitat Supervisor, or
+          li Start services directly from the Studio* using the Chef Habitat Supervisor, or
           li Export the .hart to a Docker image and use <em>docker run</em>.
         p
-          ' We've mentioned the benefits of Habitat's export capabilities, so let's see how
+          ' We've mentioned the benefits of Chef Habitat's export capabilities, so let's see how
           ' how that works now. With a single command, you will have exported the .hart file as a Docker image.
         = code(:shell) do
           | [1][default:/src:0]# hab pkg export docker ./results/<path to .hart>
@@ -37,8 +37,8 @@ classes: demo_step
         .footnote
           p.mb-0
             span.asterisk="*"
-            ' On some operating systems, the Habitat Studio runs as Docker container, so if you wanted to view a sample application
-            ' running within a Studio, you'd need to expose a port using one of Habitat's
+            ' On some operating systems, the Chef Habitat Studio runs as Docker container, so if you wanted to view a sample application
+            ' running within a Studio, you'd need to expose a port using one of Chef Habitat's
             a href="/docs/reference/#environment-variables" environment variables.
 
         h3="Preview the application in your browser"
@@ -50,11 +50,11 @@ classes: demo_step
 
         h3="That's a wrap!"
         p
-        ' By building your application with Habitat, you are now able to take advantage of all
+        ' By building your application with Chef Habitat, you are now able to take advantage of all
         ' the capabilities baked into your build artifact. For example, in the Build System demo you'll learn how to automate the build process and (optionally)
-        ' publish your artifacts to various container registries, all using Habitat Builder.
+        ' publish your artifacts to various container registries, all using Chef Habitat Builder.
     .row.mt-1.step-bottom-nav
       .columns.large-6
         a.previous-step-link href="/demo/packaging-system/steps/5" Previous Step
       .columns.large-6.text-align-right
-        a.button.cta.mb-0 href="/learn" Return to Learn Habitat
+        a.button.cta.mb-0 href="/learn" Return to Learn Chef Habitat

@@ -1,5 +1,5 @@
 ---
-title: Habitat Packaging System Demo - Step 5
+title: Chef Habitat Packaging System Demo - Step 5
 classes: demo_step
 ---
 #demo-step.demo--page
@@ -17,20 +17,20 @@ classes: demo_step
         h4.h4="Packaging System Demo"
       .columns.large-6
         p
-          ' Now it's time to build the application as a Habitat artifact (<strong>.hart</strong>).
+          ' Now it's time to build the application as a Chef Habitat artifact (<strong>.hart</strong>).
         p
           ' Building your application as a <strong>.hart</strong> package enables you to do things such as
         ul
           li export your application into a variety of cloud-native formats,
           li get automated rebuilds when dependencies are updated,
-          li and manage running services via the Habitat Supervisor, to name a few.
+          li and manage running services via the Chef Habitat Supervisor, to name a few.
         p
-          ' First, let's step into a <strong>Habitat Studio</strong> from the root of the <em>sample-node-app</em>
+          ' First, let's step into a <strong>Chef Habitat Studio</strong> from the root of the <em>sample-node-app</em>
           '  repo, so that we have a clean room from which to build our artifacts.
         = code(:shell) do
           | $ hab studio enter
         p
-          ' Next, build the application to produce a Habitat artifact (.hart).
+          ' Next, build the application to produce a Chef Habitat artifact (.hart).
         = code(:shell) do
           | [1][default:/src:0]# build
 

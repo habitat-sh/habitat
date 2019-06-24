@@ -17,7 +17,7 @@
                           li.main-sidebar--list--item  class=link_classes(current_resource.url, sub_link)
                             = link_to sub_link.title, sub_link.link
           - if sidebar_layout == 'docs'
-            = link_to 'Download the Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button download'
+            = link_to 'Download the Chef Habitat CLI', '/docs/using-habitat/#install-habitat', class: 'button download'
 
       .main-content__has-sidebar.columns.small-12.medium-9 data-swiftype-index="true"
           == yield

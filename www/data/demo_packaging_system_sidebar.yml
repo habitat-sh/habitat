@@ -6,9 +6,9 @@ sidebar_links:
     link: /demo/packaging-system/steps/1
   - title: Install the tools
     link: /demo/packaging-system/steps/2
-  - title: Finish setting up Habitat
+  - title: Finish setting up Chef Habitat
     link: /demo/packaging-system/steps/3
-  - title: Add Habitat to the application
+  - title: Add Chef Habitat to the application
     link: /demo/packaging-system/steps/4
   - title: Build the application
     link: /demo/packaging-system/steps/5

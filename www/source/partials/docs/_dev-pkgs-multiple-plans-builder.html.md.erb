@@ -16,7 +16,7 @@ To enable this functionality, do the following:
 
     It's important to note that the entries for `plan_path` and `paths` do not behave the same. If you have something like `plan_path = "habitat"`, that behaves as if you had written `plan_path = "habitat/*"` - that is, it will automatically check every file under the `habitat` directory. However, if you have something like `paths = [ "src" ]`, that is _not_ automatically expanded to `src/*`. That line will only watch for changes to a file called `src`. If you're wanting to watch for changes to any file inside the `src` directory, then you must explicitly specify the glob, like so: `paths = [ "src/*" ]`.
 
-    For example, in the Habitat repository itself, this TOML states that the `hab-launcher`, `hab-studio`, and `hab-sup` packages will be rebuilt if there are any changes in any of the specified `components` sub-directories. Note that `hab-studio` does not need to specify a `path` because all of it's files are within the `plan_path` hierarchy, but that is not the case for the other projects.
+    For example, in the Chef Habitat repository itself, this TOML states that the `hab-launcher`, `hab-studio`, and `hab-sup` packages will be rebuilt if there are any changes in any of the specified `components` sub-directories. Note that `hab-studio` does not need to specify a `path` because all of it's files are within the `plan_path` hierarchy, but that is not the case for the other projects.
 
     ```toml
     # .bldr.toml

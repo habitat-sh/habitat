@@ -1,5 +1,5 @@
 ---
-title: Introducing Habitat Personal Access Tokens
+title: Introducing Chef Habitat Personal Access Tokens
 date: 2018-03-06
 author: Salim Alam
 tags: habitat, authentication

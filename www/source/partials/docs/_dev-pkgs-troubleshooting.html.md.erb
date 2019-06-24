@@ -1,6 +1,6 @@
 # <a name="debug-builds" id="debug-builds" data-magellan-target="debug-builds">Troubleshooting Builds</a>
 
-While working on plans, you may wish to stop the build and inspect the environment at any point during a build phase (e.g. download, build, unpack, etc.). In Bash based plans, Habitat provides an `attach` function for use in your plan.sh that functions like a debugging breakpoint and provides an easy <acronym title="Read, Evaluation, Print Loop">REPL</acronym> at that point.
+While working on plans, you may wish to stop the build and inspect the environment at any point during a build phase (e.g. download, build, unpack, etc.). In Bash based plans, Chef Habitat provides an `attach` function for use in your plan.sh that functions like a debugging breakpoint and provides an easy <acronym title="Read, Evaluation, Print Loop">REPL</acronym> at that point.
 
 To use `attach`, insert it into your plan at the point where you would like to use it, e.g.
 
@@ -30,7 +30,7 @@ The build system will proceed until the point where the `attach` function is inv
 
 From: /src/yourapp/plan.sh @ line 15 :
 
-    5: pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
+    5: pkg_maintainer="The Chef Habitat Maintainers <humans@habitat.sh>"
     6: pkg_source=http://download.yourapp.io/releases/${pkg_name}-${pkg_version}.tar.gz
     7: pkg_shasum=c2a791c4ea3bb7268795c45c6321fa5abcc24457178373e6a6e3be6372737f23
     8: pkg_bin_dirs=(bin)
@@ -48,7 +48,7 @@ From: /src/yourapp/plan.sh @ line 15 :
 [1] yourapp(do_build)>
 ```
 
-You can use basic Linux commands like `ls` in this environment. You can also use the `help` command the Habitat build system provides in this context to see what other functions can help you debug the plan.
+You can use basic Linux commands like `ls` in this environment. You can also use the `help` command the Chef Habitat build system provides in this context to see what other functions can help you debug the plan.
 
 ```studio
 [1] yourapp(do_build)> help

@@ -1,8 +1,8 @@
 # <a name="add-configuration" id="add-configuration" data-magellan-target="add-configuration">Configuration Templates</a>
 
-Habitat allows you to templatize your application's native configuration files using [Handlebars](http://handlebarsjs.com/) syntax. The following sections describe how to create tunable configuration elements for your application or service.
+Chef Habitat allows you to templatize your application's native configuration files using [Handlebars](http://handlebarsjs.com/) syntax. The following sections describe how to create tunable configuration elements for your application or service.
 
-Template variables, also referred to as tags, are indicated by double curly braces: `{{a_variable}}`. In Habitat, tunable config elements are prefixed with `cfg.` to indicate that the value is user-tunable.
+Template variables, also referred to as tags, are indicated by double curly braces: `{{a_variable}}`. In Chef Habitat, tunable config elements are prefixed with `cfg.` to indicate that the value is user-tunable.
 
 Here's an example of how to make a configuration element user-tunable. Assume that we have a native configuration file named `service.conf`. In `service.conf`, the following configuration element is defined:
 
@@ -16,11 +16,11 @@ We can make this user tunable like this:
 recv_buffer {{cfg.recv_buffer}}
 ```
 
-Habitat can read values that it will use to render the templatized config files in three ways:
+Chef Habitat can read values that it will use to render the templatized config files in three ways:
 
 1. `default.toml` - Each plan includes a `default.toml` file that specifies the default values to use in the absence of any user provided inputs. These files are written in [TOML](https://github.com/toml-lang/toml), a simple config format.
 2. At runtime - Users can alter config at runtime using `hab config apply`. The input for this command also uses the TOML format.
-3. Environment variable - At start up, tunable config values can be passed to Habitat using environment variables; this most over-riding way of setting these but require you to restart the supervisor to change them.
+3. Environment variable - At start up, tunable config values can be passed to Chef Habitat using environment variables; this most over-riding way of setting these but require you to restart the supervisor to change them.
 
 Here's what we'd add to our project's `default.toml` file to provide a default value for the `recv_buffer` tunable:
 

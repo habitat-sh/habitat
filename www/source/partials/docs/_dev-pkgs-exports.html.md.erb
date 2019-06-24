@@ -1,11 +1,11 @@
 # <a name="pkg-exports" id="pkg-exports" data-magellan-target="pkg-exports">Export a package</a>
 Packages can be exported into multiple external, immutable runtime formats. This topic will be updated as more formats are supported in the future. Currently there are exports for: docker, ACI, mesos, tar, and cloudfoundry.
 
-The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Habitat CLI Reference Guide](/docs/habitat-cli#hab-pkg-export) for more CLI information.
+The command to export a package is `hab pkg export <FORMAT> <PKG_IDENT>`. See the [Chef Habitat CLI Reference Guide](/docs/habitat-cli#hab-pkg-export) for more CLI information.
 
-> **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Habitat CLI will check Builder for the latest stable version of the package and export that.
+> **Note** If you specify an <code>origin/package</code> identifier, such as <code>core/postgresql</code>, the Chef Habitat CLI will check Builder for the latest stable version of the package and export that.
 
-> If you wish to export a package that is not on Builder, create a Habitat artifact by running the `build` command, then point `hab pkg` to the `.hart` file within the `/results` directory:
+> If you wish to export a package that is not on Builder, create a Chef Habitat artifact by running the `build` command, then point `hab pkg` to the `.hart` file within the `/results` directory:
    ```shell
    hab pkg export tar ./results/example-app.hart
    ```
@@ -20,7 +20,7 @@ You can create a Docker container image for any package by performing the follow
 
 1. Create an interactive studio with the `hab studio enter` command.
 
-1. [Build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
+1. [Build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a Docker container image and then run the Docker exporter on the package.
 
     ```shell
     $ hab pkg export docker ./results/<hart-filename>.hart
@@ -28,7 +28,7 @@ You can create a Docker container image for any package by performing the follow
 
     > **Note** The command above is for local testing only. If you have uploaded your package to Builder, you can export it by calling <code>hab pkg export docker origin/package</code>. The default is to use the latest stable release; however, you can override that by specifying a different channel in an optional flag.
 
-    > **Note** On Linux, exporting your Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported.
+    > **Note** On Linux, exporting your Chef Habitat artifact to a Docker image requires the Docker Engine supplied by Docker. Packages from distribution-specific or otherwise alternative providers are currently not supported.
 
     > **Note** In a Windows container studio, the `export` command will not be able to access the host docker engine. To export a Windows package or hart file built inside of a Windows container studio, first exit the studio and then export the `.hart` file in your local `results` directory.
 
@@ -38,9 +38,9 @@ You can create a Docker container image for any package by performing the follow
 
 ## Exporting to a tarball
 
-1. Enter the Habitat studio by using `hab studio enter`.
+1. Enter the Chef Habitat studio by using `hab studio enter`.
 
-2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a tarball, for example:
+2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a tarball, for example:
 
     ```shell
     $ hab pkg install <ORIGIN>/<NAME>
@@ -90,7 +90,7 @@ You can create a Docker container image for any package by performing the follow
 You can create an Application Container Image (ACI) for any package by performing the following steps:
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
-2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an ACI, for example:
+2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create an ACI, for example:
 
     ```shell
     $ hab pkg install <ORIGIN>/<NAME>
@@ -112,11 +112,11 @@ You can create an Application Container Image (ACI) for any package by performin
 
 ## Exporting to Kubernetes
 
-The Kubernetes exporter is an additional command line subcommand to the standard Habitat CLI interface. It leverages the existing Docker image export functionality and, additionally, generates a Kubernetes manifest that can be deployed to a Kubernetes cluster running the Habitat operator.
+The Kubernetes exporter is an additional command line subcommand to the standard Chef Habitat CLI interface. It leverages the existing Docker image export functionality and, additionally, generates a Kubernetes manifest that can be deployed to a Kubernetes cluster running the Chef Habitat operator.
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
-2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an application, for example:
+2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
 
     ```shell
     $ hab pkg install <ORIGIN>/<NAME>
@@ -200,13 +200,13 @@ The Kubernetes exporter is an additional command line subcommand to the standard
 
 ## Export to a Helm chart
 
-The Helm exporter is an additional command line subcommand to the standard Habitat CLI interface. It is very similar to the Kubernetes exporter but it takes you even further. It also leverages the existing Docker image export functionality but unlike the Kubernetes exporter, instead of generating a Kubernetes manifest, it creates a distributable Helm chart directory. This chart directory can not only be deployed in your local Kubernetes cluster, but also easily packaged and distributed.
+The Helm exporter is an additional command line subcommand to the standard Chef Habitat CLI interface. It is very similar to the Kubernetes exporter but it takes you even further. It also leverages the existing Docker image export functionality but unlike the Kubernetes exporter, instead of generating a Kubernetes manifest, it creates a distributable Helm chart directory. This chart directory can not only be deployed in your local Kubernetes cluster, but also easily packaged and distributed.
 
-Additionally, the Kubernetes Habitat operator is automatically added to the Helm chart as a dependency and hence installed automatically as part of the Habitat Helm chart.
+Additionally, the Kubernetes Chef Habitat operator is automatically added to the Helm chart as a dependency and hence installed automatically as part of the Chef Habitat Helm chart.
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
-2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create an application, for example:
+2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create an application, for example:
 
     ```shell
     $ hab pkg install <ORIGIN>/<NAME>
@@ -228,7 +228,7 @@ Additionally, the Kubernetes Habitat operator is automatically added to the Helm
 
 1. Create an interactive studio in any directory with the `hab studio enter` command.
 
-2. Install or [build](/docs/developing-packages/#plan-builds) the Habitat package from which you want to create a Marathon application, for example:
+2. Install or [build](/docs/developing-packages/#plan-builds) the Chef Habitat package from which you want to create a Marathon application, for example:
 
     ```shell
     $ hab pkg install <ORIGIN>/<NAME>
@@ -255,7 +255,7 @@ Additionally, the Kubernetes Habitat operator is automatically added to the Helm
 
 ## Exporting to Cloud Foundry
 
-Packages can be exported to run in a [Cloud Foundry plaform](https://www.cloudfoundry.org/certified-platforms/) through the use of a Docker image that contains additional layers meant to handle mapping from the Cloud Foundry environment to a Habitat default.toml file.
+Packages can be exported to run in a [Cloud Foundry plaform](https://www.cloudfoundry.org/certified-platforms/) through the use of a Docker image that contains additional layers meant to handle mapping from the Cloud Foundry environment to a Chef Habitat default.toml file.
 
 ### Setting up Docker support in Cloud Foundry
 

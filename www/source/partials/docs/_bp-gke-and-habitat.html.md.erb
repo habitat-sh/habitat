@@ -1,7 +1,7 @@
 # <a name="gke-and-habitat" id="gke-and-habitat" data-magellan-target="gke-and-habitat">Google Kubernetes Engine (GKE)</a>
 
-[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) is a fully managed Kubernetes service running on the Google Cloud Platform. It supports running Habitat
-packages using the [Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator).
+[Google Kubernetes Engine](https://cloud.google.com/kubernetes-engine/) is a fully managed Kubernetes service running on the Google Cloud Platform. It supports running Chef Habitat
+packages using the [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator).
 
 
 ### Google Container Registry (GCR)
@@ -17,7 +17,7 @@ $ gcloud auth configure-docker
 ```
 Further access control information is [available here](https://cloud.google.com/container-registry/docs/access-control).
 
-After a successful Habitat package build, images can be pushed to the Container Registry using the registry URI.  The format of this
+After a successful Chef Habitat package build, images can be pushed to the Container Registry using the registry URI.  The format of this
 follows: `[HOSTNAME]/[PROJECT-ID]/[IMAGE]:[TAG]`, more details at [this link](https://cloud.google.com/container-registry/docs/pushing-and-pulling):
 
 ```
@@ -31,7 +31,7 @@ $ docker push eu.gcr.io/spaterson-project/hab-gcr-demo:latest
 After images have been pushed to the Container Registry, they may be deployed to GKE in the same project without any further configuration changes.  To
 make images available publically or across projects, see [this documentation](https://cloud.google.com/container-registry/docs/access-control).
 
-Below is a sample manifest that deploys the Habitat managed container to GKE, pulling the image uploaded in the previous section
+Below is a sample manifest that deploys the Chef Habitat managed container to GKE, pulling the image uploaded in the previous section
 from the Container Registry:
 
 ```
@@ -63,8 +63,8 @@ spec:
 
 This also creates a Kubernetes load balancer service to expose port `8080` from the container to a public IP address on port `80`.
 
-This example assumes [Habitat Operator](https://github.com/habitat-sh/habitat-operator) is running on the Kubernetes cluster but it
-is also possible to deploy using `kubectl` for Habitat packages exported as containers.
+This example assumes [Chef Habitat Operator](https://github.com/habitat-sh/habitat-operator) is running on the Kubernetes cluster but it
+is also possible to deploy using `kubectl` for Chef Habitat packages exported as containers.
 
 
 ## Related Reading

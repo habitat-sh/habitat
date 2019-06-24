@@ -1,11 +1,11 @@
-# <a name="running-habitat-windows-containers" id="running-habitat-windows-containers" data-magellan-target="running-habitat-windows-containers">Running Habitat Windows Containers</a>
+# <a name="running-habitat-windows-containers" id="running-habitat-windows-containers" data-magellan-target="running-habitat-windows-containers">Running Chef Habitat Windows Containers</a>
 
 ## Container Base Image
-Exported Windows images use `microsoft/windowsservercore` as their base. This is the equivelent of a minimal Windows Server 2016 Core install. So you should not expect non default features and roles to be enabled such as IIS or Active Directory. Consider using an `init` hook to install any features needed by your Habitat service.
+Exported Windows images use `microsoft/windowsservercore` as their base. This is the equivelent of a minimal Windows Server 2016 Core install. So you should not expect non default features and roles to be enabled such as IIS or Active Directory. Consider using an `init` hook to install any features needed by your Chef Habitat service.
 
 ## Container Pull and Startup time
 
-The `microsoft/windowsservercore` image is approximately 5GB. Due to this large size, you can expect that the first time you run an exported Habitat service, pulling down the image may take several minutes. This wait should only occur on the very first `docker run` of any Habitat Windows service. Additionally, depending on the Windows host operating system, running the container may also take considerably longer than what one is accustomed to with Linux based containers. This startup time will be highly influenced by the container isolation mode described below.
+The `microsoft/windowsservercore` image is approximately 5GB. Due to this large size, you can expect that the first time you run an exported Chef Habitat service, pulling down the image may take several minutes. This wait should only occur on the very first `docker run` of any Chef Habitat Windows service. Additionally, depending on the Windows host operating system, running the container may also take considerably longer than what one is accustomed to with Linux based containers. This startup time will be highly influenced by the container isolation mode described below.
 
 ## Windows Containers and Host Kernel Isolation
 

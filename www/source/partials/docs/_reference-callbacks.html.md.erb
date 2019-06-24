@@ -1,5 +1,5 @@
 # <a name="reference-callbacks" id="reference-callbacks" data-magellan-target="reference-callbacks">Build Phase Callbacks</a>
-When defining your plan, you can override the default behavior of Habitat in each build phase through a callback. To define a callback, simply create a shell function of the same name in your plan file and then write your script. If you do not want to use the default callback behavior, you must override the callback and `return 0` in the function definition or simply provide no implementation in a `plan.ps1`.
+When defining your plan, you can override the default behavior of Chef Habitat in each build phase through a callback. To define a callback, simply create a shell function of the same name in your plan file and then write your script. If you do not want to use the default callback behavior, you must override the callback and `return 0` in the function definition or simply provide no implementation in a `plan.ps1`.
 
 These callbacks are listed in the order that they executed by the package build script.
 
@@ -16,7 +16,7 @@ Additionally, <a href="/docs/reference/#utility-functions">plan helper functions
 : There is an empty default implementation of this callback.
 
 **do_setup_environment()/Invoke-SetupEnvironment**
-: Use this to declare buildtime and runtime environment variables that overwrite or are in addition to the default environment variables created by Habitat during the build process. Examples of common environment variables you might wish to add or modify are those such as `JAVA_HOME` or `GEM_PATH`. 
+: Use this to declare buildtime and runtime environment variables that overwrite or are in addition to the default environment variables created by Chef Habitat during the build process. Examples of common environment variables you might wish to add or modify are those such as `JAVA_HOME` or `GEM_PATH`. 
 
 > **Note** You do not have to override this callback if you do not wish to modify your environment variables. The build system will always set up your environment according to your dependencies. For example, it will ensure that dependency binaries are always present on your `PATH` variable, and so on.
 
@@ -28,7 +28,7 @@ The buildtime environment is assembled by processing the *runtime* environments 
 * The assembled runtime environment of your package on top of the base
 * Any builtime environment information on top of the assembled runtime environment 
 
-Only the runtime portion of this combined buildtime environment is made available to your package when it is running in a Supervisor (or when it is being used as a dependency of another Habitat package).
+Only the runtime portion of this combined buildtime environment is made available to your package when it is running in a Supervisor (or when it is being used as a dependency of another Chef Habitat package).
 
 To add or modify your environment variables, there are special functions to call within this callback to ensure that the variables are set up appropriately.
 
@@ -59,9 +59,9 @@ Push-RuntimeEnv VARIABLE_NAME VALUE
 Push-BuildtimeEnv VARIABLE_NAME VALUE
 ```
 
-These functions allow you to push a new value onto a multi-valued environment variable without overwriting the existing values. These multi-valued variables are referred to as "aggregate" variables in Habitat. Single-value environment variables are known as "primitive" variables.
+These functions allow you to push a new value onto a multi-valued environment variable without overwriting the existing values. These multi-valued variables are referred to as "aggregate" variables in Chef Habitat. Single-value environment variables are known as "primitive" variables.
 
-By default, Habitat treats all variables as "primitive" variables. If you are working with a value that is actually an "aggregate" type, you must set the following special environment variable somewhere in the top level of your plan.
+By default, Chef Habitat treats all variables as "primitive" variables. If you are working with a value that is actually an "aggregate" type, you must set the following special environment variable somewhere in the top level of your plan.
 
 Bash:
 ```bash
@@ -73,11 +73,11 @@ Powershell:
 $env:HAB_ENV_FOO_TYPE="aggregate"
 ```
  
-Similarly, Habitat defaults to using the colon (`:`) as a separator for aggregate variables on Linux. If the hypothetical `FOO` variable uses a semicolon (`;`) as a separator instead, then you must add `export HAB_ENV_FOO_SEPARATOR=;` at the top level of the plan. On Windows, `;` is the default separator.
+Similarly, Chef Habitat defaults to using the colon (`:`) as a separator for aggregate variables on Linux. If the hypothetical `FOO` variable uses a semicolon (`;`) as a separator instead, then you must add `export HAB_ENV_FOO_SEPARATOR=;` at the top level of the plan. On Windows, `;` is the default separator.
 
-In all cases, when Habitat is assuming a default strategy, it will emit log messages to notify you of that along with instructions on how to change the behavior.
+In all cases, when Chef Habitat is assuming a default strategy, it will emit log messages to notify you of that along with instructions on how to change the behavior.
 
-> **Note** If you discover common environment variables that Habitat doesn't currently treat appropriately, feel free to request an addition to the codebase, or even to submit a pull request yourself.
+> **Note** If you discover common environment variables that Chef Habitat doesn't currently treat appropriately, feel free to request an addition to the codebase, or even to submit a pull request yourself.
 
 **do_before()/Invoke-Before**
 : At this phase of the build, the origin key has been checked for, all package dependencies have been resolved and downloaded, and the `$PATH` and environment are set, but this is just before any source downloading would occur (if `$pkg_source` is set). This could be a suitable phase in which to compute a dynamic version of a package given the state of a Git repository, fire an API call, start timing something, etc.

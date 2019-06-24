@@ -1,18 +1,18 @@
 ---
-title: Habitat - Habitat and the Modern Application
-description: How Habitat includes everything that an app needs, throughout its lifetime, within a Habitat package, including any supporting infrastructure dependencies.
+title: Chef Habitat - Chef Habitat and the Modern Application
+description: How Chef Habitat includes everything that an app needs, throughout its lifetime, within a Chef Habitat package, including any supporting infrastructure dependencies.
 ---
 
-h1 Habitat and the Modern Application
+h1 Chef Habitat and the Modern Application
 
 p In the article,
   #{link_to '"What Is a Modern Application?"', '/about/what-is-modern-app.html'}
   we talked about what characterizes a modern application and how such
   applications can address the problems of complexity and scale. In this
-  article we'll talk about how Habitat lets any application, whether greenfield or legacy,
+  article we'll talk about how Chef Habitat lets any application, whether greenfield or legacy,
    have those characteristics.
 
-p The short version is that Habitat offers a new approach to deploying
+p The short version is that Chef Habitat offers a new approach to deploying
   applications called <em>application automation</em>.
 
 p Application automation means that the automation is packaged with the
@@ -23,52 +23,52 @@ p Application automation means that the automation is packaged with the
   the application.
 
 p Instead of managing the infrastructure and any supporting dependencies
-  separately from the application, Habitat includes everything that an
-  application needs, throughout its lifetime, within a Habitat package.
+  separately from the application, Chef Habitat includes everything that an
+  application needs, throughout its lifetime, within a Chef Habitat package.
 
-p A Habitat package is isolated, immutable, and can establish relationships with
-  peers. Habitat gives developers a straightforward way to describe how an
+p A Chef Habitat package is isolated, immutable, and can establish relationships with
+  peers. Chef Habitat gives developers a straightforward way to describe how an
   application should behave in its eventual infrastructure environment.
-  Habitat also has an outward-facing API that presents a standard interface to
+  Chef Habitat also has an outward-facing API that presents a standard interface to
   the world, so that other components, such as load balancers and monitoring
   solutions, can easily communicate with the application.
 
-p Wrapping any application in a Habitat package gives it the characteristics we
+p Wrapping any application in a Chef Habitat package gives it the characteristics we
   want in a modern application.
 
-h2 Benefits of application automation with Habitat
+h2 Benefits of application automation with Chef Habitat
 
-p Habitat speaks directly to the problem of complexity <em>and</em>
+p Chef Habitat speaks directly to the problem of complexity <em>and</em>
   high-velocity development. It handles all the management tasks that deflect
   teams from focusing on actually developing new products and features. It
   frees legacy applications from being tied to a particular environment, and
   makes them portable and simpler to manage.
 
-p Habitat also promotes collaboration and transparency. The Habitat files that
+p Chef Habitat also promotes collaboration and transparency. The Chef Habitat files that
   describe an application's behavior are human-readable and can be stored in a
   version control system such as Git. They are also simple to write. The API
   presents a clear interface that make it easy for different team members to
   define the areas that concern them most, such as monitoring.
 
-h2 Habitat Details
+h2 Chef Habitat Details
 
-p Habitat is a full-featured runtime with deployment coordination and service
-  discovery capabilities built in. Habitat is comprised of:
+p Chef Habitat is a full-featured runtime with deployment coordination and service
+  discovery capabilities built in. Chef Habitat is comprised of:
 
 ul
   li A packaging format
   li A Supervisor
 
-p The format defines Habitat packages, which are isolated, immutable, and
+p The format defines Chef Habitat packages, which are isolated, immutable, and
   auditable. The term <em>auditable</em> means that the package can keep track
   of what happened to it, who did it, where it happened, how it happened, and
   when. By <em>isolated</em>, we mean that each package contains everything it
   needs to run. There are no outside dependencies. By <em>immutable</em> we
   mean that a particular version of the package never changes. If something
   does change&mdash;including available versions of dependencies&mdash;you
-  create a new Habitat package, which has its own unique identifier.
+  create a new Chef Habitat package, which has its own unique identifier.
 
-p The Habitat Supervisor knows how to take the packages and run them. It's
+p The Chef Habitat Supervisor knows how to take the packages and run them. It's
   aware of the package's peer relationships, its upgrade strategy and security
   policies.
 
@@ -77,24 +77,24 @@ p Security is important because once distributed pieces of an application begin
   have security that's built into the system, not only for policy changes but
   for ongoing compliance.
 
-p In addition, the Habitat ecosystem includes a build service that retrieves
+p In addition, the Chef Habitat ecosystem includes a build service that retrieves
   the source code for a package from a depot and creates the packages. There is
   a cloud-based, public-facing depot maintained by Chef. It is also possible to
-  have a private depot. A Habitat depot is similar to
+  have a private depot. A Chef Habitat depot is similar to
   #{link_to 'Docker Hub', 'https://www.docker.com/products/docker-hub'}
   and the
   #{link_to 'Ubuntu apt service', 'http://manpages.debian.org/cgi-bin/man.cgi?query=apt&sektion=8'}
   .
 
-h2 The Habitat Plan
+h2 The Chef Habitat Plan
 
-p To build a package, Habitat uses a build description, called a <em>plan</em>,
+p To build a package, Chef Habitat uses a build description, called a <em>plan</em>,
   which describes the application, its dependencies, and configuration options.
-  The Habitat build service takes all these components and wraps them into a
+  The Chef Habitat build service takes all these components and wraps them into a
   single, encrypted or signed artifact, which can be configured dynamically
   when the service starts.
 
-p Here is an example of a plan to create a Habitat package for
+p Here is an example of a plan to create a Chef Habitat package for
   #{link_to 'ElasticSearch', 'https://aws.amazon.com/elasticsearch-service/'}
   :
 
@@ -150,9 +150,9 @@ p Build phases, referenced as callbacks, override certain default behaviors such
   functions such as unpacking the archive, verifying its checksum, and
   performing any cleanup work of the archive have not been overridden.
 
-h2 Habitat and the Production Environment
+h2 Chef Habitat and the Production Environment
 
-p Applications packaged by Habitat display the following characteristics in a
+p Applications packaged by Chef Habitat display the following characteristics in a
   production environment:
 
 ul
@@ -165,19 +165,19 @@ ul
   li They can express their state, be monitored, and interact with other
     components.
 
-p The following table summarizes how Habitat creates applications that fulfill
+p The following table summarizes how Chef Habitat creates applications that fulfill
   the requirements of a production environment.
 
 table
   thead
     tr
       th Requirement
-      th Habitat
+      th Chef Habitat
   tbody
     tr
       td Configurable at runtime
-      td Habitat allows you to send in configuration information. If it's
-        correct, Habitat changes the configuration of the service and restarts
+      td Chef Habitat allows you to send in configuration information. If it's
+        correct, Chef Habitat changes the configuration of the service and restarts
         it using a defined update strategy.
     tr
       td Can establish peer relationships
@@ -190,9 +190,9 @@ table
       td The Supervisor has a number of built-in security features. For
         example, it can be set up to use wire encryption when speaking with
         peers in a Supervisor network; it can be set up to trust or distrust
-        Habitat packages signed with a certain origin key; it can trust or
+        Chef Habitat packages signed with a certain origin key; it can trust or
         distrust configuration policy changes applied by users or by other
-        peers. Habitat uses modern cryptography implemented in the
+        peers. Chef Habitat uses modern cryptography implemented in the
         #{link_to 'NaCl', 'http://nacl.cr.yp.to/'}
         (pronounced "Salt") library.
     tr
@@ -206,20 +206,20 @@ table
         without a central orchestrator.
     tr
       td Status
-      td The Habitat Supervisor can determine the state of a service and bring
+      td The Chef Habitat Supervisor can determine the state of a service and bring
         it back up if it is down.
     tr
       td Monitoring, health checks, interactions with other components
-      td The Habitat Supervisor has an HTTP API that exposes information about
+      td The Chef Habitat Supervisor has an HTTP API that exposes information about
         the package it is supervising, as well as any configuration changes it
         has received. The HTTP API also provides a mechanism for monitoring
         systems to invoke health checks defined by the application author when
-        the Habitat package was built. This provides easy integration with
+        the Chef Habitat package was built. This provides easy integration with
         existing monitoring systems such as Nagios or Sensu, or even with
-        entities external to Habitat, such as load balancers.
+        entities external to Chef Habitat, such as load balancers.
 
 <hr>
 <ul class="main-content--button-nav">
-  <li><a href="/about/habitat-and-workload-placement" class="button cta">Next - Habitat and Workload Placement</a></li>
+  <li><a href="/about/habitat-and-workload-placement" class="button cta">Next - Chef Habitat and Workload Placement</a></li>
   <li><a href="/about/why-package-automation-with-app">Back - Why Package the App and Its Automation Together?</a></li>
 </ul>

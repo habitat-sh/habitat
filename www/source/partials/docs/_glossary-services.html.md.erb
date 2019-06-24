@@ -1,6 +1,6 @@
 # <a name="glossary-services" id="glossary-services" data-magellan-target="glossary-services">Services</a>
 
-A service in Habitat is defined as a Habitat package running under a Habitat Supervisor.
+A service in Chef Habitat is defined as a Chef Habitat package running under a Chef Habitat Supervisor.
 
 ## Service Group
 
@@ -12,7 +12,7 @@ A set of one or more running services with a shared configuration and topology m
 
 ## Topology
 
-Habitat allows you to define the topology of your service groups, which bakes in certain behaviors.
+Chef Habitat allows you to define the topology of your service groups, which bakes in certain behaviors.
 
 ### Standalone
 
@@ -20,6 +20,6 @@ This is the default topology, useful for services inside a group that are comple
 
 ### Leader / Follower
 
-This topology allows a distributed application running on at least three Habitat nodes to use a leader/follower configuration. Leaders are elected with Habitat's leader election algorithm, and followers are restarted to reflect a configuration that follows the new leader. Subsequent elections due to leader failure will update both leader and follower configuration data.
+This topology allows a distributed application running on at least three Chef Habitat nodes to use a leader/follower configuration. Leaders are elected with Chef Habitat's leader election algorithm, and followers are restarted to reflect a configuration that follows the new leader. Subsequent elections due to leader failure will update both leader and follower configuration data.
 
 You can read more about the internals behind the elections in our [advanced developer documentation](/docs/internals/#election-internals).

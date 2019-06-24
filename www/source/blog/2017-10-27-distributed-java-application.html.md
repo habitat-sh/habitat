@@ -1,5 +1,5 @@
 ---
-title: "Modernize your Java development workflow with Habitat"
+title: "Modernize your Java development workflow with Chef Habitat"
 date: 2017-10-27
 author: Matt Wrock
 tags: java, tutorial, tomcat, mongodb, docker, packaging

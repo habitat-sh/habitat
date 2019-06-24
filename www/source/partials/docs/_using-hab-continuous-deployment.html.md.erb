@@ -32,7 +32,7 @@ Using the infographic as a guide, a typical continuous deployment scenario would
 
 1. You build a new version of your package either through Builder or through a local Studio environment and then upload it to Builder.
 2. When you are ready to roll out a new version of the package, you promote that package to the channel corresponding to the intended environment (e.g. `dev`). You can have multiple service groups in the same environment pointing to different channels, or the same channel.
-3. An existing set of running Supervisors in that service group see that the channel they are subscribed to has an update, so they update their underlying Habitat package, coordinating with one another per their update strategy, and restart their service.
+3. An existing set of running Supervisors in that service group see that the channel they are subscribed to has an update, so they update their underlying Chef Habitat package, coordinating with one another per their update strategy, and restart their service.
 4. When you are ready, you then promote that version of your package to a new channel (e.g. `acceptance`). The running Supervisors in that group see the update and perform the same service update as in step 3. You repeat steps 3 and 4 until your package makes its way through your continuous deployment pipeline.
 
 Configuring a Supervisor's update strategy to point to a channel ensures that new versions of the application do not get deployed until the channel is updated, thereby preventing unstable versions from reaching environments for which they are not intended.

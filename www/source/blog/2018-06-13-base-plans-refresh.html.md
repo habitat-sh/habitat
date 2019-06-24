@@ -1,5 +1,5 @@
 ---
-title: Base Plans Refresh is Coming to Habitat Core Plans!
+title: Base Plans Refresh is Coming to Chef Habitat Core Plans!
 date: 2018-06-13
 author: Nell Shamrell-Harrington
 tags: Core Plans

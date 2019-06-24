@@ -1,9 +1,9 @@
 ---
-title: Habitat Docs - Working with Builder
-description: Documentation for Habitat uploading, auto-building, and deploying application packages with Habitat Builder.
+title: Chef Habitat Docs - Working with Builder
+description: Documentation for Chef Habitat uploading, auto-building, and deploying application packages with Chef Habitat Builder.
 ---
 # <a name="using-builder" id="using-builder" data-magellan-target="using-builder">Working with Builder</a>
-<a target="_blank" href="https://bldr.habitat.sh/#/sign-in">Habitat Builder</a> allows you to store, automatically build, and deploy your Habitat packages. The documentation below covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
+<a target="_blank" href="https://bldr.habitat.sh/#/sign-in">Chef Habitat Builder</a> allows you to store, automatically build, and deploy your Chef Habitat packages. The documentation below covers everything from creating an account to setting up automated builds and exporting packages to a variety of container registries.
 
 > For a guided walkthrough of this process, try the [Build System demo](/demo/build-system/steps/1/).
 
@@ -26,10 +26,33 @@ description: Documentation for Habitat uploading, auto-building, and deploying a
 ---
 <%= partial "/partials/docs/using-builder-create-origin"%>
 ---
+<<<<<<< HEAD
 <%= partial "/partials/docs/using-builder-origin-keys"%>
 ---
 <%= partial "/partials/docs/using-builder-access-tokens"%>
 ---
+=======
+## <a name="builder-token" id="builder-token" data-magellan-target="builder-token">Generate an Access Token</a>
+
+You can build and run Chef Habitat packages without authenticating to Builder; however some operations, like uploading your packages to Builder, or checking status of your build jobs from the Chef Habitat client, will require an access token.
+
+From the Builder site, select your user icon in the upper right-hand side, and select **Profile**.
+
+<img src="/images/screenshots/profile.png">
+
+At the bottom of the profile page, select **Generate Token**.
+
+<img src="/images/screenshots/generate-token.png">
+
+Copy your token, and then set it in the CLI by running:
+
+```bash
+export HAB_AUTH_TOKEN=<token>
+```
+
+Replacing `<token>` with the contents of your generated token.
+
+>>>>>>> Changed 'Habitat' to 'Chef Habitat' in documentation & blog.
 <%= partial "/partials/docs/using-builder-origin-secrets"%>
 ---
 <%= partial "/partials/docs/dev-pkgs-share"%>
