@@ -358,7 +358,8 @@ impl Header {
     {
         let mut bytes = match version {
             1 => vec![0; HEADER_VERSION_1_SIZE],
-            _ => vec![0; HEADER_VERSION_2_SIZE],
+            2 => vec![0; HEADER_VERSION_2_SIZE],
+            _ => unimplemented!(),
         };
         reader.read_exact(&mut bytes)?;
         Ok(Self::from_bytes(&bytes, version))
