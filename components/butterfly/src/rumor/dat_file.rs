@@ -165,11 +165,14 @@ impl DatFile {
 
     pub fn read_members(&mut self) -> Result<Vec<Membership>> {
         let mut members = Vec::new();
-        debug!("Reading membership rumors from {}", self.path().display());
-        self.read_and_process(self.header.member_offset(), |r| {
-                members.push(Membership::from_bytes(&r)?);
-                Ok(())
-            })?;
+
+        if let Some(offset) = self.header.member_offset() {
+            self.read_and_process(offset, |r| {
+                    members.push(Membership::from_bytes(&r)?);
+                    Ok(())
+                })?;
+        }
+
         Ok(members)
     }
 
@@ -271,7 +274,7 @@ impl DatFile {
     fn write_header<W>(&self, writer: &mut W, header: &Header) -> Result<usize>
         where W: Write
     {
-        let bytes = header.write_to_bytes().unwrap();
+        let bytes = header.write_to_bytes();
         let total = writer.write(&bytes)
                           .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         Ok(total)
@@ -347,13 +350,13 @@ impl DatFile {
 /// The information in this header is used to enable IO seeking operations on a binary dat
 /// file containing rumors exchanged by the butterfly server.
 #[derive(Debug, Default, PartialEq)]
-pub struct Header {
+struct Header {
     offsets: HashMap<String, u64>,
     version: u8,
 }
 
 impl Header {
-    pub fn from_file<R>(reader: &mut R, version: u8) -> io::Result<(u64, Self)>
+    fn from_file<R>(reader: &mut R, version: u8) -> io::Result<(u64, Self)>
         where R: Read
     {
         let mut bytes = match version {
@@ -365,28 +368,24 @@ impl Header {
         Ok(Self::from_bytes(&bytes, version))
     }
 
-    pub fn insert_member_offset(&mut self, offset: u64) {
+    fn insert_member_offset(&mut self, offset: u64) {
         self.offsets
             .insert(Membership::MESSAGE_ID.to_string(), offset);
     }
 
-    pub fn insert_offset_for_rumor(&mut self, message_id: &str, offset: u64) {
+    fn insert_offset_for_rumor(&mut self, message_id: &str, offset: u64) {
         self.offsets.insert(message_id.to_string(), offset);
     }
 
-    pub fn offset_for_rumor(&self, message_id: &str) -> Option<u64> {
+    fn offset_for_rumor(&self, message_id: &str) -> Option<u64> {
         self.offsets.get(message_id).copied()
     }
 
-    pub fn member_offset(&self) -> u64 {
-        *self.offsets
-             .get(Membership::MESSAGE_ID)
-             .expect("Membership offset")
-    }
+    fn member_offset(&self) -> Option<u64> { self.offsets.get(Membership::MESSAGE_ID).copied() }
 
     // Returns the size of the struct in bytes *as written*,
     // along with the struct itself future-proofed to the latest version.
-    pub fn from_bytes(bytes: &[u8], version: u8) -> (u64, Self) {
+    fn from_bytes(bytes: &[u8], version: u8) -> (u64, Self) {
         match version {
             // The version 1 header didn't have the size of the header struct itself
             // embedded within it, so we fake it.
@@ -437,11 +436,12 @@ impl Header {
         }
     }
 
-    pub fn write_to_bytes(&self) -> Result<Vec<u8>> {
+    fn write_to_bytes(&self) -> Vec<u8> {
         let header_size = HEADER_VERSION_2_SIZE;
         let mut bytes = vec![0; header_size];
         LittleEndian::write_u64(&mut bytes[0..8], header_size as u64);
-        LittleEndian::write_u64(&mut bytes[8..16], self.member_offset());
+        LittleEndian::write_u64(&mut bytes[8..16],
+                                self.member_offset().expect("member offset"));
         LittleEndian::write_u64(&mut bytes[16..24],
                                 self.offset_for_rumor(Service::MESSAGE_ID)
                                     .expect("service offset"));
@@ -460,7 +460,7 @@ impl Header {
         LittleEndian::write_u64(&mut bytes[56..64],
                                 self.offset_for_rumor(Departure::MESSAGE_ID)
                                     .expect("departure offset"));
-        Ok(bytes)
+        bytes
     }
 }
 
