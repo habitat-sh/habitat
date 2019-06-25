@@ -378,37 +378,43 @@ impl Hook for PostStopHook {
 /// A lookup of hooks that have changed after compilation.
 #[derive(Default)]
 pub struct HookCompileTable {
-    pub health_check_changed: bool,
-    pub init_changed:         bool,
-    pub file_updated_changed: bool,
-    pub reconfigure_changed:  bool,
-    pub suitability_changed:  bool,
-    pub run_changed:          bool,
-    pub post_run_changed:     bool,
-    pub post_stop_changed:    bool,
+    health_check: bool,
+    init:         bool,
+    file_updated: bool,
+    reconfigure:  bool,
+    suitability:  bool,
+    run:          bool,
+    post_run:     bool,
+    post_stop:    bool,
 }
 
 impl HookCompileTable {
     pub fn new() -> Self { Self::default() }
 
+    pub fn reconfigure_changed(&self) -> bool { self.reconfigure }
+
+    pub fn run_changed(&self) -> bool { self.run }
+
+    pub fn post_run_changed(&self) -> bool { self.post_run }
+
     pub fn changed(&self) -> bool {
         match self {
-            Self { health_check_changed,
-                   init_changed,
-                   file_updated_changed,
-                   reconfigure_changed,
-                   suitability_changed,
-                   run_changed,
-                   post_run_changed,
-                   post_stop_changed, } => {
-                *health_check_changed
-                || *init_changed
-                || *file_updated_changed
-                || *reconfigure_changed
-                || *suitability_changed
-                || *run_changed
-                || *post_run_changed
-                || *post_stop_changed
+            Self { health_check,
+                   init,
+                   file_updated,
+                   reconfigure,
+                   suitability,
+                   run,
+                   post_run,
+                   post_stop, } => {
+                *health_check
+                || *init
+                || *file_updated
+                || *reconfigure
+                || *suitability
+                || *run
+                || *post_run
+                || *post_stop
             }
         }
     }
@@ -463,28 +469,28 @@ impl HookTable {
         debug!("{:?}", self);
         let mut changed = HookCompileTable::new();
         if let Some(ref hook) = self.file_updated {
-            changed.file_updated_changed = self.compile_one(hook, service_group, ctx);
+            changed.file_updated = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.health_check {
-            changed.health_check_changed = self.compile_one(hook.as_ref(), service_group, ctx);
+            changed.health_check = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         if let Some(ref hook) = self.init {
-            changed.init_changed = self.compile_one(hook, service_group, ctx);
+            changed.init = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reconfigure {
-            changed.reconfigure_changed = self.compile_one(hook, service_group, ctx);
+            changed.reconfigure = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.suitability {
-            changed.suitability_changed = self.compile_one(hook, service_group, ctx);
+            changed.suitability = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.run {
-            changed.run_changed = self.compile_one(hook, service_group, ctx);
+            changed.run = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_run {
-            changed.post_run_changed = self.compile_one(hook, service_group, ctx);
+            changed.post_run = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_stop {
-            changed.post_stop_changed = self.compile_one(hook.as_ref(), service_group, ctx);
+            changed.post_stop = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         changed
     }

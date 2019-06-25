@@ -136,12 +136,12 @@ impl TemplateUpdate {
     }
 
     fn needs_restart(&self) -> bool {
-        self.hooks.run_changed
-        || self.hooks.post_run_changed
+        self.hooks.run_changed()
+        || self.hooks.post_run_changed()
         || (!self.have_reconfigure_hook && self.config_changed)
     }
 
-    fn needs_reconfigure(&self) -> bool { self.config_changed || self.hooks.reconfigure_changed }
+    fn needs_reconfigure(&self) -> bool { self.config_changed || self.hooks.reconfigure_changed() }
 
     fn changed(&self) -> bool { self.hooks.changed() || self.config_changed }
 }
