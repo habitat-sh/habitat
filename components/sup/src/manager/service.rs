@@ -18,7 +18,7 @@ mod supervisor;
 mod terminator;
 
 use self::{context::RenderContext,
-           hooks::{HookChangeTable,
+           hooks::{HookCompileTable,
                    HookTable},
            supervisor::Supervisor};
 pub use self::{health::HealthCheckResult,
@@ -118,6 +118,32 @@ enum BindStatus<'a> {
     Satisfied,
     /// An error was encountered determining the status
     Unknown(Error),
+}
+
+/// Encapsulate changes to /hooks or /config.
+#[derive(Default)]
+struct TemplateUpdate {
+    hooks:                 HookCompileTable,
+    config_changed:        bool,
+    have_reconfigure_hook: bool,
+}
+
+impl TemplateUpdate {
+    fn new(hooks: HookCompileTable, config_changed: bool, have_reconfigure_hook: bool) -> Self {
+        Self { hooks,
+               config_changed,
+               have_reconfigure_hook }
+    }
+
+    fn needs_restart(&self) -> bool {
+        self.hooks.run_changed
+        || self.hooks.post_run_changed
+        || (!self.have_reconfigure_hook && self.config_changed)
+    }
+
+    fn needs_reconfigure(&self) -> bool { self.config_changed || self.hooks.reconfigure_changed }
+
+    fn changed(&self) -> bool { self.hooks.changed() || self.config_changed }
 }
 
 #[derive(Debug)]
@@ -448,14 +474,14 @@ impl Service {
             self.validate_binds(census_ring);
         }
 
-        let (svc_updated, hook_update_table, config_change) = self.update_templates(census_ring);
+        let template_update = self.update_templates(census_ring);
         if self.update_service_files(census_ring) {
             self.file_updated();
         }
 
         match self.topology {
             Topology::Standalone => {
-                self.execute_hooks(launcher, executor, hook_update_table, config_change);
+                self.execute_hooks(launcher, executor, &template_update);
             }
             Topology::Leader => {
                 let census_group =
@@ -495,12 +521,12 @@ impl Service {
                                       leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks(launcher, executor, hook_update_table, config_change)
+                        self.execute_hooks(launcher, executor, &template_update)
                     }
                 }
             }
         }
-        if svc_updated {
+        if template_update.changed() {
             // The intention here is to do a health check soon after a
             // service's configuration changes, as a way to (among
             // other things) detect potential impacts when bound
@@ -514,7 +540,7 @@ impl Service {
             self.restart_health_checks(executor);
         }
 
-        svc_updated
+        template_update.changed()
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
@@ -711,14 +737,12 @@ impl Service {
 
     /// Compares the current state of the service to the current state of the census ring and the
     /// user-config, and re-renders all templatable content to disk.
-    ///
-    /// TODO (DM): Comment the return type
-    fn update_templates(&mut self, census_ring: &CensusRing) -> (bool, HookChangeTable, bool) {
+    fn update_templates(&mut self, census_ring: &CensusRing) -> TemplateUpdate {
         let census_group =
             census_ring.census_group_for(&self.service_group)
                        .expect("Service update failed; unable to find own service group");
         let cfg_updated_from_rumors = self.update_gossip(census_group);
-        let cfg_changed = cfg_updated_from_rumors || self.user_config_updated;
+        let template_data_changed = cfg_updated_from_rumors || self.user_config_updated;
 
         if self.user_config_updated {
             if let Err(e) = self.cfg.reload_user() {
@@ -728,13 +752,13 @@ impl Service {
             self.user_config_updated = false;
         }
 
-        // TODO (DM): Do we need to return cfg_changed? What does it actually indicate?
-        // Can we just check if HookChangeTable and config_changed?
-        if cfg_changed || census_ring.changed() {
+        if template_data_changed || census_ring.changed() {
             let ctx = self.render_context(census_ring);
-            (cfg_changed, self.compile_hooks(&ctx), self.compile_configuration(&ctx))
+            TemplateUpdate::new(self.compile_hooks(&ctx),
+                                self.compile_configuration(&ctx),
+                                self.hooks.reconfigure.is_some())
         } else {
-            (cfg_changed, HookChangeTable::new(), false)
+            TemplateUpdate::default()
         }
     }
 
@@ -845,7 +869,7 @@ impl Service {
     /// Helper for compiling hook templates into hooks.
     ///
     /// This function will also perform any necessary post-compilation tasks.
-    fn compile_hooks(&self, ctx: &RenderContext<'_>) -> HookChangeTable {
+    fn compile_hooks(&self, ctx: &RenderContext<'_>) -> HookCompileTable {
         let hook_update_table = self.hooks.compile(&self.service_group, ctx);
         if let Some(err) = self.copy_run().err() {
             outputln!(preamble self.service_group, "Failed to copy run hook: {}", err);
@@ -898,8 +922,7 @@ impl Service {
     fn execute_hooks(&mut self,
                      launcher: &LauncherCli,
                      executor: &TaskExecutor,
-                     hook_update_table: HookChangeTable,
-                     config_change: bool) {
+                     template_update: &TemplateUpdate) {
         if !self.initialized {
             if self.check_process() {
                 self.reattach(executor);
@@ -912,16 +935,13 @@ impl Service {
             }
         } else {
             self.check_process();
-            if hook_update_table.run
-               || hook_update_table.post_run
-               || self.process_down()
-               || (self.hooks.reconfigure.is_none() && config_change)
-            {
+            if self.process_down() || template_update.needs_restart() {
                 // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could just
                 // schedule the `stop` future, but the `Manager` wraps the `stop` future with
                 // additional functionality. Can we refactor to make this flag unnecessary?
                 self.needs_restart = true;
-            } else if config_change || hook_update_table.reconfigure {
+            } else if template_update.needs_reconfigure() {
+                // Only reconfigure if we did NOT restart the service
                 self.reconfigure();
             }
         }
