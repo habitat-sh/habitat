@@ -10,6 +10,8 @@ use crate::error::Result;
 include!("../generated/butterfly.common.rs");
 
 pub trait Message<T: ProstMessage + Default>: FromProto<T> + Clone + Into<T> + Serialize {
+    const MESSAGE_ID: &'static str;
+
     fn from_bytes(bytes: &[u8]) -> Result<Self> {
         let decoded = T::decode(bytes)?;
         Self::from_proto(decoded)

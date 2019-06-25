@@ -1,9 +1,3 @@
-use std::{fmt,
-          str::FromStr};
-
-use bytes::BytesMut;
-use prost::Message as ProstMessage;
-
 pub use crate::protocol::swim::{SwimPayload,
                                 SwimType};
 use crate::{error::{Error,
@@ -14,6 +8,10 @@ use crate::{error::{Error,
             protocol::{self,
                        swim as proto,
                        FromProto}};
+use bytes::BytesMut;
+use prost::Message as ProstMessage;
+use std::{fmt,
+          str::FromStr};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Ack {
@@ -45,7 +43,9 @@ impl FromProto<proto::Swim> for Ack {
     }
 }
 
-impl protocol::Message<proto::Swim> for Ack {}
+impl protocol::Message<proto::Swim> for Ack {
+    const MESSAGE_ID: &'static str = "Ack";
+}
 
 impl From<Ack> for proto::Ack {
     fn from(value: Ack) -> Self {
@@ -130,7 +130,9 @@ impl FromProto<proto::Swim> for Ping {
     }
 }
 
-impl protocol::Message<proto::Swim> for Ping {}
+impl protocol::Message<proto::Swim> for Ping {
+    const MESSAGE_ID: &'static str = "Ping";
+}
 
 impl From<Ping> for proto::Ping {
     fn from(value: Ping) -> Self {
@@ -186,7 +188,9 @@ impl FromProto<proto::Swim> for PingReq {
     }
 }
 
-impl protocol::Message<proto::Swim> for PingReq {}
+impl protocol::Message<proto::Swim> for PingReq {
+    const MESSAGE_ID: &'static str = "PingReq";
+}
 
 impl From<PingReq> for proto::PingReq {
     fn from(value: PingReq) -> Self {

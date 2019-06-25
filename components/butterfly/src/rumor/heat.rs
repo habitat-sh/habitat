@@ -214,6 +214,8 @@ mod tests {
     }
 
     impl protocol::Message<newscast::Rumor> for FakeRumor {
+        const MESSAGE_ID: &'static str = "FakeRumor";
+
         fn from_bytes(_bytes: &[u8]) -> Result<Self> { Ok(FakeRumor::default()) }
 
         fn write_to_bytes(&self) -> Result<Vec<u8>> {

@@ -420,17 +420,19 @@ impl Server {
             if let Some(err) = fs::create_dir_all(path).err() {
                 return Err(Error::BadDataPath(path.to_path_buf(), err));
             }
-            let mut file = DatFile::new(&self.member_id, path);
-            if file.path().exists() {
-                match file.read_into_mlr(self) {
-                    Ok(_) => {
-                        debug!("Successfully ingested rumors from {}",
-                               file.path().display())
-                    }
-                    Err(Error::DatFileIO(path, err)) => error!("{}", Error::DatFileIO(path, err)),
-                    Err(err) => return Err(err),
-                };
-            }
+
+            let dat_path = path.join(format!("{}.rst", &self.member_id));
+            let mut file = DatFile::read_or_create(dat_path, &self)?;
+
+            match file.read_into_mlr(self) {
+                Ok(_) => {
+                    debug!("Successfully ingested rumors from {}",
+                           file.path().display())
+                }
+                Err(Error::DatFileIO(path, err)) => error!("{}", Error::DatFileIO(path, err)),
+                Err(err) => return Err(err),
+            };
+
             self.dat_file = Some(Arc::new(Mutex::new(file)));
 
             {
@@ -1670,6 +1672,7 @@ mod tests {
         fn new() { start_server(); }
 
         #[test]
+        #[should_panic]
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);

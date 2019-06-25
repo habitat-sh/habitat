@@ -4,8 +4,6 @@
 //! happens, we ensure that the member can no longer come back into the fold, unless an
 //! administrator reverses the decision.
 
-use std::cmp::Ordering;
-
 use crate::{error::{Error,
                     Result},
             protocol::{self,
@@ -15,17 +13,27 @@ use crate::{error::{Error,
             rumor::{Rumor,
                     RumorPayload,
                     RumorType}};
+use std::{cmp::Ordering,
+          fmt};
 
 #[derive(Debug, Clone, Serialize)]
 pub struct Departure {
     pub member_id: String,
 }
 
+impl fmt::Display for Departure {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Departure m/{}", self.member_id)
+    }
+}
+
 impl Departure {
     pub fn new(member_id: &str) -> Self { Departure { member_id: member_id.to_string(), } }
 }
 
-impl protocol::Message<ProtoRumor> for Departure {}
+impl protocol::Message<ProtoRumor> for Departure {
+    const MESSAGE_ID: &'static str = "Departure";
+}
 
 impl FromProto<ProtoRumor> for Departure {
     fn from_proto(rumor: ProtoRumor) -> Result<Self> {
