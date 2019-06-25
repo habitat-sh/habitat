@@ -162,7 +162,9 @@ pub struct Service {
     pub initialized:         bool,
     pub user_config_updated: bool,
     pub shutdown_timeout:    Option<ShutdownTimeout>,
-    pub needs_restart:       bool,
+    // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
+    // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
+    pub needs_restart: bool,
 
     config_renderer: CfgRenderer,
     // Note: This field is really only needed for serializing a
