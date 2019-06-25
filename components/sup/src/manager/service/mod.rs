@@ -12,7 +12,6 @@ mod context;
 mod health;
 mod hook_runner;
 mod hooks;
-mod spawned_future;
 pub mod spec;
 mod supervisor;
 mod terminator;

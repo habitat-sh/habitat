@@ -56,7 +56,7 @@ impl Default for ExitCode {
 //
 // Future refactorings may make these changes unnecessary, but it
 // helps us bridge the gap
-pub trait Hook: fmt::Debug + Sized + Send {
+pub trait Hook: fmt::Debug + Sized + Send + Sync {
     type ExitValue: Default + fmt::Debug + Send;
 
     fn file_name() -> &'static str;
