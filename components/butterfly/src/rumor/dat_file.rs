@@ -64,7 +64,10 @@ pub struct DatFile {
 }
 
 impl DatFile {
-    pub fn read_or_create(data_path: PathBuf, server: &Server) -> Result<Self> {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn read_or_create_mlr(data_path: PathBuf, server: &Server) -> Result<Self> {
         let file = OpenOptions::new().create(true)
                                      .read(true)
                                      .write(true)
@@ -80,7 +83,7 @@ impl DatFile {
                                      reader };
 
         if size == 0 {
-            dat_file.write(server)?;
+            dat_file.write_mlr(server)?;
         }
 
         dat_file.read_header()?;
@@ -185,17 +188,20 @@ impl DatFile {
         Ok(members)
     }
 
-    pub fn read_into_mlr(&mut self, server: &Server) -> Result<()> {
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn read_into_mlw(&mut self, server: &Server) -> Result<()> {
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
         for Membership { member, health } in self.read_members()? {
-            server.insert_member(member, health);
+            server.insert_member_mlw(member, health);
         }
 
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
         for service in self.read_rumors::<Service>()? {
-            server.insert_service(service);
+            server.insert_service_mlw(service);
         }
 
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
@@ -225,7 +231,7 @@ impl DatFile {
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
         for departure in self.read_rumors::<Departure>()? {
-            server.insert_departure(departure);
+            server.insert_departure_mlw(departure);
         }
 
         Ok(())
@@ -234,7 +240,7 @@ impl DatFile {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    pub fn write(&self, server: &Server) -> Result<usize> {
+    pub fn write_mlr(&self, server: &Server) -> Result<usize> {
         let mut header = Header::default();
         let w =
             AtomicWriter::new(&self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;

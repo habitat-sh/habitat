@@ -117,9 +117,9 @@ fn run_loop(server: &Server) -> ! {
         trace_it!(GOSSIP: server, TraceKind::RecvRumor, &proto.from_id, &proto);
         match proto.kind {
             RumorKind::Membership(membership) => {
-                server.insert_member_from_rumor(membership.member, membership.health);
+                server.insert_member_from_rumor_mlw(membership.member, membership.health);
             }
-            RumorKind::Service(service) => server.insert_service(*service),
+            RumorKind::Service(service) => server.insert_service_mlw(*service),
             RumorKind::ServiceConfig(service_config) => {
                 server.insert_service_config(service_config);
             }
@@ -133,7 +133,7 @@ fn run_loop(server: &Server) -> ! {
                 server.insert_update_election_mlr(election);
             }
             RumorKind::Departure(departure) => {
-                server.insert_departure(departure);
+                server.insert_departure_mlw(departure);
             }
         }
     }

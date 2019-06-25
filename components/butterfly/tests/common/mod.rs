@@ -61,7 +61,7 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                                  Some(String::from(name)),
                                  None,
                                  Box::new(NSuitability(suitability))).unwrap();
-    server.start_mlr(&Timing::default())
+    server.start_mlw(&Timing::default())
           .expect("Cannot start server");
     server
 }
@@ -124,7 +124,7 @@ impl SwimNet {
     pub fn connect(&mut self, from_entry: usize, to_entry: usize) {
         let to = member_from_server(&self.members[to_entry]);
         trace_it!(TEST: &self.members[from_entry], format!("Connected {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
-        self.members[from_entry].insert_member(to, Health::Alive);
+        self.members[from_entry].insert_member_mlw(to, Health::Alive);
     }
 
     // Fully mesh the network
@@ -139,7 +139,7 @@ impl SwimNet {
                 to_mesh.push(member_from_server(&self.members[x_pos]))
             }
             for server_b in to_mesh.into_iter() {
-                self.members[pos].insert_member(server_b, Health::Alive);
+                self.members[pos].insert_member_mlw(server_b, Health::Alive);
             }
         }
     }
@@ -436,7 +436,7 @@ impl SwimNet {
                              sg,
                              SysInfo::default(),
                              None);
-        self[member].insert_service(s);
+        self[member].insert_service_mlw(s);
     }
 
     pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
@@ -458,11 +458,12 @@ impl SwimNet {
 
     pub fn add_departure(&mut self, member: usize) {
         let d = Departure::new(self[member].member_id());
-        self[member].insert_departure(d);
+        self[member].insert_departure_mlw(d);
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election(&ServiceGroup::new(None, service, "prod", None).unwrap(), 0);
+        self[member].start_election_mlr(&ServiceGroup::new(None, service, "prod", None).unwrap(),
+                                        0);
     }
 }
 

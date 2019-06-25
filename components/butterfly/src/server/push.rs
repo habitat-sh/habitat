@@ -88,8 +88,8 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                         let sc = server.clone();
                         let guard = match thread::Builder::new().name(String::from("push-worker"))
                                                                 .spawn(move || {
-                                                                    send_rumors(&sc, &member,
-                                                                                &rumors)
+                                                                    send_rumors_mlr(&sc, &member,
+                                                                                    &rumors)
                                                                 }) {
                             Ok(guard) => guard,
                             Err(e) => {
@@ -135,7 +135,7 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
 // but changing it in the absence of other necessity seems like too much risk for the
 // expected reward.
 #[allow(clippy::cognitive_complexity)]
-fn send_rumors(server: &Server, member: &Member, rumors: &[RumorKey]) {
+fn send_rumors_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
     let socket = (**ZMQ_CONTEXT).as_mut()
                                 .socket(zmq::PUSH)
                                 .expect("Failure to create the ZMQ push socket");
