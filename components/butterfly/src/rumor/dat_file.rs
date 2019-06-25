@@ -84,9 +84,10 @@ impl DatFile {
 
         if size == 0 {
             dat_file.write_mlr(server)?;
+        } else {
+            dat_file.read_header()?;
         }
 
-        dat_file.read_header()?;
         Ok(dat_file)
     }
 
