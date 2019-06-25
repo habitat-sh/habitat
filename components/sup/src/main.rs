@@ -79,7 +79,7 @@ fn main() {
     logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
-    let result = start_mlr(flags);
+    let result = start_mlw_imlw_rsr(flags);
     let exit_code = match result {
         Ok(_) => 0,
         Err(ref err) => {
@@ -111,9 +111,13 @@ fn boot() -> Option<LauncherCli> {
 }
 
 /// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
-fn start_mlr(feature_flags: FeatureFlag) -> Result<()> {
+/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+///   lock is held.
+/// * `MemberList::intitial_entries` (write) This method must not be called while any
+///   MemberList::intitial_entries lock is held.
+/// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock is
+///   held.
+fn start_mlw_imlw_rsr(feature_flags: FeatureFlag) -> Result<()> {
     if feature_flags.contains(FeatureFlag::TEST_BOOT_FAIL) {
         outputln!("Simulating boot failure");
         return Err(Error::TestBootFail);
@@ -143,7 +147,7 @@ fn start_mlr(feature_flags: FeatureFlag) -> Result<()> {
         ("bash", Some(_)) => sub_bash(),
         ("run", Some(m)) => {
             let launcher = launcher.ok_or(Error::NoLauncher)?;
-            sub_run_mlw_imlw(m, launcher, feature_flags)
+            sub_run_mlw_imlw_rsr(m, launcher, feature_flags)
         }
         ("sh", Some(_)) => sub_sh(),
         ("term", Some(_)) => sub_term(),
@@ -158,10 +162,12 @@ fn sub_bash() -> Result<()> { command::shell::bash() }
 ///   lock is held.
 /// * `MemberList::intitial_entries` (write) This method must not be called while any
 ///   MemberList::intitial_entries lock is held.
-fn sub_run_mlw_imlw(m: &ArgMatches,
-                    launcher: LauncherCli,
-                    feature_flags: FeatureFlag)
-                    -> Result<()> {
+/// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock is
+///   held.
+fn sub_run_mlw_imlw_rsr(m: &ArgMatches,
+                        launcher: LauncherCli,
+                        feature_flags: FeatureFlag)
+                        -> Result<()> {
     set_supervisor_logging_options(m);
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
@@ -198,7 +204,7 @@ fn sub_run_mlw_imlw(m: &ArgMatches,
     } else {
         None
     };
-    manager.run_mlw_imlw(svc)
+    manager.run_mlw_imlw_rsr(svc)
 }
 
 fn sub_sh() -> Result<()> { command::shell::sh() }

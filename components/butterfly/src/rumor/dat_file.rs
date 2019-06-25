@@ -72,16 +72,18 @@ impl DatFileReader {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
     #[allow(clippy::too_many_arguments)]
-    pub fn read_or_create_mlr(data_path: PathBuf,
-                              member_list: &MemberList,
-                              service_store: &RumorStore<Service>,
-                              service_config_store: &RumorStore<ServiceConfig>,
-                              service_file_store: &RumorStore<ServiceFile>,
-                              election_store: &RumorStore<Election>,
-                              update_store: &RumorStore<ElectionUpdate>,
-                              departure_store: &RumorStore<Departure>)
-                              -> Result<Self> {
+    pub fn read_or_create_mlr_rsr(data_path: PathBuf,
+                                  member_list: &MemberList,
+                                  service_store: &RumorStore<Service>,
+                                  service_config_store: &RumorStore<ServiceConfig>,
+                                  service_file_store: &RumorStore<ServiceFile>,
+                                  election_store: &RumorStore<Election>,
+                                  update_store: &RumorStore<ElectionUpdate>,
+                                  departure_store: &RumorStore<Departure>)
+                                  -> Result<Self> {
         let size = OpenOptions::new().create(true)
                                      .read(true)
                                      .write(true)
@@ -92,13 +94,13 @@ impl DatFileReader {
                                      .len();
 
         if size == 0 {
-            DatFileWriter::new(data_path.clone()).write_mlr(member_list,
-                                                            service_store,
-                                                            service_config_store,
-                                                            service_file_store,
-                                                            election_store,
-                                                            update_store,
-                                                            departure_store)?;
+            DatFileWriter::new(data_path.clone()).write_mlr_rsr(member_list,
+                                                                service_store,
+                                                                service_config_store,
+                                                                service_file_store,
+                                                                election_store,
+                                                                update_store,
+                                                                departure_store)?;
         }
 
         Self::reader_creation(data_path)
@@ -191,16 +193,18 @@ impl DatFileWriter {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
     #[allow(clippy::too_many_arguments)]
-    pub fn write_mlr(&self,
-                     member_list: &MemberList,
-                     service_store: &RumorStore<Service>,
-                     service_config_store: &RumorStore<ServiceConfig>,
-                     service_file_store: &RumorStore<ServiceFile>,
-                     election_store: &RumorStore<Election>,
-                     update_store: &RumorStore<ElectionUpdate>,
-                     departure_store: &RumorStore<Departure>)
-                     -> Result<usize> {
+    pub fn write_mlr_rsr(&self,
+                         member_list: &MemberList,
+                         service_store: &RumorStore<Service>,
+                         service_config_store: &RumorStore<ServiceConfig>,
+                         service_file_store: &RumorStore<ServiceFile>,
+                         election_store: &RumorStore<Election>,
+                         update_store: &RumorStore<ElectionUpdate>,
+                         departure_store: &RumorStore<Departure>)
+                         -> Result<usize> {
         let mut header = Header::default();
         let w = AtomicWriter::new(self.path()).map_err(|err| {
                                                   Error::DatFileIO(self.path().to_path_buf(), err)
@@ -214,19 +218,22 @@ impl DatFileWriter {
                    .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
              header.insert_member_offset(self.write_member_list_mlr(&mut writer, member_list)?);
              header.insert_offset_for_rumor(Service::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer, service_store)?);
+                                            self.write_rumor_store_rsr(&mut writer,
+                                                                       service_store)?);
              header.insert_offset_for_rumor(ServiceConfig::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer,
-                                                                   service_config_store)?);
+                                            self.write_rumor_store_rsr(&mut writer,
+                                                                       service_config_store)?);
              header.insert_offset_for_rumor(ServiceFile::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer,
-                                                                   service_file_store)?);
+                                            self.write_rumor_store_rsr(&mut writer,
+                                                                       service_file_store)?);
              header.insert_offset_for_rumor(Election::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer, election_store)?);
+                                            self.write_rumor_store_rsr(&mut writer,
+                                                                       election_store)?);
              header.insert_offset_for_rumor(ElectionUpdate::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer, update_store)?);
+                                            self.write_rumor_store_rsr(&mut writer, update_store)?);
              header.insert_offset_for_rumor(Departure::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer, departure_store)?);
+                                            self.write_rumor_store_rsr(&mut writer,
+                                                                       departure_store)?);
              writer.seek(SeekFrom::Start(1))?;
              self.write_header(&mut writer, &header)?;
              writer.flush()?;
@@ -279,15 +286,16 @@ impl DatFileWriter {
         Ok(total)
     }
 
-    fn write_rumor_store<T, W>(&self, writer: &mut W, store: &RumorStore<T>) -> Result<u64>
+    /// # Locking
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    fn write_rumor_store_rsr<T, W>(&self, writer: &mut W, store: &RumorStore<T>) -> Result<u64>
         where T: Rumor,
               W: Write
     {
         let mut total = 0;
-        for member in store.list.read().values() {
-            for rumor in member.values() {
-                total += self.write_rumor(writer, rumor)?;
-            }
+        for rumor in store.lock_rsr().rumors() {
+            total += self.write_rumor(writer, rumor)?;
         }
         Ok(total)
     }

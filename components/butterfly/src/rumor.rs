@@ -20,14 +20,10 @@ use crate::{error::{Error,
             protocol::{FromProto,
                        Message}};
 use bytes::BytesMut;
-use habitat_common::sync::Lock;
 use prometheus::IntCounterVec;
 use prost::Message as ProstMessage;
-use serde::{ser::{SerializeMap,
-                  SerializeSeq,
-                  SerializeStruct},
-            Serialize,
-            Serializer};
+use serde::{self,
+            Serialize};
 use std::{collections::{hash_map::Entry,
                         HashMap},
           default::Default,
@@ -41,7 +37,9 @@ pub use self::{departure::Departure,
                           ElectionUpdate},
                service::Service,
                service_config::ServiceConfig,
-               service_file::ServiceFile};
+               service_file::ServiceFile,
+               storage::{RumorStore,
+                         RumorStoreProxy}};
 pub use crate::protocol::newscast::{Rumor as ProtoRumor,
                                     RumorPayload,
                                     RumorType};
@@ -119,324 +117,363 @@ impl<'a, T: Rumor> From<&'a T> for RumorKey {
 
 type ServiceGroupName = String;
 type MemberId = String;
+type RumorMap<T> = HashMap<ServiceGroupName, HashMap<MemberId, T>>;
 
-/// Storage for Rumors. It takes a rumor and stores it according to the member that produced it,
-/// and the service group it is related to.
-///
-/// Generic over the type of rumor it stores.
-#[derive(Debug, Clone)]
-pub struct RumorStore<T: Rumor> {
-    list:           Arc<Lock<HashMap<ServiceGroupName, HashMap<MemberId, T>>>>,
-    update_counter: Arc<AtomicUsize>,
-}
+/// To keep the details of the locking from being directly accessible to all the code in the
+/// rumor submodule.
+mod storage {
+    use super::*;
+    use habitat_common::sync::{Lock,
+                               ReadGuard};
+    use serde::{ser::{SerializeMap,
+                      SerializeSeq,
+                      SerializeStruct},
+                Serialize,
+                Serializer};
 
-impl<T: Rumor> RumorStore<T> {
-    pub fn get_rumor_cloned(&self, service_group: &str, member_id: &str) -> Option<T> {
-        self.list
-            .read()
-            .get(service_group)
-            .and_then(|sg_rumors| sg_rumors.get(member_id))
-            .cloned()
+    pub struct IterableGuard<'a, T>(ReadGuard<'a, T>);
+
+    impl<'a, R> IterableGuard<'a, RumorMap<R>> {
+        pub fn read(lock: &'a Lock<RumorMap<R>>) -> Self { IterableGuard(lock.read()) }
+
+        // pub fn values(&self) -> impl Iterator<Item = &HashMap<MemberId, R>> { self.0.values() }
+
+        pub fn rumors(&self) -> impl Iterator<Item = &R> {
+            self.0.values().map(HashMap::values).flatten()
+        }
+
+        // TODO remove and implement Deref
+        pub fn len(&self) -> usize { self.0.len() }
     }
-}
 
-impl<T> Default for RumorStore<T> where T: Rumor
-{
-    fn default() -> RumorStore<T> {
-        RumorStore { list:           Arc::default(),
-                     update_counter: Arc::default(), }
+    /// Storage for Rumors. It takes a rumor and stores it according to the member that produced it,
+    /// and the service group it is related to.
+    ///
+    /// Generic over the type of rumor it stores.
+    #[derive(Debug, Clone)]
+    pub struct RumorStore<T: Rumor> {
+        // TODO remove pub
+        pub list:       Arc<Lock<RumorMap<T>>>,
+        update_counter: Arc<AtomicUsize>,
     }
-}
 
-impl<T> Serialize for RumorStore<T> where T: Rumor
-{
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    impl<T: Rumor> RumorStore<T> {
+        pub fn get_rumor_cloned(&self, service_group: &str, member_id: &str) -> Option<T> {
+            self.list
+                .read()
+                .get(service_group)
+                .and_then(|sg_rumors| sg_rumors.get(member_id))
+                .cloned()
+        }
+
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
+        pub fn lock_rsr(&self) -> IterableGuard<RumorMap<T>> { IterableGuard::read(&self.list) }
+    }
+
+    impl<T> Default for RumorStore<T> where T: Rumor
     {
-        let mut strukt = serializer.serialize_struct("rumor_store", 2)?;
-        strukt.serialize_field("list", &*(self.list.read()))?;
-        strukt.serialize_field("update_counter", &self.get_update_counter())?;
-        strukt.end()
+        fn default() -> RumorStore<T> {
+            RumorStore { list:           Arc::default(),
+                         update_counter: Arc::default(), }
+        }
     }
-}
 
-/// This proxy wraps a RumorStore so that we can control its serialization at a more granular
-/// level. Note that we don't implement a generic version of this, on purpose. Rather, due to the
-/// interaction between the 'key()' and 'id()' functions on the Rumor trait, each rumor type needs
-/// to be custom serialized if we want to avoid irrelevant implementation details leaking into the
-/// JSON output.
-pub struct RumorStoreProxy<'a, T: Rumor>(&'a RumorStore<T>);
-
-impl<'a, T> RumorStoreProxy<'a, T> where T: Rumor
-{
-    pub fn new(r: &'a RumorStore<T>) -> Self { RumorStoreProxy(r) }
-}
-
-impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
+    // TODO move this outside the storage module
+    impl<T> Serialize for RumorStore<T> where T: Rumor
     {
-        let map = self.0.list.read();
-        let inner_map = map.get("departure");
-        let len = if inner_map.is_some() {
-            inner_map.unwrap().len()
-        } else {
-            0
-        };
+        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+            where S: Serializer
+        {
+            let mut strukt = serializer.serialize_struct("rumor_store", 2)?;
+            strukt.serialize_field("list", &*(self.list.read()))?;
+            strukt.serialize_field("update_counter", &self.get_update_counter())?;
+            strukt.end()
+        }
+    }
 
-        let mut s = serializer.serialize_seq(Some(len))?;
+    /// This proxy wraps a RumorStore so that we can control its serialization at a more granular
+    /// level. Note that we don't implement a generic version of this, on purpose. Rather, due to
+    /// the interaction between the 'key()' and 'id()' functions on the Rumor trait, each rumor
+    /// type needs to be custom serialized if we want to avoid irrelevant implementation details
+    /// leaking into the JSON output.
+    pub struct RumorStoreProxy<'a, T: Rumor>(&'a RumorStore<T>);
 
-        if inner_map.is_some() {
-            for k in inner_map.unwrap().keys() {
-                s.serialize_element(k)?;
+    impl<'a, T> RumorStoreProxy<'a, T> where T: Rumor
+    {
+        pub fn new(r: &'a RumorStore<T>) -> Self { RumorStoreProxy(r) }
+    }
+
+    impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
+        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+            where S: Serializer
+        {
+            let map = self.0.list.read();
+            let inner_map = map.get("departure");
+            let len = if inner_map.is_some() {
+                inner_map.unwrap().len()
+            } else {
+                0
+            };
+
+            let mut s = serializer.serialize_seq(Some(len))?;
+
+            if inner_map.is_some() {
+                for k in inner_map.unwrap().keys() {
+                    s.serialize_element(k)?;
+                }
+            }
+
+            s.end()
+        }
+    }
+
+    impl<'a> Serialize for RumorStoreProxy<'a, Election> {
+        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+            where S: Serializer
+        {
+            let map = self.0.list.read();
+            let mut new_map = HashMap::new();
+
+            for (k, v) in map.iter() {
+                let election = v.get("election");
+                let _service_group = new_map.entry(k).or_insert(election);
+            }
+
+            let mut m = serializer.serialize_map(Some(new_map.len()))?;
+
+            for (key, val) in new_map {
+                m.serialize_entry(key, &val)?;
+            }
+
+            m.end()
+        }
+    }
+
+    // This is the same as Election =/
+    impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
+        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+            where S: Serializer
+        {
+            let map = self.0.list.read();
+            let mut new_map = HashMap::new();
+
+            for (k, v) in map.iter() {
+                let election = v.get("election");
+                let _service_group = new_map.entry(k).or_insert(election);
+            }
+
+            let mut m = serializer.serialize_map(Some(new_map.len()))?;
+
+            for (key, val) in new_map {
+                m.serialize_entry(key, &val)?;
+            }
+
+            m.end()
+        }
+    }
+
+    impl<'a> Serialize for RumorStoreProxy<'a, Service> {
+        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+            where S: Serializer
+        {
+            let map = self.0.list.read();
+            let mut m = serializer.serialize_map(Some(map.len()))?;
+
+            for (key, val) in map.iter() {
+                m.serialize_entry(key, &val)?;
+            }
+
+            m.end()
+        }
+    }
+
+    impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
+        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+            where S: Serializer
+        {
+            let map = self.0.list.read();
+            let mut new_map = HashMap::new();
+
+            for (k, v) in map.iter() {
+                let service_config = v.get("service_config");
+                let _service_group = new_map.entry(k).or_insert(service_config);
+            }
+
+            let mut m = serializer.serialize_map(Some(new_map.len()))?;
+
+            for (key, val) in new_map {
+                m.serialize_entry(key, &val)?;
+            }
+
+            m.end()
+        }
+    }
+
+    impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
+        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
+            where S: Serializer
+        {
+            let map = self.0.list.read();
+            let mut m = serializer.serialize_map(Some(map.len()))?;
+
+            for (key, val) in map.iter() {
+                m.serialize_entry(key, &val)?;
+            }
+
+            m.end()
+        }
+    }
+
+    impl<T> RumorStore<T> where T: Rumor
+    {
+        /// Create a new RumorStore for the given type. Allows you to initialize the counter to a
+        /// pre-set value. Useful mainly in testing.
+        pub fn new(counter: usize) -> RumorStore<T> {
+            RumorStore { update_counter: Arc::new(AtomicUsize::new(counter)),
+                         ..Default::default() }
+        }
+
+        /// Clear all rumors and reset update counter of RumorStore.
+        pub fn clear(&self) -> usize {
+            let mut list = self.list.write();
+            list.clear();
+            self.update_counter.swap(0, Ordering::Relaxed)
+        }
+
+        pub fn encode(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
+            let list = self.list.read();
+            match list.get(key).and_then(|l| l.get(member_id)) {
+                Some(rumor) => rumor.clone().write_to_bytes(),
+                None => Err(Error::NonExistentRumor(String::from(member_id), String::from(key))),
             }
         }
 
-        s.end()
-    }
-}
+        pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
 
-impl<'a> Serialize for RumorStoreProxy<'a, Election> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let map = self.0.list.read();
-        let mut new_map = HashMap::new();
-
-        for (k, v) in map.iter() {
-            let election = v.get("election");
-            let _service_group = new_map.entry(k).or_insert(election);
+        /// Returns the count of all rumors in the rumor store for the given member's key.
+        pub fn len_for_key(&self, key: &str) -> usize {
+            let list = self.list.read();
+            list.get(key).map_or(0, HashMap::len)
         }
 
-        let mut m = serializer.serialize_map(Some(new_map.len()))?;
-
-        for (key, val) in new_map {
-            m.serialize_entry(key, &val)?;
-        }
-
-        m.end()
-    }
-}
-
-// This is the same as Election =/
-impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let map = self.0.list.read();
-        let mut new_map = HashMap::new();
-
-        for (k, v) in map.iter() {
-            let election = v.get("election");
-            let _service_group = new_map.entry(k).or_insert(election);
-        }
-
-        let mut m = serializer.serialize_map(Some(new_map.len()))?;
-
-        for (key, val) in new_map {
-            m.serialize_entry(key, &val)?;
-        }
-
-        m.end()
-    }
-}
-
-impl<'a> Serialize for RumorStoreProxy<'a, Service> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let map = self.0.list.read();
-        let mut m = serializer.serialize_map(Some(map.len()))?;
-
-        for (key, val) in map.iter() {
-            m.serialize_entry(key, &val)?;
-        }
-
-        m.end()
-    }
-}
-
-impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let map = self.0.list.read();
-        let mut new_map = HashMap::new();
-
-        for (k, v) in map.iter() {
-            let service_config = v.get("service_config");
-            let _service_group = new_map.entry(k).or_insert(service_config);
-        }
-
-        let mut m = serializer.serialize_map(Some(new_map.len()))?;
-
-        for (key, val) in new_map {
-            m.serialize_entry(key, &val)?;
-        }
-
-        m.end()
-    }
-}
-
-impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
-    fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-        where S: Serializer
-    {
-        let map = self.0.list.read();
-        let mut m = serializer.serialize_map(Some(map.len()))?;
-
-        for (key, val) in map.iter() {
-            m.serialize_entry(key, &val)?;
-        }
-
-        m.end()
-    }
-}
-
-impl<T> RumorStore<T> where T: Rumor
-{
-    /// Create a new RumorStore for the given type. Allows you to initialize the counter to a
-    /// pre-set value. Useful mainly in testing.
-    pub fn new(counter: usize) -> RumorStore<T> {
-        RumorStore { update_counter: Arc::new(AtomicUsize::new(counter)),
-                     ..Default::default() }
-    }
-
-    /// Clear all rumors and reset update counter of RumorStore.
-    pub fn clear(&self) -> usize {
-        let mut list = self.list.write();
-        list.clear();
-        self.update_counter.swap(0, Ordering::Relaxed)
-    }
-
-    pub fn encode(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
-        let list = self.list.read();
-        match list.get(key).and_then(|l| l.get(member_id)) {
-            Some(rumor) => rumor.clone().write_to_bytes(),
-            None => Err(Error::NonExistentRumor(String::from(member_id), String::from(key))),
-        }
-    }
-
-    pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
-
-    /// Returns the count of all rumors in the rumor store for the given member's key.
-    pub fn len_for_key(&self, key: &str) -> usize {
-        let list = self.list.read();
-        list.get(key).map_or(0, HashMap::len)
-    }
-
-    /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
-    /// mutated; if nothing changed, returns false.
-    pub fn insert(&self, rumor: T) -> bool {
-        let mut list = self.list.write();
-        let rumors = list.entry(String::from(rumor.key()))
-                         .or_insert_with(HashMap::new);
-        let kind_ignored_count =
-            IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
-        // Result reveals if there was a change so we can increment the counter if needed.
-        let result = match rumors.entry(rumor.id().into()) {
-            Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
-            Entry::Vacant(entry) => {
-                entry.insert(rumor);
-                true
+        /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
+        /// mutated; if nothing changed, returns false.
+        pub fn insert(&self, rumor: T) -> bool {
+            let mut list = self.list.write();
+            let rumors = list.entry(String::from(rumor.key()))
+                             .or_insert_with(HashMap::new);
+            let kind_ignored_count =
+                IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
+            // Result reveals if there was a change so we can increment the counter if needed.
+            let result = match rumors.entry(rumor.id().into()) {
+                Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
+                Entry::Vacant(entry) => {
+                    entry.insert(rumor);
+                    true
+                }
+            };
+            if result {
+                self.increment_update_counter();
+            } else {
+                // If we get here, it means nothing changed, which means we effectively ignored the
+                // rumor. Let's track that.
+                kind_ignored_count.inc();
             }
-        };
-        if result {
-            self.increment_update_counter();
-        } else {
-            // If we get here, it means nothing changed, which means we effectively ignored the
-            // rumor. Let's track that.
-            kind_ignored_count.inc();
+            result
         }
-        result
-    }
 
-    pub fn remove(&self, key: &str, id: &str) {
-        let mut list = self.list.write();
-        list.get_mut(key).and_then(|r| r.remove(id));
-    }
-
-    pub fn with_keys<F>(&self, mut with_closure: F)
-        where F: FnMut((&String, &HashMap<String, T>))
-    {
-        let list = self.list.read();
-        for x in list.iter() {
-            with_closure(x);
+        pub fn remove(&self, key: &str, id: &str) {
+            let mut list = self.list.write();
+            list.get_mut(key).and_then(|r| r.remove(id));
         }
-    }
 
-    pub fn with_rumors<F>(&self, key: &str, mut with_closure: F)
-        where F: FnMut(&T)
-    {
-        let list = self.list.read();
-        if list.contains_key(key) {
-            for x in list.get(key).unwrap().values() {
+        pub fn with_keys<F>(&self, mut with_closure: F)
+            where F: FnMut((&String, &HashMap<String, T>))
+        {
+            let list = self.list.read();
+            for x in list.iter() {
                 with_closure(x);
             }
         }
-    }
 
-    pub fn with_rumor<F>(&self, key: &str, member_id: &str, mut with_closure: F)
-        where F: FnMut(&T)
-    {
-        let list = self.list.read();
-        if let Some(sublist) = list.get(key) {
-            if let Some(rumor) = sublist.get(member_id) {
-                with_closure(rumor);
+        pub fn with_rumors<F>(&self, key: &str, mut with_closure: F)
+            where F: FnMut(&T)
+        {
+            let list = self.list.read();
+            if list.contains_key(key) {
+                for x in list.get(key).unwrap().values() {
+                    with_closure(x);
+                }
             }
         }
-    }
 
-    pub fn assert_rumor_is<P>(&self, key: &str, member_id: &str, mut predicate: P)
-        where P: FnMut(&T) -> bool
-    {
-        let list = self.list.read();
-        if let Some(sublist) = list.get(key) {
-            if let Some(rumor) = sublist.get(member_id) {
-                assert!(predicate(rumor), "{} failed predicate", member_id);
+        pub fn with_rumor<F>(&self, key: &str, member_id: &str, mut with_closure: F)
+            where F: FnMut(&T)
+        {
+            let list = self.list.read();
+            if let Some(sublist) = list.get(key) {
+                if let Some(rumor) = sublist.get(member_id) {
+                    with_closure(rumor);
+                }
+            }
+        }
+
+        pub fn assert_rumor_is<P>(&self, key: &str, member_id: &str, mut predicate: P)
+            where P: FnMut(&T) -> bool
+        {
+            let list = self.list.read();
+            if let Some(sublist) = list.get(key) {
+                if let Some(rumor) = sublist.get(member_id) {
+                    assert!(predicate(rumor), "{} failed predicate", member_id);
+                } else {
+                    panic!("member_id {} not present", member_id);
+                }
             } else {
-                panic!("member_id {} not present", member_id);
+                panic!("No rumors for {} present", key);
             }
-        } else {
-            panic!("No rumors for {} present", key);
+        }
+
+        pub fn contains_rumor(&self, key: &str, id: &str) -> bool {
+            let list = self.list.read();
+            list.get(key).and_then(|l| l.get(id)).is_some()
+        }
+
+        /// Increment the update counter for this store.
+        ///
+        /// We don't care if this repeats - it just needs to be unique for any given two states,
+        /// which it will be.
+        // TODO remove pub; handle this internally
+        pub fn increment_update_counter(&self) {
+            self.update_counter.fetch_add(1, Ordering::Relaxed);
         }
     }
 
-    pub fn contains_rumor(&self, key: &str, id: &str) -> bool {
-        let list = self.list.read();
-        list.get(key).and_then(|l| l.get(id)).is_some()
-    }
-
-    /// Increment the update counter for this store.
-    ///
-    /// We don't care if this repeats - it just needs to be unique for any given two states, which
-    /// it will be.
-    fn increment_update_counter(&self) { self.update_counter.fetch_add(1, Ordering::Relaxed); }
-}
-
-impl RumorStore<Service> {
-    /// Returns true if there exist rumors for the given service's service
-    /// group, but none containing the given member.
-    pub fn contains_group_without_member(&self, service_group: &str, member_id: &str) -> bool {
-        match self.list.read().get(service_group) {
-            Some(group_rumors) => !group_rumors.contains_key(member_id),
-            None => false,
+    impl RumorStore<Service> {
+        /// Returns true if there exist rumors for the given service's service
+        /// group, but none containing the given member.
+        pub fn contains_group_without_member(&self, service_group: &str, member_id: &str) -> bool {
+            match self.list.read().get(service_group) {
+                Some(group_rumors) => !group_rumors.contains_key(member_id),
+                None => false,
+            }
         }
-    }
 
-    /// If there are any rumors with member_ids that satisfy the predicate,
-    /// return the one which sorts lexicographically.
-    ///
-    /// The weird &&String argument is due to the item type generated by the
-    /// Keys iterator, but deref coercion means the provided closure doesn't
-    /// need to really care.
-    pub fn min_member_id_with(&self,
-                              service_group: &str,
-                              predicate: impl FnMut(&&String) -> bool)
-                              -> Option<String> {
-        let list = self.list.read();
-        list.get(service_group)
-            .and_then(|rumor_map| rumor_map.keys().filter(predicate).min().cloned())
+        /// If there are any rumors with member_ids that satisfy the predicate,
+        /// return the one which sorts lexicographically.
+        ///
+        /// The weird &&String argument is due to the item type generated by the
+        /// Keys iterator, but deref coercion means the provided closure doesn't
+        /// need to really care.
+        pub fn min_member_id_with(&self,
+                                  service_group: &str,
+                                  predicate: impl FnMut(&&String) -> bool)
+                                  -> Option<String> {
+            let list = self.list.read();
+            list.get(service_group)
+                .and_then(|rumor_map| rumor_map.keys().filter(predicate).min().cloned())
+        }
     }
 }
 
@@ -628,7 +665,7 @@ mod tests {
 
             assert!(rs.insert(f1));
             assert!(rs.insert(f2));
-            assert_eq!(rs.list.read().len(), 1);
+            assert_eq!(rs.lock_rsr().len(), 1);
             assert_eq!(rs.list.read().get(&key).unwrap().get(&f1_id).unwrap().id,
                        f1_id);
             assert_eq!(rs.list.read().get(&key).unwrap().get(&f2_id).unwrap().id,

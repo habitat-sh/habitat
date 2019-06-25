@@ -721,8 +721,12 @@ impl Manager {
     ///   lock is held.
     /// * `MemberList::intitial_entries` (write) This method must not be called while any
     ///   MemberList::intitial_entries lock is held.
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
     #[allow(clippy::cognitive_complexity)]
-    pub fn run_mlw_imlw(mut self, svc: Option<habitat_sup_protocol::ctl::SvcLoad>) -> Result<()> {
+    pub fn run_mlw_imlw_rsr(mut self,
+                            svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
+                            -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
         let mut next_cpu_measurement = SteadyTime::now();
@@ -763,7 +767,7 @@ impl Manager {
 
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
-        self.butterfly.start_mlw(&Timing::default())?;
+        self.butterfly.start_mlw_rsr(&Timing::default())?;
         debug!("gossip-listener started");
         self.persist_state_mlr();
         let http_listen_addr = self.sys.http_listen();
@@ -1104,7 +1108,7 @@ impl Manager {
                .expect("Error waiting on Tokio runtime to shutdown");
 
         release_process_lock(&self.fs_cfg);
-        self.butterfly.persist_data_mlr();
+        self.butterfly.persist_data_mlr_rsr();
 
         match shutdown_mode {
             ShutdownMode::Normal | ShutdownMode::Restarting => Ok(()),

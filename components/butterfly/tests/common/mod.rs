@@ -61,7 +61,7 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                                  Some(String::from(name)),
                                  None,
                                  Box::new(NSuitability(suitability))).unwrap();
-    server.start_mlw(&Timing::default())
+    server.start_mlw_rsr(&Timing::default())
           .expect("Cannot start server");
     server
 }
