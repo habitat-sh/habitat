@@ -854,8 +854,7 @@ mod test {
         use super::{super::*,
                     *};
         use crate::common::ui::UI;
-        use std::{fs,
-                  io::{self,
+        use std::{io::{self,
                        Cursor,
                        Write},
                   sync::{Arc,
@@ -895,15 +894,19 @@ mod test {
             build_spec().link_binaries(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
 
-            assert!(fs::read_to_string(rootfs.path().join("bin/busybox")).unwrap().contains(hcore::fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(),
-                                                   None::<&Path>).join("bin/busybox").to_str().unwrap()),
-                       "busybox program is binlinked into /bin");
-            assert!(fs::read_to_string(rootfs.path().join("bin/sh")).unwrap().contains(hcore::fs::pkg_install_path(&base_pkgs.busybox.unwrap(),
-                                                   None::<&Path>).join("bin/sh").to_str().unwrap()),
-                       "busybox's sh program is binlinked into /bin");
-            assert!(fs::read_to_string(rootfs.path().join("bin/hab")).unwrap().contains(hcore::fs::pkg_install_path(&base_pkgs.hab,
-                                                   None::<&Path>).join("bin/hab").to_str().unwrap()),
-                       "hab program is binlinked into /bin");
+            assert_eq!(hcore::fs::pkg_install_path(base_pkgs.busybox.as_ref().unwrap(),
+                                                   None::<&Path>).join("bin/busybox"),
+                       rootfs.path().join("bin/busybox").read_link().unwrap(),
+                       "busybox program is symlinked into /bin");
+            assert_eq!(
+                hcore::fs::pkg_install_path(&base_pkgs.busybox.unwrap(), None::<&Path>)
+                    .join("bin/sh"),
+                rootfs.path().join("bin/sh").read_link().unwrap(),
+                "busybox's sh program is symlinked into /bin"
+            );
+            assert_eq!(hcore::fs::pkg_install_path(&base_pkgs.hab, None::<&Path>).join("bin/hab"),
+                       rootfs.path().join("bin/hab").read_link().unwrap(),
+                       "hab program is symlinked into /bin");
         }
 
         #[cfg(unix)]
