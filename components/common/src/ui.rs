@@ -897,7 +897,7 @@ pub fn print_wrapped<U>(stream: &mut dyn WriteColor,
     stream.flush()
 }
 
-pub fn print(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
+pub fn print(writer: &mut dyn WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
     writer.reset()?;
     writer.set_color(color_spec)?;
     writer.write_all(buf)?;
@@ -905,7 +905,7 @@ pub fn print(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io:
     writer.reset()
 }
 
-pub fn println(writer: &mut WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
+pub fn println(writer: &mut dyn WriteColor, buf: &[u8], color_spec: &ColorSpec) -> io::Result<()> {
     print(writer, buf, color_spec)?;
     writer.write_all(b"\n")?;
     writer.flush()
