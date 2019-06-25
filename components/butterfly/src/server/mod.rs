@@ -405,7 +405,7 @@ impl Server {
     /// `outbound`, and `expire` threads.
     ///
     /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
     ///
     /// # Errors
@@ -413,7 +413,7 @@ impl Server {
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
-    pub fn start_mlr(&mut self, timing: &timing::Timing) -> Result<()> {
+    pub fn start_mlw(&mut self, timing: &timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = self.data_path {
@@ -422,9 +422,9 @@ impl Server {
             }
 
             let dat_path = path.join(format!("{}.rst", &self.member_id));
-            let mut file = DatFile::read_or_create(dat_path, &self)?;
+            let mut file = DatFile::read_or_create_mlr(dat_path, &self)?;
 
-            match file.read_into_mlr(self) {
+            match file.read_into_mlw(self) {
                 Ok(_) => {
                     debug!("Successfully ingested rumors from {}",
                            file.path().display())
@@ -543,7 +543,7 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
-    pub fn insert_member(&self, member: Member, health: Health) {
+    pub fn insert_member_mlw(&self, member: Member, health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
         // of just how the logic goes. The value of the trace is really high, though, so we deal
@@ -613,7 +613,7 @@ impl Server {
             for member in check_list.iter().take(SELF_DEPARTURE_RUMOR_FANOUT) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
-                outbound::ack(&self, self.socket.as_ref().unwrap(), member, addr, None);
+                outbound::ack_mlr(&self, self.socket.as_ref().unwrap(), member, addr, None);
             }
         } else {
             debug!("No socket present; server was never started, so nothing to depart");
@@ -625,7 +625,7 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
-    fn insert_member_from_rumor(&self, member: Member, mut health: Health) {
+    fn insert_member_from_rumor_mlw(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() && health != Health::Alive {
             let mut me = self.member.write().expect("Member lock is poisoned");
@@ -670,12 +670,12 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
-    pub fn insert_service(&self, service: Service) {
+    pub fn insert_service_mlw(&self, service: Service) {
         Self::insert_service_impl(service,
                                   &self.service_store,
                                   &self.member_list,
                                   &self.rumor_heat,
-                                  |k| self.check_quorum(k))
+                                  |k| self.check_quorum_mlr(k))
     }
 
     fn insert_service_impl(service: Service,
@@ -730,7 +730,7 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
-    pub fn insert_departure(&self, departure: Departure) {
+    pub fn insert_departure_mlw(&self, departure: Departure) {
         let rk = RumorKey::from(&departure);
         if *self.member_id == departure.member_id {
             self.departed
@@ -798,7 +798,7 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    fn check_quorum(&self, key: &str) -> bool {
+    fn check_quorum_mlr(&self, key: &str) -> bool {
         let electorate = self.get_electorate_mlr(key);
         let service_group_members = self.get_total_population_mlr(key);
         let total_population = service_group_members.len();
@@ -818,9 +818,13 @@ impl Server {
 
     /// Start an election for the given service group, declaring this members suitability and the
     /// term for the election.
-    pub fn start_election(&self, service_group: &str, term: u64) {
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn start_election_mlr(&self, service_group: &str, term: u64) {
         let suitability = self.suitability_lookup.get(&service_group);
-        let has_quorum = self.check_quorum(service_group);
+        let has_quorum = self.check_quorum_mlr(service_group);
         let e = Election::new(self.member_id(),
                               service_group,
                               term,
@@ -834,8 +838,11 @@ impl Server {
         self.election_store.insert(e);
     }
 
-    pub fn start_update_election(&self, service_group: &str, suitability: u64, term: u64) {
-        let has_quorum = self.check_quorum(service_group);
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn start_update_election_mlr(&self, service_group: &str, suitability: u64, term: u64) {
+        let has_quorum = self.check_quorum_mlr(service_group);
         let e = ElectionUpdate::new(self.member_id(),
                                     service_group,
                                     term,
@@ -861,7 +868,7 @@ impl Server {
         Self::elections_to_restart_impl(elections,
                                         &self.service_store,
                                         &self.member_id(),
-                                        |k| self.check_quorum(k),
+                                        |k| self.check_quorum_mlr(k),
                                         &self.member_list,
                                         feature_flags,
                                         &self.data_path)
@@ -963,14 +970,14 @@ impl Server {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
             self.election_store.remove(&service_group, "election");
-            self.start_election(&service_group, term);
+            self.start_election_mlr(&service_group, term);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
             self.update_store.remove(&service_group, "election");
-            self.start_update_election(&service_group, 0, term);
+            self.start_update_election_mlr(&service_group, 0, term);
         }
     }
 
@@ -1005,12 +1012,12 @@ impl Server {
                 if new_term {
                     debug!("removing old rumor and starting new election");
                     self.election_store.remove(election.key(), election.id());
-                    self.start_election(&election.service_group, election.term);
+                    self.start_election_mlr(&election.service_group, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
                 if self.member_id() == election.member_id {
-                    if self.check_quorum(election.key()) {
+                    if self.check_quorum_mlr(election.key()) {
                         let electorate = self.get_electorate_mlr(election.key());
                         let mut num_votes = 0;
                         for vote in election.votes.iter() {
@@ -1055,10 +1062,10 @@ impl Server {
                                               .lock()
                                               .expect("Election timers lock poisoned");
                 existing_timers.insert(election.service_group.clone(), ElectionTimer(timer));
-                self.start_election(&election.service_group, election.term);
+                self.start_election_mlr(&election.service_group, election.term);
             }
             if !election.is_finished() {
-                let has_quorum = self.check_quorum(election.key());
+                let has_quorum = self.check_quorum_mlr(election.key());
                 if has_quorum {
                     election.running();
                 } else {
@@ -1098,12 +1105,12 @@ impl Server {
                 if new_term {
                     debug!("removing old rumor and starting new election");
                     self.update_store.remove(election.key(), election.id());
-                    self.start_update_election(&election.service_group, 0, election.term);
+                    self.start_update_election_mlr(&election.service_group, 0, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
                 if self.member_id() == election.member_id {
-                    if self.check_quorum(election.key()) {
+                    if self.check_quorum_mlr(election.key()) {
                         let electorate = self.get_electorate_mlr(election.key());
                         let mut num_votes = 0;
                         for vote in election.votes.iter() {
@@ -1127,10 +1134,10 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                self.start_update_election(&election.service_group, 0, election.term);
+                self.start_update_election_mlr(&election.service_group, 0, election.term);
             }
             if !election.is_finished() {
-                let has_quorum = self.check_quorum(election.key());
+                let has_quorum = self.check_quorum_mlr(election.key());
                 if has_quorum {
                     election.running();
                 } else {
@@ -1151,10 +1158,13 @@ impl Server {
         message::unwrap_wire(payload, (*self.ring_key).as_ref())
     }
 
-    pub fn persist_data(&self) {
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn persist_data_mlr(&self) {
         if let Some(ref dat_file_lock) = self.dat_file {
             let dat_file = dat_file_lock.lock().expect("DatFile lock poisoned");
-            if let Some(err) = dat_file.write(self).err() {
+            if let Some(err) = dat_file.write_mlr(self).err() {
                 error!("Error persisting rumors to disk, {}", err);
             } else {
                 info!("Rumors persisted to disk: {}", dat_file.path().display());
@@ -1193,7 +1203,7 @@ fn persist_loop(server: &Server) -> ! {
         habitat_common::sync::mark_thread_alive();
 
         let before_persist = Instant::now();
-        server.persist_data();
+        server.persist_data_mlr();
         let time_to_persist = before_persist.elapsed();
         trace!("persist_data took {:?}", time_to_persist);
         match min_loop_period.checked_sub(time_to_persist) {
@@ -1676,14 +1686,14 @@ mod tests {
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
-            server.start_mlr(&Timing::default())
+            server.start_mlw(&Timing::default())
                   .expect("Server failed to start");
         }
 
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start_mlr(&Timing::default())
+            server.start_mlw(&Timing::default())
                   .expect("Server failed to start");
         }
     }

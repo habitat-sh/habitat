@@ -45,10 +45,6 @@ pub fn spawn_thread(name: String,
 
 /// Run the thread. Listens for messages up to 1k in size, and then processes them accordingly.
 /// Takes the Server and a channel to send received Acks to the outbound thread.
-///
-/// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
 pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) -> ! {
     let mut recv_buffer: Vec<u8> = vec![0; 1024];
 
@@ -107,7 +103,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    ping.from.id);
                             continue;
                         }
-                        process_ping(server, socket, addr, ping);
+                        process_ping_mlw(server, socket, addr, ping);
                     }
                     SwimKind::Ack(ack) => {
                         if server.is_member_blocked(&ack.from.id) && ack.forward_to.is_none() {
@@ -115,7 +111,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    ack.from.id);
                             continue;
                         }
-                        process_ack(server, socket, tx_outbound, addr, ack);
+                        process_ack_mlw(server, socket, tx_outbound, addr, ack);
                     }
                     SwimKind::PingReq(pingreq) => {
                         if server.is_member_blocked(&pingreq.from.id) {
@@ -179,11 +175,15 @@ fn process_pingreq_mlr(server: &Server, socket: &UdpSocket, addr: SocketAddr, mu
 }
 
 /// Process ack messages; forwards to the outbound thread.
-fn process_ack(server: &Server,
-               socket: &UdpSocket,
-               tx_outbound: &AckSender,
-               addr: SocketAddr,
-               mut msg: Ack) {
+///
+/// # Locking
+/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+///   lock is held.
+fn process_ack_mlw(server: &Server,
+                   socket: &UdpSocket,
+                   tx_outbound: &AckSender,
+                   addr: SocketAddr,
+                   mut msg: Ack) {
     trace_it!(SWIM: server, TraceKind::RecvAck, &msg.from.id, addr, &msg);
     trace!("Ack from {}@{}", msg.from.id, addr);
     if msg.forward_to.is_some() && *server.member_id != msg.forward_to.as_ref().unwrap().id {
@@ -213,25 +213,28 @@ fn process_ack(server: &Server,
     match tx_outbound.send((addr, msg)) {
         Ok(()) => {
             for membership in memberships {
-                server.insert_member_from_rumor(membership.member, membership.health);
+                server.insert_member_from_rumor_mlw(membership.member, membership.health);
             }
         }
         Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
     }
 }
 
-fn process_ping(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
+/// # Locking
+/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+///   lock is held.
+fn process_ping_mlw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
     trace_it!(SWIM: server, TraceKind::RecvPing, &msg.from.id, addr, &msg);
-    outbound::ack(server, socket, &msg.from, addr, msg.forward_to);
+    outbound::ack_mlr(server, socket, &msg.from, addr, msg.forward_to);
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
     trace!("Ping from {}@{}", msg.from.id, addr);
     if msg.from.departed {
-        server.insert_member(msg.from, Health::Departed);
+        server.insert_member_mlw(msg.from, Health::Departed);
     } else {
-        server.insert_member(msg.from, Health::Alive);
+        server.insert_member_mlw(msg.from, Health::Alive);
     }
     for membership in msg.membership {
-        server.insert_member_from_rumor(membership.member, membership.health);
+        server.insert_member_from_rumor_mlw(membership.member, membership.health);
     }
 }

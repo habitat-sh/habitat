@@ -64,15 +64,18 @@ impl CensusRing {
                      last_service_file_counter: 0, }
     }
 
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     #[allow(clippy::too_many_arguments)]
-    pub fn update_from_rumors(&mut self,
-                              cache_key_path: &Path,
-                              service_rumors: &RumorStore<ServiceRumor>,
-                              election_rumors: &RumorStore<ElectionRumor>,
-                              election_update_rumors: &RumorStore<ElectionUpdateRumor>,
-                              member_list: &MemberList,
-                              service_config_rumors: &RumorStore<ServiceConfigRumor>,
-                              service_file_rumors: &RumorStore<ServiceFileRumor>) {
+    pub fn update_from_rumors_mlr(&mut self,
+                                  cache_key_path: &Path,
+                                  service_rumors: &RumorStore<ServiceRumor>,
+                                  election_rumors: &RumorStore<ElectionRumor>,
+                                  election_update_rumors: &RumorStore<ElectionUpdateRumor>,
+                                  member_list: &MemberList,
+                                  service_config_rumors: &RumorStore<ServiceConfigRumor>,
+                                  service_file_rumors: &RumorStore<ServiceFileRumor>) {
         // If ANY new rumor, of any type, has been received,
         // reconstruct the entire census state to ensure consistency
         if (service_rumors.get_update_counter() > self.last_service_counter)
@@ -84,7 +87,7 @@ impl CensusRing {
         {
             self.changed = true;
 
-            self.populate_census(service_rumors, member_list);
+            self.populate_census_mlr(service_rumors, member_list);
             self.update_from_election_store(election_rumors);
             self.update_from_election_update_store(election_update_rumors);
             self.update_from_service_config(cache_key_path, service_config_rumors);
@@ -117,9 +120,9 @@ impl CensusRing {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    fn populate_census(&mut self,
-                       service_rumors: &RumorStore<ServiceRumor>,
-                       member_list: &MemberList) {
+    fn populate_census_mlr(&mut self,
+                           service_rumors: &RumorStore<ServiceRumor>,
+                           member_list: &MemberList) {
         // Populate our census; new groups are created here, as are
         // new members of those groups.
         //
@@ -829,13 +832,13 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
         let mut ring = CensusRing::new("member-b".to_string());
-        ring.update_from_rumors(&cache_key_path(Some(&*FS_ROOT)),
-                                &service_store,
-                                &election_store,
-                                &election_update_store,
-                                &member_list,
-                                &service_config_store,
-                                &service_file_store);
+        ring.update_from_rumors_mlr(&cache_key_path(Some(&*FS_ROOT)),
+                                    &service_store,
+                                    &election_store,
+                                    &election_update_store,
+                                    &member_list,
+                                    &service_config_store,
+                                    &service_file_store);
 
         (ring, sg_one, sg_two)
     }

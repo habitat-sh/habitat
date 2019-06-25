@@ -125,7 +125,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                 // until this timer expires.
                 let next_protocol_period = timing.next_protocol_period();
 
-                probe_mlr(&server, &socket, &rx_inbound, &timing, member);
+                probe_mlw(&server, &socket, &rx_inbound, &timing, member);
 
                 if SteadyTime::now() <= next_protocol_period {
                     let wait_time = (next_protocol_period - SteadyTime::now()).num_milliseconds();
@@ -163,9 +163,9 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 /// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
 ///
 /// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
-fn probe_mlr(server: &Server,
+/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+///   lock is held.
+fn probe_mlw(server: &Server,
              socket: &UdpSocket,
              rx_inbound: &AckReceiver,
              timing: &Timing,
@@ -181,7 +181,7 @@ fn probe_mlr(server: &Server,
     SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
     ping_mlr(server, socket, &member, addr, None);
 
-    if recv_ack(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
+    if recv_ack_mlw(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
         trace_it!(PROBE: server, TraceKind::ProbeAckReceived, &member.id, addr);
         trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
         SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
@@ -206,7 +206,7 @@ fn probe_mlr(server: &Server,
               pingreq(server, socket, pingreq_target, &member, &swim);
           });
 
-    if recv_ack(server, rx_inbound, timing, &member, addr, AckFrom::PingReq) {
+    if recv_ack_mlw(server, rx_inbound, timing, &member, addr, AckFrom::PingReq) {
         SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
         trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
     } else {
@@ -216,7 +216,7 @@ fn probe_mlr(server: &Server,
         warn!("Marking {} as Suspect", &member.id);
         trace_it!(PROBE: server, TraceKind::ProbeSuspect, &member.id, addr);
         trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
-        server.insert_member(member, Health::Suspect);
+        server.insert_member_mlw(member, Health::Suspect);
         SWIM_PROBES_SENT.with_label_values(&["pingreq/failure"])
                         .inc();
     }
@@ -227,13 +227,17 @@ fn probe_mlr(server: &Server,
 }
 
 /// Listen for an ack from the `Inbound` thread.
-fn recv_ack(server: &Server,
-            rx_inbound: &AckReceiver,
-            timing: &Timing,
-            member: &Member,
-            addr: SocketAddr,
-            ack_from: AckFrom)
-            -> bool {
+///
+/// # Locking
+/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+///   lock is held.
+fn recv_ack_mlw(server: &Server,
+                rx_inbound: &AckReceiver,
+                timing: &Timing,
+                member: &Member,
+                addr: SocketAddr,
+                ack_from: AckFrom)
+                -> bool {
     let timeout = match ack_from {
         AckFrom::Ping => timing.ping_timeout(),
         AckFrom::PingReq => timing.pingreq_timeout(),
@@ -248,18 +252,18 @@ fn recv_ack(server: &Server,
                 }
                 if member.id != ack.from.id {
                     if ack.from.departed {
-                        server.insert_member(ack.from, Health::Departed);
+                        server.insert_member_mlw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member(ack.from, Health::Alive);
+                        server.insert_member_mlw(ack.from, Health::Alive);
                     }
                     // Keep listening, we want the ack we expected
                     continue;
                 } else {
                     // We got the ack we are looking for; return.
                     if ack.from.departed {
-                        server.insert_member(ack.from, Health::Departed);
+                        server.insert_member_mlw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member(ack.from, Health::Alive);
+                        server.insert_member_mlw(ack.from, Health::Alive);
                     }
                     return true;
                 }
@@ -491,11 +495,11 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, msg: A
 /// # Locking
 /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
 ///   is held.
-pub fn ack(server: &Server,
-           socket: &UdpSocket,
-           target: &Member,
-           addr: SocketAddr,
-           forward_to: Option<Member>) {
+pub fn ack_mlr(server: &Server,
+               socket: &UdpSocket,
+               target: &Member,
+               addr: SocketAddr,
+               forward_to: Option<Member>) {
     let ack_msg = Ack { membership: vec![],
                         from:       server.member.read().unwrap().as_member(),
                         forward_to: forward_to.map(Member::from), };

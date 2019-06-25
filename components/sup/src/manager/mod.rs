@@ -632,7 +632,10 @@ impl Manager {
         Ok(())
     }
 
-    fn add_service(&mut self, spec: &ServiceSpec) {
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn add_service_mlw(&mut self, spec: &ServiceSpec) {
         // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
         // want is the service to hold the spec and, on failure, return an error with the spec
         // back to us. Since we consume and deconstruct the spec in `Service::new()` which
@@ -678,9 +681,9 @@ impl Manager {
             return;
         }
 
-        self.gossip_latest_service_rumor(&service);
+        self.gossip_latest_service_rumor_mlw(&service);
         if service.topology == Topology::Leader {
-            self.butterfly.start_election(&service.service_group, 0);
+            self.butterfly.start_election_mlr(&service.service_group, 0);
         }
 
         if let Err(e) = self.user_config_watcher
@@ -755,11 +758,11 @@ impl Manager {
 
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
-        self.maybe_spawn_service_futures(&mut runtime);
+        self.maybe_spawn_service_futures_mlw(&mut runtime);
 
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
-        self.butterfly.start_mlr(&Timing::default())?;
+        self.butterfly.start_mlw(&Timing::default())?;
         debug!("gossip-listener started");
         self.persist_state_mlr();
         let http_listen_addr = self.sys.http_listen();
@@ -985,25 +988,25 @@ impl Manager {
                 // event in the specs directory is registered, or
                 // another service finishes shutting down).
                 self.services_need_reconciliation.toggle_if_set();
-                self.maybe_spawn_service_futures(&mut runtime);
+                self.maybe_spawn_service_futures_mlw(&mut runtime);
             }
 
             self.update_peers_from_watch_file_mlr_imlw()?;
             self.update_running_services_from_user_config_watcher();
 
-            for f in self.stop_services_with_updates() {
+            for f in self.stop_services_with_updates_mlr() {
                 runtime.spawn(f);
             }
 
             self.restart_elections_mlr(self.feature_flags);
             self.census_ring
-                .update_from_rumors(&self.state.cfg.cache_key_path,
-                                    &self.butterfly.service_store,
-                                    &self.butterfly.election_store,
-                                    &self.butterfly.update_store,
-                                    &self.butterfly.member_list,
-                                    &self.butterfly.service_config_store,
-                                    &self.butterfly.service_file_store);
+                .update_from_rumors_mlr(&self.state.cfg.cache_key_path,
+                                        &self.butterfly.service_store,
+                                        &self.butterfly.election_store,
+                                        &self.butterfly.update_store,
+                                        &self.butterfly.member_list,
+                                        &self.butterfly.service_config_store,
+                                        &self.butterfly.service_file_store);
 
             if self.check_for_changed_services() {
                 self.persist_state_mlr();
@@ -1024,7 +1027,7 @@ impl Manager {
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
                 if service.tick(&self.census_ring, &self.launcher, &runtime.executor()) {
-                    self.gossip_latest_service_rumor(&service);
+                    self.gossip_latest_service_rumor_mlw(&service);
                 }
             }
 
@@ -1084,7 +1087,7 @@ impl Manager {
                .expect("Error waiting on Tokio runtime to shutdown");
 
         release_process_lock(&self.fs_cfg);
-        self.butterfly.persist_data();
+        self.butterfly.persist_data_mlr();
 
         match shutdown_mode {
             ShutdownMode::Normal | ShutdownMode::Restarting => Ok(()),
@@ -1102,7 +1105,11 @@ impl Manager {
     /// Return the Services that currently have a newer package in
     /// Builder. These are removed from the internal `services` vec
     /// for further transformation into futures.
-    fn take_services_with_updates(&mut self) -> Vec<Service> {
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn take_services_with_updates_mlr(&mut self) -> Vec<Service> {
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
 
         let mut state_services = self.state
@@ -1112,7 +1119,7 @@ impl Manager {
         let idents_to_restart: Vec<_> = state_services.iter()
                                                       .filter_map(|(current_ident, service)| {
                                                           if let Some(new_ident) =
-                    updater.check_for_updated_package(&service, &self.census_ring)
+                    updater.check_for_updated_package_mlr(&service, &self.census_ring)
                 {
                     outputln!("Updating from {} to {}", current_ident, new_ident);
                     event::service_update_started(&service, &new_ident);
@@ -1135,6 +1142,10 @@ impl Manager {
 
     /// Returns a Vec of futures for shutting down those services that
     /// need to be updated.
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     // TODO (CM): In the future, when service start up is
     // future-based, we'll want to have an actual "restart"
     // future, that queues up the start future after the stop
@@ -1144,15 +1155,18 @@ impl Manager {
     // our specfile reconciliation logic to catch the fact that
     // the service needs to be restarted. At that point, this function
     // can be renamed; right now, it says exactly what it's doing.
-    fn stop_services_with_updates(&mut self) -> Vec<impl Future<Item = (), Error = ()>> {
-        self.take_services_with_updates()
+    fn stop_services_with_updates_mlr(&mut self) -> Vec<impl Future<Item = (), Error = ()>> {
+        self.take_services_with_updates_mlr()
             .into_iter()
             .map(|service| self.stop(service))
             .collect()
     }
 
     // Creates a rumor for the specified service.
-    fn gossip_latest_service_rumor(&self, service: &Service) {
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn gossip_latest_service_rumor_mlw(&self, service: &Service) {
         let incarnation = if let Some(rumor) = self.butterfly
                                                    .service_store
                                                    .list
@@ -1166,7 +1180,8 @@ impl Manager {
             1
         };
 
-        self.butterfly.insert_service(service.to_rumor(incarnation));
+        self.butterfly
+            .insert_service_mlw(service.to_rumor(incarnation));
     }
 
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }
@@ -1391,9 +1406,13 @@ impl Manager {
     /// NOTE: Service start is currently synchronous, so any start
     /// operations will be performed directly as a consequence of
     /// calling this method.
-    fn maybe_spawn_service_futures(&mut self, runtime: &mut Runtime) {
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn maybe_spawn_service_futures_mlw(&mut self, runtime: &mut Runtime) {
         let ops = self.compute_service_operations();
-        for f in self.operations_into_futures(ops) {
+        for f in self.operations_into_futures_mlw(ops) {
             runtime.spawn(f);
         }
     }
@@ -1414,7 +1433,11 @@ impl Manager {
     /// services is made asynchronous, however, it performs a mix of
     /// operations; starts are performed synchronously, while
     /// shutdowns and restarts are turned into futures.
-    fn operations_into_futures<O>(&mut self, ops: O) -> Vec<impl Future<Item = (), Error = ()>>
+    ///
+    /// # Locking
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn operations_into_futures_mlw<O>(&mut self, ops: O) -> Vec<impl Future<Item = (), Error = ()>>
         where O: IntoIterator<Item = ServiceOperation>
     {
         ops.into_iter()
@@ -1443,7 +1466,7 @@ impl Manager {
                        f
                    }
                    ServiceOperation::Start(spec) => {
-                       self.add_service(&spec);
+                       self.add_service_mlw(&spec);
                        None // No future to return (currently synchronous!)
                    }
                }
