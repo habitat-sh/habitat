@@ -18,6 +18,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Add docs for installing the kernel2 CLI [#6692](https://github.com/habitat-sh/habitat/pull/6692) ([raskchanky](https://github.com/raskchanky))
 - Fix a crash when starting butterfly with no rumor file [#6690](https://github.com/habitat-sh/habitat/pull/6690) ([raskchanky](https://github.com/raskchanky))
 - Make the plans&#39; build use rust-toolchain version [#6680](https://github.com/habitat-sh/habitat/pull/6680) ([baumanj](https://github.com/baumanj))
 - resolve build deps before run deps [#6683](https://github.com/habitat-sh/habitat/pull/6683) ([mwrock](https://github.com/mwrock))
