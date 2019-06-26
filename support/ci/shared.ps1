@@ -51,20 +51,10 @@ function Install-Rustfmt($Toolchain) {
 }
 
 function Install-Habitat {
-    if (-not (get-command choco -ErrorAction SilentlyContinue)) {
-        Write-Host "Installing Chocolatey"
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1')) | out-null
-    }
-
-    # TODO: Disable artifactory caching until we can proxy it to public cd.
-    # if($env:BUILDKITE) {
-    #     choco source Add -Name artifactory -Source http://artifactory.chef.co/api/nuget/chocolatey
-    #     choco source enable --name artifactory
-    #     choco source disable --name chocolatey
-    # }
-
-    if (!((choco list habitat --local-only) -match '^1 packages installed\.$')) {
-        choco install habitat -y
+    if (get-command -Name hab -ErrorAction SilentlyContinue) {
+        Write-Host "Using habitat version:`n$(hab --version)"
+    } else {
+        ."$PSScriptRoot\..\..\components\hab\install.ps1"
     }
 }
 

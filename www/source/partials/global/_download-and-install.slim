@@ -49,6 +49,13 @@ hr
       = code(:powershell) do
         | $ choco install habitat
 
+      h4.mt-2 Install Chef Habitat using a Powershell install script
+      p Alternatively, you can install Chef Habitat by downloading and running the installation script:
+      = code(:powershell) do
+          |
+           $ Set-ExecutionPolicy Bypass -Scope Process -Force
+           $ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1'))
+
       h4.mt-2 Installing Habitat for Windows using the dowloaded Chef Habitat package.
       p Downloaded the <code>hab</code> CLI, unzip it onto your machine. We suggest unzipping to <code>C:\habitat</code>, so that the full path to Chef Habitat is similar to <code>C:\habitat\hab-0.79.1-20190410221450-x86_64-windows</code>. If you've downloaded a more recent version of Chef Habitat, you'll see a different set of numbers following <code>hab-</code>. Replace the package name used in these examples with the filename you see on your computer. Next, add that folder to your <code>PATH</code> variable so your computer will know where to find it. Here’s how to do that with Powershell:
       = code(:powershell) do
