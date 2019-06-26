@@ -375,6 +375,17 @@ function Invoke-Before {
 function Invoke-DefaultBefore {
 }
 
+# At this phase of the build, the package has been built and installed,
+# but before the package metadata is written and the artifact is
+# created and signed.
+function Invoke-After {
+  Invoke-DefaultAfter
+}
+
+# Default implementation for the `Invoke-After` phase.
+function Invoke-DefaultAfter {
+}
+
 function _Set-HabBin {
   if ($env:NO_INSTALL_DEPS) {
     Write-BuildLine "`$env:NO_INSTALL_DEPS set: no package dependencies will be installed"
@@ -2317,6 +2328,10 @@ try {
 
     # Copy the service management scripts
     Invoke-BuildService
+
+    # Run any code after the package has finished building and installing, but
+    # before the artifact metadata is generated and the artifact is signed.
+    Invoke-After
 
     # Write the manifest
     _Write-Manifest

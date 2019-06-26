@@ -176,10 +176,10 @@ Delegates most of the implementation to the `do_default_build_server()` function
 **do_default_strip()**(`plan.sh` only)
 : The default implementation is to strip any binaries in `$pkg_prefix` of their debugging symbols. Goal of this step is to reduce our total size.
 
-**do_after()**(`plan.sh` only)
+**do_after()/Invoke-After**
 : At this phase, the package has been built, installed, stripped, but before the package metadata is written and the artifact is created and signed.
 
-**do_default_after()**(`plan.sh` only)
+**do_default_after()/Invoke-DefaultAfter**
 : There is an empty default implementation of this callback.
 
 **do_end()/Invoke-End**
