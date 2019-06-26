@@ -1523,11 +1523,17 @@ function __assemble_legacy_paths($DepPath, $pathFile) {
     $path
 }
 
-function Set-BuildtimeEnv($VarName, $VarValue, [switch]$force) {
+function Set-BuildtimeEnv(
+  $VarName,
+  $VarValue = $(throw "Must provide a value to Set-BuildtimeEnv for key '$VarName'"),
+  [switch]$force) {
     set_env "BuildTime" @PSBoundParameters
 }
 
-function Set-RuntimeEnv($VarName, $VarValue, [switch]$force) {
+function Set-RuntimeEnv(
+  $VarName,
+  $VarValue = $(throw "Must provide a value to Set-RuntimeEnv for key '$VarName'"),
+  [switch]$force) {
     set_env "RunTime" @PSBoundParameters
 }
 
