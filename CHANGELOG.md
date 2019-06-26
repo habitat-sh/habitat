@@ -7,6 +7,7 @@
 - Add rst-reader back again [#6619](https://github.com/habitat-sh/habitat/pull/6619) ([raskchanky](https://github.com/raskchanky))
 
 #### Bug Fixes
+- provide a better error when no value is passed to Set-BuildtimeEnv or Set-RuntimeEnv [#6684](https://github.com/habitat-sh/habitat/pull/6684) ([mwrock](https://github.com/mwrock))
 - Remove recusive memberlist locking [#6662](https://github.com/habitat-sh/habitat/pull/6662) ([baumanj](https://github.com/baumanj))
 - allow windows service to set arbitrary environment variables [#6648](https://github.com/habitat-sh/habitat/pull/6648) ([mwrock](https://github.com/mwrock))
 
