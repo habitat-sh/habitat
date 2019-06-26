@@ -204,7 +204,7 @@ fn sub_run_mlw_imlw_rsr(m: &ArgMatches,
     } else {
         None
     };
-    manager.run_mlw_imlw_rsr(svc)
+    manager.run_mlw_imlw_rsw(svc)
 }
 
 fn sub_sh() -> Result<()> { command::shell::sh() }

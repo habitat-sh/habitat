@@ -122,33 +122,35 @@ impl DatFileReader {
     /// # Locking
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
-    pub fn read_into_mlw(&mut self, server: &Server) -> Result<()> {
+    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    pub fn read_into_mlw_rsw(&mut self, server: &Server) -> Result<()> {
         for Membership { member, health } in self.read_members()? {
             server.insert_member_mlw(member, health);
         }
 
         for service in self.read_rumors::<Service>()? {
-            server.insert_service_mlw(service);
+            server.insert_service_mlw_rsw(service);
         }
 
         for service_config in self.read_rumors::<ServiceConfig>()? {
-            server.insert_service_config(service_config);
+            server.insert_service_config_rsw(service_config);
         }
 
         for service_file in self.read_rumors::<ServiceFile>()? {
-            server.insert_service_file(service_file);
+            server.insert_service_file_rsw(service_file);
         }
 
         for election in self.read_rumors::<Election>()? {
-            server.insert_election_mlr(election);
+            server.insert_election_mlr_rsw(election);
         }
 
         for update_election in self.read_rumors::<ElectionUpdate>()? {
-            server.insert_update_election_mlr(update_election);
+            server.insert_update_election_mlr_rsw(update_election);
         }
 
         for departure in self.read_rumors::<Departure>()? {
-            server.insert_departure_mlw(departure);
+            server.insert_departure_mlw_rsw(departure);
         }
 
         Ok(())
@@ -538,14 +540,14 @@ mod tests {
 
         assert!(!file_path.exists());
 
-        let result = DatFileReader::read_or_create_mlr(file_path.to_path_buf(),
-                                                       &MemberList::new(),
-                                                       &RumorStore::default(),
-                                                       &RumorStore::default(),
-                                                       &RumorStore::default(),
-                                                       &RumorStore::default(),
-                                                       &RumorStore::default(),
-                                                       &RumorStore::default());
+        let result = DatFileReader::read_or_create_mlr_rsr(file_path.to_path_buf(),
+                                                           &MemberList::new(),
+                                                           &RumorStore::default(),
+                                                           &RumorStore::default(),
+                                                           &RumorStore::default(),
+                                                           &RumorStore::default(),
+                                                           &RumorStore::default(),
+                                                           &RumorStore::default());
 
         assert!(result.is_ok(), "{}", result.unwrap_err());
         assert!(file_path.is_file());

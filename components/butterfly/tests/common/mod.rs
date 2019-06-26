@@ -61,7 +61,7 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                                  Some(String::from(name)),
                                  None,
                                  Box::new(NSuitability(suitability))).unwrap();
-    server.start_mlw_rsr(&Timing::default())
+    server.start_mlw_rsw(&Timing::default())
           .expect("Cannot start server");
     server
 }
@@ -436,7 +436,7 @@ impl SwimNet {
                              sg,
                              SysInfo::default(),
                              None);
-        self[member].insert_service_mlw(s);
+        self[member].insert_service_mlw_rsw(s);
     }
 
     pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
@@ -444,7 +444,7 @@ impl SwimNet {
         let s = ServiceConfig::new(self[member].member_id(),
                                    ServiceGroup::new(None, service, "prod", None).unwrap(),
                                    config_bytes);
-        self[member].insert_service_config(s);
+        self[member].insert_service_config_rsw(s);
     }
 
     pub fn add_service_file(&mut self, member: usize, service: &str, filename: &str, body: &str) {
@@ -453,16 +453,16 @@ impl SwimNet {
                                  ServiceGroup::new(None, service, "prod", None).unwrap(),
                                  filename,
                                  body_bytes);
-        self[member].insert_service_file(s);
+        self[member].insert_service_file_rsw(s);
     }
 
     pub fn add_departure(&mut self, member: usize) {
         let d = Departure::new(self[member].member_id());
-        self[member].insert_departure_mlw(d);
+        self[member].insert_departure_mlw_rsw(d);
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election_mlr(&ServiceGroup::new(None, service, "prod", None).unwrap(),
+        self[member].start_election_mlr_rsw(&ServiceGroup::new(None, service, "prod", None).unwrap(),
                                         0);
     }
 }

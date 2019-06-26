@@ -22,8 +22,7 @@ use crate::{error::{Error,
 use bytes::BytesMut;
 use prometheus::IntCounterVec;
 use prost::Message as ProstMessage;
-use serde::{self,
-            Serialize};
+use serde;
 use std::{collections::{hash_map::Entry,
                         HashMap},
           default::Default,
@@ -138,12 +137,31 @@ mod storage {
 
         // pub fn values(&self) -> impl Iterator<Item = &HashMap<MemberId, R>> { self.0.values() }
 
+        /// Allows iterator access to the rumors in to the `RumorMap` while holding its lock:
+        /// ```
+        /// # use habitat_butterfly::rumor::{Departure,
+        /// #                                RumorStore};
+        /// let rs: RumorStore<Departure> = RumorStore::default();
+        /// for rumor in rs.lock_rsr().rumors() {
+        ///     println!("{:?}", rumor);
+        /// }
+        /// ```
         pub fn rumors(&self) -> impl Iterator<Item = &R> {
-            self.0.values().map(HashMap::values).flatten()
+            self.values().map(HashMap::values).flatten()
         }
+    }
 
-        // TODO remove and implement Deref
-        pub fn len(&self) -> usize { self.0.len() }
+    /// Allows ergonomic use of the guard for accessing the guarded `RumorMap`:
+    /// ```
+    /// # use habitat_butterfly::rumor::{Departure,
+    /// #                                RumorStore};
+    /// let rs: RumorStore<Departure> = RumorStore::default();
+    /// assert_eq!(rs.lock_rsr().len(), 0);
+    /// ```
+    impl<'a, R> std::ops::Deref for IterableGuard<'a, RumorMap<R>> {
+        type Target = RumorMap<R>;
+
+        fn deref(&self) -> &Self::Target { &self.0 }
     }
 
     /// Storage for Rumors. It takes a rumor and stores it according to the member that produced it,
@@ -152,18 +170,26 @@ mod storage {
     /// Generic over the type of rumor it stores.
     #[derive(Debug, Clone)]
     pub struct RumorStore<T: Rumor> {
-        // TODO remove pub
-        pub list:       Arc<Lock<RumorMap<T>>>,
+        list:           Arc<Lock<RumorMap<T>>>,
         update_counter: Arc<AtomicUsize>,
     }
 
     impl<T: Rumor> RumorStore<T> {
-        pub fn get_rumor_cloned(&self, service_group: &str, member_id: &str) -> Option<T> {
+        /// Return the result of applying `op` to the rumor indexed by `service_group` and
+        /// `member_id`, or `None` if no such rumor is present.
+        ///
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
+        pub fn map_rumor_rsr<U>(&self,
+                                service_group: &str,
+                                member_id: &str,
+                                op: impl Fn(&T) -> U)
+                                -> Option<U> {
             self.list
                 .read()
                 .get(service_group)
-                .and_then(|sg_rumors| sg_rumors.get(member_id))
-                .cloned()
+                .and_then(|sg_rumors| sg_rumors.get(member_id).map(op))
         }
 
         /// # Locking
@@ -180,9 +206,11 @@ mod storage {
         }
     }
 
-    // TODO move this outside the storage module
     impl<T> Serialize for RumorStore<T> where T: Rumor
     {
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -206,6 +234,9 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -230,6 +261,9 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, Election> {
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -253,6 +287,9 @@ mod storage {
 
     // This is the same as Election =/
     impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -275,6 +312,9 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, Service> {
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -290,6 +330,9 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -312,6 +355,9 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -326,41 +372,26 @@ mod storage {
         }
     }
 
-    impl<T> RumorStore<T> where T: Rumor
-    {
-        /// Create a new RumorStore for the given type. Allows you to initialize the counter to a
-        /// pre-set value. Useful mainly in testing.
-        pub fn new(counter: usize) -> RumorStore<T> {
-            RumorStore { update_counter: Arc::new(AtomicUsize::new(counter)),
-                         ..Default::default() }
-        }
-
-        /// Clear all rumors and reset update counter of RumorStore.
-        pub fn clear(&self) -> usize {
-            let mut list = self.list.write();
-            list.clear();
-            self.update_counter.swap(0, Ordering::Relaxed)
-        }
-
-        pub fn encode(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
-            let list = self.list.read();
-            match list.get(key).and_then(|l| l.get(member_id)) {
-                Some(rumor) => rumor.clone().write_to_bytes(),
-                None => Err(Error::NonExistentRumor(String::from(member_id), String::from(key))),
-            }
+    impl<T: Rumor> RumorStore<T> {
+        /// # Locking
+        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
+        ///   lock is held.
+        pub fn encode_rsr(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
+            self.map_rumor_rsr(key, member_id, T::write_to_bytes)
+                .unwrap_or_else(|| {
+                    Err(Error::NonExistentRumor(String::from(member_id), String::from(key)))
+                })
         }
 
         pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
 
-        /// Returns the count of all rumors in the rumor store for the given member's key.
-        pub fn len_for_key(&self, key: &str) -> usize {
-            let list = self.list.read();
-            list.get(key).map_or(0, HashMap::len)
-        }
-
         /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
         /// mutated; if nothing changed, returns false.
-        pub fn insert(&self, rumor: T) -> bool {
+        ///
+        /// # Locking
+        /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list
+        ///   lock is held.
+        pub fn insert_rsw(&self, rumor: T) -> bool {
             let mut list = self.list.write();
             let rumors = list.entry(String::from(rumor.key()))
                              .or_insert_with(HashMap::new);
@@ -475,6 +506,21 @@ mod storage {
                 .and_then(|rumor_map| rumor_map.keys().filter(predicate).min().cloned())
         }
     }
+
+    #[cfg(test)]
+    mod test {
+        use super::*;
+        use crate::rumor::tests::FakeRumor;
+
+        #[test]
+        fn update_counter_overflows_safely() {
+            let rs = RumorStore::<FakeRumor> { update_counter:
+                                                   Arc::new(AtomicUsize::new(usize::max_value())),
+                                               ..Default::default() };
+            rs.increment_update_counter();
+            assert_eq!(rs.get_update_counter(), 0);
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -537,7 +583,7 @@ mod tests {
                         RumorType}};
 
     #[derive(Clone, Debug, Serialize)]
-    struct FakeRumor {
+    pub struct FakeRumor {
         pub id:  String,
         pub key: String,
     }
@@ -626,9 +672,9 @@ mod tests {
 
     mod rumor_store {
         use super::FakeRumor;
-        use crate::rumor::{Rumor,
-                           RumorStore};
-        use std::usize;
+        use crate::{error::Error,
+                    rumor::{Rumor,
+                            RumorStore}};
 
         fn create_rumor_store() -> RumorStore<FakeRumor> { RumorStore::default() }
 
@@ -640,18 +686,34 @@ mod tests {
         }
 
         #[test]
-        fn update_counter_overflows_safely() {
-            let rs: RumorStore<FakeRumor> = RumorStore::new(usize::MAX);
-            rs.increment_update_counter();
-            assert_eq!(rs.get_update_counter(), 0);
-        }
-
-        #[test]
         fn insert_adds_rumor_when_empty() {
             let rs = create_rumor_store();
             let f = FakeRumor::default();
-            assert!(rs.insert(f));
+            assert!(rs.insert_rsw(f));
             assert_eq!(rs.get_update_counter(), 1);
+        }
+
+        #[test]
+        fn encode_ok() {
+            let rs = create_rumor_store();
+            let f = FakeRumor { id:  "foo".to_string(),
+                                key: "bar".to_string(), };
+            let key = String::from(f.key());
+            let id = String::from(f.id());
+            rs.insert_rsw(f);
+
+            assert_eq!(rs.encode_rsr(&key, &id).unwrap(), b"foo-bar".to_vec());
+        }
+
+        #[test]
+        fn encode_non_existant() {
+            let rs = create_rumor_store();
+
+            if let Err(Error::NonExistentRumor(..)) = rs.encode_rsr("non", "existant") {
+                // pass
+            } else {
+                panic!("Expected Error:NonExistentRumor");
+            }
         }
 
         #[test]
@@ -663,13 +725,13 @@ mod tests {
             let f2 = FakeRumor::default();
             let f2_id = String::from(f2.id());
 
-            assert!(rs.insert(f1));
-            assert!(rs.insert(f2));
+            assert!(rs.insert_rsw(f1));
+            assert!(rs.insert_rsw(f2));
             assert_eq!(rs.lock_rsr().len(), 1);
-            assert_eq!(rs.list.read().get(&key).unwrap().get(&f1_id).unwrap().id,
-                       f1_id);
-            assert_eq!(rs.list.read().get(&key).unwrap().get(&f2_id).unwrap().id,
-                       f2_id);
+            assert_eq!(rs.map_rumor_rsr(&key, &f1_id, |r| r.id.clone()),
+                       Some(f1_id));
+            assert_eq!(rs.map_rumor_rsr(&key, &f2_id, |r| r.id.clone()),
+                       Some(f2_id));
         }
 
         #[test]
@@ -678,9 +740,9 @@ mod tests {
             let f1 = FakeRumor::default();
             let key = String::from(f1.key());
             let f2 = FakeRumor::default();
-            assert!(rs.insert(f1));
-            assert!(rs.insert(f2));
-            assert_eq!(rs.list.read().get(&key).unwrap().len(), 2);
+            assert!(rs.insert_rsw(f1));
+            assert!(rs.insert_rsw(f2));
+            assert_eq!(rs.lock_rsr().get(&key).unwrap().len(), 2);
         }
 
         #[test]
@@ -688,8 +750,8 @@ mod tests {
             let rs = create_rumor_store();
             let f1 = FakeRumor::default();
             let f2 = f1.clone();
-            assert!(rs.insert(f1));
-            assert_eq!(rs.insert(f2), false);
+            assert!(rs.insert_rsw(f1));
+            assert_eq!(rs.insert_rsw(f2), false);
         }
 
         #[test]
@@ -698,7 +760,7 @@ mod tests {
             let f1 = FakeRumor::default();
             let member_id = f1.id.clone();
             let key = f1.key.clone();
-            rs.insert(f1);
+            rs.insert_rsw(f1);
             rs.assert_rumor_is(&key, &member_id, |o| o.id == member_id);
         }
 

@@ -87,8 +87,9 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                         let sc = server.clone();
                         let guard = match thread::Builder::new().name(String::from("push-worker"))
                                                                 .spawn(move || {
-                                                                    send_rumors_mlr(&sc, &member,
-                                                                                    &rumors)
+                                                                    send_rumors_mlr_rsr(&sc,
+                                                                                        &member,
+                                                                                        &rumors)
                                                                 }) {
                             Ok(guard) => guard,
                             Err(e) => {
@@ -129,12 +130,14 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
 /// # Locking
 /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
 ///   is held.
+/// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock is
+///   held.
 // If we ever need to modify this function, it would be an excellent opportunity to
 // simplify the redundant aspects and remove this allow(clippy::cognitive_complexity),
 // but changing it in the absence of other necessity seems like too much risk for the
 // expected reward.
 #[allow(clippy::cognitive_complexity)]
-fn send_rumors_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
+fn send_rumors_mlr_rsr(server: &Server, member: &Member, rumors: &[RumorKey]) {
     let socket = (**ZMQ_CONTEXT).as_mut()
                                 .socket(zmq::PUSH)
                                 .expect("Failure to create the ZMQ push socket");
@@ -188,7 +191,9 @@ fn send_rumors_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 //           TraceKind::SendRumor,
                 //           &member.id,
                 //           &send_rumor);
-                match server.service_store.encode(&rumor_key.key, &rumor_key.id) {
+                match server.service_store
+                            .encode_rsr(&rumor_key.key, &rumor_key.id)
+                {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \
@@ -207,7 +212,7 @@ fn send_rumors_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 //           &member.id,
                 //           &send_rumor);
                 match server.service_config_store
-                            .encode(&rumor_key.key, &rumor_key.id)
+                            .encode_rsr(&rumor_key.key, &rumor_key.id)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -227,7 +232,7 @@ fn send_rumors_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 //           &member.id,
                 //           &send_rumor);
                 match server.service_file_store
-                            .encode(&rumor_key.key, &rumor_key.id)
+                            .encode_rsr(&rumor_key.key, &rumor_key.id)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -242,7 +247,9 @@ fn send_rumors_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::Departure => {
-                match server.departure_store.encode(&rumor_key.key, &rumor_key.id) {
+                match server.departure_store
+                            .encode_rsr(&rumor_key.key, &rumor_key.id)
+                {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \
@@ -260,7 +267,9 @@ fn send_rumors_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 //           TraceKind::SendRumor,
                 //           &member.id,
                 //           &send_rumor);
-                match server.election_store.encode(&rumor_key.key, &rumor_key.id) {
+                match server.election_store
+                            .encode_rsr(&rumor_key.key, &rumor_key.id)
+                {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \
@@ -274,7 +283,9 @@ fn send_rumors_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::ElectionUpdate => {
-                match server.update_store.encode(&rumor_key.key, &rumor_key.id) {
+                match server.update_store
+                            .encode_rsr(&rumor_key.key, &rumor_key.id)
+                {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \

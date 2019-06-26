@@ -185,10 +185,10 @@ mod tests {
         let s1 = create_service_config("timmeh", "lol");
         let mut s2 = create_service_config("timmeh", "awesome");
         s2.incarnation = 1; // 0 is the default, which means this rumor will win
-        rs.insert(s1);
-        rs.insert(s2);
+        rs.insert_rsw(s1);
+        rs.insert_rsw(s2);
 
-        let list = rs.list.read();
+        let list = rs.lock_rsr();
         assert_eq!(list.len(), 1); // because we only have 1 service group
 
         let sub_list = list.get("neurosis.production").unwrap();

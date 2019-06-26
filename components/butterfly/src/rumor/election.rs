@@ -312,10 +312,10 @@ mod tests {
         let rs = create_election_rumor_store();
         let e1 = create_election("member_1", 1);
         let e2 = create_election("member_2", 2);
-        rs.insert(e1);
-        rs.insert(e2);
+        rs.insert_rsw(e1);
+        rs.insert_rsw(e2);
 
-        let list = rs.list.read();
+        let list = rs.lock_rsr();
         assert_eq!(list.len(), 1); // because we only have 1 service group
 
         let sub_list = list.get("tdep.prod").unwrap();
@@ -328,10 +328,10 @@ mod tests {
         let rs = create_election_update_rumor_store();
         let e1 = create_election_update("member_1", 1);
         let e2 = create_election_update("member_2", 2);
-        rs.insert(e1);
-        rs.insert(e2);
+        rs.insert_rsw(e1);
+        rs.insert_rsw(e2);
 
-        let list = rs.list.read();
+        let list = rs.lock_rsr();
         assert_eq!(list.len(), 1); // because we only have 1 service group
 
         let sub_list = list.get("tdep.prod").unwrap();

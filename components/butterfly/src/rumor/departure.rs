@@ -91,10 +91,10 @@ mod tests {
         let rs = create_rumor_store();
         let d1 = Departure::new("member_1");
         let d2 = Departure::new("member_2");
-        rs.insert(d1);
-        rs.insert(d2);
+        rs.insert_rsw(d1);
+        rs.insert_rsw(d2);
 
-        let list = rs.list.read();
+        let list = rs.lock_rsr();
         assert_eq!(list.len(), 1); // for the "departure" key
 
         let sub_list = list.get("departure").unwrap();

@@ -805,9 +805,9 @@ mod tests {
                                               sys_info.clone(),
                                               None);
 
-        service_store.insert(service_one);
-        service_store.insert(service_two);
-        service_store.insert(service_three);
+        service_store.insert_rsw(service_one);
+        service_store.insert_rsw(service_two);
+        service_store.insert_rsw(service_three);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
         let mut election = ElectionRumor::new("member-a",
@@ -816,7 +816,7 @@ mod tests {
                                               10,
                                               true /* has_quorum */);
         election.finish();
-        election_store.insert(election);
+        election_store.insert_rsw(election);
 
         let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
         let mut election_update = ElectionUpdateRumor::new("member-b",
@@ -825,7 +825,7 @@ mod tests {
                                                            10,
                                                            true /* has_quorum */);
         election_update.finish();
-        election_update_store.insert(election_update);
+        election_update_store.insert_rsw(election_update);
 
         let member_list = MemberList::new();
 

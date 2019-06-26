@@ -692,7 +692,7 @@ mod tests {
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
         let service_one = ServiceRumor::new("member-a", &pg_id, sg_one.clone(), sys_info, None);
-        service_store.insert(service_one);
+        service_store.insert_rsw(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
         let mut election = ElectionRumor::new("member-a",
@@ -701,7 +701,7 @@ mod tests {
                                               10,
                                               true /* has_quorum */);
         election.finish();
-        election_store.insert(election);
+        election_store.insert_rsw(election);
 
         let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
 
