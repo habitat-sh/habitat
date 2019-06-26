@@ -85,11 +85,17 @@ If you are running Windows and use [Chocolatey](https://chocolatey.org), you can
 C:\> choco install habitat
 ```
 
-If you do _not_ run Homebrew or Chocolatey, or if you use Linux, you can use the [Habitat install
-script](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh) from a bash shell.
+If you do _not_ run Homebrew or Chocolatey, or if you use Linux, you can use the Habitat [install.sh](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.sh) or [install.ps1](https://github.com/habitat-sh/habitat/blob/master/components/hab/install.ps1) script.
 
+Bash:
 ```
 $ curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash
+```
+
+Powershell:
+```
+C:\> Set-ExecutionPolicy Bypass -Scope Process -Force
+C:\> iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1'))
 ```
 
 ## Contribute
