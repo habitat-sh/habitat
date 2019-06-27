@@ -67,15 +67,17 @@ impl CensusRing {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
+    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
+    ///   is held.
     #[allow(clippy::too_many_arguments)]
-    pub fn update_from_rumors_mlr(&mut self,
-                                  cache_key_path: &Path,
-                                  service_rumors: &RumorStore<ServiceRumor>,
-                                  election_rumors: &RumorStore<ElectionRumor>,
-                                  election_update_rumors: &RumorStore<ElectionUpdateRumor>,
-                                  member_list: &MemberList,
-                                  service_config_rumors: &RumorStore<ServiceConfigRumor>,
-                                  service_file_rumors: &RumorStore<ServiceFileRumor>) {
+    pub fn update_from_rumors_mlr_rsr(&mut self,
+                                      cache_key_path: &Path,
+                                      service_rumors: &RumorStore<ServiceRumor>,
+                                      election_rumors: &RumorStore<ElectionRumor>,
+                                      election_update_rumors: &RumorStore<ElectionUpdateRumor>,
+                                      member_list: &MemberList,
+                                      service_config_rumors: &RumorStore<ServiceConfigRumor>,
+                                      service_file_rumors: &RumorStore<ServiceFileRumor>) {
         // If ANY new rumor, of any type, has been received,
         // reconstruct the entire census state to ensure consistency
         if (service_rumors.get_update_counter() > self.last_service_counter)
@@ -87,11 +89,11 @@ impl CensusRing {
         {
             self.changed = true;
 
-            self.populate_census_mlr(service_rumors, member_list);
-            self.update_from_election_store(election_rumors);
-            self.update_from_election_update_store(election_update_rumors);
-            self.update_from_service_config(cache_key_path, service_config_rumors);
-            self.update_from_service_files(cache_key_path, service_file_rumors);
+            self.populate_census_mlr_rsr(service_rumors, member_list);
+            self.update_from_election_store_rsr(election_rumors);
+            self.update_from_election_update_store_rsr(election_update_rumors);
+            self.update_from_service_config_rsr(cache_key_path, service_config_rumors);
+            self.update_from_service_files_rsr(cache_key_path, service_file_rumors);
 
             // Update our counters to reflect current state.
             self.last_membership_counter = member_list.get_update_counter();
@@ -120,9 +122,11 @@ impl CensusRing {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    fn populate_census_mlr(&mut self,
-                           service_rumors: &RumorStore<ServiceRumor>,
-                           member_list: &MemberList) {
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    fn populate_census_mlr_rsr(&mut self,
+                               service_rumors: &RumorStore<ServiceRumor>,
+                               member_list: &MemberList) {
         // Populate our census; new groups are created here, as are
         // new members of those groups.
         //
@@ -133,16 +137,15 @@ impl CensusRing {
         // `census_group.update_from_service_rumors`, where new census
         // members are created, so there would be no time that there
         // is an indeterminate health anywhere.
-        service_rumors.with_keys(|(service_group, rumors)| {
-                          if let Ok(sg) = service_group_from_str(service_group) {
-                              let local_member_id = Cow::from(&self.local_member_id);
-                              let census_group =
-                                  self.census_groups
-                                      .entry(sg.clone())
-                                      .or_insert_with(|| CensusGroup::new(sg, &local_member_id));
-                              census_group.update_from_service_rumors(rumors);
-                          }
-                      });
+        for (service_group, rumors) in service_rumors.lock_rsr().iter() {
+            if let Ok(sg) = service_group_from_str(service_group) {
+                let local_member_id = Cow::from(&self.local_member_id);
+                let census_group = self.census_groups
+                                       .entry(sg.clone())
+                                       .or_insert_with(|| CensusGroup::new(sg, &local_member_id));
+                census_group.update_from_service_rumors(rumors);
+            }
+        }
 
         member_list.with_memberships_mlr(|Membership { member, health }| {
                        for group in self.census_groups.values_mut() {
@@ -156,34 +159,43 @@ impl CensusRing {
                    .ok();
     }
 
-    fn update_from_election_store(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
-        election_rumors.with_keys(|(service_group, rumors)| {
-                           let election = rumors.get("election").unwrap();
-                           if let Ok(sg) = service_group_from_str(service_group) {
-                               if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                                   census_group.update_from_election_rumor(election);
-                               }
-                           }
-                       });
+    /// # Locking
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    fn update_from_election_store_rsr(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
+        for (service_group, rumors) in election_rumors.lock_rsr().iter() {
+            let election = rumors.get("election").unwrap();
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                    census_group.update_from_election_rumor(election);
+                }
+            }
+        }
     }
 
-    fn update_from_election_update_store(&mut self,
-                                         election_update_rumors: &RumorStore<ElectionUpdateRumor>)
+    /// # Locking
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    fn update_from_election_update_store_rsr(&mut self,
+                                             election_update_rumors: &RumorStore<ElectionUpdateRumor>)
     {
-        election_update_rumors.with_keys(|(service_group, rumors)| {
-                                  if let Ok(sg) = service_group_from_str(service_group) {
-                                      if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                                          let election = rumors.get("election").unwrap();
-                                          census_group.update_from_election_update_rumor(election);
-                                      }
-                                  }
-                              });
+        for (service_group, rumors) in election_update_rumors.lock_rsr().iter() {
+            if let Ok(sg) = service_group_from_str(service_group) {
+                if let Some(census_group) = self.census_groups.get_mut(&sg) {
+                    let election = rumors.get("election").unwrap();
+                    census_group.update_from_election_update_rumor(election);
+                }
+            }
+        }
     }
 
-    fn update_from_service_config(&mut self,
-                                  cache_key_path: &Path,
-                                  service_config_rumors: &RumorStore<ServiceConfigRumor>) {
-        service_config_rumors.with_keys(|(service_group, rumors)| {
+    /// # Locking
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    fn update_from_service_config_rsr(&mut self,
+                                      cache_key_path: &Path,
+                                      service_config_rumors: &RumorStore<ServiceConfigRumor>) {
+        for (service_group, rumors) in service_config_rumors.lock_rsr().iter() {
             if let Ok(sg) = service_group_from_str(service_group) {
                 if let Some(service_config) = rumors.get("service_config") {
                     if let Some(census_group) = self.census_groups.get_mut(&sg) {
@@ -192,23 +204,24 @@ impl CensusRing {
                     }
                 }
             }
-        });
+        }
     }
 
-    fn update_from_service_files(&mut self,
-                                 cache_key_path: &Path,
-                                 service_file_rumors: &RumorStore<ServiceFileRumor>) {
-        service_file_rumors.with_keys(|(service_group, rumors)| {
-                               if let Ok(sg) = service_group_from_str(service_group) {
-                                   let local_member_id = Cow::from(&self.local_member_id);
-                                   let census_group = self
-                    .census_groups
-                    .entry(sg.clone())
-                    .or_insert_with(|| CensusGroup::new(sg, &local_member_id));
-                                   census_group.update_from_service_file_rumors(cache_key_path,
-                                                                                rumors);
-                               }
-                           });
+    /// # Locking
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    fn update_from_service_files_rsr(&mut self,
+                                     cache_key_path: &Path,
+                                     service_file_rumors: &RumorStore<ServiceFileRumor>) {
+        for (service_group, rumors) in service_file_rumors.lock_rsr().iter() {
+            if let Ok(sg) = service_group_from_str(service_group) {
+                let local_member_id = Cow::from(&self.local_member_id);
+                let census_group = self.census_groups
+                                       .entry(sg.clone())
+                                       .or_insert_with(|| CensusGroup::new(sg, &local_member_id));
+                census_group.update_from_service_file_rumors(cache_key_path, rumors);
+            }
+        }
     }
 }
 
@@ -832,13 +845,13 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
         let mut ring = CensusRing::new("member-b".to_string());
-        ring.update_from_rumors_mlr(&cache_key_path(Some(&*FS_ROOT)),
-                                    &service_store,
-                                    &election_store,
-                                    &election_update_store,
-                                    &member_list,
-                                    &service_config_store,
-                                    &service_file_store);
+        ring.update_from_rumors_mlr_rsr(&cache_key_path(Some(&*FS_ROOT)),
+                                        &service_store,
+                                        &election_store,
+                                        &election_update_store,
+                                        &member_list,
+                                        &service_config_store,
+                                        &service_file_store);
 
         (ring, sg_one, sg_two)
     }

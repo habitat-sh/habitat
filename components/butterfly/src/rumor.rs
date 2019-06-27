@@ -415,18 +415,12 @@ mod storage {
             result
         }
 
-        pub fn remove(&self, key: &str, id: &str) {
+        /// # Locking
+        /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list
+        ///   lock is held.
+        pub fn remove_rsw(&self, key: &str, id: &str) {
             let mut list = self.list.write();
             list.get_mut(key).and_then(|r| r.remove(id));
-        }
-
-        pub fn with_keys<F>(&self, mut with_closure: F)
-            where F: FnMut((&String, &HashMap<String, T>))
-        {
-            let list = self.list.read();
-            for x in list.iter() {
-                with_closure(x);
-            }
         }
 
         pub fn with_rumors<F>(&self, key: &str, mut with_closure: F)

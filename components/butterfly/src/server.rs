@@ -887,10 +887,12 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    fn elections_to_restart_mlr<T>(&self,
-                                   elections: &RumorStore<T>,
-                                   feature_flags: FeatureFlag)
-                                   -> Vec<(String, u64)>
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    fn elections_to_restart_mlr_rsr<T>(&self,
+                                       elections: &RumorStore<T>,
+                                       feature_flags: FeatureFlag)
+                                       -> Vec<(String, u64)>
         where T: Rumor + ElectionRumor + Debug
     {
         Self::elections_to_restart_impl(elections,
@@ -902,9 +904,6 @@ impl Server {
                                         &self.data_path)
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
     fn elections_to_restart_impl<T>(elections: &RumorStore<T>,
                                     service_store: &RumorStore<Service>,
                                     myself_member_id: &str,
@@ -917,60 +916,51 @@ impl Server {
     {
         let mut elections_to_restart = vec![];
 
-        elections.with_keys(|(service_group, rumors)| {
-                     if service_store.contains_rumor(&service_group, myself_member_id) {
-                         // This is safe; there is only one id for an election, and it is "election"
-                         let election =
-                             rumors.get("election")
-                                   .expect("Lost an election struct between looking it up and \
-                                            reading it.");
-                         debug!("elections_to_restart: checking {} -> {:#?}",
-                                service_group, election);
+        for (service_group, rumors) in elections.lock_rsr().iter() {
+            if service_store.contains_rumor(&service_group, myself_member_id) {
+                // This is safe; there is only one id for an election, and it is "election"
+                let election =
+                    rumors.get("election")
+                          .expect("Lost an election struct between looking it up and reading it.");
+                debug!("elections_to_restart: checking {} -> {:#?}",
+                       service_group, election);
 
-                         if election_trigger::maybe_trigger(service_group,
-                                                            feature_flags,
-                                                            &data_path)
-                         {
-                             elections_to_restart.push((String::from(&service_group[..]),
-                                                        election.term()));
-                         } else {
-                             // We're not manually triggering a new
-                             // election, so we should check to see if
-                             // we need to start a new one the
-                             // old-fashioned way.
+                if election_trigger::maybe_trigger(service_group, feature_flags, &data_path) {
+                    elections_to_restart.push((String::from(&service_group[..]), election.term()));
+                } else {
+                    // We're not manually triggering a new election, so we should check to see if we
+                    // need to start a new one the old-fashioned way.
 
-                             // If we are finished, and the leader is dead, we should restart the
-                             // election
-                             if election.is_finished() && election.member_id() == myself_member_id {
-                                 // If we are the leader, and we have lost quorum, we should restart
-                                 // the election
-                                 if !check_quorum(election.key()) {
-                                     warn!("Restarting election with a new term as the leader \
-                                            has lost quorum: {:?}",
-                                           election);
-                                     elections_to_restart.push((String::from(&service_group[..]),
-                                                                election.term()));
-                                 }
-                             } else if election.is_finished() {
-                                 let leader_health =
-                                     member_list.health_of_by_id_mlr(election.member_id())
-                                                .unwrap_or_else(|| {
-                                                    debug!("No health information for {}; \
-                                                            treating as Departed",
-                                                           election.member_id());
-                                                    Health::Departed
-                                                });
-                                 if leader_health >= Health::Confirmed {
-                                     warn!("Restarting election with a new term as the leader is \
-                                            dead {}: {:?}",
-                                           myself_member_id, election);
-                                     elections_to_restart.push((String::from(&service_group[..]),
-                                                                election.term()));
-                                 }
-                             }
-                         }
-                     }
-                 });
+                    // If we are finished, and the leader is dead, we should restart the election
+                    if election.is_finished() && election.member_id() == myself_member_id {
+                        // If we are the leader, and we have lost quorum, we should restart
+                        // the election
+                        if !check_quorum(election.key()) {
+                            warn!("Restarting election with a new term as the leader has lost \
+                                   quorum: {:?}",
+                                  election);
+                            elections_to_restart.push((String::from(&service_group[..]),
+                                                       election.term()));
+                        }
+                    } else if election.is_finished() {
+                        let leader_health = member_list.health_of_by_id_mlr(election.member_id())
+                                                       .unwrap_or_else(|| {
+                                                           debug!("No health information for {}; \
+                                                                   treating as Departed",
+                                                                  election.member_id());
+                                                           Health::Departed
+                                                       });
+                        if leader_health >= Health::Confirmed {
+                            warn!("Restarting election with a new term as the leader is dead {}: \
+                                   {:?}",
+                                  myself_member_id, election);
+                            elections_to_restart.push((String::from(&service_group[..]),
+                                                       election.term()));
+                        }
+                    }
+                }
+            }
+        }
 
         elections_to_restart
     }
@@ -987,26 +977,26 @@ impl Server {
     ///   is held.
     pub fn restart_elections_mlr_rsw(&self, feature_flags: FeatureFlag) {
         let elections_to_restart =
-            self.elections_to_restart_mlr(&self.election_store, feature_flags);
+            self.elections_to_restart_mlr_rsr(&self.election_store, feature_flags);
 
         // TODO (CM): not currently triggering update elections!
         // There's only one kind of sentinel file at the moment, and
         // that's for non-update elections. If that file existed,
         // it'll be gone by the time we get here.
         let update_elections_to_restart =
-            self.elections_to_restart_mlr(&self.update_store, feature_flags);
+            self.elections_to_restart_mlr_rsr(&self.update_store, feature_flags);
 
         for (service_group, old_term) in elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
-            self.election_store.remove(&service_group, "election");
+            self.election_store.remove_rsw(&service_group, "election");
             self.start_election_mlr_rsw(&service_group, term);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
-            self.update_store.remove(&service_group, "election");
+            self.update_store.remove_rsw(&service_group, "election");
             self.start_update_election_mlr_rsw(&service_group, 0, term);
         }
     }
@@ -1043,7 +1033,8 @@ impl Server {
                     });
                 if new_term {
                     debug!("removing old rumor and starting new election");
-                    self.election_store.remove(election.key(), election.id());
+                    self.election_store
+                        .remove_rsw(election.key(), election.id());
                     self.start_election_mlr_rsw(&election.service_group, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
@@ -1138,7 +1129,7 @@ impl Server {
                     });
                 if new_term {
                     debug!("removing old rumor and starting new election");
-                    self.update_store.remove(election.key(), election.id());
+                    self.update_store.remove_rsw(election.key(), election.id());
                     self.start_update_election_mlr_rsw(&election.service_group, 0, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the

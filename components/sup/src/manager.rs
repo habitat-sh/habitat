@@ -1014,13 +1014,13 @@ impl Manager {
 
             self.restart_elections_mlr_rsw(self.feature_flags);
             self.census_ring
-                .update_from_rumors_mlr(&self.state.cfg.cache_key_path,
-                                        &self.butterfly.service_store,
-                                        &self.butterfly.election_store,
-                                        &self.butterfly.update_store,
-                                        &self.butterfly.member_list,
-                                        &self.butterfly.service_config_store,
-                                        &self.butterfly.service_file_store);
+                .update_from_rumors_mlr_rsr(&self.state.cfg.cache_key_path,
+                                            &self.butterfly.service_store,
+                                            &self.butterfly.election_store,
+                                            &self.butterfly.update_store,
+                                            &self.butterfly.member_list,
+                                            &self.butterfly.service_config_store,
+                                            &self.butterfly.service_file_store);
 
             if self.check_for_changed_services() {
                 self.persist_state_mlr_rsr();
