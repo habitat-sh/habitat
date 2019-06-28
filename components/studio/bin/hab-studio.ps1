@@ -231,6 +231,7 @@ function New-Studio {
   )
 
   $env:PATH = [String]::Join(";", $pathArray)
+  $env:PSModulePath = "$PSScriptRoot\powershell\Modules"
 
   if($env:HAB_ORIGIN_KEYS) {
     $secret_keys = @()

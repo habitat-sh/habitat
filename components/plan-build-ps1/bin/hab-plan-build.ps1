@@ -1267,7 +1267,7 @@ function Invoke-SetupEnvironmentWrapper {
     # the real environment, except for PATH; for that, push the
     # runtime path onto the front of the system path
     foreach($k in $env["Runtime"].keys) {
-        if(@("PATH", "LIB", "INCLUDE") -contains $k) {
+        if(@("PATH", "LIB", "INCLUDE", "PSMODULEPATH") -contains $k) {
             $currentVal = ""
             if(Test-path env:\$k) {
                 $currentVal = Get-Content env:\$k
@@ -1464,34 +1464,6 @@ function __env_var_type($VarName) {
         # We know nothing about it; treat it as a primitive
         Write-Warning "Treating `$$varName as a primitive type. If you would like to change this, add `"HAB_ENV_${VarName}_TYPE='aggregate'`" to your plan."
         'primitive'
-    }
-}
-
-# Simply converts contents of pkg_bin_dirs, pkg_lib_dirs and pkg_include_dirs
-# into a PATH, LIB and INCLUDE variable
-function __process_paths($Environment) {
-    if($Environment -ne "Runtime") { return }
-
-    # Contents of `pkg_xxx_dirs` are relative to the plan root;
-    # prepend the full path to this release so everything resolves
-    # properly once the package is installed.
-    $prefixDrive = (Resolve-Path $originalPath).Drive.Root
-    $strippedPrefix = $pkg_prefix.Substring($prefixDrive.length)
-    if(!$strippedPrefix.StartsWith('\')) { $strippedPrefix = "\$strippedPrefix" }
-
-    if ($pkg_bin_dirs.Length -gt 0) {
-        $path = $($pkg_bin_dirs | % { "$strippedPrefix\$_" }) -join ';'
-        __push_env $Environment "PATH" $path ";" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
-    }
-
-    if ($pkg_lib_dirs.Length -gt 0) {
-        $lib = $($pkg_lib_dirs | % { "$strippedPrefix\$_" }) -join ';'
-        __push_env $Environment "LIB" $lib ";" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
-    }
-
-    if ($pkg_include_dirs.Length -gt 0) {
-        $include = $($pkg_include_dirs | % { "$strippedPrefix\$_" }) -join ';'
-        __push_env $Environment "INCLUDE" $include ";" "${pkg_origin}/${pkg_name}/${pkg_version}/${pkg_release}"
     }
 }
 
