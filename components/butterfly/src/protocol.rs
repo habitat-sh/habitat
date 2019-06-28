@@ -7,7 +7,7 @@ use serde::Serialize;
 
 use crate::error::Result;
 
-include!("../generated/butterfly.common.rs");
+include!("generated/butterfly.common.rs");
 
 pub trait Message<T: ProstMessage + Default>: FromProto<T> + Clone + Into<T> + Serialize {
     const MESSAGE_ID: &'static str;
