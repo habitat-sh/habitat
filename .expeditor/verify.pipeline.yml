@@ -35,12 +35,15 @@ steps:
         limit: 1
 
   - label: "[lint] :linux: :paperclip: clippy!"
-    command:
-      - sudo yum install gcc -y # install GCC since it's required for the cargo build
-      - sudo yum update bash # make sure we have 4.4 or later
-      - sudo make lint
+    command: make lint
     agents:
-      queue: 'single-use-privileged'
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.2.0:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
     timeout_in_minutes: 10
 
 
