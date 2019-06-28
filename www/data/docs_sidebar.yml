@@ -99,6 +99,8 @@ sidebar_links:
       link: "/docs/reference/#template-data"
     - title: Package Contents
       link: "/docs/reference/#package-contents"
+    - title: Supervisor Log Configuration
+      link: "/docs/reference/#sup-log-configuration"
     - title: Supervisor Log Keys
       link: "/docs/reference/#sup-log-keys"
   - title: Diagrams
