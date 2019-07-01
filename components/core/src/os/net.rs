@@ -1,10 +1,10 @@
 #[allow(unused_variables)]
 #[cfg(windows)]
-#[path = "windows.rs"]
+#[path = "net/windows.rs"]
 mod imp;
 
 #[cfg(not(windows))]
-#[path = "unix.rs"]
+#[path = "net/unix.rs"]
 mod imp;
 
 pub use self::imp::*;
