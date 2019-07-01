@@ -120,7 +120,7 @@ enum BindStatus<'a> {
     Unknown(Error),
 }
 
-/// Encapsulate changes to /hooks or /config.
+/// Encapsulate changes to `/hooks` and `/config`.
 #[derive(Default)]
 struct TemplateUpdate {
     hooks:                 HookCompileTable,
@@ -135,14 +135,24 @@ impl TemplateUpdate {
                have_reconfigure_hook }
     }
 
+    /// Returns `true` if the service needs to be restarted.
+    ///
+    /// A restart is needed under the following conditions:
+    /// 1. the `run` or `post-run` hooks have changed. A restart is limited to these hooks
+    /// because they are the only hooks that can impact the execution of the service.
+    /// 2. `/config` changed and there is no `reconfigure` hook
     fn needs_restart(&self) -> bool {
         self.hooks.run_changed()
         || self.hooks.post_run_changed()
         || (!self.have_reconfigure_hook && self.config_changed)
     }
 
+    /// Returns `true` if the service needs to be reconfigured.
+    ///
+    /// A reconfigure is needed if `/config` or the `reconfigure` hook changed.
     fn needs_reconfigure(&self) -> bool { self.config_changed || self.hooks.reconfigure_changed() }
 
+    /// Returns `true` if there was a change to `/hooks` or `/config`
     fn changed(&self) -> bool { self.hooks.changed() || self.config_changed }
 }
 
