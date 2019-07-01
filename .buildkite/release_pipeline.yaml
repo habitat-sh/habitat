@@ -357,7 +357,7 @@ steps:
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
-  - label: ":docker: :windows: Upload windows container to Bintray"
+  - label: ":docker: :windows: Upload windows container to Docker Hub"
     command: .buildkite/scripts/publish_docker_studio.ps1
     agents:
       queue: 'single-use-windows-privileged'

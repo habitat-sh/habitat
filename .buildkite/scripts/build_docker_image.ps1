@@ -95,10 +95,16 @@ if ($LASTEXITCODE -ne 0) {
 if($BaseTag -eq "ltsc2016") {
     Write-Host "Tagging latest image to ${imageName}:$BaseTag-$version"
     docker tag ${imageName}:$BaseTag-$version ${imageName}:latest
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Failed to locally tag image"
+    }
 }
 
 Write-Host "Tagging latest image to ${imageName}:$BaseTag-$shortVersion"
 docker tag ${imageName}:$BaseTag-$version ${imageName}:$BaseTag-$shortVersion
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Failed to locally tag image"
+}
 
 # Ensure the results directory exists before writing to it
 New-Item -ItemType directory -Path "$startDir/results" -Force
