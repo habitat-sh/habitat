@@ -151,9 +151,6 @@ impl TemplateUpdate {
     ///
     /// A reconfigure is needed if `/config` or the `reconfigure` hook changed.
     fn needs_reconfigure(&self) -> bool { self.config_changed || self.hooks.reconfigure_changed() }
-
-    /// Returns `true` if there was a change to `/hooks` or `/config`
-    fn changed(&self) -> bool { self.hooks.changed() || self.config_changed }
 }
 
 #[derive(Debug)]
@@ -458,7 +455,7 @@ impl Service {
 
     /// Performs updates and executes hooks.
     ///
-    /// Returns `true` if the service was updated.
+    /// Returns `true` if the service was restarted or reconfigured.
     pub fn tick(&mut self,
                 census_ring: &CensusRing,
                 launcher: &LauncherCli,
@@ -492,9 +489,7 @@ impl Service {
         }
 
         match self.topology {
-            Topology::Standalone => {
-                self.execute_hooks(launcher, executor, &template_update);
-            }
+            Topology::Standalone => self.execute_hooks(launcher, executor, &template_update),
             Topology::Leader => {
                 let census_group =
                     census_ring.census_group_for(&self.service_group)
@@ -506,6 +501,7 @@ impl Service {
                                       "Waiting to execute hooks; election hasn't started");
                             self.last_election_status = census_group.election_status;
                         }
+                        false
                     }
                     ElectionStatus::ElectionInProgress => {
                         if self.last_election_status != census_group.election_status {
@@ -513,6 +509,7 @@ impl Service {
                                       "Waiting to execute hooks; election in progress.");
                             self.last_election_status = census_group.election_status;
                         }
+                        false
                     }
                     ElectionStatus::ElectionNoQuorum => {
                         if self.last_election_status != census_group.election_status {
@@ -522,6 +519,7 @@ impl Service {
 
                             self.last_election_status = census_group.election_status
                         }
+                        false
                     }
                     ElectionStatus::ElectionFinished => {
                         let leader_id = census_group.leader_id
@@ -538,21 +536,6 @@ impl Service {
                 }
             }
         }
-        if template_update.changed() {
-            // The intention here is to do a health check soon after a
-            // service's configuration changes, as a way to (among
-            // other things) detect potential impacts when bound
-            // services change exported configuration.
-            //
-            // TODO (CM): Rather than restarting health checks
-            // immediately (and correspondingly, immediately after a
-            // service starts for the first time), should we instead
-            // have an initial delay of X seconds, and _then_ start
-            // the "normal" sequence of checks?
-            self.restart_health_checks(executor);
-        }
-
-        template_update.changed()
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
@@ -812,13 +795,17 @@ impl Service {
     }
 
     /// Run reconfigure hook if present.
-    fn reconfigure(&mut self) {
+    fn reconfigure(&mut self, executor: &TaskExecutor) {
         let _timer = hook_timer("reconfigure");
 
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group,
                      &self.pkg,
                      self.svc_encrypted_password.as_ref());
+            // The intention here is to do a health check soon after a service's configuration
+            // changes, as a way to (among other things) detect potential impacts when bound
+            // services change exported configuration.
+            self.restart_health_checks(executor);
         }
     }
 
@@ -931,14 +918,16 @@ impl Service {
         win_perm::harden_path(path.as_ref())
     }
 
+    /// Returns `true` if the service was restarted or reconfigured.
     fn execute_hooks(&mut self,
                      launcher: &LauncherCli,
                      executor: &TaskExecutor,
-                     template_update: &TemplateUpdate) {
+                     template_update: &TemplateUpdate)
+                     -> bool {
         if !self.initialized {
             if self.check_process() {
                 self.reattach(executor);
-                return;
+                return false;
             }
             self.initialize();
             if self.initialized {
@@ -952,11 +941,14 @@ impl Service {
                 // schedule the `stop` future, but the `Manager` wraps the `stop` future with
                 // additional functionality. Can we refactor to make this flag unnecessary?
                 self.needs_restart = true;
+                return true;
             } else if template_update.needs_reconfigure() {
                 // Only reconfigure if we did NOT restart the service
-                self.reconfigure();
+                self.reconfigure(executor);
+                return true;
             }
         }
+        false
     }
 
     /// Run file-updated hook if present.
