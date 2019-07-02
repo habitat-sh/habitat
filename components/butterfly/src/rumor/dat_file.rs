@@ -531,7 +531,6 @@ mod tests {
     fn read_or_create_mlr_successfully_creates_when_no_file_exists() {
         let dir = tempdir().expect("temp dir created");
         let file_path = dir.path().join("test-datfile");
-        // let server = Server::default();
 
         assert!(!file_path.exists());
 
