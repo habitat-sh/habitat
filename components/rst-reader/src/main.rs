@@ -35,12 +35,12 @@ fn main() {
 
     let file = matches.value_of("FILE").unwrap();
     let stats = matches.is_present("STATS");
-    let dat_file = dat_file::DatFile::read(Path::new(file)).unwrap_or_else(|e| {
-                                                               error!("Could not read dat file \
-                                                                       {}: {}",
-                                                                      file, e);
-                                                               process::exit(1);
-                                                           });
+    let dat_file = dat_file::DatFileReader::read(Path::new(file)).unwrap_or_else(|e| {
+                                                                     error!("Could not read dat \
+                                                                             file {}: {}",
+                                                                            file, e);
+                                                                     process::exit(1);
+                                                                 });
 
     let result = if stats {
         output_stats(dat_file)
@@ -54,42 +54,39 @@ fn main() {
     }
 }
 
-fn output_rumors(mut dat_file: dat_file::DatFile) -> Result<()> {
-    let mut reader = dat_file.reader()?;
-
-    for member in dat_file.read_members(&mut reader)? {
+fn output_rumors(mut dat_file: dat_file::DatFileReader) -> Result<()> {
+    for member in dat_file.read_members()? {
         println!("{}", member);
     }
 
-    for service in dat_file.read_rumors::<Service>(&mut reader)? {
+    for service in dat_file.read_rumors::<Service>()? {
         println!("{}", service);
     }
 
-    for service_config in dat_file.read_rumors::<ServiceConfig>(&mut reader)? {
+    for service_config in dat_file.read_rumors::<ServiceConfig>()? {
         println!("{}", service_config);
     }
 
-    for service_file in dat_file.read_rumors::<ServiceFile>(&mut reader)? {
+    for service_file in dat_file.read_rumors::<ServiceFile>()? {
         println!("{}", service_file);
     }
 
-    for election in dat_file.read_rumors::<Election>(&mut reader)? {
+    for election in dat_file.read_rumors::<Election>()? {
         println!("{}", election);
     }
 
-    for update_election in dat_file.read_rumors::<ElectionUpdate>(&mut reader)? {
+    for update_election in dat_file.read_rumors::<ElectionUpdate>()? {
         println!("{}", update_election);
     }
 
-    for departure in dat_file.read_rumors::<Departure>(&mut reader)? {
+    for departure in dat_file.read_rumors::<Departure>()? {
         println!("{}", departure);
     }
 
     Ok(())
 }
 
-fn output_stats(mut dat_file: dat_file::DatFile) -> Result<()> {
-    let mut reader = dat_file.reader()?;
+fn output_stats(mut dat_file: dat_file::DatFileReader) -> Result<()> {
     let mut membership = 0;
     let mut services = 0;
     let mut service_configs = 0;
@@ -98,13 +95,13 @@ fn output_stats(mut dat_file: dat_file::DatFile) -> Result<()> {
     let mut update_elections = 0;
     let mut departures = 0;
 
-    membership += dat_file.read_members(&mut reader)?.len();
-    services += dat_file.read_rumors::<Service>(&mut reader)?.len();
-    service_configs += dat_file.read_rumors::<ServiceConfig>(&mut reader)?.len();
-    service_files += dat_file.read_rumors::<ServiceFile>(&mut reader)?.len();
-    elections += dat_file.read_rumors::<Election>(&mut reader)?.len();
-    update_elections += dat_file.read_rumors::<ElectionUpdate>(&mut reader)?.len();
-    departures += dat_file.read_rumors::<Departure>(&mut reader)?.len();
+    membership += dat_file.read_members()?.len();
+    services += dat_file.read_rumors::<Service>()?.len();
+    service_configs += dat_file.read_rumors::<ServiceConfig>()?.len();
+    service_files += dat_file.read_rumors::<ServiceFile>()?.len();
+    elections += dat_file.read_rumors::<Election>()?.len();
+    update_elections += dat_file.read_rumors::<ElectionUpdate>()?.len();
+    departures += dat_file.read_rumors::<Departure>()?.len();
 
     println!("Summary:");
     println!();
