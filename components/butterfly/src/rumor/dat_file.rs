@@ -75,14 +75,17 @@ impl DatFile {
                               update_store: &RumorStore<ElectionUpdate>,
                               departure_store: &RumorStore<Departure>)
                               -> Result<Self> {
-        let file = OpenOptions::new().create(true)
-                                     .read(true)
-                                     .write(true)
-                                     .open(&data_path)
-                                     .map_err(|err| Error::DatFileIO(data_path.clone(), err))?;
-        let size = file.metadata()
-                       .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
-                       .len();
+        let size = {
+            let file = OpenOptions::new().create(true)
+                                         .read(true)
+                                         .write(true)
+                                         .open(&data_path)
+                                         .map_err(|err| Error::DatFileIO(data_path.clone(), err))?;
+            file.metadata()
+                .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
+                .len()
+        };
+
         let mut dat_file = DatFile { path:   data_path,
                                      header: Header::default(), };
 
