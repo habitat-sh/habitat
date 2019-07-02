@@ -67,6 +67,7 @@ impl DatFile {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
+    #[allow(clippy::too_many_arguments)]
     pub fn read_or_create_mlr(data_path: PathBuf,
                               member_list: &MemberList,
                               service_store: &RumorStore<Service>,
@@ -255,6 +256,7 @@ impl DatFile {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
+    #[allow(clippy::too_many_arguments)]
     pub fn write_mlr(&self,
                      member_list: &MemberList,
                      service_store: &RumorStore<Service>,
@@ -542,7 +544,7 @@ mod tests {
                                                  &RumorStore::default(),
                                                  &RumorStore::default());
 
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "{}", result.unwrap_err());
         assert!(file_path.is_file());
         let dat_file_length = fs::metadata(file_path).map(|md| md.len());
         assert_ne!(dat_file_length.unwrap(), 0);
