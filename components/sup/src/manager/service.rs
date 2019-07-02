@@ -18,6 +18,7 @@ mod supervisor;
 mod terminator;
 
 use self::{context::RenderContext,
+           hook_runner::HookRunner,
            hooks::{HookCompileTable,
                    HookTable},
            supervisor::Supervisor};
@@ -225,6 +226,7 @@ pub struct Service {
     /// health checks on this service. This is the means by which we
     /// can stop that future.
     health_check_handle: Option<sup_futures::FutureHandle>,
+    post_run_handle: Option<sup_futures::FutureHandle>,
 }
 
 impl Service {
@@ -276,6 +278,7 @@ impl Service {
                      health_check_interval: spec.health_check_interval,
                      gateway_state,
                      health_check_handle: None,
+                     post_run_handle: None,
                      shutdown_timeout: spec.shutdown_timeout })
     }
 
@@ -418,6 +421,7 @@ impl Service {
     pub fn stop(&mut self,
                 shutdown_config: ShutdownConfig)
                 -> impl Future<Item = (), Error = Error> {
+        self.stop_post_run();
         self.stop_health_checks();
 
         let service_group = self.service_group.clone();
@@ -817,25 +821,36 @@ impl Service {
         }
     }
 
-    fn post_run(&mut self) {
-        let _timer = hook_timer("post-run");
-
+    fn post_run(&mut self, executor: &TaskExecutor) {
         if let Some(ref hook) = self.hooks.post_run {
-            hook.run(&self.service_group,
-                     &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+            let hook_runner = HookRunner::new(Arc::clone(&hook),
+                                              self.service_group.clone(),
+                                              self.pkg.clone(),
+                                              self.svc_encrypted_password.clone());
+            let (handle, f) = hook_runner.loop_future();
+            self.post_run_handle = Some(handle);
+            executor.spawn(f);
+        }
+    }
+
+    /// Stop the `post-run` future. The `post-run` hook has retry logic based on its exit code. This
+    /// will stop this retry loop regardless of `post-run`'s exit code.
+    ///
+    /// Consumes the handle to that future in the process.
+    fn stop_post_run(&mut self) {
+        if let Some(h) = self.post_run_handle.take() {
+            h.terminate();
         }
     }
 
     // This hook method looks different from all the others because
     // it's the only one that runs async right now.
-    fn post_stop(&self) -> Option<hook_runner::HookRunner<hooks::PostStopHook>> {
+    fn post_stop(&self) -> Option<HookRunner<hooks::PostStopHook>> {
         self.hooks.post_stop.as_ref().map(|hook| {
-                                         hook_runner::HookRunner::new(Arc::clone(&hook),
-                                                                      self.service_group.clone(),
-                                                                      self.pkg.clone(),
-                                                                      self.svc_encrypted_password
-                                                                          .clone())
+                                         HookRunner::new(Arc::clone(&hook),
+                                                         self.service_group.clone(),
+                                                         self.pkg.clone(),
+                                                         self.svc_encrypted_password.clone())
                                      })
     }
 
@@ -940,7 +955,7 @@ impl Service {
             self.initialize();
             if self.initialized {
                 self.start(launcher, executor);
-                self.post_run();
+                self.post_run(executor);
             }
         } else {
             self.check_process();

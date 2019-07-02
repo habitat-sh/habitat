@@ -213,6 +213,14 @@ impl Hook for PostRunHook {
         }
     }
 
+    fn retry(&self, exit_value: Self::ExitValue) -> bool {
+        match exit_value.0 {
+            0 => false,
+            1 => true,
+            _ => false,
+        }
+    }
+
     fn path(&self) -> &Path { &self.render_pair.path }
 
     fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
@@ -480,7 +488,7 @@ pub struct HookTable {
     pub reconfigure:  Option<ReconfigureHook>,
     pub suitability:  Option<SuitabilityHook>,
     pub run:          Option<RunHook>,
-    pub post_run:     Option<PostRunHook>,
+    pub post_run:     Option<Arc<PostRunHook>>,
     pub post_stop:    Option<Arc<PostStopHook>>,
 }
 
@@ -501,7 +509,8 @@ impl HookTable {
                 table.reload = ReloadHook::load(package_name, &hooks_path, &templates);
                 table.reconfigure = ReconfigureHook::load(package_name, &hooks_path, &templates);
                 table.run = RunHook::load(package_name, &hooks_path, &templates);
-                table.post_run = PostRunHook::load(package_name, &hooks_path, &templates);
+                table.post_run =
+                    PostRunHook::load(package_name, &hooks_path, &templates).map(Arc::new);
                 table.post_stop =
                     PostStopHook::load(package_name, &hooks_path, &templates).map(Arc::new);
             }
@@ -541,7 +550,7 @@ impl HookTable {
             changed.run = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_run {
-            changed.post_run = self.compile_one(hook, service_group, ctx);
+            changed.post_run = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         if let Some(ref hook) = self.post_stop {
             changed.post_stop = self.compile_one(hook.as_ref(), service_group, ctx);

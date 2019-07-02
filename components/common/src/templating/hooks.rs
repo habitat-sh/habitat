@@ -290,6 +290,8 @@ pub trait Hook: fmt::Debug + Sized + Send {
                        status: ExitStatus)
                        -> Self::ExitValue;
 
+    fn retry(&self, _exit_value: Self::ExitValue) -> bool { false }
+
     fn path(&self) -> &Path;
 
     fn renderer(&self) -> &TemplateRenderer;

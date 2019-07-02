@@ -11,12 +11,18 @@
 use super::{hook_timer,
             spawned_future::SpawnedFuture,
             Pkg};
-use crate::error::Error;
-use futures::{sync::oneshot,
+use crate::{error::Error,
+            sup_futures::{self,
+                          FutureHandle}};
+use futures::{future::{self,
+                       Loop},
+              sync::oneshot,
+              Future,
               IntoFuture};
 use habitat_common::templating::hooks::Hook;
 use habitat_core::service::ServiceGroup;
-use std::{sync::Arc,
+use std::{clone::Clone,
+          sync::Arc,
           thread,
           time::{Duration,
                  Instant}};
@@ -28,7 +34,18 @@ pub struct HookRunner<H: Hook + Sync> {
     passwd:        Option<String>,
 }
 
-impl<H> HookRunner<H> where H: Hook + Sync
+// We cannot use `#[derive(Clone)]` here because it unnecessarily requires `H` to be
+// `Clone`. See https://github.com/rust-lang/rust/issues/44151.
+impl<H: Hook + Sync> Clone for HookRunner<H> {
+    fn clone(&self) -> Self {
+        Self { hook:          self.hook.clone(),
+               service_group: self.service_group.clone(),
+               pkg:           self.pkg.clone(),
+               passwd:        self.passwd.clone(), }
+    }
+}
+
+impl<H> HookRunner<H> where H: Hook + Sync + 'static
 {
     pub fn new(hook: Arc<H>,
                service_group: ServiceGroup,
@@ -40,7 +57,28 @@ impl<H> HookRunner<H> where H: Hook + Sync
                      pkg,
                      passwd }
     }
+
+    // TODO (DM): Make `HookRunner` and this method allow arbirary configuration of how to run a
+    // hook. For example, a configurable backoff, timeout, or failure tracking. It would also be
+    // nice to merge this with the healthcheck hook retry logic.
+    pub fn loop_future(&self) -> (FutureHandle, impl Future<Item = (), Error = ()>) {
+        let f = future::loop_fn(self.clone(), |hook_runner| {
+            hook_runner.clone()
+                       .into_future()
+                       .map(move |(exit_value, _duration)| {
+                           if hook_runner.hook.retry(exit_value) {
+                               Loop::Continue(hook_runner)
+                           } else {
+                               Loop::Break(())
+                           }
+                       })
+                       .map_err(|_| ())
+        });
+        let (handle, f) = sup_futures::cancelable_future(f);
+        (handle, f.map_err(|_| ()))
+    }
 }
+
 impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
     type Error = Error;
     type Future = SpawnedFuture<Self::Item>;
