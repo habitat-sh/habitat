@@ -422,7 +422,14 @@ impl Server {
             }
 
             let dat_path = path.join(format!("{}.rst", &self.member_id));
-            let mut file = DatFile::read_or_create_mlr(dat_path, &self)?;
+            let mut file = DatFile::read_or_create_mlr(dat_path,
+                                                       &self.member_list,
+                                                       &self.service_store,
+                                                       &self.service_config_store,
+                                                       &self.service_file_store,
+                                                       &self.election_store,
+                                                       &self.update_store,
+                                                       &self.departure_store)?;
 
             match file.read_into_mlw(self) {
                 Ok(_) => {
@@ -1164,7 +1171,15 @@ impl Server {
     pub fn persist_data_mlr(&self) {
         if let Some(ref dat_file_lock) = self.dat_file {
             let dat_file = dat_file_lock.lock().expect("DatFile lock poisoned");
-            if let Some(err) = dat_file.write_mlr(self).err() {
+            if let Some(err) = dat_file.write_mlr(&self.member_list,
+                                                  &self.service_store,
+                                                  &self.service_config_store,
+                                                  &self.service_file_store,
+                                                  &self.election_store,
+                                                  &self.update_store,
+                                                  &self.departure_store)
+                                       .err()
+            {
                 error!("Error persisting rumors to disk, {}", err);
             } else {
                 info!("Rumors persisted to disk: {}", dat_file.path().display());
