@@ -55,31 +55,33 @@ fn main() {
 }
 
 fn output_rumors(mut dat_file: dat_file::DatFile) -> Result<()> {
-    for member in dat_file.read_members()? {
+    let mut reader = dat_file.reader()?;
+
+    for member in dat_file.read_members(&mut reader)? {
         println!("{}", member);
     }
 
-    for service in dat_file.read_rumors::<Service>()? {
+    for service in dat_file.read_rumors::<Service>(&mut reader)? {
         println!("{}", service);
     }
 
-    for service_config in dat_file.read_rumors::<ServiceConfig>()? {
+    for service_config in dat_file.read_rumors::<ServiceConfig>(&mut reader)? {
         println!("{}", service_config);
     }
 
-    for service_file in dat_file.read_rumors::<ServiceFile>()? {
+    for service_file in dat_file.read_rumors::<ServiceFile>(&mut reader)? {
         println!("{}", service_file);
     }
 
-    for election in dat_file.read_rumors::<Election>()? {
+    for election in dat_file.read_rumors::<Election>(&mut reader)? {
         println!("{}", election);
     }
 
-    for update_election in dat_file.read_rumors::<ElectionUpdate>()? {
+    for update_election in dat_file.read_rumors::<ElectionUpdate>(&mut reader)? {
         println!("{}", update_election);
     }
 
-    for departure in dat_file.read_rumors::<Departure>()? {
+    for departure in dat_file.read_rumors::<Departure>(&mut reader)? {
         println!("{}", departure);
     }
 
@@ -87,6 +89,7 @@ fn output_rumors(mut dat_file: dat_file::DatFile) -> Result<()> {
 }
 
 fn output_stats(mut dat_file: dat_file::DatFile) -> Result<()> {
+    let mut reader = dat_file.reader()?;
     let mut membership = 0;
     let mut services = 0;
     let mut service_configs = 0;
@@ -95,13 +98,13 @@ fn output_stats(mut dat_file: dat_file::DatFile) -> Result<()> {
     let mut update_elections = 0;
     let mut departures = 0;
 
-    membership += dat_file.read_members()?.len();
-    services += dat_file.read_rumors::<Service>()?.len();
-    service_configs += dat_file.read_rumors::<ServiceConfig>()?.len();
-    service_files += dat_file.read_rumors::<ServiceFile>()?.len();
-    elections += dat_file.read_rumors::<Election>()?.len();
-    update_elections += dat_file.read_rumors::<ElectionUpdate>()?.len();
-    departures += dat_file.read_rumors::<Departure>()?.len();
+    membership += dat_file.read_members(&mut reader)?.len();
+    services += dat_file.read_rumors::<Service>(&mut reader)?.len();
+    service_configs += dat_file.read_rumors::<ServiceConfig>(&mut reader)?.len();
+    service_files += dat_file.read_rumors::<ServiceFile>(&mut reader)?.len();
+    elections += dat_file.read_rumors::<Election>(&mut reader)?.len();
+    update_elections += dat_file.read_rumors::<ElectionUpdate>(&mut reader)?.len();
+    departures += dat_file.read_rumors::<Departure>(&mut reader)?.len();
 
     println!("Summary:");
     println!();

@@ -57,10 +57,8 @@ const HEADER_VERSION_2_SIZE: usize =
 /// * Rumors - Variable bytes
 #[derive(Debug)]
 pub struct DatFile {
-    header:      Header,
-    header_size: u64,
-    path:        PathBuf,
-    reader:      BufReader<File>,
+    header: Header,
+    path:   PathBuf,
 }
 
 impl DatFile {
@@ -85,11 +83,8 @@ impl DatFile {
         let size = file.metadata()
                        .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
                        .len();
-        let reader = BufReader::new(file);
-        let mut dat_file = DatFile { path: data_path,
-                                     header_size: 0,
-                                     header: Header::default(),
-                                     reader };
+        let mut dat_file = DatFile { path:   data_path,
+                                     header: Header::default(), };
 
         if size == 0 {
             dat_file.write_mlr(member_list,
@@ -107,10 +102,8 @@ impl DatFile {
     }
 
     pub fn read(data_path: &Path) -> Result<Self> {
-        let mut dat_file = DatFile { header:      Default::default(),
-                                     header_size: Default::default(),
-                                     path:        data_path.to_path_buf(),
-                                     reader:      BufReader::new(File::open(&data_path)?), };
+        let mut dat_file = DatFile { header: Default::default(),
+                                     path:   data_path.to_path_buf(), };
 
         dat_file.read_header()?;
         Ok(dat_file)
@@ -118,12 +111,21 @@ impl DatFile {
 
     pub fn path(&self) -> &Path { &self.path }
 
+    pub fn reader(&self) -> Result<BufReader<File>> {
+        let file = File::open(&self.path)?;
+        let mut reader = BufReader::new(file);
+        reader.seek(SeekFrom::Start(self.header.header_offset()))
+              .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        Ok(reader)
+    }
+
     fn read_header(&mut self) -> Result<()> {
         let mut version = [0; 1];
+        let file = File::open(&self.path)?;
+        let mut reader = BufReader::new(file);
 
-        self.reader
-            .read_exact(&mut version)
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        reader.read_exact(&mut version)
+              .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         debug!("Header Version: {}", version[0]);
 
         // If this has happened, it's likely that the file is corrupt
@@ -134,23 +136,21 @@ impl DatFile {
             return Err(Error::DatFileIO(self.path.clone(), err));
         }
 
-        let (header_size, real_header) =
-            Header::from_file(&mut self.reader, version[0]).map_err(|err| {
-                                                               Error::DatFileIO(self.path.clone(),
-                                                                                err)
-                                                           })?;
+        let real_header =
+            Header::from_file(&mut reader, version[0]).map_err(|err| {
+                                                          Error::DatFileIO(self.path.clone(), err)
+                                                      })?;
         self.header = real_header;
-        self.header_size = header_size;
-        debug!("Header Size: {:?}", self.header_size);
         debug!("Header: {:?}", self.header);
 
-        self.reader
-            .seek(SeekFrom::Start(self.member_offset()))
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
         Ok(())
     }
 
-    fn read_and_process<F>(&mut self, offset: u64, mut op: F) -> Result<()>
+    fn read_and_process<F>(&mut self,
+                           reader: &mut BufReader<File>,
+                           offset: u64,
+                           mut op: F)
+                           -> Result<()>
         where F: FnMut(&mut Vec<u8>) -> Result<()>
     {
         let mut bytes_read = 0;
@@ -161,14 +161,13 @@ impl DatFile {
             if bytes_read >= offset {
                 break;
             }
-            self.reader
-                .read_exact(&mut size_buf)
-                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+
+            reader.read_exact(&mut size_buf)
+                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             let rumor_size = LittleEndian::read_u64(&size_buf);
             rumor_buf.resize(rumor_size as usize, 0);
-            self.reader
-                .read_exact(&mut rumor_buf)
-                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+            reader.read_exact(&mut rumor_buf)
+                  .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
             bytes_read += size_buf.len() as u64 + rumor_size;
             op(&mut rumor_buf)?;
         }
@@ -176,13 +175,13 @@ impl DatFile {
         Ok(())
     }
 
-    pub fn read_rumors<T>(&mut self) -> Result<Vec<T>>
+    pub fn read_rumors<T>(&mut self, reader: &mut BufReader<File>) -> Result<Vec<T>>
         where T: Message<newscast::Rumor>
     {
         let mut rumors = Vec::new();
 
         if let Some(offset) = self.header.offset_for_rumor(T::MESSAGE_ID) {
-            self.read_and_process(offset, |r| {
+            self.read_and_process(reader, offset, |r| {
                     rumors.push(T::from_bytes(&r)?);
                     Ok(())
                 })?;
@@ -191,11 +190,11 @@ impl DatFile {
         Ok(rumors)
     }
 
-    pub fn read_members(&mut self) -> Result<Vec<Membership>> {
+    pub fn read_members(&mut self, reader: &mut BufReader<File>) -> Result<Vec<Membership>> {
         let mut members = Vec::new();
 
         if let Some(offset) = self.header.member_offset() {
-            self.read_and_process(offset, |r| {
+            self.read_and_process(reader, offset, |r| {
                     members.push(Membership::from_bytes(&r)?);
                     Ok(())
                 })?;
@@ -208,45 +207,47 @@ impl DatFile {
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
     pub fn read_into_mlw(&mut self, server: &Server) -> Result<()> {
+        let mut reader = self.reader()?;
+
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
-        for Membership { member, health } in self.read_members()? {
+        for Membership { member, health } in self.read_members(&mut reader)? {
             server.insert_member_mlw(member, health);
         }
 
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
-        for service in self.read_rumors::<Service>()? {
+        for service in self.read_rumors::<Service>(&mut reader)? {
             server.insert_service_mlw(service);
         }
 
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
-        for service_config in self.read_rumors::<ServiceConfig>()? {
+        for service_config in self.read_rumors::<ServiceConfig>(&mut reader)? {
             server.insert_service_config(service_config);
         }
 
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
-        for service_file in self.read_rumors::<ServiceFile>()? {
+        for service_file in self.read_rumors::<ServiceFile>(&mut reader)? {
             server.insert_service_file(service_file);
         }
 
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
-        for election in self.read_rumors::<Election>()? {
+        for election in self.read_rumors::<Election>(&mut reader)? {
             server.insert_election_mlr(election);
         }
 
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
-        for update_election in self.read_rumors::<ElectionUpdate>()? {
+        for update_election in self.read_rumors::<ElectionUpdate>(&mut reader)? {
             server.insert_update_election_mlr(update_election);
         }
 
         // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
         #[allow(clippy::identity_conversion)]
-        for departure in self.read_rumors::<Departure>()? {
+        for departure in self.read_rumors::<Departure>(&mut reader)? {
             server.insert_departure_mlw(departure);
         }
 
@@ -303,8 +304,6 @@ impl DatFile {
              }
          })
     }
-
-    fn member_offset(&self) -> u64 { 1 + self.header_size }
 
     fn write_header<W>(&self, writer: &mut W, header: &Header) -> Result<usize>
         where W: Write
@@ -387,11 +386,12 @@ impl DatFile {
 #[derive(Debug, Default, PartialEq)]
 struct Header {
     offsets: HashMap<String, u64>,
+    size:    u64,
     version: u8,
 }
 
 impl Header {
-    fn from_file<R>(reader: &mut R, version: u8) -> io::Result<(u64, Self)>
+    fn from_file<R>(reader: &mut R, version: u8) -> io::Result<Self>
         where R: Read
     {
         let mut bytes = match version {
@@ -402,6 +402,8 @@ impl Header {
         reader.read_exact(&mut bytes)?;
         Ok(Self::from_bytes(&bytes, version))
     }
+
+    pub fn header_offset(&self) -> u64 { 1 + self.size }
 
     fn insert_member_offset(&mut self, offset: u64) {
         self.offsets
@@ -420,11 +422,12 @@ impl Header {
 
     // Returns the size of the struct in bytes *as written*,
     // along with the struct itself future-proofed to the latest version.
-    fn from_bytes(bytes: &[u8], version: u8) -> (u64, Self) {
+    fn from_bytes(bytes: &[u8], version: u8) -> Self {
         match version {
             // The version 1 header didn't have the size of the header struct itself
             // embedded within it, so we fake it.
             1 => {
+                let size: u64 = HEADER_VERSION_1_SIZE as u64;
                 let mut offsets = HashMap::new();
                 offsets.insert(Membership::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[0..8]));
@@ -439,7 +442,9 @@ impl Header {
                 offsets.insert(ElectionUpdate::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[40..48]));
                 offsets.insert(Departure::MESSAGE_ID.to_string(), 0);
-                (HEADER_VERSION_1_SIZE as u64, Header { offsets, version })
+                Header { offsets,
+                         version,
+                         size }
             }
             // This should be the latest version of the header. As we deprecate
             // header versions, just roll this code up, and match it, then add
@@ -450,6 +455,7 @@ impl Header {
             // will be that you read the back-compat version of the data format, and then write the
             // new.
             _ => {
+                let size = LittleEndian::read_u64(&bytes[0..8]);
                 let mut offsets = HashMap::new();
                 offsets.insert(Membership::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[8..16]));
@@ -465,8 +471,9 @@ impl Header {
                                LittleEndian::read_u64(&bytes[48..56]));
                 offsets.insert(Departure::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[56..64]));
-
-                (LittleEndian::read_u64(&bytes[0..8]), Header { offsets, version })
+                Header { offsets,
+                         version,
+                         size }
             }
         }
     }
