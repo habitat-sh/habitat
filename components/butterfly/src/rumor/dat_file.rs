@@ -529,9 +529,10 @@ mod tests {
         original.insert_offset_for_rumor(Departure::MESSAGE_ID, rand::random::<u64>());
 
         let bytes = original.write_to_bytes();
-        let (size_of_header, restored) = Header::from_bytes(&bytes, HEADER_VERSION);
-        assert_eq!(bytes.len() as u64, size_of_header);
-        assert_eq!(original, restored);
+        let restored = Header::from_bytes(&bytes, HEADER_VERSION);
+        assert_eq!(bytes.len() as u64, restored.size);
+        assert_eq!(original.offsets, restored.offsets);
+        assert_eq!(original.version, restored.version);
     }
 
     /// This has to actually touch the file system because the nature of the bug its testing
