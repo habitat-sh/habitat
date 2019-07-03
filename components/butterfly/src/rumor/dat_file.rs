@@ -56,14 +56,19 @@ const HEADER_VERSION_2_SIZE: usize =
 /// * Header Body - Variable bytes - see Header
 /// * Rumors - Variable bytes
 #[derive(Debug)]
-pub struct DatFile {
-    header:      Header,
-    header_size: u64,
-    path:        PathBuf,
-    reader:      BufReader<File>,
+struct DatFile(PathBuf);
+
+#[derive(Debug)]
+pub struct DatFileReader {
+    header:   Header,
+    dat_file: DatFile,
+    reader:   BufReader<File>,
 }
 
-impl DatFile {
+#[derive(Debug)]
+pub struct DatFileWriter(DatFile);
+
+impl DatFileReader {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
@@ -77,132 +82,40 @@ impl DatFile {
                               update_store: &RumorStore<ElectionUpdate>,
                               departure_store: &RumorStore<Departure>)
                               -> Result<Self> {
-        let file = OpenOptions::new().create(true)
+        let size = OpenOptions::new().create(true)
                                      .read(true)
                                      .write(true)
                                      .open(&data_path)
-                                     .map_err(|err| Error::DatFileIO(data_path.clone(), err))?;
-        let size = file.metadata()
-                       .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
-                       .len();
-        let reader = BufReader::new(file);
-        let mut dat_file = DatFile { path: data_path,
-                                     header_size: 0,
-                                     header: Header::default(),
-                                     reader };
+                                     .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
+                                     .metadata()
+                                     .map_err(|err| Error::DatFileIO(data_path.clone(), err))?
+                                     .len();
 
         if size == 0 {
-            dat_file.write_mlr(member_list,
-                               service_store,
-                               service_config_store,
-                               service_file_store,
-                               election_store,
-                               update_store,
-                               departure_store)?;
-        } else {
-            dat_file.read_header()?;
+            DatFileWriter::new(data_path.clone()).write_mlr(member_list,
+                                                            service_store,
+                                                            service_config_store,
+                                                            service_file_store,
+                                                            election_store,
+                                                            update_store,
+                                                            departure_store)?;
         }
 
-        Ok(dat_file)
+        Self::reader_creation(data_path)
     }
 
-    pub fn read(data_path: &Path) -> Result<Self> {
-        let mut dat_file = DatFile { header:      Default::default(),
-                                     header_size: Default::default(),
-                                     path:        data_path.to_path_buf(),
-                                     reader:      BufReader::new(File::open(&data_path)?), };
+    pub fn read(data_path: PathBuf) -> Result<Self> { Self::reader_creation(data_path) }
 
-        dat_file.read_header()?;
-        Ok(dat_file)
+    fn reader_creation(data_path: PathBuf) -> Result<Self> {
+        let mut reader = BufReader::new(File::open(&data_path)?);
+        let header = DatFile::read_header(&data_path, &mut reader)?;
+        let dat_file_reader = DatFileReader { header,
+                                              dat_file: DatFile(data_path),
+                                              reader };
+        Ok(dat_file_reader)
     }
 
-    pub fn path(&self) -> &Path { &self.path }
-
-    fn read_header(&mut self) -> Result<()> {
-        let mut version = [0; 1];
-
-        self.reader
-            .read_exact(&mut version)
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-        debug!("Header Version: {}", version[0]);
-
-        // If this has happened, it's likely that the file is corrupt
-        if version[0] > HEADER_VERSION {
-            let msg = format!("Unable to read Dat File {}: corrupt file header.",
-                              self.path.display());
-            let err = io::Error::new(io::ErrorKind::InvalidData, msg);
-            return Err(Error::DatFileIO(self.path.clone(), err));
-        }
-
-        let (header_size, real_header) =
-            Header::from_file(&mut self.reader, version[0]).map_err(|err| {
-                                                               Error::DatFileIO(self.path.clone(),
-                                                                                err)
-                                                           })?;
-        self.header = real_header;
-        self.header_size = header_size;
-        debug!("Header Size: {:?}", self.header_size);
-        debug!("Header: {:?}", self.header);
-
-        self.reader
-            .seek(SeekFrom::Start(self.member_offset()))
-            .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-        Ok(())
-    }
-
-    fn read_and_process<F>(&mut self, offset: u64, mut op: F) -> Result<()>
-        where F: FnMut(&mut Vec<u8>) -> Result<()>
-    {
-        let mut bytes_read = 0;
-        let mut size_buf = [0; 8];
-        let mut rumor_buf: Vec<u8> = vec![];
-
-        loop {
-            if bytes_read >= offset {
-                break;
-            }
-            self.reader
-                .read_exact(&mut size_buf)
-                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            let rumor_size = LittleEndian::read_u64(&size_buf);
-            rumor_buf.resize(rumor_size as usize, 0);
-            self.reader
-                .read_exact(&mut rumor_buf)
-                .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-            bytes_read += size_buf.len() as u64 + rumor_size;
-            op(&mut rumor_buf)?;
-        }
-
-        Ok(())
-    }
-
-    pub fn read_rumors<T>(&mut self) -> Result<Vec<T>>
-        where T: Message<newscast::Rumor>
-    {
-        let mut rumors = Vec::new();
-
-        if let Some(offset) = self.header.offset_for_rumor(T::MESSAGE_ID) {
-            self.read_and_process(offset, |r| {
-                    rumors.push(T::from_bytes(&r)?);
-                    Ok(())
-                })?;
-        }
-
-        Ok(rumors)
-    }
-
-    pub fn read_members(&mut self) -> Result<Vec<Membership>> {
-        let mut members = Vec::new();
-
-        if let Some(offset) = self.header.member_offset() {
-            self.read_and_process(offset, |r| {
-                    members.push(Membership::from_bytes(&r)?);
-                    Ok(())
-                })?;
-        }
-
-        Ok(members)
-    }
+    pub fn path(&self) -> &Path { &self.dat_file.0 }
 
     /// # Locking
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
@@ -253,6 +166,42 @@ impl DatFile {
         Ok(())
     }
 
+    pub fn read_rumors<T>(&mut self) -> Result<Vec<T>>
+        where T: Message<newscast::Rumor>
+    {
+        let mut rumors = Vec::new();
+
+        if let Some(offset) = self.header.offset_for_rumor(T::MESSAGE_ID) {
+            self.dat_file
+                .read_and_process(&mut self.reader, offset, |r| {
+                    rumors.push(T::from_bytes(&r)?);
+                    Ok(())
+                })?;
+        }
+
+        Ok(rumors)
+    }
+
+    pub fn read_members(&mut self) -> Result<Vec<Membership>> {
+        let mut members = Vec::new();
+
+        if let Some(offset) = self.header.member_offset() {
+            self.dat_file
+                .read_and_process(&mut self.reader, offset, |r| {
+                    members.push(Membership::from_bytes(&r)?);
+                    Ok(())
+                })?;
+        }
+
+        Ok(members)
+    }
+}
+
+impl DatFileWriter {
+    pub fn new(data_path: PathBuf) -> Self { DatFileWriter(DatFile(data_path)) }
+
+    pub fn path(&self) -> &Path { &(self.0).0 }
+
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
@@ -267,15 +216,16 @@ impl DatFile {
                      departure_store: &RumorStore<Departure>)
                      -> Result<usize> {
         let mut header = Header::default();
-        let w =
-            AtomicWriter::new(&self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+        let w = AtomicWriter::new(self.path()).map_err(|err| {
+                                                  Error::DatFileIO(self.path().to_path_buf(), err)
+                                              })?;
         w.with_writer(|mut f| {
              let mut writer = BufWriter::new(&mut f);
              let header_reserve = vec![0; HEADER_VERSION_2_SIZE];
              writer.write(&[HEADER_VERSION])
-                   .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+                   .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
              writer.write(&header_reserve)
-                   .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+                   .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
              header.insert_member_offset(self.write_member_list_mlr(&mut writer, member_list)?);
              header.insert_offset_for_rumor(Service::MESSAGE_ID,
                                             self.write_rumor_store(&mut writer, service_store)?);
@@ -298,20 +248,18 @@ impl DatFile {
          })
          .map_err(|err| {
              match err {
-                 Error::UnknownIOError(e) => Error::DatFileIO(self.path.clone(), e),
+                 Error::UnknownIOError(e) => Error::DatFileIO(self.path().to_path_buf(), e),
                  e => e,
              }
          })
     }
-
-    fn member_offset(&self) -> u64 { 1 + self.header_size }
 
     fn write_header<W>(&self, writer: &mut W, header: &Header) -> Result<usize>
         where W: Write
     {
         let bytes = header.write_to_bytes();
         let total = writer.write(&bytes)
-                          .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
+                          .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?;
         Ok(total)
     }
 
@@ -337,10 +285,10 @@ impl DatFile {
         let bytes = membership.clone().write_to_bytes().unwrap();
         LittleEndian::write_u64(&mut len_buf, bytes.len() as u64);
         total += writer.write(&len_buf)
-                       .map_err(|err| Error::DatFileIO(self.path.clone(), err))?
+                       .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
                  as u64;
         total += writer.write(&bytes)
-                       .map_err(|err| Error::DatFileIO(self.path.clone(), err))?
+                       .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
                  as u64;
         Ok(total)
     }
@@ -371,12 +319,69 @@ impl DatFile {
         let bytes = rumor.write_to_bytes().unwrap();
         LittleEndian::write_u64(&mut rumor_len, bytes.len() as u64);
         total += writer.write(&rumor_len)
-                       .map_err(|err| Error::DatFileIO(self.path.clone(), err))?
+                       .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
                  as u64;
         total += writer.write(&bytes)
-                       .map_err(|err| Error::DatFileIO(self.path.clone(), err))?
+                       .map_err(|err| Error::DatFileIO(self.path().to_path_buf(), err))?
                  as u64;
         Ok(total)
+    }
+}
+
+impl DatFile {
+    fn read_header(path: &Path, reader: &mut BufReader<File>) -> Result<Header> {
+        let mut version = [0; 1];
+
+        reader.read_exact(&mut version)
+              .map_err(|err| Error::DatFileIO(path.to_path_buf(), err))?;
+        debug!("Header Version: {}", version[0]);
+
+        // If this has happened, it's likely that the file is corrupt
+        if version[0] > HEADER_VERSION {
+            let msg = format!("Unable to read Dat File {}: corrupt file header.",
+                              path.display());
+            let err = io::Error::new(io::ErrorKind::InvalidData, msg);
+            return Err(Error::DatFileIO(path.to_path_buf(), err));
+        }
+
+        let header = Header::from_file(reader, version[0]).map_err(|err| {
+                                                              Error::DatFileIO(path.to_path_buf(),
+                                                                               err)
+                                                          })?;
+        debug!("Header: {:?}", header);
+
+        reader.seek(SeekFrom::Start(header.header_offset()))
+              .map_err(|err| Error::DatFileIO(path.to_path_buf(), err))?;
+        Ok(header)
+    }
+
+    fn read_and_process<F>(&mut self,
+                           reader: &mut BufReader<File>,
+                           offset: u64,
+                           mut op: F)
+                           -> Result<()>
+        where F: FnMut(&mut Vec<u8>) -> Result<()>
+    {
+        let mut bytes_read = 0;
+        let mut size_buf = [0; 8];
+        let mut rumor_buf: Vec<u8> = vec![];
+
+        loop {
+            if bytes_read >= offset {
+                break;
+            }
+
+            reader.read_exact(&mut size_buf)
+                  .map_err(|err| Error::DatFileIO(self.0.clone(), err))?;
+            let rumor_size = LittleEndian::read_u64(&size_buf);
+            rumor_buf.resize(rumor_size as usize, 0);
+            reader.read_exact(&mut rumor_buf)
+                  .map_err(|err| Error::DatFileIO(self.0.clone(), err))?;
+            bytes_read += size_buf.len() as u64 + rumor_size;
+            op(&mut rumor_buf)?;
+        }
+
+        Ok(())
     }
 }
 
@@ -387,11 +392,12 @@ impl DatFile {
 #[derive(Debug, Default, PartialEq)]
 struct Header {
     offsets: HashMap<String, u64>,
+    size:    u64,
     version: u8,
 }
 
 impl Header {
-    fn from_file<R>(reader: &mut R, version: u8) -> io::Result<(u64, Self)>
+    fn from_file<R>(reader: &mut R, version: u8) -> io::Result<Self>
         where R: Read
     {
         let mut bytes = match version {
@@ -402,6 +408,8 @@ impl Header {
         reader.read_exact(&mut bytes)?;
         Ok(Self::from_bytes(&bytes, version))
     }
+
+    pub fn header_offset(&self) -> u64 { 1 + self.size }
 
     fn insert_member_offset(&mut self, offset: u64) {
         self.offsets
@@ -420,11 +428,12 @@ impl Header {
 
     // Returns the size of the struct in bytes *as written*,
     // along with the struct itself future-proofed to the latest version.
-    fn from_bytes(bytes: &[u8], version: u8) -> (u64, Self) {
+    fn from_bytes(bytes: &[u8], version: u8) -> Self {
         match version {
             // The version 1 header didn't have the size of the header struct itself
             // embedded within it, so we fake it.
             1 => {
+                let size: u64 = HEADER_VERSION_1_SIZE as u64;
                 let mut offsets = HashMap::new();
                 offsets.insert(Membership::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[0..8]));
@@ -439,7 +448,9 @@ impl Header {
                 offsets.insert(ElectionUpdate::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[40..48]));
                 offsets.insert(Departure::MESSAGE_ID.to_string(), 0);
-                (HEADER_VERSION_1_SIZE as u64, Header { offsets, version })
+                Header { offsets,
+                         version,
+                         size }
             }
             // This should be the latest version of the header. As we deprecate
             // header versions, just roll this code up, and match it, then add
@@ -450,6 +461,7 @@ impl Header {
             // will be that you read the back-compat version of the data format, and then write the
             // new.
             _ => {
+                let size = LittleEndian::read_u64(&bytes[0..8]);
                 let mut offsets = HashMap::new();
                 offsets.insert(Membership::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[8..16]));
@@ -465,8 +477,9 @@ impl Header {
                                LittleEndian::read_u64(&bytes[48..56]));
                 offsets.insert(Departure::MESSAGE_ID.to_string(),
                                LittleEndian::read_u64(&bytes[56..64]));
-
-                (LittleEndian::read_u64(&bytes[0..8]), Header { offsets, version })
+                Header { offsets,
+                         version,
+                         size }
             }
         }
     }
@@ -519,9 +532,10 @@ mod tests {
         original.insert_offset_for_rumor(Departure::MESSAGE_ID, rand::random::<u64>());
 
         let bytes = original.write_to_bytes();
-        let (size_of_header, restored) = Header::from_bytes(&bytes, HEADER_VERSION);
-        assert_eq!(bytes.len() as u64, size_of_header);
-        assert_eq!(original, restored);
+        let restored = Header::from_bytes(&bytes, HEADER_VERSION);
+        assert_eq!(bytes.len() as u64, restored.size);
+        assert_eq!(original.offsets, restored.offsets);
+        assert_eq!(original.version, restored.version);
     }
 
     /// This has to actually touch the file system because the nature of the bug its testing
@@ -534,14 +548,14 @@ mod tests {
 
         assert!(!file_path.exists());
 
-        let result = DatFile::read_or_create_mlr(file_path.to_path_buf(),
-                                                 &MemberList::new(),
-                                                 &RumorStore::default(),
-                                                 &RumorStore::default(),
-                                                 &RumorStore::default(),
-                                                 &RumorStore::default(),
-                                                 &RumorStore::default(),
-                                                 &RumorStore::default());
+        let result = DatFileReader::read_or_create_mlr(file_path.to_path_buf(),
+                                                       &MemberList::new(),
+                                                       &RumorStore::default(),
+                                                       &RumorStore::default(),
+                                                       &RumorStore::default(),
+                                                       &RumorStore::default(),
+                                                       &RumorStore::default(),
+                                                       &RumorStore::default());
 
         assert!(result.is_ok(), "{}", result.unwrap_err());
         assert!(file_path.is_file());

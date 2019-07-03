@@ -22,7 +22,8 @@ use crate::{error::{Error,
                      MemberList,
                      MemberListProxy},
             message,
-            rumor::{dat_file::DatFile,
+            rumor::{dat_file::{DatFileReader,
+                               DatFileWriter},
                     departure::Departure,
                     election::{Election,
                                ElectionRumor,
@@ -245,7 +246,7 @@ pub struct Server {
     gossip_addr:              SocketAddr,
     suitability_lookup:       Arc<Box<dyn Suitability>>,
     data_path:                Option<PathBuf>,
-    dat_file:                 Option<Arc<Mutex<DatFile>>>,
+    dat_file:                 Option<Arc<Mutex<DatFileWriter>>>,
     socket:                   Option<UdpSocket>,
     departed:                 Arc<AtomicBool>,
     // These are all here for testing support
@@ -422,25 +423,26 @@ impl Server {
             }
 
             let dat_path = path.join(format!("{}.rst", &self.member_id));
-            let mut file = DatFile::read_or_create_mlr(dat_path,
-                                                       &self.member_list,
-                                                       &self.service_store,
-                                                       &self.service_config_store,
-                                                       &self.service_file_store,
-                                                       &self.election_store,
-                                                       &self.update_store,
-                                                       &self.departure_store)?;
+            let mut reader = DatFileReader::read_or_create_mlr(dat_path.clone(),
+                                                               &self.member_list,
+                                                               &self.service_store,
+                                                               &self.service_config_store,
+                                                               &self.service_file_store,
+                                                               &self.election_store,
+                                                               &self.update_store,
+                                                               &self.departure_store)?;
 
-            match file.read_into_mlw(self) {
+            match reader.read_into_mlw(&self) {
                 Ok(_) => {
                     debug!("Successfully ingested rumors from {}",
-                           file.path().display())
+                           reader.path().display())
                 }
                 Err(Error::DatFileIO(path, err)) => error!("{}", Error::DatFileIO(path, err)),
                 Err(err) => return Err(err),
             };
 
-            self.dat_file = Some(Arc::new(Mutex::new(file)));
+            let writer = DatFileWriter::new(dat_path);
+            self.dat_file = Some(Arc::new(Mutex::new(writer)));
 
             {
                 // Set up the incarnation persistence and ensure that
