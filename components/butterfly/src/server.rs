@@ -778,15 +778,16 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    fn get_electorate_mlr(&self, key: &str) -> Vec<String> {
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    // XXX LOCK ORDER: rs -> ml
+    fn get_electorate_mlr_rsr(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
-        self.service_store.with_rumors(key, |s| {
-                              if self.member_list.health_of_by_id_mlr(&s.member_id)
-                                 == Some(Health::Alive)
-                              {
-                                  electorate.push(s.member_id.clone());
-                              }
-                          });
+        for s in self.service_store.lock_rsr().service_group(key).rumors() {
+            if self.member_list.health_of_by_id_mlr(&s.member_id) == Some(Health::Alive) {
+                electorate.push(s.member_id.clone());
+            }
+        }
         electorate
     }
 
@@ -805,13 +806,16 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    fn get_total_population_mlr(&self, key: &str) -> Vec<String> {
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
+    // XXX LOCK ORDER: rs -> ml
+    fn get_total_population_mlr_rsr(&self, key: &str) -> Vec<String> {
         let mut total_pop = vec![];
-        self.service_store.with_rumors(key, |s| {
-                              if self.check_in_voting_population_by_id_mlr(&s.member_id) {
-                                  total_pop.push(s.member_id.clone());
-                              }
-                          });
+        for s in self.service_store.lock_rsr().service_group(key).rumors() {
+            if self.check_in_voting_population_by_id_mlr(&s.member_id) {
+                total_pop.push(s.member_id.clone());
+            }
+        }
         total_pop
     }
 
@@ -822,9 +826,11 @@ impl Server {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
+    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
+    ///   is held.
     fn check_quorum_mlr(&self, key: &str) -> bool {
-        let electorate = self.get_electorate_mlr(key);
-        let service_group_members = self.get_total_population_mlr(key);
+        let electorate = self.get_electorate_mlr_rsr(key);
+        let service_group_members = self.get_total_population_mlr_rsr(key);
         let total_population = service_group_members.len();
         let alive_population = electorate.len();
         let has_quorum = alive_population > total_population / 2;
@@ -1041,7 +1047,7 @@ impl Server {
                 // election is over! If it is, mark this election as final before you process it.
                 if self.member_id() == election.member_id {
                     if self.check_quorum_mlr(election.key()) {
-                        let electorate = self.get_electorate_mlr(election.key());
+                        let electorate = self.get_electorate_mlr_rsr(election.key());
                         let mut num_votes = 0;
                         for vote in election.votes.iter() {
                             if electorate.contains(vote) {
@@ -1136,7 +1142,7 @@ impl Server {
                 // election is over! If it is, mark this election as final before you process it.
                 if self.member_id() == election.member_id {
                     if self.check_quorum_mlr(election.key()) {
-                        let electorate = self.get_electorate_mlr(election.key());
+                        let electorate = self.get_electorate_mlr_rsr(election.key());
                         let mut num_votes = 0;
                         for vote in election.votes.iter() {
                             if electorate.contains(vote) {

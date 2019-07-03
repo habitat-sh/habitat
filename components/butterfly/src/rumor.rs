@@ -116,7 +116,8 @@ impl<'a, T: Rumor> From<&'a T> for RumorKey {
 
 type ServiceGroupName = String;
 type MemberId = String;
-type RumorMap<T> = HashMap<ServiceGroupName, HashMap<MemberId, T>>;
+type ServiceGroupRumorMap<T> = HashMap<MemberId, T>;
+type RumorMap<T> = HashMap<ServiceGroupName, ServiceGroupRumorMap<T>>;
 
 /// To keep the details of the locking from being directly accessible to all the code in the
 /// rumor submodule.
@@ -130,12 +131,32 @@ mod storage {
                 Serialize,
                 Serializer};
 
+    /// Provides access to the rumors for a particular service group bounded by the
+    /// lifetime of the service group key.
+    pub struct ServiceGroupRumors<'sg_key, R>(Option<&'sg_key ServiceGroupRumorMap<R>>);
+
+    impl<'sg_key, R> ServiceGroupRumors<'sg_key, R> {
+        /// Allows iterator access to the rumors in a particular service group:
+        /// ```
+        /// # use habitat_butterfly::rumor::{RumorStore,
+        /// #                                Service};
+        /// let service_store: RumorStore<Service> = RumorStore::default();
+        /// for s in service_store.lock_rsr()
+        ///                       .service_group("redis.default")
+        ///                       .rumors()
+        /// {
+        ///     println!("{:?}", s);
+        /// }
+        /// ```
+        pub fn rumors(&self) -> impl Iterator<Item = &R> {
+            self.0.iter().map(|m| m.values()).flatten()
+        }
+    }
+
     pub struct IterableGuard<'a, T>(ReadGuard<'a, T>);
 
     impl<'a, R> IterableGuard<'a, RumorMap<R>> {
-        pub fn read(lock: &'a Lock<RumorMap<R>>) -> Self { IterableGuard(lock.read()) }
-
-        // pub fn values(&self) -> impl Iterator<Item = &HashMap<MemberId, R>> { self.0.values() }
+        fn read(lock: &'a Lock<RumorMap<R>>) -> Self { IterableGuard(lock.read()) }
 
         /// Allows iterator access to the rumors in to the `RumorMap` while holding its lock:
         /// ```
@@ -148,6 +169,12 @@ mod storage {
         /// ```
         pub fn rumors(&self) -> impl Iterator<Item = &R> {
             self.values().map(HashMap::values).flatten()
+        }
+
+        /// Allows iterator access to the rumors in to the `RumorMap` for a particular service group
+        /// while holding its lock.
+        pub fn service_group(&self, service_group: &str) -> ServiceGroupRumors<R> {
+            ServiceGroupRumors(self.get(service_group))
         }
     }
 
@@ -421,17 +448,6 @@ mod storage {
         pub fn remove_rsw(&self, key: &str, id: &str) {
             let mut list = self.list.write();
             list.get_mut(key).and_then(|r| r.remove(id));
-        }
-
-        pub fn with_rumors<F>(&self, key: &str, mut with_closure: F)
-            where F: FnMut(&T)
-        {
-            let list = self.list.read();
-            if list.contains_key(key) {
-                for x in list.get(key).unwrap().values() {
-                    with_closure(x);
-                }
-            }
         }
 
         pub fn with_rumor<F>(&self, key: &str, member_id: &str, mut with_closure: F)
