@@ -67,7 +67,16 @@ impl DatFile {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    pub fn read_or_create_mlr(data_path: PathBuf, server: &Server) -> Result<Self> {
+    #[allow(clippy::too_many_arguments)]
+    pub fn read_or_create_mlr(data_path: PathBuf,
+                              member_list: &MemberList,
+                              service_store: &RumorStore<Service>,
+                              service_config_store: &RumorStore<ServiceConfig>,
+                              service_file_store: &RumorStore<ServiceFile>,
+                              election_store: &RumorStore<Election>,
+                              update_store: &RumorStore<ElectionUpdate>,
+                              departure_store: &RumorStore<Departure>)
+                              -> Result<Self> {
         let file = OpenOptions::new().create(true)
                                      .read(true)
                                      .write(true)
@@ -83,7 +92,13 @@ impl DatFile {
                                      reader };
 
         if size == 0 {
-            dat_file.write_mlr(server)?;
+            dat_file.write_mlr(member_list,
+                               service_store,
+                               service_config_store,
+                               service_file_store,
+                               election_store,
+                               update_store,
+                               departure_store)?;
         } else {
             dat_file.read_header()?;
         }
@@ -241,7 +256,16 @@ impl DatFile {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    pub fn write_mlr(&self, server: &Server) -> Result<usize> {
+    #[allow(clippy::too_many_arguments)]
+    pub fn write_mlr(&self,
+                     member_list: &MemberList,
+                     service_store: &RumorStore<Service>,
+                     service_config_store: &RumorStore<ServiceConfig>,
+                     service_file_store: &RumorStore<ServiceFile>,
+                     election_store: &RumorStore<Election>,
+                     update_store: &RumorStore<ElectionUpdate>,
+                     departure_store: &RumorStore<Departure>)
+                     -> Result<usize> {
         let mut header = Header::default();
         let w =
             AtomicWriter::new(&self.path).map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
@@ -252,26 +276,21 @@ impl DatFile {
                    .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
              writer.write(&header_reserve)
                    .map_err(|err| Error::DatFileIO(self.path.clone(), err))?;
-             header.insert_member_offset(self.write_member_list_mlr(&mut writer,
-                                                                    &server.member_list)?);
+             header.insert_member_offset(self.write_member_list_mlr(&mut writer, member_list)?);
              header.insert_offset_for_rumor(Service::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer,
-                                                                   &server.service_store)?);
+                                            self.write_rumor_store(&mut writer, service_store)?);
              header.insert_offset_for_rumor(ServiceConfig::MESSAGE_ID,
                                             self.write_rumor_store(&mut writer,
-                                                                   &server.service_config_store)?);
+                                                                   service_config_store)?);
              header.insert_offset_for_rumor(ServiceFile::MESSAGE_ID,
                                             self.write_rumor_store(&mut writer,
-                                                                   &server.service_file_store)?);
+                                                                   service_file_store)?);
              header.insert_offset_for_rumor(Election::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer,
-                                                                   &server.election_store)?);
+                                            self.write_rumor_store(&mut writer, election_store)?);
              header.insert_offset_for_rumor(ElectionUpdate::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer,
-                                                                   &server.update_store)?);
+                                            self.write_rumor_store(&mut writer, update_store)?);
              header.insert_offset_for_rumor(Departure::MESSAGE_ID,
-                                            self.write_rumor_store(&mut writer,
-                                                                   &server.departure_store)?);
+                                            self.write_rumor_store(&mut writer, departure_store)?);
              writer.seek(SeekFrom::Start(1))?;
              self.write_header(&mut writer, &header)?;
              writer.flush()?;
@@ -484,6 +503,8 @@ impl Header {
 mod tests {
     use super::*;
     use rand;
+    use std::fs;
+    use tempfile::tempdir;
 
     #[test]
     fn read_write_header() {
@@ -501,5 +522,30 @@ mod tests {
         let (size_of_header, restored) = Header::from_bytes(&bytes, HEADER_VERSION);
         assert_eq!(bytes.len() as u64, size_of_header);
         assert_eq!(original, restored);
+    }
+
+    /// This has to actually touch the file system because the nature of the bug its testing
+    /// for is Windows-specific: AtomicWriter will fail its rename if the file is held open
+    /// by the existence of a BufReader<File>.
+    #[test]
+    fn read_or_create_mlr_successfully_creates_when_no_file_exists() {
+        let dir = tempdir().expect("temp dir created");
+        let file_path = dir.path().join("test-datfile");
+
+        assert!(!file_path.exists());
+
+        let result = DatFile::read_or_create_mlr(file_path.to_path_buf(),
+                                                 &MemberList::new(),
+                                                 &RumorStore::default(),
+                                                 &RumorStore::default(),
+                                                 &RumorStore::default(),
+                                                 &RumorStore::default(),
+                                                 &RumorStore::default(),
+                                                 &RumorStore::default());
+
+        assert!(result.is_ok(), "{}", result.unwrap_err());
+        assert!(file_path.is_file());
+        let dat_file_length = fs::metadata(file_path).map(|md| md.len());
+        assert_ne!(dat_file_length.unwrap(), 0);
     }
 }
