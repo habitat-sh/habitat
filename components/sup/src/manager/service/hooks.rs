@@ -222,6 +222,50 @@ impl Hook for PostRunHook {
     fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
+/// This hook is deprecated and will be removed in a future release.
+#[derive(Debug, Serialize)]
+pub struct ReloadHook {
+    render_pair:     RenderPair,
+    stdout_log_path: PathBuf,
+    stderr_log_path: PathBuf,
+}
+
+impl Hook for ReloadHook {
+    type ExitValue = ExitCode;
+
+    fn file_name() -> &'static str { "reload" }
+
+    fn new(package_name: &str, pair: RenderPair) -> Self {
+        ReloadHook { render_pair:     pair,
+                     stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
+                     stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+    }
+
+    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
+        let pkg_name = &pkg.name;
+        match status.code() {
+            Some(0) => ExitCode(0),
+            Some(code) => {
+                outputln!(preamble pkg_name, "Reload failed! '{}' exited with \
+                    status code {}", Self::file_name(), code);
+                ExitCode(code)
+            }
+            None => {
+                Self::output_termination_message(pkg_name, status);
+                ExitCode::default()
+            }
+        }
+    }
+
+    fn path(&self) -> &Path { &self.render_pair.path }
+
+    fn renderer(&self) -> &TemplateRenderer { &self.render_pair.renderer }
+
+    fn stdout_log_path(&self) -> &Path { &self.stdout_log_path }
+
+    fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
+}
+
 #[derive(Debug, Serialize)]
 pub struct ReconfigureHook {
     render_pair:     RenderPair,
@@ -381,6 +425,7 @@ pub struct HookCompileTable {
     health_check: bool,
     init:         bool,
     file_updated: bool,
+    reload:       bool,
     reconfigure:  bool,
     suitability:  bool,
     run:          bool,
@@ -390,6 +435,8 @@ pub struct HookCompileTable {
 
 impl HookCompileTable {
     pub fn new() -> Self { Self::default() }
+
+    pub fn reload_changed(&self) -> bool { self.reload }
 
     pub fn reconfigure_changed(&self) -> bool { self.reconfigure }
 
@@ -402,6 +449,7 @@ impl HookCompileTable {
             Self { health_check,
                    init,
                    file_updated,
+                   reload,
                    reconfigure,
                    suitability,
                    run,
@@ -410,6 +458,7 @@ impl HookCompileTable {
                 *health_check
                 || *init
                 || *file_updated
+                || *reload
                 || *reconfigure
                 || *suitability
                 || *run
@@ -427,6 +476,7 @@ pub struct HookTable {
     pub health_check: Option<Arc<HealthCheckHook>>,
     pub init:         Option<InitHook>,
     pub file_updated: Option<FileUpdatedHook>,
+    pub reload:       Option<ReloadHook>,
     pub reconfigure:  Option<ReconfigureHook>,
     pub suitability:  Option<SuitabilityHook>,
     pub run:          Option<RunHook>,
@@ -448,6 +498,7 @@ impl HookTable {
                     HealthCheckHook::load(package_name, &hooks_path, &templates).map(Arc::new);
                 table.suitability = SuitabilityHook::load(package_name, &hooks_path, &templates);
                 table.init = InitHook::load(package_name, &hooks_path, &templates);
+                table.reload = ReloadHook::load(package_name, &hooks_path, &templates);
                 table.reconfigure = ReconfigureHook::load(package_name, &hooks_path, &templates);
                 table.run = RunHook::load(package_name, &hooks_path, &templates);
                 table.post_run = PostRunHook::load(package_name, &hooks_path, &templates);
@@ -476,6 +527,9 @@ impl HookTable {
         }
         if let Some(ref hook) = self.init {
             changed.init = self.compile_one(hook, service_group, ctx);
+        }
+        if let Some(ref hook) = self.reload {
+            changed.reload |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reconfigure {
             changed.reconfigure = self.compile_one(hook, service_group, ctx);
@@ -559,6 +613,7 @@ mod tests {
                       HealthCheckHook
                       InitHook
                       PostRunHook
+                      ReloadHook
                       ReconfigureHook
                       RunHook
                       SuitabilityHook
