@@ -13,7 +13,7 @@ use habitat_butterfly::rumor::{dat_file,
                                ServiceConfig,
                                ServiceFile};
 use log::error;
-use std::{path::Path,
+use std::{path::PathBuf,
           process};
 
 pub mod error;
@@ -35,12 +35,12 @@ fn main() {
 
     let file = matches.value_of("FILE").unwrap();
     let stats = matches.is_present("STATS");
-    let dat_file = dat_file::DatFileReader::read(Path::new(file)).unwrap_or_else(|e| {
-                                                                     error!("Could not read dat \
-                                                                             file {}: {}",
-                                                                            file, e);
-                                                                     process::exit(1);
-                                                                 });
+    let dat_file = dat_file::DatFileReader::read(PathBuf::from(file)).unwrap_or_else(|e| {
+                                                                         error!("Could not read \
+                                                                                 dat file {}: {}",
+                                                                                file, e);
+                                                                         process::exit(1);
+                                                                     });
 
     let result = if stats {
         output_stats(dat_file)
