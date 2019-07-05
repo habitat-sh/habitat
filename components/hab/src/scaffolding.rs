@@ -131,8 +131,6 @@ fn is_project_ruby<T>(path: T) -> bool
 
 fn project_uses_gb(dir: &Path) -> io::Result<bool> {
     if dir.is_dir() {
-        // Remove this once https://github.com/rust-lang/rust-clippy/issues/4133 is resolved
-        #[allow(clippy::identity_conversion)]
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
