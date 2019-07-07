@@ -58,15 +58,13 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
                      passwd }
     }
 
-    // TODO (DM): Make `HookRunner` and this method allow arbirary configuration of how to run a
-    // hook. For example, a configurable backoff, timeout, or failure tracking. It would also be
-    // nice to merge this with the healthcheck hook retry logic.
-    pub fn loop_future(&self) -> (FutureHandle, impl Future<Item = (), Error = ()>) {
+    pub fn retriable_future(&self) -> (FutureHandle, impl Future<Item = (), Error = ()>) {
         let f = future::loop_fn(self.clone(), |hook_runner| {
             hook_runner.clone()
                        .into_future()
                        .map(move |(exit_value, _duration)| {
-                           if hook_runner.hook.retry(exit_value) {
+                           if <H as Hook>::should_retry(&exit_value) {
+                               debug!("retrying the '{}' hook", <H as Hook>::file_name());
                                Loop::Continue(hook_runner)
                            } else {
                                Loop::Break(())

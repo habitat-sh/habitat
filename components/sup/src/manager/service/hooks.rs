@@ -213,12 +213,9 @@ impl Hook for PostRunHook {
         }
     }
 
-    fn retry(&self, exit_value: Self::ExitValue) -> bool {
-        match exit_value.0 {
-            0 => false,
-            1 => true,
-            _ => false,
-        }
+    fn should_retry(exit_value: &Self::ExitValue) -> bool {
+        const SHOULD_NOT_RETRY: ExitCode = ExitCode(0);
+        exit_value != &SHOULD_NOT_RETRY
     }
 
     fn path(&self) -> &Path { &self.render_pair.path }

@@ -374,8 +374,6 @@ impl Service {
 
     /// Stop the endless future that performs health checks for the
     /// service.
-    ///
-    /// Consumes the handle to that future in the process.
     fn stop_health_checks(&mut self) {
         if let Some(h) = self.health_check_handle.take() {
             debug!("Stopping health checks for {}", self.pkg.ident);
@@ -421,6 +419,7 @@ impl Service {
     pub fn stop(&mut self,
                 shutdown_config: ShutdownConfig)
                 -> impl Future<Item = (), Error = Error> {
+        // If the post run hook is still being retried, make sure we stop it.
         self.stop_post_run();
         self.stop_health_checks();
 
@@ -827,24 +826,20 @@ impl Service {
                                               self.service_group.clone(),
                                               self.pkg.clone(),
                                               self.svc_encrypted_password.clone());
-            let (handle, f) = hook_runner.loop_future();
+            let (handle, f) = hook_runner.retriable_future();
             self.post_run_handle = Some(handle);
             executor.spawn(f);
         }
     }
 
-    /// Stop the `post-run` future. The `post-run` hook has retry logic based on its exit code. This
-    /// will stop this retry loop regardless of `post-run`'s exit code.
-    ///
-    /// Consumes the handle to that future in the process.
+    /// Stop the `post-run` retry future. This will stop this retry loop regardless of `post-run`'s
+    /// exit code.
     fn stop_post_run(&mut self) {
         if let Some(h) = self.post_run_handle.take() {
             h.terminate();
         }
     }
 
-    // This hook method looks different from all the others because
-    // it's the only one that runs async right now.
     fn post_stop(&self) -> Option<HookRunner<hooks::PostStopHook>> {
         self.hooks.post_stop.as_ref().map(|hook| {
                                          HookRunner::new(Arc::clone(&hook),
