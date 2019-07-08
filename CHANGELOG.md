@@ -19,6 +19,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Accept habitat license [#6710](https://github.com/habitat-sh/habitat/pull/6710) ([davidMcneil](https://github.com/davidMcneil))
 - Refactor DatFile, again [#6703](https://github.com/habitat-sh/habitat/pull/6703) ([raskchanky](https://github.com/raskchanky))
 - fail build on docker push failures [#6702](https://github.com/habitat-sh/habitat/pull/6702) ([mwrock](https://github.com/mwrock))
 - powershell based install script [#6691](https://github.com/habitat-sh/habitat/pull/6691) ([mwrock](https://github.com/mwrock))
