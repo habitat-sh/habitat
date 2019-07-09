@@ -856,19 +856,24 @@ impl Manager {
         // errors or panics generated in this loop and performing some
         // kind of controlled shutdown.
         let shutdown_mode = loop {
+            trace!(target: "deadlock_tracer", "loop start");
             habitat_common::sync::mark_thread_alive();
+            trace!(target: "deadlock_tracer", "marked thread alive");
 
             // time will be recorded automatically by HistogramTimer's drop implementation when
             // this var goes out of scope
             #[allow(unused_variables)]
             let main_timer = main_hist.start_timer();
+            trace!(target: "deadlock_tracer", "started histogram timer");
 
             match get_fd_count() {
                 Ok(f) => FILE_DESCRIPTORS.set(f.to_i64()),
                 Err(e) => error!("Error retrieving open file descriptor count: {:?}", e),
             }
+            trace!(target: "deadlock_tracer", "counted file descriptors");
 
             track_memory_stats();
+            trace!(target: "deadlock_tracer", "tracked memory stats");
 
             if self.feature_flags.contains(FeatureFlag::TEST_EXIT) {
                 if let Ok(exit_file_path) = env::var("HAB_FEAT_TEST_EXIT") {
@@ -887,11 +892,15 @@ impl Manager {
 
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
+                trace!(target: "deadlock_tracer", "launcher stopping - shutdown normal");
                 break ShutdownMode::Normal;
             }
+            trace!(target: "deadlock_tracer", "checked if launcher stopped");
             if self.check_for_departure() {
+                trace!(target: "deadlock_tracer", "departed - shutdown departed");
                 break ShutdownMode::Departed;
             }
+            trace!(target: "deadlock_tracer", "checked if departed");
 
             // This formulation is gross, but it doesn't seem to compile on Windows otherwise.
             #[allow(clippy::match_bool)]
@@ -903,6 +912,8 @@ impl Manager {
                     {
                         outputln!("Supervisor shutting down for signal");
                         break ShutdownMode::Restarting;
+                    } else {
+                        trace!(target: "deadlock_tracer", "no HUP signal found");
                     }
                 }
                 _ => {}
@@ -913,8 +924,10 @@ impl Manager {
                           package);
                 break ShutdownMode::Restarting;
             }
+            trace!(target: "deadlock_tracer", "checked for updated supervisor");
 
             // TODO (CM): eventually, make this a future receiver
+            trace!(target: "deadlock_tracer", "starting checking SupervisorActions");
             for action in action_receiver.try_iter() {
                 match action {
                     SupervisorAction::StopService { mut service_spec,
@@ -923,7 +936,9 @@ impl Manager {
                         if let Err(err) = self.state.cfg.save_spec_for(&service_spec) {
                             warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
                                   service_spec.ident, err);
-                        }
+                        } else {
+                            trace!(target: "deadlock_tracer", "SupervisorAction::StopService: saved spec");
+                        };
                         if let Some(future) =
                             self.remove_service_from_state(&service_spec)
                                 .map(|service| {
@@ -932,7 +947,9 @@ impl Manager {
                                     self.stop_with_config(service, shutdown_config)
                                 })
                         {
+                            trace!(target: "deadlock_tracer", "SupervisorAction::StopService: created future");
                             runtime.spawn(future);
+                            trace!(target: "deadlock_tracer", "SupervisorAction::StopService: spawned future");
                         } else {
                             warn!("Tried to stop '{}', but couldn't find it in our list of \
                                    running services!",
@@ -947,6 +964,8 @@ impl Manager {
                                   service_spec.ident,
                                   file.display(),
                                   err);
+                        } else {
+                            trace!(target: "deadlock_tracer", "SupervisorAction::UnloadService: removed spec");
                         };
                         if let Some(future) =
                             self.remove_service_from_state(&service_spec)
@@ -956,7 +975,9 @@ impl Manager {
                                     self.stop_with_config(service, shutdown_config)
                                 })
                         {
+                            trace!(target: "deadlock_tracer", "SupervisorAction::UnloadService: created future");
                             runtime.spawn(future);
+                            trace!(target: "deadlock_tracer", "SupervisorAction::UnloadService: spawned future");
                         } else {
                             warn!("Tried to unload '{}', but couldn't find it in our list of \
                                    running services!",
@@ -965,6 +986,7 @@ impl Manager {
                     }
                 }
             }
+            trace!(target: "deadlock_tracer", "finished checking SupervisorActions");
 
             // Indicates if we need to examine our on-disk specfiles
             // in order to reconcile them with whatever we're
@@ -987,18 +1009,28 @@ impl Manager {
                 // restart could be greatly delayed (until some file
                 // event in the specs directory is registered, or
                 // another service finishes shutting down).
+                trace!(target: "deadlock_tracer", "Spec watcher events found or reconciliation needed");
                 self.services_need_reconciliation.toggle_if_set();
+                trace!(target: "deadlock_tracer", "Begin spawning service futures for spec watcher events or reconciliation");
                 self.maybe_spawn_service_futures_mlw(&mut runtime);
+                trace!(target: "deadlock_tracer", "Finished spawning service futures for spec watcher events or reconciliation");
+            } else {
+                trace!(target: "deadlock_tracer", "No spec watcher events or reconciliation needed");
             }
 
             self.update_peers_from_watch_file_mlr_imlw()?;
+            trace!(target: "deadlock_tracer", "Updated peers from watch file");
             self.update_running_services_from_user_config_watcher();
+            trace!(target: "deadlock_tracer", "Updated running services from user config watcher");
 
+            trace!(target: "deadlock_tracer", "Begin spawning all futures for stopping updating services");
             for f in self.stop_services_with_updates_mlr() {
                 runtime.spawn(f);
             }
+            trace!(target: "deadlock_tracer", "Spawned all futures for stopping updating services");
 
             self.restart_elections_mlr(self.feature_flags);
+            trace!(target: "deadlock_tracer", "restarted elections");
             self.census_ring
                 .update_from_rumors_mlr(&self.state.cfg.cache_key_path,
                                         &self.butterfly.service_store,
@@ -1007,39 +1039,58 @@ impl Manager {
                                         &self.butterfly.member_list,
                                         &self.butterfly.service_config_store,
                                         &self.butterfly.service_file_store);
+            trace!(target: "deadlock_tracer", "updated census ring from rumors");
 
             if self.check_for_changed_services() {
+                trace!(target: "deadlock_tracer", "checked for changed services: persisting state");
                 self.persist_state_mlr();
+                trace!(target: "deadlock_tracer", "checked for changed services: state persisted");
+            } else {
+                trace!(target: "deadlock_tracer", "checked for changed services: no change");
             }
 
             if self.census_ring.changed() {
+                trace!(target: "deadlock_tracer", "checked for changed census ring: persisting state");
                 self.persist_state_mlr();
+                trace!(target: "deadlock_tracer", "checked for changed census ring: state persisted");
+            } else {
+                trace!(target: "deadlock_tracer", "checked for changed census ring: no change");
             }
 
+            trace!(target: "deadlock_tracer", "begin service ticks");
             for service in self.state
                                .services
                                .write()
                                .expect("Services lock is poisoned!")
                                .values_mut()
             {
+                trace!(target: "deadlock_tracer", "service tick: {}", service);
                 // time will be recorded automatically by HistogramTimer's drop implementation when
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
+                trace!(target: "deadlock_tracer", "service tick: started timer");
                 if service.tick(&self.census_ring, &self.launcher, &runtime.executor()) {
+                    trace!(target: "deadlock_tracer", "service tick: tick = true");
                     self.gossip_latest_service_rumor_mlw(&service);
+                    trace!(target: "deadlock_tracer", "service tick: gossiped latest service rumor");
+                } else {
+                    trace!(target: "deadlock_tracer", "service tick: tick = false");
                 }
             }
+            trace!(target: "deadlock_tracer", "end service ticks");
 
             // This is really only needed until everything is running
             // in futures.
             let now = time::get_time();
             if now < next_check {
                 let time_to_wait = next_check - now;
+                trace!(target: "deadlock_tracer", "waiting {:?}", time_to_wait);
                 thread::sleep(time_to_wait.to_std().unwrap());
             }
 
             // Measure CPU time every second
+            trace!(target: "deadlock_tracer", "start CPU time measurement");
             if SteadyTime::now() >= next_cpu_measurement {
                 let cpu_duration = cpu_start.elapsed();
                 let cpu_nanos =
@@ -1051,7 +1102,10 @@ impl Manager {
                 next_cpu_measurement = SteadyTime::now() + TimeDuration::seconds(1);
                 cpu_start = ProcessTime::now();
             }
+            trace!(target: "deadlock_tracer", "end CPU time measurement");
         }; // end main loop
+
+        trace!(target: "deadlock_tracer", "exited main supervisor loop; begin shutting down");
 
         // When we make it down here, we've broken out of the main
         // Supervisor loop, which means it's time to shut down. Based
@@ -1064,30 +1118,41 @@ impl Manager {
         // user commands as we're trying to shut down.
         ctl_shutdown_tx.send(()).ok();
 
+        trace!(target: "deadlock_tracer", "ctl_gateway shutdown signal sent");
         match shutdown_mode {
-            ShutdownMode::Restarting => {}
+            ShutdownMode::Restarting => {
+                trace!(target: "deadlock_tracer", "shutdown for restarting; not shutting down services");
+            }
             ShutdownMode::Normal | ShutdownMode::Departed => {
                 outputln!("Gracefully departing from butterfly network.");
                 self.butterfly.set_departed_mlw();
 
+                trace!(target: "deadlock_tracer", "shutdown: acquiring services");
                 let mut svcs = self.state
                                    .services
                                    .write()
                                    .expect("Services lock is poisoned!");
-
-                for (_ident, svc) in svcs.drain() {
-                    runtime.spawn(self.stop(svc));
+                trace!(target: "deadlock_tracer", "shutdown: services acquired");
+                for (ident, svc) in svcs.drain() {
+                    trace!(target: "deadlock_tracer", "shutdown: generating stop future for {}", ident);
+                    let f = self.stop(svc);
+                    trace!(target: "deadlock_tracer", "shutdown: generated stop future for {}", ident);
+                    runtime.spawn(f);
+                    trace!(target: "deadlock_tracer", "shutdown: spawned stop future for {}", ident);
                 }
             }
         }
 
+        trace!(target: "deadlock_tracer", "shutdown: waiting for all futures to complete");
         // Allow all existing futures to run to completion.
         runtime.shutdown_on_idle()
                .wait()
                .expect("Error waiting on Tokio runtime to shutdown");
-
+        trace!(target: "deadlock_tracer", "shutdown: all futures have completed");
         release_process_lock(&self.fs_cfg);
+        trace!(target: "deadlock_tracer", "shutdown: process lock released");
         self.butterfly.persist_data_mlr();
+        trace!(target: "deadlock_tracer", "shutdown: butterfly data persisted");
 
         match shutdown_mode {
             ShutdownMode::Normal | ShutdownMode::Restarting => Ok(()),
