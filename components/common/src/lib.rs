@@ -151,7 +151,7 @@ pub mod sync {
               time::{Duration,
                      Instant}};
 
-    // TODO: cull extremely old entries so we don't grow without bound
+    // Threads that end normally, simply aren't tracked any longer
     enum Status {
         Alive {
             last_heartbeat: Instant,
@@ -175,6 +175,9 @@ pub mod sync {
     habitat_core::env_config_duration!(ThreadAliveCheckDelay,
                                        HAB_THREAD_ALIVE_CHECK_DELAY_SECS => from_secs,
                                        Duration::from_secs(60));
+    habitat_core::env_config_duration!(ThreadDeadIgnoreDelay,
+                                       HAB_THREAD_DEAD_IGNORE_DELAY_SECS => from_secs,
+                                       Duration::from_secs(60 * 60 * 24 * 7)); // 1 week
 
     /// Call periodically from a thread which has a work loop to indicate that the thread is
     /// still alive and processing its loop. If this function is not called for more than
@@ -223,12 +226,15 @@ pub mod sync {
                               .spawn(|| {
                                   let delay = ThreadAliveCheckDelay::configured_value().into();
                                   let threshold = ThreadAliveThreshold::configured_value().into();
+                                  let max_time_since_death =
+                                      ThreadDeadIgnoreDelay::configured_value().into();
                                   loop {
                                       let heartbeats =
-                                          &THREAD_HEARTBEATS.lock()
+                                          &mut THREAD_HEARTBEATS.lock()
                                                             .expect("THREAD_HEARTBEATS poisoned");
                                       check_thread_heartbeats(heartbeats, threshold);
                                       log_dead_threads(heartbeats);
+                                      cull_dead_threads(heartbeats, max_time_since_death);
                                       thread::sleep(delay);
                                   }
                               })
@@ -250,6 +256,17 @@ pub mod sync {
                   time_of_death.elapsed().as_secs(),
                   error);
         }
+    }
+
+    fn cull_dead_threads(heartbeats: &mut HeartbeatMap, max_time_since_death: Duration) {
+        heartbeats.retain(|_thread_id, (_thread_name, status)| {
+                      match status {
+                          Status::Alive { .. } => true,
+                          Status::DeadWithError { time_of_death, .. } => {
+                              time_of_death.elapsed() < max_time_since_death
+                          }
+                      }
+                  });
     }
 
     fn threads_missing_heartbeat(heartbeats: &HeartbeatMap,
@@ -472,9 +489,27 @@ pub mod sync {
                 mark_thread_dead_impl(heartbeats, Err("thread error description"));
             }).join()
               .unwrap();
-            thread::sleep(TEST_THRESHOLD * 2);
             assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
                        1);
+        }
+
+        #[test]
+        fn threads_exited_with_error_excludes_threads_ending_with_err_after_expiration_period() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                let heartbeats = &mut HEARTBEATS.lock().unwrap();
+                mark_thread_alive_impl(heartbeats);
+                mark_thread_dead_impl(heartbeats, Err("thread error description"));
+            }).join()
+              .unwrap();
+            let heartbeats = &mut HEARTBEATS.lock().unwrap();
+            cull_dead_threads(heartbeats, TEST_THRESHOLD);
+            assert_eq!(threads_exited_with_error(heartbeats).len(), 1);
+            thread::sleep(TEST_THRESHOLD * 2);
+            cull_dead_threads(heartbeats, TEST_THRESHOLD);
+            assert_eq!(threads_exited_with_error(heartbeats).len(), 0);
         }
     }
 
