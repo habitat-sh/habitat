@@ -151,8 +151,20 @@ pub mod sync {
               time::{Duration,
                      Instant}};
 
+    // TODO: cull extremely old entries so we don't grow without bound
+    enum Status {
+        Alive {
+            last_heartbeat: Instant,
+        },
+        DeadWithError {
+            time_of_death: Instant,
+            error:         String,
+        },
+    }
+    type NameAndStatus = (Option<String>, Status);
     type NameAndLastHeartbeat = (Option<String>, Instant);
-    type HeartbeatMap = HashMap<ThreadId, NameAndLastHeartbeat>;
+    type NameAndErrorExitTimeAndReason<'a> = (Option<String>, Instant, &'a str);
+    type HeartbeatMap = HashMap<ThreadId, NameAndStatus>;
     lazy_static::lazy_static! {
         static ref THREAD_HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
     }
@@ -175,7 +187,33 @@ pub mod sync {
     fn mark_thread_alive_impl(heartbeats: &mut HeartbeatMap) {
         let thread = thread::current();
         heartbeats.insert(thread.id(),
-                          (thread.name().map(str::to_string), Instant::now()));
+                          (thread.name().map(str::to_string),
+                           Status::Alive { last_heartbeat: Instant::now(), }));
+    }
+
+    /// Call when a thread is exiting to indicate the checker shouldn't expect future heartbeats.
+    /// If the thread is exiting as part of expected operation, `exit_result` should be `Ok(())`
+    /// and the thread will no longer be checked. If the thread exited due to an error,
+    /// `exit_result` should be an `Err(&str)` explaining why.
+    pub fn mark_thread_dead(exit_result: Result<(), &str>) {
+        mark_thread_dead_impl(&mut THREAD_HEARTBEATS.lock()
+                                                    .expect("THREAD_HEARTBEATS poisoned"),
+                              exit_result);
+    }
+
+    fn mark_thread_dead_impl(heartbeats: &mut HeartbeatMap, exit_result: Result<(), &str>) {
+        let thread_id = &thread::current().id();
+        match exit_result {
+            Ok(()) => {
+                heartbeats.remove(thread_id);
+            }
+            Err(e) => {
+                if let Some(entry) = heartbeats.get_mut(thread_id) {
+                    entry.1 = Status::DeadWithError { time_of_death: Instant::now(),
+                                                      error:         e.to_owned(), };
+                }
+            }
+        }
     }
 
     /// Call once per binary to start the thread which will check that all the threads that
@@ -186,16 +224,18 @@ pub mod sync {
                                   let delay = ThreadAliveCheckDelay::configured_value().into();
                                   let threshold = ThreadAliveThreshold::configured_value().into();
                                   loop {
-                                      check_thread_heartbeats(threshold);
+                                      let heartbeats =
+                                          &THREAD_HEARTBEATS.lock()
+                                                            .expect("THREAD_HEARTBEATS poisoned");
+                                      check_thread_heartbeats(heartbeats, threshold);
+                                      log_dead_threads(heartbeats);
                                       thread::sleep(delay);
                                   }
                               })
                               .expect("Error spawning thread alive checker");
     }
 
-    fn check_thread_heartbeats(threshold: Duration) {
-        let heartbeats = &THREAD_HEARTBEATS.lock()
-                                           .expect("THREAD_HEARTBEATS poisoned");
+    fn check_thread_heartbeats(heartbeats: &HeartbeatMap, threshold: Duration) {
         for (name, last_heartbeat) in threads_missing_heartbeat(heartbeats, threshold) {
             warn!("No heartbeat from {} in {} seconds; deadlock likely",
                   name.unwrap_or_else(|| { "unnamed thread".to_string() }),
@@ -203,20 +243,53 @@ pub mod sync {
         }
     }
 
+    fn log_dead_threads(heartbeats: &HeartbeatMap) {
+        for (name, time_of_death, error) in threads_exited_with_error(heartbeats) {
+            warn!("{} exited {} seconds ago with error: {}",
+                  name.unwrap_or_else(|| { "Unnamed thread".to_string() }),
+                  time_of_death.elapsed().as_secs(),
+                  error);
+        }
+    }
+
     fn threads_missing_heartbeat(heartbeats: &HeartbeatMap,
                                  threshold: Duration)
                                  -> Vec<NameAndLastHeartbeat> {
         heartbeats.iter()
-                  .filter_map(|(thread_id, (thread_name, last_heartbeat))| {
-                      let time_since_last_heartbeat = last_heartbeat.elapsed();
-                      trace!("{:?} {:?} last heartbeat: {:?} ago",
-                             thread_id,
-                             thread_name,
-                             time_since_last_heartbeat);
-                      if time_since_last_heartbeat < threshold {
-                          None
-                      } else {
-                          Some((thread_name.clone(), *last_heartbeat))
+                  .filter_map(|(thread_id, (thread_name, status))| {
+                      match status {
+                          Status::Alive { last_heartbeat } => {
+                              let time_since_last_heartbeat = last_heartbeat.elapsed();
+                              trace!("{:?} {:?} last heartbeat: {:?} ago",
+                                     thread_id,
+                                     thread_name,
+                                     time_since_last_heartbeat);
+                              if time_since_last_heartbeat < threshold {
+                                  None
+                              } else {
+                                  Some((thread_name.clone(), *last_heartbeat))
+                              }
+                          }
+                          Status::DeadWithError { .. } => None,
+                      }
+                  })
+                  .collect::<Vec<_>>()
+    }
+
+    fn threads_exited_with_error(heartbeats: &HeartbeatMap) -> Vec<NameAndErrorExitTimeAndReason> {
+        heartbeats.iter()
+                  .filter_map(|(thread_id, (thread_name, status))| {
+                      match status {
+                          Status::Alive { .. } => None,
+                          Status::DeadWithError { time_of_death,
+                                                  error, } => {
+                              let time_since_exit = time_of_death.elapsed();
+                              trace!("{:?} {:?} time of death: {:?} ago",
+                                     thread_id,
+                                     thread_name,
+                                     time_since_exit);
+                              Some((thread_name.clone(), *time_of_death, error.as_ref()))
+                          }
                       }
                   })
                   .collect::<Vec<_>>()
@@ -283,6 +356,125 @@ pub mod sync {
                                                                              .collect::<Vec<_>>();
             assert_eq!(dead_thread_names, vec![Some(dead_thread_name)]);
             test_done.store(true, Ordering::Relaxed);
+        }
+
+        #[test]
+        fn threads_missing_heartbeat_includes_panicked_threads() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+                panic!("intentional panic for test");
+            }).join()
+              .ok();
+            thread::sleep(TEST_THRESHOLD * 2);
+            assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+                       1);
+        }
+
+        #[test]
+        fn threads_missing_heartbeat_includes_unexpectedly_ended_threads() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+            }).join()
+              .unwrap();
+            thread::sleep(TEST_THRESHOLD * 2);
+            assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+                       1);
+        }
+
+        #[test]
+        fn threads_missing_heartbeat_excludes_threads_ending_with_err() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                let heartbeats = &mut HEARTBEATS.lock().unwrap();
+                mark_thread_alive_impl(heartbeats);
+                mark_thread_dead_impl(heartbeats, Err("thread error description"));
+            }).join()
+              .unwrap();
+            thread::sleep(TEST_THRESHOLD * 2);
+            assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+                       0);
+        }
+
+        #[test]
+        fn threads_missing_heartbeat_excludes_threads_ending_with_ok() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                let heartbeats = &mut HEARTBEATS.lock().unwrap();
+                mark_thread_alive_impl(heartbeats);
+                mark_thread_dead_impl(heartbeats, Ok(()));
+            }).join()
+              .unwrap();
+            thread::sleep(TEST_THRESHOLD * 2);
+            assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+                       0);
+        }
+
+        #[test]
+        fn threads_exited_with_error_excludes_panicked_threads() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+                panic!("intentional panic for test");
+            }).join()
+              .ok();
+            assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
+                       0);
+        }
+
+        #[test]
+        fn threads_exited_with_error_excludes_unexpectedly_ended_threads() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+            }).join()
+              .unwrap();
+            assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
+                       0);
+        }
+
+        #[test]
+        fn threads_exited_with_error_excludes_threads_ending_with_ok() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                let heartbeats = &mut HEARTBEATS.lock().unwrap();
+                mark_thread_alive_impl(heartbeats);
+                mark_thread_dead_impl(heartbeats, Ok(()));
+            }).join()
+              .unwrap();
+            assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
+                       0);
+        }
+
+        #[test]
+        fn threads_exited_with_error_includes_threads_ending_with_err() {
+            lazy_static! {
+                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
+            }
+            thread::spawn(move || {
+                let heartbeats = &mut HEARTBEATS.lock().unwrap();
+                mark_thread_alive_impl(heartbeats);
+                mark_thread_dead_impl(heartbeats, Err("thread error description"));
+            }).join()
+              .unwrap();
+            thread::sleep(TEST_THRESHOLD * 2);
+            assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
+                       1);
         }
     }
 
