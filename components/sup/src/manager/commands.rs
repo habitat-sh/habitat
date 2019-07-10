@@ -8,7 +8,8 @@ use crate::{ctl_gateway::CtlRequest,
                                        ServiceSpec},
                                 DesiredState,
                                 ProcessState},
-                      ManagerState},
+                      ManagerState,
+                      UnrunnableService},
             util};
 use habitat_butterfly as butterfly;
 use habitat_common::{command::package::install::InstallSource,
@@ -220,8 +221,10 @@ pub fn service_load(mgr: &ManagerState,
 
             if !force {
                 return Err(net::err(ErrCode::Conflict,
-                                    format!("Service already loaded, unload '{}' \
-                                             and try again",
+                                    format!("Service already loaded. Unload '{}' \
+                                             and try again, or load with the \
+                                             --force flag to reload and restart the \
+                                             service.",
                                             ident)));
             }
 
@@ -350,35 +353,72 @@ pub fn service_status(mgr: &ManagerState,
                       req: &mut CtlRequest,
                       opts: protocol::ctl::SvcStatus)
                       -> NetResult<()> {
-    let services_data = &mgr.gateway_state
-                            .read()
-                            .expect("GatewayState lock is poisoned")
-                            .services_data;
+    enum StatusWrapper {
+        Status(ServiceStatus),
+        FailedStatus(UnrunnableService),
+    }
+
+    let data = mgr.gateway_state
+                  .read()
+                  .expect("GatewayState lock is poisoned");
+    let services_data = &data.services_data;
+    let unrunnable_services_data = &data.unrunnable_services_data;
+
     let statuses: Vec<ServiceStatus> =
         serde_json::from_str(&services_data).map_err(Error::ServiceDeserializationError)?;
+    let unrunnable_statuses: Vec<UnrunnableService> =
+        serde_json::from_str(&unrunnable_services_data).map_err(Error::ServiceDeserializationError)?;
+    let mut all_statuses = statuses.into_iter()
+                                   .map(|s| StatusWrapper::Status(s))
+                                   .collect::<Vec<_>>();
+    all_statuses.extend(unrunnable_statuses.into_iter()
+                                           .map(|s| StatusWrapper::FailedStatus(s)));
 
     if let Some(ident) = opts.ident {
-        for status in statuses {
-            if status.pkg.ident.satisfies(&ident) {
-                let msg: protocol::types::ServiceStatus = status.into();
-                req.reply_complete(msg);
-                return Ok(());
+        for status in all_statuses {
+            match status {
+                StatusWrapper::Status(s) => {
+                    if s.pkg.ident.satisfies(&ident) {
+                        let msg = protocol::types::ServiceStatus::from(s);
+                        req.reply_complete(msg);
+                        return Ok(());
+                    }
+                }
+                StatusWrapper::FailedStatus(s) => {
+                    if s.spec_ident.satisfies(&ident) {
+                        let msg = protocol::types::UnrunnableServiceStatus::from(s);
+                        req.reply_complete(msg);
+                        return Ok(());
+                    }
+                }
             }
         }
         return Err(net::err(ErrCode::NotFound, format!("Service not loaded, {}", ident)));
     }
 
     // We're not dealing with a single service, but with all of them.
-    if statuses.is_empty() {
+    if all_statuses.is_empty() {
         req.reply_complete(net::ok());
     } else {
-        let mut list = statuses.into_iter().peekable();
+        let mut list = all_statuses.into_iter().peekable();
         while let Some(status) = list.next() {
-            let msg: protocol::types::ServiceStatus = status.into();
-            if list.peek().is_some() {
-                req.reply_partial(msg);
-            } else {
-                req.reply_complete(msg);
+            match status {
+                StatusWrapper::Status(s) => {
+                    let msg = protocol::types::ServiceStatus::from(s);
+                    if list.peek().is_some() {
+                        req.reply_partial(msg);
+                    } else {
+                        req.reply_complete(msg);
+                    }
+                }
+                StatusWrapper::FailedStatus(s) => {
+                    let msg = protocol::types::UnrunnableServiceStatus::from(s);
+                    if list.peek().is_some() {
+                        req.reply_partial(msg);
+                    } else {
+                        req.reply_complete(msg);
+                    }
+                }
             }
         }
     }

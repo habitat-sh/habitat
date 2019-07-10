@@ -22,6 +22,8 @@ use prost_types::{DescriptorProto,
                   FileDescriptorProto,
                   FileDescriptorSet};
 
+const GENERATED_OUT_DIR: &'static str = "src/generated";
+
 type Module = Vec<String>;
 
 fn main() {
@@ -34,6 +36,7 @@ fn generate_protocols() {
     let mut config = prost_build::Config::new();
     config.type_attribute(".", "#[derive(Serialize, Deserialize)]");
     config.type_attribute(".", "#[serde(rename_all = \"kebab-case\")]");
+    config.out_dir(GENERATED_OUT_DIR);
     config.compile_protos(&protocol_files(), &protocol_includes())
           .expect("protocols");
     compile_proto_impls(&protocol_files(), &protocol_includes()).expect("protocol-impls");
@@ -59,7 +62,7 @@ fn protocol_includes() -> Vec<String> { vec!["protocols".to_string()] }
 fn compile_proto_impls<P>(protos: &[P], includes: &[P]) -> Result<()>
     where P: AsRef<Path>
 {
-    let target = PathBuf::from("src/generated");
+    let target = PathBuf::from(GENERATED_OUT_DIR);
     let tmp = tempfile::TempDir::new()?;
     let descriptor_set = tmp.path().join("prost-descriptor-set");
 

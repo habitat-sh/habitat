@@ -280,6 +280,7 @@ impl Server {
 
 fn services_routes() -> Scope {
     web::scope("/services").route("", web::get().to(services))
+                           .route("/unrunnable", web::get().to(unrunnable_services))
                            .route("/{svc}/{group}", web::get().to(service_without_org))
                            .route("/{svc}/{group}/config", web::get().to(config_without_org))
                            .route("/{svc}/{group}/health", web::get().to(health_without_org))
@@ -330,6 +331,15 @@ fn services(state: Data<AppState>) -> HttpResponse {
                      .read()
                      .expect("GatewayState lock is poisoned")
                      .services_data;
+    json_response(data.to_string())
+}
+
+#[allow(clippy::needless_pass_by_value)]
+fn unrunnable_services(state: Data<AppState>) -> HttpResponse {
+    let data = &state.gateway_state
+                     .read()
+                     .expect("GatewayState lock is poisoned")
+                     .unrunnable_services_data;
     json_response(data.to_string())
 }
 

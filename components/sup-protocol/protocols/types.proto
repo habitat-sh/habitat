@@ -95,6 +95,12 @@ message ServiceStatus {
   optional DesiredState desired_state = 5;
 }
 
+message UnrunnableServiceStatus {
+  required PackageIdent ident = 1;
+  // A description of why this service failed
+  required string error = 2;
+}
+
 message HealthCheckInterval {
   required uint64 seconds = 1;
 }

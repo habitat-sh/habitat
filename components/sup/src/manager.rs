@@ -206,6 +206,23 @@ impl ShutdownConfig {
     }
 }
 
+/// Represents a service with a spec file that cannot be loaded and therefore the service cannot
+/// run. A common reason to be unable to load the spec file would be unsatisfied binds.
+#[derive(Deserialize, Serialize)]
+pub struct UnrunnableService {
+    pub spec_ident: PackageIdent,
+    pub error:      String,
+}
+
+impl From<UnrunnableService> for habitat_sup_protocol::types::UnrunnableServiceStatus {
+    fn from(other: UnrunnableService) -> Self {
+        let mut proto = habitat_sup_protocol::types::UnrunnableServiceStatus::default();
+        proto.ident = other.spec_ident.into();
+        proto.error = other.error;
+        proto
+    }
+}
+
 /// FileSystem paths that the Manager uses to persist data to disk.
 ///
 /// This is shared with the `http_gateway` and `service` modules for reading and writing
@@ -368,6 +385,8 @@ pub struct GatewayState {
     pub butterfly_data: String,
     /// JSON returned by the /services endpoint
     pub services_data: String,
+    /// JSON returned by the /services/unrunnable endpoint
+    pub unrunnable_services_data: String,
     /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
     /// endpoint
     pub health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
@@ -1267,19 +1286,27 @@ impl Manager {
         // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
         // persistent services that failed to load
-        let watched_services: Vec<Service> =
-            self.spec_dir
-                .specs()
-                .iter()
-                .filter(|spec| !existing_idents.contains(&spec.ident))
-                .flat_map(|spec| {
-                    Service::load(self.sys.clone(),
-                                  spec.clone(),
-                                  self.fs_cfg.clone(),
-                                  self.organization.as_ref().map(|org| &**org),
-                                  self.state.gateway_state.clone()).into_iter()
-                })
-                .collect();
+        let mut watched_services = Vec::new();
+        // Services that have a spec file that cannot be loaded
+        let mut unrunnable_services = Vec::new();
+        for spec in self.spec_dir
+                        .specs()
+                        .iter()
+                        .filter(|spec| !existing_idents.contains(&spec.ident))
+        {
+            match Service::load(self.sys.clone(),
+                                spec.clone(),
+                                self.fs_cfg.clone(),
+                                self.organization.as_ref().map(|org| &**org),
+                                self.state.gateway_state.clone())
+            {
+                Ok(s) => watched_services.push(s),
+                Err(e) => {
+                    unrunnable_services.push(UnrunnableService { spec_ident: spec.ident.clone(),
+                                                                 error:      e.to_string(), })
+                }
+            }
+        }
         let watched_service_proxies: Vec<ServiceProxy<'_>> =
             watched_services.iter()
                             .map(|s| ServiceProxy::new(s, config_rendering))
@@ -1288,15 +1315,14 @@ impl Manager {
             services.values()
                     .map(|s| ServiceProxy::new(s, config_rendering))
                     .collect();
-
         services_to_render.extend(watched_service_proxies);
 
-        let json = serde_json::to_string(&services_to_render).unwrap();
-        self.state
-            .gateway_state
-            .write()
-            .expect("GatewayState lock is poisoned")
-            .services_data = json;
+        let mut state = self.state
+                            .gateway_state
+                            .write()
+                            .expect("GatewayState lock is poisoned");
+        state.services_data = serde_json::to_string(&services_to_render).unwrap();
+        state.unrunnable_services_data = serde_json::to_string(&unrunnable_services).unwrap();
     }
 
     /// Check if any elections need restarting.

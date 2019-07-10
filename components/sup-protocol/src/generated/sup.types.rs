@@ -90,6 +90,16 @@ pub struct ServiceStatus {
 #[derive(Clone, PartialEq, ::prost::Message)]
 #[derive(Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
+pub struct UnrunnableServiceStatus {
+    #[prost(message, required, tag="1")]
+    pub ident: PackageIdent,
+    /// A description of why this service failed
+    #[prost(string, required, tag="2")]
+    pub error: std::string::String,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
 pub struct HealthCheckInterval {
     #[prost(uint64, required, tag="1")]
     pub seconds: u64,

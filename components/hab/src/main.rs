@@ -101,7 +101,8 @@ lazy_static! {
              "state",
              "elapsed (s)",
              "pid",
-             "group",]
+             "group",
+             "error"]
     };
 }
 
@@ -1563,60 +1564,73 @@ fn print_svc_status<T>(out: &mut T,
                        -> result::Result<(), SrvClientError>
     where T: io::Write
 {
-    let status = match reply.message_id() {
+    match reply.message_id() {
         "ServiceStatus" => {
-            reply.parse::<sup_proto::types::ServiceStatus>()
-                 .map_err(SrvClientError::Decode)?
+            let status = reply.parse::<sup_proto::types::ServiceStatus>()
+                              .map_err(SrvClientError::Decode)?;
+            let svc_desired_state = status.desired_state
+                                          .map_or("<none>".to_string(), |s| s.to_string());
+            let (svc_state, svc_pid, svc_elapsed) = {
+                match status.process {
+                    Some(process) => {
+                        (process.state.to_string(),
+                         process.pid
+                                .map_or_else(|| "<none>".to_string(), |p| p.to_string()),
+                         process.elapsed.unwrap_or_default().to_string())
+                    }
+                    None => {
+                        (ProcessState::default().to_string(),
+                         "<none>".to_string(),
+                         "<none>".to_string())
+                    }
+                }
+            };
+            if print_header {
+                writeln!(out, "{}", STATUS_HEADER.join("\t")).unwrap();
+            }
+            // Composites were removed in 0.75 but people could be
+            // depending on the exact format of this output even if they
+            // never used composites. We don't want to break their tooling
+            // so we hardcode in 'standalone' as it's the only supported
+            // package type
+            //
+            // TODO: Remove this when we have a stable machine-readable alternative
+            // that scripts could depend on
+            writeln!(out,
+                     "{}\tstandalone\t{}\t{}\t{}\t{}\t{}\t<none>",
+                     status.ident,
+                     DesiredState::from_str(&svc_desired_state)?,
+                     ProcessState::from_str(&svc_state)?,
+                     svc_elapsed,
+                     svc_pid,
+                     status.service_group,)?;
+            Ok(())
+        }
+        "UnrunnableServiceStatus" => {
+            let status = reply.parse::<sup_proto::types::UnrunnableServiceStatus>()
+                              .map_err(SrvClientError::Decode)?;
+            if print_header {
+                writeln!(out, "{}", STATUS_HEADER.join("\t")).unwrap();
+            }
+            writeln!(out,
+                     "{}\tstandalone\t<none>\t<none>\t<none>\t<none>\t<none>\t{}",
+                     status.ident, status.error,)?;
+            Ok(())
         }
         "NetOk" => {
             println!("No services loaded.");
-            return Ok(());
+            Ok(())
         }
         "NetErr" => {
             let err = reply.parse::<sup_proto::net::NetErr>()
                            .map_err(SrvClientError::Decode)?;
-            return Err(SrvClientError::from(err));
+            Err(SrvClientError::from(err))
         }
         _ => {
             warn!("Unexpected status message, {:?}", reply);
-            return Ok(());
+            Ok(())
         }
-    };
-    let svc_desired_state = status.desired_state
-                                  .map_or("<none>".to_string(), |s| s.to_string());
-    let (svc_state, svc_pid, svc_elapsed) = {
-        match status.process {
-            Some(process) => {
-                (process.state.to_string(),
-                 process.pid
-                        .map_or_else(|| "<none>".to_string(), |p| p.to_string()),
-                 process.elapsed.unwrap_or_default().to_string())
-            }
-            None => {
-                (ProcessState::default().to_string(), "<none>".to_string(), "<none>".to_string())
-            }
-        }
-    };
-    if print_header {
-        writeln!(out, "{}", STATUS_HEADER.join("\t")).unwrap();
     }
-    // Composites were removed in 0.75 but people could be
-    // depending on the exact format of this output even if they
-    // never used composites. We don't want to break their tooling
-    // so we hardcode in 'standalone' as it's the only supported
-    // package type
-    //
-    // TODO: Remove this when we have a stable machine-readable alternative
-    // that scripts could depend on
-    writeln!(out,
-             "{}\tstandalone\t{}\t{}\t{}\t{}\t{}",
-             status.ident,
-             DesiredState::from_str(&svc_desired_state)?,
-             ProcessState::from_str(&svc_state)?,
-             svc_elapsed,
-             svc_pid,
-             status.service_group,)?;
-    Ok(())
 }
 
 /// Check if we have a launcher/supervisor running out of this habitat root.
