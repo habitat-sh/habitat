@@ -1065,7 +1065,17 @@ impl Manager {
         ctl_shutdown_tx.send(()).ok();
 
         match shutdown_mode {
-            ShutdownMode::Restarting => {}
+            ShutdownMode::Restarting => {
+                outputln!("Preparing services for Supervisor restart");
+                for (_ident, svc) in self.state
+                                         .services
+                                         .write()
+                                         .expect("Services lock is poisoned!")
+                                         .iter_mut()
+                {
+                    svc.detach();
+                }
+            }
             ShutdownMode::Normal | ShutdownMode::Departed => {
                 outputln!("Gracefully departing from butterfly network.");
                 self.butterfly.set_departed_mlw();

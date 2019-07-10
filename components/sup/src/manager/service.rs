@@ -344,6 +344,7 @@ impl Service {
     /// Consumes the handle to that future in the process.
     fn stop_health_checks(&mut self) {
         if let Some(h) = self.health_check_handle.take() {
+            debug!("Stopping health checks for {}", self.pkg.ident);
             h.terminate();
         }
     }
@@ -357,6 +358,29 @@ impl Service {
         self.stop_health_checks();
         self.start_health_checks(executor);
     }
+
+    /// Called when the Supervisor reattaches itself to an already
+    /// running service. Use this to re-initiate any associated
+    /// processes, futures, etc.
+    ///
+    /// This should generally be the opposite of `Service::detach`.
+    fn reattach(&mut self, executor: &TaskExecutor) {
+        outputln!("Reattaching to {}", self.service_group);
+        self.initialized = true;
+        self.restart_health_checks(executor);
+    }
+
+    /// Called when stopping the Supervisor for an update. Should
+    /// *not* stop the service process itself, but should stop any
+    /// associated processes, futures, etc., that would otherwise
+    /// prevent the Supervisor from shutting itself down.
+    ///
+    /// Currently, this means stopping any associated long-running
+    /// futures.
+    ///
+    /// See also `Service::reattach`, as these methods should
+    /// generally be mirror images of each other.
+    pub fn detach(&mut self) { self.stop_health_checks(); }
 
     /// Return a future that will shut down a service, performing any
     /// necessary cleanup, and run its post-stop hook, if any.
@@ -924,8 +948,7 @@ impl Service {
     fn execute_hooks(&mut self, launcher: &LauncherCli, executor: &TaskExecutor) {
         if !self.initialized {
             if self.check_process() {
-                outputln!("Reattached to {}", self.service_group);
-                self.initialized = true;
+                self.reattach(executor);
                 return;
             }
             self.initialize();
