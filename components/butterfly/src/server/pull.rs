@@ -2,19 +2,18 @@
 //!
 //! This module handles pulling all the pushed rumors from every member off a ZMQ socket.
 
-use std::{thread,
-          time::Duration};
-
-use habitat_core::util::ToI64;
-use prometheus::{IntCounterVec,
-                 IntGaugeVec};
-use zmq;
-
 use crate::{rumor::{RumorEnvelope,
                     RumorKind},
             server::Server,
             trace::TraceKind,
             ZMQ_CONTEXT};
+use habitat_common::liveliness_checker;
+use habitat_core::util::ToI64;
+use prometheus::{IntCounterVec,
+                 IntGaugeVec};
+use std::{thread,
+          time::Duration};
+use zmq;
 
 lazy_static! {
     static ref GOSSIP_MESSAGES_RECEIVED: IntCounterVec =
@@ -51,7 +50,7 @@ fn run_loop(server: &Server) -> ! {
         if let Ok(-1) = socket.get_rcvtimeo() {
             trace!("Skipping thread liveliness checks due to infinite recv timeout");
         } else {
-            habitat_common::sync::mark_thread_alive();
+            liveliness_checker::mark_thread_alive();
         }
 
         if server.paused() {

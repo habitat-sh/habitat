@@ -1,7 +1,8 @@
 use super::file_watcher::{default_file_watcher_with_no_initial_event,
                           Callbacks};
 use crate::manager::service::Service;
-use habitat_common::{outputln,
+use habitat_common::{liveliness_checker,
+                     outputln,
                      templating::config::UserConfigPath};
 use habitat_core::{fs::USER_CONFIG_FILE,
                    service::ServiceGroup};
@@ -188,8 +189,8 @@ impl Worker {
                started_watching: SyncSender<()>)
                -> io::Result<()> {
         ThreadBuilder::new().name(format!("user-config-watcher-{}", path.display()))
-                            .spawn(move || -> habitat_common::sync::ThreadReturn<(), String> {
-                                habitat_common::sync::mark_thread_alive();
+                            .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {
+                                liveliness_checker::mark_thread_alive();
 
                                 debug!("UserConfigWatcher({}) worker thread starting",
                                        path.display(),);
@@ -205,14 +206,14 @@ impl Worker {
                                                               path.display(),
                                                               e,);
                                             outputln!("{}", msg);
-                                            return habitat_common::sync::mark_thread_dead(Err(msg));
+                                            return liveliness_checker::unregister_thread(Err(msg));
                                         }
                                     };
 
                                 let _ = started_watching.try_send(());
 
                                 loop {
-                                    habitat_common::sync::mark_thread_alive();
+                                    liveliness_checker::mark_thread_alive();
 
                                     match stop_running.try_recv() {
                                         // As long as the `stop_running` channel is
@@ -226,12 +227,12 @@ impl Worker {
                                                                   path.display(),
                                                                   e,);
                                                 outputln!("{}", msg);
-                                                break habitat_common::sync::mark_thread_dead(Err(msg));
+                                                break liveliness_checker::unregister_thread(Err(msg));
                                             };
                                         }
 
                                         // If we receive a message on the channel, we stop.
-                                        Ok(_) => break habitat_common::sync::mark_thread_dead(Ok(())),
+                                        Ok(_) => break liveliness_checker::unregister_thread(Ok(())),
 
                                         // If the channel is disconnected, we stop as well.
                                         Err(TryRecvError::Disconnected) => {
@@ -240,7 +241,7 @@ impl Worker {
                                                                channel",
                                                               path.display(),);
                                             debug!("{}", msg);
-                                            break habitat_common::sync::mark_thread_dead(Err(msg));
+                                            break liveliness_checker::unregister_thread(Err(msg));
                                         }
                                     }
 

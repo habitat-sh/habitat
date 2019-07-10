@@ -2,20 +2,6 @@
 //!
 //! This module handles the implementation of the swim probe protocol.
 
-use std::{fmt,
-          net::{SocketAddr,
-                UdpSocket},
-          sync::mpsc,
-          thread,
-          time::Duration};
-
-use habitat_core::util::ToI64;
-use prometheus::{HistogramTimer,
-                 HistogramVec,
-                 IntCounterVec,
-                 IntGaugeVec};
-use time::SteadyTime;
-
 use super::AckReceiver;
 use crate::{member::{Health,
                      Member},
@@ -28,6 +14,19 @@ use crate::{member::{Health,
                    PingReq,
                    Swim},
             trace::TraceKind};
+use habitat_common::liveliness_checker;
+use habitat_core::util::ToI64;
+use prometheus::{HistogramTimer,
+                 HistogramVec,
+                 IntCounterVec,
+                 IntGaugeVec};
+use std::{fmt,
+          net::{SocketAddr,
+                UdpSocket},
+          sync::mpsc,
+          thread,
+          time::Duration};
+use time::SteadyTime;
 
 /// How long to sleep between calls to `recv`.
 const PING_RECV_QUEUE_EMPTY_SLEEP_MS: u64 = 10;
@@ -85,7 +84,7 @@ pub fn spawn_thread(name: String,
 fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing) -> ! {
     let mut have_members = false;
     loop {
-        habitat_common::sync::mark_thread_alive();
+        liveliness_checker::mark_thread_alive();
 
         if !have_members {
             let num_initial = server.member_list.len_initial_members_imlr();

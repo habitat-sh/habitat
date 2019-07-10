@@ -52,7 +52,8 @@ use habitat_butterfly::{member::Member,
                                  ServerProxy,
                                  Suitability},
                         trace::Trace};
-use habitat_common::{outputln,
+use habitat_common::{liveliness_checker,
+                     outputln,
                      types::{GossipListenAddr,
                              HttpListenAddr,
                              ListenCtlAddr},
@@ -855,8 +856,8 @@ impl Manager {
         // TODO (CM): Investigate the appropriateness of capturing any
         // errors or panics generated in this loop and performing some
         // kind of controlled shutdown.
-        let shutdown_mode: habitat_common::sync::ThreadReturn<ShutdownMode> = loop {
-            habitat_common::sync::mark_thread_alive();
+        let shutdown_mode: liveliness_checker::ThreadUnregistered<ShutdownMode> = loop {
+            liveliness_checker::mark_thread_alive();
 
             // time will be recorded automatically by HistogramTimer's drop implementation when
             // this var goes out of scope
@@ -887,10 +888,10 @@ impl Manager {
 
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
-                break habitat_common::sync::mark_thread_dead(Ok(ShutdownMode::Normal));
+                break liveliness_checker::unregister_thread(Ok(ShutdownMode::Normal));
             }
             if self.check_for_departure() {
-                break habitat_common::sync::mark_thread_dead(Ok(ShutdownMode::Departed));
+                break liveliness_checker::unregister_thread(Ok(ShutdownMode::Departed));
             }
 
             // This formulation is gross, but it doesn't seem to compile on Windows otherwise.
@@ -902,7 +903,7 @@ impl Manager {
                     if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal()
                     {
                         outputln!("Supervisor shutting down for signal");
-                        break habitat_common::sync::mark_thread_dead(Ok(ShutdownMode::Restarting));
+                        break liveliness_checker::unregister_thread(Ok(ShutdownMode::Restarting));
                     }
                 }
                 _ => {}
@@ -911,7 +912,7 @@ impl Manager {
             if let Some(package) = self.check_for_updated_supervisor() {
                 outputln!("Supervisor shutting down for automatic update to {}",
                           package);
-                break habitat_common::sync::mark_thread_dead(Ok(ShutdownMode::Restarting));
+                break liveliness_checker::unregister_thread(Ok(ShutdownMode::Restarting));
             }
 
             // TODO (CM): eventually, make this a future receiver

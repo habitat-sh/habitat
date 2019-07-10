@@ -1,3 +1,13 @@
+use crate::{error::{Error,
+                    Result},
+            manager::debug::{IndentedStructFormatter,
+                             IndentedToString}};
+use habitat_common::liveliness_checker;
+use notify::{self,
+             DebouncedEvent,
+             RecommendedWatcher,
+             RecursiveMode,
+             Watcher};
 use std::{collections::{hash_map::Entry,
                         HashMap,
                         HashSet,
@@ -13,17 +23,6 @@ use std::{collections::{hash_map::Entry,
                        TryRecvError},
           thread,
           time::Duration};
-
-use crate::error::{Error,
-                   Result};
-use notify::{self,
-             DebouncedEvent,
-             RecommendedWatcher,
-             RecursiveMode,
-             Watcher};
-
-use crate::manager::debug::{IndentedStructFormatter,
-                            IndentedToString};
 
 pub const WATCHER_DELAY_MS: u64 = 2_000;
 
@@ -1263,10 +1262,10 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        let loop_value: habitat_common::sync::ThreadReturn<_, _> = loop {
-            habitat_common::sync::mark_thread_alive();
+        let loop_value: liveliness_checker::ThreadUnregistered<_, _> = loop {
+            liveliness_checker::mark_thread_alive();
             if let result @ Err(_) = self.single_iteration() {
-                break habitat_common::sync::mark_thread_dead(result);
+                break liveliness_checker::unregister_thread(result);
             }
             thread::sleep(Duration::from_secs(1));
         };

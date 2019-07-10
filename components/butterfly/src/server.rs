@@ -40,7 +40,8 @@ use crate::{error::{Error,
             swim::Ack,
             trace::{Trace,
                     TraceKind}};
-use habitat_common::FeatureFlag;
+use habitat_common::{liveliness_checker,
+                     FeatureFlag};
 use habitat_core::crypto::SymKey;
 use prometheus::{HistogramTimer,
                  HistogramVec,
@@ -1217,7 +1218,7 @@ fn persist_loop(server: &Server) -> ! {
     let min_loop_period: Duration = PersistLoopPeriod::configured_value().into();
 
     loop {
-        habitat_common::sync::mark_thread_alive();
+        liveliness_checker::mark_thread_alive();
 
         let before_persist = Instant::now();
         server.persist_data_mlr();

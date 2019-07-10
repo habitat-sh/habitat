@@ -2,15 +2,6 @@
 //!
 //! This module handles all the inbound SWIM messages.
 
-use std::{net::{SocketAddr,
-                UdpSocket},
-          thread,
-          time::Duration};
-
-use habitat_core::util::ToI64;
-use prometheus::{IntCounterVec,
-                 IntGaugeVec};
-
 use super::AckSender;
 use crate::{member::Health,
             server::{outbound,
@@ -21,6 +12,14 @@ use crate::{member::Health,
                    Swim,
                    SwimKind},
             trace::TraceKind};
+use habitat_common::liveliness_checker;
+use habitat_core::util::ToI64;
+use prometheus::{IntCounterVec,
+                 IntGaugeVec};
+use std::{net::{SocketAddr,
+                UdpSocket},
+          thread,
+          time::Duration};
 
 lazy_static! {
     static ref SWIM_MESSAGES_RECEIVED: IntCounterVec =
@@ -49,7 +48,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
     let mut recv_buffer: Vec<u8> = vec![0; 1024];
 
     loop {
-        habitat_common::sync::mark_thread_alive();
+        liveliness_checker::mark_thread_alive();
 
         if server.paused() {
             thread::sleep(Duration::from_millis(100));

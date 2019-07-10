@@ -3,7 +3,8 @@ use crate::{error::{Error,
             manager::file_watcher::{default_file_watcher,
                                     Callbacks}};
 use habitat_butterfly::member::Member;
-use habitat_common::{outputln,
+use habitat_common::{liveliness_checker,
+                     outputln,
                      types::GossipListenAddr};
 use std::{fs::File,
           io::{BufRead,
@@ -51,13 +52,13 @@ impl PeerWatcher {
         let have_events_for_thread = Arc::clone(&have_events);
 
         ThreadBuilder::new().name(format!("peer-watcher-[{}]", path.display()))
-                            .spawn(move || -> habitat_common::sync::ThreadReturn {
+                            .spawn(move || -> liveliness_checker::ThreadUnregistered {
                                 // debug!("PeerWatcher({}) thread starting", abs_path.display());
                                 loop {
-                                    habitat_common::sync::mark_thread_alive();
+                                    liveliness_checker::mark_thread_alive();
                                     let have_events_for_loop = Arc::clone(&have_events_for_thread);
                                     if Self::file_watcher_loop_body(&path, have_events_for_loop) {
-                                        break habitat_common::sync::mark_thread_dead(Ok(()));
+                                        break liveliness_checker::unregister_thread(Ok(()));
                                     }
                                 }
                             })?;

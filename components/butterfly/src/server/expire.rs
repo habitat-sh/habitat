@@ -2,13 +2,13 @@
 //! `Suspect` rumors to `Confirmed`, and `Confirmed` rumors to
 //! `Departed`.
 
-use std::{thread,
-          time::Duration};
-
 use crate::{rumor::{RumorKey,
                     RumorType},
             server::{timing::Timing,
                      Server}};
+use habitat_common::liveliness_checker;
+use std::{thread,
+          time::Duration};
 
 const LOOP_DELAY_MS: u64 = 500;
 
@@ -20,7 +20,7 @@ pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Re
 
 fn run_loop(server: &Server, timing: &Timing) -> ! {
     loop {
-        habitat_common::sync::mark_thread_alive();
+        liveliness_checker::mark_thread_alive();
 
         let newly_confirmed_members =
             server.member_list

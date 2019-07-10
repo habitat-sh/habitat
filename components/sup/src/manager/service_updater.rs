@@ -5,7 +5,8 @@ use crate::{census::CensusRing,
                                 UpdateStrategy}},
             util};
 use habitat_butterfly;
-use habitat_common::{outputln,
+use habitat_common::{liveliness_checker,
+                     outputln,
                      ui::UI};
 use habitat_core::{env as henv,
                    package::{PackageIdent,
@@ -430,7 +431,7 @@ impl Worker {
                 sender: &Sender<PackageInstall>,
                 ident: PackageIdent,
                 kill_rx: &Receiver<()>)
-                -> habitat_common::sync::ThreadReturn<(), &str> {
+                -> liveliness_checker::ThreadUnregistered<(), &str> {
         // Fairly certain that this only gets called in a rolling update
         // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
@@ -438,18 +439,18 @@ impl Worker {
         let mut next_time = Instant::now();
 
         loop {
-            habitat_common::sync::mark_thread_alive();
+            liveliness_checker::mark_thread_alive();
 
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");
-                    break habitat_common::sync::mark_thread_dead(Ok(()));
+                    break liveliness_checker::unregister_thread(Ok(()));
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
                     let msg = "Service updater has gone away, yikes!";
                     error!("{}", msg);
-                    break habitat_common::sync::mark_thread_dead(Err(msg));
+                    break liveliness_checker::unregister_thread(Err(msg));
                 }
             }
 
@@ -463,7 +464,7 @@ impl Worker {
                     Ok(package) => {
                         self.current = package.ident().clone();
                         sender.send(package).expect("Main thread has gone away!");
-                        break habitat_common::sync::mark_thread_dead(Ok(()));
+                        break liveliness_checker::unregister_thread(Ok(()));
                     }
                     Err(e) => warn!("Failed to install updated package: {:?}", e),
                 }
@@ -480,23 +481,23 @@ impl Worker {
     fn run_poll(&mut self,
                 sender: &Sender<PackageInstall>,
                 kill_rx: &Receiver<()>)
-                -> habitat_common::sync::ThreadReturn<(), &str> {
+                -> liveliness_checker::ThreadUnregistered<(), &str> {
         let install_source = (self.spec_ident.clone(), PackageTarget::active_target()).into();
         let mut next_time = Instant::now();
 
         loop {
-            habitat_common::sync::mark_thread_alive();
+            liveliness_checker::mark_thread_alive();
 
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");
-                    break habitat_common::sync::mark_thread_dead(Ok(()));
+                    break liveliness_checker::unregister_thread(Ok(()));
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
                     let msg = "Service updater has gone away, yikes!";
                     error!("{}", msg);
-                    break habitat_common::sync::mark_thread_dead(Err(msg));
+                    break liveliness_checker::unregister_thread(Err(msg));
                 }
             }
 
@@ -515,7 +516,7 @@ impl Worker {
                             self.current = maybe_newer_package.ident().clone();
                             sender.send(maybe_newer_package)
                                   .expect("Main thread has gone away!");
-                            break habitat_common::sync::mark_thread_dead(Ok(()));
+                            break liveliness_checker::unregister_thread(Ok(()));
                         } else {
                             debug!("Package found {} is not newer than ours",
                                    maybe_newer_package.ident());
