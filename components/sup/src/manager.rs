@@ -855,7 +855,7 @@ impl Manager {
         // TODO (CM): Investigate the appropriateness of capturing any
         // errors or panics generated in this loop and performing some
         // kind of controlled shutdown.
-        let shutdown_mode = loop {
+        let shutdown_mode: habitat_common::sync::ThreadReturn<ShutdownMode> = loop {
             habitat_common::sync::mark_thread_alive();
 
             // time will be recorded automatically by HistogramTimer's drop implementation when
@@ -887,10 +887,10 @@ impl Manager {
 
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
-                break ShutdownMode::Normal;
+                break habitat_common::sync::mark_thread_dead(Ok(ShutdownMode::Normal));
             }
             if self.check_for_departure() {
-                break ShutdownMode::Departed;
+                break habitat_common::sync::mark_thread_dead(Ok(ShutdownMode::Departed));
             }
 
             // This formulation is gross, but it doesn't seem to compile on Windows otherwise.
@@ -902,7 +902,7 @@ impl Manager {
                     if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal()
                     {
                         outputln!("Supervisor shutting down for signal");
-                        break ShutdownMode::Restarting;
+                        break habitat_common::sync::mark_thread_dead(Ok(ShutdownMode::Restarting));
                     }
                 }
                 _ => {}
@@ -911,7 +911,7 @@ impl Manager {
             if let Some(package) = self.check_for_updated_supervisor() {
                 outputln!("Supervisor shutting down for automatic update to {}",
                           package);
-                break ShutdownMode::Restarting;
+                break habitat_common::sync::mark_thread_dead(Ok(ShutdownMode::Restarting));
             }
 
             // TODO (CM): eventually, make this a future receiver
@@ -1052,6 +1052,7 @@ impl Manager {
                 cpu_start = ProcessTime::now();
             }
         }; // end main loop
+        let shutdown_mode = shutdown_mode.into_ok();
 
         // When we make it down here, we've broken out of the main
         // Supervisor loop, which means it's time to shut down. Based

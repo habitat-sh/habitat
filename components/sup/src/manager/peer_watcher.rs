@@ -51,14 +51,13 @@ impl PeerWatcher {
         let have_events_for_thread = Arc::clone(&have_events);
 
         ThreadBuilder::new().name(format!("peer-watcher-[{}]", path.display()))
-                            .spawn(move || {
-                                habitat_common::sync::mark_thread_alive();
-
+                            .spawn(move || -> habitat_common::sync::ThreadReturn {
                                 // debug!("PeerWatcher({}) thread starting", abs_path.display());
                                 loop {
+                                    habitat_common::sync::mark_thread_alive();
                                     let have_events_for_loop = Arc::clone(&have_events_for_thread);
                                     if Self::file_watcher_loop_body(&path, have_events_for_loop) {
-                                        break;
+                                        break habitat_common::sync::mark_thread_dead(Ok(()));
                                     }
                                 }
                             })?;

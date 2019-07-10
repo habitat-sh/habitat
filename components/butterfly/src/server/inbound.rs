@@ -39,7 +39,7 @@ pub fn spawn_thread(name: String,
                     tx_outbound: AckSender)
                     -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(move || run_loop(&server, &socket, &tx_outbound))
+                          .spawn(move || -> ! { run_loop(&server, &socket, &tx_outbound) })
                           .map(|_| ())
 }
 

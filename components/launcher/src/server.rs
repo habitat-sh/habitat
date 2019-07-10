@@ -16,7 +16,8 @@ use crate::{core::{self,
             service::Service,
             SUP_CMD,
             SUP_PACKAGE_IDENT};
-use habitat_common::outputln;
+use habitat_common::{outputln,
+                     sync::ThreadReturn};
 #[cfg(unix)]
 use habitat_core::os::{process::{Pid,
                                  Signal},
@@ -417,13 +418,14 @@ impl ServiceTable {
 pub fn run(args: Vec<String>) -> Result<i32> {
     let mut server = Server::new(args)?;
     signals::init();
-    loop {
+    habitat_common::sync::spawn_thread_alive_checker();
+    let loop_value: ThreadReturn<_, _> = loop {
         habitat_common::sync::mark_thread_alive();
 
         match server.tick() {
             Ok(TickState::Continue) => thread::sleep(Duration::from_millis(100)),
             Ok(TickState::Exit(code)) => {
-                return Ok(code);
+                break habitat_common::sync::mark_thread_dead(Ok(code));
             }
             Err(_) => {
                 while server.reload().is_err() {
@@ -431,7 +433,8 @@ pub fn run(args: Vec<String>) -> Result<i32> {
                 }
             }
         }
-    }
+    };
+    loop_value.into_result()
 }
 
 pub fn send<T>(tx: &Sender, msg: &T) -> Result<()>

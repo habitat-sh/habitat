@@ -14,7 +14,7 @@ const LOOP_DELAY_MS: u64 = 500;
 
 pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(move || run_loop(&server, &timing))
+                          .spawn(move || -> ! { run_loop(&server, &timing) })
                           .map(|_| ())
 }
 

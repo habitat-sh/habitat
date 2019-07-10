@@ -193,35 +193,65 @@ pub mod sync {
                          Status::Alive { last_heartbeat: Instant::now(), }));
     }
 
+    // TODO: Rename, more like ThreadUnregisteredResult
+    /// A type to enforce that all code paths to exit a thread call mark_thread_dead. Since this
+    /// type can't be instantiated outside this module, the only way to have consistent return
+    /// types is to call mark_thread_dead on all returning paths. This can't prevent the error
+    /// that *no* code paths call mark_thread_dead, but it should help avoid the situation of a
+    /// particular one being overlooked.
+    pub struct ThreadReturn<T = (), E = std::convert::Infallible>(Result<T, E>);
+
+    impl<T, E> ThreadReturn<T, E> {
+        pub fn into_result(self) -> Result<T, E> { self.0 }
+    }
+
+    impl<T> ThreadReturn<T, std::convert::Infallible> {
+        pub fn into_ok(self) -> T {
+            match self.0 {
+                Ok(v) => v,
+                Err(_) => unreachable!(),
+            }
+        }
+    }
+
     /// Call when a thread is exiting to indicate the checker shouldn't expect future heartbeats.
     /// If the thread is exiting as part of expected operation, `exit_result` should be `Ok(())`
     /// and the thread will no longer be checked. If the thread exited due to an error,
     /// `exit_result` should be an `Err(&str)` explaining why.
-    pub fn mark_thread_dead(exit_result: Result<(), &str>) {
+    // TODO: rename more like unregister_thread
+    pub fn mark_thread_dead<T, E: ToString>(exit_result: Result<T, E>) -> ThreadReturn<T, E> {
         mark_thread_dead_impl(&mut THREAD_STATUSES.lock().expect("THREAD_STATUSES poisoned"),
-                              exit_result);
+                              exit_result)
     }
 
-    fn mark_thread_dead_impl(statuses: &mut ThreadStatusMap, exit_result: Result<(), &str>) {
+    fn mark_thread_dead_impl<T, E: ToString>(statuses: &mut ThreadStatusMap,
+                                             exit_result: Result<T, E>)
+                                             -> ThreadReturn<T, E> {
         let thread_id = &thread::current().id();
-        match exit_result {
-            Ok(()) => {
+
+        match &exit_result {
+            Ok(_) => {
                 statuses.remove(thread_id);
             }
             Err(e) => {
                 if let Some(entry) = statuses.get_mut(thread_id) {
                     entry.1 = Status::DeadWithError { time_of_death: Instant::now(),
-                                                      error:         e.to_owned(), };
+                                                      error:         e.to_string(), };
+                } else {
+                    // TODO: Better message
+                    error!("mark_thread_dead called for untracked thread");
                 }
             }
         }
+
+        ThreadReturn(exit_result)
     }
 
     /// Call once per binary to start the thread which will check that all the threads that
     /// call `mark_thread_alive` continue to do so.
     pub fn spawn_thread_alive_checker() {
         thread::Builder::new().name("thread-alive-check".to_string())
-                              .spawn(|| {
+                              .spawn(|| -> ! {
                                   let delay = ThreadAliveCheckDelay::configured_value().into();
                                   let threshold = ThreadAliveThreshold::configured_value().into();
                                   let max_time_since_death =
@@ -407,10 +437,10 @@ pub mod sync {
             lazy_static! {
                 static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
             }
-            thread::spawn(move || {
+            thread::spawn(move || -> ThreadReturn<(), _> {
                 let statuses = &mut HEARTBEATS.lock().unwrap();
                 mark_thread_alive_impl(statuses);
-                mark_thread_dead_impl(statuses, Err("thread error description"));
+                mark_thread_dead_impl(statuses, Err("thread error description"))
             }).join()
               .unwrap();
             thread::sleep(TEST_THRESHOLD * 2);
@@ -423,10 +453,10 @@ pub mod sync {
             lazy_static! {
                 static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
             }
-            thread::spawn(move || {
+            thread::spawn(move || -> ThreadReturn {
                 let statuses = &mut HEARTBEATS.lock().unwrap();
                 mark_thread_alive_impl(statuses);
-                mark_thread_dead_impl(statuses, Ok(()));
+                mark_thread_dead_impl(statuses, Ok(()))
             }).join()
               .unwrap();
             thread::sleep(TEST_THRESHOLD * 2);
@@ -466,10 +496,10 @@ pub mod sync {
             lazy_static! {
                 static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
             }
-            thread::spawn(move || {
+            thread::spawn(move || -> ThreadReturn {
                 let statuses = &mut HEARTBEATS.lock().unwrap();
                 mark_thread_alive_impl(statuses);
-                mark_thread_dead_impl(statuses, Ok(()));
+                mark_thread_dead_impl(statuses, Ok(()))
             }).join()
               .unwrap();
             assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
@@ -481,10 +511,10 @@ pub mod sync {
             lazy_static! {
                 static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
             }
-            thread::spawn(move || {
+            thread::spawn(move || -> ThreadReturn<(), _> {
                 let statuses = &mut HEARTBEATS.lock().unwrap();
                 mark_thread_alive_impl(statuses);
-                mark_thread_dead_impl(statuses, Err("thread error description"));
+                mark_thread_dead_impl(statuses, Err("thread error description"))
             }).join()
               .unwrap();
             assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
@@ -496,10 +526,10 @@ pub mod sync {
             lazy_static! {
                 static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
             }
-            thread::spawn(move || {
+            thread::spawn(move || -> ThreadReturn<(), _> {
                 let statuses = &mut HEARTBEATS.lock().unwrap();
                 mark_thread_alive_impl(statuses);
-                mark_thread_dead_impl(statuses, Err("thread error description"));
+                mark_thread_dead_impl(statuses, Err("thread error description"))
             }).join()
               .unwrap();
             let statuses = &mut HEARTBEATS.lock().unwrap();

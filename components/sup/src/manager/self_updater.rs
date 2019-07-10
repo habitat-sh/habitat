@@ -56,7 +56,8 @@ impl SelfUpdater {
     fn run(sender: &SyncSender<PackageInstall>,
            current: &PackageIdent,
            builder_url: &str,
-           channel: &ChannelIdent) {
+           channel: &ChannelIdent)
+           -> habitat_common::sync::ThreadReturn {
         debug!("Self updater current package, {}", current);
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,
         // and thus a valid InstallSource
@@ -77,7 +78,7 @@ impl SelfUpdater {
                         debug!("Self updater installing newer Supervisor, {}",
                                package.ident());
                         sender.send(package).expect("Main thread has gone away!");
-                        break;
+                        break habitat_common::sync::mark_thread_dead(Ok(()));
                     } else {
                         debug!("Supervisor package found is not newer than ours");
                     }

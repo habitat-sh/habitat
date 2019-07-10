@@ -374,13 +374,13 @@ impl Future for SrvHandler {
     type Item = ();
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
-        loop {
+        let _: habitat_common::sync::ThreadReturn = loop {
             habitat_common::sync::mark_thread_alive();
 
             match self.state {
                 SrvHandlerState::Receiving => {
                     match try_ready!(self.io.poll()) {
-                        None => break,
+                        None => break habitat_common::sync::mark_thread_dead(Ok(())),
                         Some(msg) => {
                             self.start_timer(&msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
@@ -389,7 +389,7 @@ impl Future for SrvHandler {
                                 match Self::command_from_message(&msg, self.ctl_sender.clone()) {
                                     Ok(cmd) => cmd,
                                     Err(_) => {
-                                        break;
+                                        break habitat_common::sync::mark_thread_dead(Ok(()));
                                     }
                                 };
 
@@ -428,7 +428,7 @@ impl Future for SrvHandler {
                         }
                         Ok(Async::Ready(None)) => self.state = SrvHandlerState::Sent,
                         Ok(Async::NotReady) => return Ok(Async::NotReady),
-                        Err(()) => break,
+                        Err(()) => break habitat_common::sync::mark_thread_dead(Ok(())),
                     }
                 }
                 SrvHandlerState::Sent => {
@@ -436,10 +436,10 @@ impl Future for SrvHandler {
                         timer.observe_duration();
                     }
                     trace!("OnMessage complete");
-                    break;
+                    break habitat_common::sync::mark_thread_dead(Ok(()));
                 }
             }
-        }
+        };
         Ok(Async::Ready(()))
     }
 }

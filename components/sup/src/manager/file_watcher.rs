@@ -1263,11 +1263,14 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
     }
 
     pub fn run(&mut self) -> Result<()> {
-        loop {
+        let loop_value: habitat_common::sync::ThreadReturn<_, _> = loop {
             habitat_common::sync::mark_thread_alive();
-            self.single_iteration()?;
+            if let result @ Err(_) = self.single_iteration() {
+                break habitat_common::sync::mark_thread_dead(result);
+            }
             thread::sleep(Duration::from_secs(1));
-        }
+        };
+        loop_value.into_result()
     }
 
     pub fn single_iteration(&mut self) -> Result<()> {

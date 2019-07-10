@@ -73,7 +73,7 @@ pub fn spawn_thread(name: String,
                     timing: Timing)
                     -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(move || run_loop(&server, &socket, &rx_inbound, &timing))
+                          .spawn(move || -> ! { run_loop(&server, &socket, &rx_inbound, &timing) })
                           .map(|_| ())
 }
 

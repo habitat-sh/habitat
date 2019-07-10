@@ -29,7 +29,7 @@ lazy_static! {
 
 pub fn spawn_thread(name: String, server: Server) -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(move || run_loop(&server))
+                          .spawn(move || -> ! { run_loop(&server) })
                           .map(|_| ())
 }
 

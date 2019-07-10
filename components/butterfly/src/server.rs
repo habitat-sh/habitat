@@ -1205,7 +1205,7 @@ impl fmt::Display for Server {
 
 fn spawn_persist_thread(name: String, server: Server) -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(move || persist_loop(&server))
+                          .spawn(move || -> ! { persist_loop(&server) })
                           .map(|_| ())
 }
 
