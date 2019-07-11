@@ -857,7 +857,7 @@ impl Manager {
         // errors or panics generated in this loop and performing some
         // kind of controlled shutdown.
         let shutdown_mode: liveliness_checker::ThreadUnregistered<ShutdownMode> = loop {
-            liveliness_checker::mark_thread_alive();
+            let checked_thread = liveliness_checker::mark_thread_alive();
 
             // time will be recorded automatically by HistogramTimer's drop implementation when
             // this var goes out of scope
@@ -888,10 +888,10 @@ impl Manager {
 
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
-                break liveliness_checker::unregister_thread(Ok(ShutdownMode::Normal));
+                break checked_thread.unregister(Ok(ShutdownMode::Normal));
             }
             if self.check_for_departure() {
-                break liveliness_checker::unregister_thread(Ok(ShutdownMode::Departed));
+                break checked_thread.unregister(Ok(ShutdownMode::Departed));
             }
 
             // This formulation is gross, but it doesn't seem to compile on Windows otherwise.
@@ -903,7 +903,7 @@ impl Manager {
                     if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal()
                     {
                         outputln!("Supervisor shutting down for signal");
-                        break liveliness_checker::unregister_thread(Ok(ShutdownMode::Restarting));
+                        break checked_thread.unregister(Ok(ShutdownMode::Restarting));
                     }
                 }
                 _ => {}
@@ -912,7 +912,7 @@ impl Manager {
             if let Some(package) = self.check_for_updated_supervisor() {
                 outputln!("Supervisor shutting down for automatic update to {}",
                           package);
-                break liveliness_checker::unregister_thread(Ok(ShutdownMode::Restarting));
+                break checked_thread.unregister(Ok(ShutdownMode::Restarting));
             }
 
             // TODO (CM): eventually, make this a future receiver

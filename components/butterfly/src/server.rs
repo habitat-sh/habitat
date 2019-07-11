@@ -1218,7 +1218,7 @@ fn persist_loop(server: &Server) -> ! {
     let min_loop_period: Duration = PersistLoopPeriod::configured_value().into();
 
     loop {
-        liveliness_checker::mark_thread_alive();
+        liveliness_checker::mark_thread_alive().and_divergent();
 
         let before_persist = Instant::now();
         server.persist_data_mlr();

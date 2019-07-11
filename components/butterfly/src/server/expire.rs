@@ -20,7 +20,7 @@ pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Re
 
 fn run_loop(server: &Server, timing: &Timing) -> ! {
     loop {
-        liveliness_checker::mark_thread_alive();
+        liveliness_checker::mark_thread_alive().and_divergent();
 
         let newly_confirmed_members =
             server.member_list

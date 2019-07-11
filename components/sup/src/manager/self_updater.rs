@@ -63,7 +63,7 @@ impl SelfUpdater {
         // and thus a valid InstallSource
         let install_source: InstallSource = SUP_PKG_IDENT.parse().unwrap();
         loop {
-            liveliness_checker::mark_thread_alive();
+            let checked_thread = liveliness_checker::mark_thread_alive();
 
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
 
@@ -78,7 +78,7 @@ impl SelfUpdater {
                         debug!("Self updater installing newer Supervisor, {}",
                                package.ident());
                         sender.send(package).expect("Main thread has gone away!");
-                        break liveliness_checker::unregister_thread(Ok(()));
+                        break checked_thread.unregister(Ok(()));
                     } else {
                         debug!("Supervisor package found is not newer than ours");
                     }

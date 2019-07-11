@@ -47,7 +47,7 @@ pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Re
 /// exceed that time.
 fn run_loop(server: &Server, timing: &Timing) -> ! {
     loop {
-        liveliness_checker::mark_thread_alive();
+        liveliness_checker::mark_thread_alive().and_divergent();
 
         if server.paused() {
             thread::sleep(Duration::from_millis(100));

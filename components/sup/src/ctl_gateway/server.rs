@@ -376,13 +376,13 @@ impl Future for SrvHandler {
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
         let _: liveliness_checker::ThreadUnregistered = loop {
-            liveliness_checker::mark_thread_alive();
+            let checked_thread = liveliness_checker::mark_thread_alive();
 
             match self.state {
                 SrvHandlerState::Receiving => {
                     match try_ready!(self.io.poll()) {
                         None => {
-                            break liveliness_checker::unregister_thread(Ok(()));
+                            break checked_thread.unregister(Ok(()));
                         }
                         Some(msg) => {
                             self.start_timer(&msg.message_id());
@@ -392,7 +392,7 @@ impl Future for SrvHandler {
                                 match Self::command_from_message(&msg, self.ctl_sender.clone()) {
                                     Ok(cmd) => cmd,
                                     Err(_) => {
-                                        break liveliness_checker::unregister_thread(Ok(()));
+                                        break checked_thread.unregister(Ok(()));
                                     }
                                 };
 
@@ -432,7 +432,7 @@ impl Future for SrvHandler {
                         Ok(Async::Ready(None)) => self.state = SrvHandlerState::Sent,
                         Ok(Async::NotReady) => return Ok(Async::NotReady),
                         Err(()) => {
-                            break liveliness_checker::unregister_thread(Ok(()));
+                            break checked_thread.unregister(Ok(()));
                         }
                     }
                 }
@@ -441,7 +441,7 @@ impl Future for SrvHandler {
                         timer.observe_duration();
                     }
                     trace!("OnMessage complete");
-                    break liveliness_checker::unregister_thread(Ok(()));
+                    break checked_thread.unregister(Ok(()));
                 }
             }
         };

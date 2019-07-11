@@ -395,7 +395,7 @@ impl Worker {
         let (tx, rx) = channel();
         thread::Builder::new().name(format!("SU-{}", sg))
                               .spawn(move || {
-                                  match ident {
+                                  let _ = match ident {
                                       Some(latest) => self.run_once(&tx, latest, &kill_rx),
                                       None => self.run_poll(&tx, &kill_rx),
                                   };
@@ -439,18 +439,18 @@ impl Worker {
         let mut next_time = Instant::now();
 
         loop {
-            liveliness_checker::mark_thread_alive();
+            let checked_thread = liveliness_checker::mark_thread_alive();
 
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");
-                    break liveliness_checker::unregister_thread(Ok(()));
+                    break checked_thread.unregister(Ok(()));
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
                     let msg = "Service updater has gone away, yikes!";
                     error!("{}", msg);
-                    break liveliness_checker::unregister_thread(Err(msg));
+                    break checked_thread.unregister(Err(msg));
                 }
             }
 
@@ -464,7 +464,7 @@ impl Worker {
                     Ok(package) => {
                         self.current = package.ident().clone();
                         sender.send(package).expect("Main thread has gone away!");
-                        break liveliness_checker::unregister_thread(Ok(()));
+                        break checked_thread.unregister(Ok(()));
                     }
                     Err(e) => warn!("Failed to install updated package: {:?}", e),
                 }
@@ -486,18 +486,18 @@ impl Worker {
         let mut next_time = Instant::now();
 
         loop {
-            liveliness_checker::mark_thread_alive();
+            let checked_thread = liveliness_checker::mark_thread_alive();
 
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");
-                    break liveliness_checker::unregister_thread(Ok(()));
+                    break checked_thread.unregister(Ok(()));
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
                     let msg = "Service updater has gone away, yikes!";
                     error!("{}", msg);
-                    break liveliness_checker::unregister_thread(Err(msg));
+                    break checked_thread.unregister(Err(msg));
                 }
             }
 
@@ -516,7 +516,7 @@ impl Worker {
                             self.current = maybe_newer_package.ident().clone();
                             sender.send(maybe_newer_package)
                                   .expect("Main thread has gone away!");
-                            break liveliness_checker::unregister_thread(Ok(()));
+                            break checked_thread.unregister(Ok(()));
                         } else {
                             debug!("Package found {} is not newer than ours",
                                    maybe_newer_package.ident());

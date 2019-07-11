@@ -190,7 +190,7 @@ impl Worker {
                -> io::Result<()> {
         ThreadBuilder::new().name(format!("user-config-watcher-{}", path.display()))
                             .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {
-                                liveliness_checker::mark_thread_alive();
+                                let checked_thread = liveliness_checker::mark_thread_alive();
 
                                 debug!("UserConfigWatcher({}) worker thread starting",
                                        path.display(),);
@@ -206,14 +206,14 @@ impl Worker {
                                                               path.display(),
                                                               e,);
                                             outputln!("{}", msg);
-                                            return liveliness_checker::unregister_thread(Err(msg));
+                                            return checked_thread.unregister(Err(msg));
                                         }
                                     };
 
                                 let _ = started_watching.try_send(());
 
                                 loop {
-                                    liveliness_checker::mark_thread_alive();
+                                    let checked_thread = liveliness_checker::mark_thread_alive();
 
                                     match stop_running.try_recv() {
                                         // As long as the `stop_running` channel is
@@ -227,12 +227,12 @@ impl Worker {
                                                                   path.display(),
                                                                   e,);
                                                 outputln!("{}", msg);
-                                                break liveliness_checker::unregister_thread(Err(msg));
+                                                break checked_thread.unregister(Err(msg));
                                             };
                                         }
 
                                         // If we receive a message on the channel, we stop.
-                                        Ok(_) => break liveliness_checker::unregister_thread(Ok(())),
+                                        Ok(_) => break checked_thread.unregister(Ok(())),
 
                                         // If the channel is disconnected, we stop as well.
                                         Err(TryRecvError::Disconnected) => {
@@ -241,7 +241,7 @@ impl Worker {
                                                                channel",
                                                               path.display(),);
                                             debug!("{}", msg);
-                                            break liveliness_checker::unregister_thread(Err(msg));
+                                            break checked_thread.unregister(Err(msg));
                                         }
                                     }
 

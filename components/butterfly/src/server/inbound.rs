@@ -48,7 +48,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
     let mut recv_buffer: Vec<u8> = vec![0; 1024];
 
     loop {
-        liveliness_checker::mark_thread_alive();
+        liveliness_checker::mark_thread_alive().and_divergent();
 
         if server.paused() {
             thread::sleep(Duration::from_millis(100));

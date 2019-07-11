@@ -1263,9 +1263,9 @@ impl<C: Callbacks, W: Watcher> FileWatcher<C, W> {
 
     pub fn run(&mut self) -> Result<()> {
         let loop_value: liveliness_checker::ThreadUnregistered<_, _> = loop {
-            liveliness_checker::mark_thread_alive();
+            let checked_thread = liveliness_checker::mark_thread_alive();
             if let result @ Err(_) = self.single_iteration() {
-                break liveliness_checker::unregister_thread(result);
+                break checked_thread.unregister(result);
             }
             thread::sleep(Duration::from_secs(1));
         };

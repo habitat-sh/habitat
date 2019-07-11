@@ -50,7 +50,7 @@ fn run_loop(server: &Server) -> ! {
         if let Ok(-1) = socket.get_rcvtimeo() {
             trace!("Skipping thread liveliness checks due to infinite recv timeout");
         } else {
-            liveliness_checker::mark_thread_alive();
+            liveliness_checker::mark_thread_alive().and_divergent();
         }
 
         if server.paused() {

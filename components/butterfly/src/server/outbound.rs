@@ -84,7 +84,7 @@ pub fn spawn_thread(name: String,
 fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timing: &Timing) -> ! {
     let mut have_members = false;
     loop {
-        liveliness_checker::mark_thread_alive();
+        liveliness_checker::mark_thread_alive().and_divergent();
 
         if !have_members {
             let num_initial = server.member_list.len_initial_members_imlr();

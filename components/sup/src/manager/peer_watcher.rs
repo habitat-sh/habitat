@@ -55,10 +55,10 @@ impl PeerWatcher {
                             .spawn(move || -> liveliness_checker::ThreadUnregistered {
                                 // debug!("PeerWatcher({}) thread starting", abs_path.display());
                                 loop {
-                                    liveliness_checker::mark_thread_alive();
+                                    let checked_thread = liveliness_checker::mark_thread_alive();
                                     let have_events_for_loop = Arc::clone(&have_events_for_thread);
                                     if Self::file_watcher_loop_body(&path, have_events_for_loop) {
-                                        break liveliness_checker::unregister_thread(Ok(()));
+                                        break checked_thread.unregister(Ok(()));
                                     }
                                 }
                             })?;

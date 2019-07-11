@@ -421,12 +421,12 @@ pub fn run(args: Vec<String>) -> Result<i32> {
     signals::init();
     liveliness_checker::spawn_thread_alive_checker();
     let loop_value: ThreadUnregistered<_, _> = loop {
-        liveliness_checker::mark_thread_alive();
+        let checked_thread = liveliness_checker::mark_thread_alive();
 
         match server.tick() {
             Ok(TickState::Continue) => thread::sleep(Duration::from_millis(100)),
             Ok(TickState::Exit(code)) => {
-                break liveliness_checker::unregister_thread(Ok(code));
+                break checked_thread.unregister(Ok(code));
             }
             Err(_) => {
                 while server.reload().is_err() {
