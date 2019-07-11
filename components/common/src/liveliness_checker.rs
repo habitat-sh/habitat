@@ -103,22 +103,20 @@ pub struct CheckedThread(*const ());
 
 impl CheckedThread {
     /// Call this method to indicate the checker shouldn't expect future heartbeats.
-    /// If the thread is exiting as part of expected operation, `reason` should be `Ok(())`
+    /// If the thread is exiting as part of expected operation, `reason` should be `Ok(_)`
     /// and the thread will no longer be checked. If the thread is unregistering due to an error,
     /// `reason` should be an `Err(_)` explaining why.
     ///
     /// The `ThreadUnregistered` serves as a sentinel value to ensure all code paths away from the
     /// loop which calls mark_thread_alive properly unregister from the checker, otherwise false
     /// positives for exited threads could result. See that type's documentation for more.
-    // TODO: make this a method on a must_use type returned by mark_thread_alive, so there's no way
-    // to call this unless the thread was previously marked alive.
     pub fn unregister<T, E: ToString>(self, reason: Result<T, E>) -> ThreadUnregistered<T, E> {
         unregister_thread_impl(self,
                                &mut THREAD_STATUSES.lock().expect("THREAD_STATUSES poisoned"),
                                reason)
     }
 
-    /// In general, the return of mark_thread_alive must be used, to help ensure that threads
+    /// In general, the return of `mark_thread_alive` must be used, to help ensure that threads
     /// are unregistered from checking when they exit their work loop. However, this does not
     /// apply to divergent threads (that is, ones that never return), so instead of storing
     /// an ignored value to satisfy the `must_use` of `mark_thread_alive`, call this function
