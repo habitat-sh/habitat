@@ -72,6 +72,10 @@ expect {
     }
 }
 
+# Let the control gateway come up. :/
+# Alternatively, use `nc -wv localhost 9632`
+sleep 1
+
 # Load up Redis on that Supervisor
 spawn hab svc load core/redis
 expect {
@@ -115,7 +119,7 @@ expect {
     }
 }
 expect {
-    "Reattached to redis.default" {
+    "Reattaching to redis.default" {
         log "Supervisor reattached"
     }
     timeout {
