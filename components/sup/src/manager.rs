@@ -856,8 +856,14 @@ impl Manager {
         // TODO (CM): Investigate the appropriateness of capturing any
         // errors or panics generated in this loop and performing some
         // kind of controlled shutdown.
-        let shutdown_mode: liveliness_checker::ThreadUnregistered<ShutdownMode> = loop {
-            let checked_thread = liveliness_checker::mark_thread_alive();
+        let shutdown_mode = loop {
+            // This particular loop isn't truly divergent, but since we're in the main loop
+            // if the supervisor process, and everything that comes after is expected to complete
+            // in a timely manner, we forgo unregistering with the liveliness checker so that
+            // getting stuck after exiting this loop generates warnings. Ideally, there would be
+            // additional mark_thread_alive calls in any subsequent code which has the potential to
+            // loop or wait (including futures), but we don't have that capability yet.
+            liveliness_checker::mark_thread_alive().and_divergent();
 
             // time will be recorded automatically by HistogramTimer's drop implementation when
             // this var goes out of scope
@@ -888,10 +894,10 @@ impl Manager {
 
             let next_check = time::get_time() + TimeDuration::milliseconds(1000);
             if self.launcher.is_stopping() {
-                break checked_thread.unregister(Ok(ShutdownMode::Normal));
+                break ShutdownMode::Normal;
             }
             if self.check_for_departure() {
-                break checked_thread.unregister(Ok(ShutdownMode::Departed));
+                break ShutdownMode::Departed;
             }
 
             // This formulation is gross, but it doesn't seem to compile on Windows otherwise.
@@ -903,7 +909,7 @@ impl Manager {
                     if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal()
                     {
                         outputln!("Supervisor shutting down for signal");
-                        break checked_thread.unregister(Ok(ShutdownMode::Restarting));
+                        break ShutdownMode::Restarting;
                     }
                 }
                 _ => {}
@@ -912,7 +918,7 @@ impl Manager {
             if let Some(package) = self.check_for_updated_supervisor() {
                 outputln!("Supervisor shutting down for automatic update to {}",
                           package);
-                break checked_thread.unregister(Ok(ShutdownMode::Restarting));
+                break ShutdownMode::Restarting;
             }
 
             // TODO (CM): eventually, make this a future receiver
@@ -1053,7 +1059,6 @@ impl Manager {
                 cpu_start = ProcessTime::now();
             }
         }; // end main loop
-        let shutdown_mode = shutdown_mode.into_ok();
 
         // When we make it down here, we've broken out of the main
         // Supervisor loop, which means it's time to shut down. Based
