@@ -76,7 +76,7 @@ steps:
   - label: ":windows: :habicat: core/hab"
     command: .buildkite/scripts/build_component.ps1 -Component hab
     agents:
-      queue: default-windows-privileged
+      queue: default-windows-2016-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -127,7 +127,7 @@ steps:
   - label: ":windows: :habicat: :hammer_and_wrench: core/hab-plan-build-ps1"
     command: .buildkite/scripts/build_component.ps1 -Component plan-build-ps1
     agents:
-      queue: default-windows-privileged
+      queue: default-windows-2016-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -193,7 +193,7 @@ steps:
   - label: ":windows: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.ps1 -Component studio
     agents:
-      queue: default-windows-privileged
+      queue: default-windows-2016-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -226,7 +226,7 @@ steps:
   - label: ":windows: :habicat: core/hab-sup"
     command: .buildkite/scripts/build_component.ps1 -Component sup
     agents:
-      queue: default-windows-privileged
+      queue: default-windows-2016-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
     plugins:
@@ -261,7 +261,7 @@ steps:
   - label: ":windows: :docker: core/hab-pkg-export-docker"
     command: .buildkite/scripts/build_component.ps1 -Component pkg-export-docker
     agents:
-      queue: default-windows-privileged
+      queue: default-windows-2016-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
       BUILD_PKG_TARGET: "x86_64-windows"
@@ -308,7 +308,7 @@ steps:
   - label: ":windows: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.ps1 -Component pkg-export-tar
     agents:
-      queue: default-windows-privileged
+      queue: default-windows-2016-privileged
     env:
       HAB_BLDR_CHANNEL: unstable
       BUILD_PKG_TARGET: "x86_64-windows"

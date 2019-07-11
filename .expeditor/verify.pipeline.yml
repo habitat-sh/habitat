@@ -51,10 +51,10 @@ steps:
     command:
       - .\test\run_clippy.ps1 .\test\unexamined_lints.txt .\test\allowed_lints.txt .\test\lints_to_fix.txt .\test\denied_lints.txt
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -380,10 +380,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 builder-api-client
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -396,10 +396,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_mutex deadlock_detection" -TestOptions "--test-threads=1"
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -410,10 +410,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_rwlock deadlock_detection" -TestOptions "--test-threads=1"
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -426,10 +426,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "deadlock_detection" -TestOptions "--test-threads=1 --ignored"
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -440,10 +440,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -456,10 +456,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 core
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -472,10 +472,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 hab
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -488,10 +488,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 http-client
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -504,10 +504,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 launcher-client
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -520,10 +520,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 launcher-protocol
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -536,10 +536,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 pkg-export-docker
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -552,10 +552,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 pkg-export-tar
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -569,10 +569,10 @@ steps:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - ./test/run_cargo_test.ps1 sup -Features "lock_as_mutex" -TestOptions "--test-threads=1"
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -584,10 +584,10 @@ steps:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - ./test/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -601,10 +601,10 @@ steps:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - ./test/run_cargo_test.ps1 sup -Features "nitox_stream" -TestOptions "--test-threads=1"
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -617,10 +617,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 sup-client
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -633,10 +633,10 @@ steps:
     command:
       - ./test/run_cargo_test.ps1 sup-protocol
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -649,10 +649,10 @@ steps:
     command:
       - ./test/run_studio_test.ps1 "studio-from-source"
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -859,10 +859,10 @@ steps:
     command:
       - ./support/ci/build_component.ps1 hab
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -878,10 +878,10 @@ steps:
     command:
       - ./support/ci/build_component.ps1 launcher
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -896,10 +896,10 @@ steps:
     command:
       - ./support/ci/build_component.ps1 pkg-export-docker
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -914,10 +914,10 @@ steps:
     command:
       - ./support/ci/build_component.ps1 pkg-export-tar
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -933,10 +933,10 @@ steps:
     command:
       - ./support/ci/build_component.ps1 plan-build-ps1
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -951,10 +951,10 @@ steps:
     command:
       - ./support/ci/build_component.ps1 studio
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -969,10 +969,10 @@ steps:
     command:
       - ./support/ci/build_component.ps1 sup
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
@@ -987,10 +987,10 @@ steps:
     command:
       - ./support/ci/build_component.ps1 windows-service
     agents:
-      queue: 'default-windows-privileged'
+      queue: 'default-windows-2016-privileged'
     plugins:
       docker#v3.2.0:
-        image: "chefes/buildkite-windows"
+        image: "chefes/buildkite-windows-2016"
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
