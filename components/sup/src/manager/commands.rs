@@ -353,6 +353,7 @@ pub fn service_status(mgr: &ManagerState,
                       req: &mut CtlRequest,
                       opts: protocol::ctl::SvcStatus)
                       -> NetResult<()> {
+    #[allow(clippy::large_enum_variant)]
     enum StatusWrapper {
         Status(ServiceStatus),
         FailedStatus(UnrunnableService),
@@ -369,10 +370,10 @@ pub fn service_status(mgr: &ManagerState,
     let unrunnable_statuses: Vec<UnrunnableService> =
         serde_json::from_str(&unrunnable_services_data).map_err(Error::ServiceDeserializationError)?;
     let mut all_statuses = statuses.into_iter()
-                                   .map(|s| StatusWrapper::Status(s))
+                                   .map(StatusWrapper::Status)
                                    .collect::<Vec<_>>();
     all_statuses.extend(unrunnable_statuses.into_iter()
-                                           .map(|s| StatusWrapper::FailedStatus(s)));
+                                           .map(StatusWrapper::FailedStatus));
 
     if let Some(ident) = opts.ident {
         for status in all_statuses {
