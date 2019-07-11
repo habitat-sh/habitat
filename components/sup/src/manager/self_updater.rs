@@ -1,20 +1,20 @@
 //! Encapsulates logic required for updating the Habitat Supervisor
 //! itself.
 
+use crate::{env,
+            util};
+use habitat_common::{command::package::install::InstallSource,
+                     liveliness_checker,
+                     ui::UI};
+use habitat_core::{package::{PackageIdent,
+                             PackageInstall},
+                   ChannelIdent};
 use std::{sync::mpsc::{sync_channel,
                        Receiver,
                        SyncSender,
                        TryRecvError},
           thread,
           time::Duration};
-
-use crate::{env,
-            util};
-use habitat_common::{command::package::install::InstallSource,
-                     ui::UI};
-use habitat_core::{package::{PackageIdent,
-                             PackageInstall},
-                   ChannelIdent};
 use time::{Duration as TimeDuration,
            SteadyTime};
 
@@ -56,13 +56,14 @@ impl SelfUpdater {
     fn run(sender: &SyncSender<PackageInstall>,
            current: &PackageIdent,
            builder_url: &str,
-           channel: &ChannelIdent) {
+           channel: &ChannelIdent)
+           -> liveliness_checker::ThreadUnregistered {
         debug!("Self updater current package, {}", current);
         // SUP_PKG_IDENT will always parse as a valid PackageIdent,
         // and thus a valid InstallSource
         let install_source: InstallSource = SUP_PKG_IDENT.parse().unwrap();
         loop {
-            habitat_common::sync::mark_thread_alive();
+            let checked_thread = liveliness_checker::mark_thread_alive();
 
             let next_check = SteadyTime::now() + TimeDuration::milliseconds(update_frequency());
 
@@ -77,7 +78,7 @@ impl SelfUpdater {
                         debug!("Self updater installing newer Supervisor, {}",
                                package.ident());
                         sender.send(package).expect("Main thread has gone away!");
-                        break;
+                        break checked_thread.unregister(Ok(()));
                     } else {
                         debug!("Supervisor package found is not newer than ours");
                     }

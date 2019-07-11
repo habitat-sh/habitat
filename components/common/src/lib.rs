@@ -27,6 +27,7 @@ pub use self::error::{Error,
 pub mod cli;
 pub mod command;
 pub mod error;
+pub mod liveliness_checker;
 pub mod locked_env_var;
 pub mod output;
 pub mod package_graph;
@@ -144,147 +145,7 @@ impl FeatureFlag {
 }
 
 pub mod sync {
-    use std::{collections::HashMap,
-              sync::Mutex,
-              thread::{self,
-                       ThreadId},
-              time::{Duration,
-                     Instant}};
-
-    type NameAndLastHeartbeat = (Option<String>, Instant);
-    type HeartbeatMap = HashMap<ThreadId, NameAndLastHeartbeat>;
-    lazy_static::lazy_static! {
-        static ref THREAD_HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
-    }
-
-    habitat_core::env_config_duration!(ThreadAliveThreshold,
-                                       HAB_THREAD_ALIVE_THRESHOLD_SECS => from_secs,
-                                       Duration::from_secs(5 * 60));
-    habitat_core::env_config_duration!(ThreadAliveCheckDelay,
-                                       HAB_THREAD_ALIVE_CHECK_DELAY_SECS => from_secs,
-                                       Duration::from_secs(60));
-
-    /// Call periodically from a thread which has a work loop to indicate that the thread is
-    /// still alive and processing its loop. If this function is not called for more than
-    /// `ThreadAliveThreshold`, it will be error logged as a likely deadlock.
-    pub fn mark_thread_alive() {
-        mark_thread_alive_impl(&mut THREAD_HEARTBEATS.lock()
-                                                     .expect("THREAD_HEARTBEATS poisoned"));
-    }
-
-    fn mark_thread_alive_impl(heartbeats: &mut HeartbeatMap) {
-        let thread = thread::current();
-        heartbeats.insert(thread.id(),
-                          (thread.name().map(str::to_string), Instant::now()));
-    }
-
-    /// Call once per binary to start the thread which will check that all the threads that
-    /// call `mark_thread_alive` continue to do so.
-    pub fn spawn_thread_alive_checker() {
-        thread::Builder::new().name("thread-alive-check".to_string())
-                              .spawn(|| {
-                                  let delay = ThreadAliveCheckDelay::configured_value().into();
-                                  let threshold = ThreadAliveThreshold::configured_value().into();
-                                  loop {
-                                      check_thread_heartbeats(threshold);
-                                      thread::sleep(delay);
-                                  }
-                              })
-                              .expect("Error spawning thread alive checker");
-    }
-
-    fn check_thread_heartbeats(threshold: Duration) {
-        let heartbeats = &THREAD_HEARTBEATS.lock()
-                                           .expect("THREAD_HEARTBEATS poisoned");
-        for (name, last_heartbeat) in threads_missing_heartbeat(heartbeats, threshold) {
-            warn!("No heartbeat from {} in {} seconds; deadlock likely",
-                  name.unwrap_or_else(|| { "unnamed thread".to_string() }),
-                  last_heartbeat.elapsed().as_secs());
-        }
-    }
-
-    fn threads_missing_heartbeat(heartbeats: &HeartbeatMap,
-                                 threshold: Duration)
-                                 -> Vec<NameAndLastHeartbeat> {
-        heartbeats.iter()
-                  .filter_map(|(thread_id, (thread_name, last_heartbeat))| {
-                      let time_since_last_heartbeat = last_heartbeat.elapsed();
-                      trace!("{:?} {:?} last heartbeat: {:?} ago",
-                             thread_id,
-                             thread_name,
-                             time_since_last_heartbeat);
-                      if time_since_last_heartbeat < threshold {
-                          None
-                      } else {
-                          Some((thread_name.clone(), *last_heartbeat))
-                      }
-                  })
-                  .collect::<Vec<_>>()
-    }
-
-    #[cfg(test)]
-    mod test {
-        use super::*;
-        use std::sync::{atomic::{AtomicBool,
-                                 Ordering},
-                        Arc};
-
-        const TEST_THRESHOLD: Duration = Duration::from_secs(1);
-
-        #[test]
-        fn no_tracking_without_mark_thread_alive() {
-            let heartbeats = HashMap::new();
-            thread::spawn(|| {}).join().unwrap();
-            thread::sleep(TEST_THRESHOLD * 2);
-            assert!(threads_missing_heartbeat(&heartbeats, TEST_THRESHOLD).is_empty());
-        }
-
-        #[test]
-        fn one_dead_thread() {
-            lazy_static! {
-                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
-            }
-            thread::spawn(move || mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap())).join()
-                                                                                          .unwrap();
-            thread::sleep(TEST_THRESHOLD * 2);
-            assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
-                       1);
-        }
-
-        #[test]
-        fn one_dead_one_alive() {
-            lazy_static! {
-                static ref HEARTBEATS: Mutex<HeartbeatMap> = Default::default();
-            }
-
-            let dead_thread_name = "expected-dead".to_string();
-            let test_done: Arc<AtomicBool> = Default::default();
-            let test_done2 = Arc::clone(&test_done);
-
-            thread::Builder::new().name(dead_thread_name.clone())
-                                  .spawn(move || {
-                                      mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap())
-                                  })
-                                  .unwrap()
-                                  .join()
-                                  .unwrap();
-            thread::spawn(move || {
-                while !test_done2.load(Ordering::Relaxed) {
-                    mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
-                    thread::sleep(TEST_THRESHOLD / 2)
-                }
-            });
-
-            thread::sleep(TEST_THRESHOLD * 2);
-
-            let dead_thread_names = threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(),
-                                                              TEST_THRESHOLD).iter()
-                                                                             .map(|(name, _)| name.clone())
-                                                                             .collect::<Vec<_>>();
-            assert_eq!(dead_thread_names, vec![Some(dead_thread_name)]);
-            test_done.store(true, Ordering::Relaxed);
-        }
-    }
+    use std::time::Duration;
 
     #[cfg(feature = "deadlock_detection")]
     mod deadlock_detection {

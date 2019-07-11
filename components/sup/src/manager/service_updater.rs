@@ -5,7 +5,8 @@ use crate::{census::CensusRing,
                                 UpdateStrategy}},
             util};
 use habitat_butterfly;
-use habitat_common::{outputln,
+use habitat_common::{liveliness_checker,
+                     outputln,
                      ui::UI};
 use habitat_core::{env as henv,
                    package::{PackageIdent,
@@ -394,10 +395,10 @@ impl Worker {
         let (tx, rx) = channel();
         thread::Builder::new().name(format!("SU-{}", sg))
                               .spawn(move || {
-                                  match ident {
+                                  let _ = match ident {
                                       Some(latest) => self.run_once(&tx, latest, &kill_rx),
                                       None => self.run_poll(&tx, &kill_rx),
-                                  }
+                                  };
                               })
                               .expect("unable to start service-updater thread");
         rx
@@ -429,7 +430,8 @@ impl Worker {
     fn run_once(&mut self,
                 sender: &Sender<PackageInstall>,
                 ident: PackageIdent,
-                kill_rx: &Receiver<()>) {
+                kill_rx: &Receiver<()>)
+                -> liveliness_checker::ThreadUnregistered<(), &str> {
         // Fairly certain that this only gets called in a rolling update
         // scenario, where `ident` is always a fully-qualified identifier
         outputln!("Updating from {} to {}", self.current, ident);
@@ -437,15 +439,18 @@ impl Worker {
         let mut next_time = Instant::now();
 
         loop {
+            let checked_thread = liveliness_checker::mark_thread_alive();
+
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");
-                    break;
+                    break checked_thread.unregister(Ok(()));
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
-                    error!("Service updater has gone away, yikes!");
-                    break;
+                    let msg = "Service updater has gone away, yikes!";
+                    error!("{}", msg);
+                    break checked_thread.unregister(Err(msg));
                 }
             }
 
@@ -459,7 +464,7 @@ impl Worker {
                     Ok(package) => {
                         self.current = package.ident().clone();
                         sender.send(package).expect("Main thread has gone away!");
-                        break;
+                        break checked_thread.unregister(Ok(()));
                     }
                     Err(e) => warn!("Failed to install updated package: {:?}", e),
                 }
@@ -473,22 +478,26 @@ impl Worker {
 
     /// Continually poll for a new version of a package, installing it
     /// when found.
-    fn run_poll(&mut self, sender: &Sender<PackageInstall>, kill_rx: &Receiver<()>) {
+    fn run_poll(&mut self,
+                sender: &Sender<PackageInstall>,
+                kill_rx: &Receiver<()>)
+                -> liveliness_checker::ThreadUnregistered<(), &str> {
         let install_source = (self.spec_ident.clone(), PackageTarget::active_target()).into();
         let mut next_time = Instant::now();
 
         loop {
-            habitat_common::sync::mark_thread_alive();
+            let checked_thread = liveliness_checker::mark_thread_alive();
 
             match kill_rx.try_recv() {
                 Ok(_) => {
                     info!("Received some data on the kill channel. Letting this thread die.");
-                    break;
+                    break checked_thread.unregister(Ok(()));
                 }
                 Err(TryRecvError::Empty) => {}
                 Err(TryRecvError::Disconnected) => {
-                    error!("Service updater has gone away, yikes!");
-                    break;
+                    let msg = "Service updater has gone away, yikes!";
+                    error!("{}", msg);
+                    break checked_thread.unregister(Err(msg));
                 }
             }
 
@@ -507,7 +516,7 @@ impl Worker {
                             self.current = maybe_newer_package.ident().clone();
                             sender.send(maybe_newer_package)
                                   .expect("Main thread has gone away!");
-                            break;
+                            break checked_thread.unregister(Ok(()));
                         } else {
                             debug!("Package found {} is not newer than ours",
                                    maybe_newer_package.ident());

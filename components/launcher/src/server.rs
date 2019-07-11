@@ -16,7 +16,9 @@ use crate::{core::{self,
             service::Service,
             SUP_CMD,
             SUP_PACKAGE_IDENT};
-use habitat_common::outputln;
+use habitat_common::{liveliness_checker::{self,
+                                          ThreadUnregistered},
+                     outputln};
 #[cfg(unix)]
 use habitat_core::os::{process::{Pid,
                                  Signal},
@@ -417,13 +419,14 @@ impl ServiceTable {
 pub fn run(args: Vec<String>) -> Result<i32> {
     let mut server = Server::new(args)?;
     signals::init();
-    loop {
-        habitat_common::sync::mark_thread_alive();
+    liveliness_checker::spawn_thread_alive_checker();
+    let loop_value: ThreadUnregistered<_, _> = loop {
+        let checked_thread = liveliness_checker::mark_thread_alive();
 
         match server.tick() {
             Ok(TickState::Continue) => thread::sleep(Duration::from_millis(100)),
             Ok(TickState::Exit(code)) => {
-                return Ok(code);
+                break checked_thread.unregister(Ok(code));
             }
             Err(_) => {
                 while server.reload().is_err() {
@@ -431,7 +434,8 @@ pub fn run(args: Vec<String>) -> Result<i32> {
                 }
             }
         }
-    }
+    };
+    loop_value.into_result()
 }
 
 pub fn send<T>(tx: &Sender, msg: &T) -> Result<()>

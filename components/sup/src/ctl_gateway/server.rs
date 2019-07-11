@@ -18,6 +18,7 @@ use futures::{future::{self,
               prelude::*,
               sync::mpsc,
               try_ready};
+use habitat_common::liveliness_checker;
 use habitat_core::crypto;
 use habitat_sup_protocol::{self as protocol,
                            codec::{SrvCodec,
@@ -374,13 +375,15 @@ impl Future for SrvHandler {
     type Item = ();
 
     fn poll(&mut self) -> Poll<(), Self::Error> {
-        loop {
-            habitat_common::sync::mark_thread_alive();
+        let _: liveliness_checker::ThreadUnregistered = loop {
+            let checked_thread = liveliness_checker::mark_thread_alive();
 
             match self.state {
                 SrvHandlerState::Receiving => {
                     match try_ready!(self.io.poll()) {
-                        None => break,
+                        None => {
+                            break checked_thread.unregister(Ok(()));
+                        }
                         Some(msg) => {
                             self.start_timer(&msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
@@ -389,7 +392,7 @@ impl Future for SrvHandler {
                                 match Self::command_from_message(&msg, self.ctl_sender.clone()) {
                                     Ok(cmd) => cmd,
                                     Err(_) => {
-                                        break;
+                                        break checked_thread.unregister(Ok(()));
                                     }
                                 };
 
@@ -428,7 +431,9 @@ impl Future for SrvHandler {
                         }
                         Ok(Async::Ready(None)) => self.state = SrvHandlerState::Sent,
                         Ok(Async::NotReady) => return Ok(Async::NotReady),
-                        Err(()) => break,
+                        Err(()) => {
+                            break checked_thread.unregister(Ok(()));
+                        }
                     }
                 }
                 SrvHandlerState::Sent => {
@@ -436,10 +441,10 @@ impl Future for SrvHandler {
                         timer.observe_duration();
                     }
                     trace!("OnMessage complete");
-                    break;
+                    break checked_thread.unregister(Ok(()));
                 }
             }
-        }
+        };
         Ok(Async::Ready(()))
     }
 }

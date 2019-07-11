@@ -3,15 +3,6 @@
 //! This is the thread for distributing rumors to members. It distributes to `FANOUT` members, no
 //! more often than `Timing::GOSSIP_PERIOD_DEFAULT_MS`.
 
-use std::{thread,
-          time::Duration};
-
-use habitat_core::util::ToI64;
-use prometheus::{IntCounterVec,
-                 IntGaugeVec};
-use time::SteadyTime;
-use zmq;
-
 use crate::{member::{Member,
                      Membership},
             rumor::{RumorEnvelope,
@@ -22,6 +13,14 @@ use crate::{member::{Member,
                      Server},
             trace::TraceKind,
             ZMQ_CONTEXT};
+use habitat_common::liveliness_checker;
+use habitat_core::util::ToI64;
+use prometheus::{IntCounterVec,
+                 IntGaugeVec};
+use std::{thread,
+          time::Duration};
+use time::SteadyTime;
+use zmq;
 
 const FANOUT: usize = 5;
 
@@ -38,7 +37,7 @@ lazy_static! {
 
 pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(move || run_loop(&server, &timing))
+                          .spawn(move || -> ! { run_loop(&server, &timing) })
                           .map(|_| ())
 }
 
@@ -48,7 +47,7 @@ pub fn spawn_thread(name: String, server: Server, timing: Timing) -> std::io::Re
 /// exceed that time.
 fn run_loop(server: &Server, timing: &Timing) -> ! {
     loop {
-        habitat_common::sync::mark_thread_alive();
+        liveliness_checker::mark_thread_alive().and_divergent();
 
         if server.paused() {
             thread::sleep(Duration::from_millis(100));

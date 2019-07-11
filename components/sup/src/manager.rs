@@ -52,7 +52,8 @@ use habitat_butterfly::{member::Member,
                                  ServerProxy,
                                  Suitability},
                         trace::Trace};
-use habitat_common::{outputln,
+use habitat_common::{liveliness_checker,
+                     outputln,
                      types::{GossipListenAddr,
                              HttpListenAddr,
                              ListenCtlAddr},
@@ -856,7 +857,13 @@ impl Manager {
         // errors or panics generated in this loop and performing some
         // kind of controlled shutdown.
         let shutdown_mode = loop {
-            habitat_common::sync::mark_thread_alive();
+            // This particular loop isn't truly divergent, but since we're in the main loop
+            // if the supervisor process, and everything that comes after is expected to complete
+            // in a timely manner, we forgo unregistering with the liveliness checker so that
+            // getting stuck after exiting this loop generates warnings. Ideally, there would be
+            // additional mark_thread_alive calls in any subsequent code which has the potential to
+            // loop or wait (including futures), but we don't have that capability yet.
+            liveliness_checker::mark_thread_alive().and_divergent();
 
             // time will be recorded automatically by HistogramTimer's drop implementation when
             // this var goes out of scope

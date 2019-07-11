@@ -40,7 +40,8 @@ use crate::{error::{Error,
             swim::Ack,
             trace::{Trace,
                     TraceKind}};
-use habitat_common::FeatureFlag;
+use habitat_common::{liveliness_checker,
+                     FeatureFlag};
 use habitat_core::crypto::SymKey;
 use prometheus::{HistogramTimer,
                  HistogramVec,
@@ -1205,7 +1206,7 @@ impl fmt::Display for Server {
 
 fn spawn_persist_thread(name: String, server: Server) -> std::io::Result<()> {
     thread::Builder::new().name(name)
-                          .spawn(move || persist_loop(&server))
+                          .spawn(move || -> ! { persist_loop(&server) })
                           .map(|_| ())
 }
 
@@ -1217,7 +1218,7 @@ fn persist_loop(server: &Server) -> ! {
     let min_loop_period: Duration = PersistLoopPeriod::configured_value().into();
 
     loop {
-        habitat_common::sync::mark_thread_alive();
+        liveliness_checker::mark_thread_alive().and_divergent();
 
         let before_persist = Instant::now();
         server.persist_data_mlr();

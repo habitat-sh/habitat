@@ -29,6 +29,7 @@ use clap::ArgMatches;
 use hab::cli::parse_optional_arg;
 use habitat_common::{cli::cache_key_path_from_matches,
                      command::package::install::InstallSource,
+                     liveliness_checker,
                      output::{self,
                               OutputFormat,
                               OutputVerbosity},
@@ -117,7 +118,7 @@ fn start_mlr(feature_flags: FeatureFlag) -> Result<()> {
         outputln!("Simulating boot failure");
         return Err(Error::TestBootFail);
     }
-    habitat_common::sync::spawn_thread_alive_checker();
+    liveliness_checker::spawn_thread_alive_checker();
     let launcher = boot();
     let app_matches = match cli(feature_flags).get_matches_safe() {
         Ok(matches) => matches,

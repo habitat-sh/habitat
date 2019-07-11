@@ -1,7 +1,8 @@
 use super::file_watcher::{default_file_watcher_with_no_initial_event,
                           Callbacks};
 use crate::manager::service::Service;
-use habitat_common::{outputln,
+use habitat_common::{liveliness_checker,
+                     outputln,
                      templating::config::UserConfigPath};
 use habitat_core::{fs::USER_CONFIG_FILE,
                    service::ServiceGroup};
@@ -188,7 +189,9 @@ impl Worker {
                started_watching: SyncSender<()>)
                -> io::Result<()> {
         ThreadBuilder::new().name(format!("user-config-watcher-{}", path.display()))
-                            .spawn(move || {
+                            .spawn(move || -> liveliness_checker::ThreadUnregistered<(), String> {
+                                let checked_thread = liveliness_checker::mark_thread_alive();
+
                                 debug!("UserConfigWatcher({}) worker thread starting",
                                        path.display(),);
                                 let callbacks = UserConfigCallbacks { have_events };
@@ -198,18 +201,19 @@ impl Worker {
                                     {
                                         Ok(w) => w,
                                         Err(e) => {
-                                            outputln!("UserConfigWatcher({}) could not start \
-                                                       notifier, ending thread ({})",
-                                                      path.display(),
-                                                      e,);
-                                            return;
+                                            let msg = format!("UserConfigWatcher({}) could not \
+                                                               start notifier, ending thread ({})",
+                                                              path.display(),
+                                                              e,);
+                                            outputln!("{}", msg);
+                                            return checked_thread.unregister(Err(msg));
                                         }
                                     };
 
                                 let _ = started_watching.try_send(());
 
                                 loop {
-                                    habitat_common::sync::mark_thread_alive();
+                                    let checked_thread = liveliness_checker::mark_thread_alive();
 
                                     match stop_running.try_recv() {
                                         // As long as the `stop_running` channel is
@@ -217,23 +221,27 @@ impl Worker {
                                         // iteration.
                                         Err(TryRecvError::Empty) => {
                                             if let Err(e) = file_watcher.single_iteration() {
-                                                outputln!("UserConfigWatcher({}) could not run \
-                                                           notifier, ending thread ({})",
-                                                          path.display(),
-                                                          e,);
-                                                return;
+                                                let msg = format!("UserConfigWatcher({}) could \
+                                                                   not run notifier, ending \
+                                                                   thread ({})",
+                                                                  path.display(),
+                                                                  e,);
+                                                outputln!("{}", msg);
+                                                break checked_thread.unregister(Err(msg));
                                             };
                                         }
 
                                         // If we receive a message on the channel, we stop.
-                                        Ok(_) => break,
+                                        Ok(_) => break checked_thread.unregister(Ok(())),
 
                                         // If the channel is disconnected, we stop as well.
                                         Err(TryRecvError::Disconnected) => {
-                                            debug!("UserConfigWatcher({}) worker thread failed \
-                                                    to receive on channel",
-                                                   path.display(),);
-                                            break;
+                                            let msg = format!("UserConfigWatcher({}) worker \
+                                                               thread failed to receive on \
+                                                               channel",
+                                                              path.display(),);
+                                            debug!("{}", msg);
+                                            break checked_thread.unregister(Err(msg));
                                         }
                                     }
 
