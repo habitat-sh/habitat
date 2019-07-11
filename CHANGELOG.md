@@ -7,6 +7,7 @@
 - Add rst-reader back again [#6619](https://github.com/habitat-sh/habitat/pull/6619) ([raskchanky](https://github.com/raskchanky))
 
 #### Bug Fixes
+- Stop health check futures when upgrading the Supervisor [#6717](https://github.com/habitat-sh/habitat/pull/6717) ([christophermaier](https://github.com/christophermaier))
 - do not overwrite PSModulePath when setting up build environment [#6697](https://github.com/habitat-sh/habitat/pull/6697) ([mwrock](https://github.com/mwrock))
 - provide a better error when no value is passed to Set-BuildtimeEnv or Set-RuntimeEnv [#6684](https://github.com/habitat-sh/habitat/pull/6684) ([mwrock](https://github.com/mwrock))
 - Remove recusive memberlist locking [#6662](https://github.com/habitat-sh/habitat/pull/6662) ([baumanj](https://github.com/baumanj))
