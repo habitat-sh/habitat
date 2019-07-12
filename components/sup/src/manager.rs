@@ -765,7 +765,7 @@ impl Manager {
                   self.butterfly.gossip_addr());
         self.butterfly.start_mlw(&Timing::default())?;
         debug!("gossip-listener started");
-        self.persist_state_mlr();
+        self.persist_state_mlr(&mut runtime);
         let http_listen_addr = self.sys.http_listen();
         let ctl_listen_addr = self.sys.ctl_listen();
         let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
@@ -948,27 +948,7 @@ impl Manager {
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
-                        let file = self.state.cfg.spec_path_for(&service_spec);
-                        if let Err(err) = fs::remove_file(&file) {
-                            warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
-                                  service_spec.ident,
-                                  file.display(),
-                                  err);
-                        };
-                        if let Some(future) =
-                            self.remove_service_from_state(&service_spec)
-                                .map(|service| {
-                                    let shutdown_config =
-                                        ShutdownConfig::new(&shutdown_input, &service);
-                                    self.stop_with_config(service, shutdown_config)
-                                })
-                        {
-                            runtime.spawn(future);
-                        } else {
-                            warn!("Tried to unload '{}', but couldn't find it in our list of \
-                                   running services!",
-                                  service_spec.ident);
-                        }
+                        self.unload(&service_spec, &shutdown_input, &mut runtime);
                     }
                 }
             }
@@ -1016,11 +996,11 @@ impl Manager {
                                         &self.butterfly.service_file_store);
 
             if self.check_for_changed_services() {
-                self.persist_state_mlr();
+                self.persist_state_mlr(&mut runtime);
             }
 
             if self.census_ring.changed() {
-                self.persist_state_mlr();
+                self.persist_state_mlr(&mut runtime);
             }
 
             for service in self.state
@@ -1235,13 +1215,13 @@ impl Manager {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
-    fn persist_state_mlr(&self) {
+    fn persist_state_mlr(&mut self, runtime: &mut Runtime) {
         debug!("Updating census state");
         self.persist_census_state();
         debug!("Updating butterfly state");
         self.persist_butterfly_state_mlr();
         debug!("Updating services state");
-        self.persist_services_state();
+        self.persist_services_state(runtime);
     }
 
     fn persist_census_state(&self) {
@@ -1267,20 +1247,20 @@ impl Manager {
             .butterfly_data = json;
     }
 
-    fn persist_services_state(&self) {
+    fn persist_services_state(&mut self, runtime: &mut Runtime) {
         let config_rendering = if self.feature_flags.contains(FeatureFlag::REDACT_HTTP) {
             ConfigRendering::Redacted
         } else {
             ConfigRendering::Full
         };
 
-        let services = self.state
-                           .services
-                           .read()
-                           .expect("Services lock is poisoned!");
-        let existing_idents: Vec<PackageIdent> =
-            services.values().map(|s| s.spec_ident.clone()).collect();
-
+        let existing_idents: Vec<PackageIdent> = self.state
+                                                     .services
+                                                     .read()
+                                                     .expect("Services lock is poisoned!")
+                                                     .values()
+                                                     .map(|s| s.spec_ident.clone())
+                                                     .collect();
         // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
         // persistent services that failed to load
@@ -1288,15 +1268,34 @@ impl Manager {
             self.spec_dir
                 .specs()
                 .iter()
-                .filter(|spec| !existing_idents.contains(&spec.ident))
-                .flat_map(|spec| {
-                    Service::load(self.sys.clone(),
-                                  spec.clone(),
-                                  self.fs_cfg.clone(),
-                                  self.organization.as_ref().map(|org| &**org),
-                                  self.state.gateway_state.clone()).into_iter()
+                .filter_map(|spec| {
+                    if existing_idents.contains(&spec.ident) {
+                        None
+                    } else {
+                        match Service::load(self.sys.clone(),
+                                            spec.clone(),
+                                            self.fs_cfg.clone(),
+                                            self.organization.as_ref().map(|org| &**org),
+                                            self.state.gateway_state.clone())
+                        {
+                            Ok(s) => Some(s),
+                            Err(e) => {
+                                outputln!("Failed to load spec file for '{}' with error '{}'. \
+                                           This service will be unloaded.",
+                                          spec.ident,
+                                          e);
+                                self.unload(spec, &ShutdownInput::default(), runtime);
+                                None
+                            }
+                        }
+                    }
                 })
                 .collect();
+        let services = self.state
+                           .services
+                           .read()
+                           .expect("Services lock is poisoned!");
+
         let watched_service_proxies: Vec<ServiceProxy<'_>> =
             watched_services.iter()
                             .map(|s| ServiceProxy::new(s, config_rendering))
@@ -1305,7 +1304,6 @@ impl Manager {
             services.values()
                     .map(|s| ServiceProxy::new(s, config_rendering))
                     .collect();
-
         services_to_render.extend(watched_service_proxies);
 
         let json = serde_json::to_string(&services_to_render).unwrap();
@@ -1319,6 +1317,31 @@ impl Manager {
     /// Check if any elections need restarting.
     fn restart_elections_mlr(&mut self, feature_flags: FeatureFlag) {
         self.butterfly.restart_elections_mlr(feature_flags);
+    }
+
+    fn unload(&mut self,
+              service_spec: &ServiceSpec,
+              shutdown_input: &ShutdownInput,
+              runtime: &mut Runtime) {
+        let file = self.state.cfg.spec_path_for(&service_spec);
+        if let Err(err) = fs::remove_file(&file) {
+            warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
+                  service_spec.ident,
+                  file.display(),
+                  err);
+        };
+        if let Some(future) = self.remove_service_from_state(&service_spec)
+                                  .map(|service| {
+                                      let shutdown_config =
+                                          ShutdownConfig::new(&shutdown_input, &service);
+                                      self.stop_with_config(service, shutdown_config)
+                                  })
+        {
+            runtime.spawn(future);
+        } else {
+            warn!("Tried to unload '{}', but couldn't find it in our list of running services!",
+                  service_spec.ident);
+        }
     }
 
     /// Create a future for stopping a Service. The Service is assumed
