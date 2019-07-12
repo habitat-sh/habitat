@@ -321,21 +321,22 @@ impl Service {
     }
 
     fn start(&mut self, launcher: &LauncherCli, executor: &TaskExecutor) {
-        if let Some(err) = self.supervisor
-                               .lock()
-                               .expect("Couldn't lock supervisor")
-                               .start(&self.pkg,
-                                      &self.service_group,
-                                      launcher,
-                                      self.svc_encrypted_password.as_ref().map(String::as_str))
-                               .err()
-        {
-            outputln!(preamble self.service_group, "Service start failed: {}", err);
-        } else {
-            self.needs_restart = false;
+        let result = self.supervisor
+                         .lock()
+                         .expect("Couldn't lock supervisor")
+                         .start(&self.pkg,
+                                &self.service_group,
+                                launcher,
+                                self.svc_encrypted_password.as_ref().map(String::as_str));
+        match result {
+            Ok(_) => {
+                self.needs_restart = false;
+                self.start_health_checks(executor);
+            }
+            Err(e) => {
+                outputln!(preamble self.service_group, "Service start failed: {}", e);
+            }
         }
-
-        self.start_health_checks(executor);
     }
 
     /// Create the state necessary for managing a repeatedly-running
