@@ -4,6 +4,8 @@ sidebar_links:
   links:
   - title: Docs Home
     link: "/docs"
+  - title: API
+    link: "/docs/api/builder-api"
   - title: Install Chef Habitat
     link: "/docs/install-habitat"
     sub_links:
