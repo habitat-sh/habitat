@@ -20,6 +20,7 @@ page '/*.txt', layout: false
 # With alternative layout
 page 'about/*', layout: :sidebar, locals: { sidebar_layout: 'about' }
 page 'docs/*', layout: :sidebar, locals: { sidebar_layout: 'docs' }
+page 'docs/api/*', layout: 'api'
 page 'legal/*', layout: :sidebar, locals: { sidebar_layout: 'legal' }
 page '/demo/packaging-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_packaging_system'}
 page '/demo/build-system/steps/*', layout: :tutorials_sidebar, locals: { sidebar_layout: 'demo_build_system'}
@@ -65,6 +66,8 @@ helpers do
       'has-sidebar'
     elsif layout == :tutorials
       'tutorials'
+    elsif layout == :api
+      'api'
     else
       ''
     end
