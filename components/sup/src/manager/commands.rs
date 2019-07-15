@@ -238,6 +238,16 @@ pub fn service_load(mgr: &ManagerState,
             //
             // Also make sure you're pulling from where you're
             // supposed to be pulling from!
+
+            // TODO (DM): Why do we use `spec.bldr_url` and `spec.channel` here?
+            // `opts.into_spec` will override these fields if they are defined in the `ServiceLoad`
+            // so we are essentially always using `bldr_url` and `bldr_channel`. In fact `bldr_url`
+            // and `bldr_channel` are not even neccessary, we could just always use what
+            // is in `spec` because `opts.into_spec` will set it appropriatly.
+            // Potentially, I could see the reason for the use of `spec` here trying to
+            // prevent updating the `bldr_url` and `channel` on a --force reload, but that
+            // is not the current behavior. With this change this method could be greatly
+            // simplified.
             let package =
                 util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
             if let Err(e) = spec.validate(&package) {
