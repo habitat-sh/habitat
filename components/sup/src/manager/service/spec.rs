@@ -164,6 +164,7 @@ impl ServiceSpec {
     pub fn default_for(ident: PackageIdent) -> Self {
         let mut spec = Self::default();
         spec.ident = ident;
+        spec.bldr_url = habitat_sup_protocol::DEFAULT_BLDR_URL.to_string();
         spec
     }
 
