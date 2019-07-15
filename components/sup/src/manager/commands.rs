@@ -205,7 +205,12 @@ pub fn service_load(mgr: &ManagerState,
             // desired package identifier, it will be used;
             // otherwise, we'll install the latest suitable
             // version from the specified Builder channel.
-            util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel)?;
+            let package = util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel)?;
+            if let Err(e) = spec.validate(&package) {
+                return Err(net::err(ErrCode::InvalidPayload,
+                                    format!("Failed to validate '{}' due to '{}'",
+                                            ident, e)));
+            }
 
             mgr.cfg.save_spec_for(&spec)?;
             req.info(format!("The {} service was successfully loaded", spec.ident))?;
@@ -233,7 +238,13 @@ pub fn service_load(mgr: &ManagerState,
             //
             // Also make sure you're pulling from where you're
             // supposed to be pulling from!
-            util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
+            let package =
+                util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
+            if let Err(e) = spec.validate(&package) {
+                return Err(net::err(ErrCode::InvalidPayload,
+                                    format!("Failed to validate '{}' due to '{}'",
+                                            ident, e)));
+            }
 
             mgr.cfg.save_spec_for(&spec)?;
             req.info(format!("The {} service was successfully loaded", spec.ident))?;
