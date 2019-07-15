@@ -194,11 +194,11 @@ fn spawn_thread_alive_checker_impl(delay: Duration) {
                               let max_time_since_death =
                                   ThreadDeadIgnoreDelay::configured_value().into();
                               loop {
+                                  thread::sleep(delay);
                                   let statuses = &mut THREAD_STATUSES.lock();
                                   check_thread_heartbeats(statuses, threshold);
                                   log_dead_threads(statuses);
                                   cull_dead_threads(statuses, max_time_since_death);
-                                  thread::sleep(delay);
                               }
                           })
                           .expect("Error spawning thread alive checker");
