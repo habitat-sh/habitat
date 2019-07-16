@@ -24,6 +24,7 @@ Vagrant.configure("2") do |config|
     # environment when you provision the VM.
     curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh -o install.sh
     bash install.sh -t x86_64-linux-kernel2
+    sudo hab license accept
     sudo -u vagrant hab origin key download #{ENV['HAB_ORIGIN']} --secret --auth=#{ENV['HAB_AUTH_TOKEN']}
   SHELL
 end
