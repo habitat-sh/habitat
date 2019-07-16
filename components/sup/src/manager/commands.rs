@@ -209,11 +209,7 @@ pub fn service_load(mgr: &ManagerState,
     // If a package exists on disk that satisfies the desired package identifier, it will be used.
     // Otherwise, we'll install the latest suitable version from the specified Builder channel.
     let package = util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
-    if let Err(e) = spec.validate(&package) {
-        return Err(net::err(ErrCode::InvalidPayload,
-                            format!("Failed to validate '{}' due to '{}'",
-                                    ident, e)));
-    }
+    spec.validate(&package)?;
     mgr.cfg.save_spec_for(&spec)?;
 
     req.info(format!("The {} service was successfully loaded", spec.ident))?;
