@@ -186,14 +186,10 @@ pub fn service_load(mgr: &ManagerState,
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
     let source = InstallSource::Ident(ident.clone(), PackageTarget::active_target());
     let mut spec = if let Some(spec) = mgr.cfg.spec_for_ident(source.as_ref()) {
-        let force = opts.force.unwrap_or(false);
-        // We've seen this service  before. Thus `load`
-        // basically acts as a way to edit spec files on the
-        // command line. As a result, we a) check that you
-        // *really* meant to change an existing spec, and b) DO
-        // NOT download a potentially new version of the package
-        // in question
-        if !force {
+        // We've seen this service before. Thus `load` basically acts as a way to edit spec files on
+        // the command line. As a result, we check that you *really* meant to change an existing
+        // spec.
+        if !opts.force.unwrap_or(false) {
             return Err(net::err(ErrCode::Conflict,
                                 format!("Service already loaded, unload '{}' \
                                          and try again",
