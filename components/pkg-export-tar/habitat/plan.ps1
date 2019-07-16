@@ -1,6 +1,5 @@
 $pkg_name = "hab-pkg-export-tar"
 $pkg_origin = "core"
-$pkg_version = "$(Get-Content $PLAN_CONTEXT/../../../VERSION)"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
 $pkg_bin_dirs = @("bin")
@@ -18,6 +17,23 @@ $pkg_build_deps = @(
     "core/rust/$(Get-Content "$PLAN_CONTEXT/../../../rust-toolchain")",
     "core/cacerts"
 )
+
+function pkg_version {
+    # This looks a little funny but a non
+    # null value will be evaluated as true
+    if ($Env:DO_FAKE_RELEASE) {
+        Write-BuildLine "Doing a fake release"
+        Get-Content "$SRC_PATH/VERSION_FAKE"
+    } else {
+        Write-BuildLine "Doing a real release!"
+        Get-Content "$SRC_PATH/VERSION"
+    }
+}
+  
+function Invoke-Before {
+    Invoke-DefaultBefore
+    Set-PkgVersion
+}
 
 function Invoke-Prepare {
     if($env:HAB_CARGO_TARGET_DIR) {

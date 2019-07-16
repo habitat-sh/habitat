@@ -5,6 +5,7 @@ github:
   # is bumped automatically via the `built_in:bump_version` merge_action.
   # TODO: Change this to `VERSION` once we are live
   version_file: "VERSION_FAKE"
+  version_tag_format: 'fake-{{version}}'
   # The file where our CHANGELOG is kept. This file is updated automatically with
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
   changelog_file: "CHANGELOG_FAKE.md"
@@ -20,13 +21,13 @@ slack:
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
 merge_actions:
-  - built_in:update_changelog:
-      ignore_labels:
-        - "Expeditor: Skip Changelog"
-        - "Expeditor: Skip All"
   - built_in:bump_version:
       ignore_labels:
         - "Expeditor: Skip Version Bump"
+        - "Expeditor: Skip All"
+  - built_in:update_changelog:
+      ignore_labels:
+        - "Expeditor: Exclude from Changelog"
         - "Expeditor: Skip All"
 
 subscriptions:
@@ -56,13 +57,13 @@ pipelines:
 
 staging_areas:
   - post_merge:
-      workload: pull_request_merged:habitat-sh/habitat:master:*
+      workload: pull_request_merged:{{agent_id}}:*
 
 subscriptions:
   # These actions are taken, in order they are specified
-  - workload: pull_request_merged:{{github_repo}}:{{release_branch}}:*
+  - workload: pull_request_merged:{{agent_id}}:*
     actions:
-      - trigger_pipeline:release_habitat:
+      - trigger_pipeline:release_habitat
 
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
@@ -71,6 +72,18 @@ subscriptions:
 
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
+    actions:
+      - unlock_staging_area:post_merge:
+          post_commit: true
+          always_run: true
+
+  - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
+    actions:
+      - unlock_staging_area:post_merge:
+          post_commit: true
+          always_run: true
+
+  - workload: buildkite_build_canceled:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:post_merge:
           post_commit: true

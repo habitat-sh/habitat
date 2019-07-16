@@ -118,12 +118,12 @@ set_hab_binary() {
         # runs that may take place on it.
         sudo env HAB_LICENSE="${HAB_LICENSE}" \
              "${hab_binary:?}" pkg install "${hab_ident}" \
-             --auth=${HAB_AUTH_TOKEN} \
-             --url=${HAB_BLDR_URL}
+             --auth="${HAB_AUTH_TOKEN}" \
+             --url="${HAB_BLDR_URL}"
         sudo env HAB_LICENSE="${HAB_LICENSE}" \
              "${hab_binary:?}" pkg install "$(get_studio_ident $pkg_target)" \
-             --auth=${HAB_AUTH_TOKEN} \
-             --url=${HAB_BLDR_URL}
+             --auth="${HAB_AUTH_TOKEN}" \
+             --url="${HAB_BLDR_URL}"
         hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
         declare -g new_studio=1
     else

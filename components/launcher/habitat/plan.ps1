@@ -41,6 +41,7 @@ function Invoke-Prepare {
 function pkg_version {
     git rev-list master --count
 }
+
 function Invoke-Before {
     Set-PkgVersion
     $script:pkg_dirname = "${pkg_name}-${pkg_version}"

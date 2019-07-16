@@ -6,9 +6,6 @@ find_socket_files() {
 	find /tmp -maxdepth 1 -name "rust-ipc-socket.*"
 }
 
-export CI_OVERRIDE_CHANNEL="DEV"
-export HAB_BLDR_CHANNEL="DEV"
-
 socket_files_before=$(mktemp)
 sup_log=$(mktemp)
 find_socket_files > "$socket_files_before"

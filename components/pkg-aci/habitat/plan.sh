@@ -1,7 +1,6 @@
 # shellcheck disable=2154
 pkg_origin=core
 pkg_name=hab-pkg-aci
-pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=("Apache-2.0")
 pkg_deps=(core/coreutils
@@ -15,6 +14,19 @@ pkg_build_deps=()
 pkg_bin_dirs=(bin)
 
 program=$pkg_name
+
+pkg_version() {
+  if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
+    cat "$SRC_PATH/../../VERSION_FAKE"
+  else
+    cat "$SRC_PATH/../../VERSION"
+  fi
+}
+ 
+do_before() {
+  do_default_before
+  update_pkg_version
+}
 
 do_build() {
   cp -v "${SRC_PATH}/bin/${program}.sh" "${program}"

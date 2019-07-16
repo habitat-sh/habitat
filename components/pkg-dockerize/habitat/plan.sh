@@ -1,15 +1,26 @@
 # shellcheck disable=2154
 pkg_name=hab-pkg-dockerize
 pkg_origin=core
-pkg_version=$(cat "$PLAN_CONTEXT/../../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
-pkg_source=nosuchfile.tar.gz
 pkg_deps=(core/coreutils core/findutils core/gawk core/grep core/bash core/docker/17.09.0 core/hab-studio)
 pkg_build_deps=()
 pkg_bin_dirs=(bin)
 
 program=$pkg_name
+
+pkg_version() {
+  if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
+    cat "$SRC_PATH/../../VERSION_FAKE"
+  else
+    cat "$SRC_PATH/../../VERSION"
+  fi
+}
+ 
+do_before() {
+  do_default_before
+  update_pkg_version
+}
 
 do_build() {
   cp -v "$PLAN_CONTEXT"/../bin/${program}.sh ${program}
@@ -25,22 +36,4 @@ do_build() {
 
 do_install() {
   install -v -D $program "$pkg_prefix"/bin/$program
-}
-
-# Turn the remaining default phases into no-ops
-
-do_download() {
-  return 0
-}
-
-do_verify() {
-  return 0
-}
-
-do_unpack() {
-  return 0
-}
-
-do_prepare() {
-  return 0
 }

@@ -7,19 +7,21 @@ source .expeditor/scripts/shared.sh
 export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
 
-install_latest_stable_hab_binary
+# Take advantage of the fact that we're just promoting and we can run 
+# 100% on linux
+install_latest_hab_binary "x86_64-linux"
 
 ########################################################################
 
 # `target_channel` should be channel we are promoting all our artifacts from
 #
 # e.g. `habitat-release-<build-id>`, `DEV`, `ACCEPTANCE` etc.
-target_channel=${1}
+target_channel=${1:?You must specify a target channel value}
 
 # `destination_channel` should be the channel we are promoting to
 #
 # e.g. `DEV`, `ACCEPTANCE`, `CURRENT`, etc
-destination_channel=${2}
+destination_channel=${2:?You must specify a destination channel value}
 
 # Verify we're setting the variable for package target
 export HAB_PACKAGE_TARGET=$BUILD_PKG_TARGET

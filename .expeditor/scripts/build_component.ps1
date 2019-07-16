@@ -10,67 +10,26 @@ param (
 $ErrorActionPreference="stop" 
 
 # Import shared functions
-. ".buildkite\scripts\shared.ps1"
+. $PSScriptRoot\shared.ps1
 
 if($Component.Equals("")) {
     Write-Error "--- :error: Component to build not specified, please use the -Component flag"
 }
 
-# install buildkite agent because we are in a container :(
-Write-Host "--- Installing buildkite agent in container"
-$Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
-Invoke-Expression (Invoke-WebRequest https://raw.githubusercontent.com/buildkite/agent/master/install.ps1 -UseBasicParsing).Content
-
-# We have to do this because everything that comes from vault is quoted on windows.
-$Rawtoken=$Env:ACCEPTANCE_HAB_AUTH_TOKEN
-$Env:HAB_AUTH_TOKEN=$Rawtoken.Replace("`"","")
+Install-BuildkiteAgent
 
 $Env:HAB_BLDR_URL=$Env:ACCEPTANCE_HAB_BLDR_URL
 $Env:HAB_PACKAGE_TARGET=$Env:BUILD_PKG_TARGET
 
+# Install jq if it doesn't exist
+choco install jq -y | Out-Null
+
 # For viewability
 $Channel = "habitat-release-$Env:BUILDKITE_BUILD_ID"
 Write-Host "--- Channel: $Channel - bldr url: $Env:HAB_BLDR_URL"
+$Env:HAB_BLDR_CHANNEL="$Channel"
 
-# Get the latest version available from bintray -  we want the latest stable version to start with
-$current_protocols = [Net.ServicePointManager]::SecurityProtocol
-$latestVersionURI = ""
-$downloadUrl = ""
-try {
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $response = Invoke-WebRequest "https://bintray.com/habitat/stable/hab-x86_64-windows/_latestVersion" -UseBasicParsing -ErrorAction Stop
-    $latestVersionURI = ($response).BaseResponse.ResponseUri.AbsoluteUri
-}
-finally {
-    [Net.ServicePointManager]::SecurityProtocol = $current_protocols
-}
-  
-$uriArray = $latestVersionURI.Split("/")
-$targetVersion = $uriArray[$uriArray.Length-1]
-Write-Host "--- Latest version is $targetVersion"
-$downloadUrl = "https://api.bintray.com/content/habitat/stable/windows/x86_64/hab-$targetVersion-x86_64-windows.zip?bt_package=hab-x86_64-windows"
-# We want a short-ish path to install our latest hab
-$bootstrapDir = "C:\hab-latest"
-
-# Download the binary now
-Write-Host "--- Downloading from $downloadUrl"
-$current_protocols = [Net.ServicePointManager]::SecurityProtocol
-try {
-  [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-  Invoke-WebRequest -UseBasicParsing -Uri "$downloadUrl" -OutFile hab.zip
-}
-finally {
-  [Net.ServicePointManager]::SecurityProtocol = $current_protocols
-}
-
-Write-Host "--- Extracting to $bootstrapDir"
-New-Item -ItemType directory -Path $bootstrapDir -Force
-Expand-Archive -Path hab.zip -DestinationPath $bootstrapDir
-Remove-Item hab.zip -Force
-$baseHabExe = (Get-Item "$bootstrapDir\hab-$targetVersion-x86_64-windows\hab.exe").FullName
-
-# Accept license
-Invoke-Expression "$baseHabExe license accept"
+$baseHabExe=Install-LatestHabitat
 
 # Get keys
 Write-Host "--- :key: Downloading 'core' public keys from Builder"
@@ -80,17 +39,18 @@ Invoke-Expression "$baseHabExe origin key download core --auth $Env:HAB_AUTH_TOK
 $Env:HAB_CACHE_KEY_PATH = "C:\hab\cache\keys"
 $Env:HAB_ORIGIN = "core"
 
+# This is a temporary measure so we can run fake releases
+$Env:HAB_STUDIO_SECRET_DO_FAKE_RELEASE=$Env:DO_FAKE_RELEASE
+
 # Run a build!
-Write-Host "--- Setting HAB_BLDR_CHANNEL channel to $Channel"
-$Env:HAB_BLDR_CHANNEL="$Channel"
 Write-Host "--- Running hab pkg build for $Component"
 Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
 . results\last_build.ps1
 
-Write-Host "--- Running hab pkg upload for $Component to channel $Channel"
-Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$Channel"
-Write-Host "--- Running hab pkg promote for $pkg_ident to channel $Channel"
-Invoke-Expression "$baseHabExe pkg promote $pkg_ident $Channel $Env:BUILD_PKG_TARGET"
+Write-Host "--- Running hab pkg upload for $Component to channel $Env:HAB_BLDR_CHANNEL"
+Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$Env:HAB_BLDR_CHANNEL"
+Write-Host "--- Running hab pkg promote for $pkg_ident to channel $Env:HAB_BLDR_CHANNEL"
+Invoke-Expression "$baseHabExe pkg promote $pkg_ident $Env:HAB_BLDR_CHANNEL $Env:BUILD_PKG_TARGET"
 Invoke-Expression "buildkite-agent meta-data set $pkg_ident-x86_64-windows true"
 
 If ($Component -eq 'hab') {

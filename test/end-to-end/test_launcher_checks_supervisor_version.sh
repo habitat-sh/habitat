@@ -31,7 +31,7 @@ launcher_exits_with_error() {
     sup_log=$(mktemp)
 
     echo -n "Starting launcher with supervisor version \"$version\" (logging to $sup_log)..."
-    HAB_SUP_BINARY="$sup_binary" HAB_BLDR_URL="https://bldr.acceptance.habitat.sh" hab sup run &> "$sup_log" &
+    HAB_SUP_BINARY="$sup_binary" hab sup run &> "$sup_log" &
     launcher_pid=$!
 
     retries=0
@@ -59,14 +59,14 @@ if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$incompatible_v
     echo
 else
     echo "Failure! Expected launcher to exit with error"
-    contents=$(cat $sup_log)
+    contents=$(cat "$sup_log")
     echo "--- FAILURE LOG: ${contents}"
     exit 1
 fi
 
 if HAB_LAUNCH_NO_SUP_VERSION_CHECK=1 launcher_exits_with_error "$incompatible_version"; then
     echo "Failure! Expected launcher remain running"
-    contents=$(cat $sup_log)
+    contents=$(cat "$sup_log")
     echo "--- FAILURE LOG: ${contents}"
     exit 1
 else
@@ -77,7 +77,7 @@ fi
 compatible_version="0.56.0/20180530235935"
 if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$compatible_version"; then
     echo "Failure! Expected launcher remain running"
-    contents=$(cat $sup_log)
+    contents=$(cat "$sup_log")
     echo "--- FAILURE LOG: ${contents}"
     exit 1
 else
@@ -88,7 +88,7 @@ fi
 dev_version="0.62.0-dev"
 if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$dev_version"; then
     echo "Failure! Expected launcher remain running"
-    contents=$(cat $sup_log)
+    contents=$(cat "$sup_log")
     echo "--- FAILURE LOG: ${contents}"
     exit 1
 else
@@ -102,7 +102,7 @@ if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$invalid_versio
     echo
 else
     echo "Failure! Expected launcher to exit with error"
-    contents=$(cat $sup_log)
+    contents=$(cat "$sup_log")
     echo "--- FAILURE LOG: ${contents}"
     exit 1
 fi

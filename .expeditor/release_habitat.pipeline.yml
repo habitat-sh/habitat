@@ -1,5 +1,6 @@
 expeditor:
   secrets:
+    # TODO: change this once we go to production
     ACCEPTANCE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: scotthain-sig-key
@@ -9,8 +10,7 @@ expeditor:
       env:
         HAB_ORIGIN: "core"
         ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
-        # HAB_LICENSE: "accept-no-persist"
-        # HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
+        DO_FAKE_RELEASE: "true"
 
 steps:
 #######################################################################
@@ -25,7 +25,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
   
@@ -36,7 +35,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
@@ -48,8 +46,6 @@ steps:
         docker:
           host_os: windows
           os_version: 2016
-          propagate-environment: true
-          always-pull: true
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -63,7 +59,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -74,7 +69,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
@@ -87,8 +81,6 @@ steps:
         docker:
           host_os: windows
           os_version: 2016
-          propagate-environment: true
-          always-pull: true
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -102,7 +94,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -113,7 +104,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
@@ -126,7 +116,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -137,7 +126,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
@@ -150,8 +138,6 @@ steps:
         docker:
           host_os: windows
           os_version: 2016
-          propagate-environment: true
-          always-pull: true
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -165,7 +151,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -176,7 +161,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
@@ -189,8 +173,6 @@ steps:
         docker:
           host_os: windows
           os_version: 2016
-          propagate-environment: true
-          always-pull: true
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -204,7 +186,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -215,7 +196,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
@@ -228,8 +208,6 @@ steps:
         docker:
           host_os: windows
           os_version: 2016
-          propagate-environment: true
-          always-pull: true
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -243,7 +221,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -254,7 +231,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -267,8 +243,6 @@ steps:
         docker:
           host_os: windows
           os_version: 2016
-          propagate-environment: true
-          always-pull: true
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -280,7 +254,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -291,7 +264,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -302,7 +274,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -313,7 +284,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
@@ -326,8 +296,6 @@ steps:
         docker:
           host_os: windows
           os_version: 2016
-          propagate-environment: true
-          always-pull: true
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -339,20 +307,8 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-
-  - label: "[:linux: :two: build hab-pkg-export-tar]"
-    command:
-      - .expeditor/scripts/build_component.sh pkg-export-tar
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          propagate-environment: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
   - wait
 
@@ -365,7 +321,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -379,7 +334,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
@@ -390,7 +344,6 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
@@ -401,9 +354,20 @@ steps:
       executor:
         docker:
           privileged: true
-          propagate-environment: true
-          always-pull: true
           environment:
             - ACCEPTANCE_HAB_AUTH_TOKEN=$SCOTTHAIN_HAB_AUTH_TOKEN
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+
+  - wait
+
+  - label: "[:habitat: delete build channel]"
+    command:
+      - .expeditor/scripts/remove_build_channel.sh habitat-release-$BUILDKITE_BUILD_ID
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - ACCEPTANCE_HAB_AUTH_TOKEN=$SCOTTHAIN_HAB_AUTH_TOKEN
+            - BUILD_PKG_TARGET=x86_64-linux
