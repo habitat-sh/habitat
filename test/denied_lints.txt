@@ -12,6 +12,8 @@ clippy::cognitive_complexity
 clippy::deref_addrof
 clippy::drop_bounds
 clippy::expect_fun_call
+clippy::filter_map_next
+clippy::find_map
 clippy::for_kv_map
 clippy::get_unwrap
 clippy::identity_conversion
@@ -35,6 +37,7 @@ clippy::ok_expect
 clippy::op_ref
 clippy::option_map_unit_fn
 clippy::or_fun_call
+clippy::path_buf_push_overwrite
 clippy::println_empty_string
 clippy::ptr_arg
 clippy::question_mark
