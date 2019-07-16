@@ -1,5 +1,5 @@
+use parking_lot::Mutex;
 use std::{collections::HashMap,
-          sync::Mutex,
           thread::{self,
                    ThreadId},
           time::{Duration,
@@ -51,15 +51,18 @@ habitat_core::env_config_duration!(ThreadDeadIgnoreDelay,
 ///     }
 /// };
 /// ```
-pub fn mark_thread_alive() -> CheckedThread {
-    mark_thread_alive_impl(&mut THREAD_STATUSES.lock().expect("THREAD_STATUSES poisoned"))
-}
+pub fn mark_thread_alive() -> CheckedThread { mark_thread_alive_impl(&mut THREAD_STATUSES.lock()) }
 
 fn mark_thread_alive_impl(statuses: &mut ThreadStatusMap) -> CheckedThread {
     let thread = thread::current();
-    statuses.insert(thread.id(),
-                    (thread.name().map(str::to_string),
-                     Status::Alive { last_heartbeat: Instant::now(), }));
+    let previous_value = statuses.insert(thread.id(),
+                                         (thread.name().map(str::to_string),
+                                          Status::Alive { last_heartbeat: Instant::now(), }));
+    if previous_value.is_none() {
+        debug!("Registered {:?} for liveliness checking", thread);
+    } else {
+        trace!("Marked {:?} alive", thread)
+    }
     CheckedThread(std::ptr::null())
 }
 
@@ -111,9 +114,7 @@ impl CheckedThread {
     /// loop which calls mark_thread_alive properly unregister from the checker, otherwise false
     /// positives for exited threads could result. See that type's documentation for more.
     pub fn unregister<T, E: ToString>(self, reason: Result<T, E>) -> ThreadUnregistered<T, E> {
-        unregister_thread_impl(self,
-                               &mut THREAD_STATUSES.lock().expect("THREAD_STATUSES poisoned"),
-                               reason)
+        unregister_thread_impl(self, &mut THREAD_STATUSES.lock(), reason)
     }
 
     /// In general, the return of `mark_thread_alive` must be used, to help ensure that threads
@@ -146,15 +147,15 @@ fn unregister_thread_impl<T, E: ToString>(_: CheckedThread,
     match &reason {
         Ok(_) => {
             statuses.remove(thread_id);
+            debug!("Unregistered {:?} for liveliness checking", thread);
         }
         Err(e) => {
             if let Some(entry) = statuses.get_mut(thread_id) {
                 entry.1 = Status::DeadWithError { time_of_death: Instant::now(),
                                                   error:         e.to_string(), };
+                debug!("{:?} marked dead with error {}", thread, e.to_string());
             } else {
-                error!("unregister_thread called for untracked thread: {} id: {:?}",
-                       thread.name().unwrap_or("Unnamed thread"),
-                       thread_id);
+                error!("unregister_thread called for untracked {:?}", thread);
             }
         }
     }
@@ -165,22 +166,37 @@ fn unregister_thread_impl<T, E: ToString>(_: CheckedThread,
 /// Call once per binary to start the thread which will check that all the threads that
 /// call `mark_thread_alive` continue to do so.
 pub fn spawn_thread_alive_checker() {
-    thread::Builder::new().name("thread-alive-check".to_string())
-                          .spawn(|| -> ! {
-                              let delay = ThreadAliveCheckDelay::configured_value().into();
+    spawn_thread_alive_checker_impl(ThreadAliveCheckDelay::configured_value().into());
+}
+
+fn spawn_thread_alive_checker_impl(delay: Duration) {
+    let executable = std::env::current_exe().ok()
+                                            .and_then(|exe_path| {
+                                                exe_path.components().last().map(|basename| {
+                                                                                basename.as_os_str()
+                                                                                 .to_string_lossy()
+                                                                                 .into_owned()
+                                                                            })
+                                            })
+                                            .unwrap_or_else(|| "unknown-executable".into());
+
+    debug!("Spawning liveliness checker thread for {} PID {}",
+           executable,
+           std::process::id());
+    let thread_name = format!("{}-liveliness-checker", executable);
+    thread::Builder::new().name(thread_name.clone())
+                          .spawn(move || -> ! {
+                              debug!("Starting {}", thread_name);
+
                               let threshold = ThreadAliveThreshold::configured_value().into();
                               let max_time_since_death =
                                   ThreadDeadIgnoreDelay::configured_value().into();
                               loop {
-                                  {
-                                      let statuses =
-                                          &mut THREAD_STATUSES.lock()
-                                                              .expect("THREAD_STATUSES poisoned");
-                                      check_thread_heartbeats(statuses, threshold);
-                                      log_dead_threads(statuses);
-                                      cull_dead_threads(statuses, max_time_since_death);
-                                  }
                                   thread::sleep(delay);
+                                  let statuses = &mut THREAD_STATUSES.lock();
+                                  check_thread_heartbeats(statuses, threshold);
+                                  log_dead_threads(statuses);
+                                  cull_dead_threads(statuses, max_time_since_death);
                               }
                           })
                           .expect("Error spawning thread alive checker");
@@ -267,6 +283,24 @@ mod test {
     const TEST_THRESHOLD: Duration = Duration::from_secs(1);
 
     #[test]
+    fn spawn_thread_alive_checker_allows_timely_heartbeats() {
+        let num_iterations = 3;
+        let expected_runtime = Duration::from_millis(100) * num_iterations;
+        let start = Instant::now();
+        let check_delay = Duration::from_secs(1);
+        spawn_thread_alive_checker_impl(check_delay);
+        for _ in 1..=num_iterations {
+            let _ = mark_thread_alive();
+            thread::sleep(Duration::from_millis(10));
+        }
+        let elapsed = start.elapsed();
+        assert!(elapsed < expected_runtime,
+                "test took {:?}; expected {:?} at most",
+                elapsed,
+                expected_runtime);
+    }
+
+    #[test]
     fn no_tracking_without_mark_thread_alive() {
         let statuses = HashMap::new();
         thread::spawn(|| {}).join().unwrap();
@@ -280,11 +314,11 @@ mod test {
             static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
         }
         thread::spawn(move || {
-            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock());
         }).join()
           .unwrap();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
                    1);
     }
 
@@ -301,8 +335,7 @@ mod test {
         thread::Builder::new().name(dead_thread_name.clone())
                               .spawn(move || {
                                   {
-                                      let _ =
-                                          mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+                                      let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock());
                                   }
                               })
                               .unwrap()
@@ -310,17 +343,19 @@ mod test {
                               .unwrap();
         thread::spawn(move || {
             while !test_done2.load(Ordering::Relaxed) {
-                let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+                let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock());
                 thread::sleep(TEST_THRESHOLD / 2);
             }
         });
 
         thread::sleep(TEST_THRESHOLD * 2);
 
-        let dead_thread_names = threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(),
-                                                              TEST_THRESHOLD).iter()
-                                                                             .map(|(name, _)| name.clone())
-                                                                             .collect::<Vec<_>>();
+        let dead_thread_names =
+            threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).iter()
+                                                                         .map(|(name, _)| {
+                                                                             name.clone()
+                                                                         })
+                                                                         .collect::<Vec<_>>();
         assert_eq!(dead_thread_names, vec![Some(dead_thread_name)]);
         test_done.store(true, Ordering::Relaxed);
     }
@@ -331,12 +366,12 @@ mod test {
             static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
         }
         thread::spawn(move || {
-            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock());
             panic!("intentional panic for test");
         }).join()
           .ok();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
                    1);
     }
 
@@ -346,11 +381,11 @@ mod test {
             static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
         }
         thread::spawn(move || {
-            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock());
         }).join()
           .unwrap();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
                    1);
     }
 
@@ -361,13 +396,13 @@ mod test {
         }
         let _ =
             thread::spawn(move || -> ThreadUnregistered<(), _> {
-                let statuses = &mut HEARTBEATS.lock().unwrap();
+                let statuses = &mut HEARTBEATS.lock();
                 let checked_thread = mark_thread_alive_impl(statuses);
                 unregister_thread_impl(checked_thread, statuses, Err("thread error description"))
             }).join()
               .unwrap();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
                    0);
     }
 
@@ -377,13 +412,13 @@ mod test {
             static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
         }
         let _ = thread::spawn(move || -> ThreadUnregistered {
-                    let statuses = &mut HEARTBEATS.lock().unwrap();
+                    let statuses = &mut HEARTBEATS.lock();
                     let checked_thread = mark_thread_alive_impl(statuses);
                     unregister_thread_impl(checked_thread, statuses, Ok(()))
                 }).join()
                   .unwrap();
         thread::sleep(TEST_THRESHOLD * 2);
-        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock().unwrap(), TEST_THRESHOLD).len(),
+        assert_eq!(threads_missing_heartbeat(&HEARTBEATS.lock(), TEST_THRESHOLD).len(),
                    0);
     }
 
@@ -393,12 +428,11 @@ mod test {
             static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
         }
         thread::spawn(move || {
-            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock());
             panic!("intentional panic for test");
         }).join()
           .ok();
-        assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
-                   0);
+        assert_eq!(threads_exited_with_error(&HEARTBEATS.lock()).len(), 0);
     }
 
     #[test]
@@ -407,11 +441,10 @@ mod test {
             static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
         }
         thread::spawn(move || {
-            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock().unwrap());
+            let _ = mark_thread_alive_impl(&mut HEARTBEATS.lock());
         }).join()
           .unwrap();
-        assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
-                   0);
+        assert_eq!(threads_exited_with_error(&HEARTBEATS.lock()).len(), 0);
     }
 
     #[test]
@@ -420,13 +453,12 @@ mod test {
             static ref HEARTBEATS: Mutex<ThreadStatusMap> = Default::default();
         }
         let _ = thread::spawn(move || -> ThreadUnregistered {
-                    let statuses = &mut HEARTBEATS.lock().unwrap();
+                    let statuses = &mut HEARTBEATS.lock();
                     let checked_thread = mark_thread_alive_impl(statuses);
                     unregister_thread_impl(checked_thread, statuses, Ok(()))
                 }).join()
                   .unwrap();
-        assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
-                   0);
+        assert_eq!(threads_exited_with_error(&HEARTBEATS.lock()).len(), 0);
     }
 
     #[test]
@@ -436,13 +468,12 @@ mod test {
         }
         let _ =
             thread::spawn(move || -> ThreadUnregistered<(), _> {
-                let statuses = &mut HEARTBEATS.lock().unwrap();
+                let statuses = &mut HEARTBEATS.lock();
                 let checked_thread = mark_thread_alive_impl(statuses);
                 unregister_thread_impl(checked_thread, statuses, Err("thread error description"))
             }).join()
               .unwrap();
-        assert_eq!(threads_exited_with_error(&HEARTBEATS.lock().unwrap()).len(),
-                   1);
+        assert_eq!(threads_exited_with_error(&HEARTBEATS.lock()).len(), 1);
     }
 
     #[test]
@@ -452,12 +483,12 @@ mod test {
         }
         let _ =
             thread::spawn(move || -> ThreadUnregistered<(), _> {
-                let statuses = &mut HEARTBEATS.lock().unwrap();
+                let statuses = &mut HEARTBEATS.lock();
                 let checked_thread = mark_thread_alive_impl(statuses);
                 unregister_thread_impl(checked_thread, statuses, Err("thread error description"))
             }).join()
               .unwrap();
-        let statuses = &mut HEARTBEATS.lock().unwrap();
+        let statuses = &mut HEARTBEATS.lock();
         cull_dead_threads(statuses, TEST_THRESHOLD);
         assert_eq!(threads_exited_with_error(statuses).len(), 1);
         thread::sleep(TEST_THRESHOLD * 2);
