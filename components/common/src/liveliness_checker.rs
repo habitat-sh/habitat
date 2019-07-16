@@ -1,6 +1,5 @@
 use parking_lot::Mutex;
 use std::{collections::HashMap,
-          path::PathBuf,
           thread::{self,
                    ThreadId},
           time::{Duration,
@@ -171,16 +170,15 @@ pub fn spawn_thread_alive_checker() {
 }
 
 fn spawn_thread_alive_checker_impl(delay: Duration) {
-    let executable = std::env::args_os().next()
-                                        .map(PathBuf::from)
-                                        .and_then(|first_arg| {
-                                            first_arg.components().last().map(|basename| {
-                                                                             basename.as_os_str()
+    let executable = std::env::current_exe().ok()
+                                            .and_then(|exe_path| {
+                                                exe_path.components().last().map(|basename| {
+                                                                                basename.as_os_str()
                                                                                  .to_string_lossy()
                                                                                  .into_owned()
-                                                                         })
-                                        })
-                                        .unwrap_or_else(|| "unknown-executable".into());
+                                                                            })
+                                            })
+                                            .unwrap_or_else(|| "unknown-executable".into());
 
     debug!("Spawning liveliness checker thread for {} PID {}",
            executable,
