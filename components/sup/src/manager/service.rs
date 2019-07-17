@@ -714,14 +714,6 @@ impl Service {
             .check_process()
     }
 
-    fn process_down(&self) -> bool {
-        self.supervisor
-            .lock()
-            .expect("Couldn't lock supervisor")
-            .state
-        == ProcessState::Down
-    }
-
     /// Updates the service configuration with data from a census group if the census group has
     /// newer data than the current configuration.
     ///
@@ -947,8 +939,11 @@ impl Service {
                      executor: &TaskExecutor,
                      template_update: &TemplateUpdate)
                      -> bool {
+        let up = self.check_process();
         if !self.initialized {
-            if self.check_process() {
+            // If the service is not initialized and the process is still running, the Supervisor
+            // was restarted and we just have to reattach to the process.
+            if up {
                 self.reattach(executor);
                 return false;
             }
@@ -958,8 +953,9 @@ impl Service {
                 self.post_run(executor);
             }
         } else {
-            self.check_process();
-            if self.process_down() || template_update.needs_restart() {
+            // If the service is initialized and the process is not running, the process
+            // unexpectedly died and needs to be restarted.
+            if !up || template_update.needs_restart() {
                 // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could just
                 // schedule the `stop` future, but the `Manager` wraps the `stop` future with
                 // additional functionality. Can we refactor to make this flag unnecessary?
