@@ -25,6 +25,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Make PID file handling a little more robust. [#6738](https://github.com/habitat-sh/habitat/pull/6738) ([raskchanky](https://github.com/raskchanky))
 - Updating reference hooks document... [#6716](https://github.com/habitat-sh/habitat/pull/6716) ([mike10010100](https://github.com/mike10010100))
 - Add license acceptance to kernel2 Vagrant file [#6733](https://github.com/habitat-sh/habitat/pull/6733) ([christophermaier](https://github.com/christophermaier))
 - Upgrade to Rust 1.36.0 [#6708](https://github.com/habitat-sh/habitat/pull/6708) ([raskchanky](https://github.com/raskchanky))
