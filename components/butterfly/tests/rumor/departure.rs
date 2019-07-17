@@ -11,7 +11,7 @@ fn two_members_share_departures() {
     assert!(net[1].departure_store
                   .lock_rsr()
                   .service_group("departure",)
-                  .contains_rumor(net[0].member_id()));
+                  .contains_id(net[0].member_id()));
 }
 
 #[test]
@@ -30,6 +30,6 @@ fn departure_via_client() {
     assert!(net[2].departure_store
                   .lock_rsr()
                   .service_group("departure",)
-                  .contains_rumor(net[1].member_id()));
+                  .contains_id(net[1].member_id()));
     assert_wait_for_health_of_mlr!(net, 1, Health::Departed);
 }

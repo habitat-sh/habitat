@@ -159,10 +159,7 @@ mod storage {
             self.0.and_then(|m| m.get(member_id).map(f))
         }
 
-        // TODO: rename to contains_key (to be like stdlib) or contains_id since RumorStore
-        // has a two-level structure where we tend to use `key` for the first level and `id`
-        // for the second (see RumorKey).
-        pub fn contains_rumor(&self, member_id: &str) -> bool {
+        pub fn contains_id(&self, member_id: &str) -> bool {
             self.map_rumor(member_id, |_| true).unwrap_or(false)
         }
     }
@@ -201,8 +198,7 @@ mod storage {
                            id: member_id,
                            .. } = rumor.into();
 
-            self.service_group(&service_group)
-                .contains_rumor(&member_id)
+            self.service_group(&service_group).contains_id(&member_id)
         }
     }
 

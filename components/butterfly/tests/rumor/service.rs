@@ -9,5 +9,5 @@ fn two_members_share_services() {
     assert!(net[1].service_store
                   .lock_rsr()
                   .service_group("witcher.prod")
-                  .contains_rumor(net[0].member_id()));
+                  .contains_id(net[0].member_id()));
 }

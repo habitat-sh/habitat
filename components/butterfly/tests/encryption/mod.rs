@@ -15,5 +15,5 @@ fn symmetric_encryption_of_wire_payloads() {
     assert!(net[1].service_store
                   .lock_rsr()
                   .service_group("beast.prod",)
-                  .contains_rumor(net[0].member_id()));
+                  .contains_id(net[0].member_id()));
 }

@@ -14,7 +14,7 @@ fn two_members_share_service_files() {
     assert!(net[1].service_file_store
                   .lock_rsr()
                   .service_group("witcher.prod")
-                  .contains_rumor("yeppers"));
+                  .contains_id("yeppers"));
 }
 
 #[test]
@@ -37,5 +37,5 @@ fn service_file_via_client() {
     assert!(net[1].service_file_store
                   .lock_rsr()
                   .service_group("witcher.prod")
-                  .contains_rumor("devil-wears-prada.txt"));
+                  .contains_id("devil-wears-prada.txt"));
 }

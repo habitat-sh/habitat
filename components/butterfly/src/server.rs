@@ -925,7 +925,7 @@ impl Server {
         for (service_group, rumors) in elections.lock_rsr().iter() {
             if service_store.lock_rsr()
                             .service_group(&service_group)
-                            .contains_rumor(myself_member_id)
+                            .contains_id(myself_member_id)
             {
                 // This is safe; there is only one id for an election, and it is "election"
                 let election =
@@ -1027,7 +1027,7 @@ impl Server {
         if self.service_store
                .lock_rsr()
                .service_group(&election.service_group)
-               .contains_rumor(self.member_id())
+               .contains_id(self.member_id())
         {
             trace!("{} is a member of {}",
                    self.member_id(),
@@ -1122,7 +1122,7 @@ impl Server {
         if self.service_store
                .lock_rsr()
                .service_group(&election.service_group)
-               .contains_rumor(self.member_id())
+               .contains_id(self.member_id())
         {
             trace!("{} is a member of {}",
                    self.member_id(),

@@ -11,7 +11,7 @@ fn two_members_share_service_config() {
     assert!(net[1].service_config_store
                   .lock_rsr()
                   .service_group("witcher.prod")
-                  .contains_rumor("service_config"));
+                  .contains_id("service_config"));
 }
 
 #[test]
@@ -33,5 +33,5 @@ fn service_config_via_client() {
     assert!(net[1].service_config_store
                   .lock_rsr()
                   .service_group("witcher.prod")
-                  .contains_rumor("service_config"));
+                  .contains_id("service_config"));
 }
