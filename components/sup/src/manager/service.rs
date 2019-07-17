@@ -400,6 +400,9 @@ impl Service {
         outputln!("Reattaching to {}", self.service_group);
         self.initialized = true;
         self.restart_health_checks(executor);
+        // We intentionally do not restart the `post_run` retry future. Currently, there is not
+        // a way to track if `post_run` ran successfully following a Supervisor restart.
+        // See https://github.com/habitat-sh/habitat/issues/6739
     }
 
     /// Called when stopping the Supervisor for an update. Should
@@ -412,7 +415,10 @@ impl Service {
     ///
     /// See also `Service::reattach`, as these methods should
     /// generally be mirror images of each other.
-    pub fn detach(&mut self) { self.stop_health_checks(); }
+    pub fn detach(&mut self) {
+        self.stop_post_run();
+        self.stop_health_checks();
+    }
 
     /// Return a future that will shut down a service, performing any
     /// necessary cleanup, and run its post-stop hook, if any.
