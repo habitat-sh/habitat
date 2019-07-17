@@ -15,7 +15,8 @@ use habitat_common::{outputln,
                      types::UserInfo};
 #[cfg(unix)]
 use habitat_core::os::users;
-use habitat_core::{fs,
+use habitat_core::{fs::{self,
+                        AtomicWriter},
                    os::process::{self,
                                  Pid},
                    service::ServiceGroup};
@@ -58,7 +59,13 @@ impl Supervisor {
             Some(pid) => Some(pid),
             None => {
                 if self.pid_file.exists() {
-                    Some(read_pid(&self.pid_file).unwrap())
+                    match read_pid(&self.pid_file) {
+                        Ok(pid) => Some(pid),
+                        Err(e) => {
+                            error!("Error reading PID file: {}", e);
+                            None
+                        }
+                    }
                 } else {
                     None
                 }
@@ -235,17 +242,19 @@ impl Supervisor {
 
     /// Create a PID file for a running service
     fn create_pidfile(&self) -> Result<()> {
-        match self.pid {
-            Some(pid) => {
-                debug!("Creating PID file for child {} -> {}",
-                       self.pid_file.display(),
-                       pid);
-                let mut f = File::create(&self.pid_file)?;
-                write!(f, "{}", pid)?;
-                Ok(())
-            }
-            None => Ok(()),
+        if let Some(pid) = self.pid {
+            debug!("Creating PID file for child {} -> {}",
+                   self.pid_file.display(),
+                   pid);
+            let w = AtomicWriter::new(&self.pid_file)?;
+            w.with_writer(|f| {
+                 write!(f, "{}", pid)?;
+                 Ok(())
+             })
+             .map_err(Error::Io)?;
         }
+
+        Ok(())
     }
 
     /// Remove a pidfile for this package if it exists.
