@@ -169,9 +169,11 @@ mod storage {
 
     pub struct IterableGuard<'a, T>(ReadGuard<'a, T>);
 
-    // TODO change R to T to make it clear these aren't rumor-specific
-    impl<'a, R> IterableGuard<'a, RumorMap<R>> {
-        fn read(lock: &'a Lock<RumorMap<R>>) -> Self { IterableGuard(lock.read()) }
+    // This impl block covers a `ReadGuard` over a `RumorMap` structure, but none of these
+    // functions require the contained value to be a rumor, so we use T, not R. Rumor-specific
+    // functionality is a different impl block.
+    impl<'a, T> IterableGuard<'a, RumorMap<T>> {
+        fn read(lock: &'a Lock<RumorMap<T>>) -> Self { IterableGuard(lock.read()) }
 
         /// Allows iterator access to the rumors in to the `RumorMap` while holding its lock:
         /// ```
@@ -182,13 +184,13 @@ mod storage {
         ///     println!("{:?}", rumor);
         /// }
         /// ```
-        pub fn rumors(&self) -> impl Iterator<Item = &R> {
+        pub fn rumors(&self) -> impl Iterator<Item = &T> {
             self.values().map(HashMap::values).flatten()
         }
 
         /// Allows iterator access to the rumors in to the `RumorMap` for a particular service group
         /// while holding its lock.
-        pub fn service_group(&self, service_group: &str) -> ServiceGroupRumors<R> {
+        pub fn service_group(&self, service_group: &str) -> ServiceGroupRumors<T> {
             ServiceGroupRumors(self.get(service_group))
         }
     }
@@ -207,7 +209,7 @@ mod storage {
     impl<'a, E: ElectionRumor> IterableGuard<'a, RumorMap<E>> {
         pub fn get_term(&self, service_group: &str) -> Option<u64> {
             self.get(service_group)
-                .map(|sg| sg.get("election").map(|e| e.term()))
+                .map(|sg| sg.get("election").map(ElectionRumor::term))
                 .unwrap_or(None)
         }
     }

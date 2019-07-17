@@ -1454,11 +1454,6 @@ mod tests {
         assert_eq!(to_restart, vec![(service.service_group.to_string(), term)]);
     }
 
-    // TODO remove and make callers do lock_rsr()
-    impl RumorStore<Service> {
-        fn contains(&self, service: &Service) -> bool { self.lock_rsr().contains_rumor(service) }
-    }
-
     #[test]
     fn insert_service_adds_service_to_service_store() {
         let service = mock_service(&Member::default());
@@ -1472,7 +1467,7 @@ mod tests {
                                     &rumor_heat,
                                     check_quorum_returns(false));
 
-        assert!(service_store.contains(&service));
+        assert!(service_store.lock_rsr().contains_rumor(&service));
     }
 
     #[test]
