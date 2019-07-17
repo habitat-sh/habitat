@@ -80,11 +80,11 @@ An `install` hook, unlike other hooks, will not have access to any census data e
 ###reconfigure
 File location: `<plan>/hooks/reconfigure`
 
-A `reconfigure` hook can be written for processes that can respond to changes in `<plan>/config` without requiring a restart. This hook will execute **instead** of the default behaviour of restarting the process. `{{pkg.svc_pid_file}}` can be used to get a handle on the `PID` of the service.
+A `reconfigure` hook can be written for services that can respond to changes in `<plan>/config` without requiring a restart. This hook will execute **instead** of the default behavior of restarting the process. `{{pkg.svc_pid_file}}` can be used to get the `PID` of the service.
 
-The `reconfigure` hook is not necessarily run on every change to `<plan>/config`. The `reconfigure` hook will not be run if the service restarts before the `reconfigure` hook has run. The restart is considered sufficient for reconfiguring the service. For example, when applying a configuration that changes both the `run` hook and `<plan>/config`, the change to the `run` hook will trigger a restart and therefore the `reconfigure` hook will not be run. 
+Habitat does not support changing the `PID` of the underlying service in any lifecycle hook. If part of a service's reconfiguration relies on changing the `PID`, you should not provide a `reconfigure` hook, and instead, use the default behavior of restarting the service for reconfiguration.
 
-Habitat does not support changing the `PID` of the underlying process in any lifecycle hook. If part of a service's reconfiguration relies on changing the `PID`, you should not provide a `reconfigure` hook and rely on the default behaviour of restarting the service.
+The `reconfigure` hook is not necessarily run on every change to `<plan>/config`. The `reconfigure` hook will not be run if the service restarts before the `reconfigure` hook has run. The restart is considered sufficient for reconfiguring the service. For example, when applying a configuration that changes both the `run` hook and `<plan>/config`, the change to the `run` hook will trigger a restart. Therefore, the `reconfigure` hook will not be run. To put it another way, the `reconfigure` hook will only respond to changes in `<plan>/config` after the service has started.
 
 ###suitability
 File location: `<plan>/hooks/suitability`
