@@ -81,8 +81,11 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     }
 
     net[if paused == 0 { 1 } else { 0 }].election_store
-                                        .assert_rumor_is("witcher.prod", "election", |e| {
-                                            e.term == 1 && e.member_id != paused_id
+                                        .lock_rsr()
+                                        .service_group("witcher.prod")
+                                        .map_rumor("election", |e| {
+                                            assert_eq!(e.term, 1);
+                                            assert_ne!(e.member_id, paused_id);
                                         });
 }
 
@@ -166,8 +169,10 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
           .map_rumor("election", |e| println!("MAJORITY: {:#?}", e));
 
     net[0].election_store
-          .assert_rumor_is("witcher.prod", "election", |e| {
+          .lock_rsr()
+          .service_group("witcher.prod")
+          .map_rumor("election", |e| {
               println!("MINORITY: {:#?}", e);
-              new_leader_id == Some(e.member_id.clone())
+              assert_eq!(new_leader_id.as_ref(), Some(&e.member_id));
           });
 }

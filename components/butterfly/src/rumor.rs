@@ -450,21 +450,6 @@ mod storage {
             list.get_mut(key).and_then(|r| r.remove(id));
         }
 
-        pub fn assert_rumor_is<P>(&self, key: &str, member_id: &str, mut predicate: P)
-            where P: FnMut(&T) -> bool
-        {
-            let list = self.list.read();
-            if let Some(sublist) = list.get(key) {
-                if let Some(rumor) = sublist.get(member_id) {
-                    assert!(predicate(rumor), "{} failed predicate", member_id);
-                } else {
-                    panic!("member_id {} not present", member_id);
-                }
-            } else {
-                panic!("No rumors for {} present", key);
-            }
-        }
-
         pub fn contains_rumor(&self, key: &str, id: &str) -> bool {
             let list = self.list.read();
             list.get(key).and_then(|l| l.get(id)).is_some()
@@ -758,13 +743,15 @@ mod tests {
         }
 
         #[test]
-        fn with_rumor_calls_closure_with_rumor() {
+        fn map_rumor_calls_closure_with_rumor() {
             let rs = create_rumor_store();
             let f1 = FakeRumor::default();
             let member_id = f1.id.clone();
             let key = f1.key.clone();
             rs.insert_rsw(f1);
-            rs.assert_rumor_is(&key, &member_id, |o| o.id == member_id);
+            rs.lock_rsr()
+              .service_group(&key)
+              .map_rumor(&member_id, |o| assert_eq!(o.id, member_id));
         }
 
         #[test]
