@@ -4,6 +4,7 @@
 ## Unreleased
 
 #### Behavioral Changes
+- Cleanup lifecycle restarts and remove reload hook [#6668](https://github.com/habitat-sh/habitat/pull/6668) ([davidMcneil](https://github.com/davidMcneil))
 <!-- 0.83.0 behavioral changes below here -->
 - Add rst-reader back again [#6619](https://github.com/habitat-sh/habitat/pull/6619) ([raskchanky](https://github.com/raskchanky))
 
