@@ -1031,12 +1031,11 @@ impl Server {
             if self.election_store
                    .contains_rumor(election.key(), election.id())
             {
-                let mut new_term = false;
-                self.election_store
-                    .with_rumor(election.key(), election.id(), |ce| {
-                        trace!("election_store already contains {:?}", ce);
-                        new_term = election.term > ce.term
-                    });
+                let new_term = self.election_store
+                                   .lock_rsr()
+                                   .get_term(election.key())
+                                   .map(|stored_term| election.term > stored_term)
+                                   .unwrap_or(false);
                 if new_term {
                     debug!("removing old rumor and starting new election");
                     self.election_store
@@ -1127,12 +1126,11 @@ impl Server {
             if self.update_store
                    .contains_rumor(election.key(), election.id())
             {
-                let mut new_term = false;
-                self.update_store
-                    .with_rumor(election.key(), election.id(), |ce| {
-                        trace!("election_store already contains {:?}", ce);
-                        new_term = election.term > ce.term
-                    });
+                let new_term = self.update_store
+                                   .lock_rsr()
+                                   .get_term(election.key())
+                                   .map(|stored_term| election.term > stored_term)
+                                   .unwrap_or(false);
                 if new_term {
                     debug!("removing old rumor and starting new election");
                     self.update_store.remove_rsw(election.key(), election.id());

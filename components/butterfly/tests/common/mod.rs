@@ -280,15 +280,14 @@ impl SwimNet {
                                     -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
-            let mut result = false;
             let server = self.members
                              .get(e_num)
                              .expect("Asked for a network member who is out of bounds");
-            server.election_store.with_rumor(key, "election", |e| {
-                                     if e.status == status {
-                                         result = true;
-                                     }
-                                 });
+            let result = server.election_store
+                               .lock_rsr()
+                               .service_group(key)
+                               .map_rumor("election", |stored| stored.status == status)
+                               .unwrap_or(false);
             if result {
                 return true;
             }
@@ -303,23 +302,25 @@ impl SwimNet {
     pub fn wait_for_equal_election(&self, left: usize, right: usize, key: &str) -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
-            let mut result = false;
-
             let left_server = self.members
                                   .get(left)
-                                  .expect("Asked for a network member who is out of bounds");
+                                  .expect("Asked for a network member who is out of bounds")
+                                  .election_store
+                                  .lock_rsr();
             let right_server = self.members
                                    .get(right)
-                                   .expect("Asked for a network member who is out of bounds");
+                                   .expect("Asked for a network member who is out of bounds")
+                                   .election_store
+                                   .lock_rsr();
 
-            left_server.election_store.with_rumor(key, "election", |l| {
-                                          right_server.election_store.with_rumor(key,
-                                                                                 "election",
-                                                                                 |r| {
-                                                                                     result =
-                                                                                         l == r;
-                                                                                 });
-                                      });
+            let result = left_server.service_group(key)
+                                    .map_rumor("election", |l| {
+                                        right_server.service_group(key)
+                                                    .map_rumor("election", |r| l == r)
+                                                    .unwrap_or(false)
+                                    })
+                                    .unwrap_or(false);
+
             if result {
                 return true;
             }

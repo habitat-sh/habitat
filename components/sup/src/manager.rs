@@ -1202,9 +1202,9 @@ impl Manager {
     fn gossip_latest_service_rumor_mlw_rsw(&self, service: &Service) {
         let incarnation = self.butterfly
                               .service_store
-                              .map_rumor_rsr(&service.service_group, &self.sys.member_id, |rumor| {
-                                  rumor.incarnation + 1
-                              })
+                              .lock_rsr()
+                              .service_group(&service.service_group)
+                              .map_rumor(&self.sys.member_id, |rumor| rumor.incarnation + 1)
                               .unwrap_or(1);
 
         self.butterfly

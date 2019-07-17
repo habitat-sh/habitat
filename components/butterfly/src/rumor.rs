@@ -18,7 +18,8 @@ use crate::{error::{Error,
                     Result},
             member::Membership,
             protocol::{FromProto,
-                       Message}};
+                       Message},
+            rumor::election::ElectionRumor};
 use bytes::BytesMut;
 use prometheus::IntCounterVec;
 use prost::Message as ProstMessage;
@@ -151,6 +152,12 @@ mod storage {
         pub fn rumors(&self) -> impl Iterator<Item = &R> {
             self.0.iter().map(|m| m.values()).flatten()
         }
+
+        /// Return the result of applying `f` to the rumor in this service_group from
+        /// `member_id`, or `None` if no such rumor is present.
+        pub fn map_rumor<OUT>(&self, member_id: &str, f: impl Fn(&R) -> OUT) -> Option<OUT> {
+            self.0.and_then(|m| m.get(member_id).map(f))
+        }
     }
 
     pub struct IterableGuard<'a, T>(ReadGuard<'a, T>);
@@ -178,6 +185,14 @@ mod storage {
         }
     }
 
+    impl<'a, E: ElectionRumor> IterableGuard<'a, RumorMap<E>> {
+        pub fn get_term(&self, service_group: &str) -> Option<u64> {
+            self.get(service_group)
+                .map(|sg| sg.get("election").map(|e| e.term()))
+                .unwrap_or(None)
+        }
+    }
+
     /// Allows ergonomic use of the guard for accessing the guarded `RumorMap`:
     /// ```
     /// # use habitat_butterfly::rumor::{Departure,
@@ -202,23 +217,6 @@ mod storage {
     }
 
     impl<T: Rumor> RumorStore<T> {
-        /// Return the result of applying `op` to the rumor indexed by `service_group` and
-        /// `member_id`, or `None` if no such rumor is present.
-        ///
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
-        pub fn map_rumor_rsr<U>(&self,
-                                service_group: &str,
-                                member_id: &str,
-                                op: impl Fn(&T) -> U)
-                                -> Option<U> {
-            self.list
-                .read()
-                .get(service_group)
-                .and_then(|sg_rumors| sg_rumors.get(member_id).map(op))
-        }
-
         /// # Locking
         /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
         ///   lock is held.
@@ -404,7 +402,9 @@ mod storage {
         /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
         ///   lock is held.
         pub fn encode_rsr(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
-            self.map_rumor_rsr(key, member_id, T::write_to_bytes)
+            self.lock_rsr()
+                .service_group(key)
+                .map_rumor(member_id, T::write_to_bytes)
                 .unwrap_or_else(|| {
                     Err(Error::NonExistentRumor(String::from(member_id), String::from(key)))
                 })
@@ -448,17 +448,6 @@ mod storage {
         pub fn remove_rsw(&self, key: &str, id: &str) {
             let mut list = self.list.write();
             list.get_mut(key).and_then(|r| r.remove(id));
-        }
-
-        pub fn with_rumor<F>(&self, key: &str, member_id: &str, mut with_closure: F)
-            where F: FnMut(&T)
-        {
-            let list = self.list.read();
-            if let Some(sublist) = list.get(key) {
-                if let Some(rumor) = sublist.get(member_id) {
-                    with_closure(rumor);
-                }
-            }
         }
 
         pub fn assert_rumor_is<P>(&self, key: &str, member_id: &str, mut predicate: P)
@@ -738,9 +727,13 @@ mod tests {
             assert!(rs.insert_rsw(f1));
             assert!(rs.insert_rsw(f2));
             assert_eq!(rs.lock_rsr().len(), 1);
-            assert_eq!(rs.map_rumor_rsr(&key, &f1_id, |r| r.id.clone()),
+            assert_eq!(rs.lock_rsr()
+                         .service_group(&key)
+                         .map_rumor(&f1_id, |r| r.id.clone()),
                        Some(f1_id));
-            assert_eq!(rs.map_rumor_rsr(&key, &f2_id, |r| r.id.clone()),
+            assert_eq!(rs.lock_rsr()
+                         .service_group(&key)
+                         .map_rumor(&f2_id, |r| r.id.clone()),
                        Some(f2_id));
         }
 
