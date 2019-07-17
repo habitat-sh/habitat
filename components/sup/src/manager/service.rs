@@ -826,7 +826,7 @@ impl Service {
                                               self.service_group.clone(),
                                               self.pkg.clone(),
                                               self.svc_encrypted_password.clone());
-            let (handle, f) = hook_runner.retriable_future();
+            let (handle, f) = hook_runner.retryable_future();
             self.post_run_handle = Some(handle);
             executor.spawn(f);
         }

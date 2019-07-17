@@ -58,13 +58,13 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
                      passwd }
     }
 
-    pub fn retriable_future(&self) -> (FutureHandle, impl Future<Item = (), Error = ()>) {
+    pub fn retryable_future(&self) -> (FutureHandle, impl Future<Item = (), Error = ()>) {
         let f = future::loop_fn(self.clone(), |hook_runner| {
             hook_runner.clone()
                        .into_future()
                        .map(move |(exit_value, _duration)| {
-                           if <H as Hook>::should_retry(&exit_value) {
-                               debug!("retrying the '{}' hook", <H as Hook>::file_name());
+                           if H::should_retry(&exit_value) {
+                               debug!("retrying the '{}' hook", H::file_name());
                                Loop::Continue(hook_runner)
                            } else {
                                Loop::Break(())
