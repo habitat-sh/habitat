@@ -80,8 +80,6 @@ pub enum Error {
     PackageNotFound(package::PackageIdent),
     PackageNotRunnable(package::PackageIdent),
     Permissions(String),
-    PidFileCorrupt(PathBuf),
-    PidFileIO(PathBuf, io::Error),
     ProcessLockCorrupt,
     ProcessLocked(Pid),
     ProcessLockIO(PathBuf, io::Error),
@@ -199,12 +197,6 @@ impl fmt::Display for Error {
                 }
             }
             Error::PackageNotRunnable(ref pkg) => format!("Package is not runnable: {}", pkg),
-            Error::PidFileCorrupt(ref path) => {
-                format!("Unable to decode contents of PID file, {}", path.display())
-            }
-            Error::PidFileIO(ref path, ref err) => {
-                format!("Unable to read PID file, {}, {}", path.display(), err)
-            }
             Error::ProcessLockCorrupt => "Unable to decode contents of process lock".to_string(),
             Error::ProcessLocked(ref pid) => {
                 format!("Unable to start Habitat Supervisor because another instance is already \

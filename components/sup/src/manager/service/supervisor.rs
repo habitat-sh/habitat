@@ -15,8 +15,7 @@ use habitat_common::{outputln,
                      types::UserInfo};
 #[cfg(unix)]
 use habitat_core::os::users;
-use habitat_core::{fs::{self,
-                        AtomicWriter},
+use habitat_core::{fs,
                    os::process::{self,
                                  Pid},
                    service::ServiceGroup};
@@ -26,8 +25,7 @@ use serde::{ser::SerializeStruct,
             Serializer};
 use std::{fs::File,
           io::{BufRead,
-               BufReader,
-               Write},
+               BufReader},
           path::{Path,
                  PathBuf},
           result};
@@ -55,34 +53,25 @@ impl Supervisor {
 
     /// Check if the child process is running
     pub fn check_process(&mut self) -> bool {
-        let pid = match self.pid {
-            Some(pid) => Some(pid),
-            None => {
-                if self.pid_file.exists() {
-                    match read_pid(&self.pid_file) {
-                        Ok(pid) => Some(pid),
-                        Err(e) => {
-                            error!("Error reading PID file: {}", e);
-                            None
-                        }
-                    }
-                } else {
-                    None
-                }
-            }
-        };
-        if let Some(pid) = pid {
-            if process::is_alive(pid) {
-                self.change_state(ProcessState::Up);
-                self.pid = Some(pid);
-                return true;
-            }
+        self.pid = self.pid
+                       .or_else(|| read_pid(&self.pid_file))
+                       .and_then(|pid| {
+                           if process::is_alive(pid) {
+                               Some(pid)
+                           } else {
+                               debug!("Could not find a live process with PID: {:?}", pid);
+                               None
+                           }
+                       });
+
+        if self.pid.is_some() {
+            self.change_state(ProcessState::Up);
+        } else {
+            self.change_state(ProcessState::Down);
+            self.cleanup_pidfile();
         }
-        debug!("Could not find a live process with pid {:?}", self.pid);
-        self.change_state(ProcessState::Down);
-        self.cleanup_pidfile();
-        self.pid = None;
-        false
+
+        self.pid.is_some()
     }
 
     // NOTE: the &self argument is only used to get access to
@@ -246,12 +235,7 @@ impl Supervisor {
             debug!("Creating PID file for child {} -> {}",
                    self.pid_file.display(),
                    pid);
-            let w = AtomicWriter::new(&self.pid_file)?;
-            w.with_writer(|f| {
-                 write!(f, "{}", pid)?;
-                 Ok(())
-             })
-             .map_err(Error::Io)?;
+            fs::atomic_write(&self.pid_file, pid.to_string())?;
         }
 
         Ok(())
@@ -293,22 +277,37 @@ impl Serialize for Supervisor {
     }
 }
 
-fn read_pid<T>(pid_file: T) -> Result<Pid>
+fn read_pid<T>(pid_file: T) -> Option<Pid>
     where T: AsRef<Path>
 {
-    match File::open(pid_file.as_ref()) {
+    let p = pid_file.as_ref();
+
+    match File::open(p) {
         Ok(file) => {
             let reader = BufReader::new(file);
             match reader.lines().next() {
                 Some(Ok(line)) => {
                     match line.parse::<Pid>() {
-                        Ok(pid) => Ok(pid),
-                        Err(_) => Err(Error::PidFileCorrupt(pid_file.as_ref().to_path_buf())),
+                        Ok(pid) => Some(pid),
+                        Err(_) => {
+                            error!("Unable to decode contents of PID file: {}", p.display());
+                            None
+                        }
                     }
                 }
-                _ => Err(Error::PidFileCorrupt(pid_file.as_ref().to_path_buf())),
+                _ => {
+                    error!("Unable to decode contents of PID file: {}", p.display());
+                    None
+                }
             }
         }
-        Err(err) => Err(Error::PidFileIO(pid_file.as_ref().to_path_buf(), err)),
+        Err(ref err) if err.kind() == std::io::ErrorKind::NotFound => {
+            error!("PID file not found: {}", p.display());
+            None
+        }
+        Err(_) => {
+            error!("Error reading PID file: {}", p.display());
+            None
+        }
     }
 }
