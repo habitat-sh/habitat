@@ -923,7 +923,10 @@ impl Server {
         let mut elections_to_restart = vec![];
 
         for (service_group, rumors) in elections.lock_rsr().iter() {
-            if service_store.contains_rumor(&service_group, myself_member_id) {
+            if service_store.lock_rsr()
+                            .service_group(&service_group)
+                            .contains_rumor(myself_member_id)
+            {
                 // This is safe; there is only one id for an election, and it is "election"
                 let election =
                     rumors.get("election")
@@ -1022,15 +1025,15 @@ impl Server {
 
         // If this is an election for a service group we care about
         if self.service_store
-               .contains_rumor(&election.service_group, self.member_id())
+               .lock_rsr()
+               .service_group(&election.service_group)
+               .contains_rumor(self.member_id())
         {
             trace!("{} is a member of {}",
                    self.member_id(),
                    election.service_group);
             // And the election store already has an election rumor for this election
-            if self.election_store
-                   .contains_rumor(election.key(), election.id())
-            {
+            if self.election_store.lock_rsr().contains_rumor(&election) {
                 let new_term = self.election_store
                                    .lock_rsr()
                                    .get_term(election.key())
@@ -1117,15 +1120,15 @@ impl Server {
 
         // If this is an election for a service group we care about
         if self.service_store
-               .contains_rumor(&election.service_group, self.member_id())
+               .lock_rsr()
+               .service_group(&election.service_group)
+               .contains_rumor(self.member_id())
         {
             trace!("{} is a member of {}",
                    self.member_id(),
                    election.service_group);
             // And the election store already has an election rumor for this election
-            if self.update_store
-                   .contains_rumor(election.key(), election.id())
-            {
+            if self.update_store.lock_rsr().contains_rumor(&election) {
                 let new_term = self.update_store
                                    .lock_rsr()
                                    .get_term(election.key())
@@ -1451,14 +1454,9 @@ mod tests {
         assert_eq!(to_restart, vec![(service.service_group.to_string(), term)]);
     }
 
+    // TODO remove and make callers do lock_rsr()
     impl RumorStore<Service> {
-        fn contains(&self, service: &Service) -> bool {
-            let RumorKey { key: service_group,
-                           id: member_id,
-                           .. } = RumorKey::from(service);
-
-            self.contains_rumor(&service_group, &member_id)
-        }
+        fn contains(&self, service: &Service) -> bool { self.lock_rsr().contains_rumor(service) }
     }
 
     #[test]

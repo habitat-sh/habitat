@@ -158,10 +158,18 @@ mod storage {
         pub fn map_rumor<OUT>(&self, member_id: &str, f: impl Fn(&R) -> OUT) -> Option<OUT> {
             self.0.and_then(|m| m.get(member_id).map(f))
         }
+
+        // TODO: rename to contains_key (to be like stdlib) or contains_id since RumorStore
+        // has a two-level structure where we tend to use `key` for the first level and `id`
+        // for the second (see RumorKey).
+        pub fn contains_rumor(&self, member_id: &str) -> bool {
+            self.map_rumor(member_id, |_| true).unwrap_or(false)
+        }
     }
 
     pub struct IterableGuard<'a, T>(ReadGuard<'a, T>);
 
+    // TODO change R to T to make it clear these aren't rumor-specific
     impl<'a, R> IterableGuard<'a, RumorMap<R>> {
         fn read(lock: &'a Lock<RumorMap<R>>) -> Self { IterableGuard(lock.read()) }
 
@@ -182,6 +190,17 @@ mod storage {
         /// while holding its lock.
         pub fn service_group(&self, service_group: &str) -> ServiceGroupRumors<R> {
             ServiceGroupRumors(self.get(service_group))
+        }
+    }
+
+    impl<'a, R: Rumor> IterableGuard<'a, RumorMap<R>> {
+        pub fn contains_rumor(&self, rumor: &R) -> bool {
+            let RumorKey { key: service_group,
+                           id: member_id,
+                           .. } = rumor.into();
+
+            self.service_group(&service_group)
+                .contains_rumor(&member_id)
         }
     }
 
@@ -448,11 +467,6 @@ mod storage {
         pub fn remove_rsw(&self, key: &str, id: &str) {
             let mut list = self.list.write();
             list.get_mut(key).and_then(|r| r.remove(id));
-        }
-
-        pub fn contains_rumor(&self, key: &str, id: &str) -> bool {
-            let list = self.list.read();
-            list.get(key).and_then(|l| l.get(id)).is_some()
         }
 
         /// Increment the update counter for this store.
@@ -752,12 +766,6 @@ mod tests {
             rs.lock_rsr()
               .service_group(&key)
               .map_rumor(&member_id, |o| assert_eq!(o.id, member_id));
-        }
-
-        #[test]
-        fn with_rumor_calls_closure_with_none_if_rumor_missing() {
-            let rs = create_rumor_store();
-            assert!(!rs.contains_rumor("bar", "foo"));
         }
     }
 }
