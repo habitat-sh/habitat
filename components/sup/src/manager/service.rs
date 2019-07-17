@@ -405,10 +405,11 @@ impl Service {
         // See https://github.com/habitat-sh/habitat/issues/6739
     }
 
-    /// Called when stopping the Supervisor for an update. Should
-    /// *not* stop the service process itself, but should stop any
-    /// associated processes, futures, etc., that would otherwise
-    /// prevent the Supervisor from shutting itself down.
+    /// Called when stopping the Supervisor for an update and
+    /// before stopping a service. Should *not* stop the service
+    /// process itself, but should stop any associated processes,
+    /// futures, etc., that would otherwise prevent the Supervisor
+    /// from shutting itself down.
     ///
     /// Currently, this means stopping any associated long-running
     /// futures.
@@ -425,9 +426,7 @@ impl Service {
     pub fn stop(&mut self,
                 shutdown_config: ShutdownConfig)
                 -> impl Future<Item = (), Error = Error> {
-        // If the post run hook is still being retried, make sure we stop it.
-        self.stop_post_run();
-        self.stop_health_checks();
+        self.detach();
 
         let service_group = self.service_group.clone();
         let gs = Arc::clone(&self.gateway_state);
