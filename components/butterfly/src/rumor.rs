@@ -190,15 +190,33 @@ mod storage {
         pub fn service_group(&self, service_group: &str) -> ServiceGroupRumors<T> {
             ServiceGroupRumors(self.get(service_group))
         }
+
+        /// Return the result of applying `f` to the rumor accessible with the provided key or
+        /// `None` if no such rumor is present.
+        fn map_key<OUT>(&self,
+                        RumorKey { key, id, .. }: &RumorKey,
+                        f: impl Fn(&T) -> OUT)
+                        -> Option<OUT> {
+            self.service_group(key).0.and_then(|m| m.get(id).map(f))
+        }
     }
 
     impl<'a, R: Rumor> IterableGuard<'a, RumorMap<R>> {
         pub fn contains_rumor(&self, rumor: &R) -> bool {
-            let RumorKey { key: service_group,
-                           id: member_id,
-                           .. } = rumor.into();
+            let RumorKey { key, id, .. } = rumor.into();
 
-            self.service_group(&service_group).contains_id(&member_id)
+            self.service_group(&key).contains_id(&id)
+        }
+
+        /// Return the bytesteam encoding of the rumor for the given key if present
+        ///
+        /// # Errors
+        /// * Error::NonExistentRumor if no rumor is stored for the key
+        pub fn encode_rumor_for(&self, key: &RumorKey) -> Result<Vec<u8>> {
+            self.map_key(key, R::write_to_bytes)
+                .unwrap_or_else(|| {
+                    Err(Error::NonExistentRumor(String::from(&key.id), String::from(&key.key)))
+                })
         }
     }
 
@@ -415,18 +433,6 @@ mod storage {
     }
 
     impl<T: Rumor> RumorStore<T> {
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
-        pub fn encode_rsr(&self, key: &str, member_id: &str) -> Result<Vec<u8>> {
-            self.lock_rsr()
-                .service_group(key)
-                .map_rumor(member_id, T::write_to_bytes)
-                .unwrap_or_else(|| {
-                    Err(Error::NonExistentRumor(String::from(member_id), String::from(key)))
-                })
-        }
-
         pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
 
         /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
@@ -569,14 +575,13 @@ impl From<RumorEnvelope> for ProtoRumor {
 
 #[cfg(test)]
 mod tests {
-    use uuid::Uuid;
-
     use crate::{error::Result,
                 protocol::{self,
                            newscast},
                 rumor::{Rumor,
                         RumorKey,
                         RumorType}};
+    use uuid::Uuid;
 
     #[derive(Clone, Debug, Serialize)]
     pub struct FakeRumor {
@@ -667,7 +672,7 @@ mod tests {
     }
 
     mod rumor_store {
-        use super::FakeRumor;
+        use super::*;
         use crate::{error::Error,
                     rumor::{Rumor,
                             RumorStore}};
@@ -694,18 +699,23 @@ mod tests {
             let rs = create_rumor_store();
             let f = FakeRumor { id:  "foo".to_string(),
                                 key: "bar".to_string(), };
-            let key = String::from(f.key());
-            let id = String::from(f.id());
+            let key = RumorKey::from(&f);
             rs.insert_rsw(f);
 
-            assert_eq!(rs.encode_rsr(&key, &id).unwrap(), b"foo-bar".to_vec());
+            assert_eq!(rs.lock_rsr().encode_rumor_for(&key).unwrap(),
+                       b"foo-bar".to_vec());
         }
 
         #[test]
         fn encode_non_existant() {
             let rs = create_rumor_store();
+            let f = FakeRumor { id:  "foo".to_string(),
+                                key: "bar".to_string(), };
+            let key = RumorKey::from(&f);
+            // Note, f is never inserted into rs
 
-            if let Err(Error::NonExistentRumor(..)) = rs.encode_rsr("non", "existant") {
+            let result = rs.lock_rsr().encode_rumor_for(&key);
+            if let Err(Error::NonExistentRumor(..)) = result {
                 // pass
             } else {
                 panic!("Expected Error:NonExistentRumor");

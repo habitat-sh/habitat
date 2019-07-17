@@ -191,9 +191,7 @@ fn send_rumors_mlr_rsr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 //           TraceKind::SendRumor,
                 //           &member.id,
                 //           &send_rumor);
-                match server.service_store
-                            .encode_rsr(&rumor_key.key, &rumor_key.id)
-                {
+                match server.service_store.lock_rsr().encode_rumor_for(&rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \
@@ -212,7 +210,8 @@ fn send_rumors_mlr_rsr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 //           &member.id,
                 //           &send_rumor);
                 match server.service_config_store
-                            .encode_rsr(&rumor_key.key, &rumor_key.id)
+                            .lock_rsr()
+                            .encode_rumor_for(&rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -232,7 +231,8 @@ fn send_rumors_mlr_rsr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 //           &member.id,
                 //           &send_rumor);
                 match server.service_file_store
-                            .encode_rsr(&rumor_key.key, &rumor_key.id)
+                            .lock_rsr()
+                            .encode_rumor_for(&rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -248,7 +248,8 @@ fn send_rumors_mlr_rsr(server: &Server, member: &Member, rumors: &[RumorKey]) {
             }
             RumorType::Departure => {
                 match server.departure_store
-                            .encode_rsr(&rumor_key.key, &rumor_key.id)
+                            .lock_rsr()
+                            .encode_rumor_for(&rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -268,7 +269,8 @@ fn send_rumors_mlr_rsr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 //           &member.id,
                 //           &send_rumor);
                 match server.election_store
-                            .encode_rsr(&rumor_key.key, &rumor_key.id)
+                            .lock_rsr()
+                            .encode_rumor_for(&rumor_key)
                 {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -283,9 +285,7 @@ fn send_rumors_mlr_rsr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::ElectionUpdate => {
-                match server.update_store
-                            .encode_rsr(&rumor_key.key, &rumor_key.id)
-                {
+                match server.update_store.lock_rsr().encode_rumor_for(&rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
                         error!("Could not write our own rumor to bytes; abandoning sending \
