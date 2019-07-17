@@ -1126,6 +1126,7 @@ impl Manager {
     /// # Locking
     /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
     ///   lock is held.
+    #[rustfmt::skip]
     fn take_services_with_updates_mlr(&mut self) -> Vec<Service> {
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
 
@@ -1134,8 +1135,10 @@ impl Manager {
                                      .write()
                                      .expect("Services lock is poisoned!");
         let idents_to_restart: Vec<_> = state_services.iter()
-                                                      .filter_map(|(current_ident, service)| {
-                                                          if let Some(new_ident) =
+            .filter_map(|(current_ident, service)| {
+                if service.needs_restart {
+                    Some(current_ident.clone())
+                } else if let Some(new_ident) =
                     updater.check_for_updated_package_mlr(&service, &self.census_ring)
                 {
                     outputln!("Updating from {} to {}", current_ident, new_ident);
@@ -1145,8 +1148,8 @@ impl Manager {
                     trace!("No update found for {}", current_ident);
                     None
                 }
-                                                      })
-                                                      .collect();
+            })
+            .collect();
 
         let mut services_to_restart = Vec::with_capacity(idents_to_restart.len());
         for current_ident in idents_to_restart {

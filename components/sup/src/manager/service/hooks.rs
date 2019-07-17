@@ -222,6 +222,7 @@ impl Hook for PostRunHook {
     fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
+/// This hook is deprecated and will be removed in a future release.
 #[derive(Debug, Serialize)]
 pub struct ReloadHook {
     render_pair:     RenderPair,
@@ -418,6 +419,56 @@ impl Hook for PostStopHook {
     fn stderr_log_path(&self) -> &Path { &self.stderr_log_path }
 }
 
+/// A lookup of hooks that have changed after compilation.
+#[derive(Default)]
+pub struct HookCompileTable {
+    health_check: bool,
+    init:         bool,
+    file_updated: bool,
+    reload:       bool,
+    reconfigure:  bool,
+    suitability:  bool,
+    run:          bool,
+    post_run:     bool,
+    post_stop:    bool,
+}
+
+impl HookCompileTable {
+    pub fn new() -> Self { Self::default() }
+
+    pub fn reload_changed(&self) -> bool { self.reload }
+
+    pub fn reconfigure_changed(&self) -> bool { self.reconfigure }
+
+    pub fn run_changed(&self) -> bool { self.run }
+
+    pub fn post_run_changed(&self) -> bool { self.post_run }
+
+    pub fn changed(&self) -> bool {
+        match self {
+            Self { health_check,
+                   init,
+                   file_updated,
+                   reload,
+                   reconfigure,
+                   suitability,
+                   run,
+                   post_run,
+                   post_stop, } => {
+                *health_check
+                || *init
+                || *file_updated
+                || *reload
+                || *reconfigure
+                || *suitability
+                || *run
+                || *post_run
+                || *post_stop
+            }
+        }
+    }
+}
+
 // Hooks wrapped in Arcs represent a possibly-temporary state while we
 // refactor hooks to be able to run asynchronously.
 #[derive(Debug, Default, Serialize)]
@@ -463,40 +514,37 @@ impl HookTable {
     }
 
     /// Compile all loaded hooks from the table into their destination service directory.
-    ///
-    /// Returns `true` if compiling any of the hooks resulted in new
-    /// content being written to the hook scripts on disk.
-    pub fn compile<T>(&self, service_group: &str, ctx: &T) -> bool
+    pub fn compile<T>(&self, service_group: &str, ctx: &T) -> HookCompileTable
         where T: Serialize
     {
         debug!("{:?}", self);
-        let mut changed = false;
+        let mut changed = HookCompileTable::new();
         if let Some(ref hook) = self.file_updated {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.file_updated = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.health_check {
-            changed |= self.compile_one(hook.as_ref(), service_group, ctx);
+            changed.health_check = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         if let Some(ref hook) = self.init {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.init = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reload {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.reload |= self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.reconfigure {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.reconfigure = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.suitability {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.suitability = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.run {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.run = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_run {
-            changed |= self.compile_one(hook, service_group, ctx);
+            changed.post_run = self.compile_one(hook, service_group, ctx);
         }
         if let Some(ref hook) = self.post_stop {
-            changed |= self.compile_one(hook.as_ref(), service_group, ctx);
+            changed.post_stop = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         changed
     }
@@ -565,8 +613,8 @@ mod tests {
                       HealthCheckHook
                       InitHook
                       PostRunHook
-                      ReconfigureHook
                       ReloadHook
+                      ReconfigureHook
                       RunHook
                       SuitabilityHook
                       PostStopHook);
@@ -673,7 +721,7 @@ mod tests {
         ////////////////////////////////////////////////////////////////////////
 
         let hook_table = HookTable::load(&service_group, &template_path, &hooks_path);
-        assert_eq!(hook_table.compile(&service_group, &ctx), true);
+        assert!(hook_table.compile(&service_group, &ctx).changed());
 
         // Verify init hook
         let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
@@ -686,7 +734,7 @@ mod tests {
         assert_eq!(run_hook_content, expected_run_hook);
 
         // Recompiling again results in no changes
-        assert_eq!(hook_table.compile(&service_group, &ctx), false);
+        assert!(!hook_table.compile(&service_group, &ctx).changed());
 
         // Re-Verify init hook
         let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));

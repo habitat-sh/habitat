@@ -82,6 +82,11 @@ pub trait Hook: fmt::Debug + Sized + Send {
         let has_template = template.exists();
         let has_deprecated_template = deprecated_template.as_ref().map_or(false, |t| t.exists());
 
+        if has_template && file_name == "reload" {
+            outputln!(preamble package_name, "The '{}' hook has been deprecated. You should use the 'reconfigure' hook instead.",
+                file_name);
+        }
+
         let template_to_use = if has_template {
             if has_deprecated_template {
                 outputln!(preamble package_name,

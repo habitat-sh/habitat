@@ -207,32 +207,6 @@ impl Supervisor {
         }
     }
 
-    pub fn restart(&mut self,
-                   pkg: &Pkg,
-                   group: &ServiceGroup,
-                   launcher: &LauncherCli,
-                   svc_password: Option<&str>)
-                   -> Result<()> {
-        match self.pid {
-            Some(pid) => {
-                match launcher.restart(pid) {
-                    Ok(pid) => {
-                        self.pid = Some(pid);
-                        self.create_pidfile()?;
-                        self.change_state(ProcessState::Up);
-                        Ok(())
-                    }
-                    Err(err) => {
-                        self.cleanup_pidfile();
-                        self.change_state(ProcessState::Down);
-                        Err(Error::Launcher(err))
-                    }
-                }
-            }
-            None => self.start(pkg, group, launcher, svc_password),
-        }
-    }
-
     /// Create a PID file for a running service
     fn create_pidfile(&self) -> Result<()> {
         match self.pid {
