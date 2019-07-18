@@ -91,6 +91,8 @@ helpers do
   end
 end
 
+activate :sprockets
+
 configure :development do
 
   # Reload the browser automatically whenever files change

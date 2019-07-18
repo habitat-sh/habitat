@@ -214,7 +214,7 @@ DEPENDENCIES
   middleman-livereload
   middleman-minify-html
   middleman-s3_sync
-  middleman-sprockets (>= 4.0.0.rc.1)
+  middleman-sprockets
   middleman-vegas
   mime-types
   pry
