@@ -25,6 +25,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Fix javascript generation in the web site [#6742](https://github.com/habitat-sh/habitat/pull/6742) ([raskchanky](https://github.com/raskchanky))
 - Make PID file handling a little more robust. [#6738](https://github.com/habitat-sh/habitat/pull/6738) ([raskchanky](https://github.com/raskchanky))
 - Updating reference hooks document... [#6716](https://github.com/habitat-sh/habitat/pull/6716) ([mike10010100](https://github.com/mike10010100))
 - Add license acceptance to kernel2 Vagrant file [#6733](https://github.com/habitat-sh/habitat/pull/6733) ([christophermaier](https://github.com/christophermaier))
