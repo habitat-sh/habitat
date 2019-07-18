@@ -3,7 +3,7 @@ build: clean
 	# Due to bug in ruby 2.x, need to install same version of bundler lock file was built with
 	gem install bundler --version 2.0.1
 	bundle install
-	bundle exec middleman build --no-parallel
+	bundle exec middleman build
 .PHONY: build
 
 clean:
