@@ -5,7 +5,7 @@ use std::{error,
           path::PathBuf,
           result};
 
-use hyper;
+use reqwest;
 use serde_json;
 use url;
 
@@ -16,12 +16,12 @@ pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    APIError(hyper::status::StatusCode, String),
+    APIError(reqwest::StatusCode, String),
     BadResponseBody(io::Error),
     DownloadWrite(PathBuf, io::Error),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),
-    HyperError(hyper::error::Error),
+    ReqwestError(reqwest::Error),
     IO(io::Error),
     Json(serde_json::Error),
     KeyReadError(PathBuf, io::Error),
@@ -48,7 +48,7 @@ impl fmt::Display for Error {
             }
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HabitatHttpClient(ref e) => format!("{}", e),
-            Error::HyperError(ref err) => format!("{}", err),
+            Error::ReqwestError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
             Error::Json(ref e) => format!("{}", e),
             Error::KeyReadError(ref p, ref e) => {
@@ -85,7 +85,7 @@ impl error::Error for Error {
             Error::DownloadWrite(..) => "Failed to write response contents to file",
             Error::HabitatCore(ref err) => err.description(),
             Error::HabitatHttpClient(ref err) => err.description(),
-            Error::HyperError(ref err) => err.description(),
+            Error::ReqwestError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::Json(ref err) => err.description(),
             Error::KeyReadError(..) => "Failed to read origin key from disk",
@@ -116,8 +116,8 @@ impl From<hab_http::Error> for Error {
     fn from(err: hab_http::Error) -> Error { Error::HabitatHttpClient(err) }
 }
 
-impl From<hyper::error::Error> for Error {
-    fn from(err: hyper::error::Error) -> Error { Error::HyperError(err) }
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Error { Error::ReqwestError(err) }
 }
 
 impl From<io::Error> for Error {

@@ -1,6 +1,5 @@
 fn main() { inner::main() }
 
-#[cfg(not(target_os = "macos"))]
 mod inner {
     use std::{env,
               fs,
@@ -13,9 +12,4 @@ mod inner {
             fs::copy(src, dst).unwrap();
         }
     }
-}
-
-#[cfg(target_os = "macos")]
-mod inner {
-    pub fn main() {}
 }

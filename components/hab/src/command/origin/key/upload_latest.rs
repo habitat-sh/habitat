@@ -11,7 +11,7 @@ use crate::{api_client::{self,
                             SigKeyPair,
                             PUBLIC_SIG_KEY_VERSION,
                             SECRET_SIG_KEY_VERSION}};
-use hyper::status::StatusCode;
+use reqwest::StatusCode;
 
 use super::get_name_with_rev;
 use crate::{PRODUCT,
@@ -34,7 +34,7 @@ pub fn start(ui: &mut UI,
 
     match api_client.put_origin_key(&name, &rev, &public_keyfile, token, ui.progress()) {
         Ok(()) => ui.status(Status::Uploaded, &name_with_rev)?,
-        Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
+        Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
             ui.status(Status::Using,
                       format!("public key revision {} which already exists in the depot",
                               &name_with_rev))?;

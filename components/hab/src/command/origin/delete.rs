@@ -7,7 +7,7 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
-use hyper::status::StatusCode;
+use reqwest::StatusCode;
 
 pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
@@ -19,11 +19,11 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<(
             ui.status(Status::Deleted, format!("origin {}.", origin))
               .map_err(Error::from)
         }
-        Err(api_client::Error::APIError(StatusCode::Conflict, msg)) => {
+        Err(api_client::Error::APIError(StatusCode::CONFLICT, msg)) => {
             ui.fatal(format!("Unable to delete origin {}", origin))?;
             ui.fatal("Origins may only be deleted if they have no packages, linked projects")?;
             ui.fatal("or other dependencies. Please check your origin and try again.")?;
-            Err(Error::APIClient(api_client::Error::APIError(StatusCode::Conflict, msg)))
+            Err(Error::APIClient(api_client::Error::APIError(StatusCode::CONFLICT, msg)))
         }
         Err(e) => {
             ui.fatal(format!("Failed to delete origin {}, {:?}", origin, e))?;

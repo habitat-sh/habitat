@@ -27,12 +27,11 @@ habitat-sup-client = { path = "../sup-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.
 handlebars = { version = "0.29.1", default-features = false }
-# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
-hyper = "0.10"
 lazy_static = "*"
 libc = "*"
 log = "*"
 pbr = "*"
+reqwest = "*"
 retry = "*"
 serde = "*"
 serde_derive = "*"

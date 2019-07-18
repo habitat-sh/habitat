@@ -8,19 +8,18 @@ use std::{fmt,
           string::ToString};
 
 use broadcast::BroadcastWriter;
-use hyper::{client::{Body,
-                     IntoUrl,
-                     RequestBuilder,
-                     Response},
-            header::{Accept,
-                     Authorization,
-                     Bearer,
-                     ContentType},
-            status::StatusCode,
-            Url};
+
+use reqwest::{header::CONTENT_LENGTH,
+              Body,
+              IntoUrl,
+              RequestBuilder,
+              Response,
+              StatusCode};
+
 use tee::TeeReader;
-use url::percent_encoding::{percent_encode,
-                            PATH_SEGMENT_ENCODE_SET};
+use url::{percent_encoding::{percent_encode,
+                             PATH_SEGMENT_ENCODE_SET},
+          Url};
 
 use crate::{error::{Error,
                     Result},
@@ -31,8 +30,7 @@ use crate::{error::{Error,
                                  PackageIdent,
                                  PackageTarget},
                        ChannelIdent},
-            hab_http::{util::decoded_response,
-                       ApiClient},
+            hab_http::ApiClient,
             BoxedClient,
             BuilderAPIProvider,
             DisplayProgress,
@@ -41,8 +39,7 @@ use crate::{error::{Error,
             ReverseDependencies,
             SchedulerResponse};
 
-header! { (XFileName, "X-Filename") => [String] }
-header! { (ETag, "ETag") => [String] }
+const X_FILENAME: &str = "x-filename";
 
 const DEFAULT_API_PATH: &str = "/v1";
 
@@ -152,7 +149,7 @@ impl BuilderAPIClient {
                   -> Result<Self>
         where U: IntoUrl
     {
-        let mut endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
+        let mut endpoint = endpoint.into_url().map_err(Error::ReqwestError)?;
         if !endpoint.cannot_be_a_base() && endpoint.path() == "/" {
             endpoint.set_path(DEFAULT_API_PATH);
         }
@@ -173,57 +170,60 @@ impl BuilderAPIClient {
         Self::new(endpoint, product, version, fs_root_path).map(|c| Box::new(c) as _)
     }
 
-    fn maybe_add_authz<'a>(&'a self,
-                           rb: RequestBuilder<'a>,
-                           token: Option<&str>)
-                           -> RequestBuilder<'_> {
+    fn maybe_add_authz(&self, rb: RequestBuilder, token: Option<&str>) -> RequestBuilder {
         if token.is_some() {
-            rb.header(Authorization(Bearer { token: token.unwrap().to_string(), }))
+            rb.bearer_auth(token.unwrap().to_string())
         } else {
             rb
         }
     }
 
-    fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder<'_> {
-        rb.header(Authorization(Bearer { token: token.to_string(), }))
+    fn add_authz(&self, rb: RequestBuilder, token: &str) -> RequestBuilder {
+        rb.bearer_auth(token.to_string())
     }
 
-    fn download<'a>(&'a self,
-                    rb: RequestBuilder<'a>,
-                    dst_path: &Path,
-                    token: Option<&str>,
-                    progress: Option<<BuilderAPIClient as BuilderAPIProvider>::Progress>)
-                    -> Result<PathBuf> {
-        let mut res = self.maybe_add_authz(rb, token).send()?;
+    fn download(&self,
+                rb: RequestBuilder,
+                dst_path: &Path,
+                token: Option<&str>,
+                progress: Option<<BuilderAPIClient as BuilderAPIProvider>::Progress>)
+                -> Result<PathBuf> {
+        debug!("Downloading file to path: {:?}", dst_path);
+        let mut resp = self.maybe_add_authz(rb, token).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        debug!("Response: {:?}", res);
-
-        if res.status != hyper::status::StatusCode::Ok {
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::OK {
+            return Err(err_from_response(resp));
         }
 
         fs::create_dir_all(&dst_path)?;
 
-        let file_name = res.headers
-                           .get::<XFileName>()
-                           .expect("XFileName missing from response")
-                           .to_string();
+        let file_name = resp.headers()
+                            .get(X_FILENAME)
+                            .expect("XFileName missing from response")
+                            .to_str()
+                            .expect("Invalid X-Filename");
         let dst_file_path = dst_path.join(file_name);
         let w = AtomicWriter::new(&dst_file_path)?;
         w.with_writer(|mut f| {
              match progress {
                  Some(mut progress) => {
-                     let size: u64 = res.headers
-                                        .get::<hyper::header::ContentLength>()
-                                        .map_or(0, |v| **v);
+                     let cl = resp.headers()
+                                  .get(CONTENT_LENGTH)
+                                  .expect("Content length missing")
+                                  .to_str()
+                                  .expect("Content length invalid");
+                     let size = cl.parse::<u64>().unwrap_or_else(|_| 0);
+
                      progress.size(size);
                      let mut writer = BroadcastWriter::new(&mut f, progress);
-                     io::copy(&mut res, &mut writer)
+                     io::copy(&mut resp, &mut writer)
                  }
-                 None => io::copy(&mut res, &mut f),
+                 None => io::copy(&mut resp, &mut f),
              }
          })
          .map_err(Error::BadResponseBody)?;
+
         Ok(dst_file_path)
     }
 
@@ -232,19 +232,25 @@ impl BuilderAPIClient {
                                 token: Option<&str>,
                                 range: usize)
                                 -> Result<(PackageResults<PackageIdent>, bool)> {
+        debug!("Searching for package {} with range {}", search_term, range);
         let req = self.0
                       .get_with_custom_url(&package_search(search_term), |url| {
                           url.set_query(Some(&format!("range={:?}&distinct=true", range)));
                       });
-        let mut res = self.maybe_add_authz(req, token).send()?;
+        let mut resp = self.maybe_add_authz(req, token).send()?;
+        debug!("Status: {:?}", resp.status());
+
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
+        resp.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
+        trace!("Body: {}", encoded);
+
         let package_results = serde_json::from_str(&encoded)?;
-        match res.status {
-            StatusCode::Ok => Ok((package_results, false)),
-            StatusCode::PartialContent => Ok((package_results, true)),
-            _ => Err(err_from_response(res)),
+
+        if resp.status() == StatusCode::OK || resp.status() == StatusCode::PARTIAL_CONTENT {
+            Ok((package_results, resp.status() == StatusCode::PARTIAL_CONTENT))
+        } else {
+            Err(err_from_response(resp))
         }
     }
 
@@ -281,7 +287,8 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     fn get_origin_schedule(&self, origin: &str, limit: usize) -> Result<Vec<SchedulerResponse>> {
-        debug!("Retrieving status for job groups in the {} origin", origin);
+        debug!("Retrieving status for job groups in the {} origin (limit: {})",
+               origin, limit);
 
         let path = format!("depot/pkgs/schedule/{}/status", origin);
 
@@ -290,14 +297,15 @@ impl BuilderAPIProvider for BuilderAPIClient {
                .append_pair("limit", &limit.to_string());
         };
 
-        let res = self.0.get_with_custom_url(&path, custom).send()?;
+        let mut resp = self.0.get_with_custom_url(&path, custom).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            let sr: Vec<SchedulerResponse> = resp.json()?;
+            Ok(sr)
         }
-
-        let sr: Vec<SchedulerResponse> = decoded_response(res)?;
-        Ok(sr)
     }
 
     /// Retrieves the status of a group job
@@ -306,7 +314,8 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     fn get_schedule(&self, group_id: i64, include_projects: bool) -> Result<SchedulerResponse> {
-        debug!("Retrieving schedule for job group {}", group_id);
+        debug!("Retrieving schedule for job group {} (include_projects: {})",
+               group_id, include_projects);
 
         let path = format!("depot/pkgs/schedule/{}", group_id);
 
@@ -315,14 +324,15 @@ impl BuilderAPIProvider for BuilderAPIClient {
                .append_pair("include_projects", &include_projects.to_string());
         };
 
-        let res = self.0.get_with_custom_url(&path, custom).send()?;
+        let mut resp = self.0.get_with_custom_url(&path, custom).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            let sr: SchedulerResponse = resp.json()?;
+            Ok(sr)
         }
-
-        let sr: SchedulerResponse = decoded_response(res)?;
-        Ok(sr)
     }
 
     /// Schedules a job for a package ident
@@ -336,6 +346,8 @@ impl BuilderAPIProvider for BuilderAPIClient {
                     package_only: bool,
                     token: &str)
                     -> Result<(String)> {
+        debug!("Scheduling job for {}, {}", ident, target);
+
         let path = format!("depot/pkgs/schedule/{}/{}", ident.origin(), ident.name());
 
         let custom = |url: &mut Url| {
@@ -344,18 +356,15 @@ impl BuilderAPIProvider for BuilderAPIClient {
                .append_pair("target", &target.to_string());
         };
 
-        match self.add_authz(self.0.post_with_custom_url(&path, custom), token)
-                  .send()
-        {
-            Ok(response) => {
-                if response.status == StatusCode::Created || response.status == StatusCode::Ok {
-                    let sr: SchedulerResponse = decoded_response(response)?;
-                    Ok(sr.id)
-                } else {
-                    Err(err_from_response(response))
-                }
-            }
-            Err(e) => Err(Error::from(e)),
+        let mut resp = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
+                           .send()?;
+        debug!("Status: {:?}", resp.status());
+
+        if resp.status() == StatusCode::CREATED || resp.status() == StatusCode::OK {
+            let sr: SchedulerResponse = resp.json()?;
+            Ok(sr.id)
+        } else {
+            Err(err_from_response(resp))
         }
     }
 
@@ -369,22 +378,23 @@ impl BuilderAPIProvider for BuilderAPIClient {
 
         let url = format!("rdeps/{}", ident);
 
-        let mut res = self.0
-                          .get_with_custom_url(&url, |u| {
-                              u.set_query(Some(&format!("target={}", &target.to_string())))
-                          })
-                          .send()
-                          .map_err(Error::HyperError)?;
+        let mut resp = self.0
+                           .get_with_custom_url(&url, |u| {
+                               u.set_query(Some(&format!("target={}", &target.to_string())))
+                           })
+                           .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            let mut encoded = String::new();
+            resp.read_to_string(&mut encoded).map_err(Error::IO)?;
+            trace!("Body: {:?}", encoded);
+
+            let rd: ReverseDependencies = serde_json::from_str(&encoded).map_err(Error::Json)?;
+            Ok(rd.rdeps.to_vec())
         }
-
-        let mut encoded = String::new();
-        res.read_to_string(&mut encoded).map_err(Error::IO)?;
-        debug!("Body: {:?}", encoded);
-        let rd: ReverseDependencies = serde_json::from_str(&encoded).map_err(Error::Json)?;
-        Ok(rd.rdeps.to_vec())
     }
 
     /// Promote/Demote a job group to/from a channel
@@ -399,28 +409,27 @@ impl BuilderAPIProvider for BuilderAPIClient {
                                    token: &str,
                                    promote: bool)
                                    -> Result<()> {
+        debug!("Promote/demote for group: {}, channel: {}",
+               group_id, channel);
+
         let json_idents = json!(idents);
         let body = json!({ "idents": json_idents });
-        let sbody = serde_json::to_string(&body).unwrap();
+
         let url = format!("jobs/group/{}/{}/{}",
                           group_id,
                           if promote { "promote" } else { "demote" },
                           channel);
-        let res = self.add_authz(self.0.post(&url), token)
-                      .body(&sbody)
-                      .header(Accept::json())
-                      .header(ContentType::json())
-                      .send()
-                      .map_err(Error::HyperError)?;
 
-        if res.status != StatusCode::NoContent {
-            debug!("Failed to {} group, status: {:?}",
-                   if promote { "promote" } else { "demote" },
-                   res.status);
-            return Err(err_from_response(res));
+        let resp = self.add_authz(self.0.post(&url), token)
+                       .json(&body)
+                       .send()?;
+        debug!("Status: {:?}", resp.status());
+
+        if resp.status() != StatusCode::NO_CONTENT {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     /// Cancel a job group
@@ -429,17 +438,17 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Remote API Server is not available
     fn job_group_cancel(&self, group_id: u64, token: &str) -> Result<()> {
+        debug!("Canceling job group: {}", group_id);
+
         let url = format!("jobs/group/{}/cancel", group_id);
-        let res = self.add_authz(self.0.post(&url), token)
-                      .send()
-                      .map_err(Error::HyperError)?;
+        let resp = self.add_authz(self.0.post(&url), token).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::NoContent {
-            debug!("Failed to cancel group, status: {:?}", res.status);
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::NO_CONTENT {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     /// Download a public encryption key from a remote Builder to the given filepath.
@@ -473,19 +482,15 @@ impl BuilderAPIProvider for BuilderAPIClient {
             "name": origin,
         });
 
-        let sbody = serde_json::to_string(&body)?;
-
         let res = self.add_authz(self.0.post("depot/origins"), token)
-                      .body(&sbody)
-                      .header(Accept::json())
-                      .header(ContentType::json())
+                      .json(&body)
                       .send()?;
 
-        if res.status != StatusCode::Created {
-            return Err(err_from_response(res));
+        if res.status() != StatusCode::CREATED {
+            Err(err_from_response(res))
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     /// Create secret for an origin
@@ -499,24 +504,24 @@ impl BuilderAPIProvider for BuilderAPIClient {
                             key: &str,
                             secret: &WrappedSealedBox)
                             -> Result<()> {
+        debug!("Creating origin secret: {}, {}", origin, key);
+
         let path = format!("depot/origins/{}/secret", origin);
         let body = json!({
             "name": key,
             "value": secret
         });
 
-        let sbody = serde_json::to_string(&body)?;
-        let res = self.add_authz(self.0.post(&path), token)
-                      .body(&sbody)
-                      .header(Accept::json())
-                      .header(ContentType::json())
-                      .send()?;
+        let resp = self.add_authz(self.0.post(&path), token)
+                       .json(&body)
+                       .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Created {
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::CREATED {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     /// Delete a secret for an origin
@@ -525,15 +530,18 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     fn delete_origin_secret(&self, origin: &str, token: &str, key: &str) -> Result<()> {
+        debug!("Deleting origin secret: {}, {}", origin, key);
+
         let path = format!("depot/origins/{}/secret/{}", origin, key);
 
-        let res = self.add_authz(self.0.delete(&path), token).send()?;
+        let resp = self.add_authz(self.0.delete(&path), token).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        // We expect NoContent, because the origin must be empty to delete
-        if res.status == StatusCode::NoContent {
-            Ok(())
+        // We expect NO_CONTENT, because the origin must be empty to delete
+        if resp.status() != StatusCode::NO_CONTENT {
+            Err(err_from_response(resp))
         } else {
-            Err(err_from_response(res))
+            Ok(())
         }
     }
 
@@ -545,15 +553,18 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///  * Origin is populated with > 0 packages
     ///  * Submitted Origin is not found
     fn delete_origin(&self, origin: &str, token: &str) -> Result<()> {
+        debug!("Deleting origin: {}", origin);
+
         let path = format!("depot/origins/{}", origin);
 
-        let res = self.add_authz(self.0.delete(&path), token).send()?;
+        let resp = self.add_authz(self.0.delete(&path), token).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::NoContent {
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::NO_CONTENT {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     /// List all secrets keys for an origin
@@ -562,23 +573,26 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>> {
+        debug!("Listing origin secret: {}", origin);
+
         let path = format!("depot/origins/{}/secret", origin);
+        let mut resp = self.add_authz(self.0.get(&path), token).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        let mut res = self.add_authz(self.0.get(&path), token).send()?;
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            let mut encoded = String::new();
+            resp.read_to_string(&mut encoded)
+                .map_err(Error::BadResponseBody)?;
+            trace!("Body: {:?}", encoded);
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
+            let secret_keys: Vec<String> =
+                serde_json::from_str::<Vec<OriginSecret>>(&encoded)?.into_iter()
+                                                                    .map(|s| s.name)
+                                                                    .collect();
+            Ok(secret_keys)
         }
-
-        let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
-        debug!("Response body: {:?}", encoded);
-        let secret_keys: Vec<String> =
-            serde_json::from_str::<Vec<OriginSecret>>(&encoded)?.into_iter()
-                                                                .map(|s| s.name)
-                                                                .collect();
-        Ok(secret_keys)
     }
 
     /// Download a public key from a remote Builder to the given filepath.
@@ -623,19 +637,23 @@ impl BuilderAPIProvider for BuilderAPIClient {
     }
 
     fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
-        let mut res = self.0.get(&origin_keys_path(origin)).send()?;
-        debug!("Response: {:?}", res);
+        debug!("Showing origin keys: {}", origin);
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
-        };
+        let mut resp = self.0.get(&origin_keys_path(origin)).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
-        debug!("Response body: {:?}", encoded);
-        let revisions: Vec<OriginKeyIdent> = serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?;
-        Ok(revisions)
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            let mut encoded = String::new();
+            resp.read_to_string(&mut encoded)
+                .map_err(Error::BadResponseBody)?;
+            trace!("Body: {:?}", encoded);
+
+            let revisions: Vec<OriginKeyIdent> =
+                serde_json::from_str::<Vec<OriginKeyIdent>>(&encoded)?;
+            Ok(revisions)
+        }
     }
 
     /// Return a list of channels for a given package
@@ -648,32 +666,35 @@ impl BuilderAPIProvider for BuilderAPIClient {
                         (ident, target): (&PackageIdent, PackageTarget),
                         token: Option<&str>)
                         -> Result<Vec<String>> {
+        debug!("Retrieving channels for {}, target {}", ident, target);
+
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
 
         let path = package_channels_path(ident);
-        debug!("Retrieving channels for {}, target {}", ident, target);
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("target", &target.to_string());
         };
 
-        let mut res = self.maybe_add_authz(self.0.get_with_custom_url(&path, custom), token)
-                          .send()?;
+        let mut resp = self.maybe_add_authz(self.0.get_with_custom_url(&path, custom), token)
+                           .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            let mut encoded = String::new();
+            resp.read_to_string(&mut encoded)
+                .map_err(Error::BadResponseBody)?;
+            trace!("Body: {:?}", encoded);
+
+            let channels: Vec<String> = serde_json::from_str::<Vec<String>>(&encoded)?.into_iter()
+                                                                                      .collect();
+            Ok(channels)
         }
-
-        let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
-        debug!("Response body: {:?}", encoded);
-        let channels: Vec<String> = serde_json::from_str::<Vec<String>>(&encoded)?.into_iter()
-                                                                                  .collect();
-        Ok(channels)
     }
 
     /// Upload a public origin key to a remote Builder.
@@ -693,29 +714,34 @@ impl BuilderAPIProvider for BuilderAPIClient {
                       token: &str,
                       progress: Option<Self::Progress>)
                       -> Result<()> {
+        debug!("Uploading origin key: {}, {}", origin, revision);
+
         let path = format!("depot/origins/{}/keys/{}", &origin, &revision);
-        let mut file =
+        let file =
             File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
         let file_size = file.metadata()
                             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
                             .len();
 
-        let result = if let Some(mut progress) = progress {
+        let resp = if let Some(mut progress) = progress {
             progress.size(file_size);
-            let mut reader = TeeReader::new(file, progress);
+            let reader = TeeReader::new(file, progress);
+            let body = Body::sized(reader, file_size);
             self.add_authz(self.0.post(&path), token)
-                .body(Body::SizedBody(&mut reader, file_size))
-                .send()
+                .body(body)
+                .send()?
         } else {
+            let body = Body::sized(file, file_size);
             self.add_authz(self.0.post(&path), token)
-                .body(Body::SizedBody(&mut file, file_size))
-                .send()
+                .body(body)
+                .send()?
         };
-        match result {
-            Ok(Response { status: StatusCode::Created,
-                          .. }) => Ok(()),
-            Ok(response) => Err(err_from_response(response)),
-            Err(e) => Err(Error::from(e)),
+        debug!("Status: {:?}", resp.status());
+
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
         }
     }
 
@@ -736,29 +762,34 @@ impl BuilderAPIProvider for BuilderAPIClient {
                              token: &str,
                              progress: Option<Self::Progress>)
                              -> Result<()> {
+        debug!("Uploading origin secret key: {}, {}", origin, revision);
+
         let path = format!("depot/origins/{}/secret_keys/{}", &origin, &revision);
-        let mut file =
+        let file =
             File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
         let file_size = file.metadata()
                             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
                             .len();
 
-        let result = if let Some(mut progress) = progress {
+        let resp = if let Some(mut progress) = progress {
             progress.size(file_size);
-            let mut reader = TeeReader::new(file, progress);
+            let reader = TeeReader::new(file, progress);
+            let body = Body::sized(reader, file_size);
             self.add_authz(self.0.post(&path), token)
-                .body(Body::SizedBody(&mut reader, file_size))
-                .send()
+                .body(body)
+                .send()?
         } else {
+            let body = Body::sized(file, file_size);
             self.add_authz(self.0.post(&path), token)
-                .body(Body::SizedBody(&mut file, file_size))
-                .send()
+                .body(body)
+                .send()?
         };
-        match result {
-            Ok(Response { status: StatusCode::Created,
-                          .. }) => Ok(()),
-            Ok(response) => Err(err_from_response(response)),
-            Err(e) => Err(Error::from(e)),
+        debug!("Status: {:?}", resp.status());
+
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
         }
     }
 
@@ -793,10 +824,8 @@ impl BuilderAPIProvider for BuilderAPIClient {
                                     u.set_query(Some(&format!("target={}", target)))
                                 });
 
-        match self.download(req_builder, dst_path.as_ref(), token, progress) {
-            Ok(file) => Ok(PackageArchive::new(file)),
-            Err(e) => Err(e),
-        }
+        let file = self.download(req_builder, dst_path.as_ref(), token, progress)?;
+        Ok(PackageArchive::new(file))
     }
 
     /// Checks whether a specified package exists
@@ -811,20 +840,24 @@ impl BuilderAPIProvider for BuilderAPIClient {
                      (package, target): (&PackageIdent, PackageTarget),
                      token: Option<&str>)
                      -> Result<()> {
+        debug!("Checking package existence for {}, target {}",
+               package, target);
+
         if !package.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
 
         let url = channel_package_path(&ChannelIdent::unstable(), package);
 
-        let res = self.maybe_add_authz(self.0.get_with_custom_url(&url, |u| {
-                                                 u.set_query(Some(&format!("target={}", target)))
-                                             }),
-                                       token)
-                      .send()?;
+        let resp = self.maybe_add_authz(self.0.get_with_custom_url(&url, |u| {
+                                                  u.set_query(Some(&format!("target={}", target)))
+                                              }),
+                                        token)
+                       .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Ok {
-            Err(err_from_response(res))
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
         } else {
             Ok(())
         }
@@ -844,29 +877,34 @@ impl BuilderAPIProvider for BuilderAPIClient {
                     channel: &ChannelIdent,
                     token: Option<&str>)
                     -> Result<PackageIdent> {
+        debug!("Retrieving package metadata for {}, target {}",
+               package, target);
+
         let mut url = channel_package_path(channel, package);
 
         if !package.fully_qualified() {
             url.push_str("/latest");
         }
 
-        let mut res = self.maybe_add_authz(self.0
-                                               .get_with_custom_url(&url, |u| {
-                                                   u.set_query(Some(&format!("target={}", target)))
-                                               }),
-                                           token)
-                          .send()?;
+        let mut resp = self.maybe_add_authz(self.0
+                                                .get_with_custom_url(&url, |u| {
+                                                    u.set_query(Some(&format!("target={}", target)))
+                                                }),
+                                            token)
+                           .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            let mut encoded = String::new();
+            resp.read_to_string(&mut encoded)
+                .map_err(Error::BadResponseBody)?;
+            trace!("Body: {:?}", encoded);
+
+            let package: json::Package = serde_json::from_str::<json::Package>(&encoded)?;
+            Ok(package.ident.into())
         }
-
-        let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
-        debug!("Body: {:?}", encoded);
-        let package: json::Package = serde_json::from_str::<json::Package>(&encoded)?;
-        Ok(package.ident.into())
     }
 
     /// Upload a package to a remote Builder.
@@ -889,6 +927,9 @@ impl BuilderAPIProvider for BuilderAPIClient {
         let ident = pa.ident()?;
         let target = pa.target()?;
 
+        debug!("Uploading package {}, target {} (forced: {})",
+               ident, target, force_upload);
+
         let file = File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
         let file_size = file.metadata()
                             .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
@@ -904,22 +945,23 @@ impl BuilderAPIProvider for BuilderAPIClient {
         };
         debug!("Reading from {}", &pa.path.display());
 
-        let mut reader: Box<dyn Read> = if let Some(mut progress) = progress {
+        let reader: Box<dyn Read + Send> = if let Some(mut progress) = progress {
             progress.size(file_size);
             Box::new(TeeReader::new(file, progress))
         } else {
             Box::new(file)
         };
 
-        let result = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
-                         .body(Body::SizedBody(&mut reader, file_size))
-                         .send();
+        let body = Body::sized(reader, file_size);
+        let resp = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
+                       .body(body)
+                       .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        match result {
-            Ok(Response { status: StatusCode::Created,
-                          .. }) => Ok(()),
-            Ok(response) => Err(err_from_response(response)),
-            Err(e) => Err(Error::from(e)),
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
         }
     }
 
@@ -928,8 +970,9 @@ impl BuilderAPIProvider for BuilderAPIClient {
         let ident = pa.ident()?;
         let target = pa.target()?;
 
-        let mut file =
-            File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
+        debug!("Uploading package {}, target {}", ident, target);
+
+        let file = File::open(&pa.path).map_err(|e| Error::PackageReadError(pa.path.clone(), e))?;
         let file_size = file.metadata()
                             .map_err(|e| Error::PackageReadError(pa.path.clone(), e))?
                             .len();
@@ -942,14 +985,16 @@ impl BuilderAPIProvider for BuilderAPIClient {
         };
         debug!("Reading from {}", &pa.path.display());
 
-        let result = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
-                         .body(Body::SizedBody(&mut file, file_size))
-                         .send();
-        match result {
-            Ok(Response { status: StatusCode::Created,
-                          .. }) => Ok(()),
-            Ok(response) => Err(err_from_response(response)),
-            Err(e) => Err(Error::from(e)),
+        let body = Body::sized(file, file_size);
+        let resp = self.add_authz(self.0.post_with_custom_url(&path, custom), token)
+                       .body(body)
+                       .send()?;
+        debug!("Status: {:?}", resp.status());
+
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
         }
     }
 
@@ -965,22 +1010,23 @@ impl BuilderAPIProvider for BuilderAPIClient {
                       (ident, target): (&PackageIdent, PackageTarget),
                       token: &str)
                       -> Result<()> {
-        let path = package_path(ident);
         debug!("Deleting package {}, target {}", ident, target);
+        let path = package_path(ident);
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("target", &target.to_string());
         };
 
-        let res = self.add_authz(self.0.delete_with_custom_url(&path, custom), token)
-                      .send()?;
+        let resp = self.add_authz(self.0.delete_with_custom_url(&path, custom), token)
+                       .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::NoContent {
-            return Err(err_from_response(res));
-        };
-
-        Ok(())
+        if resp.status() != StatusCode::NO_CONTENT {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
+        }
     }
 
     /// Promote a package to a given channel
@@ -998,25 +1044,27 @@ impl BuilderAPIProvider for BuilderAPIClient {
                        channel: &ChannelIdent,
                        token: &str)
                        -> Result<()> {
+        debug!("Promoting package {}, target {}", ident, target);
+
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
         let path = channel_package_promote(channel, ident);
-        debug!("Promoting package {}, target {}", ident, target);
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("target", &target.to_string());
         };
 
-        let res = self.add_authz(self.0.put_with_custom_url(&path, custom), token)
-                      .send()?;
+        let resp = self.add_authz(self.0.put_with_custom_url(&path, custom), token)
+                       .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
-        };
-
-        Ok(())
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
+        }
     }
 
     /// Demote a package from a given channel
@@ -1034,25 +1082,27 @@ impl BuilderAPIProvider for BuilderAPIClient {
                       channel: &ChannelIdent,
                       token: &str)
                       -> Result<()> {
+        debug!("Demoting package {}, target {}", ident, target);
+
         if !ident.fully_qualified() {
             return Err(Error::IdentNotFullyQualified);
         }
         let path = channel_package_demote(channel, ident);
-        debug!("Demoting package {}, target {}", ident, target);
 
         let custom = |url: &mut Url| {
             url.query_pairs_mut()
                .append_pair("target", &target.to_string());
         };
 
-        let res = self.add_authz(self.0.put_with_custom_url(&path, custom), token)
-                      .send()?;
+        let resp = self.add_authz(self.0.put_with_custom_url(&path, custom), token)
+                       .send()?;
+        debug!("Status: {:?}", resp.status());
 
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
-        };
-
-        Ok(())
+        if resp.status() != StatusCode::OK {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
+        }
     }
 
     /// Create a custom channel
@@ -1061,16 +1111,17 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     fn create_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
+        debug!("Creating channel {} for origin {}", channel, origin);
+
         let path = format!("depot/channels/{}/{}", origin, channel);
-        debug!("Creating channel, path: {:?}", path);
+        let resp = self.add_authz(self.0.post(&path), token).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        let res = self.add_authz(self.0.post(&path), token).send()?;
-
-        if res.status != StatusCode::Created {
-            return Err(err_from_response(res));
-        };
-
-        Ok(())
+        if resp.status() != StatusCode::CREATED {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
+        }
     }
 
     /// Delete a custom channel
@@ -1079,16 +1130,17 @@ impl BuilderAPIProvider for BuilderAPIClient {
     ///
     /// * Remote Builder is not available
     fn delete_channel(&self, origin: &str, channel: &ChannelIdent, token: &str) -> Result<()> {
+        debug!("Deleting channel {} for origin {}", channel, origin);
+
         let path = format!("depot/channels/{}/{}", origin, channel);
-        debug!("Deleting channel, path: {:?}", path);
+        let resp = self.add_authz(self.0.delete(&path), token).send()?;
+        debug!("Status: {:?}", resp.status());
 
-        let res = self.add_authz(self.0.delete(&path), token).send()?;
-
-        if res.status != StatusCode::Ok {
-            return Err(err_from_response(res));
-        };
-
-        Ok(())
+        if resp.status() != StatusCode::CREATED {
+            Err(err_from_response(resp))
+        } else {
+            Ok(())
+        }
     }
 
     /// Returns a vector of PackageIdent structs
@@ -1110,32 +1162,35 @@ impl BuilderAPIProvider for BuilderAPIClient {
     /// * Remote Builder is not available
     /// * Authorization token was not set on client
     fn list_channels(&self, origin: &str, include_sandbox_channels: bool) -> Result<Vec<String>> {
+        debug!("Listing channels for origin {}", origin);
+
         let path = format!("depot/channels/{}", origin);
-        let mut res = if include_sandbox_channels {
+        let mut resp = if include_sandbox_channels {
             self.0
                 .get_with_custom_url(&path, |url| url.set_query(Some("sandbox=true")))
                 .send()?
         } else {
             self.0.get(&path).send()?
         };
+        debug!("Status: {:?}", resp.status());
 
-        match res.status {
-            StatusCode::Ok | StatusCode::PartialContent => {
+        match resp.status() {
+            StatusCode::OK | StatusCode::PARTIAL_CONTENT => {
                 let mut encoded = String::new();
-                res.read_to_string(&mut encoded)
-                   .map_err(Error::BadResponseBody)?;
+                resp.read_to_string(&mut encoded)
+                    .map_err(Error::BadResponseBody)?;
                 let results: Vec<OriginChannelIdent> = serde_json::from_str(&encoded)?;
                 let channels = results.into_iter().map(|o| o.name).collect();
                 Ok(channels)
             }
-            _ => Err(err_from_response(res)),
+            _ => Err(err_from_response(resp)),
         }
     }
 }
 
-fn err_from_response(mut response: hyper::client::Response) -> Error {
-    if response.status == StatusCode::Unauthorized {
-        return Error::APIError(response.status,
+fn err_from_response(mut response: Response) -> Error {
+    if response.status() == StatusCode::UNAUTHORIZED {
+        return Error::APIError(response.status(),
                                "Please check that you have specified a valid Personal Access \
                                 Token."
                                        .to_string());
@@ -1145,13 +1200,13 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
     match response.read_to_string(&mut buff) {
         Ok(_) => {
             match serde_json::from_str::<NetError>(&buff) {
-                Ok(err) => Error::APIError(response.status, err.to_string()),
-                Err(_) => Error::APIError(response.status, buff),
+                Ok(err) => Error::APIError(response.status(), err.to_string()),
+                Err(_) => Error::APIError(response.status(), buff),
             }
         }
         Err(_) => {
             buff.truncate(0);
-            Error::APIError(response.status, buff)
+            Error::APIError(response.status(), buff)
         }
     }
 }

@@ -1805,19 +1805,38 @@ fn track_memory_stats() {
     // We'd like to track some memory stats, but these stats are cached and only refreshed
     // when the epoch is advanced. We manually advance it here to ensure our stats are
     // fresh.
-    jemalloc_ctl::epoch().unwrap();
+    jemalloc_ctl::epoch::mib().unwrap().advance().unwrap();
+
     MEMORY_STATS.with_label_values(&["active"])
-                .set(jemalloc_ctl::stats::active().unwrap().to_i64());
+                .set(jemalloc_ctl::stats::active::mib().unwrap()
+                                                       .read()
+                                                       .unwrap()
+                                                       .to_i64());
     MEMORY_STATS.with_label_values(&["allocated"])
-                .set(jemalloc_ctl::stats::allocated().unwrap().to_i64());
+                .set(jemalloc_ctl::stats::allocated::mib().unwrap()
+                                                          .read()
+                                                          .unwrap()
+                                                          .to_i64());
     MEMORY_STATS.with_label_values(&["mapped"])
-                .set(jemalloc_ctl::stats::mapped().unwrap().to_i64());
+                .set(jemalloc_ctl::stats::mapped::mib().unwrap()
+                                                       .read()
+                                                       .unwrap()
+                                                       .to_i64());
     MEMORY_STATS.with_label_values(&["metadata"])
-                .set(jemalloc_ctl::stats::metadata().unwrap().to_i64());
+                .set(jemalloc_ctl::stats::metadata::mib().unwrap()
+                                                         .read()
+                                                         .unwrap()
+                                                         .to_i64());
     MEMORY_STATS.with_label_values(&["resident"])
-                .set(jemalloc_ctl::stats::resident().unwrap().to_i64());
+                .set(jemalloc_ctl::stats::resident::mib().unwrap()
+                                                         .read()
+                                                         .unwrap()
+                                                         .to_i64());
     MEMORY_STATS.with_label_values(&["retained"])
-                .set(jemalloc_ctl::stats::retained().unwrap().to_i64());
+                .set(jemalloc_ctl::stats::retained::mib().unwrap()
+                                                         .read()
+                                                         .unwrap()
+                                                         .to_i64());
 }
 
 // This is a no-op on purpose because windows doesn't support jemalloc

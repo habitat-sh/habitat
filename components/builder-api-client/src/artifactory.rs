@@ -1,10 +1,3 @@
-use broadcast::BroadcastWriter;
-use hyper::{client::{Body,
-                     IntoUrl,
-                     RequestBuilder,
-                     Response},
-            status::StatusCode,
-            Url};
 use std::{collections::HashMap,
           fs::{self,
                File},
@@ -14,7 +7,19 @@ use std::{collections::HashMap,
                  PathBuf},
           str::FromStr,
           string::ToString};
+
+use broadcast::BroadcastWriter;
+
+use reqwest::{header::{HeaderName,
+                       CONTENT_LENGTH},
+              Body,
+              IntoUrl,
+              RequestBuilder,
+              Response,
+              StatusCode};
+
 use tee::TeeReader;
+use url::Url;
 
 use crate::{error::{Error,
                     Result},
@@ -32,8 +37,8 @@ use crate::{error::{Error,
             OriginKeyIdent,
             SchedulerResponse};
 
-header! { (XFileName, "X-Artifactory-Filename") => [String] }
-header! { (XJFrogArtApi, "X-JFrog-Art-Api") => [String] }
+const X_JFROG_ART_API: &str = "x-jfrog-art-api";
+const X_ARTIFACTORY_FILENAME: &str = "x-artifactory-filename";
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 struct LatestVersion {
@@ -70,7 +75,7 @@ impl ArtifactoryClient {
                   -> Result<Self>
         where U: IntoUrl
     {
-        let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
+        let endpoint = endpoint.into_url().map_err(Error::ReqwestError)?;
 
         debug!("ArtifactoryClient::new, endpoint = {:?}", endpoint);
         let client = ArtifactoryClient(
@@ -90,37 +95,42 @@ impl ArtifactoryClient {
         Self::new(endpoint, product, version, fs_root_path).map(|c| Box::new(c) as _)
     }
 
-    fn add_authz<'a>(&'a self, rb: RequestBuilder<'a>, token: &str) -> RequestBuilder<'_> {
-        rb.header(XJFrogArtApi(token.to_owned()))
+    fn add_authz(&self, rb: RequestBuilder, token: &str) -> RequestBuilder {
+        rb.header(HeaderName::from_static(X_JFROG_ART_API), token)
     }
 
-    fn download<'a>(&'a self,
-                    rb: RequestBuilder<'a>,
-                    dst_path: &Path,
-                    token: &str,
-                    progress: Option<<ArtifactoryClient as BuilderAPIProvider>::Progress>)
-                    -> Result<PathBuf> {
+    fn download(&self,
+                rb: RequestBuilder,
+                dst_path: &Path,
+                token: &str,
+                progress: Option<<ArtifactoryClient as BuilderAPIProvider>::Progress>)
+                -> Result<PathBuf> {
         let mut res = self.add_authz(rb, token).send()?;
         debug!("Response: {:?}", res);
 
-        if res.status != hyper::status::StatusCode::Ok {
+        if res.status() != StatusCode::OK {
             return Err(err_from_response(res));
         }
 
         fs::create_dir_all(&dst_path)?;
 
-        let file_name = res.headers
-                           .get::<XFileName>()
+        let file_name = res.headers()
+                           .get(X_ARTIFACTORY_FILENAME)
                            .expect("X-Artifactory-Filename missing from response")
-                           .to_string();
+                           .to_str()
+                           .expect("Invalid X-Artifactory-Filename");
         let dst_file_path = dst_path.join(file_name);
         let w = AtomicWriter::new(&dst_file_path)?;
         w.with_writer(|mut f| {
              match progress {
                  Some(mut progress) => {
-                     let size: u64 = res.headers
-                                        .get::<hyper::header::ContentLength>()
-                                        .map_or(0, |v| **v);
+                     let cl = res.headers()
+                                 .get(CONTENT_LENGTH)
+                                 .expect("Content length missing")
+                                 .to_str()
+                                 .expect("Content length invalid");
+                     let size = cl.parse::<u64>().unwrap_or_else(|_| 0);
+
                      progress.size(size);
                      let mut writer = BroadcastWriter::new(&mut f, progress);
                      io::copy(&mut res, &mut writer)
@@ -152,7 +162,7 @@ impl ArtifactoryClient {
                       .send()?;
         debug!("Response: {:?}", res);
 
-        if res.status != hyper::status::StatusCode::NoContent {
+        if res.status() != StatusCode::NO_CONTENT {
             Err(err_from_response(res))
         } else {
             Ok(())
@@ -170,7 +180,7 @@ impl ArtifactoryClient {
                           .send()?;
         debug!("Response: {:?}", res);
 
-        if res.status != hyper::status::StatusCode::Ok {
+        if res.status() != StatusCode::OK {
             return Err(err_from_response(res));
         }
 
@@ -286,7 +296,7 @@ impl BuilderAPIProvider for ArtifactoryClient {
         let path = self.api_path_for_latest_secret_key(origin);
         let mut res = self.add_authz(self.0.get(&path), token).send()?;
 
-        if res.status != StatusCode::Ok {
+        if res.status() != StatusCode::OK {
             return Err(err_from_response(res));
         }
 
@@ -306,9 +316,9 @@ impl BuilderAPIProvider for ArtifactoryClient {
         let mut res = self.0.get(&self.api_path_for_key_folder(origin)).send()?;
         debug!("Response: {:?}", res);
 
-        if res.status != StatusCode::Ok {
+        if res.status() != StatusCode::OK {
             return Err(err_from_response(res));
-        };
+        }
 
         let mut encoded = String::new();
         res.read_to_string(&mut encoded)
@@ -351,30 +361,27 @@ impl BuilderAPIProvider for ArtifactoryClient {
                       -> Result<()> {
         let path = self.url_path_for_key(origin, revision);
 
-        let mut file =
+        let file =
             File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
         let file_size = file.metadata()
                             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
                             .len();
 
-        let result = if let Some(mut progress) = progress {
+        let resp = if let Some(mut progress) = progress {
             progress.size(file_size);
-            let mut reader = TeeReader::new(file, progress);
-            self.add_authz(self.0.put(&path), token)
-                .body(Body::SizedBody(&mut reader, file_size))
-                .send()
+            let reader = TeeReader::new(file, progress);
+            let body = Body::sized(reader, file_size);
+            self.add_authz(self.0.put(&path), token).body(body).send()?
         } else {
-            self.add_authz(self.0.put(&path), token)
-                .body(Body::SizedBody(&mut file, file_size))
-                .send()
+            let body = Body::sized(file, file_size);
+            self.add_authz(self.0.put(&path), token).body(body).send()?
         };
-        debug!("Response: {:?}", result);
+        debug!("Response: {:?}", resp);
 
-        match result {
-            Ok(Response { status: StatusCode::Created,
-                          .. }) => Ok(()),
-            Ok(response) => Err(err_from_response(response)),
-            Err(e) => Err(Error::from(e)),
+        if resp.status() == StatusCode::CREATED {
+            Ok(())
+        } else {
+            Err(err_from_response(resp))
         }
     }
 
@@ -387,31 +394,26 @@ impl BuilderAPIProvider for ArtifactoryClient {
                              -> Result<()> {
         let path = self.url_path_for_secret_key(origin, revision);
 
-        let mut file =
+        let file =
             File::open(src_path).map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?;
         let file_size = file.metadata()
                             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
                             .len();
 
-        let result = if let Some(mut progress) = progress {
+        let resp = if let Some(mut progress) = progress {
             progress.size(file_size);
-            let mut reader = TeeReader::new(file, progress);
-            self.add_authz(self.0.put(&path), token)
-                .body(Body::SizedBody(&mut reader, file_size))
-                .send()
+            let reader = TeeReader::new(file, progress);
+            let body = Body::sized(reader, file_size);
+            self.add_authz(self.0.put(&path), token).body(body).send()?
         } else {
-            self.add_authz(self.0.put(&path), token)
-                .body(Body::SizedBody(&mut file, file_size))
-                .send()
+            let body = Body::sized(file, file_size);
+            self.add_authz(self.0.put(&path), token).body(body).send()?
         };
-        debug!("Response: {:?}", result);
+        debug!("Response: {:?}", resp);
 
-        match result {
-            Ok(Response { status: StatusCode::Created,
-                          .. }) => (),
-            Ok(response) => return Err(err_from_response(response)),
-            Err(e) => return Err(Error::from(e)),
-        };
+        if resp.status() != StatusCode::CREATED {
+            return Err(err_from_response(resp));
+        }
 
         let properties_path = self.api_path_for_secret_key(origin, revision);
 
@@ -460,7 +462,7 @@ impl BuilderAPIProvider for ArtifactoryClient {
 
         debug!("Response: {:?}", res);
 
-        if res.status != StatusCode::Ok {
+        if res.status() != StatusCode::OK {
             Err(err_from_response(res))
         } else {
             Ok(())
@@ -481,7 +483,7 @@ impl BuilderAPIProvider for ArtifactoryClient {
                           .send()?;
         debug!("Response: {:?}", res);
 
-        if res.status != StatusCode::Ok {
+        if res.status() != StatusCode::OK {
             return Err(err_from_response(res));
         }
 
@@ -514,24 +516,20 @@ impl BuilderAPIProvider for ArtifactoryClient {
 
         let path = self.url_path_for_package(&ident, target);
 
-        let mut reader: Box<dyn Read> = if let Some(mut progress) = progress {
+        let reader: Box<dyn Read + Send> = if let Some(mut progress) = progress {
             progress.size(file_size);
             Box::new(TeeReader::new(file, progress))
         } else {
             Box::new(file)
         };
 
-        let result = self.add_authz(self.0.put(&path), token)
-                         .body(Body::SizedBody(&mut reader, file_size))
-                         .send();
-        debug!("Response: {:?}", result);
+        let body = Body::sized(reader, file_size);
+        let resp = self.add_authz(self.0.put(&path), token).body(body).send()?;
+        debug!("Response: {:?}", resp);
 
-        match result {
-            Ok(Response { status: StatusCode::Created,
-                          .. }) => (),
-            Ok(response) => return Err(err_from_response(response)),
-            Err(e) => return Err(Error::from(e)),
-        };
+        if resp.status() != StatusCode::OK {
+            return Err(err_from_response(resp));
+        }
 
         let properties_path = self.api_path_for_package(&ident, target);
 
@@ -559,9 +557,9 @@ impl BuilderAPIProvider for ArtifactoryClient {
         let res = self.add_authz(self.0.delete(&path), token).send()?;
         debug!("Response: {:?}", res);
 
-        if res.status != StatusCode::NoContent {
+        if res.status() != StatusCode::NO_CONTENT {
             return Err(err_from_response(res));
-        };
+        }
 
         Ok(())
     }
@@ -724,9 +722,9 @@ impl BuilderAPIProvider for ArtifactoryClient {
     }
 }
 
-fn err_from_response(mut response: hyper::client::Response) -> Error {
-    if response.status == StatusCode::Unauthorized {
-        return Error::APIError(response.status,
+fn err_from_response(mut response: Response) -> Error {
+    if response.status() == StatusCode::UNAUTHORIZED {
+        return Error::APIError(response.status(),
                                "Please check that you have specified a valid Artifactory API \
                                 Key."
                                      .to_string());
@@ -736,5 +734,5 @@ fn err_from_response(mut response: hyper::client::Response) -> Error {
     if response.read_to_string(&mut buff).is_err() {
         buff.truncate(0)
     }
-    Error::APIError(response.status, buff)
+    Error::APIError(response.status(), buff)
 }
