@@ -327,13 +327,13 @@ impl<'a> SvcDir<'a> {
     /// Useful for removing rendered files that may be from older
     /// versions of a service that have been removed from the current
     /// version.
-    pub fn purge_templated_content(&self) -> Result<()> {
-        for dir_path in &[svc_config_path(&self.service_name),
-                          svc_hooks_path(&self.service_name)]
-        {
-            debug!("Purging any old templated content from {}",
-                   dir_path.display());
-            Self::purge_directory_content(dir_path)?;
+    pub fn purge_templated_content(service_name: &str) -> Result<()> {
+        for dir_path in &[svc_config_path(service_name), svc_hooks_path(service_name)] {
+            if Path::new(dir_path).exists() {
+                debug!("Purging any old templated content from {}",
+                       dir_path.display());
+                Self::purge_directory_content(dir_path)?;
+            }
         }
         Ok(())
     }

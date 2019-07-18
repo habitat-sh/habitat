@@ -44,7 +44,8 @@ use crate::{api_client::{self,
                     fs::{cache_key_path,
                          pkg_install_path,
                          svc_hooks_path,
-                         AtomicWriter},
+                         AtomicWriter,
+                         SvcDir},
                     package::{list::temp_package_directory,
                               Identifiable,
                               PackageArchive,
@@ -605,6 +606,9 @@ impl<'a> InstallTask<'a> {
                           -> Result<PackageInstall>
         where T: UIWriter
     {
+        // Cleanup the templated data of previous versions of this package
+        SvcDir::purge_templated_content(&ident.as_ref().name)?;
+
         // TODO (CM): rename artifact to archive
         let mut artifact = self.get_cached_artifact(ui, (ident, target), token)?;
 
