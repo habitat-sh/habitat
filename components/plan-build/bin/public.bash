@@ -382,19 +382,38 @@ download_file() {
 # Will return 0 if the shasums match, and 1 if they do not match. A message
 # will be printed to stderr with the expected and computed shasum values.
 verify_file() {
-  build_line "Verifying $1"
-  local checksum
+  local filename=$1
+  local expected_checksum=$2
+  local computed_checksum
+
+  build_line "Verifying $filename"
+  expected_checksum=$(normalize_checksum "$expected_checksum")
+
   # shellcheck disable=2154
-  read -r checksum _ < <($_shasum_cmd "$HAB_CACHE_SRC_PATH"/"$1")
-  if [[ $2 = "$checksum" ]]; then
+  read -r computed_checksum _ < <($_shasum_cmd "$HAB_CACHE_SRC_PATH"/"$filename")
+  computed_checksum=$(normalize_checksum "$computed_checksum")
+
+  if [[ "$expected_checksum" = "$computed_checksum" ]]; then
     build_line "Checksum verified for $1"
   else
-    warn "Checksum invalid for $1:"
-    warn "   Expected: $2"
-    warn "   Computed: ${checksum}"
+    warn "Checksum invalid for $filename:"
+    warn "   Expected: $expected_checksum"
+    warn "   Computed: $computed_checksum"
     return 1
   fi
   return 0
+}
+
+# normalizes the given checksum for comparison with other checksums.
+#
+# ```sh
+# normalize_checksum 81C8C4D253FFE5DA5A3C1AE96956403E07B5B1A5087276E48B1B2C3A30ACEE62
+# ```
+#
+# Prints the normalized checksum to stdout, returns non-zero on error.
+normalize_checksum() {
+    local checksum=$1
+    echo "$checksum" | tr '[:upper:]' '[:lower:]'
 }
 
 # Unpacks an archive file in a variety of formats.
