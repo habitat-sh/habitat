@@ -25,6 +25,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- [hab] Allow flexible whitespace in HAB_DOCKER_OPTS [#6749](https://github.com/habitat-sh/habitat/pull/6749) ([stevendanna](https://github.com/stevendanna))
 - [hab-plan-build] Normalize file checksums before comparison [#6748](https://github.com/habitat-sh/habitat/pull/6748) ([stevendanna](https://github.com/stevendanna))
 - Fix javascript generation in the web site [#6742](https://github.com/habitat-sh/habitat/pull/6742) ([raskchanky](https://github.com/raskchanky))
 - Make PID file handling a little more robust. [#6738](https://github.com/habitat-sh/habitat/pull/6738) ([raskchanky](https://github.com/raskchanky))
