@@ -25,6 +25,7 @@
 - Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
+- Convert all our manual whitespace splitting to use split_whitespace() [#6751](https://github.com/habitat-sh/habitat/pull/6751) ([raskchanky](https://github.com/raskchanky))
 - Fixing typo public-&gt;secret in origin secret key download [#6753](https://github.com/habitat-sh/habitat/pull/6753) ([sirajrauff](https://github.com/sirajrauff))
 - [hab] Allow flexible whitespace in HAB_DOCKER_OPTS [#6749](https://github.com/habitat-sh/habitat/pull/6749) ([stevendanna](https://github.com/stevendanna))
 - [hab-plan-build] Normalize file checksums before comparison [#6748](https://github.com/habitat-sh/habitat/pull/6748) ([stevendanna](https://github.com/stevendanna))
