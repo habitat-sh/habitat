@@ -99,7 +99,7 @@ fn handle_secret(ui: &mut UI,
 
     ui.begin(format!("Downloading secret origin keys for {}", origin))?;
     download_secret_key(ui, &api_client, origin, token.unwrap(), cache)?; // unwrap is safe because we already checked it above
-    ui.end(format!("Download of {} public origin keys completed.", &origin))?;
+    ui.end(format!("Download of {} secret origin keys completed.", &origin))?;
     Ok(())
 }
 
