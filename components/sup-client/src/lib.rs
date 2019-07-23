@@ -50,6 +50,8 @@ pub type SrvSend = sink::Send<SrvStream>;
 /// Error types returned by a [`SrvClient`].
 #[derive(Debug)]
 pub enum SrvClientError {
+    /// Connection refused
+    ConnectionRefused,
     /// The remote server unexpectedly closed the connection.
     ConnectionClosed,
     /// Unable to locate a secret key on disk.
@@ -68,6 +70,7 @@ impl error::Error for SrvClientError {
     fn description(&self) -> &str {
         match *self {
             SrvClientError::ConnectionClosed => "Connection closed",
+            SrvClientError::ConnectionRefused => "Connection refused",
             SrvClientError::CtlSecretNotFound(_) => "Ctl secret key not found",
             SrvClientError::Decode(ref err) => err.description(),
             SrvClientError::Io(ref err) => err.description(),
@@ -86,6 +89,13 @@ impl fmt::Display for SrvClientError {
                  command requests."
                                    .to_string()
             }
+            SrvClientError::ConnectionRefused => {
+                "Unable to contact the Supervisor.\n\nIf the Supervisor you are contacting is \
+                 local, this probably means it is not running. You can run a Supervisor in the \
+                 foreground with:\n\nhab sup run\n\nOr try restarting the Supervisor through your \
+                 operating system's init process or Windows service."
+                                                                     .to_string()
+            }
             SrvClientError::CtlSecretNotFound(ref path) => {
                 format!("No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
                          `hab setup` or run the Supervisor for the first time before attempting \
@@ -93,14 +103,7 @@ impl fmt::Display for SrvClientError {
                         path.display())
             }
             SrvClientError::Decode(ref err) => format!("{}", err),
-            SrvClientError::Io(ref err) => {
-                format!("Unable to contact the Supervisor.\n\nIf the Supervisor you are \
-                         contacting is local, this probably means it is not running. You can run \
-                         a Supervisor in the foreground with:\n\nhab sup run\n\nOr try restarting \
-                         the Supervisor through your operating system's init process or Windows \
-                         service.\n\nOriginal error is:\n\n{}",
-                        err)
-            }
+            SrvClientError::Io(ref err) => format!("{}", err),
             SrvClientError::NetErr(ref err) => format!("{}", err),
             SrvClientError::ParseColor(ref err) => format!("{}", err),
         };
@@ -113,7 +116,12 @@ impl From<NetErr> for SrvClientError {
 }
 
 impl From<io::Error> for SrvClientError {
-    fn from(err: io::Error) -> Self { SrvClientError::Io(err) }
+    fn from(err: io::Error) -> Self {
+        match err.kind() {
+            io::ErrorKind::ConnectionRefused => SrvClientError::ConnectionRefused,
+            _ => SrvClientError::Io(err),
+        }
+    }
 }
 
 impl From<prost::DecodeError> for SrvClientError {
