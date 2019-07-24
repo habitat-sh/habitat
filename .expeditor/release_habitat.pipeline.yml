@@ -4,6 +4,8 @@ expeditor:
     ACCEPTANCE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: scotthain-sig-key
+  accounts:
+    - aws/chef-cd
   defaults:
     buildkite:
       timeout_in_minutes: 30
@@ -62,6 +64,48 @@ steps:
         macos:
           os-version: "10.13"
           inherit-environment-vars: true
+
+  - wait
+
+  - label: "[:linux: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  - label: "[:windows: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+
+  - label: "[:macos: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-darwin
 
   - wait
 

@@ -53,17 +53,6 @@ Write-Host "--- Running hab pkg promote for $pkg_ident to channel $Env:HAB_BLDR_
 Invoke-Expression "$baseHabExe pkg promote $pkg_ident $Env:HAB_BLDR_CHANNEL $Env:BUILD_PKG_TARGET"
 Invoke-Expression "buildkite-agent meta-data set $pkg_ident-x86_64-windows true"
 
-If ($Component -eq 'hab') {
-    Write-Host "--- :buildkite: Recording metadata $pkg_ident"
-    Invoke-Expression "buildkite-agent meta-data set 'hab-version-x86_64-windows' '$pkg_ident'"
-    Invoke-Expression "buildkite-agent meta-data set 'hab-release-x86_64-windows' '$pkg_release'"
-    Invoke-Expression "buildkite-agent meta-data set 'hab-artifact-x86_64-windows' '$pkg_artifact'"
-} Elseif ($component -eq 'studio') {
-    Write-Host "--- :buildkite: Recording metadata for $pkg_ident"
-    Invoke-Expression "buildkite-agent meta-data set 'studio-version-x86_64-windows' $pkg_ident"       
-} Else {
-    Write-Host "Not recording any metadata for $pkg_ident, none required."
-}
 Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} (x86_64-windows)'"
 
 exit $LASTEXITCODE

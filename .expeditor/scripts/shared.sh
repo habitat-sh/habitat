@@ -2,13 +2,7 @@
 
 set -euo pipefail
 
-# Install the latest stable `hab` binary using our standard
-# "curl|bash" approach.
-#
-# Requires the `hab_binary` global variable is already set!
-#
-# This is the currently recommended way to get Habitat onto a system
-# that does not already have it.
+# Always install the latest hab binary appropriate for your linux platform
 #
 # This will install `hab` to the place appropriate for the target
 curlbash_hab() {
