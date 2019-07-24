@@ -9,6 +9,7 @@
 - Add rst-reader back again [#6619](https://github.com/habitat-sh/habitat/pull/6619) ([raskchanky](https://github.com/raskchanky))
 
 #### Bug Fixes
+- Be more explicit about connection refused errors. [#6755](https://github.com/habitat-sh/habitat/pull/6755) ([raskchanky](https://github.com/raskchanky))
 <!-- 0.83.0 bug fixes below here -->
 - Improve liveliness checker [#6714](https://github.com/habitat-sh/habitat/pull/6714) ([baumanj](https://github.com/baumanj))
 - Stop health check futures when upgrading the Supervisor [#6717](https://github.com/habitat-sh/habitat/pull/6717) ([christophermaier](https://github.com/christophermaier))
