@@ -702,6 +702,8 @@ impl BuilderAPIProvider for ArtifactoryClient {
         Err(Error::NotSupported)
     }
 
+    fn create_origin(&self, _origin: &str, _token: &str) -> Result<()> { Err(Error::NotSupported) }
+
     fn create_origin_secret(&self,
                             _origin: &str,
                             _token: &str,

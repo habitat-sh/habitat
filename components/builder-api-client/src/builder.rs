@@ -462,6 +462,32 @@ impl BuilderAPIProvider for BuilderAPIClient {
                       progress)
     }
 
+    /// Create an origin
+    ///
+    ///  # Failures
+    ///
+    ///  * Remote builder is not available
+    ///  * Unable to authenticate
+    fn create_origin(&self, origin: &str, token: &str) -> Result<()> {
+        let body = json!({
+            "name": origin,
+        });
+
+        let sbody = serde_json::to_string(&body)?;
+
+        let res = self.add_authz(self.0.post("depot/origins"), token)
+                      .body(&sbody)
+                      .header(Accept::json())
+                      .header(ContentType::json())
+                      .send()?;
+
+        if res.status != StatusCode::Created {
+            return Err(err_from_response(res));
+        }
+
+        Ok(())
+    }
+
     /// Create secret for an origin
     ///
     /// # Failures
