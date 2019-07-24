@@ -70,6 +70,11 @@ subscriptions:
       - trigger_pipeline:end_to_end:
           post_commit: true
 
+  - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
+    actions:
+      - trigger_pipeline:test_scenarios:
+          post_commit: true
+
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
     actions:

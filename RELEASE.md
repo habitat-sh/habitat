@@ -40,7 +40,7 @@ is in effect
     ```
     $ sed -i'' -e 's/-dev//' VERSION
     ```
-1. If necessary, fix up any issues with `CHANGELOG.md`, such as PRs that were missing the `X-` label and didn't get put in the correct category.
+1. If necessary, fix up any issues with `CHANGELOG.md`, such as PRs that were missing the `X-` label and didn't get put in the correct category. ** IMPORTANT ** while we are migrating to the new release process, all changelog info will go to the `CHANGELOG_FAKE.md` file - please copy paste the appropriate entries to `CHANGELOG.md` prior to release.
 
 1. Commit `VERSION` changes and push your branch.
 1. Issue a new PR with the `Expeditor: Exclude from Changelog` label and await approval (in the form of a [dank gif](http://imgur.com/X0sNq)) from two maintainers.
