@@ -28,22 +28,26 @@ simply 'hab'). In the latter case when just passing the binary name, the shell w
 if [[ $# -eq 0 ]] ; then
   print_help
   echo
-  echo "<path-to-hab-binary> must be specified!"
+  echo "--- <path-to-hab-binary> must be specified!"
   exit 1
 else
   HAB_BINARY="$1"
 fi
 
-echo "Running \`$HAB_BINARY sup --help\` - which should NOT attempt an install of core/hab-sup"
+echo "--- Running \`$HAB_BINARY sup --help\` - which should NOT attempt an install of core/hab-sup"
 
-if [ -z "$($HAB_BINARY sup --help)" ]; then
+hab_bin_run="$($HAB_BINARY sup --help)"
+echo "--- Expecting help message, not install message:"
+echo "--- $hab_bin_run"
+
+if [ -z "$hab_bin_run" ]; then
   echo
-  echo "ERROR: $HAB_BINARY was not the proper executable hab binary!"
+  echo "--- ERROR: $HAB_BINARY was not the proper executable hab binary!"
   exit 1
 elif [ -d "$TESTING_FS_ROOT/hab/pkgs/core/hab-sup" ]; then
   echo
-  echo "ERROR: detected an installation of core/hab-sup"
+  echo "--- ERROR: detected an installation of core/hab-sup"
   exit 1
 fi
 
-echo "Success!"
+echo "--- Success!"

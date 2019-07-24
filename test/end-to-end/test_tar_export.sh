@@ -34,14 +34,15 @@ fi
 # Remove tarball if already present
 rm -f ./*.tar.gz
 
-/src/target/debug/hab pkg export tar "$pkg_ident" 
+hab pkg export tar "$pkg_ident" --base-pkgs-channel=DEV
 
 # Check if tarball is present
 
 if [ "$(find . -maxdepth 1 -type f -name "*.tar.gz")" ] ; then
-    echo "Package was successfully exported to a tarball"
+    echo "--- Package was successfully exported to a tarball"
 else
-    echo "Package was NOT successfully exported" 
+    echo "--- Package was NOT successfully exported"
+    exit 1
 fi
 
-echo "Woo!"
+echo "--- Woo!"

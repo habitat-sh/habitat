@@ -9,9 +9,9 @@ set -eou pipefail
 # through the pipeline. As we bring more platforms into play, this may
 # change. FYI.
 import_keys() {
-    echo "--- :key: Downloading 'core' public keys from Builder"
+    echo "--- :key: Downloading 'core' public keys from ${HAB_BLDR_URL:-Builder}"
     ${hab_binary:?} origin key download core
-    echo "--- :closed_lock_with_key: Downloading latest 'core' secret key from Builder"
+    echo "--- :closed_lock_with_key: Downloading latest 'core' secret key from ${HAB_BLDR_URL:-Builder}"
     ${hab_binary:?} origin key download \
         --auth="${HAB_AUTH_TOKEN}" \
         --secret \
@@ -76,11 +76,11 @@ set_hab_binary() {
     # ActiveTarget. Otherwise, if we were to attempt to install an
     # `x86_64-linux-kernel2` package with the `hab` on our path, it
     # would result in an error and fail the build.
-    # 
-    # TODO (SM): We also need to set the pkg_target so that we pull 
+    #
+    # TODO (SM): We also need to set the pkg_target so that we pull
     # the correct meta-data from BK for hab-version and hab-studio
-    # It might be better to expect BUILD_PKG_TARGET to always be 
-    # explicitly set. 
+    # It might be better to expect BUILD_PKG_TARGET to always be
+    # explicitly set.
     local pkg_target
     case "${BUILD_PKG_TARGET}" in
         x86_64-linux)
@@ -99,7 +99,7 @@ set_hab_binary() {
             hab_binary="$(command -v hab)"
             pkg_target="x86_64-windows"
             ;;
-        *) 
+        *)
             echo "--- :no_entry_sign: Unknown PackageTarget: ${BUILD_PKG_TARGET}"
             exit 1
             ;;
@@ -116,8 +116,14 @@ set_hab_binary() {
         # Note that we are explicitly not binlinking here; this is to
         # prevent accidentally polluting the builder for any future
         # runs that may take place on it.
-        sudo env HAB_LICENSE="${HAB_LICENSE}" "${hab_binary:?}" pkg install "${hab_ident}"
-        sudo env HAB_LICENSE="${HAB_LICENSE}" "${hab_binary:?}" pkg install "$(get_studio_ident $pkg_target)"
+        sudo env HAB_LICENSE="${HAB_LICENSE}" \
+             "${hab_binary:?}" pkg install "${hab_ident}" \
+             --auth="${HAB_AUTH_TOKEN}" \
+             --url="${HAB_BLDR_URL}"
+        sudo env HAB_LICENSE="${HAB_LICENSE}" \
+             "${hab_binary:?}" pkg install "$(get_studio_ident $pkg_target)" \
+             --auth="${HAB_AUTH_TOKEN}" \
+             --url="${HAB_BLDR_URL}"
         hab_binary="/hab/pkgs/${hab_ident}/bin/hab"
         declare -g new_studio=1
     else
@@ -127,30 +133,28 @@ set_hab_binary() {
     echo "--- :habicat: Using $(${hab_binary} --version)"
 }
 
-
 # Use the install.sh script which lives in this repository to download the latest version of Habitat
 install_hab_binary() {
     local target install_path
-    
+
     target="$1"
     install_path="$2"
 
     (
       bt_uri="https://api.bintray.com/content/habitat/stable/linux/x86_64/hab-%24latest-$target.tar.gz?bt_package=hab-$target"
-      
+
       tmpdir="$(mktemp -d hab-install.XXXXXXXX)"
       cd "$tmpdir"
       wget "$bt_uri" -O "hab-$target-latest.tar.gz"
-      tar xvf "hab-$target-latest.tar.gz" --strip-components=1 
+      tar xvf "hab-$target-latest.tar.gz" --strip-components=1
       sudo mkdir -p "$install_path"
       sudo mv --force "hab" "$install_path/hab-$target"
       sudo chmod +x "$install_path/hab-$target"
     )
 }
 
-
 # The following get/set functions abstract the meta-data key
-# names to provide consistant access, taking into account the 
+# names to provide consistant access, taking into account the
 # target, where appropriate.
 
 get_hab_ident() {

@@ -2,7 +2,6 @@
 pkg_name=hab-sup
 _pkg_distname=$pkg_name
 pkg_origin=core
-pkg_version=$(cat "$SRC_PATH/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(core/busybox-static
@@ -45,6 +44,19 @@ _common_prepare() {
     export CARGO_TARGET_DIR="$HAB_CARGO_TARGET_DIR"
   fi
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
+}
+
+pkg_version() {
+  if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
+    cat "$SRC_PATH/../../VERSION_FAKE"
+  else
+    cat "$SRC_PATH/../../VERSION"
+  fi
+}
+ 
+do_before() {
+  do_default_before
+  update_pkg_version
 }
 
 # shellcheck disable=2155

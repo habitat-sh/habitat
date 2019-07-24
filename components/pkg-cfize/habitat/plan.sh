@@ -27,8 +27,18 @@ pkg_bin_dirs=(bin)
 
 _bins=("$pkg_name")
 
-# TODO fn: use `pkg_version()` form
-pkg_version=$(cat "$SRC_PATH/../../VERSION")
+pkg_version() {
+  if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
+    cat "$SRC_PATH/../../VERSION_FAKE"
+  else
+    cat "$SRC_PATH/../../VERSION"
+  fi
+}
+ 
+do_before() {
+  do_default_before
+  update_pkg_version
+}
 
 do_prepare() {
   do_default_prepare

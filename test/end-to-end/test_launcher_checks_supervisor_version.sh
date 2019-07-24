@@ -59,11 +59,15 @@ if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$incompatible_v
     echo
 else
     echo "Failure! Expected launcher to exit with error"
+    contents=$(cat "$sup_log")
+    echo "--- FAILURE LOG: ${contents}"
     exit 1
 fi
 
 if HAB_LAUNCH_NO_SUP_VERSION_CHECK=1 launcher_exits_with_error "$incompatible_version"; then
     echo "Failure! Expected launcher remain running"
+    contents=$(cat "$sup_log")
+    echo "--- FAILURE LOG: ${contents}"
     exit 1
 else
     echo "Success! Setting HAB_LAUNCH_NO_SUP_VERSION_CHECK skips version check"
@@ -73,6 +77,8 @@ fi
 compatible_version="0.56.0/20180530235935"
 if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$compatible_version"; then
     echo "Failure! Expected launcher remain running"
+    contents=$(cat "$sup_log")
+    echo "--- FAILURE LOG: ${contents}"
     exit 1
 else
     echo "Success! Supervisor passed version check"
@@ -82,6 +88,8 @@ fi
 dev_version="0.62.0-dev"
 if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$dev_version"; then
     echo "Failure! Expected launcher remain running"
+    contents=$(cat "$sup_log")
+    echo "--- FAILURE LOG: ${contents}"
     exit 1
 else
     echo "Success! Supervisor passed version check"
@@ -94,5 +102,7 @@ if HAB_LAUNCH_NO_SUP_VERSION_CHECK='' launcher_exits_with_error "$invalid_versio
     echo
 else
     echo "Failure! Expected launcher to exit with error"
+    contents=$(cat "$sup_log")
+    echo "--- FAILURE LOG: ${contents}"
     exit 1
 fi

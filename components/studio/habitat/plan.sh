@@ -1,7 +1,6 @@
 # shellcheck disable=2034
 pkg_name=hab-studio
 pkg_origin=core
-pkg_version=$(cat "$SRC_PATH/../../VERSION")
 pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 pkg_license=('Apache-2.0')
 pkg_deps=(
@@ -14,6 +13,19 @@ pkg_build_deps=(core/coreutils
                 core/busybox-static
                 core/hab)
 pkg_bin_dirs=(bin)
+
+pkg_version() {
+  if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
+    cat "$SRC_PATH/../../VERSION_FAKE"
+  else
+    cat "$SRC_PATH/../../VERSION"
+  fi
+}
+ 
+do_before() {
+  do_default_before
+  update_pkg_version
+}
 
 do_prepare() {
   set_runtime_env "HAB_STUDIO_BACKLINE_PKG" "$(< "$(pkg_path_for core/hab-backline)"/IDENT)"

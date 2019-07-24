@@ -3,11 +3,17 @@
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
   # is bumped automatically via the `built_in:bump_version` merge_action.
-  version_file: "VERSION"
+  # TODO: Change this to `VERSION` once we are live
+  version_file: "VERSION_FAKE"
+  version_tag_format: 'fake-{{version}}'
   # The file where our CHANGELOG is kept. This file is updated automatically with
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
-  changelog_file: "CHANGELOG.md"
+  changelog_file: "CHANGELOG_FAKE.md"
   delete_branch_on_merge: true
+  release_branch:
+    - master:
+        # Version constraint at this point is arbitrary but represents 1.0.0
+        version_constraint: 1*
 
 # Slack channel in Chef Software slack to send notifications about Expeditor actions
 slack:
@@ -15,9 +21,14 @@ slack:
 
 # These actions are taken, in order they are specified, anytime a Pull Request is merged.
 merge_actions:
+  - built_in:bump_version:
+      ignore_labels:
+        - "Expeditor: Skip Version Bump"
+        - "Expeditor: Skip All"
   - built_in:update_changelog:
       ignore_labels:
         - "Expeditor: Exclude from Changelog"
+        - "Expeditor: Skip All"
 
 subscriptions:
   - workload: pull_request_opened:{{agent_id}}:*
@@ -29,12 +40,7 @@ changelog:
     - "X-change": "Behavioral Changes"
     - "X-feature": "New Features & Enhancements"
     - "X-fix": "Bug Fixes"
-
-github:
-  release_branch:
-    - master:
-        # Version constraint at this point is arbitrary but represents 1.0.0
-        version_constraint: 1*
+  rollup_header: Changes not yet released to stable
 
 pipelines:
   - verify:
@@ -44,15 +50,46 @@ pipelines:
       description: Deploy the website
       definition: .expeditor/website.pipeline.yml
       trigger: pull_request
-  - habitat/build
   - release_habitat:
       description: Habitat release process
   - end_to_end:
       description: Habitat long running end to end tests - always runs on DEV environment
 
+staging_areas:
+  - post_merge:
+      workload: pull_request_merged:{{agent_id}}:*
+
 subscriptions:
   # These actions are taken, in order they are specified
+  - workload: pull_request_merged:{{agent_id}}:*
+    actions:
+      - trigger_pipeline:release_habitat
+
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
       - trigger_pipeline:end_to_end:
           post_commit: true
+
+  - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
+    actions:
+      - trigger_pipeline:test_scenarios:
+          post_commit: true
+
+  # Make sure we unlock to allow later builds if one fails.
+  - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
+    actions:
+      - unlock_staging_area:post_merge:
+          post_commit: true
+          always_run: true
+
+  - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
+    actions:
+      - unlock_staging_area:post_merge:
+          post_commit: true
+          always_run: true
+
+  - workload: buildkite_build_canceled:{{agent_id}}:release_habitat:*
+    actions:
+      - unlock_staging_area:post_merge:
+          post_commit: true
+          always_run: true
