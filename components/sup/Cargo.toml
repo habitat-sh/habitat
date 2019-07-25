@@ -51,7 +51,7 @@ prost = "*"
 prost-derive = "*"
 prost-types = "0.5.0" # This is current stable, but for some reason gets pulled in as 0.4.0 if we use "*" (2019-03-28)
 rand = "*"
-ratsio = "*"
+ratsio = {git = "https://github.com/habitat-sh/ratsio.git", rev = "f78bc37ad82202791f753c593d9b60bb3ea2570b"}
 regex = "*"
 rustls = "*"
 serde = { version = "*", features = ["rc"] }
