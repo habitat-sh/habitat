@@ -27,7 +27,7 @@ find . -type f \
       -or -exec sh -c 'file -b "$1" | grep -q "shell script"' -- {} \; \) \
   -and \! -path "*.sample" \
   -and \! -path "*.ps1" \
-  -and \! -path "./components/hab/static/template_plan.sh" \
+  -and \! -path "./components/hab/static/*" \
   -and \! -path "./target/*" \
   -and \! -path "./test/integration/helpers.bash" \
   -and \! -path "./test/integration/test_helper/bats-assert/*" \
