@@ -276,6 +276,8 @@ pub trait BuilderAPIProvider: Sync + Send {
                                           progress: Option<Self::Progress>)
                                           -> Result<PathBuf>;
 
+    fn create_origin(&self, origin: &str, token: &str) -> Result<()>;
+
     fn create_origin_secret(&self,
                             origin: &str,
                             token: &str,

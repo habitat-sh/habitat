@@ -242,6 +242,16 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             (about: "Commands relating to Habitat origin keys")
             (aliases: &["o", "or", "ori", "orig", "origi"])
             (@setting ArgRequiredElseHelp)
+            (@subcommand create =>
+                (about: "Creates a new Builder origin")
+                (aliases: &["cre", "crea"])
+                (@arg ORIGIN: +required {valid_origin} "The origin to be created")
+                (@arg BLDR_URL: -u --url +takes_value {valid_url}
+                     "Specify an alternate Builder endpoint. If not specified, the value will \
+                     be taken from the `HAB_BLDR_URL environment variable if defined. (default: \
+                     https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+            )
             (@subcommand delete =>
                 (about: "Removes an unused/empty origin")
                 (aliases: &["del", "dele"])
