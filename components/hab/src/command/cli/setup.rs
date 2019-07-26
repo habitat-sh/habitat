@@ -32,8 +32,7 @@ use winreg::enums::{HKEY_LOCAL_MACHINE,
 #[cfg(windows)]
 use winreg::RegKey;
 
-use crate::{analytics,
-            command,
+use crate::{command,
             config,
             error::Result,
             AUTH_TOKEN_ENVVAR,
@@ -41,9 +40,7 @@ use crate::{analytics,
             CTL_SECRET_ENVVAR,
             ORIGIN_ENVVAR};
 
-pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()> {
-    let mut generated_origin = false;
-
+pub fn start(ui: &mut UI, cache_path: &Path) -> Result<()> {
     ui.br()?;
     ui.title("Habitat CLI Setup")?;
     ui.para("Welcome to hab setup. Let's get started.")?;
@@ -121,7 +118,6 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
                      documentation at https://www.habitat.sh/docs/concepts-keys/#origin-keys")?;
             if ask_create_origin(ui, &origin)? {
                 create_origin(ui, &origin, cache_path)?;
-                generated_origin = true;
             } else {
                 ui.para(&format!("You might want to create an origin key later with: `hab \
                                   origin key generate {}'",
@@ -180,20 +176,6 @@ pub fn start(ui: &mut UI, cache_path: &Path, analytics_path: &Path) -> Result<()
         } else {
             ui.para("Okay, maybe another time.")?;
         }
-    }
-    ui.heading("Analytics")?;
-    ui.para("The `hab` command-line tool will optionally send anonymous usage data to Habitat's \
-             Google Analytics account. This is a strictly opt-in activity and no tracking will \
-             occur unless you respond affirmatively to the question below.")?;
-    ui.para("We collect this data to help improve Habitat's user experience. For example, we \
-             would like to know the category of tasks users are performing, and which ones they \
-             are having trouble with (e.g. mistyping command line arguments).")?;
-    ui.para("To see what kinds of data are sent and how they are anonymized, please read more \
-             about our analytics here: https://www.habitat.sh/docs/about-analytics/")?;
-    if ask_enable_analytics(ui, analytics_path)? {
-        opt_in_analytics(ui, analytics_path, generated_origin)?;
-    } else {
-        opt_out_analytics(ui, analytics_path)?;
     }
     ui.heading("CLI Setup Complete")?;
     ui.para("That's all for now. Thanks for using Habitat!")?;
@@ -321,26 +303,6 @@ fn prompt_ctl_secret(ui: &mut UI) -> Result<String> {
     };
     Ok(ui.prompt_ask("Habitat Supervisor CtlGateway secret",
                      default.as_ref().map(|x| &**x))?)
-}
-
-fn ask_enable_analytics(ui: &mut UI, analytics_path: &Path) -> Result<bool> {
-    let default = match analytics::is_opted_in(analytics_path) {
-        Some(val) => Some(val),
-        None => Some(true),
-    };
-    Ok(ui.prompt_yes_no("Enable analytics?", default)?)
-}
-
-fn opt_in_analytics(ui: &mut UI, analytics_path: &Path, generated_origin: bool) -> Result<()> {
-    let result = analytics::opt_in(ui, analytics_path, generated_origin);
-    ui.br()?;
-    result
-}
-
-fn opt_out_analytics(ui: &mut UI, analytics_path: &Path) -> Result<()> {
-    let result = analytics::opt_out(ui, analytics_path);
-    ui.br()?;
-    result
 }
 
 fn valid_url(val: &str) -> result::Result<(), String> {
