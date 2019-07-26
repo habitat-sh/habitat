@@ -23,7 +23,6 @@ futures = "*"
 habitat_api_client = { path = "../builder-api-client" }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
-habitat_http_client = { path = "../http-client" }
 habitat-sup-client = { path = "../sup-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 # We need to lock here since v0.30.0 bumps to a version of pest that fails to build on Windows.

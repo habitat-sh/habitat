@@ -3,7 +3,6 @@
 use habitat_api_client as api_client;
 use habitat_common as common;
 use habitat_core as hcore;
-use habitat_http_client as http_client;
 use habitat_sup_client as sup_client;
 use habitat_sup_protocol as protocol;
 
@@ -26,7 +25,6 @@ extern crate winapi;
 #[cfg(windows)]
 extern crate winreg;
 
-pub mod analytics;
 pub mod cli;
 pub mod command;
 pub mod config;
