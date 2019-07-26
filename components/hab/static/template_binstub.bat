@@ -1,4 +1,4 @@
 @echo off
-REM source='{src}'
+REM target='{target}'
 {env}
-"{src}" %*
+"{target}" %*

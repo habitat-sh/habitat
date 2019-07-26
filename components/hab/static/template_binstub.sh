@@ -1,4 +1,4 @@
-#!/bin/sh
-# source='{src}'
+#!{interpreter}
+# target='{target}'
 {env}
-exec {src} "$@"
+exec {target} "$@"

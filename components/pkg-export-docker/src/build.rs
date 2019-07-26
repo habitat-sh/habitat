@@ -854,8 +854,7 @@ mod test {
         use super::{super::*,
                     *};
         use crate::common::ui::UI;
-        use std::{fs,
-                  io::{self,
+        use std::{io::{self,
                        Cursor,
                        Write},
                   sync::{Arc,
@@ -889,6 +888,8 @@ mod test {
         #[cfg(unix)]
         #[test]
         fn link_binaries() {
+            use std::fs;
+
             let rootfs = TempDir::new().unwrap();
             let (mut ui, ..) = ui();
             let base_pkgs = base_pkgs(rootfs.path());
