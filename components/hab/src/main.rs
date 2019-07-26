@@ -109,7 +109,11 @@ fn main() {
     env_logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
-    thread::spawn(analytics::instrument_subcommand);
+
+    if analytics::analytics_enabled() {
+        thread::spawn(analytics::instrument_subcommand);
+    }
+
     if let Err(e) = start(&mut ui, flags) {
         ui.fatal(e).unwrap();
         std::process::exit(1)

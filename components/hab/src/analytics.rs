@@ -419,7 +419,7 @@ pub fn is_opted_in<T>(analytics_path: T) -> Option<bool>
 }
 
 /// Returns true if analytics are enabled and false otherwise.
-fn analytics_enabled() -> bool {
+pub fn analytics_enabled() -> bool {
     match is_opted_in(hcore::fs::cache_analytics_path(None::<String>)) {
         // If the value is explicitly true or false, return the unwrapped value
         Some(val) => val,
