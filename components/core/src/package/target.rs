@@ -292,6 +292,13 @@ supported_package_targets! {
     /// [isa]: https://en.wikipedia.org/wiki/Instruction_set_architecture
     /// [x86_64]: https://en.wikipedia.org/wiki/X86-64
     ("x86_64-windows", X86_64_Windows, X86_64_WINDOWS, "x86_64", "windows");
+
+    /// Represents a [Linux kernel]-based system running on an [ARM Architecture processor][arm-arch].
+    ///
+    /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
+    /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
+    ("arm-linux", ARM_Linux, ARM_LINUX, "arm", "linux");
+    ("armv7-linux", ARMV7_Linux, ARMV7_LINUX, "armv7", "linux");
 }
 
 lazy_static::lazy_static! {
