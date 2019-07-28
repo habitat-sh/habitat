@@ -299,6 +299,7 @@ supported_package_targets! {
     /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
     ("arm-linux", ARM_Linux, ARM_LINUX, "arm", "linux");
     ("armv7-linux", ARMV7_Linux, ARMV7_LINUX, "armv7", "linux");
+    ("aarch64-linux", AARCH64_Linux, AARCH64_LINUX, "aarch64", "linux")
 }
 
 lazy_static::lazy_static! {
