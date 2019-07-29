@@ -30,11 +30,6 @@ merge_actions:
         - "Expeditor: Exclude from Changelog"
         - "Expeditor: Skip All"
 
-subscriptions:
-  - workload: pull_request_opened:{{agent_id}}:*
-    actions:
-      - post_github_comment:.expeditor/templates/welcome.mustache
-
 changelog:
   categories:
     - "X-change": "Behavioral Changes"
@@ -61,6 +56,10 @@ staging_areas:
 
 subscriptions:
   # These actions are taken, in order they are specified
+  - workload: pull_request_opened:{{agent_id}}:*
+    actions:
+      - post_github_comment:.expeditor/templates/welcome.mustache
+
   - workload: pull_request_merged:{{agent_id}}:*
     actions:
       - trigger_pipeline:release_habitat
