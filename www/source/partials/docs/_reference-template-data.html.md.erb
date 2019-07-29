@@ -22,7 +22,7 @@ System information
 | ip | string | The IP address of the running service. |
 | member_id | string | The member's Supervisor ID, e.g., `3d1e73ff19464a27aea3cdc5c2243f74` |
 | permanent | boolean | Set to true if a Supervisor is being used as a permanent peer, to increase Ring network traffic stability. |
-| version | string | Version of the Chef Habitat Supervisor, e.g., `0.54.0/20180221023448` |
+| version | string | Version of the Habitat Supervisor, e.g., `0.54.0/20180221023448` |
 
 ## pkg
 
@@ -31,23 +31,23 @@ Details about the package currently running the service
 | Property | Type | Description |
 | -------- | ---- | ----------- |
 | ident | string | The fully-qualified identifier of the running package, e.g., `core/redis/3.2.4/20170514150022` |
-| origin | string | The origin of the Chef Habitat package |
-| name | string | The name of the Chef Habitat package |
-| version | string | The version of the Chef Habitat package |
-| release | string | The release of the Chef Habitat package |
+| origin | string | The origin of the Habitat package |
+| name | string | The name of the Habitat package |
+| version | string | The version of the Habitat package |
+| release | string | The release of the Habitat package |
 | deps | array | An array of runtime dependencies for your package based on the `pkg_deps` setting in a plan |
 | env | object | The runtime environment of your package, mirroring the contents of the `RUNTIME_ENVIRONMENT` metadata file. The `PATH` variable is set, containing all dependencies of your package, as well as any other runtime environment variables that have been set by the package. Individual variables can be accessed directly, like `{{pkg.env.PATH}}` (the keys are case sensitive). |
 | exposes | array | The array of ports to expose for an application or service. This value is pulled from the pkg_exposes setting in a plan. |
 | exports | object | A map of export key to internal configuration value key (i.e., the contents of `pkg_exports` in your plan). The key is what external services consume. The value is a key in your `default.toml` file that corresponds to the data being exported. |
 | path | string | The location where the package is installed locally, e.g., `/hab/pkgs/core/redis/3.2.4/20170514150022`. Note that this is _not_ a `PATH` environment variable; for that, please see the `env` key above. |
-| svc_path | string | The root location of the source files for the Chef Habitat service, e.g., `/hab/svc/redis`. |
-| svc_config_path | string | The location of any templated configuration files for the Chef Habitat service, e.g., `/hab/svc/redis/config`. |
-| svc_data_path | string | The location of any data files for the Chef Habitat service, e.g., `/hab/svc/redis/data`. |
-| svc_files_path | string | The location of any gossiped configuration files for the Chef Habitat service, e.g., `/hab/svc/redis/files`. |
-| svc_static_path | string | The location of any static content for the Chef Habitat service, e.g., `/hab/svc/redis/static`. |
-| svc_var_path | string | The location of any variable state data for the Chef Habitat service, e.g., `/hab/svc/redis/var`. |
-| svc_pid_file | string | The location of the Chef Habitat service pid file, e.g., `/hab/svc/redis/PID`. |
-| svc_run | string | The location of the rendered run hook for the Chef Habitat service, e.g., `/hab/svc/redis/run`. |
+| svc_path | string | The root location of the source files for the Habitat service, e.g., `/hab/svc/redis`. |
+| svc_config_path | string | The location of any templated configuration files for the Habitat service, e.g., `/hab/svc/redis/config`. |
+| svc_data_path | string | The location of any data files for the Habitat service, e.g., `/hab/svc/redis/data`. |
+| svc_files_path | string | The location of any gossiped configuration files for the Habitat service, e.g., `/hab/svc/redis/files`. |
+| svc_static_path | string | The location of any static content for the Habitat service, e.g., `/hab/svc/redis/static`. |
+| svc_var_path | string | The location of any variable state data for the Habitat service, e.g., `/hab/svc/redis/var`. |
+| svc_pid_file | string | The location of the Habitat service pid file, e.g., `/hab/svc/redis/PID`. |
+| svc_run | string | The location of the rendered run hook for the Habitat service, e.g., `/hab/svc/redis/run`. |
 | svc_user | string | The value of `pkg_svc_user` specified in a plan. |
 | svc_group | string | The value of `pkg_svc_group` specified in a plan. |
 
@@ -92,14 +92,14 @@ Some of the template expressions referenced above return objects of a specific s
 
 ### package_identifier
 
-A Chef Habitat package identifier, split apart into its constituent components
+A Habitat package identifier, split apart into its constituent components
 
 | Property | Type | Description |
 | -------- | ---- | ----------- |
-| origin | string | The origin of the Chef Habitat package |
-| name | string | The name of the Chef Habitat package |
-| version | string | The version of the Chef Habitat package |
-| release | string | The release of the Chef Habitat package |
+| origin | string | The origin of the Habitat package |
+| name | string | The name of the Habitat package |
+| version | string | The version of the Habitat package |
+| release | string | The release of the Habitat package |
 
 ### svc_member
 
