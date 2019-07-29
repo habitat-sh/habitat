@@ -132,6 +132,8 @@ The post run hook will get executed after initial startup.
 
 For many data services creation of specific users / roles or datastores is required. This needs to happen once the service has already started.
 
+The retry behavior of this hook is determined by its exit code. Exit code `0` indicates success, and the hook will not be run again. Any other exit code indicates failure and will initiate a retry. In the case of a retry, the `post-run` hook will immediately be executed again. Continually exit with a nonzero exit code to keep retrying the `post-run` hook. Regardless of the exit code, the habitat service will continue running.
+
 ###post-stop
 File location: `<plan>/hooks/post-stop`
 

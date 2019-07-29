@@ -18,6 +18,7 @@ mod supervisor;
 mod terminator;
 
 use self::{context::RenderContext,
+           hook_runner::HookRunner,
            hooks::{HookCompileTable,
                    HookTable},
            supervisor::Supervisor};
@@ -225,6 +226,7 @@ pub struct Service {
     /// health checks on this service. This is the means by which we
     /// can stop that future.
     health_check_handle: Option<sup_futures::FutureHandle>,
+    post_run_handle: Option<sup_futures::FutureHandle>,
 }
 
 impl Service {
@@ -276,6 +278,7 @@ impl Service {
                      health_check_interval: spec.health_check_interval,
                      gateway_state,
                      health_check_handle: None,
+                     post_run_handle: None,
                      shutdown_timeout: spec.shutdown_timeout })
     }
 
@@ -371,8 +374,6 @@ impl Service {
 
     /// Stop the endless future that performs health checks for the
     /// service.
-    ///
-    /// Consumes the handle to that future in the process.
     fn stop_health_checks(&mut self) {
         if let Some(h) = self.health_check_handle.take() {
             debug!("Stopping health checks for {}", self.pkg.ident);
@@ -399,26 +400,33 @@ impl Service {
         outputln!("Reattaching to {}", self.service_group);
         self.initialized = true;
         self.restart_health_checks(executor);
+        // We intentionally do not restart the `post_run` retry future. Currently, there is not
+        // a way to track if `post_run` ran successfully following a Supervisor restart.
+        // See https://github.com/habitat-sh/habitat/issues/6739
     }
 
-    /// Called when stopping the Supervisor for an update. Should
-    /// *not* stop the service process itself, but should stop any
-    /// associated processes, futures, etc., that would otherwise
-    /// prevent the Supervisor from shutting itself down.
+    /// Called when stopping the Supervisor for an update and
+    /// before stopping a service. Should *not* stop the service
+    /// process itself, but should stop any associated processes,
+    /// futures, etc., that would otherwise prevent the Supervisor
+    /// from shutting itself down.
     ///
     /// Currently, this means stopping any associated long-running
     /// futures.
     ///
     /// See also `Service::reattach`, as these methods should
     /// generally be mirror images of each other.
-    pub fn detach(&mut self) { self.stop_health_checks(); }
+    pub fn detach(&mut self) {
+        self.stop_post_run();
+        self.stop_health_checks();
+    }
 
     /// Return a future that will shut down a service, performing any
     /// necessary cleanup, and run its post-stop hook, if any.
     pub fn stop(&mut self,
                 shutdown_config: ShutdownConfig)
                 -> impl Future<Item = (), Error = Error> {
-        self.stop_health_checks();
+        self.detach();
 
         let service_group = self.service_group.clone();
         let gs = Arc::clone(&self.gateway_state);
@@ -706,14 +714,6 @@ impl Service {
             .check_process()
     }
 
-    fn process_down(&self) -> bool {
-        self.supervisor
-            .lock()
-            .expect("Couldn't lock supervisor")
-            .state
-        == ProcessState::Down
-    }
-
     /// Updates the service configuration with data from a census group if the census group has
     /// newer data than the current configuration.
     ///
@@ -817,25 +817,32 @@ impl Service {
         }
     }
 
-    fn post_run(&mut self) {
-        let _timer = hook_timer("post-run");
-
+    fn post_run(&mut self, executor: &TaskExecutor) {
         if let Some(ref hook) = self.hooks.post_run {
-            hook.run(&self.service_group,
-                     &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+            let hook_runner = HookRunner::new(Arc::clone(&hook),
+                                              self.service_group.clone(),
+                                              self.pkg.clone(),
+                                              self.svc_encrypted_password.clone());
+            let (handle, f) = hook_runner.retryable_future();
+            self.post_run_handle = Some(handle);
+            executor.spawn(f);
         }
     }
 
-    // This hook method looks different from all the others because
-    // it's the only one that runs async right now.
-    fn post_stop(&self) -> Option<hook_runner::HookRunner<hooks::PostStopHook>> {
+    /// Stop the `post-run` retry future. This will stop this retry loop regardless of `post-run`'s
+    /// exit code.
+    fn stop_post_run(&mut self) {
+        if let Some(h) = self.post_run_handle.take() {
+            h.terminate();
+        }
+    }
+
+    fn post_stop(&self) -> Option<HookRunner<hooks::PostStopHook>> {
         self.hooks.post_stop.as_ref().map(|hook| {
-                                         hook_runner::HookRunner::new(Arc::clone(&hook),
-                                                                      self.service_group.clone(),
-                                                                      self.pkg.clone(),
-                                                                      self.svc_encrypted_password
-                                                                          .clone())
+                                         HookRunner::new(Arc::clone(&hook),
+                                                         self.service_group.clone(),
+                                                         self.pkg.clone(),
+                                                         self.svc_encrypted_password.clone())
                                      })
     }
 
@@ -932,19 +939,23 @@ impl Service {
                      executor: &TaskExecutor,
                      template_update: &TemplateUpdate)
                      -> bool {
+        let up = self.check_process();
         if !self.initialized {
-            if self.check_process() {
+            // If the service is not initialized and the process is still running, the Supervisor
+            // was restarted and we just have to reattach to the process.
+            if up {
                 self.reattach(executor);
                 return false;
             }
             self.initialize();
             if self.initialized {
                 self.start(launcher, executor);
-                self.post_run();
+                self.post_run(executor);
             }
         } else {
-            self.check_process();
-            if self.process_down() || template_update.needs_restart() {
+            // If the service is initialized and the process is not running, the process
+            // unexpectedly died and needs to be restarted.
+            if !up || template_update.needs_restart() {
                 // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could just
                 // schedule the `stop` future, but the `Manager` wraps the `stop` future with
                 // additional functionality. Can we refactor to make this flag unnecessary?
