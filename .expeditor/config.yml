@@ -62,7 +62,8 @@ subscriptions:
 
   - workload: pull_request_merged:{{agent_id}}:*
     actions:
-      - trigger_pipeline:release_habitat
+      - trigger_pipeline:release_habitat:
+          post_commit: true
 
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
