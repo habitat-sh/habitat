@@ -76,13 +76,13 @@ function markdownForHeader() {
   const formatted = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`
   return `<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
  ---
-title: Habitat Docs - hab CLI Reference
+title: Chef Habitat Docs - hab CLI Reference
 draft: false
 ---
 
-# Habitat Command-Line Interface (CLI) Reference
+# Chef Habitat Command-Line Interface (CLI) Reference
 
-The commands for the Habitat CLI (\`hab\`) are listed below.
+The commands for the Chef Habitat CLI (\`hab\`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
