@@ -5,25 +5,9 @@
 
 #### Behavioral Changes
 - Cleanup lifecycle restarts and remove reload hook [#6668](https://github.com/habitat-sh/habitat/pull/6668) ([davidMcneil](https://github.com/davidMcneil))
-<!-- 0.83.0 behavioral changes below here -->
-- Add rst-reader back again [#6619](https://github.com/habitat-sh/habitat/pull/6619) ([raskchanky](https://github.com/raskchanky))
 
 #### Bug Fixes
 - Be more explicit about connection refused errors. [#6755](https://github.com/habitat-sh/habitat/pull/6755) ([raskchanky](https://github.com/raskchanky))
-<!-- 0.83.0 bug fixes below here -->
-- Improve liveliness checker [#6714](https://github.com/habitat-sh/habitat/pull/6714) ([baumanj](https://github.com/baumanj))
-- Stop health check futures when upgrading the Supervisor [#6717](https://github.com/habitat-sh/habitat/pull/6717) ([christophermaier](https://github.com/christophermaier))
-- do not overwrite PSModulePath when setting up build environment [#6697](https://github.com/habitat-sh/habitat/pull/6697) ([mwrock](https://github.com/mwrock))
-- provide a better error when no value is passed to Set-BuildtimeEnv or Set-RuntimeEnv [#6684](https://github.com/habitat-sh/habitat/pull/6684) ([mwrock](https://github.com/mwrock))
-- Remove recusive memberlist locking [#6662](https://github.com/habitat-sh/habitat/pull/6662) ([baumanj](https://github.com/baumanj))
-- allow windows service to set arbitrary environment variables [#6648](https://github.com/habitat-sh/habitat/pull/6648) ([mwrock](https://github.com/mwrock))
-
-#### New Features & Enhancements
-<!-- 0.83.0 features below here -->
-- add a invoke-after function for powershell plans [#6685](https://github.com/habitat-sh/habitat/pull/6685) ([mwrock](https://github.com/mwrock))
-- allow windows docker studio and exported images to run on kernels later than 2016ltsc [#6643](https://github.com/habitat-sh/habitat/pull/6643) ([mwrock](https://github.com/mwrock))
-- Switch to log4rs in the Supervisor [#6622](https://github.com/habitat-sh/habitat/pull/6622) ([christophermaier](https://github.com/christophermaier))
-- Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Merged Pull Requests
 - Convert all our manual whitespace splitting to use split_whitespace() [#6751](https://github.com/habitat-sh/habitat/pull/6751) ([raskchanky](https://github.com/raskchanky))
@@ -35,7 +19,30 @@
 - Updating reference hooks document... [#6716](https://github.com/habitat-sh/habitat/pull/6716) ([mike10010100](https://github.com/mike10010100))
 - Add license acceptance to kernel2 Vagrant file [#6733](https://github.com/habitat-sh/habitat/pull/6733) ([christophermaier](https://github.com/christophermaier))
 - Upgrade to Rust 1.36.0 [#6708](https://github.com/habitat-sh/habitat/pull/6708) ([raskchanky](https://github.com/raskchanky))
-<!-- 0.83.0 merged PRs below here -->
+
+<!-- latest_release -->
+
+## [0.83.0](https://github.com/habitat-sh/habitat/tree/0.83.0) (2019-07-29)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.82.0...0.83.0)
+
+#### Behavioral Changes
+- Add rst-reader back again [#6619](https://github.com/habitat-sh/habitat/pull/6619) ([raskchanky](https://github.com/raskchanky))
+
+#### Bug Fixes
+- Improve liveliness checker [#6714](https://github.com/habitat-sh/habitat/pull/6714) ([baumanj](https://github.com/baumanj))
+- Stop health check futures when upgrading the Supervisor [#6717](https://github.com/habitat-sh/habitat/pull/6717) ([christophermaier](https://github.com/christophermaier))
+- do not overwrite PSModulePath when setting up build environment [#6697](https://github.com/habitat-sh/habitat/pull/6697) ([mwrock](https://github.com/mwrock))
+- provide a better error when no value is passed to Set-BuildtimeEnv or Set-RuntimeEnv [#6684](https://github.com/habitat-sh/habitat/pull/6684) ([mwrock](https://github.com/mwrock))
+- Remove recusive memberlist locking [#6662](https://github.com/habitat-sh/habitat/pull/6662) ([baumanj](https://github.com/baumanj))
+- allow windows service to set arbitrary environment variables [#6648](https://github.com/habitat-sh/habitat/pull/6648) ([mwrock](https://github.com/mwrock))
+
+#### New Features & Enhancements
+- add a invoke-after function for powershell plans [#6685](https://github.com/habitat-sh/habitat/pull/6685) ([mwrock](https://github.com/mwrock))
+- allow windows docker studio and exported images to run on kernels later than 2016ltsc [#6643](https://github.com/habitat-sh/habitat/pull/6643) ([mwrock](https://github.com/mwrock))
+- Switch to log4rs in the Supervisor [#6622](https://github.com/habitat-sh/habitat/pull/6622) ([christophermaier](https://github.com/christophermaier))
+- Store configurable shutdown parameters [#6539](https://github.com/habitat-sh/habitat/pull/6539) ([davidMcneil](https://github.com/davidMcneil))
+
+#### Merged Pull Requests
 - Migrate Mac Builds to new pipeline [#6726](https://github.com/habitat-sh/habitat/pull/6726) ([scotthain](https://github.com/scotthain))
 - Explicitly use windows 2016 queues [#6720](https://github.com/habitat-sh/habitat/pull/6720) ([scotthain](https://github.com/scotthain))
 - Accept habitat license [#6710](https://github.com/habitat-sh/habitat/pull/6710) ([davidMcneil](https://github.com/davidMcneil))
@@ -82,7 +89,6 @@
 - Decouple logging concerns from Supervisor errors [#6590](https://github.com/habitat-sh/habitat/pull/6590) ([christophermaier](https://github.com/christophermaier))
 - Generate a unique NATS client id for event msgs [#6623](https://github.com/habitat-sh/habitat/pull/6623) ([afiune](https://github.com/afiune))
 - update kubernetes and helm exporter docs to include information about license acceptance [#6573](https://github.com/habitat-sh/habitat/pull/6573) ([nellshamrell](https://github.com/nellshamrell))
-<!-- latest_release -->
 
  ## [0.82.0](https://github.com/habitat-sh/habitat/tree/0.82.0) (2019-06-06)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.81.0...0.82.0)
