@@ -15,17 +15,6 @@ github:
 slack:
   notify_channel: habitat-notify
 
-# These actions are taken, in order they are specified, anytime a Pull Request is merged.
-merge_actions:
-  - built_in:bump_version:
-      ignore_labels:
-        - "Expeditor: Skip Version Bump"
-        - "Expeditor: Skip All"
-  - built_in:update_changelog:
-      ignore_labels:
-        - "Expeditor: Exclude from Changelog"
-        - "Expeditor: Skip All"
-
 changelog:
   categories:
     - "X-change": "Behavioral Changes"
@@ -58,6 +47,14 @@ subscriptions:
 
   - workload: pull_request_merged:{{agent_id}}:*
     actions:
+      - built_in:bump_version:
+          ignore_labels:
+          - 'Expeditor: Skip Version Bump'
+          - 'Expeditor: Skip All'
+      - built_in:update_changelog:
+          ignore_labels:
+          - 'Expeditor: Exclude from Changelog'
+          - 'Expeditor: Skip All'
       - trigger_pipeline:release_habitat:
           post_commit: true
 
