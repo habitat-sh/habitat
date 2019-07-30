@@ -133,7 +133,7 @@ mod inner {
                     }
                     debug!("Running: {}", display_args);
 
-                    command 
+                    command
                 }
             };
 
