@@ -10,30 +10,10 @@ github:
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
   changelog_file: "CHANGELOG_FAKE.md"
   delete_branch_on_merge: true
-  release_branch:
-    - master:
-        # Version constraint at this point is arbitrary but represents 1.0.0
-        version_constraint: 1*
 
 # Slack channel in Chef Software slack to send notifications about Expeditor actions
 slack:
   notify_channel: habitat-notify
-
-# These actions are taken, in order they are specified, anytime a Pull Request is merged.
-merge_actions:
-  - built_in:bump_version:
-      ignore_labels:
-        - "Expeditor: Skip Version Bump"
-        - "Expeditor: Skip All"
-  - built_in:update_changelog:
-      ignore_labels:
-        - "Expeditor: Exclude from Changelog"
-        - "Expeditor: Skip All"
-
-subscriptions:
-  - workload: pull_request_opened:{{agent_id}}:*
-    actions:
-      - post_github_comment:.expeditor/templates/welcome.mustache
 
 changelog:
   categories:
@@ -61,9 +41,23 @@ staging_areas:
 
 subscriptions:
   # These actions are taken, in order they are specified
+  - workload: pull_request_opened:{{agent_id}}:*
+    actions:
+      - post_github_comment:.expeditor/templates/welcome.mustache
+
   - workload: pull_request_merged:{{agent_id}}:*
     actions:
-      - trigger_pipeline:release_habitat
+      - built_in:bump_version:
+          ignore_labels:
+          - 'Expeditor: Skip Version Bump'
+          - 'Expeditor: Skip All'
+      - built_in:update_changelog:
+          ignore_labels:
+          - 'Expeditor: Exclude from Changelog'
+          - 'Expeditor: Skip All'
+      - trigger_pipeline:release_habitat:
+          only_if: built_in:bump_version
+          post_commit: true
 
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
