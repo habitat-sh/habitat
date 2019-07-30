@@ -45,7 +45,7 @@ subscriptions:
     actions:
       - post_github_comment:.expeditor/templates/welcome.mustache
 
-  - workload: pull_request_merged:{{agent_id}}:*
+  - workload: staged_workload_released:{{agent_id}}:post_merge:*
     actions:
       - built_in:bump_version:
           ignore_labels:
