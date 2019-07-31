@@ -190,8 +190,10 @@ pub fn service_load(mgr: &ManagerState,
         // command line. As a result, we check that you *really* meant to change an existing spec.
         if !opts.force.unwrap_or(false) {
             return Err(net::err(ErrCode::Conflict,
-                                format!("Service already loaded, unload '{}' \
-                                         and try again",
+                                format!("Service already loaded. Unload '{}' \
+                                         and try again, or load with the \
+                                         --force flag to reload and restart the \
+                                         service.",
                                         ident)));
         }
         spec
