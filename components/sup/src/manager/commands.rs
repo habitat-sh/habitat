@@ -201,7 +201,8 @@ pub fn service_load(mgr: &ManagerState,
 
     opts.into_spec(&mut spec);
 
-    util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
+    let package = util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
+    spec.validate(&package)?;
     mgr.cfg.save_spec_for(&spec)?;
 
     req.info(format!("The {} service was successfully loaded", spec.ident))?;
