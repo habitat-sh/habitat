@@ -634,24 +634,20 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    fn add_service_rsw_mlw(&mut self, spec: &ServiceSpec) {
-        // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
-        // want is the service to hold the spec and, on failure, return an error with the spec
-        // back to us. Since we consume and deconstruct the spec in `Service::new_impl()` which
-        // `Service::new()` eventually delegates to we just can't have that. We should clean
-        // this up in the future.
+    fn add_service_rsw_mlw(&mut self, spec: ServiceSpec) {
+        let ident = spec.ident.clone();
         let service = match Service::new(self.sys.clone(),
-                                         spec.clone(),
+                                         spec,
                                          self.fs_cfg.clone(),
-                                         self.organization.as_ref().map(|org| &**org),
+                                         self.organization.as_ref().map(String::as_str),
                                          self.state.gateway_state.clone())
         {
             Ok(service) => {
-                outputln!("Starting {} ({})", &spec.ident, service.pkg.ident);
+                outputln!("Starting {} ({})", ident, service.pkg.ident);
                 service
             }
             Err(err) => {
-                outputln!("Unable to start {}, {}", &spec.ident, err);
+                outputln!("Unable to start {}, {}", ident, err);
                 return;
             }
         };
@@ -664,7 +660,7 @@ impl Manager {
                 &package,
                 Path::new(&*FS_ROOT_PATH),
             ) {
-                outputln!("Failed to run install hook for {}, {}", &spec.ident, err);
+                outputln!("Failed to run install hook for {}, {}", ident, err);
                 return;
             }
         }
@@ -676,7 +672,7 @@ impl Manager {
             outputln!("If this service is running as non-root, you'll need to create {} and give \
                        the current user write access to it",
                       service.pkg.svc_path.display());
-            outputln!("{} failed to start", &spec.ident);
+            outputln!("{} failed to start", ident);
             return;
         }
 
@@ -1264,13 +1260,13 @@ impl Manager {
         let watched_services: Vec<Service> =
             self.spec_dir
                 .specs()
-                .iter()
+                .into_iter()
                 .filter(|spec| !existing_idents.contains(&spec.ident))
                 .flat_map(|spec| {
                     Service::new(self.sys.clone(),
-                                 spec.clone(),
+                                 spec,
                                  self.fs_cfg.clone(),
-                                 self.organization.as_ref().map(|org| &**org),
+                                 self.organization.as_ref().map(String::as_str),
                                  self.state.gateway_state.clone()).into_iter()
                 })
                 .collect();
@@ -1491,7 +1487,7 @@ impl Manager {
                        f
                    }
                    ServiceOperation::Start(spec) => {
-                       self.add_service_rsw_mlw(&spec);
+                       self.add_service_rsw_mlw(spec);
                        None // No future to return (currently synchronous!)
                    }
                }
