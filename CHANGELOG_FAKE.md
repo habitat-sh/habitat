@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.7 -->
+<!-- latest_release 0.84.8 -->
+## [fake-0.84.8](https://github.com/habitat-sh/habitat/tree/fake-0.84.8) (2019-07-31)
+
+#### Merged Pull Requests
+- Assorted health-check tweaks [#6727](https://github.com/habitat-sh/habitat/pull/6727) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.7](https://github.com/habitat-sh/habitat/tree/fake-0.84.7) (2019-07-31)
 
 #### Merged Pull Requests
 - Promote release candidates to builder-acceptance [#6725](https://github.com/habitat-sh/habitat/pull/6725) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.6](https://github.com/habitat-sh/habitat/tree/fake-0.84.6) (2019-07-31)
 
