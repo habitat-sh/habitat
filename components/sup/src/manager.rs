@@ -948,27 +948,7 @@ impl Manager {
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
-                        let file = self.state.cfg.spec_path_for(&service_spec);
-                        if let Err(err) = fs::remove_file(&file) {
-                            warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
-                                  service_spec.ident,
-                                  file.display(),
-                                  err);
-                        };
-                        if let Some(future) =
-                            self.remove_service_from_state(&service_spec)
-                                .map(|service| {
-                                    let shutdown_config =
-                                        ShutdownConfig::new(&shutdown_input, &service);
-                                    self.stop_with_config(service, shutdown_config)
-                                })
-                        {
-                            runtime.spawn(future);
-                        } else {
-                            warn!("Tried to unload '{}', but couldn't find it in our list of \
-                                   running services!",
-                                  service_spec.ident);
-                        }
+                        self.unload(&service_spec, &shutdown_input, &mut runtime);
                     }
                 }
             }
@@ -1370,6 +1350,31 @@ impl Manager {
                                            busy_services,
                                            services_need_reconciliation,
                                            stop_it)
+    }
+
+    fn unload(&mut self,
+              service_spec: &ServiceSpec,
+              shutdown_input: &ShutdownInput,
+              runtime: &mut Runtime) {
+        let file = self.state.cfg.spec_path_for(&service_spec);
+        if let Err(err) = fs::remove_file(&file) {
+            warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
+                  service_spec.ident,
+                  file.display(),
+                  err);
+        };
+        if let Some(future) = self.remove_service_from_state(&service_spec)
+                                  .map(|service| {
+                                      let shutdown_config =
+                                          ShutdownConfig::new(&shutdown_input, &service);
+                                      self.stop_with_config(service, shutdown_config)
+                                  })
+        {
+            runtime.spawn(future);
+        } else {
+            warn!("Tried to unload '{}', but couldn't find it in our list of running services!",
+                  service_spec.ident);
+        }
     }
 
     /// Wrap a future that starts, stops, or restarts a service with
