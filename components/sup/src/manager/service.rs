@@ -25,7 +25,6 @@ use self::{context::RenderContext,
 pub use self::{health::HealthCheckResult,
                hooks::HealthCheckHook,
                spec::{DesiredState,
-                      IntoServiceSpec,
                       ServiceSpec}};
 use crate::{census::{CensusGroup,
                      CensusRing,

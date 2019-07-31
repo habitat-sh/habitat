@@ -4,8 +4,7 @@ use crate::{ctl_gateway::CtlRequest,
             error::Error,
             manager::{action::{ActionSender,
                                SupervisorAction},
-                      service::{spec::{IntoServiceSpec,
-                                       ServiceSpec},
+                      service::{spec::ServiceSpec,
                                 DesiredState,
                                 ProcessState},
                       ManagerState},
@@ -201,7 +200,7 @@ pub fn service_load(mgr: &ManagerState,
         ServiceSpec::default()
     };
 
-    opts.into_spec(&mut spec);
+    spec.merge_svc_load(opts);
 
     let package = util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
     spec.validate(&package)?;

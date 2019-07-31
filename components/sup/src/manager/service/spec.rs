@@ -86,57 +86,6 @@ pub fn deserialize_application_environment<'de, D>(
     }
 }
 
-pub trait IntoServiceSpec {
-    fn into_spec(&self, spec: &mut ServiceSpec);
-}
-
-impl IntoServiceSpec for habitat_sup_protocol::ctl::SvcLoad {
-    fn into_spec(&self, spec: &mut ServiceSpec) {
-        spec.ident = self.ident.clone().unwrap().into();
-        spec.group = self.group
-                         .clone()
-                         .unwrap_or_else(|| DEFAULT_GROUP.to_string());
-        if let Some(ref app_env) = self.application_environment {
-            spec.application_environment = Some(app_env.clone().into());
-        }
-        if let Some(ref bldr_url) = self.bldr_url {
-            spec.bldr_url = bldr_url.to_string();
-        }
-        if let Some(ref channel) = self.bldr_channel {
-            spec.channel = channel.clone().into();
-        }
-        if let Some(topology) = self.topology {
-            spec.topology = Topology::from_i32(topology).unwrap_or_default();
-        }
-        if let Some(update_strategy) = self.update_strategy {
-            spec.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
-        }
-        if let Some(ref list) = self.binds {
-            spec.binds =
-                list.binds
-                    .iter()
-                    .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
-                        habitat_core::service::ServiceBind::new(&pb.name,
-                                                                pb.service_group.clone().into())
-                    })
-                    .collect();
-        }
-        if let Some(binding_mode) = self.binding_mode {
-            spec.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
-        }
-        if let Some(ref config_from) = self.config_from {
-            spec.config_from = Some(PathBuf::from(config_from));
-        }
-        if let Some(ref svc_encrypted_password) = self.svc_encrypted_password {
-            spec.svc_encrypted_password = Some(svc_encrypted_password.to_string());
-        }
-        if let Some(ref interval) = self.health_check_interval {
-            spec.health_check_interval = interval.seconds.into()
-        }
-        spec.shutdown_timeout = self.shutdown_timeout.map(ShutdownTimeout::from);
-    }
-}
-
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(default)]
 pub struct ServiceSpec {
@@ -247,6 +196,51 @@ impl ServiceSpec {
         }
 
         Ok(())
+    }
+
+    pub fn merge_svc_load(&mut self, svc_load: &habitat_sup_protocol::ctl::SvcLoad) {
+        self.ident = svc_load.ident.clone().unwrap().into();
+        self.group = svc_load.group
+                             .clone()
+                             .unwrap_or_else(|| DEFAULT_GROUP.to_string());
+        if let Some(ref app_env) = svc_load.application_environment {
+            self.application_environment = Some(app_env.clone().into());
+        }
+        if let Some(ref bldr_url) = svc_load.bldr_url {
+            self.bldr_url = bldr_url.to_string();
+        }
+        if let Some(ref channel) = svc_load.bldr_channel {
+            self.channel = channel.clone().into();
+        }
+        if let Some(topology) = svc_load.topology {
+            self.topology = Topology::from_i32(topology).unwrap_or_default();
+        }
+        if let Some(update_strategy) = svc_load.update_strategy {
+            self.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
+        }
+        if let Some(ref list) = svc_load.binds {
+            self.binds =
+                list.binds
+                    .iter()
+                    .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
+                        habitat_core::service::ServiceBind::new(&pb.name,
+                                                                pb.service_group.clone().into())
+                    })
+                    .collect();
+        }
+        if let Some(binding_mode) = svc_load.binding_mode {
+            self.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
+        }
+        if let Some(ref config_from) = svc_load.config_from {
+            self.config_from = Some(PathBuf::from(config_from));
+        }
+        if let Some(ref svc_encrypted_password) = svc_load.svc_encrypted_password {
+            self.svc_encrypted_password = Some(svc_encrypted_password.to_string());
+        }
+        if let Some(ref interval) = svc_load.health_check_interval {
+            self.health_check_interval = interval.seconds.into()
+        }
+        self.shutdown_timeout = svc_load.shutdown_timeout.map(ShutdownTimeout::from);
     }
 }
 
