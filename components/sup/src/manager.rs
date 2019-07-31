@@ -637,14 +637,14 @@ impl Manager {
     fn add_service_rsw_mlw(&mut self, spec: &ServiceSpec) {
         // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
         // want is the service to hold the spec and, on failure, return an error with the spec
-        // back to us. Since we consume and deconstruct the spec in `Service::new()` which
-        // `Service::load()` eventually delegates to we just can't have that. We should clean
+        // back to us. Since we consume and deconstruct the spec in `Service::new_impl()` which
+        // `Service::new()` eventually delegates to we just can't have that. We should clean
         // this up in the future.
-        let service = match Service::load(self.sys.clone(),
-                                          spec.clone(),
-                                          self.fs_cfg.clone(),
-                                          self.organization.as_ref().map(|org| &**org),
-                                          self.state.gateway_state.clone())
+        let service = match Service::new(self.sys.clone(),
+                                         spec.clone(),
+                                         self.fs_cfg.clone(),
+                                         self.organization.as_ref().map(|org| &**org),
+                                         self.state.gateway_state.clone())
         {
             Ok(service) => {
                 outputln!("Starting {} ({})", &spec.ident, service.pkg.ident);
@@ -1267,11 +1267,11 @@ impl Manager {
                 .iter()
                 .filter(|spec| !existing_idents.contains(&spec.ident))
                 .flat_map(|spec| {
-                    Service::load(self.sys.clone(),
-                                  spec.clone(),
-                                  self.fs_cfg.clone(),
-                                  self.organization.as_ref().map(|org| &**org),
-                                  self.state.gateway_state.clone()).into_iter()
+                    Service::new(self.sys.clone(),
+                                 spec.clone(),
+                                 self.fs_cfg.clone(),
+                                 self.organization.as_ref().map(|org| &**org),
+                                 self.state.gateway_state.clone()).into_iter()
                 })
                 .collect();
         let watched_service_proxies: Vec<ServiceProxy<'_>> =

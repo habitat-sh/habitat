@@ -229,13 +229,13 @@ pub struct Service {
 }
 
 impl Service {
-    fn new(sys: Arc<Sys>,
-           package: &PackageInstall,
-           spec: ServiceSpec,
-           manager_fs_cfg: Arc<FsCfg>,
-           organization: Option<&str>,
-           gateway_state: Arc<RwLock<GatewayState>>)
-           -> Result<Service> {
+    fn new_impl(sys: Arc<Sys>,
+                package: &PackageInstall,
+                spec: ServiceSpec,
+                manager_fs_cfg: Arc<FsCfg>,
+                organization: Option<&str>,
+                gateway_state: Arc<RwLock<GatewayState>>)
+                -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = package.all_binds()?;
         let pkg = Pkg::from_install(&package)?;
@@ -295,21 +295,21 @@ impl Service {
                    .join("hooks")
     }
 
-    pub fn load(sys: Arc<Sys>,
-                spec: ServiceSpec,
-                manager_fs_cfg: Arc<FsCfg>,
-                organization: Option<&str>,
-                gateway_state: Arc<RwLock<GatewayState>>)
-                -> Result<Service> {
+    pub fn new(sys: Arc<Sys>,
+               spec: ServiceSpec,
+               manager_fs_cfg: Arc<FsCfg>,
+               organization: Option<&str>,
+               gateway_state: Arc<RwLock<GatewayState>>)
+               -> Result<Service> {
         // The package for a spec should already be installed.
         let fs_root_path = Path::new(&*FS_ROOT_PATH);
         let package = PackageInstall::load(&spec.ident, Some(fs_root_path))?;
-        Ok(Self::new(sys,
-                     &package,
-                     spec,
-                     manager_fs_cfg,
-                     organization,
-                     gateway_state)?)
+        Ok(Self::new_impl(sys,
+                          &package,
+                          spec,
+                          manager_fs_cfg,
+                          organization,
+                          gateway_state)?)
     }
 
     /// Create the service path for this package.
@@ -1233,8 +1233,9 @@ mod tests {
         let afs = Arc::new(fscfg);
 
         let gs = Arc::new(RwLock::new(GatewayState::default()));
-        Service::new(asys, &install, spec, afs, Some("haha"), gs).expect("I wanted a service to \
-                                                                          load, but it didn't")
+        Service::new_impl(asys, &install, spec, afs, Some("haha"), gs).expect("I wanted a service \
+                                                                               to load, but it \
+                                                                               didn't")
     }
 
     #[test]
