@@ -1592,7 +1592,6 @@ mod tests {
                            "Member 3 should still have a health of Confirmed, because it hasn't \
                             timed out yet");
             }
-
         }
     }
 }

@@ -1440,7 +1440,6 @@ mod tests {
             let run_matches = run_matches.expect("Error while getting run matches");
             assert_eq!(run_matches.value_of("PEER"), Some("1.1.1.1"));
         }
-
     }
 
     mod event_stream_feature {
@@ -1802,6 +1801,5 @@ mod tests {
             let error = matches.unwrap_err();
             assert_eq!(error.kind, clap::ErrorKind::ValueValidation);
         }
-
     }
 }

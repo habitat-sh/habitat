@@ -1919,7 +1919,6 @@ mod test {
             tc.set("128");
             assert_eq!(TokioThreadCount::configured_value().0, 128);
         }
-
     }
 
     mod specs_to_operations {
