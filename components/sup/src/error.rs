@@ -275,10 +275,15 @@ impl From<habitat_api_client::Error> for Error {
     fn from(err: habitat_api_client::Error) -> Error { Error::APIClient(err) }
 }
 
-// TODO (CM): not sure if this works or not
 impl From<Error> for habitat_sup_protocol::net::NetErr {
     fn from(err: Error) -> habitat_sup_protocol::net::NetErr {
-        habitat_sup_protocol::net::err(habitat_sup_protocol::net::ErrCode::Internal, err)
+        match err {
+            Error::MissingRequiredBind(_) | Error::InvalidBinds(_) => {
+                habitat_sup_protocol::net::err(habitat_sup_protocol::net::ErrCode::InvalidPayload,
+                                               err)
+            }
+            _ => habitat_sup_protocol::net::err(habitat_sup_protocol::net::ErrCode::Internal, err),
+        }
     }
 }
 
