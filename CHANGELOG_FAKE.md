@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.5 -->
+<!-- latest_release 0.84.6 -->
+## [fake-0.84.6](https://github.com/habitat-sh/habitat/tree/fake-0.84.6) (2019-07-31)
+
+#### Merged Pull Requests
+- Work around 0.83.0 studio not installing bug [#6775](https://github.com/habitat-sh/habitat/pull/6775) ([scotthain](https://github.com/scotthain))
+<!-- latest_release -->
+
 ## [fake-0.84.5](https://github.com/habitat-sh/habitat/tree/fake-0.84.5) (2019-07-31)
 
 #### Merged Pull Requests
 - Update Docs for 0.83.0 [#6768](https://github.com/habitat-sh/habitat/pull/6768) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.4](https://github.com/habitat-sh/habitat/tree/fake-0.84.4) (2019-07-30)
 
