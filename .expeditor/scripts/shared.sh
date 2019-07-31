@@ -38,6 +38,8 @@ install_latest_hab_binary() {
     rm -rf /hab/pkgs/core/hab/0.82.0
     curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     hab_binary="/bin/hab"
+    # TODO: workaround for https://github.com/habitat-sh/habitat/issues/6771
+    ${hab_binary} pkg install core/hab-studio
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
 
     # now install the latest hab available in our channel, if it and the studio exist yet
