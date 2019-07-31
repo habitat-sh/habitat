@@ -1,6 +1,12 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.4 -->
+<!-- latest_release 0.84.5 -->
+## [fake-0.84.5](https://github.com/habitat-sh/habitat/tree/fake-0.84.5) (2019-07-31)
+
+#### Merged Pull Requests
+- Update Docs for 0.83.0 [#6768](https://github.com/habitat-sh/habitat/pull/6768) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.4](https://github.com/habitat-sh/habitat/tree/fake-0.84.4) (2019-07-30)
 
 #### Behavioral Changes
@@ -68,7 +74,6 @@
 - Decouple logging concerns from Supervisor errors [#6590](https://github.com/habitat-sh/habitat/pull/6590) ([christophermaier](https://github.com/christophermaier))
 - Generate a unique NATS client id for event msgs [#6623](https://github.com/habitat-sh/habitat/pull/6623) ([afiune](https://github.com/afiune))
 - update kubernetes and helm exporter docs to include information about license acceptance [#6573](https://github.com/habitat-sh/habitat/pull/6573) ([nellshamrell](https://github.com/nellshamrell))
-<!-- latest_release -->
 
  ## [0.82.0](https://github.com/habitat-sh/habitat/tree/0.82.0) (2019-06-06)
  [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.81.0...0.82.0)
