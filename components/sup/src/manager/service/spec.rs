@@ -162,9 +162,9 @@ pub struct ServiceSpec {
 
 impl ServiceSpec {
     pub fn default_for(ident: PackageIdent) -> Self {
-        let mut spec = Self::default();
-        spec.ident = ident;
-        spec
+        Self { ident,
+               bldr_url: DEFAULT_BLDR_URL.to_string(),
+               ..Default::default() }
     }
 
     fn to_toml_string(&self) -> Result<String> {
