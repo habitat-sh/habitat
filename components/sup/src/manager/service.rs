@@ -321,21 +321,23 @@ impl Service {
     }
 
     fn start(&mut self, launcher: &LauncherCli, executor: &TaskExecutor) {
-        if let Some(err) = self.supervisor
-                               .lock()
-                               .expect("Couldn't lock supervisor")
-                               .start(&self.pkg,
-                                      &self.service_group,
-                                      launcher,
-                                      self.svc_encrypted_password.as_ref().map(String::as_str))
-                               .err()
-        {
-            outputln!(preamble self.service_group, "Service start failed: {}", err);
-        } else {
-            self.needs_restart = false;
+        debug!("Starting service {}", self.pkg.ident);
+        let result = self.supervisor
+                         .lock()
+                         .expect("Couldn't lock supervisor")
+                         .start(&self.pkg,
+                                &self.service_group,
+                                launcher,
+                                self.svc_encrypted_password.as_ref().map(String::as_str));
+        match result {
+            Ok(_) => {
+                self.needs_restart = false;
+                self.start_health_checks(executor);
+            }
+            Err(e) => {
+                outputln!(preamble self.service_group, "Service start failed: {}", e);
+            }
         }
-
-        self.start_health_checks(executor);
     }
 
     /// Create the state necessary for managing a repeatedly-running
@@ -355,6 +357,7 @@ impl Service {
     /// Initiate an endless future that performs periodic health
     /// checks for the service
     fn start_health_checks(&mut self, executor: &TaskExecutor) {
+        debug!("Starting health checks for {}", self.pkg.ident);
         let (handle, f) = sup_futures::cancelable_future(self.health_state().check_repeatedly());
 
         self.health_check_handle = Some(handle);
@@ -387,6 +390,7 @@ impl Service {
     /// This is mainly good for "resetting" the checks, and will
     /// initiate a new health check immediately.
     fn restart_health_checks(&mut self, executor: &TaskExecutor) {
+        debug!("Restarting health checks for {}", self.pkg.ident);
         self.stop_health_checks();
         self.start_health_checks(executor);
     }
@@ -417,6 +421,7 @@ impl Service {
     /// See also `Service::reattach`, as these methods should
     /// generally be mirror images of each other.
     pub fn detach(&mut self) {
+        debug!("Detatching service {}", self.pkg.ident);
         self.stop_post_run();
         self.stop_health_checks();
     }
@@ -426,6 +431,7 @@ impl Service {
     pub fn stop(&mut self,
                 shutdown_config: ShutdownConfig)
                 -> impl Future<Item = (), Error = Error> {
+        debug!("Stopping service {}", self.pkg.ident);
         self.detach();
 
         let service_group = self.service_group.clone();
