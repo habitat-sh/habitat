@@ -364,4 +364,3 @@ steps:
           privileged: true
           environment:
             - ACCEPTANCE_HAB_AUTH_TOKEN=$SCOTTHAIN_HAB_AUTH_TOKEN
-            - BUILD_PKG_TARGET=x86_64-linux
