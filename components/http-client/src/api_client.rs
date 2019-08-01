@@ -250,22 +250,29 @@ fn user_agent(product: &str, version: &str) -> Result<HeaderValue> {
 ///    extensions should be '.pem' or '.der' respectively)
 fn certificates(fs_root_path: Option<&Path>) -> Result<Vec<Certificate>> {
     let mut certificates = Vec::new();
-    let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
 
-    if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
-        let pkg_certs = pkg_install.installed_path().join("ssl/cert.pem");
-        debug!("Found installed certs: {}", pkg_certs.display());
-        let cert = cert_from_file(&pkg_certs)?;
-        certificates.push(cert);
-    } else {
-        debug!("No installed cacerts package found");
+    // MacOS is not yet fully consistent with other platforms,
+    // as it cannot handle PEM files with multiple certs.
+    // We can enable this when the following issue is resolved:
+    // https://github.com/sfackler/rust-native-tls/issues/132
+    if cfg!(not(target_os = "macos")) {
+        let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
 
-        let cached_certs = cache_ssl_path(fs_root_path).join("cert.pem");
-        if !cached_certs.exists() {
-            fs::create_dir_all(cache_ssl_path(fs_root_path))?;
-            debug!("Creating cached cacert.pem: {}", cached_certs.display());
-            let mut file = File::create(&cached_certs)?;
-            file.write_all(CACERT_PEM.as_bytes())?;
+        if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
+            let pkg_certs = pkg_install.installed_path().join("ssl/cert.pem");
+            debug!("Found installed certs: {}", pkg_certs.display());
+            let cert = cert_from_file(&pkg_certs)?;
+            certificates.push(cert);
+        } else {
+            debug!("No installed cacerts package found");
+
+            let cached_certs = cache_ssl_path(fs_root_path).join("cert.pem");
+            if !cached_certs.exists() {
+                fs::create_dir_all(cache_ssl_path(fs_root_path))?;
+                debug!("Creating cached cacert.pem: {}", cached_certs.display());
+                let mut file = File::create(&cached_certs)?;
+                file.write_all(CACERT_PEM.as_bytes())?;
+            }
         }
     }
 
