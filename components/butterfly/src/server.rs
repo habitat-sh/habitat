@@ -702,15 +702,26 @@ impl Server {
                        id: member_id,
                        .. } = &rk;
 
+        // True if rumors exist for the service group, but none containing the given member.
         let inserting_new_group_member =
-            service_store.contains_group_without_member(service_group, member_id);
+            service_store.lock_rsr()
+                         .get(service_group)
+                         .map_or(false, |rumors| !rumors.contains_key(member_id));
 
         if service_store.insert_rsw(service) {
             if inserting_new_group_member && !check_quorum(service_group) {
+                // Depart one confirmed member to help maintain quorum. Choose the member with the
+                // minimum ID since that will most likely result in the same choice across nodes
                 if let Some(member_id_to_depart) =
-                    service_store.min_member_id_with(service_group, |id| {
+                    service_store.lock_rsr()
+                                 .service_group(service_group)
+                                 .rumors()
+                                 .map(Rumor::id)
+                                 .filter(|id| {
+                                     // XXX lock ordering!
                                      member_list.health_of_by_id_mlr(id) == Some(Health::Confirmed)
                                  })
+                                 .min()
                 {
                     member_list.set_departed_mlw(&member_id_to_depart);
                     rumor_heat.purge(&member_id_to_depart);

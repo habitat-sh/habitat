@@ -246,20 +246,67 @@ mod storage {
     ///
     /// Generic over the type of rumor it stores.
     #[derive(Debug, Clone)]
-    pub struct RumorStore<T: Rumor> {
+    pub struct RumorStore<T> {
         list:           Arc<Lock<RumorMap<T>>>,
         update_counter: Arc<AtomicUsize>,
     }
 
-    impl<T: Rumor> RumorStore<T> {
+    impl<T> RumorStore<T> {
+        pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
+
+        /// Increment the update counter for this store.
+        ///
+        /// We don't care if this repeats - it just needs to be unique for any given two states,
+        /// which it will be.
+        fn increment_update_counter(&self) { self.update_counter.fetch_add(1, Ordering::Relaxed); }
+
         /// # Locking
         /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
         ///   lock is held.
         pub fn lock_rsr(&self) -> IterableGuard<RumorMap<T>> { IterableGuard::read(&self.list) }
+
+        /// # Locking
+        /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list
+        ///   lock is held.
+        pub fn remove_rsw(&self, key: &str, id: &str) {
+            let mut list = self.list.write();
+            list.get_mut(key).and_then(|r| r.remove(id));
+        }
     }
 
-    impl<T> Default for RumorStore<T> where T: Rumor
-    {
+    impl<R: Rumor> RumorStore<R> {
+        /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
+        /// mutated; if nothing changed, returns false.
+        ///
+        /// # Locking
+        /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list
+        ///   lock is held.
+        pub fn insert_rsw(&self, rumor: R) -> bool {
+            let mut list = self.list.write();
+            let rumors = list.entry(String::from(rumor.key()))
+                             .or_insert_with(HashMap::new);
+            let kind_ignored_count =
+                IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
+            // Result reveals if there was a change so we can increment the counter if needed.
+            let result = match rumors.entry(rumor.id().into()) {
+                Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
+                Entry::Vacant(entry) => {
+                    entry.insert(rumor);
+                    true
+                }
+            };
+            if result {
+                self.increment_update_counter();
+            } else {
+                // If we get here, it means nothing changed, which means we effectively ignored the
+                // rumor. Let's track that.
+                kind_ignored_count.inc();
+            }
+            result
+        }
+    }
+
+    impl<T> Default for RumorStore<T> {
         fn default() -> RumorStore<T> {
             RumorStore { list:           Arc::default(),
                          update_counter: Arc::default(), }
@@ -432,96 +479,26 @@ mod storage {
         }
     }
 
-    impl<T: Rumor> RumorStore<T> {
-        pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
-
-        /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
-        /// mutated; if nothing changed, returns false.
-        ///
-        /// # Locking
-        /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list
-        ///   lock is held.
-        pub fn insert_rsw(&self, rumor: T) -> bool {
-            let mut list = self.list.write();
-            let rumors = list.entry(String::from(rumor.key()))
-                             .or_insert_with(HashMap::new);
-            let kind_ignored_count =
-                IGNORED_RUMOR_COUNT.with_label_values(&[&rumor.kind().to_string()]);
-            // Result reveals if there was a change so we can increment the counter if needed.
-            let result = match rumors.entry(rumor.id().into()) {
-                Entry::Occupied(mut entry) => entry.get_mut().merge(rumor),
-                Entry::Vacant(entry) => {
-                    entry.insert(rumor);
-                    true
-                }
-            };
-            if result {
-                self.increment_update_counter();
-            } else {
-                // If we get here, it means nothing changed, which means we effectively ignored the
-                // rumor. Let's track that.
-                kind_ignored_count.inc();
-            }
-            result
-        }
-
-        /// # Locking
-        /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list
-        ///   lock is held.
-        pub fn remove_rsw(&self, key: &str, id: &str) {
-            let mut list = self.list.write();
-            list.get_mut(key).and_then(|r| r.remove(id));
-        }
-
-        /// Increment the update counter for this store.
-        ///
-        /// We don't care if this repeats - it just needs to be unique for any given two states,
-        /// which it will be.
-        // TODO remove pub; handle this internally
-        pub fn increment_update_counter(&self) {
-            self.update_counter.fetch_add(1, Ordering::Relaxed);
-        }
-    }
-
-    impl RumorStore<Service> {
-        /// Returns true if there exist rumors for the given service's service
-        /// group, but none containing the given member.
-        pub fn contains_group_without_member(&self, service_group: &str, member_id: &str) -> bool {
-            match self.list.read().get(service_group) {
-                Some(group_rumors) => !group_rumors.contains_key(member_id),
-                None => false,
-            }
-        }
-
-        /// If there are any rumors with member_ids that satisfy the predicate,
-        /// return the one which sorts lexicographically.
-        ///
-        /// The weird &&String argument is due to the item type generated by the
-        /// Keys iterator, but deref coercion means the provided closure doesn't
-        /// need to really care.
-        pub fn min_member_id_with(&self,
-                                  service_group: &str,
-                                  predicate: impl FnMut(&&String) -> bool)
-                                  -> Option<String> {
-            let list = self.list.read();
-            list.get(service_group)
-                .and_then(|rumor_map| rumor_map.keys().filter(predicate).min().cloned())
-        }
-    }
-
     #[cfg(test)]
     mod test {
         use super::*;
-        use crate::rumor::tests::FakeRumor;
 
         #[test]
         fn update_counter_overflows_safely() {
-            let rs = RumorStore::<FakeRumor> { update_counter:
-                                                   Arc::new(AtomicUsize::new(usize::max_value())),
-                                               ..Default::default() };
+            let rs = RumorStore::<()> { update_counter:
+                                            Arc::new(AtomicUsize::new(usize::max_value())),
+                                        ..Default::default() };
             rs.increment_update_counter();
             assert_eq!(rs.get_update_counter(), 0);
         }
+
+        #[test]
+        fn update_counter() {
+            let rs = RumorStore::<()>::default();
+            rs.increment_update_counter();
+            assert_eq!(rs.get_update_counter(), 1);
+        }
+
     }
 }
 
@@ -677,18 +654,9 @@ mod tests {
                     rumor::{Rumor,
                             RumorStore}};
 
-        fn create_rumor_store() -> RumorStore<FakeRumor> { RumorStore::default() }
-
-        #[test]
-        fn update_counter() {
-            let rs = create_rumor_store();
-            rs.increment_update_counter();
-            assert_eq!(rs.get_update_counter(), 1);
-        }
-
         #[test]
         fn insert_adds_rumor_when_empty() {
-            let rs = create_rumor_store();
+            let rs = RumorStore::default();
             let f = FakeRumor::default();
             assert!(rs.insert_rsw(f));
             assert_eq!(rs.get_update_counter(), 1);
@@ -696,7 +664,7 @@ mod tests {
 
         #[test]
         fn encode_ok() {
-            let rs = create_rumor_store();
+            let rs = RumorStore::default();
             let f = FakeRumor { id:  "foo".to_string(),
                                 key: "bar".to_string(), };
             let key = RumorKey::from(&f);
@@ -708,7 +676,7 @@ mod tests {
 
         #[test]
         fn encode_non_existant() {
-            let rs = create_rumor_store();
+            let rs = RumorStore::<FakeRumor>::default();
             let f = FakeRumor { id:  "foo".to_string(),
                                 key: "bar".to_string(), };
             let key = RumorKey::from(&f);
@@ -724,7 +692,7 @@ mod tests {
 
         #[test]
         fn insert_adds_multiple_rumors_for_same_key() {
-            let rs = create_rumor_store();
+            let rs = RumorStore::default();
             let f1 = FakeRumor::default();
             let key = String::from(f1.key());
             let f1_id = String::from(f1.id());
@@ -746,7 +714,7 @@ mod tests {
 
         #[test]
         fn insert_adds_multiple_members() {
-            let rs = create_rumor_store();
+            let rs = RumorStore::default();
             let f1 = FakeRumor::default();
             let key = String::from(f1.key());
             let f2 = FakeRumor::default();
@@ -757,7 +725,7 @@ mod tests {
 
         #[test]
         fn insert_returns_false_on_no_changes() {
-            let rs = create_rumor_store();
+            let rs = RumorStore::default();
             let f1 = FakeRumor::default();
             let f2 = f1.clone();
             assert!(rs.insert_rsw(f1));
@@ -766,7 +734,7 @@ mod tests {
 
         #[test]
         fn map_rumor_calls_closure_with_rumor() {
-            let rs = create_rumor_store();
+            let rs = RumorStore::default();
             let f1 = FakeRumor::default();
             let member_id = f1.id.clone();
             let key = f1.key.clone();
