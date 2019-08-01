@@ -55,15 +55,14 @@ subscriptions:
       - trigger_pipeline:release_habitat:
           only_if: built_in:bump_version
 
+  # Responses to Release Pipeline
+  ########################################################################
+
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
       - trigger_pipeline:end_to_end
       - unlock_staging_area:post_merge:
           always_run: true
-
-  - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
-    actions:
-      - trigger_pipeline:test_scenarios
 
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
@@ -75,6 +74,17 @@ subscriptions:
     actions:
       - unlock_staging_area:post_merge:
           always_run: true
+
+  # Responses to End-To-End Pipeline
+  ########################################################################
+
+  - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
+    actions:
+      - trigger_pipeline:test_scenarios
+
+  # Scheduled Pipelines
+  ########################################################################
+
   - workload: schedule_triggered:{{agent_id}}:cargo_update:*
     actions:
       - bash:.expeditor/scripts/cargo_update.sh
