@@ -320,38 +320,15 @@ steps:
 
   - wait
 
-  # Promote all packages to the DEV channel
-  - label: "[:linux: promote to dev]"
+  # This handles promotion of packages of all targets; *everything* in
+  # the channel goes into DEV
+  - label: "[:hab: Promote to DEV]"
     command:
       - .expeditor/scripts/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
     expeditor:
       executor:
         docker:
           privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-
-  - label: "[:linux: :two: promote to dev]"
-    command:
-      - .expeditor/scripts/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
-
-  - label: "[:windows: promote to dev]"
-    command:
-      - .expeditor/scripts/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - ACCEPTANCE_HAB_AUTH_TOKEN=$SCOTTHAIN_HAB_AUTH_TOKEN
-            - BUILD_PKG_TARGET=x86_64-windows
-            - BUILDKITE_AGENT_ACCESS_TOKEN
 
   - wait
 
