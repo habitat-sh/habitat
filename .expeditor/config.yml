@@ -34,7 +34,7 @@ pipelines:
       description: Habitat long running end to end tests - always runs on DEV environment
 
 staging_areas:
-  - post_merge:
+  - release_staging:
       workload: pull_request_merged:{{agent_id}}:*
 
 subscriptions:
@@ -42,7 +42,7 @@ subscriptions:
     actions:
       - post_github_comment:.expeditor/templates/welcome.mustache
 
-  - workload: staged_workload_released:{{agent_id}}:post_merge:*
+  - workload: staged_workload_released:{{agent_id}}:release_staging:*
     actions:
       - built_in:bump_version:
           ignore_labels:
@@ -61,18 +61,18 @@ subscriptions:
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
       - trigger_pipeline:end_to_end
-      - unlock_staging_area:post_merge:
+      - unlock_staging_area:release_staging:
           always_run: true
 
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
     actions:
-      - unlock_staging_area:post_merge:
+      - unlock_staging_area:release_staging:
           always_run: true
 
   - workload: buildkite_build_canceled:{{agent_id}}:release_habitat:*
     actions:
-      - unlock_staging_area:post_merge:
+      - unlock_staging_area:release_staging:
           always_run: true
 
   # Responses to End-To-End Pipeline
