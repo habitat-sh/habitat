@@ -711,7 +711,7 @@ mod tests {
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
         let mut ring = CensusRing::new("member-a");
-        ring.update_from_rumors_mlr_rsr(&cache_key_path(Some(&*FS_ROOT)),
+        ring.update_from_rumors_rsr_mlr(&cache_key_path(Some(&*FS_ROOT)),
                                         &service_store,
                                         &election_store,
                                         &election_update_store,

@@ -65,12 +65,12 @@ impl CensusRing {
     }
 
     /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
     /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
     ///   is held.
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     #[allow(clippy::too_many_arguments)]
-    pub fn update_from_rumors_mlr_rsr(&mut self,
+    pub fn update_from_rumors_rsr_mlr(&mut self,
                                       cache_key_path: &Path,
                                       service_rumors: &RumorStore<ServiceRumor>,
                                       election_rumors: &RumorStore<ElectionRumor>,
@@ -89,7 +89,7 @@ impl CensusRing {
         {
             self.changed = true;
 
-            self.populate_census_mlr_rsr(service_rumors, member_list);
+            self.populate_census_rsr_mlr(service_rumors, member_list);
             self.update_from_election_store_rsr(election_rumors);
             self.update_from_election_update_store_rsr(election_update_rumors);
             self.update_from_service_config_rsr(cache_key_path, service_config_rumors);
@@ -120,11 +120,11 @@ impl CensusRing {
     /// rest).
     ///
     /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
     /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
     ///   is held.
-    fn populate_census_mlr_rsr(&mut self,
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    fn populate_census_rsr_mlr(&mut self,
                                service_rumors: &RumorStore<ServiceRumor>,
                                member_list: &MemberList) {
         // Populate our census; new groups are created here, as are
@@ -845,7 +845,7 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
         let mut ring = CensusRing::new("member-b".to_string());
-        ring.update_from_rumors_mlr_rsr(&cache_key_path(Some(&*FS_ROOT)),
+        ring.update_from_rumors_rsr_mlr(&cache_key_path(Some(&*FS_ROOT)),
                                         &service_store,
                                         &election_store,
                                         &election_update_store,

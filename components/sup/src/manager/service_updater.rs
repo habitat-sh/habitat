@@ -147,12 +147,12 @@ impl ServiceUpdater {
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
     /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
     /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
     ///   is held.
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     #[allow(clippy::cognitive_complexity)]
-    pub fn check_for_updated_package_mlr_rsw(&mut self,
+    pub fn check_for_updated_package_rsw_mlr(&mut self,
                                              service: &Service,
                                              // TODO (CM): Strictly speaking, we don't need to
                                              // pass CensusRing down into here, just the census
@@ -193,7 +193,7 @@ impl ServiceUpdater {
                                     u64::max_value()
                                 };
                                 self.butterfly
-                                    .start_update_election_mlr_rsw(&service.service_group,
+                                    .start_update_election_rsw_mlr(&service.service_group,
                                                                    suitability,
                                                                    0);
                                 *st = RollingState::InElection
@@ -203,7 +203,7 @@ impl ServiceUpdater {
                     } else {
                         debug!("Rolling update, using default suitability");
                         self.butterfly
-                            .start_update_election_mlr_rsw(&service.service_group, 0, 0);
+                            .start_update_election_rsw_mlr(&service.service_group, 0, 0);
                         *st = RollingState::InElection;
                     }
                 }

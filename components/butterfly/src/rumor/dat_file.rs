@@ -70,12 +70,12 @@ pub struct DatFileWriter(DatFile);
 
 impl DatFileReader {
     /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
     /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
     ///   is held.
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     #[allow(clippy::too_many_arguments)]
-    pub fn read_or_create_mlr_rsr(data_path: PathBuf,
+    pub fn read_or_create_rsr_mlr(data_path: PathBuf,
                                   member_list: &MemberList,
                                   service_store: &RumorStore<Service>,
                                   service_config_store: &RumorStore<ServiceConfig>,
@@ -94,7 +94,7 @@ impl DatFileReader {
                                      .len();
 
         if size == 0 {
-            DatFileWriter::new(data_path.clone()).write_mlr_rsr(member_list,
+            DatFileWriter::new(data_path.clone()).write_rsr_mlr(member_list,
                                                                 service_store,
                                                                 service_config_store,
                                                                 service_file_store,
@@ -120,17 +120,17 @@ impl DatFileReader {
     pub fn path(&self) -> &Path { &self.dat_file.0 }
 
     /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
     /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
     ///   is held.
-    pub fn read_into_mlw_rsw(&mut self, server: &Server) -> Result<()> {
+    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
+    ///   lock is held.
+    pub fn read_into_rsw_mlw(&mut self, server: &Server) -> Result<()> {
         for Membership { member, health } in self.read_members()? {
             server.insert_member_mlw(member, health);
         }
 
         for service in self.read_rumors::<Service>()? {
-            server.insert_service_mlw_rsw(service);
+            server.insert_service_rsw_mlw(service);
         }
 
         for service_config in self.read_rumors::<ServiceConfig>()? {
@@ -142,15 +142,15 @@ impl DatFileReader {
         }
 
         for election in self.read_rumors::<Election>()? {
-            server.insert_election_mlr_rsw(election);
+            server.insert_election_rsw_mlr(election);
         }
 
         for update_election in self.read_rumors::<ElectionUpdate>()? {
-            server.insert_update_election_mlr_rsw(update_election);
+            server.insert_update_election_rsw_mlr(update_election);
         }
 
         for departure in self.read_rumors::<Departure>()? {
-            server.insert_departure_mlw_rsw(departure);
+            server.insert_departure_rsw_mlw(departure);
         }
 
         Ok(())
@@ -193,12 +193,12 @@ impl DatFileWriter {
     pub fn path(&self) -> &Path { &(self.0).0 }
 
     /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
     /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
     ///   is held.
+    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
+    ///   lock is held.
     #[allow(clippy::too_many_arguments)]
-    pub fn write_mlr_rsr(&self,
+    pub fn write_rsr_mlr(&self,
                          member_list: &MemberList,
                          service_store: &RumorStore<Service>,
                          service_config_store: &RumorStore<ServiceConfig>,
@@ -540,7 +540,7 @@ mod tests {
 
         assert!(!file_path.exists());
 
-        let result = DatFileReader::read_or_create_mlr_rsr(file_path.to_path_buf(),
+        let result = DatFileReader::read_or_create_rsr_mlr(file_path.to_path_buf(),
                                                            &MemberList::new(),
                                                            &RumorStore::default(),
                                                            &RumorStore::default(),
