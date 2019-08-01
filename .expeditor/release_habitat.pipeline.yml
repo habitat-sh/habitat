@@ -72,7 +72,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
-  # Until we can use the expeditor executors
   - label: "[:windows: build plan-build-ps1]"
     command:
       - powershell .expeditor/scripts/build_component.ps1 plan-build-ps1
@@ -129,7 +128,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
-  # Until we can use the expeditor executors
   - label: "[:windows: build studio]"
     command:
       - powershell .expeditor/scripts/build_component.ps1 studio
@@ -164,7 +162,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
-  # Until we can use the expeditor executors
   - label: "[:windows: build launcher]"
     command:
       - powershell .expeditor/scripts/build_component.ps1 launcher
@@ -199,7 +196,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
-  # Until we can use the expeditor executors
   - label: "[:windows: build hab-sup]"
     command:
       - powershell .expeditor/scripts/build_component.ps1 sup
@@ -234,7 +230,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # Until we can use the expeditor executors
   - label: "[:windows: build hab-pkg-export-docker]"
     command:
       - powershell .expeditor/scripts/build_component.ps1 pkg-export-docker
@@ -287,7 +282,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux-kernel2
 
-  # Until we can use the expeditor executors
   - label: "[:windows: build hab-pkg-export-tar]"
     command:
       - powershell .expeditor/scripts/build_component.ps1 pkg-export-tar
