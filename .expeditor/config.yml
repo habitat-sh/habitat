@@ -58,6 +58,8 @@ subscriptions:
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
       - trigger_pipeline:end_to_end
+      - unlock_staging_area:post_merge:
+          always_run: true
 
   - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
     actions:
@@ -65,11 +67,6 @@ subscriptions:
 
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
-    actions:
-      - unlock_staging_area:post_merge:
-          always_run: true
-
-  - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:post_merge:
           always_run: true
