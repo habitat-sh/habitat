@@ -38,7 +38,6 @@ staging_areas:
       workload: pull_request_merged:{{agent_id}}:*
 
 subscriptions:
-  # These actions are taken, in order they are specified
   - workload: pull_request_opened:{{agent_id}}:*
     actions:
       - post_github_comment:.expeditor/templates/welcome.mustache
