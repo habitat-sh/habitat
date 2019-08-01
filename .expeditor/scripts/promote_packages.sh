@@ -13,23 +13,24 @@ curlbash_hab "x86_64-linux"
 
 ########################################################################
 
-# `target_channel` should be channel we are promoting all our artifacts from
+# `source_channel` should be the channel we are promoting all our
+# artifacts from.
 #
 # e.g. `habitat-release-<build-id>`, `DEV`, `ACCEPTANCE` etc.
-target_channel=${1:?You must specify a target channel value}
+source_channel=${1:?You must specify a source channel value}
 
-# `destination_channel` should be the channel we are promoting to
+# `destination_channel` should be the channel we are promoting to.
 #
 # e.g. `DEV`, `ACCEPTANCE`, `CURRENT`, etc
 destination_channel=${2:?You must specify a destination channel value}
 
-echo "--- Promoting from $target_channel to $destination_channel"
+echo "--- Promoting from $source_channel to $destination_channel"
 
 # TODO: Everything below becomes a single API call once
 # channel-to-channel promotions are implemented; see
 # https://github.com/habitat-sh/builder/issues/580
 
-channel_pkgs_json=$(curl -s "${ACCEPTANCE_HAB_BLDR_URL}/v1/depot/channels/${HAB_ORIGIN}/${target_channel}/pkgs")
+channel_pkgs_json=$(curl -s "${ACCEPTANCE_HAB_BLDR_URL}/v1/depot/channels/${HAB_ORIGIN}/${source_channel}/pkgs")
 
 mapfile -t packages_to_promote < <(echo "${channel_pkgs_json}" | \
                          jq -r \
