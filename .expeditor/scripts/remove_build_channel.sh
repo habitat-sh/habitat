@@ -10,11 +10,11 @@ source .expeditor/scripts/shared.sh
 export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
 
-install_latest_hab_binary "$BUILD_PKG_TARGET"
+curlbash_hab "$BUILD_PKG_TARGET"
 
 channel="$(get_release_channel)"
 echo "--- Destroying release channel '${channel}'"
 
-${hab_binary} bldr channel destroy \
+hab bldr channel destroy \
     --origin=core \
     "${channel}"
