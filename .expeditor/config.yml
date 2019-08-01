@@ -54,37 +54,30 @@ subscriptions:
           - 'Expeditor: Skip All'
       - trigger_pipeline:release_habitat:
           only_if: built_in:bump_version
-          post_commit: true
 
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
-      - trigger_pipeline:end_to_end:
-          post_commit: true
+      - trigger_pipeline:end_to_end
 
   - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
     actions:
-      - trigger_pipeline:test_scenarios:
-          post_commit: true
+      - trigger_pipeline:test_scenarios
 
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:post_merge:
-          post_commit: true
           always_run: true
 
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:post_merge:
-          post_commit: true
           always_run: true
 
   - workload: buildkite_build_canceled:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:post_merge:
-          post_commit: true
           always_run: true
-
   - workload: schedule_triggered:{{agent_id}}:cargo_update:*
     actions:
       - bash:.expeditor/scripts/cargo_update.sh
