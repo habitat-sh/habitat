@@ -339,5 +339,3 @@ steps:
       executor:
         docker:
           privileged: true
-          environment:
-            - ACCEPTANCE_HAB_AUTH_TOKEN=$SCOTTHAIN_HAB_AUTH_TOKEN
