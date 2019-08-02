@@ -74,6 +74,8 @@ steps:
       - .expeditor/scripts/setup_environment.sh DEV
       - test/end-to-end/test_launcher_restarts_supervisor.sh
     timeout_in_minutes: 2 # this will timeout every time for some reason
+    artifact_paths:
+      - sup.log
     expeditor:
       executor:
         docker:
