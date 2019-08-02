@@ -28,7 +28,6 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
 
   - label: "[:linux: hup-does-not-abandon-services]"
     command:
@@ -107,7 +106,6 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
 
   - label: "[:linux: test_socket_file_cleanup]"
     command:
@@ -121,7 +119,6 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
 
   - label: "[:linux: test_tar_export]"
     command:
@@ -135,4 +132,3 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
