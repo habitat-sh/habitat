@@ -9,7 +9,7 @@ expeditor:
       timeout_in_minutes: 30
       env:
         HAB_ORIGIN: "core"
-        ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+        HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
         HAB_BLDR_CHANNEL: "DEV"
         HAB_INTERNAL_BLDR_CHANNEL: "DEV"
 
@@ -28,7 +28,6 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
 
   # - label: "[:linux: test_launcher_checks_supervisor_version]"
   #   command:
