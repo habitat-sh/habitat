@@ -110,13 +110,10 @@ fn boot() -> Option<LauncherCli> {
     }
 }
 
-/// # Locking
-/// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock is
-///   held.
-/// * `MemberList::intitial_entries` (write) This method must not be called while any
-///   MemberList::intitial_entries lock is held.
-/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-///   lock is held.
+/// # Locking (see locking.md)
+/// * `RumorStore::list` (read)
+/// * `MemberList::initial_members` (write)
+/// * `MemberList::entries` (write)
 fn start_rsr_imlw_mlw(feature_flags: FeatureFlag) -> Result<()> {
     if feature_flags.contains(FeatureFlag::TEST_BOOT_FAIL) {
         outputln!("Simulating boot failure");
@@ -157,13 +154,10 @@ fn start_rsr_imlw_mlw(feature_flags: FeatureFlag) -> Result<()> {
 
 fn sub_bash() -> Result<()> { command::shell::bash() }
 
-/// # Locking
-/// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock is
-///   held.
-/// * `MemberList::intitial_entries` (write) This method must not be called while any
-///   MemberList::intitial_entries lock is held.
-/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-///   lock is held.
+/// # Locking (see locking.md)
+/// * `RumorStore::list` (read)
+/// * `MemberList::initial_members` (write)
+/// * `MemberList::entries` (write)
 fn sub_run_rsr_imlw_mlw(m: &ArgMatches,
                         launcher: LauncherCli,
                         feature_flags: FeatureFlag)

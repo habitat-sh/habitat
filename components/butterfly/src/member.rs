@@ -347,9 +347,8 @@ pub struct MemberList {
 }
 
 impl Serialize for MemberList {
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -384,16 +383,14 @@ impl MemberList {
                      update_counter:  AtomicUsize::new(0), }
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     fn read_entries(&self) -> ReadGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.read()
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     fn write_entries(&self) -> WriteGuard<'_, HashMap<UuidSimple, member_list::Entry>> {
         self.entries.write()
     }
@@ -408,28 +405,24 @@ impl MemberList {
 
     pub fn get_update_counter(&self) -> usize { self.update_counter.load(Ordering::Relaxed) }
 
-    /// # Locking
-    /// * `MemberList::intitial_entries` (read) This method must not be called while any
-    ///   MemberList::intitial_entries lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::initial_members` (read)
     pub fn len_initial_members_imlr(&self) -> usize { self.initial_members_read().len() }
 
-    /// # Locking
-    /// * `MemberList::intitial_entries` (write) This method must not be called while any
-    ///   MemberList::intitial_entries lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::initial_members` (write)
     pub fn add_initial_member_imlw(&self, member: Member) {
         self.initial_members_write().push(member);
     }
 
-    /// # Locking
-    /// * `MemberList::intitial_entries` (write) This method must not be called while any
-    ///   MemberList::intitial_entries lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::initial_members` (write)
     pub fn set_initial_members_imlw(&self, members: Vec<Member>) {
         *self.initial_members_write() = members;
     }
 
-    /// # Locking
-    /// * `MemberList::intitial_entries` (read) This method must not be called while any
-    ///   MemberList::intitial_entries lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::initial_members` (read)
     pub fn with_initial_members_imlr(&self, with_closure: impl Fn(&Member)) {
         for member in self.initial_members_read().iter() {
             with_closure(member);
@@ -500,18 +493,16 @@ impl MemberList {
     /// | Confirmed |       |           |           | propagate |
     /// | Departed  |       |           |           |           |
     ///
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     // TODO (CM): why don't we just insert a membership record here?
     pub fn insert_mlw(&self, incoming_member: Member, incoming_health: Health) -> bool {
         self.insert_membership_mlw(Membership { member: incoming_member,
                                                 health: incoming_health, })
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     fn insert_membership_mlw(&self, incoming: Membership) -> bool {
         // Is this clone necessary, or can a key be a reference to a field contained in the value?
         // Maybe the members we store should not contain the ID to reduce the duplication?
@@ -543,9 +534,8 @@ impl MemberList {
         modified
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     pub fn set_departed_mlw(&self, member_id: &str) {
         if let Some(member_list::Entry { member, health, .. }) =
             self.write_entries().get_mut(member_id)
@@ -560,9 +550,8 @@ impl MemberList {
         }
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     fn calculate_peer_health_metrics_mlr(&self) {
         let mut health_counts: HashMap<Health, i64> = HashMap::new();
 
@@ -582,18 +571,16 @@ impl MemberList {
 
     /// Returns the health of the member, if the member exists.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn health_of_mlr(&self, member: &Member) -> Option<Health> {
         self.health_of_by_id_mlr(&member.id)
     }
 
     /// Returns the health of the member, if the member exists.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn health_of_by_id_mlr(&self, member_id: &str) -> Option<Health> {
         self.read_entries()
             .get(member_id)
@@ -602,9 +589,8 @@ impl MemberList {
 
     /// Returns the health of the member, blocking for a limited timeout
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     ///
     /// # Errors:
     /// * `Error::Timeout` if the health data can't be accessed within `timeout`
@@ -629,9 +615,8 @@ impl MemberList {
     /// Returns true if the member is alive, suspect, or persistent; used during the target
     /// selection phase of the outbound thread.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn pingable_mlr(&self, member: &Member) -> bool {
         if member.persistent {
             return true;
@@ -645,18 +630,16 @@ impl MemberList {
     /// Returns true if we are pinging this member because they are persistent, but we think they
     /// are gone.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn persistent_and_confirmed_mlr(&self, member: &Member) -> bool {
         member.persistent && self.health_of_mlr(member) == Some(Health::Confirmed)
     }
 
     /// Returns a protobuf membership record for the given member id.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn membership_for_mlr(&self, member_id: &str) -> Option<Membership> {
         self.read_entries()
             .get(member_id)
@@ -668,21 +651,18 @@ impl MemberList {
 
     /// Returns the number of entries.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn len_mlr(&self) -> usize { self.read_entries().len() }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn is_empty_mlr(&self) -> bool { self.read_entries().is_empty() }
 
     /// A randomized list of members to check.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn check_list_mlr(&self, exclude_id: &str) -> Vec<Member> {
         let mut members: Vec<_> = self.read_entries()
                                       .values()
@@ -696,10 +676,10 @@ impl MemberList {
 
     /// Takes a function whose first argument is a member, and calls it for every pingreq target.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
-    ///   must not call any functions which take this lock.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
+    /// * Additionally `with_closure` is called with this lock held, so the closure must not call
+    ///   any functions which take this lock.
     pub fn with_pingreq_targets_mlr(&self,
                                     sending_member_id: &str,
                                     target_member_id: &str,
@@ -721,9 +701,8 @@ impl MemberList {
     /// If an owned `Member` is required, use this. If a shared reference is
     /// good enough, use `with_member`.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn get_cloned_mlr(&self, member_id: &str) -> Option<Member> {
         self.read_entries()
             .get(member_id)
@@ -733,10 +712,10 @@ impl MemberList {
     /// Iterates over the memberships list, calling the function for each membership.
     /// This could be return Result<T> instead, but there's only the one caller now.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
-    ///   must not call any functions which take this lock.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
+    /// * Additionally `with_closure` is called with this lock held, so the closure must not call
+    ///   any functions which take this lock.
     pub fn with_memberships_mlr<T: Default>(&self,
                                             mut with_closure: impl FnMut(Membership) -> Result<T>)
                                             -> Result<T> {
@@ -758,9 +737,8 @@ impl MemberList {
     /// appropriately, and a list of newly-Confirmed Member IDs is
     /// returned.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     pub fn members_expired_to_confirmed_mlw(&self, timeout: Duration) -> Vec<String> {
         self.members_expired_to_mlw(Health::Confirmed, timeout)
     }
@@ -769,9 +747,8 @@ impl MemberList {
     /// have now expired to Departed. Health is updated appropriately,
     /// and a list of newly-Departed Member IDs is returned.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     pub fn members_expired_to_departed_mlw(&self, timeout: Duration) -> Vec<String> {
         self.members_expired_to_mlw(Health::Departed, timeout)
     }
@@ -788,9 +765,8 @@ impl MemberList {
     ///
     /// The newly-updated health status is recorded properly.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     // TODO (CM): Better return type than Vec<String>
     fn members_expired_to_mlw(&self, expiring_to: Health, timeout: Duration) -> Vec<String> {
         let now = SteadyTime::now();
@@ -824,9 +800,8 @@ impl MemberList {
         expired
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn contains_member_mlr(&self, member_id: &str) -> bool {
         self.read_entries().contains_key(member_id)
     }
@@ -840,9 +815,8 @@ impl<'a> MemberListProxy<'a> {
 }
 
 impl<'a> Serialize for MemberListProxy<'a> {
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {
@@ -889,9 +863,8 @@ mod tests {
         // This is a remnant of when the MemberList::members entries were
         // simple Member structs. The tests that use this should be replaced,
         // but until then, this keeps them working.
-        /// # Locking
-        /// * `MemberList::entries` (read) This method must not be called while any
-        ///   MemberList::entries lock is held.
+        /// # Locking (see locking.md)
+        /// * `MemberList::entries` (read)
         fn with_member_iter<T>(&self,
                                mut with_closure: impl FnMut(hash_map::Values<'_, String, Member>)
                                      -> T)

@@ -425,9 +425,8 @@ impl Manager {
     /// The returned Manager will be pre-populated with any cached data from disk from a previous
     /// run if available.
     ///
-    /// # Locking
-    /// * `MemberList::intitial_entries` (write) This method must not be called while any
-    ///   MemberList::intitial_entries lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::initial_members` (write)
     pub fn load_imlw(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
         let state_path = cfg.sup_root();
         let fs_cfg = FsCfg::new(state_path);
@@ -457,9 +456,8 @@ impl Manager {
         }
     }
 
-    /// # Locking
-    /// * `MemberList::intitial_entries` (write) This method must not be called while any
-    ///   MemberList::intitial_entries lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::initial_members` (write)
     fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
@@ -633,11 +631,9 @@ impl Manager {
         Ok(())
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
     fn add_service_rsw_mlw(&mut self, spec: &ServiceSpec) {
         // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
         // want is the service to hold the spec and, on failure, return an error with the spec
@@ -719,13 +715,10 @@ impl Manager {
     // simplify the redundant aspects and remove this allow(clippy::cognitive_complexity),
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::intitial_entries` (write) This method must not be called while any
-    ///   MemberList::intitial_entries lock is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::initial_members` (write)
+    /// * `MemberList::entries` (write)
     #[allow(clippy::cognitive_complexity)]
     pub fn run_rsw_imlw_mlw(mut self,
                             svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
@@ -1130,11 +1123,9 @@ impl Manager {
     /// Builder. These are removed from the internal `services` vec
     /// for further transformation into futures.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     #[rustfmt::skip]
     fn take_services_with_updates_rsw_mlr(&mut self) -> Vec<Service> {
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
@@ -1172,11 +1163,9 @@ impl Manager {
     /// Returns a Vec of futures for shutting down those services that
     /// need to be updated.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     // TODO (CM): In the future, when service start up is
     // future-based, we'll want to have an actual "restart"
     // future, that queues up the start future after the stop
@@ -1194,11 +1183,9 @@ impl Manager {
     }
 
     // Creates a rumor for the specified service.
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
     fn gossip_latest_service_rumor_rsw_mlw(&self, service: &Service) {
         let incarnation = self.butterfly
                               .service_store
@@ -1242,11 +1229,9 @@ impl Manager {
         }
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     fn persist_state_rsr_mlr(&self) {
         debug!("Updating census state");
         self.persist_census_state();
@@ -1266,11 +1251,9 @@ impl Manager {
             .census_data = json;
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     fn persist_butterfly_state_rsr_mlr(&self) {
         let bs = ServerProxy::new(&self.butterfly);
         let json = serde_json::to_string(&bs).unwrap();
@@ -1332,11 +1315,9 @@ impl Manager {
 
     /// Check if any elections need restarting.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
+    /// * `RumorStore::list` (write)
     fn restart_elections_rsw_mlr(&mut self, feature_flags: FeatureFlag) {
         self.butterfly.restart_elections_rsw_mlr(feature_flags);
     }
@@ -1444,11 +1425,9 @@ impl Manager {
     /// operations will be performed directly as a consequence of
     /// calling this method.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
     fn maybe_spawn_service_futures_rsw_mlw(&mut self, runtime: &mut Runtime) {
         let ops = self.compute_service_operations();
         for f in self.operations_into_futures_rsw_mlw(ops) {
@@ -1473,11 +1452,9 @@ impl Manager {
     /// operations; starts are performed synchronously, while
     /// shutdowns and restarts are turned into futures.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
     fn operations_into_futures_rsw_mlw<O>(&mut self,
                                           ops: O)
                                           -> Vec<impl Future<Item = (), Error = ()>>
@@ -1625,11 +1602,9 @@ impl Manager {
                   .collect()
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
-    /// * `MemberList::intitial_entries` (write) This method must not be called while any
-    ///   MemberList::intitial_entries lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
+    /// * `MemberList::initial_members` (write)
     fn update_peers_from_watch_file_mlr_imlw(&mut self) -> Result<()> {
         if !self.butterfly.need_peer_seeding_mlr() {
             return Ok(());

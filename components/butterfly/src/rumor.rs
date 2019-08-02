@@ -260,14 +260,17 @@ mod storage {
         /// which it will be.
         fn increment_update_counter(&self) { self.update_counter.fetch_add(1, Ordering::Relaxed); }
 
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (read)
+        /// * IterableGuard contains an instance of a held lock in order to facilitate ergonomic
+        ///   access to collection data inside the lock. However, this means that the lock will be
+        ///   held until the `IterableGuard` goes out of scope. In general, it's best to avoid
+        ///   binding the return of `lock_rsr` in favor of using it as the first link in a chain of
+        ///   functions that will be consumed by an iterator adapter or `for` loop.
         pub fn lock_rsr(&self) -> IterableGuard<RumorMap<T>> { IterableGuard::read(&self.list) }
 
-        /// # Locking
-        /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (write)
         pub fn remove_rsw(&self, key: &str, id: &str) {
             let mut list = self.list.write();
             list.get_mut(key).and_then(|r| r.remove(id));
@@ -278,9 +281,8 @@ mod storage {
         /// Insert a rumor into the Rumor Store. Returns true if the value didn't exist or if it was
         /// mutated; if nothing changed, returns false.
         ///
-        /// # Locking
-        /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (write)
         pub fn insert_rsw(&self, rumor: R) -> bool {
             let mut list = self.list.write();
             let rumors = list.entry(String::from(rumor.key()))
@@ -315,9 +317,8 @@ mod storage {
 
     impl<T> Serialize for RumorStore<T> where T: Rumor
     {
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -341,9 +342,8 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, Departure> {
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -368,9 +368,8 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, Election> {
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -394,9 +393,8 @@ mod storage {
 
     // This is the same as Election =/
     impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -419,9 +417,8 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, Service> {
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -437,9 +434,8 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {
@@ -462,9 +458,8 @@ mod storage {
     }
 
     impl<'a> Serialize for RumorStoreProxy<'a, ServiceFile> {
-        /// # Locking
-        /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list
-        ///   lock is held.
+        /// # Locking (see locking.md)
+        /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
             where S: Serializer
         {

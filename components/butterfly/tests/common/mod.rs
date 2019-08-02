@@ -166,9 +166,8 @@ impl SwimNet {
         from.remove_from_block_list(to.member_id());
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn health_of_mlr(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
         /// To avoid deadlocking in a test, we use `health_of_by_id_with_timeout` rather than
         /// `health_of_by_id`.
@@ -198,9 +197,8 @@ impl SwimNet {
         }
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn network_health_of_mlr(&self, to_check: usize) -> Vec<Option<Health>> {
         let mut health_summary = Vec::with_capacity(self.members.len() - 1);
         let length = self.members.len();
@@ -359,9 +357,8 @@ impl SwimNet {
         }
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn wait_for_health_of_mlr(&self,
                                   from_entry: usize,
                                   to_check: usize,
@@ -385,9 +382,8 @@ impl SwimNet {
         }
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn wait_for_network_health_of_mlr(&self, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {

@@ -69,11 +69,9 @@ pub struct DatFileReader {
 pub struct DatFileWriter(DatFile);
 
 impl DatFileReader {
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     #[allow(clippy::too_many_arguments)]
     pub fn read_or_create_rsr_mlr(data_path: PathBuf,
                                   member_list: &MemberList,
@@ -119,11 +117,9 @@ impl DatFileReader {
 
     pub fn path(&self) -> &Path { &self.dat_file.0 }
 
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
     pub fn read_into_rsw_mlw(&mut self, server: &Server) -> Result<()> {
         for Membership { member, health } in self.read_members()? {
             server.insert_member_mlw(member, health);
@@ -192,11 +188,9 @@ impl DatFileWriter {
 
     pub fn path(&self) -> &Path { &(self.0).0 }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     #[allow(clippy::too_many_arguments)]
     pub fn write_rsr_mlr(&self,
                          member_list: &MemberList,
@@ -258,9 +252,8 @@ impl DatFileWriter {
         Ok(total)
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     fn write_member_list_mlr(&self,
                              writer: &mut impl Write,
                              member_list: &MemberList)
@@ -288,9 +281,8 @@ impl DatFileWriter {
         Ok(total)
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
     fn write_rumor_store_rsr<T, W>(&self, writer: &mut W, store: &RumorStore<T>) -> Result<u64>
         where T: Rumor,
               W: Write

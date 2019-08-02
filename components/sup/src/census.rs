@@ -64,11 +64,9 @@ impl CensusRing {
                      last_service_file_counter: 0, }
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     #[allow(clippy::too_many_arguments)]
     pub fn update_from_rumors_rsr_mlr(&mut self,
                                       cache_key_path: &Path,
@@ -119,11 +117,9 @@ impl CensusRing {
     /// (Butterfly provides the health, the ServiceRumors provide the
     /// rest).
     ///
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     fn populate_census_rsr_mlr(&mut self,
                                service_rumors: &RumorStore<ServiceRumor>,
                                member_list: &MemberList) {
@@ -159,9 +155,8 @@ impl CensusRing {
                    .ok();
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
     fn update_from_election_store_rsr(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
         for (service_group, rumors) in election_rumors.lock_rsr().iter() {
             let election = rumors.get("election").unwrap();
@@ -173,9 +168,8 @@ impl CensusRing {
         }
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
     fn update_from_election_update_store_rsr(&mut self,
                                              election_update_rumors: &RumorStore<ElectionUpdateRumor>)
     {
@@ -189,9 +183,8 @@ impl CensusRing {
         }
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
     fn update_from_service_config_rsr(&mut self,
                                       cache_key_path: &Path,
                                       service_config_rumors: &RumorStore<ServiceConfigRumor>) {
@@ -207,9 +200,8 @@ impl CensusRing {
         }
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
     fn update_from_service_files_rsr(&mut self,
                                      cache_key_path: &Path,
                                      service_file_rumors: &RumorStore<ServiceFileRumor>) {

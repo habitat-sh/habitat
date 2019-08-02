@@ -127,11 +127,9 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
 /// connection and socket open for 1 second longer - so it is possible, but unlikely, that this
 /// method can lose messages.
 ///
-/// # Locking
-/// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock is
-///   held.
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
+/// # Locking (see locking.md)
+/// * `RumorStore::list` (read)
+/// * `MemberList::entries` (read)
 // If we ever need to modify this function, it would be an excellent opportunity to
 // simplify the redundant aspects and remove this allow(clippy::cognitive_complexity),
 // but changing it in the absence of other necessity seems like too much risk for the
@@ -334,9 +332,8 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
 
 /// Given a rumorkey, creates a protobuf rumor for sharing.
 ///
-/// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (read)
 fn create_member_rumor_mlr(server: &Server, rumor_key: &RumorKey) -> Option<RumorEnvelope> {
     let member = server.member_list.get_cloned_mlr(&rumor_key.key())?;
     let payload = Membership { member,

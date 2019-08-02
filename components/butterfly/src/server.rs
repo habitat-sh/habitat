@@ -406,11 +406,9 @@ impl Server {
     /// Start the server, along with a `Timing` for outbound connections. Spawns the `inbound`,
     /// `outbound`, and `expire` threads.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
     ///
     /// # Errors
     ///
@@ -496,10 +494,9 @@ impl Server {
         Ok(())
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held. Additionally `with_closure` is called with this lock held, so the closure
-    ///   must not call any functions which take this lock.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read) Additionally `with_closure` is called with this lock held, so
+    ///   the closure must not call any functions which take this lock.
     pub fn need_peer_seeding_mlr(&self) -> bool { self.member_list.is_empty_mlr() }
 
     /// Persistently block a given address, causing no traffic to be seen.
@@ -552,9 +549,8 @@ impl Server {
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     pub fn insert_member_mlw(&self, member: Member, health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
@@ -585,9 +581,8 @@ impl Server {
     /// Set our member to departed, then send up to 10 out of order ack messages to other
     /// members to seed our status.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     pub fn set_departed_mlw(&self) {
         if self.socket.is_some() {
             {
@@ -634,9 +629,8 @@ impl Server {
 
     /// Given a membership record and some health, insert it into the Member List.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (write)
     fn insert_member_from_rumor_mlw(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         if member.id == self.member_id() && health != Health::Alive {
@@ -679,11 +673,9 @@ impl Server {
     /// See https://github.com/habitat-sh/habitat/issues/1994
     /// See Server::check_quorum
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
     /// XXX LOCK ORDER: rs -> ml
     pub fn insert_service_rsw_mlw(&self, service: Service) {
         Self::insert_service_impl(service,
@@ -736,9 +728,8 @@ impl Server {
 
     /// Insert a service config rumor into the service store.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
     pub fn insert_service_config_rsw(&self, service_config: ServiceConfig) {
         let rk = RumorKey::from(&service_config);
         if self.service_config_store.insert_rsw(service_config) {
@@ -748,9 +739,8 @@ impl Server {
 
     /// Insert a service file rumor into the service file store.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
     pub fn insert_service_file_rsw(&self, service_file: ServiceFile) {
         let rk = RumorKey::from(&service_file);
         if self.service_file_store.insert_rsw(service_file) {
@@ -760,11 +750,9 @@ impl Server {
 
     /// Insert a departure rumor into the departure store.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (write)
     pub fn insert_departure_rsw_mlw(&self, departure: Departure) {
         let rk = RumorKey::from(&departure);
         if *self.member_id == departure.member_id {
@@ -786,11 +774,9 @@ impl Server {
     /// Get all the Member ID's who are present in a given service group, and eligible to vote
     /// (alive)
     ///
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     // XXX LOCK ORDER: rs -> ml
     fn get_electorate_rsr_mlr(&self, key: &str) -> Vec<String> {
         let mut electorate = vec![];
@@ -802,9 +788,8 @@ impl Server {
         electorate
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     fn check_in_voting_population_by_id_mlr(&self, member_id: &str) -> bool {
         match self.member_list.health_of_by_id_mlr(member_id) {
             Some(Health::Alive) | Some(Health::Suspect) | Some(Health::Confirmed) => true,
@@ -814,11 +799,9 @@ impl Server {
 
     /// Get all the Member ID's who are present in a given service group, and count towards quorum.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     // XXX LOCK ORDER: rs -> ml
     fn get_total_population_rsr_mlr(&self, key: &str) -> Vec<String> {
         let mut total_pop = vec![];
@@ -834,11 +817,9 @@ impl Server {
     ///
     /// A group has quorum if a majority of its non-departed members are alive.
     ///
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
+    /// * `RumorStore::list` (read)
     fn check_quorum_mlr(&self, key: &str) -> bool {
         let electorate = self.get_electorate_rsr_mlr(key);
         let service_group_members = self.get_total_population_rsr_mlr(key);
@@ -860,11 +841,9 @@ impl Server {
     /// Start an election for the given service group, declaring this members suitability and the
     /// term for the election.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     pub fn start_election_rsw_mlr(&self, service_group: &str, term: u64) {
         let suitability = self.suitability_lookup.get(&service_group);
         let has_quorum = self.check_quorum_mlr(service_group);
@@ -881,11 +860,9 @@ impl Server {
         self.election_store.insert_rsw(e);
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     pub fn start_update_election_rsw_mlr(&self, service_group: &str, suitability: u64, term: u64) {
         let has_quorum = self.check_quorum_mlr(service_group);
         let e = ElectionUpdate::new(self.member_id(),
@@ -901,11 +878,9 @@ impl Server {
         self.update_store.insert_rsw(e);
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     fn elections_to_restart_rsr_mlr<T>(&self,
                                        elections: &RumorStore<T>,
                                        feature_flags: FeatureFlag)
@@ -990,11 +965,9 @@ impl Server {
     /// a) We are the leader, and we have lost quorum with the rest of the group.
     /// b) We are not the leader, and we have detected that the leader is confirmed dead.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     pub fn restart_elections_rsw_mlr(&self, feature_flags: FeatureFlag) {
         let elections_to_restart =
             self.elections_to_restart_rsr_mlr(&self.election_store, feature_flags);
@@ -1025,11 +998,9 @@ impl Server {
     /// member on receipt of an election rumor for a service this server cares about. Also handles
     /// stopping the election if we are the winner and we have enough votes.
     ///
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     pub fn insert_election_rsw_mlr(&self, mut election: Election) {
         debug!("insert_election: {:?}", election);
         let rk = RumorKey::from(&election);
@@ -1120,11 +1091,9 @@ impl Server {
         }
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     pub fn insert_update_election_rsw_mlr(&self, mut election: ElectionUpdate) {
         debug!("insert_update_election: {:?}", election);
         let rk = RumorKey::from(&election);
@@ -1201,11 +1170,9 @@ impl Server {
         message::unwrap_wire(payload, (*self.ring_key).as_ref())
     }
 
-    /// # Locking
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (read)
+    /// * `MemberList::entries` (read)
     pub fn persist_data_rsr_mlr(&self) {
         if let Some(ref dat_file_lock) = self.dat_file {
             let dat_file = dat_file_lock.lock().expect("DatFile lock poisoned");
@@ -1280,11 +1247,9 @@ impl<'a> ServerProxy<'a> {
 }
 
 impl<'a> Serialize for ServerProxy<'a> {
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
-    /// * `RumorStore::list` (read) This method must not be called while any RumorStore::list lock
-    ///   is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
+    /// * `RumorStore::list` (read)
     fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
         where S: Serializer
     {

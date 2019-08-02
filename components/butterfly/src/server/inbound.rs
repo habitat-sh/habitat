@@ -145,9 +145,8 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
 
 /// Process pingreq messages.
 ///
-/// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (read)
 fn process_pingreq_mlr(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: PingReq) {
     trace_it!(SWIM: server,
               TraceKind::RecvPingReq,
@@ -175,9 +174,8 @@ fn process_pingreq_mlr(server: &Server, socket: &UdpSocket, addr: SocketAddr, mu
 
 /// Process ack messages; forwards to the outbound thread.
 ///
-/// # Locking
-/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-///   lock is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (write)
 fn process_ack_mlw(server: &Server,
                    socket: &UdpSocket,
                    tx_outbound: &AckSender,
@@ -219,9 +217,8 @@ fn process_ack_mlw(server: &Server,
     }
 }
 
-/// # Locking
-/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-///   lock is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (write)
 fn process_ping_mlw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
     trace_it!(SWIM: server, TraceKind::RecvPing, &msg.from.id, addr, &msg);
     outbound::ack_mlr(server, socket, &msg.from, addr, msg.forward_to);

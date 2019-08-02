@@ -161,9 +161,8 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 ///
 /// If we don't receive anything at all in the Ping/PingReq loop, we mark the member as Suspect.
 ///
-/// # Locking
-/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-///   lock is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (write)
 fn probe_mlw(server: &Server,
              socket: &UdpSocket,
              rx_inbound: &AckReceiver,
@@ -227,9 +226,8 @@ fn probe_mlw(server: &Server,
 
 /// Listen for an ack from the `Inbound` thread.
 ///
-/// # Locking
-/// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
-///   lock is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (write)
 fn recv_ack_mlw(server: &Server,
                 rx_inbound: &AckReceiver,
                 timing: &Timing,
@@ -283,9 +281,8 @@ fn recv_ack_mlw(server: &Server,
 
 /// Created a SWIM message from the given `message` template and populate it with rumors.
 ///
-/// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (read)
 pub fn populate_membership_rumors_mlr(server: &Server,
                                       target: &Member,
                                       message: impl Into<Swim>)
@@ -379,9 +376,8 @@ fn pingreq(server: &Server, // TODO: eliminate this arg
 
 /// Send a Ping.
 ///
-/// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (read)
 pub fn ping_mlr(server: &Server,
                 socket: &UdpSocket,
                 target: &Member,
@@ -491,9 +487,8 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, msg: A
 
 /// Send an Ack.
 ///
-/// # Locking
-/// * `MemberList::entries` (read) This method must not be called while any MemberList::entries lock
-///   is held.
+/// # Locking (see locking.md)
+/// * `MemberList::entries` (read)
 pub fn ack_mlr(server: &Server,
                socket: &UdpSocket,
                target: &Member,

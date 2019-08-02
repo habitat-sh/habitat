@@ -146,11 +146,9 @@ impl ServiceUpdater {
     // simplify the redundant aspects and remove this allow(clippy::cognitive_complexity),
     // but changing it in the absence of other necessity seems like too much risk for the
     // expected reward.
-    /// # Locking
-    /// * `RumorStore::list` (write) This method must not be called while any RumorStore::list lock
-    ///   is held.
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `RumorStore::list` (write)
+    /// * `MemberList::entries` (read)
     #[allow(clippy::cognitive_complexity)]
     pub fn check_for_updated_package_rsw_mlr(&mut self,
                                              service: &Service,
