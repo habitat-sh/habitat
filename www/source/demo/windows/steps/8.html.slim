@@ -21,10 +21,10 @@ section
 
  = code(:shell) do
    |
-     PS C:\contosouniversity> $env:HAB_DOCKER_OPTS="--memory 2gb -p 80:8099"
+     PS C:\contosouniversity> $env:HAB_DOCKER_OPTS="--memory 2gb"
      PS C:\contosouniversity> hab studio enter -D
 
- p Assuming you are on a Windows host with Docker for Windows running in Windows container mode, this will enter a Powershell based Studio inside of a Windows container. We also set the <code>HAB_DOCKER_OPTS</code> variable which is forwarded to <code>docker run</code> when the Studio spawns its container. This will forward port 8099 which is what our application listens to in the container to port 80 locally. It also ensures that the Container is given 2 GB of ram. This is only important on a Windows 10 host which will run containers in #{link_to 'Hyper-V Isolation mode', 'https://docs.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container'} where containers are spawned in their own minimal VM and allocated 1GB of memory by default. For many scenarios, including ours, 1 GB is simply not enough and can lead to odd and surprising results - not the good kind of surprise!
+ p Assuming you are on a Windows host with Docker for Windows running in Windows container mode, this will enter a Powershell based Studio inside of a Windows container. We also set the <code>HAB_DOCKER_OPTS</code> variable which is forwarded to <code>docker run</code> when the Studio spawns its container. It also ensures that the Container is given 2 GB of ram. This is only important on a Windows 10 host which will run containers in #{link_to 'Hyper-V Isolation mode', 'https://docs.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/hyperv-container'} where containers are spawned in their own minimal VM and allocated 1GB of memory by default. For many scenarios, including ours, 1 GB is simply not enough and can lead to odd and surprising results - not the good kind of surprise!
 
  blockquote
   p <b>Note</b> If you use a "fancy" console like conemu, console2, etc, you will want to use a standard Powershell or CMD based elevated (run as administrator) console when entering a container based Studio. Otherwise standard input and output render extremely awkwardly and eventually becomes nearly impossible to navigate.
@@ -71,7 +71,13 @@ section
  p The following example shows how to start the Docker container running your Chef Habitat package.
 
  = code(:shell) do
-   | PS C:\contosouniversity> docker run --env HAB_LICENSE="accept-no-persist" -it myorigin/contosouniversity
+   | PS C:\contosouniversity> docker run --env HAB_LICENSE="accept-no-persist" -p 80:8099 -it myorigin/contosouniversity
+
+ p The `--env HAB_LICENSE="accept-no-persist"` accepts the Chef license, but does not persist that decision for future runs. The license has allowances for demo and trial purproses. 
+
+ p Setting `-p 80:8099` maps port 8099 from the app running within the Docker container to port 80 on your host machine. Please ensure that you don't have any other applications running listening on port 80.
+
+ p Once your application is started you may access the application at any time by visiting #{link_to 'localhost/contoso_university', 'http://localhost/contoso_university'} in a web browser.
 
  p For more information on using the Chef Habitat Studio, see #{link_to 'Plan Builds', '/docs/developing-packages#plan-builds'}.
 
