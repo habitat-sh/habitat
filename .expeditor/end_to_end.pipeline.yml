@@ -126,3 +126,15 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: test_studio_auto_installs]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - test/end-to-end/test_studio_auto_installs.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
