@@ -13,6 +13,7 @@ extern crate serde_json;
 pub mod artifactory;
 pub mod builder;
 pub mod error;
+pub mod response;
 
 use std::str::FromStr;
 

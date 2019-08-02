@@ -1,26 +1,3 @@
-use std::{collections::HashMap,
-          fs::{self,
-               File},
-          io::{self,
-               Read},
-          path::{Path,
-                 PathBuf},
-          str::FromStr,
-          string::ToString};
-
-use broadcast::BroadcastWriter;
-
-use reqwest::{header::{HeaderName,
-                       CONTENT_LENGTH},
-              Body,
-              IntoUrl,
-              RequestBuilder,
-              Response,
-              StatusCode};
-
-use tee::TeeReader;
-use url::Url;
-
 use crate::{error::{Error,
                     Result},
             hab_core::{crypto::keys::box_key_pair::WrappedSealedBox,
@@ -31,11 +8,30 @@ use crate::{error::{Error,
                                  PackageTarget},
                        ChannelIdent},
             hab_http::ApiClient,
+            response::ResponseExt,
             BoxedClient,
             BuilderAPIProvider,
             DisplayProgress,
             OriginKeyIdent,
             SchedulerResponse};
+use broadcast::BroadcastWriter;
+use reqwest::{header::{HeaderName,
+                       CONTENT_LENGTH},
+              Body,
+              IntoUrl,
+              RequestBuilder,
+              StatusCode};
+use std::{collections::HashMap,
+          fs::{self,
+               File},
+          io::{self,
+               Read},
+          path::{Path,
+                 PathBuf},
+          str::FromStr,
+          string::ToString};
+use tee::TeeReader;
+use url::Url;
 
 const X_JFROG_ART_API: &str = "x-jfrog-art-api";
 const X_ARTIFACTORY_FILENAME: &str = "x-artifactory-filename";
@@ -105,40 +101,28 @@ impl ArtifactoryClient {
                 token: &str,
                 progress: Option<<ArtifactoryClient as BuilderAPIProvider>::Progress>)
                 -> Result<PathBuf> {
-        let mut res = self.add_authz(rb, token).send()?;
-        debug!("Response: {:?}", res);
-
-        if res.status() != StatusCode::OK {
-            return Err(err_from_response(res));
-        }
-
+        let mut resp = self.add_authz(rb, token).send()?;
+        resp.ok_if(StatusCode::OK)?;
         fs::create_dir_all(&dst_path)?;
 
-        let file_name = res.headers()
-                           .get(X_ARTIFACTORY_FILENAME)
-                           .expect("X-Artifactory-Filename missing from response")
-                           .to_str()
-                           .expect("Invalid X-Artifactory-Filename");
+        let file_name = resp.get_header(X_ARTIFACTORY_FILENAME)?;
         let dst_file_path = dst_path.join(file_name);
         let w = AtomicWriter::new(&dst_file_path)?;
+
         w.with_writer(|mut f| {
              match progress {
                  Some(mut progress) => {
-                     let cl = res.headers()
-                                 .get(CONTENT_LENGTH)
-                                 .expect("Content length missing")
-                                 .to_str()
-                                 .expect("Content length invalid");
-                     let size = cl.parse::<u64>().unwrap_or_else(|_| 0);
+                     let size = resp.get_header(CONTENT_LENGTH)?
+                                    .parse()
+                                    .map_err(Error::ParseIntError)?;
 
                      progress.size(size);
                      let mut writer = BroadcastWriter::new(&mut f, progress);
-                     io::copy(&mut res, &mut writer)
+                     io::copy(&mut resp, &mut writer).map_err(Error::IO)
                  }
-                 None => io::copy(&mut res, &mut f),
+                 None => io::copy(&mut resp, &mut f).map_err(Error::IO),
              }
-         })
-         .map_err(Error::BadResponseBody)?;
+         })?;
         Ok(dst_file_path)
     }
 
@@ -158,15 +142,9 @@ impl ArtifactoryClient {
                .append_pair("properties", &prop_str.to_string());
         };
 
-        let res = self.add_authz(self.0.put_with_custom_url(&path, custom), token)
-                      .send()?;
-        debug!("Response: {:?}", res);
-
-        if res.status() != StatusCode::NO_CONTENT {
-            Err(err_from_response(res))
-        } else {
-            Ok(())
-        }
+        self.add_authz(self.0.put_with_custom_url(&path, custom), token)
+            .send()?
+            .ok_if(StatusCode::NO_CONTENT)
     }
 
     fn get_properties(&self, path: &str, token: &str) -> Result<Properties> {
@@ -176,17 +154,13 @@ impl ArtifactoryClient {
             url.query_pairs_mut().append_pair("properties", "");
         };
 
-        let mut res = self.add_authz(self.0.get_with_custom_url(&path, custom), token)
-                          .send()?;
-        debug!("Response: {:?}", res);
-
-        if res.status() != StatusCode::OK {
-            return Err(err_from_response(res));
-        }
+        let mut resp = self.add_authz(self.0.get_with_custom_url(&path, custom), token)
+                           .send()?;
+        resp.ok_if(StatusCode::OK)?;
 
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
+        resp.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
         debug!("Body: {:?}", encoded);
 
         let properties: Properties = serde_json::from_str::<Properties>(&encoded)?;
@@ -294,15 +268,12 @@ impl BuilderAPIProvider for ArtifactoryClient {
                                progress: Option<Self::Progress>)
                                -> Result<PathBuf> {
         let path = self.api_path_for_latest_secret_key(origin);
-        let mut res = self.add_authz(self.0.get(&path), token).send()?;
-
-        if res.status() != StatusCode::OK {
-            return Err(err_from_response(res));
-        }
+        let mut resp = self.add_authz(self.0.get(&path), token).send()?;
+        resp.ok_if(StatusCode::OK)?;
 
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
+        resp.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
         debug!("Body: {:?}", encoded);
 
         let version: LatestVersion = serde_json::from_str::<LatestVersion>(&encoded)?;
@@ -313,16 +284,12 @@ impl BuilderAPIProvider for ArtifactoryClient {
     }
 
     fn show_origin_keys(&self, origin: &str) -> Result<Vec<OriginKeyIdent>> {
-        let mut res = self.0.get(&self.api_path_for_key_folder(origin)).send()?;
-        debug!("Response: {:?}", res);
-
-        if res.status() != StatusCode::OK {
-            return Err(err_from_response(res));
-        }
+        let mut resp = self.0.get(&self.api_path_for_key_folder(origin)).send()?;
+        resp.ok_if(StatusCode::OK)?;
 
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
+        resp.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
         debug!("Body: {:?}", encoded);
 
         let folder_info: FolderInfo = serde_json::from_str::<FolderInfo>(&encoded)?;
@@ -367,22 +334,16 @@ impl BuilderAPIProvider for ArtifactoryClient {
                             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
                             .len();
 
-        let resp = if let Some(mut progress) = progress {
+        let body = if let Some(mut progress) = progress {
             progress.size(file_size);
             let reader = TeeReader::new(file, progress);
-            let body = Body::sized(reader, file_size);
-            self.add_authz(self.0.put(&path), token).body(body).send()?
+            Body::sized(reader, file_size)
         } else {
-            let body = Body::sized(file, file_size);
-            self.add_authz(self.0.put(&path), token).body(body).send()?
+            Body::sized(file, file_size)
         };
-        debug!("Response: {:?}", resp);
 
-        if resp.status() == StatusCode::CREATED {
-            Ok(())
-        } else {
-            Err(err_from_response(resp))
-        }
+        let mut resp = self.add_authz(self.0.put(&path), token).body(body).send()?;
+        resp.ok_if(StatusCode::CREATED)
     }
 
     fn put_origin_secret_key(&self,
@@ -400,29 +361,23 @@ impl BuilderAPIProvider for ArtifactoryClient {
                             .map_err(|e| Error::KeyReadError(src_path.to_path_buf(), e))?
                             .len();
 
-        let resp = if let Some(mut progress) = progress {
+        let body = if let Some(mut progress) = progress {
             progress.size(file_size);
             let reader = TeeReader::new(file, progress);
-            let body = Body::sized(reader, file_size);
-            self.add_authz(self.0.put(&path), token).body(body).send()?
+            Body::sized(reader, file_size)
         } else {
-            let body = Body::sized(file, file_size);
-            self.add_authz(self.0.put(&path), token).body(body).send()?
+            Body::sized(file, file_size)
         };
-        debug!("Response: {:?}", resp);
 
-        if resp.status() != StatusCode::CREATED {
-            return Err(err_from_response(resp));
-        }
+        let mut resp = self.add_authz(self.0.put(&path), token).body(body).send()?;
+        resp.ok_if(StatusCode::CREATED)?;
 
         let properties_path = self.api_path_for_secret_key(origin, revision);
 
         let mut properties: HashMap<&str, String> = HashMap::new();
         properties.insert("version", revision.to_string());
 
-        self.set_properties(&properties_path, &properties, token)?;
-
-        Ok(())
+        self.set_properties(&properties_path, &properties, token)
     }
 
     fn fetch_package(&self,
@@ -457,16 +412,9 @@ impl BuilderAPIProvider for ArtifactoryClient {
 
         let url = self.api_path_for_package(package, target);
 
-        let res = self.add_authz(self.0.get(&url), token.unwrap_or_else(|| ""))
-                      .send()?;
-
-        debug!("Response: {:?}", res);
-
-        if res.status() != StatusCode::OK {
-            Err(err_from_response(res))
-        } else {
-            Ok(())
-        }
+        self.add_authz(self.0.get(&url), token.unwrap_or_else(|| ""))
+            .send()?
+            .ok_if(StatusCode::OK)
     }
 
     fn show_package(&self,
@@ -476,20 +424,16 @@ impl BuilderAPIProvider for ArtifactoryClient {
                     -> Result<PackageIdent> {
         let path = self.api_path_for_latest_package(package, target);
 
-        let mut res = self.add_authz(self.0.get_with_custom_url(&path, |u| {
-                                               u.set_query(Some(&format!("channels={}", channel)))
-                                           }),
-                                     token.unwrap_or_else(|| ""))
-                          .send()?;
-        debug!("Response: {:?}", res);
-
-        if res.status() != StatusCode::OK {
-            return Err(err_from_response(res));
-        }
+        let mut resp = self.add_authz(self.0.get_with_custom_url(&path, |u| {
+                                                u.set_query(Some(&format!("channels={}", channel)))
+                                            }),
+                                      token.unwrap_or_else(|| ""))
+                           .send()?;
+        resp.ok_if(StatusCode::OK)?;
 
         let mut encoded = String::new();
-        res.read_to_string(&mut encoded)
-           .map_err(Error::BadResponseBody)?;
+        resp.read_to_string(&mut encoded)
+            .map_err(Error::BadResponseBody)?;
         debug!("Body: {:?}", encoded);
 
         let version: LatestVersion = serde_json::from_str::<LatestVersion>(&encoded)?;
@@ -516,20 +460,16 @@ impl BuilderAPIProvider for ArtifactoryClient {
 
         let path = self.url_path_for_package(&ident, target);
 
-        let reader: Box<dyn Read + Send> = if let Some(mut progress) = progress {
+        let body = if let Some(mut progress) = progress {
             progress.size(file_size);
-            Box::new(TeeReader::new(file, progress))
+            let reader = TeeReader::new(file, progress);
+            Body::sized(reader, file_size)
         } else {
-            Box::new(file)
+            Body::sized(file, file_size)
         };
 
-        let body = Body::sized(reader, file_size);
-        let resp = self.add_authz(self.0.put(&path), token).body(body).send()?;
-        debug!("Response: {:?}", resp);
-
-        if resp.status() != StatusCode::OK {
-            return Err(err_from_response(resp));
-        }
+        let mut resp = self.add_authz(self.0.put(&path), token).body(body).send()?;
+        resp.ok_if(StatusCode::OK)?;
 
         let properties_path = self.api_path_for_package(&ident, target);
 
@@ -540,9 +480,7 @@ impl BuilderAPIProvider for ArtifactoryClient {
         properties.insert("channels", ChannelIdent::unstable().to_string());
         properties.insert("checksum", checksum);
 
-        self.set_properties(&properties_path, &properties, token)?;
-
-        Ok(())
+        self.set_properties(&properties_path, &properties, token)
     }
 
     fn delete_package(&self,
@@ -554,14 +492,9 @@ impl BuilderAPIProvider for ArtifactoryClient {
         }
 
         let path = self.url_path_for_package(ident, target);
-        let res = self.add_authz(self.0.delete(&path), token).send()?;
-        debug!("Response: {:?}", res);
-
-        if res.status() != StatusCode::NO_CONTENT {
-            return Err(err_from_response(res));
-        }
-
-        Ok(())
+        self.add_authz(self.0.delete(&path), token)
+            .send()?
+            .ok_if(StatusCode::NO_CONTENT)
     }
 
     fn promote_package(&self,
@@ -588,9 +521,7 @@ impl BuilderAPIProvider for ArtifactoryClient {
         let mut properties: HashMap<&str, String> = HashMap::new();
         properties.insert("channels", new_channels);
 
-        self.set_properties(&properties_path, &properties, token)?;
-
-        Ok(())
+        self.set_properties(&properties_path, &properties, token)
     }
 
     fn demote_package(&self,
@@ -622,9 +553,7 @@ impl BuilderAPIProvider for ArtifactoryClient {
         let mut properties: HashMap<&str, String> = HashMap::new();
         properties.insert("channels", new_channels);
 
-        self.set_properties(&properties_path, &properties, token)?;
-
-        Ok(())
+        self.set_properties(&properties_path, &properties, token)
     }
 
     // No-op functions - return success
@@ -720,19 +649,4 @@ impl BuilderAPIProvider for ArtifactoryClient {
     fn list_origin_secrets(&self, _origin: &str, _token: &str) -> Result<Vec<String>> {
         Err(Error::NotSupported)
     }
-}
-
-fn err_from_response(mut response: Response) -> Error {
-    if response.status() == StatusCode::UNAUTHORIZED {
-        return Error::APIError(response.status(),
-                               "Please check that you have specified a valid Artifactory API \
-                                Key."
-                                     .to_string());
-    }
-
-    let mut buff = String::new();
-    if response.read_to_string(&mut buff).is_err() {
-        buff.truncate(0)
-    }
-    Error::APIError(response.status(), buff)
 }

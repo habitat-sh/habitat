@@ -1,16 +1,14 @@
+use crate::{hab_core,
+            hab_http};
+use reqwest;
+use serde_json;
 use std::{error,
           fmt,
           io,
           num,
           path::PathBuf,
           result};
-
-use reqwest;
-use serde_json;
 use url;
-
-use crate::{hab_core,
-            hab_http};
 
 pub type Result<T> = result::Result<T, Error>;
 
@@ -25,6 +23,8 @@ pub enum Error {
     IO(io::Error),
     Json(serde_json::Error),
     KeyReadError(PathBuf, io::Error),
+    MissingHeader(String),
+    InvalidHeader(String),
     NoFilePart,
     PackageReadError(PathBuf, io::Error),
     ParseIntError(num::ParseIntError),
@@ -54,6 +54,8 @@ impl fmt::Display for Error {
             Error::KeyReadError(ref p, ref e) => {
                 format!("Failed to read origin key, {}, {}", p.display(), e)
             }
+            Error::MissingHeader(ref s) => format!("Response is missing a required header: {}", s),
+            Error::InvalidHeader(ref s) => format!("Response header is invalid: {}", s),
             Error::NoFilePart => "An invalid path was passed - we needed a filename, and this \
                                   path does not have one"
                                                          .to_string(),
@@ -89,6 +91,8 @@ impl error::Error for Error {
             Error::IO(ref err) => err.description(),
             Error::Json(ref err) => err.description(),
             Error::KeyReadError(..) => "Failed to read origin key from disk",
+            Error::MissingHeader(_) => "Missing header",
+            Error::InvalidHeader(_) => "Invalid header",
             Error::NoFilePart => {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }

@@ -1,7 +1,4 @@
-use std::{fs::{self,
-               File},
-          io::{Read,
-               Write},
+use std::{fs,
           iter::FromIterator,
           path::{Path,
                  PathBuf},
@@ -12,8 +9,6 @@ use reqwest::{header::{HeaderMap,
                        HeaderValue,
                        USER_AGENT},
               Certificate,
-              Client as ReqwestClient,
-              ClientBuilder,
               IntoUrl,
               Proxy,
               RequestBuilder};
@@ -46,7 +41,7 @@ pub struct ApiClient {
     /// The base URL for the client.
     endpoint: Url,
     /// An instance of a `reqwest::Client`
-    inner: ReqwestClient,
+    inner: reqwest::Client,
 }
 
 impl ApiClient {
@@ -54,6 +49,13 @@ impl ApiClient {
     ///
     /// Builds a new Reqwest HTTP client with appropriate SSL configuration and HTTP/HTTPS proxy
     /// support.
+    ///
+    /// # Errors
+    ///
+    /// * If the underlying Reqwest client cannot be created
+    /// * If a suitable SSL context cannot be established
+    /// * If an HTTP/S proxy cannot be correctly setup
+    /// * If a `User-Agent` HTTP header string cannot be constructed
     pub fn new<T>(endpoint: T,
                   product: &str,
                   version: &str,
@@ -77,17 +79,19 @@ impl ApiClient {
         let skip_cert_verify = env::var("HAB_SSL_CERT_VERIFY_NONE").is_ok();
         debug!("Skip cert verification: {}", skip_cert_verify);
 
-        let header_values = vec![(USER_AGENT, user_agent(product, version)?)];
-        let headers = HeaderMap::from_iter(header_values.into_iter());
+        let headers =
+            HeaderMap::from_iter(vec![(USER_AGENT, user_agent(product, version)?)].into_iter());
 
-        let mut client = client_with_proxy(&endpoint).default_headers(headers)
-                                                     .timeout(Duration::from_secs(timeout_in_secs))
-                                                     .danger_accept_invalid_certs(skip_cert_verify);
+        let mut client = reqwest::Client::builder().proxy(proxy_for(&endpoint)?)
+                                                   .default_headers(headers)
+                                                   .timeout(Duration::from_secs(timeout_in_secs))
+                                                   .danger_accept_invalid_certs(skip_cert_verify);
 
-        let certs = certificates(fs_root_path)?;
-        for cert in certs {
-            client = client.add_root_certificate(cert);
-        }
+        client =
+            certificates(fs_root_path)?.into_iter()
+                                       .fold(client, |client, cert| {
+                                           client.add_root_certificate(cert)
+                                       });
 
         Ok(ApiClient { inner: client.build()?,
                        endpoint })
@@ -188,38 +192,51 @@ impl ApiClient {
     }
 }
 
-fn client_with_proxy(url: &Url) -> ClientBuilder {
+fn proxy_for(url: &Url) -> reqwest::Result<Proxy> {
     trace!("Checking proxy for url: {:?}", url);
 
-    let mut client = ReqwestClient::builder();
-
     if let Some(proxy_url) = env_proxy::for_url(&url).to_string() {
-        if url.scheme() == "http" {
-            debug!("Setting http_proxy to {}", proxy_url);
-            match Proxy::http(&proxy_url) {
-                Ok(p) => {
-                    client = client.proxy(p);
-                }
-                Err(e) => warn!("Invalid proxy, err: {:?}", e),
+        match url.scheme() {
+            "http" => {
+                debug!("Setting http_proxy to {}", proxy_url);
+                Proxy::http(&proxy_url)
             }
-        }
-
-        if url.scheme() == "https" {
-            debug!("Setting https proxy to {}", proxy_url);
-            match Proxy::https(&proxy_url) {
-                Ok(p) => {
-                    client = client.proxy(p);
-                }
-                Err(e) => warn!("Invalid proxy, err: {:?}", e),
+            "https" => {
+                debug!("Setting https proxy to {}", proxy_url);
+                Proxy::https(&proxy_url)
             }
+            _ => unimplemented!(),
         }
     } else {
         debug!("No proxy configured for url: {:?}", url);
+        Ok(Proxy::custom(|_| None::<Url>))
     }
-
-    client
 }
 
+/// Returns an HTTP User-Agent string type for use by Reqwest when making HTTP requests.
+///
+/// The general form for Habitat-related clients are of the following form:
+///
+/// ```text
+/// <PRODUCT>/<VERSION> (<TARGET>; <KERNEL_RELEASE>)
+/// ```
+///
+/// where:
+///
+/// * `<PRODUCT>`: is the provided product name
+/// * `<VERSION>`: is the provided version string which may also include a release number
+/// * `<TARGET>`: is the machine architecture and the kernel separated by a dash in lower case
+/// * `<KERNEL_RELEASE>`: is the kernel release string from `uname`
+///
+/// For example:
+///
+/// ```text
+/// hab/0.6.0/20160606153031 (x86_64-darwin; 14.5.0)
+/// ```
+///
+/// # Errors
+///
+/// * If system information cannot be obtained via `uname`
 fn user_agent(product: &str, version: &str) -> Result<HeaderValue> {
     let uname = sys::uname()?;
     let ua = format!("{}/{} ({}; {})",
@@ -246,62 +263,88 @@ fn user_agent(product: &str, version: &str) -> Result<HeaderValue> {
 ///    operating in a minimal environment which may not contain any system certificates, it can
 ///    still operate.
 /// 3. Other certs files (for example self-signed certs) that are found in the SSL cache directory
-///    will also get loaded into the root certs list. Both PEM and DER formats are supported (the
-///    extensions should be '.pem' or '.der' respectively)
+///    will also get loaded into the root certs list. Both PEM and DER formats are supported. All
+///    files will be assumed to be one of the supported formats, and any errors will be ignored
+///    silently (other than debug logging)
 fn certificates(fs_root_path: Option<&Path>) -> Result<Vec<Certificate>> {
     let mut certificates = Vec::new();
+    let cert_cache_dir = cache_ssl_path(fs_root_path);
 
     // MacOS is not yet fully consistent with other platforms,
     // as it cannot handle PEM files with multiple certs.
     // We can enable this when the following issue is resolved:
     // https://github.com/sfackler/rust-native-tls/issues/132
-    if cfg!(not(target_os = "macos")) {
-        let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
-
-        if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
-            let pkg_certs = pkg_install.installed_path().join("ssl/cert.pem");
-            debug!("Found installed certs: {}", pkg_certs.display());
-            let cert = cert_from_file(&pkg_certs)?;
-            certificates.push(cert);
-        } else {
-            debug!("No installed cacerts package found");
-
-            let cached_certs = cache_ssl_path(fs_root_path).join("cert.pem");
-            if !cached_certs.exists() {
-                fs::create_dir_all(cache_ssl_path(fs_root_path))?;
-                debug!("Creating cached cacert.pem: {}", cached_certs.display());
-                let mut file = File::create(&cached_certs)?;
-                file.write_all(CACERT_PEM.as_bytes())?;
-            }
+    #[cfg(not(target_os = "macos"))]
+    {
+        match installed_cacerts(fs_root_path)? {
+            Some(cert_path) => process_cert_file(&mut certificates, &cert_path),
+            None => populate_cache(&cert_cache_dir)?,
         }
     }
 
-    if let Ok(entries) = fs::read_dir(cache_ssl_path(fs_root_path)) {
-        for entry in entries {
-            let entry = entry?;
-            let path = entry.path();
-
-            if let Some(ext) = path.extension() {
-                if path.is_file() && ((ext == "pem") || (ext == "der")) {
-                    debug!("Found cached cert: {}", path.display());
-                    let cert = cert_from_file(&path)?;
-                    certificates.push(cert);
-                }
-            }
-        }
-    }
-
+    process_cache_dir(&cert_cache_dir, &mut certificates);
     Ok(certificates)
 }
 
-fn cert_from_file(file_path: &PathBuf) -> Result<Certificate> {
-    let mut buf = Vec::new();
-    File::open(file_path)?.read_to_end(&mut buf)?;
+fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
+    let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
 
-    let ext = file_path.extension().unwrap(); // unwrap Ok
-    if ext == "pem" {
-        Certificate::from_pem(&buf).map_err(Error::ReqwestError)
+    if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
+        let cert_path = pkg_install.installed_path().join("ssl/cert.pem");
+        debug!("Found an installed Habitat core/cacerts package at: {}",
+               cert_path.display());
+        Ok(Some(cert_path))
     } else {
-        Certificate::from_der(&buf).map_err(Error::ReqwestError)
+        debug!("No installed Habitat core/cacerts package found");
+        Ok(None)
     }
+}
+
+fn populate_cache(cache_path: &Path) -> Result<()> {
+    let cached_certs = cache_path.join("cert.pem");
+    if !cached_certs.exists() {
+        debug!("Adding embedded cert file to Habitat SSL cache path {} as fallback",
+               cached_certs.display());
+        fs::create_dir_all(&cache_path)?;
+        fs::write(cached_certs, CACERT_PEM)?;
+    }
+    Ok(())
+}
+
+fn process_cache_dir(cache_path: &Path, mut certificates: &mut Vec<Certificate>) {
+    match fs::read_dir(cache_path) {
+        Ok(entries) => {
+            for entry in entries {
+                match entry {
+                    Ok(entry) => {
+                        let path = entry.path();
+                        if path.is_file() {
+                            process_cert_file(&mut certificates, &path);
+                        }
+                    }
+                    Err(err) => debug!("Unable to read cache entry, err = {}", err),
+                }
+            }
+        }
+        Err(err) => debug!("Unable to read cache directory, err = {}", err),
+    }
+}
+
+fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
+    debug!("Processing cert file: {}", file_path.display());
+    match cert_from_file(&file_path) {
+        Ok(cert) => certificates.push(cert),
+        Err(err) => {
+            debug!("Unable to process cert file: {}, err={}",
+                   file_path.display(),
+                   err)
+        }
+    }
+}
+
+fn cert_from_file(file_path: &Path) -> Result<Certificate> {
+    let buf = fs::read(file_path)?;
+
+    Certificate::from_pem(&buf).or_else(|_| Certificate::from_der(&buf))
+                               .map_err(Error::ReqwestError)
 }
