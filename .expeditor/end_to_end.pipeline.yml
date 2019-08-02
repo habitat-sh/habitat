@@ -95,16 +95,13 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-  # - label: "[:linux: test_tar_export]"
-  #   command:
-  #     - .expeditor/scripts/setup_environment.sh DEV
-  #     - test/end-to-end/test_tar_export.sh core/gzip
-  #   # TODO - FIX ME
-  #   soft_fail: true
-  #   expeditor:
-  #     executor:
-  #       docker:
-  #         privileged: true
-  #         environment:
-  #           - BUILD_PKG_TARGET=x86_64-linux
-  #           - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
+  - label: "[:linux: test_tar_export]"
+    command:
+      - .expeditor/scripts/setup_environment.sh DEV
+      - test/end-to-end/test_tar_export.sh core/gzip
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
