@@ -556,7 +556,7 @@ mod tests {
     use uuid::Uuid;
 
     #[derive(Clone, Debug, Serialize)]
-    pub struct FakeRumor {
+    struct FakeRumor {
         pub id:  String,
         pub key: String,
     }

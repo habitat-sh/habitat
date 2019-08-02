@@ -676,7 +676,6 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    /// XXX LOCK ORDER: rs -> ml
     pub fn insert_service_rsw_mlw(&self, service: Service) {
         Self::insert_service_impl(service,
                                   &self.service_store,
@@ -777,8 +776,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
     /// * `MemberList::entries` (read)
-    // XXX LOCK ORDER: rs -> ml
     fn get_electorate_rsr_mlr(&self, key: &str) -> Vec<String> {
+        // This could be converted to a more FP approach and avoid the need for `mut`
         let mut electorate = vec![];
         for s in self.service_store.lock_rsr().service_group(key).rumors() {
             if self.member_list.health_of_by_id_mlr(&s.member_id) == Some(Health::Alive) {
@@ -802,8 +801,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
     /// * `MemberList::entries` (read)
-    // XXX LOCK ORDER: rs -> ml
     fn get_total_population_rsr_mlr(&self, key: &str) -> Vec<String> {
+        // This could be converted to a more FP approach and avoid the need for `mut`
         let mut total_pop = vec![];
         for s in self.service_store.lock_rsr().service_group(key).rumors() {
             if self.check_in_voting_population_by_id_mlr(&s.member_id) {
