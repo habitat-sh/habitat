@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.10 -->
+<!-- latest_release 0.84.11 -->
+## [fake-0.84.11](https://github.com/habitat-sh/habitat/tree/fake-0.84.11) (2019-08-05)
+
+#### Merged Pull Requests
+- Clean up a few extra analytics code paths [#6787](https://github.com/habitat-sh/habitat/pull/6787) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.10](https://github.com/habitat-sh/habitat/tree/fake-0.84.10) (2019-08-05)
 
 #### Merged Pull Requests
 - links to central Chef Community CoC [#6785](https://github.com/habitat-sh/habitat/pull/6785) ([nellshamrell](https://github.com/nellshamrell))
-<!-- latest_release -->
 
 ## [fake-0.84.9](https://github.com/habitat-sh/habitat/tree/fake-0.84.9) (2019-08-05)
 
