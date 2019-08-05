@@ -114,6 +114,7 @@ mod inner {
                     let ident = PackageIdent::from_str(&format!("{}/{}",
                                                                 super::STUDIO_PACKAGE_IDENT,
                                                                 version[0]))?;
+                    let command = exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident)?;
                     // This is a duplicate of the code in `hab pkg exec` and
                     // should be refactored as part of or after:
                     // https://github.com/habitat-sh/habitat/issues/6633
@@ -132,7 +133,7 @@ mod inner {
                     }
                     debug!("Running: {}", display_args);
 
-                    exec::command_from_min_pkg(ui, super::STUDIO_CMD, &ident)?
+                    command
                 }
             };
 
