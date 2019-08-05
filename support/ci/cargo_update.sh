@@ -2,10 +2,15 @@
 
 set -euo pipefail 
  
+if ! "${BUILDKITE:-false}"; then 
+  echo "This script does not appear to be running in Buildkite. Exiting!" 
+  exit 1
+fi
+
 # shellcheck source=./support/ci/shared.sh 
 source ./support/ci/shared.sh 
 
-branch="ci/cargo-update-$(date +"%Y%m%d")"
+branch="ci/cargo-update-$(date +"%Y%m%d%H%M%S")"
 git checkout -b "$branch"
 
 toolchain="$(get_toolchain)"
@@ -20,13 +25,10 @@ cargo +"$toolchain" check --quiet --all --tests
 
 git add Cargo.lock
 
-if [ "$BUILDKITE" != "true" ]; then 
-  echo "Not running in Buildkite. Please verify cargo updated correctly before opening a Pull Request" 
-  exit 0
-fi
 
 git commit -s -m "Update Cargo.lock"
 
+# https://expeditor.chef.io/docs/reference/script/#open-pull-request
 open_pull_request
 
 git checkout master 
