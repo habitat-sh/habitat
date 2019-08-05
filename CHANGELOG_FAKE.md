@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.8 -->
+<!-- latest_release 0.84.9 -->
+## [fake-0.84.9](https://github.com/habitat-sh/habitat/tree/fake-0.84.9) (2019-08-05)
+
+#### Merged Pull Requests
+- Ensure studio is installed [#6772](https://github.com/habitat-sh/habitat/pull/6772) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.84.8](https://github.com/habitat-sh/habitat/tree/fake-0.84.8) (2019-07-31)
 
 #### Merged Pull Requests
 - Assorted health-check tweaks [#6727](https://github.com/habitat-sh/habitat/pull/6727) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.7](https://github.com/habitat-sh/habitat/tree/fake-0.84.7) (2019-07-31)
 
