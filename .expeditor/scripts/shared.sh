@@ -25,18 +25,31 @@ get_latest_pkg_version_in_channel() {
     echo "${version}"
 }
 
+# Install the latest stable `hab` binary using our standard
+# "curl|bash" approach.
+#
+# This is the currently recommended way to get Habitat onto a system
+# that does not already have it.
+#
+# As usual, this will install `hab` at `/bin/hab`
+curlbash_hab() {
+    local pkg_target="${1:-$BUILD_PKG_TARGET}"
+    echo "--- :habicat: Bootstrap installation of the current stable hab binary for $pkg_target using curl|bash"
+    # TODO:
+    # really weird corner case on linux2 because the 0.82.0 versions of both
+    # are the same. let's just delete it
+    rm -rf /hab/pkgs/core/hab/0.82.0
+    curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
+}
+
 # Always install the latest hab binary appropriate for your linux platform
 #
 # Accepts a pkg target argument if you need to override it, otherwise
 # will default to the value of `BUILD_PKG_TARGET`
 install_latest_hab_binary() {
     local pkg_target="${1:-$BUILD_PKG_TARGET}"
-    echo "--- Installing latest hab binary for $pkg_target using curl|bash"
-    # TODO:
-    # really weird corner case on linux2 because the 0.82.0 versions of both
-    # are the same. let's just delete it
-    rm -rf /hab/pkgs/core/hab/0.82.0
-    curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
+    curlbash_hab "${pkg_target}"
+
     hab_binary="/bin/hab"
     # TODO: workaround for https://github.com/habitat-sh/habitat/issues/6771
     ${hab_binary} pkg install core/hab-studio

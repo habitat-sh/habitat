@@ -18,7 +18,7 @@ export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
 export HAB_BLDR_CHANNEL="${channel}"
 
-install_latest_stable_hab_binary "$BUILD_PKG_TARGET"
+curlbash_hab "$BUILD_PKG_TARGET"
 
 echo "--- Installing latest core/hab from ${channel}"
 hab pkg install --binlink --force --channel "${channel}" core/hab

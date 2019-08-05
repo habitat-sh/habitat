@@ -9,7 +9,7 @@ export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
 
 # Take advantage of the fact that we're just promoting and we can run 
 # 100% on linux
-install_latest_hab_binary "x86_64-linux"
+curlbash_hab "x86_64-linux"
 
 ########################################################################
 
