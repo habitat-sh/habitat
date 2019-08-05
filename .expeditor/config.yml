@@ -96,7 +96,7 @@ subscriptions:
 
   - workload: schedule_triggered:{{agent_id}}:cargo_update:*
     actions:
-      - bash:support/ci/cargo_update.sh
+      - bash:.expeditor/scripts/cargo_update.sh
 
 schedules:
   - name: cargo_update
