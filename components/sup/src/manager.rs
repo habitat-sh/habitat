@@ -930,7 +930,8 @@ impl Manager {
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
-                        self.unload(&service_spec.ident, &shutdown_input, &mut runtime);
+                        self.try_remove_spec_file(&service_spec.ident);
+                        self.try_stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
                     }
                 }
             }
@@ -1335,18 +1336,14 @@ impl Manager {
                                            stop_it)
     }
 
-    fn unload(&mut self,
-              ident: &PackageIdent,
-              shutdown_input: &ShutdownInput,
-              runtime: &mut Runtime) {
+    fn try_remove_spec_file(&self, ident: &PackageIdent) {
         let file = self.state.cfg.spec_path_for(ident);
         if let Err(err) = fs::remove_file(&file) {
-            warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
-                  ident,
+            warn!("Tried to remove spec file '{}' for '{}': {:?}",
                   file.display(),
+                  ident,
                   err);
         };
-        self.try_stop_service(ident, shutdown_input, runtime);
     }
 
     /// Wrap a future that starts, stops, or restarts a service with
