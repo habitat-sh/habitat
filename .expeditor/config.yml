@@ -1,4 +1,4 @@
-# Documentation available at https://expeditor-docs.es.chef.io/
+# Documentation available at https://expeditor.chef.io/
 
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
@@ -24,11 +24,9 @@ changelog:
 
 pipelines:
   - verify:
-      # Adding a comment to do a thing
       description: Pull Request validation tests
   - website:
       description: Deploy the website
-      definition: .expeditor/website.pipeline.yml
       trigger: pull_request
   - release_habitat:
       description: Habitat release process
@@ -36,16 +34,15 @@ pipelines:
       description: Habitat long running end to end tests - always runs on DEV environment
 
 staging_areas:
-  - post_merge:
+  - release_staging:
       workload: pull_request_merged:{{agent_id}}:*
 
 subscriptions:
-  # These actions are taken, in order they are specified
   - workload: pull_request_opened:{{agent_id}}:*
     actions:
       - post_github_comment:.expeditor/templates/welcome.mustache
 
-  - workload: staged_workload_released:{{agent_id}}:post_merge:*
+  - workload: staged_workload_released:{{agent_id}}:release_staging:*
     actions:
       - built_in:bump_version:
           ignore_labels:
@@ -57,36 +54,36 @@ subscriptions:
           - 'Expeditor: Skip All'
       - trigger_pipeline:release_habitat:
           only_if: built_in:bump_version
-          post_commit: true
+
+  # Responses to Release Pipeline
+  ########################################################################
 
   - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
     actions:
-      - trigger_pipeline:end_to_end:
-          post_commit: true
-
-  - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
-    actions:
-      - trigger_pipeline:test_scenarios:
-          post_commit: true
+      - trigger_pipeline:end_to_end
+      - unlock_staging_area:release_staging:
+          always_run: true
 
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
     actions:
-      - unlock_staging_area:post_merge:
-          post_commit: true
-          always_run: true
-
-  - workload: buildkite_build_passed:{{agent_id}}:release_habitat:*
-    actions:
-      - unlock_staging_area:post_merge:
-          post_commit: true
+      - unlock_staging_area:release_staging:
           always_run: true
 
   - workload: buildkite_build_canceled:{{agent_id}}:release_habitat:*
     actions:
-      - unlock_staging_area:post_merge:
-          post_commit: true
+      - unlock_staging_area:release_staging:
           always_run: true
+
+  # Responses to End-To-End Pipeline
+  ########################################################################
+
+  - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
+    actions:
+      - trigger_pipeline:test_scenarios
+
+  # Scheduled Pipelines
+  ########################################################################
 
   - workload: schedule_triggered:{{agent_id}}:cargo_update:*
     actions:
