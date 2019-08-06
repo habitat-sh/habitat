@@ -1,6 +1,8 @@
 # stable options
 edition = "2018"
+fn_args_layout = "Tall"
 force_explicit_abi = true
+format_code_in_doc_comments = true
 hard_tabs = false
 max_width = 100
 merge_derives = false
@@ -24,10 +26,8 @@ condense_wildcard_suffixes = true
 control_brace_style = "AlwaysSameLine"
 empty_item_single_line = true
 enum_discrim_align_threshold = 50
-fn_args_density = "Tall"
 fn_single_line = true
 force_multiline_blocks = true
-format_doc_comments = true
 format_macro_bodies = true
 format_macro_matchers = true
 format_strings = true

@@ -295,12 +295,25 @@ Wait for a few minutes so that supervisors on all the workers can update to the 
 1. Update `RUSTFMT_VERSION` in the root of the habitat repo.
 1. Locally install the nightly toolchain and update the formatting. For example:
     ```
-    ➤ rustup toolchain install nightly-2019-03-04
-    ➤ rustup component add --toolchain nightly-2019-03-04 rustfmt
-    ➤ cargo +nightly-2019-03-04 fmt
+    rustup toolchain install $(cat RUSTFMT_VERSION)
+    rustup component add --toolchain $(cat RUSTFMT_VERSION) rustfmt
+    cargo +$(RUSTFMT_VERSION) fmt
     ```
 1. Open a PR and merge the toolchain update as well as any formatting changes.
 1. Repeat with the `builder` repo.
+
+# Update nightly Rust
+
+Some of our tests use nightly features of Rust, and we need to manage
+the version being used. This is declared in the `RUST_NIGHTLY_VERSION`
+file (similar to how we manage `rustfmt` above). Ideally, this would
+change when we update the `rustfmt` version, and to the _same_
+version, but there are occasionally bugs in nightly Rust that require
+us to lock to an earlier version.
+
+To update the nightly version of Rust used in our tests, just edit the
+`RUST_NIGHTLY_VERSION` file appropriately. If the tests pass in CI, it
+was successful.
 
 # Release postmortem
 

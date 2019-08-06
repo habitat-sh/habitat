@@ -1,4 +1,4 @@
-function Get-NightlyToolchain {
+function Get-RustfmtToolchain {
   # It turns out that every nightly version of rustfmt has slight tweaks from the previous version.
   # This means that if we're always using the latest version, then we're going to have enormous
   # churn. Even PRs that don't touch rust code will likely fail CI, since master will have been
@@ -10,6 +10,10 @@ function Get-NightlyToolchain {
   # that the nightly version you're going to update it to includes rustfmt. You can do that
   # using https://mexus.github.io/rustup-components-history/x86_64-unknown-linux-gnu.html
   Get-Content "$PSScriptRoot\..\..\RUSTFMT_VERSION"
+}
+
+function Get-NightlyToolchain {
+  Get-Content "$PSScriptRoot\..\..\RUST_NIGHTLY_VERSION"
 }
 
 function Install-Rustup($Toolchain) {

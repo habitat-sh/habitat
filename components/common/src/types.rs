@@ -249,7 +249,6 @@ mod tests {
 
         #[test]
         fn cannot_parse_from_empty_string() { assert!("".parse::<AutomateAuthToken>().is_err()) }
-
     }
 
     mod gossip_listen_addr {

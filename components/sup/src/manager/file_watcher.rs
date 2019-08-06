@@ -3397,5 +3397,4 @@ mod tests {
 
         stripped
     }
-
 }

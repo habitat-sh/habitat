@@ -1606,7 +1606,6 @@ mod tests {
                        incarnation_to_refute + 1,
                        "Incarnation should be one greater than the refuted incarnation");
         }
-
     }
 
     mod server {

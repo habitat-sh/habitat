@@ -100,7 +100,5 @@ mod test {
             assert!(cli(no_feature_flags()).get_matches_from_safe(cmd_vec)
                                            .is_err());
         }
-
     }
-
 }

@@ -16,7 +16,7 @@ $ErrorActionPreference="stop"
 . $PSScriptRoot\..\support\ci\shared.ps1
 
 $toolchain = Get-Toolchain
-if($Nightly) { $toolchain = (gc $PSScriptRoot\..\RUSTFMT_VERSION | out-string).Trim() }
+if($Nightly) { $toolchain = Get-NightlyToolchain }
 
 Setup-Environment
 
