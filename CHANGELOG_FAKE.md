@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.12 -->
+<!-- latest_release 0.84.15 -->
+## [fake-0.84.15](https://github.com/habitat-sh/habitat/tree/fake-0.84.15) (2019-08-06)
+
+#### Merged Pull Requests
+- Update rustfmt [#6776](https://github.com/habitat-sh/habitat/pull/6776) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.12](https://github.com/habitat-sh/habitat/tree/fake-0.84.12) (2019-08-05)
 
 #### Merged Pull Requests
 - Extract a curlbash_hab function [#6789](https://github.com/habitat-sh/habitat/pull/6789) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.11](https://github.com/habitat-sh/habitat/tree/fake-0.84.11) (2019-08-05)
 
