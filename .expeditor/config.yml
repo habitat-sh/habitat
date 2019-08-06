@@ -87,3 +87,12 @@ subscriptions:
       - unlock_staging_area:post_merge:
           post_commit: true
           always_run: true
+
+  - workload: schedule_triggered:{{agent_id}}:cargo_update:*
+    actions:
+      - bash:.expeditor/scripts/cargo_update.sh
+
+schedules:
+  - name: cargo_update
+    description: "Run 'cargo update' every Sunday at 2am"
+    cronline: "0 2 * * 0"
