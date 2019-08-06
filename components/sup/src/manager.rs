@@ -1250,13 +1250,24 @@ impl Manager {
             self.spec_dir
                 .specs()
                 .into_iter()
-                .filter(|spec| !existing_idents.contains(&spec.ident))
-                .flat_map(|spec| {
-                    Service::new(self.sys.clone(),
-                                 spec,
-                                 self.fs_cfg.clone(),
-                                 self.organization.as_ref().map(String::as_str),
-                                 self.state.gateway_state.clone()).into_iter()
+                .filter_map(|spec| {
+                    let ident = spec.ident.clone();
+                    if existing_idents.contains(&ident) {
+                        None
+                    } else {
+                        let service = Service::new(self.sys.clone(),
+                                                   spec,
+                                                   self.fs_cfg.clone(),
+                                                   self.organization.as_ref().map(String::as_str),
+                                                   self.state.gateway_state.clone());
+                        match service {
+                            Ok(service) => Some(service),
+                            Err(e) => {
+                                warn!("Failed to create service '{}' from spec: {:?}", ident, e);
+                                None
+                            }
+                        }
+                    }
                 })
                 .collect();
         let watched_service_proxies: Vec<ServiceProxy<'_>> =
