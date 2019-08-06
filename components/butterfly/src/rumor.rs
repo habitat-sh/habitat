@@ -27,6 +27,7 @@ use serde;
 use std::{collections::{hash_map::Entry,
                         HashMap},
           default::Default,
+          fmt,
           result,
           sync::{atomic::{AtomicUsize,
                           Ordering},
@@ -102,12 +103,14 @@ impl RumorKey {
                    id: id.into(),
                    key: key.into() }
     }
+}
 
-    pub fn key(&self) -> RumorKeyKey {
+impl fmt::Display for RumorKey {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if !self.key.is_empty() {
-            format!("{}-{}", self.id, self.key)
+            write!(f, "{}-{}", self.id, self.key)
         } else {
-            self.id.clone()
+            write!(f, "{}", self.id)
         }
     }
 }

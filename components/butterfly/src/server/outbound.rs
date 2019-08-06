@@ -309,7 +309,7 @@ pub fn populate_membership_rumors_mlr(server: &Server,
         .collect();
 
     for rkey in rumors.iter() {
-        if let Some(member) = server.member_list.membership_for_mlr(&rkey.key()) {
+        if let Some(member) = server.member_list.membership_for_mlr(&rkey.to_string()) {
             swim.membership.push(member);
         }
     }

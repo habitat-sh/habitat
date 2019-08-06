@@ -335,10 +335,10 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
 fn create_member_rumor_mlr(server: &Server, rumor_key: &RumorKey) -> Option<RumorEnvelope> {
-    let member = server.member_list.get_cloned_mlr(&rumor_key.key())?;
+    let member = server.member_list.get_cloned_mlr(&rumor_key.to_string())?;
     let payload = Membership { member,
                                health: server.member_list
-                                             .health_of_by_id_mlr(&rumor_key.key())
+                                             .health_of_by_id_mlr(&rumor_key.to_string())
                                              .unwrap() };
     let rumor = RumorEnvelope { r#type:  RumorType::Member,
                                 from_id: server.member_id().to_string(),
