@@ -39,7 +39,7 @@ if (!$Toolchain) {
 }
 
 if($Command -eq "Fmt") {
-    $toolchain = "$(Get-Content $PSScriptRoot/RUSTFMT_VERSION)"
+    $toolchain = Get-RustfmtToolchain
     Write-Host "Forcing the use of $toolchain toolchain for rustfmt"
 }
 

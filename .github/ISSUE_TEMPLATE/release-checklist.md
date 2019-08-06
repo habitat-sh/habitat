@@ -40,5 +40,6 @@ As you encounter discrepancies between this list and reality, or as you encounte
 - [ ] [Update `Cargo.lock`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-cargolock) for [`builder`](https://github.com/habitat-sh/builder)
 - [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`habitat`](https://github.com/habitat-sh/habitat)
 - [ ] [Update `rustfmt`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-rustfmt) for [`builder`](https://github.com/habitat-sh/builder)
+- [ ] [Update nightly Rust version for tests](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#update-nightly-rust)
 - [ ] Review release automation and/or [`RELEASE.md`](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md) and add necessary fixes
 - [ ] [Schedule release postmortem](https://github.com/habitat-sh/habitat/blob/master/RELEASE.md#release-postmortem)
