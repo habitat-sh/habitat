@@ -647,6 +647,8 @@ impl Manager {
             }
             Err(err) => {
                 outputln!("Unable to start {}, {}", ident, err);
+                // Remove the spec file so it does not look like this service is loaded.
+                self.try_remove_spec_file(&ident);
                 return;
             }
         };
