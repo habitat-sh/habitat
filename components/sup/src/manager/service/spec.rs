@@ -152,7 +152,11 @@ impl ServiceSpec {
         Ok(())
     }
 
-    pub fn file_name(&self) -> String { format!("{}.{}", &self.ident.name, SPEC_FILE_EXT) }
+    pub fn ident_file_name(ident: &PackageIdent) -> String {
+        format!("{}.{}", ident.name, SPEC_FILE_EXT)
+    }
+
+    pub fn file_name(&self) -> String { Self::ident_file_name(&self.ident) }
 
     /// Validates that all required package binds are present in service binds and all remaining
     /// service binds are optional package binds.

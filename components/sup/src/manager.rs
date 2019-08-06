@@ -263,24 +263,23 @@ pub struct TLSConfig {
 }
 
 impl ManagerConfig {
-    pub fn sup_root(&self) -> PathBuf {
+    fn sup_root(&self) -> PathBuf {
         habitat_sup_protocol::sup_root(self.custom_state_path.as_ref())
     }
 
-    // TODO (CM): this may be able to be private after some
-    // refactorings in commands.rs
-    pub fn spec_path_for(&self, spec: &ServiceSpec) -> PathBuf {
-        self.sup_root().join("specs").join(spec.file_name())
+    fn spec_path_for(&self, ident: &PackageIdent) -> PathBuf {
+        self.sup_root()
+            .join("specs")
+            .join(ServiceSpec::ident_file_name(ident))
     }
 
     pub fn save_spec_for(&self, spec: &ServiceSpec) -> Result<()> {
-        spec.to_file(self.spec_path_for(spec))
+        spec.to_file(self.spec_path_for(&spec.ident))
     }
 
     /// Given a `PackageIdent`, return current spec if it exists.
     pub fn spec_for_ident(&self, ident: &PackageIdent) -> Option<ServiceSpec> {
-        let default_spec = ServiceSpec::default_for(ident.clone());
-        let spec_file = self.spec_path_for(&default_spec);
+        let spec_file = self.spec_path_for(ident);
 
         // JC: This mimics the logic from when we had composites.  But
         // should we check for Err ?
@@ -928,7 +927,7 @@ impl Manager {
                                   service_spec.ident, err);
                         }
                         if let Some(future) =
-                            self.remove_service_from_state(&service_spec)
+                            self.remove_service_from_state(&service_spec.ident)
                                 .map(|service| {
                                     let shutdown_config =
                                         ShutdownConfig::new(&shutdown_input, &service);
@@ -944,7 +943,7 @@ impl Manager {
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
-                        self.unload(&service_spec, &shutdown_input, &mut runtime);
+                        self.unload(&service_spec.ident, &shutdown_input, &mut runtime);
                     }
                 }
             }
@@ -1349,27 +1348,29 @@ impl Manager {
     }
 
     fn unload(&mut self,
-              service_spec: &ServiceSpec,
+              ident: &PackageIdent,
               shutdown_input: &ShutdownInput,
               runtime: &mut Runtime) {
-        let file = self.state.cfg.spec_path_for(&service_spec);
+        let file = self.state.cfg.spec_path_for(ident);
         if let Err(err) = fs::remove_file(&file) {
             warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
-                  service_spec.ident,
+                  ident,
                   file.display(),
                   err);
         };
-        if let Some(future) = self.remove_service_from_state(&service_spec)
-                                  .map(|service| {
-                                      let shutdown_config =
-                                          ShutdownConfig::new(&shutdown_input, &service);
-                                      self.stop_with_config(service, shutdown_config)
-                                  })
+        if let Some(future) =
+            self.remove_service_from_state(&ident).map(|service| {
+                                                      let shutdown_config =
+                                                          ShutdownConfig::new(&shutdown_input,
+                                                                              &service);
+                                                      self.stop_with_config(service,
+                                                                            shutdown_config)
+                                                  })
         {
             runtime.spawn(future);
         } else {
             warn!("Tried to unload '{}', but couldn't find it in our list of running services!",
-                  service_spec.ident);
+                  ident);
         }
     }
 
@@ -1436,12 +1437,12 @@ impl Manager {
         }
     }
 
-    fn remove_service_from_state(&mut self, spec: &ServiceSpec) -> Option<Service> {
+    fn remove_service_from_state(&mut self, ident: &PackageIdent) -> Option<Service> {
         self.state
             .services
             .write()
             .expect("Services lock is poisoned")
-            .remove(&spec.ident)
+            .remove(&ident)
     }
 
     /// Start, stop, or restart services to bring what's running in
@@ -1476,7 +1477,7 @@ impl Manager {
                        // future; then we could just chain that future
                        // onto the end of the stop one for a *real*
                        // restart future.
-                       let f = self.remove_service_from_state(&spec)
+                       let f = self.remove_service_from_state(&spec.ident)
                                    .map(|service| self.stop(service));
                        if f.is_none() {
                            // We really don't expect this to happen....
