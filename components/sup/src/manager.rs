@@ -926,20 +926,7 @@ impl Manager {
                             warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
                                   service_spec.ident, err);
                         }
-                        if let Some(future) =
-                            self.remove_service_from_state(&service_spec.ident)
-                                .map(|service| {
-                                    let shutdown_config =
-                                        ShutdownConfig::new(&shutdown_input, &service);
-                                    self.stop_with_config(service, shutdown_config)
-                                })
-                        {
-                            runtime.spawn(future);
-                        } else {
-                            warn!("Tried to stop '{}', but couldn't find it in our list of \
-                                   running services!",
-                                  service_spec.ident);
-                        }
+                        self.try_stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
@@ -1068,7 +1055,7 @@ impl Manager {
                                    .expect("Services lock is poisoned!");
 
                 for (_ident, svc) in svcs.drain() {
-                    runtime.spawn(self.stop(svc));
+                    runtime.spawn(self.stop_service_future(svc, None));
                 }
             }
         }
@@ -1153,7 +1140,7 @@ impl Manager {
     fn stop_services_with_updates_rsw_mlr(&mut self) -> Vec<impl Future<Item = (), Error = ()>> {
         self.take_services_with_updates_rsw_mlr()
             .into_iter()
-            .map(|service| self.stop(service))
+            .map(|service| self.stop_service_future(service, None))
             .collect()
     }
 
@@ -1297,35 +1284,36 @@ impl Manager {
         self.butterfly.restart_elections_rsw_mlr(feature_flags);
     }
 
-    /// Create a future for stopping a Service. The Service is assumed
-    /// to have been removed from the internal list of active services
-    /// already (see, e.g., take_services_with_updates and
-    /// remove_service_from_state).
-    fn stop_with_config(&self,
-                        service: Service,
-                        shutdown_config: ShutdownConfig)
-                        -> impl Future<Item = (), Error = ()> {
-        Self::service_stop_future(service,
-                                  shutdown_config,
-                                  Arc::clone(&self.user_config_watcher),
-                                  Arc::clone(&self.updater),
-                                  Arc::clone(&self.busy_services),
-                                  self.services_need_reconciliation.clone())
+    fn try_stop_service(&mut self,
+                        ident: &PackageIdent,
+                        shutdown_input: &ShutdownInput,
+                        runtime: &mut Runtime) {
+        if let Some(service) = self.remove_service_from_state(&ident) {
+            let future = self.stop_service_future(service, Some(shutdown_input));
+            runtime.spawn(future);
+        } else {
+            warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
+                  ident);
+        }
     }
 
-    fn stop(&self, service: Service) -> impl Future<Item = (), Error = ()> {
-        let shutdown_config = ShutdownConfig::new_from_service(&service);
-        self.stop_with_config(service, shutdown_config)
-    }
-
-    /// Remove the given service from the manager.
-    fn service_stop_future(mut service: Service,
-                           shutdown_config: ShutdownConfig,
-                           user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
-                           updater: Arc<Mutex<ServiceUpdater>>,
-                           busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
-                           services_need_reconciliation: ReconciliationFlag)
+    /// Create a future for stopping a Service removing it from the manager. The Service is assumed
+    /// to have been removed from the internal list of active services already (see, e.g.,
+    /// take_services_with_updates and remove_service_from_state).
+    fn stop_service_future(&self,
+                           mut service: Service,
+                           shutdown_input: Option<&ShutdownInput>)
                            -> impl Future<Item = (), Error = ()> {
+        let user_config_watcher = Arc::clone(&self.user_config_watcher);
+        let updater = Arc::clone(&self.updater);
+        let busy_services = Arc::clone(&self.busy_services);
+        let services_need_reconciliation = self.services_need_reconciliation.clone();
+        let shutdown_config = if let Some(shutdown_input) = shutdown_input {
+            ShutdownConfig::new(&shutdown_input, &service)
+        } else {
+            ShutdownConfig::new_from_service(&service)
+        };
+
         // JW TODO: Update service rumor to remove service from
         // cluster
         // TODO (CM): But only if we're not going down for a restart.
@@ -1358,20 +1346,7 @@ impl Manager {
                   file.display(),
                   err);
         };
-        if let Some(future) =
-            self.remove_service_from_state(&ident).map(|service| {
-                                                      let shutdown_config =
-                                                          ShutdownConfig::new(&shutdown_input,
-                                                                              &service);
-                                                      self.stop_with_config(service,
-                                                                            shutdown_config)
-                                                  })
-        {
-            runtime.spawn(future);
-        } else {
-            warn!("Tried to unload '{}', but couldn't find it in our list of running services!",
-                  ident);
-        }
+        self.try_stop_service(ident, shutdown_input, runtime);
     }
 
     /// Wrap a future that starts, stops, or restarts a service with
@@ -1478,7 +1453,7 @@ impl Manager {
                        // onto the end of the stop one for a *real*
                        // restart future.
                        let f = self.remove_service_from_state(&spec.ident)
-                                   .map(|service| self.stop(service));
+                                   .map(|service| self.stop_service_future(service, None));
                        if f.is_none() {
                            // We really don't expect this to happen....
                            outputln!("Tried to remove service for {} but could not find it \
