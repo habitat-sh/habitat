@@ -40,6 +40,22 @@ curlbash_hab() {
     # are the same. let's just delete it
     rm -rf /hab/pkgs/core/hab/0.82.0
     curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
+    case "${pkg_target}" in
+        x86_64-linux)
+            hab_binary="/bin/hab"
+            ;;
+        x86_64-linux-kernel2)
+            hab_binary="/bin/hab"
+            ;;
+        x86_64-darwin)
+            hab_binary="/usr/local/bin/hab"
+            ;;
+        *)
+            echo "--- :no_entry_sign: Unknown PackageTarget: ${pkg_target}"
+            exit 1
+            ;;
+    esac
+    declare -g hab_binary
 }
 
 # Always install the latest hab binary appropriate for your linux platform
@@ -50,12 +66,13 @@ install_latest_hab_binary() {
     local pkg_target="${1:-$BUILD_PKG_TARGET}"
     curlbash_hab "${pkg_target}"
 
-    hab_binary="/bin/hab"
-    # TODO: workaround for https://github.com/habitat-sh/habitat/issues/6771
-    ${hab_binary} pkg install core/hab-studio
+    if [ "$pkg_target" != "x86_64-darwin" ]; then
+        # TODO: workaround for https://github.com/habitat-sh/habitat/issues/6771	
+        ${hab_binary} pkg install core/hab-studio
+    fi
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
-
     # now install the latest hab available in our channel, if it and the studio exist yet
+
     hab_version=$(get_latest_pkg_version_in_channel "hab")
     studio_version=$(get_latest_pkg_version_in_channel "hab-studio")
 
@@ -68,7 +85,6 @@ install_latest_hab_binary() {
     else
         echo "-- Hab and studio versions did not match. hab: ${hab_version:-null} - studio: ${studio_version:-null}"
     fi
-    declare -g hab_binary
 }
 
 get_hab_ident() {

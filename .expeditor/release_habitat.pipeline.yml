@@ -50,6 +50,19 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
+  - label: "[:macos: build hab]"
+    command:
+      # We need to install bash 4.x so we are able to use all the modern capabilities.
+      - brew install bash
+      - .expeditor/scripts/build_mac_component.sh hab
+    env:
+      BUILD_PKG_TARGET: "x86_64-darwin"
+    expeditor:
+      executor:
+        macos:
+          os-version: "10.12"
+          inherit-environment-vars: true
+
   - wait
 
   - label: "[:linux: build hab-plan-build]"
