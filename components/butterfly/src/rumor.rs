@@ -78,26 +78,36 @@ impl From<RumorKind> for RumorPayload {
     }
 }
 
+/// This is used differently by different rumors, but when not a constant, its value is the name of
+/// a service group. See the various `impl`s of Rumor::key.
+type RumorKeyKey = String;
+/// This is used differently by different rumors, but when not a constant, its value is most often
+/// the member ID. See the various `impl`s of Rumor::id.
+type RumorKeyId = String;
+
 /// The description of a `RumorKey`.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct RumorKey {
     pub kind: RumorType,
-    pub id:   String,
-    pub key:  String,
+    pub id:   RumorKeyId,
+    pub key:  RumorKeyKey,
 }
 
 impl RumorKey {
-    pub fn new(kind: RumorType, id: &str, key: &str) -> RumorKey {
+    pub fn new(kind: RumorType,
+               id: impl Into<RumorKeyId>,
+               key: impl Into<RumorKeyKey>)
+               -> RumorKey {
         RumorKey { kind,
-                   id: id.to_string(),
-                   key: key.to_string() }
+                   id: id.into(),
+                   key: key.into() }
     }
 
-    pub fn key(&self) -> String {
+    pub fn key(&self) -> RumorKeyKey {
         if !self.key.is_empty() {
             format!("{}-{}", self.id, self.key)
         } else {
-            self.id.to_string()
+            self.id.clone()
         }
     }
 }
@@ -115,10 +125,8 @@ impl<'a, T: Rumor> From<&'a T> for RumorKey {
     fn from(rumor: &'a T) -> RumorKey { RumorKey::new(rumor.kind(), rumor.id(), rumor.key()) }
 }
 
-type ServiceGroupName = String;
-type MemberId = String;
-type ServiceGroupRumorMap<T> = HashMap<MemberId, T>;
-type RumorMap<T> = HashMap<ServiceGroupName, ServiceGroupRumorMap<T>>;
+type RumorSubMap<T> = HashMap<RumorKeyId, T>;
+type RumorMap<T> = HashMap<RumorKeyKey, RumorSubMap<T>>;
 
 /// To keep the details of the locking from being directly accessible to all the code in the
 /// rumor submodule.
@@ -134,7 +142,7 @@ mod storage {
 
     /// Provides access to the rumors for a particular service group bounded by the
     /// lifetime of the service group key.
-    pub struct ServiceGroupRumors<'sg_key, R>(Option<&'sg_key ServiceGroupRumorMap<R>>);
+    pub struct ServiceGroupRumors<'sg_key, R>(Option<&'sg_key RumorSubMap<R>>);
 
     impl<'sg_key, R> ServiceGroupRumors<'sg_key, R> {
         /// Allows iterator access to the rumors in a particular service group:

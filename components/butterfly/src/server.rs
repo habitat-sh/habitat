@@ -607,7 +607,7 @@ impl Server {
             // NOT calling RumorHeat::purge here because we'll be
             // shutting down soon anyway.
             self.rumor_heat
-                .start_hot_rumor(RumorKey::new(RumorType::Member, &self.member_id, ""));
+                .start_hot_rumor(RumorKey::new(RumorType::Member, &*self.member_id, ""));
 
             let check_list = self.member_list.check_list_mlr(&self.member_id);
 
@@ -717,7 +717,7 @@ impl Server {
                     member_list.set_departed_mlw(&member_id_to_depart);
                     rumor_heat.purge(&member_id_to_depart);
                     rumor_heat.start_hot_rumor(RumorKey::new(RumorType::Member,
-                                                             &member_id_to_depart,
+                                                             &*member_id_to_depart,
                                                              ""));
                 }
             }
