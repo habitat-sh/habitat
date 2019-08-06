@@ -26,7 +26,7 @@ pub enum Error {
     ArgumentError(&'static str),
     ButterflyError(String),
     CannotParseBinlinkBinaryName(PathBuf),
-    CannotParseBinlinkTarget(PathBuf),
+    CannotParseBinlinkSource(PathBuf),
     CannotRemoveDockerStudio,
     CannotRemoveFromChannel((String, String)),
     CannotRemovePackage(hcore::package::PackageIdent, usize),
@@ -77,8 +77,8 @@ impl fmt::Display for Error {
             Error::CannotParseBinlinkBinaryName(ref p) => {
                 format!("Cannot parse binlink binary name from {}.", p.display())
             }
-            Error::CannotParseBinlinkTarget(ref p) => {
-                format!("Cannot parse binlink target path from {}.", p.display())
+            Error::CannotParseBinlinkSource(ref p) => {
+                format!("Cannot parse binlink source path from {}.", p.display())
             }
             Error::CannotRemoveDockerStudio => {
                 "Docker Studios are not persistent and cannot be removed".to_string()
@@ -186,7 +186,7 @@ impl error::Error for Error {
             Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
             Error::ButterflyError(_) => "Butterfly has had an error",
             Error::CannotParseBinlinkBinaryName(_) => "Cannot parse binlink binary name",
-            Error::CannotParseBinlinkTarget(_) => "Cannot parse binlink target path",
+            Error::CannotParseBinlinkSource(_) => "Cannot parse binlink source path",
             Error::CannotRemoveFromChannel(_) => {
                 "Package cannot be removed from the specified channel"
             }
