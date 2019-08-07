@@ -636,7 +636,7 @@ impl Manager {
             Err(err) => {
                 outputln!("Unable to start {}, {}", ident, err);
                 // Remove the spec file so it does not look like this service is loaded.
-                self.remove_spec_file(&ident);
+                self.remove_spec_file(&ident).ok();
                 return;
             }
         };
@@ -920,7 +920,7 @@ impl Manager {
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
-                        self.remove_spec_file(&service_spec.ident);
+                        self.remove_spec_file(&service_spec.ident).ok();
                         self.stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
                     }
                 }
@@ -1330,14 +1330,16 @@ impl Manager {
                                            stop_it)
     }
 
-    fn remove_spec_file(&self, ident: &PackageIdent) {
+    fn remove_spec_file(&self, ident: &PackageIdent) -> std::io::Result<()> {
         let file = self.state.cfg.spec_path_for(ident);
-        if let Err(err) = fs::remove_file(&file) {
+        let result = fs::remove_file(&file);
+        if let Err(ref err) = result {
             warn!("Tried to remove spec file '{}' for '{}': {:?}",
                   file.display(),
                   ident,
                   err);
         };
+        result
     }
 
     /// Wrap a future that starts, stops, or restarts a service with
