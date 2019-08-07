@@ -1,68 +1,60 @@
-use std::{path::Path,
+use std::{fs,
+          iter::FromIterator,
+          path::{Path,
+                 PathBuf},
+          str::FromStr,
           time::Duration};
 
+use reqwest::{header::{HeaderMap,
+                       HeaderValue,
+                       USER_AGENT},
+              Certificate,
+              IntoUrl,
+              Proxy,
+              RequestBuilder};
+
 use habitat_core::{env,
-                   package::PackageTarget,
+                   fs::cache_ssl_path,
+                   package::{PackageIdent,
+                             PackageInstall,
+                             PackageTarget},
                    util::sys};
-use hyper::{client::{pool::{Config,
-                            Pool},
-                     Client as HyperClient,
-                     IntoUrl,
-                     RequestBuilder},
-            header::UserAgent,
-            http::h1::Http11Protocol,
-            net::HttpsConnector};
-use hyper_openssl::OpensslClient;
-use openssl::ssl::{SslConnector,
-                   SslConnectorBuilder,
-                   SslMethod,
-                   SslOption,
-                   SSL_OP_NO_COMPRESSION,
-                   SSL_OP_NO_SSLV2,
-                   SSL_OP_NO_SSLV3,
-                   SSL_VERIFY_NONE};
+
 use url::Url;
 
-use crate::{error::{Error,
-                    Result},
-            net::ProxyHttpsConnector,
-            proxy::{proxy_unless_domain_exempted,
-                    ProxyInfo},
-            ssl};
+use crate::error::{Error,
+                   Result};
 
 // Read and write TCP socket timeout for Hyper/HTTP client calls.
 const CLIENT_SOCKET_RW_TIMEOUT_SEC: u64 = 300;
 
-header! { (ProxyAuthorization, "Proxy-Authorization") => [String] }
+const CACERTS_PKG_IDENT: &str = "core/cacerts";
+const CACERT_PEM: &str = include_str!(concat!(env!("OUT_DIR"), "/cacert.pem"));
 
-/// A generic wrapper around a Hyper HTTP client intended for API-like usage.
+/// A generic wrapper around a Reqwest HTTP client intended for API-like usage.
 ///
 /// When an `ApiClient` is created, it has a constant URL base which is assumed to be some API
-/// endpoint. This allows the underlying Hyper client to load and use any relevant HTTP proxy
+/// endpoint. This allows the underlying client to load and use any relevant HTTP proxy
 /// support and to provide reasonable User-Agent HTTP headers, etc.
 #[derive(Debug)]
 pub struct ApiClient {
     /// The base URL for the client.
     endpoint: Url,
-    /// An instance of a `hyper::Client` which is configured with an SSL context and optionally
-    /// using an HTTP proxy.
-    inner: HyperClient,
-    /// Proxy information, if a proxy is being used.
-    proxy: Option<ProxyInfo>,
-    /// The URL scheme of the endpoint.
-    target_scheme: String,
-    /// The `User-Agent` header string to use for HTTP calls.
-    user_agent_header: UserAgent,
+    /// An instance of a `reqwest::Client`
+    inner: reqwest::Client,
 }
 
 impl ApiClient {
     /// Creates and returns a new `ApiClient` instance.
     ///
+    /// Builds a new Reqwest HTTP client with appropriate SSL configuration and HTTP/HTTPS proxy
+    /// support.
+    ///
     /// # Errors
     ///
-    /// * If the underlying Hyper client cannot be created
+    /// * If the underlying Reqwest client cannot be created
     /// * If a suitable SSL context cannot be established
-    /// * If an HTTP proxy cannot be correctly setup
+    /// * If an HTTP/S proxy cannot be correctly setup
     /// * If a `User-Agent` HTTP header string cannot be constructed
     pub fn new<T>(endpoint: T,
                   product: &str,
@@ -71,12 +63,38 @@ impl ApiClient {
                   -> Result<Self>
         where T: IntoUrl
     {
-        let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
-        Ok(ApiClient { inner: new_hyper_client(&endpoint, fs_root_path)?,
-                       proxy: proxy_unless_domain_exempted(Some(&endpoint))?,
-                       target_scheme: endpoint.scheme().to_string(),
-                       endpoint,
-                       user_agent_header: user_agent(product, version)? })
+        let endpoint = endpoint.into_url().map_err(Error::ReqwestError)?;
+
+        let timeout_in_secs = match env::var("HAB_CLIENT_SOCKET_TIMEOUT") {
+            Ok(t) => {
+                match t.parse::<u64>() {
+                    Ok(n) => n,
+                    Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
+                }
+            }
+            Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
+        };
+        debug!("Client socket timeout: {} secs", timeout_in_secs);
+
+        let skip_cert_verify = env::var("HAB_SSL_CERT_VERIFY_NONE").is_ok();
+        debug!("Skip cert verification: {}", skip_cert_verify);
+
+        let headers =
+            HeaderMap::from_iter(vec![(USER_AGENT, user_agent(product, version)?)].into_iter());
+
+        let mut client = reqwest::Client::builder().proxy(proxy_for(&endpoint)?)
+                                                   .default_headers(headers)
+                                                   .timeout(Duration::from_secs(timeout_in_secs))
+                                                   .danger_accept_invalid_certs(skip_cert_verify);
+
+        client =
+            certificates(fs_root_path)?.into_iter()
+                                       .fold(client, |client, cert| {
+                                           client.add_root_certificate(cert)
+                                       });
+
+        Ok(ApiClient { inner: client.build()?,
+                       endpoint })
     }
 
     /// Builds an HTTP GET request for a given path.
@@ -89,7 +107,7 @@ impl ApiClient {
         let mut url = self.url_for(path);
         customize_url(&mut url);
         debug!("GET {} with {:?}", &url, &self);
-        self.add_headers(self.inner.get(url))
+        self.inner.get(url)
     }
 
     /// Builds an HTTP HEAD request for a given path.
@@ -102,7 +120,7 @@ impl ApiClient {
         let mut url = self.url_for(path);
         customize_url(&mut url);
         debug!("HEAD {} with {:?}", &url, &self);
-        self.add_headers(self.inner.head(url))
+        self.inner.head(url)
     }
 
     /// Builds an HTTP PATCH request for a given path.
@@ -115,7 +133,7 @@ impl ApiClient {
         let mut url = self.url_for(path);
         customize_url(&mut url);
         debug!("PATH {} with {:?}", &url, &self);
-        self.add_headers(self.inner.patch(url))
+        self.inner.patch(url)
     }
 
     /// Builds an HTTP POST request for a given path.
@@ -128,7 +146,7 @@ impl ApiClient {
         let mut url = self.url_for(path);
         customize_url(&mut url);
         debug!("POST {} with {:?}", &url, &self);
-        self.add_headers(self.inner.post(url))
+        self.inner.post(url)
     }
 
     /// Builds an HTTP PUT request for a given path.
@@ -141,7 +159,7 @@ impl ApiClient {
         let mut url = self.url_for(path);
         customize_url(&mut url);
         debug!("PUT {} with {:?}", &url, &self);
-        self.add_headers(self.inner.put(url))
+        self.inner.put(url)
     }
 
     /// Builds an HTTP DELETE request for a given path.
@@ -154,24 +172,7 @@ impl ApiClient {
         let mut url = self.url_for(path);
         customize_url(&mut url);
         debug!("DELETE {} with {:?}", &url, &self);
-        self.add_headers(self.inner.delete(url))
-    }
-
-    fn add_headers<'a>(&'a self, rb: RequestBuilder<'a>) -> RequestBuilder {
-        let mut rb = rb.header(self.user_agent_header.clone());
-        // If the target URL is an `"http"` scheme and we're using a proxy server, then add the
-        // proxy authorization header if appropriate. Note that for `"https"` targets, the proxy
-        // server will be operating in TCP tunneling mode and will be authenticated on connection to
-        // the proxy server which is why we should not add an additional header in this latter
-        // case.
-        if self.target_scheme == "http" {
-            if let Some(ref info) = self.proxy {
-                if let Some(header_value) = info.authorization_header_value() {
-                    rb = rb.header(ProxyAuthorization(header_value));
-                }
-            }
-        }
-        rb
+        self.inner.delete(url)
     }
 
     fn url_for(&self, path: &str) -> Url {
@@ -191,74 +192,28 @@ impl ApiClient {
     }
 }
 
-/// Builds a new hyper HTTP client with appropriate SSL configuration and HTTP/HTTPS proxy support.
-///
-/// ## Linux Platforms
-///
-/// We need a set of root certificates when connected to SSL/TLS web endpoints and this usually
-/// boiled down to using an all-in-one certificate file (such as a `cacert.pem` file) or a directory
-/// of files which are certificates. The strategy to location or use a reasonable set of
-/// certificates is as follows:
-///
-/// 1. If the `SSL_CERT_FILE` environment variable is set, then use its value for the certificates.
-///    Internally this is triggering default OpenSSL behavior for this environment variable.
-/// 2. If the `SSL_CERT_DIR` environment variable is set, then use its value for the directory
-///    containing certificates. Like the `SSL_CERT_FILE` case above, this triggers default OpenSSL
-///    behavior for this environment variable.
-/// 3. If the `core/cacerts` Habitat package is installed locally, then use the latest release's
-///    `cacert.pem` file.
-/// 4. If none of the conditions above are met, then a `cacert.pem` will be written in an SSL cache
-///    directory (by default `/hab/cache/ssl` for a root user and `$HOME/.hab/cache/ssl` for a
-///    non-root user) and this will be used. The contents of this file will be inlined in this
-///    crate at build time as a fallback insurance policy, meaning that if the a program using this
-///    code is operating in a minimal environment which may not contain system certificates, it can
-///    still operate. Once a `core/cacerts` Habitat package is present, the logic would fall back
-///    to preferring the package version to the cached/inline file version.
-///
-/// ## Mac Platforms
-///
-/// The Mac platform uses a Security Framework to store and find root certificates and the hyper
-/// library will default to using this on the Mac. Therefore the behavior on the Mac remains
-/// unchanged and will use the system's certificates.
-fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClient> {
-    let connector = ssl_connector(fs_root_path)?;
-    let ssl_client = OpensslClient::from(connector);
+fn proxy_for(url: &Url) -> reqwest::Result<Proxy> {
+    trace!("Checking proxy for url: {:?}", url);
 
-    let timeout_in_secs = match env::var("HAB_CLIENT_SOCKET_TIMEOUT") {
-        Ok(t) => {
-            match t.parse::<u64>() {
-                Ok(n) => n,
-                Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
+    if let Some(proxy_url) = env_proxy::for_url(&url).to_string() {
+        match url.scheme() {
+            "http" => {
+                debug!("Setting http_proxy to {}", proxy_url);
+                Proxy::http(&proxy_url)
             }
+            "https" => {
+                debug!("Setting https proxy to {}", proxy_url);
+                Proxy::https(&proxy_url)
+            }
+            _ => unimplemented!(),
         }
-        Err(_) => CLIENT_SOCKET_RW_TIMEOUT_SEC,
-    };
-    debug!("Client socket timeout: {} secs", timeout_in_secs);
-
-    let timeout = Some(Duration::from_secs(timeout_in_secs));
-
-    match proxy_unless_domain_exempted(Some(url))? {
-        Some(proxy) => {
-            debug!("Using proxy {}:{}...", proxy.host(), proxy.port());
-            let connector = ProxyHttpsConnector::new(proxy, ssl_client)?;
-            let pool = Pool::with_connector(Config::default(), connector);
-            let mut client = HyperClient::with_protocol(Http11Protocol::with_connector(pool));
-            client.set_read_timeout(timeout);
-            client.set_write_timeout(timeout);
-            Ok(client)
-        }
-        None => {
-            let connector = HttpsConnector::new(ssl_client);
-            let pool = Pool::with_connector(Config::default(), connector);
-            let mut client = HyperClient::with_protocol(Http11Protocol::with_connector(pool));
-            client.set_read_timeout(timeout);
-            client.set_write_timeout(timeout);
-            Ok(client)
-        }
+    } else {
+        debug!("No proxy configured for url: {:?}", url);
+        Ok(Proxy::custom(|_| None::<Url>))
     }
 }
 
-/// Returns an HTTP User-Agent string type for use by Hyper when making HTTP requests.
+/// Returns an HTTP User-Agent string type for use by Reqwest when making HTTP requests.
 ///
 /// The general form for Habitat-related clients are of the following form:
 ///
@@ -282,7 +237,7 @@ fn new_hyper_client(url: &Url, fs_root_path: Option<&Path>) -> Result<HyperClien
 /// # Errors
 ///
 /// * If system information cannot be obtained via `uname`
-fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
+fn user_agent(product: &str, version: &str) -> Result<HeaderValue> {
     let uname = sys::uname()?;
     let ua = format!("{}/{} ({}; {})",
                      product.trim(),
@@ -290,22 +245,106 @@ fn user_agent(product: &str, version: &str) -> Result<UserAgent> {
                      PackageTarget::active_target(),
                      uname.release.trim().to_lowercase());
     debug!("User-Agent: {}", &ua);
-    Ok(UserAgent(ua))
+    Ok(HeaderValue::from_str(&ua).expect("Valid User Agent header"))
 }
 
-fn ssl_connector(fs_root_path: Option<&Path>) -> Result<SslConnector> {
-    let mut conn = SslConnectorBuilder::new(SslMethod::tls())?;
-    let mut options = SslOption::empty();
-    options.toggle(SSL_OP_NO_SSLV2);
-    options.toggle(SSL_OP_NO_SSLV3);
-    options.toggle(SSL_OP_NO_COMPRESSION);
-    ssl::set_ca(&mut conn, fs_root_path)?;
-    conn.set_options(options);
-    conn.set_cipher_list("ALL!EXPORT!EXPORT40!EXPORT56!aNULL!LOW!RC4@STRENGTH")?;
+/// We need a set of root certificates when connected to SSL/TLS web endpoints.
+///
+/// The following strategy is used to locate a set of certificates that are used
+/// IN ADDITION to any system certificates that may be available (e.g., in /etc/ssl/certs or
+/// specified by a `SSL_CERT_FILE` environment variable):
+///
+/// 1. If the `core/cacerts` Habitat package is installed locally, then use the latest release's
+///    `cacert.pem` file.
+/// 2. If there is no 'core/cacerts packages, then a copy of `cacert.pem` will be written in an SSL
+///    cache directory (by default `/hab/cache/ssl` for a root user and `$HOME/.hab/cache/ssl` for
+///    a non-root user) and this will be used. The contents of this file will be inlined in this
+///    crate at build time as a fallback, which means that if the program using this code is
+///    operating in a minimal environment which may not contain any system certificates, it can
+///    still operate.
+/// 3. Other certs files (for example self-signed certs) that are found in the SSL cache directory
+///    will also get loaded into the root certs list. Both PEM and DER formats are supported. All
+///    files will be assumed to be one of the supported formats, and any errors will be ignored
+///    silently (other than debug logging)
+fn certificates(fs_root_path: Option<&Path>) -> Result<Vec<Certificate>> {
+    let mut certificates = Vec::new();
+    let cert_cache_dir = cache_ssl_path(fs_root_path);
 
-    if env::var("HAB_SSL_CERT_VERIFY_NONE").is_ok() {
-        conn.set_verify(SSL_VERIFY_NONE);
+    // MacOS is not yet fully consistent with other platforms,
+    // as it cannot handle PEM files with multiple certs.
+    // We can enable this when the following issue is resolved:
+    // https://github.com/sfackler/rust-native-tls/issues/132
+    #[cfg(not(target_os = "macos"))]
+    {
+        match installed_cacerts(fs_root_path)? {
+            Some(cert_path) => process_cert_file(&mut certificates, &cert_path),
+            None => populate_cache(&cert_cache_dir)?,
+        }
     }
 
-    Ok(conn.build())
+    process_cache_dir(&cert_cache_dir, &mut certificates);
+    Ok(certificates)
+}
+
+fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
+    let cacerts_ident = PackageIdent::from_str(CACERTS_PKG_IDENT)?;
+
+    if let Ok(pkg_install) = PackageInstall::load(&cacerts_ident, fs_root_path) {
+        let cert_path = pkg_install.installed_path().join("ssl/cert.pem");
+        debug!("Found an installed Habitat core/cacerts package at: {}",
+               cert_path.display());
+        Ok(Some(cert_path))
+    } else {
+        debug!("No installed Habitat core/cacerts package found");
+        Ok(None)
+    }
+}
+
+fn populate_cache(cache_path: &Path) -> Result<()> {
+    let cached_certs = cache_path.join("cert.pem");
+    if !cached_certs.exists() {
+        debug!("Adding embedded cert file to Habitat SSL cache path {} as fallback",
+               cached_certs.display());
+        fs::create_dir_all(&cache_path)?;
+        fs::write(cached_certs, CACERT_PEM)?;
+    }
+    Ok(())
+}
+
+fn process_cache_dir(cache_path: &Path, mut certificates: &mut Vec<Certificate>) {
+    match fs::read_dir(cache_path) {
+        Ok(entries) => {
+            for entry in entries {
+                match entry {
+                    Ok(entry) => {
+                        let path = entry.path();
+                        if path.is_file() {
+                            process_cert_file(&mut certificates, &path);
+                        }
+                    }
+                    Err(err) => debug!("Unable to read cache entry, err = {}", err),
+                }
+            }
+        }
+        Err(err) => debug!("Unable to read cache directory, err = {}", err),
+    }
+}
+
+fn process_cert_file(certificates: &mut Vec<Certificate>, file_path: &Path) {
+    debug!("Processing cert file: {}", file_path.display());
+    match cert_from_file(&file_path) {
+        Ok(cert) => certificates.push(cert),
+        Err(err) => {
+            debug!("Unable to process cert file: {}, err={}",
+                   file_path.display(),
+                   err)
+        }
+    }
+}
+
+fn cert_from_file(file_path: &Path) -> Result<Certificate> {
+    let buf = fs::read(file_path)?;
+
+    Certificate::from_pem(&buf).or_else(|_| Certificate::from_der(&buf))
+                               .map_err(Error::ReqwestError)
 }

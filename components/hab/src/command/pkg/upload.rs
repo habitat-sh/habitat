@@ -19,7 +19,7 @@ use std::path::{Path,
                 PathBuf};
 
 // External Libraries
-use hyper::status::StatusCode;
+use reqwest::StatusCode;
 use retry::retry;
 
 // Local Dependencies
@@ -74,11 +74,11 @@ pub fn start(ui: &mut UI,
             ui.status(Status::Using, format!("existing {}", &ident))?;
             Ok(())
         }
-        Err(api_client::Error::APIError(StatusCode::NotFound, _)) | Ok(_) => {
+        Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) | Ok(_) => {
             for dep in tdeps.into_iter() {
                 match api_client.check_package((&dep, target), Some(token)) {
                     Ok(_) => ui.status(Status::Using, format!("existing {}", &dep))?,
-                    Err(api_client::Error::APIError(StatusCode::NotFound, _)) => {
+                    Err(api_client::Error::APIError(StatusCode::NOT_FOUND, _)) => {
                         let candidate_path = match archive_path.parent() {
                             Some(p) => PathBuf::from(p),
                             None => unreachable!(),
@@ -147,21 +147,21 @@ fn upload_into_depot(ui: &mut UI,
     let package_uploaded =
         match api_client.put_package(&mut archive, token, force_upload, ui.progress()) {
             Ok(_) => true,
-            Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
+            Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
                 println!("Package already exists on remote; skipping.");
                 true
             }
-            Err(api_client::Error::APIError(StatusCode::UnprocessableEntity, _)) => {
+            Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
                 return Err(Error::PackageArchiveMalformed(format!("{}",
                                                                   archive.path
                                                                          .display())));
             }
-            Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
+            Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
                 println!("Package platform or architecture not supported by the targeted depot; \
                           skipping.");
                 false
             }
-            Err(api_client::Error::APIError(StatusCode::FailedDependency, _)) => {
+            Err(api_client::Error::APIError(StatusCode::FAILED_DEPENDENCY, _)) => {
                 ui.fatal("Package upload introduces a circular dependency - please check \
                           pkg_deps; skipping.")?;
                 false
@@ -178,7 +178,7 @@ fn upload_into_depot(ui: &mut UI,
         if channel != ChannelIdent::stable() && channel != ChannelIdent::unstable() {
             match api_client.create_channel(&ident.origin, &channel, token) {
                 Ok(_) => (),
-                Err(api_client::Error::APIError(StatusCode::Conflict, _)) => (),
+                Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => (),
                 Err(e) => return Err(Error::from(e)),
             };
         }
@@ -247,7 +247,7 @@ fn upload_public_key(ui: &mut UI,
                       format!("public origin key {}", &public_keyfile_name))?;
             Ok(())
         }
-        Err(api_client::Error::APIError(StatusCode::Conflict, _)) => {
+        Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
             ui.status(Status::Using,
                       format!("existing public origin key {}", &public_keyfile_name))?;
             Ok(())

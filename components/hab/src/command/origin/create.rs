@@ -7,7 +7,7 @@ use crate::{api_client::{self,
                     Result},
             PRODUCT,
             VERSION};
-use hyper::status::StatusCode;
+use reqwest::StatusCode;
 
 pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<()> {
     let api_client = Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
@@ -19,7 +19,7 @@ pub fn start(ui: &mut UI, bldr_url: &str, token: &str, origin: &str) -> Result<(
             ui.status(Status::Created, format!("origin {}.", origin))?;
             Ok(())
         }
-        Err(api_client::Error::APIError(StatusCode::Conflict, _msg)) => {
+        Err(api_client::Error::APIError(StatusCode::CONFLICT, _msg)) => {
             ui.status(Status::Skipping,
                       format!("creation of origin {}. Origin already exists!", origin))?;
             Ok(())

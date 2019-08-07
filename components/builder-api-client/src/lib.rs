@@ -1,7 +1,5 @@
 use habitat_core as hab_core;
 use habitat_http_client as hab_http;
-#[macro_use]
-extern crate hyper;
 
 #[macro_use]
 extern crate log;
@@ -15,6 +13,7 @@ extern crate serde_json;
 pub mod artifactory;
 pub mod builder;
 pub mod error;
+pub mod response;
 
 use std::str::FromStr;
 
@@ -27,7 +26,7 @@ use std::{fmt,
                  PathBuf}};
 
 use chrono::DateTime;
-use hyper::client::IntoUrl;
+use reqwest::IntoUrl;
 
 pub use crate::error::{Error,
                        Result};
@@ -41,10 +40,7 @@ use crate::{artifactory::ArtifactoryClient,
                                  PackageTarget},
                        ChannelIdent}};
 
-header! { (XFileName, "X-Filename") => [String] }
-header! { (ETag, "ETag") => [String] }
-
-pub trait DisplayProgress: Write {
+pub trait DisplayProgress: Write + Send {
     fn size(&mut self, size: u64);
     fn finish(&mut self);
 }
@@ -398,7 +394,7 @@ impl Client {
                   -> Result<BoxedClient>
         where U: IntoUrl
     {
-        let endpoint = endpoint.into_url().map_err(Error::UrlParseError)?;
+        let endpoint = endpoint.into_url().map_err(Error::ReqwestError)?;
 
         match &env::var("HAB_BLDR_PROVIDER").unwrap_or_else(|_| "builder".to_string())[..] {
             "artifactory" => ArtifactoryClient::create(endpoint, product, version, fs_root_path),

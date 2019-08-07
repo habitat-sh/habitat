@@ -1,30 +1,30 @@
+use crate::{hab_core,
+            hab_http};
+use reqwest;
+use serde_json;
 use std::{error,
           fmt,
           io,
           num,
           path::PathBuf,
           result};
-
-use hyper;
-use serde_json;
 use url;
-
-use crate::{hab_core,
-            hab_http};
 
 pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug)]
 pub enum Error {
-    APIError(hyper::status::StatusCode, String),
+    APIError(reqwest::StatusCode, String),
     BadResponseBody(io::Error),
     DownloadWrite(PathBuf, io::Error),
     HabitatCore(hab_core::Error),
     HabitatHttpClient(hab_http::Error),
-    HyperError(hyper::error::Error),
+    ReqwestError(reqwest::Error),
     IO(io::Error),
     Json(serde_json::Error),
     KeyReadError(PathBuf, io::Error),
+    MissingHeader(String),
+    InvalidHeader(String),
     NoFilePart,
     PackageReadError(PathBuf, io::Error),
     ParseIntError(num::ParseIntError),
@@ -48,12 +48,14 @@ impl fmt::Display for Error {
             }
             Error::HabitatCore(ref e) => format!("{}", e),
             Error::HabitatHttpClient(ref e) => format!("{}", e),
-            Error::HyperError(ref err) => format!("{}", err),
+            Error::ReqwestError(ref err) => format!("{}", err),
             Error::IO(ref e) => format!("{}", e),
             Error::Json(ref e) => format!("{}", e),
             Error::KeyReadError(ref p, ref e) => {
                 format!("Failed to read origin key, {}, {}", p.display(), e)
             }
+            Error::MissingHeader(ref s) => format!("Response is missing a required header: {}", s),
+            Error::InvalidHeader(ref s) => format!("Response header is invalid: {}", s),
             Error::NoFilePart => "An invalid path was passed - we needed a filename, and this \
                                   path does not have one"
                                                          .to_string(),
@@ -85,10 +87,12 @@ impl error::Error for Error {
             Error::DownloadWrite(..) => "Failed to write response contents to file",
             Error::HabitatCore(ref err) => err.description(),
             Error::HabitatHttpClient(ref err) => err.description(),
-            Error::HyperError(ref err) => err.description(),
+            Error::ReqwestError(ref err) => err.description(),
             Error::IO(ref err) => err.description(),
             Error::Json(ref err) => err.description(),
             Error::KeyReadError(..) => "Failed to read origin key from disk",
+            Error::MissingHeader(_) => "Missing header",
+            Error::InvalidHeader(_) => "Invalid header",
             Error::NoFilePart => {
                 "An invalid path was passed - we needed a filename, and this path does not have one"
             }
@@ -116,8 +120,8 @@ impl From<hab_http::Error> for Error {
     fn from(err: hab_http::Error) -> Error { Error::HabitatHttpClient(err) }
 }
 
-impl From<hyper::error::Error> for Error {
-    fn from(err: hyper::error::Error) -> Error { Error::HyperError(err) }
+impl From<reqwest::Error> for Error {
+    fn from(err: reqwest::Error) -> Error { Error::ReqwestError(err) }
 }
 
 impl From<io::Error> for Error {

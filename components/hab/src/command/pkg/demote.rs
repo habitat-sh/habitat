@@ -19,7 +19,7 @@ use crate::{api_client::{self,
             hcore::{package::{PackageIdent,
                               PackageTarget},
                     ChannelIdent}};
-use hyper::status::StatusCode;
+use reqwest::StatusCode;
 
 use crate::{error::{Error,
                     Result},
@@ -51,7 +51,7 @@ pub fn start(ui: &mut UI,
         Ok(_) => (),
         Err(e) => {
             println!("Failed to demote '{}': {:?}", ident, e);
-            if let api_client::Error::APIError(StatusCode::NotFound, _) = e {
+            if let api_client::Error::APIError(StatusCode::NOT_FOUND, _) = e {
                 println!("You may need to specify a platform target argument");
             }
             return Err(Error::from(e));

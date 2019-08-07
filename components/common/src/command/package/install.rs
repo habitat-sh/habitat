@@ -54,7 +54,7 @@ use crate::{api_client::{self,
                     util::wait_for,
                     ChannelIdent}};
 use glob;
-use hyper::status::StatusCode;
+use reqwest::StatusCode;
 use retry::retry;
 
 use crate::{error::{Error,
@@ -539,7 +539,7 @@ impl<'a> InstallTask<'a> {
                               &ident, self.channel))?;
             let latest_remote = match self.fetch_latest_pkg_ident_for((&ident, target), token) {
                 Ok(latest_ident) => Some(latest_ident),
-                Err(Error::APIClient(APIError(StatusCode::NotFound, _))) => None,
+                Err(Error::APIClient(APIError(StatusCode::NOT_FOUND, _))) => None,
                 Err(e) => {
                     debug!("error fetching ident: {:?}", e);
                     return Err(e);
@@ -854,7 +854,7 @@ impl<'a> InstallTask<'a> {
                                             ui.progress())
         {
             Ok(_) => Ok(()),
-            Err(api_client::Error::APIError(StatusCode::NotImplemented, _)) => {
+            Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
                 println!("Host platform or architecture not supported by the targeted depot; \
                           skipping.");
                 Ok(())

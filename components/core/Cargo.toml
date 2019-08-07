@@ -49,8 +49,6 @@ winapi = { version = "*", features = ["dpapi", "ioapiset", "namedpipeapi", "user
 windows-acl = "*"
 
 [dev-dependencies]
-# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
-hyper = "0.10"
 num_cpus = "*" # For doc tests
 
 [features]

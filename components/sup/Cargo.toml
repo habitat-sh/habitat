@@ -86,8 +86,7 @@ winapi =  { version = "*", features = ["tlhelp32"] }
 
 [dev-dependencies]
 habitat_core = { path = "../core" }
-# Pending upgrade activities in https://github.com/habitat-sh/core/issues/72
-hyper = "0.10"
+hyper = "*"
 json = "*"
 
 [build-dependencies]

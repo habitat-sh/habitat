@@ -74,7 +74,7 @@ lazy_static! {
 
 /// Generate a new secret key used for authenticating clients to the `CtlGateway`.
 pub fn generate_secret_key(out: &mut String) {
-    let mut rng = rand::rngs::OsRng::new().unwrap();
+    let mut rng = rand::rngs::OsRng;
     let mut result = vec![0u8; CTL_SECRET_LEN];
     rng.fill_bytes(&mut result);
     *out = base64::encode(&result);
