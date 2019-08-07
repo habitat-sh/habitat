@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.17 -->
+<!-- latest_release 0.84.18 -->
+## [fake-0.84.18](https://github.com/habitat-sh/habitat/tree/fake-0.84.18) (2019-08-07)
+
+#### Merged Pull Requests
+- Update http-client and builder-api-client from hyper to reqwest. [#6759](https://github.com/habitat-sh/habitat/pull/6759) ([chefsalim](https://github.com/chefsalim))
+<!-- latest_release -->
+
 ## [fake-0.84.17](https://github.com/habitat-sh/habitat/tree/fake-0.84.17) (2019-08-07)
 
 #### Merged Pull Requests
 - Always use linux for cleanup build channel [#6804](https://github.com/habitat-sh/habitat/pull/6804) ([scotthain](https://github.com/scotthain))
-<!-- latest_release -->
 
 ## [fake-0.84.16](https://github.com/habitat-sh/habitat/tree/fake-0.84.16) (2019-08-07)
 
