@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.15 -->
+<!-- latest_release 0.84.16 -->
+## [fake-0.84.16](https://github.com/habitat-sh/habitat/tree/fake-0.84.16) (2019-08-07)
+
+#### Merged Pull Requests
+- Revert &quot;redux: cross platform binstubs with package environment&quot; [#6796](https://github.com/habitat-sh/habitat/pull/6796) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.84.15](https://github.com/habitat-sh/habitat/tree/fake-0.84.15) (2019-08-06)
 
 #### Merged Pull Requests
 - Update rustfmt [#6776](https://github.com/habitat-sh/habitat/pull/6776) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.12](https://github.com/habitat-sh/habitat/tree/fake-0.84.12) (2019-08-05)
 
