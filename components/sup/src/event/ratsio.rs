@@ -56,24 +56,29 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
                                              .expect("Couldn't synchronize event thread!");
 
                                       event_rx.for_each(move |event: Vec<u8>| {
-                                          if client.nats_client.get_state() == NatsClientState::Connected {
-                                              let stan_msg =
-                                                  StanMessage::new(HABITAT_SUBJECT.into(),
-                                                                   event);
-                                              let publish_event = client
-                                                  .send(stan_msg)
-                                                  .map_err(|e| {
-                                                      error!("Error publishing event: {}", e)
-                                                  });
-                                              executor::spawn(publish_event);
-                                          } else {
-                                              trace!(
-                                                  "Unable to send event because client is in state {:?}",
-                                                  client.nats_client.get_state()
-                                              );
-                                          }
-                                          Ok(())
-                                      })
+                                                  // If we are connected to the nats client send
+                                                  // the event. Otherwise, we intentially drop
+                                                  // the event.
+                                                  match client.nats_client.get_state() {
+                                                      NatsClientState::Connected => {
+                                                          let stan_msg = StanMessage::new(
+                                                              HABITAT_SUBJECT.into(),
+                                                              event);
+                                                          let publish_event = client
+                                                            .send(stan_msg)
+                                                            .map_err(|e|
+                                                                error!("Error publishing event: {}",
+                                                                    e));
+                                                          executor::spawn(publish_event);
+                                                      }
+                                                      state => {
+                                                          trace!("Unable to send event because \
+                                                                  client is in state {:?}",
+                                                                 state)
+                                                      }
+                                                  }
+                                                  Ok(())
+                                              })
                                   });
 
                               ThreadRuntime::new().expect("Couldn't create event stream runtime!")
