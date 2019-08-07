@@ -110,7 +110,7 @@ pub struct ServiceSpec {
 }
 
 impl ServiceSpec {
-    pub fn default_for(ident: PackageIdent) -> Self {
+    pub fn with_ident(ident: PackageIdent) -> Self {
         Self { ident,
                bldr_url: DEFAULT_BLDR_URL.to_string(),
                ..Default::default() }
@@ -152,11 +152,11 @@ impl ServiceSpec {
         Ok(())
     }
 
-    pub fn ident_file_name(ident: &PackageIdent) -> String {
-        format!("{}.{}", ident.name, SPEC_FILE_EXT)
+    pub fn ident_file(ident: &PackageIdent) -> PathBuf {
+        PathBuf::from(format!("{}.{}", ident.name, SPEC_FILE_EXT))
     }
 
-    pub fn file_name(&self) -> String { Self::ident_file_name(&self.ident) }
+    pub fn file(&self) -> PathBuf { Self::ident_file(&self.ident) }
 
     /// Validates that all required package binds are present in service binds and all remaining
     /// service binds are optional package binds.
@@ -644,9 +644,9 @@ mod test {
 
     #[test]
     fn service_spec_file_name() {
-        let spec = ServiceSpec::default_for(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
+        let spec = ServiceSpec::with_ident(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
 
-        assert_eq!(String::from("hoopa.spec"), spec.file_name());
+        assert_eq!(Path::new("hoopa.spec"), spec.file());
     }
 
     fn testing_package_install() -> PackageInstall {
@@ -664,7 +664,7 @@ mod test {
             panic!("This is being run on a platform that's not currently supported");
         };
 
-        let spec = ServiceSpec::default_for(ident);
+        let spec = ServiceSpec::with_ident(ident);
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
                                                             .join("fixtures")
                                                             .join("pkgs");
@@ -677,7 +677,7 @@ mod test {
     fn service_spec_bind_present() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        let mut spec = ServiceSpec::with_ident(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap()];
         if let Err(e) = spec.validate(&package) {
             panic!("Unexpected error returned: {:?}", e);
@@ -688,7 +688,7 @@ mod test {
     fn service_spec_with_optional_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        let mut spec = ServiceSpec::with_ident(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
                           ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),];
         if let Err(e) = spec.validate(&package) {
@@ -701,7 +701,7 @@ mod test {
     fn service_spec_error_missing_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        let mut spec = ServiceSpec::with_ident(package.ident().clone());
         spec.binds = vec![];
         match spec.validate(&package) {
             Err(e) => {
@@ -720,7 +720,7 @@ mod test {
     fn service_spec_error_invalid_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        let mut spec = ServiceSpec::with_ident(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("backend:tomcat.app@acmecorp").unwrap(),
                           ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),];
         match spec.validate(&package) {

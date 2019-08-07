@@ -183,27 +183,15 @@ pub struct ShutdownConfig {
 }
 
 impl ShutdownConfig {
-    fn new(shutdown_input: &ShutdownInput, service: &Service) -> Self {
-        let mut config = Self::new_from_service(service);
-        if let Some(timeout) = shutdown_input.timeout {
-            config.timeout = timeout;
-        }
-        config
-    }
-
-    #[cfg(not(windows))]
-    fn new_from_service(service: &Service) -> Self {
-        let timeout = service.shutdown_timeout
-                             .unwrap_or_else(|| service.pkg.shutdown_timeout);
-        Self { signal: service.pkg.shutdown_signal,
-               timeout }
-    }
-
-    #[cfg(windows)]
-    fn new_from_service(service: &Service) -> Self {
-        let timeout = service.shutdown_timeout
-                             .unwrap_or_else(|| service.pkg.shutdown_timeout);
-        Self { timeout }
+    fn new(shutdown_input: Option<&ShutdownInput>, service: &Service) -> Self {
+        let timeout = shutdown_input.and_then(|si| si.timeout).unwrap_or_else(|| {
+                                                                  service.shutdown_timeout
+                                                               .unwrap_or(service.pkg
+                                                                                 .shutdown_timeout)
+                                                              });
+        Self { timeout,
+               #[cfg(not(windows))]
+               signal: service.pkg.shutdown_signal }
     }
 }
 
@@ -270,7 +258,7 @@ impl ManagerConfig {
     fn spec_path_for(&self, ident: &PackageIdent) -> PathBuf {
         self.sup_root()
             .join("specs")
-            .join(ServiceSpec::ident_file_name(ident))
+            .join(ServiceSpec::ident_file(ident))
     }
 
     pub fn save_spec_for(&self, spec: &ServiceSpec) -> Result<()> {
@@ -648,7 +636,7 @@ impl Manager {
             Err(err) => {
                 outputln!("Unable to start {}, {}", ident, err);
                 // Remove the spec file so it does not look like this service is loaded.
-                self.try_remove_spec_file(&ident);
+                self.remove_spec_file(&ident);
                 return;
             }
         };
@@ -928,12 +916,12 @@ impl Manager {
                             warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
                                   service_spec.ident, err);
                         }
-                        self.try_stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
+                        self.stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
-                        self.try_remove_spec_file(&service_spec.ident);
-                        self.try_stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
+                        self.remove_spec_file(&service_spec.ident);
+                        self.stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
                     }
                 }
             }
@@ -1251,22 +1239,19 @@ impl Manager {
                 .specs()
                 .into_iter()
                 .filter_map(|spec| {
-                    let ident = spec.ident.clone();
-                    if existing_idents.contains(&ident) {
+                    if existing_idents.contains(&spec.ident) {
                         None
                     } else {
-                        let service = Service::new(self.sys.clone(),
-                                                   spec,
-                                                   self.fs_cfg.clone(),
-                                                   self.organization.as_ref().map(String::as_str),
-                                                   self.state.gateway_state.clone());
-                        match service {
-                            Ok(service) => Some(service),
-                            Err(e) => {
-                                warn!("Failed to create service '{}' from spec: {:?}", ident, e);
-                                None
-                            }
+                        let ident = spec.ident.clone();
+                        let result = Service::new(self.sys.clone(),
+                                                  spec,
+                                                  self.fs_cfg.clone(),
+                                                  self.organization.as_ref().map(String::as_str),
+                                                  self.state.gateway_state.clone());
+                        if let Err(ref e) = result {
+                            warn!("Failed to create service '{}' from spec: {:?}", ident, e);
                         }
+                        result.ok()
                     }
                 })
                 .collect();
@@ -1298,10 +1283,10 @@ impl Manager {
         self.butterfly.restart_elections_rsw_mlr(feature_flags);
     }
 
-    fn try_stop_service(&mut self,
-                        ident: &PackageIdent,
-                        shutdown_input: &ShutdownInput,
-                        runtime: &mut Runtime) {
+    fn stop_service(&mut self,
+                    ident: &PackageIdent,
+                    shutdown_input: &ShutdownInput,
+                    runtime: &mut Runtime) {
         if let Some(service) = self.remove_service_from_state(&ident) {
             let future = self.stop_service_future(service, Some(shutdown_input));
             runtime.spawn(future);
@@ -1322,11 +1307,7 @@ impl Manager {
         let updater = Arc::clone(&self.updater);
         let busy_services = Arc::clone(&self.busy_services);
         let services_need_reconciliation = self.services_need_reconciliation.clone();
-        let shutdown_config = if let Some(shutdown_input) = shutdown_input {
-            ShutdownConfig::new(&shutdown_input, &service)
-        } else {
-            ShutdownConfig::new_from_service(&service)
-        };
+        let shutdown_config = ShutdownConfig::new(shutdown_input, &service);
 
         // JW TODO: Update service rumor to remove service from
         // cluster
@@ -1349,7 +1330,7 @@ impl Manager {
                                            stop_it)
     }
 
-    fn try_remove_spec_file(&self, ident: &PackageIdent) {
+    fn remove_spec_file(&self, ident: &PackageIdent) {
         let file = self.state.cfg.spec_path_for(ident);
         if let Err(err) = fs::remove_file(&file) {
             warn!("Tried to remove spec file '{}' for '{}': {:?}",
@@ -1935,8 +1916,8 @@ mod test {
         /// Helper function for generating a basic spec from an
         /// identifier string
         fn new_spec(ident: &str) -> ServiceSpec {
-            ServiceSpec::default_for(PackageIdent::from_str(ident).expect("couldn't parse ident \
-                                                                           str"))
+            ServiceSpec::with_ident(PackageIdent::from_str(ident).expect("couldn't parse ident \
+                                                                          str"))
         }
 
         #[test]

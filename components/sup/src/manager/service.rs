@@ -229,17 +229,17 @@ pub struct Service {
 }
 
 impl Service {
-    fn new_impl(sys: Arc<Sys>,
-                package: &PackageInstall,
-                spec: ServiceSpec,
-                manager_fs_cfg: Arc<FsCfg>,
-                organization: Option<&str>,
-                gateway_state: Arc<RwLock<GatewayState>>)
-                -> Result<Service> {
+    fn with_package(sys: Arc<Sys>,
+                    package: &PackageInstall,
+                    spec: ServiceSpec,
+                    manager_fs_cfg: Arc<FsCfg>,
+                    organization: Option<&str>,
+                    gateway_state: Arc<RwLock<GatewayState>>)
+                    -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = package.all_binds()?;
         let pkg = Pkg::from_install(&package)?;
-        let spec_file = manager_fs_cfg.specs_path.join(spec.file_name());
+        let spec_file = manager_fs_cfg.specs_path.join(spec.file());
         let service_group = ServiceGroup::new(spec.application_environment.as_ref(),
                                               &pkg.name,
                                               spec.group,
@@ -304,12 +304,12 @@ impl Service {
         // The package for a spec should already be installed.
         let fs_root_path = Path::new(&*FS_ROOT_PATH);
         let package = PackageInstall::load(&spec.ident, Some(fs_root_path))?;
-        Ok(Self::new_impl(sys,
-                          &package,
-                          spec,
-                          manager_fs_cfg,
-                          organization,
-                          gateway_state)?)
+        Ok(Self::with_package(sys,
+                              &package,
+                              spec,
+                              manager_fs_cfg,
+                              organization,
+                              gateway_state)?)
     }
 
     /// Create the service path for this package.
@@ -554,7 +554,7 @@ impl Service {
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
-        let mut spec = ServiceSpec::default_for(self.spec_ident.clone());
+        let mut spec = ServiceSpec::with_ident(self.spec_ident.clone());
         spec.group = self.service_group.group().to_string();
         if let Some(appenv) = self.service_group.application_environment() {
             spec.application_environment = Some(appenv)
@@ -1219,7 +1219,7 @@ mod tests {
             panic!("This is being run on a platform that's not currently supported");
         };
 
-        let spec = ServiceSpec::default_for(ident);
+        let spec = ServiceSpec::with_ident(ident);
 
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
                                                             .join("fixtures")
@@ -1233,9 +1233,10 @@ mod tests {
         let afs = Arc::new(fscfg);
 
         let gs = Arc::new(RwLock::new(GatewayState::default()));
-        Service::new_impl(asys, &install, spec, afs, Some("haha"), gs).expect("I wanted a service \
-                                                                               to load, but it \
-                                                                               didn't")
+        Service::with_package(asys, &install, spec, afs, Some("haha"), gs).expect("I wanted a \
+                                                                                   service to \
+                                                                                   load, but it \
+                                                                                   didn't")
     }
 
     #[test]
