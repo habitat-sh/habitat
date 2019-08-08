@@ -32,6 +32,7 @@ use crate::{error::{Error,
                     service::Service,
                     service_config::ServiceConfig,
                     service_file::ServiceFile,
+                    ConstIdRumor,
                     Rumor,
                     RumorKey,
                     RumorStore,
@@ -903,7 +904,7 @@ impl Server {
                                     feature_flags: FeatureFlag,
                                     data_path: &Option<PathBuf>)
                                     -> Vec<(String, u64)>
-        where T: Rumor + ElectionRumor + Debug
+        where T: ConstIdRumor + ElectionRumor + Debug
     {
         let mut elections_to_restart = vec![];
 
@@ -912,9 +913,9 @@ impl Server {
                             .service_group(&service_group)
                             .contains_id(myself_member_id)
             {
-                // This is safe; there is only one id for an election, and it is "election"
+                // This is safe; there is only one id for a ConstIdRumor
                 let election =
-                    rumors.get("election")
+                    rumors.get(T::const_id())
                           .expect("Lost an election struct between looking it up and reading it.");
                 debug!("elections_to_restart: checking {} -> {:#?}",
                        service_group, election);
@@ -981,14 +982,16 @@ impl Server {
         for (service_group, old_term) in elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
-            self.election_store.remove_rsw(&service_group, "election");
+            self.election_store
+                .remove_rsw(&service_group, Election::const_id());
             self.start_election_rsw_mlr(&service_group, term);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
             let term = old_term + 1;
             warn!("Starting a new election for {} {}", service_group, term);
-            self.update_store.remove_rsw(&service_group, "election");
+            self.update_store
+                .remove_rsw(&service_group, ElectionUpdate::const_id());
             self.start_update_election_rsw_mlr(&service_group, 0, term);
         }
     }

@@ -16,14 +16,15 @@ use crate::{error::{Error,
                        newscast::{self,
                                   Rumor as ProtoRumor},
                        FromProto},
-            rumor::{Rumor,
+            rumor::{ConstIdRumor,
+                    Rumor,
                     RumorPayload,
                     RumorType}};
 use std::{fmt,
           ops::{Deref,
                 DerefMut}};
 
-pub trait ElectionRumor {
+pub trait ElectionRumor: ConstIdRumor {
     fn member_id(&self) -> &str;
 
     fn is_finished(&self) -> bool;
@@ -194,13 +195,15 @@ impl Rumor for Election {
         }
     }
 
-    /// We are the Election rumor!
     fn kind(&self) -> RumorType { RumorType::Election }
 
-    /// There can be only
-    fn id(&self) -> &str { "election" }
+    fn id(&self) -> &str { Self::const_id() }
 
     fn key(&self) -> &str { self.service_group.as_ref() }
+}
+
+impl ConstIdRumor for Election {
+    fn const_id() -> &'static str { "election" }
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -273,9 +276,13 @@ impl Rumor for ElectionUpdate {
 
     fn kind(&self) -> RumorType { RumorType::ElectionUpdate }
 
-    fn id(&self) -> &str { "election" }
+    fn id(&self) -> &str { Self::const_id() }
 
     fn key(&self) -> &str { self.0.key() }
+}
+
+impl ConstIdRumor for ElectionUpdate {
+    fn const_id() -> &'static str { "election" }
 }
 
 #[cfg(test)]
@@ -283,6 +290,7 @@ mod tests {
     use crate::rumor::{election::{Election,
                                   ElectionUpdate,
                                   Term},
+                       ConstIdRumor as _,
                        Rumor,
                        RumorStore};
     use habitat_core::service::ServiceGroup;
@@ -320,7 +328,7 @@ mod tests {
 
         let sub_list = list.get("tdep.prod").unwrap();
         assert_eq!(sub_list.len(), 1); // because only the latest election is kept
-        assert!(sub_list.get("election").is_some());
+        assert!(sub_list.get(Election::const_id()).is_some());
     }
 
     #[test]
@@ -336,7 +344,7 @@ mod tests {
 
         let sub_list = list.get("tdep.prod").unwrap();
         assert_eq!(sub_list.len(), 1); // because only the latest election is kept
-        assert!(sub_list.get("election").is_some());
+        assert!(sub_list.get(ElectionUpdate::const_id()).is_some());
     }
 
     #[test]

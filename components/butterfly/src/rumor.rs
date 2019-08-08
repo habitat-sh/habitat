@@ -124,6 +124,14 @@ pub trait Rumor: Message<ProtoRumor> + Sized {
     fn merge(&mut self, other: Self) -> bool;
 }
 
+pub trait ConstKeyRumor: Rumor {
+    fn const_key() -> &'static str;
+}
+
+pub trait ConstIdRumor: Rumor {
+    fn const_id() -> &'static str;
+}
+
 impl<'a, T: Rumor> From<&'a T> for RumorKey {
     fn from(rumor: &'a T) -> RumorKey { RumorKey::new(rumor.kind(), rumor.id(), rumor.key()) }
 }
@@ -231,10 +239,18 @@ mod storage {
         }
     }
 
+    impl<'a, C: ConstKeyRumor> IterableGuard<'a, RumorMap<C>> {
+        pub fn contains_id(&self, member_id: &str) -> bool {
+            self.get(C::const_key())
+                .map(|departures| departures.contains_key(member_id))
+                .unwrap_or(false)
+        }
+    }
+
     impl<'a, E: ElectionRumor> IterableGuard<'a, RumorMap<E>> {
         pub fn get_term(&self, service_group: &str) -> Option<u64> {
             self.get(service_group)
-                .map(|sg| sg.get("election").map(ElectionRumor::term))
+                .map(|sg| sg.get(E::const_id()).map(ElectionRumor::term))
                 .unwrap_or(None)
         }
     }
@@ -359,7 +375,7 @@ mod storage {
             where S: Serializer
         {
             let map = self.0.list.read();
-            let inner_map = map.get("departure");
+            let inner_map = map.get(Departure::const_key());
             let len = if inner_map.is_some() {
                 inner_map.unwrap().len()
             } else {
@@ -378,7 +394,7 @@ mod storage {
         }
     }
 
-    impl<'a> Serialize for RumorStoreProxy<'a, Election> {
+    impl<'a, C: ConstIdRumor> Serialize for RumorStoreProxy<'a, C> {
         /// # Locking (see locking.md)
         /// * `RumorStore::list` (read)
         fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
@@ -388,33 +404,8 @@ mod storage {
             let mut new_map = HashMap::new();
 
             for (k, v) in map.iter() {
-                let election = v.get("election");
-                let _service_group = new_map.entry(k).or_insert(election);
-            }
-
-            let mut m = serializer.serialize_map(Some(new_map.len()))?;
-
-            for (key, val) in new_map {
-                m.serialize_entry(key, &val)?;
-            }
-
-            m.end()
-        }
-    }
-
-    // This is the same as Election =/
-    impl<'a> Serialize for RumorStoreProxy<'a, ElectionUpdate> {
-        /// # Locking (see locking.md)
-        /// * `RumorStore::list` (read)
-        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-            where S: Serializer
-        {
-            let map = self.0.list.read();
-            let mut new_map = HashMap::new();
-
-            for (k, v) in map.iter() {
-                let election = v.get("election");
-                let _service_group = new_map.entry(k).or_insert(election);
+                let rumor = v.get(C::const_id());
+                let _service_group = new_map.entry(k).or_insert(rumor);
             }
 
             let mut m = serializer.serialize_map(Some(new_map.len()))?;
@@ -437,30 +428,6 @@ mod storage {
             let mut m = serializer.serialize_map(Some(map.len()))?;
 
             for (key, val) in map.iter() {
-                m.serialize_entry(key, &val)?;
-            }
-
-            m.end()
-        }
-    }
-
-    impl<'a> Serialize for RumorStoreProxy<'a, ServiceConfig> {
-        /// # Locking (see locking.md)
-        /// * `RumorStore::list` (read)
-        fn serialize<S>(&self, serializer: S) -> result::Result<S::Ok, S::Error>
-            where S: Serializer
-        {
-            let map = self.0.list.read();
-            let mut new_map = HashMap::new();
-
-            for (k, v) in map.iter() {
-                let service_config = v.get("service_config");
-                let _service_group = new_map.entry(k).or_insert(service_config);
-            }
-
-            let mut m = serializer.serialize_map(Some(new_map.len()))?;
-
-            for (key, val) in new_map {
                 m.serialize_entry(key, &val)?;
             }
 

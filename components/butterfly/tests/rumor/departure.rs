@@ -10,7 +10,6 @@ fn two_members_share_departures() {
     net.wait_for_gossip_rounds(1);
     assert!(net[1].departure_store
                   .lock_rsr()
-                  .service_group("departure",)
                   .contains_id(net[0].member_id()));
 }
 
@@ -29,7 +28,6 @@ fn departure_via_client() {
     net.wait_for_gossip_rounds(1);
     assert!(net[2].departure_store
                   .lock_rsr()
-                  .service_group("departure",)
                   .contains_id(net[1].member_id()));
     assert_wait_for_health_of_mlr!(net, 1, Health::Departed);
 }

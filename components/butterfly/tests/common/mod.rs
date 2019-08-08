@@ -6,7 +6,9 @@ use habitat_butterfly::{error::Error,
                                 service::{Service,
                                           SysInfo},
                                 service_config::ServiceConfig,
-                                service_file::ServiceFile},
+                                service_file::ServiceFile,
+                                ConstIdRumor as _,
+                                Election},
                         server::{timing::Timing,
                                  Server,
                                  Suitability},
@@ -284,7 +286,7 @@ impl SwimNet {
             let result = server.election_store
                                .lock_rsr()
                                .service_group(key)
-                               .map_rumor("election", |stored| stored.status == status)
+                               .map_rumor(Election::const_id(), |stored| stored.status == status)
                                .unwrap_or(false);
             if result {
                 return true;
@@ -312,9 +314,9 @@ impl SwimNet {
                                    .lock_rsr();
 
             let result = left_server.service_group(key)
-                                    .map_rumor("election", |l| {
+                                    .map_rumor(Election::const_id(), |l| {
                                         right_server.service_group(key)
-                                                    .map_rumor("election", |r| l == r)
+                                                    .map_rumor(Election::const_id(), |r| l == r)
                                                     .unwrap_or(false)
                                     })
                                     .unwrap_or(false);

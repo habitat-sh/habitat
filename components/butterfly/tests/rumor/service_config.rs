@@ -1,5 +1,7 @@
 use crate::btest;
-use habitat_butterfly::client::Client;
+use habitat_butterfly::{client::Client,
+                        rumor::{ConstIdRumor as _,
+                                ServiceConfig}};
 use habitat_core::service::ServiceGroup;
 
 #[test]
@@ -11,7 +13,7 @@ fn two_members_share_service_config() {
     assert!(net[1].service_config_store
                   .lock_rsr()
                   .service_group("witcher.prod")
-                  .contains_id("service_config"));
+                  .contains_id(ServiceConfig::const_id()));
 }
 
 #[test]
@@ -33,5 +35,5 @@ fn service_config_via_client() {
     assert!(net[1].service_config_store
                   .lock_rsr()
                   .service_group("witcher.prod")
-                  .contains_id("service_config"));
+                  .contains_id(ServiceConfig::const_id()));
 }

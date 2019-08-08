@@ -9,10 +9,10 @@ around how these locks are acquired, held and released.
 Functions which acquire locks should have the details described in their doc
 comment. Additionally, a suffix is applied to the function name to indicate
 the locks that are acquired either directly or indirectly. The suffix is an
-abbreviation of the lock name (e.g., `ml` for `MemberList::entries`) and an
-`r` or `w` to indicate a read or write lock, if applicable. If a function
-takes both a read and write lock `w` suffices. The ordering of the suffixes
-and doc comments should reflect the lock ordering.
+abbreviation of the lock name (see [Lock Ordering](#lock-ordering) section)
+and an `r` or `w` to indicate a read or write lock, if applicable. If a
+function takes both a read and write lock `w` suffices. The ordering of the
+suffixes and doc comments should reflect the lock ordering.
 
 When adding code which takes a lock, it's important add the appropriate doc
 comment and suffix to the name of the function, and then propagate that
@@ -32,9 +32,9 @@ to make this clear the function for inserting a service is named
 Whenever a thread needs to hold multiple locks concurrently, they
 must be acquired in the conventional order and released in the reverse order:
 
-1. `RumorStore::list`
-1. `MemberList::initial_members`
-1. `MemberList::entries`
+1. `RumorStore::list` (`rs`)
+1. `MemberList::initial_members` (`iml`)
+1. `MemberList::entries` (`ml`)
 
 Any function which is documented to acquire a lock should not be called with
 any lock that occurs later in the lock order held. For example, since

@@ -10,6 +10,7 @@ use habitat_butterfly::{member::{Health,
                                           SysInfo},
                                 service_config::ServiceConfig as ServiceConfigRumor,
                                 service_file::ServiceFile as ServiceFileRumor,
+                                ConstIdRumor as _,
                                 RumorStore}};
 use habitat_common::outputln;
 use habitat_core::{self,
@@ -159,7 +160,7 @@ impl CensusRing {
     /// * `RumorStore::list` (read)
     fn update_from_election_store_rsr(&mut self, election_rumors: &RumorStore<ElectionRumor>) {
         for (service_group, rumors) in election_rumors.lock_rsr().iter() {
-            let election = rumors.get("election").unwrap();
+            let election = rumors.get(ElectionRumor::const_id()).unwrap();
             if let Ok(sg) = service_group_from_str(service_group) {
                 if let Some(census_group) = self.census_groups.get_mut(&sg) {
                     census_group.update_from_election_rumor(election);
@@ -176,7 +177,7 @@ impl CensusRing {
         for (service_group, rumors) in election_update_rumors.lock_rsr().iter() {
             if let Ok(sg) = service_group_from_str(service_group) {
                 if let Some(census_group) = self.census_groups.get_mut(&sg) {
-                    let election = rumors.get("election").unwrap();
+                    let election = rumors.get(ElectionUpdateRumor::const_id()).unwrap();
                     census_group.update_from_election_update_rumor(election);
                 }
             }
@@ -190,7 +191,7 @@ impl CensusRing {
                                       service_config_rumors: &RumorStore<ServiceConfigRumor>) {
         for (service_group, rumors) in service_config_rumors.lock_rsr().iter() {
             if let Ok(sg) = service_group_from_str(service_group) {
-                if let Some(service_config) = rumors.get("service_config") {
+                if let Some(service_config) = rumors.get(ServiceConfigRumor::const_id()) {
                     if let Some(census_group) = self.census_groups.get_mut(&sg) {
                         census_group.update_from_service_config_rumor(cache_key_path,
                                                                       service_config);

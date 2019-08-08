@@ -10,7 +10,8 @@ use crate::{error::{Error,
                        newscast::{self,
                                   Rumor as ProtoRumor},
                        FromProto},
-            rumor::{Rumor,
+            rumor::{ConstKeyRumor,
+                    Rumor,
                     RumorPayload,
                     RumorType}};
 use std::{cmp::Ordering,
@@ -55,9 +56,13 @@ impl Rumor for Departure {
 
     fn kind(&self) -> RumorType { RumorType::Departure }
 
-    fn id(&self) -> &str { &self.member_id }
+    fn key(&self) -> &str { Self::const_key() }
 
-    fn key(&self) -> &str { "departure" }
+    fn id(&self) -> &str { &self.member_id }
+}
+
+impl ConstKeyRumor for Departure {
+    fn const_key() -> &'static str { "departure" }
 }
 
 impl PartialOrd for Departure {
@@ -79,7 +84,8 @@ mod tests {
     use std::cmp::Ordering;
 
     use super::Departure;
-    use crate::rumor::{Rumor,
+    use crate::rumor::{ConstKeyRumor as _,
+                       Rumor,
                        RumorStore};
 
     fn create_departure(member_id: &str) -> Departure { Departure::new(member_id) }
@@ -97,7 +103,7 @@ mod tests {
         let list = rs.lock_rsr();
         assert_eq!(list.len(), 1); // for the "departure" key
 
-        let sub_list = list.get("departure").unwrap();
+        let sub_list = list.get(Departure::const_key()).unwrap();
         assert_eq!(sub_list.len(), 2); // for each of the members we inserted
     }
 
