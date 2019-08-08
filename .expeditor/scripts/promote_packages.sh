@@ -45,10 +45,6 @@ for pkg in "${packages_to_promote[@]}"; do
     # we won't need this additional call (we'll have to modify the
     # above `jq` call to create `packages_to_promote`, however).
     pkg_target=$(curl -s "${ACCEPTANCE_HAB_BLDR_URL}/v1/depot/pkgs/${pkg}" | jq -r '.target')
-    if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
-        echo "--- FAKE RELEASE; otherwise we would be promoting ${pkg} (${pkg_target}) to the '${destination_channel}' channel"
-    else
-        echo "--- Promoting ${pkg} (${pkg_target}) to the '${destination_channel}' channel"
-        ${hab_binary} pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${destination_channel}" "${pkg_target}"
-    fi
+    echo "--- Promoting ${pkg} (${pkg_target}) to the '${destination_channel}' channel"
+    ${hab_binary} pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${destination_channel}" "${pkg_target}"
 done
