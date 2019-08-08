@@ -242,7 +242,7 @@ mod storage {
     impl<'a, C: ConstKeyRumor> IterableGuard<'a, RumorMap<C>> {
         pub fn contains_id(&self, member_id: &str) -> bool {
             self.get(C::const_key())
-                .map(|departures| departures.contains_key(member_id))
+                .map(|rumors| rumors.contains_key(member_id))
                 .unwrap_or(false)
         }
     }
