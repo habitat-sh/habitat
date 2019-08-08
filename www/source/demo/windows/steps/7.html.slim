@@ -53,17 +53,6 @@ section
      Import-Module "{{pkgPathFor "core/dsc-core"}}/Modules/DscCore"
      Start-DscCore (Join-Path {{pkg.svc_config_path}} website.ps1) NewWebsite
 
-     # The svc_config_path lacks an ACL for the USERS group
-     # so we need to ensure the app pool user can access those files
-     $pool = "{{cfg.app_pool}}"
-     $access = New-Object System.Security.AccessControl.FileSystemAccessRule `
-       "IIS APPPOOL\$pool",`
-       "ReadAndExecute",`
-       "Allow"
-     $acl = Get-Acl "{{pkg.svc_config_path}}/Web.config"
-     $acl.SetAccessRule($access)
-     $acl | Set-Acl "{{pkg.svc_config_path}}/Web.config"
-
      # The run hook must run indefinitely or else the Supervisor
      # will think the service has terminated and will loop
      # trying to restart it. The above DSC apply starts our
