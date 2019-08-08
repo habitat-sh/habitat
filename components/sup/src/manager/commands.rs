@@ -197,7 +197,7 @@ pub fn service_load(mgr: &ManagerState,
         }
         spec
     } else {
-        ServiceSpec::default()
+        ServiceSpec::new(PackageIdent::default())
     };
 
     spec.merge_svc_load(opts);

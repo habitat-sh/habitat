@@ -1918,8 +1918,7 @@ mod test {
         /// Helper function for generating a basic spec from an
         /// identifier string
         fn new_spec(ident: &str) -> ServiceSpec {
-            ServiceSpec::with_ident(PackageIdent::from_str(ident).expect("couldn't parse ident \
-                                                                          str"))
+            ServiceSpec::new(PackageIdent::from_str(ident).expect("couldn't parse ident str"))
         }
 
         #[test]

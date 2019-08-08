@@ -554,7 +554,7 @@ impl Service {
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
-        let mut spec = ServiceSpec::with_ident(self.spec_ident.clone());
+        let mut spec = ServiceSpec::new(self.spec_ident.clone());
         spec.group = self.service_group.group().to_string();
         if let Some(appenv) = self.service_group.application_environment() {
             spec.application_environment = Some(appenv)
@@ -1219,7 +1219,7 @@ mod tests {
             panic!("This is being run on a platform that's not currently supported");
         };
 
-        let spec = ServiceSpec::with_ident(ident);
+        let spec = ServiceSpec::new(ident);
 
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
                                                             .join("fixtures")

@@ -87,7 +87,7 @@ pub fn deserialize_application_environment<'de, D>(
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(default)]
+#[serde(default = "ServiceSpec::default")]
 pub struct ServiceSpec {
     #[serde(with = "serde_string")]
     pub ident: PackageIdent,
@@ -110,11 +110,24 @@ pub struct ServiceSpec {
 }
 
 impl ServiceSpec {
-    pub fn with_ident(ident: PackageIdent) -> Self {
+    pub fn new(ident: PackageIdent) -> Self {
         Self { ident,
+               group: DEFAULT_GROUP.to_string(),
+               application_environment: None,
                bldr_url: DEFAULT_BLDR_URL.to_string(),
-               ..Default::default() }
+               channel: ChannelIdent::stable(),
+               topology: Topology::default(),
+               update_strategy: UpdateStrategy::default(),
+               binds: Vec::default(),
+               binding_mode: BindingMode::Strict,
+               config_from: None,
+               desired_state: DesiredState::default(),
+               health_check_interval: HealthCheckInterval::default(),
+               svc_encrypted_password: None,
+               shutdown_timeout: None }
     }
+
+    fn default() -> Self { Self::new(PackageIdent::default()) }
 
     fn to_toml_string(&self) -> Result<String> {
         if self.ident == PackageIdent::default() {
@@ -245,25 +258,6 @@ impl ServiceSpec {
             self.health_check_interval = interval.seconds.into()
         }
         self.shutdown_timeout = svc_load.shutdown_timeout.map(ShutdownTimeout::from);
-    }
-}
-
-impl Default for ServiceSpec {
-    fn default() -> Self {
-        ServiceSpec { ident:                   PackageIdent::default(),
-                      group:                   DEFAULT_GROUP.to_string(),
-                      application_environment: None,
-                      bldr_url:                DEFAULT_BLDR_URL.to_string(),
-                      channel:                 ChannelIdent::stable(),
-                      topology:                Topology::default(),
-                      update_strategy:         UpdateStrategy::default(),
-                      binds:                   Vec::default(),
-                      binding_mode:            BindingMode::Strict,
-                      config_from:             None,
-                      desired_state:           DesiredState::default(),
-                      health_check_interval:   HealthCheckInterval::default(),
-                      svc_encrypted_password:  None,
-                      shutdown_timeout:        None, }
     }
 }
 
@@ -452,7 +446,7 @@ mod test {
     fn service_spec_to_toml_string_invalid_ident() {
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here
-        let spec = ServiceSpec::default();
+        let spec = ServiceSpec::new(PackageIdent::default());
 
         match spec.to_toml_string() {
             Err(e) => {
@@ -629,7 +623,7 @@ mod test {
         let path = tmpdir.path().join("name.spec");
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here
-        let spec = ServiceSpec::default();
+        let spec = ServiceSpec::new(PackageIdent::default());
 
         match spec.to_file(path) {
             Err(e) => {
@@ -644,7 +638,7 @@ mod test {
 
     #[test]
     fn service_spec_file_name() {
-        let spec = ServiceSpec::with_ident(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
+        let spec = ServiceSpec::new(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
 
         assert_eq!(Path::new("hoopa.spec"), spec.file());
     }
@@ -664,7 +658,7 @@ mod test {
             panic!("This is being run on a platform that's not currently supported");
         };
 
-        let spec = ServiceSpec::with_ident(ident);
+        let spec = ServiceSpec::new(ident);
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
                                                             .join("fixtures")
                                                             .join("pkgs");
@@ -677,7 +671,7 @@ mod test {
     fn service_spec_bind_present() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::with_ident(package.ident().clone());
+        let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap()];
         if let Err(e) = spec.validate(&package) {
             panic!("Unexpected error returned: {:?}", e);
@@ -688,7 +682,7 @@ mod test {
     fn service_spec_with_optional_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::with_ident(package.ident().clone());
+        let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
                           ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),];
         if let Err(e) = spec.validate(&package) {
@@ -701,7 +695,7 @@ mod test {
     fn service_spec_error_missing_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::with_ident(package.ident().clone());
+        let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![];
         match spec.validate(&package) {
             Err(e) => {
@@ -720,7 +714,7 @@ mod test {
     fn service_spec_error_invalid_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::with_ident(package.ident().clone());
+        let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("backend:tomcat.app@acmecorp").unwrap(),
                           ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),];
         match spec.validate(&package) {
