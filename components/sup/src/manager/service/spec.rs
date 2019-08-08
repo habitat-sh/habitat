@@ -217,50 +217,57 @@ impl ServiceSpec {
         Ok(())
     }
 
-    pub fn merge_svc_load(mut self, svc_load: &habitat_sup_protocol::ctl::SvcLoad) -> Self {
-        self.ident = svc_load.ident.clone().unwrap().into();
-        self.group = svc_load.group
-                             .clone()
-                             .unwrap_or_else(|| DEFAULT_GROUP.to_string());
-        if let Some(ref app_env) = svc_load.application_environment {
-            self.application_environment = Some(app_env.clone().into());
+    pub fn merge_svc_load(mut self, svc_load: habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
+        self.ident =
+            svc_load.ident
+                    .ok_or_else(|| net::err(net::ErrCode::BadPayload, "No ident specified"))?
+                    .into();
+        if let Some(group) = svc_load.group {
+            self.group = group;
         }
-        if let Some(ref bldr_url) = svc_load.bldr_url {
-            self.bldr_url = bldr_url.to_string();
+        if let Some(application_environment) = svc_load.application_environment {
+            self.application_environment = Some(application_environment.into());
         }
-        if let Some(ref channel) = svc_load.bldr_channel {
-            self.channel = channel.clone().into();
+        if let Some(bldr_url) = svc_load.bldr_url {
+            self.bldr_url = bldr_url;
+        }
+        if let Some(channel) = svc_load.bldr_channel {
+            self.channel = channel.into();
         }
         if let Some(topology) = svc_load.topology {
-            self.topology = Topology::from_i32(topology).unwrap_or_default();
+            if let Some(topology) = Topology::from_i32(topology) {
+                self.topology = topology;
+            }
         }
         if let Some(update_strategy) = svc_load.update_strategy {
-            self.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
+            if let Some(update_strategy) = UpdateStrategy::from_i32(update_strategy) {
+                self.update_strategy = update_strategy;
+            }
         }
-        if let Some(ref list) = svc_load.binds {
-            self.binds =
-                list.binds
-                    .iter()
-                    .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
-                        habitat_core::service::ServiceBind::new(&pb.name,
-                                                                pb.service_group.clone().into())
-                    })
-                    .collect();
+        if let Some(list) = svc_load.binds {
+            self.binds = list.binds
+                             .into_iter()
+                             .map(|pb| ServiceBind::new(&pb.name, pb.service_group.into()))
+                             .collect();
         }
         if let Some(binding_mode) = svc_load.binding_mode {
-            self.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
+            if let Some(binding_mode) = BindingMode::from_i32(binding_mode) {
+                self.binding_mode = binding_mode;
+            }
         }
-        if let Some(ref config_from) = svc_load.config_from {
+        if let Some(config_from) = svc_load.config_from {
             self.config_from = Some(PathBuf::from(config_from));
         }
-        if let Some(ref svc_encrypted_password) = svc_load.svc_encrypted_password {
-            self.svc_encrypted_password = Some(svc_encrypted_password.to_string());
+        if let Some(svc_encrypted_password) = svc_load.svc_encrypted_password {
+            self.svc_encrypted_password = Some(svc_encrypted_password);
         }
-        if let Some(ref interval) = svc_load.health_check_interval {
+        if let Some(interval) = svc_load.health_check_interval {
             self.health_check_interval = interval.seconds.into()
         }
-        self.shutdown_timeout = svc_load.shutdown_timeout.map(ShutdownTimeout::from);
-        self
+        if let Some(shutdown_timeout) = svc_load.shutdown_timeout {
+            self.shutdown_timeout = Some(ShutdownTimeout::from(shutdown_timeout));
+        }
+        Ok(self)
     }
 }
 
@@ -276,17 +283,14 @@ impl FromStr for ServiceSpec {
     }
 }
 
-impl TryFrom<&habitat_sup_protocol::ctl::SvcLoad> for ServiceSpec {
+impl TryFrom<habitat_sup_protocol::ctl::SvcLoad> for ServiceSpec {
     type Error = Error;
 
-    fn try_from(svc_load: &habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
-        let ident =
-            svc_load.ident
-                    .clone()
-                    .ok_or_else(|| net::err(net::ErrCode::BadPayload, "No ident specified"))?
-                    .into();
-        let spec = Self::new(ident);
-        Ok(spec.merge_svc_load(svc_load))
+    fn try_from(svc_load: habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
+        // We use the default `PackageIdent` here but `merge_svc_load` checks that
+        // `svc_load.ident` is set so we will return an error if there is no ident.
+        let spec = Self::new(PackageIdent::default());
+        spec.merge_svc_load(svc_load)
     }
 }
 

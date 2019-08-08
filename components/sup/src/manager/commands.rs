@@ -181,7 +181,7 @@ pub fn service_file_put(mgr: &ManagerState,
 
 pub fn service_load(mgr: &ManagerState,
                     req: &mut CtlRequest,
-                    opts: &protocol::ctl::SvcLoad)
+                    opts: protocol::ctl::SvcLoad)
                     -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
     let source = InstallSource::Ident(ident.clone(), PackageTarget::active_target());
@@ -196,7 +196,7 @@ pub fn service_load(mgr: &ManagerState,
                                          service.",
                                         ident)));
         }
-        spec.merge_svc_load(opts)
+        spec.merge_svc_load(opts)?
     } else {
         ServiceSpec::try_from(opts)?
     };

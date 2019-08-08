@@ -119,28 +119,30 @@ impl From<mpsc::SendError<CtlCommand>> for HandlerError {
 /// A wrapper around a [`ctl_gateway.CtlRequest`] and a closure for the main thread to execute.
 pub struct CtlCommand {
     pub req: CtlRequest,
-    // JW: This needs to be an `FnOnce<Box>` and not an `Fn<Box>` but right now there is no support
-    // for boxing an FnOnce in stable Rust. There is a new type called `FnBox` which exists only on
-    // nightly right now which accomplishes this but it won't stabilize because the Rust core team
-    // feels that they should just get `Box<FnOnce>` working. We'll need to clone the `CtlRequest`
-    // argument passed to this closure until `FnOnce<Box>` stabilizes.
-    //
-    // https://github.com/rust-lang/rust/issues/28796
-    fun: Box<dyn Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send>,
+    // We need to wrap this in an `Option` because we implement `Future` for `CtlCommand`. It will
+    // only be polled once, but there is no way to express this with `poll`'s signature.
+    #[allow(clippy::type_complexity)]
+    fun: Option<Box<dyn FnOnce(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()>
+                        + Send>>,
 }
 
 impl CtlCommand {
     /// Create a new CtlCommand from the given CtlSender, transaction, and closure to execute.
     pub fn new<F>(tx: CtlSender, txn: Option<SrvTxn>, fun: F) -> Self
-        where F: Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send + 'static
+        where F: FnOnce(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()>
+                  + Send
+                  + 'static
     {
-        CtlCommand { fun: Box::new(fun),
+        CtlCommand { fun: Some(Box::new(fun)),
                      req: CtlRequest::new(tx, txn), }
     }
 
     /// Run the contained closure with the given [`manager.ManagerState`].
     pub fn run(&mut self, state: &ManagerState, action_sender: ActionSender) -> NetResult<()> {
-        (self.fun)(state, &mut self.req, action_sender)
+        if let Some(fun) = self.fun.take() {
+            return fun(state, &mut self.req, action_sender);
+        }
+        Ok(())
     }
 }
 
@@ -303,7 +305,7 @@ impl SrvHandler {
                 Ok(CtlCommand::new(ctl_sender,
                                    msg.transaction(),
                                    move |state, req, _action_sender| {
-                                       commands::service_load(state, req, &m)
+                                       commands::service_load(state, req, m)
                                    }))
             }
             "SvcUnload" => {

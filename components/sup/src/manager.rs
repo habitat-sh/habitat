@@ -739,7 +739,7 @@ impl Manager {
         runtime.spawn(ctl_handler);
 
         if let Some(svc_load) = svc {
-            commands::service_load(&self.state, &mut CtlRequest::default(), &svc_load)?;
+            commands::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
         }
 
         // This serves to start up any services that need starting
