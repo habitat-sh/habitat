@@ -8,15 +8,15 @@ use crate::{api_client::{BoxedClient,
                      ui::{Status,
                           UIWriter,
                           UI}},
-            hcore::{crypto::SigKeyPair,
-                    util::wait_for}};
+            hcore::crypto::SigKeyPair};
 
 use crate::{error::{Error,
                     Result},
             PRODUCT,
             VERSION};
 
-use retry::retry;
+use retry::{delay,
+            retry};
 
 #[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
@@ -135,14 +135,13 @@ pub fn download_public_encryption_key(ui: &mut UI,
         Ok(())
     };
 
-    if retry(wait_for(RETRY_WAIT, RETRIES), download_fn).is_err() {
-        return Err(Error::from(common::error::Error::DownloadFailed(format!(
-            "We tried {} times but could not download the latest public encryption key. Giving up.",
-            RETRIES,
-        ))));
-    }
-
-    Ok(())
+    retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).map_err(|_| {
+        Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
+                                                                  not download the latest \
+                                                                  public encryption key. Giving \
+                                                                  up.",
+                                                                 RETRIES,)))
+    })
 }
 
 fn download_secret_key(ui: &mut UI,
@@ -159,14 +158,12 @@ fn download_secret_key(ui: &mut UI,
         Ok(())
     };
 
-    if retry(wait_for(RETRY_WAIT, RETRIES), download_fn).is_err() {
-        return Err(Error::from(common::error::Error::DownloadFailed(format!(
-            "We tried {} times but could not download the latest secret origin key. Giving up.",
-            RETRIES,
-        ))));
-    }
-
-    Ok(())
+    retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).map_err(|_| {
+        Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
+                                                                  not download the latest \
+                                                                  secret origin key. Giving up.",
+                                                                 RETRIES,)))
+    })
 }
 
 fn download_key(ui: &mut UI,
@@ -187,7 +184,7 @@ fn download_key(ui: &mut UI,
                 Ok(())
             };
 
-            if retry(wait_for(RETRY_WAIT, RETRIES), download_fn).is_err() {
+            if retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).is_err() {
                 return Err(Error::from(common::error::Error::DownloadFailed(format!(
                     "We tried {} times but could not download {}/{} origin key. Giving up.",
                     RETRIES, &name, &rev
