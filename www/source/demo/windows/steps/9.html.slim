@@ -132,7 +132,8 @@ section
  = code(:studio) do
    |
     PS C:\contosouniversity> hab pkg export docker core/sqlserver
-    PS C:\contosouniversity> hab pkg export docker .\habitat\results\myorigin-contosouniversity-0.1.0-20180621125530-x86_64-windows.hart
+    PS C:\contosouniversity> . ./results/last_build.ps1
+    PS C:\contosouniversity> hab pkg export docker ./results/$pkg_artifact
 
  blockquote
   p <b>Note</b> You can only export Docker images in an environment where a Docker engine is running. Therefore you cannot export inside of a container based studio. You must exit the studio and export inside your Docker host environment.
@@ -149,6 +150,6 @@ section
 
  = code(:studio) do
    |
-    PS C:\contosouniversity> Invoke-WebRequest http://<LOCAL_IP_ADDRESS>/hab_app -UseBasicParsing -Method head
+    PS C:\contosouniversity> Invoke-WebRequest http://localhost/contoso_university -UseBasicParsing -Method head
 
 = link_to 'Next: Next Steps', "/demo/windows/steps/10", class: 'button cta'
