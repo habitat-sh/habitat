@@ -15,8 +15,3 @@ termcolor = "*"
 tokio = "*"
 tokio-core = "*"
 tokio-codec = "*"
-
-[build-dependencies]
-protoc = "1.4"
-protoc-rust = "1.4"
-

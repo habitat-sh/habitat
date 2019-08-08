@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate log;
 
 use crate::error::Result;
