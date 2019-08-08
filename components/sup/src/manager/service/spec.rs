@@ -13,10 +13,12 @@ use habitat_core::{fs::atomic_write,
                    url::DEFAULT_BLDR_URL,
                    util::serde_string,
                    ChannelIdent};
-use habitat_sup_protocol;
+use habitat_sup_protocol::{self,
+                           net};
 use serde::{self,
             Deserialize};
 use std::{collections::HashSet,
+          convert::TryFrom,
           fmt,
           fs::{self,
                File},
@@ -215,7 +217,7 @@ impl ServiceSpec {
         Ok(())
     }
 
-    pub fn merge_svc_load(&mut self, svc_load: &habitat_sup_protocol::ctl::SvcLoad) {
+    pub fn merge_svc_load(mut self, svc_load: &habitat_sup_protocol::ctl::SvcLoad) -> Self {
         self.ident = svc_load.ident.clone().unwrap().into();
         self.group = svc_load.group
                              .clone()
@@ -258,6 +260,7 @@ impl ServiceSpec {
             self.health_check_interval = interval.seconds.into()
         }
         self.shutdown_timeout = svc_load.shutdown_timeout.map(ShutdownTimeout::from);
+        self
     }
 }
 
@@ -270,6 +273,20 @@ impl FromStr for ServiceSpec {
             return Err(Error::MissingRequiredIdent);
         }
         Ok(spec)
+    }
+}
+
+impl TryFrom<&habitat_sup_protocol::ctl::SvcLoad> for ServiceSpec {
+    type Error = Error;
+
+    fn try_from(svc_load: &habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
+        let ident =
+            svc_load.ident
+                    .clone()
+                    .ok_or_else(|| net::err(net::ErrCode::BadPayload, "No ident specified"))?
+                    .into();
+        let spec = Self::new(ident);
+        Ok(spec.merge_svc_load(svc_load))
     }
 }
 

@@ -23,7 +23,8 @@ use habitat_sup_protocol::{self as protocol,
                                  ErrCode,
                                  NetResult}};
 use serde_json;
-use std::{fmt,
+use std::{convert::TryFrom,
+          fmt,
           result};
 use time::{self,
            Duration as TimeDuration,
@@ -184,7 +185,7 @@ pub fn service_load(mgr: &ManagerState,
                     -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
     let source = InstallSource::Ident(ident.clone(), PackageTarget::active_target());
-    let mut spec = if let Some(spec) = mgr.cfg.spec_for_ident(source.as_ref()) {
+    let spec = if let Some(spec) = mgr.cfg.spec_for_ident(source.as_ref()) {
         // We've seen this service before. Thus `load` acts as a way to edit spec files from the
         // command line. As a result, we check that you *really* meant to change an existing spec.
         if !opts.force.unwrap_or(false) {
@@ -195,12 +196,10 @@ pub fn service_load(mgr: &ManagerState,
                                          service.",
                                         ident)));
         }
-        spec
+        spec.merge_svc_load(opts)
     } else {
-        ServiceSpec::new(PackageIdent::default())
+        ServiceSpec::try_from(opts)?
     };
-
-    spec.merge_svc_load(opts);
 
     let package = util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
     spec.validate(&package)?;
