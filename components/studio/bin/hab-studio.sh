@@ -61,6 +61,7 @@ COMMON FLAGS:
     -h  Prints this message
     -n  Do not mount the source path into the Studio (default: mount the path)
     -N  Do not mount the source artifact cache path into the Studio (default: mount the path)
+    -M  Do not mount the SSL cert cache path into the Studio (default: mount the path)
     -q  Prints less output for better use in scripts
     -v  Prints more verbose output
     -V  Prints version information
@@ -68,6 +69,7 @@ COMMON FLAGS:
 
 COMMON OPTIONS:
     -a <ARTIFACT_PATH>    Sets the source artifact cache path (default: /hab/cache/artifacts)
+    -c <CERT_PATH>        Sets the SSL certs cache path (default: /hab/cache/ssl)
     -k <HAB_ORIGIN_KEYS>  Installs secret origin keys (default:\$HAB_ORIGIN )
     -r <HAB_STUDIO_ROOT>  Sets a Studio root (default: /hab/studios/<DIR_NAME>)
     -s <SRC_PATH>         Sets the source path (default: \$PWD)
@@ -85,6 +87,7 @@ SUBCOMMANDS:
 
 ENVIRONMENT VARIABLES:
     ARTIFACT_PATH          Sets the source artifact cache path (\`-a' option overrides)
+    CERT_PATH              Sets the SSL cert cache path (\`-c' option overrides)
     HAB_NOCOLORING         Disables text coloring mode despite TERM capabilities
     HAB_NONINTERACTIVE     Disables interactive progress bars despite tty
     HAB_LICENSE            Set to 'accept' or 'accept-no-persist' to accept the Habitat license
@@ -95,6 +98,7 @@ ENVIRONMENT VARIABLES:
     HAB_STUDIO_ROOT        Sets a Studio root (\`-r' option overrides)
     HAB_STUDIO_SUP         Sets args for a Supervisor in \`studio enter'
     NO_ARTIFACT_PATH       If set, do not mount the source artifact cache path (\`-N' flag overrides)
+    NO_CERT_PATH           If set, do not mount the SSL cert cache path (\`-M' flag overrides)
     NO_SRC_PATH            If set, do not mount the source path (\`-n' flag overrides)
     QUIET                  Prints less output (\`-q' flag overrides)
     SRC_PATH               Sets the source path (\`-s' option overrides)
@@ -446,6 +450,17 @@ new_studio() {
         $bb mkdir -p $v "$ARTIFACT_PATH"
         $bb mkdir -p $v "$studio_artifact_path"
         $bb mount $v --bind "$ARTIFACT_PATH" "$studio_artifact_path"
+      fi
+    fi
+
+    # Mount ${CERT_PATH} under '/hab/cache/ssl' in the Studio,
+    # unless `$NO_CERT_PATH` is set
+    if [ -z "${NO_CERT_PATH}" ]; then
+      studio_cert_path="${HAB_STUDIO_ROOT}${HAB_CACHE_CERT_PATH}"
+      if ! $bb mount | $bb grep -q "on $studio_cert_path type"; then
+        $bb mkdir -p $v "$CERT_PATH"
+        $bb mkdir -p $v "$studio_cert_path"
+        $bb mount $v --bind "$CERT_PATH" "$studio_cert_path"
       fi
     fi
   fi
@@ -960,6 +975,19 @@ chown_artifacts() {
   fi
 }
 
+# **Internal** Updates file ownership on files under the SSL cert cache path
+# using the ownership of the SSL cert cache directory to determine the target
+# uid and gid. This is done in an effort to leave files residing in a user
+# directory not to be owned by root.
+chown_certs() {
+  if [ -z "${NO_MOUNT}" ] \
+  && [ -z "${NO_CERT_PATH}" ] \
+  && [ -d "$CERT_PATH" ]; then
+    cert_path_owner="$(try "$bb" stat -c '%u:%g' "$CERT_PATH")"
+    try "$bb" chown -R "$cert_path_owner" "$CERT_PATH"
+  fi
+}
+
 # **Internal** Unmount mount point if mounted and abort if an unmount is
 # unsuccessful.
 #
@@ -1030,6 +1058,9 @@ unmount_filesystems() {
 
   studio_artifact_path="${HAB_STUDIO_ROOT}${HAB_CACHE_ARTIFACT_PATH}"
   umount_fs $v -l "$studio_artifact_path"
+
+  studio_cert_path="${HAB_STUDIO_ROOT}${HAB_CACHE_CERT_PATH}"
+  umount_fs $v -l "$studio_cert_path"
 
   umount_fs $v "$HAB_STUDIO_ROOT/run"
 
@@ -1141,6 +1172,9 @@ HAB_PKG_PATH=$HAB_ROOT_PATH/pkgs
 # installation
 HAB_CACHE_ARTIFACT_PATH=$HAB_ROOT_PATH/cache/artifacts
 
+# The default root path for SSL certs
+HAB_CACHE_CERT_PATH=$HAB_ROOT_PATH/cache/ssl
+
 # The exit code for a coding error that manifests at runtime
 ERR_RUNTIME_CODING_ERROR=70
 
@@ -1169,16 +1203,22 @@ ensure_root
 # ## CLI Argument Parsing
 
 # Parse command line flags and options.
-while getopts ":nNa:k:r:s:t:D:vqVh" opt; do
+while getopts ":nNMa:c:k:r:s:t:D:vqVh" opt; do
   case $opt in
     a)
       ARTIFACT_PATH=$OPTARG
+      ;;
+    c)
+      CERT_PATH=$OPTARG
       ;;
     n)
       NO_SRC_PATH=true
       ;;
     N)
       NO_ARTIFACT_PATH=true
+      ;;
+    M)
+      NO_CERT_PATH=true
       ;;
     k)
       HAB_ORIGIN_KEYS=$OPTARG
@@ -1229,6 +1269,9 @@ shift "$((OPTIND - 1))"
 # The artifacts cache path to be mounted into the Studio, which defaults to the
 # artifact cache path.
 : "${ARTIFACT_PATH:=$HAB_CACHE_ARTIFACT_PATH}"
+# The SSL cert cache path to be mounted into the Studio, which defaults to the
+# cert cache path.
+: "${CERT_PATH:=$HAB_CACHE_CERT_PATH}"
 # The directory name of the Studio (which will live under `$HAB_STUDIOS_HOME`).
 # It is a directory path turned into a single directory name that can be
 # deterministically re-constructed on next program invocation.
@@ -1257,6 +1300,13 @@ studio_config="$HAB_STUDIO_ROOT/.studio"
 # is intended to show that it is not default behavior to skip the artifacts
 # cache path mounting and the user must explicitly opt-out.
 : ${NO_ARTIFACT_PATH:=}
+# Whether or not to mount the `$CERT_PATH` into the Studio. An unset or
+# empty value mean it is set to false (and therefore will mount
+# `$CERT_PATH`) and any other value is considered set to true (and
+# therefore will not mount `$CERT_PATH`). The choice of this variable name
+# is intended to show that it is not default behavior to skip the artifacts
+# cache path mounting and the user must explicitly opt-out.
+: ${NO_CERT_PATH:=}
 # Whether or not to mount the `$SRC_PATH` into the Studio. An unset or empty
 # value mean it is set to false (and therefore will mount `$SRC_PATH`) and any
 # other value is considered set to true (and therefore will not mount
