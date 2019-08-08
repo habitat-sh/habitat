@@ -20,4 +20,5 @@ serde = "*"
 serde_derive = "*"
 serde_json = "*"
 tee = "*"
-url = "*"
+# Unlock with env_proxy and url in http-client
+url = "=1.7.2"

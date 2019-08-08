@@ -11,10 +11,12 @@ base64 = "*"
 log = "*"
 httparse = "*"
 reqwest = "*"
-env_proxy = "*"
+# Unlock with url here and in bulider-api-client
+env_proxy = "=0.3.1"
 serde = "*"
 serde_json = "*"
-url = "*"
+# Unlock with env_proxy
+url = "=1.7.2"
 
 [dependencies.habitat_core]
 path = "../core"
