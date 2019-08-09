@@ -14,7 +14,6 @@ fn two_members_share_departures() {
 }
 
 #[test]
-#[ignore]
 fn departure_via_client() {
     let mut net = btest::SwimNet::new(3);
     net.mesh();
