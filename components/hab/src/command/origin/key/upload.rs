@@ -46,12 +46,12 @@ pub fn start(ui: &mut UI,
             Ok(())
         };
 
-        if retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload_fn).is_err() {
-            return Err(Error::from(api_client::Error::UploadFailed(format!(
-                "We tried {} times but could not upload {}/{} public origin key. Giving up.",
-                RETRIES, &name, &rev
-            ))));
-        }
+        retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload_fn).map_err(|_| {
+            Error::from(api_client::Error::UploadFailed(format!("We tried {} times but could \
+                                                                 not upload {}/{} public origin \
+                                                                 key. Giving up.",
+                                                                RETRIES, &name, &rev)))
+        })?;
     }
 
     ui.end(format!("Upload of public origin key {} complete.", &name_with_rev))?;
@@ -77,12 +77,12 @@ pub fn start(ui: &mut UI,
             }
         };
 
-        if retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload_fn).is_err() {
-            return Err(Error::from(api_client::Error::UploadFailed(format!(
-                "We tried {} times but could not upload {}/{} secret origin key. Giving up.",
-                RETRIES, &name, &rev
-            ))));
-        }
+        retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload_fn).map_err(|_| {
+            Error::from(api_client::Error::UploadFailed(format!("We tried {} times but could \
+                                                                 not upload {}/{} secret origin \
+                                                                 key. Giving up.",
+                                                                RETRIES, &name, &rev)))
+        })?;
     }
     Ok(())
 }
