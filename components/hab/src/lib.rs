@@ -16,6 +16,7 @@ extern crate log;
 extern crate serde_derive;
 
 extern crate serde_json;
+extern crate toml;
 
 #[cfg(windows)]
 extern crate widestring;
