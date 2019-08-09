@@ -13,5 +13,7 @@ fn symmetric_encryption_of_wire_payloads() {
     net.add_service(0, "core/beast/1.2.3/20161208121212");
     net.wait_for_gossip_rounds(2);
     assert!(net[1].service_store
-                  .contains_rumor("beast.prod", net[0].member_id()));
+                  .lock_rsr()
+                  .service_group("beast.prod")
+                  .contains_id(net[0].member_id()));
 }

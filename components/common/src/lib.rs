@@ -203,12 +203,12 @@ pub mod sync {
     /// internally use either a RwLock or a Mutex in order to make it easier to expose erroneous
     /// recursive locking in tests while still using an RwLock in production to avoid deadlocking
     /// as much as possible.
-    #[derive(Debug)]
-    pub struct Lock<T> {
+    #[derive(Debug, Default)]
+    pub struct Lock<T: Default> {
         inner: InnerLock<T>,
     }
 
-    impl<T> Lock<T> {
+    impl<T: Default> Lock<T> {
         pub fn new(val: T) -> Self {
             #[cfg(feature = "lock_as_mutex")]
             println!("Lock::new is using Mutex to help find recursive locking");

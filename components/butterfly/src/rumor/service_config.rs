@@ -8,7 +8,8 @@ use crate::{error::{Error,
                        newscast::{self,
                                   Rumor as ProtoRumor},
                        FromProto},
-            rumor::{Rumor,
+            rumor::{ConstIdRumor,
+                    Rumor,
                     RumorPayload,
                     RumorType}};
 use habitat_core::{crypto::{keys::box_key_pair::WrappedSealedBox,
@@ -153,22 +154,25 @@ impl Rumor for ServiceConfig {
 
     fn kind(&self) -> RumorType { RumorType::ServiceConfig }
 
-    fn id(&self) -> &str { "service_config" }
+    fn id(&self) -> &str { Self::const_id() }
 
     fn key(&self) -> &str { &self.service_group }
 }
 
+impl ConstIdRumor for ServiceConfig {
+    fn const_id() -> &'static str { "service_config" }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::ServiceConfig;
+    use crate::rumor::{ConstIdRumor as _,
+                       Rumor,
+                       RumorStore};
+    use habitat_core::service::ServiceGroup;
     use std::{cmp::Ordering,
               str::FromStr};
-
-    use habitat_core::service::ServiceGroup;
     use toml;
-
-    use super::ServiceConfig;
-    use crate::rumor::{Rumor,
-                       RumorStore};
 
     fn create_rumor_store() -> RumorStore<ServiceConfig> { RumorStore::default() }
 
@@ -185,16 +189,16 @@ mod tests {
         let s1 = create_service_config("timmeh", "lol");
         let mut s2 = create_service_config("timmeh", "awesome");
         s2.incarnation = 1; // 0 is the default, which means this rumor will win
-        rs.insert(s1);
-        rs.insert(s2);
+        rs.insert_rsw(s1);
+        rs.insert_rsw(s2);
 
-        let list = rs.list.read().expect("Rumor store lock poisoned");
+        let list = rs.lock_rsr();
         assert_eq!(list.len(), 1); // because we only have 1 service group
 
         let sub_list = list.get("neurosis.production").unwrap();
         assert_eq!(sub_list.len(), 1); // because only the latest service config is kept
 
-        let sc = sub_list.get("service_config").unwrap();
+        let sc = sub_list.get(ServiceConfig::const_id()).unwrap();
         assert_eq!(sc.config, Vec::<u8>::from("awesome"));
     }
 

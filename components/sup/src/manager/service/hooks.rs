@@ -692,7 +692,7 @@ mod tests {
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
         let service_one = ServiceRumor::new("member-a", &pg_id, sg_one.clone(), sys_info, None);
-        service_store.insert(service_one);
+        service_store.insert_rsw(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
         let mut election = ElectionRumor::new("member-a",
@@ -701,7 +701,7 @@ mod tests {
                                               10,
                                               true /* has_quorum */);
         election.finish();
-        election_store.insert(election);
+        election_store.insert_rsw(election);
 
         let election_update_store: RumorStore<ElectionUpdateRumor> = RumorStore::default();
 
@@ -711,13 +711,13 @@ mod tests {
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
         let mut ring = CensusRing::new("member-a");
-        ring.update_from_rumors_mlr(&cache_key_path(Some(&*FS_ROOT)),
-                                    &service_store,
-                                    &election_store,
-                                    &election_update_store,
-                                    &member_list,
-                                    &service_config_store,
-                                    &service_file_store);
+        ring.update_from_rumors_rsr_mlr(&cache_key_path(Some(&*FS_ROOT)),
+                                        &service_store,
+                                        &election_store,
+                                        &election_update_store,
+                                        &member_list,
+                                        &service_config_store,
+                                        &service_file_store);
 
         let bindings = iter::empty::<&ServiceBind>();
 

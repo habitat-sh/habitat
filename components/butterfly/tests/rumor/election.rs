@@ -1,5 +1,7 @@
 use habitat_butterfly::{member::Health,
-                        rumor::election::ElectionStatus};
+                        rumor::{election::ElectionStatus,
+                                ConstIdRumor as _,
+                                Election}};
 use habitat_common::FeatureFlag;
 
 use crate::btest;
@@ -46,25 +48,26 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     assert_wait_for_election_status!(net, [0..5], "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
-    let mut leader_id = String::from("");
-    net[0].election_store
-          .with_rumor("witcher.prod", "election", |e| {
-              leader_id = e.member_id.to_string();
-          });
+    let leader_id = net[0].election_store
+                          .lock_rsr()
+                          .service_group("witcher.prod")
+                          .map_rumor(Election::const_id(), |e| e.member_id.clone());
 
     let mut paused = 0;
     for (index, server) in net.iter_mut().enumerate() {
-        if server.member_id() == &leader_id[..] {
-            paused = index;
+        if let Some(ref leader_id) = leader_id {
+            if server.member_id() == leader_id {
+                paused = index;
+            }
         }
     }
     net[paused].pause();
     let paused_id = net[paused].member_id();
     assert_wait_for_health_of_mlr!(net, paused, Health::Confirmed);
     if paused == 0 {
-        net[1].restart_elections_mlr(FeatureFlag::empty());
+        net[1].restart_elections_rsw_mlr(FeatureFlag::empty());
     } else {
-        net[0].restart_elections_mlr(FeatureFlag::empty());
+        net[0].restart_elections_rsw_mlr(FeatureFlag::empty());
     }
 
     for i in 0..5 {
@@ -80,8 +83,11 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     }
 
     net[if paused == 0 { 1 } else { 0 }].election_store
-                                        .assert_rumor_is("witcher.prod", "election", |e| {
-                                            e.term == 1 && e.member_id != paused_id
+                                        .lock_rsr()
+                                        .service_group("witcher.prod")
+                                        .map_rumor(Election::const_id(), |e| {
+                                            assert_eq!(e.term, 1);
+                                            assert_ne!(e.member_id, paused_id);
                                         });
 }
 
@@ -111,57 +117,64 @@ fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     assert_wait_for_election_status!(net, [0..5], "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_equal_election!(net, [0..5, 0..5], "witcher.prod");
 
-    let mut leader_id = String::from("");
-    net[0].election_store
-          .with_rumor("witcher.prod", "election", |e| {
-              leader_id = e.member_id.to_string();
-          });
+    let leader_id = net[0].election_store
+                          .lock_rsr()
+                          .service_group("witcher.prod")
+                          .map_rumor(Election::const_id(), |e| e.member_id.clone());
 
-    assert_eq!(leader_id, net[0].member_id());
+    assert_eq!(leader_id, Some(net[0].member_id().to_string()));
 
     let mut leader_index = 0;
     for (index, server) in net.iter_mut().enumerate() {
-        if server.member_id() == &leader_id[..] {
-            leader_index = index;
+        if let Some(ref leader_id) = leader_id {
+            if server.member_id() == leader_id {
+                leader_index = index;
+            }
         }
     }
     println!("Leader index: {}", leader_index);
 
-    let mut new_leader_id = String::from("");
+    let new_leader_id;
     net.partition(0..2, 2..5);
     assert_wait_for_health_of_mlr!(net, [0..2, 2..5], Health::Confirmed);
-    net[0].restart_elections_mlr(FeatureFlag::empty());
-    net[4].restart_elections_mlr(FeatureFlag::empty());
+    net[0].restart_elections_rsw_mlr(FeatureFlag::empty());
+    net[4].restart_elections_rsw_mlr(FeatureFlag::empty());
     assert_wait_for_election_status!(net, 0, "witcher.prod", ElectionStatus::NoQuorum);
     assert_wait_for_election_status!(net, 1, "witcher.prod", ElectionStatus::NoQuorum);
     assert_wait_for_election_status!(net, 2, "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_election_status!(net, 3, "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_election_status!(net, 4, "witcher.prod", ElectionStatus::Finished);
     net[0].election_store
-          .with_rumor("witcher.prod", "election", |e| {
+          .lock_rsr()
+          .service_group("witcher.prod")
+          .map_rumor(Election::const_id(), |e| {
               println!("OLD: {:#?}", e);
-              new_leader_id = e.member_id.to_string();
           });
-    net[2].election_store
-          .with_rumor("witcher.prod", "election", |e| {
-              println!("NEW: {:#?}", e);
-              new_leader_id = e.member_id.to_string();
-          });
+    new_leader_id = net[2].election_store
+                          .lock_rsr()
+                          .service_group("witcher.prod")
+                          .map_rumor(Election::const_id(), |e| {
+                              println!("NEW: {:#?}", e);
+                              e.member_id.clone()
+                          });
+    assert!(leader_id.is_some());
     assert!(leader_id != new_leader_id);
-    println!("Leader {} New {}", leader_id, new_leader_id);
+    println!("Leader {:?} New {:?}", leader_id, new_leader_id);
     net.unpartition(0..2, 2..5);
     assert_wait_for_health_of_mlr!(net, [0..5, 0..5], Health::Alive);
     assert_wait_for_election_status!(net, 0, "witcher.prod", ElectionStatus::Finished);
     assert_wait_for_election_status!(net, 1, "witcher.prod", ElectionStatus::Finished);
 
     net[4].election_store
-          .with_rumor("witcher.prod", "election", |e| {
-              println!("MAJORITY: {:#?}", e);
-          });
+          .lock_rsr()
+          .service_group("witcher.prod")
+          .map_rumor(Election::const_id(), |e| println!("MAJORITY: {:#?}", e));
 
     net[0].election_store
-          .assert_rumor_is("witcher.prod", "election", |e| {
+          .lock_rsr()
+          .service_group("witcher.prod")
+          .map_rumor(Election::const_id(), |e| {
               println!("MINORITY: {:#?}", e);
-              new_leader_id == e.member_id
+              assert_eq!(new_leader_id.as_ref(), Some(&e.member_id));
           });
 }

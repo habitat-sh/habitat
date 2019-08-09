@@ -118,21 +118,21 @@ fn run_loop(server: &Server) -> ! {
             RumorKind::Membership(membership) => {
                 server.insert_member_from_rumor_mlw(membership.member, membership.health);
             }
-            RumorKind::Service(service) => server.insert_service_mlw(*service),
+            RumorKind::Service(service) => server.insert_service_rsw_mlw(*service),
             RumorKind::ServiceConfig(service_config) => {
-                server.insert_service_config(service_config);
+                server.insert_service_config_rsw(service_config);
             }
             RumorKind::ServiceFile(service_file) => {
-                server.insert_service_file(service_file);
+                server.insert_service_file_rsw(service_file);
             }
             RumorKind::Election(election) => {
-                server.insert_election_mlr(election);
+                server.insert_election_rsw_mlr(election);
             }
             RumorKind::ElectionUpdate(election) => {
-                server.insert_update_election_mlr(election);
+                server.insert_update_election_rsw_mlr(election);
             }
             RumorKind::Departure(departure) => {
-                server.insert_departure_mlw(departure);
+                server.insert_departure_rsw_mlw(departure);
             }
         }
     }

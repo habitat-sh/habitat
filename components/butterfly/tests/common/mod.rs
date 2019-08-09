@@ -6,7 +6,9 @@ use habitat_butterfly::{error::Error,
                                 service::{Service,
                                           SysInfo},
                                 service_config::ServiceConfig,
-                                service_file::ServiceFile},
+                                service_file::ServiceFile,
+                                ConstIdRumor as _,
+                                Election},
                         server::{timing::Timing,
                                  Server,
                                  Suitability},
@@ -61,7 +63,7 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                                  Some(String::from(name)),
                                  None,
                                  Box::new(NSuitability(suitability))).unwrap();
-    server.start_mlw(&Timing::default())
+    server.start_rsw_mlw(&Timing::default())
           .expect("Cannot start server");
     server
 }
@@ -166,9 +168,8 @@ impl SwimNet {
         from.remove_from_block_list(to.member_id());
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn health_of_mlr(&self, from_entry: usize, to_entry: usize) -> Option<Health> {
         /// To avoid deadlocking in a test, we use `health_of_by_id_with_timeout` rather than
         /// `health_of_by_id`.
@@ -198,9 +199,8 @@ impl SwimNet {
         }
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn network_health_of_mlr(&self, to_check: usize) -> Vec<Option<Health>> {
         let mut health_summary = Vec::with_capacity(self.members.len() - 1);
         let length = self.members.len();
@@ -280,15 +280,14 @@ impl SwimNet {
                                     -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
-            let mut result = false;
             let server = self.members
                              .get(e_num)
                              .expect("Asked for a network member who is out of bounds");
-            server.election_store.with_rumor(key, "election", |e| {
-                                     if e.status == status {
-                                         result = true;
-                                     }
-                                 });
+            let result = server.election_store
+                               .lock_rsr()
+                               .service_group(key)
+                               .map_rumor(Election::const_id(), |stored| stored.status == status)
+                               .unwrap_or(false);
             if result {
                 return true;
             }
@@ -303,23 +302,25 @@ impl SwimNet {
     pub fn wait_for_equal_election(&self, left: usize, right: usize, key: &str) -> bool {
         let rounds_in = self.gossip_rounds_in(self.max_gossip_rounds());
         loop {
-            let mut result = false;
-
             let left_server = self.members
                                   .get(left)
-                                  .expect("Asked for a network member who is out of bounds");
+                                  .expect("Asked for a network member who is out of bounds")
+                                  .election_store
+                                  .lock_rsr();
             let right_server = self.members
                                    .get(right)
-                                   .expect("Asked for a network member who is out of bounds");
+                                   .expect("Asked for a network member who is out of bounds")
+                                   .election_store
+                                   .lock_rsr();
 
-            left_server.election_store.with_rumor(key, "election", |l| {
-                                          right_server.election_store.with_rumor(key,
-                                                                                 "election",
-                                                                                 |r| {
-                                                                                     result =
-                                                                                         l == r;
-                                                                                 });
-                                      });
+            let result = left_server.service_group(key)
+                                    .map_rumor(Election::const_id(), |l| {
+                                        right_server.service_group(key)
+                                                    .map_rumor(Election::const_id(), |r| l == r)
+                                                    .unwrap_or(false)
+                                    })
+                                    .unwrap_or(false);
+
             if result {
                 return true;
             }
@@ -358,9 +359,8 @@ impl SwimNet {
         }
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn wait_for_health_of_mlr(&self,
                                   from_entry: usize,
                                   to_check: usize,
@@ -384,9 +384,8 @@ impl SwimNet {
         }
     }
 
-    /// # Locking
-    /// * `MemberList::entries` (read) This method must not be called while any MemberList::entries
-    ///   lock is held.
+    /// # Locking (see locking.md)
+    /// * `MemberList::entries` (read)
     pub fn wait_for_network_health_of_mlr(&self, to_check: usize, health: Health) -> bool {
         let rounds_in = self.rounds_in(self.max_rounds());
         loop {
@@ -436,7 +435,7 @@ impl SwimNet {
                              sg,
                              SysInfo::default(),
                              None);
-        self[member].insert_service_mlw(s);
+        self[member].insert_service_rsw_mlw(s);
     }
 
     pub fn add_service_config(&mut self, member: usize, service: &str, config: &str) {
@@ -444,7 +443,7 @@ impl SwimNet {
         let s = ServiceConfig::new(self[member].member_id(),
                                    ServiceGroup::new(None, service, "prod", None).unwrap(),
                                    config_bytes);
-        self[member].insert_service_config(s);
+        self[member].insert_service_config_rsw(s);
     }
 
     pub fn add_service_file(&mut self, member: usize, service: &str, filename: &str, body: &str) {
@@ -453,16 +452,16 @@ impl SwimNet {
                                  ServiceGroup::new(None, service, "prod", None).unwrap(),
                                  filename,
                                  body_bytes);
-        self[member].insert_service_file(s);
+        self[member].insert_service_file_rsw(s);
     }
 
     pub fn add_departure(&mut self, member: usize) {
         let d = Departure::new(self[member].member_id());
-        self[member].insert_departure_mlw(d);
+        self[member].insert_departure_rsw_mlw(d);
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election_mlr(&ServiceGroup::new(None, service, "prod", None).unwrap(),
+        self[member].start_election_rsw_mlr(&ServiceGroup::new(None, service, "prod", None).unwrap(),
                                         0);
     }
 }

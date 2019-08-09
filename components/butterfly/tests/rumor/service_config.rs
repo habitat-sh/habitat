@@ -1,5 +1,7 @@
 use crate::btest;
-use habitat_butterfly::client::Client;
+use habitat_butterfly::{client::Client,
+                        rumor::{ConstIdRumor as _,
+                                ServiceConfig}};
 use habitat_core::service::ServiceGroup;
 
 #[test]
@@ -9,7 +11,9 @@ fn two_members_share_service_config() {
     net.add_service_config(0, "witcher", "tcp-backlog = 128");
     net.wait_for_gossip_rounds(1);
     assert!(net[1].service_config_store
-                  .contains_rumor("witcher.prod", "service_config"));
+                  .lock_rsr()
+                  .service_group("witcher.prod")
+                  .contains_id(ServiceConfig::const_id()));
 }
 
 #[test]
@@ -29,5 +33,7 @@ fn service_config_via_client() {
           .expect("Cannot send the service configuration");
     net.wait_for_gossip_rounds(1);
     assert!(net[1].service_config_store
-                  .contains_rumor("witcher.prod", "service_config"));
+                  .lock_rsr()
+                  .service_group("witcher.prod")
+                  .contains_id(ServiceConfig::const_id()));
 }
