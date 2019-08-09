@@ -166,6 +166,8 @@ impl Identifiable for PackageIdent {
     fn release(&self) -> Option<&str> { self.release.as_ref().map(String::as_str) }
 }
 
+// It does not make sense for `PackageIdent` to implement `Default`. This should be removed.
+// See https://github.com/habitat-sh/habitat/issues/6829
 impl Default for PackageIdent {
     fn default() -> PackageIdent { PackageIdent::new("", "", None, None) }
 }

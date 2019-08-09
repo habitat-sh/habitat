@@ -89,7 +89,7 @@ pub fn deserialize_application_environment<'de, D>(
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(default = "ServiceSpec::default")]
+#[serde(default = "ServiceSpec::deserialization_base")]
 pub struct ServiceSpec {
     #[serde(with = "serde_string")]
     pub ident: PackageIdent,
@@ -129,7 +129,10 @@ impl ServiceSpec {
                shutdown_timeout: None }
     }
 
-    fn default() -> Self { Self::new(PackageIdent::default()) }
+    // This should only be used to provide a default value when deserializing. We intentially do not
+    // implement `Default` because a default value for `PackageIdent` does not make sense and should
+    // be removed.
+    fn deserialization_base() -> Self { Self::new(PackageIdent::default()) }
 
     fn to_toml_string(&self) -> Result<String> {
         if self.ident == PackageIdent::default() {
@@ -289,8 +292,7 @@ impl TryFrom<habitat_sup_protocol::ctl::SvcLoad> for ServiceSpec {
     fn try_from(svc_load: habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
         // We use the default `PackageIdent` here but `merge_svc_load` checks that
         // `svc_load.ident` is set so we will return an error if there is no ident.
-        let spec = Self::new(PackageIdent::default());
-        spec.merge_svc_load(svc_load)
+        Self::new(PackageIdent::default()).merge_svc_load(svc_load)
     }
 }
 
