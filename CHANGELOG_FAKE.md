@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.20 -->
+<!-- latest_release 0.84.21 -->
+## [fake-0.84.21](https://github.com/habitat-sh/habitat/tree/fake-0.84.21) (2019-08-09)
+
+#### Merged Pull Requests
+- Add environment to windows binstubs [#6826](https://github.com/habitat-sh/habitat/pull/6826) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.84.20](https://github.com/habitat-sh/habitat/tree/fake-0.84.20) (2019-08-09)
 
 #### Bug Fixes
 - Audit RumorStore locking [#6674](https://github.com/habitat-sh/habitat/pull/6674) ([baumanj](https://github.com/baumanj))
-<!-- latest_release -->
 
 ## [fake-0.84.18](https://github.com/habitat-sh/habitat/tree/fake-0.84.18) (2019-08-07)
 
