@@ -5,6 +5,8 @@ use crate::{common::{self,
                      ui::{Status,
                           UIWriter,
                           UI}},
+            error::{Error,
+                    Result},
             hcore::{self,
                     fs::{self,
                          cache_artifact_path,
@@ -13,15 +15,14 @@ use crate::{common::{self,
                               PackageInstall,
                               PackageTarget},
                     url::default_bldr_url,
-                    ChannelIdent}};
-use std::path::PathBuf;
-
-use crate::{error::{Error,
-                    Result},
+                    ChannelIdent},
             PRODUCT,
             VERSION};
+use retry::{delay,
+            retry};
+use std::path::PathBuf;
 
-const RETRY_LIMIT: u8 = 5;
+const RETRY_LIMIT: usize = 5;
 const INTERNAL_TOOLING_CHANNEL_ENVVAR: &str = "HAB_INTERNAL_BLDR_CHANNEL";
 
 /// Returns the absolute path to the given command from a package no
@@ -60,53 +61,42 @@ pub fn command_from_min_pkg(ui: &mut UI,
                             command: impl Into<PathBuf>,
                             ident: &PackageIdent)
                             -> Result<PathBuf> {
-    try_command_from_min_pkg(ui, command, ident, 0)
-}
-
-fn try_command_from_min_pkg(ui: &mut UI,
-                            command: impl Into<PathBuf>,
-                            ident: &PackageIdent,
-                            retry: u8)
-                            -> Result<PathBuf> {
     let command = command.into();
-    if retry >= RETRY_LIMIT {
-        return Err(Error::ExecCommandNotFound(command));
-    }
-
     let fs_root_path = FS_ROOT_PATH.as_path();
-    match PackageInstall::load_at_least(ident, Some(fs_root_path)) {
-        Ok(pi) => {
-            match fs::find_command_in_pkg(&command, &pi, fs_root_path)? {
-                Some(cmd) => Ok(cmd),
-                None => Err(Error::ExecCommandNotFound(command)),
-            }
-        }
+    let pi = match PackageInstall::load_at_least(ident, Some(fs_root_path)) {
+        Ok(pi) => pi,
         Err(hcore::Error::PackageNotFound(_)) => {
             ui.status(Status::Missing, format!("package for {}", &ident))?;
 
             // JB TODO - Does an auth token need to be plumbed into here?  Not 100% sure.
-            common::command::package::install::start(ui,
-                                                     &default_bldr_url(),
-                                                     &internal_tooling_channel(),
-                                                     &(ident.clone(),
-                                                       PackageTarget::active_target())
-                                                                                      .into(),
-                                                     PRODUCT,
-                                                     VERSION,
-                                                     fs_root_path,
-                                                     &cache_artifact_path(None::<String>),
-                                                     None,
-                                                     // TODO fn: pass through and enable offline
-                                                     // install mode
-                                                     &InstallMode::default(),
-                                                     // TODO (CM): pass through and enable
-                                                     // no-local-package mode
-                                                     &LocalPackageUsage::default(),
-                                                     InstallHookMode::default())?;
-            try_command_from_min_pkg(ui, &command, &ident, retry.saturating_add(1))
+            retry(delay::NoDelay.take(RETRY_LIMIT), || {
+                common::command::package::install::start(ui,
+                                                         &default_bldr_url(),
+                                                         &internal_tooling_channel(),
+                                                         &(ident.clone(),
+                                                           PackageTarget::active_target())
+                                                                                          .into(),
+                                                         PRODUCT,
+                                                         VERSION,
+                                                         fs_root_path,
+                                                         &cache_artifact_path(None::<String>),
+                                                         None,
+                                                         // TODO fn: pass through and enable
+                                                         // offline
+                                                         // install mode
+                                                         &InstallMode::default(),
+                                                         // TODO (CM): pass through and enable
+                                                         // no-local-package mode
+                                                         &LocalPackageUsage::default(),
+                                                         InstallHookMode::default())
+            }).map_err(|_| Error::ExecCommandNotFound(command.clone()))?
         }
-        Err(e) => Err(Error::from(e)),
-    }
+        Err(e) => return Err(Error::from(e)),
+    };
+
+    fs::find_command_in_pkg(&command, &pi, fs_root_path)?.ok_or_else(|| {
+                                                             Error::ExecCommandNotFound(command)
+                                                         })
 }
 
 /// Determine the channel from which to install Habitat-specific

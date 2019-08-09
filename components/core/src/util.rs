@@ -6,8 +6,7 @@ pub mod sys;
 #[cfg(windows)]
 pub mod win_perm;
 
-use std::{mem,
-          time::Duration};
+use std::mem;
 
 /// Provide a way to convert numeric types safely to i64
 pub trait ToI64 {
@@ -45,10 +44,6 @@ impl ToI64 for u64 {
             self as i64
         }
     }
-}
-
-pub fn wait_for(delay: Duration, times: usize) -> impl IntoIterator<Item = Duration> {
-    vec![delay].into_iter().cycle().take(times)
 }
 
 #[cfg(test)]

@@ -51,11 +51,11 @@ use crate::{api_client::{self,
                               PackageIdent,
                               PackageInstall,
                               PackageTarget},
-                    util::wait_for,
                     ChannelIdent}};
 use glob;
 use reqwest::StatusCode;
-use retry::retry;
+use retry::{delay,
+            retry};
 
 use crate::{error::{Error,
                     Result},
@@ -672,7 +672,7 @@ impl<'a> InstallTask<'a> {
                    ident);
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
-        } else if retry(wait_for(RETRY_WAIT, RETRIES), fetch_artifact).is_err() {
+        } else if retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), fetch_artifact).is_err() {
             return Err(Error::DownloadFailed(format!("We tried {} times but \
                                                       could not download {}. \
                                                       Giving up.",

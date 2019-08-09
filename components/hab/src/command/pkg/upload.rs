@@ -14,15 +14,6 @@
 //! This should be extended to cover uploading specific packages, and finding them by ways more
 //! complex than just latest version.
 
-// Standard Library
-use std::path::{Path,
-                PathBuf};
-
-// External Libraries
-use reqwest::StatusCode;
-use retry::retry;
-
-// Local Dependencies
 use crate::{api_client::{self,
                          BoxedClient,
                          Client},
@@ -38,10 +29,14 @@ use crate::{api_client::{self,
                     package::{PackageArchive,
                               PackageIdent,
                               PackageTarget},
-                    util::wait_for,
                     ChannelIdent},
             PRODUCT,
             VERSION};
+use reqwest::StatusCode;
+use retry::{delay,
+            retry};
+use std::path::{Path,
+                PathBuf};
 
 /// Upload a package from the cache to a Depot. The latest version/release of the package
 /// will be uploaded if not specified.
@@ -92,7 +87,7 @@ pub fn start(ui: &mut UI,
                                                &candidate_path,
                                                key_path)
                         };
-                        match retry(wait_for(RETRY_WAIT, RETRIES), upload) {
+                        match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload) {
                             Ok(_) => trace!("attempt_upload_dep succeeded"),
                             Err(_) => {
                                 return Err(Error::from(api_client::Error::UploadFailed(format!(
@@ -115,7 +110,7 @@ pub fn start(ui: &mut UI,
                                   force_upload,
                                   &mut archive)
             };
-            match retry(wait_for(RETRY_WAIT, RETRIES), upload) {
+            match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload) {
                 Ok(_) => trace!("upload_into_depot succeeded"),
                 Err(_) => {
                     return Err(Error::from(api_client::Error::UploadFailed(format!(

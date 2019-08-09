@@ -1,5 +1,3 @@
-use std::path::Path;
-
 use crate::{api_client::{BoxedClient,
                          Client},
             common::{self,
@@ -8,15 +6,14 @@ use crate::{api_client::{BoxedClient,
                      ui::{Status,
                           UIWriter,
                           UI}},
-            hcore::{crypto::SigKeyPair,
-                    util::wait_for}};
-
-use crate::{error::{Error,
+            error::{Error,
                     Result},
+            hcore::crypto::SigKeyPair,
             PRODUCT,
             VERSION};
-
-use retry::retry;
+use retry::{delay,
+            retry};
+use std::path::Path;
 
 #[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
@@ -135,14 +132,13 @@ pub fn download_public_encryption_key(ui: &mut UI,
         Ok(())
     };
 
-    if retry(wait_for(RETRY_WAIT, RETRIES), download_fn).is_err() {
-        return Err(Error::from(common::error::Error::DownloadFailed(format!(
-            "We tried {} times but could not download the latest public encryption key. Giving up.",
-            RETRIES,
-        ))));
-    }
-
-    Ok(())
+    retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).map_err(|_| {
+        Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
+                                                                  not download the latest \
+                                                                  public encryption key. Giving \
+                                                                  up.",
+                                                                 RETRIES,)))
+    })
 }
 
 fn download_secret_key(ui: &mut UI,
@@ -159,14 +155,12 @@ fn download_secret_key(ui: &mut UI,
         Ok(())
     };
 
-    if retry(wait_for(RETRY_WAIT, RETRIES), download_fn).is_err() {
-        return Err(Error::from(common::error::Error::DownloadFailed(format!(
-            "We tried {} times but could not download the latest secret origin key. Giving up.",
-            RETRIES,
-        ))));
-    }
-
-    Ok(())
+    retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).map_err(|_| {
+        Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but could \
+                                                                  not download the latest \
+                                                                  secret origin key. Giving up.",
+                                                                 RETRIES,)))
+    })
 }
 
 fn download_key(ui: &mut UI,
@@ -177,23 +171,22 @@ fn download_key(ui: &mut UI,
                 token: Option<&str>,
                 cache: &Path)
                 -> Result<()> {
-    match SigKeyPair::get_public_key_path(&nwr, &cache) {
-        Ok(_) => ui.status(Status::Using, &format!("{} in {}", nwr, cache.display()))?,
-        Err(_) => {
-            let download_fn = || -> Result<()> {
-                ui.status(Status::Downloading, &nwr)?;
-                api_client.fetch_origin_key(name, rev, token, cache, ui.progress())?;
-                ui.status(Status::Cached, &format!("{} to {}", nwr, cache.display()))?;
-                Ok(())
-            };
+    if SigKeyPair::get_public_key_path(&nwr, &cache).is_ok() {
+        ui.status(Status::Using, &format!("{} in {}", nwr, cache.display()))?;
+        Ok(())
+    } else {
+        let download_fn = || -> Result<()> {
+            ui.status(Status::Downloading, &nwr)?;
+            api_client.fetch_origin_key(name, rev, token, cache, ui.progress())?;
+            ui.status(Status::Cached, &format!("{} to {}", nwr, cache.display()))?;
+            Ok(())
+        };
 
-            if retry(wait_for(RETRY_WAIT, RETRIES), download_fn).is_err() {
-                return Err(Error::from(common::error::Error::DownloadFailed(format!(
-                    "We tried {} times but could not download {}/{} origin key. Giving up.",
-                    RETRIES, &name, &rev
-                ))));
-            }
-        }
+        retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), download_fn).map_err(|_| {
+            Error::from(common::error::Error::DownloadFailed(format!("We tried {} times but \
+                                                                      could not download {}/{} \
+                                                                      origin key. Giving up.",
+                                                                     RETRIES, &name, &rev)))
+        })
     }
-    Ok(())
 }
