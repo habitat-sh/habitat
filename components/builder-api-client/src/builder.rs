@@ -1223,8 +1223,8 @@ mod tests {
         assert_eq!(r.1, 0);
     }
 
-    #[ignore]
     #[test]
+    #[ignore = "takes too long to run regularly; should run on CI"]
     fn package_search_large() {
         let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
 
