@@ -5,10 +5,9 @@ use crate::os::process::{Signal,
 use std::{collections::VecDeque,
           sync::{atomic::Ordering,
                  Mutex,
-                 Once,
-                 ONCE_INIT}};
+                 Once}};
 
-static INIT: Once = ONCE_INIT;
+static INIT: Once = Once::new();
 
 lazy_static::lazy_static! {
     static ref CAUGHT_SIGNALS: Mutex<VecDeque<SignalCode>> = Mutex::new(VecDeque::new());
