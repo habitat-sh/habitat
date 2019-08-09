@@ -80,7 +80,7 @@ steps:
       automatic:
         limit: 1
 
-- label: "[unit] :linux: builder-api-client ignored"
+  - label: "[unit] :linux: builder-api-client ignored"
     command:
       - ./test/run_cargo_test.sh builder-api-client -- --ignored
     agents:
