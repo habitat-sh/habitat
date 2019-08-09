@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-source .expeditor/scripts/shared.sh
+source .expeditor/scripts/shared_release_habitat.sh
 
 # Get secrets! (our auth token and aws creds should be auto-injected but there's a bug:
 # https://github.com/chef/ci-studio-common/issues/200)
@@ -30,6 +30,7 @@ sudo hdiutil detach "/Volumes/Habitat macOS Bootstrapper"
 brew install wget
 export PATH=/opt/mac-bootstrapper/embedded/bin:/usr/local/bin:$PATH
 
+declare -g hab_binary
 curlbash_hab "$BUILD_PKG_TARGET"
 import_keys
 

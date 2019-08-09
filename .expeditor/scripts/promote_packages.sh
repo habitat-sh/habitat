@@ -2,13 +2,14 @@
 
 set -euo pipefail
 
-source .expeditor/scripts/shared.sh
+source .expeditor/scripts/shared_release_habitat.sh
 
 export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
 
 # Take advantage of the fact that we're just promoting and we can run 
 # 100% on linux
+declare -g hab_binary
 curlbash_hab "x86_64-linux"
 
 ########################################################################
