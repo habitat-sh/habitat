@@ -471,7 +471,6 @@ mod storage {
             rs.increment_update_counter();
             assert_eq!(rs.get_update_counter(), 1);
         }
-
     }
 }
 
