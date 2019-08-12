@@ -352,10 +352,19 @@ steps:
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
 
-  - label: ":docker: :windows: Upload windows container to Docker Hub"
+  - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
     command: .buildkite/scripts/publish_docker_studio.ps1
-    agents:
-      queue: 'single-use-windows-privileged'
+    expeditor:
+      executor:
+        windows:
+          os_version: 2016
+
+  - label: ":docker: :windows: Upload windows 2019 container to Docker Hub"
+    command: .buildkite/scripts/publish_docker_studio.ps1
+    expeditor:
+      executor:
+        windows:
+          os_version: 2019
 
   # TODO Create a JFrog emoji
   - label: ":linux: Upload (but don't publish!) artifacts to Bintray"
