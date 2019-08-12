@@ -13,10 +13,12 @@ use habitat_core::{fs::atomic_write,
                    url::DEFAULT_BLDR_URL,
                    util::serde_string,
                    ChannelIdent};
-use habitat_sup_protocol;
+use habitat_sup_protocol::{self,
+                           net};
 use serde::{self,
             Deserialize};
 use std::{collections::HashSet,
+          convert::TryFrom,
           fmt,
           fs::{self,
                File},
@@ -86,59 +88,8 @@ pub fn deserialize_application_environment<'de, D>(
     }
 }
 
-pub trait IntoServiceSpec {
-    fn into_spec(&self, spec: &mut ServiceSpec);
-}
-
-impl IntoServiceSpec for habitat_sup_protocol::ctl::SvcLoad {
-    fn into_spec(&self, spec: &mut ServiceSpec) {
-        spec.ident = self.ident.clone().unwrap().into();
-        spec.group = self.group
-                         .clone()
-                         .unwrap_or_else(|| DEFAULT_GROUP.to_string());
-        if let Some(ref app_env) = self.application_environment {
-            spec.application_environment = Some(app_env.clone().into());
-        }
-        if let Some(ref bldr_url) = self.bldr_url {
-            spec.bldr_url = bldr_url.to_string();
-        }
-        if let Some(ref channel) = self.bldr_channel {
-            spec.channel = channel.clone().into();
-        }
-        if let Some(topology) = self.topology {
-            spec.topology = Topology::from_i32(topology).unwrap_or_default();
-        }
-        if let Some(update_strategy) = self.update_strategy {
-            spec.update_strategy = UpdateStrategy::from_i32(update_strategy).unwrap_or_default();
-        }
-        if let Some(ref list) = self.binds {
-            spec.binds =
-                list.binds
-                    .iter()
-                    .map(|pb: &habitat_sup_protocol::types::ServiceBind| {
-                        habitat_core::service::ServiceBind::new(&pb.name,
-                                                                pb.service_group.clone().into())
-                    })
-                    .collect();
-        }
-        if let Some(binding_mode) = self.binding_mode {
-            spec.binding_mode = BindingMode::from_i32(binding_mode).unwrap_or_default();
-        }
-        if let Some(ref config_from) = self.config_from {
-            spec.config_from = Some(PathBuf::from(config_from));
-        }
-        if let Some(ref svc_encrypted_password) = self.svc_encrypted_password {
-            spec.svc_encrypted_password = Some(svc_encrypted_password.to_string());
-        }
-        if let Some(ref interval) = self.health_check_interval {
-            spec.health_check_interval = interval.seconds.into()
-        }
-        spec.shutdown_timeout = self.shutdown_timeout.map(ShutdownTimeout::from);
-    }
-}
-
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-#[serde(default)]
+#[serde(default = "ServiceSpec::deserialization_base")]
 pub struct ServiceSpec {
     #[serde(with = "serde_string")]
     pub ident: PackageIdent,
@@ -161,11 +112,27 @@ pub struct ServiceSpec {
 }
 
 impl ServiceSpec {
-    pub fn default_for(ident: PackageIdent) -> Self {
-        let mut spec = Self::default();
-        spec.ident = ident;
-        spec
+    pub fn new(ident: PackageIdent) -> Self {
+        Self { ident,
+               group: DEFAULT_GROUP.to_string(),
+               application_environment: None,
+               bldr_url: DEFAULT_BLDR_URL.to_string(),
+               channel: ChannelIdent::stable(),
+               topology: Topology::default(),
+               update_strategy: UpdateStrategy::default(),
+               binds: Vec::default(),
+               binding_mode: BindingMode::Strict,
+               config_from: None,
+               desired_state: DesiredState::default(),
+               health_check_interval: HealthCheckInterval::default(),
+               svc_encrypted_password: None,
+               shutdown_timeout: None }
     }
+
+    // This should only be used to provide a default value when deserializing. We intentially do not
+    // implement `Default` because a default value for `PackageIdent` does not make sense and should
+    // be removed.
+    fn deserialization_base() -> Self { Self::new(PackageIdent::default()) }
 
     fn to_toml_string(&self) -> Result<String> {
         if self.ident == PackageIdent::default() {
@@ -203,7 +170,11 @@ impl ServiceSpec {
         Ok(())
     }
 
-    pub fn file_name(&self) -> String { format!("{}.{}", &self.ident.name, SPEC_FILE_EXT) }
+    pub fn ident_file(ident: &PackageIdent) -> PathBuf {
+        PathBuf::from(format!("{}.{}", ident.name, SPEC_FILE_EXT))
+    }
+
+    pub fn file(&self) -> PathBuf { Self::ident_file(&self.ident) }
 
     /// Validates that all required package binds are present in service binds and all remaining
     /// service binds are optional package binds.
@@ -248,24 +219,58 @@ impl ServiceSpec {
 
         Ok(())
     }
-}
 
-impl Default for ServiceSpec {
-    fn default() -> Self {
-        ServiceSpec { ident:                   PackageIdent::default(),
-                      group:                   DEFAULT_GROUP.to_string(),
-                      application_environment: None,
-                      bldr_url:                DEFAULT_BLDR_URL.to_string(),
-                      channel:                 ChannelIdent::stable(),
-                      topology:                Topology::default(),
-                      update_strategy:         UpdateStrategy::default(),
-                      binds:                   Vec::default(),
-                      binding_mode:            BindingMode::Strict,
-                      config_from:             None,
-                      desired_state:           DesiredState::default(),
-                      health_check_interval:   HealthCheckInterval::default(),
-                      svc_encrypted_password:  None,
-                      shutdown_timeout:        None, }
+    pub fn merge_svc_load(mut self, svc_load: habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
+        self.ident =
+            svc_load.ident
+                    .ok_or_else(|| net::err(net::ErrCode::BadPayload, "No ident specified"))?
+                    .into();
+        if let Some(group) = svc_load.group {
+            self.group = group;
+        }
+        if let Some(application_environment) = svc_load.application_environment {
+            self.application_environment = Some(application_environment.into());
+        }
+        if let Some(bldr_url) = svc_load.bldr_url {
+            self.bldr_url = bldr_url;
+        }
+        if let Some(channel) = svc_load.bldr_channel {
+            self.channel = channel.into();
+        }
+        if let Some(topology) = svc_load.topology {
+            if let Some(topology) = Topology::from_i32(topology) {
+                self.topology = topology;
+            }
+        }
+        if let Some(update_strategy) = svc_load.update_strategy {
+            if let Some(update_strategy) = UpdateStrategy::from_i32(update_strategy) {
+                self.update_strategy = update_strategy;
+            }
+        }
+        if let Some(list) = svc_load.binds {
+            self.binds = list.binds
+                             .into_iter()
+                             .map(|pb| ServiceBind::new(&pb.name, pb.service_group.into()))
+                             .collect();
+        }
+        if let Some(binding_mode) = svc_load.binding_mode {
+            if let Some(binding_mode) = BindingMode::from_i32(binding_mode) {
+                self.binding_mode = binding_mode;
+            }
+        }
+        if let Some(config_from) = svc_load.config_from {
+            self.config_from = Some(PathBuf::from(config_from));
+        }
+        if let Some(svc_encrypted_password) = svc_load.svc_encrypted_password {
+            self.svc_encrypted_password = Some(svc_encrypted_password);
+        }
+        if let Some(interval) = svc_load.health_check_interval {
+            self.health_check_interval = interval.seconds.into()
+        }
+        if let Some(shutdown_timeout) = svc_load.shutdown_timeout {
+            self.shutdown_timeout = Some(ShutdownTimeout::from(shutdown_timeout));
+        }
+        Ok(self)
     }
 }
 
@@ -278,6 +283,16 @@ impl FromStr for ServiceSpec {
             return Err(Error::MissingRequiredIdent);
         }
         Ok(spec)
+    }
+}
+
+impl TryFrom<habitat_sup_protocol::ctl::SvcLoad> for ServiceSpec {
+    type Error = Error;
+
+    fn try_from(svc_load: habitat_sup_protocol::ctl::SvcLoad) -> Result<Self> {
+        // We use the default `PackageIdent` here but `merge_svc_load` checks that
+        // `svc_load.ident` is set so we will return an error if there is no ident.
+        Self::new(PackageIdent::default()).merge_svc_load(svc_load)
     }
 }
 
@@ -454,7 +469,7 @@ mod test {
     fn service_spec_to_toml_string_invalid_ident() {
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here
-        let spec = ServiceSpec::default();
+        let spec = ServiceSpec::new(PackageIdent::default());
 
         match spec.to_toml_string() {
             Err(e) => {
@@ -631,7 +646,7 @@ mod test {
         let path = tmpdir.path().join("name.spec");
         // Remember: the default implementation of `PackageIdent` is an invalid identifier, missing
         // origin and name--we're going to exploit this here
-        let spec = ServiceSpec::default();
+        let spec = ServiceSpec::new(PackageIdent::default());
 
         match spec.to_file(path) {
             Err(e) => {
@@ -646,9 +661,9 @@ mod test {
 
     #[test]
     fn service_spec_file_name() {
-        let spec = ServiceSpec::default_for(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
+        let spec = ServiceSpec::new(PackageIdent::from_str("origin/hoopa/1.2.3").unwrap());
 
-        assert_eq!(String::from("hoopa.spec"), spec.file_name());
+        assert_eq!(Path::new("hoopa.spec"), spec.file());
     }
 
     fn testing_package_install() -> PackageInstall {
@@ -666,7 +681,7 @@ mod test {
             panic!("This is being run on a platform that's not currently supported");
         };
 
-        let spec = ServiceSpec::default_for(ident);
+        let spec = ServiceSpec::new(ident);
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests")
                                                             .join("fixtures")
                                                             .join("pkgs");
@@ -679,7 +694,7 @@ mod test {
     fn service_spec_bind_present() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap()];
         if let Err(e) = spec.validate(&package) {
             panic!("Unexpected error returned: {:?}", e);
@@ -690,7 +705,7 @@ mod test {
     fn service_spec_with_optional_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("database:postgresql.app@acmecorp").unwrap(),
                           ServiceBind::from_str("storage:minio.app@acmecorp").unwrap(),];
         if let Err(e) = spec.validate(&package) {
@@ -703,7 +718,7 @@ mod test {
     fn service_spec_error_missing_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![];
         match spec.validate(&package) {
             Err(e) => {
@@ -722,7 +737,7 @@ mod test {
     fn service_spec_error_invalid_bind() {
         let package = testing_package_install();
 
-        let mut spec = ServiceSpec::default_for(package.ident().clone());
+        let mut spec = ServiceSpec::new(package.ident().clone());
         spec.binds = vec![ServiceBind::from_str("backend:tomcat.app@acmecorp").unwrap(),
                           ServiceBind::from_str("database:postgres.app@acmecorp").unwrap(),];
         match spec.validate(&package) {

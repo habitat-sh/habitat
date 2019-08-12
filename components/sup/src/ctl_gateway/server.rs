@@ -126,6 +126,10 @@ pub struct CtlCommand {
     // argument passed to this closure until `FnOnce<Box>` stabilizes.
     //
     // https://github.com/rust-lang/rust/issues/28796
+    //
+    // This is now possible see https://github.com/habitat-sh/habitat/issues/6832
+    // We held off on making the change to reduce the risk of a regression and to lump it in with
+    // more general Future refactoring.
     fun: Box<dyn Fn(&ManagerState, &mut CtlRequest, ActionSender) -> NetResult<()> + Send>,
 }
 
@@ -303,7 +307,7 @@ impl SrvHandler {
                 Ok(CtlCommand::new(ctl_sender,
                                    msg.transaction(),
                                    move |state, req, _action_sender| {
-                                       commands::service_load(state, req, &m)
+                                       commands::service_load(state, req, m.clone())
                                    }))
             }
             "SvcUnload" => {

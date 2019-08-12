@@ -183,27 +183,15 @@ pub struct ShutdownConfig {
 }
 
 impl ShutdownConfig {
-    fn new(shutdown_input: &ShutdownInput, service: &Service) -> Self {
-        let mut config = Self::new_from_service(service);
-        if let Some(timeout) = shutdown_input.timeout {
-            config.timeout = timeout;
-        }
-        config
-    }
-
-    #[cfg(not(windows))]
-    fn new_from_service(service: &Service) -> Self {
-        let timeout = service.shutdown_timeout
-                             .unwrap_or_else(|| service.pkg.shutdown_timeout);
-        Self { signal: service.pkg.shutdown_signal,
-               timeout }
-    }
-
-    #[cfg(windows)]
-    fn new_from_service(service: &Service) -> Self {
-        let timeout = service.shutdown_timeout
-                             .unwrap_or_else(|| service.pkg.shutdown_timeout);
-        Self { timeout }
+    fn new(shutdown_input: Option<&ShutdownInput>, service: &Service) -> Self {
+        let timeout = shutdown_input.and_then(|si| si.timeout).unwrap_or_else(|| {
+                                                                  service.shutdown_timeout
+                                                               .unwrap_or(service.pkg
+                                                                                 .shutdown_timeout)
+                                                              });
+        Self { timeout,
+               #[cfg(not(windows))]
+               signal: service.pkg.shutdown_signal }
     }
 }
 
@@ -263,24 +251,23 @@ pub struct TLSConfig {
 }
 
 impl ManagerConfig {
-    pub fn sup_root(&self) -> PathBuf {
+    fn sup_root(&self) -> PathBuf {
         habitat_sup_protocol::sup_root(self.custom_state_path.as_ref())
     }
 
-    // TODO (CM): this may be able to be private after some
-    // refactorings in commands.rs
-    pub fn spec_path_for(&self, spec: &ServiceSpec) -> PathBuf {
-        self.sup_root().join("specs").join(spec.file_name())
+    fn spec_path_for(&self, ident: &PackageIdent) -> PathBuf {
+        self.sup_root()
+            .join("specs")
+            .join(ServiceSpec::ident_file(ident))
     }
 
     pub fn save_spec_for(&self, spec: &ServiceSpec) -> Result<()> {
-        spec.to_file(self.spec_path_for(spec))
+        spec.to_file(self.spec_path_for(&spec.ident))
     }
 
     /// Given a `PackageIdent`, return current spec if it exists.
     pub fn spec_for_ident(&self, ident: &PackageIdent) -> Option<ServiceSpec> {
-        let default_spec = ServiceSpec::default_for(ident.clone());
-        let spec_file = self.spec_path_for(&default_spec);
+        let spec_file = self.spec_path_for(ident);
 
         // JC: This mimics the logic from when we had composites.  But
         // should we check for Err ?
@@ -634,24 +621,22 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    fn add_service_rsw_mlw(&mut self, spec: &ServiceSpec) {
-        // JW TODO: This clone sucks, but our data structures are a bit messy here. What we really
-        // want is the service to hold the spec and, on failure, return an error with the spec
-        // back to us. Since we consume and deconstruct the spec in `Service::new()` which
-        // `Service::load()` eventually delegates to we just can't have that. We should clean
-        // this up in the future.
-        let service = match Service::load(self.sys.clone(),
-                                          spec.clone(),
-                                          self.fs_cfg.clone(),
-                                          self.organization.as_ref().map(|org| &**org),
-                                          self.state.gateway_state.clone())
+    fn add_service_rsw_mlw(&mut self, spec: ServiceSpec) {
+        let ident = spec.ident.clone();
+        let service = match Service::new(self.sys.clone(),
+                                         spec,
+                                         self.fs_cfg.clone(),
+                                         self.organization.as_ref().map(String::as_str),
+                                         self.state.gateway_state.clone())
         {
             Ok(service) => {
-                outputln!("Starting {} ({})", &spec.ident, service.pkg.ident);
+                outputln!("Starting {} ({})", ident, service.pkg.ident);
                 service
             }
             Err(err) => {
-                outputln!("Unable to start {}, {}", &spec.ident, err);
+                outputln!("Unable to start {}, {}", ident, err);
+                // Remove the spec file so it does not look like this service is loaded.
+                self.remove_spec_file(&ident).ok();
                 return;
             }
         };
@@ -664,7 +649,7 @@ impl Manager {
                 &package,
                 Path::new(&*FS_ROOT_PATH),
             ) {
-                outputln!("Failed to run install hook for {}, {}", &spec.ident, err);
+                outputln!("Failed to run install hook for {}, {}", ident, err);
                 return;
             }
         }
@@ -676,7 +661,7 @@ impl Manager {
             outputln!("If this service is running as non-root, you'll need to create {} and give \
                        the current user write access to it",
                       service.pkg.svc_path.display());
-            outputln!("{} failed to start", &spec.ident);
+            outputln!("{} failed to start", ident);
             return;
         }
 
@@ -754,7 +739,7 @@ impl Manager {
         runtime.spawn(ctl_handler);
 
         if let Some(svc_load) = svc {
-            commands::service_load(&self.state, &mut CtlRequest::default(), &svc_load)?;
+            commands::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
         }
 
         // This serves to start up any services that need starting
@@ -931,44 +916,12 @@ impl Manager {
                             warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
                                   service_spec.ident, err);
                         }
-                        if let Some(future) =
-                            self.remove_service_from_state(&service_spec)
-                                .map(|service| {
-                                    let shutdown_config =
-                                        ShutdownConfig::new(&shutdown_input, &service);
-                                    self.stop_with_config(service, shutdown_config)
-                                })
-                        {
-                            runtime.spawn(future);
-                        } else {
-                            warn!("Tried to stop '{}', but couldn't find it in our list of \
-                                   running services!",
-                                  service_spec.ident);
-                        }
+                        self.stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
-                        let file = self.state.cfg.spec_path_for(&service_spec);
-                        if let Err(err) = fs::remove_file(&file) {
-                            warn!("Tried to unload '{}', but couldn't remove the file '{}': {:?}",
-                                  service_spec.ident,
-                                  file.display(),
-                                  err);
-                        };
-                        if let Some(future) =
-                            self.remove_service_from_state(&service_spec)
-                                .map(|service| {
-                                    let shutdown_config =
-                                        ShutdownConfig::new(&shutdown_input, &service);
-                                    self.stop_with_config(service, shutdown_config)
-                                })
-                        {
-                            runtime.spawn(future);
-                        } else {
-                            warn!("Tried to unload '{}', but couldn't find it in our list of \
-                                   running services!",
-                                  service_spec.ident);
-                        }
+                        self.remove_spec_file(&service_spec.ident).ok();
+                        self.stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
                     }
                 }
             }
@@ -1093,7 +1046,7 @@ impl Manager {
                                    .expect("Services lock is poisoned!");
 
                 for (_ident, svc) in svcs.drain() {
-                    runtime.spawn(self.stop(svc));
+                    runtime.spawn(self.stop_service_future(svc, None));
                 }
             }
         }
@@ -1178,7 +1131,7 @@ impl Manager {
     fn stop_services_with_updates_rsw_mlr(&mut self) -> Vec<impl Future<Item = (), Error = ()>> {
         self.take_services_with_updates_rsw_mlr()
             .into_iter()
-            .map(|service| self.stop(service))
+            .map(|service| self.stop_service_future(service, None))
             .collect()
     }
 
@@ -1284,14 +1237,22 @@ impl Manager {
         let watched_services: Vec<Service> =
             self.spec_dir
                 .specs()
-                .iter()
-                .filter(|spec| !existing_idents.contains(&spec.ident))
-                .flat_map(|spec| {
-                    Service::load(self.sys.clone(),
-                                  spec.clone(),
-                                  self.fs_cfg.clone(),
-                                  self.organization.as_ref().map(|org| &**org),
-                                  self.state.gateway_state.clone()).into_iter()
+                .into_iter()
+                .filter_map(|spec| {
+                    if existing_idents.contains(&spec.ident) {
+                        None
+                    } else {
+                        let ident = spec.ident.clone();
+                        let result = Service::new(self.sys.clone(),
+                                                  spec,
+                                                  self.fs_cfg.clone(),
+                                                  self.organization.as_ref().map(String::as_str),
+                                                  self.state.gateway_state.clone());
+                        if let Err(ref e) = result {
+                            warn!("Failed to create service '{}' from spec: {:?}", ident, e);
+                        }
+                        result.ok()
+                    }
                 })
                 .collect();
         let watched_service_proxies: Vec<ServiceProxy<'_>> =
@@ -1322,35 +1283,32 @@ impl Manager {
         self.butterfly.restart_elections_rsw_mlr(feature_flags);
     }
 
-    /// Create a future for stopping a Service. The Service is assumed
-    /// to have been removed from the internal list of active services
-    /// already (see, e.g., take_services_with_updates and
-    /// remove_service_from_state).
-    fn stop_with_config(&self,
-                        service: Service,
-                        shutdown_config: ShutdownConfig)
-                        -> impl Future<Item = (), Error = ()> {
-        Self::service_stop_future(service,
-                                  shutdown_config,
-                                  Arc::clone(&self.user_config_watcher),
-                                  Arc::clone(&self.updater),
-                                  Arc::clone(&self.busy_services),
-                                  self.services_need_reconciliation.clone())
+    fn stop_service(&mut self,
+                    ident: &PackageIdent,
+                    shutdown_input: &ShutdownInput,
+                    runtime: &mut Runtime) {
+        if let Some(service) = self.remove_service_from_state(&ident) {
+            let future = self.stop_service_future(service, Some(shutdown_input));
+            runtime.spawn(future);
+        } else {
+            warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
+                  ident);
+        }
     }
 
-    fn stop(&self, service: Service) -> impl Future<Item = (), Error = ()> {
-        let shutdown_config = ShutdownConfig::new_from_service(&service);
-        self.stop_with_config(service, shutdown_config)
-    }
-
-    /// Remove the given service from the manager.
-    fn service_stop_future(mut service: Service,
-                           shutdown_config: ShutdownConfig,
-                           user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
-                           updater: Arc<Mutex<ServiceUpdater>>,
-                           busy_services: Arc<Mutex<HashSet<PackageIdent>>>,
-                           services_need_reconciliation: ReconciliationFlag)
+    /// Create a future for stopping a Service removing it from the manager. The Service is assumed
+    /// to have been removed from the internal list of active services already (see, e.g.,
+    /// take_services_with_updates and remove_service_from_state).
+    fn stop_service_future(&self,
+                           mut service: Service,
+                           shutdown_input: Option<&ShutdownInput>)
                            -> impl Future<Item = (), Error = ()> {
+        let user_config_watcher = Arc::clone(&self.user_config_watcher);
+        let updater = Arc::clone(&self.updater);
+        let busy_services = Arc::clone(&self.busy_services);
+        let services_need_reconciliation = self.services_need_reconciliation.clone();
+        let shutdown_config = ShutdownConfig::new(shutdown_input, &service);
+
         // JW TODO: Update service rumor to remove service from
         // cluster
         // TODO (CM): But only if we're not going down for a restart.
@@ -1370,6 +1328,18 @@ impl Manager {
                                            busy_services,
                                            services_need_reconciliation,
                                            stop_it)
+    }
+
+    fn remove_spec_file(&self, ident: &PackageIdent) -> std::io::Result<()> {
+        let file = self.state.cfg.spec_path_for(ident);
+        let result = fs::remove_file(&file);
+        if let Err(ref err) = result {
+            warn!("Tried to remove spec file '{}' for '{}': {:?}",
+                  file.display(),
+                  ident,
+                  err);
+        };
+        result
     }
 
     /// Wrap a future that starts, stops, or restarts a service with
@@ -1435,12 +1405,12 @@ impl Manager {
         }
     }
 
-    fn remove_service_from_state(&mut self, spec: &ServiceSpec) -> Option<Service> {
+    fn remove_service_from_state(&mut self, ident: &PackageIdent) -> Option<Service> {
         self.state
             .services
             .write()
             .expect("Services lock is poisoned")
-            .remove(&spec.ident)
+            .remove(&ident)
     }
 
     /// Start, stop, or restart services to bring what's running in
@@ -1475,8 +1445,8 @@ impl Manager {
                        // future; then we could just chain that future
                        // onto the end of the stop one for a *real*
                        // restart future.
-                       let f = self.remove_service_from_state(&spec)
-                                   .map(|service| self.stop(service));
+                       let f = self.remove_service_from_state(&spec.ident)
+                                   .map(|service| self.stop_service_future(service, None));
                        if f.is_none() {
                            // We really don't expect this to happen....
                            outputln!("Tried to remove service for {} but could not find it \
@@ -1486,7 +1456,7 @@ impl Manager {
                        f
                    }
                    ServiceOperation::Start(spec) => {
-                       self.add_service_rsw_mlw(&spec);
+                       self.add_service_rsw_mlw(spec);
                        None // No future to return (currently synchronous!)
                    }
                }
@@ -1948,8 +1918,7 @@ mod test {
         /// Helper function for generating a basic spec from an
         /// identifier string
         fn new_spec(ident: &str) -> ServiceSpec {
-            ServiceSpec::default_for(PackageIdent::from_str(ident).expect("couldn't parse ident \
-                                                                           str"))
+            ServiceSpec::new(PackageIdent::from_str(ident).expect("couldn't parse ident str"))
         }
 
         #[test]

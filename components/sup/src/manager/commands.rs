@@ -4,8 +4,7 @@ use crate::{ctl_gateway::CtlRequest,
             error::Error,
             manager::{action::{ActionSender,
                                SupervisorAction},
-                      service::{spec::{IntoServiceSpec,
-                                       ServiceSpec},
+                      service::{spec::ServiceSpec,
                                 DesiredState,
                                 ProcessState},
                       ManagerState},
@@ -18,14 +17,14 @@ use habitat_common::{command::package::install::InstallSource,
 use habitat_core::{package::{Identifiable,
                              PackageIdent,
                              PackageTarget},
-                   service::ServiceGroup,
-                   ChannelIdent};
+                   service::ServiceGroup};
 use habitat_sup_protocol::{self as protocol,
                            net::{self,
                                  ErrCode,
                                  NetResult}};
 use serde_json;
-use std::{fmt,
+use std::{convert::TryFrom,
+          fmt,
           result};
 use time::{self,
            Duration as TimeDuration,
@@ -182,63 +181,31 @@ pub fn service_file_put(mgr: &ManagerState,
 
 pub fn service_load(mgr: &ManagerState,
                     req: &mut CtlRequest,
-                    opts: &protocol::ctl::SvcLoad)
+                    opts: protocol::ctl::SvcLoad)
                     -> NetResult<()> {
     let ident: PackageIdent = opts.ident.clone().ok_or_else(err_update_client)?.into();
-    let bldr_url = opts.bldr_url
-                       .clone()
-                       .unwrap_or_else(|| protocol::DEFAULT_BLDR_URL.to_string());
-    let bldr_channel = opts.bldr_channel
-                           .clone()
-                           .map(ChannelIdent::from)
-                           .unwrap_or_default();
-    let force = opts.force.unwrap_or(false);
     let source = InstallSource::Ident(ident.clone(), PackageTarget::active_target());
-    match mgr.cfg.spec_for_ident(source.as_ref()) {
-        None => {
-            let mut spec = ServiceSpec::default();
-            opts.into_spec(&mut spec);
-
-            // We don't have any record of this thing; let's set it up!
-            //
-            // If a package exists on disk that satisfies the
-            // desired package identifier, it will be used;
-            // otherwise, we'll install the latest suitable
-            // version from the specified Builder channel.
-            util::pkg::satisfy_or_install(req, &source, &bldr_url, &bldr_channel)?;
-
-            mgr.cfg.save_spec_for(&spec)?;
-            req.info(format!("The {} service was successfully loaded", spec.ident))?;
+    let spec = if let Some(spec) = mgr.cfg.spec_for_ident(source.as_ref()) {
+        // We've seen this service before. Thus `load` acts as a way to edit spec files from the
+        // command line. As a result, we check that you *really* meant to change an existing spec.
+        if !opts.force.unwrap_or(false) {
+            return Err(net::err(ErrCode::Conflict,
+                                format!("Service already loaded. Unload '{}' \
+                                         and try again, or load with the \
+                                         --force flag to reload and restart the \
+                                         service.",
+                                        ident)));
         }
-        Some(mut spec) => {
-            // We've seen this service  before. Thus `load`
-            // basically acts as a way to edit spec files on the
-            // command line. As a result, we a) check that you
-            // *really* meant to change an existing spec, and b) DO
-            // NOT download a potentially new version of the package
-            // in question
+        spec.merge_svc_load(opts)?
+    } else {
+        ServiceSpec::try_from(opts)?
+    };
 
-            if !force {
-                return Err(net::err(ErrCode::Conflict,
-                                    format!("Service already loaded, unload '{}' \
-                                             and try again",
-                                            ident)));
-            }
+    let package = util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
+    spec.validate(&package)?;
+    mgr.cfg.save_spec_for(&spec)?;
 
-            opts.into_spec(&mut spec);
-
-            // Only install if we don't have something
-            // locally; otherwise you could potentially
-            // upgrade each time you load.
-            //
-            // Also make sure you're pulling from where you're
-            // supposed to be pulling from!
-            util::pkg::satisfy_or_install(req, &source, &spec.bldr_url, &spec.channel)?;
-
-            mgr.cfg.save_spec_for(&spec)?;
-            req.info(format!("The {} service was successfully loaded", spec.ident))?;
-        }
-    }
+    req.info(format!("The {} service was successfully loaded", spec.ident))?;
     req.reply_complete(net::ok());
     Ok(())
 }
