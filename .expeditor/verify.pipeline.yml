@@ -295,7 +295,7 @@ steps:
         user: "buildkite-agent"
         group: "buildkite-agent"
         image: "chefes/buildkite"
-    timeout_in_minutes: 10
+    timeout_in_minutes: 40
     retry:
       automatic:
         limit: 1
@@ -311,7 +311,7 @@ steps:
         user: "buildkite-agent"
         group: "buildkite-agent"
         image: "chefes/buildkite"
-    timeout_in_minutes: 10
+    timeout_in_minutes: 40
     soft_fail: true
 
   - label: "[unit] :linux: sup nitox_stream"
