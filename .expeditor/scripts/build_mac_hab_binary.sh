@@ -20,10 +20,10 @@ brew tap buildkite/buildkite
 brew install --token="$BUILDKITE_AGENT_ACCESS_TOKEN" buildkite-agent
 
 echo "--- Installing mac bootstrap package"
-# TODO: subscribe to releases: https://github.com/habitat-sh/release-engineering/issues/84
+# subscribe to releases: https://github.com/habitat-sh/release-engineering/issues/84
 bootstrap_package_version="$(cat MAC_BOOTSTRAPPER_VERSION)"
 bootstrap_package_name="mac-bootstrapper-${bootstrap_package_version}-1"
-curl "https://packages.chef.io/files/current/mac-bootstrapper/${bootstrap_package_version}/mac_os_x/10.12/${bootstrap_package_name}.dmg" -o "${bootstrap_package_name}.dmg"
+curl "https://packages.chef.io/files/current/mac-bootstrapper/${bootstrap_package_version}/mac_os_x/10.12/${bootstrap_package_name}.dmg" -O
 sudo hdiutil attach "${bootstrap_package_name}.dmg"
 sudo installer -verbose -pkg "/Volumes/Habitat macOS Bootstrapper/${bootstrap_package_name}.pkg" -target /
 sudo hdiutil detach "/Volumes/Habitat macOS Bootstrapper"
@@ -50,7 +50,6 @@ source "${HOME}/.cargo/env"
 # set the rust toolchain
 rust_toolchain="$(cat rust-toolchain)"
 echo "--- :rust: Using Rust toolchain ${rust_toolchain}"
-rustup default "${rust_toolchain}"
 rustc --version # just 'cause I'm paranoid and I want to double check
 
 echo "--- :habicat: Building components/hab"
@@ -60,22 +59,22 @@ HAB_BLDR_CHANNEL="${channel}" sudo -E bash \
         components/hab
 source results/last_build.env
 
-echo "--- :habicat: Uploading ${pkg_ident:?} to ${HAB_BLDR_URL} in the '${channel}' channel"
+echo "--- :habicat: Uploading ${pkg_ident} to ${HAB_BLDR_URL} in the '${channel}' channel"
 ${hab_binary} pkg upload \
               --channel="${channel}" \
               --auth="${HAB_AUTH_TOKEN}" \
-              "results/${pkg_artifact:?}"
+              "results/${pkg_artifact}"
 
 ${hab_binary} pkg promote \
               --auth="${HAB_AUTH_TOKEN}" \
-              "${pkg_ident:?}" "${channel}" "${BUILD_PKG_TARGET}"
+              "${pkg_ident}" "${channel}" "${BUILD_PKG_TARGET}"
 
-set_target_metadata "${pkg_ident:?}" "${BUILD_PKG_TARGET}"
+set_target_metadata "${pkg_ident}" "${BUILD_PKG_TARGET}"
 
-echo "--- :buildkite: Storing artifact ${pkg_ident:?}"
+echo "--- :buildkite: Storing artifact ${pkg_ident}"
 buildkite-agent artifact upload "results/${pkg_artifact}"
-set_hab_ident "${BUILD_PKG_TARGET:?}" "${pkg_ident:?}"
-set_hab_release "${BUILD_PKG_TARGET:?}" "${pkg_release:?}"
-set_hab_artifact "${BUILD_PKG_TARGET:?}" "${pkg_artifact:?}"
+set_hab_ident "${BUILD_PKG_TARGET}" "${pkg_ident}"
+set_hab_release "${BUILD_PKG_TARGET}" "${pkg_release}"
+set_hab_artifact "${BUILD_PKG_TARGET}" "${pkg_artifact}"
 
-echo "<br>* ${pkg_ident:?} (${BUILD_PKG_TARGET:?})" | buildkite-agent annotate --append --context "release-manifest"
+echo "<br>* ${pkg_ident} (${BUILD_PKG_TARGET})" | buildkite-agent annotate --append --context "release-manifest"

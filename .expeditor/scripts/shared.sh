@@ -20,10 +20,7 @@ curlbash_hab() {
     rm -rf /hab/pkgs/core/hab/0.82.0
     curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     case "${pkg_target}" in
-        x86_64-linux)
-            hab_binary="/bin/hab"
-            ;;
-        x86_64-linux-kernel2)
+        x86_64-linux | x86_64-linux-kernel2)
             hab_binary="/bin/hab"
             ;;
         x86_64-darwin)
