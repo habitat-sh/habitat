@@ -526,6 +526,8 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg FORCE: --force "Skips checking availability of package and \
                     force uploads, potentially overwriting a stored copy of a package. \
                     (default: false)")
+                (@arg DISABLE_BUILD: --("disable-build")  "Do not create a build group on package upload. This flag has no \
+                    effect if auto-builds are not enabled for the target package.")
                 (@arg HART_FILE: +required +multiple {file_exists}
                     "One or more filepaths to a Habitat Artifact \
                     (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")

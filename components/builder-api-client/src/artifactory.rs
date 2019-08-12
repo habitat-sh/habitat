@@ -447,6 +447,7 @@ impl BuilderAPIProvider for ArtifactoryClient {
                    pa: &mut PackageArchive,
                    token: &str,
                    _force_upload: bool,
+                   _disable_build_group: Option<&str>,
                    progress: Option<Self::Progress>)
                    -> Result<()> {
         let checksum = pa.checksum()?;

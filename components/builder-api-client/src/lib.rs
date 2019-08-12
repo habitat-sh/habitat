@@ -291,6 +291,7 @@ pub trait BuilderAPIProvider: Sync + Send {
                    pa: &mut PackageArchive,
                    token: &str,
                    force_upload: bool,
+                   disable_build_group: Option<&str>,
                    progress: Option<Self::Progress>)
                    -> Result<()>;
 

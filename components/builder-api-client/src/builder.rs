@@ -807,6 +807,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
                    pa: &mut PackageArchive,
                    token: &str,
                    force_upload: bool,
+                   disable_build_group: Option<&str>,
                    progress: Option<Self::Progress>)
                    -> Result<()> {
         let checksum = pa.checksum()?;
@@ -828,6 +829,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
                .append_pair("checksum", &checksum)
                .append_pair("target", &target.to_string())
                .append_pair("forced", &force_upload.to_string());
+            
+            if let Some(val) = disable_build_group {
+              url.query_pairs_mut().append_pair("builder", val);
+            }
         };
         debug!("Reading from {}", &pa.path.display());
 
