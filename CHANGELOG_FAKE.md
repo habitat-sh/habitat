@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.21 -->
+<!-- latest_release 0.84.22 -->
+## [fake-0.84.22](https://github.com/habitat-sh/habitat/tree/fake-0.84.22) (2019-08-12)
+
+#### Merged Pull Requests
+- Remove spec file of failed services [#6794](https://github.com/habitat-sh/habitat/pull/6794) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
 ## [fake-0.84.21](https://github.com/habitat-sh/habitat/tree/fake-0.84.21) (2019-08-09)
 
 #### Merged Pull Requests
 - Add environment to windows binstubs [#6826](https://github.com/habitat-sh/habitat/pull/6826) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.84.20](https://github.com/habitat-sh/habitat/tree/fake-0.84.20) (2019-08-09)
 
