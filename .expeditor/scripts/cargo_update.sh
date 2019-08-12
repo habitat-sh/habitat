@@ -2,11 +2,6 @@
 
 set -euo pipefail 
  
-if ! "${BUILDKITE:-false}"; then 
-  echo "This script does not appear to be running in Buildkite. Exiting!" 
-  exit 1
-fi
-
 # shellcheck source=./support/ci/shared.sh 
 source ./support/ci/shared.sh 
 
