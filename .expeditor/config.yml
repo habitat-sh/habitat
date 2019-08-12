@@ -91,5 +91,5 @@ subscriptions:
 
 schedules:
   - name: cargo_update
-    description: "Run 'cargo update' every Sunday at 2am"
-    cronline: "0 2 * * 0"
+    description: "Run 'cargo update' every Monday at 12PM UTC"
+    cronline: "0 12 * * 1"
