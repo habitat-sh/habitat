@@ -7,6 +7,15 @@ steps:
 #######################################################################
 # Linting!
 #######################################################################
+  - label: ":docker: :windows: Upload windows container to Docker Hub 2019"
+    command: .buildkite/scripts/build_docker_image.ps1
+    agents:
+      queue: 'single-use-windows-privileged'
+
+  - label: ":docker: :windows: Upload windows container to Docker Hub 2016"
+    command: .buildkite/scripts/build_docker_image.ps1
+    agents:
+      queue: 'single-use-windows-privileged-2016'
 
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
