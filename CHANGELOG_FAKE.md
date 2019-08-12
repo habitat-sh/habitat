@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.22 -->
+<!-- latest_release 0.84.24 -->
+## [fake-0.84.24](https://github.com/habitat-sh/habitat/tree/fake-0.84.24) (2019-08-12)
+
+#### Merged Pull Requests
+- publish both 2016 and 2019 studio images in release [#6842](https://github.com/habitat-sh/habitat/pull/6842) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.84.22](https://github.com/habitat-sh/habitat/tree/fake-0.84.22) (2019-08-12)
 
 #### Merged Pull Requests
 - Remove spec file of failed services [#6794](https://github.com/habitat-sh/habitat/pull/6794) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.84.21](https://github.com/habitat-sh/habitat/tree/fake-0.84.21) (2019-08-09)
 
