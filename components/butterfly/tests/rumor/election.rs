@@ -35,7 +35,6 @@ fn three_members_run_election_from_one_starting_rumor() {
 }
 
 #[test]
-#[ignore]
 fn five_members_elect_a_new_leader_when_the_old_one_dies() {
     let mut net = btest::SwimNet::new(5);
     net.mesh();

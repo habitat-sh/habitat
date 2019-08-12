@@ -80,6 +80,22 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: builder-api-client ignored"
+    command:
+      - ./test/run_cargo_test.sh builder-api-client -- --ignored
+    agents:
+      queue: 'default-privileged'
+    plugins:
+      docker#v3.0.1:
+        always-pull: true
+        user: "buildkite-agent"
+        group: "buildkite-agent"
+        image: "chefes/buildkite"
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
   - label: "[unit] :linux: butterfly lock_as_mutex"
     command:
       - ./test/run_cargo_test.sh butterfly --nightly --features "lock_as_mutex deadlock_detection" -- --test-threads=1 --format=pretty
@@ -379,6 +395,22 @@ steps:
   - label: "[unit] :windows: builder-api-client"
     command:
       - ./test/run_cargo_test.ps1 builder-api-client
+    agents:
+      queue: 'default-windows-2016-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows-2016"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 25
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: builder-api-client ignored"
+    command:
+      - ./test/run_cargo_test.ps1 builder-api-client -TestOptions "--ignored"
     agents:
       queue: 'default-windows-2016-privileged'
     plugins:
