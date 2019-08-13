@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.24 -->
+<!-- latest_release 0.84.25 -->
+## [fake-0.84.25](https://github.com/habitat-sh/habitat/tree/fake-0.84.25) (2019-08-13)
+
+#### Merged Pull Requests
+- Fix cargo update scheduled task [#6840](https://github.com/habitat-sh/habitat/pull/6840) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.84.24](https://github.com/habitat-sh/habitat/tree/fake-0.84.24) (2019-08-12)
 
 #### Merged Pull Requests
 - publish both 2016 and 2019 studio images in release [#6842](https://github.com/habitat-sh/habitat/pull/6842) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.84.22](https://github.com/habitat-sh/habitat/tree/fake-0.84.22) (2019-08-12)
 
