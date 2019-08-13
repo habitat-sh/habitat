@@ -8,11 +8,13 @@ use std::{collections::HashMap,
                 SocketAddr,
                 SocketAddrV4,
                 ToSocketAddrs},
+          num::ParseIntError,
           ops::{Deref,
                 DerefMut},
           option,
           result,
-          str::FromStr};
+          str::FromStr,
+          time::Duration};
 
 /// Bundles up information about the user and group that a supervised
 /// service should be run as. If the Supervisor itself is running with
@@ -143,6 +145,40 @@ impl FromStr for AutomateAuthToken {
 
 impl fmt::Display for AutomateAuthToken {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
+}
+
+/// How long should we for the event thread to start up before
+/// abandoning it and shutting down?
+#[derive(Clone, Debug)]
+pub struct EventStreamConnectTimeout {
+    secs: u64,
+}
+
+impl EventStreamConnectTimeout {
+    /// The name of the Clap argument.
+    pub const ARG_NAME: &'static str = "EVENT_STREAM_CONNECT_TIMEOUT";
+    /// The environment variable to set this value.
+    pub const ENVVAR: &'static str = "HAB_EVENT_STREAM_CONNECT_TIMEOUT";
+}
+
+impl FromStr for EventStreamConnectTimeout {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self { secs: s.parse()? }) }
+}
+
+impl Into<Duration> for EventStreamConnectTimeout {
+    fn into(self) -> Duration { Duration::from_secs(self.secs) }
+}
+
+impl<'a> From<&'a ArgMatches<'a>> for EventStreamConnectTimeout {
+    /// Create an instance of `EventStreamConnectTimeout` from validated user input.
+    fn from(m: &ArgMatches) -> Self {
+        m.value_of(Self::ARG_NAME)
+         .expect("EVENT_STREAM_CONNECT_TIMEOUT should be set")
+         .parse()
+         .expect("EVENT_STREAM_CONNECT_TIMEOUT should be validated")
+    }
 }
 
 habitat_core::env_config_socketaddr!(#[derive(Clone, Copy, PartialEq, Eq, Debug)]
