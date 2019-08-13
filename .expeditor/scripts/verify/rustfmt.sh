@@ -2,9 +2,8 @@
 
 set -euo pipefail
 
-dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-# shellcheck disable=SC1090
-source "$dir/shared.sh"
+source .expeditor/scripts/verify/shared.sh
+
 toolchain=$(get_rustfmt_toolchain)
 
 install_rustup

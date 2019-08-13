@@ -2,8 +2,11 @@
 
 set -euo pipefail
 
-dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+source .expeditor/scripts/shared.sh
 
+# This script should contain all shared functions for the verify pipeline
+
+# Always accept habitat license
 sudo hab license accept
 
 get_rustfmt_toolchain() {
@@ -17,17 +20,7 @@ get_rustfmt_toolchain() {
   # break the way rustfmt uses rustc. Therefore, before updating the pin below, double check
   # that the nightly version you're going to update it to includes rustfmt. You can do that
   # using https://mexus.github.io/rustup-components-history/x86_64-unknown-linux-gnu.html
-  cat "$dir/../../RUSTFMT_VERSION"
-}
-
-# Get the version of the nightly toolchain we use for compiling,
-# running, tests, etc.
-get_nightly_toolchain() {
-    cat "$dir/../../RUST_NIGHTLY_VERSION"
-}
-
-get_toolchain() {
-  cat "$dir/../../rust-toolchain"
+  cat "RUSTFMT_VERSION"
 }
 
 install_rustup() {
@@ -41,6 +34,12 @@ install_rustup() {
   fi
 }
 
+install_rustfmt() {
+  local toolchain="${1?toolchain argument required}"
+  install_rust_toolchain "$toolchain"
+  rustup component add --toolchain "$toolchain" rustfmt
+}
+
 install_rust_toolchain() {
   local toolchain="${1?toolchain argument required}"
 
@@ -52,10 +51,10 @@ install_rust_toolchain() {
   fi
 }
 
-install_rustfmt() {
-  local toolchain="${1?toolchain argument required}"
-  install_rust_toolchain "$toolchain"
-  rustup component add --toolchain "$toolchain" rustfmt
+# Get the version of the nightly toolchain we use for compiling,
+# running, tests, etc.
+get_nightly_toolchain() {
+    cat "RUST_NIGHTLY_VERSION"
 }
 
 install_hab_pkg() {

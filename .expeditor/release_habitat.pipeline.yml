@@ -20,7 +20,7 @@ steps:
   # TODO If you add quotes around the target currently breaks a bash case statement :/
   - label: "[:linux: build hab]"
     command:
-      - .expeditor/scripts/build_component.sh hab
+      - .expeditor/scripts/release_habitat/build_component.sh hab
     expeditor:
       executor:
         docker:
@@ -30,7 +30,7 @@ steps:
   
   - label: "[:linux: :two: build hab]"
     command:
-      - .expeditor/scripts/build_component.sh hab
+      - .expeditor/scripts/release_habitat/build_component.sh hab
     expeditor:
       executor:
         docker:
@@ -40,7 +40,7 @@ steps:
 
   - label: "[:windows: build hab]"
     command:
-      - powershell .expeditor/scripts/build_component.ps1 hab
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 hab
     expeditor:
       executor:
         docker:
@@ -54,7 +54,7 @@ steps:
     command:
       # We need to install bash 4+ so we are able to use all the modern capabilities.
       - brew install bash
-      - .expeditor/scripts/build_mac_hab_binary.sh
+      - .expeditor/scripts/release_habitat/build_mac_hab_binary.sh
     env:
       BUILD_PKG_TARGET: "x86_64-darwin"
     expeditor:
@@ -67,7 +67,7 @@ steps:
 
   - label: "[:linux: build hab-plan-build]"
     command:
-      - .expeditor/scripts/build_component.sh plan-build
+      - .expeditor/scripts/release_habitat/build_component.sh plan-build
     expeditor:
       executor:
         docker:
@@ -77,7 +77,7 @@ steps:
 
   - label: "[:linux: :two: build hab-plan-build]"
     command:
-      - .expeditor/scripts/build_component.sh plan-build
+      - .expeditor/scripts/release_habitat/build_component.sh plan-build
     expeditor:
       executor:
         docker:
@@ -87,7 +87,7 @@ steps:
 
   - label: "[:windows: build plan-build-ps1]"
     command:
-      - powershell .expeditor/scripts/build_component.ps1 plan-build-ps1
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 plan-build-ps1
     expeditor:
       executor:
         docker:
@@ -101,7 +101,7 @@ steps:
 
   - label: "[:linux: build hab-backline]"
     command:
-      - .expeditor/scripts/build_component.sh backline
+      - .expeditor/scripts/release_habitat/build_component.sh backline
     expeditor:
       executor:
         docker:
@@ -111,7 +111,7 @@ steps:
 
   - label: "[:linux: :two: build hab-backline]"
     command:
-      - .expeditor/scripts/build_component.sh backline
+      - .expeditor/scripts/release_habitat/build_component.sh backline
     expeditor:
       executor:
         docker:
@@ -123,7 +123,7 @@ steps:
 
   - label: "[:linux: build hab-studio]"
     command:
-      - .expeditor/scripts/build_component.sh studio
+      - .expeditor/scripts/release_habitat/build_component.sh studio
     expeditor:
       executor:
         docker:
@@ -133,7 +133,7 @@ steps:
 
   - label: "[:linux: :two: build hab-studio]"
     command:
-      - .expeditor/scripts/build_component.sh studio
+      - .expeditor/scripts/release_habitat/build_component.sh studio
     expeditor:
       executor:
         docker:
@@ -143,7 +143,7 @@ steps:
 
   - label: "[:windows: build studio]"
     command:
-      - powershell .expeditor/scripts/build_component.ps1 studio
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 studio
     expeditor:
       executor:
         docker:
@@ -157,7 +157,7 @@ steps:
 
   - label: "[:linux: build launcher]"
     command:
-      - .expeditor/scripts/build_component.sh launcher
+      - .expeditor/scripts/release_habitat/build_component.sh launcher
     expeditor:
       executor:
         docker:
@@ -167,7 +167,7 @@ steps:
 
   - label: "[:linux: :two: build launcher]"
     command:
-      - .expeditor/scripts/build_component.sh launcher
+      - .expeditor/scripts/release_habitat/build_component.sh launcher
     expeditor:
       executor:
         docker:
@@ -177,7 +177,7 @@ steps:
 
   - label: "[:windows: build launcher]"
     command:
-      - powershell .expeditor/scripts/build_component.ps1 launcher
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 launcher
     expeditor:
       executor:
         docker:
@@ -191,7 +191,7 @@ steps:
 
   - label: "[:linux: build hab-sup]"
     command:
-      - .expeditor/scripts/build_component.sh sup
+      - .expeditor/scripts/release_habitat/build_component.sh sup
     expeditor:
       executor:
         docker:
@@ -201,7 +201,7 @@ steps:
 
   - label: "[:linux: :two: build hab-sup]"
     command:
-      - .expeditor/scripts/build_component.sh sup
+      - .expeditor/scripts/release_habitat/build_component.sh sup
     expeditor:
       executor:
         docker:
@@ -211,7 +211,7 @@ steps:
 
   - label: "[:windows: build hab-sup]"
     command:
-      - powershell .expeditor/scripts/build_component.ps1 sup
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 sup
     expeditor:
       executor:
         docker:
@@ -225,7 +225,7 @@ steps:
 
   - label: "[:linux: build hab-pkg-aci]"
     command:
-      - .expeditor/scripts/build_component.sh pkg-aci
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-aci
     expeditor:
       executor:
         docker:
@@ -235,7 +235,7 @@ steps:
 
   - label: "[:linux: build hab-pkg-export-docker]"
     command:
-      - .expeditor/scripts/build_component.sh pkg-export-docker
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-docker
     expeditor:
       executor:
         docker:
@@ -245,7 +245,7 @@ steps:
 
   - label: "[:windows: build hab-pkg-export-docker]"
     command:
-      - powershell .expeditor/scripts/build_component.ps1 pkg-export-docker
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 pkg-export-docker
     expeditor:
       executor:
         docker:
@@ -257,7 +257,7 @@ steps:
 
   - label: "[:linux: build hab-pkg-export-kubernetes]"
     command:
-      - .expeditor/scripts/build_component.sh pkg-export-kubernetes
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-kubernetes
     expeditor:
       executor:
         docker:
@@ -267,7 +267,7 @@ steps:
 
   - label: "[:linux: build hab-pkg-export-helm]"
     command:
-      - .expeditor/scripts/build_component.sh pkg-export-helm
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-helm
     expeditor:
       executor:
         docker:
@@ -277,7 +277,7 @@ steps:
 
   - label: "[:linux: build hab-pkg-export-tar]"
     command:
-      - .expeditor/scripts/build_component.sh pkg-export-tar
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
     expeditor:
       executor:
         docker:
@@ -287,7 +287,7 @@ steps:
 
   - label: "[:linux: :two: build hab-pkg-export-tar]"
     command:
-      - .expeditor/scripts/build_component.sh pkg-export-tar
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-export-tar
     expeditor:
       executor:
         docker:
@@ -297,7 +297,7 @@ steps:
 
   - label: "[:windows: build hab-pkg-export-tar]"
     command:
-      - powershell .expeditor/scripts/build_component.ps1 pkg-export-tar
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 pkg-export-tar
     expeditor:
       executor:
         docker:
@@ -309,7 +309,7 @@ steps:
 
   - label: "[:linux: build hab-pkg-mesosize]"
     command:
-      - .expeditor/scripts/build_component.sh pkg-mesosize
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-mesosize
     expeditor:
       executor:
         docker:
@@ -323,7 +323,7 @@ steps:
   # hab-pkg-export-docker, so it must be built after that.
   - label: "[:linux: build hab-pkg-cfize]"
     command:
-      - .expeditor/scripts/build_component.sh pkg-cfize
+      - .expeditor/scripts/release_habitat/build_component.sh pkg-cfize
     expeditor:
       executor:
         docker:
@@ -337,7 +337,7 @@ steps:
   # the channel goes into DEV
   - label: "[:hab: Promote to DEV]"
     command:
-      - .expeditor/scripts/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
+      - .expeditor/scripts/release_habitat/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
     expeditor:
       executor:
         docker:
@@ -347,7 +347,7 @@ steps:
 
   - label: "[:habitat: delete build channel]"
     command:
-      - .expeditor/scripts/remove_build_channel.sh habitat-release-$BUILDKITE_BUILD_ID
+      - .expeditor/scripts/release_habitat/remove_build_channel.sh habitat-release-$BUILDKITE_BUILD_ID
     expeditor:
       executor:
         docker:

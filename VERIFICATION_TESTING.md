@@ -4,7 +4,7 @@ All components of habitat are tested when PRs are created. The helper scripts ar
 
 #### Linux
 ```
-./test/run_cargo_test.sh <component>
+.expeditor/scripts/verify/run_cargo_test.sh <component>
 ```
 *Parameters:*
 `--test-options` - allows you to pass options such as `--test-threads=1` to the cargo test command.
@@ -12,7 +12,7 @@ All components of habitat are tested when PRs are created. The helper scripts ar
 
 #### Windows (powershell 5+)
 ```
-./test/run_cargo_test.ps1 <component>
+.expeditor/scripts/verify/run_cargo_test.ps1 <component>
 ```
 *Parameters:*
 `--TestOptions` - allows you to pass options such as `--test-threads=1` to the cargo test command.

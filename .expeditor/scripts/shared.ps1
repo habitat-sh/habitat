@@ -1,55 +1,62 @@
-# We assume the BUILDKITE_AGENT_ACCESS_TOKEN is set
-function Install-BuildkiteAgent() {
-  # install buildkite agent because we are in a container :(
-  Write-Host "--- Installing buildkite agent in container"
-  $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
-  # We have to do this because everything that comes from vault is quoted on windows.
-  # TODO: This can be removed when we go live!
-  $Rawtoken=$Env:ACCEPTANCE_HAB_AUTH_TOKEN
-  $Env:HAB_AUTH_TOKEN=$Rawtoken.Replace("`"","")
-  iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/master/install.ps1')) | Out-Null
+function Install-Habitat {
+  if (get-command -Name hab -ErrorAction SilentlyContinue) {
+      Write-Host "Using habitat version:`n$(hab --version)"
+  } else {
+      ."$PSScriptRoot\..\..\components\hab\install.ps1"
+  }
 }
 
-function Install-LatestHabitat() {
-  # Install latest hab from using install.ps1
-  $env:HAB_LICENSE = "accept-no-persist"
-  Write-Host "--- :habicat: Installing latest hab binary for $Env:HAB_PACKAGE_TARGET using install.ps1"
-  Set-ExecutionPolicy Bypass -Scope Process -Force
-  iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.ps1')) | Out-Null
-  $baseHabExe="$Env:ProgramData\Habitat\hab.exe"
+function Get-Toolchain {
+  "$(Get-Content $PSScriptRoot\..\..\rust-toolchain)"
+}
 
-  $HabVersion=GetLatestPkgVersionFromChannel("hab")
-  $StudioVersion=GetLatestPkgVersionFromChannel("hab-studio")
-
-  if((-not [string]::IsNullOrEmpty($HabVersion)) -and `
-     (-not [string]::IsNullOrEmpty($StudioVersion)) -and `
-     ($HabVersion -eq $StudioVersion)) {
-    
-    Write-Host "-- Hab and studio versions match! Found hab: $HabVersion - studio: $StudioVersion. Upgrading :awesome:"
-    Invoke-Expression "$baseHabExe pkg install core/hab --binlink --force --channel $Env:HAB_BLDR_CHANNEL" | Out-Null
-    Invoke-Expression "$baseHabExe pkg install core/hab-studio --binlink --force --channel $Env:HAB_BLDR_CHANNEL" | Out-Null
-    # This is weird. Why does binlinking go here but the install.ps1 go to ProgramData?
-    $baseHabExe="C:\hab\bin\hab" 
-    $NewVersion=Invoke-Expression "$baseHabExe --version"
+function New-PathString([string]$StartingPath, [string]$Path) {
+  if (-not [string]::IsNullOrEmpty($path)) {
+      if (-not [string]::IsNullOrEmpty($StartingPath)) {
+          [string[]]$PathCollection = "$path;$StartingPath" -split ';'
+          $Path = ($PathCollection |
+              Select-Object -Unique |
+              Where-Object {-not [string]::IsNullOrEmpty($_.trim())} |
+              Where-Object {test-path "$_"}
+          ) -join ';'
+      }
+      $path
   }
   else {
-    write-host "-- Hab and studio versions did not match. hab: $HabVersion - studio: $StudioVersion"
+      $StartingPath
   }
-  $baseHabExe
 }
 
-function GetLatestPkgVersionFromChannel($PackageName) {
-  if($PackageName.Equals("")) {
-    Write-Error "--- :error: Package name required"
+function Install-Rustup($Toolchain) {
+  if(Test-Path $env:USERPROFILE\.cargo\bin) {
+      $env:path = New-PathString -StartingPath $env:path -Path "$env:USERPROFILE\.cargo\bin"
   }
-  $ReleaseChannel="habitat-release-$Env:BUILDKITE_BUILD_ID"
-  try {
-    $version=(Invoke-Webrequest -UseBasicParsing "$Env:HAB_BLDR_URL/v1/depot/channels/core/$ReleaseChannel/pkgs/$PackageName/latest?target=$Env:BUILD_PKG_TARGET").Content | jq -r '.ident | .version'
-    Write-Host "Found version of ${PackageName} - $version"
+
+  if (get-command -Name rustup.exe -ErrorAction SilentlyContinue) {
+      Write-Host "rustup is currently installed"
+      rustup set default-host x86_64-pc-windows-msvc
+      rustup default stable-x86_64-pc-windows-msvc
+  } else {
+      Write-Host "Installing rustup and $toolchain-x86_64-pc-windows-msvc Rust."
+      [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+      invoke-restmethod -usebasicparsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' -outfile 'rustup-init.exe'
+      ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path
+      $env:path += ";$env:USERPROFILE\.cargo\bin"
   }
-  catch {
-    Write-Host "No version found for $PackageName"
-    Write-Host $_.ScriptStackTrace
+}
+
+function Install-RustToolchain($Toolchain) {
+  rustup component list --toolchain $toolchain | Out-Null
+  if ($LASTEXITCODE -ne 0) {
+      Write-Host "Installing rust toolchain $toolchain"
+      rustup toolchain install $toolchain
+  } else {
+      Write-Host "Rust toolchain $toolchain is already installed"
   }
-  $version
+}
+
+# On buildkite, the rust binaries will be directly in C:
+if($env:BUILDKITE) {
+  # this will avoid a path length limit from the long buildkite working dir path
+  $env:CARGO_TARGET_DIR = "c:\target"
 }

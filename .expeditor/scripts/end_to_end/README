@@ -1,0 +1,1 @@
+This folder contains helper scripts for the `end_to_end` pipeline. This should consist of scripts that set up environments and are executed by buildkite/expeditor. Any scripts that `run` the end to end tests should be placed in `test/end-to-end/`.

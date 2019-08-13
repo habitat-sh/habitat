@@ -20,7 +20,7 @@ steps:
 
   - label: "[:linux: test_hab_help_doesnt_install_hab_sup]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_hab_help_doesnt_install_hab_sup.sh /bin/hab
     expeditor:
       executor:
@@ -55,7 +55,7 @@ steps:
 
   - label: "[:linux: test_launcher_checks_supervisor_version]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_launcher_checks_supervisor_version.sh
     # TODO - FIX ME
     soft_fail: true
@@ -71,7 +71,7 @@ steps:
 
   - label: "[:linux: test_launcher_exits_on_supervisor_connection_failure]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_launcher_exits_on_supervisor_connection_failure.sh
     expeditor:
       executor:
@@ -83,7 +83,7 @@ steps:
 
   - label: "[:linux: test_launcher_exits_on_supervisor_startup_failure]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_launcher_exits_on_supervisor_startup_failure.sh
     expeditor:
       executor:
@@ -95,7 +95,7 @@ steps:
 
   - label: "[:linux: test_launcher_restarts_supervisor]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_launcher_restarts_supervisor.sh
     artifact_paths:
       - sup.log
@@ -108,7 +108,7 @@ steps:
 
   - label: "[:linux: test_socket_file_cleanup]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_socket_file_cleanup.sh
     expeditor:
       executor:
@@ -119,7 +119,7 @@ steps:
 
   - label: "[:linux: test_tar_export]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_tar_export.sh
     expeditor:
       executor:

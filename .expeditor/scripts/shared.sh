@@ -33,3 +33,8 @@ curlbash_hab() {
     esac
     echo "--- :habicat: Hab binary set to $hab_binary"
 }
+
+get_toolchain() {
+    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+    cat "$dir/../../rust-toolchain"
+}
