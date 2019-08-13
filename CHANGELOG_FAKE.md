@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.25 -->
+<!-- latest_release 0.84.26 -->
+## [fake-0.84.26](https://github.com/habitat-sh/habitat/tree/fake-0.84.26) (2019-08-13)
+
+#### Merged Pull Requests
+- Add mac hab build to release process [#6802](https://github.com/habitat-sh/habitat/pull/6802) ([scotthain](https://github.com/scotthain))
+<!-- latest_release -->
+
 ## [fake-0.84.25](https://github.com/habitat-sh/habitat/tree/fake-0.84.25) (2019-08-13)
 
 #### Merged Pull Requests
 - Fix cargo update scheduled task [#6840](https://github.com/habitat-sh/habitat/pull/6840) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.84.24](https://github.com/habitat-sh/habitat/tree/fake-0.84.24) (2019-08-12)
 
