@@ -37,12 +37,11 @@ pub use error::{Error,
                 Result};
 use futures::sync::mpsc::UnboundedSender;
 use habitat_common::types::{AutomateAuthToken,
+                            EventStreamConnectTimeout,
                             EventStreamMetadata};
 use habitat_core::package::ident::PackageIdent;
 use state::Container;
 use std::{net::SocketAddr,
-          num::ParseIntError,
-          str::FromStr,
           sync::Once,
           time::Duration};
 
@@ -254,41 +253,5 @@ impl EventStream {
         if let Err(e) = self.0.unbounded_send(event) {
             error!("Failed to queue event: {:?}", e);
         }
-    }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-/// How long should we for the event thread to start up before
-/// abandoning it and shutting down?
-#[derive(Clone, Debug)]
-pub struct EventStreamConnectTimeout {
-    secs: u64,
-}
-
-impl EventStreamConnectTimeout {
-    /// The name of the Clap argument.
-    pub const ARG_NAME: &'static str = "EVENT_STREAM_CONNECT_TIMEOUT";
-    /// The environment variable to set this value.
-    pub const ENVVAR: &'static str = "HAB_EVENT_STREAM_CONNECT_TIMEOUT";
-}
-
-impl FromStr for EventStreamConnectTimeout {
-    type Err = ParseIntError;
-
-    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self { secs: s.parse()? }) }
-}
-
-impl Into<Duration> for EventStreamConnectTimeout {
-    fn into(self) -> Duration { Duration::from_secs(self.secs) }
-}
-
-impl<'a> From<&'a ArgMatches<'a>> for EventStreamConnectTimeout {
-    /// Create an instance of `EventStreamConnectTimeout` from validated user input.
-    fn from(m: &ArgMatches) -> Self {
-        m.value_of(Self::ARG_NAME)
-         .expect("EVENT_STREAM_CONNECT_TIMEOUT should be set")
-         .parse()
-         .expect("EVENT_STREAM_CONNECT_TIMEOUT should be validated")
     }
 }
