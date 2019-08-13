@@ -9,6 +9,7 @@ use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
                            RING_ENVVAR,
                            RING_KEY_ENVVAR},
                      types::{AutomateAuthToken,
+                             EventStreamConnectTimeout,
                              EventStreamMetadata,
                              GossipListenAddr,
                              HttpListenAddr,
@@ -1164,6 +1165,8 @@ fn sub_svc_unload() -> App<'static, 'static> {
 // For now, though, these at least provide a place to supply the
 // information; we can revise as we go.
 fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static> {
+    // Create shorter alias so formating works correctly
+    type ConnectTimeout = EventStreamConnectTimeout;
     app.arg(Arg::with_name("EVENT_STREAM_APPLICATION").help("The name of the application for \
                                                              event stream purposes. This is \
                                                              distinct from the `--application` \
@@ -1184,6 +1187,18 @@ fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static>
                                                       .required(true)
                                                       .takes_value(true)
                                                       .validator(non_empty))
+       .arg(Arg::with_name(ConnectTimeout::ARG_NAME).help("How long in seconds to wait for an \
+                                                           event stream connection before \
+                                                           exiting the supervisor. Set to '0' to \
+                                                           immediately start the supervisor and \
+                                                           continue running regardless of the \
+                                                           event stream status.")
+                                                    .long("event-stream-connect-timeout")
+                                                    .required(false)
+                                                    .takes_value(true)
+                                                    .env(ConnectTimeout::ENVVAR)
+                                                    .default_value("5")
+                                                    .validator(valid_numeric::<u64>))
        .arg(Arg::with_name("EVENT_STREAM_URL").help("The event stream connection string \
                                                      (host:port) used by this Supervisor to send \
                                                      events to a messaging server.")
