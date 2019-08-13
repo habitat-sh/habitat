@@ -38,8 +38,7 @@ pub use error::{Error,
 use futures::sync::mpsc::UnboundedSender;
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamMetadata};
-use habitat_core::{env::Config as EnvConfig,
-                   package::ident::PackageIdent};
+use habitat_core::package::ident::PackageIdent;
 use state::Container;
 use std::{net::SocketAddr,
           num::ParseIntError,
@@ -68,8 +67,7 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
     let mut return_value: Result<()> = Ok(());
 
     INIT.call_once(|| {
-            let conn_info =
-                EventStreamConnectionInfo::new(config.token, config.url, &event_core.supervisor_id);
+            let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
             match stream_impl::init_stream(conn_info) {
                 Ok(event_stream) => {
                     EVENT_STREAM.set(event_stream);
@@ -86,48 +84,52 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
 /// be passed in by a user
 #[derive(Clone, Debug)]
 pub struct EventStreamConfig {
-    environment: String,
-    application: String,
-    site:        Option<String>,
-    meta:        EventStreamMetadata,
-    token:       AutomateAuthToken,
-    url:         String,
+    environment:     String,
+    application:     String,
+    site:            Option<String>,
+    meta:            EventStreamMetadata,
+    token:           AutomateAuthToken,
+    url:             String,
+    connect_timeout: EventStreamConnectTimeout,
 }
 
 impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
     fn from(m: &ArgMatches) -> Self {
-        EventStreamConfig { environment: m.value_of("EVENT_STREAM_ENVIRONMENT")
-                                          .map(str::to_string)
-                                          .expect("Required option for EventStream feature"),
-                            application: m.value_of("EVENT_STREAM_APPLICATION")
-                                          .map(str::to_string)
-                                          .expect("Required option for EventStream feature"),
-                            site:        m.value_of("EVENT_STREAM_SITE").map(str::to_string),
-                            meta:        EventStreamMetadata::from(m),
-                            token:       AutomateAuthToken::from(m),
-                            url:         m.value_of("EVENT_STREAM_URL")
-                                          .map(str::to_string)
-                                          .expect("Required option for EventStream feature"), }
+        EventStreamConfig { environment:     m.value_of("EVENT_STREAM_ENVIRONMENT")
+                                              .map(str::to_string)
+                                              .expect("Required option for EventStream feature"),
+                            application:     m.value_of("EVENT_STREAM_APPLICATION")
+                                              .map(str::to_string)
+                                              .expect("Required option for EventStream feature"),
+                            site:            m.value_of("EVENT_STREAM_SITE").map(str::to_string),
+                            meta:            EventStreamMetadata::from(m),
+                            token:           AutomateAuthToken::from(m),
+                            url:             m.value_of("EVENT_STREAM_URL")
+                                              .map(str::to_string)
+                                              .expect("Required option for EventStream feature"),
+                            connect_timeout: EventStreamConnectTimeout::from(m), }
     }
 }
 
 /// All the information needed to establish a connection to a NATS
 /// Streaming server.
 pub struct EventStreamConnectionInfo {
-    pub name:        String,
-    pub verbose:     bool,
-    pub cluster_uri: String,
-    pub cluster_id:  String,
-    pub auth_token:  AutomateAuthToken,
+    pub name:            String,
+    pub verbose:         bool,
+    pub cluster_uri:     String,
+    pub cluster_id:      String,
+    pub auth_token:      AutomateAuthToken,
+    pub connect_timeout: EventStreamConnectTimeout,
 }
 
 impl EventStreamConnectionInfo {
-    pub fn new(auth_token: AutomateAuthToken, cluster_uri: String, supervisor_id: &str) -> Self {
-        EventStreamConnectionInfo { name: format!("hab_client_{}", supervisor_id),
-                                    verbose: true,
-                                    cluster_uri,
-                                    cluster_id: "event-service".to_string(),
-                                    auth_token }
+    pub fn new(supervisor_id: &str, config: EventStreamConfig) -> Self {
+        EventStreamConnectionInfo { name:            format!("hab_client_{}", supervisor_id),
+                                    verbose:         true,
+                                    cluster_uri:     config.url,
+                                    cluster_id:      "event-service".to_string(),
+                                    auth_token:      config.token,
+                                    connect_timeout: config.connect_timeout, }
     }
 }
 
@@ -260,12 +262,15 @@ impl EventStream {
 /// How long should we for the event thread to start up before
 /// abandoning it and shutting down?
 #[derive(Clone, Debug)]
-struct EventStreamConnectTimeout {
+pub struct EventStreamConnectTimeout {
     secs: u64,
 }
 
-impl Default for EventStreamConnectTimeout {
-    fn default() -> Self { Self { secs: 5 } }
+impl EventStreamConnectTimeout {
+    /// The name of the Clap argument.
+    pub const ARG_NAME: &'static str = "EVENT_STREAM_CONNECT_TIMEOUT";
+    /// The environment variable to set this value.
+    pub const ENVVAR: &'static str = "HAB_EVENT_STREAM_CONNECT_TIMEOUT";
 }
 
 impl FromStr for EventStreamConnectTimeout {
@@ -274,10 +279,16 @@ impl FromStr for EventStreamConnectTimeout {
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self { secs: s.parse()? }) }
 }
 
-impl EnvConfig for EventStreamConnectTimeout {
-    const ENVVAR: &'static str = "HAB_EVENT_STREAM_CONNECT_TIMEOUT";
-}
-
 impl Into<Duration> for EventStreamConnectTimeout {
     fn into(self) -> Duration { Duration::from_secs(self.secs) }
+}
+
+impl<'a> From<&'a ArgMatches<'a>> for EventStreamConnectTimeout {
+    /// Create an instance of `EventStreamConnectTimeout` from validated user input.
+    fn from(m: &ArgMatches) -> Self {
+        m.value_of(Self::ARG_NAME)
+         .expect("EVENT_STREAM_CONNECT_TIMEOUT should be set")
+         .parse()
+         .expect("EVENT_STREAM_CONNECT_TIMEOUT should be validated")
+    }
 }
