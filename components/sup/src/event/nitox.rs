@@ -1,4 +1,3 @@
-use super::EventStreamConnectTimeout;
 use crate::event::{Error,
                    EventStream,
                    EventStreamConnectionInfo,
@@ -6,7 +5,6 @@ use crate::event::{Error,
 use futures::{sync::mpsc as futures_mpsc,
               Future,
               Stream};
-use habitat_core::env::Config as _;
 use nitox::{commands::ConnectCommand,
             streaming::client::NatsStreamingClient,
             NatsClient,
@@ -24,6 +22,13 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
     let (event_tx, event_rx) = futures_mpsc::unbounded();
     let (sync_tx, sync_rx) = std_mpsc::sync_channel(0); // rendezvous channel
 
+    let EventStreamConnectionInfo { name,
+                                    verbose,
+                                    cluster_uri,
+                                    cluster_id,
+                                    auth_token,
+                                    connect_timeout, } = conn_info;
+
     // TODO (CM): We could theoretically create this future and spawn
     // it in the Supervisor's Tokio runtime, but there's currently a
     // bug: https://github.com/YellowInnovation/nitox/issues/24
@@ -33,11 +38,6 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
     #[rustfmt::skip]
     thread::Builder::new().name("events".to_string())
                           .spawn(move || {
-                              let EventStreamConnectionInfo { name,
-                                                        verbose,
-                                                        cluster_uri,
-                                                        cluster_id,
-                                                        auth_token, } = conn_info;
                               let cc =
                                   ConnectCommand::builder().name(Some(name))
                                                            .verbose(verbose)
@@ -89,7 +89,7 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
                           })
                           .map_err(Error::SpawnEventThreadError)?;
 
-    sync_rx.recv_timeout(EventStreamConnectTimeout::configured_value().into())
+    sync_rx.recv_timeout(connect_timeout.into())
            .map_err(Error::ConnectEventServerError)?;
     Ok(EventStream(event_tx))
 }

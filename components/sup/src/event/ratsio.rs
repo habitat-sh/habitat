@@ -1,4 +1,3 @@
-use super::EventStreamConnectTimeout;
 use crate::event::{Error,
                    EventStream,
                    EventStreamConnectionInfo,
@@ -6,7 +5,6 @@ use crate::event::{Error,
 use futures::{sync::mpsc as futures_mpsc,
               Future,
               Stream};
-use habitat_core::env::Config as _;
 use ratsio::{nats_client::NatsClientOptions,
              stan_client::{StanClient,
                            StanMessage,
@@ -23,16 +21,18 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
     let (event_tx, event_rx) = futures_mpsc::unbounded();
     let (sync_tx, sync_rx) = std_mpsc::sync_channel(0); // rendezvous channel
 
+    let EventStreamConnectionInfo { name,
+                                    verbose,
+                                    cluster_uri,
+                                    cluster_id,
+                                    auth_token,
+                                    connect_timeout, } = conn_info;
+
     // Disabling rustfmt on this... I think we might be running into
     // https://github.com/rust-lang/rustfmt/issues/1762
     #[rustfmt::skip]
     thread::Builder::new().name("events".to_string())
                           .spawn(move || {
-                              let EventStreamConnectionInfo { name,
-                                                        verbose,
-                                                        cluster_uri,
-                                                        cluster_id,
-                                                        auth_token, } = conn_info;
                               let nats_options =
                                   NatsClientOptions::builder().cluster_uris(cluster_uri)
                                                               .auth_token(auth_token.to_string())
@@ -75,7 +75,7 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
                           })
                           .map_err(Error::SpawnEventThreadError)?;
 
-    sync_rx.recv_timeout(EventStreamConnectTimeout::configured_value().into())
+    sync_rx.recv_timeout(connect_timeout.into())
            .map_err(Error::ConnectEventServerError)?;
     Ok(EventStream(event_tx))
 }
