@@ -147,37 +147,63 @@ impl fmt::Display for AutomateAuthToken {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }
 }
 
-/// How long should we for the event thread to start up before
-/// abandoning it and shutting down?
+/// The event stream connection method.
 #[derive(Clone, Debug)]
-pub struct EventStreamConnectTimeout {
-    secs: u64,
+pub enum EventStreamConnectMethod {
+    /// Immediately start the supervisor regardless of the event stream status.
+    Immediate,
+    /// Before starting the supervisor, wait the timeout for an event stream connection.
+    /// If after the timeout there is no connection, exit the supervisor.
+    Timeout { secs: u64 },
 }
 
-impl EventStreamConnectTimeout {
+impl EventStreamConnectMethod {
     /// The name of the Clap argument.
     pub const ARG_NAME: &'static str = "EVENT_STREAM_CONNECT_TIMEOUT";
     /// The environment variable to set this value.
     pub const ENVVAR: &'static str = "HAB_EVENT_STREAM_CONNECT_TIMEOUT";
 }
 
-impl FromStr for EventStreamConnectTimeout {
+impl FromStr for EventStreamConnectMethod {
     type Err = ParseIntError;
 
-    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self { secs: s.parse()? }) }
+    /// A numeric value of zero indicates there is no timeout and the `Immediate` variant is
+    /// returned. Otherwise, the `Timeout` variant is returned.
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
+        let secs = s.parse()?;
+        if secs == 0 {
+            Ok(EventStreamConnectMethod::Immediate)
+        } else {
+            Ok(EventStreamConnectMethod::Timeout { secs })
+        }
+    }
 }
 
-impl Into<Duration> for EventStreamConnectTimeout {
-    fn into(self) -> Duration { Duration::from_secs(self.secs) }
-}
-
-impl<'a> From<&'a ArgMatches<'a>> for EventStreamConnectTimeout {
-    /// Create an instance of `EventStreamConnectTimeout` from validated user input.
+impl<'a> From<&'a ArgMatches<'a>> for EventStreamConnectMethod {
+    /// Create an instance of `EventStreamConnectMethod` from validated user input.
     fn from(m: &ArgMatches) -> Self {
         m.value_of(Self::ARG_NAME)
          .expect("EVENT_STREAM_CONNECT_TIMEOUT should be set")
          .parse()
          .expect("EVENT_STREAM_CONNECT_TIMEOUT should be validated")
+    }
+}
+
+impl EventStreamConnectMethod {
+    pub fn is_timeout(&self) -> bool {
+        match self {
+            EventStreamConnectMethod::Timeout { .. } => true,
+            _ => false,
+        }
+    }
+}
+
+impl Into<Option<Duration>> for EventStreamConnectMethod {
+    fn into(self) -> Option<Duration> {
+        match self {
+            EventStreamConnectMethod::Immediate => None,
+            EventStreamConnectMethod::Timeout { secs } => Some(Duration::from_secs(secs)),
+        }
     }
 }
 
