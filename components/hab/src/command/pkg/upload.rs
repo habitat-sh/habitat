@@ -52,7 +52,7 @@ pub fn start(ui: &mut UI,
              token: &str,
              archive_path: &Path,
              force_upload: bool,
-             disable_build_group: Option<&str>,
+             disable_build: bool,
              key_path: &Path)
              -> Result<()> {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path));
@@ -109,7 +109,7 @@ pub fn start(ui: &mut UI,
                                   (&ident, target),
                                   additional_release_channel,
                                   force_upload,
-                                  disable_build_group,
+                                  disable_build,
                                   &mut archive)
             };
             match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload) {
@@ -138,12 +138,12 @@ fn upload_into_depot(ui: &mut UI,
                      (ident, target): (&PackageIdent, PackageTarget),
                      additional_release_channel: &Option<ChannelIdent>,
                      force_upload: bool,
-                     disable_build_group: Option<&str>,
+                     disable_build: bool,
                      mut archive: &mut PackageArchive)
                      -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
     let package_uploaded =
-        match api_client.put_package(&mut archive, token, force_upload, disable_build_group, ui.progress()) {
+        match api_client.put_package(&mut archive, token, force_upload, disable_build, ui.progress()) {
             Ok(_) => true,
             Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
                 println!("Package already exists on remote; skipping.");
@@ -211,7 +211,7 @@ fn attempt_upload_dep(ui: &mut UI,
                           (ident, target),
                           additional_release_channel,
                           false,
-                          None,
+                          false,
                           &mut archive)
     } else {
         let archive_name = ident.archive_name_with_target(target).unwrap();

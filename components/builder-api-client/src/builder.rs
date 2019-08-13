@@ -807,7 +807,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
                    pa: &mut PackageArchive,
                    token: &str,
                    force_upload: bool,
-                   disable_build_group: Option<&str>,
+                   disable_build: bool,
                    progress: Option<Self::Progress>)
                    -> Result<()> {
         let checksum = pa.checksum()?;
@@ -830,8 +830,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
                .append_pair("target", &target.to_string())
                .append_pair("forced", &force_upload.to_string());
             
-            if let Some(val) = disable_build_group {
-              url.query_pairs_mut().append_pair("builder", val);
+            // Builder uses presence of the `builder` param to disable builds.
+            // Only send the parameter when we the user requests builds be disabled.
+            if disable_build {
+              url.query_pairs_mut().append_pair("builder", "true");
             }
         };
         debug!("Reading from {}", &pa.path.display());
