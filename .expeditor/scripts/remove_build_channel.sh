@@ -5,16 +5,17 @@
 
 set -euo pipefail
 
-source .expeditor/scripts/shared.sh
+source .expeditor/scripts/shared_release_habitat.sh
 
 export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
 
+declare -g hab_binary
 curlbash_hab "$BUILD_PKG_TARGET"
 
 channel="$(get_release_channel)"
 echo "--- Destroying release channel '${channel}'"
 
-hab bldr channel destroy \
+${hab_binary} bldr channel destroy \
     --origin=core \
     "${channel}"
