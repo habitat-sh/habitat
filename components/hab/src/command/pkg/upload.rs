@@ -142,30 +142,34 @@ fn upload_into_depot(ui: &mut UI,
                      mut archive: &mut PackageArchive)
                      -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
-    let package_uploaded =
-        match api_client.put_package(&mut archive, token, force_upload, disable_build, ui.progress()) {
-            Ok(_) => true,
-            Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
-                println!("Package already exists on remote; skipping.");
-                true
-            }
-            Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
-                return Err(Error::PackageArchiveMalformed(format!("{}",
-                                                                  archive.path
-                                                                         .display())));
-            }
-            Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
-                println!("Package platform or architecture not supported by the targeted depot; \
-                          skipping.");
-                false
-            }
-            Err(api_client::Error::APIError(StatusCode::FAILED_DEPENDENCY, _)) => {
-                ui.fatal("Package upload introduces a circular dependency - please check \
-                          pkg_deps; skipping.")?;
-                false
-            }
-            Err(e) => return Err(Error::from(e)),
-        };
+    let package_uploaded = match api_client.put_package(&mut archive,
+                                                        token,
+                                                        force_upload,
+                                                        disable_build,
+                                                        ui.progress())
+    {
+        Ok(_) => true,
+        Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
+            println!("Package already exists on remote; skipping.");
+            true
+        }
+        Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
+            return Err(Error::PackageArchiveMalformed(format!("{}",
+                                                              archive.path
+                                                                     .display())));
+        }
+        Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
+            println!("Package platform or architecture not supported by the targeted depot; \
+                      skipping.");
+            false
+        }
+        Err(api_client::Error::APIError(StatusCode::FAILED_DEPENDENCY, _)) => {
+            ui.fatal("Package upload introduces a circular dependency - please check pkg_deps; \
+                      skipping.")?;
+            false
+        }
+        Err(e) => return Err(Error::from(e)),
+    };
     ui.status(Status::Uploaded, ident)?;
 
     // Promote to additional_release_channel if specified

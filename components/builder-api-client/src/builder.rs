@@ -829,11 +829,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
                .append_pair("checksum", &checksum)
                .append_pair("target", &target.to_string())
                .append_pair("forced", &force_upload.to_string());
-            
+
             // Builder uses presence of the `builder` param to disable builds.
             // Only send the parameter when we the user requests builds be disabled.
             if disable_build {
-              url.query_pairs_mut().append_pair("builder", "true");
+                url.query_pairs_mut().append_pair("builder", "true");
             }
         };
         debug!("Reading from {}", &pa.path.display());
