@@ -26,7 +26,8 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
                                     cluster_uri,
                                     cluster_id,
                                     auth_token,
-                                    connect_timeout, } = conn_info;
+                                    connect_method, } = conn_info;
+    let connect_method_is_timeout = connect_method.is_timeout();
 
     // Disabling rustfmt on this... I think we might be running into
     // https://github.com/rust-lang/rustfmt/issues/1762
@@ -51,8 +52,10 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
                                              ratsio_error)
                                   })
                                   .and_then(move |client| {
-                                      sync_tx.send(())
-                                             .expect("Couldn't synchronize event thread!");
+                                      if connect_method_is_timeout {
+                                          sync_tx.send(())
+                                                 .expect("Couldn't synchronize event thread!");
+                                      }
 
                                       event_rx.for_each(move |event: Vec<u8>| {
                                           let stan_msg =
@@ -75,7 +78,9 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
                           })
                           .map_err(Error::SpawnEventThreadError)?;
 
-    sync_rx.recv_timeout(connect_timeout.into())
-           .map_err(Error::ConnectEventServerError)?;
+    if let Some(connect_method) = connect_method.into() {
+        sync_rx.recv_timeout(connect_method)
+               .map_err(Error::ConnectEventServerError)?;
+    }
     Ok(EventStream(event_tx))
 }

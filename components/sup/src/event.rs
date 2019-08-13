@@ -37,7 +37,7 @@ pub use error::{Error,
                 Result};
 use futures::sync::mpsc::UnboundedSender;
 use habitat_common::types::{AutomateAuthToken,
-                            EventStreamConnectTimeout,
+                            EventStreamConnectMethod,
                             EventStreamMetadata};
 use habitat_core::package::ident::PackageIdent;
 use state::Container;
@@ -83,52 +83,52 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
 /// be passed in by a user
 #[derive(Clone, Debug)]
 pub struct EventStreamConfig {
-    environment:     String,
-    application:     String,
-    site:            Option<String>,
-    meta:            EventStreamMetadata,
-    token:           AutomateAuthToken,
-    url:             String,
-    connect_timeout: EventStreamConnectTimeout,
+    environment:    String,
+    application:    String,
+    site:           Option<String>,
+    meta:           EventStreamMetadata,
+    token:          AutomateAuthToken,
+    url:            String,
+    connect_method: EventStreamConnectMethod,
 }
 
 impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
     fn from(m: &ArgMatches) -> Self {
-        EventStreamConfig { environment:     m.value_of("EVENT_STREAM_ENVIRONMENT")
-                                              .map(str::to_string)
-                                              .expect("Required option for EventStream feature"),
-                            application:     m.value_of("EVENT_STREAM_APPLICATION")
-                                              .map(str::to_string)
-                                              .expect("Required option for EventStream feature"),
-                            site:            m.value_of("EVENT_STREAM_SITE").map(str::to_string),
-                            meta:            EventStreamMetadata::from(m),
-                            token:           AutomateAuthToken::from(m),
-                            url:             m.value_of("EVENT_STREAM_URL")
-                                              .map(str::to_string)
-                                              .expect("Required option for EventStream feature"),
-                            connect_timeout: EventStreamConnectTimeout::from(m), }
+        EventStreamConfig { environment:    m.value_of("EVENT_STREAM_ENVIRONMENT")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"),
+                            application:    m.value_of("EVENT_STREAM_APPLICATION")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"),
+                            site:           m.value_of("EVENT_STREAM_SITE").map(str::to_string),
+                            meta:           EventStreamMetadata::from(m),
+                            token:          AutomateAuthToken::from(m),
+                            url:            m.value_of("EVENT_STREAM_URL")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"),
+                            connect_method: EventStreamConnectMethod::from(m), }
     }
 }
 
 /// All the information needed to establish a connection to a NATS
 /// Streaming server.
 pub struct EventStreamConnectionInfo {
-    pub name:            String,
-    pub verbose:         bool,
-    pub cluster_uri:     String,
-    pub cluster_id:      String,
-    pub auth_token:      AutomateAuthToken,
-    pub connect_timeout: EventStreamConnectTimeout,
+    pub name:           String,
+    pub verbose:        bool,
+    pub cluster_uri:    String,
+    pub cluster_id:     String,
+    pub auth_token:     AutomateAuthToken,
+    pub connect_method: EventStreamConnectMethod,
 }
 
 impl EventStreamConnectionInfo {
     pub fn new(supervisor_id: &str, config: EventStreamConfig) -> Self {
-        EventStreamConnectionInfo { name:            format!("hab_client_{}", supervisor_id),
-                                    verbose:         true,
-                                    cluster_uri:     config.url,
-                                    cluster_id:      "event-service".to_string(),
-                                    auth_token:      config.token,
-                                    connect_timeout: config.connect_timeout, }
+        EventStreamConnectionInfo { name:           format!("hab_client_{}", supervisor_id),
+                                    verbose:        true,
+                                    cluster_uri:    config.url,
+                                    cluster_id:     "event-service".to_string(),
+                                    auth_token:     config.token,
+                                    connect_method: config.connect_method, }
     }
 }
 
