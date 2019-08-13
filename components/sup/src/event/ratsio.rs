@@ -1,7 +1,7 @@
-use super::EventThreadStartupWait;
+use super::EventStreamConnectTimeout;
 use crate::event::{Error,
-                   EventConnectionInfo,
                    EventStream,
+                   EventStreamConnectionInfo,
                    Result};
 use futures::{sync::mpsc as futures_mpsc,
               Future,
@@ -19,7 +19,7 @@ use tokio::{executor,
 /// All messages are published under this subject.
 const HABITAT_SUBJECT: &str = "habitat";
 
-pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream> {
+pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventStream> {
     let (event_tx, event_rx) = futures_mpsc::unbounded();
     let (sync_tx, sync_rx) = std_mpsc::sync_channel(0); // rendezvous channel
 
@@ -28,7 +28,7 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
     #[rustfmt::skip]
     thread::Builder::new().name("events".to_string())
                           .spawn(move || {
-                              let EventConnectionInfo { name,
+                              let EventStreamConnectionInfo { name,
                                                         verbose,
                                                         cluster_uri,
                                                         cluster_id,
@@ -75,7 +75,7 @@ pub(super) fn init_stream(conn_info: EventConnectionInfo) -> Result<EventStream>
                           })
                           .map_err(Error::SpawnEventThreadError)?;
 
-    sync_rx.recv_timeout(EventThreadStartupWait::configured_value().into())
+    sync_rx.recv_timeout(EventStreamConnectTimeout::configured_value().into())
            .map_err(Error::ConnectEventServerError)?;
     Ok(EventStream(event_tx))
 }

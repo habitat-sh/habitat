@@ -69,7 +69,7 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
 
     INIT.call_once(|| {
             let conn_info =
-                EventConnectionInfo::new(config.token, config.url, &event_core.supervisor_id);
+                EventStreamConnectionInfo::new(config.token, config.url, &event_core.supervisor_id);
             match stream_impl::init_stream(conn_info) {
                 Ok(event_stream) => {
                     EVENT_STREAM.set(event_stream);
@@ -113,7 +113,7 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
 
 /// All the information needed to establish a connection to a NATS
 /// Streaming server.
-pub struct EventConnectionInfo {
+pub struct EventStreamConnectionInfo {
     pub name:        String,
     pub verbose:     bool,
     pub cluster_uri: String,
@@ -121,13 +121,13 @@ pub struct EventConnectionInfo {
     pub auth_token:  AutomateAuthToken,
 }
 
-impl EventConnectionInfo {
+impl EventStreamConnectionInfo {
     pub fn new(auth_token: AutomateAuthToken, cluster_uri: String, supervisor_id: &str) -> Self {
-        EventConnectionInfo { name: format!("hab_client_{}", supervisor_id),
-                              verbose: true,
-                              cluster_uri,
-                              cluster_id: "event-service".to_string(),
-                              auth_token }
+        EventStreamConnectionInfo { name: format!("hab_client_{}", supervisor_id),
+                                    verbose: true,
+                                    cluster_uri,
+                                    cluster_id: "event-service".to_string(),
+                                    auth_token }
     }
 }
 
@@ -260,24 +260,24 @@ impl EventStream {
 /// How long should we for the event thread to start up before
 /// abandoning it and shutting down?
 #[derive(Clone, Debug)]
-struct EventThreadStartupWait {
+struct EventStreamConnectTimeout {
     secs: u64,
 }
 
-impl Default for EventThreadStartupWait {
+impl Default for EventStreamConnectTimeout {
     fn default() -> Self { Self { secs: 5 } }
 }
 
-impl FromStr for EventThreadStartupWait {
+impl FromStr for EventStreamConnectTimeout {
     type Err = ParseIntError;
 
     fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self { secs: s.parse()? }) }
 }
 
-impl EnvConfig for EventThreadStartupWait {
-    const ENVVAR: &'static str = "HAB_EVENT_THREAD_STARTUP_WAIT_SEC";
+impl EnvConfig for EventStreamConnectTimeout {
+    const ENVVAR: &'static str = "HAB_EVENT_STREAM_CONNECT_TIMEOUT";
 }
 
-impl Into<Duration> for EventThreadStartupWait {
+impl Into<Duration> for EventStreamConnectTimeout {
     fn into(self) -> Duration { Duration::from_secs(self.secs) }
 }
