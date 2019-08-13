@@ -64,9 +64,12 @@ steps:
 # Unit Tests - Linux!
 #######################################################################
 
-  - label: "[unit] :linux: builder-api-client"
+  # Tests can be tagged with `#[ignore]` for a variety of reasons; see the individual tests for
+  # annotations explaining why. There shouldn't be many of these tests, and to make sure they
+  # continue to function, run all such tests for the workspace at once.
+  - label: "[unit] :linux: ignored"
     command:
-      - ./test/run_cargo_test.sh builder-api-client
+      - ./test/run_cargo_test.sh -- --ignored
     agents:
       queue: 'default-privileged'
     plugins:
@@ -80,9 +83,9 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[unit] :linux: builder-api-client ignored"
+  - label: "[unit] :linux: builder-api-client"
     command:
-      - ./test/run_cargo_test.sh builder-api-client -- --ignored
+      - ./test/run_cargo_test.sh builder-api-client
     agents:
       queue: 'default-privileged'
     plugins:
@@ -125,20 +128,6 @@ steps:
     retry:
       automatic:
         limit: 1
-
-  - label: "[unit] :linux: butterfly ignored"
-    command:
-      - ./test/run_cargo_test.sh butterfly --nightly --features "deadlock_detection" -- --test-threads=1 --ignored
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 20
-    soft_fail: true
 
   - label: "[unit] :linux: common"
     command:
@@ -391,10 +380,10 @@ steps:
 
  #################################################################
 
-
-  - label: "[unit] :windows: builder-api-client"
+  # See "[unit] :linux: ignored"; the same approach applies here for windows
+  - label: "[unit] :windows: ignored"
     command:
-      - ./test/run_cargo_test.ps1 builder-api-client
+      - ./test/run_cargo_test.ps1 -TestOptions "--ignored"
     agents:
       queue: 'default-windows-2016-privileged'
     plugins:
@@ -403,14 +392,14 @@ steps:
         shell: [ "powershell", "-Command" ]
         always-pull: true
         propagate-environment: true
-    timeout_in_minutes: 25
+    timeout_in_minutes: 20
     retry:
       automatic:
         limit: 1
 
-  - label: "[unit] :windows: builder-api-client ignored"
+  - label: "[unit] :windows: builder-api-client"
     command:
-      - ./test/run_cargo_test.ps1 builder-api-client -TestOptions "--ignored"
+      - ./test/run_cargo_test.ps1 builder-api-client
     agents:
       queue: 'default-windows-2016-privileged'
     plugins:
@@ -453,20 +442,6 @@ steps:
     retry:
       automatic:
         limit: 1
-
-  - label: "[unit] :windows: butterfly ignored"
-    command:
-      - ./test/run_cargo_test.ps1 butterfly -Nightly -Features "deadlock_detection" -TestOptions "--test-threads=1 --ignored"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
-    timeout_in_minutes: 25
-    soft_fail: true
 
   - label: "[unit] :windows: common"
     command:

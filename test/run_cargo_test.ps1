@@ -31,8 +31,15 @@ Install-Rustup $toolchain
 Install-RustToolchain $toolchain
 $CargoTestCommand = "cargo +$toolchain test $FeatureString -- $TestOptions"
 
-Write-Host "--- Running cargo +$toolchain test on $Component with command: '$CargoTestCommand'"
-cd components/$Component
+
+if($Component -eq "") {
+    $scope = "habitat workspace"
+} else {
+    $scope = $Component
+    cd components/$Component
+}
+Write-Host "--- Running cargo +$toolchain test on $scope with command: '$CargoTestCommand'"
+
 cargo +$toolchain version
 Invoke-Expression $CargoTestCommand
 

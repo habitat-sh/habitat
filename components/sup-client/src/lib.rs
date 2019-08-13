@@ -5,23 +5,33 @@
 //!
 //! # RPC Call Example
 //!
-//! ```ignore
-//! let conn = SrvClient::connect(&listen_addr, secret_key).wait()?;
-//! let msg = protocols::ctl::ServiceGetDefaultCfg::new();
-//! conn.call(msg).for_each(|reply| {
-//!     match reply.message_id() {
-//!         "ServiceCfg" => {
-//!             let m = reply.parse::<protocols::types::ServiceCfg>().unwrap();
-//!             println!("{}", m.get_default());
-//!         }
-//!         "NetErr" => {
-//!             let m = reply.parse::<protocols::net::NetErr>().unwrap();
-//!             println!("{}", m);
-//!         }
-//!         _ => (),
-//!     }
-//!     Ok(())
-//! })
+//! ```
+//! # use futures::future::Future as _;
+//! # use futures::stream::Stream as _;
+//! # use habitat_sup_client::SrvClient;
+//! # use habitat_sup_protocol as protocols;
+//! # use habitat_common::types::ListenCtlAddr;
+//! # let listen_addr = ListenCtlAddr::default();
+//! # let secret_key = "seekrit";
+//! let conn = SrvClient::connect(&listen_addr, secret_key);
+//! let msg = protocols::ctl::SvcGetDefaultCfg::default();
+//! conn.and_then(|conn| {
+//!         conn.call(msg).for_each(|reply| {
+//!                           match reply.message_id() {
+//!                               "ServiceCfg" => {
+//!                                   let m =
+//!                                       reply.parse::<protocols::types::ServiceCfg>().unwrap();
+//!                                   println!("{}", m.default.unwrap_or_default());
+//!                               }
+//!                               "NetErr" => {
+//!                                   let m = reply.parse::<protocols::net::NetErr>().unwrap();
+//!                                   println!("{}", m);
+//!                               }
+//!                               _ => (),
+//!                           }
+//!                           Ok(())
+//!                       })
+//!     });
 //! ```
 
 #[macro_use]
@@ -29,21 +39,18 @@ extern crate futures;
 use habitat_sup_protocol as protocol;
 #[macro_use]
 extern crate log;
+use crate::{common::types::ListenCtlAddr,
+            protocol::{codec::*,
+                       net::NetErr}};
+use futures::{prelude::*,
+              sink};
 use habitat_common as common;
-
 use std::{error,
           fmt,
           io,
           path::PathBuf};
-
-use crate::protocol::{codec::*,
-                      net::NetErr};
-use futures::{prelude::*,
-              sink};
 use tokio::net::TcpStream;
 use tokio_codec::Framed;
-
-use crate::common::types::ListenCtlAddr;
 
 pub type SrvSend = sink::Send<SrvStream>;
 

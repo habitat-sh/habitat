@@ -5,8 +5,13 @@ set -eou pipefail
 # shellcheck source=./support/ci/shared.sh
 source ./support/ci/shared.sh
 
-component=${1?component argument required}
-shift
+if [[ ${1:-"--"} = "--" ]]; then
+  scope="habitat workspace"
+else
+  component="$1"
+  shift
+  scope="$component"
+fi
 
 if [[ ${1:-} == --nightly ]]; then
   shift
@@ -57,8 +62,12 @@ TESTING_FS_ROOT=$(mktemp -d /tmp/testing-fs-root-XXXXXX)
 
 export RUST_BACKTRACE=1
 
-echo "--- Running cargo +$toolchain test with on $component with $*"
-cd "components/$component"
+echo "--- Running cargo +$toolchain test with on $scope with $*"
+
+if [[ -n ${component:-} ]]; then
+  cd "components/$component"
+fi
+
 # Always add `--quiet` to avoid the noise of compilation in test output.
 # The invocation to this script can add `--format pretty` to the test runner
 # args (that is, after --, like --nocapture and --test-threads) if the names
