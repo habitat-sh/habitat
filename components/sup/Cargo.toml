@@ -14,15 +14,8 @@ name = "hab-sup"
 path = "src/main.rs"
 doc = false
 
-[[bin]]
-name = "subscriber"
-path = "src/subscriber.rs"
-doc = false
-
 [dependencies]
 bytes = "*"
-# This is temporary, until this is merged to the mainline and we can use the crate
-nitox = { git = "https://github.com/habitat-sh/nitox", branch="feature/nats-server" }
 actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
@@ -51,7 +44,6 @@ prost = "*"
 prost-derive = "*"
 prost-types = "0.5.0" # This is current stable, but for some reason gets pulled in as 0.4.0 if we use "*" (2019-03-28)
 rand = "*"
-ratsio = "*"
 regex = "*"
 rustls = "*"
 serde = { version = "*", features = ["rc"] }
@@ -98,5 +90,3 @@ apidocs = []
 ignore_integration_tests = []
 lock_as_rwlock = ["habitat_common/lock_as_rwlock"]
 lock_as_mutex = ["habitat_common/lock_as_mutex"]
-nitox_stream = []
-ratsio_stream = []
