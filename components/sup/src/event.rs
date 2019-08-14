@@ -1,25 +1,18 @@
 //! Main interface for a stream of events the Supervisor can send out
 //! in the course of its operations.
 //!
-//! Currently, the Supervisor is able to send events to a [NATS
-//! Streaming][1] server. The `init_stream` function must be called
+//! Currently, the Supervisor is able to send events to a [NATS][1]
+//! server. The `init_stream` function must be called
 //! before sending events to initialize the publishing thread in the
 //! background. Thereafter, you can pass "event" structs to the
 //! `event` function, which will publish the event to the stream.
 //!
 //! All events are published under the "habitat" subject.
 //!
-//! [1]:https://github.com/nats-io/nats-streaming-server
+//! [1]:https://github.com/nats-io/nats-server
 
 mod error;
-// ratsio_stream is the default, but setting it as a default in Cargo.toml
-// makes it trickier to use nitox instead.
-#[cfg(feature = "nitox_stream")]
-#[path = "event/nitox.rs"]
-mod stream_impl;
-#[cfg(any(feature = "ratsio_stream", not(feature = "nitox_stream")))]
-#[path = "event/ratsio.rs"]
-mod stream_impl;
+mod stream;
 mod types;
 
 pub(crate) use self::types::ServiceMetadata;
@@ -67,7 +60,7 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
 
     INIT.call_once(|| {
             let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
-            match stream_impl::init_stream(conn_info) {
+            match stream::init_stream(conn_info) {
                 Ok(event_stream) => {
                     EVENT_STREAM.set(event_stream);
                     EVENT_CORE.set(event_core);
