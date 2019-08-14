@@ -32,7 +32,7 @@ Install-RustToolchain $toolchain
 $CargoTestCommand = "cargo +$toolchain test $FeatureString -- $TestOptions"
 
 
-if($Component -eq "") {
+if(!$Component) {
     $scope = "habitat workspace"
 } else {
     $scope = $Component
