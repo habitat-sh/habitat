@@ -16,6 +16,7 @@
 
 use crate::{api_client::{self,
                          BoxedClient,
+                         BuildOnUpload,
                          Client},
             common::{command::package::install::{RETRIES,
                                                  RETRY_WAIT},
@@ -52,7 +53,7 @@ pub fn start(ui: &mut UI,
              token: &str,
              archive_path: &Path,
              force_upload: bool,
-             disable_build: bool,
+             auto_build: BuildOnUpload,
              key_path: &Path)
              -> Result<()> {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path));
@@ -109,7 +110,7 @@ pub fn start(ui: &mut UI,
                                   (&ident, target),
                                   additional_release_channel,
                                   force_upload,
-                                  disable_build,
+                                  auto_build,
                                   &mut archive)
             };
             match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload) {
@@ -138,14 +139,14 @@ fn upload_into_depot(ui: &mut UI,
                      (ident, target): (&PackageIdent, PackageTarget),
                      additional_release_channel: &Option<ChannelIdent>,
                      force_upload: bool,
-                     disable_build: bool,
+                     auto_build: BuildOnUpload,
                      mut archive: &mut PackageArchive)
                      -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
     let package_uploaded = match api_client.put_package(&mut archive,
                                                         token,
                                                         force_upload,
-                                                        disable_build,
+                                                        auto_build,
                                                         ui.progress())
     {
         Ok(_) => true,
@@ -215,7 +216,7 @@ fn attempt_upload_dep(ui: &mut UI,
                           (ident, target),
                           additional_release_channel,
                           false,
-                          false,
+                          BuildOnUpload::Disable,
                           &mut archive)
     } else {
         let archive_name = ident.archive_name_with_target(target).unwrap();

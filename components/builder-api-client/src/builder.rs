@@ -11,6 +11,7 @@ use crate::{error::{Error,
             response::{err_from_response,
                        ResponseExt},
             BoxedClient,
+            BuildOnUpload,
             BuilderAPIProvider,
             DisplayProgress,
             OriginKeyIdent,
@@ -807,7 +808,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
                    pa: &mut PackageArchive,
                    token: &str,
                    force_upload: bool,
-                   disable_build: bool,
+                   auto_build: BuildOnUpload,
                    progress: Option<Self::Progress>)
                    -> Result<()> {
         let checksum = pa.checksum()?;
@@ -832,8 +833,11 @@ impl BuilderAPIProvider for BuilderAPIClient {
 
             // Builder uses presence of the `builder` param to disable builds.
             // Only send the parameter when we the user requests builds be disabled.
-            if disable_build {
-                url.query_pairs_mut().append_pair("builder", "true");
+            match auto_build {
+                BuildOnUpload::Disable => {
+                    url.query_pairs_mut().append_pair("builder", "true");
+                }
+                _ => {}
             }
         };
         debug!("Reading from {}", &pa.path.display());

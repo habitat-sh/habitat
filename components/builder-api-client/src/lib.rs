@@ -240,6 +240,12 @@ pub struct ReverseDependencies {
     pub rdeps:  Vec<String>,
 }
 
+#[derive(Clone,Copy,Debug)]
+pub enum BuildOnUpload {
+    PackageDefault,
+    Disable,
+}
+
 pub trait BuilderAPIProvider: Sync + Send {
     type Progress;
 
@@ -291,7 +297,7 @@ pub trait BuilderAPIProvider: Sync + Send {
                    pa: &mut PackageArchive,
                    token: &str,
                    force_upload: bool,
-                   disable_build: bool,
+                   auto_build: BuildOnUpload,
                    progress: Option<Self::Progress>)
                    -> Result<()>;
 

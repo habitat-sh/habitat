@@ -27,6 +27,7 @@ use hab::{cli::{self,
           ORIGIN_ENVVAR,
           PRODUCT,
           VERSION};
+use habitat_api_client::BuildOnUpload;
 use habitat_common::{self as common,
                      cli::{cache_key_path_from_matches,
                            FS_ROOT},
@@ -822,7 +823,10 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     // before allowing a write to the backend, this bypasses the check
     let force_upload = m.is_present("FORCE");
 
-    let disable_build = m.is_present("NO_BUILD");
+    let auto_build = match m.is_present("NO_BUILD") {
+        true => BuildOnUpload::Disable,
+        false => BuildOnUpload::PackageDefault,
+    };
 
     let token = auth_token_param_or_env(&m)?;
     let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
@@ -833,7 +837,7 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                     &token,
                                     artifact_path,
                                     force_upload,
-                                    disable_build,
+                                    auto_build,
                                     &key_path)?;
     }
     Ok(())
