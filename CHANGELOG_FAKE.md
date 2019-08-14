@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.27 -->
+<!-- latest_release 0.84.28 -->
+## [fake-0.84.28](https://github.com/habitat-sh/habitat/tree/fake-0.84.28) (2019-08-14)
+
+#### Merged Pull Requests
+- Add job to run all `#[ignore]`d tests [#6845](https://github.com/habitat-sh/habitat/pull/6845) ([baumanj](https://github.com/baumanj))
+<!-- latest_release -->
+
 ## [fake-0.84.27](https://github.com/habitat-sh/habitat/tree/fake-0.84.27) (2019-08-14)
 
 #### Merged Pull Requests
 - Pin to reqwest 0.9.17 [#6851](https://github.com/habitat-sh/habitat/pull/6851) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.26](https://github.com/habitat-sh/habitat/tree/fake-0.84.26) (2019-08-13)
 
