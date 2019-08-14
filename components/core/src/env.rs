@@ -83,7 +83,9 @@ pub fn var_os<K: AsRef<OsStr>>(key: K) -> std::option::Option<OsString> {
 /// For example, if `$wrapping_type` were `Foo`, to access the overridden value and
 /// pass it to a function `bar` which accepts `$wrapped_type`:
 ///
-/// ```ignore
+/// ```
+/// # habitat_core::env_config_int!(Foo, i32, HAB_FOO, 42);
+/// # fn bar(_: i32) {}
 /// bar(Foo::configured_value().into());
 /// ```
 ///
