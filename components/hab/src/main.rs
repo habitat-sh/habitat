@@ -823,9 +823,10 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     // before allowing a write to the backend, this bypasses the check
     let force_upload = m.is_present("FORCE");
 
-    let auto_build = match m.is_present("NO_BUILD") {
-        true => BuildOnUpload::Disable,
-        false => BuildOnUpload::PackageDefault,
+    let auto_build = if m.is_present("NO_BUILD") {
+        BuildOnUpload::Disable
+    } else {
+        BuildOnUpload::PackageDefault
     };
 
     let token = auth_token_param_or_env(&m)?;

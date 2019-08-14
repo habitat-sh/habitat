@@ -47,6 +47,7 @@ use std::path::{Path,
 /// * Fails if it cannot find a package
 /// * Fails if the package doesn't have a `.hart` file in the cache
 /// * Fails if it cannot upload the file
+#[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              bldr_url: &str,
              additional_release_channel: &Option<ChannelIdent>,
@@ -133,6 +134,7 @@ pub fn start(ui: &mut UI,
 /// automatically put into the `unstable` channel, but if
 /// `additional_release_channel` is provided, packages will be
 /// promoted to that channel as well.
+#[allow(clippy::too_many_arguments)]
 fn upload_into_depot(ui: &mut UI,
                      api_client: &BoxedClient,
                      token: &str,

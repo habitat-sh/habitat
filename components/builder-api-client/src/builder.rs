@@ -833,11 +833,8 @@ impl BuilderAPIProvider for BuilderAPIClient {
 
             // Builder uses presence of the `builder` param to disable builds.
             // Only send the parameter when we the user requests builds be disabled.
-            match auto_build {
-                BuildOnUpload::Disable => {
-                    url.query_pairs_mut().append_pair("builder", "true");
-                }
-                _ => {}
+            if let BuildOnUpload::Disable = auto_build {
+                url.query_pairs_mut().append_pair("builder", "true");
             }
         };
         debug!("Reading from {}", &pa.path.display());
