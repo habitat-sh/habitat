@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euo pipefail
+set -xeuo pipefail
 
 source .expeditor/scripts/shared.sh
 
@@ -25,3 +25,5 @@ echo "--- Installing latest core/hab from ${channel}"
 ${hab_binary} pkg install --binlink --force --channel "${channel}" core/hab
 
 echo "--- $(hab --version)"
+
+useradd --system --no-create-home hab
