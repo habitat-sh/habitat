@@ -240,7 +240,7 @@ pub struct ReverseDependencies {
     pub rdeps:  Vec<String>,
 }
 
-#[derive(Clone,Copy,Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum BuildOnUpload {
     PackageDefault,
     Disable,
