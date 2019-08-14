@@ -1,5 +1,6 @@
 //! Event subsystem-specific error handling
 
+use nats::NatsError;
 use std::{error,
           fmt,
           io,
@@ -11,6 +12,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[derive(Debug)]
 pub enum Error {
     ConnectEventServerError(mpsc::RecvTimeoutError),
+    NatsError(NatsError),
     SpawnEventThreadError(io::Error),
 }
 
@@ -28,6 +30,7 @@ impl fmt::Display for Error {
             Error::ConnectEventServerError(_) => {
                 "Could not establish streaming connection to NATS server".fmt(f)
             }
+            Error::NatsError(e) => e.fmt(f),
             Error::SpawnEventThreadError(_) => "Could not spawn eventing thread".fmt(f),
         }
     }
@@ -37,7 +40,16 @@ impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         match self {
             Error::ConnectEventServerError(ref e) => Some(e),
+            Error::NatsError(ref e) => Some(e),
             Error::SpawnEventThreadError(ref e) => Some(e),
         }
     }
+}
+
+impl From<NatsError> for Error {
+    fn from(error: NatsError) -> Self { Error::NatsError(error) }
+}
+
+impl From<mpsc::RecvTimeoutError> for Error {
+    fn from(error: mpsc::RecvTimeoutError) -> Self { Error::ConnectEventServerError(error) }
 }

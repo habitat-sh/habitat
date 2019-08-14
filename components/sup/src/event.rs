@@ -109,7 +109,6 @@ pub struct EventStreamConnectionInfo {
     pub name:           String,
     pub verbose:        bool,
     pub cluster_uri:    String,
-    pub cluster_id:     String,
     pub auth_token:     AutomateAuthToken,
     pub connect_method: EventStreamConnectMethod,
 }
@@ -119,7 +118,6 @@ impl EventStreamConnectionInfo {
         EventStreamConnectionInfo { name:           format!("hab_client_{}", supervisor_id),
                                     verbose:        true,
                                     cluster_uri:    config.url,
-                                    cluster_id:     "event-service".to_string(),
                                     auth_token:     config.token,
                                     connect_method: config.connect_method, }
     }

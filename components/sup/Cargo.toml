@@ -37,6 +37,7 @@ lazy_static = "*"
 libc = "= 0.2.54" 
 log = "*"
 log4rs = "*"
+nats = { git = "https://github.com/habitat-sh/rust-nats" }
 notify = "*"
 num_cpus = "*"
 prometheus = "*"
