@@ -17,6 +17,7 @@ rand = "*"
 regex = "*"
 # Locked on this version of reqwest until we can go fully async: see
 # https://github.com/seanmonstar/reqwest/commit/5096e12fa21ffdf62ce953c7514e772959d1e4e1
+# and https://github.com/habitat-sh/habitat/issues/6852
 reqwest = "=0.9.17"
 serde = "*"
 serde_derive = "*"
