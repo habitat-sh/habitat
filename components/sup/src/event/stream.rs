@@ -13,6 +13,7 @@ use tokio::{prelude::Stream,
 /// All messages are published under this subject.
 const HABITAT_SUBJECT: &str = "habitat";
 const NATS_SCHEME: &str = "nats://";
+const EVENT_CHANNEL_SIZE: usize = 1024;
 
 fn nats_uri(uri: &str, auth_token: &str) -> String {
     // Unconditionally, remove the scheme. We will add it back.
@@ -27,10 +28,7 @@ fn nats_uri(uri: &str, auth_token: &str) -> String {
 }
 
 pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventStream> {
-    // TODO (DM): This cannot be unbounded. We need backpressure. If the connection is down when we
-    // try to publish we try to reconnect this can be time consuming so we can easily get
-    // behind.
-    let (event_tx, event_rx) = futures_mpsc::unbounded();
+    let (event_tx, event_rx) = futures_mpsc::channel(EVENT_CHANNEL_SIZE);
     let (sync_tx, sync_rx) = std_mpsc::sync_channel(0); // rendezvous channel
 
     let EventStreamConnectionInfo { name,

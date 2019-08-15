@@ -28,11 +28,12 @@ use crate::manager::{service::{HealthCheckResult,
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use futures::sync::mpsc::UnboundedSender;
+use futures::sync::mpsc::Sender;
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
                             EventStreamMetadata};
 use habitat_core::package::ident::PackageIdent;
+use parking_lot::Mutex;
 use state::Container;
 use std::{net::SocketAddr,
           sync::Once,
@@ -48,6 +49,7 @@ lazy_static! {
     /// Core information that is shared between all events.
     static ref EVENT_CORE: Container = Container::new();
 }
+type EventStreamContainer = Mutex<EventStream>;
 
 /// Starts a new thread for sending events to a NATS Streaming
 /// server. Stashes the handle to the stream, as well as the core
@@ -62,7 +64,7 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
             let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
             match stream::init_stream(conn_info) {
                 Ok(event_stream) => {
-                    EVENT_STREAM.set(event_stream);
+                    EVENT_STREAM.set(EventStreamContainer::new(event_stream));
                     EVENT_CORE.set(event_core);
                 }
                 Err(e) => return_value = Err(e),
@@ -204,7 +206,7 @@ pub fn health_check(metadata: ServiceMetadata,
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been
 /// initialized, then we shouldn't need to do anything.
-fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some() }
+fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStreamContainer>().is_some() }
 
 /// Publish an event. This is the main interface that client code will
 /// use.
@@ -212,7 +214,7 @@ fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some(
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
 fn publish(mut event: impl EventMessage) {
-    if let Some(e) = EVENT_STREAM.try_get::<EventStream>() {
+    if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
         // they go out.
@@ -229,20 +231,20 @@ fn publish(mut event: impl EventMessage) {
                                                  Some(std::time::SystemTime::now().into()),
                                              ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
 
-        e.send(event.to_bytes());
+        e.lock().send(event.to_bytes());
     }
 }
 
 /// A lightweight handle for the event stream. All events get to the
 /// event stream through this.
-struct EventStream(UnboundedSender<Vec<u8>>);
+struct EventStream(Sender<Vec<u8>>);
 
 impl EventStream {
     /// Queues an event to be sent out.
-    fn send(&self, event: Vec<u8>) {
+    fn send(&mut self, event: Vec<u8>) {
         trace!("About to queue an event: {:?}", event);
-        if let Err(e) = self.0.unbounded_send(event) {
-            error!("Failed to queue event: {:?}", e);
+        if let Err(e) = self.0.try_send(event) {
+            error!("Failed to queue event: {}", e);
         }
     }
 }

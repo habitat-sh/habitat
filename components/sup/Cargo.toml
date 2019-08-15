@@ -40,6 +40,7 @@ log4rs = "*"
 nats = { git = "https://github.com/habitat-sh/rust-nats" }
 notify = "*"
 num_cpus = "*"
+parking_lot = "*"
 prometheus = "*"
 prost = "*"
 prost-derive = "*"
