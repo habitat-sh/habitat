@@ -26,7 +26,7 @@ docker run \
        --interactive \
        --tty \
        --privileged \
-       --env-file=$(pwd)/e2e_env \
-       --volume $(pwd):/workdir \
+       --env-file="$(pwd)/e2e_env" \
+       --volume="$(pwd):/workdir" \
        --workdir=/workdir \
        chefes/buildkite /bin/bash -e -c "${commands@E}"
