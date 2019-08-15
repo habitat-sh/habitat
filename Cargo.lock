@@ -2065,9 +2065,10 @@ dependencies = [
 [[package]]
 name = "nats"
 version = "0.3.2"
-source = "git+https://github.com/habitat-sh/rust-nats#cc51a37e49751d393abb0aee1971789f260410e5"
+source = "git+https://github.com/habitat-sh/rust-nats#833fe87df57e21586848e61b612f94f154af7127"
 dependencies = [
  "openssl 0.10.24 (registry+https://github.com/rust-lang/crates.io-index)",
+ "percent-encoding 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.98 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde_json 1.0.40 (registry+https://github.com/rust-lang/crates.io-index)",
