@@ -9,7 +9,7 @@ expeditor:
       timeout_in_minutes: 30
       env:
         HAB_ORIGIN: "core"
-        ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+        HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
         HAB_BLDR_CHANNEL: "DEV"
         HAB_INTERNAL_BLDR_CHANNEL: "DEV"
 
