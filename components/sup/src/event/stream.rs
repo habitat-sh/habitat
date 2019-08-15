@@ -11,7 +11,7 @@ use tokio::{prelude::Stream,
             runtime::current_thread::Runtime};
 
 /// All messages are published under this subject.
-const HABITAT_SUBJECT: &str = "habitat";
+const HABITAT_SUBJECT: &str = "habitat.event.healthcheck";
 const NATS_SCHEME: &str = "nats://";
 const EVENT_CHANNEL_SIZE: usize = 1024;
 
