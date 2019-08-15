@@ -99,6 +99,11 @@ expect {
         error "Redis not ready to accept connections!"
     }
 }
+
+while { [file exists /hab/svc/redis/PID] != 1} {
+    log "waiting for /hab/svc/redis/PID to be created"
+    sleep 1
+}
 set redis_pid [exec cat /hab/svc/redis/PID]
 assert { [is_alive $redis_pid] } "Redis PID isn't alive!"
 
