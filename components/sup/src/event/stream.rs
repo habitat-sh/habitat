@@ -12,6 +12,19 @@ use tokio::{prelude::Stream,
 
 /// All messages are published under this subject.
 const HABITAT_SUBJECT: &str = "habitat";
+const NATS_SCHEME: &str = "nats://";
+
+fn nats_uri(uri: &str, auth_token: &str) -> String {
+    // Unconditionally, remove the scheme. We will add it back.
+    let uri = String::from(uri).replace(NATS_SCHEME, "");
+    // If the uri contains credentials or the auth token is empty use the uri as is. Otherwise, add
+    // the auth token.
+    if uri.contains('@') || auth_token.is_empty() {
+        format!("{}{}", NATS_SCHEME, uri)
+    } else {
+        format!("{}{}@{}", NATS_SCHEME, auth_token, uri)
+    }
+}
 
 pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventStream> {
     // TODO (DM): This cannot be unbounded. We need backpressure. If the connection is down when we
@@ -23,11 +36,10 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
     let EventStreamConnectionInfo { name,
                                     verbose,
                                     cluster_uri,
-                                    // TODO (DM): The nats client we are using does not support
-                                    // auth tokens and will need to be patched
-                                    auth_token: _,
+                                    auth_token,
                                     connect_method, } = conn_info;
     let connection_is_timeout = connect_method.is_timeout();
+    let uri = nats_uri(&cluster_uri, &auth_token.to_string());
 
     // Note: With the way we are using the client, we will not respond to pings from the server
     // (https://nats-io.github.io/docs/nats_protocol/nats-protocol.html#pingpong).
@@ -36,7 +48,7 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
     // other traffic from a client. If we have no events for an extended period of time, we will
     // be automatically disconnected (because we do not respond to pings). When the next event comes
     // in we will try to reconnect.
-    let mut client = Client::new(cluster_uri)?;
+    let mut client = Client::new(uri.as_ref())?;
     client.set_name(&name);
     client.set_synchronous(verbose);
     let closure = move || {
@@ -80,4 +92,26 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
         sync_rx.recv_timeout(timeout)?;
     }
     Ok(EventStream(event_tx))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::nats_uri;
+
+    #[test]
+    fn test_nats_uri() {
+        assert_eq!(&nats_uri("nats://127.0.0.1:4222", ""),
+                   "nats://127.0.0.1:4222");
+        assert_eq!(&nats_uri("127.0.0.1:4222", ""), "nats://127.0.0.1:4222");
+        assert_eq!(&nats_uri("username:password@127.0.0.1:4222", "some_token"),
+                   "nats://username:password@127.0.0.1:4222");
+        assert_eq!(&nats_uri("127.0.0.1:4222", "some_token"),
+                   "nats://some_token@127.0.0.1:4222");
+        assert_eq!(&nats_uri("nats://127.0.0.1:4222", "some_token"),
+                   "nats://some_token@127.0.0.1:4222");
+        assert_eq!(&nats_uri("nats://existing_token@127.0.0.1:4222", "not_used_token"),
+                   "nats://existing_token@127.0.0.1:4222");
+        assert_eq!(&nats_uri("existing_token@127.0.0.1:4222", "not_used_token"),
+                   "nats://existing_token@127.0.0.1:4222");
+    }
 }

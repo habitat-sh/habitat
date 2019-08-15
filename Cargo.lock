@@ -2015,7 +2015,7 @@ dependencies = [
 [[package]]
 name = "nats"
 version = "0.3.2"
-source = "git+https://github.com/habitat-sh/rust-nats#466149fa744dc61c9b7a2e5c8c7939ec75c6e86f"
+source = "git+https://github.com/habitat-sh/rust-nats#cc51a37e49751d393abb0aee1971789f260410e5"
 dependencies = [
  "openssl 0.10.23 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",

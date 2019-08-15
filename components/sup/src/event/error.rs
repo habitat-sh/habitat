@@ -30,7 +30,7 @@ impl fmt::Display for Error {
             Error::ConnectEventServerError(_) => {
                 "Could not establish streaming connection to NATS server".fmt(f)
             }
-            Error::NatsError(e) => e.fmt(f),
+            Error::NatsError(e) => format!("NATS event stream error '{}'", e).fmt(f),
             Error::SpawnEventThreadError(_) => "Could not spawn eventing thread".fmt(f),
         }
     }
