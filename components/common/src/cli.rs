@@ -9,8 +9,10 @@ use habitat_core::{env as henv,
                    fs::{cache_key_path,
                         CACHE_KEY_PATH},
                    os::process::{ShutdownSignal,
-                                 ShutdownTimeout}};
-use std::path::PathBuf;
+                                 ShutdownTimeout},
+                   package::PackageIdent};
+use std::{path::PathBuf,
+          str::FromStr};
 
 pub const RING_ENVVAR: &str = "HAB_RING";
 pub const RING_KEY_ENVVAR: &str = "HAB_RING_KEY";
@@ -81,4 +83,14 @@ pub fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
         CACHE_KEY_PATH => cache_key_path(Some(&*FS_ROOT)),
         val => PathBuf::from(val),
     }
+}
+
+pub fn file_into_idents(path: &str) -> Result<Vec<PackageIdent>, habitat_core::error::Error> {
+    let s = std::fs::read_to_string(&path).map_err(|_| {
+                habitat_core::error::Error::FileNotFound(format!("Could not open file {}", path))
+            })?;
+
+    s.lines()
+     .map(|line| PackageIdent::from_str(line.trim()))
+     .collect()
 }

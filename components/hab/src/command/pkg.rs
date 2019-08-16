@@ -4,6 +4,7 @@ pub mod channels;
 pub mod delete;
 pub mod demote;
 pub mod dependencies;
+pub mod download;
 pub mod env;
 pub mod exec;
 pub mod export;

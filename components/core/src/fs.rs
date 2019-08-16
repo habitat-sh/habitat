@@ -18,6 +18,8 @@ use tempfile;
 
 /// The default root path of the Habitat filesystem
 pub const ROOT_PATH: &str = "hab";
+/// The default cache path
+pub const CACHE_PATH: &str = "hab/cache";
 /// The default download root path for package artifacts, used on package installation
 pub const CACHE_ARTIFACT_PATH: &str = "hab/cache/artifacts";
 /// The default path where cryptographic keys are stored
@@ -66,6 +68,17 @@ lazy_static::lazy_static! {
 
     static ref EUID: u32 = users::get_effective_uid();
 
+    static ref MY_CACHE_PATH: PathBuf = {
+        if am_i_root() {
+            PathBuf::from(CACHE_PATH)
+        } else {
+            match dirs::home_dir() {
+                Some(home) => home.join(format!(".{}", CACHE_PATH)),
+                None => PathBuf::from(CACHE_PATH),
+            }
+        }
+    };
+
     static ref MY_CACHE_ARTIFACT_PATH: PathBuf = {
         if am_i_root() {
             PathBuf::from(CACHE_ARTIFACT_PATH)
@@ -109,6 +122,15 @@ lazy_static::lazy_static! {
             }
         }
     };
+}
+
+pub fn cache_root_path<T>(fs_root_path: Option<T>) -> PathBuf
+    where T: AsRef<Path>
+{
+    match fs_root_path {
+        Some(fs_root_path) => fs_root_path.as_ref().join(&*MY_CACHE_PATH),
+        None => Path::new(&*FS_ROOT_PATH).join(&*MY_CACHE_PATH),
+    }
 }
 
 /// Returns the path to the artifacts cache, optionally taking a custom filesystem root.

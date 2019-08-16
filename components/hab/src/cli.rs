@@ -1,9 +1,11 @@
 use crate::command::studio;
+
 use clap::{App,
            AppSettings,
            Arg,
            ArgMatches};
-use habitat_common::{cli::{BINLINK_DIR_ENVVAR,
+use habitat_common::{cli::{file_into_idents,
+                           BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR,
                            RING_ENVVAR,
@@ -435,14 +437,15 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                 (@arg DEST_DIR: -d --dest +takes_value {non_empty} env(BINLINK_DIR_ENVVAR) default_value(DEFAULT_BINLINK_DIR)
                     "Sets the destination directory")
                 (@arg FORCE: -f --force "Overwrite existing binlinks")
-            )
+             )
+            (subcommand: sub_pkg_build())
             (@subcommand config =>
                 (about: "Displays the default configuration options for a service")
                 (aliases: &["conf", "cfg"])
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
-            )
-            (subcommand: sub_pkg_build())
+             )
+            (subcommand: sub_pkg_download())
             (@subcommand env =>
                 (about: "Prints the runtime environment of a specific installed package")
                 (@arg PKG_IDENT: +required +takes_value {valid_ident}
@@ -921,6 +924,28 @@ fn sub_pkg_build() -> App<'static, 'static> {
                                               .long("docker"));
     }
 
+    sub
+}
+
+fn sub_pkg_download() -> App<'static, 'static> {
+    let sub = clap_app!(@subcommand download =>
+    (about: "Download Habitat artifacts (including dependencies and keys) from Builder")
+    (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+    (@arg BLDR_URL: --url -u +takes_value {valid_url} default_value(habitat_core::url::DEFAULT_BLDR_URL)
+        "Specify an alternate Builder endpoint. If not specified, the value will \
+         be taken from the HAB_BLDR_URL environment variable if defined.")
+    (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
+        "Download from the specified release channel")
+    (@arg DOWNLOAD_DIRECTORY: --("download-directory") +takes_value "The path to store downloaded artifacts")
+    (@arg PKG_IDENT_FILE: --file +takes_value +multiple {valid_ident_file}
+        "File with newline separated package identifiers")
+    (@arg PKG_IDENT: +multiple {valid_ident}
+            "One or more Habitat package identifiers (ex: acme/redis)")
+    (@arg PKG_TARGET: --target -t +takes_value {valid_target}
+            "Target architecture to fetch. E.g. x86_64-linux")
+    (@arg VERIFY: --verify
+            "Verify package integrity after download (Warning: this can be slow)")
+    );
     sub
 }
 
@@ -1404,13 +1429,23 @@ fn valid_ident(val: String) -> result::Result<(), String> {
 }
 
 #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+fn valid_ident_file(val: String) -> result::Result<(), String> {
+    file_into_idents(&val).map(|_| ())
+                          .map_err(|e| e.to_string())
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
 fn valid_target(val: String) -> result::Result<(), String> {
     match PackageTarget::from_str(&val) {
         Ok(_) => Ok(()),
         Err(_) => {
-            Err(format!("'{}' is not valid. A valid target is in the form \
-                         architecture-platform (example: x86_64-linux)",
-                        &val))
+            let targets: Vec<_> = PackageTarget::targets().map(std::convert::AsRef::as_ref)
+                                                          .collect();
+            Err(format!("'{}' is not valid. Valid targets are in the form \
+                         architecture-platform (currently Habitat allows \
+                         the following: {})",
+                        &val,
+                        targets.join(", ")))
         }
     }
 }

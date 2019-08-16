@@ -45,6 +45,7 @@ use habitat_common::{self as common,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
+
 use habitat_core::{crypto::{init,
                             keys::PairType,
                             BoxKeyPair,
@@ -240,6 +241,7 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("channels", Some(m)) => sub_pkg_channels(ui, m)?,
                 ("config", Some(m)) => sub_pkg_config(m)?,
                 ("dependencies", Some(m)) => sub_pkg_dependencies(m)?,
+                ("download", Some(m)) => sub_pkg_download(ui, m, feature_flags)?,
                 ("env", Some(m)) => sub_pkg_env(m)?,
                 ("exec", Some(m)) => sub_pkg_exec(m, &remaining_args)?,
                 ("export", Some(m)) => sub_pkg_export(ui, m)?,
@@ -534,6 +536,34 @@ fn sub_pkg_dependencies(m: &ArgMatches<'_>) -> Result<()> {
         command::pkg::DependencyRelation::Requires
     };
     command::pkg::dependencies::start(&ident, scope, direction, &*FS_ROOT)
+}
+
+fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag) -> Result<()> {
+    let token = maybe_auth_token(&m);
+    let url = bldr_url_from_matches(&m)?;
+    let download_dir = download_dir_from_matches(m);
+    let channel = channel_from_matches_or_default(m);
+
+    let mut install_sources = idents_from_matches(m)?;
+    let mut install_sources_from_file = idents_from_file_matches(m)?;
+    install_sources_from_file.append(&mut install_sources);
+
+    let target = target_from_matches(m)?;
+    let verify = verify_from_matches(m);
+
+    init();
+
+    command::pkg::download::start(ui,
+                                  &url,
+                                  &channel,
+                                  PRODUCT,
+                                  VERSION,
+                                  install_sources_from_file,
+                                  target,
+                                  download_dir.as_ref(),
+                                  token.as_ref().map(String::as_str),
+                                  verify)?;
+    Ok(())
 }
 
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
@@ -1461,8 +1491,13 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
             match henv::var(AUTH_TOKEN_ENVVAR) {
                 Ok(v) => Ok(v),
                 Err(_) => {
-                    config::load()?.auth_token
-                                   .ok_or(Error::ArgumentError("No auth token specified"))
+                    config::load()?.auth_token.ok_or_else(|| {
+                                                  Error::ArgumentError(
+                    "No auth token \
+                     specified"
+                        .into(),
+                )
+                                              })
                 }
             }
         }
@@ -1618,6 +1653,35 @@ fn install_sources_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<InstallS
         .collect()
 }
 
+fn idents_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<PackageIdent>> {
+    match matches.values_of("PKG_IDENT") {
+        Some(ident_strings) => {
+            ident_strings.map(|t| PackageIdent::from_str(t).map_err(Error::from))
+                         .collect()
+        }
+        _ => Ok(Vec::new()), // It's not an error to have no idents on command line
+    }
+}
+
+fn idents_from_file_matches(matches: &ArgMatches<'_>) -> Result<Vec<PackageIdent>> {
+    let mut sources: Vec<PackageIdent> = Vec::new();
+
+    if let Some(files) = matches.values_of("PKG_IDENT_FILE") {
+        for filename in files {
+            let mut packages_from_file =
+                habitat_common::cli::file_into_idents(&filename.to_string())?;
+            sources.append(&mut packages_from_file);
+        }
+    }
+    Ok(sources)
+}
+
+fn verify_from_matches(matches: &ArgMatches<'_>) -> bool { matches.is_present("VERIFY") }
+
+fn download_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
+    matches.value_of("DOWNLOAD_DIRECTORY").map(PathBuf::from)
+}
+
 fn excludes_from_matches(matches: &ArgMatches<'_>) -> Vec<PackageIdent> {
     matches
         .values_of("EXCLUDE")
@@ -1749,9 +1813,8 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
                                                          conn.call(msg).for_each(|reply| {
                           match reply.message_id() {
                               "ServiceStatus" => {
-                                  let m =
-                                      reply.parse::<sup_proto::types::ServiceStatus>()
-                                           .map_err(SrvClientError::Decode)?;
+                                  let m = reply.parse::<sup_proto::types::ServiceStatus>()
+                                               .map_err(SrvClientError::Decode)?;
                                   out.push(m.ident.into());
                                   Ok(())
                               }
