@@ -121,9 +121,7 @@ steps:
   - label: "[:linux: test_tar_export]"
     command:
       - .expeditor/scripts/setup_environment.sh DEV
-      - test/end-to-end/test_tar_export.sh core/gzip
-    # TODO - FIX ME
-    soft_fail: true
+      - test/end-to-end/test_tar_export.sh
     expeditor:
       executor:
         docker:
