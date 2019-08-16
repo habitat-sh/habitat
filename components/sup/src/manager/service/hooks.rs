@@ -18,7 +18,7 @@ use std::{self,
                  PathBuf},
           sync::Arc};
 
-static LOGKEY: &'static str = "HK";
+static LOGKEY: &str = "HK";
 
 #[derive(Debug, Serialize)]
 pub struct FileUpdatedHook {

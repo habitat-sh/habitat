@@ -22,8 +22,8 @@ use std::{self,
           result};
 use toml;
 
-static LOGKEY: &'static str = "CF";
-static ENV_VAR_PREFIX: &'static str = "HAB";
+static LOGKEY: &str = "CF";
+static ENV_VAR_PREFIX: &str = "HAB";
 /// The maximum TOML table merge depth allowed before failing the operation. The value here is
 /// somewhat arbitrary (stack size cannot be easily computed beforehand and different libc
 /// implementations will impose different size constraints), however a parallel data structure that

@@ -353,7 +353,7 @@ mod tests {
 
     use crate::PROGRAM_NAME;
 
-    static LOGKEY: &'static str = "SOT";
+    static LOGKEY: &str = "SOT";
 
     fn so<'a>(preamble: &'a str,
               content: &'a str,

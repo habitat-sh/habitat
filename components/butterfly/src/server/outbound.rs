@@ -90,6 +90,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
             let num_initial = server.member_list.len_initial_members_imlr();
             if num_initial != 0 {
                 // The minimum that's strictly more than half
+                #[allow(clippy::integer_division)]
                 let min_to_start = num_initial / 2 + 1;
 
                 if server.member_list.len_mlr() >= min_to_start {

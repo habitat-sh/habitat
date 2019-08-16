@@ -31,7 +31,7 @@ use std::{fs::File,
           result};
 use time::Timespec;
 
-static LOGKEY: &'static str = "SV";
+static LOGKEY: &str = "SV";
 
 #[derive(Debug)]
 pub struct Supervisor {

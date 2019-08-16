@@ -29,7 +29,7 @@ use std::{ffi::OsStr,
 
 #[cfg(not(windows))]
 pub const HOOK_PERMISSIONS: u32 = 0o755;
-static LOGKEY: &'static str = "HK";
+static LOGKEY: &str = "HK";
 
 pub fn stdout_log_path<T>(package_name: &str) -> PathBuf
     where T: Hook

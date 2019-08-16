@@ -1,14 +1,3 @@
-use std::{fs,
-          path::{Path,
-                 PathBuf}};
-
-use base64;
-use hex;
-use sodiumoxide::{crypto::sign::{self,
-                                 ed25519::{PublicKey as SigPublicKey,
-                                           SecretKey as SigSecretKey}},
-                  randombytes::randombytes};
-
 use super::{super::{hash,
                     PUBLIC_KEY_SUFFIX,
                     PUBLIC_SIG_KEY_VERSION,
@@ -26,6 +15,15 @@ use super::{super::{hash,
             TmpKeyfile};
 use crate::error::{Error,
                    Result};
+use base64;
+use hex;
+use sodiumoxide::{crypto::sign::{self,
+                                 ed25519::{PublicKey as SigPublicKey,
+                                           SecretKey as SigSecretKey}},
+                  randombytes::randombytes};
+use std::{fs,
+          path::{Path,
+                 PathBuf}};
 
 pub type SigKeyPair = KeyPair<SigPublicKey, SigSecretKey>;
 
@@ -329,9 +327,9 @@ mod test {
                         PairType},
                 SigKeyPair};
 
-    static VALID_KEY: &'static str = "origin-key-valid-20160509190508.sig.key";
-    static VALID_PUB: &'static str = "origin-key-valid-20160509190508.pub";
-    static VALID_NAME_WITH_REV: &'static str = "origin-key-valid-20160509190508";
+    static VALID_KEY: &str = "origin-key-valid-20160509190508.sig.key";
+    static VALID_PUB: &str = "origin-key-valid-20160509190508.pub";
+    static VALID_NAME_WITH_REV: &str = "origin-key-valid-20160509190508";
 
     #[test]
     fn empty_struct() {

@@ -24,7 +24,7 @@ use std::{self,
           time::{Duration,
                  Instant}};
 
-static LOGKEY: &'static str = "SU";
+static LOGKEY: &str = "SU";
 // TODO (CM): Yes, the variable value should be "period" and not
 // "frequency"... we need to fix that.
 const PERIOD_BYPASS_CHECK_ENVVAR: &str = "HAB_UPDATE_STRATEGY_FREQUENCY_BYPASS_CHECK";

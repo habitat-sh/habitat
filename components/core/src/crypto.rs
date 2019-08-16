@@ -210,35 +210,33 @@
 //! <symkey_base64>
 //! ```
 
-use crypto;
-use std::path::{Path,
-                PathBuf};
-
-use crate::env as henv;
-pub use sodiumoxide::init;
-
 pub use self::keys::{box_key_pair::BoxKeyPair,
                      sig_key_pair::SigKeyPair,
                      sym_key::SymKey};
-use crate::fs::cache_key_path;
+use crate::{env as henv,
+            fs::cache_key_path};
+use crypto;
+pub use sodiumoxide::init;
+use std::path::{Path,
+                PathBuf};
 
 /// The suffix on the end of a public sig/box file
-pub static PUBLIC_KEY_SUFFIX: &'static str = "pub";
+pub static PUBLIC_KEY_SUFFIX: &str = "pub";
 /// The suffix on the end of a public sig file
-pub static SECRET_SIG_KEY_SUFFIX: &'static str = "sig.key";
+pub static SECRET_SIG_KEY_SUFFIX: &str = "sig.key";
 /// The suffix on the end of a secret box file
-pub static SECRET_BOX_KEY_SUFFIX: &'static str = "box.key";
+pub static SECRET_BOX_KEY_SUFFIX: &str = "box.key";
 /// The suffix on the end of a secret symmetric key file
-pub static SECRET_SYM_KEY_SUFFIX: &'static str = "sym.key";
+pub static SECRET_SYM_KEY_SUFFIX: &str = "sym.key";
 /// The hashing function we're using during sign/verify
 /// See also: https://download.libsodium.org/doc/hashing/generic_hashing.html
-pub static SIG_HASH_TYPE: &'static str = "BLAKE2b";
+pub static SIG_HASH_TYPE: &str = "BLAKE2b";
 /// This environment variable allows you to override the fs::CACHE_KEY_PATH
 /// at runtime. This is useful for testing.
-pub static CACHE_KEY_PATH_ENV_VAR: &'static str = "HAB_CACHE_KEY_PATH";
-pub static HART_FORMAT_VERSION: &'static str = "HART-1";
-pub static BOX_FORMAT_VERSION: &'static str = "BOX-1";
-pub static ANONYMOUS_BOX_FORMAT_VERSION: &'static str = "ANONYMOUS-BOX-1";
+pub static CACHE_KEY_PATH_ENV_VAR: &str = "HAB_CACHE_KEY_PATH";
+pub static HART_FORMAT_VERSION: &str = "HART-1";
+pub static BOX_FORMAT_VERSION: &str = "BOX-1";
+pub static ANONYMOUS_BOX_FORMAT_VERSION: &str = "ANONYMOUS-BOX-1";
 /// Create secret key files with these permissions
 #[cfg(not(windows))]
 static KEY_PERMISSIONS: u32 = 0o400;
