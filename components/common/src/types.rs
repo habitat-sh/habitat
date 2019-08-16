@@ -189,15 +189,6 @@ impl<'a> From<&'a ArgMatches<'a>> for EventStreamConnectMethod {
     }
 }
 
-impl EventStreamConnectMethod {
-    pub fn is_timeout(&self) -> bool {
-        match self {
-            EventStreamConnectMethod::Timeout { .. } => true,
-            _ => false,
-        }
-    }
-}
-
 impl Into<Option<Duration>> for EventStreamConnectMethod {
     fn into(self) -> Option<Duration> {
         match self {

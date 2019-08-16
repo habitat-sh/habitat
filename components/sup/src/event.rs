@@ -22,9 +22,10 @@ use self::types::{EventMessage,
                   ServiceStartedEvent,
                   ServiceStoppedEvent,
                   ServiceUpdateStartedEvent};
-use crate::manager::{service::{HealthCheckResult,
-                               Service},
-                     sys::Sys};
+use crate::{manager::{service::{HealthCheckResult,
+                                Service},
+                      sys::Sys},
+            sup_futures::FutureHandle};
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
@@ -38,6 +39,7 @@ use state::Container;
 use std::{net::SocketAddr,
           sync::Once,
           time::Duration};
+use tokio::runtime::Runtime;
 
 static INIT: Once = Once::new();
 lazy_static! {
@@ -55,14 +57,17 @@ type EventStreamContainer = Mutex<EventStream>;
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
-pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<()> {
+pub fn init_stream(config: EventStreamConfig,
+                   event_core: EventCore,
+                   runtime: &mut Runtime)
+                   -> Result<()> {
     // call_once can't return a Result (or anything), so we'll fake it
     // by hanging onto any error we might receive.
     let mut return_value: Result<()> = Ok(());
 
     INIT.call_once(|| {
             let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
-            match stream::init_stream(conn_info) {
+            match stream::init_stream(conn_info, runtime) {
                 Ok(event_stream) => {
                     EVENT_STREAM.set(EventStreamContainer::new(event_stream));
                     EVENT_CORE.set(event_core);
@@ -72,6 +77,19 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
         });
 
     return_value
+}
+
+/// Stop the event stream future so we can gracefully shutdown the runtime.
+///
+/// `init_stream` and `stop_stream` cannot be called more than once. The singleton event stream can
+/// only be set once. If `init_stream` is called after calling `stop_stream` no new event stream
+/// will be started.
+pub fn stop_stream() {
+    if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
+        if let Some(h) = e.lock().handle.take() {
+            h.terminate();
+        }
+    }
 }
 
 /// Captures all event stream-related configuration options that would
@@ -237,13 +255,23 @@ fn publish(mut event: impl EventMessage) {
 
 /// A lightweight handle for the event stream. All events get to the
 /// event stream through this.
-struct EventStream(Sender<Vec<u8>>);
+struct EventStream {
+    sender: Sender<Vec<u8>>,
+    handle: Option<FutureHandle>,
+}
 
 impl EventStream {
+    fn new(sender: Sender<Vec<u8>>, handle: FutureHandle) -> Self {
+        Self { sender,
+               handle: Some(handle) }
+    }
+
     /// Queues an event to be sent out.
     fn send(&mut self, event: Vec<u8>) {
         trace!("About to queue an event: {:?}", event);
-        if let Err(e) = self.0.try_send(event) {
+        // If the server is down, the event stream channel may fill up. If this happens we are ok
+        // dropping events.
+        if let Err(e) = self.sender.try_send(event) {
             error!("Failed to queue event: {}", e);
         }
     }
