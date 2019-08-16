@@ -57,7 +57,7 @@ steps:
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_launcher_checks_supervisor_version.sh
-    # TODO - FIX ME
+
     soft_fail: true
     expeditor:
       executor:
@@ -83,6 +83,8 @@ steps:
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_launcher_exits_on_supervisor_startup_failure.sh
+    artifact_paths:
+      - sup.log
     expeditor:
       executor:
         docker:
