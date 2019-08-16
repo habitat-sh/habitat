@@ -33,8 +33,8 @@ steps:
   - label: "[:linux: hup-does-not-abandon-services]"
     command:
       - .expeditor/scripts/setup_environment.sh DEV
-      - hab pkg install --binlink core/expect/5.45.4/20190115014137
-      - expect test/end-to-end/hup-does-not-abandon-services.exp
+      - hab pkg install --binlink --channel=stable core/expect
+      - test/end-to-end/hup-does-not-abandon-services.exp
     expeditor:
       executor:
         docker:
@@ -45,8 +45,8 @@ steps:
   - label: "[:linux: hab-svc-load]"
     command:
       - .expeditor/scripts/setup_environment.sh DEV
-      - hab pkg install --binlink core/expect/5.45.4/20190115014137
-      - expect test/end-to-end/hab-svc-load.exp
+      - hab pkg install --binlink --channel=stable core/expect
+      - test/end-to-end/hab-svc-load.exp
     expeditor:
       executor:
         docker:

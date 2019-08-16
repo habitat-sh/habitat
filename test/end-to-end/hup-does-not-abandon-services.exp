@@ -1,4 +1,4 @@
-#!/usr/bin/env expect
+#!/bin/expect
 
 # Run a Supervisor locally and verify that HUPping the Supervisor does
 # not result in the Launcher losing track of services, manifested by

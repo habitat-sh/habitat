@@ -1,4 +1,4 @@
-#!/usr/bin/env expect
+#!/bin/expect
 
 # Run a Supervisor locally and verify that `hab svc load` works
 # See https://github.com/habitat-sh/habitat/issues/6852
