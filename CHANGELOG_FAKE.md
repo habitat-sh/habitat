@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.29 -->
+<!-- latest_release 0.84.30 -->
+## [fake-0.84.30](https://github.com/habitat-sh/habitat/tree/fake-0.84.30) (2019-08-16)
+
+#### Merged Pull Requests
+- Add support for running e2e tests locally, for rapid iteration [#6855](https://github.com/habitat-sh/habitat/pull/6855) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.29](https://github.com/habitat-sh/habitat/tree/fake-0.84.29) (2019-08-15)
 
 #### Merged Pull Requests
 - Link our reqwest pins to the issue that would allow us to relax them [#6854](https://github.com/habitat-sh/habitat/pull/6854) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.28](https://github.com/habitat-sh/habitat/tree/fake-0.84.28) (2019-08-14)
 
