@@ -1,0 +1,73 @@
+#!/bin/expect
+
+# Run a Supervisor locally and verify that `hab svc load` works
+# See https://github.com/habitat-sh/habitat/issues/6852
+#
+# Run under sudo (for now, at least)
+#
+# TODO: This currently depends on a bit of state
+#
+# - Which launcher version is used
+# - Which sup version is used
+# - Having write access to the filesystem
+# - There are no other services running
+#
+# We might be able to concoct a Docker container that things could run
+# in, but we'd need to start the container with something other than
+# the Launcher as PID 1, because otherwise, there's no way to verify
+# that the services are actually cleaned up properly.
+
+# TODO: make this work on Windows
+
+# TODO: Find a real test assertion library for TCL
+proc assert {cond {msg "assertion failed"}} {
+    if {![uplevel 1 expr $cond]} {error $msg}
+}
+
+# Print out some helpful tracing messages in the test output.
+proc log {message} {
+    puts "LOG >>> $message"
+}
+
+# Cleanup after the test
+exit -onexit {
+    exec hab sup term
+    exec rm -Rf /hab/sup/default/specs/redis.spec
+    exec pkill redis-server ;# Just in case the test fails
+}
+
+# Begin the test!
+
+# Start up a Supervisor
+spawn hab sup run
+expect {
+    "Starting http-gateway on 0.0.0.0:9631" {
+        log "Supervisor started normally"
+    }
+    "Unable to start Habitat Supervisor because another instance is already running" {
+        error "Another Supervisor is running; leftover state?"
+    }
+    timeout {
+        error "Supervisor appears not to have started, correctly"
+    }
+}
+
+# Let the control gateway come up. :/
+# Alternatively, use `nc -wv localhost 9632`
+sleep 1
+
+# Load up Redis on that Supervisor
+spawn hab svc load core/redis
+expect {
+    "The core/redis service was successfully loaded" {}
+    "Service already loaded, unload 'core/redis' and try again" {
+        error "Service was already loaded; leftover state?"
+    }
+    timeout {
+        error "Timed out waiting for core/redis to load";
+    }
+}
+expect eof wait
+
+spawn hab sup term
+wait

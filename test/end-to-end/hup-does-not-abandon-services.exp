@@ -1,4 +1,4 @@
-#!/usr/bin/env expect
+#!/bin/expect
 
 # Run a Supervisor locally and verify that HUPping the Supervisor does
 # not result in the Launcher losing track of services, manifested by
@@ -99,7 +99,12 @@ expect {
         error "Redis not ready to accept connections!"
     }
 }
-set redis_pid [exec pgrep redis-server]
+
+while { [file exists /hab/svc/redis/PID] != 1} {
+    log "waiting for /hab/svc/redis/PID to be created"
+    sleep 1
+}
+set redis_pid [exec cat /hab/svc/redis/PID]
 assert { [is_alive $redis_pid] } "Redis PID isn't alive!"
 
 set redis_parent [parent_pid $redis_pid]
@@ -130,15 +135,5 @@ expect {
 assert { [is_alive $redis_pid] } "Redis PID isn't alive!"
 assert { [is_alive $launcher_pid] } "Launcher PID isn't alive!"
 
-exec hab sup term
-expect {
-    eof {
-        wait
-    }
-    timeout {
-        error "Supervisor should have shut down!"
-    }
-}
-
-assert { [is_not_alive $launcher_pid] } "Launcher PID is still alive!"
-assert { [is_not_alive $redis_pid] } "Redis PID is still alive!"
+spawn hab sup term
+wait
