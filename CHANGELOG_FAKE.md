@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.30 -->
+<!-- latest_release 0.84.31 -->
+## [fake-0.84.31](https://github.com/habitat-sh/habitat/tree/fake-0.84.31) (2019-08-16)
+
+#### Merged Pull Requests
+- End to end tests: hab-svc-load and hup-does-not-abandon-services [#6849](https://github.com/habitat-sh/habitat/pull/6849) ([baumanj](https://github.com/baumanj))
+<!-- latest_release -->
+
 ## [fake-0.84.30](https://github.com/habitat-sh/habitat/tree/fake-0.84.30) (2019-08-16)
 
 #### Merged Pull Requests
 - Add support for running e2e tests locally, for rapid iteration [#6855](https://github.com/habitat-sh/habitat/pull/6855) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.29](https://github.com/habitat-sh/habitat/tree/fake-0.84.29) (2019-08-15)
 
