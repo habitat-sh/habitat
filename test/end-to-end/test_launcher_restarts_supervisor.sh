@@ -8,6 +8,13 @@
 
 set -eou pipefail
 
+
+find_if_exists() {
+  command -v "${1}" || { log "Required utility '${1}' cannot be found!  Aborting."; exit 1; }
+}
+
+find_if_exists pgrep
+
 wait_for_sup_to_start() {
 	until pgrep hab-sup &>/dev/null; do
 		echo -n .
@@ -21,14 +28,13 @@ if pgrep hab-launch &>/dev/null; then
 	exit 1
 fi
 
-TESTING_FS_ROOT=$(mktemp -d)
-export TESTING_FS_ROOT
-sup_log="$TESTING_FS_ROOT/hab/sup/default/sup.log"
+sup_log="sup.log"
 exit_file=$(mktemp)
 exit_code=${1:-1}
 
 mkdir -p "$(dirname "$sup_log")"
-echo -n "Starting launcher with root $TESTING_FS_ROOT (logging to $sup_log)..."
+echo -n "Starting launcher (logging to $sup_log)..."
+
 env HAB_FEAT_TEST_EXIT="$exit_file" hab sup run &> "$sup_log" &
 trap 'hab sup term' INT TERM EXIT
 
