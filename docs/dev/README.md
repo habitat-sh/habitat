@@ -11,6 +11,7 @@ implementation details.
 - [Building](../../BUILDING.md)
 - [UX Principles](../../UX_PRINCIPLES.md)
 - [Verification Testing](../../VERIFICATION_TESTING.md)
+- [End-to-End Testing](../../END_TO_END_TESTING.md)
 
 ## Design Documents
 
