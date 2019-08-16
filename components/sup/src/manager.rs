@@ -465,7 +465,7 @@ impl Manager {
     ///   MemberList::intitial_entries lock is held.
     fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
-        let runtime =
+        let mut runtime =
             RuntimeBuilder::new().name_prefix("tokio-")
                                  .core_threads(TokioThreadCount::configured_value().into())
                                  .build()
@@ -537,7 +537,7 @@ impl Manager {
             let ec = EventCore::new(&es_config, &sys, fqdn);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
-            event::init_stream(es_config, ec)?;
+            event::init_stream(es_config, ec, &mut runtime)?;
         }
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
@@ -1101,6 +1101,7 @@ impl Manager {
         }
 
         // Allow all existing futures to run to completion.
+        event::stop_stream();
         self.runtime
             .shutdown_on_idle()
             .wait()

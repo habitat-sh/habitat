@@ -1,14 +1,16 @@
-use crate::event::{Error,
-                   EventStream,
-                   EventStreamConnectionInfo,
-                   Result};
-use futures::sync::mpsc as futures_mpsc;
+use crate::{event::{Error,
+                    EventStream,
+                    EventStreamConnectionInfo,
+                    Result},
+            sup_futures};
+use futures::{future::Future,
+              sync::mpsc as futures_mpsc};
 use nats::Client;
-use std::{sync::mpsc as std_mpsc,
-          thread,
-          time::Duration};
+use std::{thread,
+          time::{Duration,
+                 Instant}};
 use tokio::{prelude::Stream,
-            runtime::current_thread::Runtime};
+            runtime::Runtime};
 
 /// All messages are published under this subject.
 const HABITAT_SUBJECT: &str = "habitat.event.healthcheck";
@@ -27,16 +29,16 @@ fn nats_uri(uri: &str, auth_token: &str) -> String {
     }
 }
 
-pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventStream> {
+pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
+                          runtime: &mut Runtime)
+                          -> Result<EventStream> {
     let (event_tx, event_rx) = futures_mpsc::channel(EVENT_CHANNEL_SIZE);
-    let (sync_tx, sync_rx) = std_mpsc::sync_channel(0); // rendezvous channel
 
     let EventStreamConnectionInfo { name,
                                     verbose,
                                     cluster_uri,
                                     auth_token,
                                     connect_method, } = conn_info;
-    let connection_is_timeout = connect_method.is_timeout();
     let uri = nats_uri(&cluster_uri, &auth_token.to_string());
 
     // Note: With the way we are using the client, we will not respond to pings from the server
@@ -49,47 +51,37 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo) -> Result<EventS
     let mut client = Client::new(uri.as_ref())?;
     client.set_name(&name);
     client.set_synchronous(verbose);
-    let closure = move || {
-        // Try to establish an intial connection to the NATS server.
-        loop {
-            if let Err(e) = client.connect() {
-                if connection_is_timeout {
-                    error!("Failed to connect to NATS server '{}'. Retrying...", e);
-                } else {
-                    warn!("Failed to connect to NATS server '{}'.", e);
-                    break;
-                }
-            } else {
-                if connection_is_timeout {
-                    sync_tx.send(())
-                           .expect("Couldn't synchronize event thread!");
-                }
-                break;
+
+    // Try to establish an intial connection to the NATS server.
+    let start = Instant::now();
+    let maybe_timeout = connect_method.into();
+    while let Err(e) = client.connect() {
+        if let Some(timeout) = maybe_timeout {
+            error!("Failed to connect to NATS server '{}'. Retrying...", e);
+            if Instant::now() > start + timeout {
+                return Err(Error::ConnectEventServerError);
             }
-            thread::sleep(Duration::from_secs(1))
+        } else {
+            warn!("Failed to connect to NATS server '{}'.", e);
+            break;
         }
-
-        let event_handler = event_rx.for_each(move |event: Vec<u8>| {
-                                        if let Err(e) = client.publish(HABITAT_SUBJECT, &event) {
-                                            error!("Failed to publish event, '{}'", e);
-                                        }
-                                        Ok(())
-                                    });
-
-        Runtime::new().expect("Couldn't create event stream runtime!")
-                      .spawn(event_handler)
-                      .run()
-                      .expect("something seriously wrong has occurred");
-    };
-
-    thread::Builder::new().name("events".to_string())
-                          .spawn(closure)
-                          .map_err(Error::SpawnEventThreadError)?;
-
-    if let Some(timeout) = connect_method.into() {
-        sync_rx.recv_timeout(timeout)?;
+        thread::sleep(Duration::from_secs(1));
     }
-    Ok(EventStream(event_tx))
+
+    let (handle, event_handler) =
+        sup_futures::cancelable_future(event_rx.for_each(move |event: Vec<u8>| {
+                                                   if let Err(e) =
+                                                       client.publish(HABITAT_SUBJECT, &event)
+                                                   {
+                                                       error!("Failed to publish event, '{}'", e);
+                                                   }
+                                                   Ok(())
+                                               }));
+    // Convert the error type so `spawn` can handle it.
+    let event_handler = event_handler.map_err(|_| ());
+    runtime.spawn(event_handler);
+
+    Ok(EventStream::new(event_tx, handle))
 }
 
 #[cfg(test)]
