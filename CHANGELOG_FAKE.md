@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.31 -->
+<!-- latest_release 0.84.32 -->
+## [fake-0.84.32](https://github.com/habitat-sh/habitat/tree/fake-0.84.32) (2019-08-16)
+
+#### Merged Pull Requests
+- Fixing up some End-to-End Supervisor Tests [#6780](https://github.com/habitat-sh/habitat/pull/6780) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.31](https://github.com/habitat-sh/habitat/tree/fake-0.84.31) (2019-08-16)
 
 #### Merged Pull Requests
 - End to end tests: hab-svc-load and hup-does-not-abandon-services [#6849](https://github.com/habitat-sh/habitat/pull/6849) ([baumanj](https://github.com/baumanj))
-<!-- latest_release -->
 
 ## [fake-0.84.30](https://github.com/habitat-sh/habitat/tree/fake-0.84.30) (2019-08-16)
 
