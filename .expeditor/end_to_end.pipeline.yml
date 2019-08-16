@@ -111,8 +111,6 @@ steps:
     command:
       - .expeditor/scripts/setup_environment.sh DEV
       - test/end-to-end/test_socket_file_cleanup.sh
-    # TODO - FIX ME
-    soft_fail: true
     expeditor:
       executor:
         docker:

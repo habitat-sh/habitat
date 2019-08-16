@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Regression test to address https://github.com/habitat-sh/habitat/issues/4673
+# Fixed in https://github.com/habitat-sh/habitat/pull/5365
+
 set -exou pipefail
 
 find_socket_files() {
@@ -31,14 +34,15 @@ hab sup term
 echo "--- Waiting for launcher to exit..."
 wait
 
+echo "--- Checking for socket files left behind..."
 socket_files_after=$(mktemp)
 find_socket_files > "$socket_files_after"
 
-echo "--- Checking for socket files left behind..."
 if grep -vf "$socket_files_before" "$socket_files_after"; then
 	echo "--- Failure! Dumping supervisor log:"
 	cat "$sup_log"
 	exit 1
 else
-	echo "--- Success! No socket file left behind"
+    echo "--- Success! No socket file left behind; Supervisor logs follow:"
+    cat "$sup_log"
 fi
