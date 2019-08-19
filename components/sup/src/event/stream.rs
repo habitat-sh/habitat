@@ -1,4 +1,5 @@
 use crate::{event::{Error,
+                    EventPacket,
                     EventStream,
                     EventStreamConnectionInfo,
                     Result},
@@ -12,8 +13,6 @@ use std::{thread,
 use tokio::{prelude::Stream,
             runtime::Runtime};
 
-/// All messages are published under this subject.
-const HABITAT_SUBJECT: &str = "habitat.event.healthcheck";
 const NATS_SCHEME: &str = "nats://";
 const EVENT_CHANNEL_SIZE: usize = 1024;
 
@@ -57,10 +56,10 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
     let maybe_timeout = connect_method.into();
     while let Err(e) = client.connect() {
         if let Some(timeout) = maybe_timeout {
-            error!("Failed to connect to NATS server '{}'. Retrying...", e);
             if Instant::now() > start + timeout {
                 return Err(Error::ConnectEventServerError);
             }
+            error!("Failed to connect to NATS server '{}'. Retrying...", e);
         } else {
             warn!("Failed to connect to NATS server '{}'.", e);
             break;
@@ -69,11 +68,13 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
     }
 
     let (handle, event_handler) =
-        sup_futures::cancelable_future(event_rx.for_each(move |event: Vec<u8>| {
-                                                   if let Err(e) =
-                                                       client.publish(HABITAT_SUBJECT, &event)
+        sup_futures::cancelable_future(event_rx.for_each(move |packet: EventPacket| {
+                                                   if let Err(e) = client.publish(packet.subject,
+                                                                                  &packet.payload)
                                                    {
-                                                       error!("Failed to publish event, '{}'", e);
+                                                       error!("Failed to publish event to '{}', \
+                                                               '{}'",
+                                                              packet.subject, e);
                                                    }
                                                    Ok(())
                                                }));
