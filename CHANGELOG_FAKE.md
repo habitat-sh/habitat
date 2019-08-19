@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.32 -->
+<!-- latest_release 0.84.33 -->
+## [fake-0.84.33](https://github.com/habitat-sh/habitat/tree/fake-0.84.33) (2019-08-19)
+
+#### Merged Pull Requests
+- Update event stream [#6853](https://github.com/habitat-sh/habitat/pull/6853) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
 ## [fake-0.84.32](https://github.com/habitat-sh/habitat/tree/fake-0.84.32) (2019-08-16)
 
 #### Merged Pull Requests
 - Fixing up some End-to-End Supervisor Tests [#6780](https://github.com/habitat-sh/habitat/pull/6780) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.31](https://github.com/habitat-sh/habitat/tree/fake-0.84.31) (2019-08-16)
 
