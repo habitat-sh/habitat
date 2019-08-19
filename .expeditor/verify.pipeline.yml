@@ -69,11 +69,7 @@ steps:
   # continue to function, run all such tests for the workspace at once.
   - label: "[unit] :linux: ignored"
     command:
-<<<<<<< HEAD
-      - ./test/run_cargo_test.sh -- --ignored
-=======
-      - .expeditor/scripts/verify/run_cargo_test.sh builder-api-client
->>>>>>> Begin cleaning up scripts and locations of things
+      - .expeditor/scripts/verify/run_cargo_test.sh -- --ignored
     agents:
       queue: 'default-privileged'
     plugins:
@@ -89,11 +85,7 @@ steps:
 
   - label: "[unit] :linux: builder-api-client"
     command:
-<<<<<<< HEAD
-      - ./test/run_cargo_test.sh builder-api-client
-=======
-      - .expeditor/scripts/verify/run_cargo_test.sh builder-api-client -- --ignored
->>>>>>> Begin cleaning up scripts and locations of things
+      - .expeditor/scripts/verify/run_cargo_test.sh builder-api-client
     agents:
       queue: 'default-privileged'
     plugins:
@@ -137,23 +129,6 @@ steps:
       automatic:
         limit: 1
 
-<<<<<<< HEAD
-=======
-  - label: "[unit] :linux: butterfly ignored"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test.sh butterfly --nightly --features "deadlock_detection" -- --test-threads=1 --ignored
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 20
-    soft_fail: true
-
->>>>>>> Begin cleaning up scripts and locations of things
   - label: "[unit] :linux: common"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh common
@@ -344,23 +319,6 @@ steps:
     timeout_in_minutes: 40
     soft_fail: true
 
-<<<<<<< HEAD
-=======
-  - label: "[unit] :linux: sup nitox_stream"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test.sh sup --features "ignore_integration_tests nitox_stream"
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
-    timeout_in_minutes: 10
-    soft_fail: true
-
->>>>>>> Begin cleaning up scripts and locations of things
   - label: "[unit] :linux: sup-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup-client
@@ -411,11 +369,7 @@ steps:
   # See "[unit] :linux: ignored"; the same approach applies here for windows
   - label: "[unit] :windows: ignored"
     command:
-<<<<<<< HEAD
-      - ./test/run_cargo_test.ps1 -TestOptions "--ignored"
-=======
-      - .expeditor/scripts/verify/run_cargo_test.ps1 builder-api-client
->>>>>>> Begin cleaning up scripts and locations of things
+      - .expeditor/scripts/verify/run_cargo_test.ps1 -TestOptions "--ignored"
     agents:
       queue: 'default-windows-2016-privileged'
     plugins:
@@ -431,11 +385,7 @@ steps:
 
   - label: "[unit] :windows: builder-api-client"
     command:
-<<<<<<< HEAD
-      - ./test/run_cargo_test.ps1 builder-api-client
-=======
-      - .expeditor/scripts/verify/run_cargo_test.ps1 builder-api-client -TestOptions "--ignored"
->>>>>>> Begin cleaning up scripts and locations of things
+      - .expeditor/scripts/verify/run_cargo_test.ps1 builder-api-client
     agents:
       queue: 'default-windows-2016-privileged'
     plugins:
@@ -479,23 +429,6 @@ steps:
       automatic:
         limit: 1
 
-<<<<<<< HEAD
-=======
-  - label: "[unit] :windows: butterfly ignored"
-    command:
-      - .expeditor/scripts/verify/run_cargo_test.ps1 butterfly -Nightly -Features "deadlock_detection" -TestOptions "--test-threads=1 --ignored"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
-    timeout_in_minutes: 25
-    soft_fail: true
-
->>>>>>> Begin cleaning up scripts and locations of things
   - label: "[unit] :windows: common"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
