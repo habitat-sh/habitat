@@ -16,6 +16,7 @@
 
 use crate::{api_client::{self,
                          BoxedClient,
+                         BuildOnUpload,
                          Client},
             common::{command::package::install::{RETRIES,
                                                  RETRY_WAIT},
@@ -46,12 +47,14 @@ use std::path::{Path,
 /// * Fails if it cannot find a package
 /// * Fails if the package doesn't have a `.hart` file in the cache
 /// * Fails if it cannot upload the file
+#[allow(clippy::too_many_arguments)]
 pub fn start(ui: &mut UI,
              bldr_url: &str,
              additional_release_channel: &Option<ChannelIdent>,
              token: &str,
              archive_path: &Path,
              force_upload: bool,
+             auto_build: BuildOnUpload,
              key_path: &Path)
              -> Result<()> {
     let mut archive = PackageArchive::new(PathBuf::from(archive_path));
@@ -108,6 +111,7 @@ pub fn start(ui: &mut UI,
                                   (&ident, target),
                                   additional_release_channel,
                                   force_upload,
+                                  auto_build,
                                   &mut archive)
             };
             match retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), upload) {
@@ -130,39 +134,45 @@ pub fn start(ui: &mut UI,
 /// automatically put into the `unstable` channel, but if
 /// `additional_release_channel` is provided, packages will be
 /// promoted to that channel as well.
+#[allow(clippy::too_many_arguments)]
 fn upload_into_depot(ui: &mut UI,
                      api_client: &BoxedClient,
                      token: &str,
                      (ident, target): (&PackageIdent, PackageTarget),
                      additional_release_channel: &Option<ChannelIdent>,
                      force_upload: bool,
+                     auto_build: BuildOnUpload,
                      mut archive: &mut PackageArchive)
                      -> Result<()> {
     ui.status(Status::Uploading, archive.path.display())?;
-    let package_uploaded =
-        match api_client.put_package(&mut archive, token, force_upload, ui.progress()) {
-            Ok(_) => true,
-            Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
-                println!("Package already exists on remote; skipping.");
-                true
-            }
-            Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
-                return Err(Error::PackageArchiveMalformed(format!("{}",
-                                                                  archive.path
-                                                                         .display())));
-            }
-            Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
-                println!("Package platform or architecture not supported by the targeted depot; \
-                          skipping.");
-                false
-            }
-            Err(api_client::Error::APIError(StatusCode::FAILED_DEPENDENCY, _)) => {
-                ui.fatal("Package upload introduces a circular dependency - please check \
-                          pkg_deps; skipping.")?;
-                false
-            }
-            Err(e) => return Err(Error::from(e)),
-        };
+    let package_uploaded = match api_client.put_package(&mut archive,
+                                                        token,
+                                                        force_upload,
+                                                        auto_build,
+                                                        ui.progress())
+    {
+        Ok(_) => true,
+        Err(api_client::Error::APIError(StatusCode::CONFLICT, _)) => {
+            println!("Package already exists on remote; skipping.");
+            true
+        }
+        Err(api_client::Error::APIError(StatusCode::UNPROCESSABLE_ENTITY, _)) => {
+            return Err(Error::PackageArchiveMalformed(format!("{}",
+                                                              archive.path
+                                                                     .display())));
+        }
+        Err(api_client::Error::APIError(StatusCode::NOT_IMPLEMENTED, _)) => {
+            println!("Package platform or architecture not supported by the targeted depot; \
+                      skipping.");
+            false
+        }
+        Err(api_client::Error::APIError(StatusCode::FAILED_DEPENDENCY, _)) => {
+            ui.fatal("Package upload introduces a circular dependency - please check pkg_deps; \
+                      skipping.")?;
+            false
+        }
+        Err(e) => return Err(Error::from(e)),
+    };
     ui.status(Status::Uploaded, ident)?;
 
     // Promote to additional_release_channel if specified
@@ -208,6 +218,7 @@ fn attempt_upload_dep(ui: &mut UI,
                           (ident, target),
                           additional_release_channel,
                           false,
+                          BuildOnUpload::Disable,
                           &mut archive)
     } else {
         let archive_name = ident.archive_name_with_target(target).unwrap();

@@ -10,6 +10,7 @@ use crate::{error::{Error,
             hab_http::ApiClient,
             response::ResponseExt,
             BoxedClient,
+            BuildOnUpload,
             BuilderAPIProvider,
             DisplayProgress,
             OriginKeyIdent,
@@ -447,6 +448,7 @@ impl BuilderAPIProvider for ArtifactoryClient {
                    pa: &mut PackageArchive,
                    token: &str,
                    _force_upload: bool,
+                   _auto_build: BuildOnUpload,
                    progress: Option<Self::Progress>)
                    -> Result<()> {
         let checksum = pa.checksum()?;
