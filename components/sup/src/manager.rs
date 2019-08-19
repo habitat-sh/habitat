@@ -404,6 +404,9 @@ pub struct Manager {
     services_need_reconciliation: ReconciliationFlag,
 
     feature_flags: FeatureFlag,
+    /// The runtime for spawning various `Manager` futures. Eventually, `Manager` could become a
+    /// future itself. This would allow us to remove this runtime and simply use `tokio::spawn`.
+    runtime: Runtime,
 }
 
 impl Manager {
@@ -447,6 +450,11 @@ impl Manager {
     /// * `MemberList::initial_members` (write)
     fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
+        let mut runtime =
+            RuntimeBuilder::new().name_prefix("tokio-")
+                                 .core_threads(TokioThreadCount::configured_value().into())
+                                 .build()
+                                 .expect("Couldn't build Tokio Runtime!");
         let current = PackageIdent::from_str(&format!("{}/{}", SUP_PKG_IDENT, VERSION)).unwrap();
         outputln!("{} ({})", SUP_PKG_IDENT, current);
         let cfg_static = cfg.clone();
@@ -514,7 +522,7 @@ impl Manager {
             let ec = EventCore::new(&es_config, &sys, fqdn);
             // unwrap won't fail here; if there were an issue, from_env()
             // would have already propagated an error up the stack.
-            event::init_stream(es_config, ec)?;
+            event::init_stream(es_config, ec, &mut runtime)?;
         }
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
@@ -537,7 +545,8 @@ impl Manager {
                      http_disable: cfg.http_disable,
                      busy_services: Arc::new(Mutex::new(HashSet::new())),
                      services_need_reconciliation: ReconciliationFlag::new(false),
-                     feature_flags: cfg.feature_flags })
+                     feature_flags: cfg.feature_flags,
+                     runtime })
     }
 
     /// Load the initial Butterly Member which is used in initializing the Butterfly server. This
@@ -713,12 +722,6 @@ impl Manager {
         let mut next_cpu_measurement = SteadyTime::now();
         let mut cpu_start = ProcessTime::now();
 
-        let mut runtime =
-            RuntimeBuilder::new().name_prefix("tokio-")
-                                 .core_threads(TokioThreadCount::configured_value().into())
-                                 .build()
-                                 .expect("Couldn't build Tokio Runtime!");
-
         // TODO (CM): consider bundling up these disparate channel
         // ends into a single struct that handles the communication
         // between the CtlAcceptor and this main loop.
@@ -736,7 +739,7 @@ impl Manager {
                                                              executor::spawn(handler);
                                                              Ok(())
                                                          });
-        runtime.spawn(ctl_handler);
+        self.runtime.spawn(ctl_handler);
 
         if let Some(svc_load) = svc {
             commands::service_load(&self.state, &mut CtlRequest::default(), svc_load)?;
@@ -744,7 +747,7 @@ impl Manager {
 
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
-        self.maybe_spawn_service_futures_rsw_mlw(&mut runtime);
+        self.maybe_spawn_service_futures_rsw_mlw();
 
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
@@ -916,12 +919,12 @@ impl Manager {
                             warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
                                   service_spec.ident, err);
                         }
-                        self.stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
+                        self.stop_service(&service_spec.ident, &shutdown_input);
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
                         self.remove_spec_file(&service_spec.ident).ok();
-                        self.stop_service(&service_spec.ident, &shutdown_input, &mut runtime);
+                        self.stop_service(&service_spec.ident, &shutdown_input);
                     }
                 }
             }
@@ -948,14 +951,14 @@ impl Manager {
                 // event in the specs directory is registered, or
                 // another service finishes shutting down).
                 self.services_need_reconciliation.toggle_if_set();
-                self.maybe_spawn_service_futures_rsw_mlw(&mut runtime);
+                self.maybe_spawn_service_futures_rsw_mlw();
             }
 
             self.update_peers_from_watch_file_mlr_imlw()?;
             self.update_running_services_from_user_config_watcher();
 
             for f in self.stop_services_with_updates_rsw_mlr() {
-                runtime.spawn(f);
+                self.runtime.spawn(f);
             }
 
             self.restart_elections_rsw_mlr(self.feature_flags);
@@ -986,7 +989,7 @@ impl Manager {
                 // this var goes out of scope
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
-                if service.tick(&self.census_ring, &self.launcher, &runtime.executor()) {
+                if service.tick(&self.census_ring, &self.launcher, &self.runtime.executor()) {
                     self.gossip_latest_service_rumor_rsw_mlw(&service);
                 }
             }
@@ -1046,15 +1049,17 @@ impl Manager {
                                    .expect("Services lock is poisoned!");
 
                 for (_ident, svc) in svcs.drain() {
-                    runtime.spawn(self.stop_service_future(svc, None));
+                    self.runtime.spawn(self.stop_service_future(svc, None));
                 }
             }
         }
 
         // Allow all existing futures to run to completion.
-        runtime.shutdown_on_idle()
-               .wait()
-               .expect("Error waiting on Tokio runtime to shutdown");
+        event::stop_stream();
+        self.runtime
+            .shutdown_on_idle()
+            .wait()
+            .expect("Error waiting on Tokio runtime to shutdown");
 
         release_process_lock(&self.fs_cfg);
         self.butterfly.persist_data_rsr_mlr();
@@ -1283,13 +1288,10 @@ impl Manager {
         self.butterfly.restart_elections_rsw_mlr(feature_flags);
     }
 
-    fn stop_service(&mut self,
-                    ident: &PackageIdent,
-                    shutdown_input: &ShutdownInput,
-                    runtime: &mut Runtime) {
+    fn stop_service(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
         if let Some(service) = self.remove_service_from_state(&ident) {
             let future = self.stop_service_future(service, Some(shutdown_input));
-            runtime.spawn(future);
+            self.runtime.spawn(future);
         } else {
             warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
                   ident);
@@ -1398,10 +1400,10 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    fn maybe_spawn_service_futures_rsw_mlw(&mut self, runtime: &mut Runtime) {
+    fn maybe_spawn_service_futures_rsw_mlw(&mut self) {
         let ops = self.compute_service_operations();
         for f in self.operations_into_futures_rsw_mlw(ops) {
-            runtime.spawn(f);
+            self.runtime.spawn(f);
         }
     }
 

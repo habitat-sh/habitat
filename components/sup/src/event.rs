@@ -1,25 +1,18 @@
 //! Main interface for a stream of events the Supervisor can send out
 //! in the course of its operations.
 //!
-//! Currently, the Supervisor is able to send events to a [NATS
-//! Streaming][1] server. The `init_stream` function must be called
+//! Currently, the Supervisor is able to send events to a [NATS][1]
+//! server. The `init_stream` function must be called
 //! before sending events to initialize the publishing thread in the
 //! background. Thereafter, you can pass "event" structs to the
 //! `event` function, which will publish the event to the stream.
 //!
 //! All events are published under the "habitat" subject.
 //!
-//! [1]:https://github.com/nats-io/nats-streaming-server
+//! [1]:https://github.com/nats-io/nats-server
 
 mod error;
-// ratsio_stream is the default, but setting it as a default in Cargo.toml
-// makes it trickier to use nitox instead.
-#[cfg(feature = "nitox_stream")]
-#[path = "event/nitox.rs"]
-mod stream_impl;
-#[cfg(any(feature = "ratsio_stream", not(feature = "nitox_stream")))]
-#[path = "event/ratsio.rs"]
-mod stream_impl;
+mod stream;
 mod types;
 
 pub(crate) use self::types::ServiceMetadata;
@@ -29,23 +22,29 @@ use self::types::{EventMessage,
                   ServiceStartedEvent,
                   ServiceStoppedEvent,
                   ServiceUpdateStartedEvent};
-use crate::manager::{service::{HealthCheckResult,
-                               Service},
-                     sys::Sys};
+use crate::{manager::{service::{HealthCheckResult,
+                                Service},
+                      sys::Sys},
+            sup_futures::FutureHandle};
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use futures::sync::mpsc::UnboundedSender;
+use futures::sync::mpsc::Sender;
 use habitat_common::types::{AutomateAuthToken,
+                            EventStreamConnectMethod,
                             EventStreamMetadata};
-use habitat_core::{env::Config as EnvConfig,
-                   package::ident::PackageIdent};
+use habitat_core::package::ident::PackageIdent;
+use parking_lot::Mutex;
 use state::Container;
 use std::{net::SocketAddr,
-          num::ParseIntError,
-          str::FromStr,
           sync::Once,
           time::Duration};
+use tokio::runtime::Runtime;
+
+const SERVICE_STARTED_SUBJECT: &str = "habitat.event.service_started";
+const SERVICE_STOPPED_SUBJECT: &str = "habitat.event.service_stopped";
+const SERVICE_UPDATE_STARTED_SUBJECT: &str = "habitat.event.service_update_started";
+const HEALTHCHECK_SUBJECT: &str = "habitat.event.healthcheck";
 
 static INIT: Once = Once::new();
 lazy_static! {
@@ -57,22 +56,25 @@ lazy_static! {
     /// Core information that is shared between all events.
     static ref EVENT_CORE: Container = Container::new();
 }
+type EventStreamContainer = Mutex<EventStream>;
 
 /// Starts a new thread for sending events to a NATS Streaming
 /// server. Stashes the handle to the stream, as well as the core
 /// event information that will be a part of all events, in a global
 /// static reference for access later.
-pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<()> {
+pub fn init_stream(config: EventStreamConfig,
+                   event_core: EventCore,
+                   runtime: &mut Runtime)
+                   -> Result<()> {
     // call_once can't return a Result (or anything), so we'll fake it
     // by hanging onto any error we might receive.
     let mut return_value: Result<()> = Ok(());
 
     INIT.call_once(|| {
-            let conn_info =
-                EventConnectionInfo::new(config.token, config.url, &event_core.supervisor_id);
-            match stream_impl::init_stream(conn_info) {
+            let conn_info = EventStreamConnectionInfo::new(&event_core.supervisor_id, config);
+            match stream::init_stream(conn_info, runtime) {
                 Ok(event_stream) => {
-                    EVENT_STREAM.set(event_stream);
+                    EVENT_STREAM.set(EventStreamContainer::new(event_stream));
                     EVENT_CORE.set(event_core);
                 }
                 Err(e) => return_value = Err(e),
@@ -82,52 +84,67 @@ pub fn init_stream(config: EventStreamConfig, event_core: EventCore) -> Result<(
     return_value
 }
 
+/// Stop the event stream future so we can gracefully shutdown the runtime.
+///
+/// `init_stream` and `stop_stream` cannot be called more than once. The singleton event stream can
+/// only be set once. If `init_stream` is called after calling `stop_stream` no new event stream
+/// will be started.
+pub fn stop_stream() {
+    if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
+        if let Some(h) = e.lock().handle.take() {
+            h.terminate();
+        }
+    }
+}
+
 /// Captures all event stream-related configuration options that would
 /// be passed in by a user
 #[derive(Clone, Debug)]
 pub struct EventStreamConfig {
-    environment: String,
-    application: String,
-    site:        Option<String>,
-    meta:        EventStreamMetadata,
-    token:       AutomateAuthToken,
-    url:         String,
+    environment:    String,
+    application:    String,
+    site:           Option<String>,
+    meta:           EventStreamMetadata,
+    token:          AutomateAuthToken,
+    url:            String,
+    connect_method: EventStreamConnectMethod,
 }
 
 impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
     fn from(m: &ArgMatches) -> Self {
-        EventStreamConfig { environment: m.value_of("EVENT_STREAM_ENVIRONMENT")
-                                          .map(str::to_string)
-                                          .expect("Required option for EventStream feature"),
-                            application: m.value_of("EVENT_STREAM_APPLICATION")
-                                          .map(str::to_string)
-                                          .expect("Required option for EventStream feature"),
-                            site:        m.value_of("EVENT_STREAM_SITE").map(str::to_string),
-                            meta:        EventStreamMetadata::from(m),
-                            token:       AutomateAuthToken::from(m),
-                            url:         m.value_of("EVENT_STREAM_URL")
-                                          .map(str::to_string)
-                                          .expect("Required option for EventStream feature"), }
+        EventStreamConfig { environment:    m.value_of("EVENT_STREAM_ENVIRONMENT")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"),
+                            application:    m.value_of("EVENT_STREAM_APPLICATION")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"),
+                            site:           m.value_of("EVENT_STREAM_SITE").map(str::to_string),
+                            meta:           EventStreamMetadata::from(m),
+                            token:          AutomateAuthToken::from(m),
+                            url:            m.value_of("EVENT_STREAM_URL")
+                                             .map(str::to_string)
+                                             .expect("Required option for EventStream feature"),
+                            connect_method: EventStreamConnectMethod::from(m), }
     }
 }
 
 /// All the information needed to establish a connection to a NATS
 /// Streaming server.
-pub struct EventConnectionInfo {
-    pub name:        String,
-    pub verbose:     bool,
-    pub cluster_uri: String,
-    pub cluster_id:  String,
-    pub auth_token:  AutomateAuthToken,
+pub struct EventStreamConnectionInfo {
+    pub name:           String,
+    pub verbose:        bool,
+    pub cluster_uri:    String,
+    pub auth_token:     AutomateAuthToken,
+    pub connect_method: EventStreamConnectMethod,
 }
 
-impl EventConnectionInfo {
-    pub fn new(auth_token: AutomateAuthToken, cluster_uri: String, supervisor_id: &str) -> Self {
-        EventConnectionInfo { name: format!("hab_client_{}", supervisor_id),
-                              verbose: true,
-                              cluster_uri,
-                              cluster_id: "event-service".to_string(),
-                              auth_token }
+impl EventStreamConnectionInfo {
+    pub fn new(supervisor_id: &str, config: EventStreamConfig) -> Self {
+        EventStreamConnectionInfo { name:           format!("hab_client_{}", supervisor_id),
+                                    verbose:        true,
+                                    cluster_uri:    config.url,
+                                    auth_token:     config.token,
+                                    connect_method: config.connect_method, }
     }
 }
 
@@ -167,7 +184,8 @@ impl EventCore {
 /// Send an event for the start of a Service.
 pub fn service_started(service: &Service) {
     if stream_initialized() {
-        publish(ServiceStartedEvent { service_metadata: Some(service.to_service_metadata()),
+        publish(SERVICE_STARTED_SUBJECT,
+                ServiceStartedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
     }
 }
@@ -175,7 +193,8 @@ pub fn service_started(service: &Service) {
 /// Send an event for the stop of a Service.
 pub fn service_stopped(service: &Service) {
     if stream_initialized() {
-        publish(ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
+        publish(SERVICE_STOPPED_SUBJECT,
+                ServiceStoppedEvent { service_metadata: Some(service.to_service_metadata()),
                                       event_metadata:   None, });
     }
 }
@@ -183,7 +202,8 @@ pub fn service_stopped(service: &Service) {
 /// Send an event at the start of a Service update.
 pub fn service_update_started(service: &Service, update: &PackageIdent) {
     if stream_initialized() {
-        publish(ServiceUpdateStartedEvent { event_metadata:       None,
+        publish(SERVICE_UPDATE_STARTED_SUBJECT,
+                ServiceUpdateStartedEvent { event_metadata:       None,
                                             service_metadata:
                                                 Some(service.to_service_metadata()),
                                             update_package_ident: update.clone().to_string(), });
@@ -200,7 +220,8 @@ pub fn health_check(metadata: ServiceMetadata,
                     execution: Option<Duration>) {
     if stream_initialized() {
         let check_result: types::HealthCheckResult = check_result.into();
-        publish(HealthCheckEvent { service_metadata: Some(metadata),
+        publish(HEALTHCHECK_SUBJECT,
+                HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata:   None,
                                    result:           i32::from(check_result),
                                    execution:        execution.map(Duration::into), });
@@ -212,15 +233,15 @@ pub fn health_check(metadata: ServiceMetadata,
 /// Internal helper function to know whether or not to go to the trouble of
 /// creating event structures. If the event stream hasn't been
 /// initialized, then we shouldn't need to do anything.
-fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStream>().is_some() }
+fn stream_initialized() -> bool { EVENT_STREAM.try_get::<EventStreamContainer>().is_some() }
 
 /// Publish an event. This is the main interface that client code will
 /// use.
 ///
 /// If `init_stream` has not been called already, this function will
 /// be a no-op.
-fn publish(mut event: impl EventMessage) {
-    if let Some(e) = EVENT_STREAM.try_get::<EventStream>() {
+fn publish(subject: &'static str, mut event: impl EventMessage) {
+    if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
         // TODO (CM): Yeah... this is looking pretty gross. The
         // intention is to be able to timestamp the events right as
         // they go out.
@@ -237,47 +258,42 @@ fn publish(mut event: impl EventMessage) {
                                                  Some(std::time::SystemTime::now().into()),
                                              ..EVENT_CORE.get::<EventCore>().to_event_metadata() });
 
-        e.send(event.to_bytes());
+        let packet = EventPacket::new(subject, event.to_bytes());
+        e.lock().send(packet);
     }
+}
+
+/// The subject and payload of an event message.
+#[derive(Debug)]
+struct EventPacket {
+    subject: &'static str,
+    payload: Vec<u8>,
+}
+
+impl EventPacket {
+    fn new(subject: &'static str, payload: Vec<u8>) -> Self { Self { subject, payload } }
 }
 
 /// A lightweight handle for the event stream. All events get to the
 /// event stream through this.
-struct EventStream(UnboundedSender<Vec<u8>>);
+struct EventStream {
+    sender: Sender<EventPacket>,
+    handle: Option<FutureHandle>,
+}
 
 impl EventStream {
+    fn new(sender: Sender<EventPacket>, handle: FutureHandle) -> Self {
+        Self { sender,
+               handle: Some(handle) }
+    }
+
     /// Queues an event to be sent out.
-    fn send(&self, event: Vec<u8>) {
-        trace!("About to queue an event: {:?}", event);
-        if let Err(e) = self.0.unbounded_send(event) {
-            error!("Failed to queue event: {:?}", e);
+    fn send(&mut self, event_packet: EventPacket) {
+        trace!("About to queue an event: {:?}", event_packet);
+        // If the server is down, the event stream channel may fill up. If this happens we are ok
+        // dropping events.
+        if let Err(e) = self.sender.try_send(event_packet) {
+            error!("Failed to queue event: {}", e);
         }
     }
-}
-
-////////////////////////////////////////////////////////////////////////
-
-/// How long should we for the event thread to start up before
-/// abandoning it and shutting down?
-#[derive(Clone, Debug)]
-struct EventThreadStartupWait {
-    secs: u64,
-}
-
-impl Default for EventThreadStartupWait {
-    fn default() -> Self { Self { secs: 5 } }
-}
-
-impl FromStr for EventThreadStartupWait {
-    type Err = ParseIntError;
-
-    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> { Ok(Self { secs: s.parse()? }) }
-}
-
-impl EnvConfig for EventThreadStartupWait {
-    const ENVVAR: &'static str = "HAB_EVENT_THREAD_STARTUP_WAIT_SEC";
-}
-
-impl Into<Duration> for EventThreadStartupWait {
-    fn into(self) -> Duration { Duration::from_secs(self.secs) }
 }
