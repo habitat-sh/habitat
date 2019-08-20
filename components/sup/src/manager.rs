@@ -129,7 +129,7 @@ use winapi::{shared::minwindef::PDWORD,
 const MEMBER_ID_FILE: &str = "MEMBER_ID";
 pub const PROC_LOCK_FILE: &str = "LOCK";
 
-static LOGKEY: &'static str = "MR";
+static LOGKEY: &str = "MR";
 
 lazy_static! {
     static ref RUN_LOOP_DURATION: HistogramVec =

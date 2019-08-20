@@ -1,3 +1,16 @@
+use super::{PUBLIC_BOX_KEY_VERSION,
+            PUBLIC_KEY_SUFFIX,
+            PUBLIC_SIG_KEY_VERSION,
+            SECRET_BOX_KEY_SUFFIX,
+            SECRET_BOX_KEY_VERSION,
+            SECRET_SIG_KEY_SUFFIX,
+            SECRET_SIG_KEY_VERSION,
+            SECRET_SYM_KEY_SUFFIX,
+            SECRET_SYM_KEY_VERSION};
+use crate::error::{Error,
+                   Result};
+use base64;
+use regex::Regex;
 use std::{collections::HashSet,
           fmt,
           fs::{self,
@@ -9,23 +22,7 @@ use std::{collections::HashSet,
                  PathBuf},
           result,
           str::FromStr};
-
-use base64;
-use regex::Regex;
 use time;
-
-use crate::error::{Error,
-                   Result};
-
-use super::{PUBLIC_BOX_KEY_VERSION,
-            PUBLIC_KEY_SUFFIX,
-            PUBLIC_SIG_KEY_VERSION,
-            SECRET_BOX_KEY_SUFFIX,
-            SECRET_BOX_KEY_VERSION,
-            SECRET_SIG_KEY_SUFFIX,
-            SECRET_SIG_KEY_VERSION,
-            SECRET_SYM_KEY_SUFFIX,
-            SECRET_SYM_KEY_VERSION};
 
 lazy_static::lazy_static! {
     static ref NAME_WITH_REV_RE: Regex = Regex::new(r"\A(?P<name>.+)-(?P<rev>\d{14})\z").unwrap();
@@ -556,8 +553,8 @@ mod test {
     use super::{super::test_support::*,
                 TmpKeyfile};
 
-    static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
-    static VALID_KEY_AS_HEX: &'static str = "\
+    static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
+    static VALID_KEY_AS_HEX: &str = "\
          44215a3bce23e351a6af359d77131db17a46767de2b88cbb330df162b8cf2ec1";
 
     #[test]

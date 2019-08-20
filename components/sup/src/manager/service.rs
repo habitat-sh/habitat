@@ -86,7 +86,7 @@ use std::{self,
 use time::Timespec;
 use tokio::runtime::TaskExecutor;
 
-static LOGKEY: &'static str = "SR";
+static LOGKEY: &str = "SR";
 
 #[cfg(not(windows))]
 pub const GOSSIP_FILE_PERMISSIONS: u32 = 0o640;

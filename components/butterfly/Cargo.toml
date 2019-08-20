@@ -32,7 +32,7 @@ time = "*"
 threadpool = "*"
 toml = { version = "*", default-features = false }
 uuid = { version = "*", features = ["v4"] }
-zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "release/v0.8" }
+zmq = { git = "https://github.com/habitat-sh/rust-zmq", branch = "v0.8-symlinks-removed" }
 
 [dev-dependencies]
 mktemp = "*"

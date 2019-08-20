@@ -3,10 +3,10 @@ clippy::blacklisted_name
 clippy::block_in_if_condition_stmt
 clippy::bool_comparison
 clippy::cast_lossless
+clippy::checked_conversions
 clippy::clone_on_copy
 clippy::cmp_owned
 clippy::collapsible_if
-clippy::const_static_lifetime
 clippy::correctness
 clippy::cognitive_complexity
 clippy::deref_addrof
@@ -15,9 +15,11 @@ clippy::expect_fun_call
 clippy::filter_map_next
 clippy::find_map
 clippy::for_kv_map
+clippy::get_last_with_len
 clippy::get_unwrap
 clippy::identity_conversion
 clippy::if_let_some_result
+clippy::integer_division
 clippy::just_underscores_and_digits
 clippy::large_enum_variant
 clippy::len_without_is_empty
@@ -45,6 +47,7 @@ clippy::redundant_closure
 clippy::redundant_closure_for_method_calls
 clippy::redundant_field_names
 clippy::redundant_pattern_matching
+clippy::redundant_static_lifetimes
 clippy::single_char_pattern
 clippy::single_match
 clippy::string_lit_as_bytes

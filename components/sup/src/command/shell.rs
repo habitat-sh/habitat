@@ -10,7 +10,7 @@ use std::{env,
           ptr};
 
 /// Our output key
-static LOGKEY: &'static str = "SH";
+static LOGKEY: &str = "SH";
 
 /// Start a bash shell
 pub fn bash() -> Result<()> {

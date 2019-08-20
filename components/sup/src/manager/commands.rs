@@ -31,7 +31,7 @@ use time::{self,
            Timespec};
 use toml;
 
-static LOGKEY: &'static str = "CMD";
+static LOGKEY: &str = "CMD";
 
 pub fn service_cfg(mgr: &ManagerState,
                    req: &mut CtlRequest,

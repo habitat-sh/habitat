@@ -12,7 +12,7 @@ use std::{net::{IpAddr,
                 SocketAddr},
           str};
 
-static LOGKEY: &'static str = "SY";
+static LOGKEY: &str = "SY";
 
 #[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 pub struct Sys {

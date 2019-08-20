@@ -69,7 +69,7 @@ use std::{env,
 use tempfile::TempDir;
 
 /// Our output key
-static LOGKEY: &'static str = "MN";
+static LOGKEY: &str = "MN";
 
 #[cfg(unix)]
 #[global_allocator]

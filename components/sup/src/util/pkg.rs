@@ -18,7 +18,7 @@ use habitat_core::{env as henv,
                    AUTH_TOKEN_ENVVAR};
 use std::path::Path;
 
-static LOGKEY: &'static str = "UT";
+static LOGKEY: &str = "UT";
 
 /// Helper function for use in the Supervisor to handle lower-level
 /// arguments needed for installing a package.

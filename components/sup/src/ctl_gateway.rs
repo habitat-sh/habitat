@@ -35,7 +35,7 @@ use termcolor::{Color,
 
 /// Time to wait in milliseconds for a client connection to timeout.
 pub const REQ_TIMEOUT: u64 = 10_000;
-static LOGKEY: &'static str = "AG";
+static LOGKEY: &str = "AG";
 
 /// The control gateway secret should only be readable by the
 /// Supervisor process

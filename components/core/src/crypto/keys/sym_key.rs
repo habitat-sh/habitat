@@ -1,14 +1,3 @@
-use std::{fmt,
-          fs,
-          path::{Path,
-                 PathBuf}};
-
-use base64;
-use hex;
-use sodiumoxide::{crypto::secretbox::{self,
-                                      Key as SymSecretKey},
-                  randombytes::randombytes};
-
 use super::{super::{hash,
                     SECRET_SYM_KEY_SUFFIX,
                     SECRET_SYM_KEY_VERSION},
@@ -24,6 +13,15 @@ use super::{super::{hash,
             TmpKeyfile};
 use crate::error::{Error,
                    Result};
+use base64;
+use hex;
+use sodiumoxide::{crypto::secretbox::{self,
+                                      Key as SymSecretKey},
+                  randombytes::randombytes};
+use std::{fmt,
+          fs,
+          path::{Path,
+                 PathBuf}};
 
 pub type SymKey = KeyPair<(), SymSecretKey>;
 
@@ -371,8 +369,8 @@ mod test {
                         PairType},
                 SymKey};
 
-    static VALID_KEY: &'static str = "ring-key-valid-20160504220722.sym.key";
-    static VALID_NAME_WITH_REV: &'static str = "ring-key-valid-20160504220722";
+    static VALID_KEY: &str = "ring-key-valid-20160504220722.sym.key";
+    static VALID_NAME_WITH_REV: &str = "ring-key-valid-20160504220722";
 
     #[test]
     fn empty_struct() {

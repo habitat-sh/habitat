@@ -50,7 +50,7 @@ use std::{os::unix::process::ExitStatusExt,
 const IPC_CONNECT_TIMEOUT_SECS: &str = "HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS";
 const DEFAULT_IPC_CONNECT_TIMEOUT_SECS: u64 = 5;
 const SUP_CMD_ENVVAR: &str = "HAB_SUP_BINARY";
-static LOGKEY: &'static str = "SV";
+static LOGKEY: &str = "SV";
 
 const SUP_VERSION_CHECK_DISABLE: &str = "HAB_LAUNCH_NO_SUP_VERSION_CHECK";
 // Version 0.56 is somewhat arbitrary. This functionality is for when we make

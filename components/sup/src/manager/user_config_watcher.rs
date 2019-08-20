@@ -23,7 +23,7 @@ use std::{collections::HashMap,
                    Builder as ThreadBuilder},
           time::Duration};
 
-static LOGKEY: &'static str = "UCW";
+static LOGKEY: &str = "UCW";
 
 // This trait exists to ease the testing of functions that receive a Service. Creating Services
 // requires a lot of ceremony, so we work around this with this trait.

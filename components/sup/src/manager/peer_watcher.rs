@@ -18,7 +18,7 @@ use std::{fs::File,
                  Arc},
           thread::Builder as ThreadBuilder};
 
-static LOGKEY: &'static str = "PW";
+static LOGKEY: &str = "PW";
 
 pub struct PeerCallbacks {
     have_events: Arc<AtomicBool>,

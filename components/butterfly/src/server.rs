@@ -825,6 +825,7 @@ impl Server {
         let service_group_members = self.get_total_population_rsr_mlr(key);
         let total_population = service_group_members.len();
         let alive_population = electorate.len();
+        #[allow(clippy::integer_division)]
         let has_quorum = alive_population > total_population / 2;
 
         trace!("check_quorum({}): {}/{} alive/total => {}, electorate: {:?}, service_group: {:?}",

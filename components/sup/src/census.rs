@@ -29,7 +29,7 @@ use std::{borrow::Cow,
           str::FromStr};
 use toml;
 
-static LOGKEY: &'static str = "CE";
+static LOGKEY: &str = "CE";
 
 pub type MemberId = String;
 

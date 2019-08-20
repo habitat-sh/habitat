@@ -1,18 +1,3 @@
-use std::{borrow::Cow,
-          path::{Path,
-                 PathBuf},
-          str};
-
-use base64;
-use serde_derive::{Deserialize,
-                   Serialize};
-use sodiumoxide::crypto::{box_::{self,
-                                 curve25519xsalsa20poly1305::{gen_nonce,
-                                                              Nonce,
-                                                              PublicKey as BoxPublicKey,
-                                                              SecretKey as BoxSecretKey}},
-                          sealedbox};
-
 use super::{super::{ANONYMOUS_BOX_FORMAT_VERSION,
                     BOX_FORMAT_VERSION,
                     PUBLIC_BOX_KEY_VERSION,
@@ -30,6 +15,19 @@ use super::{super::{ANONYMOUS_BOX_FORMAT_VERSION,
             KeyType};
 use crate::error::{Error,
                    Result};
+use base64;
+use serde_derive::{Deserialize,
+                   Serialize};
+use sodiumoxide::crypto::{box_::{self,
+                                 curve25519xsalsa20poly1305::{gen_nonce,
+                                                              Nonce,
+                                                              PublicKey as BoxPublicKey,
+                                                              SecretKey as BoxSecretKey}},
+                          sealedbox};
+use std::{borrow::Cow,
+          path::{Path,
+                 PathBuf},
+          str};
 
 #[derive(Debug)]
 pub struct BoxSecret<'a> {
@@ -468,9 +466,9 @@ mod test {
                 BoxKeyPair,
                 *};
 
-    static VALID_KEY: &'static str = "service-key-valid.default@acme-20160509181736.box.key";
-    static VALID_PUB: &'static str = "service-key-valid.default@acme-20160509181736.pub";
-    static VALID_NAME_WITH_REV: &'static str = "service-key-valid.default@acme-20160509181736";
+    static VALID_KEY: &str = "service-key-valid.default@acme-20160509181736.box.key";
+    static VALID_PUB: &str = "service-key-valid.default@acme-20160509181736.pub";
+    static VALID_NAME_WITH_REV: &str = "service-key-valid.default@acme-20160509181736";
 
     #[test]
     fn empty_struct() {
