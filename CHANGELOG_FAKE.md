@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.34 -->
+<!-- latest_release 0.84.35 -->
+## [fake-0.84.35](https://github.com/habitat-sh/habitat/tree/fake-0.84.35) (2019-08-20)
+
+#### Merged Pull Requests
+- Upgrade to rust 1.37.0 [#6861](https://github.com/habitat-sh/habitat/pull/6861) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.84.34](https://github.com/habitat-sh/habitat/tree/fake-0.84.34) (2019-08-19)
 
 #### Merged Pull Requests
 - Add ability to disable job group creation from the cli [#6843](https://github.com/habitat-sh/habitat/pull/6843) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.84.33](https://github.com/habitat-sh/habitat/tree/fake-0.84.33) (2019-08-19)
 
