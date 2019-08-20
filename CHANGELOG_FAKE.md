@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.35 -->
+<!-- latest_release 0.84.36 -->
+## [fake-0.84.36](https://github.com/habitat-sh/habitat/tree/fake-0.84.36) (2019-08-20)
+
+#### Merged Pull Requests
+- Begin cleaning up scripts and locations of things [#6846](https://github.com/habitat-sh/habitat/pull/6846) ([scotthain](https://github.com/scotthain))
+<!-- latest_release -->
+
 ## [fake-0.84.35](https://github.com/habitat-sh/habitat/tree/fake-0.84.35) (2019-08-20)
 
 #### Merged Pull Requests
 - Upgrade to rust 1.37.0 [#6861](https://github.com/habitat-sh/habitat/pull/6861) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.84.34](https://github.com/habitat-sh/habitat/tree/fake-0.84.34) (2019-08-19)
 
