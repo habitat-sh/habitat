@@ -13,7 +13,7 @@ param (
 )
 
 $ErrorActionPreference="stop"
-. $PSScriptRoot\..\support\ci\shared.ps1
+. $PSScriptRoot\shared.ps1
 
 $toolchain = Get-Toolchain
 if($Nightly) { $toolchain = Get-NightlyToolchain }

@@ -191,10 +191,10 @@ unit-sup: build-launcher-for-supervisor-tests
 
 TOOLCHAIN := $(shell cat rust-toolchain)
 lint: image ## executes the $1 component's linter checks
-	$(run) test/run_clippy.sh $(TOOLCHAIN) test/unexamined_lints.txt \
-	                                       test/allowed_lints.txt \
-	                                       test/lints_to_fix.txt \
-	                                       test/denied_lints.txt
+	$(run) .expeditor/scripts/verify/run_clippy.sh $(TOOLCHAIN) support/unexamined_lints.txt \
+	                                       support/allowed_lints.txt \
+	                                       support/lints_to_fix.txt \
+	                                       support/denied_lints.txt
 .PHONY: lint
 
 define FUNCTIONAL

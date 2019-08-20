@@ -6,7 +6,7 @@ param (
 
 $ErrorActionPreference="stop"
 
-. $PSScriptRoot\..\support\ci\shared.ps1
+. $PSScriptRoot\shared.ps1
 Install-Habitat
 
 if(!(Get-PackageProvider -Name nuget -ErrorAction SilentlyContinue -ListAvailable)) {

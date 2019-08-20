@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-source .expeditor/scripts/shared_release_habitat.sh
+source .expeditor/scripts/release_habitat/shared.sh
 
 # Get secrets! (our auth token and aws creds should be auto-injected but there's a bug:
 # https://github.com/chef/ci-studio-common/issues/200)

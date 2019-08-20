@@ -1,0 +1,1 @@
+This folder contains helper scripts for the `verify` pipeline and should be exectuted by buildkite/expeditor.

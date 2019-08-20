@@ -8,7 +8,7 @@ param (
 )
 
 $ErrorActionPreference="stop"
-. $PSScriptRoot\..\support\ci\shared.ps1
+. $PSScriptRoot\shared.ps1
 
 function Convert-ArrayToArgs ($arg, $list) {
     if($list) {

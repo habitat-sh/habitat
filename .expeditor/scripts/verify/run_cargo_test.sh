@@ -2,8 +2,8 @@
 
 set -eou pipefail
 
-# shellcheck source=./support/ci/shared.sh
-source ./support/ci/shared.sh
+# shellcheck source=.expeditor/scripts/shared.sh
+source .expeditor/scripts/verify/shared.sh
 
 if [[ ${1:-"--"} = "--" ]]; then
   scope="habitat workspace"

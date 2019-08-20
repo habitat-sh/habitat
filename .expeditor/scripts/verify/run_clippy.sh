@@ -2,9 +2,7 @@
 
 set -euo pipefail
 
-# This is problematic if you want to be able to run this script from anywhere other than the root of the project,
-# but changing it to an idiom like we have in rustfmt.sh breaks BK, so I dunno?
-source ./support/ci/shared.sh
+source .expeditor/scripts/verify/shared.sh
 
 toolchain="${1:-"$(get_toolchain)"}"
 install_rustup
