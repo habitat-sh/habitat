@@ -20,7 +20,8 @@ get_rustfmt_toolchain() {
   # break the way rustfmt uses rustc. Therefore, before updating the pin below, double check
   # that the nightly version you're going to update it to includes rustfmt. You can do that
   # using https://mexus.github.io/rustup-components-history/x86_64-unknown-linux-gnu.html
-  cat "RUSTFMT_VERSION"
+  dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+  cat "$dir/../../../RUSTFMT_VERSION"
 }
 
 install_rustup() {
@@ -54,7 +55,8 @@ install_rust_toolchain() {
 # Get the version of the nightly toolchain we use for compiling,
 # running, tests, etc.
 get_nightly_toolchain() {
-    cat "RUST_NIGHTLY_VERSION"
+    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+    cat "$dir/../../../RUST_NIGHTLY_VERSION"
 }
 
 install_hab_pkg() {

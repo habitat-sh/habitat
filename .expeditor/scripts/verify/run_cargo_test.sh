@@ -2,6 +2,7 @@
 
 set -eou pipefail
 
+# shellcheck source=.expeditor/scripts/shared.sh
 source .expeditor/scripts/verify/shared.sh
 
 if [[ ${1:-"--"} = "--" ]]; then
