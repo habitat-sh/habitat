@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.37 -->
+<!-- latest_release 0.84.38 -->
+## [fake-0.84.38](https://github.com/habitat-sh/habitat/tree/fake-0.84.38) (2019-08-20)
+
+#### Merged Pull Requests
+- Remove accidentally commited hab and busybox [#6881](https://github.com/habitat-sh/habitat/pull/6881) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.84.37](https://github.com/habitat-sh/habitat/tree/fake-0.84.37) (2019-08-20)
 
 #### Merged Pull Requests
 - Bump nokogiri from 1.10.3 to 1.10.4 in /www [#6877](https://github.com/habitat-sh/habitat/pull/6877) ([dependabot[bot]](https://github.com/dependabot[bot]))
-<!-- latest_release -->
 
 ## [fake-0.84.36](https://github.com/habitat-sh/habitat/tree/fake-0.84.36) (2019-08-20)
 
