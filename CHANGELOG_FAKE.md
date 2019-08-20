@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.36 -->
+<!-- latest_release 0.84.37 -->
+## [fake-0.84.37](https://github.com/habitat-sh/habitat/tree/fake-0.84.37) (2019-08-20)
+
+#### Merged Pull Requests
+- Bump nokogiri from 1.10.3 to 1.10.4 in /www [#6877](https://github.com/habitat-sh/habitat/pull/6877) ([dependabot[bot]](https://github.com/dependabot[bot]))
+<!-- latest_release -->
+
 ## [fake-0.84.36](https://github.com/habitat-sh/habitat/tree/fake-0.84.36) (2019-08-20)
 
 #### Merged Pull Requests
 - Begin cleaning up scripts and locations of things [#6846](https://github.com/habitat-sh/habitat/pull/6846) ([scotthain](https://github.com/scotthain))
-<!-- latest_release -->
 
 ## [fake-0.84.35](https://github.com/habitat-sh/habitat/tree/fake-0.84.35) (2019-08-20)
 
