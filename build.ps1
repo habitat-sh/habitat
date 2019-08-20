@@ -32,7 +32,7 @@ param (
     [string]$Toolchain
 )
 $ErrorActionPreference="stop"
-. $PSScriptRoot\support\ci\shared.ps1
+. $PSScriptRoot\.expeditor\scripts\verify\shared.ps1
 
 if (!$Toolchain) {
     $Toolchain = Get-Toolchain
