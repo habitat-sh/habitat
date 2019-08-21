@@ -90,6 +90,7 @@ steps:
             - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    timeout_in_minutes: 20
 
   - label: ":mac: :habicat: core/hab"
     command: 
@@ -101,6 +102,7 @@ steps:
           vm-name: macos-base-10.12
           inherit-environment-vars: true
           wait-network: true
+    timeout_in_minutes: 20
 
   - wait
 
