@@ -88,14 +88,14 @@ set_hab_binary() {
             install_hab_binary "$pkg_target" "/hab/bin"
             hab_binary="/hab/bin/hab-$pkg_target"
             # TODO: workaround for https://github.com/habitat-sh/habitat/issues/6771
-            ${hab_binary} pkg install core/hab-studio
+            sudo -E ${hab_binary} pkg install core/hab-studio
             ;;
         x86_64-linux-kernel2)
             pkg_target="x86_64-linux-kernel2"
             install_hab_binary "$pkg_target" "/hab/bin"
             hab_binary="/hab/bin/hab-$pkg_target"
             # TODO: workaround for https://github.com/habitat-sh/habitat/issues/6771
-            ${hab_binary} pkg install core/hab-studio
+            sudo -E ${hab_binary} pkg install core/hab-studio
             ;;
         x86_64-windows)
             # We're going to use the existing hab binary here.
