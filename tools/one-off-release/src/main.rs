@@ -191,7 +191,7 @@ fn main() {
     let packages = lines.iter()
                         .filter_map(|l| {
                             let package_result = l.parse();
-                            if let Err(_) = package_result {
+                            if package_result.is_err() {
                                 error!("Failed to parse line '{}'", l);
                                 return None;
                             }
