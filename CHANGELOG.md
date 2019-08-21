@@ -3,13 +3,46 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+<!-- latest_release -->
+
+## [0.85.0](https://github.com/habitat-sh/habitat/tree/0.85.0) (2019-08-21)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.83.0...0.85.0)
+
 #### Behavioral Changes
 - Cleanup lifecycle restarts and remove reload hook [#6668](https://github.com/habitat-sh/habitat/pull/6668) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Bug Fixes
 - Be more explicit about connection refused errors. [#6755](https://github.com/habitat-sh/habitat/pull/6755) ([raskchanky](https://github.com/raskchanky))
+- Ensure studio is installed [#6772](https://github.com/habitat-sh/habitat/pull/6772) ([smacfarlane](https://github.com/smacfarlane))
+
+#### New Features & Enhancements
+- Add ability to disable job group creation from the cli [#6843](https://github.com/habitat-sh/habitat/pull/6843) ([smacfarlane](https://github.com/smacfarlane))
+- Update event stream [#6853](https://github.com/habitat-sh/habitat/pull/6853) ([davidMcneil](https://github.com/davidMcneil))
+- Assorted health-check tweaks [#6727](https://github.com/habitat-sh/habitat/pull/6727) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Bump nokogiri from 1.10.3 to 1.10.4 in /www [#6877](https://github.com/habitat-sh/habitat/pull/6877) ([dependabot[bot]](https://github.com/dependabot[bot]))
+- Begin cleaning up scripts and locations of things [#6846](https://github.com/habitat-sh/habitat/pull/6846) ([scotthain](https://github.com/scotthain))
+- Upgrade to rust 1.37.0 [#6861](https://github.com/habitat-sh/habitat/pull/6861) ([raskchanky](https://github.com/raskchanky))
+- Fixing up some End-to-End Supervisor Tests [#6780](https://github.com/habitat-sh/habitat/pull/6780) ([christophermaier](https://github.com/christophermaier))
+- End to end tests: hab-svc-load and hup-does-not-abandon-services [#6849](https://github.com/habitat-sh/habitat/pull/6849) ([baumanj](https://github.com/baumanj))
+- Add support for running e2e tests locally, for rapid iteration [#6855](https://github.com/habitat-sh/habitat/pull/6855) ([christophermaier](https://github.com/christophermaier))
+- Link our reqwest pins to the issue that would allow us to relax them [#6854](https://github.com/habitat-sh/habitat/pull/6854) ([christophermaier](https://github.com/christophermaier))
+- Add job to run all `#[ignore]`d tests [#6845](https://github.com/habitat-sh/habitat/pull/6845) ([baumanj](https://github.com/baumanj))
+- Add mac hab build to release process [#6802](https://github.com/habitat-sh/habitat/pull/6802) ([scotthain](https://github.com/scotthain))
+- Fix cargo update scheduled task [#6840](https://github.com/habitat-sh/habitat/pull/6840) ([smacfarlane](https://github.com/smacfarlane))
+- publish both 2016 and 2019 studio images in release [#6842](https://github.com/habitat-sh/habitat/pull/6842) ([mwrock](https://github.com/mwrock))
+- Remove spec file of failed services [#6794](https://github.com/habitat-sh/habitat/pull/6794) ([davidMcneil](https://github.com/davidMcneil))
+- Audit RumorStore locking [#6674](https://github.com/habitat-sh/habitat/pull/6674) ([baumanj](https://github.com/baumanj))
+- Update http-client and builder-api-client from hyper to reqwest. [#6759](https://github.com/habitat-sh/habitat/pull/6759) ([chefsalim](https://github.com/chefsalim))
+- Always use linux for cleanup build channel [#6804](https://github.com/habitat-sh/habitat/pull/6804) ([scotthain](https://github.com/scotthain))
+- Update rustfmt [#6776](https://github.com/habitat-sh/habitat/pull/6776) ([christophermaier](https://github.com/christophermaier))
+- Extract a curlbash_hab function [#6789](https://github.com/habitat-sh/habitat/pull/6789) ([christophermaier](https://github.com/christophermaier))
+- Clean up a few extra analytics code paths [#6787](https://github.com/habitat-sh/habitat/pull/6787) ([christophermaier](https://github.com/christophermaier))
+- links to central Chef Community CoC [#6785](https://github.com/habitat-sh/habitat/pull/6785) ([nellshamrell](https://github.com/nellshamrell))
+- Promote release candidates to builder-acceptance [#6725](https://github.com/habitat-sh/habitat/pull/6725) ([christophermaier](https://github.com/christophermaier))
+- Work around 0.83.0 studio not installing bug [#6775](https://github.com/habitat-sh/habitat/pull/6775) ([scotthain](https://github.com/scotthain))
+- Update Docs for 0.83.0 [#6768](https://github.com/habitat-sh/habitat/pull/6768) ([christophermaier](https://github.com/christophermaier))
 - Convert all our manual whitespace splitting to use split_whitespace() [#6751](https://github.com/habitat-sh/habitat/pull/6751) ([raskchanky](https://github.com/raskchanky))
 - Fixing typo public-&gt;secret in origin secret key download [#6753](https://github.com/habitat-sh/habitat/pull/6753) ([sirajrauff](https://github.com/sirajrauff))
 - [hab] Allow flexible whitespace in HAB_DOCKER_OPTS [#6749](https://github.com/habitat-sh/habitat/pull/6749) ([stevendanna](https://github.com/stevendanna))
@@ -19,8 +52,6 @@
 - Updating reference hooks document... [#6716](https://github.com/habitat-sh/habitat/pull/6716) ([mike10010100](https://github.com/mike10010100))
 - Add license acceptance to kernel2 Vagrant file [#6733](https://github.com/habitat-sh/habitat/pull/6733) ([christophermaier](https://github.com/christophermaier))
 - Upgrade to Rust 1.36.0 [#6708](https://github.com/habitat-sh/habitat/pull/6708) ([raskchanky](https://github.com/raskchanky))
-
-<!-- latest_release -->
 
 ## [0.83.0](https://github.com/habitat-sh/habitat/tree/0.83.0) (2019-07-29)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.82.0...0.83.0)
