@@ -672,11 +672,12 @@ impl<'a> InstallTask<'a> {
                    ident);
         } else if self.is_offline() {
             return Err(Error::OfflineArtifactNotFound(ident.as_ref().clone()));
-        } else if retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), fetch_artifact).is_err() {
+        } else if let Err(err) = retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), fetch_artifact)
+        {
             return Err(Error::DownloadFailed(format!("We tried {} times but \
                                                       could not download {}. \
-                                                      Giving up.",
-                                                     RETRIES, ident)));
+                                                      Last error was: {}",
+                                                     RETRIES, ident, err)));
         }
 
         let mut artifact = PackageArchive::new(self.cached_artifact_path(ident));
