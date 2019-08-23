@@ -254,6 +254,16 @@ function New-Studio {
     $env:HAB_CACHE_KEY_PATH = Join-Path $env:FS_ROOT "hab\cache\keys"
   }
 
+  $env:HAB_CACHE_SSL_PATH = Join-Path $env:FS_ROOT "hab\cache\ssl"
+  if (!(Test-Path $env:HAB_CACHE_SSL_PATH)) {
+    mkdir $env:HAB_CACHE_SSL_PATH | Out-Null
+  }
+
+  $sslCacheSourcePath = Join-Path $env:SystemDrive "hab\cache\ssl"
+  if (Test-Path $sslCacheSourcePath) {
+    Write-HabInfo "Populating SSL certificate cache at $env:HAB_CACHE_SSL_PATH"
+    Copy-Item -Path $sslCacheSourcePath\* -Destination $env:HAB_CACHE_SSL_PATH
+  }
 
   Set-Secrets
 

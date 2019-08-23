@@ -17,6 +17,7 @@ use crate::{config,
 use habitat_core::AUTH_TOKEN_ENVVAR;
 
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
+pub const CERT_PATH_ENVVAR: &str = "CERT_PATH";
 
 const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
@@ -74,6 +75,19 @@ pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         stdfs::create_dir_all(&artifact_path)?;
     }
 
+    let ssl_path = match henv::var(CERT_PATH_ENVVAR) {
+        Ok(p) => PathBuf::from(p),
+        Err(_) => {
+            let path = fs::cache_ssl_path(None::<&str>);
+            debug!("Setting {}={}", CERT_PATH_ENVVAR, path.display());
+            env::set_var(CERT_PATH_ENVVAR, &path);
+            path
+        }
+    };
+    if !ssl_path.is_dir() {
+        debug!("Creating ssl_path at: {}", ssl_path.display());
+        stdfs::create_dir_all(&ssl_path)?;
+    }
     inner::start(ui, args)
 }
 

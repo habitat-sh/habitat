@@ -1,4 +1,5 @@
-use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
+use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
+                                     CERT_PATH_ENVVAR},
             common::ui::UI,
             error::{Error,
                     Result},
@@ -6,7 +7,8 @@ use crate::{command::studio::enter::ARTIFACT_PATH_ENVVAR,
                     env as henv,
                     fs::{cache_key_path,
                          CACHE_ARTIFACT_PATH,
-                         CACHE_KEY_PATH},
+                         CACHE_KEY_PATH,
+                         CACHE_SSL_PATH},
                     os::process,
                     package::target,
                     util::docker},
@@ -68,8 +70,13 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                                    mnt_prefix,
                                    CACHE_KEY_PATH),];
     if let Ok(cache_artifact_path) = henv::var(ARTIFACT_PATH_ENVVAR) {
+        // Don't use Path::join here as "\" can cause problems in Docker mounts
         volumes.push(format!("{}:{}/{}",
                              cache_artifact_path, mnt_prefix, CACHE_ARTIFACT_PATH));
+    }
+    if let Ok(cache_ssl_path) = henv::var(CERT_PATH_ENVVAR) {
+        // Don't use Path::join here as "\" can cause problems in Docker mounts
+        volumes.push(format!("{}:{}/{}", cache_ssl_path, mnt_prefix, CACHE_SSL_PATH));
     }
     if !using_windows_containers
        && (Path::new(DOCKER_SOCKET).exists() || cfg!(target_os = "windows"))
