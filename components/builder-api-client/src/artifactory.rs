@@ -111,17 +111,16 @@ impl ArtifactoryClient {
         let w = AtomicWriter::new(&dst_file_path)?;
 
         w.with_writer(|mut f| {
-             match progress {
-                 Some(mut progress) => {
-                     let size = resp.get_header(CONTENT_LENGTH)?
-                                    .parse()
-                                    .map_err(Error::ParseIntError)?;
-
+             // There will be no CONTENT_LENGTH header if an on prem
+             // builder is using chunked transfer encoding
+             match (progress, resp.get_header(CONTENT_LENGTH)) {
+                 (Some(mut progress), Ok(header)) => {
+                     let size = header.parse().map_err(Error::ParseIntError)?;
                      progress.size(size);
                      let mut writer = BroadcastWriter::new(&mut f, progress);
                      io::copy(&mut resp, &mut writer).map_err(Error::IO)
                  }
-                 None => io::copy(&mut resp, &mut f).map_err(Error::IO),
+                 _ => io::copy(&mut resp, &mut f).map_err(Error::IO),
              }
          })?;
         Ok(dst_file_path)
