@@ -1,11 +1,51 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.38 -->
+<!-- latest_release 0.84.39 -->
+## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
+
+#### Merged Pull Requests
+- Copy SSL certs into Windows studio [#6844](https://github.com/habitat-sh/habitat/pull/6844) ([chefsalim](https://github.com/chefsalim))
+<!-- latest_release -->
+
+## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
+
+#### Merged Pull Requests
+- 0.85.0 release bump [#6884](https://github.com/habitat-sh/habitat/pull/6884) ([mwrock](https://github.com/mwrock))
+
+## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
+
+#### Merged Pull Requests
+- fixing permission error in release [#6886](https://github.com/habitat-sh/habitat/pull/6886) ([mwrock](https://github.com/mwrock))
+
+## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
+
+#### Merged Pull Requests
+- increase timeout for mac and windows releases [#6888](https://github.com/habitat-sh/habitat/pull/6888) ([mwrock](https://github.com/mwrock))
+
+## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
+
+#### Merged Pull Requests
+- extend release timeouts [#6889](https://github.com/habitat-sh/habitat/pull/6889) ([mwrock](https://github.com/mwrock))
+
+## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
+
+#### Merged Pull Requests
+- report last error after all failed pkg download attempts [#6890](https://github.com/habitat-sh/habitat/pull/6890) ([mwrock](https://github.com/mwrock))
+
+## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
+
+#### Merged Pull Requests
+- handle chunked encoding responses that lack content length header [#6891](https://github.com/habitat-sh/habitat/pull/6891) ([mwrock](https://github.com/mwrock))
+
+## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
+
+#### Merged Pull Requests
+- Add hab bldr url for env variable [#6898](https://github.com/habitat-sh/habitat/pull/6898) ([scotthain](https://github.com/scotthain))
+
 ## [fake-0.84.38](https://github.com/habitat-sh/habitat/tree/fake-0.84.38) (2019-08-20)
 
 #### Merged Pull Requests
 - Remove accidentally commited hab and busybox [#6881](https://github.com/habitat-sh/habitat/pull/6881) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.84.37](https://github.com/habitat-sh/habitat/tree/fake-0.84.37) (2019-08-20)
 
