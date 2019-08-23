@@ -334,30 +334,36 @@ impl Hook for SuitabilityHook {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => {
-                if let Some(reader) = hook_output.stdout() {
-                    if let Some(line_reader) = reader.lines().last() {
-                        match line_reader {
-                            Ok(line) => {
-                                match line.trim().parse::<u64>() {
-                                    Ok(suitability) => {
-                                        outputln!(preamble pkg_name,
-                                                  "Reporting suitability of: {}", suitability);
-                                        return Some(suitability);
-                                    }
-                                    Err(err) => {
-                                        outputln!(preamble pkg_name,
-                                            "Parsing suitability failed: {}", err);
-                                    }
-                                };
-                            }
-                            Err(err) => {
-                                outputln!(preamble pkg_name,
-                                    "Failed to read last line of stdout: {}", err);
-                            }
-                        };
-                    } else {
+                match hook_output.stdout() {
+                    Ok(reader) => {
+                        if let Some(line_reader) = reader.lines().last() {
+                            match line_reader {
+                                Ok(line) => {
+                                    match line.trim().parse::<u64>() {
+                                        Ok(suitability) => {
+                                            outputln!(preamble pkg_name,
+                                                "Reporting suitability of: {}", suitability);
+                                            return Some(suitability);
+                                        }
+                                        Err(err) => {
+                                            outputln!(preamble pkg_name,
+                                                "Parsing suitability failed: {}", err);
+                                        }
+                                    };
+                                }
+                                Err(err) => {
+                                    outputln!(preamble pkg_name,
+                                        "Failed to read last line of stdout: {}", err);
+                                }
+                            };
+                        } else {
+                            outputln!(preamble pkg_name,
+                                      "{} did not print anything to stdout", Self::file_name());
+                        }
+                    }
+                    Err(e) => {
                         outputln!(preamble pkg_name,
-                                  "{} did not print anything to stdout", Self::file_name());
+                                    "Failed to open stdout file: {}", e)
                     }
                 }
             }

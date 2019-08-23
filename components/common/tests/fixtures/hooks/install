@@ -2,3 +2,6 @@
 
 echo "This is stdout"
 echo "This is stderr" 1>&2
+echo "This is stdout line 2"
+echo "This is stderr line 2" 1>&2
+echo "This is stderr line 3" 1>&2
