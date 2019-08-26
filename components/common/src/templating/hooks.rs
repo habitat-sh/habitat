@@ -57,7 +57,7 @@ impl Default for ExitCode {
 // Future refactorings may make these changes unnecessary, but it
 // helps us bridge the gap
 pub trait Hook: fmt::Debug + Sized + Send {
-    type ExitValue: Default + fmt::Debug + Send;
+    type ExitValue: fmt::Debug + Send;
 
     fn file_name() -> &'static str;
 
@@ -188,7 +188,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
               service_group: &str,
               pkg: &Pkg,
               svc_encrypted_password: Option<T>)
-              -> Self::ExitValue
+              -> Option<Self::ExitValue>
         where T: ToString
     {
         let mut child = match Self::exec(self.path(), &pkg, svc_encrypted_password) {
@@ -196,17 +196,17 @@ pub trait Hook: fmt::Debug + Sized + Send {
             Err(err) => {
                 outputln!(preamble service_group,
                     "Hook failed to run, {}, {}", Self::file_name(), err);
-                return Self::ExitValue::default();
+                return None;
             }
         };
         let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
         hook_output.output_streams::<Self>(service_group, &mut child);
         match child.wait() {
-            Ok(status) => self.handle_exit(pkg, &hook_output, status),
+            Ok(status) => Some(self.handle_exit(pkg, &hook_output, status)),
             Err(err) => {
                 outputln!(preamble service_group,
                     "Hook failed to run, {}, {}", Self::file_name(), err);
-                Self::ExitValue::default()
+                None
             }
         }
     }

@@ -62,8 +62,12 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
         let f = future::loop_fn(self.clone(), |hook_runner| {
             hook_runner.clone()
                        .into_future()
-                       .map(move |(exit_value, _duration)| {
-                           if H::should_retry(&exit_value) {
+                       .map(move |(maybe_exit_value, _duration)| {
+                           // If we did not get an exit value always retry
+                           if maybe_exit_value.as_ref()
+                                              .map(H::should_retry)
+                                              .unwrap_or(true)
+                           {
                                debug!("retrying the '{}' hook", H::file_name());
                                Loop::Continue(hook_runner)
                            } else {
@@ -80,7 +84,7 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
 impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
     type Error = Error;
     type Future = SpawnedFuture<Self::Item>;
-    type Item = (H::ExitValue, Duration);
+    type Item = (Option<H::ExitValue>, Duration);
 
     fn into_future(self) -> Self::Future {
         let (tx, rx) = oneshot::channel();

@@ -147,12 +147,13 @@ impl State {
                 (false, _) => HealthCheckResult::Critical,
             };
             // no hook means no execution time!
-            Either::B(lazy(move || Ok((status, None::<Duration>))))
+            Either::B(lazy(move || Ok((Some(status), None::<Duration>))))
         }.map_err(move |e| {
              error!("Error running health check hook for {}: {:?}",
                     service_group_ref, e)
          })
-         .and_then(move |(check_result, duration)| {
+         .and_then(move |(maybe_check_result, duration)| {
+             let check_result = maybe_check_result.unwrap_or_default();
              event::health_check(service_event_metadata, check_result, duration);
              debug!("Caching HealthCheckResult = '{}' for '{}'",
                     check_result, service_group);
