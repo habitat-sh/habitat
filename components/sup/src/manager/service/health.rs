@@ -1,25 +1,30 @@
-use crate::manager::{event::{self,
-                             ServiceMetadata as ServiceEventMetadata},
-                     service::{hook_runner,
-                               hooks::HealthCheckHook,
-                               supervisor::Supervisor},
-                     GatewayState};
+use crate::{error::Error,
+            manager::{event::{self,
+                              ServiceMetadata as ServiceEventMetadata},
+                      service::{hook_runner,
+                                hooks::HealthCheckHook,
+                                supervisor::Supervisor},
+                      GatewayState}};
 use futures::{future::{self,
                        lazy,
                        Either,
                        Future,
                        Loop},
               IntoFuture};
-use habitat_common::templating::package::Pkg;
+use habitat_common::{outputln,
+                     templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
                             ServiceGroup};
-use std::{fmt,
+use std::{convert::TryFrom,
+          fmt,
           ops::Deref,
           sync::{Arc,
                  Mutex,
                  RwLock},
           time::{Duration,
                  Instant}};
+
+static LOGKEY: &str = "HK";
 
 /// The possible results of running a health check hook.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize)]
@@ -35,14 +40,16 @@ impl Default for HealthCheckResult {
 }
 
 /// Convert health check hook exit codes into `HealthCheckResult` statuses.
-impl From<i8> for HealthCheckResult {
-    fn from(value: i8) -> HealthCheckResult {
+impl TryFrom<i32> for HealthCheckResult {
+    type Error = Error;
+
+    fn try_from(value: i32) -> Result<Self, Self::Error> {
         match value {
-            0 => HealthCheckResult::Ok,
-            1 => HealthCheckResult::Warning,
-            2 => HealthCheckResult::Critical,
-            3 => HealthCheckResult::Unknown,
-            _ => HealthCheckResult::Unknown,
+            0 => Ok(HealthCheckResult::Ok),
+            1 => Ok(HealthCheckResult::Warning),
+            2 => Ok(HealthCheckResult::Critical),
+            3 => Ok(HealthCheckResult::Unknown),
+            v => Err(Error::InvalidHealthCheckResult(v)),
         }
     }
 }
@@ -134,38 +141,66 @@ impl State {
         if let Some(hook) = hook {
             let hr = hook_runner::HookRunner::new(hook,
                                                   service_group.deref().clone(),
-                                                  package,
+                                                  package.clone(),
                                                   svc_encrypted_password);
             Either::A(hr.into_future()
-                        .map(|(result, duration)| (result, Some(duration))))
+                        .map(|(output, duration)| (output, Some(duration))))
         } else {
-            let status = match supervisor.lock()
-                                         .expect("couldn't unlock supervisor")
-                                         .status()
-            {
-                (true, _) => HealthCheckResult::Ok,
-                (false, _) => HealthCheckResult::Critical,
-            };
-            // no hook means no execution time!
-            Either::B(lazy(move || Ok((Some(status), None::<Duration>))))
+            // No hook means no output and no execution time!
+            Either::B(lazy(|| Ok((None, None::<Duration>))))
         }.map_err(move |e| {
              error!("Error running health check hook for {}: {:?}",
                     service_group_ref, e)
          })
-         .and_then(move |(maybe_check_result, duration)| {
-             let check_result = maybe_check_result.unwrap_or_default();
-             event::health_check(service_event_metadata, check_result, duration);
-             debug!("Caching HealthCheckResult = '{}' for '{}'",
-                    check_result, service_group);
+         .and_then(move |(maybe_healthcheck_output, maybe_duration)| {
+             let health_check_result = match (&maybe_healthcheck_output, &maybe_duration) {
+                 (Some(output), _) => {
+                     // The hook ran. Try and convert its exit status to a `HealthCheckResult`.
+                     output.get_exit_status()
+                           .code()
+                           .and_then(|code| {
+                               let result = HealthCheckResult::try_from(code);
+                               if let Err(e) = &result {
+                                   let pkg_name = &package.name;
+                                   outputln!(preamble pkg_name, 
+                                        "Health check exited with an unknown status code, {}", e);
+                               }
+                               result.ok()
+                           })
+                           .unwrap_or_default()
+                 }
+                 (None, Some(_)) => {
+                     // There was a hook but it did not successfully run. The health check result is
+                     // unknown.
+                     HealthCheckResult::default()
+                 }
+                 (None, None) => {
+                     //  There was no hook to run. Use the supervisor status as a healthcheck.
+                     if supervisor.lock()
+                                  .expect("couldn't unlock supervisor")
+                                  .status()
+                                  .0
+                     {
+                         HealthCheckResult::Ok
+                     } else {
+                         HealthCheckResult::Critical
+                     }
+                 }
+             };
 
+             event::health_check(service_event_metadata, health_check_result, maybe_duration);
+
+             debug!("Caching HealthCheckResult = '{}' for '{}'",
+                    health_check_result, service_group);
              *service_health_result.lock()
-                                   .expect("Could not unlock service_health_result") = check_result;
+                                   .expect("Could not unlock service_health_result") =
+                 health_check_result;
              gateway_state.write()
                           .expect("GatewayState lock is poisoned")
                           .health_check_data
-                          .insert(service_group.deref().clone(), check_result);
+                          .insert(service_group.deref().clone(), health_check_result);
 
-             let interval = if check_result == HealthCheckResult::Ok {
+             let interval = if health_check_result == HealthCheckResult::Ok {
                  // routine health check
                  nominal_interval
              } else {

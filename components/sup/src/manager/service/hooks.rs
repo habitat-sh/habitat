@@ -1,4 +1,3 @@
-use super::health;
 use habitat_common::{outputln,
                      templating::{hooks::{self,
                                           ExitCode,
@@ -19,6 +18,23 @@ use std::{self,
           sync::Arc};
 
 static LOGKEY: &str = "HK";
+
+#[derive(Debug)]
+pub struct CompleteHookOutput {
+    stdout:      Option<String>,
+    stderr:      Option<String>,
+    exit_status: ExitStatus,
+}
+
+impl CompleteHookOutput {
+    fn new(hook_output: &HookOutput, exit_status: ExitStatus) -> Self {
+        Self { stdout: hook_output.stdout_str(),
+               stderr: hook_output.stderr_str(),
+               exit_status }
+    }
+
+    pub fn get_exit_status(&self) -> &ExitStatus { &self.exit_status }
+}
 
 #[derive(Debug, Serialize)]
 pub struct FileUpdatedHook {
@@ -59,7 +75,7 @@ pub struct HealthCheckHook {
 }
 
 impl Hook for HealthCheckHook {
-    type ExitValue = health::HealthCheckResult;
+    type ExitValue = CompleteHookOutput;
 
     fn file_name() -> &'static str { "health-check" }
 
@@ -69,23 +85,15 @@ impl Hook for HealthCheckHook {
                           stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
-        let pkg_name = &pkg.name;
-        match status.code() {
-            Some(0) => health::HealthCheckResult::Ok,
-            Some(1) => health::HealthCheckResult::Warning,
-            Some(2) => health::HealthCheckResult::Critical,
-            Some(3) => health::HealthCheckResult::Unknown,
-            Some(code) => {
-                outputln!(preamble pkg_name,
-                    "Health check exited with an unknown status code, {}", code);
-                health::HealthCheckResult::default()
-            }
-            None => {
-                Self::output_termination_message(pkg_name, status);
-                health::HealthCheckResult::default()
-            }
+    fn handle_exit<'a>(&self,
+                       pkg: &Pkg,
+                       hook_output: &'a HookOutput,
+                       status: ExitStatus)
+                       -> Self::ExitValue {
+        if status.code().is_none() {
+            Self::output_termination_message(&pkg.name, status);
         }
+        CompleteHookOutput::new(hook_output, status)
     }
 
     fn path(&self) -> &Path { &self.render_pair.path }

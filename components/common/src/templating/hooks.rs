@@ -448,20 +448,24 @@ impl<'a> HookOutput<'a> {
         Ok(BufReader::new(File::open(&self.stdout_log_file)?))
     }
 
-    pub fn stdout_str(&self) -> Result<String> {
-        let mut stdout = String::new();
-        self.stdout()?.read_to_string(&mut stdout)?;
-        Ok(stdout)
+    pub fn stdout_str(&self) -> Option<String> {
+        let result = self.stdout_str_impl();
+        if let Err(e) = &result {
+            error!("Failed to read {:?}, {}", self.stdout_log_file, e);
+        }
+        result.ok()
     }
 
     pub fn stderr(&self) -> Result<BufReader<File>> {
         Ok(BufReader::new(File::open(&self.stderr_log_file)?))
     }
 
-    pub fn stderr_str(&self) -> Result<String> {
-        let mut stderr = String::new();
-        self.stderr()?.read_to_string(&mut stderr)?;
-        Ok(stderr)
+    pub fn stderr_str(&self) -> Option<String> {
+        let result = self.stderr_str_impl();
+        if let Err(e) = &result {
+            error!("Failed to read {:?}, {}", self.stderr_log_file, e);
+        }
+        result.ok()
     }
 
     /// Try to write the stdout and stderr of a process to stdout and to the specified log files.
@@ -498,6 +502,18 @@ impl<'a> HookOutput<'a> {
 
     fn stream_preamble<H: Hook>(service_group: &str) -> String {
         format!("{} hook[{}]:", service_group, H::file_name())
+    }
+
+    fn stdout_str_impl(&self) -> Result<String> {
+        let mut stdout = String::new();
+        self.stdout()?.read_to_string(&mut stdout)?;
+        Ok(stdout)
+    }
+
+    fn stderr_str_impl(&self) -> Result<String> {
+        let mut stderr = String::new();
+        self.stderr()?.read_to_string(&mut stderr)?;
+        Ok(stderr)
     }
 }
 
