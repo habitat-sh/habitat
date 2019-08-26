@@ -162,8 +162,9 @@ impl State {
                                let result = HealthCheckResult::try_from(code);
                                if let Err(e) = &result {
                                    let pkg_name = &package.name;
-                                   outputln!(preamble pkg_name, 
-                                        "Health check exited with an unknown status code, {}", e);
+                                   outputln!(preamble pkg_name,
+                                             "Health check exited with an unknown status code, {}",
+                                             e);
                                }
                                result.ok()
                            })

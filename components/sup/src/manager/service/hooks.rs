@@ -371,15 +371,13 @@ impl Hook for SuitabilityHook {
                                       "{} did not print anything to stdout", Self::file_name());
                         }
                     }
-                    Err(e) => {
-                        outputln!(preamble pkg_name,
-                                    "Failed to open stdout file: {}", e)
-                    }
+                    Err(e) => outputln!(preamble pkg_name,
+                                        "Failed to open stdout file: {}", e),
                 }
             }
             Some(code) => {
                 outputln!(preamble pkg_name,
-                    "{} exited with status code {}", Self::file_name(), code);
+                          "{} exited with status code {}", Self::file_name(), code);
             }
             None => {
                 Self::output_termination_message(pkg_name, status);
