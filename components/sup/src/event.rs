@@ -22,7 +22,8 @@ use self::types::{EventMessage,
                   ServiceStartedEvent,
                   ServiceStoppedEvent,
                   ServiceUpdateStartedEvent};
-use crate::{manager::{service::{HealthCheckResult,
+use crate::{manager::{service::{CompleteHookOutput,
+                                HealthCheckResult,
                                 Service},
                       sys::Sys},
             sup_futures::FutureHandle};
@@ -217,14 +218,22 @@ pub fn service_update_started(service: &Service, update: &PackageIdent) {
 /// records how long it took that hook to execute completely.
 pub fn health_check(metadata: ServiceMetadata,
                     check_result: HealthCheckResult,
+                    hook_output: Option<CompleteHookOutput>,
                     execution: Option<Duration>) {
     if stream_initialized() {
         let check_result: types::HealthCheckResult = check_result.into();
+        let exit_status = hook_output.as_ref()
+                                     .and_then(|o| o.get_exit_status().code());
+        let (stdout, stderr) = hook_output.map(CompleteHookOutput::output_streams)
+                                          .unwrap_or_default();
         publish(HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
-                                   event_metadata:   None,
-                                   result:           i32::from(check_result),
-                                   execution:        execution.map(Duration::into), });
+                                   event_metadata: None,
+                                   result: i32::from(check_result),
+                                   execution: execution.map(Duration::into),
+                                   exit_status,
+                                   stdout,
+                                   stderr });
     }
 }
 

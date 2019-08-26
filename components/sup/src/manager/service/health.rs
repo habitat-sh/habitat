@@ -188,7 +188,10 @@ impl State {
                  }
              };
 
-             event::health_check(service_event_metadata, health_check_result, maybe_duration);
+             event::health_check(service_event_metadata,
+                                 health_check_result,
+                                 maybe_healthcheck_output,
+                                 maybe_duration);
 
              debug!("Caching HealthCheckResult = '{}' for '{}'",
                     health_check_result, service_group);

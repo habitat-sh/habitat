@@ -34,6 +34,8 @@ impl CompleteHookOutput {
     }
 
     pub fn get_exit_status(&self) -> &ExitStatus { &self.exit_status }
+
+    pub fn output_streams(self) -> (Option<String>, Option<String>) { (self.stdout, self.stderr) }
 }
 
 #[derive(Debug, Serialize)]

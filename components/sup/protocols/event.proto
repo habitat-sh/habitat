@@ -1,8 +1,9 @@
 syntax = "proto3";
 
 package chef.habitat.supervisor.event;
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 message EventMetadata {
   // The unique ID of this Supervisor.
@@ -91,4 +92,10 @@ message HealthCheckEvent {
   // If the service has a health check hook script, how long it took
   // to execute.
   google.protobuf.Duration execution = 4;
+  // The health check hook exit status
+  google.protobuf.Int32Value exit_status = 5;
+  // The health check hook stdout output
+  google.protobuf.StringValue stdout = 6;
+  // The health check hook stderr output
+  google.protobuf.StringValue stderr = 7;
 }
