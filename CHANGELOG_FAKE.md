@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.39 -->
+<!-- latest_release 0.84.40 -->
+## [fake-0.84.40](https://github.com/habitat-sh/habitat/tree/fake-0.84.40) (2019-08-26)
+
+#### Merged Pull Requests
+- removes feature request from issue template in favor of the one in ha… [#6892](https://github.com/habitat-sh/habitat/pull/6892) ([nellshamrell](https://github.com/nellshamrell))
+<!-- latest_release -->
+
 ## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
 
 #### Merged Pull Requests
 - Copy SSL certs into Windows studio [#6844](https://github.com/habitat-sh/habitat/pull/6844) ([chefsalim](https://github.com/chefsalim))
-<!-- latest_release -->
 
 ## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
 
