@@ -57,7 +57,7 @@ steps:
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_launcher_checks_supervisor_version.sh
-    # TODO - FIX ME
+
     soft_fail: true
     expeditor:
       executor:
@@ -65,7 +65,6 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
             - HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="DEV"
             - HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL="DEV"
 
@@ -79,19 +78,19 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
 
   - label: "[:linux: test_launcher_exits_on_supervisor_startup_failure]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - test/end-to-end/test_launcher_exits_on_supervisor_startup_failure.sh
+    artifact_paths:
+      - sup.log
     expeditor:
       executor:
         docker:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=$ACCEPTANCE_HAB_BLDR_URL
 
   - label: "[:linux: test_launcher_restarts_supervisor]"
     command:

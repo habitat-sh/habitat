@@ -12,13 +12,12 @@ if pgrep hab-launch &>/dev/null; then
 	exit 1
 fi
 
-TESTING_FS_ROOT=$(mktemp -d)
-export TESTING_FS_ROOT
 export HAB_LAUNCH_SUP_CONNECT_TIMEOUT_SECS=2
 export HAB_FEAT_BOOT_FAIL=1
+export HAB_LAUNCH_NO_SUP_VERSION_CHECK="true"
 sup_log=$(mktemp)
 
-echo -n "Starting launcher with root $TESTING_FS_ROOT (logging to $sup_log)..."
+echo -n "Starting launcher (logging to $sup_log)..."
 hab sup run &> "$sup_log" &
 launcher_pid=$!
 trap 'pgrep hab-launch &>/dev/null && pkill -9 hab-launch' INT TERM EXIT
@@ -39,6 +38,7 @@ while ps -p "$launcher_pid" &>/dev/null; do
     echo "--- LOG: ${contents}"
 	fi
 done
+
 echo
 
 if wait "$launcher_pid"; then

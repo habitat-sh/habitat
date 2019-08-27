@@ -26,8 +26,6 @@ launcher_exits_with_error() {
     version=${1?}
     sup_binary=$(create_sup_binary_stub "$version")
 
-    TESTING_FS_ROOT=$(mktemp -d)
-    export TESTING_FS_ROOT
     sup_log=$(mktemp)
 
     echo -n "Starting launcher with supervisor version \"$version\" (logging to $sup_log)..."
