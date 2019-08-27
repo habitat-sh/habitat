@@ -155,6 +155,7 @@ pub enum MetaFile {
     Path,
     ResolvedServices, // Composite-only
     RuntimeEnvironment,
+    RuntimeEnvironmentPaths,
     RuntimePath,
     ShutdownSignal,
     ShutdownTimeout,
@@ -188,6 +189,7 @@ impl fmt::Display for MetaFile {
             MetaFile::Path => "PATH",
             MetaFile::ResolvedServices => "RESOLVED_SERVICES",
             MetaFile::RuntimeEnvironment => "RUNTIME_ENVIRONMENT",
+            MetaFile::RuntimeEnvironmentPaths => "RUNTIME_ENVIRONMENT_PATHS",
             MetaFile::RuntimePath => "RUNTIME_PATH",
             MetaFile::Services => "SERVICES",
             MetaFile::ShutdownSignal => "SHUTDOWN_SIGNAL",

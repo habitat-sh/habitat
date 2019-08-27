@@ -637,6 +637,22 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :windows: plan-build-ps1"
+    command:
+      - components\plan-build-ps1\tests\test.ps1
+    agents:
+      queue: 'default-windows-2016-privileged'
+    plugins:
+      docker#v3.2.0:
+        image: "chefes/buildkite-windows-2016"
+        shell: [ "powershell", "-Command" ]
+        always-pull: true
+        propagate-environment: true
+    timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
 #######################################################################
 # Things that have no tests but should be built to make sure they
 # still build. - Linux
