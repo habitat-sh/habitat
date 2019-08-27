@@ -259,13 +259,13 @@ function New-Studio {
     mkdir $env:HAB_CACHE_SSL_PATH | Out-Null
   }
 
-  $sslCacheSourcePath = Join-Path $env:SystemDrive "hab\cache\ssl"
-  if (Test-Path $sslCacheSourcePath) {
+  if (($env:CERT_PATH) -and (Test-Path $env:CERT_PATH)) {
     Write-HabInfo "Populating SSL certificate cache at $env:HAB_CACHE_SSL_PATH"
-    Copy-Item -Path $sslCacheSourcePath\* -Destination $env:HAB_CACHE_SSL_PATH
+    Copy-Item -Path $env:CERT_PATH\* -Destination $env:HAB_CACHE_SSL_PATH
   }
 
   Set-Secrets
+  Update-SslCertFile
 
   New-PSDrive -Name "Habitat" -PSProvider FileSystem -Root $HAB_STUDIO_ROOT -Scope Script | Out-Null
   Set-Location "Habitat:\src"
@@ -452,6 +452,17 @@ function Set-Secrets {
   Get-ChildItem env: | ? { $_.Name.StartsWith('HAB_STUDIO_SECRET_') } | % {
     New-Item -Name $_.Name.Replace('HAB_STUDIO_SECRET_', '') -Value $_.Value -Path Env: -Force | Out-Null
     Remove-Item -Path "Env:\$($_.Name)" -Force
+  }
+}
+
+function Update-SslCertFile {
+  if($env:SSL_CERT_FILE) {
+    try {
+      $cert_filename = (Get-Item $env:SSL_CERT_FILE).Name
+      $env:SSL_CERT_FILE = Join-Path $env:HAB_CACHE_SSL_PATH $cert_filename
+    } catch {
+      Write-HabInfo "Unable to set SSL_CERT_FILE from '$env:SSL_CERT_FILE'"
+    }
   }
 }
 
