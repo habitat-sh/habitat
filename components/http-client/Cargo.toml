@@ -21,6 +21,9 @@ serde_json = "*"
 # Unlock with env_proxy
 url = "=1.7.2"
 
+[dev-dependencies]
+tempfile = "*"
+
 [dependencies.habitat_core]
 path = "../core"
 

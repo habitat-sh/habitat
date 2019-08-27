@@ -280,10 +280,33 @@ fn certificates(fs_root_path: Option<&Path>) -> Result<Vec<Certificate>> {
             Some(cert_path) => process_cert_file(&mut certificates, &cert_path),
             None => populate_cache(&cert_cache_dir)?,
         }
+
+        if let Ok(ssl_cert_file) = env::var("SSL_CERT_FILE") {
+            cache_ssl_cert_file(&ssl_cert_file, &cert_cache_dir)?;
+        }
     }
 
     process_cache_dir(&cert_cache_dir, &mut certificates);
     Ok(certificates)
+}
+
+fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<Option<PathBuf>> {
+    // TODO: Should we use a sanitized canonical path, rather than a filename?
+    // This would allow users to know where the file came from originally
+    let cert_filename = match Path::new(&cert_file).file_name() {
+        Some(name) => name,
+        None => {
+            debug!("SSL_CERT_FILE is not a file: {}", cert_file);
+            return Ok(None);
+        }
+    };
+    let cache_file = cert_cache_dir.join(&cert_filename);
+    debug!("Caching SSL_CERT_FILE {}", &cert_file);
+
+    // TODO: Verify the cert is valid before caching?
+    std::fs::copy(cert_file, &cache_file)?;
+
+    Ok(Some(cache_file))
 }
 
 fn installed_cacerts(fs_root_path: Option<&Path>) -> Result<Option<PathBuf>> {
@@ -347,4 +370,54 @@ fn cert_from_file(file_path: &Path) -> Result<Certificate> {
 
     Certificate::from_pem(&buf).or_else(|_| Certificate::from_der(&buf))
                                .map_err(Error::ReqwestError)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::cache_ssl_cert_file;
+    use std::{fs::{self,
+                   File},
+              io::{Read,
+                   Write}};
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_cache_ssl_cert_file() {
+        let cert_cache_dir = TempDir::new().unwrap().into_path();
+        let ssl_cert_dir = TempDir::new().unwrap();
+        let ssl_cert_filepath = ssl_cert_dir.path().join("ssl-test-cert.pem");
+        File::create(&ssl_cert_filepath);
+
+        let cached_file =
+            cache_ssl_cert_file(&ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir).unwrap();
+        assert!(cached_file.is_some());
+        assert!(cached_file.unwrap().exists());
+    }
+
+    #[test]
+    fn test_cache_ssl_cert_file_already_cached() {
+        let cert_cache_dir = TempDir::new().unwrap().into_path();
+        let ssl_cert_dir = TempDir::new().unwrap();
+        let ssl_cert_filepath = ssl_cert_dir.path().join("ssl-test-cert.pem");
+
+        File::create(cert_cache_dir.join("ssl-test-cert.pem"));
+        let mut ssl_cert_file = File::create(&ssl_cert_filepath).unwrap();
+        ssl_cert_file.write_all(b"new cert from environment");
+
+        let cached_file =
+            cache_ssl_cert_file(&ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir);
+        assert!(cached_file.is_ok());
+
+        let mut contents = String::new();
+        File::open(ssl_cert_filepath).unwrap()
+                                     .read_to_string(&mut contents);
+        assert_eq!(contents, "new cert from environment");
+    }
+    #[test]
+    fn test_cache_ssl_cert_file_invalid_file() {
+        let cert_cache_dir = TempDir::new().unwrap().into_path();
+
+        let cached_file = cache_ssl_cert_file("/this/file/should/not/exist", &cert_cache_dir);
+        assert!(cached_file.is_err());
+    }
 }
