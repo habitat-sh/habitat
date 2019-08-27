@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.41 -->
+<!-- latest_release 0.84.42 -->
+## [fake-0.84.42](https://github.com/habitat-sh/habitat/tree/fake-0.84.42) (2019-08-27)
+
+#### Merged Pull Requests
+- Propperly root SetupEnvironment variables with file system paths at run time [#6850](https://github.com/habitat-sh/habitat/pull/6850) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.84.41](https://github.com/habitat-sh/habitat/tree/fake-0.84.41) (2019-08-27)
 
 #### Merged Pull Requests
 - fixes supervisor connection failure test [#6860](https://github.com/habitat-sh/habitat/pull/6860) ([nellshamrell](https://github.com/nellshamrell))
-<!-- latest_release -->
 
 ## [fake-0.84.40](https://github.com/habitat-sh/habitat/tree/fake-0.84.40) (2019-08-26)
 
