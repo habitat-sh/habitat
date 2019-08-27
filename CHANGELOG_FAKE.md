@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.40 -->
+<!-- latest_release 0.84.41 -->
+## [fake-0.84.41](https://github.com/habitat-sh/habitat/tree/fake-0.84.41) (2019-08-27)
+
+#### Merged Pull Requests
+- fixes supervisor connection failure test [#6860](https://github.com/habitat-sh/habitat/pull/6860) ([nellshamrell](https://github.com/nellshamrell))
+<!-- latest_release -->
+
 ## [fake-0.84.40](https://github.com/habitat-sh/habitat/tree/fake-0.84.40) (2019-08-26)
 
 #### Merged Pull Requests
 - removes feature request from issue template in favor of the one in ha… [#6892](https://github.com/habitat-sh/habitat/pull/6892) ([nellshamrell](https://github.com/nellshamrell))
-<!-- latest_release -->
 
 ## [fake-0.84.39](https://github.com/habitat-sh/habitat/tree/fake-0.84.39) (2019-08-23)
 
