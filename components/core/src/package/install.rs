@@ -220,7 +220,7 @@ impl PackageInstall {
     /// Constructs and returns a `HashMap` of environment variable/value key pairs of all
     /// environment variables needed to properly run a command from the context of this package.
     pub fn environment_for_command(&self) -> Result<HashMap<String, String>> {
-        let mut env = self.runtime_environment()?;
+        let mut env = self.runtime_environment_file_map(MetaFile::RuntimeEnvironment)?;
         // Remove any pre-existing PATH key as this is either from an older package or is
         // present for backwards compatibility with older Habitat releases.
         env.remove(PATH_KEY);
@@ -231,15 +231,24 @@ impl PackageInstall {
         // In most cases, this does nothing and should only mutate
         // the paths in a windows studio where FS_ROOT_PATH will
         // be the studio root path (ie c:\hab\studios\...)
-        for path in &mut paths {
-            *path = fs::fs_rooted_path(&path, &self.fs_root_path);
+        let rooted_path = self.root_paths(&mut paths)?;
+
+        // Only insert a PATH entry if the resulting path string is non-empty
+        if !rooted_path.is_empty() {
+            env.insert(PATH_KEY.to_string(), rooted_path);
         }
 
-        let joined = env::join_paths(paths)?.into_string()
-                                            .map_err(Error::InvalidPathString)?;
-        // Only insert a PATH entry if the resulting path string is non-empty
-        if !joined.is_empty() {
-            env.insert(PATH_KEY.to_string(), joined);
+        // release 0.85.0 introduces the RUNTIME_ENVIRONMENT_PATHS metadata
+        // that are environment variables containing file paths that are to be
+        // rooted under FS_ROOT. For backwards compatibility the key/value
+        // pairs are duplicated in RUNTIME_ENVIRONMENT so we will remove previously
+        // stored values with the same key.
+        let environment_paths =
+            self.runtime_environment_file_map(MetaFile::RuntimeEnvironmentPaths)?;
+        for (key, value) in environment_paths.into_iter() {
+            let mut split_path: Vec<_> = env::split_paths(&value).collect();
+            let rooted_path = self.root_paths(&mut split_path)?;
+            env.insert(key, rooted_path);
         }
 
         Ok(env)
@@ -435,6 +444,14 @@ impl PackageInstall {
         }
     }
 
+    fn root_paths(&self, paths: &mut Vec<PathBuf>) -> Result<String> {
+        for path in &mut paths.into_iter() {
+            *path = fs::fs_rooted_path(&path, &self.fs_root_path);
+        }
+        env::join_paths(paths)?.into_string()
+                               .map_err(Error::InvalidPathString)
+    }
+
     /// Attempts to load the extracted package for each direct dependency and returns a
     /// `Package` struct representation of each in the returned vector.
     ///
@@ -541,14 +558,14 @@ impl PackageInstall {
         Ok(env)
     }
 
-    /// Return the parsed contents of the package's `RUNTIME_ENVIRONMENT` metafile as a `HashMap`,
+    /// Return the parsed contents of the package's environment` metafile as a `HashMap`,
     /// or an empty `HashMap` if not found.
     ///
-    /// If no value of `RUNTIME_ENVIRONMENT` is found, return an empty `HashMap`.
-    fn runtime_environment(&self) -> Result<HashMap<String, String>> {
-        match self.read_metafile(MetaFile::RuntimeEnvironment) {
+    /// If no value of file is found, return an empty `HashMap`.
+    fn runtime_environment_file_map(&self, metafile: MetaFile) -> Result<HashMap<String, String>> {
+        match self.read_metafile(metafile) {
             Ok(ref body) => Self::parse_runtime_environment_metafile(body),
-            Err(Error::MetaFileNotFound(MetaFile::RuntimeEnvironment)) => Ok(HashMap::new()),
+            Err(Error::MetaFileNotFound(_)) => Ok(HashMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -1324,6 +1341,41 @@ core/bar=pub:core/publish sub:core/subscribe
 
         assert_eq!(HashMap::<String, String>::new(),
                    pkg_install.environment_for_command().unwrap());
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn environment_for_command_with_runtime_environment_paths() {
+        let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
+        let pkg_install = testing_package_install("acme/pathy", fs_root.path());
+
+        write_metafile(&pkg_install,
+                       MetaFile::RuntimeEnvironment,
+                       "PSModulePath=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n");
+        write_metafile(&pkg_install,
+                       MetaFile::RuntimeEnvironmentPaths,
+                       "PSModulePath=/should/not/be/ignored;c:/my/dir;/should/really/not/be/\
+                        ignored\n");
+
+        let mut expected = HashMap::new();
+        let fs_root_path = fs_root.into_path();
+        expected.insert("FOO".to_string(), "bar".to_string());
+        expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
+        expected.insert(
+                        "PSModulePath".to_string(),
+                        env::join_paths(vec![
+            fs::fs_rooted_path(&pkg_prefix_for(&pkg_install).join("/should/not/be/ignored"), &fs_root_path),
+            PathBuf::from("c:/my/dir"),
+            fs::fs_rooted_path(
+                &pkg_prefix_for(&pkg_install).join("/should/really/not/be/ignored"),
+                &fs_root_path,
+            ),
+        ]).unwrap()
+                        .to_string_lossy()
+                        .into_owned(),
+        );
+
+        assert_eq!(expected, pkg_install.environment_for_command().unwrap());
     }
 
     #[test]

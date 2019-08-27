@@ -29,6 +29,6 @@ try {
     Remove-Item "bin/7zip" -Recurse
     Remove-Item "bin/powershell" -Recurse
     Remove-Item "bin/hab" -Recurse
-    Remove-Item "bin/hab-plan-build.ps1"
+    Remove-Item "bin/*"
 }
 exit $exit_code

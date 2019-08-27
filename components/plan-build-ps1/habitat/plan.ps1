@@ -2,7 +2,6 @@ $pkg_name = "hab-plan-build-ps1"
 $pkg_origin = "core"
 $pkg_maintainer = "The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license = @("Apache-2.0")
-$pkg_source = "nosuchfile.tar.gz"
 $pkg_bin_dirs = @("bin")
 
 # No runtime or build dependencies yet
@@ -44,12 +43,6 @@ function Invoke-Build {
 
 function Invoke-Install {
     New-Item "$pkg_prefix\bin" -ItemType Directory -Force | Out-Null
+    Copy-Item "$PLAN_CONTEXT\..\bin\*" "$pkg_prefix\bin" -Force
     Copy-Item "$bin" "$pkg_prefix\bin\$bin" -Force
 }
-
-# Turn the remaining default phases into no-ops
-function Invoke-Download {}
-
-function Invoke-Verify {}
-
-function Invoke-Unpack {}

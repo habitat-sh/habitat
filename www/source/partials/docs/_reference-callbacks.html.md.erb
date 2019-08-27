@@ -40,11 +40,25 @@ set_buildtime_env [-f] VARIABLE_NAME VALUE
 
 Powershell:
 ```powershell
-Set-RuntimeEnv VARIABLE_NAME VALUE [-force]
-Set-BuildtimeEnv VARIABLE_NAME VALUE [-force]
+Set-RuntimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
+Set-BuildtimeEnv VARIABLE_NAME VALUE [-force] [-IsPath]
 ```
 
 These functions allow you to _set_ an environment variable's value. If one of your dependencies has already declared a value for this, it will result in a build failure, protecting you from inadvertently breaking anything. If you really do want to replace the value, you can supply the `-f` or `-force` flag (for "force").
+
+In Powershell plans, if your variable contains values that are file paths pointing inside the Chef Habitat `/hab` directory, you can use the `-IsPath` flag to ensure that the path remains portable accross different Chef Habitat environments. For example in a local (non-Docker) Windows Studio, the following line:
+
+```powershell
+Set-RuntimeEnv SSL_CERT_FILE "$(Get-HabPackagePath cacerts)/ssl/cert.pem"
+```
+
+will set `SSL_CERT_FILE` to the `ssl/cert.pem` file inside of the `cacerts` package path. This path will be located inside of `c:/hab/studios` which will not be valid inside of a non-Studio Supervisor or inside of a Docker Studio. Instead, use the following code:
+
+```powershell
+Set-RuntimeEnv SSL_CERT_FILE "$(Get-HabPackagePath cacerts)/ssl/cert.pem" -IsPath
+```
+
+This will hint to the packaging system that this path should be propperly rooted inside of the Chef Habitat filesystem of the current running environment.
 
 For pushing new values onto a multi-valued environment variable (like `PATH`), use the following functions:
 
@@ -55,8 +69,8 @@ push_buildtime_env VARIABLE_NAME VALUE
 ```
 Powershell:
 ```powershell
-Push-RuntimeEnv VARIABLE_NAME VALUE
-Push-BuildtimeEnv VARIABLE_NAME VALUE
+Push-RuntimeEnv VARIABLE_NAME VALUE [-IsPath]
+Push-BuildtimeEnv VARIABLE_NAME VALUE [-IsPath]
 ```
 
 These functions allow you to push a new value onto a multi-valued environment variable without overwriting the existing values. These multi-valued variables are referred to as "aggregate" variables in Chef Habitat. Single-value environment variables are known as "primitive" variables.

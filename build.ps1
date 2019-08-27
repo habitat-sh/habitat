@@ -106,7 +106,7 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
             $nightly = ($toolchain -eq "nightly")
             Push-Location $PSScriptRoot
             try {
-                & $PSScriptRoot\test\run_cargo_test.ps1 -Component (Get-Component $path) -Features $Features -TestOptions $TestOptions -Nightly:$nightly
+                & $PSScriptRoot\.expeditor\scripts\verify\run_cargo_test.ps1 -Component (Get-Component $path) -Features $Features -TestOptions $TestOptions -Nightly:$nightly
             } finally { Pop-Location }
             break
         }
