@@ -106,19 +106,18 @@ pushd "$(dirname "$pkg_artifact")" >/dev/null
 gpg --armor --digest-algo sha256 --default-key 2940ABA983EF826A --output "$(basename "$pkg_artifact").asc" --detach-sign "$(basename "$pkg_artifact")"
 popd
 
+# Name of the file to upload
 upload_artifact="$(basename "$pkg_artifact")"
+# Now strip the `release` so we have a 'latest'
+latest_artifact="$(basename "$pkg_artifact" | sed -E 's/[0-9]{14}/latest/')"
 
 echo "--- Uploading $upload_artifact and associated artifacts to S3"
 pushd "$(dirname "$pkg_artifact")" >/dev/null
 # FYI - the bucket name is not just for automate artifacts, and this will be fixed up later
 # Upload unstable/latest
-aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/unstable/latest/habitat/$upload_artifact" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact.asc" "s3://chef-automate-artifacts/unstable/latest/habitat/$upload_artifact.asc" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact.sha256sum" "s3://chef-automate-artifacts/unstable/latest/habitat/$upload_artifact.sha256sum" --acl public-read
-# Upload dev/latest
-aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/dev/latest/habitat/$upload_artifact" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact.asc" "s3://chef-automate-artifacts/dev/latest/habitat/$upload_artifact.asc" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact.sha256sum" "s3://chef-automate-artifacts/dev/latest/habitat/$upload_artifact.sha256sum" --acl public-read
+aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact" --acl public-read
+aws --profile chef-cd s3 cp "$upload_artifact.asc" "s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact.asc" --acl public-read
+aws --profile chef-cd s3 cp "$upload_artifact.sha256sum" "s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact.sha256sum" --acl public-read
 # Upload versioned
 aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact" --acl public-read
 aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact.asc" --acl public-read
