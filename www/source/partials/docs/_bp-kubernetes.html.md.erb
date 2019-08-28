@@ -3,13 +3,13 @@
 
 ## Chef Habitat on Kubernetes
 
-Chef Habitat can export Docker containers that on Kubernetes. To benefit from Chef Habitat's gossip ring features like Service Discovery (binds) and Secrets, you must a Chef Habitat bastion pod. A bastion pod provides an [Initial Peer](/docs/best-practices/#robust-supervisor-networks) to all other pods.
+Chef Habitat can export Docker containers that run on Kubernetes. To benefit from Chef Habitat's gossip ring features like Service Discovery (binds) and Secrets, you must have a Chef Habitat bastion pod. A bastion pod provides an [Initial Peer](/docs/best-practices/#robust-supervisor-networks) to all other pods.
 
-The bastion pod is deployed in a robust fashion with a Kubernetes Stateful Set, Persistent Volume and livenesss checking to ensure availability and ring data persistence. A Kubernetes Service is attached to the Stateful Set order to make it discoverable with DNS. It is recommended to deploy one Service and Stateful Set combination per Namespace.
+The bastion pod is deployed in a robust fashion with a Kubernetes Stateful Set, Persistent Volume and livenesss checking to ensure availability and ring data persistence. A Kubernetes Service is attached to the Stateful Set in order to make it discoverable with DNS. It is recommended to deploy one Service and Stateful Set combination per Namespace.
 
 ### Deploy the Chef Habitat bastion on Kubernetes
 
-Complete examples may be downloaded from [Where do I put these??](/docs/)
+Complete examples may be downloaded from [this folder](https://github.com/habitat-sh/habitat/tree/master/www/source/docs/examples/kubernetes_hab_bastion/)
 
 To explain how this works, let's break down the hab-bastion.yaml file:
 
@@ -33,10 +33,10 @@ spec:
   clusterIP: None
 ```
 
-This service defition creates a virtual IP (VIP), opening access to the Chef Habitat service that will run on the pod.
+This service definition creates a virtual IP (VIP), opening access to the Chef Habitat service that will run on the pod.
 - The habitat gossip port (9638/UDP) listener
 - The habitat http-gateway (9631/TCP) listener
-- the service name becomes available in DNS (as `hab-bastion` or `hab-bastion.namespacename`, etc) so any pod can find it
+- the service name becomes available in DNS (as `hab-bastion` or `hab-bastion.namespace-name`, etc) so any pod can find it
 
 ```yaml
 apiVersion: apps/v1
@@ -59,7 +59,7 @@ This section sets a group ownership for the persistent volume mount point, so th
         - '--permanent-peer'
 ```
 
-This tells you where to get the docker container from, the hab plan that defines this contaienr is one folder up in this repo. It runs no service except the Chef Habitat supervisor (hab-sup).
+The `image:` line defines you where to get the docker container from. In this case the image is created from a Chef Habitat plan using the `hab pkg export docker` functionality. It runs no service except the Chef Habitat supervisor (hab-sup).
 The argument `--permanent-peer` instructs the supervisor to act as a permanent peer.
 
 ```yaml
@@ -94,7 +94,7 @@ Resource requests are important to inform the kubernetes scheduler - without the
 ```
 
 The livenessProbe lets Kubernetes know if the pod is healthy or not.  If not it will get restarted.
-The readinessProbe signals to Kubernetes that the pod has started up successfully
+The readinessProbe signals to Kubernetes that the pod has started up successfully.
 
 ```yaml
         volumeMounts:
@@ -112,13 +112,65 @@ The readinessProbe signals to Kubernetes that the pod has started up successfull
           storage: 10Gi
 ```
 
-All of habitat's state data is stored under `/hab/sup` - we mount this on a persistent volume so it gets re-attached if the pod is ever relaunched. The data persists!
+All of the habitat supervisor's state data is stored under `/hab/sup` - we mount this on a persistent volume so it gets re-attached if the pod is ever relaunched. The data persists!
 
+### Create a Kubernetes Deployment that works with the Bastion
 
+The following is an example Kubernetes Stateful Set built from the CockroachDB plan. To illustrate the Bastion pattern, the `--peer hab-bastion` arguments are the part of the configuration where these pods are instructed how to reach the bastion, using the aforementioned service `hab-bastion` as a DNS-resolvable host name.
+
+```yaml
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cockroachdb
+spec:
+  selector:
+    matchLabels:
+      app: cockroachdb
+  serviceName: cockroachdb
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: cockroachdb
+    spec:
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        fsGroup: 42
+      containers:
+      - name: cockroachdb
+        image: irvingpop/cockroach:latest
+        args:
+        - --peer
+        - hab-bastion
+        - --topology
+        - leader
+        resources:
+          requests:
+            memory: "300Mi"
+            cpu: "500m"
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: cockroachdb
+          containerPort: 26257
+        volumeMounts:
+        - name: cockroachdb-data
+          mountPath: /hab/svc/cockroach/data
+  volumeClaimTemplates:
+  - metadata:
+      name: cockroachdb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+```
 
 ## Bare Kubernetes
 
-If your packages don't requite any kind of Chef Habitat supervisor ring communication (binds, secrets, etc) then you can execute your packages directly on the cluster. Chef Habitat packages exported as containers may be deployed to Kubernetes through the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, the container may be launched like this example:
+If your packages don't require any kind of Chef Habitat supervisor ring communication (binds, secrets, etc) then you can execute your packages directly on the cluster. Chef Habitat packages exported as containers may be deployed to Kubernetes through the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, the container may be launched like this example:
 
 ```shell
 $ kubectl run mytutorial --image=myorigin/mytutorial --port=8080
