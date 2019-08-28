@@ -1,11 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.43 -->
+<!-- latest_release 0.84.44 -->
+## [fake-0.84.44](https://github.com/habitat-sh/habitat/tree/fake-0.84.44) (2019-08-28)
+
+#### Merged Pull Requests
+- Add one-off release tool [#6885](https://github.com/habitat-sh/habitat/pull/6885) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
+## [fake-0.84.44](https://github.com/habitat-sh/habitat/tree/fake-0.84.44) (2019-08-28)
+
+#### Merged Pull Requests
+- Remove PID file error message [#6915](https://github.com/habitat-sh/habitat/pull/6915) ([davidMcneil](https://github.com/davidMcneil))
+
 ## [fake-0.84.43](https://github.com/habitat-sh/habitat/tree/fake-0.84.43) (2019-08-28)
 
 #### Merged Pull Requests
 - mention earlier there&#39;s a debug option for PS plans [#6912](https://github.com/habitat-sh/habitat/pull/6912) ([robbkidd](https://github.com/robbkidd))
-<!-- latest_release -->
 
 ## [fake-0.84.42](https://github.com/habitat-sh/habitat/tree/fake-0.84.42) (2019-08-27)
 
