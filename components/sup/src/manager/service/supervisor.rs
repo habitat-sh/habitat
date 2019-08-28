@@ -275,10 +275,7 @@ fn read_pid<T>(pid_file: T) -> Option<Pid>
                 }
             }
         }
-        Err(ref err) if err.kind() == std::io::ErrorKind::NotFound => {
-            error!("PID file not found: {}", p.display());
-            None
-        }
+        Err(ref err) if err.kind() == std::io::ErrorKind::NotFound => None,
         Err(_) => {
             error!("Error reading PID file: {}", p.display());
             None
