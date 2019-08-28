@@ -1,5 +1,7 @@
 # Creating a One-Off Release
 
+**WARNING** - One-off builds are generally a bad idea and should be used with extreme caution and only as a last resort.
+
 ## Run the Release Pipeline
 
 1. Open [https://buildkite.com/chef/habitat-sh-habitat-master-release-habitat](https://buildkite.com/chef/habitat-sh-habitat-master-release-habitat) and click on "New Build"
