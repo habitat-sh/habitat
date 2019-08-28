@@ -1,0 +1,15 @@
+[package]
+name = "one-off-release"
+version = "0.1.0"
+authors = ["The Habitat Maintainers <humans@habitat.sh>"]
+description = "A tool to copy packages from builder acceptance to live."
+edition = "2018"
+workspace = "../../"
+
+[dependencies]
+env_logger = "*"
+lazy_static = "*"
+log = "*"
+structopt = "*"
+regex = "*"
+reqwest = "*"
