@@ -1011,6 +1011,58 @@ impl BuilderAPIProvider for BuilderAPIClient {
             .ok_if(StatusCode::CREATED)
     }
 
+    /// Promote all packages in channel
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    fn promote_channel_packages(&self,
+                                origin: &str,
+                                token: &str,
+                                source_channel: &ChannelIdent,
+                                target_channel: &ChannelIdent)
+                                -> Result<()> {
+        debug!("Promoting packages in channel {:?} to channel {:?}",
+               source_channel, target_channel);
+
+        let path = format!("depot/channels/{}/{}/pkgs/promote", origin, source_channel);
+
+        self.0
+            .put_with_custom_url(&path, |url| {
+                url.query_pairs_mut()
+                   .append_pair("channel", target_channel.as_str());
+            })
+            .bearer_auth(token)
+            .send()?
+            .ok_if(StatusCode::OK)
+    }
+
+    /// Demote all packages from channel
+    ///
+    /// # Failures
+    ///
+    /// * Remote Builder is not available
+    fn demote_channel_packages(&self,
+                               origin: &str,
+                               token: &str,
+                               source_channel: &ChannelIdent,
+                               target_channel: &ChannelIdent)
+                               -> Result<()> {
+        debug!("Demoting packages selected from channel {:?} in {:?}",
+               source_channel, target_channel);
+
+        let path = format!("depot/channels/{}/{}/pkgs/demote", origin, source_channel);
+
+        self.0
+            .put_with_custom_url(&path, |url| {
+                url.query_pairs_mut()
+                   .append_pair("channel", target_channel.as_str());
+            })
+            .bearer_auth(token)
+            .send()?
+            .ok_if(StatusCode::OK)
+    }
+
     /// Returns a vector of PackageIdent structs
     ///
     /// # Failures
