@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.42 -->
+<!-- latest_release 0.84.43 -->
+## [fake-0.84.43](https://github.com/habitat-sh/habitat/tree/fake-0.84.43) (2019-08-28)
+
+#### Merged Pull Requests
+- mention earlier there&#39;s a debug option for PS plans [#6912](https://github.com/habitat-sh/habitat/pull/6912) ([robbkidd](https://github.com/robbkidd))
+<!-- latest_release -->
+
 ## [fake-0.84.42](https://github.com/habitat-sh/habitat/tree/fake-0.84.42) (2019-08-27)
 
 #### Merged Pull Requests
 - Propperly root SetupEnvironment variables with file system paths at run time [#6850](https://github.com/habitat-sh/habitat/pull/6850) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.84.41](https://github.com/habitat-sh/habitat/tree/fake-0.84.41) (2019-08-27)
 
