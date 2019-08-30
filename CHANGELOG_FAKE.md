@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.45 -->
+<!-- latest_release 0.84.46 -->
+## [fake-0.84.46](https://github.com/habitat-sh/habitat/tree/fake-0.84.46) (2019-08-30)
+
+#### Merged Pull Requests
+- Correct Cargo.lock for new zmq branch [#6919](https://github.com/habitat-sh/habitat/pull/6919) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.84.45](https://github.com/habitat-sh/habitat/tree/fake-0.84.45) (2019-08-30)
 
 #### New Features & Enhancements
 - Adds channel-to-channel promotion to bldr subcommand [#6911](https://github.com/habitat-sh/habitat/pull/6911) ([eeyun](https://github.com/eeyun))
-<!-- latest_release -->
 
 ## [fake-0.84.44](https://github.com/habitat-sh/habitat/tree/fake-0.84.44) (2019-08-28)
 
