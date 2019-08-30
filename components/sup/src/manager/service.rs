@@ -24,7 +24,8 @@ use self::{context::RenderContext,
            supervisor::Supervisor};
 pub use self::{health::HealthCheckResult,
                hooks::{HealthCheckHook,
-                       ProcessOutput},
+                       ProcessOutput,
+                       StandardStreams},
                spec::{DesiredState,
                       ServiceSpec}};
 use crate::{census::{CensusGroup,

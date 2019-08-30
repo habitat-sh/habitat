@@ -24,7 +24,8 @@ use self::types::{EventMessage,
                   ServiceUpdateStartedEvent};
 use crate::{manager::{service::{HealthCheckResult,
                                 ProcessOutput,
-                                Service},
+                                Service,
+                                StandardStreams},
                       sys::Sys},
             sup_futures::FutureHandle};
 use clap::ArgMatches;
@@ -223,8 +224,8 @@ pub fn health_check(metadata: ServiceMetadata,
     if stream_initialized() {
         let check_result: types::HealthCheckResult = check_result.into();
         let exit_status = hook_output.as_ref().and_then(|o| o.exit_status().code());
-        let (stdout, stderr) = hook_output.map(ProcessOutput::standard_streams)
-                                          .unwrap_or_default();
+        let StandardStreams { stdout, stderr } = hook_output.map(ProcessOutput::standard_streams)
+                                                            .unwrap_or_default();
         publish(HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata: None,

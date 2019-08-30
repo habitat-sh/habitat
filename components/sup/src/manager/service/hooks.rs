@@ -21,23 +21,28 @@ use std::{self,
 
 static LOGKEY: &str = "HK";
 
+#[derive(Debug, Default)]
+pub struct StandardStreams {
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
+}
+
 #[derive(Debug)]
 pub struct ProcessOutput {
-    stdout:      Option<String>,
-    stderr:      Option<String>,
-    exit_status: ExitStatus,
+    standard_streams: StandardStreams,
+    exit_status:      ExitStatus,
 }
 
 impl ProcessOutput {
     fn new(hook_output: &HookOutput, exit_status: ExitStatus) -> Self {
-        Self { stdout: hook_output.stdout_str(),
-               stderr: hook_output.stderr_str(),
+        Self { standard_streams: StandardStreams { stdout: hook_output.stdout_str(),
+                                                   stderr: hook_output.stderr_str(), },
                exit_status }
     }
 
     pub fn exit_status(&self) -> ExitStatus { self.exit_status }
 
-    pub fn standard_streams(self) -> (Option<String>, Option<String>) { (self.stdout, self.stderr) }
+    pub fn standard_streams(self) -> StandardStreams { self.standard_streams }
 }
 
 #[derive(Debug, Serialize)]
