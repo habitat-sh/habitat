@@ -12,7 +12,9 @@ use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;
 use std::{self,
-          io::prelude::*,
+          fs,
+          io::{self,
+               prelude::*},
           path::{Path,
                  PathBuf},
           sync::Arc};
@@ -325,6 +327,33 @@ pub struct SuitabilityHook {
     stderr_log_path: PathBuf,
 }
 
+impl SuitabilityHook {
+    fn parse_suitability(reader: io::BufReader<fs::File>, pkg_name: &str) -> Option<u64> {
+        if let Some(line_reader) = reader.lines().last() {
+            match line_reader {
+                Ok(line) => {
+                    match line.trim().parse::<u64>() {
+                        Ok(suitability) => {
+                            outputln!(preamble pkg_name,
+                                      "Reporting suitability of: {}", suitability);
+                            return Some(suitability);
+                        }
+                        Err(err) => {
+                            outputln!(preamble pkg_name, "Parsing suitability failed: {}", err);
+                        }
+                    };
+                }
+                Err(err) => {
+                    outputln!(preamble pkg_name, "Failed to read last line of stdout: {}", err);
+                }
+            };
+        } else {
+            outputln!(preamble pkg_name, "{} did not print anything to stdout", Self::file_name());
+        }
+        None
+    }
+}
+
 impl Hook for SuitabilityHook {
     type ExitValue = Option<u64>;
 
@@ -346,30 +375,7 @@ impl Hook for SuitabilityHook {
             Some(0) => {
                 match hook_output.stdout() {
                     Ok(reader) => {
-                        if let Some(line_reader) = reader.lines().last() {
-                            match line_reader {
-                                Ok(line) => {
-                                    match line.trim().parse::<u64>() {
-                                        Ok(suitability) => {
-                                            outputln!(preamble pkg_name,
-                                                "Reporting suitability of: {}", suitability);
-                                            return Some(suitability);
-                                        }
-                                        Err(err) => {
-                                            outputln!(preamble pkg_name,
-                                                "Parsing suitability failed: {}", err);
-                                        }
-                                    };
-                                }
-                                Err(err) => {
-                                    outputln!(preamble pkg_name,
-                                        "Failed to read last line of stdout: {}", err);
-                                }
-                            };
-                        } else {
-                            outputln!(preamble pkg_name,
-                                      "{} did not print anything to stdout", Self::file_name());
-                        }
+                        return Self::parse_suitability(reader, pkg_name);
                     }
                     Err(e) => outputln!(preamble pkg_name,
                                         "Failed to open stdout file: {}", e),
