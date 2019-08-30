@@ -64,10 +64,7 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
                        .into_future()
                        .map(move |(maybe_exit_value, _duration)| {
                            // If we did not get an exit value always retry
-                           if maybe_exit_value.as_ref()
-                                              .map(H::should_retry)
-                                              .unwrap_or(true)
-                           {
+                           if maybe_exit_value.as_ref().map_or(true, H::should_retry) {
                                debug!("retrying the '{}' hook", H::file_name());
                                Loop::Continue(hook_runner)
                            } else {

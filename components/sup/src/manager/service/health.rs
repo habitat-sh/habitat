@@ -152,7 +152,7 @@ impl State {
              let health_check_result = match (&maybe_healthcheck_output, &maybe_duration) {
                  (Some(output), _) => {
                      // The hook ran. Try and convert its exit status to a `HealthCheckResult`.
-                     output.get_exit_status()
+                     output.exit_status()
                            .code()
                            .and_then(|code| {
                                let result = HealthCheckResult::try_from(code);

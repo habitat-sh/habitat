@@ -222,8 +222,7 @@ pub fn health_check(metadata: ServiceMetadata,
                     execution: Option<Duration>) {
     if stream_initialized() {
         let check_result: types::HealthCheckResult = check_result.into();
-        let exit_status = hook_output.as_ref()
-                                     .and_then(|o| o.get_exit_status().code());
+        let exit_status = hook_output.as_ref().and_then(|o| o.exit_status().code());
         let (stdout, stderr) = hook_output.map(CompleteHookOutput::output_streams)
                                           .unwrap_or_default();
         publish(HEALTHCHECK_SUBJECT,
