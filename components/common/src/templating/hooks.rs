@@ -472,30 +472,29 @@ impl<'a> HookOutput<'a> {
     fn output_streams<H: Hook>(&mut self, service_group: &str, process: &mut Child) {
         let preamble_str = Self::stream_preamble::<H>(service_group);
         if let Some(stdout) = &mut process.stdout {
-            Self::output_stream(&preamble_str, stdout, &self.stdout_log_file);
+            Self::tee_stream(&preamble_str, stdout, &self.stdout_log_file);
         }
         if let Some(stderr) = &mut process.stderr {
-            Self::output_stream(&preamble_str, stderr, &self.stderr_log_file);
+            Self::tee_stream(&preamble_str, stderr, &self.stderr_log_file);
         }
     }
 
     /// Try to write a stream to stdout and to `path`  
-    fn output_stream<R: Read>(preamble_str: &str, reader: R, path: &Path) {
-        if let Ok(file) = &mut File::create(path) {
-            for line in BufReader::new(reader).lines() {
-                if let Ok(l) = &line {
-                    outputln!(preamble preamble_str, l);
-                    if let Err(e) = writeln!(file, "{}", l) {
-                        error!("Failed to write hook output to {:?}, {}", path, e);
-                    }
-                }
-            }
-        } else {
-            error!("Failed to create file {:?} to write hook output", path);
-            for line in BufReader::new(reader).lines() {
-                if let Ok(l) = &line {
-                    outputln!(preamble preamble_str, l);
-                }
+    fn tee_stream(preamble_str: &str, reader: impl Read, path: &Path) {
+        let mut file_result = File::create(path);
+        if let Err(e) = &file_result {
+            error!("Failed to create file {:?} to write hook output, {}",
+                   path, e);
+        }
+        for line in BufReader::new(reader).lines()
+                                          .filter_map(result::Result::ok)
+        {
+            outputln!(preamble preamble_str, &line);
+            if let Ok(file) = &mut file_result {
+                writeln!(file, "{}", &line).unwrap_or_else(|e| {
+                                               error!("Failed to write hook output to {:?}, {}",
+                                                      path, e)
+                                           });
             }
         }
     }
