@@ -35,10 +35,6 @@ pub enum HealthCheckResult {
     Unknown,
 }
 
-impl Default for HealthCheckResult {
-    fn default() -> HealthCheckResult { HealthCheckResult::Unknown }
-}
-
 /// Convert health check hook exit codes into `HealthCheckResult` statuses.
 impl TryFrom<i32> for HealthCheckResult {
     type Error = Error;
@@ -168,12 +164,12 @@ impl State {
                                }
                                result.ok()
                            })
-                           .unwrap_or_default()
+                           .unwrap_or(HealthCheckResult::Unknown)
                  }
                  (None, Some(_)) => {
                      // There was a hook but it did not successfully run. The health check result is
                      // unknown.
-                     HealthCheckResult::default()
+                     HealthCheckResult::Unknown
                  }
                  (None, None) => {
                      //  There was no hook to run. Use the supervisor status as a healthcheck.

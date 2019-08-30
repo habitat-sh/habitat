@@ -253,7 +253,7 @@ impl Service {
                      bldr_url: spec.bldr_url,
                      channel: spec.channel,
                      desired_state: spec.desired_state,
-                     health_check_result: Default::default(),
+                     health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
                                             svc_hooks_path(&service_group.service())),
