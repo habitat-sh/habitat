@@ -650,4 +650,22 @@ impl BuilderAPIProvider for ArtifactoryClient {
     fn list_origin_secrets(&self, _origin: &str, _token: &str) -> Result<Vec<String>> {
         Err(Error::NotSupported)
     }
+
+    fn promote_channel_packages(&self,
+                                _origin: &str,
+                                _token: &str,
+                                _source_channel: &ChannelIdent,
+                                _target_channel: &ChannelIdent)
+                                -> Result<()> {
+        Err(Error::NotSupported)
+    }
+
+    fn demote_channel_packages(&self,
+                               _origin: &str,
+                               _token: &str,
+                               _source_channel: &ChannelIdent,
+                               _target_channel: &ChannelIdent)
+                               -> Result<()> {
+        Err(Error::NotSupported)
+    }
 }

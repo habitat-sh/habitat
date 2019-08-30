@@ -223,6 +223,8 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         ("create", Some(m)) => sub_bldr_channel_create(ui, m)?,
                         ("destroy", Some(m)) => sub_bldr_channel_destroy(ui, m)?,
                         ("list", Some(m)) => sub_bldr_channel_list(ui, m)?,
+                        ("promote", Some(m)) => sub_bldr_channel_promote(ui, m)?,
+                        ("demote", Some(m)) => sub_bldr_channel_demote(ui, m)?,
                         _ => unreachable!(),
                     }
                 }
@@ -617,6 +619,34 @@ fn sub_bldr_channel_list(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let url = bldr_url_from_matches(&m)?;
     let origin = origin_param_or_env(&m)?;
     command::bldr::channel::list::start(ui, &url, &origin)
+}
+
+fn sub_bldr_channel_promote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let url = bldr_url_from_matches(&m)?;
+    let origin = origin_param_or_env(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    let source_channel = required_source_channel_from_matches(&m);
+    let target_channel = required_target_channel_from_matches(&m);
+    command::bldr::channel::promote::start(ui,
+                                           &url,
+                                           &token,
+                                           &origin,
+                                           &source_channel,
+                                           &target_channel)
+}
+
+fn sub_bldr_channel_demote(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let url = bldr_url_from_matches(&m)?;
+    let origin = origin_param_or_env(&m)?;
+    let token = auth_token_param_or_env(&m)?;
+    let source_channel = required_source_channel_from_matches(&m);
+    let target_channel = required_target_channel_from_matches(&m);
+    command::bldr::channel::demote::start(ui,
+                                          &url,
+                                          &token,
+                                          &origin,
+                                          &source_channel,
+                                          &target_channel)
 }
 
 fn sub_bldr_job_start(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -1481,6 +1511,23 @@ fn required_channel_from_matches(matches: &ArgMatches<'_>) -> ChannelIdent {
     channel_from_matches(matches).unwrap()
 }
 
+/// Resolve a target channel. Taken from the environment or from CLI args. This
+/// should only be called when the argument is required by the CLAP config,
+/// otherwise this would panic.
+fn required_target_channel_from_matches(matches: &ArgMatches<'_>) -> ChannelIdent {
+    matches.value_of("TARGET_CHANNEL")
+           .map(ChannelIdent::from)
+           .expect("TARGET_CHANNEL is a required argument!")
+}
+
+/// Resolve a source channel. Taken from the environment or from CLI args. This
+/// should only be called when the argument is required by the CLAP config,
+/// otherwise this would panic.
+fn required_source_channel_from_matches(matches: &ArgMatches<'_>) -> ChannelIdent {
+    matches.value_of("SOURCE_CHANNEL")
+           .map(ChannelIdent::from)
+           .expect("SOURCE_CHANNEl is a required argument!")
+}
 /// Resolve a channel. Taken from the environment or from CLI args, if
 /// given or return the default channel value.
 fn channel_from_matches_or_default(matches: &ArgMatches<'_>) -> ChannelIdent {

@@ -338,6 +338,20 @@ pub trait BuilderAPIProvider: Sync + Send {
 
     fn list_channels(&self, origin: &str, include_sandbox_channels: bool) -> Result<Vec<String>>;
 
+    fn promote_channel_packages(&self,
+                                origin: &str,
+                                token: &str,
+                                source_channel: &ChannelIdent,
+                                target_channel: &ChannelIdent)
+                                -> Result<()>;
+
+    fn demote_channel_packages(&self,
+                               origin: &str,
+                               token: &str,
+                               source_channel: &ChannelIdent,
+                               target_channel: &ChannelIdent)
+                               -> Result<()>;
+
     fn promote_package(&self,
                        ident_and_target: (&PackageIdent, PackageTarget),
                        channel: &ChannelIdent,
