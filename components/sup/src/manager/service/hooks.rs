@@ -20,13 +20,13 @@ use std::{self,
 static LOGKEY: &str = "HK";
 
 #[derive(Debug)]
-pub struct CompleteHookOutput {
+pub struct ProcessOutput {
     stdout:      Option<String>,
     stderr:      Option<String>,
     exit_status: ExitStatus,
 }
 
-impl CompleteHookOutput {
+impl ProcessOutput {
     fn new(hook_output: &HookOutput, exit_status: ExitStatus) -> Self {
         Self { stdout: hook_output.stdout_str(),
                stderr: hook_output.stderr_str(),
@@ -35,7 +35,7 @@ impl CompleteHookOutput {
 
     pub fn exit_status(&self) -> ExitStatus { self.exit_status }
 
-    pub fn output_streams(self) -> (Option<String>, Option<String>) { (self.stdout, self.stderr) }
+    pub fn standard_streams(self) -> (Option<String>, Option<String>) { (self.stdout, self.stderr) }
 }
 
 #[derive(Debug, Serialize)]
@@ -77,7 +77,7 @@ pub struct HealthCheckHook {
 }
 
 impl Hook for HealthCheckHook {
-    type ExitValue = CompleteHookOutput;
+    type ExitValue = ProcessOutput;
 
     fn file_name() -> &'static str { "health-check" }
 
@@ -95,7 +95,7 @@ impl Hook for HealthCheckHook {
         if status.code().is_none() {
             Self::output_termination_message(&pkg.name, status);
         }
-        CompleteHookOutput::new(hook_output, status)
+        ProcessOutput::new(hook_output, status)
     }
 
     fn path(&self) -> &Path { &self.render_pair.path }

@@ -23,8 +23,8 @@ use self::{context::RenderContext,
                    HookTable},
            supervisor::Supervisor};
 pub use self::{health::HealthCheckResult,
-               hooks::{CompleteHookOutput,
-                       HealthCheckHook},
+               hooks::{HealthCheckHook,
+                       ProcessOutput},
                spec::{DesiredState,
                       ServiceSpec}};
 use crate::{census::{CensusGroup,

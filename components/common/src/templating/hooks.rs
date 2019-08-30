@@ -200,7 +200,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
             }
         };
         let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
-        hook_output.output_streams::<Self>(service_group, &mut child);
+        hook_output.output_standard_streams::<Self>(service_group, &mut child);
         match child.wait() {
             Ok(status) => Some(self.handle_exit(pkg, &hook_output, status)),
             Err(err) => {
@@ -469,18 +469,18 @@ impl<'a> HookOutput<'a> {
     }
 
     /// Try to write the stdout and stderr of a process to stdout and to the specified log files.
-    fn output_streams<H: Hook>(&mut self, service_group: &str, process: &mut Child) {
+    fn output_standard_streams<H: Hook>(&mut self, service_group: &str, process: &mut Child) {
         let preamble_str = Self::stream_preamble::<H>(service_group);
         if let Some(stdout) = &mut process.stdout {
-            Self::tee_stream(&preamble_str, stdout, &self.stdout_log_file);
+            Self::tee_standard_stream(&preamble_str, stdout, &self.stdout_log_file);
         }
         if let Some(stderr) = &mut process.stderr {
-            Self::tee_stream(&preamble_str, stderr, &self.stderr_log_file);
+            Self::tee_standard_stream(&preamble_str, stderr, &self.stderr_log_file);
         }
     }
 
     /// Try to write a stream to stdout and to `path`  
-    fn tee_stream(preamble_str: &str, reader: impl Read, path: &Path) {
+    fn tee_standard_stream(preamble_str: &str, reader: impl Read, path: &Path) {
         let mut file_result = File::create(path);
         if let Err(e) = &file_result {
             error!("Failed to create file {:?} to write hook output, {}",
@@ -795,7 +795,7 @@ echo "The message is Hello"
             ServiceGroup::new(None, "dummy", "service", None).expect("couldn't create \
                                                                       ServiceGroup");
 
-        hook_output.output_streams::<InstallHook>(&service_group, &mut child);
+        hook_output.output_standard_streams::<InstallHook>(&service_group, &mut child);
 
         let stdout = hook_output.stdout_str().expect("to get stdout string");
         assert_eq!(stdout, "This is stdout\nThis is stdout line 2\n");
