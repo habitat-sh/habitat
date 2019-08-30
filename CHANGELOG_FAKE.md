@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.44 -->
+<!-- latest_release 0.84.45 -->
+## [fake-0.84.45](https://github.com/habitat-sh/habitat/tree/fake-0.84.45) (2019-08-30)
+
+#### New Features & Enhancements
+- Adds channel-to-channel promotion to bldr subcommand [#6911](https://github.com/habitat-sh/habitat/pull/6911) ([eeyun](https://github.com/eeyun))
+<!-- latest_release -->
+
 ## [fake-0.84.44](https://github.com/habitat-sh/habitat/tree/fake-0.84.44) (2019-08-28)
 
 #### Merged Pull Requests
 - Add one-off release tool [#6885](https://github.com/habitat-sh/habitat/pull/6885) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.84.44](https://github.com/habitat-sh/habitat/tree/fake-0.84.44) (2019-08-28)
 
