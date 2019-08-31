@@ -4,7 +4,7 @@ let lines = [];
 
 function writeHeader() {
   lines.push(`<!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-template-reference.js -->`)
-  lines.push(`# Template Data`);
+  lines.push(`## Template Data`);
   lines.push('');
   lines.push(`The following settings can be used during a Chef Habitat service's lifecycle. This means that you can use these settings in any of the plan hooks, such as \`init\`, or \`run\`, and also in any templatized configuration file for your application or service.`)
   lines.push('');
@@ -13,7 +13,7 @@ function writeHeader() {
 }
 
 function writeDefinitions() {
-  lines.push(`## Reference Objects`);
+  lines.push(`### Reference Objects`);
   lines.push('');
   lines.push(`Some of the template expressions referenced above return objects of a specific shape; for example, the \`svc.me\` and \`svc.first\` expressions return "service member" objects, and the \`pkg\` property of a service member returns a "package identifier" object. These are defined below.`);
   lines.push('');
@@ -38,7 +38,7 @@ function writeProperties() {
       const properties = p.properties;
       const additional = p.additionalProperties;
 
-      lines.push(`## ${key}`);
+      lines.push(`### ${key}`);
       lines.push('');
       lines.push(p.description);
       lines.push('');

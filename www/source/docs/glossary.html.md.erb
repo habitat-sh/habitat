@@ -23,24 +23,234 @@ You can also check out Chef Habitat's [reference architectures](/docs/diagrams).
   - [Supervisor](#glossary-supervisor)
 
 ---
-<%= partial "/partials/docs/glossary-artifacts" %>
+## <a name="glossary-artifacts" id="glossary-artifacts" data-magellan-target="glossary-artifacts" type="anchor">Artifacts</a>
+
+A Chef Habitat artifact refers to a binary distribution for a given package built with Chef Habitat. A Chef Habitat artifact is a signed tarball with a `.hart` file extension. Chef Habitat artifacts are composed of a software library or application, the configuration information for that software, and lifecycle hooks. They are created from a the plan file, a `plan.sh` on Linux systems or a `plan.ps1` on Windows systems, and are built with Chef Habitat tools. Chef Habitat artifacts can be exported to a specific format, such as when creating a Docker image.
+
+Chef Habitat artifacts are identified using a four-part fully-qualified package identifier (FQPI) that takes the form: `origin/name/version/release`, where origin, name, version, and release are replaced with their corresponding values.
+
+**Package Identifier components**
+
+- `Origin`: A name that defines a set of related Chef Habitat packages and the artifacts they generate. For example, "sample", "core", or "mycompany".
+- `Name`: The name of the application or service. For example, "postgres".
+- `Version`: The version number designation by the author(s) of the application or service. For example, "3.1.1", or "20160118".
+- `Release`: The unique Chef Habitat id for a given version based on the timestamp pattern _YYYYMMDDhhmmss_. For example, "20160204220358" would be a Chef Habitat artifact built at 22:03:58 on February 4th, 2016.
+
+When referring to Chef Habitat artifacts from either Builder or the Studio, you can refer to them in two ways:
+
+- With a Chef Habitat package identifier
+- With a fully-qualified Chef Habitat package identifier
+
+Chef Habitat package identifier
+: typically specified using the two-component form `origin/name`. For example, `core/redis` or `core/openssl`. Use the three-component form `origin/name/version`, such as `core/redis/5.0.4`, when you need a specific version of an artifact.
+
+Fully-qualified Chef Habitat artifact identifier
+:includes all four components in the following format: `origin/name/version/release`. For example, `core/glibc/2.22/20160310192356`.
+
+If the Chef Habitat artifact identifier isn't fully qualified (having fewer than four components), and exactly one artifact is required, then the missing components are assumed to be the most recent values. For example:
+
+- `core/glibc` assumes that version and release values are for the latest version of core/glibc.
+
+- `core/glibc/2.22` assumes that the version of core/glibc is 2.22 and that the release is for the most recent value of core/glibc/2.22.
+
+- `core/glibc/2.22/20160310192356` only refers to the specific Chef Habitat artifact 20160310192356.
+
+## Chef Habitat Artifact Export Formats
+
+Chef Habitat `.hart` files can be exported in a number of different formats depending on what you need and where you need it. This is powerful because you can use the same immutable Chef Habitat artifact by exporting it into a format that you need for a specific job. For example, when you can use one format for iterating locally in a Docker container, another to deploy that Chef Habitat artifact to an environment running Kubernetes, and a third to deploy it to a data center that's running virtual machines, but the Chef Habitat artifact is identical in each location---it's simply exported to the correct format for the job you are trying to do.
+
+You can read more about how to export Chef Habitat artifacts, and what exporters are currently available, [here](/docs/developing-packages/#pkg-exports).
+
 ---
-<%= partial "/partials/docs/glossary-builder" %>
+## <a name="glossary-builder" id="glossary-builder" data-magellan-target="glossary-builder" type="anchor">Builder</a>
+
+Chef Habitat Builder consists of the Builder service and the Depot.
+
+## Chef Habitat Builder
+
+Users have the option to connect their GitHub repositories to Builder to enable continuous builds of their plans. Checking in new code to GitHub initiates a new build through a GitHub hook. If you've added your Chef Habitat plan to the root of your source code repository and your project depends on any of the Chef Habitat Core Packages (for example, openssl, ruby, or node), when these packages are updated, Builder automatically rebuilds your software and posts the updated package to your project's `unstable` channel, where it will wait until you review and promote it according to your regular release procedure.
+
+## Depot
+
+The Depot is a searchable repository that stores artifacts for use in Chef Habitat.
+
 ---
-<%= partial "/partials/docs/glossary-hab"%>
+## <a name="glossary-hab" id="glossary-hab" data-magellan-target="glossary-hab" type="anchor">Hab</a>
+
+Almost anything you could want to do in Chef Habitat can be managed via the `hab` CLI.
+
+It includes subcommands for executing package builds, loading services into the process Supervisor, uploading packages to Builder, and entering the Studio. For more information on all of the functionality of `hab` checkout our [CLI command documentation](/docs/habitat-cli).
+
 ---
-<%= partial "/partials/docs/glossary-hooks" %>
+## <a name="glossary-hooks" id="glossary-hooks" data-magellan-target="glossary-hooks" type="anchor">Application Lifecycle Hooks</a>
+
+Each plan can specify application lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a script with a shebang defined at the top to specify the interpreter to be used.
+
+> **Important:** You cannot block the thread in a hook unless it is in the run hook. Never call `hab` or `sleep` in a hook that is not the run hook.
+
+To see a full list of available hooks and how to use them check out our [hooks documentation](/docs/reference#reference-hooks).
+
 ---
-<%= partial "/partials/docs/glossary-launcher" %>
+## <a name="glossary-launcher" id="glossary-launcher" data-magellan-target="glossary-launcher" type="anchor">Launcher</a>
+
+Chef Habitat's Launcher is a sidecar process for the Supervisor which provides a mechanism for launching processes on behalf of the Supervisor. It is the entry point for running the Supervisor and is the Supervisor for the Supervisor. Whereas the Supervisor is able to automatically update itself, the Launcher is currently released a bit differently, by design; it should be rare that the Launcher ever needs to change.
+
+To update your Launchers, run:
+
+```bash
+hab pkg install core/hab-launcher
+```
+
+Then restart the Supervisor. This will, by necessity, require a restart of supervised services, so factor that into your planning.
+
+The Launcher is designed to run as process 1; it is minimal by design. Its responsibilities are simply to be the parent process for the Supervisor.
+
+The Launcher enables the Supervisor to update itself without shutting down or re-parenting the services that the Supervisor is supervising. The Launcher is versioned separately from the Supervisor and should be updated very infrequently since an update of the Launcher could require a system restart if it is running as process 1.
+
 ---
-<%= partial "/partials/docs/glossary-keys" %>
+## <a name="glossary-keys" id="glossary-keys" data-magellan-target="glossary-keys" type="anchor">Keys</a>
+
+Chef Habitat has strong cryptography built into Chef Habitat Builder, the Supervisor, and the `hab` CLI commands. This means there are several different kinds of keys.
+
+## Origin Key Pairs
+
+Every Chef Habitat artifact belongs to an [origin](/docs/glossary/#glossary-artifacts) and is cryptographically signed with that origin's private key. Chef Habitat requires the private key for producing artifacts and requires the public key for verification of artifacts before installation. If it is present on Builder, Chef Habitat will automatically download the public key for an origin when necessary.
+
+Origin key cryptography is asymmetric: it has a public key that you can distribute freely, and a private key that you should keep safe.
+
+Chef Habitat uses the public origin key to verify the integrity of downloaded artifacts before installing them.
+Chef Habitat will only install artifacts for which it has the public origin key.
+
+You can provide a public origin key to Chef Habitat by pointing it to a Builder site that has the origin key with the `--url` argument to `hab pkg install` or using the `hab origin key import` command.
+Use `hab origin key upload` to upload origin keys to Builder.
+Use `hab origin key download` to download your origin keys from Builder to your environment.
+Use `hab origin key import` to read the key from a standard input stream or local file:
+
+```bash
+hab origin key import <enter or paste key>
+hab origin key import < <PATH_TO_KEY>
+curl <URL_THAT_RETURNS_KEY> | hab origin key import
+```
+
+See the [hab origin key](docs/habitat-cli/#hab-origin-key) command documentation for more information about working with origin keys from the command line.
+
+## User and Service Group Keys
+
+User and service group keys are used to set up trust relationships between these two entities. Service groups can be set up to reject communication (e.g. applying new configuration via `hab config apply`) from untrusted users.
+
+By default, service groups will trust *any* communication, so for a production deployment of Chef Habitat, setting up these relationships is essential.
+
+User and service group keys also utilize asymmetric cryptography. To apply configuration changes to service groups when running in this mode, a user uses their own private key to encrypt configuration information for a service group, using that service group's public key. The service group then uses its private key to decrypt the configuration information, and the user's public key to verify.
+
+## Ring Encryption Key
+
+A Supervisor network can be optionally set up to encrypt *all* supervisor-to-supervisor communication. This requires the use of a symmetric, pre-shared key.
+
 ---
-<%= partial "/partials/docs/glossary-plan" %>
+## <a name="glossary-plan" id="glossary-plan" data-magellan-target="glossary-plan" type="anchor">Plan.sh</a>
+
+A plan is a set of files that describe how to build a Chef Habitat package. At the heart of the plan is a configurable script named `plan.sh` for Linux and `plan.ps1` for Windows, containing instructions on how to download, compile, and install its software.
+
+Chef Habitat's build phase defaults can be overidden using [callbacks](/docs/reference/#reference-callbacks). [Application lifecycle hooks](/docs/reference/#reference-hooks) for services can be defined so the Supervisor running your services takes specific actions in response to specific lifecycle events. Optionally included are a set of TOML variables and their defaults that can be used to generate configuration files via [Handlebar.js templates](/docs/reference/#handlebars-helpers).
+
 ---
-<%= partial "/partials/docs/glossary-scaffolding" %>
+## <a name="glossary-scaffolding" id="glossary-scaffolding" data-magellan-target="glossary-scaffolding" type="anchor">Scaffolding</a>
+
+Chef Habitat scaffoldings are standardized plans for automated building and running your application. Each scaffolding is tuned to the way your application was built, which allows it to create the appropriate [application lifecycle hooks](/docs/glossary/#glossary-hooks) and add in the correct runtime dependencies when building the package for your application. Scaffoldings also provide some default health check hooks where appropriate to ensure your application is functioning reliably. Customized Scaffolding can be created to facilitate re-usability of common patterns in your organization for developing, building, and running your applications.
+
+## Available Scaffolding
+
+While we are targeting many platforms for automated scaffolding we currently support Ruby, Node.js and Gradle.
+
+* [core/scaffolding-ruby](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-ruby/doc/reference.md)
+* [core/scaffolding-node](https://github.com/habitat-sh/core-plans/tree/master/scaffolding-node)
+* [core/scaffolding-gradle](https://github.com/habitat-sh/core-plans/blob/master/scaffolding-gradle)
+
+## Variables
+
+Scaffoldings provide certain overrideable variables for language-specific behavior. Please see the appropriate scaffolding documentation for details.
+
+## Overriding Scaffolding Callbacks
+
+If you want to override phases of a scaffold's build in your plans, make sure to override the main `do_xxx` phase, not the callback directly. ex override `do_install()` instead of `do_default_install` or `do_node_install`.
+
+## Scaffolding Internals
+
+A language or framework scaffolding is shipped as a Chef Habitat package, which means that each scaffolding runtime dependency becomes a build dependency for the application being built.
+
+### lib/scaffolding.sh File
+
+To create scaffolding, a package must contain a `lib/scaffolding.sh` file which gets sourced by the build program running Bash.
+
+### scaffolding_load() Function
+
+A optional function named `scaffolding_load()` may be created in `lib/scaffolding.sh` which will be called early in the build program which allows a Scaffolding author to control and augment the `pkg_deps` and `pkg_build_deps` arrays. At this point, no other build or run dependencies have been resolved so the code in this function can only rely on what the build program provides or software pulled in via the Scaffolding's Plan.
+
+### Default Build Phases Implementations
+
+The remainder of the `lib/scaffolding.sh` contains one or more default implementations for the build phases. These include, but are not limited to:
+
+* `do_default_prepare()`
+* `do_default_build()`
+* `do_default_install()`
+
+### Try them out
+
+The point of scaffoldings is to handle complexity for you, and make it easy to start building, deploying, and managing your application with Chef Habitat. So try it out and let us know how it goes!
+
 ---
-<%= partial "/partials/docs/glossary-services" %>
+## <a name="glossary-services" id="glossary-services" data-magellan-target="glossary-services"type="anchor">Services</a>
+
+A service in Chef Habitat is defined as a Chef Habitat package running under a Chef Habitat Supervisor.
+
+## Service Group
+
+A set of one or more running services with a shared configuration and topology makes up a service group. If a service is started without explicitly naming the group, it's assigned to the `default` group for the name of that package. For example:
+
+- `redis.default`
+- `postgres.financialdb` (possibly running in a cluster)
+- `postgres.userdb` (possibly running in a cluster)
+
+## Topology
+
+Chef Habitat allows you to define the topology of your service groups, which bakes in certain behaviors.
+
+### Standalone
+
+This is the default topology, useful for services inside a group that are completely independent from one another. Note that this still means they can share the same configuration.
+
+### Leader / Follower
+
+This topology allows a distributed application running on at least three Chef Habitat nodes to use a leader/follower configuration. Leaders are elected with Chef Habitat's leader election algorithm, and followers are restarted to reflect a configuration that follows the new leader. Subsequent elections due to leader failure will update both leader and follower configuration data.
+
+You can read more about the internals behind the elections in our [advanced developer documentation](/docs/internals/#election-internals).
+
 ---
-<%= partial "/partials/docs/glossary-studio" %>
+## <a name="glossary-studio" id="glossary-studio" data-magellan-target="glossary-studio" type="anchor">Studio</a>
+
+The Chef Habitat Studio is a clean, self-contained, minimal environment in which you can develop, build, and package software that is free from any upstream operating system distribution. All tools and dependencies included in the Studio are installed through Chef Habitat packages, thus preventing any unwanted dependencies from being used by your package.
+
 ---
-<%= partial "/partials/docs/glossary-supervisor" %>
+## <a name="glossary-supervisor" id="glossary-supervisor" data-magellan-target="glossary-supervisor">Supervisor</a>
+
+The Supervisor is a process manager that has two primary responsibilities. First, it starts and monitors child services defined in the plan it is running. Second, it receives and acts upon information from the other Supervisors to which it is connected. A service will be reconfigured through application lifecycle hooks if its configuration has changed.
+
+## The Supervisor Ring
+
+Supervisors typically run in a network, which we refer to as a *ring* (although it is more like a peer-to-peer network rather than a circular ring). The ring can be very large; it could contain hundreds or thousands of supervisors. The membership list of this ring is maintained independently by each Supervisor and is known as the *census*.
+
+### Census
+
+The census is the core of the service discovery mechanism in Chef Habitat. It keeps track of every Supervisor in the ring, and handles reading, writing, and serializing it with the discovery backend.
+
+Each Supervisor in the system is a *census entry* that together form a *census*. Operations to discover or mutate the state of the census happen through algorithms that arrive at the same conclusion given the same inputs.
+
+An example is leader election: it's handled here by having a consistent (and simple) algorithm for selecting a leader deterministically for the group. We rely on the eventual consistency of every Supervisor's census entry to elect a new leader in a reasonable amount of time.
+
+### Supervisor REST API
+
+The Chef Habitat Supervisor provides a HTTP API to expose cluster metadata, statistics, and general diagnostic information useful for monitoring and support in the form of a JSON document. It also provides detailed information about the Chef Habitat package that it is supervising, including metadata such as the build and runtime dependencies and their versions.
+
+### Control Gateway
+
+The Supervisor control gateway is used to issue commands to a remote Supervisor. When a new Supervisor is created, a key for the `HAB_CTL_SECRET` environment variable is generated for it by default, if one is not already present; this key is used to authenticate requests that are made via the control gateway. See the [control gateway](/docs/internals#control-gateway) documentation for more details.

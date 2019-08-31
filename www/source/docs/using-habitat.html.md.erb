@@ -3,24 +3,819 @@ title: Chef Habitat Docs - Using Chef Habitat
 description: Documentation and tutorials for Chef Habitat including getting started; creating, building, and running Chef Habitat packages; and dynamic configuration updates.
 ---
 
-<%= partial "/partials/docs/using-hab-overview"%>
+# <a name="overview" id="overview" data-magellan-target="overview">Using Chef Habitat</a>
+
+Chef Habitat centers application configuration, management, and behavior around the application itself, not the infrastructure or operating system it runs on. This allows Chef Habitat to be deployed and run on a wide array of clouds, data centers, schedulers, and platforms.
+
+<%= partial 'partials/global/package_platform_support' %>
+
+This section of the Chef Habitat documentation is dedicated to the operational aspects of the framework and how to use the various tools Chef Habitat brings to the table. If you don't yet have an understanding of the way Chef Habitat handles application automation, we recommend [checking out our tutorials](/learn/) for some quick hands-on experience before diving into the docs.
+
+## Table of Contents
+
+  - [Running Chef Habitat Packages](#using-packages)
+  - [Setting up a Ring](#setting-up-a-ring)
+  - [Monitoring Services](#monitor-services)
+  - [Service Groups](#service-groups)
+  - [Topologies](#topologies)
+  - [Configuration Updates](#config-updates)
+  - [File Uploads](#file-uploads)
+  - [Supervisor and Encryption](#using-encryption)
+  - [Update Strategies](#using-updates)
+  - [Continuous Deployment Using Channels](#continuous-deployment)
+  - [Controlling Supervisors Remotely](#remote-control)
+
 ---
-<%= partial "/partials/docs/using-hab-packages"%>
+## <a name="using-packages" id="using-packages" data-magellan-target="using-packages">Running Chef Habitat Packages</a>
+
+Use Chef Habitat packages to start services under the Chef Habitat Supervisor. At runtime, you can join services together in a service group running the same topology, send configuration updates to that group, and more. You can also export the Supervisor together with the package to an external immutable format, such as a Docker container or a virtual machine.
+
+<%= partial 'partials/global/package_platform_support' %>
+
+Information about [installing Chef Habitat](/docs/install-habitat) and configuring your workstation can be found in the previous section.
+
+### Starting the Supervisor
+
+In order to run a Chef Habitat-packaged service, you must first run a Chef Habitat Supervisor. There are two ways to start up a Supervisor, and it is important to know the implications of each, and which method is appropriate for your circumstances. These instructions describe the behavior of the 0.56.0 Supervisor and later, which dramatically simplified how Supervisors start up. These instructions also deal with the Supervisor "by itself"; later on, we'll see how to integrate it into different operational scenarios (e.g., SystemD, Windows Services, etc.). It is useful to understand the underlying concepts first.
+
+For further details about these commands, including all the arguments and options they take, please consult [the hab documentation](/docs/habitat-cli).
+
+**hab sup run**
+: Executing `hab sup run` will start a Supervisor process in the foreground. If this is the first time a Supervisor has been run on the system, nothing else will happen; the process will be waiting for the user to "load" services into it. However, if this is _not_ the first time the Supervisor has been run, any previously loaded services that were not "stopped" (i.e., told not to run) will be started up as well.
+
+When executing `hab sup run`, additional options can be passed that allow the Supervisor to communicate with other Supervisors (such as `--peer`, `--permanent-peer`, etc.), forming a connected network of Supervisors; this is the communication backbone that any services running on the Supervisors use to communicate with each other.
+
+**hab sup run \<PACKAGE_IDENTIFIER\>**
+: When you pass a package identifier (e.g., `core/redis`) as an argument to `hab sup run`, it will start up a Supervisor process, and then load and start the given package in what is effectively a single operation. This is a convenience that is intended primarily for container entry-point workflows, where a single defined service is the only thing ever intended to run on the Supervisor, but it can also be used for local testing or experimentation.
+
+This version of `hab sup run` can also accept options that affect how the _package_ should run, such as `--strategy` and `--topology`, in addition to the aforementioned Supervisor-specific options. It can be thought of as running the identifier-less `hab sup run`, along with a `hab sup load`, all as a single command.
+
+#### Selecting a startup method
+
+In most cases, you should always start up a Supervisor explicitly, using `hab sup run` _without_ a package identifier argument, _especially_ in production environments.
+
+The `<PACKAGE_IDENTIFIER>` invocation mixes Supervisor-specific and service-specific options, it can sometimes be difficult to reason about, depending on how complex your usecase is. As a result, that form should be limited to constrained container-based usecases, and perhaps local simple testing or evaluation scenarios. Additionally, since a Supervisor has state -- the services it is manages -- you may end up starting additional services, depending on what you've done in the past on the same machine. That is, `hab sup run <PACKAGE_IDENTIFIER>` is not, in general, synonymous with "only run this single service".
+
+For all other uses, it is far preferable to start a Supervisor using the identifier-less `hab sup run` invocation, and manage the population of services it runs using `hab svc load` and other commands.
+
+Throughout this documentation, unless otherwise explicitly stated, assume that a Supervisor has been started with `hab sup run`, and that any services were loaded using a separate `hab svc load` invocation.
+
+### Testing a package locally
+
+Packages can be tested in the interactive studio environment or natively on a workstation running Linux or Windows.
+
+When entering an interactive studio, a Supervisor is started for you in the background by default. To run packages inside of this Supervisor:
+
+1. [Build a package](/docs/developing-packages/#plan-builds) inside an interactive studio. Do not exit the studio after it is built.
+2. To start your service in the running Supervisor, type `hab svc load yourorigin/yourname`, substituting the name and origin of the package you built in Step 1. Your service should now be running.
+
+Because the Supervisor is running in the background, you will not see the Supervisor output as you start your service. However you can use the `sup-log` (or `Get-SupervisorLog` on Windows) command that will stream the tail of the Supervisor output (you can also look at the contents of `/hab/sup/default/sup.log`, which is where the Studio directs its Supervisor output).
+
+If your host machine is running Linux, do the following to run your packages for one-off evaluations (not production uses!):
+
+* Add the `hab` user and group.
+
+    ```bash
+    $ sudo adduser --group hab
+    $ sudo useradd -g hab hab
+    ```
+
+* Run the `hab` Supervisor as root.
+
+    ```bash
+    $ sudo hab sup run yourorigin/yourname
+    ```
+
+You may use the same `hab run` command on Windows but omit the `sudo` command. However, you should be inside of an elevated shell. Also, note that the `hab` user is not necessary on Windows. If it is absent, services will run under the identity of the current user. If a `hab` user is present, you will need to provide its password via the`--password` argument:
+
+```bash
+PS C:\> $cred = Get-Credential hab
+PS C:\> hab sup run yourorigin/yourname --password $cred.GetNetworkCredential().Password
+```
+
+In all cases, you may wish to run `hab svc unload <yourorigin>/<yourname>` when you are done working with your package, to remove it from the Supervisor. Otherwise, your Supervisor will try to start your service each time it start up.
+
+For more structured ways of running the Chef Habitat Supervisor on servers, please see [Running Chef Habitat on Servers](/docs/best-practices/#running-habitat-servers).
+
+### Loading a service
+
+To load a service into a Supervisor, you use the `hab svc load` subcommand. As an example, to load `yourorigin/yourname` in a Leader topology, with a Rolling update strategy, and a Group of "acme", run the following:
+
+```bash
+$ hab svc load yourorigin/yourname --topology leader --strategy rolling --group acme
+```
+
+Running the `hab svc load` subcommand multiple times with different package identifiers will result in multiple services running on the same Supervisor. Let's add `core/redis` to the Supervisor for some fun:
+
+```bash
+$ hab svc load core/redis
+```
+
+## Unloading a service
+
+To remove a service from a Supervisor, you use the `hab svc unload` subcommand. If the service is was running, then it will be stopped first, then removed. This means that the next time the Supervisor is started (or restarted), it will not run this unloaded service. For example, to remove the `yourorigin/yourname` service:
+
+```bash
+$ hab svc unload yourorigin/yourname
+```
+
+### Stopping a running service
+
+Sometimes you need to stop a running service for a period of time, for example during a maintenance outage. Rather than completely removing a service from supervision, you can use the `hab svc stop` subcommand which will shut down the running service and leave it in this state until you start it again with the `hab svc start` subcommand, explained next. This means that all service-related options such as service topology, update strategy, etc. are preserved until the service is started again. For example, to stop the running `core/redis` service:
+
+```bash
+$ hab svc stop core/redis
+```
+
+## Restarting a stopped service
+
+To resume running a service which has been loaded but stopped (via the `hab svc stop` subcommand explained above), you use the `hab svc start` subcommand. Let's resume our `core/redis` service with:
+
+```bash
+$ hab svc start core/redis
+```
+
+> Note: in Chef Habitat versions prior to 0.56.0, `hab svc start` could also be used to load up a service if it wasn't already loaded. In 0.56.0 and later, however, this has changed; `hab svc start` can only operate on services that have previously been loaded.
+
+### Querying the Supervisor for service status
+
+You can query all services currently loaded or running under the local Supervisor using the `hab svc status` command. This command will list all services loaded by the Supervisor along with their current state. The `status` command includes the version and release of the service and for services that are running, it will include the `PID` of the running service.
+
+To retrieve status for an individual service, you can pass the service identifier:
+
+```bash
+$ hab svc status core/mysql
+```
+
+The following exit codes are emitted by the `status` command:
+
+* `0` - The status command successfully reports status on loaded services
+* `1` - A generic error has occurred calling the `hab` cli
+* `2` - A service identifier was passed to `hab svc status` and that service is not loaded by the Supervisor
+* `3` - There is no local running Supervisor
+
+##<a name="monitor-services" id="monitor-services" data-magellan-target="monitor-services">Monitoring Services</a>
+
+Use the HTTP API to monitor services. When a service starts, the Supervisor exposes the status of its services' health and other information through an HTTP API endpoint. This information can be useful in monitoring service health, results of leader elections, and so on.
+
+### Authentication
+
+The Supervisor currently supports simple HTTP authentication using Bearer tokens. By default, no authentication is used. If you would like to require authentication, export the `HAB_SUP_GATEWAY_AUTH_TOKEN` environment variable before starting the Supervisor. All HTTP requests will then require that same token to be present in an Authorization header, or they will receive a 401 Unauthorized response.
+
+### Endpoints
+
+The HTTP API provides information on the following endpoints:
+
+* `/butterfly` - Debug information about the rumors stored via Butterfly.
+* `/census` - Returns the current Census of Services on the Ring (roughly what you see as a service in config.toml).
+* `/services` - Returns an array of all the services running under this Supervisor.
+* `/services/{name}/{group}` - Returns the information of a single loaded service.
+* `/services/{name}/{group}/config` - Returns this service group's current configuration.
+* `/services/{name}/{group}/health` - Returns the current health check for this service.
+* `/services/{name}/{group}/{organization}` - Returns information of a single loaded service scoped to an organization
+* `/services/{name}/{group}/{organization}/config` - Returns the service group's current configuration, but includes the organization.
+* `/services/{name}/{group}/{organization}/health` - Same as above, but includes the organization.
+
+#### Errors
+
+Most of the HTTP API endpoint return these errors:
+
+| Error | Description |
+| ----- | ----------- |
+| 404 | Service not loaded |
+| 503 | Supervisor hasn't fully started. Try again later. |
+
+The `/health` endpoints return:
+
+| Error | Description |
+| ----- | ----------- |
+| 404 | Service not loaded |
+| 500 | Health Check - Unknown |
+| 503 | Health Check - Critical |
+
+### Usage
+
+Connect to the Supervisor of the running service using the following syntax. This example uses `curl` to do the GET request.
+
+```bash
+$ curl http://172.17.0.2:9631/services
+```
+
+> Note: The default listening port on the Supervisor is 9631; however, that can be changed by using the `--listen-http` option when starting a service.
+
+Depending on the endpoint you hit, the data may be formatted in JSON, TOML, or plain text.
+
+#### Example
+
+```bash
+$ HAB_SUP_GATEWAY_AUTH_TOKEN="sekret" hab sup run
+hab-sup(MR): Supervisor Member-ID e89b6616d2c040c8a82f475b00ba8c69
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+hab-sup(MR): Starting ctl-gateway on 0.0.0.0:9632
+hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+```
+
+```bash
+$ curl -v http://172.17.0.2:9631/services
+*   Trying 172.17.0.2...
+* TCP_NODELAY set
+* Connected to 172.17.0.2 (172.17.0.2) port 9631 (#0)
+> GET /services HTTP/1.1
+> Host: 172.17.0.2:9631
+> User-Agent: curl/7.54.0
+> Accept: */*
+>
+< HTTP/1.1 401 Unauthorized
+< content-length: 0
+< date: Thu, 15 Nov 2018 22:39:41 GMT
+<
+* Connection #0 to host 172.17.0.2 left intact
+```
+
+```bash
+$ curl -v -H "Authorization: Bearer sekret" http://172.17.0.2:9631/services
+*   Trying 172.17.0.2...
+* TCP_NODELAY set
+* Connected to 172.17.0.2 (172.17.0.2) port 9631 (#0)
+> GET /services HTTP/1.1
+> Host: 172.17.0.2:9631
+> User-Agent: curl/7.54.0
+> Accept: */*
+> Authorization: Bearer sekret
+>
+< HTTP/1.1 200 OK
+< content-length: 2
+< content-type: application/json
+< date: Thu, 15 Nov 2018 22:41:42 GMT
+<
+* Connection #0 to host 172.17.0.2 left intact
+[]
+```
+
 ---
-<%= partial "/partials/docs/setting-up-a-ring"%>
+## <a name="setting-up-a-ring" id="setting-up-a-ring" data-magellan-target="setting-up-a-ring">Setting Up a Ring</a>
+
+### Bastion Ring / Permanent Peers
+
+A “Bastion Ring” is a pattern for preventing rumor loss and a split brain in a network of Chef Habitat Supervisors - it is highly recommended for any real environment use case. Create a minimum of 3 Supervisors and join them together. They should not run any services and they should be marked as permanent peers - their only job is to spread rumors to each other. Then, when you provision additional Supervisors pass the network address of each Supervisor running in the Bastion Ring to the `--peer` argument of `hab sup run`. It’s recommended to create a Bastion Ring in any network zones which may become partitioned due to a hardware failure. For example, if you have a Chef Habitat ring spanning multiple data centers and clouds, each should have a bastion ring of a minimum of 3 Supervisors in addition to the Supervisors running your services.
+
+### Using a scheduler
+
+Please note, if you are using a container scheduler such as Kubernetes, Swarm, or Mesos DC/OS, or a PaaS such as CloudFoundry, you should not follow the bastion ring pattern, as the scheduler handles that level of persistence and orchestration on your behalf.
+
+For Kubernetes, you should use the Chef Habitat Operator for Kubernetes to ensure that the application behavior you've established for your services when you defined them with Chef Habitat is run in a Kubernetes-native way to ensure consistent and expected behavior cross-platform.
+
+More resources on schedulers:
+
+- <https://www.habitat.sh/get-started/kubernetes/>
+- <https://www.habitat.sh/docs/best-practices/#container-orchestration>
+- <https://www.habitat.sh/get-started/cloudfoundry/>
+
+### Initial peer(s)
+
+The initial peer(s) is a requirement of any distributed system. In Chef Habitat, a new Supervisor that is starting up looks for an initial peer(s) to join to begin sharing information about the health and status of peers and other services, to increase the health of the overall Ring.
+
 ---
-<%= partial "/partials/docs/using-hab-service-groups"%>
+## <a name="service-groups" id="service-groups" data-magellan-target="service-groups">Service Groups</a>
+
+A service group is a logical grouping of services with the same package and topology type connected together across a Supervisor network.
+They are created to share configuration and file updates among the services within those groups and can be segmented based on workflow or deployment needs (QA, Production, and so on).
+Updates can also be [encrypted](/docs/using-habitat/#using-encryption) so that only members of a specific service group can decrypt the contents.
+
+By default, every service joins the _service-name_.**default** service group unless otherwise specified at runtime.
+
+In addition, multiple service groups can reside in the same Supervisor network. This allows data exposed by Supervisors to
+be shared with other members of the ring, regardless of which group they are in.
+
+### Joining a service group
+
+To join services together in a group, they must be running on Supervisors that are participating in the same Supervisor gossip network (i.e., they are ultimately peered together), and they must be using the same group name. To illustrate, we'll show two `core/redis` services joining into the same group.
+
+First, we'll start up two Supervisors on different hosts, peering the second one back to the first.
+
+```bash
+$ hab sup run # on 172.18.0.2 (Supervisor A)
+hab-sup(MR): Supervisor Member-ID e89b6616d2c040c8a82f475b00ba8c69
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+hab-sup(MR): Starting ctl-gateway on 0.0.0.0:9632
+hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+```
+
+```bash
+$ hab sup run --peer=172.18.0.2:9638 # on 172.18.0.3 (Supervisor B)
+hab-sup(MR): Supervisor Member-ID bc8dc23243e44fee8ea7b9023073c28a
+hab-sup(MR): Starting gossip-listener on 0.0.0.0:9638
+hab-sup(MR): Starting ctl-gateway on 0.0.0.0:9632
+hab-sup(MR): Starting http-gateway on 0.0.0.0:9631
+```
+
+Now, run the following on each Supervisor to load `core/redis` in the "prod" group:
+
+```
+hab svc load core/redis --group=prod
+```
+
+Each will start up, and will be joined into the same group; here is Supervisor A's output:
+![Supervisor A running Redis](/images/docs/service-groups/supervisor_a_before.png)
+
+And here is Supervisor B's output:
+![Supervisor B running Redis](/images/docs/service-groups/supervisor_b_before.png)
+
+Note that they are both listening on the same port.
+
+To prove they are in the same group, we can apply a configuration change; if they are in the same group, they should both receive the change.
+
+Let's change the port they're running on, using the `hab config apply` command, run from Supervisor A.
+
+```bash
+echo 'port = 2112' | hab config apply redis.prod 1
+```
+
+Both service instances restart with the new configuration. Supervisor A's output is:
+
+![Supervisor A running Redis on a new port](/images/docs/service-groups/supervisor_a_after.png)
+
+and Supervisor B's output is:
+
+![Supervisor B running Redis on a new port](/images/docs/service-groups/supervisor_b_after.png)
+
+Note that they have both restarted (as evidenced by the new PID values), and that both are now running on port 2112, as we instructed.
+
+Had the services been in different groups, the configuration change would not have applied to both of them (it was targeted at `redis.prod`). If the Supervisors has not been in gossip communication (achieved here through the use of the `--peer` option when Supervisor B was started), the configuration rumor (injected into Supervisor A's gossip network) would not have made it to `core/redis` service running on Supervisor B.
+
 ---
-<%= partial "/partials/docs/using-hab-topologies"%>
+## <a name="topologies" id="topologies" data-magellan-target="topologies">Topologies</a>
+
+A topology describes the intended relationship between peers within a service group. Two topologies ship with Chef Habitat by default: standalone, and leader-follower. The leader-follower topology employs [leader election](/docs/internals/#election-internals) to define a leader.
+
+### Standalone
+
+The standalone topology is what a Supervisor starts with by default if no topology is specified, or if the topology is explicitly specified with `--topology standalone` when starting the Supervisor. The standalone topology means that the service group members do not have any defined relationship with one another, other than sharing the same configuration.
+
+### Leader-follower topology
+
+In a leader-follower topology, one of the members of the service group is elected the leader, and the other members of that service group become the followers of that leader. This topology is common for database systems like MySQL or PostgreSQL, where applications send writes to one member, and those writes are replicated to one or more read replicas.
+
+As with any topology using leader election, you must start at least three peers using the `--topology leader` flag to the Supervisor.
+
+```bash
+$ hab sup run --topology leader --group production
+$ hab svc load <ORIGIN>/<NAME>
+```
+
+The first Supervisor will block until it has quorum. You would start additional members by pointing them at the ring, using the `--peer` argument:
+
+```bash
+$ hab sup run --topology leader --group production --peer 192.168.5.4
+$ hab svc load <ORIGIN>/<NAME>
+```
+
+> Note: The `--peer` service does not need to be a peer that is in the same service group; it merely needs to be in the same ring that the other member(s) are in.
+
+Once you have quorum, one member is elected a leader, the Supervisors in the service group update the service's configuration in concordance with the policy defined at package build time, and the service group starts up.
+
+#### Defining leader and Follower Behavior in Plans
+
+Chef Habitat allows you to use the same immutable package in different deployment scenarios. Here is an example of a configuration template with conditional logic that will cause the running application to behave differently based on whether it is a leader or a follower:
+
+```handlebars
+{{#if svc.me.follower}}
+   {{#with svc.leader as |leader|}}
+     replicaof {{leader.sys.ip}} {{leader.cfg.port}}
+   {{/with}}
+{{/if}}
+```
+
+This logic says that if this peer is a follower, it will become a read replica of the IP and port of service leader (`svc.leader`), which is has found by service discovery through the ring. However, if this peer is the leader, the entire list of statements here evaluate to empty text -- meaning that the peer starts up as the leader.
+
+### Robustness, network boundaries and recovering from partitions
+
+Within a leader-follower topology it is possible to get into a partitioned state where nodes are unable to achieve quorum. To solve this a permanent peer can be used to heal the netsplit. To set this pass the `--permanent-peer` option, or it's short form `-I`, to the Supervisor.
+
+```bash
+$ hab sup run --topology leader --group production --permanent-peer
+$ hab svc load <ORIGIN>/<NAME>
+```
+
+When this is used we will attempt to ping the permanent peer and achieve quorum, even if they are confirmed dead.
+
+The notion of a permanent peer is an extension to the original [SWIM](http://www.cs.cornell.edu/projects/Quicksilver/public_pdfs/SWIM.pdf) gossip protocol. It can add robustness provided everyone has a permanent member on both sides of the split.
+
 ---
-<%= partial "/partials/docs/using-hab-config-updates"%>
+## <a name="config-updates" id="config-updates" data-magellan-target="config-updates">Configuration updates</a>
+
+One of the key features of Chef Habitat is the ability to define an immutable package with a default configuration which can then be updated dynamically at runtime. You can update service configuration on two levels: individual services (for testing purposes), or a service group.
+
+### Apply configuration updates to an individual service
+
+When starting a single service, you can provide alternate configuration values to those specified in `default.toml`.
+
+#### Using a _user.toml_ file
+
+You can supply a `user.toml` containing any configuration data that you want to override default values. This file should be placed in the Chef Habitat `user` directory under the `config` subdirectory of the specific service directory that owns the configuration data. For example, to override the default configuration of the `myservice` service, this `user.toml` would be located at `/hab/user/myservice/config/user.toml`.
+
+#### Using an environment variable
+
+Override default configuration data through the use of an environment variable with the following format: `HAB_PACKAGENAME='{"keyname1":"newvalue1", "tablename1":{"keyname2":"newvalue2"}}'`.
+
+```bash
+$ HAB_MYTUTORIALAPP='{"message":"Chef Habitat rocks!"}' hab run <origin>/<packagename>
+```
+> Note: The syntax used for applying configuration through environment variables can be either JSON or TOML, but TOML is preferred. The package name in the environment variable must be uppercase, any dashes must be replaced with underscores.
+
+> Note: The way that environment variable configuration is currently processed means that variables must be set when the Supervisor process starts, not when the service is loaded, which may require a bit of planning on the part of the Chef Habitat operator. This may change in the future.
+
+For multiline environment variables, such as those in a TOML table or nested key value pairs, it can be easier to place your changes in a file and pass it in using something like `HAB_PACKAGENAME="$(cat foo.toml)"` or `HAB_PACKAGENAME="$(cat foo.json)"`.
+
+```bash
+$ HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab run
+$ hab svc load <origin>/mytutorialapp
+```
+(or `HAB_MYTUTORIALAPP="$(cat my-env-stuff.toml)" hab run <origin>/mytutorialapp` for testing scenarios and containerized workflows; see [here](#using-packages)).
+
+The main advantage of applying configuration updates to an individual service through an environment variable is that you can quickly test configuration settings to see how your service behaves at runtime. The disadvantages of this method are that configuration changes have to be applied when the Supervisor itself starts up, and you have to restart a running Supervisor (and thus, all services it may be running) in order to change these settings again.
+
+## Apply configuration updates to a service group
+Similar to specifying updates to individual settings at runtime, you can apply multiple configuration changes to an entire service group at runtime. These configuration updates can be sent in the clear or encrypted in gossip messages through [wire encryption](/docs/using-habitat/#using-encryption). Configuration updates to a service group will trigger a restart of the services as new changes are applied throughout the group.
+
+#### Usage
+
+When submitting a configuration update to a service group, you must specify a Supervisor to connect to, the version number of the configuration update, and the new configuration itself. Configuration updates can be either TOML passed into stdin, or passed in a TOML file that is referenced in `hab config apply`.
+
+Configuration updates for service groups must be versioned. The version number must be an integer that starts at one and must be incremented with every subsequent update to the same service group. *If the version number is less than or equal to the current version number, the change(s) will not be applied.*
+
+Here are some examples of how to apply configuration changes through both the shell and through a TOML file.
+
+**Stdin**
+
+```bash
+$ echo 'buffersize = 16384' | hab config apply --remote-sup=hab1.mycompany.com myapp.prod 1
+```
+
+**TOML file**
+
+```bash
+$ hab config apply --remote-sup=hab1.mycompany.com myapp.prod 1 /tmp/newconfig.toml
+```
+
+  > Note: The filename of the configuration file is not important.
+
+  > Note: 1 is the version number. Increment this for
+  additional configuration updates.
+
+    Your output would look something like this:
+
+       » Setting new configuration version 1 for myapp.prod
+       Ω Creating service configuration
+       ↑ Applying via peer 172.18.0.2:9632
+       ★ Applied configuration
+
+  The services in the myapp.prod service group will restart.
+
+       myapp.prod(SR): Service configuration updated from butterfly: acd2c21580748d38f64a014f964f19a0c1547955e4c86e63bf641a4e142b2200
+       hab-sup(SC): Updated myapp.conf a85c2ed271620f895abd3f8065f265e41f198973317cc548a016f3eb60c7e13c
+       myapp.prod(SV): Stopping
+       ...
+       myapp.prod(SV): Starting
+
+> Note: As with all Supervisor interaction commands, if you do not specify `--remote-sup`, `hab config apply` will attempt to connect to a Supervisor running on the same host.
+
+#### Encryption
+
+Configuration updates can be encrypted for the service group they are intended. To do so, pass the `--user` option with the name of your user key, and the `--org` option with the organization of the service group. If you have the public key for the service group, the data will be encrypted for that key, signed with your user key, and sent to the ring.
+
+It will then be stored encrypted in memory, and decrypted on disk.
+
 ---
-<%= partial "/partials/docs/using-hab-file-uploads"%>
+## <a name="file-uploads" id="file-uploads" data-magellan-target="file-uploads">File Uploads</a>
+
+### Uploading files to a service group
+
+In addition to [configuration updates](/docs/using-habitat#config-updates), you can upload files to a service group. Keep these small - we recommend 4k or less per file, and keep the count of files to a minimum.
+
+#### Usage
+
+When submitting a file to a service group, you must specify a peer in the ring to connect to, the version number of the file, and the new path to the file itself.
+
+File updates for service groups must be versioned. The version number must be an integer that starts at one and must be incremented with every subsequent update to the same service group. *If the version number is less than or equal to the current version number, the change(s) will not be applied.*
+
+Here are some examples of how to upload a file to the ring:
+
+```bash
+$ hab file upload myapp.prod 1 /tmp/yourfile.txt --remote-sup=hab1.mycompany.com
+```
+
+  > Note: 1 is the version number. Increment this for subsequent updates.
+
+    Your output would look something like this:
+
+       » Uploading file yourfile.txt to 1 incarnation myapp.prod
+       Ω Creating service file
+       ↑ Applying via peer 172.0.0.3:9632
+       ★ Uploaded file
+
+  The services in the `myapp.prod` service group will receive the file, restarting if necessary:
+
+       hab-sup(MR): Receiving new version 1 of file secret.txt for myapp.prod
+       ...
+       myapp.prod(SR): Service file updated, yourfile.txt
+
+  > Note: The file will be put in your service's `svc/files` directory.
+
+#### Encryption
+
+Files can be encrypted for the service group they are intended. To do so, pass the `--user` option with the name of your user key, and the `--org` option with the organization of the service group. If you have the public key for the service group, the data will be encrypted for that key, signed with your user key, and sent to the ring.
+
+It will then be stored encrypted in memory, and decrypted on disk.
+
 ---
-<%= partial "/partials/docs/using-hab-encryption"%>
+##<a name="using-encryption" id="using-encryption" data-magellan-target="using-encryption">Supervisor and Encryption</a>
+
+By default, a Supervisor runs unsecured. It communicates with other Supervisors in cleartext, and it allows any user to apply new configuration without authentication. While this is beneficial for demonstrating the concepts of Chef Habitat, users will want to provide external security on production deployments of Chef Habitat Supervisor networks.
+
+There are several types of security measures that can be undertaken by the operator:
+
+* Wire encryption of inter-Supervisor traffic
+* Trust relationships between supervisors and users
+
+### Wire encryption
+
+Supervisors running in a ring can be configured to encrypt all traffic between them. This is accomplished by generating a _ring key_, which is a symmetric shared secret placed into the Supervisor environment prior to starting it.
+
+#### Generating a ring key
+
+1. Generate a ring key using the `hab` command-line tool. This can be done on your workstation. The generated key has the `.sym.key` extension, indicating that it is a symmetric pre-shared key, and is stored in the `$HOME/.hab/cache/keys` directory.
+
+    ```bash
+    $ hab ring key generate <RING>
+    ```
+
+2. Copy the key file to the environment where the Supervisor will run, into the `/hab/cache/keys` directory. Ensure that it has the appropriate permissions so only the Supervisor can read it.
+3. Start the Supervisor with the `-r` or `--ring` parameter, specifying the name of the ring key to use.
+
+    ```bash
+    $ hab sup run --ring <RING>
+    $ hab svc load <ORIGIN>/<NAME>
+    ```
+
+4. The Supervisor becomes part of the named ring `<RING>` and uses the key for network encryption. Other supervisors that now attempt to connect to it without presenting the correct ring key will be rejected.
+5. It is also possible to set the environment variable `HAB_RING_KEY` to the contents of the ring key; for example:
+
+    ```bash
+    $ env HAB_RING_KEY=$(cat /hab/cache/keys/ring-key-file) hab sup run
+    $ hab svc load <ORIGIN>/<NAME>
+    ```
+
+### Service group encryption
+
+Supervisors in a service group can be configured to require key-based authorization prior to allowing configuration changes. In this scenario, the Supervisor in a named service group starts up with a key for that group bound to an _organization_. This allows for multiple service groups with the same name in different organizations.
+
+As explained in the [security overview](/docs/internals#crypto-internals), this process also requires the generation of a user key for every user making configuration updates to the Supervisor network.
+
+#### Generating service group keys
+
+1. Generate a service group key using the `hab` command-line tool. This can be done on your workstation. Because asymmetric encryption is being used, two files will be generated: a file with a `.box.key` extension, which is the service group's private key, and a file with a `.pub` extension, which is the service group's public key.
+
+    ```bash
+    $ hab svc key generate service-group-name.example <ORG>
+    ```
+
+2. This generated a service group key for the service group `service-group-name.example` in the organization `<ORG>`. Copy the `.box.key` private key to the environment where the Supervisor will run into the `/hab/cache/keys` directory. Ensure that it has the appropriate permissions so that only the Supervisor can read it.
+3. Start the Supervisor, specifying both the service group and organization that it belongs to:
+
+    ```bash
+    $ hab sup run --org <ORG> --group service-group-name.example
+    $ hab svc load <ORIGIN>/<NAME>
+    ```
+
+4. Only users whose public keys that the Supervisor already has in its cache will be allowed to reconfigure this service group. If you need to generate a user key pair, see the next section.
+
+#### Generating user keys
+
+The user key is used to encrypt configuration data targeted for a particular service group.
+
+1. Generate a user key using the `hab` command-line tool. This can be done on your workstation. Because asymmetric encryption is being used, two files will be generated: a file with a `.box.key` extension, which is the user's private key, and a file with a `.pub` extension, which is the user's public key.
+2. Distribute the user's public key to any Supervisor that needs it, into the `/hab/cache/keys` directory. The user will be able to reconfigure that Supervisor, provided they encrypted the configuration update using the service group's public key.
+
+### Apply configuration changes
+
+The `hab config apply` and `hab file upload` commands will work as usual when user/service group trust relationships are set up in this way.
+
+If a running Supervisor cannot decrypt a secret due to a missing key, it will retry with exponential backoff starting with a one-second interval. This allows an administrator to provide the Supervisor with the key to resume normal operations, without taking down the Supervisor.
+
+### Identifying key types
+
+To aid the user in the visual identification of the many varieties of keys in use by Chef Habitat, a key itself is in cleartext and contains a header on the first line indicating what kind of key it is. The file extension and, in some situations, the format of the file name, provide additional guidance to the user in identifying the type of key.
+
+`YYYYMMDDRRRRRR` denotes the creation time and release identifier of that key.
+
+| Key Type | Header | Filename Format |
+|---|---|---|
+| Private origin signing key | SIG-SEC-1 | originname-YYYYMMDDRRRRRR.sig.key |
+| Public origin signing key | SIG-PUB-1 | originname-YYYYMMDDRRRRRR.pub.key |
+| Ring wire encryption key | SYM-SEC-1 | ringname-YYYYMMDDRRRRRR.sym.key |
+| Private service group key | BOX-SEC-1 | service-group.env@org-YYYYMMDDRRRRRR.box.key |
+| Public service group key | BOX-PUB-1 | service-group.env@org-YYYYMMDDRRRRRR.pub |
+| Private user key | BOX-SEC-1 | username-YYYYMMDDRRRRRR.box.key |
+| Public user key | BOX-PUB-1 | username-YYYYMMDDRRRRRR.pub |
+
+Keys that contain `SEC` in their header should be guarded carefully. Keys that contain `PUB` in their header can be distributed freely with no risk of information compromise.
+
 ---
-<%= partial "/partials/docs/using-hab-update-strategy"%>
+## <a name="using-updates" id="using-updates" data-magellan-target="using-updates">Update Strategy</a>
+
+The Chef Habitat Supervisor can be configured to leverage an optional _update strategy_, which describes how the Supervisor and its peers within a service group should respond when a new version of a package is available.
+
+To use an update strategy, the Supervisor is configured to subscribe to Chef Habitat Builder, and more specifically, a channel for new versions.
+
+### Configuring an update strategy
+
+Chef Habitat supports three update strategies: `none`, `rolling`, and `at-once`.
+
+To start a Supervisor with the auto-update strategy, pass the `--strategy` argument to a Supervisor run command, and optionally specify the depot URL:
+
+```bash
+$ hab sup run --strategy rolling --url https://bldr.habitat.sh
+$ hab svc load <ORIGIN>/<NAME>
+```
+
+#### None strategy
+
+This strategy means your package will not automatically be updated when a newer version is available. By default, Supervisors start with their update strategy set to `none` unless explicitly set to one of the other two update strategies.
+
+#### Rolling strategy
+
+This strategy requires Supervisors to update to a newer version of their package one at a time in their service group. An update leader is elected which all Supervisors within a service group will update around. All update followers will first ensure they are running the same version of a service that their leader is running, and then, the leader will poll Builder for a newer version of the service's package.
+
+Once the update leader finds a new version it will update and wait until all other alive members in the service group have also been updated before once again attempting to find a newer version of software to update to. Updates will happen more or less one at a time until completion with the exception of a new node being introduced into the service group during the middle of an update.
+
+If your service group is also running with the `--topology leader` flag, the leader of that election will never become the update leader, so all followers within a leader topology will update first.
+
+It's important to note that because we must perform a leader election to determine an update leader, *you must have at least 3 Supervisors running a service group to take advantage of the rolling update strategy*.
+
+#### At-Once strategy
+
+This strategy does no peer coordination with other Supervisors in the service group; it merely updates the underlying Chef Habitat package whenever it detects that a new version has either been published to a depot or installed to the local Chef Habitat `pkg` cache. No coordination between Supervisors is done, each Supervisor will poll Builder on their own.
+
 ---
-<%= partial "/partials/docs/using-hab-continuous-deployment"%>
+## <a name="continuous-deployment" id="continuous-deployment" data-magellan-target="continuous-deployment">Continuous Deployment</a>
+
+Continuous deployment is a well-known software development practice of building and testing code changes in preparation for a release to a production environment.
+
+### Continuous deployment using channels
+
+<%= partial "/partials/global/channel-overview" %>
+
+By default, every new package is placed in the `unstable` channel by Builder. Packages in the `unstable` channel cannot be started or installed unless you specify the `--channel` flag in the `hab` CLI, or set the `HAB_BLDR_CHANNEL` environment variable to a non-stable channel. This is because the default channel used by the `hab` CLI when starting, installing, or loading packages is the `stable` channel. The `stable` channel indicates a level of stability and functionality suitable for use in multi-service applications or as a dependency for your service.
+
+To promote your package to a channel, you must either use Builder to build your package or upload it to Builder yourself, and then use the `hab pkg promote` subcommand to promote the package to the intended channel. To combine operations, the `hab` CLI allows you to do both in one command by using the `--channel` option when uploading your package. The following shows how to upload and promote a package to a custom channel named `test`.
+
+```bash
+$ hab pkg upload -z <TOKEN> results/<hart file> --channel test
+```
+
+In the example above, if you look up your package in the Builder UI, or using the `hab pkg channels` subcommand, you can see that your package is tagged for both the `test` and `unstable` channels.
+
+> **Note** Custom channels like `test` are scoped to each package. Builder does not create channels scoped to an origin, so if you want to use custom channels for future releases of a package, you must promote to those channels for each release.
+
+If you have already uploaded your package to a channel and wish to promote it to a different channel, use the `hab pkg promote` subcommand as shown below.
+
+```bash
+$ hab pkg promote -z <TOKEN> <origin>/<package>/<version>/<release> stable
+```
+
+#### Combining an update strategy with channels
+
+By using both channels and either the `at-once` or `rolling` [update strategies](#using-updates), you can automatically update packages in a given channel as shown below:
+
+![Promoting packages through channels](/images/infographics/habitat-promote-packages-through-channels.png)
+
+Using the infographic as a guide, a typical continuous deployment scenario would be as follows:
+
+1. You build a new version of your package either through Builder or through a local Studio environment and then upload it to Builder.
+2. When you are ready to roll out a new version of the package, you promote that package to the channel corresponding to the intended environment (e.g. `dev`). You can have multiple service groups in the same environment pointing to different channels, or the same channel.
+3. An existing set of running Supervisors in that service group see that the channel they are subscribed to has an update, so they update their underlying Chef Habitat package, coordinating with one another per their update strategy, and restart their service.
+4. When you are ready, you then promote that version of your package to a new channel (e.g. `acceptance`). The running Supervisors in that group see the update and perform the same service update as in step 3. You repeat steps 3 and 4 until your package makes its way through your continuous deployment pipeline.
+
+Configuring a Supervisor's update strategy to point to a channel ensures that new versions of the application do not get deployed until the channel is updated, thereby preventing unstable versions from reaching environments for which they are not intended.
+
+To start a service with an update strategy and pointing to a channel, specify them as options when loading the service.
+
+    $ hab svc load <origin>/<package> --strategy rolling --channel test
+
+While that service is running, update your package, rebuild it, and then promote it to the same channel that the previous release of that service is currently running in (e.g. `test`). Those running instances should now update according to their update strategy.
+
+#### Demoting a package from a channel
+
+If you need to un-associate a channel from a specific package release, you can do so using the `hab pkg demote` subcommand. Packages can be demoted from all channels except `unstable`.
+
+```bash
+$ hab pkg demote -z <TOKEN> <origin>/<package>/<version>/<release> test
+```
+
+The Builder UI for that package release and `hab pkg channels` will both reflect the removal of that channel.
+
+If you are running a package in a specific channel and demote
+
+> **Note** If you demote a package from the `stable` channel, then any other packages that depend on the stable version of that package will either fail to load or build depending on how that demoted packaged was used.
+
+> Also, downgrading to another release for a specific channel is not available at this time. This means if you run the latest release of a package from a specific channel, and demote the channel for that release, the package will not downgrade to the next most recent release from that channel.
+
 ---
-<%= partial "/partials/docs/using-hab-remote-control"%>
+## <a name="remote-control" id="remote-control" data-magellan-target="remote-control">Controlling Supervisors Remotely</a>
+
+Since the 0.56.0 Supervisor release, it is possible to command and control one or more Supervisors from a remote location. Before this, the only way to interact with a Supervisor was by taking action directly on machine on which the Supervisor was running. While that is still an option (and is indeed the default behavior), remote command and control opens up more possibilities for using and managing Chef Habitat.
+
+Here, we'll discuss how this is implemented, how it can be enabled in your Chef Habitat deployments, and how it can be used.
+
+### Remote command and control overview
+
+The Chef Habitat Supervisor uses a defined TCP protocol for all interactions; the `hab` CLI tool is the client for this protocol, and the Supervisor is the server. Interactions are authenticated using a shared secret.
+
+Previously, in order to run `core/redis` on a Supervisor running on (say), `hab1.mycompany.com`, you would have to have direct access to the machine (as well as root privileges) in order to load the service, which might look like this:
+
+```
+ssh hab1.mycompany.com
+sudo hab svc load core/redis
+```
+
+Now, using the remote control capabilities of the Supervisor, this could be accomplished from a workstation or bastion host with an invocation that could be as simple as this:
+
+```
+hab svc load core/redis --remote-sup=hab1.mycompany.com:9632
+```
+
+No direct host access is necessary, and multiple Supervisors can be controlled from one central location.
+
+#### Remote control is optional
+
+Operating Chef Habitat Supervisors remotely is purely optional; you must take positive action to enable this behavior. If you prefer, you can continue to manage Supervisors through on-the-box direct action, as before, and likely without any changes to your current procedures. Read on for further details about how to enable this ability, and how local interaction continues to operate through a new implementation.
+
+### Managing shared Supervisor secrets
+
+Authentication between client (`hab` CLI) and server (Supervisor) is achieved using a shared secret. The `hab` CLI receives its secret from a configuration file (`~/.hab/config/cli.toml`) or from an environment variable (`HAB_CTL_SECRET`). The Supervisor reads its secret from its `CTL_SECRET` file, located at `/hab/sup/default/CTL_SECRET`. When the value used by `hab` matches the one used by the Supervisor, the requested command is carried out.
+
+#### Create a secret
+
+Shared secrets are created in one of two ways.
+
+First, when a Supervisor starts up, will create a new secret in `/hab/sup/default/CTL_SECRET` automatically if one does not already exist. This is helpful for transparently upgrading older Supervisors and continuing to allow local interactions.
+
+Second, and most recommended, users can generate a new secret using `hab sup secret generate`:
+
+```
+hab sup secret generate
+VKca6ezRD0lfuwvhgeQLPSD0RMwE/ZYX5nYfGi2x0R1mXNh4QZSpa50H2deB85HoV/Ik48orF4p0/7MuVNPwNA==
+```
+
+This generates a new secret, printing it to standard output. Using the provisioner or configuration management tool of your choice, you can then use this value to create your own `/hab/sup/default/CTL_SECRET` file, ensuring that your Supervisor(s) are using a pre-determined key, instead of each making their own.
+
+If you have a pre-existing fleet of Supervisors which have already been started up with their own individually-generated secrets, you will likely want to overwrite their existing `CTL_SECRET` files with one that has a key of your own creation.
+
+If you are using a raw container-based deployment (i.e., not a managed platform like Kubernetes), you will want to mount an appropriate `CTL_SECRET` file into the container.
+
+#### Configure the hab CLI with your secret
+
+Once you have a secret, you can add it to your local `hab` configuration file, preferably by running `hab cli setup` and following the interactive prompts. Alternatively, you can export it into your environment:
+
+```
+export HAB_CTL_SECRET="VKca6ezRD0lfuwvhgeQLPSD0RMwE/ZYX5nYfGi2x0R1mXNh4QZSpa50H2deB85HoV/Ik48orF4p0/7MuVNPwNA=="
+```
+
+Note that your `hab` configuration file only keeps a single "secret" entry, and exporting a single secret into your environment does effectively the same thing. An assumption of this arrangement is that all Supervisors you wish to interact with have the same shared secret; if you wish to control a set of Supervisors that do not all use the same shared secret, you will need to manage the mapping of secret-to-supervisor yourself, which might look something like this:
+
+```
+HAB_CTL_SECRET=${secret_for_supervisor_1} hab svc load ... --remote-sup=${address_of_supervisor_1}
+HAB_CTL_SECRET=${secret_for_supervisor_2} hab svc load ... --remote-sup=${address_of_supervisor_2}
+# etc.
+```
+
+### Configuring Supervisors for remote command and control
+
+As stated earlier, the Supervisor reads its secret from its `/hab/sup/default/CTL_SECRET` file, the contents of which you can control using `hab sup secret generate` and your chosen provisioner / deployment tooling. This ensures that the shared secret is in place, but one more step must be taken to fully enable the feature.
+
+By default, the Supervisor's "control gateway" listens on the `127.0.0.1` interface for incoming commands. This means that it can only receive commands from the same machine, and not from remote clients. If you wish to control a Supervisor remotely, you'll have to start the Supervisor setting its `--listen-ctl` option to an appropriate interface and port (9632 is the default control gateway port):
+
+```
+hab sup run --listen-ctl=0.0.0.0:9632
+```
+
+This Supervisor would now be able to be controlled via any network interface (provided the request used the appropriate shared secret, of course). As always, be sure to use the appropriate interface values for your specific situation (e.g., pass an internal network-facing interface rather than a publicly-exposed interface).
+
+### Targeting a remote Supervisor
+
+Throughout this documentation are numerous examples of interacting with a Supervisor; commands like `hab svc load`, `hab svc start`, `hab svc stop`, etc. all generate requests using the Supervisor's defined interaction protocol. They all operate over TCP, even in the default case of interacting with a Supervisor on the same host.
+
+In order to target a remote Supervisor, you must have the appropriate shared secret available, as described above (either in the environment or in the `hab` CLI configuration file), and you must also specify the specific Supervisor using the `--remote-sup` option. The value for this option should correspond to the value of `--listen-ctl` the Supervisor was started with; it is the address and port at which the Supervisor's control gateway may be reached. All Supervisor interaction commands accept a `--remote-sup` option for such targeting.
+
+### Local Supervisor interactions
+
+Without specifying `--remote-sup`, the `hab` CLI will always try to connect to a Supervisor running on the current host. It must still use the correct shared secret, however. As a last resort, if no secret is found in either a configuration file or an environment variable, the `hab` CLI will attempt to read one from `/hab/sup/default/CTL_SECRET`. In this way, it will use the same secret that the local Supervisor is using, enabling the request to proceed.
+
+### Protocol versioning and `hab` versions
+
+Before the 0.56.0 release of Chef Habitat, the interaction between `hab` and the Supervisor was not formally defined, and relied on making changes to files on disk. As a result, it was often possible to continue interacting with a newer Supervisor using an older version of the `hab` CLI. This was particularly noticeable when the Supervisor was configured to automatically update itself; the Supervisor would continue upgrading over time, while the `hab` CLI binary remained at whatever version it was when it was originally installed, because each of the two executable were distributed in separate packages.
+
+For the near term, `hab` and the Supervisor are still distributed separately, as `core/hab` and `core/hab-sup`, respectively. To interact with 0.56.0 or later Supervisors, operators will need to use an 0.56.0 or later `hab` binary, even if they wish to continue interacting with their Supervisors only locally. This may require a manual upgrade for the `hab` binary, which can be done by running `hab pkg install core/hab -b -f`. In the near future, we hope to consolidate all of Chef Habitat's functionality into a single package (if not a single binary), which will make it easier to manage going forward.
+
+The interaction protocol is defined using Google's [Protocol Buffers](https://developers.google.com/protocol-buffers/); it is our explicit goal that all future changes to the protocol will happen in a backward-compatible way.
