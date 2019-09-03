@@ -512,14 +512,11 @@ For information on the contents of an installed package, see [Package contents](
 ---
 ## <a name="debug-builds" id="debug-builds" data-magellan-target="debug-builds" type="anchor">Troubleshooting Builds</a>
 
+### Bash Plans: `attach`
 
-### Using _attach_ with _plan.sh_
-
-While working on plans, you may wish to stop the build and inspect the environment at any point during a build phase (e.g. download, build, unpack, etc.). In Bash based plans, Chef Habitat provides an `attach` function for use in your plan.sh that functions like a debugging breakpoint and provides an easy <acronym title="Read, Evaluation, Print Loop">REPL</acronym> at that point.
+While working on plans, you may wish to stop the build and inspect the environment at any point during a build phase (e.g. download, build, unpack, etc.). In Bash-based plans, Chef Habitat provides an `attach` function for use in your plan.sh that functions like a debugging breakpoint and provides an easy <acronym title="Read, Evaluation, Print Loop">REPL</acronym> at that point. For PowerShell-based plans, you can use the PowerShell built-in `Set-PSBreakpoint` cmdlet prior to running your build.
 
 To use `attach`, insert it into your plan at the point where you would like to use it, e.g.
-
-> Note: `attach` is only available in `plan.sh` files and not in Powershell based plans.
 
 ```bash
  do_build() {
@@ -542,7 +539,6 @@ The build system will proceed until the point where the `attach` function is inv
 
 ```studio
 ### Attaching to debugging session
-
 From: /src/yourapp/plan.sh @ line 15 :
 
     5: pkg_maintainer="The Chef Habitat Maintainers <humans@habitat.sh>"
@@ -589,7 +585,7 @@ Aliases
 
   Type `quit` when you are done with the debugger, and the remainder of the build will continue. If you wish to abort the build entirely, type `quit-program`.
 
-### Using _Set\-PSBreakpoint_ in Powershell plans
+### PowerShell Plans: `Set-PSBreakpoint`
 
 While there is no `attach` function exposed in a `plan.ps1` file, one can use the native Powershell cmdlet `Set-PSBreakpoint` to access virtually the same functionality. Instead of adding `attach` to your `Invoke-Build` function, enter the following from inside your studio shell:
 
