@@ -12,9 +12,7 @@ use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;
 use std::{self,
-          fs,
-          io::{self,
-               prelude::*},
+          io::BufRead,
           path::{Path,
                  PathBuf},
           sync::Arc};
@@ -333,7 +331,7 @@ pub struct SuitabilityHook {
 }
 
 impl SuitabilityHook {
-    fn parse_suitability(reader: io::BufReader<fs::File>, pkg_name: &str) -> Option<u64> {
+    fn parse_suitability(reader: impl BufRead, pkg_name: &str) -> Option<u64> {
         if let Some(line_reader) = reader.lines().last() {
             match line_reader {
                 Ok(line) => {
@@ -623,6 +621,7 @@ mod tests {
                        service::{ServiceBind,
                                  ServiceGroup}};
     use std::{fs,
+              io::BufReader,
               iter};
     use tempfile::TempDir;
 
@@ -774,5 +773,23 @@ mod tests {
         // Re-Verify run hook
         let run_hook_content = file_content(&hook_table.run.as_ref().expect("no run hook??"));
         assert_eq!(run_hook_content, expected_run_hook);
+    }
+
+    #[test]
+    fn parse_suitability() {
+        #[allow(clippy::string_lit_as_bytes)]
+        let reader = BufReader::new("".as_bytes());
+        let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
+        assert!(result.is_none());
+        let reader = BufReader::new("test\nanother\ninvalid".as_bytes());
+        let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
+        assert!(result.is_none());
+        #[allow(clippy::string_lit_as_bytes)]
+        let reader = BufReader::new("3".as_bytes());
+        let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
+        assert_eq!(result.unwrap(), 3);
+        let reader = BufReader::new("test\nanother\n124".as_bytes());
+        let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
+        assert_eq!(result.unwrap(), 124);
     }
 }
