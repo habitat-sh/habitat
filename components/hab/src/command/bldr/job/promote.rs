@@ -142,13 +142,6 @@ pub fn start(ui: &mut UI,
 
 #[cfg(test)]
 mod test {
-    use std::{io::{self,
-                   Cursor,
-                   Write},
-              sync::{Arc,
-                     RwLock}};
-    use termcolor::ColorChoice;
-
     use super::get_ident_list;
     use crate::{api_client::{Project,
                              SchedulerResponse},
@@ -169,49 +162,9 @@ mod test {
         vec![project1, project2]
     }
 
-    fn ui() -> (UI, OutputBuffer, OutputBuffer) {
-        let stdout_buf = OutputBuffer::new();
-        let stderr_buf = OutputBuffer::new();
-
-        let ui = UI::with_streams(Box::new(io::empty()),
-                                  || Box::new(stdout_buf.clone()),
-                                  || Box::new(stderr_buf.clone()),
-                                  ColorChoice::Never,
-                                  false);
-
-        (ui, stdout_buf, stderr_buf)
-    }
-
-    #[derive(Clone)]
-    pub struct OutputBuffer {
-        pub cursor: Arc<RwLock<Cursor<Vec<u8>>>>,
-    }
-
-    impl OutputBuffer {
-        fn new() -> Self {
-            OutputBuffer { cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))), }
-        }
-    }
-
-    impl Write for OutputBuffer {
-        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-            self.cursor
-                .write()
-                .expect("Cursor lock is poisoned")
-                .write(buf)
-        }
-
-        fn flush(&mut self) -> io::Result<()> {
-            self.cursor
-                .write()
-                .expect("Cursor lock is poisoned")
-                .flush()
-        }
-    }
-
     #[test]
     fn test_get_ident_list() {
-        let (mut ui, _stdout, _stderr) = ui();
+        let mut ui = UI::with_sinks();
         let group_status = SchedulerResponse { id:           "12345678".to_string(),
                                                state:        "Finished".to_string(),
                                                projects:     sample_project_list(),

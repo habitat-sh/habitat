@@ -854,18 +854,12 @@ mod test {
         use super::{super::*,
                     *};
         use crate::common::ui::UI;
-        use std::{io::{self,
-                       Cursor,
-                       Write},
-                  sync::{Arc,
-                         RwLock}};
         use tempfile::TempDir;
-        use termcolor::ColorChoice;
 
         #[test]
         fn artifact_cache_symlink() {
             let rootfs = TempDir::new().unwrap();
-            let (mut ui, ..) = ui();
+            let mut ui = UI::with_sinks();
             build_spec().create_symlink_to_artifact_cache(&mut ui, rootfs.path())
                         .unwrap();
             let link = rootfs.path().join(CACHE_ARTIFACT_PATH);
@@ -877,7 +871,7 @@ mod test {
         #[test]
         fn key_cache_symlink() {
             let rootfs = TempDir::new().unwrap();
-            let (mut ui, ..) = ui();
+            let mut ui = UI::with_sinks();
             build_spec().create_symlink_to_key_cache(&mut ui, rootfs.path())
                         .unwrap();
             let link = rootfs.path().join(CACHE_KEY_PATH);
@@ -889,7 +883,7 @@ mod test {
         #[test]
         fn link_binaries() {
             let rootfs = TempDir::new().unwrap();
-            let (mut ui, ..) = ui();
+            let mut ui = UI::with_sinks();
             let base_pkgs = base_pkgs(rootfs.path());
             build_spec().link_binaries(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
@@ -913,7 +907,7 @@ mod test {
         #[test]
         fn link_cacerts() {
             let rootfs = TempDir::new().unwrap();
-            let (mut ui, ..) = ui();
+            let mut ui = UI::with_sinks();
             let base_pkgs = base_pkgs(rootfs.path());
             build_spec().link_cacerts(&mut ui, rootfs.path(), &base_pkgs)
                         .unwrap();
@@ -921,19 +915,6 @@ mod test {
             assert_eq!(hcore::fs::pkg_install_path(&base_pkgs.cacerts, None::<&Path>).join("ssl"),
                        rootfs.path().join("etc/ssl").read_link().unwrap(),
                        "cacerts are symlinked into /etc/ssl");
-        }
-
-        fn ui() -> (UI, OutputBuffer, OutputBuffer) {
-            let stdout_buf = OutputBuffer::new();
-            let stderr_buf = OutputBuffer::new();
-
-            let ui = UI::with_streams(Box::new(io::empty()),
-                                      || Box::new(stdout_buf.clone()),
-                                      || Box::new(stderr_buf.clone()),
-                                      ColorChoice::Never,
-                                      false);
-
-            (ui, stdout_buf, stderr_buf)
         }
 
         #[cfg(not(windows))]
@@ -977,33 +958,6 @@ mod test {
             let prefix = hcore::fs::pkg_install_path(&ident, Some(rootfs));
             util::write_file(prefix.join("ssl/cacert.pem"), "").unwrap();
             ident
-        }
-
-        #[derive(Clone)]
-        pub struct OutputBuffer {
-            pub cursor: Arc<RwLock<Cursor<Vec<u8>>>>,
-        }
-
-        impl OutputBuffer {
-            fn new() -> Self {
-                OutputBuffer { cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))), }
-            }
-        }
-
-        impl Write for OutputBuffer {
-            fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-                self.cursor
-                    .write()
-                    .expect("Cursor lock is poisoned")
-                    .write(buf)
-            }
-
-            fn flush(&mut self) -> io::Result<()> {
-                self.cursor
-                    .write()
-                    .expect("Cursor lock is poisoned")
-                    .flush()
-            }
         }
     }
 
