@@ -22,7 +22,8 @@ use self::types::{EventMessage,
                   ServiceStartedEvent,
                   ServiceStoppedEvent,
                   ServiceUpdateStartedEvent};
-use crate::{manager::{service::{HealthCheckResult,
+use crate::{manager::{service::{HealthCheckHookStatus,
+                                HealthCheckResult,
                                 ProcessOutput,
                                 Service,
                                 StandardStreams},
@@ -215,22 +216,23 @@ pub fn service_update_started(service: &Service, update: &PackageIdent) {
 // Takes metadata directly, rather than a `&Service` like other event
 // functions, because of how the asynchronous health checking
 // currently works. Revisit when async/await + Pin is all stabilized.
-/// `execution` will be `Some` if the service had a hook to run, and
-/// records how long it took that hook to execute completely.
 pub fn health_check(metadata: ServiceMetadata,
-                    check_result: HealthCheckResult,
-                    hook_output: Option<ProcessOutput>,
-                    execution: Option<Duration>) {
+                    health_check_result: HealthCheckResult,
+                    health_check_hook_status: HealthCheckHookStatus) {
     if stream_initialized() {
-        let check_result: types::HealthCheckResult = check_result.into();
-        let exit_status = hook_output.as_ref().and_then(|o| o.exit_status().code());
-        let StandardStreams { stdout, stderr } = hook_output.map(ProcessOutput::standard_streams)
-                                                            .unwrap_or_default();
+        let health_check_result: types::HealthCheckResult = health_check_result.into();
+        let maybe_duration = health_check_hook_status.maybe_duration();
+        let maybe_process_output = health_check_hook_status.maybe_process_output();
+        let exit_status = maybe_process_output.as_ref()
+                                              .and_then(|o| o.exit_status().code());
+        let StandardStreams { stdout, stderr } =
+            maybe_process_output.map(ProcessOutput::standard_streams)
+                                .unwrap_or_default();
         publish(HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata: None,
-                                   result: i32::from(check_result),
-                                   execution: execution.map(Duration::into),
+                                   result: i32::from(health_check_result),
+                                   execution: maybe_duration.map(Duration::into),
                                    exit_status,
                                    stdout,
                                    stderr });

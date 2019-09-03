@@ -3,7 +3,8 @@ use crate::{error::Error,
                               ServiceMetadata as ServiceEventMetadata},
                       service::{hook_runner,
                                 hooks::HealthCheckHook,
-                                supervisor::Supervisor},
+                                supervisor::Supervisor,
+                                ProcessOutput},
                       GatewayState}};
 use futures::{future::{self,
                        lazy,
@@ -59,6 +60,30 @@ impl fmt::Display for HealthCheckResult {
             HealthCheckResult::Unknown => "UNKNOWN",
         };
         write!(f, "{}", msg)
+    }
+}
+
+pub enum HealthCheckHookStatus {
+    Ran(ProcessOutput, Duration),
+    FailedToRun(Duration),
+    NoHook,
+}
+
+impl HealthCheckHookStatus {
+    pub fn maybe_duration(&self) -> Option<Duration> {
+        match &self {
+            Self::Ran(_, duration) => Some(*duration),
+            Self::FailedToRun(duration) => Some(*duration),
+            Self::NoHook => None,
+        }
+    }
+
+    pub fn maybe_process_output(self) -> Option<ProcessOutput> {
+        match self {
+            Self::Ran(process_output, _) => Some(process_output),
+            Self::FailedToRun(_) => None,
+            Self::NoHook => None,
+        }
     }
 }
 
@@ -139,18 +164,22 @@ impl State {
                                                   service_group.deref().clone(),
                                                   package.clone(),
                                                   svc_encrypted_password);
-            Either::A(hr.into_future()
-                        .map(|(output, duration)| (output, Some(duration))))
+            Either::A(hr.into_future().map(|(output, duration)| {
+                                          if let Some(output) = output {
+                                              HealthCheckHookStatus::Ran(output, duration)
+                                          } else {
+                                              HealthCheckHookStatus::FailedToRun(duration)
+                                          }
+                                      }))
         } else {
-            // No hook means no output and no execution time!
-            Either::B(lazy(|| Ok((None, None::<Duration>))))
+            Either::B(lazy(|| Ok(HealthCheckHookStatus::NoHook)))
         }.map_err(move |e| {
              error!("Error running health check hook for {}: {:?}",
                     service_group_ref, e)
          })
-         .and_then(move |(maybe_healthcheck_output, maybe_duration)| {
-             let health_check_result = match (&maybe_healthcheck_output, &maybe_duration) {
-                 (Some(output), _) => {
+         .and_then(move |health_check_hook_status| {
+             let health_check_result = match &health_check_hook_status {
+                 HealthCheckHookStatus::Ran(output, _) => {
                      // The hook ran. Try and convert its exit status to a `HealthCheckResult`.
                      output.exit_status()
                            .code()
@@ -166,12 +195,12 @@ impl State {
                            })
                            .unwrap_or(HealthCheckResult::Unknown)
                  }
-                 (None, Some(_)) => {
+                 HealthCheckHookStatus::FailedToRun(_) => {
                      // There was a hook but it did not successfully run. The health check result is
                      // unknown.
                      HealthCheckResult::Unknown
                  }
-                 (None, None) => {
+                 HealthCheckHookStatus::NoHook => {
                      //  There was no hook to run. Use the supervisor status as a healthcheck.
                      if supervisor.lock()
                                   .expect("couldn't unlock supervisor")
@@ -187,8 +216,7 @@ impl State {
 
              event::health_check(service_event_metadata,
                                  health_check_result,
-                                 maybe_healthcheck_output,
-                                 maybe_duration);
+                                 health_check_hook_status);
 
              debug!("Caching HealthCheckResult = '{}' for '{}'",
                     health_check_result, service_group);
