@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.50 -->
+<!-- latest_release 0.84.51 -->
+## [fake-0.84.51](https://github.com/habitat-sh/habitat/tree/fake-0.84.51) (2019-09-04)
+
+#### Merged Pull Requests
+- Removes artifactory module from cli [#6931](https://github.com/habitat-sh/habitat/pull/6931) ([eeyun](https://github.com/eeyun))
+<!-- latest_release -->
+
 ## [fake-0.84.50](https://github.com/habitat-sh/habitat/tree/fake-0.84.50) (2019-09-04)
 
 #### Merged Pull Requests
 - Fix config gossip [#6910](https://github.com/habitat-sh/habitat/pull/6910) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.84.49](https://github.com/habitat-sh/habitat/tree/fake-0.84.49) (2019-09-04)
 
