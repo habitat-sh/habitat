@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.47 -->
+<!-- latest_release 0.84.48 -->
+## [fake-0.84.48](https://github.com/habitat-sh/habitat/tree/fake-0.84.48) (2019-09-04)
+
+#### Merged Pull Requests
+- Remove unused locks and consolidate test helpers. [#6928](https://github.com/habitat-sh/habitat/pull/6928) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.84.47](https://github.com/habitat-sh/habitat/tree/fake-0.84.47) (2019-09-04)
 
 #### Merged Pull Requests
 - Redo departial PR [#6925](https://github.com/habitat-sh/habitat/pull/6925) ([kagarmoe](https://github.com/kagarmoe))
-<!-- latest_release -->
 
 ## [fake-0.84.46](https://github.com/habitat-sh/habitat/tree/fake-0.84.46) (2019-08-30)
 
