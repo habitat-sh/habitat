@@ -28,37 +28,58 @@ steps:
 
   - wait
 
-  - block: ":question: Do you need a new Launcher built for this release?"
-    prompt: |
-      If you know there have been important changes to the Launcher
-      since the last release that call for a new release of the
-      Launcher, please say so! The pipeline will construct a new
-      Launcher for all platforms and add the resulting artifacts into
-      the release channel.
-
-      If no new Launcher artifacts are needed, the current stable
-      versions will be added to the release channel instead.
-    fields:
-      - select: Do you need a new Launcher?
-        key: launcher-action
-        options:
-          - label: "No, the current stable artifacts are just fine :ok_hand:"
-            value: "use-stable-launcher"
-          - label: "Yes, please build new Launcher artifacts! :hammer_and_pick:"
-            value: "build-new-launcher"
-        required: true
-        default: "use-stable-launcher"
-
-  - label: ":pipeline: Resolving Launcher Actions"
-    command: .buildkite/scripts/resolve_launcher_actions.sh
+  - label: ":linux: :habicat: core/hab-launcher"
+    command: .buildkite/scripts/build_component.sh launcher
     agents:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
 
-  # New Launcher build steps are automatically added here, if applicable.
+  - label: ":linux: :two: :habicat: core/hab-launcher"
+    command: .buildkite/scripts/build_component.sh launcher
+    agents:
+      queue: habitat-release
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+
+  - label: ":windows: :habicat: core/hab-launcher"
+    command: .buildkite/scripts/build_component.ps1 -Component launcher
+    agents:
+      queue: default-windows-2016-privileged
+    env:
+      HAB_BLDR_CHANNEL: unstable
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - HAB_CRYPTO_KEY
+            - HAB_LICENSE
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
 
   - wait
+
+  # Note that the Windows service can be safely built in parallel with
+  # our hab packages.
+  - label: ":windows: Build windows service"
+    command: .buildkite/scripts/build_component.ps1 -Component windows-service
+    agents:
+      queue: default-windows-2016-privileged
+    env:
+      HAB_BLDR_CHANNEL: unstable
+    plugins:
+      - docker#v2.0.0:
+          image: "chefes/windows-base:latest"
+          shell: [ "powershell", "-Command" ]
+          environment:
+            - HAB_BLDR_CHANNEL
+            - HAB_AUTH_TOKEN
+            - HAB_LICENSE
+            - BUILDKITE_JOB_ID
+            - BUILDKITE_AGENT_ACCESS_TOKEN
 
   - label: ":linux: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
@@ -94,7 +115,7 @@ steps:
     timeout_in_minutes: 30
 
   - label: ":mac: :habicat: core/hab"
-    command: 
+    command:
       - .buildkite/scripts/build_mac_release.sh
     agents:
       queue: default-macos-privileged
