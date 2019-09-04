@@ -10,7 +10,6 @@ extern crate serde_derive;
 #[macro_use]
 extern crate serde_json;
 
-pub mod artifactory;
 pub mod builder;
 pub mod error;
 pub mod response;
@@ -31,10 +30,8 @@ use reqwest::IntoUrl;
 pub use crate::error::{Error,
                        Result};
 
-use crate::{artifactory::ArtifactoryClient,
-            builder::BuilderAPIClient,
+use crate::{builder::BuilderAPIClient,
             hab_core::{crypto::keys::box_key_pair::WrappedSealedBox,
-                       env,
                        package::{PackageArchive,
                                  PackageIdent,
                                  PackageTarget},
@@ -417,10 +414,9 @@ impl Client {
     {
         let endpoint = endpoint.into_url().map_err(Error::ReqwestError)?;
 
-        match &env::var("HAB_BLDR_PROVIDER").unwrap_or_else(|_| "builder".to_string())[..] {
-            "artifactory" => ArtifactoryClient::create(endpoint, product, version, fs_root_path),
-            _ => BuilderAPIClient::create(endpoint, product, version, fs_root_path),
-        }
+        let client = BuilderAPIClient::new(endpoint, product, version, fs_root_path)?;
+
+        Ok(Box::new(client))
     }
 }
 
