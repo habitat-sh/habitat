@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.48 -->
+<!-- latest_release 0.84.49 -->
+## [fake-0.84.49](https://github.com/habitat-sh/habitat/tree/fake-0.84.49) (2019-09-04)
+
+#### Merged Pull Requests
+- Always build the Launcher and Windows Service packages [#6916](https://github.com/habitat-sh/habitat/pull/6916) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.48](https://github.com/habitat-sh/habitat/tree/fake-0.84.48) (2019-09-04)
 
 #### Merged Pull Requests
 - Remove unused locks and consolidate test helpers. [#6928](https://github.com/habitat-sh/habitat/pull/6928) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.84.47](https://github.com/habitat-sh/habitat/tree/fake-0.84.47) (2019-09-04)
 
