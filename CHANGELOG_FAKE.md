@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.46 -->
+<!-- latest_release 0.84.47 -->
+## [fake-0.84.47](https://github.com/habitat-sh/habitat/tree/fake-0.84.47) (2019-09-04)
+
+#### Merged Pull Requests
+- Redo departial PR [#6925](https://github.com/habitat-sh/habitat/pull/6925) ([kagarmoe](https://github.com/kagarmoe))
+<!-- latest_release -->
+
 ## [fake-0.84.46](https://github.com/habitat-sh/habitat/tree/fake-0.84.46) (2019-08-30)
 
 #### Merged Pull Requests
 - Correct Cargo.lock for new zmq branch [#6919](https://github.com/habitat-sh/habitat/pull/6919) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.84.45](https://github.com/habitat-sh/habitat/tree/fake-0.84.45) (2019-08-30)
 
