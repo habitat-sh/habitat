@@ -498,13 +498,18 @@ impl Service {
             self.validate_binds(census_ring);
         }
 
-        let template_update = self.update_templates(census_ring);
+        // TODO (DM): As a temporary fix, we return this `template_data_changed` boolean which does
+        // not account for changes in the census ring. This is needed because when we restart a
+        // service, we do not correctly produce the initial gossip message.
+        let (template_data_changed, template_update) = self.update_templates(census_ring);
         if self.update_service_files(census_ring) {
             self.file_updated();
         }
 
         match self.topology {
-            Topology::Standalone => self.execute_hooks(launcher, executor, &template_update),
+            Topology::Standalone => {
+                self.execute_hooks(launcher, executor, &template_update);
+            }
             Topology::Leader => {
                 let census_group =
                     census_ring.census_group_for(&self.service_group)
@@ -516,7 +521,6 @@ impl Service {
                                       "Waiting to execute hooks; election hasn't started");
                             self.last_election_status = census_group.election_status;
                         }
-                        false
                     }
                     ElectionStatus::ElectionInProgress => {
                         if self.last_election_status != census_group.election_status {
@@ -524,7 +528,6 @@ impl Service {
                                       "Waiting to execute hooks; election in progress.");
                             self.last_election_status = census_group.election_status;
                         }
-                        false
                     }
                     ElectionStatus::ElectionNoQuorum => {
                         if self.last_election_status != census_group.election_status {
@@ -532,9 +535,8 @@ impl Service {
                                       "Waiting to execute hooks; election in progress, \
                                       and we have no quorum.");
 
-                            self.last_election_status = census_group.election_status
+                            self.last_election_status = census_group.election_status;
                         }
-                        false
                     }
                     ElectionStatus::ElectionFinished => {
                         let leader_id = census_group.leader_id
@@ -546,11 +548,12 @@ impl Service {
                                       leader_id.to_string());
                             self.last_election_status = census_group.election_status;
                         }
-                        self.execute_hooks(launcher, executor, &template_update)
+                        self.execute_hooks(launcher, executor, &template_update);
                     }
                 }
             }
         }
+        template_data_changed
     }
 
     pub fn to_spec(&self) -> ServiceSpec {
@@ -739,7 +742,7 @@ impl Service {
 
     /// Compares the current state of the service to the current state of the census ring and the
     /// user-config, and re-renders all templatable content to disk.
-    fn update_templates(&mut self, census_ring: &CensusRing) -> TemplateUpdate {
+    fn update_templates(&mut self, census_ring: &CensusRing) -> (bool, TemplateUpdate) {
         let census_group =
             census_ring.census_group_for(&self.service_group)
                        .expect("Service update failed; unable to find own service group");
@@ -754,14 +757,15 @@ impl Service {
             self.user_config_updated = false;
         }
 
-        if template_data_changed || census_ring.changed() {
+        let template_update = if template_data_changed || census_ring.changed() {
             let ctx = self.render_context(census_ring);
             TemplateUpdate::new(self.compile_hooks(&ctx),
                                 self.compile_configuration(&ctx),
                                 self.hooks.reconfigure.is_some() || self.hooks.reload.is_some())
         } else {
             TemplateUpdate::default()
-        }
+        };
+        (template_data_changed, template_update)
     }
 
     pub fn to_rumor(&self, incarnation: u64) -> ServiceRumor {
