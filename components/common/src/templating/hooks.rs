@@ -7,6 +7,7 @@ use crate::{error::{Error,
 use habitat_core::os::process::windows_child::{Child,
                                                ExitStatus};
 use habitat_core::{crypto,
+                   env::Config as EnvConfig,
                    fs};
 use serde::{Serialize,
             Serializer};
@@ -25,7 +26,8 @@ use std::{ffi::OsStr,
                BufReader},
           path::{Path,
                  PathBuf},
-          result};
+          result,
+          str::FromStr};
 
 #[cfg(not(windows))]
 pub const HOOK_PERMISSIONS: u32 = 0o755;
@@ -433,6 +435,26 @@ impl Serialize for RenderPair {
     }
 }
 
+struct HookStandardStreamByteLimit(u64);
+
+impl Default for HookStandardStreamByteLimit {
+    fn default() -> Self { Self(1024) }
+}
+
+impl FromStr for HookStandardStreamByteLimit {
+    type Err = std::num::ParseIntError;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> { Ok(Self(s.parse()?)) }
+}
+
+impl Into<u64> for HookStandardStreamByteLimit {
+    fn into(self) -> u64 { self.0 }
+}
+
+impl EnvConfig for HookStandardStreamByteLimit {
+    const ENVVAR: &'static str = "HOOK_STANDARD_STREAM_BYTE_LIMIT";
+}
+
 pub struct HookOutput<'a> {
     stdout_log_file: &'a Path,
     stderr_log_file: &'a Path,
@@ -505,13 +527,17 @@ impl<'a> HookOutput<'a> {
 
     fn stdout_str_impl(&self) -> Result<String> {
         let mut stdout = String::new();
-        self.stdout()?.read_to_string(&mut stdout)?;
+        self.stdout()?
+            .take(HookStandardStreamByteLimit::configured_value().into())
+            .read_to_string(&mut stdout)?;
         Ok(stdout)
     }
 
     fn stderr_str_impl(&self) -> Result<String> {
         let mut stderr = String::new();
-        self.stderr()?.read_to_string(&mut stderr)?;
+        self.stderr()?
+            .take(HookStandardStreamByteLimit::configured_value().into())
+            .read_to_string(&mut stderr)?;
         Ok(stderr)
     }
 }
@@ -803,6 +829,13 @@ echo "The message is Hello"
         let stderr = hook_output.stderr_str().expect("to get stderr string");
         assert_eq!(stderr,
                    "This is stderr\nThis is stderr line 2\nThis is stderr line 3\n");
+
+        std::env::set_var(HookStandardStreamByteLimit::ENVVAR, "20");
+        let stdout = hook_output.stdout_str().expect("to get stdout string");
+        assert_eq!(stdout, "This is stdout\nThis ");
+
+        let stderr = hook_output.stderr_str().expect("to get stderr string");
+        assert_eq!(stderr, "This is stderr\nThis ");
 
         stdfs::remove_dir_all(tmp_dir).expect("remove temp dir");
     }
