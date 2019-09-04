@@ -1,11 +1,10 @@
+use crate::json;
+use serde_json;
 use std::{fs::File,
           io::{Read,
                Write},
           path::{Path,
                  PathBuf}};
-
-use crate::json;
-use serde_json;
 use valico::json_schema;
 
 pub fn create_with_content<P>(path: P, content: &str)

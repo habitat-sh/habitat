@@ -242,29 +242,22 @@ impl Binlink {
 
 #[cfg(test)]
 mod test {
-    use std::{collections::HashMap,
-              env,
-              fs::{self,
-                   File},
-              io::{self,
-                   Cursor,
-                   Write},
-              path::Path,
-              str::{self,
-                    FromStr},
-              sync::{Arc,
-                     RwLock}};
-    use termcolor::ColorChoice;
-
+    use super::{binlink_all_in_pkg,
+                start,
+                Binlink};
     use crate::{common::ui::UI,
                 hcore::{self,
                         package::{PackageIdent,
                                   PackageTarget}}};
+    use std::{collections::HashMap,
+              env,
+              fs::{self,
+                   File},
+              io::Write,
+              path::Path,
+              str::{self,
+                    FromStr}};
     use tempfile::TempDir;
-
-    use super::{binlink_all_in_pkg,
-                start,
-                Binlink};
 
     #[test]
     fn start_symlinks_binaries() {
@@ -282,7 +275,7 @@ mod test {
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
 
-        let (mut ui, _stdout, _stderr) = ui();
+        let mut ui = UI::with_sinks();
 
         #[cfg(target_os = "linux")]
         let magicate_link = "magicate.exe";
@@ -348,7 +341,7 @@ mod test {
         #[cfg(target_os = "windows")]
         let securitize_link = "securitize.bat";
 
-        let (mut ui, _stdout, _stderr) = ui();
+        let mut ui = UI::with_sinks();
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
@@ -378,7 +371,7 @@ mod test {
         let rootfs_bin_dir = rootfs.path().join("opt/bin");
         let force = true;
 
-        let (mut ui, _stdout, _stderr) = ui();
+        let mut ui = UI::with_sinks();
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
@@ -420,7 +413,7 @@ mod test {
         #[cfg(target_os = "windows")]
         let bonus_round_link = "bonus-round.bat";
 
-        let (mut ui, _stdout, _stderr) = ui();
+        let mut ui = UI::with_sinks();
         binlink_all_in_pkg(&mut ui, &ident, &dst_path, rootfs.path(), force).unwrap();
 
         assert_eq!(rootfs_src_dir.join("bin/magicate.exe"),
@@ -429,19 +422,6 @@ mod test {
         assert_eq!(rootfs_src_dir.join("bin/moar/bonus-round.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join(bonus_round_link)).unwrap()
                                                                              .target);
-    }
-
-    fn ui() -> (UI, OutputBuffer, OutputBuffer) {
-        let stdout_buf = OutputBuffer::new();
-        let stderr_buf = OutputBuffer::new();
-
-        let ui = UI::with_streams(Box::new(io::empty()),
-                                  || Box::new(stdout_buf.clone()),
-                                  || Box::new(stderr_buf.clone()),
-                                  ColorChoice::Never,
-                                  false);
-
-        (ui, stdout_buf, stderr_buf)
     }
 
     fn fake_bin_pkg_install<P>(ident: &str,
@@ -483,32 +463,5 @@ mod test {
         let mut f = File::create(file).expect("File is not created");
         f.write_all(content.as_bytes())
          .expect("Bytes not written to file");
-    }
-
-    #[derive(Clone)]
-    pub struct OutputBuffer {
-        pub cursor: Arc<RwLock<Cursor<Vec<u8>>>>,
-    }
-
-    impl OutputBuffer {
-        fn new() -> Self {
-            OutputBuffer { cursor: Arc::new(RwLock::new(Cursor::new(Vec::new()))), }
-        }
-    }
-
-    impl Write for OutputBuffer {
-        fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-            self.cursor
-                .write()
-                .expect("Cursor lock is poisoned")
-                .write(buf)
-        }
-
-        fn flush(&mut self) -> io::Result<()> {
-            self.cursor
-                .write()
-                .expect("Cursor lock is poisoned")
-                .flush()
-        }
     }
 }
