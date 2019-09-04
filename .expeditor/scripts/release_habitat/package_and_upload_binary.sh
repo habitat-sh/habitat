@@ -14,7 +14,7 @@ channel=$(get_release_channel)
 
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 
-release_version=$(get_latest_pkg_release_in_channel "hab")
+release_version=$(get_latest_pkg_release_version_in_release_channel "hab")
 
 declare -g hab_binary
 install_release_channel_hab_binary "x86_64-linux"

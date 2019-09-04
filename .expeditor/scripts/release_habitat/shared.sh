@@ -26,17 +26,19 @@ import_keys() {
         core
 }
 
-get_latest_pkg_release_in_channel() {
+# Returns the full "release" version in the form of X.Y.Z/DATESTAMP
+get_latest_pkg_release_version_in_release_channel() {
     local pkg_name="${1:?}"
     version=$(curl -s "${HAB_BLDR_URL}/v1/depot/channels/core/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${BUILD_PKG_TARGET}" \
         | jq -r '.ident | .version + "/" + .release')
     echo "${version}"
 }
 
-get_latest_pkg_version_in_channel() {
+# Returns the semver version in the form of X.Y.Z
+get_latest_pkg_version_in_release_channel() {
     local pkg_name="${1:?}"
     local release
-    release=$(get_latest_pkg_release_in_channel "$pkg_name")
+    release=$(get_latest_pkg_release_version_in_release_channel "$pkg_name")
     echo "$release" | cut -f1 -d"/"
 }
 
@@ -55,8 +57,8 @@ install_release_channel_hab_binary() {
 
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
     # now install the latest hab available in our channel, if it and the studio exist yet
-    hab_version=$(get_latest_pkg_version_in_channel "hab")
-    studio_version=$(get_latest_pkg_version_in_channel "hab-studio")
+    hab_version=$(get_latest_pkg_version_in_release_channel "hab")
+    studio_version=$(get_latest_pkg_version_in_release_channel "hab-studio")
 
     if [[ -n $hab_version && -n $studio_version && $hab_version == "$studio_version" ]]; then
         echo "-- Hab and studio versions match! Found hab: ${hab_version:-null} - studio: ${studio_version:-null}. Upgrading :awesome:"
