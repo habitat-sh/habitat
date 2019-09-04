@@ -100,9 +100,12 @@ impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
                                       // we're not able to use the same timer for both :(
                                       let _timer = hook_timer(H::file_name());
                                       let start = Instant::now();
-                                      let exit_value = self.hook.run(&self.service_group,
-                                                                     &self.pkg,
-                                                                     self.passwd.as_ref());
+                                      let exit_value =
+                                          self.hook
+                                              .run(&self.service_group,
+                                                   &self.pkg,
+                                                   self.passwd.as_ref())
+                                              .ok();
                                       let run_time = start.elapsed();
                                       tx.send((exit_value, run_time))
                                         .expect("Couldn't send oneshot signal from HookRunner: \

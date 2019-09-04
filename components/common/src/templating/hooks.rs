@@ -190,27 +190,23 @@ pub trait Hook: fmt::Debug + Sized + Send {
               service_group: &str,
               pkg: &Pkg,
               svc_encrypted_password: Option<T>)
-              -> Option<Self::ExitValue>
+              -> Result<Self::ExitValue>
         where T: ToString
     {
-        let mut child = match Self::exec(self.path(), &pkg, svc_encrypted_password) {
-            Ok(child) => child,
-            Err(err) => {
-                outputln!(preamble service_group,
-                    "Hook failed to run, {}, {}", Self::file_name(), err);
-                return None;
-            }
-        };
+        let mut child = Self::exec(self.path(), &pkg, svc_encrypted_password).map_err(|err| {
+                            outputln!(preamble service_group, 
+                                      "Hook failed to run, {}, {}", Self::file_name(), err);
+                            err
+                        })?;
         let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
         hook_output.output_standard_streams::<Self>(service_group, &mut child);
-        match child.wait() {
-            Ok(status) => Some(self.handle_exit(pkg, &hook_output, status)),
-            Err(err) => {
-                outputln!(preamble service_group,
-                    "Hook failed to run, {}, {}", Self::file_name(), err);
-                None
-            }
-        }
+        Ok(child.wait()
+                .map_err(|err| {
+                    outputln!(preamble service_group,
+                              "Hook failed to run, {}, {}", Self::file_name(), err);
+                    err
+                })
+                .map(|status| self.handle_exit(pkg, &hook_output, status))?)
     }
 
     #[cfg(windows)]
@@ -470,24 +466,24 @@ impl<'a> HookOutput<'a> {
         Ok(BufReader::new(File::open(&self.stdout_log_file)?))
     }
 
-    pub fn stdout_str(&self) -> Option<String> {
+    pub fn stdout_str(&self) -> Result<String> {
         let result = self.stdout_str_impl();
         if let Err(e) = &result {
             error!("Failed to read {:?}, {}", self.stdout_log_file, e);
         }
-        result.ok()
+        result
     }
 
     pub fn stderr(&self) -> Result<BufReader<File>> {
         Ok(BufReader::new(File::open(&self.stderr_log_file)?))
     }
 
-    pub fn stderr_str(&self) -> Option<String> {
+    pub fn stderr_str(&self) -> Result<String> {
         let result = self.stderr_str_impl();
         if let Err(e) = &result {
             error!("Failed to read {:?}, {}", self.stderr_log_file, e);
         }
-        result.ok()
+        result
     }
 
     /// Try to write the stdout and stderr of a process to stdout and to the specified log files.

@@ -812,13 +812,15 @@ impl Service {
         if let Some(ref hook) = self.hooks.reload {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+                     self.svc_encrypted_password.as_ref())
+                .ok();
         }
 
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+                     self.svc_encrypted_password.as_ref())
+                .ok();
             // The intention here is to do a health check soon after a service's configuration
             // changes, as a way to (among other things) detect potential impacts when bound
             // services change exported configuration.
@@ -869,6 +871,7 @@ impl Service {
                 hook.run(&self.service_group,
                          &self.pkg,
                          self.svc_encrypted_password.as_ref())
+                    .ok()
             })
             .unwrap_or(None)
     }

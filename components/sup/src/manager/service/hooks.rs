@@ -1,4 +1,5 @@
-use habitat_common::{outputln,
+use habitat_common::{error::Result,
+                     outputln,
                      templating::{hooks::{self,
                                           ExitCode,
                                           Hook,
@@ -33,8 +34,8 @@ pub struct ProcessOutput {
 
 impl ProcessOutput {
     fn new(hook_output: &HookOutput, exit_status: ExitStatus) -> Self {
-        Self { standard_streams: StandardStreams { stdout: hook_output.stdout_str(),
-                                                   stderr: hook_output.stderr_str(), },
+        Self { standard_streams: StandardStreams { stdout: hook_output.stdout_str().ok(),
+                                                   stderr: hook_output.stderr_str().ok(), },
                exit_status }
     }
 
@@ -174,7 +175,7 @@ impl Hook for RunHook {
                   stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn run<T>(&self, _: &str, _: &Pkg, _: Option<T>) -> Option<Self::ExitValue>
+    fn run<T>(&self, _: &str, _: &Pkg, _: Option<T>) -> Result<Self::ExitValue>
         where T: ToString
     {
         panic!("The run hook is a an exception to the lifetime of a service. It should only be \
