@@ -875,8 +875,13 @@ impl MemberList {
     /// * `MemberList::entries` (write) This method must not be called while any MemberList::entries
     ///   lock is held.
     pub fn purge_expired_mlw(&self, expiration_date: DateTime<Utc>) {
-        self.write_entries()
-            .retain(|_, v| !v.member.expired(expiration_date));
+        self.write_entries().retain(|_, v| {
+                                trace!("Considering purging member {:?} using expiration date \
+                                        {:?}",
+                                       &v,
+                                       &expiration_date);
+                                !v.member.expired(expiration_date)
+                            });
     }
 }
 

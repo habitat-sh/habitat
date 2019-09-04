@@ -11,6 +11,7 @@ mod incarnation_store;
 mod outbound;
 mod pull;
 mod push;
+mod rumor_expire;
 pub mod timing;
 
 use self::incarnation_store::IncarnationStore;
@@ -486,6 +487,8 @@ impl Server {
         push::spawn_thread(format!("push-{}", self.name()),
                            self.clone(),
                            timing.clone())?;
+
+        rumor_expire::spawn_thread(format!("rumor-expire-{}", self.name()), self.clone())?;
 
         if self.dat_file.is_some() {
             spawn_persist_thread(format!("persist-{}", self.name()), self.clone())?;

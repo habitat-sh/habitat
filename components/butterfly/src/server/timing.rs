@@ -59,8 +59,13 @@ impl Timing {
 
     /// How long before this suspect entry times out
     pub fn suspicion_timeout_duration(&self) -> TimeDuration {
-        TimeDuration::milliseconds(self.protocol_period_ms()
-                                   * self.suspicion_timeout_protocol_periods)
+        habitat_core::env_config_int!(ConfirmedTimeoutMillis, i64, HAB_CONFIRMED_TIMEOUT_MS, -1);
+        let mut confirmed_timeout_ms: i64 = ConfirmedTimeoutMillis::configured_value().into();
+        if confirmed_timeout_ms == -1 {
+            confirmed_timeout_ms =
+                self.protocol_period_ms() * self.suspicion_timeout_protocol_periods;
+        }
+        TimeDuration::milliseconds(confirmed_timeout_ms)
     }
 
     pub fn departure_timeout_duration(&self) -> TimeDuration {

@@ -135,9 +135,6 @@ impl SwimNet {
         for pos in 0..self.members.len() {
             let mut to_mesh: Vec<Member> = Vec::new();
             for x_pos in 0..self.members.len() {
-                if pos == x_pos {
-                    continue;
-                }
                 to_mesh.push(member_from_server(&self.members[x_pos]))
             }
             for server_b in to_mesh.into_iter() {
