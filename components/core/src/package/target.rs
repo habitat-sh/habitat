@@ -83,6 +83,7 @@ macro_rules! supported_package_targets {
     ) => {
         const SUPPORTED_PACKAGE_TARGETS: &'static [PackageTarget] = &[
             $(
+                #[cfg(feature = $name)]
                 PackageTarget(Type::$variant),
             )+
         ];
@@ -90,6 +91,7 @@ macro_rules! supported_package_targets {
         // Generates a public constant for each supported `PackageTarget`.
         $(
             $(#[$docs])*
+            #[cfg(feature = $name)]
             pub const $konst: PackageTarget = PackageTarget(Type::$variant);
         )+
 
@@ -109,6 +111,7 @@ macro_rules! supported_package_targets {
         enum Type {
             $(
                 $(#[$docs])*
+                #[cfg(feature = $name)]
                 $variant,
             )+
         }
@@ -119,6 +122,7 @@ macro_rules! supported_package_targets {
             fn as_str(&self) -> &'static str {
                 match *self {
                     $(
+                        #[cfg(feature = $name)]
                         Type::$variant => $name,
                     )+
                 }
@@ -131,6 +135,7 @@ macro_rules! supported_package_targets {
             fn from_str(value: &str) -> result::Result<Self, Self::Err> {
                 match value {
                     $(
+                        #[cfg(feature = $name)]
                         $name => Ok(Type::$variant),
                     )+
                     _ => Err(Error::InvalidPackageTarget(String::from(value))),
@@ -154,8 +159,11 @@ macro_rules! supported_package_targets {
             // returned on first match. This is done with disconnected `if` expressions to make the
             // macro generation easier.
             $(
-                if cfg!(target_arch = $target_arch) && cfg!(target_os = $target_os) {
-                    return PackageTarget(Type::$variant);
+                #[cfg(feature = $name)]
+                {
+                    if cfg!(target_arch = $target_arch) && cfg!(target_os = $target_os) {
+                        return PackageTarget(Type::$variant);
+                    }
                 }
             )+
 
@@ -177,6 +185,7 @@ macro_rules! supported_package_targets {
         #[cfg(test)]
         const TEST_TYPES: &'static [(Type, &'static str)] = &[
             $(
+                #[cfg(feature = $name)]
                 (Type::$variant, $name),
             )+
         ];
@@ -184,12 +193,15 @@ macro_rules! supported_package_targets {
         #[test]
         fn test_active_package_target_is_supported() {
             $(
-                if cfg!(target_arch = $target_arch) && cfg!(target_os = $target_os) {
-                    let active = active_package_target();
-                    println!("Active package target is: '{}'", &active);
-                    assert_eq!(PackageTarget(Type::$variant), active);
-                    // Quick return on first matched test arm
-                    return;
+                #[cfg(feature = $name)]
+                {
+                    if cfg!(target_arch = $target_arch) && cfg!(target_os = $target_os) {
+                        let active = active_package_target();
+                        println!("Active package target is: '{}'", &active);
+                        assert_eq!(PackageTarget(Type::$variant), active);
+                        // Quick return on first matched test arm
+                        return;
+                    }
                 }
             )+
 
@@ -226,7 +238,9 @@ macro_rules! supported_package_targets {
 //
 // 1. The string representation of the target type which will be used to derive the `as_str` and
 //    `from_str` implementations. The format of this string must follow the structure outlined in
-//    this module's documentation.
+//    this module's documentation. The string is also used as a configuration predicate that
+//    conditionally compiles the symbols needed for the target. A feature should be added to the
+//    `Cargo.toml` with the same name.
 // 2. The Rust variant identifier which will be used in `Type`. For example, `Type::X86_64_Linux`.
 // 3. The Rust constant identifier which will be used to construct a public constant for each
 //    supported target.
@@ -292,6 +306,12 @@ supported_package_targets! {
     /// [isa]: https://en.wikipedia.org/wiki/Instruction_set_architecture
     /// [x86_64]: https://en.wikipedia.org/wiki/X86-64
     ("x86_64-windows", X86_64_Windows, X86_64_WINDOWS, "x86_64", "windows");
+
+    /// Represents a [Linux kernel]-based system running on an [ARM Architecture processor][arm-arch].
+    ///
+    /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
+    /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
+    ("aarch64-linux", AARCH64_Linux, AARCH64_LINUX, "aarch64", "linux");
 }
 
 lazy_static::lazy_static! {
@@ -528,6 +548,7 @@ mod test {
     // only asserts that the `FromStr` implementation is plumbed through to the `PackageTarget`
     // wrapping type's API.
     #[test]
+    #[cfg(feature = "x86_64-linux")]
     fn package_target_from_str() {
         assert_eq!(PackageTarget(Type::X86_64_Linux),
                    PackageTarget::from_str("x86_64-linux").unwrap());
@@ -537,18 +558,21 @@ mod test {
     // test only asserts that the `Display` implementation is plumbed through to the
     // `PackageTarget` wrapping type's API.
     #[test]
+    #[cfg(feature = "x86_64-darwin")]
     fn package_target_to_string() {
         let target = PackageTarget(Type::X86_64_Darwin);
         assert_eq!("x86_64-darwin", target.to_string());
     }
 
     #[test]
+    #[cfg(feature = "x86_64-linux")]
     fn package_target_as_ref() {
         let target = PackageTarget(Type::X86_64_Linux);
         assert_eq!("x86_64-linux", target.as_ref());
     }
 
     #[test]
+    #[cfg(feature = "x86_64-linux")]
     fn serialize() {
         #[derive(Serialize)]
         struct Data {
@@ -561,6 +585,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "x86_64-windows")]
     fn deserialize() {
         #[derive(Deserialize)]
         struct Data {
@@ -575,26 +600,31 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "x86_64-linux")]
     fn type_architecture() {
         assert_eq!("x86_64", Type::X86_64_Linux.architecture());
     }
 
     #[test]
+    #[cfg(feature = "x86_64-darwin")]
     fn type_system() {
         assert_eq!("darwin", Type::X86_64_Darwin.system());
     }
 
     #[test]
+    #[cfg(feature = "x86_64-linux-kernel2")]
     fn type_variant() {
         assert_eq!(Some("kernel2"), Type::X86_64_Linux_Kernel2.variant());
     }
 
     #[test]
+    #[cfg(feature = "x86_64-windows")]
     fn type_no_variant() {
         assert_eq!(None, Type::X86_64_Windows.variant());
     }
 
     #[test]
+    #[cfg(feature = "x86_64-windows")]
     fn package_target_iter_no_variant() {
         let target = PackageTarget(Type::X86_64_Windows);
         let mut iter = target.iter();
@@ -605,6 +635,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "x86_64-kernel2")]
     fn package_target_iter_with_variant() {
         let target = PackageTarget(Type::X86_64_Linux_Kernel2);
         let mut iter = target.iter();

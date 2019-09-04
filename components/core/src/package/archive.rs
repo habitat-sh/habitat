@@ -518,6 +518,7 @@ mod test {
     }
 
     #[test]
+    #[cfg(feature = "x86_64-linux")]
     fn reading_artifact_target() {
         let mut hart = PackageArchive::new(fixtures().join("unhappyhumans-possums-8.1.\
                                                             4-20160427165340-x86_64-linux.hart"));

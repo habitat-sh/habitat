@@ -323,17 +323,37 @@ fn image_identifier_for_active_target(using_windows_containers: bool) -> Result<
 /// same version (minus release) as this program.
 fn image_identifier(windows_base_tag: Option<&str>, target: target::PackageTarget) -> String {
     let version: Vec<&str> = VERSION.split('/').collect();
-    let (img, studio_target, tag) = if let Some(t) = windows_base_tag {
-        (DOCKER_WINDOWS_IMAGE, target::X86_64_WINDOWS, format!("{}-{}", t, version[0]))
+    let (img, tag) = if let Some(t) = windows_base_tag {
+        (DOCKER_WINDOWS_IMAGE, format!("{}-{}", t, version[0]))
     } else {
-        let t = match target {
-            target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2,
-            _ => target::X86_64_LINUX,
-        };
-        (DOCKER_IMAGE, t, version[0].to_string())
+        (DOCKER_IMAGE, version[0].to_string())
     };
+    let studio_target = studio_target(windows_base_tag.is_some(), target);
 
     henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or_else(|_| format!("{}-{}:{}", img, studio_target, tag))
+}
+
+fn studio_target(windows: bool, target: target::PackageTarget) -> target::PackageTarget {
+    if windows {
+        #[cfg(feature = "supported_targets")]
+        return target::X86_64_WINDOWS;
+    }
+    match target {
+        #[cfg(feature = "supported_targets")]
+        target::X86_64_DARWIN => target::X86_64_LINUX,
+        #[cfg(feature = "supported_targets")]
+        target::X86_64_LINUX => target::X86_64_LINUX,
+        #[cfg(feature = "supported_targets")]
+        target::X86_64_LINUX_KERNEL2 => target::X86_64_LINUX_KERNEL2,
+        #[cfg(feature = "supported_targets")]
+        target::X86_64_WINDOWS => target::X86_64_LINUX,
+        #[cfg(feature = "aarch64-linux")]
+        target::AARCH64_LINUX => panic!("{} is not supported", target::AARCH64_LINUX),
+        // This is only needed for the case that we have no target enabled. In that case, we get a
+        // non-exhaustive patterns error because the match statement is empty.
+        #[cfg(not(any(feature = "supported_targets", feature = "aarch64-linux")))]
+        _ => unreachable!(),
+    }
 }
 
 #[cfg(test)]
@@ -352,7 +372,8 @@ mod tests {
     habitat_common::locked_env_var!(SSL_CERT_FILE, lock_ssl_cert_file_env_var);
 
     #[test]
-    fn retrieve_image_identifier() {
+    #[cfg(feature = "supported_targets")]
+    fn retrieve_supported_image_identifier() {
         assert_eq!(image_identifier(None, target::X86_64_DARWIN),
                    format!("{}-{}:{}", DOCKER_IMAGE, "x86_64-linux", VERSION));
         assert_eq!(image_identifier(None, target::X86_64_LINUX),
@@ -368,6 +389,10 @@ mod tests {
                    format!("{}-{}:{}-{}",
                            DOCKER_WINDOWS_IMAGE, "x86_64-windows", "ltsc2016", VERSION));
     }
+
+    #[should_panic]
+    #[cfg(feature = "aarch64-linux")]
+    fn retrieve_aarch64_image_identifier() { image_identifier(None, target::AARCH64_LINUX); }
 
     #[test]
     fn update_ssl_cert_file_envvar_not_set() {
