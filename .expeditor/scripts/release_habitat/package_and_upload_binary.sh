@@ -52,7 +52,7 @@ tail -n+6 "${target_hart}" | \
 extracted_hab_binary="$(find "$extract_dir" \( -name hab -or -name hab.exe \) -type f)"
 pkg_target="$(tr --delete '\r' < "${extract_dir}"/TARGET)"
 pkg_arch="$(echo "$pkg_target" | cut -d '-' -f 1)"
-pkg_kernel="$(echo "$pkg_target" | cut -d '-' -f 2)"
+pkg_kernel="$(echo "$pkg_target" | cut -d '-' -f 2,3)"
 pkg_ident="$(tr --delete '\r' < "$extract_dir"/IDENT)"
 pkg_origin="$(echo "$pkg_ident" | cut -d '/' -f 1)"
 pkg_name="$(echo "$pkg_ident" | cut -d '/' -f 2)"
@@ -75,7 +75,7 @@ else
   cp -p "$extracted_hab_binary" "$pkg_dir/$(basename "$extracted_hab_binary")"
 fi
 
-echo "Compressing \`hab' binary"
+echo "Compressing 'hab' binary"
 pushd "$build_dir" >/dev/null
 case "$pkg_target" in
 *-linux | *-linux-kernel2)
