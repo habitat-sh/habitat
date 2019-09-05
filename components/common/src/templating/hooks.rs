@@ -194,7 +194,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         where T: ToString
     {
         let mut child = Self::exec(self.path(), &pkg, svc_encrypted_password).map_err(|err| {
-                            outputln!(preamble service_group, 
+                            outputln!(preamble service_group,
                                       "Hook failed to run, {}, {}", Self::file_name(), err);
                             err
                         })?;
