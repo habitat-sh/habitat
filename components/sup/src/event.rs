@@ -308,3 +308,85 @@ impl EventStream {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::prost::Message;
+    use futures::{future::Future,
+                  stream::Stream,
+                  sync::mpsc as futures_mpsc};
+    #[cfg(unix)]
+    use std::os::unix::process::ExitStatusExt;
+    #[cfg(windows)]
+    use std::os::windows::process::ExitStatusExt;
+    use std::process::ExitStatus;
+
+    #[test]
+    #[cfg(any(unix, windows))]
+    fn health_check_event() {
+        let (tx, rx) = futures_mpsc::channel(4);
+        let event_stream = EventStream { sender: tx,
+                                         handle: None, };
+        EVENT_STREAM.set(EventStreamContainer::new(event_stream));
+        EVENT_CORE.set(EventCore { supervisor_id: String::from("supervisor_id"),
+                                   ip_address:    "127.0.0.1:8080".parse().unwrap(),
+                                   fqdn:          String::from("fqdn"),
+                                   application:   String::from("application"),
+                                   environment:   String::from("environment"),
+                                   site:          None,
+                                   meta:          EventStreamMetadata::default(), });
+        health_check(ServiceMetadata::default(),
+                     HealthCheckResult::Ok,
+                     HealthCheckHookStatus::NoHook);
+        health_check(ServiceMetadata::default(),
+                     HealthCheckResult::Warning,
+                     HealthCheckHookStatus::FailedToRun(Duration::from_secs(5)));
+        let process_output =
+            ProcessOutput::from_raw(StandardStreams { stdout: Some(String::from("stdout")),
+                                                      stderr: Some(String::from("stderr")), },
+                                    ExitStatus::from_raw(2));
+        health_check(ServiceMetadata::default(),
+                     HealthCheckResult::Critical,
+                     HealthCheckHookStatus::Ran(process_output, Duration::from_secs(10)));
+        let process_output =
+            ProcessOutput::from_raw(StandardStreams { stdout: None,
+                                                      stderr: Some(String::from("stderr")), },
+                                    ExitStatus::from_raw(3));
+        health_check(ServiceMetadata::default(),
+                     HealthCheckResult::Unknown,
+                     HealthCheckHookStatus::Ran(process_output, Duration::from_secs(15)));
+        let events = rx.take(4).collect().wait().unwrap();
+
+        let event = HealthCheckEvent::decode(&events[0].payload).unwrap();
+        assert_eq!(event.result, 0);
+        assert_eq!(event.execution, None);
+        assert_eq!(event.exit_status, None);
+        assert_eq!(event.stdout, None);
+        assert_eq!(event.stderr, None);
+
+        let event = HealthCheckEvent::decode(&events[1].payload).unwrap();
+        assert_eq!(event.result, 1);
+        assert_eq!(event.execution.unwrap().seconds, 5);
+        assert_eq!(event.exit_status, None);
+        assert_eq!(event.stdout, None);
+        assert_eq!(event.stderr, None);
+
+        let event = HealthCheckEvent::decode(&events[2].payload).unwrap();
+        println!("{:?}", event);
+        assert_eq!(event.result, 2);
+        assert_eq!(event.execution.unwrap().seconds, 10);
+        // `ExitStatus::from_raw` does not set the code so this is `None`
+        assert_eq!(event.exit_status, None);
+        assert_eq!(event.stdout, Some(String::from("stdout")));
+        assert_eq!(event.stderr, Some(String::from("stderr")));
+
+        let event = HealthCheckEvent::decode(&events[3].payload).unwrap();
+        assert_eq!(event.result, 3);
+        assert_eq!(event.execution.unwrap().seconds, 15);
+        // `ExitStatus::from_raw` does not set the code so this is `None`
+        assert_eq!(event.exit_status, None);
+        assert_eq!(event.stdout, None);
+        assert_eq!(event.stderr, Some(String::from("stderr")));
+    }
+}

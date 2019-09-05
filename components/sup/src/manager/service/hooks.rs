@@ -39,6 +39,11 @@ impl ProcessOutput {
                exit_status }
     }
 
+    pub fn from_raw(standard_streams: StandardStreams, exit_status: ExitStatus) -> Self {
+        Self { standard_streams,
+               exit_status }
+    }
+
     pub fn exit_status(&self) -> ExitStatus { self.exit_status }
 
     pub fn standard_streams(self) -> StandardStreams { self.standard_streams }
