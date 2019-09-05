@@ -1,32 +1,12 @@
 #!/bin/sh
 set -eux
 
-sudo -E apt-get update
+sudo apt-get update
 
-sudo -E apt-get install -y --no-install-recommends \
-  build-essential \
-  ca-certificates \
-  cmake \
-  curl \
-  direnv \
-  file \
-  gdb \
-  git \
-  httpie \
-  iproute2 \
-  libarchive-dev \
-  libprotobuf-dev \
-  libsodium-dev \
-  libssl-dev \
-  libczmq-dev \
-  man \
-  musl-tools \
-  net-tools \
-  pkg-config \
-  libpq-dev \
-  protobuf-compiler \
-  software-properties-common \
-  sudo \
-  tmux \
-  vim \
-  wget
+# Install gcc and dev tools
+sudo apt-get install -y --no-install-recommends \
+  build-essential
+
+# Install habitat
+export HAB_LICENSE="accept-no-persist"
+curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash

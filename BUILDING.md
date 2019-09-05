@@ -22,8 +22,7 @@ Then, run the system preparation scripts
 
 ```
 sh support/linux/install_dev_0_ubuntu_latest.sh
-sh support/linux/install_dev_9_linux.sh
-```
+``
 
 If you want to run the BATS based integration tests you also need docker installed:
 
@@ -31,55 +30,33 @@ If you want to run the BATS based integration tests you also need docker install
 sh support/linux/install_dev_8_docker.sh
 ```
 
-Then, make sure rust's `cargo` command is working. You'll need to add `$HOME/.cargo/bin` to your `$PATH`.
-On shells that use `.profile`, you can run
+Setup the basic environment which sets up linking environment variables and libraries.
 ```
-source ~/.profile
+. ./support/setup_local_env.sh
 ```
-For other shells see the documentation for modifying the executable path. For `fish`, you can run
-```
-set -U fish_user_paths $fish_user_paths "$HOME/.cargo/bin"
-```
+
 Check that `cargo` is correctly installed by running
 ```
 cargo --version
 ```
 
-Next, use our installation script to install rustfmt
+Run installation/base run (this will install, setup and run rustfmt)
 ```
-./support/ci/rustfmt.sh
-```
-
-At any time, you can find the version of rustfmt we are using by running this command at the root level
-of the Habitat repo:
-
-```
-echo $(< RUSTFMT_VERSION)
-```
-
-Then you can run that version of rustfmt on any cargo project.
-
-For example, if:
-
-```
-echo $(< RUSTFMT_VERSION)
-```
-
-returns "nightly-2019-05-10"
-
-You would run:
-
-```
-cargo +nightly-2019-05-10 fmt
+./.expeditor/scripts/verify/rustfmt.sh
 ```
 
 You may also be able to configure your editor to automatically run rustfmt every time you save.
 
 # Compiling habitat binaries
 
+Setup the basic environment which sets up linking environment variables and libraries.
+```
+. ./support/setup_local_env.sh
+```
+
 In the root of the `habitat` repo:
 ```
-make
+cargo build
 ```
 
 The binaries will be in `habitat/target/debug` and can be run directly, or you can use `cargo` commands in the various `components` subdirectories. For example:

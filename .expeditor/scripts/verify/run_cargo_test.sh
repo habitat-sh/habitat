@@ -40,6 +40,8 @@ sudo hab pkg install core/zeromq
 sudo hab pkg install core/protobuf --binlink
 sudo hab pkg install core/rust --binlink
 export SODIUM_STATIC=true # so the libarchive crate links to sodium statically
+export LIBARCHIVE_PREFIX
+LIBARCHIVE_PREFIX="$(hab pkg path core/libarchive)"
 export LIBARCHIVE_STATIC=true # so the libarchive crate *builds* statically
 export OPENSSL_DIR # so the openssl crate knows what to build against
 OPENSSL_DIR="$(hab pkg path core/openssl)"
