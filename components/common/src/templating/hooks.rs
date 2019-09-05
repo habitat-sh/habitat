@@ -735,7 +735,7 @@ echo "The message is Hola Mundo"
     /// refactor that code to make it possible. In the meantime, copy
     /// and paste of the code is how we're going to do it :(
     #[test]
-    fn compile_a_hook() {
+    fn compile_and_run_a_hook() {
         let service_group = service_group();
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
@@ -784,6 +784,13 @@ echo "The message is Hello"
         assert_eq!(hook.compile(&service_group, &ctx).unwrap(), false);
         let post_second_change_content = file_content(&hook);
         assert_eq!(post_second_change_content, post_change_content);
+
+        // Run the hook
+        assert!(hook.run(&service_group, &pkg, None::<&str>).unwrap());
+
+        // Remove the hook file and try run this should fail
+        std::fs::remove_dir_all(&concrete_path).expect("remove temp dir");
+        assert!(hook.run(&service_group, &pkg, None::<&str>).is_err())
     }
 
     ////////////////////////////////////////////////////////////////////////
