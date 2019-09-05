@@ -28,7 +28,6 @@ ${hab_binary} pkg install core/zip
 aws s3 cp s3://chef-cd-citadel/packages_at_chef.io.pgp packages_at_chef.io.pgp --profile=chef-cd
 gpg --import packages_at_chef.io.pgp
 
-#TODO make this nicer
 tmp_root="$(mktemp -d -t "grant-XXXX")"
 extract_dir="$tmp_root/extract"
 mkdir -p "$extract_dir"
@@ -115,11 +114,13 @@ echo "--- Uploading $upload_artifact and associated artifacts to S3"
 pushd "$(dirname "$pkg_artifact")" >/dev/null
 # FYI - the bucket name is not just for automate artifacts, and this will be fixed up later
 # Upload unstable/latest
-aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact.asc" "s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact.asc" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact.sha256sum" "s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact.sha256sum" --acl public-read
+unstable_s3_url="s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact"
+aws --profile chef-cd s3 cp "$upload_artifact" "$unstable_s3_url" --acl public-read
+aws --profile chef-cd s3 cp "$upload_artifact.asc" "$unstable_s3_url.asc" --acl public-read
+aws --profile chef-cd s3 cp "$upload_artifact.sha256sum" "$unstable_s3_url.sha256sum" --acl public-read
 # Upload versioned
-aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact.asc" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact" "s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact.sha256sum" --acl public-read
+versioned_s3_url="s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact"
+aws --profile chef-cd s3 cp "$upload_artifact" "$versioned_s3_url" --acl public-read
+aws --profile chef-cd s3 cp "$upload_artifact" "$versioned_s3_url.asc" --acl public-read
+aws --profile chef-cd s3 cp "$upload_artifact" "$versioned_s3_url.sha256sum" --acl public-read
 popd
