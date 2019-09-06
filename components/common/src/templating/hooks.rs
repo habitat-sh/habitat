@@ -785,12 +785,15 @@ echo "The message is Hello"
         let post_second_change_content = file_content(&hook);
         assert_eq!(post_second_change_content, post_change_content);
 
-        // Run the hook
-        assert!(hook.run(&service_group, &pkg, None::<&str>).unwrap());
+        #[cfg(unix)]
+        {
+            // Run the hook
+            assert!(hook.run(&service_group, &pkg, None::<&str>).unwrap());
 
-        // Remove the hook file and try run this should fail
-        std::fs::remove_dir_all(&concrete_path).expect("remove temp dir");
-        assert!(hook.run(&service_group, &pkg, None::<&str>).is_err())
+            // Remove the hook file and try run this should fail
+            std::fs::remove_dir_all(&concrete_path).expect("remove temp dir");
+            assert!(hook.run(&service_group, &pkg, None::<&str>).is_err())
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////

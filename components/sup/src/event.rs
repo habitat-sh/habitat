@@ -316,11 +316,11 @@ mod tests {
     use futures::{future::Future,
                   stream::Stream,
                   sync::mpsc as futures_mpsc};
-    #[cfg(unix)]
-    use std::os::unix::process::ExitStatusExt;
     #[cfg(windows)]
-    use std::os::windows::process::ExitStatusExt;
-    use std::process::ExitStatus;
+    use habitat_core::os::process::windows_child::ExitStatus;
+    #[cfg(unix)]
+    use std::{os::unix::process::ExitStatusExt,
+              process::ExitStatus};
 
     #[test]
     #[cfg(any(unix, windows))]
@@ -342,17 +342,25 @@ mod tests {
         health_check(ServiceMetadata::default(),
                      HealthCheckResult::Warning,
                      HealthCheckHookStatus::FailedToRun(Duration::from_secs(5)));
+        #[cfg(windows)]
+        let exit_status = ExitStatus::from(2);
+        #[cfg(unix)]
+        let exit_status = ExitStatus::from_raw(2);
         let process_output =
             ProcessOutput::from_raw(StandardStreams { stdout: Some(String::from("stdout")),
                                                       stderr: Some(String::from("stderr")), },
-                                    ExitStatus::from_raw(2));
+                                    exit_status);
         health_check(ServiceMetadata::default(),
                      HealthCheckResult::Critical,
                      HealthCheckHookStatus::Ran(process_output, Duration::from_secs(10)));
+        #[cfg(windows)]
+        let exit_status = ExitStatus::from(3);
+        #[cfg(unix)]
+        let exit_status = ExitStatus::from_raw(3);
         let process_output =
             ProcessOutput::from_raw(StandardStreams { stdout: None,
                                                       stderr: Some(String::from("stderr")), },
-                                    ExitStatus::from_raw(3));
+                                    exit_status);
         health_check(ServiceMetadata::default(),
                      HealthCheckResult::Unknown,
                      HealthCheckHookStatus::Ran(process_output, Duration::from_secs(15)));
@@ -373,10 +381,12 @@ mod tests {
         assert_eq!(event.stderr, None);
 
         let event = HealthCheckEvent::decode(&events[2].payload).unwrap();
-        println!("{:?}", event);
         assert_eq!(event.result, 2);
         assert_eq!(event.execution.unwrap().seconds, 10);
-        // `ExitStatus::from_raw` does not set the code so this is `None`
+        #[cfg(windows)]
+        assert_eq!(event.exit_status, Some(2));
+        // `ExitStatus::from_raw` sets the signal not the code
+        #[cfg(unix)]
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, Some(String::from("stdout")));
         assert_eq!(event.stderr, Some(String::from("stderr")));
@@ -384,7 +394,10 @@ mod tests {
         let event = HealthCheckEvent::decode(&events[3].payload).unwrap();
         assert_eq!(event.result, 3);
         assert_eq!(event.execution.unwrap().seconds, 15);
-        // `ExitStatus::from_raw` does not set the code so this is `None`
+        #[cfg(windows)]
+        assert_eq!(event.exit_status, Some(3));
+        // `ExitStatus::from_raw` sets the signal not the code
+        #[cfg(unix)]
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, None);
         assert_eq!(event.stderr, Some(String::from("stderr")));
