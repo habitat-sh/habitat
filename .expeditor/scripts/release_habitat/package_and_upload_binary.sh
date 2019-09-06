@@ -25,9 +25,10 @@ ${hab_binary} pkg install core/gzip \
   core/zip
 
 # Import packages@chef.io GPG signing key
-aws s3 cp s3://chef-cd-citadel/packages_at_chef.io.pgp packages_at_chef.io.pgp \
- --profile=chef-cd gpg \
- --import packages_at_chef.io.pgp
+aws s3 cp s3://chef-cd-citadel/packages_at_chef.io.pgp \
+  packages_at_chef.io.pgp \
+  --profile=chef-cd 
+gpg --import packages_at_chef.io.pgp
 
 tmp_root="$(mktemp -d -t "grant-XXXX")"
 extract_dir="$tmp_root/extract"
@@ -47,6 +48,10 @@ else
 fi
 
 target_hart="$tmp_root/hab-$channel.hart"
+if [[ $(head -n 1 "${target_hart}") != HART-1 ]]; then
+  echo "Hart file does not match expected format, exiting."
+  exit 1
+fi
 tail -n+6 "${target_hart}" | \
     tar --directory "${extract_dir}" \
         --extract \
@@ -67,6 +72,8 @@ mkdir -p "$pkg_dir"
 mkdir -p "$tmp_root/results"
 
 if [[ $BUILD_PKG_TARGET == *"windows" ]]; then
+  # windows has more than just the hab binary, so we need to copy all the files
+  # in the directory
   for file in "$(dirname "$extracted_hab_binary")"/*; do 
     cp -p "$file" "$pkg_dir/"
   done
@@ -110,6 +117,8 @@ popd
 # Name of the file to upload
 upload_artifact="$(basename "$pkg_artifact")"
 # Now strip the `release` so we have a 'latest'
+# If the release ever changes, we'll need to take that into account.
+# This should probably be updated to be more robust in the future.
 latest_artifact="$(basename "$pkg_artifact" | sed -E 's/[0-9]{14}/latest/')"
 
 echo "--- Uploading $upload_artifact and associated artifacts to S3"
