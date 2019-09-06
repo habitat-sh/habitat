@@ -32,3 +32,9 @@ get_toolchain() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
     cat "$dir/../../rust-toolchain"
 }
+
+s3_upload_file() {
+    local file_name="${1:?}"
+    local s3_url="${2:?}"
+    aws --profile chef-cd s3 cp "$file_name" "$s3_url" --acl public-read
+}

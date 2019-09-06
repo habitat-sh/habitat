@@ -19,14 +19,15 @@ release_version=$(get_latest_pkg_release_version_in_release_channel "hab")
 declare -g hab_binary
 install_release_channel_hab_binary "x86_64-linux"
 
-${hab_binary} pkg install core/gzip
-${hab_binary} pkg install core/tar
-${hab_binary} pkg install core/wget
-${hab_binary} pkg install core/zip
+${hab_binary} pkg install core/gzip \
+  core/tar \
+  core/wget \
+  core/zip
 
 # Import packages@chef.io GPG signing key
-aws s3 cp s3://chef-cd-citadel/packages_at_chef.io.pgp packages_at_chef.io.pgp --profile=chef-cd
-gpg --import packages_at_chef.io.pgp
+aws s3 cp s3://chef-cd-citadel/packages_at_chef.io.pgp packages_at_chef.io.pgp \
+ --profile=chef-cd gpg \
+ --import packages_at_chef.io.pgp
 
 tmp_root="$(mktemp -d -t "grant-XXXX")"
 extract_dir="$tmp_root/extract"
@@ -38,7 +39,11 @@ if [[ $BUILD_PKG_TARGET == *"darwin" ]]; then
   buildkite-agent artifact download "$artifact_name" "$tmp_root/" --step "[:macos: build hab]"
   mv "$tmp_root/$artifact_name" "$tmp_root/hab-$channel.hart"
 else
-  hab pkg exec core/wget wget "${HAB_BLDR_URL}/v1/depot/pkgs/core/hab/$release_version/download?target=$BUILD_PKG_TARGET" -O "$tmp_root/hab-$channel.hart"
+  # once https://github.com/habitat-sh/habitat/issues/6878 is released,
+  # we can use hab pkg download rather than this wget
+  hab pkg exec core/wget wget \
+    "${HAB_BLDR_URL}/v1/depot/pkgs/core/hab/$release_version/download?target=$BUILD_PKG_TARGET" \
+    -O "$tmp_root/hab-$channel.hart"
 fi
 
 target_hart="$tmp_root/hab-$channel.hart"
@@ -49,15 +54,10 @@ tail -n+6 "${target_hart}" | \
         --strip-components=6
 
 extracted_hab_binary="$(find "$extract_dir" \( -name hab -or -name hab.exe \) -type f)"
-pkg_target="$(tr --delete '\r' < "${extract_dir}"/TARGET)"
-pkg_arch="$(echo "$pkg_target" | cut -d '-' -f 1)"
-pkg_kernel="$(echo "$pkg_target" | cut -d '-' -f 2,3)"
 pkg_ident="$(tr --delete '\r' < "$extract_dir"/IDENT)"
-pkg_origin="$(echo "$pkg_ident" | cut -d '/' -f 1)"
-pkg_name="$(echo "$pkg_ident" | cut -d '/' -f 2)"
 pkg_version="$(echo "$pkg_ident" | cut -d '/' -f 3)"
 pkg_release="$(echo "$pkg_ident" | cut -d '/' -f 4)"
-archive_name="hab-$(echo "$pkg_ident" | cut -d '/' -f 3-4 | tr '/' '-')-$pkg_target"
+archive_name="hab-${pkg_version}-${pkg_release}-$BUILD_PKG_TARGET"
 
 build_dir="$tmp_root/build"
 pkg_dir="$build_dir/${archive_name}"
@@ -66,31 +66,29 @@ echo "Copying $extracted_hab_binary to $(basename "$pkg_dir")"
 mkdir -p "$pkg_dir"
 mkdir -p "$tmp_root/results"
 
-if [[ $pkg_target == *"windows" ]]; then
-for file in "$(dirname "$extracted_hab_binary")"/*; do 
-  cp -p "$file" "$pkg_dir/"
-done
+if [[ $BUILD_PKG_TARGET == *"windows" ]]; then
+  for file in "$(dirname "$extracted_hab_binary")"/*; do 
+    cp -p "$file" "$pkg_dir/"
+  done
 else
   cp -p "$extracted_hab_binary" "$pkg_dir/$(basename "$extracted_hab_binary")"
 fi
 
 echo "Compressing 'hab' binary"
 pushd "$build_dir" >/dev/null
-case "$pkg_target" in
+case "$BUILD_PKG_TARGET" in
 *-linux | *-linux-kernel2)
     pkg_artifact="$tmp_root/results/${archive_name}.tar.gz"
     tarball="$build_dir/$(basename "${pkg_artifact%.gz}")"
     hab pkg exec core/tar tar cf "$tarball" "$(basename "$pkg_dir")"
-    rm -fv "$pkg_artifact"
     hab pkg exec core/gzip gzip -9 -c "$tarball" > "$pkg_artifact"
     ;;
 *-darwin | *-windows)
     pkg_artifact="$tmp_root/results/${archive_name}.zip"
-    rm -fv "$pkg_artifact"
     hab pkg exec core/zip zip -9 -r "$pkg_artifact" "$(basename "$pkg_dir")"
     ;;
 *)
-    exit_with "$target_hart has unknown TARGET=$pkg_target" 3
+    exit_with "$target_hart has unknown TARGET=$BUILD_PKG_TARGET" 3
     ;;
 esac
 
@@ -102,7 +100,11 @@ sha256sum "$(basename "$pkg_artifact")" > "${pkg_artifact}.sha256sum"
 # Sign our artifact
 popd >/dev/null
 pushd "$(dirname "$pkg_artifact")" >/dev/null
-gpg --armor --digest-algo sha256 --default-key 2940ABA983EF826A --output "$(basename "$pkg_artifact").asc" --detach-sign "$(basename "$pkg_artifact")"
+gpg --armor \
+  --digest-algo sha256 \
+  --default-key 2940ABA983EF826A \
+  --output "$(basename "$pkg_artifact").asc" \
+  --detach-sign "$(basename "$pkg_artifact")"
 popd
 
 # Name of the file to upload
@@ -115,12 +117,12 @@ pushd "$(dirname "$pkg_artifact")" >/dev/null
 # FYI - the bucket name is not just for automate artifacts, and this will be fixed up later
 # Upload unstable/latest
 unstable_s3_url="s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact"
-aws --profile chef-cd s3 cp "$upload_artifact" "$unstable_s3_url" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact.asc" "$unstable_s3_url.asc" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact.sha256sum" "$unstable_s3_url.sha256sum" --acl public-read
+s3_upload_file "$upload_artifact" "$unstable_s3_url"
+s3_upload_file "$upload_artifact.asc" "$unstable_s3_url.asc"
+s3_upload_file "$upload_artifact.sha256sum" "$unstable_s3_url.sha256sum"
 # Upload versioned
 versioned_s3_url="s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact"
-aws --profile chef-cd s3 cp "$upload_artifact" "$versioned_s3_url" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact" "$versioned_s3_url.asc" --acl public-read
-aws --profile chef-cd s3 cp "$upload_artifact" "$versioned_s3_url.sha256sum" --acl public-read
+s3_upload_file "$upload_artifact" "$versioned_s3_url"
+s3_upload_file "$upload_artifact.asc" "$versioned_s3_url.asc"
+s3_upload_file "$upload_artifact.sha256sum" "$versioned_s3_url.sha256sum"
 popd
