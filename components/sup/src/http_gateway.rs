@@ -25,6 +25,8 @@ use habitat_common::{self,
 use habitat_core::{crypto,
                    env as henv,
                    service::ServiceGroup};
+use manager::sync::GatewayState;
+
 use prometheus::{self,
                  CounterVec,
                  Encoder,
@@ -40,8 +42,7 @@ use std::{self,
           io::Read,
           sync::{Arc,
                  Condvar,
-                 Mutex,
-                 RwLock},
+                 Mutex},
           thread};
 
 const APIDOCS: &str = include_str!(concat!(env!("OUT_DIR"), "/api.html"));
@@ -94,14 +95,14 @@ impl Into<StatusCode> for HealthCheckResult {
 }
 
 struct AppState {
-    gateway_state:        Arc<RwLock<manager::GatewayState>>,
+    gateway_state:        Arc<GatewayState>,
     authentication_token: Option<String>,
     timer:                Cell<Option<HistogramTimer>>,
     feature_flags:        FeatureFlag,
 }
 
 impl AppState {
-    fn new(gs: Arc<RwLock<manager::GatewayState>>,
+    fn new(gs: Arc<GatewayState>,
            authentication_token: GatewayAuthenticationToken,
            feature_flags: FeatureFlag)
            -> Self {
@@ -217,7 +218,7 @@ pub struct Server;
 impl Server {
     pub fn run(listen_addr: HttpListenAddr,
                tls_config: Option<ServerConfig>,
-               gateway_state: Arc<RwLock<manager::GatewayState>>,
+               gateway_state: Arc<GatewayState>,
                authentication_token: GatewayAuthenticationToken,
                feature_flags: FeatureFlag,
                control: Arc<(Mutex<ServerStartup>, Condvar)>) {
@@ -279,23 +280,25 @@ impl Server {
 }
 
 fn services_routes() -> Scope {
-    web::scope("/services").route("", web::get().to(services))
-                           .route("/{svc}/{group}", web::get().to(service_without_org))
-                           .route("/{svc}/{group}/config", web::get().to(config_without_org))
-                           .route("/{svc}/{group}/health", web::get().to(health_without_org))
-                           .route("/{svc}/{group}/{org}", web::get().to(service_with_org))
+    web::scope("/services").route("", web::get().to(services_gsr))
+                           .route("/{svc}/{group}", web::get().to(service_without_org_gsr))
+                           .route("/{svc}/{group}/config",
+                                  web::get().to(config_without_org_gsr))
+                           .route("/{svc}/{group}/health",
+                                  web::get().to(health_without_org_gsr))
+                           .route("/{svc}/{group}/{org}", web::get().to(service_with_org_gsr))
                            .route("/{svc}/{group}/{org}/config",
-                                  web::get().to(config_with_org))
+                                  web::get().to(config_with_org_gsr))
                            .route("/{svc}/{group}/{org}/health",
-                                  web::get().to(health_with_org))
+                                  web::get().to(health_with_org_gsr))
 }
 
 fn routes() -> Scope {
     web::scope("/").route("", web::get().to(doc))
                    .service(services_routes())
-                   .service(web::resource("/butterfly").route(web::get().to(butterfly))
+                   .service(web::resource("/butterfly").route(web::get().to(butterfly_gsr))
                                                        .wrap_fn(redact_http_middleware))
-                   .service(web::resource("/census").route(web::get().to(census))
+                   .service(web::resource("/census").route(web::get().to(census_gsr))
                                                     .wrap_fn(redact_http_middleware))
                    .route("/metrics", web::get().to(metrics))
 }
@@ -306,93 +309,100 @@ fn json_response(data: String) -> HttpResponse {
 }
 
 // Begin route handlers
+
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn butterfly(state: Data<AppState>) -> HttpResponse {
-    let data = &state.gateway_state
-                     .read()
-                     .expect("GatewayState lock is poisoned")
-                     .butterfly_data;
-    json_response(data.to_string())
+fn butterfly_gsr(state: Data<AppState>) -> HttpResponse {
+    let data = state.gateway_state.lock_gsr().butterfly_data().to_string();
+    json_response(data)
 }
 
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn census(state: Data<AppState>) -> HttpResponse {
-    let data = &state.gateway_state
-                     .read()
-                     .expect("GatewayState lock is poisoned")
-                     .census_data;
-    json_response(data.to_string())
+fn census_gsr(state: Data<AppState>) -> HttpResponse {
+    let data = state.gateway_state.lock_gsr().census_data().to_string();
+    json_response(data)
 }
 
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn services(state: Data<AppState>) -> HttpResponse {
-    let data = &state.gateway_state
-                     .read()
-                     .expect("GatewayState lock is poisoned")
-                     .services_data;
-    json_response(data.to_string())
+fn services_gsr(state: Data<AppState>) -> HttpResponse {
+    let data = state.gateway_state.lock_gsr().services_data().to_string();
+    json_response(data)
 }
 
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 // Honestly, this doesn't feel great, but it's the pattern builder-api uses, and at the
 // moment, I don't have a better way of doing it.
 #[allow(clippy::needless_pass_by_value)]
-fn config_with_org(path: Path<(String, String, String)>, state: Data<AppState>) -> HttpResponse {
+fn config_with_org_gsr(path: Path<(String, String, String)>,
+                       state: Data<AppState>)
+                       -> HttpResponse {
     let (svc, group, org) = path.into_inner();
-    config(svc, group, Some(&org), &state)
+    config_gsr(svc, group, Some(&org), &state)
 }
 
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn config_without_org(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+fn config_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
     let (svc, group) = path.into_inner();
-    config(svc, group, None, &state)
+    config_gsr(svc, group, None, &state)
 }
 
-fn config(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
-    let data = &state.gateway_state
-                     .read()
-                     .expect("GatewayState lock is poisoned")
-                     .services_data;
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
+fn config_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
-    match service_from_services(&service_group, &data) {
+    match service_from_services(&service_group,
+                                state.gateway_state.lock_gsr().services_data())
+    {
         Some(mut s) => HttpResponse::Ok().json(s["cfg"].take()),
         None => HttpResponse::NotFound().finish(),
     }
 }
 
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn health_with_org(path: Path<(String, String, String)>, state: Data<AppState>) -> HttpResponse {
+fn health_with_org_gsr(path: Path<(String, String, String)>,
+                       state: Data<AppState>)
+                       -> HttpResponse {
     let (svc, group, org) = path.into_inner();
-    health(svc, group, Some(&org), &state)
+    health_gsr(svc, group, Some(&org), &state)
 }
 
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn health_without_org(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+fn health_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
     let (svc, group) = path.into_inner();
-    health(svc, group, None, &state)
+    health_gsr(svc, group, None, &state)
 }
 
-fn health(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
+fn health_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
-    let gateway_state = &state.gateway_state
-                              .read()
-                              .expect("GatewayState lock is poisoned");
-    let health_check = gateway_state.health_check_data.get(&service_group);
-
-    if health_check.is_some() {
+    if let Some(health_check) = state.gateway_state.lock_gsr().health_of(&service_group) {
         let mut body = HealthCheckBody::default();
         let stdout_path = hooks::stdout_log_path::<HealthCheckHook>(&service_group);
         let stderr_path = hooks::stderr_log_path::<HealthCheckHook>(&service_group);
-        let http_status: StatusCode = health_check.unwrap().clone().into();
+        let http_status: StatusCode = health_check.into();
 
-        body.status = health_check.unwrap().to_string();
+        body.status = health_check.to_string();
         if let Ok(mut file) = File::open(&stdout_path) {
             let _ = file.read_to_string(&mut body.stdout);
         }
@@ -408,29 +418,35 @@ fn health(svc: String, group: String, org: Option<&str>, state: &AppState) -> Ht
     }
 }
 
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn service_with_org(path: Path<(String, String, String)>, state: Data<AppState>) -> HttpResponse {
+fn service_with_org_gsr(path: Path<(String, String, String)>,
+                        state: Data<AppState>)
+                        -> HttpResponse {
     let (svc, group, org) = path.into_inner();
-    service(svc, group, Some(&org), &state)
+    service_gsr(svc, group, Some(&org), &state)
 }
 
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
 #[allow(clippy::needless_pass_by_value)]
-fn service_without_org(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
+fn service_without_org_gsr(path: Path<(String, String)>, state: Data<AppState>) -> HttpResponse {
     let (svc, group) = path.into_inner();
-    service(svc, group, None, &state)
+    service_gsr(svc, group, None, &state)
 }
 
-fn service(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
-    let data = &state.gateway_state
-                     .read()
-                     .expect("GatewayState lock is poisoned")
-                     .services_data;
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
+fn service_gsr(svc: String, group: String, org: Option<&str>, state: &AppState) -> HttpResponse {
     let service_group = match ServiceGroup::new(None, svc, group, org) {
         Ok(sg) => sg,
         Err(_) => return HttpResponse::BadRequest().finish(),
     };
 
-    match service_from_services(&service_group, &data) {
+    match service_from_services(&service_group,
+                                state.gateway_state.lock_gsr().services_data())
+    {
         Some(s) => HttpResponse::Ok().json(s),
         None => HttpResponse::NotFound().finish(),
     }

@@ -5,7 +5,7 @@ use crate::{error::Error,
                                 hooks::HealthCheckHook,
                                 supervisor::Supervisor,
                                 ProcessOutput},
-                      GatewayState}};
+                      sync::GatewayState}};
 use futures::{future::{self,
                        lazy,
                        Either,
@@ -20,8 +20,7 @@ use std::{convert::TryFrom,
           fmt,
           ops::Deref,
           sync::{Arc,
-                 Mutex,
-                 RwLock},
+                 Mutex},
           time::{Duration,
                  Instant}};
 
@@ -115,7 +114,7 @@ pub struct State {
     /// A reference to the Supervisor's gateway state. We also store
     /// the status in here for making it available via the HTTP
     /// gateway.
-    gateway_state: Arc<RwLock<GatewayState>>,
+    gateway_state: Arc<GatewayState>,
 }
 
 impl State {
@@ -128,7 +127,7 @@ impl State {
                supervisor: Arc<Mutex<Supervisor>>,
                nominal_interval: HealthCheckInterval,
                service_health_result: Arc<Mutex<HealthCheckResult>>,
-               gateway_state: Arc<RwLock<GatewayState>>)
+               gateway_state: Arc<GatewayState>)
                -> Self {
         State { hook,
                 service_group,
@@ -144,7 +143,9 @@ impl State {
     /// Creates a future that runs the health check and then waits for
     /// a suitable interval. Multiple such iterations will then be
     /// chained together for an unending stream of health checks.
-    fn single_iteration(self) -> impl Future<Item = (), Error = ()> {
+    /// # Locking for the returned Future (see locking.md)
+    /// * `GatewayState::inner` (write)
+    fn single_iteration_gsw(self) -> impl Future<Item = (), Error = ()> {
         let State { hook,
                     service_group,
                     package,
@@ -223,10 +224,8 @@ impl State {
              *service_health_result.lock()
                                    .expect("Could not unlock service_health_result") =
                  health_check_result;
-             gateway_state.write()
-                          .expect("GatewayState lock is poisoned")
-                          .health_check_data
-                          .insert(service_group.deref().clone(), health_check_result);
+             gateway_state.lock_gsw()
+                          .set_health_of(service_group.deref().clone(), health_check_result);
 
              let interval = if health_check_result == HealthCheckResult::Ok {
                  // routine health check
@@ -260,26 +259,28 @@ impl State {
 
     /// Repeatedly runs a health check, followed by an appropriate
     /// delay, forever.
-    pub fn check_repeatedly(self) -> impl Future<Item = (), Error = ()> {
+    /// # Locking for the returned Future (see locking.md)
+    /// * `GatewayState::inner` (write)
+    pub fn check_repeatedly_gsw(self) -> impl Future<Item = (), Error = ()> {
         future::loop_fn(self, move |state| {
             // TODO (CM): If we wanted to keep track of how many times
             // a health check has failed in the past X executions, or
             // do similar historical tracking, here's where we'd do
             // it.
             let service_group = state.service_group.clone();
-            state.clone().single_iteration().then(move |res| {
-                                                if res.is_ok() {
-                                                    trace!("Health check future for {} \
-                                                            succeeded; continuing loop",
-                                                           service_group);
-                                                    Ok(Loop::Continue(state))
-                                                } else {
-                                                    trace!("Health check future for {} failed \
-                                                            failed; continuing loop.",
-                                                           service_group);
-                                                    Ok(Loop::Continue(state))
-                                                }
-                                            })
+            state.clone().single_iteration_gsw().then(move |res| {
+                                                    if res.is_ok() {
+                                                        trace!("Health check future for {} \
+                                                                succeeded; continuing loop",
+                                                               service_group);
+                                                        Ok(Loop::Continue(state))
+                                                    } else {
+                                                        trace!("Health check future for {} \
+                                                                failed failed; continuing loop.",
+                                                               service_group);
+                                                        Ok(Loop::Continue(state))
+                                                    }
+                                                })
         })
     }
 }

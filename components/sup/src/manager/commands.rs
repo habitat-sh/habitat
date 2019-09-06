@@ -313,16 +313,14 @@ pub fn supervisor_depart(mgr: &ManagerState,
     }
 }
 
-pub fn service_status(mgr: &ManagerState,
-                      req: &mut CtlRequest,
-                      opts: protocol::ctl::SvcStatus)
-                      -> NetResult<()> {
-    let services_data = &mgr.gateway_state
-                            .read()
-                            .expect("GatewayState lock is poisoned")
-                            .services_data;
+/// # Locking (see locking.md)
+/// * `GatewayState::inner` (read)
+pub fn service_status_gsr(mgr: &ManagerState,
+                          req: &mut CtlRequest,
+                          opts: protocol::ctl::SvcStatus)
+                          -> NetResult<()> {
     let statuses: Vec<ServiceStatus> =
-        serde_json::from_str(&services_data).map_err(Error::ServiceDeserializationError)?;
+        serde_json::from_str(mgr.gateway_state.lock_gsr().services_data()).map_err(Error::ServiceDeserializationError)?;
 
     if let Some(ident) = opts.ident {
         for status in statuses {
