@@ -25,6 +25,7 @@ pub enum Error {
     APIClient(api_client::Error),
     ArgumentError(&'static str),
     ButterflyError(String),
+    CacheSslCertError(String),
     CannotParseBinlinkBinaryName(PathBuf),
     CannotParseBinlinkTarget(PathBuf),
     CannotRemoveDockerStudio,
@@ -74,6 +75,7 @@ impl fmt::Display for Error {
             Error::APIClient(ref e) => e.to_string(),
             Error::ArgumentError(ref e) => e.to_string(),
             Error::ButterflyError(ref e) => e.to_string(),
+            Error::CacheSslCertError(ref e) => format!("Cannot cache SSL_CERT_FILE: {}", e),
             Error::CannotParseBinlinkBinaryName(ref p) => {
                 format!("Cannot parse binlink binary name from {}.", p.display())
             }
@@ -185,6 +187,7 @@ impl error::Error for Error {
             Error::APIClient(ref err) => err.description(),
             Error::ArgumentError(_) => "There was an error parsing an error or with it's value",
             Error::ButterflyError(_) => "Butterfly has had an error",
+            Error::CacheSslCertError(_) => "Cannot cache SSL_CERT_FILE",
             Error::CannotParseBinlinkBinaryName(_) => "Cannot parse binlink binary name",
             Error::CannotParseBinlinkTarget(_) => "Cannot parse binlink target path",
             Error::CannotRemoveFromChannel(_) => {

@@ -1,5 +1,6 @@
 use crate::{command::studio::enter::{ARTIFACT_PATH_ENVVAR,
-                                     CERT_PATH_ENVVAR},
+                                     CERT_PATH_ENVVAR,
+                                     SSL_CERT_FILE_ENVVAR},
             common::ui::UI,
             error::{Error,
                     Result},
@@ -99,7 +100,8 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                             String::from("HAB_UPDATE_STRATEGY_FREQUENCY_MS"),
                             String::from("http_proxy"),
                             String::from("https_proxy"),
-                            String::from("RUST_LOG"),];
+                            String::from("RUST_LOG"),
+                            String::from("SSL_CERT_FILE"),];
 
     for (key, _) in env::vars() {
         if key.starts_with(HAB_STUDIO_SECRET) {
@@ -114,6 +116,10 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
         args.remove(index);
     }
 
+    // When a user sets SSL_CERT_FILE, we need to modify the absolute
+    // path to the file to reflect the location of the file inside the studio
+    update_ssl_cert_file_envvar(&mnt_prefix);
+
     // Windows containers do not use filesystem sharing for
     // local mounts
     if !using_windows_containers {
@@ -125,6 +131,23 @@ pub fn start_docker_studio(_ui: &mut UI, args: &[OsString]) -> Result<()> {
                   env_vars.iter(),
                   image,
                   using_windows_containers)
+}
+
+fn update_ssl_cert_file_envvar(mnt_prefix: &str) {
+    if let Ok(ssl_cert_file) = env::var(SSL_CERT_FILE_ENVVAR) {
+        if let Some(cert_file_name) = Path::new(&ssl_cert_file).file_name() {
+            if let Some(cert_file_name) = cert_file_name.to_str() {
+                // Don't use Path::join here in order to work around platform
+                // differences with paths on Windows with linux containers enabled
+                env::set_var(SSL_CERT_FILE_ENVVAR,
+                             format!("{}/{}/{}", mnt_prefix, CACHE_SSL_PATH, cert_file_name));
+            } else {
+                warn!("Unable to format {:?} for use inside studio", ssl_cert_file);
+            }
+        } else {
+            warn!("Invalid SSL_CERT_FILE value: {:?}", ssl_cert_file);
+        }
+    }
 }
 
 fn is_image_present(docker_cmd: &Path, image: &str) -> bool {
@@ -316,11 +339,17 @@ fn image_identifier(windows_base_tag: Option<&str>, target: target::PackageTarge
 #[cfg(test)]
 mod tests {
     use super::{image_identifier,
+                update_ssl_cert_file_envvar,
                 DOCKER_IMAGE,
                 DOCKER_WINDOWS_IMAGE};
     use crate::VERSION;
 
-    use crate::hcore::package::target;
+    use crate::{command::studio::enter::SSL_CERT_FILE_ENVVAR,
+                hcore::{fs::CACHE_SSL_PATH,
+                        package::target}};
+
+    use lazy_static::lazy_static;
+    habitat_common::locked_env_var!(SSL_CERT_FILE, lock_ssl_cert_file_env_var);
 
     #[test]
     fn retrieve_image_identifier() {
@@ -338,5 +367,33 @@ mod tests {
         assert_eq!(image_identifier(Some("ltsc2016"), target::X86_64_LINUX),
                    format!("{}-{}:{}-{}",
                            DOCKER_WINDOWS_IMAGE, "x86_64-windows", "ltsc2016", VERSION));
+    }
+
+    #[test]
+    fn update_ssl_cert_file_envvar_not_set() {
+        let mnt_prefix = "";
+        let env_var = lock_ssl_cert_file_env_var();
+        env_var.unset();
+
+        update_ssl_cert_file_envvar(mnt_prefix);
+        assert!(std::env::var(SSL_CERT_FILE_ENVVAR).is_err());
+    }
+
+    #[test]
+    fn update_ssl_cert_file_envvar_has_value() {
+        let mnt_prefix = "/some/prefix";
+        let key_name = "ssl-test-cert.pem";
+
+        let env_var = lock_ssl_cert_file_env_var();
+        env_var.set(format!("/path/to/{}", key_name));
+
+        update_ssl_cert_file_envvar(mnt_prefix);
+
+        // Don't use Path::join here because we format! the path above,
+        // in order to work around platform differences with paths on
+        // windows with linux containers enabled
+        let internal_cert_path = format!("{}/{}/{}", mnt_prefix, CACHE_SSL_PATH, key_name);
+
+        assert_eq!(std::env::var(SSL_CERT_FILE_ENVVAR), Ok(internal_cert_path));
     }
 }

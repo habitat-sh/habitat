@@ -36,6 +36,7 @@ pbr = "*"
 # and https://github.com/habitat-sh/habitat/issues/6852
 reqwest = "=0.9.17"
 retry = "*"
+same-file = "*"
 serde = "*"
 serde_derive = "*"
 serde_json = "*"

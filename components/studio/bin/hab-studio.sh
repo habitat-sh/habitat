@@ -288,7 +288,6 @@ subcommand_enter() {
   shift "$((OPTIND - 1))"
 
   trap cleanup_studio EXIT
-
   new_studio
   enter_studio "$@"
 }
@@ -882,6 +881,12 @@ chroot_env() {
     env="$env no_proxy=$(echo "$no_proxy" | $bb sed 's/, /,/g')"
   fi
 
+  if [ -n "${SSL_CERT_FILE:-}" ] \
+  && [ -z "${NO_MOUNT}" ] \
+  && [ -z "${NO_CERT_PATH}" ]; then 
+    env="$env SSL_CERT_FILE=${HAB_CACHE_CERT_PATH}/$($bb basename "$SSL_CERT_FILE")"
+  fi
+
   env="$env $(load_secrets)"
 
   echo "$env"
@@ -940,6 +945,7 @@ report_env_vars() {
 cleanup_studio() {
   kill_launcher
   chown_artifacts
+  chown_certs
   unmount_filesystems
 }
 

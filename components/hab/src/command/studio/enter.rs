@@ -1,7 +1,8 @@
 use std::{env,
           ffi::OsString,
           fs as stdfs,
-          path::PathBuf};
+          path::{Path,
+                 PathBuf}};
 
 use crate::{common::ui::UI,
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
@@ -9,15 +10,18 @@ use crate::{common::ui::UI,
                     fs}};
 
 use crate::{config,
-            error::Result,
+            error::{Error,
+                    Result},
             BLDR_URL_ENVVAR,
             CTL_SECRET_ENVVAR,
             ORIGIN_ENVVAR};
 
 use habitat_core::AUTH_TOKEN_ENVVAR;
+use same_file::is_same_file;
 
 pub const ARTIFACT_PATH_ENVVAR: &str = "ARTIFACT_PATH";
 pub const CERT_PATH_ENVVAR: &str = "CERT_PATH";
+pub const SSL_CERT_FILE_ENVVAR: &str = "SSL_CERT_FILE";
 
 const STUDIO_CMD: &str = "hab-studio";
 const STUDIO_CMD_ENVVAR: &str = "HAB_STUDIO_BINARY";
@@ -41,6 +45,27 @@ fn set_env_var_from_config(env_var: &str, config_val: Option<String>, sensitive:
             env::set_var(env_var, val);
         }
     }
+}
+
+fn cache_ssl_cert_file(cert_file: &str, cert_cache_dir: &Path) -> Result<()> {
+    let cert_path = Path::new(&cert_file);
+
+    let cert_filename = match cert_path.file_name() {
+        Some(cert_filename) => cert_filename,
+        None => return Err(Error::CacheSslCertError(format!("{:?} is not a file", &cert_file))),
+    };
+    let cache_file = cert_cache_dir.join(&cert_filename);
+
+    if cache_file.exists() && cert_path.exists() && is_same_file(&cache_file, &cert_path)? {
+        return Err(Error::CacheSslCertError("Source and destination certificate are the same \
+                                             file"
+                                                  .to_string()));
+    }
+
+    debug!("Caching SSL_CERT_FILE {:?} => {:?}", cert_file, cache_file);
+    stdfs::copy(cert_file, &cache_file)?;
+
+    Ok(())
 }
 
 pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
@@ -88,6 +113,13 @@ pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
         debug!("Creating ssl_path at: {}", ssl_path.display());
         stdfs::create_dir_all(&ssl_path)?;
     }
+
+    if let Ok(ssl_cert_file) = env::var(SSL_CERT_FILE_ENVVAR) {
+        if let Err(err) = cache_ssl_cert_file(&ssl_cert_file, &ssl_path) {
+            warn!("Unable to cache SSL_CERT_FILE: {}", err);
+        }
+    }
+
     inner::start(ui, args)
 }
 
@@ -270,5 +302,88 @@ mod inner {
         }
 
         true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::cache_ssl_cert_file;
+    use std::fs::File;
+    use tempfile::TempDir;
+
+    #[test]
+    fn cache_ssl_cert_file_caches_file() -> std::io::Result<()> {
+        let cert_name = "ssl-test-cert.pem";
+        let cert_cache_dir = TempDir::new()?.into_path();
+        let ssl_cert_dir = TempDir::new()?;
+        let ssl_cert_filepath = ssl_cert_dir.path().join(cert_name);
+        File::create(&ssl_cert_filepath)?;
+
+        cache_ssl_cert_file(&ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir).unwrap();
+        assert!(cert_cache_dir.join(cert_name).exists());
+
+        Ok(())
+    }
+
+    #[test]
+    fn cache_ssl_cert_file_replaces_already_cached() -> std::io::Result<()> {
+        let cert_name = "ssl-test-cert.pem";
+
+        let cert_cache_dir = TempDir::new()?.into_path();
+        let cached_cert = cert_cache_dir.join(&cert_name);
+        File::create(&cached_cert)?;
+
+        let ssl_cert_dir = TempDir::new()?;
+        let ssl_cert_filepath = ssl_cert_dir.path().join(&cert_name);
+        std::fs::write(&ssl_cert_filepath, "new cert from environment")?;
+
+        cache_ssl_cert_file(&ssl_cert_filepath.to_str().unwrap(), &cert_cache_dir).unwrap();
+
+        let contents = std::fs::read_to_string(&cached_cert)?;
+
+        assert_eq!(contents, "new cert from environment");
+
+        Ok(())
+    }
+    #[test]
+    fn cache_ssl_cert_file_invalid_file() -> std::io::Result<()> {
+        let cert_cache_dir = TempDir::new()?.into_path();
+
+        let non_existant_file_name = "i_shouldnt_exist";
+        let non_existant_file = TempDir::new()?.path().join(non_existant_file_name);
+
+        assert!(cache_ssl_cert_file(non_existant_file.to_str().unwrap(), &cert_cache_dir).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn cache_ssl_cert_file_cert_file_is_dir() -> std::io::Result<()> {
+        let cert_cache_dir = TempDir::new()?.into_path();
+        let ssl_cert_dir = TempDir::new()?.into_path();
+
+        assert!(cache_ssl_cert_file(ssl_cert_dir.to_str().unwrap(), &cert_cache_dir).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn cache_ssl_cert_file_cert_file_is_cached_file() -> std::io::Result<()> {
+        let cached_cert_dir = TempDir::new()?.into_path();
+        let cached_cert = cached_cert_dir.join("ssl-cert-file.pem");
+        File::create(&cached_cert)?;
+
+        assert!(cache_ssl_cert_file(cached_cert.to_str().unwrap(), &cached_cert_dir).is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn cache_ssl_cert_file_is_empty_string() -> std::io::Result<()> {
+        let cached_cert_dir = TempDir::new()?.into_path();
+
+        assert!(cache_ssl_cert_file("", &cached_cert_dir).is_err());
+
+        Ok(())
     }
 }
