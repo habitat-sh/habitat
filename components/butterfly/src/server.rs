@@ -38,9 +38,7 @@ use crate::{error::{Error,
                     RumorStore,
                     RumorStoreProxy,
                     RumorType},
-            swim::Ack,
-            trace::{Trace,
-                    TraceKind}};
+            swim::Ack};
 use habitat_common::{liveliness_checker,
                      FeatureFlag};
 use habitat_core::crypto::SymKey;
@@ -253,7 +251,6 @@ pub struct Server {
     departed:                 Arc<AtomicBool>,
     // These are all here for testing support
     pause:           Arc<AtomicBool>,
-    pub trace:       Arc<RwLock<Trace>>,
     swim_rounds:     Arc<AtomicIsize>,
     gossip_rounds:   Arc<AtomicIsize>,
     block_list:      Arc<RwLock<HashSet<String>>>,
@@ -281,7 +278,6 @@ impl Clone for Server {
                  dat_file:             self.dat_file.clone(),
                  departed:             self.departed.clone(),
                  pause:                self.pause.clone(),
-                 trace:                self.trace.clone(),
                  swim_rounds:          self.swim_rounds.clone(),
                  gossip_rounds:        self.gossip_rounds.clone(),
                  block_list:           self.block_list.clone(),
@@ -292,12 +288,11 @@ impl Clone for Server {
 
 impl Server {
     /// Create a new server, bound to the `addr`, hosting a particular `member`, and with a
-    /// `Trace` struct, a ring_key if you want encryption on the wire, and an optional server name.
+    /// ring_key if you want encryption on the wire, and an optional server name.
     #[allow(clippy::too_many_arguments)]
     pub fn new(swim_addr: SocketAddr,
                gossip_addr: SocketAddr,
                mut member: Member,
-               trace: Trace,
                ring_key: Option<SymKey>,
                name: Option<String>,
                // TODO (CM): having data_path as optional is only something
@@ -345,7 +340,6 @@ impl Server {
                             dat_file:             None,
                             departed:             Arc::new(AtomicBool::new(false)),
                             pause:                Arc::new(AtomicBool::new(false)),
-                            trace:                Arc::new(RwLock::new(trace)),
                             swim_rounds:          Arc::new(AtomicIsize::new(0)),
                             gossip_rounds:        Arc::new(AtomicIsize::new(0)),
                             block_list:           Arc::new(RwLock::new(HashSet::new())),
@@ -530,9 +524,6 @@ impl Server {
     /// Whether this server is currently paused.
     pub fn paused(&self) -> bool { self.pause.load(Ordering::Relaxed) }
 
-    /// Return the swim address we are bound to
-    fn swim_addr(&self) -> &SocketAddr { &self.swim_addr }
-
     /// Return the port number of the swim socket we are bound to.
     fn swim_port(&self) -> u16 { self.swim_addr.port() }
 
@@ -554,19 +545,8 @@ impl Server {
     /// * `MemberList::entries` (write)
     pub fn insert_member_mlw(&self, member: Member, health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
-        // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-        // of just how the logic goes. The value of the trace is really high, though, so we deal
-        // with it as best we can, with our head held high.
         let member_id = member.id.clone();
-        let trace_incarnation = member.incarnation;
-        let trace_health = health;
         if self.member_list.insert_mlw(member, health) {
-            trace_it!(MEMBERSHIP: self,
-                      TraceKind::MemberUpdate,
-                      member_id,
-                      trace_incarnation,
-                      trace_health);
-
             // Purge "heat" information for a member that's
             // gone. Purging doesn't remove Member rumor information,
             // though, since that's how we let others know this member
@@ -594,11 +574,6 @@ impl Server {
                 me.mark_departed();
 
                 self.member_list.set_departed_mlw(&self.member_id);
-                trace_it!(MEMBERSHIP: self,
-                          TraceKind::MemberUpdate,
-                          self.member_id.clone(),
-                          me.incarnation(),
-                          Health::Departed);
             }
             // We need to mark this as "hot" in order to propagate it.
             //
@@ -634,6 +609,7 @@ impl Server {
     /// * `MemberList::entries` (write)
     fn insert_member_from_rumor_mlw(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
+
         if member.id == self.member_id() && health != Health::Alive {
             let mut me = self.member.write().expect("Member lock is poisoned");
             if member.incarnation >= me.incarnation() {
@@ -641,20 +617,10 @@ impl Server {
                 health = Health::Alive;
             }
         }
-        // NOTE: This sucks so much right here. Check out how we allocate no matter what, because
-        // of just how the logic goes. The value of the trace is really high, though, so we carry
-        // on, knowing life is still worth living.
+
         let member_id = member.id.clone();
-        let trace_incarnation = member.incarnation;
-        let trace_health = health;
 
         if self.member_list.insert_mlw(member, health) {
-            trace_it!(MEMBERSHIP: self,
-                      TraceKind::MemberUpdate,
-                      member_id,
-                      trace_incarnation,
-                      trace_health);
-
             if member_id != self.member_id() && health == Health::Departed {
                 self.rumor_heat.purge(&member_id);
             }
@@ -1607,8 +1573,7 @@ mod tests {
         use crate::{member::Member,
                     server::{timing::Timing,
                              Server,
-                             Suitability},
-                    trace::Trace};
+                             Suitability}};
         use std::{fs::File,
                   io::prelude::*,
                   net::{IpAddr,
@@ -1650,7 +1615,6 @@ mod tests {
             Server::new(swim_listen,
                         gossip_listen,
                         member,
-                        Trace::default(),
                         None,
                         None,
                         None,
@@ -1683,7 +1647,6 @@ mod tests {
             Server::new(swim_listen,
                         gossip_listen,
                         member,
-                        Trace::default(),
                         None,
                         None,
                         Some(tmpdir.path()),

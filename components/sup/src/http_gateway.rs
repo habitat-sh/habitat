@@ -476,8 +476,7 @@ mod tests {
     use habitat_butterfly::{member::Member,
                             server::{Server,
                                      ServerProxy,
-                                     Suitability},
-                            trace::Trace};
+                                     Suitability}};
     use serde_json;
     use std::{fs::File,
               io::Read,
@@ -565,7 +564,6 @@ mod tests {
             Server::new(swim_listen,
                         gossip_listen,
                         member,
-                        Trace::default(),
                         None,
                         None,
                         None,

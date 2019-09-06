@@ -12,8 +12,7 @@ use crate::{member::{Health,
             swim::{Ack,
                    Ping,
                    PingReq,
-                   Swim},
-            trace::TraceKind};
+                   Swim}};
 use habitat_common::liveliness_checker;
 use habitat_core::util::ToI64;
 use prometheus::{HistogramTimer,
@@ -174,15 +173,11 @@ fn probe_mlw(server: &Server,
     let mut pr_timer: Option<HistogramTimer> = None;
     let addr = member.swim_socket_address();
 
-    trace_it!(PROBE: server, TraceKind::ProbeBegin, &member.id, addr);
-
     // Ping the member, and wait for the ack.
     SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
     ping_mlr(server, socket, &member, addr, None);
 
     if recv_ack_mlw(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
-        trace_it!(PROBE: server, TraceKind::ProbeAckReceived, &member.id, addr);
-        trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
         SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
         pa_timer.observe_duration();
         return;
@@ -195,10 +190,6 @@ fn probe_mlw(server: &Server,
 
     server.member_list
           .with_pingreq_targets_mlr(server.member_id(), &member.id, |pingreq_target| {
-              trace_it!(PROBE: server,
-                        TraceKind::ProbePingReq,
-                        &pingreq_target.id,
-                        &pingreq_target.address);
               SWIM_PROBES_SENT.with_label_values(&["pingreq"]).inc();
               pr_timer = Some(SWIM_PROBE_DURATION.with_label_values(&["pingreq/ack"])
                                                  .start_timer());
@@ -207,14 +198,11 @@ fn probe_mlw(server: &Server,
 
     if recv_ack_mlw(server, rx_inbound, timing, &member, addr, AckFrom::PingReq) {
         SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
-        trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
     } else {
         // We mark as suspect when we fail to get a response from the PingReq. That moves us
         // into the suspicion phase, where anyone marked as suspect has a certain number of
         // protocol periods to recover.
         warn!("Marking {} as Suspect", &member.id);
-        trace_it!(PROBE: server, TraceKind::ProbeSuspect, &member.id, addr);
-        trace_it!(PROBE: server, TraceKind::ProbeComplete, &member.id, addr);
         server.insert_member_mlw(member, Health::Suspect);
         SWIM_PROBES_SENT.with_label_values(&["pingreq/failure"])
                         .inc();
@@ -368,11 +356,6 @@ fn pingreq(server: &Server, // TODO: eliminate this arg
                    e)
         }
     }
-    trace_it!(SWIM: server,
-              TraceKind::SendPingReq,
-              &pingreq_target.id,
-              addr,
-              &swim);
 }
 
 /// Send a Ping.
@@ -417,12 +400,10 @@ pub fn ping_mlr(server: &Server,
         }
         Err(e) => error!("Failed Ping to {}: {}", addr, e),
     }
-    trace_it!(SWIM: server, TraceKind::SendPing, &target.id, addr, &swim);
 }
 
 pub fn ping(server: &Server,
             socket: &UdpSocket,
-            target: &Member,
             addr: SocketAddr,
             forward_to: Option<&Member>,
             swim: &Swim) {
@@ -454,16 +435,10 @@ pub fn ping(server: &Server,
         }
         Err(e) => error!("Failed Ping to {}: {}", addr, e),
     }
-    trace_it!(SWIM: server, TraceKind::SendPing, &target.id, addr, &swim);
 }
 
 /// Forward an ack on.
 pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, msg: Ack) {
-    trace_it!(SWIM: server,
-              TraceKind::SendForwardAck,
-              &msg.from.id,
-              addr,
-              &msg);
     let member_id = msg.from.id.clone();
     let swim: Swim = msg.into();
     let bytes = match swim.encode() {
@@ -524,5 +499,4 @@ pub fn ack_mlr(server: &Server,
         }
         Err(e) => error!("Failed ack to {}@{}: {}", member_id, addr, e),
     }
-    trace_it!(SWIM: server, TraceKind::SendAck, &target.id, addr, &swim);
 }

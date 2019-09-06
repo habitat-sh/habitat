@@ -11,9 +11,7 @@ use habitat_butterfly::{error::Error,
                                 Election},
                         server::{timing::Timing,
                                  Server,
-                                 Suitability},
-                        trace::Trace,
-                        trace_it};
+                                 Suitability}};
 use habitat_core::{crypto::keys::sym_key::SymKey,
                    package::{Identifiable,
                              PackageIdent},
@@ -58,7 +56,6 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
     let mut server = Server::new(listen_swim,
                                  listen_gossip,
                                  member,
-                                 Trace::default(),
                                  ring_key,
                                  Some(String::from(name)),
                                  None,
@@ -125,13 +122,11 @@ impl SwimNet {
 
     pub fn connect(&mut self, from_entry: usize, to_entry: usize) {
         let to = member_from_server(&self.members[to_entry]);
-        trace_it!(TEST: &self.members[from_entry], format!("Connected {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         self.members[from_entry].insert_member_mlw(to, Health::Alive);
     }
 
     // Fully mesh the network
     pub fn mesh(&mut self) {
-        trace_it!(TEST_NET: self, "Mesh");
         for pos in 0..self.members.len() {
             let mut to_mesh: Vec<Member> = Vec::new();
             for x_pos in 0..self.members.len() {
@@ -153,7 +148,6 @@ impl SwimNet {
         let to = self.members
                      .get(to_entry)
                      .expect("Asked for a network member who is out of bounds");
-        trace_it!(TEST: &self.members[from_entry], format!("Blocked {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.add_to_block_list(String::from(to.member_id()));
     }
 
@@ -164,7 +158,6 @@ impl SwimNet {
         let to = self.members
                      .get(to_entry)
                      .expect("Asked for a network member who is out of bounds");
-        trace_it!(TEST: &self.members[from_entry], format!("Unblocked {} {}", self.members[to_entry].name(), self.members[to_entry].member_id()));
         from.remove_from_block_list(to.member_id());
     }
 
@@ -370,12 +363,10 @@ impl SwimNet {
         loop {
             if let Some(real_health) = self.health_of_mlr(from_entry, to_check) {
                 if real_health == health {
-                    trace_it!(TEST: &self.members[from_entry], format!("Health {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                     return true;
                 }
             }
             if self.check_rounds(&rounds_in) {
-                trace_it!(TEST: &self.members[from_entry], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                 println!("MEMBERS: {:#?}", self.members);
                 println!("Failed health check for\n***FROM***{:#?}\n***TO***\n{:#?}",
                          self.members[from_entry], self.members[to_check]);
@@ -391,23 +382,16 @@ impl SwimNet {
         loop {
             let network_health = self.network_health_of_mlr(to_check);
             if network_health.iter().all(|&x| x == Some(health)) {
-                trace_it!(TEST_NET: self,
-                          format!("Health {} {} as {}",
-                                  self.members[to_check].name(),
-                                  self.members[to_check].member_id(),
-                                  health));
                 return true;
             } else if self.check_rounds(&rounds_in) {
                 for (i, some_health) in network_health.iter().enumerate() {
                     match some_health {
                         Some(ref health) => {
                             println!("{}: {:?}", i, health);
-                            trace_it!(TEST: &self.members[i], format!("Health failed {} {} as {}", self.members[to_check].name(), self.members[to_check].member_id(), health));
                         }
                         None => {}
                     }
                 }
-                // println!("Failed network health check dump: {:#?}", self);
                 return false;
             }
         }
