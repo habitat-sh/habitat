@@ -1,11 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.53 -->
+<!-- latest_release 0.84.54 -->
+## [fake-0.84.54](https://github.com/habitat-sh/habitat/tree/fake-0.84.54) (2019-09-06)
+
+#### Merged Pull Requests
+- Copy SSL_CERT_FILE to studio internal and persist env var [#6909](https://github.com/habitat-sh/habitat/pull/6909) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
+## [fake-0.84.54](https://github.com/habitat-sh/habitat/tree/fake-0.84.54) (2019-09-06)
+
+#### Merged Pull Requests
+- Add e2e test to ensure studio auto-installs [#6781](https://github.com/habitat-sh/habitat/pull/6781) ([smacfarlane](https://github.com/smacfarlane))
+
 ## [fake-0.84.53](https://github.com/habitat-sh/habitat/tree/fake-0.84.53) (2019-09-06)
 
 #### Merged Pull Requests
 - Remove the trace_it! macro and associated functionality. [#6936](https://github.com/habitat-sh/habitat/pull/6936) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.84.52](https://github.com/habitat-sh/habitat/tree/fake-0.84.52) (2019-09-05)
 
