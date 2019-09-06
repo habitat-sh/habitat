@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.52 -->
+<!-- latest_release 0.84.53 -->
+## [fake-0.84.53](https://github.com/habitat-sh/habitat/tree/fake-0.84.53) (2019-09-06)
+
+#### Merged Pull Requests
+- Remove the trace_it! macro and associated functionality. [#6936](https://github.com/habitat-sh/habitat/pull/6936) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.84.52](https://github.com/habitat-sh/habitat/tree/fake-0.84.52) (2019-09-05)
 
 #### Merged Pull Requests
 - Remove myself from www as a code owner [#6935](https://github.com/habitat-sh/habitat/pull/6935) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.84.51](https://github.com/habitat-sh/habitat/tree/fake-0.84.51) (2019-09-04)
 
