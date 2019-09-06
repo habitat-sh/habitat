@@ -1,10 +1,9 @@
+use crate::btest;
 use habitat_butterfly::{member::Health,
                         rumor::{election::ElectionStatus,
                                 ConstIdRumor as _,
                                 Election}};
 use habitat_common::FeatureFlag;
-
-use crate::btest;
 
 #[test]
 fn three_members_run_election() {

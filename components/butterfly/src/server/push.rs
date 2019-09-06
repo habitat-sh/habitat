@@ -11,7 +11,6 @@ use crate::{member::{Member,
                     RumorType},
             server::{timing::Timing,
                      Server},
-            trace::TraceKind,
             ZMQ_CONTEXT};
 use habitat_common::liveliness_checker;
 use habitat_core::util::ToI64;
@@ -167,10 +166,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                     Some(rumor) => rumor,
                     None => continue 'rumorlist,
                 };
-                trace_it!(GOSSIP: &server,
-                          TraceKind::SendRumor,
-                          &member.id,
-                          &send_rumor);
                 match send_rumor.encode() {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -185,10 +180,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::Service => {
-                // trace_it!(GOSSIP: &server,
-                //           TraceKind::SendRumor,
-                //           &member.id,
-                //           &send_rumor);
                 match server.service_store.lock_rsr().encode_rumor_for(&rumor_key) {
                     Ok(bytes) => bytes,
                     Err(e) => {
@@ -203,10 +194,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::ServiceConfig => {
-                // trace_it!(GOSSIP: &server,
-                //           TraceKind::SendRumor,
-                //           &member.id,
-                //           &send_rumor);
                 match server.service_config_store
                             .lock_rsr()
                             .encode_rumor_for(&rumor_key)
@@ -224,10 +211,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::ServiceFile => {
-                // trace_it!(GOSSIP: &server,
-                //           TraceKind::SendRumor,
-                //           &member.id,
-                //           &send_rumor);
                 match server.service_file_store
                             .lock_rsr()
                             .encode_rumor_for(&rumor_key)
@@ -262,10 +245,6 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
                 }
             }
             RumorType::Election => {
-                // trace_it!(GOSSIP: &server,
-                //           TraceKind::SendRumor,
-                //           &member.id,
-                //           &send_rumor);
                 match server.election_store
                             .lock_rsr()
                             .encode_rumor_for(&rumor_key)

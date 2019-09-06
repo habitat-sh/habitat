@@ -1,14 +1,11 @@
 use env_logger;
-
+use habitat_butterfly::{member,
+                        server::{self,
+                                 Suitability}};
 use std::{env,
           net::SocketAddr,
           thread,
           time::Duration};
-
-use habitat_butterfly::{member,
-                        server::{self,
-                                 Suitability},
-                        trace};
 
 #[derive(Debug)]
 struct ZeroSuitability;
@@ -38,7 +35,6 @@ fn main() {
     let mut server = server::Server::new(bind_to_addr,
                                          gossip_bind_addr,
                                          member,
-                                         trace::Trace::default(),
                                          None,
                                          None,
                                          None,

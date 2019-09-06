@@ -10,8 +10,7 @@ use crate::{member::Health,
                    Ping,
                    PingReq,
                    Swim,
-                   SwimKind},
-            trace::TraceKind};
+                   SwimKind}};
 use habitat_common::liveliness_checker;
 use habitat_core::util::ToI64;
 use prometheus::{IntCounterVec,
@@ -148,11 +147,6 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
 fn process_pingreq_mlr(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: PingReq) {
-    trace_it!(SWIM: server,
-              TraceKind::RecvPingReq,
-              &msg.from.id,
-              addr,
-              &msg);
     if let Some(target) = server.member_list.get_cloned_mlr(&msg.target.id) {
         msg.from.address = addr.ip().to_string();
         let ping_msg = Ping { membership: vec![],
@@ -163,7 +157,6 @@ fn process_pingreq_mlr(server: &Server, socket: &UdpSocket, addr: SocketAddr, mu
         // pingreq from
         outbound::ping(server,
                        socket,
-                       &target,
                        target.swim_socket_address(),
                        Some(&msg.from),
                        &swim);
@@ -181,7 +174,6 @@ fn process_ack_mlw(server: &Server,
                    tx_outbound: &AckSender,
                    addr: SocketAddr,
                    mut msg: Ack) {
-    trace_it!(SWIM: server, TraceKind::RecvAck, &msg.from.id, addr, &msg);
     trace!("Ack from {}@{}", msg.from.id, addr);
     if msg.forward_to.is_some() && *server.member_id != msg.forward_to.as_ref().unwrap().id {
         let (forward_to_addr, from_addr) = {
@@ -220,7 +212,6 @@ fn process_ack_mlw(server: &Server,
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
 fn process_ping_mlw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
-    trace_it!(SWIM: server, TraceKind::RecvPing, &msg.from.id, addr, &msg);
     outbound::ack_mlr(server, socket, &msg.from, addr, msg.forward_to);
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();

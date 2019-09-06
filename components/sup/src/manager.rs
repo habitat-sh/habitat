@@ -50,8 +50,7 @@ use futures::{future,
 use habitat_butterfly::{member::Member,
                         server::{timing::Timing,
                                  ServerProxy,
-                                 Suitability},
-                        trace::Trace};
+                                 Suitability}};
 use habitat_common::{liveliness_checker,
                      outputln,
                      types::{GossipListenAddr,
@@ -478,7 +477,6 @@ impl Manager {
         let server = habitat_butterfly::Server::new(sys.gossip_listen(),
                                                     sys.gossip_listen(),
                                                     member,
-                                                    Trace::default(),
                                                     cfg.ring_key,
                                                     None,
                                                     Some(&fs_cfg.data_path),

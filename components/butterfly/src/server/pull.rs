@@ -5,7 +5,6 @@
 use crate::{rumor::{RumorEnvelope,
                     RumorKind},
             server::Server,
-            trace::TraceKind,
             ZMQ_CONTEXT};
 use habitat_common::liveliness_checker;
 use habitat_core::util::ToI64;
@@ -113,7 +112,6 @@ fn run_loop(server: &Server) -> ! {
             continue 'recv;
         }
 
-        trace_it!(GOSSIP: server, TraceKind::RecvRumor, &proto.from_id, &proto);
         match proto.kind {
             RumorKind::Membership(membership) => {
                 server.insert_member_from_rumor_mlw(membership.member, membership.health);

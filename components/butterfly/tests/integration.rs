@@ -5,8 +5,7 @@ mod rumor;
 
 use common as btest;
 use habitat_butterfly::{self,
-                        member::Health,
-                        trace_it};
+                        member::Health};
 
 #[test]
 fn two_members_meshed_confirm_one_member() {
@@ -14,8 +13,6 @@ fn two_members_meshed_confirm_one_member() {
     net.mesh();
     assert_wait_for_health_of_mlr!(net, 0, 1, Health::Alive);
     assert_wait_for_health_of_mlr!(net, 1, 0, Health::Alive);
-
-    trace_it!(TEST: &net[0], "Paused");
     net[0].pause();
     assert_wait_for_health_of_mlr!(net, 1, 0, Health::Suspect);
     assert_wait_for_health_of_mlr!(net, 1, 0, Health::Confirmed);
@@ -25,7 +22,6 @@ fn two_members_meshed_confirm_one_member() {
 fn six_members_meshed_confirm_one_member() {
     let mut net = btest::SwimNet::new(6);
     net.mesh();
-    trace_it!(TEST: &net[0], "Paused");
     net[0].pause();
     assert_wait_for_health_of_mlr!(net, 0, Health::Confirmed);
 }
@@ -33,7 +29,6 @@ fn six_members_meshed_confirm_one_member() {
 #[test]
 fn six_members_meshed_partition_one_node_from_another_node_remains_alive() {
     let mut net = btest::SwimNet::new(6);
-    trace_it!(TEST_NET: net, "Mesh");
     net.mesh();
     net.block(0, 1);
     net.wait_for_rounds(2);
@@ -120,9 +115,7 @@ fn six_members_unmeshed_allows_graceful_departure() {
     net.connect(3, 4);
     net.connect(4, 5);
     assert_wait_for_health_of_mlr!(net, [0..6, 0..6], Health::Alive);
-    trace_it!(TEST: &net[0], "Departing");
     net[0].set_departed_mlw();
-    trace_it!(TEST: &net[0], "Paused");
     net[0].pause();
     assert_wait_for_health_of_mlr!(net, 0, Health::Departed);
 }
