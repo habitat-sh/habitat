@@ -74,14 +74,14 @@ use serde;
 use crate::{error::Error,
             util};
 
-macro_rules! supported_package_targets {
+macro_rules! package_targets {
     (
         $(
             $(#[$docs:meta])*
             ($name:expr, $variant:ident, $konst:ident, $target_arch:expr, $target_os:expr);
         )+
     ) => {
-        const SUPPORTED_PACKAGE_TARGETS: &'static [PackageTarget] = &[
+        const PACKAGE_TARGETS: &'static [PackageTarget] = &[
             $(
                 #[cfg(feature = $name)]
                 PackageTarget(Type::$variant),
@@ -173,7 +173,7 @@ macro_rules! supported_package_targets {
                  Current compiletime supported package targets are: [{}]. \
                  If you see a supported package target but still see this message, then \
                  the PackageTarget::active_package_target() function needs to be updated.",
-                SUPPORTED_PACKAGE_TARGETS
+                PACKAGE_TARGETS
                     .iter()
                     .map(|t| t.0.as_str())
                     .collect::<Vec<&str>>()
@@ -227,9 +227,9 @@ macro_rules! supported_package_targets {
 // Generates an `enum` called `Type` which has a variant for each and every explicitly supported
 // package target type. A public constant for each supported target is created containing full
 // documentation. An internal constant is also generated containing all supported `PackageTarget`
-// types. This constant is exposed via a `PackageTarget::supported_targets` function. Finally, a
-// function called `active_package_target` is also generated which determines the package target
-// for the compiled version of this code.
+// types. This constant is exposed via a `PackageTarget::targets` function. Finally, a function
+// called `active_package_target` is also generated which determines the package target for the
+// compiled version of this code.
 //
 // Adding a new target entry below will allow new package targets to be supported by any code
 // consuming this crate.
@@ -256,7 +256,7 @@ macro_rules! supported_package_targets {
 // much as possible if more than one installed package target is present on the same system. Again,
 // the third and fourth values are used by the Rust compiler at build time and never exposed in
 // code at runtime.
-supported_package_targets! {
+package_targets! {
     /// Represents a [XNU kernel]-based system (more commonly referred to as [Darwin] or [macOS])
     /// running on a [64-bit] version of the [x86][x] [instruction set architecture][isa], commonly
     /// known as [x86_64].
@@ -307,7 +307,8 @@ supported_package_targets! {
     /// [x86_64]: https://en.wikipedia.org/wiki/X86-64
     ("x86_64-windows", X86_64_Windows, X86_64_WINDOWS, "x86_64", "windows");
 
-    /// Represents a [Linux kernel]-based system running on an [ARM Architecture processor][arm-arch].
+    /// **UNSUPPORTED TARGET** Represents a [Linux kernel]-based system running on an
+    /// [ARM Architecture processor][arm-arch].
     ///
     /// [Linux kernel]: https://en.wikipedia.org/wiki/Linux_kernel
     /// [arm-arch]: https://en.wikipedia.org/wiki/ARM_architecture
@@ -402,19 +403,16 @@ impl PackageTarget {
     /// use habitat_core::package::PackageTarget;
     ///
     /// // The iterator allows the caller to use the result directly in a loop
-    /// for target in PackageTarget::supported_targets() {
+    /// for target in PackageTarget::targets() {
     ///     println!("Supported target: {}", target);
     /// }
     ///
     /// // Alternatively, the iterator can be chained to perform more sophisticated
     /// // transformations
-    /// let targets: Vec<_> = PackageTarget::supported_targets().map(|t| t.as_ref())
-    ///                                                         .collect();
+    /// let targets: Vec<_> = PackageTarget::targets().map(|t| t.as_ref()).collect();
     /// println!("All supported targets: [{}]", targets.join(", "));
     /// ```
-    pub fn supported_targets() -> ::std::slice::Iter<'static, PackageTarget> {
-        SUPPORTED_PACKAGE_TARGETS.iter()
-    }
+    pub fn targets() -> ::std::slice::Iter<'static, PackageTarget> { PACKAGE_TARGETS.iter() }
 }
 
 impl fmt::Display for PackageTarget {
