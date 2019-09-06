@@ -1027,12 +1027,7 @@ impl Manager {
                                             &self.butterfly.service_config_store,
                                             &self.butterfly.service_file_store);
 
-            if self.check_for_changed_services() {
-                self.persist_state_rsr_mlr_gsw();
-            }
-
-            if self.census_ring.changed() {
-                // TODO: combine with above?
+            if self.check_for_changed_services() || self.census_ring.changed() {
                 self.persist_state_rsr_mlr_gsw();
             }
 
