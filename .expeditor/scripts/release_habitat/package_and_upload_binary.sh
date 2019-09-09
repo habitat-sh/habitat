@@ -82,23 +82,22 @@ else
 fi
 
 echo "Compressing 'hab' binary"
-(cd "$build_dir"
-  case "$BUILD_PKG_TARGET" in
-  *-linux | *-linux-kernel2)
-      pkg_artifact="$tmp_root/results/${archive_name}.tar.gz"
-      tarball="$basename --suffix=".gz" "${pkg_artifact}""
-      hab pkg exec core/tar tar cf "$tarball" "$(basename "$pkg_dir")"
-      hab pkg exec core/gzip gzip -9 -c "$tarball" > "$pkg_artifact"
-      ;;
-  *-darwin | *-windows)
-      pkg_artifact="$tmp_root/results/${archive_name}.zip"
-      hab pkg exec core/zip zip -9 -r "$pkg_artifact" "$(basename "$pkg_dir")"
-      ;;
-  *)
-      exit_with "$target_hart has unknown TARGET=$BUILD_PKG_TARGET" 3
-      ;;
-  esac
-)
+case "$BUILD_PKG_TARGET" in
+*-linux | *-linux-kernel2)
+    pkg_artifact="$tmp_root/results/${archive_name}.tar.gz"
+    tarball="$(basename --suffix=".gz") ${pkg_artifact}"
+    hab pkg exec core/tar tar cf "$tarball" "$build_dir/$(basename "$pkg_dir")"
+    hab pkg exec core/gzip gzip -9 -c "$tarball" > "$build_dir/$pkg_artifact"
+    ;;
+*-darwin | *-windows)
+    pkg_artifact="$tmp_root/results/${archive_name}.zip"
+    hab pkg exec core/zip zip -9 -r "$pkg_artifact" "$build_dir/$(basename "$pkg_dir")"
+    ;;
+*)
+    exit_with "$target_hart has unknown TARGET=$BUILD_PKG_TARGET" 3
+    ;;
+esac
+
 # Generate our shasum
 (cd "$(dirname "$pkg_artifact")"
   sha256sum "$(basename "$pkg_artifact")" > "${pkg_artifact}.sha256sum"
@@ -106,11 +105,11 @@ echo "Compressing 'hab' binary"
 
 # Sign our artifact
 (cd "$(dirname "$pkg_artifact")"
-gpg --armor \
-  --digest-algo sha256 \
-  --default-key 2940ABA983EF826A \
-  --output "$(basename "$pkg_artifact").asc" \
-  --detach-sign "$(basename "$pkg_artifact")"
+  gpg --armor \
+    --digest-algo sha256 \
+    --default-key 2940ABA983EF826A \
+    --output "$(basename "$pkg_artifact").asc" \
+    --detach-sign "$(basename "$pkg_artifact")"
 )
 
 # Name of the file to upload
