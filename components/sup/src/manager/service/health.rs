@@ -276,7 +276,7 @@ impl State {
                                                         Ok(Loop::Continue(state))
                                                     } else {
                                                         trace!("Health check future for {} \
-                                                                failed failed; continuing loop.",
+                                                                failed; continuing loop.",
                                                                service_group);
                                                         Ok(Loop::Continue(state))
                                                     }
