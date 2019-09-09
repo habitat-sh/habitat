@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.55 -->
+<!-- latest_release 0.84.56 -->
+## [fake-0.84.56](https://github.com/habitat-sh/habitat/tree/fake-0.84.56) (2019-09-09)
+
+#### Merged Pull Requests
+- Add healthcheck results to event stream [#6905](https://github.com/habitat-sh/habitat/pull/6905) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
 ## [fake-0.84.55](https://github.com/habitat-sh/habitat/tree/fake-0.84.55) (2019-09-09)
 
 #### Merged Pull Requests
 - Fix typo in &#39;type&#39; parameter for command &#39;hab origin key export&#39; [#6934](https://github.com/habitat-sh/habitat/pull/6934) ([sirajrauff](https://github.com/sirajrauff))
-<!-- latest_release -->
 
 ## [fake-0.84.54](https://github.com/habitat-sh/habitat/tree/fake-0.84.54) (2019-09-06)
 
