@@ -342,22 +342,80 @@ pub struct ManagerState {
     /// The configuration used to instantiate this Manager instance
     pub cfg: ManagerConfig,
     pub services: Arc<RwLock<HashMap<PackageIdent, Service>>>,
-    pub gateway_state: Arc<RwLock<GatewayState>>,
+    pub gateway_state: Arc<sync::GatewayState>,
 }
 
-/// All the data that is ultimately served from the Supervisor's HTTP
-/// gateway.
-#[derive(Debug, Default)]
-pub struct GatewayState {
-    /// JSON returned by the /census endpoint
-    pub census_data: String,
-    /// JSON returned by the /butterfly endpoint
-    pub butterfly_data: String,
-    /// JSON returned by the /services endpoint
-    pub services_data: String,
-    /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
-    /// endpoint
-    pub health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
+pub(crate) mod sync {
+    use super::*;
+    use habitat_common::sync::{Lock,
+                               ReadGuard,
+                               WriteGuard};
+
+    pub struct GatewayStateReadGuard<'a>(ReadGuard<'a, GatewayStateInner>);
+
+    impl<'a> GatewayStateReadGuard<'a> {
+        fn new(lock: &'a Lock<GatewayStateInner>) -> Self { Self(lock.read()) }
+
+        pub fn butterfly_data(&self) -> &str { &self.0.butterfly_data }
+
+        pub fn census_data(&self) -> &str { &self.0.census_data }
+
+        pub fn services_data(&self) -> &str { &self.0.services_data }
+
+        pub fn health_of(&self, service_group: &ServiceGroup) -> Option<HealthCheckResult> {
+            self.0.health_check_data.get(service_group).copied()
+        }
+    }
+
+    pub struct GatewayStateWriteGuard<'a>(WriteGuard<'a, GatewayStateInner>);
+
+    impl<'a> GatewayStateWriteGuard<'a> {
+        fn new(lock: &'a Lock<GatewayStateInner>) -> Self { Self(lock.write()) }
+
+        pub fn set_census_data(&mut self, new_data: String) { self.0.census_data = new_data }
+
+        pub fn set_butterfly_data(&mut self, new_data: String) { self.0.butterfly_data = new_data }
+
+        pub fn set_services_data(&mut self, new_data: String) { self.0.services_data = new_data }
+
+        pub fn remove(&mut self, service_group: &ServiceGroup) {
+            self.0.health_check_data.remove(service_group);
+        }
+
+        pub fn set_health_of(&mut self, service_group: ServiceGroup, value: HealthCheckResult) {
+            self.0.health_check_data.insert(service_group, value);
+        }
+    }
+
+    /// All the data that is ultimately served from the Supervisor's HTTP
+    /// gateway.
+    #[derive(Debug, Default)]
+    pub struct GatewayState {
+        inner: Lock<GatewayStateInner>,
+    }
+
+    impl GatewayState {
+        #[must_use]
+        pub fn lock_gsr(&self) -> GatewayStateReadGuard { GatewayStateReadGuard::new(&self.inner) }
+
+        #[must_use]
+        pub fn lock_gsw(&self) -> GatewayStateWriteGuard {
+            GatewayStateWriteGuard::new(&self.inner)
+        }
+    }
+
+    #[derive(Debug, Default)]
+    struct GatewayStateInner {
+        /// JSON returned by the /census endpoint
+        census_data: String,
+        /// JSON returned by the /butterfly endpoint
+        butterfly_data: String,
+        /// JSON returned by the /services endpoint
+        services_data: String,
+        /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
+        /// endpoint
+        health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
+    }
 }
 
 pub struct Manager {
@@ -525,8 +583,7 @@ impl Manager {
 
         Ok(Manager { state: Arc::new(ManagerState { cfg: cfg_static,
                                                     services,
-                                                    gateway_state:
-                                                        Arc::new(RwLock::new(GatewayState::default())) }),
+                                                    gateway_state: Arc::default() }),
                      self_updater,
                      updater: Arc::new(Mutex::new(ServiceUpdater::new(server.clone()))),
                      census_ring: CensusRing::new(sys.member_id.clone()),
@@ -711,10 +768,11 @@ impl Manager {
     /// * `RumorStore::list` (write)
     /// * `MemberList::initial_members` (write)
     /// * `MemberList::entries` (write)
+    /// * `GatewayState::inner` (write)
     #[allow(clippy::cognitive_complexity)]
-    pub fn run_rsw_imlw_mlw(mut self,
-                            svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
-                            -> Result<()> {
+    pub fn run_rsw_imlw_mlw_gsw(mut self,
+                                svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
+                                -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
         let mut next_cpu_measurement = SteadyTime::now();
@@ -745,13 +803,13 @@ impl Manager {
 
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
-        self.maybe_spawn_service_futures_rsw_mlw();
+        self.maybe_spawn_service_futures_rsw_mlw_gsw();
 
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
         self.butterfly.start_rsw_mlw(&Timing::default())?;
         debug!("gossip-listener started");
-        self.persist_state_rsr_mlr();
+        self.persist_state_rsr_mlr_gsw();
         let http_listen_addr = self.sys.http_listen();
         let ctl_listen_addr = self.sys.ctl_listen();
         let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
@@ -917,12 +975,12 @@ impl Manager {
                             warn!("Tried to stop '{}', but couldn't update the spec: {:?}",
                                   service_spec.ident, err);
                         }
-                        self.stop_service(&service_spec.ident, &shutdown_input);
+                        self.stop_service_gsw(&service_spec.ident, &shutdown_input);
                     }
                     SupervisorAction::UnloadService { service_spec,
                                                       shutdown_input, } => {
                         self.remove_spec_file(&service_spec.ident).ok();
-                        self.stop_service(&service_spec.ident, &shutdown_input);
+                        self.stop_service_gsw(&service_spec.ident, &shutdown_input);
                     }
                 }
             }
@@ -949,7 +1007,7 @@ impl Manager {
                 // event in the specs directory is registered, or
                 // another service finishes shutting down).
                 self.services_need_reconciliation.toggle_if_set();
-                self.maybe_spawn_service_futures_rsw_mlw();
+                self.maybe_spawn_service_futures_rsw_mlw_gsw();
             }
 
             self.update_peers_from_watch_file_mlr_imlw()?;
@@ -969,12 +1027,8 @@ impl Manager {
                                             &self.butterfly.service_config_store,
                                             &self.butterfly.service_file_store);
 
-            if self.check_for_changed_services() {
-                self.persist_state_rsr_mlr();
-            }
-
-            if self.census_ring.changed() {
-                self.persist_state_rsr_mlr();
+            if self.check_for_changed_services() || self.census_ring.changed() {
+                self.persist_state_rsr_mlr_gsw();
             }
 
             for service in self.state
@@ -1047,7 +1101,7 @@ impl Manager {
                                    .expect("Services lock is poisoned!");
 
                 for (_ident, svc) in svcs.drain() {
-                    self.runtime.spawn(self.stop_service_future(svc, None));
+                    self.runtime.spawn(self.stop_service_future_gsw(svc, None));
                 }
             }
         }
@@ -1134,7 +1188,7 @@ impl Manager {
     fn stop_services_with_updates_rsw_mlr(&mut self) -> Vec<impl Future<Item = (), Error = ()>> {
         self.take_services_with_updates_rsw_mlr()
             .into_iter()
-            .map(|service| self.stop_service_future(service, None))
+            .map(|service| self.stop_service_future_gsw(service, None))
             .collect()
     }
 
@@ -1188,39 +1242,37 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
     /// * `MemberList::entries` (read)
-    fn persist_state_rsr_mlr(&self) {
+    /// * `GatewayState::inner` (write)
+    fn persist_state_rsr_mlr_gsw(&mut self) {
         debug!("Updating census state");
-        self.persist_census_state();
+        self.persist_census_state_gsw();
         debug!("Updating butterfly state");
-        self.persist_butterfly_state_rsr_mlr();
+        self.persist_butterfly_state_rsr_mlr_gsw();
         debug!("Updating services state");
-        self.persist_services_state();
+        self.persist_services_state_gsw();
     }
 
-    fn persist_census_state(&self) {
+    /// # Locking (see locking.md)
+    /// * `GatewayState::inner` (write)
+    fn persist_census_state_gsw(&self) {
         let crp = CensusRingProxy::new(&self.census_ring);
-        let json = serde_json::to_string(&crp).unwrap();
-        self.state
-            .gateway_state
-            .write()
-            .expect("GatewayState lock is poisoned")
-            .census_data = json;
+        let json = serde_json::to_string(&crp).expect("CensusRingProxy::serialize failure");
+        self.state.gateway_state.lock_gsw().set_census_data(json);
     }
 
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (read)
     /// * `MemberList::entries` (read)
-    fn persist_butterfly_state_rsr_mlr(&self) {
+    /// * `GatewayState::inner` (write)
+    fn persist_butterfly_state_rsr_mlr_gsw(&self) {
         let bs = ServerProxy::new(&self.butterfly);
-        let json = serde_json::to_string(&bs).unwrap();
-        self.state
-            .gateway_state
-            .write()
-            .expect("GatewayState lock is poisoned")
-            .butterfly_data = json;
+        let json = serde_json::to_string(&bs).expect("ServerProxy::serialize failure");
+        self.state.gateway_state.lock_gsw().set_butterfly_data(json);
     }
 
-    fn persist_services_state(&self) {
+    /// # Locking (see locking.md)
+    /// * `GatewayState::inner` (write)
+    fn persist_services_state_gsw(&self) {
         let config_rendering = if self.feature_flags.contains(FeatureFlag::REDACT_HTTP) {
             ConfigRendering::Redacted
         } else {
@@ -1269,12 +1321,9 @@ impl Manager {
 
         services_to_render.extend(watched_service_proxies);
 
-        let json = serde_json::to_string(&services_to_render).unwrap();
-        self.state
-            .gateway_state
-            .write()
-            .expect("GatewayState lock is poisoned")
-            .services_data = json;
+        let json =
+            serde_json::to_string(&services_to_render).expect("ServiceProxy::serialize failure");
+        self.state.gateway_state.lock_gsw().set_services_data(json);
     }
 
     /// Check if any elections need restarting.
@@ -1286,9 +1335,11 @@ impl Manager {
         self.butterfly.restart_elections_rsw_mlr(feature_flags);
     }
 
-    fn stop_service(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
+    /// # Locking (see locking.md)
+    /// * `GatewayState::inner` (write)
+    fn stop_service_gsw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
         if let Some(service) = self.remove_service_from_state(&ident) {
-            let future = self.stop_service_future(service, Some(shutdown_input));
+            let future = self.stop_service_future_gsw(service, Some(shutdown_input));
             self.runtime.spawn(future);
         } else {
             warn!("Tried to stop '{}', but couldn't find it in our list of running services!",
@@ -1299,10 +1350,12 @@ impl Manager {
     /// Create a future for stopping a Service removing it from the manager. The Service is assumed
     /// to have been removed from the internal list of active services already (see, e.g.,
     /// take_services_with_updates and remove_service_from_state).
-    fn stop_service_future(&self,
-                           mut service: Service,
-                           shutdown_input: Option<&ShutdownInput>)
-                           -> impl Future<Item = (), Error = ()> {
+    /// # Locking for the returned Future (see locking.md)
+    /// * `GatewayState::inner` (write)
+    fn stop_service_future_gsw(&self,
+                               mut service: Service,
+                               shutdown_input: Option<&ShutdownInput>)
+                               -> impl Future<Item = (), Error = ()> {
         let user_config_watcher = Arc::clone(&self.user_config_watcher);
         let updater = Arc::clone(&self.updater);
         let busy_services = Arc::clone(&self.busy_services);
@@ -1313,17 +1366,17 @@ impl Manager {
         // cluster
         // TODO (CM): But only if we're not going down for a restart.
         let ident = service.spec_ident.clone();
-        let stop_it = service.stop(shutdown_config).then(move |_| {
-                                                       event::service_stopped(&service);
-                                                       user_config_watcher.write()
+        let stop_it = service.stop_gsw(shutdown_config).then(move |_| {
+                                                           event::service_stopped(&service);
+                                                           user_config_watcher.write()
                                                                           .expect("Watcher lock \
                                                                                    poisoned")
                                                                           .remove(&service);
-                                                       updater.lock()
-                                                              .expect("Updater lock poisoned")
-                                                              .remove(&service);
-                                                       Ok(())
-                                                   });
+                                                           updater.lock()
+                                                                  .expect("Updater lock poisoned")
+                                                                  .remove(&service);
+                                                           Ok(())
+                                                       });
         Self::wrap_async_service_operation(ident,
                                            busy_services,
                                            services_need_reconciliation,
@@ -1398,9 +1451,10 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    fn maybe_spawn_service_futures_rsw_mlw(&mut self) {
+    /// * `GatewayState::inner` (write)
+    fn maybe_spawn_service_futures_rsw_mlw_gsw(&mut self) {
         let ops = self.compute_service_operations();
-        for f in self.operations_into_futures_rsw_mlw(ops) {
+        for f in self.operations_into_futures_rsw_mlw_gsw(ops) {
             self.runtime.spawn(f);
         }
     }
@@ -1425,9 +1479,11 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    fn operations_into_futures_rsw_mlw<O>(&mut self,
-                                          ops: O)
-                                          -> Vec<impl Future<Item = (), Error = ()>>
+    /// # Locking for the returned Futures
+    /// * `GatewayState::inner` (write)
+    fn operations_into_futures_rsw_mlw_gsw<O>(&mut self,
+                                              ops: O)
+                                              -> Vec<impl Future<Item = (), Error = ()>>
         where O: IntoIterator<Item = ServiceOperation>
     {
         ops.into_iter()
@@ -1446,7 +1502,7 @@ impl Manager {
                        // onto the end of the stop one for a *real*
                        // restart future.
                        let f = self.remove_service_from_state(&spec.ident)
-                                   .map(|service| self.stop_service_future(service, None));
+                                   .map(|service| self.stop_service_future_gsw(service, None));
                        if f.is_none() {
                            // We really don't expect this to happen....
                            outputln!("Tried to remove service for {} but could not find it \

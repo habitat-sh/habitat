@@ -35,6 +35,7 @@ must be acquired in the conventional order and released in the reverse order:
 1. `RumorStore::list` (`rs`)
 1. `MemberList::initial_members` (`iml`)
 1. `MemberList::entries` (`ml`)
+1. `GatewayState::inner` (`gs`)
 
 Any function which is documented to acquire a lock should not be called with
 any lock that occurs later in the lock order held. For example, since

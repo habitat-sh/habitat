@@ -261,9 +261,11 @@ impl SrvHandler {
                      timer: None }
     }
 
-    fn command_from_message(msg: &SrvMessage,
-                            ctl_sender: CtlSender)
-                            -> std::result::Result<CtlCommand, HandlerError> {
+    /// # Locking (see locking.md)
+    /// * `GatewayState::inner` (read)
+    fn command_from_message_gsr(msg: &SrvMessage,
+                                ctl_sender: CtlSender)
+                                -> std::result::Result<CtlCommand, HandlerError> {
         match msg.message_id() {
             "SvcGetDefaultCfg" => {
                 let m = msg.parse::<protocol::ctl::SvcGetDefaultCfg>()
@@ -346,7 +348,7 @@ impl SrvHandler {
                 Ok(CtlCommand::new(ctl_sender,
                                    msg.transaction(),
                                    move |state, req, _action_sender| {
-                                       commands::service_status(state, req, m.clone())
+                                       commands::service_status_gsr(state, req, m.clone())
                                    }))
             }
             "SupDepart" => {
@@ -378,6 +380,8 @@ impl Future for SrvHandler {
     type Error = HandlerError;
     type Item = ();
 
+    /// # Locking (see locking.md)
+    /// * `GatewayState::inner` (read)
     fn poll(&mut self) -> Poll<(), Self::Error> {
         let _: liveliness_checker::ThreadUnregistered = loop {
             let checked_thread = liveliness_checker::mark_thread_alive();
@@ -392,13 +396,14 @@ impl Future for SrvHandler {
                             self.start_timer(&msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
 
-                            let cmd =
-                                match Self::command_from_message(&msg, self.ctl_sender.clone()) {
-                                    Ok(cmd) => cmd,
-                                    Err(_) => {
-                                        break checked_thread.unregister(Ok(()));
-                                    }
-                                };
+                            let cmd = match Self::command_from_message_gsr(&msg,
+                                                                           self.ctl_sender.clone())
+                            {
+                                Ok(cmd) => cmd,
+                                Err(_) => {
+                                    break checked_thread.unregister(Ok(()));
+                                }
+                            };
 
                             match self.mgr_sender.start_send(cmd) {
                                 Ok(AsyncSink::Ready) => {
