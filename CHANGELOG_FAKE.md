@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.57 -->
+<!-- latest_release 0.84.58 -->
+## [fake-0.84.58](https://github.com/habitat-sh/habitat/tree/fake-0.84.58) (2019-09-09)
+
+#### Merged Pull Requests
+- Audit GatewayState locking [#6937](https://github.com/habitat-sh/habitat/pull/6937) ([baumanj](https://github.com/baumanj))
+<!-- latest_release -->
+
 ## [fake-0.84.57](https://github.com/habitat-sh/habitat/tree/fake-0.84.57) (2019-09-09)
 
 #### Merged Pull Requests
 - Remove a few more trace-related bits [#6938](https://github.com/habitat-sh/habitat/pull/6938) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.56](https://github.com/habitat-sh/habitat/tree/fake-0.84.56) (2019-09-09)
 
