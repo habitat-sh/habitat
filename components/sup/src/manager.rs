@@ -807,7 +807,7 @@ impl Manager {
 
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
-        self.butterfly.start_rsw_mlw(&Timing::default())?;
+        self.butterfly.start_rsw_mlw_smw(&Timing::default())?;
         debug!("gossip-listener started");
         self.persist_state_rsr_mlr_gsw();
         let http_listen_addr = self.sys.http_listen();
@@ -1093,7 +1093,7 @@ impl Manager {
             }
             ShutdownMode::Normal | ShutdownMode::Departed => {
                 outputln!("Gracefully departing from butterfly network.");
-                self.butterfly.set_departed_mlw();
+                self.butterfly.set_departed_mlw_smw();
 
                 let mut svcs = self.state
                                    .services

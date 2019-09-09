@@ -60,16 +60,13 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                                  Some(String::from(name)),
                                  None,
                                  Box::new(NSuitability(suitability))).unwrap();
-    server.start_rsw_mlw(&Timing::default())
+    server.start_rsw_mlw_smw(&Timing::default())
           .expect("Cannot start server");
     server
 }
 
 pub fn member_from_server(server: &Server) -> Member {
-    let mut member = server.member
-                           .read()
-                           .expect("Member lock is poisoned")
-                           .as_member();
+    let mut member = server.member.read().as_member();
     // AAAAAAARGH... we currently have to do this because otherwise we
     // have no notion of where we're coming from... in "real life",
     // other Supervisors would discover this from the networking stack
@@ -148,7 +145,7 @@ impl SwimNet {
         let to = self.members
                      .get(to_entry)
                      .expect("Asked for a network member who is out of bounds");
-        from.add_to_block_list(String::from(to.member_id()));
+        from.add_to_block_list_sblw(String::from(to.member_id()));
     }
 
     pub fn unblock(&self, from_entry: usize, to_entry: usize) {
@@ -158,7 +155,7 @@ impl SwimNet {
         let to = self.members
                      .get(to_entry)
                      .expect("Asked for a network member who is out of bounds");
-        from.remove_from_block_list(to.member_id());
+        from.remove_from_block_list_sblw(to.member_id());
     }
 
     /// # Locking (see locking.md)

@@ -96,7 +96,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                 trace!("SWIM Message: {:?}", msg);
                 match msg.kind {
                     SwimKind::Ping(ping) => {
-                        if server.is_member_blocked(&ping.from.id) {
+                        if server.is_member_blocked_sblr(&ping.from.id) {
                             debug!("Not processing message from {} - it is blocked",
                                    ping.from.id);
                             continue;
@@ -104,7 +104,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                         process_ping_mlw(server, socket, addr, ping);
                     }
                     SwimKind::Ack(ack) => {
-                        if server.is_member_blocked(&ack.from.id) && ack.forward_to.is_none() {
+                        if server.is_member_blocked_sblr(&ack.from.id) && ack.forward_to.is_none() {
                             debug!("Not processing message from {} - it is blocked",
                                    ack.from.id);
                             continue;
@@ -112,12 +112,12 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                         process_ack_mlw(server, socket, tx_outbound, addr, ack);
                     }
                     SwimKind::PingReq(pingreq) => {
-                        if server.is_member_blocked(&pingreq.from.id) {
+                        if server.is_member_blocked_sblr(&pingreq.from.id) {
                             debug!("Not processing message from {} - it is blocked",
                                    pingreq.from.id);
                             continue;
                         }
-                        process_pingreq_mlr(server, socket, addr, pingreq);
+                        process_pingreq_mlr_smr(server, socket, addr, pingreq);
                     }
                 }
             }
@@ -146,11 +146,15 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
 ///
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
-fn process_pingreq_mlr(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: PingReq) {
+/// * `Server::member` (read)
+fn process_pingreq_mlr_smr(server: &Server,
+                           socket: &UdpSocket,
+                           addr: SocketAddr,
+                           mut msg: PingReq) {
     if let Some(target) = server.member_list.get_cloned_mlr(&msg.target.id) {
         msg.from.address = addr.ip().to_string();
         let ping_msg = Ping { membership: vec![],
-                              from:       server.member.read().unwrap().as_member(),
+                              from:       server.member.read().as_member(),
                               forward_to: Some(msg.from.clone()), };
         let swim = outbound::populate_membership_rumors_mlr(server, &target, ping_msg);
         // Set the route-back address to the one we received the
@@ -202,7 +206,7 @@ fn process_ack_mlw(server: &Server,
     match tx_outbound.send((addr, msg)) {
         Ok(()) => {
             for membership in memberships {
-                server.insert_member_from_rumor_mlw(membership.member, membership.health);
+                server.insert_member_from_rumor_mlw_smw(membership.member, membership.health);
             }
         }
         Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
@@ -212,7 +216,7 @@ fn process_ack_mlw(server: &Server,
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
 fn process_ping_mlw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
-    outbound::ack_mlr(server, socket, &msg.from, addr, msg.forward_to);
+    outbound::ack_mlr_smr(server, socket, &msg.from, addr, msg.forward_to);
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
     trace!("Ping from {}@{}", msg.from.id, addr);
@@ -222,6 +226,6 @@ fn process_ping_mlw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut m
         server.insert_member_mlw(msg.from, Health::Alive);
     }
     for membership in msg.membership {
-        server.insert_member_from_rumor_mlw(membership.member, membership.health);
+        server.insert_member_from_rumor_mlw_smw(membership.member, membership.health);
     }
 }

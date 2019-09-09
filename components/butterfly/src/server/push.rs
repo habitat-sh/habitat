@@ -70,7 +70,7 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
             };
             let next_gossip = timing.gossip_timeout();
             for member in check_list.drain(0..drain_length) {
-                if server.is_member_blocked(&member.id) {
+                if server.is_member_blocked_sblr(&member.id) {
                     debug!("Not sending rumors to {} - it is blocked", member.id);
 
                     continue;

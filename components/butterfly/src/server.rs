@@ -40,6 +40,7 @@ use crate::{error::{Error,
                     RumorType},
             swim::Ack};
 use habitat_common::{liveliness_checker,
+                     sync::Lock,
                      FeatureFlag};
 use habitat_core::crypto::SymKey;
 use prometheus::{HistogramTimer,
@@ -66,8 +67,7 @@ use std::{collections::{HashMap,
                  mpsc::{self,
                         channel},
                  Arc,
-                 Mutex,
-                 RwLock},
+                 Mutex},
           thread,
           time::{Duration,
                  Instant}};
@@ -107,7 +107,7 @@ pub trait Suitability: Debug + Send + Sync {
 ///
 /// In particular, this localizes all incarnation increment and
 /// persistence logic.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Myself {
     member: Member,
     // TODO (CM): This is only optional because the current
@@ -232,7 +232,7 @@ pub struct Server {
     member_id: Arc<String>,
     // TODO (CM): This is currently public because butterfly tests
     // depends on it being so. Refactor so it can be private.
-    pub member:               Arc<RwLock<Myself>>,
+    pub member:               Arc<Lock<Myself>>,
     pub member_list:          Arc<MemberList>,
     ring_key:                 Arc<Option<SymKey>>,
     rumor_heat:               RumorHeat,
@@ -253,7 +253,7 @@ pub struct Server {
     pause:           Arc<AtomicBool>,
     swim_rounds:     Arc<AtomicIsize>,
     gossip_rounds:   Arc<AtomicIsize>,
-    block_list:      Arc<RwLock<HashSet<String>>>,
+    block_list:      Arc<Lock<HashSet<String>>>,
     election_timers: Arc<Mutex<HashMap<String, ElectionTimer>>>,
 }
 
@@ -323,7 +323,7 @@ impl Server {
                             // TODO (CM): could replace this with an accessor
                             // on member, if we have a better type
                             member_id:            Arc::new(member_id),
-                            member:               Arc::new(RwLock::new(myself)),
+                            member:               Arc::new(Lock::new(myself)),
                             member_list:          Arc::new(MemberList::new()),
                             ring_key:             Arc::new(ring_key),
                             rumor_heat:           RumorHeat::default(),
@@ -342,7 +342,7 @@ impl Server {
                             pause:                Arc::new(AtomicBool::new(false)),
                             swim_rounds:          Arc::new(AtomicIsize::new(0)),
                             gossip_rounds:        Arc::new(AtomicIsize::new(0)),
-                            block_list:           Arc::new(RwLock::new(HashSet::new())),
+                            block_list:           Arc::new(Lock::new(HashSet::new())),
                             socket:               None,
                             election_timers:      Arc::new(Mutex::new(HashMap::new())), })
             }
@@ -404,13 +404,14 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
+    /// * `Server::member` (write)
     ///
     /// # Errors
     ///
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
-    pub fn start_rsw_mlw(&mut self, timing: &timing::Timing) -> Result<()> {
+    pub fn start_rsw_mlw_smw(&mut self, timing: &timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = self.data_path {
@@ -447,7 +448,7 @@ impl Server {
                 let mut store = incarnation_store::IncarnationStore::new(path.join("INCARNATION"));
                 store.initialize()?;
 
-                let mut me = self.member.write().expect("Member lock is poisoned");
+                let mut me = self.member.write();
                 me.incarnation_store = Some(store);
                 me.sync_incarnation()?;
             }
@@ -495,26 +496,29 @@ impl Server {
     pub fn need_peer_seeding_mlr(&self) -> bool { self.member_list.is_empty_mlr() }
 
     /// Persistently block a given address, causing no traffic to be seen.
-    pub fn add_to_block_list(&self, member_id: String) {
-        let mut block_list = self.block_list
-                                 .write()
-                                 .expect("Write lock for block_list is poisoned");
+    ///
+    /// # Locking (see locking.md)
+    /// * `Server::block_list` (write)
+    pub fn add_to_block_list_sblw(&self, member_id: String) {
+        let mut block_list = self.block_list.write();
         block_list.insert(member_id);
     }
 
     /// Remove a given address from the block_list.
-    pub fn remove_from_block_list(&self, member_id: &str) {
-        let mut block_list = self.block_list
-                                 .write()
-                                 .expect("Write lock for block_list is poisoned");
+    ///
+    /// # Locking (see locking.md)
+    /// * `Server::block_list` (write)
+    pub fn remove_from_block_list_sblw(&self, member_id: &str) {
+        let mut block_list = self.block_list.write();
         block_list.remove(member_id);
     }
 
     /// Check if a given member ID is on the block_list.
-    fn is_member_blocked(&self, member_id: &str) -> bool {
-        let block_list = self.block_list
-                             .read()
-                             .expect("Write lock for block_list is poisoned");
+    ///
+    /// # Locking (see locking.md)
+    /// * `Server::block_list` (read)
+    fn is_member_blocked_sblr(&self, member_id: &str) -> bool {
+        let block_list = self.block_list.read();
         block_list.contains(member_id)
     }
 
@@ -564,10 +568,11 @@ impl Server {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
-    pub fn set_departed_mlw(&self) {
+    /// * `Server::member` (write)
+    pub fn set_departed_mlw_smw(&self) {
         if self.socket.is_some() {
             {
-                let mut me = self.member.write().expect("Member lock is poisoned");
+                let mut me = self.member.write();
                 me.increment_incarnation();
                 // TODO (CM): It's not clear that this operation is
                 // actually needed.
@@ -596,7 +601,7 @@ impl Server {
             for member in check_list.iter().take(SELF_DEPARTURE_RUMOR_FANOUT) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
-                outbound::ack_mlr(&self, self.socket.as_ref().unwrap(), member, addr, None);
+                outbound::ack_mlr_smr(&self, self.socket.as_ref().unwrap(), member, addr, None);
             }
         } else {
             debug!("No socket present; server was never started, so nothing to depart");
@@ -607,11 +612,12 @@ impl Server {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
-    fn insert_member_from_rumor_mlw(&self, member: Member, mut health: Health) {
+    /// * `Server::member` (write)
+    fn insert_member_from_rumor_mlw_smw(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
 
         if member.id == self.member_id() && health != Health::Alive {
-            let mut me = self.member.write().expect("Member lock is poisoned");
+            let mut me = self.member.write();
             if member.incarnation >= me.incarnation() {
                 me.refute_incarnation(member.incarnation);
                 health = Health::Alive;
@@ -727,7 +733,6 @@ impl Server {
         }
 
         self.member_list.set_departed_mlw(&departure.member_id);
-
         self.rumor_heat.purge(&departure.member_id);
         self.rumor_heat
             .start_hot_rumor(RumorKey::new(RumorType::Member, &departure.member_id, ""));
@@ -1661,14 +1666,14 @@ mod tests {
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
-            server.start_rsw_mlw(&Timing::default())
+            server.start_rsw_mlw_smw(&Timing::default())
                   .expect("Server failed to start");
         }
 
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start_rsw_mlw(&Timing::default())
+            server.start_rsw_mlw_smw(&Timing::default())
                   .expect("Server failed to start");
         }
     }

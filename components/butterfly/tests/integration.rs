@@ -86,14 +86,8 @@ fn six_members_unmeshed_partition_and_rejoin_no_persistent_peers() {
 #[test]
 fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
     let mut net = btest::SwimNet::new(6);
-    net[0].member
-          .write()
-          .expect("Member lock is poisoned")
-          .set_persistent();
-    net[4].member
-          .write()
-          .expect("Member lock is poisoned")
-          .set_persistent();
+    net[0].member.write().set_persistent();
+    net[4].member.write().set_persistent();
     net.connect(0, 1);
     net.connect(1, 2);
     net.connect(2, 3);
@@ -115,7 +109,7 @@ fn six_members_unmeshed_allows_graceful_departure() {
     net.connect(3, 4);
     net.connect(4, 5);
     assert_wait_for_health_of_mlr!(net, [0..6, 0..6], Health::Alive);
-    net[0].set_departed_mlw();
+    net[0].set_departed_mlw_smw();
     net[0].pause();
     assert_wait_for_health_of_mlr!(net, 0, Health::Departed);
 }
