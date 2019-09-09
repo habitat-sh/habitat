@@ -408,6 +408,7 @@ fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
         if !hook.run(&package.ident().name,
                      &Pkg::from_install(package)?,
                      None::<&str>)
+                .unwrap_or(false)
         {
             return Err(Error::InstallHookFailed(package.ident().clone()));
         }

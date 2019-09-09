@@ -22,8 +22,11 @@ use self::types::{EventMessage,
                   ServiceStartedEvent,
                   ServiceStoppedEvent,
                   ServiceUpdateStartedEvent};
-use crate::{manager::{service::{HealthCheckResult,
-                                Service},
+use crate::{manager::{service::{HealthCheckHookStatus,
+                                HealthCheckResult,
+                                ProcessOutput,
+                                Service,
+                                StandardStreams},
                       sys::Sys},
             sup_futures::FutureHandle};
 use clap::ArgMatches;
@@ -213,18 +216,26 @@ pub fn service_update_started(service: &Service, update: &PackageIdent) {
 // Takes metadata directly, rather than a `&Service` like other event
 // functions, because of how the asynchronous health checking
 // currently works. Revisit when async/await + Pin is all stabilized.
-/// `execution` will be `Some` if the service had a hook to run, and
-/// records how long it took that hook to execute completely.
 pub fn health_check(metadata: ServiceMetadata,
-                    check_result: HealthCheckResult,
-                    execution: Option<Duration>) {
+                    health_check_result: HealthCheckResult,
+                    health_check_hook_status: HealthCheckHookStatus) {
     if stream_initialized() {
-        let check_result: types::HealthCheckResult = check_result.into();
+        let health_check_result: types::HealthCheckResult = health_check_result.into();
+        let maybe_duration = health_check_hook_status.maybe_duration();
+        let maybe_process_output = health_check_hook_status.maybe_process_output();
+        let exit_status = maybe_process_output.as_ref()
+                                              .and_then(|o| o.exit_status().code());
+        let StandardStreams { stdout, stderr } =
+            maybe_process_output.map(ProcessOutput::standard_streams)
+                                .unwrap_or_default();
         publish(HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
-                                   event_metadata:   None,
-                                   result:           i32::from(check_result),
-                                   execution:        execution.map(Duration::into), });
+                                   event_metadata: None,
+                                   result: i32::from(health_check_result),
+                                   execution: maybe_duration.map(Duration::into),
+                                   exit_status,
+                                   stdout,
+                                   stderr });
     }
 }
 
@@ -295,5 +306,100 @@ impl EventStream {
         if let Err(e) = self.sender.try_send(event_packet) {
             error!("Failed to queue event: {}", e);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::prost::Message;
+    use futures::{future::Future,
+                  stream::Stream,
+                  sync::mpsc as futures_mpsc};
+    #[cfg(windows)]
+    use habitat_core::os::process::windows_child::ExitStatus;
+    #[cfg(unix)]
+    use std::{os::unix::process::ExitStatusExt,
+              process::ExitStatus};
+
+    #[test]
+    #[cfg(any(unix, windows))]
+    fn health_check_event() {
+        let (tx, rx) = futures_mpsc::channel(4);
+        let event_stream = EventStream { sender: tx,
+                                         handle: None, };
+        EVENT_STREAM.set(EventStreamContainer::new(event_stream));
+        EVENT_CORE.set(EventCore { supervisor_id: String::from("supervisor_id"),
+                                   ip_address:    "127.0.0.1:8080".parse().unwrap(),
+                                   fqdn:          String::from("fqdn"),
+                                   application:   String::from("application"),
+                                   environment:   String::from("environment"),
+                                   site:          None,
+                                   meta:          EventStreamMetadata::default(), });
+        health_check(ServiceMetadata::default(),
+                     HealthCheckResult::Ok,
+                     HealthCheckHookStatus::NoHook);
+        health_check(ServiceMetadata::default(),
+                     HealthCheckResult::Warning,
+                     HealthCheckHookStatus::FailedToRun(Duration::from_secs(5)));
+        #[cfg(windows)]
+        let exit_status = ExitStatus::from(2);
+        #[cfg(unix)]
+        let exit_status = ExitStatus::from_raw(2);
+        let process_output =
+            ProcessOutput::from_raw(StandardStreams { stdout: Some(String::from("stdout")),
+                                                      stderr: Some(String::from("stderr")), },
+                                    exit_status);
+        health_check(ServiceMetadata::default(),
+                     HealthCheckResult::Critical,
+                     HealthCheckHookStatus::Ran(process_output, Duration::from_secs(10)));
+        #[cfg(windows)]
+        let exit_status = ExitStatus::from(3);
+        #[cfg(unix)]
+        let exit_status = ExitStatus::from_raw(3);
+        let process_output =
+            ProcessOutput::from_raw(StandardStreams { stdout: None,
+                                                      stderr: Some(String::from("stderr")), },
+                                    exit_status);
+        health_check(ServiceMetadata::default(),
+                     HealthCheckResult::Unknown,
+                     HealthCheckHookStatus::Ran(process_output, Duration::from_secs(15)));
+        let events = rx.take(4).collect().wait().unwrap();
+
+        let event = HealthCheckEvent::decode(&events[0].payload).unwrap();
+        assert_eq!(event.result, 0);
+        assert_eq!(event.execution, None);
+        assert_eq!(event.exit_status, None);
+        assert_eq!(event.stdout, None);
+        assert_eq!(event.stderr, None);
+
+        let event = HealthCheckEvent::decode(&events[1].payload).unwrap();
+        assert_eq!(event.result, 1);
+        assert_eq!(event.execution.unwrap().seconds, 5);
+        assert_eq!(event.exit_status, None);
+        assert_eq!(event.stdout, None);
+        assert_eq!(event.stderr, None);
+
+        let event = HealthCheckEvent::decode(&events[2].payload).unwrap();
+        assert_eq!(event.result, 2);
+        assert_eq!(event.execution.unwrap().seconds, 10);
+        #[cfg(windows)]
+        assert_eq!(event.exit_status, Some(2));
+        // `ExitStatus::from_raw` sets the signal not the code
+        #[cfg(unix)]
+        assert_eq!(event.exit_status, None);
+        assert_eq!(event.stdout, Some(String::from("stdout")));
+        assert_eq!(event.stderr, Some(String::from("stderr")));
+
+        let event = HealthCheckEvent::decode(&events[3].payload).unwrap();
+        assert_eq!(event.result, 3);
+        assert_eq!(event.execution.unwrap().seconds, 15);
+        #[cfg(windows)]
+        assert_eq!(event.exit_status, Some(3));
+        // `ExitStatus::from_raw` sets the signal not the code
+        #[cfg(unix)]
+        assert_eq!(event.exit_status, None);
+        assert_eq!(event.stdout, None);
+        assert_eq!(event.stderr, Some(String::from("stderr")));
     }
 }

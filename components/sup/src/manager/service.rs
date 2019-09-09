@@ -22,8 +22,11 @@ use self::{context::RenderContext,
            hooks::{HookCompileTable,
                    HookTable},
            supervisor::Supervisor};
-pub use self::{health::HealthCheckResult,
-               hooks::HealthCheckHook,
+pub use self::{health::{HealthCheckHookStatus,
+                        HealthCheckResult},
+               hooks::{HealthCheckHook,
+                       ProcessOutput,
+                       StandardStreams},
                spec::{DesiredState,
                       ServiceSpec}};
 use crate::{census::{CensusGroup,
@@ -252,7 +255,7 @@ impl Service {
                      bldr_url: spec.bldr_url,
                      channel: spec.channel,
                      desired_state: spec.desired_state,
-                     health_check_result: Default::default(),
+                     health_check_result: Arc::new(Mutex::new(HealthCheckResult::Unknown)),
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
                                             svc_hooks_path(&service_group.service())),
@@ -802,6 +805,7 @@ impl Service {
             self.initialized = hook.run(&self.service_group,
                                         &self.pkg,
                                         self.svc_encrypted_password.as_ref())
+                                   .unwrap_or(false);
         }
     }
 
@@ -812,13 +816,15 @@ impl Service {
         if let Some(ref hook) = self.hooks.reload {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+                     self.svc_encrypted_password.as_ref())
+                .ok();
         }
 
         if let Some(ref hook) = self.hooks.reconfigure {
             hook.run(&self.service_group,
                      &self.pkg,
-                     self.svc_encrypted_password.as_ref());
+                     self.svc_encrypted_password.as_ref())
+                .ok();
             // The intention here is to do a health check soon after a service's configuration
             // changes, as a way to (among other things) detect potential impacts when bound
             // services change exported configuration.
@@ -862,11 +868,16 @@ impl Service {
             return None;
         }
 
-        self.hooks.suitability.as_ref().and_then(|hook| {
-                                           hook.run(&self.service_group,
-                                                    &self.pkg,
-                                                    self.svc_encrypted_password.as_ref())
-                                       })
+        self.hooks
+            .suitability
+            .as_ref()
+            .and_then(|hook| {
+                hook.run(&self.service_group,
+                         &self.pkg,
+                         self.svc_encrypted_password.as_ref())
+                    .ok()
+            })
+            .unwrap_or(None)
     }
 
     /// Helper for compiling configuration templates into configuration files.
@@ -987,7 +998,8 @@ impl Service {
             if let Some(ref hook) = self.hooks.file_updated {
                 return hook.run(&self.service_group,
                                 &self.pkg,
-                                self.svc_encrypted_password.as_ref());
+                                self.svc_encrypted_password.as_ref())
+                           .unwrap_or(false);
             }
         }
 

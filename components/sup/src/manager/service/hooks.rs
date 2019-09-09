@@ -1,5 +1,5 @@
-use super::health;
-use habitat_common::{outputln,
+use habitat_common::{error::Result,
+                     outputln,
                      templating::{hooks::{self,
                                           ExitCode,
                                           Hook,
@@ -13,12 +13,41 @@ use serde::Serialize;
 #[cfg(not(windows))]
 use std::process::ExitStatus;
 use std::{self,
-          io::prelude::*,
+          io::BufRead,
           path::{Path,
                  PathBuf},
           sync::Arc};
 
 static LOGKEY: &str = "HK";
+
+#[derive(Debug, Default)]
+pub struct StandardStreams {
+    pub stdout: Option<String>,
+    pub stderr: Option<String>,
+}
+
+#[derive(Debug)]
+pub struct ProcessOutput {
+    standard_streams: StandardStreams,
+    exit_status:      ExitStatus,
+}
+
+impl ProcessOutput {
+    fn new(hook_output: &HookOutput, exit_status: ExitStatus) -> Self {
+        Self { standard_streams: StandardStreams { stdout: hook_output.stdout_str().ok(),
+                                                   stderr: hook_output.stderr_str().ok(), },
+               exit_status }
+    }
+
+    pub fn from_raw(standard_streams: StandardStreams, exit_status: ExitStatus) -> Self {
+        Self { standard_streams,
+               exit_status }
+    }
+
+    pub fn exit_status(&self) -> ExitStatus { self.exit_status }
+
+    pub fn standard_streams(self) -> StandardStreams { self.standard_streams }
+}
 
 #[derive(Debug, Serialize)]
 pub struct FileUpdatedHook {
@@ -59,7 +88,7 @@ pub struct HealthCheckHook {
 }
 
 impl Hook for HealthCheckHook {
-    type ExitValue = health::HealthCheckResult;
+    type ExitValue = ProcessOutput;
 
     fn file_name() -> &'static str { "health-check" }
 
@@ -69,23 +98,15 @@ impl Hook for HealthCheckHook {
                           stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn handle_exit<'a>(&self, pkg: &Pkg, _: &'a HookOutput, status: ExitStatus) -> Self::ExitValue {
-        let pkg_name = &pkg.name;
-        match status.code() {
-            Some(0) => health::HealthCheckResult::Ok,
-            Some(1) => health::HealthCheckResult::Warning,
-            Some(2) => health::HealthCheckResult::Critical,
-            Some(3) => health::HealthCheckResult::Unknown,
-            Some(code) => {
-                outputln!(preamble pkg_name,
-                    "Health check exited with an unknown status code, {}", code);
-                health::HealthCheckResult::default()
-            }
-            None => {
-                Self::output_termination_message(pkg_name, status);
-                health::HealthCheckResult::default()
-            }
+    fn handle_exit<'a>(&self,
+                       pkg: &Pkg,
+                       hook_output: &'a HookOutput,
+                       status: ExitStatus)
+                       -> Self::ExitValue {
+        if status.code().is_none() {
+            Self::output_termination_message(&pkg.name, status);
         }
+        ProcessOutput::new(hook_output, status)
     }
 
     fn path(&self) -> &Path { &self.render_pair.path }
@@ -159,7 +180,7 @@ impl Hook for RunHook {
                   stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
     }
 
-    fn run<T>(&self, _: &str, _: &Pkg, _: Option<T>) -> Self::ExitValue
+    fn run<T>(&self, _: &str, _: &Pkg, _: Option<T>) -> Result<Self::ExitValue>
         where T: ToString
     {
         panic!("The run hook is a an exception to the lifetime of a service. It should only be \
@@ -315,6 +336,33 @@ pub struct SuitabilityHook {
     stderr_log_path: PathBuf,
 }
 
+impl SuitabilityHook {
+    fn parse_suitability(reader: impl BufRead, pkg_name: &str) -> Option<u64> {
+        if let Some(line_reader) = reader.lines().last() {
+            match line_reader {
+                Ok(line) => {
+                    match line.trim().parse::<u64>() {
+                        Ok(suitability) => {
+                            outputln!(preamble pkg_name,
+                                      "Reporting suitability of: {}", suitability);
+                            return Some(suitability);
+                        }
+                        Err(err) => {
+                            outputln!(preamble pkg_name, "Parsing suitability failed: {}", err);
+                        }
+                    };
+                }
+                Err(err) => {
+                    outputln!(preamble pkg_name, "Failed to read last line of stdout: {}", err);
+                }
+            };
+        } else {
+            outputln!(preamble pkg_name, "{} did not print anything to stdout", Self::file_name());
+        }
+        None
+    }
+}
+
 impl Hook for SuitabilityHook {
     type ExitValue = Option<u64>;
 
@@ -334,36 +382,17 @@ impl Hook for SuitabilityHook {
         let pkg_name = &pkg.name;
         match status.code() {
             Some(0) => {
-                if let Some(reader) = hook_output.stdout() {
-                    if let Some(line_reader) = reader.lines().last() {
-                        match line_reader {
-                            Ok(line) => {
-                                match line.trim().parse::<u64>() {
-                                    Ok(suitability) => {
-                                        outputln!(preamble pkg_name,
-                                                  "Reporting suitability of: {}", suitability);
-                                        return Some(suitability);
-                                    }
-                                    Err(err) => {
-                                        outputln!(preamble pkg_name,
-                                            "Parsing suitability failed: {}", err);
-                                    }
-                                };
-                            }
-                            Err(err) => {
-                                outputln!(preamble pkg_name,
-                                    "Failed to read last line of stdout: {}", err);
-                            }
-                        };
-                    } else {
-                        outputln!(preamble pkg_name,
-                                  "{} did not print anything to stdout", Self::file_name());
+                match hook_output.stdout() {
+                    Ok(reader) => {
+                        return Self::parse_suitability(reader, pkg_name);
                     }
+                    Err(e) => outputln!(preamble pkg_name,
+                                        "Failed to open stdout file: {}", e),
                 }
             }
             Some(code) => {
                 outputln!(preamble pkg_name,
-                    "{} exited with status code {}", Self::file_name(), code);
+                          "{} exited with status code {}", Self::file_name(), code);
             }
             None => {
                 Self::output_termination_message(pkg_name, status);
@@ -598,6 +627,7 @@ mod tests {
                        service::{ServiceBind,
                                  ServiceGroup}};
     use std::{fs,
+              io::BufReader,
               iter};
     use tempfile::TempDir;
 
@@ -749,5 +779,23 @@ mod tests {
         // Re-Verify run hook
         let run_hook_content = file_content(&hook_table.run.as_ref().expect("no run hook??"));
         assert_eq!(run_hook_content, expected_run_hook);
+    }
+
+    #[test]
+    fn parse_suitability() {
+        #[allow(clippy::string_lit_as_bytes)]
+        let reader = BufReader::new("".as_bytes());
+        let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
+        assert!(result.is_none());
+        let reader = BufReader::new("test\nanother\ninvalid".as_bytes());
+        let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
+        assert!(result.is_none());
+        #[allow(clippy::string_lit_as_bytes)]
+        let reader = BufReader::new("3".as_bytes());
+        let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
+        assert_eq!(result.unwrap(), 3);
+        let reader = BufReader::new("test\nanother\n124".as_bytes());
+        let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
+        assert_eq!(result.unwrap(), 124);
     }
 }

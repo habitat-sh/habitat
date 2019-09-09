@@ -57,7 +57,7 @@ impl Default for ExitCode {
 // Future refactorings may make these changes unnecessary, but it
 // helps us bridge the gap
 pub trait Hook: fmt::Debug + Sized + Send {
-    type ExitValue: Default + fmt::Debug + Send;
+    type ExitValue: fmt::Debug + Send;
 
     fn file_name() -> &'static str;
 
@@ -188,27 +188,23 @@ pub trait Hook: fmt::Debug + Sized + Send {
               service_group: &str,
               pkg: &Pkg,
               svc_encrypted_password: Option<T>)
-              -> Self::ExitValue
+              -> Result<Self::ExitValue>
         where T: ToString
     {
-        let mut child = match Self::exec(self.path(), &pkg, svc_encrypted_password) {
-            Ok(child) => child,
-            Err(err) => {
-                outputln!(preamble service_group,
-                    "Hook failed to run, {}, {}", Self::file_name(), err);
-                return Self::ExitValue::default();
-            }
-        };
+        let mut child = Self::exec(self.path(), &pkg, svc_encrypted_password).map_err(|err| {
+                            outputln!(preamble service_group,
+                                      "Hook failed to run, {}, {}", Self::file_name(), err);
+                            err
+                        })?;
         let mut hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
-        hook_output.stream_output::<Self>(service_group, &mut child);
-        match child.wait() {
-            Ok(status) => self.handle_exit(pkg, &hook_output, status),
-            Err(err) => {
-                outputln!(preamble service_group,
-                    "Hook failed to run, {}, {}", Self::file_name(), err);
-                Self::ExitValue::default()
-            }
-        }
+        hook_output.output_standard_streams::<Self>(service_group, &mut child);
+        Ok(child.wait()
+                .map_err(|err| {
+                    outputln!(preamble service_group,
+                              "Hook failed to run, {}, {}", Self::file_name(), err);
+                    err
+                })
+                .map(|status| self.handle_exit(pkg, &hook_output, status))?)
     }
 
     #[cfg(windows)]
@@ -433,6 +429,11 @@ impl Serialize for RenderPair {
     }
 }
 
+habitat_core::env_config_int!(HookStandardStreamByteLimit,
+                              u64,
+                              HAB_HOOK_STANDARD_STREAM_BYTE_LIMIT,
+                              1024);
+
 pub struct HookOutput<'a> {
     stdout_log_file: &'a Path,
     stderr_log_file: &'a Path,
@@ -440,53 +441,83 @@ pub struct HookOutput<'a> {
 
 impl<'a> HookOutput<'a> {
     fn new(stdout_log: &'a Path, stderr_log: &'a Path) -> Self {
-        HookOutput { stdout_log_file: stdout_log,
-                     stderr_log_file: stderr_log, }
+        Self { stdout_log_file: stdout_log,
+               stderr_log_file: stderr_log, }
     }
 
-    pub fn stdout(&self) -> Option<BufReader<File>> {
-        match File::open(&self.stdout_log_file) {
-            Ok(f) => Some(BufReader::new(f)),
-            Err(_) => None,
+    pub fn stdout(&self) -> Result<BufReader<File>> {
+        Ok(BufReader::new(File::open(&self.stdout_log_file)?))
+    }
+
+    pub fn stdout_str(&self) -> Result<String> {
+        let result = self.stdout_str_impl();
+        if let Err(e) = &result {
+            error!("Failed to read {:?}, {}", self.stdout_log_file, e);
+        }
+        result
+    }
+
+    pub fn stderr(&self) -> Result<BufReader<File>> {
+        Ok(BufReader::new(File::open(&self.stderr_log_file)?))
+    }
+
+    pub fn stderr_str(&self) -> Result<String> {
+        let result = self.stderr_str_impl();
+        if let Err(e) = &result {
+            error!("Failed to read {:?}, {}", self.stderr_log_file, e);
+        }
+        result
+    }
+
+    /// Try to write the stdout and stderr of a process to stdout and to the specified log files.
+    fn output_standard_streams<H: Hook>(&mut self, service_group: &str, process: &mut Child) {
+        let preamble_str = Self::stream_preamble::<H>(service_group);
+        if let Some(stdout) = &mut process.stdout {
+            Self::tee_standard_stream(&preamble_str, stdout, &self.stdout_log_file);
+        }
+        if let Some(stderr) = &mut process.stderr {
+            Self::tee_standard_stream(&preamble_str, stderr, &self.stderr_log_file);
         }
     }
 
-    pub fn stderr(&self) -> Option<BufReader<File>> {
-        match File::open(&self.stderr_log_file) {
-            Ok(f) => Some(BufReader::new(f)),
-            Err(_) => None,
+    /// Try to write a stream to stdout and to `path`  
+    fn tee_standard_stream(preamble_str: &str, reader: impl Read, path: &Path) {
+        let mut file_result = File::create(path);
+        if let Err(e) = &file_result {
+            error!("Failed to create file {:?} to write hook output, {}",
+                   path, e);
         }
-    }
-
-    fn stream_output<H: Hook>(&mut self, service_group: &str, process: &mut Child) {
-        let mut stdout_log =
-            File::create(&self.stdout_log_file).expect("couldn't create log output file");
-        let mut stderr_log =
-            File::create(&self.stderr_log_file).expect("couldn't create log output file");
-
-        let preamble_str = self.stream_preamble::<H>(service_group);
-        if let Some(ref mut stdout) = process.stdout {
-            for line in BufReader::new(stdout).lines() {
-                if let Ok(ref l) = line {
-                    outputln!(preamble preamble_str, l);
-                    stdout_log.write_fmt(format_args!("{}\n", l))
-                              .expect("couldn't write line");
-                }
+        for line in BufReader::new(reader).lines()
+                                          .filter_map(result::Result::ok)
+        {
+            outputln!(preamble preamble_str, &line);
+            if let Ok(file) = &mut file_result {
+                writeln!(file, "{}", &line).unwrap_or_else(|e| {
+                                               error!("Failed to write hook output to {:?}, {}",
+                                                      path, e)
+                                           });
             }
         }
-        if let Some(ref mut stderr) = process.stderr {
-            for line in BufReader::new(stderr).lines() {
-                if let Ok(ref l) = line {
-                    outputln!(preamble preamble_str, l);
-                    stderr_log.write_fmt(format_args!("{}\n", l))
-                              .expect("couldn't write line");
-                }
-            }
-        }
     }
 
-    fn stream_preamble<H: Hook>(&self, service_group: &str) -> String {
+    fn stream_preamble<H: Hook>(service_group: &str) -> String {
         format!("{} hook[{}]:", service_group, H::file_name())
+    }
+
+    fn stdout_str_impl(&self) -> Result<String> {
+        let mut stdout = String::new();
+        self.stdout()?
+            .take(HookStandardStreamByteLimit::configured_value().into())
+            .read_to_string(&mut stdout)?;
+        Ok(stdout)
+    }
+
+    fn stderr_str_impl(&self) -> Result<String> {
+        let mut stderr = String::new();
+        self.stderr()?
+            .take(HookStandardStreamByteLimit::configured_value().into())
+            .read_to_string(&mut stderr)?;
+        Ok(stderr)
     }
 }
 
@@ -687,7 +718,7 @@ echo "The message is Hola Mundo"
     /// refactor that code to make it possible. In the meantime, copy
     /// and paste of the code is how we're going to do it :(
     #[test]
-    fn compile_a_hook() {
+    fn compile_and_run_a_hook() {
         let service_group = service_group();
         let concrete_path = rendered_hooks_path();
         let template_path = hook_templates_path();
@@ -736,9 +767,22 @@ echo "The message is Hello"
         assert_eq!(hook.compile(&service_group, &ctx).unwrap(), false);
         let post_second_change_content = file_content(&hook);
         assert_eq!(post_second_change_content, post_change_content);
+
+        #[cfg(unix)]
+        {
+            // Run the hook
+            assert!(hook.run(&service_group, &pkg, None::<&str>).unwrap());
+
+            // Remove the hook file and try run this should fail
+            std::fs::remove_dir_all(&concrete_path).expect("remove temp dir");
+            assert!(hook.run(&service_group, &pkg, None::<&str>).is_err())
+        }
     }
 
     ////////////////////////////////////////////////////////////////////////
+
+    crate::locked_env_var!(HAB_HOOK_STANDARD_STREAM_BYTE_LIMIT,
+                           hab_hook_standard_stream_byte_limit);
 
     #[test]
     #[cfg(not(windows))]
@@ -769,21 +813,22 @@ echo "The message is Hello"
             ServiceGroup::new(None, "dummy", "service", None).expect("couldn't create \
                                                                       ServiceGroup");
 
-        hook_output.stream_output::<InstallHook>(&service_group, &mut child);
+        hook_output.output_standard_streams::<InstallHook>(&service_group, &mut child);
 
-        let mut stdout = String::new();
-        hook_output.stdout()
-                   .unwrap()
-                   .read_to_string(&mut stdout)
-                   .expect("couldn't read stdout");
-        assert_eq!(stdout, "This is stdout\n");
+        let stdout = hook_output.stdout_str().expect("to get stdout string");
+        assert_eq!(stdout, "This is stdout\nThis is stdout line 2\n");
 
-        let mut stderr = String::new();
-        hook_output.stderr()
-                   .unwrap()
-                   .read_to_string(&mut stderr)
-                   .expect("couldn't read stderr");
-        assert_eq!(stderr, "This is stderr\n");
+        let stderr = hook_output.stderr_str().expect("to get stderr string");
+        assert_eq!(stderr,
+                   "This is stderr\nThis is stderr line 2\nThis is stderr line 3\n");
+
+        let envvar = hab_hook_standard_stream_byte_limit();
+        envvar.set("20");
+        let stdout = hook_output.stdout_str().expect("to get stdout string");
+        assert_eq!(stdout, "This is stdout\nThis ");
+
+        let stderr = hook_output.stderr_str().expect("to get stderr string");
+        assert_eq!(stderr, "This is stderr\nThis ");
 
         stdfs::remove_dir_all(tmp_dir).expect("remove temp dir");
     }

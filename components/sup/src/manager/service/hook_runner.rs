@@ -62,8 +62,9 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
         let f = future::loop_fn(self.clone(), |hook_runner| {
             hook_runner.clone()
                        .into_future()
-                       .map(move |(exit_value, _duration)| {
-                           if H::should_retry(&exit_value) {
+                       .map(move |(maybe_exit_value, _duration)| {
+                           // If we did not get an exit value always retry
+                           if maybe_exit_value.as_ref().map_or(true, H::should_retry) {
                                debug!("retrying the '{}' hook", H::file_name());
                                Loop::Continue(hook_runner)
                            } else {
@@ -80,7 +81,7 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
 impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
     type Error = Error;
     type Future = SpawnedFuture<Self::Item>;
-    type Item = (H::ExitValue, Duration);
+    type Item = (Option<H::ExitValue>, Duration);
 
     fn into_future(self) -> Self::Future {
         let (tx, rx) = oneshot::channel();
@@ -99,9 +100,12 @@ impl<H: Hook + Sync + 'static> IntoFuture for HookRunner<H> {
                                       // we're not able to use the same timer for both :(
                                       let _timer = hook_timer(H::file_name());
                                       let start = Instant::now();
-                                      let exit_value = self.hook.run(&self.service_group,
-                                                                     &self.pkg,
-                                                                     self.passwd.as_ref());
+                                      let exit_value =
+                                          self.hook
+                                              .run(&self.service_group,
+                                                   &self.pkg,
+                                                   self.passwd.as_ref())
+                                              .ok();
                                       let run_time = start.elapsed();
                                       tx.send((exit_value, run_time))
                                         .expect("Couldn't send oneshot signal from HookRunner: \

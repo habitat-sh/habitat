@@ -57,6 +57,7 @@ pub enum Error {
     HabitatCore(habitat_core::Error),
     InvalidBinds(Vec<String>),
     InvalidCertFile(PathBuf),
+    InvalidHealthCheckResult(i32),
     InvalidKeyFile(PathBuf),
     InvalidKeyParameter(String),
     InvalidPidFile,
@@ -163,6 +164,9 @@ impl fmt::Display for Error {
             Error::GroupNotFound(ref e) => format!("No GID for group '{}' could be found", e),
             Error::InvalidBinds(ref e) => format!("Invalid bind(s), {}", e.join(", ")),
             Error::InvalidCertFile(ref path) => format!("Invalid cert file: {}", path.display()),
+            Error::InvalidHealthCheckResult(code) => {
+                format!("Invalid health check result: {}", code)
+            }
             Error::InvalidKeyFile(ref path) => format!("Invalid key file: {}", path.display()),
             Error::InvalidKeyParameter(ref e) => {
                 format!("Invalid parameter for key generation: {:?}", e)
