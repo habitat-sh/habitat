@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.56 -->
+<!-- latest_release 0.84.57 -->
+## [fake-0.84.57](https://github.com/habitat-sh/habitat/tree/fake-0.84.57) (2019-09-09)
+
+#### Merged Pull Requests
+- Remove a few more trace-related bits [#6938](https://github.com/habitat-sh/habitat/pull/6938) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.56](https://github.com/habitat-sh/habitat/tree/fake-0.84.56) (2019-09-09)
 
 #### Merged Pull Requests
 - Add healthcheck results to event stream [#6905](https://github.com/habitat-sh/habitat/pull/6905) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.84.55](https://github.com/habitat-sh/habitat/tree/fake-0.84.55) (2019-09-09)
 
