@@ -340,9 +340,9 @@ impl ReconciliationFlag {
 /// state gets shared with all the CtlGateway handlers.
 pub struct ManagerState {
     /// The configuration used to instantiate this Manager instance
-    pub cfg: ManagerConfig,
-    pub services: Arc<RwLock<HashMap<PackageIdent, Service>>>,
-    pub gateway_state: Arc<sync::GatewayState>,
+    cfg: ManagerConfig,
+    services: Arc<RwLock<HashMap<PackageIdent, Service>>>,
+    gateway_state: Arc<sync::GatewayState>,
 }
 
 pub(crate) mod sync {
