@@ -65,6 +65,7 @@ struct WorkerState {
 }
 
 type ServiceName = String;
+#[derive(Clone)]
 pub struct UserConfigWatcher {
     // We use Arc/Mutex here, because this needs to be shareable
     // across threads so we can remove watchers from futures; the
