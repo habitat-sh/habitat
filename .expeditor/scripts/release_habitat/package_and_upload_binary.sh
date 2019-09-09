@@ -82,37 +82,36 @@ else
 fi
 
 echo "Compressing 'hab' binary"
-pushd "$build_dir" >/dev/null
-case "$BUILD_PKG_TARGET" in
-*-linux | *-linux-kernel2)
-    pkg_artifact="$tmp_root/results/${archive_name}.tar.gz"
-    tarball="$build_dir/$(basename "${pkg_artifact%.gz}")"
-    hab pkg exec core/tar tar cf "$tarball" "$(basename "$pkg_dir")"
-    hab pkg exec core/gzip gzip -9 -c "$tarball" > "$pkg_artifact"
-    ;;
-*-darwin | *-windows)
-    pkg_artifact="$tmp_root/results/${archive_name}.zip"
-    hab pkg exec core/zip zip -9 -r "$pkg_artifact" "$(basename "$pkg_dir")"
-    ;;
-*)
-    exit_with "$target_hart has unknown TARGET=$BUILD_PKG_TARGET" 3
-    ;;
-esac
-
+(cd "$build_dir"
+  case "$BUILD_PKG_TARGET" in
+  *-linux | *-linux-kernel2)
+      pkg_artifact="$tmp_root/results/${archive_name}.tar.gz"
+      tarball="$basename --suffix=".gz" "${pkg_artifact}""
+      hab pkg exec core/tar tar cf "$tarball" "$(basename "$pkg_dir")"
+      hab pkg exec core/gzip gzip -9 -c "$tarball" > "$pkg_artifact"
+      ;;
+  *-darwin | *-windows)
+      pkg_artifact="$tmp_root/results/${archive_name}.zip"
+      hab pkg exec core/zip zip -9 -r "$pkg_artifact" "$(basename "$pkg_dir")"
+      ;;
+  *)
+      exit_with "$target_hart has unknown TARGET=$BUILD_PKG_TARGET" 3
+      ;;
+  esac
+)
 # Generate our shasum
-popd >/dev/null
-pushd "$(dirname "$pkg_artifact")" >/dev/null
-sha256sum "$(basename "$pkg_artifact")" > "${pkg_artifact}.sha256sum"
+(cd "$(dirname "$pkg_artifact")"
+  sha256sum "$(basename "$pkg_artifact")" > "${pkg_artifact}.sha256sum"
+)
 
 # Sign our artifact
-popd >/dev/null
-pushd "$(dirname "$pkg_artifact")" >/dev/null
+(cd "$(dirname "$pkg_artifact")"
 gpg --armor \
   --digest-algo sha256 \
   --default-key 2940ABA983EF826A \
   --output "$(basename "$pkg_artifact").asc" \
   --detach-sign "$(basename "$pkg_artifact")"
-popd
+)
 
 # Name of the file to upload
 upload_artifact="$(basename "$pkg_artifact")"
@@ -122,16 +121,15 @@ upload_artifact="$(basename "$pkg_artifact")"
 latest_artifact="$(basename "$pkg_artifact" | sed -E 's/[0-9]{14}/latest/')"
 
 echo "--- Uploading $upload_artifact and associated artifacts to S3"
-pushd "$(dirname "$pkg_artifact")" >/dev/null
-# FYI - the bucket name is not just for automate artifacts, and this will be fixed up later
-# Upload unstable/latest
-unstable_s3_url="s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact"
-s3_upload_file "$upload_artifact" "$unstable_s3_url"
-s3_upload_file "$upload_artifact.asc" "$unstable_s3_url.asc"
-s3_upload_file "$upload_artifact.sha256sum" "$unstable_s3_url.sha256sum"
-# Upload versioned
-versioned_s3_url="s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact"
-s3_upload_file "$upload_artifact" "$versioned_s3_url"
-s3_upload_file "$upload_artifact.asc" "$versioned_s3_url.asc"
-s3_upload_file "$upload_artifact.sha256sum" "$versioned_s3_url.sha256sum"
-popd
+(cd "$(dirname "$pkg_artifact")"
+  # FYI - this bucket is not just for automate artifacts, regardless of the name.
+  unstable_s3_url="s3://chef-automate-artifacts/unstable/latest/habitat/$latest_artifact"
+  s3_upload_file "$upload_artifact" "$unstable_s3_url"
+  s3_upload_file "$upload_artifact.asc" "$unstable_s3_url.asc"
+  s3_upload_file "$upload_artifact.sha256sum" "$unstable_s3_url.sha256sum"
+  # Upload versioned
+  versioned_s3_url="s3://chef-automate-artifacts/files/habitat/$release_version/$upload_artifact"
+  s3_upload_file "$upload_artifact" "$versioned_s3_url"
+  s3_upload_file "$upload_artifact.asc" "$versioned_s3_url.asc"
+  s3_upload_file "$upload_artifact.sha256sum" "$versioned_s3_url.sha256sum"
+)

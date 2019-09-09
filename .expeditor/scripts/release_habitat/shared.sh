@@ -29,9 +29,8 @@ import_keys() {
 # Returns the full "release" version in the form of X.Y.Z/DATESTAMP
 get_latest_pkg_release_version_in_release_channel() {
     local pkg_name="${1:?}"
-    version=$(curl -s "${HAB_BLDR_URL}/v1/depot/channels/core/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${BUILD_PKG_TARGET}" \
-        | jq -r '.ident | .version + "/" + .release')
-    echo "${version}"
+    curl -s "${HAB_BLDR_URL}/v1/depot/channels/core/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${BUILD_PKG_TARGET}" \
+        | jq -r '.ident | .version + "/" + .release'
 }
 
 # Returns the semver version in the form of X.Y.Z
