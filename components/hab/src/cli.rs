@@ -323,7 +323,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (aliases: &["e", "ex", "exp", "expo", "expor"])
                     (@arg ORIGIN: +required +takes_value {valid_origin})
                     (@arg PAIR_TYPE: -t --type +takes_value {valid_pair_type}
-                        "Export either the 'public' or 'private' key")
+                        "Export either the 'public' or 'secret' key. The 'secret' key is the origin private key")
                     (arg: arg_cache_key_path("Path to export origin keys from. \
                         Default value is hab/cache/keys if root and .hab/cache/keys under the home \
                         directory otherwise."))
