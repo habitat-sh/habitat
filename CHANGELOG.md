@@ -5,29 +5,53 @@
 
 <!-- latest_release -->
 
-## [0.85.0](https://github.com/habitat-sh/habitat/tree/0.85.0) (2019-08-21)
+## [0.85.0](https://github.com/habitat-sh/habitat/tree/0.85.0) (2019-09-09)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.83.0...0.85.0)
 
 #### Behavioral Changes
 - Cleanup lifecycle restarts and remove reload hook [#6668](https://github.com/habitat-sh/habitat/pull/6668) ([davidMcneil](https://github.com/davidMcneil))
 
 #### Bug Fixes
+- Fix config gossip [#6910](https://github.com/habitat-sh/habitat/pull/6910) ([davidMcneil](https://github.com/davidMcneil))
+- Properly root SetupEnvironment variables with file system paths at run time [#6850](https://github.com/habitat-sh/habitat/pull/6850) ([mwrock](https://github.com/mwrock))
+- handle chunked encoding responses that lack content length header [#6891](https://github.com/habitat-sh/habitat/pull/6891) ([mwrock](https://github.com/mwrock))
 - Be more explicit about connection refused errors. [#6755](https://github.com/habitat-sh/habitat/pull/6755) ([raskchanky](https://github.com/raskchanky))
 - Ensure studio is installed [#6772](https://github.com/habitat-sh/habitat/pull/6772) ([smacfarlane](https://github.com/smacfarlane))
 
 #### New Features & Enhancements
+- Add healthcheck results to event stream [#6905](https://github.com/habitat-sh/habitat/pull/6905) ([davidMcneil](https://github.com/davidMcneil))
+- Copy SSL_CERT_FILE to studio internal and persist env var [#6909](https://github.com/habitat-sh/habitat/pull/6909) ([smacfarlane](https://github.com/smacfarlane))
+- Adds channel-to-channel promotion to bldr subcommand [#6911](https://github.com/habitat-sh/habitat/pull/6911) ([eeyun](https://github.com/eeyun))
+- Copy SSL certs into Windows studio [#6844](https://github.com/habitat-sh/habitat/pull/6844) ([chefsalim](https://github.com/chefsalim))
 - Add ability to disable job group creation from the cli [#6843](https://github.com/habitat-sh/habitat/pull/6843) ([smacfarlane](https://github.com/smacfarlane))
 - Update event stream [#6853](https://github.com/habitat-sh/habitat/pull/6853) ([davidMcneil](https://github.com/davidMcneil))
+- Add environment to windows binstubs [#6826](https://github.com/habitat-sh/habitat/pull/6826) ([mwrock](https://github.com/mwrock))
 - Assorted health-check tweaks [#6727](https://github.com/habitat-sh/habitat/pull/6727) ([christophermaier](https://github.com/christophermaier))
 
 #### Merged Pull Requests
+- Fix typo in &#39;type&#39; parameter for command &#39;hab origin key export&#39; [#6934](https://github.com/habitat-sh/habitat/pull/6934) ([sirajrauff](https://github.com/sirajrauff))
+- Add e2e test to ensure studio auto-installs [#6781](https://github.com/habitat-sh/habitat/pull/6781) ([smacfarlane](https://github.com/smacfarlane))
+- Remove the trace_it! macro and associated functionality. [#6936](https://github.com/habitat-sh/habitat/pull/6936) ([raskchanky](https://github.com/raskchanky))
+- Removes artifactory module from cli [#6931](https://github.com/habitat-sh/habitat/pull/6931) ([eeyun](https://github.com/eeyun))
+- Always build the Launcher and Windows Service packages [#6916](https://github.com/habitat-sh/habitat/pull/6916) ([christophermaier](https://github.com/christophermaier))
+- Remove unused locks and consolidate test helpers. [#6928](https://github.com/habitat-sh/habitat/pull/6928) ([raskchanky](https://github.com/raskchanky))
+- Redo departial PR [#6925](https://github.com/habitat-sh/habitat/pull/6925) ([kagarmoe](https://github.com/kagarmoe))
+- Correct Cargo.lock for new zmq branch [#6919](https://github.com/habitat-sh/habitat/pull/6919) ([raskchanky](https://github.com/raskchanky))
+- Add one-off release tool [#6885](https://github.com/habitat-sh/habitat/pull/6885) ([davidMcneil](https://github.com/davidMcneil))
+- Remove PID file error message [#6915](https://github.com/habitat-sh/habitat/pull/6915) ([davidMcneil](https://github.com/davidMcneil))
+- mention earlier there&#39;s a debug option for PS plans [#6912](https://github.com/habitat-sh/habitat/pull/6912) ([robbkidd](https://github.com/robbkidd))
+- fixes supervisor connection failure test [#6860](https://github.com/habitat-sh/habitat/pull/6860) ([nellshamrell](https://github.com/nellshamrell))
+- fixing permission error in release [#6886](https://github.com/habitat-sh/habitat/pull/6886) ([mwrock](https://github.com/mwrock))
+- increase timeout for mac and windows releases [#6888](https://github.com/habitat-sh/habitat/pull/6888) ([mwrock](https://github.com/mwrock))
+- extend release timeouts [#6889](https://github.com/habitat-sh/habitat/pull/6889) ([mwrock](https://github.com/mwrock))
+- report last error after all failed pkg download attempts [#6890](https://github.com/habitat-sh/habitat/pull/6890) ([mwrock](https://github.com/mwrock))
+- Add hab bldr url for env variable [#6898](https://github.com/habitat-sh/habitat/pull/6898) ([scotthain](https://github.com/scotthain))
 - Bump nokogiri from 1.10.3 to 1.10.4 in /www [#6877](https://github.com/habitat-sh/habitat/pull/6877) ([dependabot[bot]](https://github.com/dependabot[bot]))
 - Begin cleaning up scripts and locations of things [#6846](https://github.com/habitat-sh/habitat/pull/6846) ([scotthain](https://github.com/scotthain))
 - Upgrade to rust 1.37.0 [#6861](https://github.com/habitat-sh/habitat/pull/6861) ([raskchanky](https://github.com/raskchanky))
 - Fixing up some End-to-End Supervisor Tests [#6780](https://github.com/habitat-sh/habitat/pull/6780) ([christophermaier](https://github.com/christophermaier))
 - End to end tests: hab-svc-load and hup-does-not-abandon-services [#6849](https://github.com/habitat-sh/habitat/pull/6849) ([baumanj](https://github.com/baumanj))
 - Add support for running e2e tests locally, for rapid iteration [#6855](https://github.com/habitat-sh/habitat/pull/6855) ([christophermaier](https://github.com/christophermaier))
-- Link our reqwest pins to the issue that would allow us to relax them [#6854](https://github.com/habitat-sh/habitat/pull/6854) ([christophermaier](https://github.com/christophermaier))
 - Add job to run all `#[ignore]`d tests [#6845](https://github.com/habitat-sh/habitat/pull/6845) ([baumanj](https://github.com/baumanj))
 - Add mac hab build to release process [#6802](https://github.com/habitat-sh/habitat/pull/6802) ([scotthain](https://github.com/scotthain))
 - Fix cargo update scheduled task [#6840](https://github.com/habitat-sh/habitat/pull/6840) ([smacfarlane](https://github.com/smacfarlane))
@@ -36,6 +60,7 @@
 - Audit RumorStore locking [#6674](https://github.com/habitat-sh/habitat/pull/6674) ([baumanj](https://github.com/baumanj))
 - Update http-client and builder-api-client from hyper to reqwest. [#6759](https://github.com/habitat-sh/habitat/pull/6759) ([chefsalim](https://github.com/chefsalim))
 - Always use linux for cleanup build channel [#6804](https://github.com/habitat-sh/habitat/pull/6804) ([scotthain](https://github.com/scotthain))
+- Revert &quot;redux: cross platform binstubs with package environment&quot; [#6796](https://github.com/habitat-sh/habitat/pull/6796) ([smacfarlane](https://github.com/smacfarlane))
 - Update rustfmt [#6776](https://github.com/habitat-sh/habitat/pull/6776) ([christophermaier](https://github.com/christophermaier))
 - Extract a curlbash_hab function [#6789](https://github.com/habitat-sh/habitat/pull/6789) ([christophermaier](https://github.com/christophermaier))
 - Clean up a few extra analytics code paths [#6787](https://github.com/habitat-sh/habitat/pull/6787) ([christophermaier](https://github.com/christophermaier))
