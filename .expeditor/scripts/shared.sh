@@ -11,7 +11,14 @@ curlbash_hab() {
     # TODO:
     # really weird corner case on linux2 because the 0.82.0 versions of both
     # are the same. let's just delete it
-    rm -rf /hab/pkgs/core/hab/0.82.0
+    # 
+    # This command is potentially executed on different queues, under different users
+    # with varying levels of permissions.  Attempt to sudo-remove it first, for the linux-privileged 
+    # use case, and if that fails, try to remove it directly for the docker use case. 
+    if [ -d /hab/pkgs/core/hab/0.82.0 ]; then 
+      sudo rm -rf /hab/pkgs/core/hab/0.82.0 || \
+           rm -rf /hab/pkgs/core/hab/0.82.0
+    fi 
     curl https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh | sudo bash -s -- -t "$pkg_target"
     case "${pkg_target}" in
         x86_64-linux | x86_64-linux-kernel2)
