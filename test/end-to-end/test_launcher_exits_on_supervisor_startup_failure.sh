@@ -22,7 +22,7 @@ fi
 
 TESTING_FS_ROOT=$(mktemp -d)
 export TESTING_FS_ROOT
-sup_log=$(mktemp)
+sup_log="sup.log"
 
 echo "Setting $TESTING_FS_ROOT to read-only to induce supervisor start failure"
 chmod -R a-w "$TESTING_FS_ROOT"
