@@ -484,8 +484,7 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `Server::block_list` (write)
     pub fn add_to_block_list_sblw(&self, member_id: String) {
-        let mut block_list = self.block_list.write();
-        block_list.insert(member_id);
+        self.block_list.write().insert(member_id);
     }
 
     /// Remove a given address from the block_list.
@@ -493,8 +492,7 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `Server::block_list` (write)
     pub fn remove_from_block_list_sblw(&self, member_id: &str) {
-        let mut block_list = self.block_list.write();
-        block_list.remove(member_id);
+        self.block_list.write().remove(member_id);
     }
 
     /// Check if a given member ID is on the block_list.
@@ -502,8 +500,7 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `Server::block_list` (read)
     fn is_member_blocked_sblr(&self, member_id: &str) -> bool {
-        let block_list = self.block_list.read();
-        block_list.contains(member_id)
+        self.block_list.read().contains(member_id)
     }
 
     /// Stop the outbound and inbound threads from processing work.
