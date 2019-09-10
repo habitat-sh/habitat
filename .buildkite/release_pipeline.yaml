@@ -59,7 +59,7 @@ steps:
             - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
-    timeout_in_minutes: 20
+    timeout_in_minutes: 30
 
   - wait
 
@@ -81,6 +81,7 @@ steps:
             - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    timeout_in_minutes: 30
 
   - label: ":linux: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
@@ -160,6 +161,7 @@ steps:
             - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    timeout_in_minutes: 30
 
   # This must pull in the core/hab we built ^^^
   - label: ":linux: :habicat: core/hab-bintray-publish"
@@ -226,6 +228,7 @@ steps:
             - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    timeout_in_minutes: 30
 
   - wait
 
