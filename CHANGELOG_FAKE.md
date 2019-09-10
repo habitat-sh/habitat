@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.59 -->
+<!-- latest_release 0.84.60 -->
+## [fake-0.84.60](https://github.com/habitat-sh/habitat/tree/fake-0.84.60) (2019-09-10)
+
+#### Merged Pull Requests
+- Bump supervisor build timeout to 30 minutes [#6942](https://github.com/habitat-sh/habitat/pull/6942) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.59](https://github.com/habitat-sh/habitat/tree/fake-0.84.59) (2019-09-09)
 
 #### Merged Pull Requests
 - Prep for 0.85.0 release [#6939](https://github.com/habitat-sh/habitat/pull/6939) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.58](https://github.com/habitat-sh/habitat/tree/fake-0.84.58) (2019-09-09)
 
