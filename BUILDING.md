@@ -47,7 +47,7 @@ cargo --version
 
 Next, use our installation script to install rustfmt
 ```
-./support/ci/rustfmt.sh
+./.expeditor/scripts/verify/rustfmt.sh
 ```
 
 At any time, you can find the version of rustfmt we are using by running this command at the root level
@@ -73,7 +73,7 @@ You would run:
 cargo +nightly-2019-05-10 fmt
 ```
 
-You may also be able to configure your editor to automatically run rustfmt every time you save.
+You may also be able to configure your editor to automatically run rustfmt every time you save. The [./support/rustfmt_nightly.sh](./support/rustfmt_nightly.sh) script may be helpful. 
 
 # Compiling habitat binaries
 
