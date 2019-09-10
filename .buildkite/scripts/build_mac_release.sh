@@ -10,7 +10,7 @@ export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
 
 echo "--- Installing buildkite agent"
 brew tap buildkite/buildkite
-brew install --token="$BUILDKITE_AGENT_ACCESS_TOKEN" buildkite-agent
+brew upgrade --token="$BUILDKITE_AGENT_ACCESS_TOKEN" buildkite-agent
 
 echo "--- Installing Habitat Toolchain Omnibus package"
 # We now have a temporary pipeline to building this bootstrap package, but
