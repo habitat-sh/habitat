@@ -107,7 +107,7 @@ pub trait Suitability: Debug + Send + Sync {
 ///
 /// In particular, this localizes all incarnation increment and
 /// persistence logic.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Myself {
     member: Member,
     // TODO (CM): This is only optional because the current
