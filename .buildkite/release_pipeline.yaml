@@ -298,7 +298,7 @@ steps:
             - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
-
+    timeout_in_minutes: 30
 
   - label: ":k8s: core/hab-pkg-export-kubernetes"
     command: .buildkite/scripts/build_component.sh pkg-export-kubernetes
@@ -345,6 +345,7 @@ steps:
             - HAB_LICENSE
             - BUILDKITE_JOB_ID
             - BUILDKITE_AGENT_ACCESS_TOKEN
+    timeout_in_minutes: 30
 
   # TODO: Create a Mesos emoji
   - label: ":habicat: core/hab-pkg-mesosize"
