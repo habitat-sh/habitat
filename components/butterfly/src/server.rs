@@ -133,24 +133,11 @@ impl Myself {
 
     /// Read the incarnation number stored in the `IncarnationStore`
     /// and set it as our own.
-    ///
-    /// Fails if `IncarnationStore` has not been set (i.e., is `None).
-    fn sync_incarnation(&mut self) -> Result<()> {
-        match self.incarnation_store {
-            Some(ref mut s) => {
-                let value = s.load()?;
-                self.member.incarnation = value;
-                INCARNATION.set(value.to_i64());
-            }
-            None => {
-                // Can't sync unless you've got a store!
-                //
-                // Note: This shouldn't be able to happen, and will
-                // hopefully go away once we refactor things such that
-                // `Myself` just gets created with an IncarnationStore directly.
-                return Err(Error::InvalidIncarnationSynchronization);
-            }
-        };
+    fn sync_incarnation(&mut self, store: incarnation_store::IncarnationStore) -> Result<()> {
+        let value = store.load()?;
+        self.incarnation_store = Some(store);
+        self.member.incarnation = value;
+        INCARNATION.set(value.to_i64());
         debug!("Setting incarnation number to {}", self.member.incarnation);
         Ok(())
     }
@@ -447,10 +434,7 @@ impl Server {
                 // persisted previously.
                 let mut store = incarnation_store::IncarnationStore::new(path.join("INCARNATION"));
                 store.initialize()?;
-
-                let mut me = self.member.write();
-                me.incarnation_store = Some(store);
-                me.sync_incarnation()?;
+                self.member.write().sync_incarnation(store)?;
             }
         }
 
