@@ -18,6 +18,9 @@ use std::{fs,
           process::Command,
           str::FromStr};
 
+// This code makes heavy use of `#[cfg(unix)]` and `#[cfg(windows)]`. This should potentially be
+// changed to use the various target feature flags.
+
 /// The `Dockerfile` template.
 #[cfg(unix)]
 const DOCKERFILE: &str = include_str!("../defaults/Dockerfile.hbs");

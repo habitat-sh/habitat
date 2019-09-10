@@ -333,6 +333,11 @@ fn image_identifier(windows_base_tag: Option<&str>, target: target::PackageTarge
     henv::var(DOCKER_IMAGE_ENVVAR).unwrap_or_else(|_| format!("{}-{}:{}", img, studio_target, tag))
 }
 
+// Determine what studio target to use for a given target. This uses the various target feature
+// flags to conditionally compile with the correct target symbols. Other parts of the code that
+// change behavior based on the available targets should use a similar technique. The docker
+// exporter code is one example. However, the docker exporter currently uses `#[cfg(unix)]` and
+// `#[cfg(windows)]`. This should potentially be changed.
 fn studio_target(windows: bool, target: target::PackageTarget) -> target::PackageTarget {
     if windows {
         #[cfg(feature = "supported_targets")]
@@ -348,7 +353,7 @@ fn studio_target(windows: bool, target: target::PackageTarget) -> target::Packag
         #[cfg(feature = "supported_targets")]
         target::X86_64_WINDOWS => target::X86_64_LINUX,
         #[cfg(feature = "aarch64-linux")]
-        target::AARCH64_LINUX => panic!("{} is not supported", target::AARCH64_LINUX),
+        target::AARCH64_LINUX => panic!("{} studios are not supported", target::AARCH64_LINUX),
         // This is only needed for the case that we have no target enabled. In that case, we get a
         // non-exhaustive patterns error because the match statement is empty.
         #[cfg(not(any(feature = "supported_targets", feature = "aarch64-linux")))]
