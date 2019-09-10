@@ -530,15 +530,16 @@ impl Manager {
                                cfg.ctl_listen,
                                cfg.http_listen)?;
         let member = Self::load_member(&mut sys, &fs_cfg)?;
-        let services = Arc::new(RwLock::new(HashMap::new()));
+        let services = Arc::default();
 
-        let server = habitat_butterfly::Server::new(sys.gossip_listen(),
-                                                    sys.gossip_listen(),
-                                                    member,
-                                                    cfg.ring_key,
-                                                    None,
-                                                    Some(&fs_cfg.data_path),
-                                                    Box::new(SuitabilityLookup(services.clone())))?;
+        let server =
+            habitat_butterfly::Server::new(sys.gossip_listen(),
+                                           sys.gossip_listen(),
+                                           member,
+                                           cfg.ring_key,
+                                           None,
+                                           Some(&fs_cfg.data_path),
+                                           Box::new(SuitabilityLookup(Arc::clone(&services))))?;
         outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();
@@ -1081,11 +1082,11 @@ impl Manager {
         match shutdown_mode {
             ShutdownMode::Restarting => {
                 outputln!("Preparing services for Supervisor restart");
-                for (_ident, svc) in self.state
-                                         .services
-                                         .write()
-                                         .expect("Services lock is poisoned!")
-                                         .iter_mut()
+                for svc in self.state
+                               .services
+                               .write()
+                               .expect("Services lock is poisoned!")
+                               .values_mut()
                 {
                     svc.detach();
                 }
@@ -1094,12 +1095,12 @@ impl Manager {
                 outputln!("Gracefully departing from butterfly network.");
                 self.butterfly.set_departed_mlw_smw_rhw();
 
-                let mut svcs = self.state
-                                   .services
-                                   .write()
-                                   .expect("Services lock is poisoned!");
-
-                for (_ident, svc) in svcs.drain() {
+                for (_ident, svc) in self.state
+                                         .services
+                                         .write()
+                                         .expect("Services lock is poisoned!")
+                                         .drain()
+                {
                     self.runtime.spawn(self.stop_service_future_gsw(svc, None));
                 }
             }
@@ -1140,10 +1141,10 @@ impl Manager {
     fn take_services_with_updates_rsw_mlr_rhw(&mut self) -> Vec<Service> {
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
 
-        let mut state_services = self.state
-                                     .services
-                                     .write()
-                                     .expect("Services lock is poisoned!");
+        let state_services = self.state
+                                 .services
+                                 .read()
+                                 .expect("Services lock is poisoned!");
         let idents_to_restart: Vec<_> = state_services.iter()
             .filter_map(|(current_ident, service)| {
                 if service.needs_restart {
@@ -1162,6 +1163,10 @@ impl Manager {
             .collect();
 
         let mut services_to_restart = Vec::with_capacity(idents_to_restart.len());
+        let mut state_services = self.state
+                                     .services
+                                     .write()
+                                     .expect("Services lock is poisoned!");
         for current_ident in idents_to_restart {
             // unwrap is safe because we've to the write lock, and we
             // know there's a value present at this key.
@@ -1651,12 +1656,12 @@ impl Manager {
     }
 
     fn update_running_services_from_user_config_watcher(&mut self) {
-        let mut services = self.state
-                               .services
-                               .write()
-                               .expect("Services lock is poisoned");
-
-        for service in services.values_mut() {
+        for service in self.state
+                           .services
+                           .write()
+                           .expect("Services lock is poisoned")
+                           .values_mut()
+        {
             if self.user_config_watcher.have_events_for(service) {
                 outputln!("user.toml changes detected for {}", &service.spec_ident);
                 service.user_config_updated = true;
