@@ -34,6 +34,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":linux: :two: :habicat: core/hab-launcher"
     command: .buildkite/scripts/build_component.sh launcher
@@ -41,6 +42,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    timeout_in_minutes: 30
 
   - label: ":windows: :habicat: core/hab-launcher"
     command: .buildkite/scripts/build_component.ps1 -Component launcher
@@ -89,6 +91,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":linux: :two: :habicat: core/hab"
     command: .buildkite/scripts/build_component.sh hab
@@ -96,6 +99,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    timeout_in_minutes: 30
 
   - label: ":windows: :habicat: core/hab"
     command: .buildkite/scripts/build_component.ps1 -Component hab
@@ -136,6 +140,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":linux: :two: :habicat: :hammer_and_wrench: core/hab-plan-build"
     command: .buildkite/scripts/build_component.sh plan-build
@@ -143,7 +148,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
-
+    timeout_in_minutes: 30
 
   - label: ":windows: :habicat: :hammer_and_wrench: core/hab-plan-build-ps1"
     command: .buildkite/scripts/build_component.ps1 -Component plan-build-ps1
@@ -170,6 +175,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":linux: :two: :habicat: core/hab-bintray-publish"
     command: .buildkite/scripts/build_component.sh bintray-publish
@@ -177,6 +183,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    timeout_in_minutes: 30
 
   - wait
 
@@ -187,6 +194,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":drum_with_drumsticks: :habicat: :two: :drum_with_drumsticks: core/hab-backline"
     command: .buildkite/scripts/build_component.sh backline
@@ -194,6 +202,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    timeout_in_minutes: 30
 
   - wait
 
@@ -204,6 +213,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":linux: :two: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.sh studio
@@ -211,6 +221,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    timeout_in_minutes: 30
 
   - label: ":windows: :habicat: core/hab-studio"
     command: .buildkite/scripts/build_component.ps1 -Component studio
@@ -276,6 +287,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":linux: :docker: core/hab-pkg-export-docker"
     command: .buildkite/scripts/build_component.sh pkg-export-docker
@@ -283,6 +295,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":windows: :docker: core/hab-pkg-export-docker"
     command: .buildkite/scripts/build_component.ps1 -Component pkg-export-docker
@@ -309,6 +322,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":helm: core/hab-pkg-export-helm"
     command: .buildkite/scripts/build_component.sh pkg-export-helm
@@ -316,6 +330,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":linux: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
@@ -323,6 +338,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - label: ":linux: :two: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.sh pkg-export-tar
@@ -330,6 +346,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    timeout_in_minutes: 30
 
   - label: ":windows: :package: core/hab-pkg-export-tar"
     command: .buildkite/scripts/build_component.ps1 -Component pkg-export-tar
@@ -357,6 +374,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - wait
 
@@ -368,6 +386,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+    timeout_in_minutes: 30
 
   - wait
 
@@ -377,6 +396,7 @@ steps:
       queue: habitat-release
     env:
       BUILD_PKG_TARGET: "x86_64-linux"
+
   - label: ":docker: :two: Upload containers to Docker Hub"
     command: .buildkite/scripts/dockerhub_upload.sh
     agents:
