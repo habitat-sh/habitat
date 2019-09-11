@@ -60,7 +60,7 @@ steps:
     expeditor:
       executor:
         macos:
-          os-version: "10.12"
+          os-version: "10.13"
           inherit-environment-vars: true
 
   - wait
