@@ -205,7 +205,18 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
-
+  
+  - label: "[:windows: test_studio_with_ssl_cert_file_envvar_set]"
+    command:
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 DEV test_studio_with_ssl_cert_file_envvar_set
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+ 
   - label: "[:linux: :docker: test_studio_with_ssl_cert_file_envvar_set]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
