@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.60 -->
+<!-- latest_release 0.84.61 -->
+## [fake-0.84.61](https://github.com/habitat-sh/habitat/tree/fake-0.84.61) (2019-09-11)
+
+#### Merged Pull Requests
+- Upgrade buildkite agent on macOS instead of install [#6943](https://github.com/habitat-sh/habitat/pull/6943) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.60](https://github.com/habitat-sh/habitat/tree/fake-0.84.60) (2019-09-10)
 
 #### Merged Pull Requests
 - Bump supervisor build timeout to 30 minutes [#6942](https://github.com/habitat-sh/habitat/pull/6942) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.59](https://github.com/habitat-sh/habitat/tree/fake-0.84.59) (2019-09-09)
 
