@@ -10,9 +10,9 @@
 
 use crate::rumor::{RumorKey,
                    RumorType};
+use habitat_common::sync::Lock;
 use std::{collections::HashMap,
-          sync::{Arc,
-                 RwLock}};
+          sync::Arc};
 
 // TODO (CM): Can we key by member instead? What do we do more frequently?
 // TODO (CM): Might want to type the member ID explicitly
@@ -47,7 +47,7 @@ habitat_core::env_config_int!(/// The number of times that a rumor will be share
 /// the rumor mill up again. This will zero out all counters for every
 /// member, starting the sharing cycle over again.
 #[derive(Debug, Clone)]
-pub struct RumorHeat(Arc<RwLock<HashMap<RumorKey, HashMap<String, usize>>>>);
+pub struct RumorHeat(Arc<Lock<HashMap<RumorKey, HashMap<String, usize>>>>);
 
 impl RumorHeat {
     /// Add a rumor to track; members will see it as "hot".
@@ -55,9 +55,12 @@ impl RumorHeat {
     /// If the rumor was already being tracked, we reset all
     /// previously-recorded "heat" information; the rumor is once
     /// again "hot" for _all_ members.
-    pub fn start_hot_rumor<T: Into<RumorKey>>(&self, rumor: T) {
+    ///
+    /// # Locking (see locking.md)
+    /// * `RumorHeat::inner` (write)
+    pub fn start_hot_rumor_rhw<T: Into<RumorKey>>(&self, rumor: T) {
         let rk: RumorKey = rumor.into();
-        let mut rumors = self.0.write().expect("RumorHeat lock poisoned");
+        let mut rumors = self.0.write();
         rumors.insert(rk, HashMap::new());
     }
 
@@ -75,11 +78,13 @@ impl RumorHeat {
     ///
     /// **NOTE**: The ordering of rumors within each of these "heat"
     /// cohorts is currently undefined.
-    pub fn currently_hot_rumors(&self, id: &str) -> Vec<RumorKey> {
+    ///
+    /// # Locking (see locking.md)
+    /// * `RumorHeat::inner` (read)
+    pub fn currently_hot_rumors_rhr(&self, id: &str) -> Vec<RumorKey> {
         let mut rumor_heat: Vec<(RumorKey, usize)> =
             self.0
                 .read()
-                .expect("RumorHeat lock poisoned")
                 .iter()
                 .map(|(k, heat_map)| (k.clone(), *heat_map.get(id).unwrap_or(&0)))
                 .filter(|&(_, heat)| heat < RumorShareLimit::configured_value().0)
@@ -101,9 +106,12 @@ impl RumorHeat {
     ///
     /// **NOTE**: "cool" in the name of the function is a *verb*; you're
     /// not going to get a list of cool rumors from this.
-    pub fn cool_rumors(&self, id: &str, rumors: &[RumorKey]) {
+    ///
+    /// # Locking (see locking.md)
+    /// * `RumorHeat::inner` (write)
+    pub fn cool_rumors_rhw(&self, id: &str, rumors: &[RumorKey]) {
         if !rumors.is_empty() {
-            let mut rumor_map = self.0.write().expect("RumorHeat lock poisoned");
+            let mut rumor_map = self.0.write();
             for rk in rumors {
                 if rumor_map.contains_key(&rk) {
                     let heat_map = rumor_map.get_mut(&rk).unwrap();
@@ -132,8 +140,11 @@ impl RumorHeat {
     /// memory this consumes. If that member should ever come back
     /// again, all rumors would be considered "hot" for them, so they
     /// will get a bit more network traffic initially.
-    pub fn purge(&self, id: &str) {
-        let mut heat_map = self.0.write().expect("RumorHeat lock poisoned");
+    ///
+    /// # Locking (see locking.md)
+    /// * `RumorHeat::inner` (write)
+    pub fn purge_rhw(&self, id: &str) {
+        let mut heat_map = self.0.write();
 
         // Remove any information about Service rumors for this
         // particular member... it's leaving, so none of its services
@@ -158,26 +169,25 @@ impl RumorHeat {
 }
 
 impl Default for RumorHeat {
-    fn default() -> RumorHeat { RumorHeat(Arc::new(RwLock::new(HashMap::new()))) }
+    fn default() -> RumorHeat { RumorHeat(Arc::new(Lock::new(HashMap::new()))) }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{error::Result,
+                member::Member,
                 protocol::{self,
                            newscast},
-                rumor::{Rumor,
+                rumor::{service::{Service,
+                                  SysInfo},
+                        Rumor,
                         RumorKey,
                         RumorType}};
     use habitat_common::locked_env_var;
-    use uuid::Uuid;
-
-    use crate::{member::Member,
-                rumor::service::{Service,
-                                 SysInfo}};
     use habitat_core::{package::PackageIdent,
                        service::ServiceGroup};
+    use uuid::Uuid;
 
     // TODO (CM): This FakeRumor implementation is copied from
     // rumor.rs; factor this helper code better.
@@ -227,33 +237,42 @@ mod tests {
 
     /// Helper function that tests that a given rumor is currently
     /// considered "hot" for the given member.
-    fn assert_rumor_is_hot<T>(heat: &RumorHeat, member_id: &str, rumor: T)
+    ///
+    /// # Locking (see locking.md)
+    /// * `RumorHeat::inner` (read)
+    fn assert_rumor_is_hot_rhr<T>(heat: &RumorHeat, member_id: &str, rumor: T)
         where T: Into<RumorKey>
     {
         let key = rumor.into();
-        let hot_rumors = heat.currently_hot_rumors(&member_id);
+        let hot_rumors = heat.currently_hot_rumors_rhr(&member_id);
         assert!(hot_rumors.contains(&key));
     }
 
     /// Helper function that tests that a given rumor is currently
     /// NOT considered "hot" for the given member.
-    fn assert_rumor_is_cold<T>(heat: &RumorHeat, member_id: &str, rumor: T)
+    ///
+    /// # Locking (see locking.md)
+    /// * `RumorHeat::inner` (read)
+    fn assert_rumor_is_cold_rhr<T>(heat: &RumorHeat, member_id: &str, rumor: T)
         where T: Into<RumorKey>
     {
         let key = rumor.into();
-        let hot_rumors = heat.currently_hot_rumors(&member_id);
+        let hot_rumors = heat.currently_hot_rumors_rhr(&member_id);
         assert!(!hot_rumors.contains(&key));
     }
 
     /// Helper function that takes a rumor that has already been
     /// introduced into the `RumorHeat` and cools it enough to no
     /// longer be considered "hot".
-    fn cool_rumor_completely<T>(heat: &RumorHeat, member_id: &str, rumor: T)
+    ///
+    /// # Locking (see locking.md)
+    /// * `RumorHeat::inner` (write)
+    fn cool_rumor_completely_rhw<T>(heat: &RumorHeat, member_id: &str, rumor: T)
         where T: Into<RumorKey>
     {
         let rumor_keys = &[rumor.into()];
         for _ in 0..RumorShareLimit::default().0 {
-            heat.cool_rumors(&member_id, rumor_keys);
+            heat.cool_rumors_rhw(&member_id, rumor_keys);
         }
     }
 
@@ -262,7 +281,7 @@ mod tests {
         let heat = RumorHeat::default();
         let member_id = "test_member";
 
-        let hot_rumors = heat.currently_hot_rumors(&member_id);
+        let hot_rumors = heat.currently_hot_rumors_rhr(&member_id);
         assert!(hot_rumors.is_empty());
     }
 
@@ -275,9 +294,9 @@ mod tests {
         let member_id = "test_member";
         let rumor = FakeRumor::default();
 
-        heat.start_hot_rumor(&rumor);
+        heat.start_hot_rumor_rhw(&rumor);
 
-        let hot_rumors = heat.currently_hot_rumors(&member_id);
+        let hot_rumors = heat.currently_hot_rumors_rhr(&member_id);
         assert_eq!(hot_rumors.len(), 1);
         assert_eq!(hot_rumors[0], RumorKey::from(&rumor));
     }
@@ -293,7 +312,7 @@ mod tests {
         let rumor_key = RumorKey::from(&rumor);
         let rumor_keys = &[rumor_key.clone()];
 
-        heat.start_hot_rumor(&rumor);
+        heat.start_hot_rumor_rhw(&rumor);
 
         // Simulate going through the requisite number of gossip
         // cycles to cool the rumor down
@@ -301,13 +320,13 @@ mod tests {
         // Not using the helper function here, as this function is
         // what this test is actually testing.
         for _ in 0..RumorShareLimit::default().0 {
-            assert_rumor_is_hot(&heat, &member_id, &rumor);
-            heat.cool_rumors(&member_id, rumor_keys);
+            assert_rumor_is_hot_rhr(&heat, &member_id, &rumor);
+            heat.cool_rumors_rhw(&member_id, rumor_keys);
         }
 
         // At this point, our member should have heard this rumor
         // enough that it's no longer hot
-        let hot_rumors = heat.currently_hot_rumors(&member_id);
+        let hot_rumors = heat.currently_hot_rumors_rhr(&member_id);
         assert!(!hot_rumors.contains(&rumor_key));
     }
 
@@ -320,21 +339,21 @@ mod tests {
         let member_id = "test_member";
         let rumor = FakeRumor::default();
 
-        heat.start_hot_rumor(&rumor);
+        heat.start_hot_rumor_rhw(&rumor);
 
         // Simulate going through the requisite number of gossip
         // cycles to cool the rumor down
-        cool_rumor_completely(&heat, &member_id, &rumor);
+        cool_rumor_completely_rhw(&heat, &member_id, &rumor);
 
         // At this point, our member should have heard this rumor
         // enough that it's no longer hot
-        assert_rumor_is_cold(&heat, &member_id, &rumor);
+        assert_rumor_is_cold_rhr(&heat, &member_id, &rumor);
 
         // NOW we'll start the rumor again!
-        heat.start_hot_rumor(&rumor);
+        heat.start_hot_rumor_rhw(&rumor);
 
         // Rumors... *so hot right now*
-        assert_rumor_is_hot(&heat, &member_id, &rumor);
+        assert_rumor_is_hot_rhr(&heat, &member_id, &rumor);
     }
 
     #[test]
@@ -347,19 +366,19 @@ mod tests {
         let member_two = "test_member_2";
         let rumor = FakeRumor::default();
 
-        heat.start_hot_rumor(&rumor);
+        heat.start_hot_rumor_rhw(&rumor);
 
         // Both members should see the rumor as hot.
-        assert_rumor_is_hot(&heat, &member_one, &rumor);
-        assert_rumor_is_hot(&heat, &member_two, &rumor);
+        assert_rumor_is_hot_rhr(&heat, &member_one, &rumor);
+        assert_rumor_is_hot_rhr(&heat, &member_two, &rumor);
 
         // Now, let's cool the rumor for only one of the members
-        cool_rumor_completely(&heat, &member_one, &rumor);
+        cool_rumor_completely_rhw(&heat, &member_one, &rumor);
 
         // Now it should be cold for the one member, but still hot
         // for the other.
-        assert_rumor_is_cold(&heat, &member_one, &rumor);
-        assert_rumor_is_hot(&heat, &member_two, &rumor);
+        assert_rumor_is_cold_rhr(&heat, &member_one, &rumor);
+        assert_rumor_is_hot_rhr(&heat, &member_two, &rumor);
     }
 
     #[test]
@@ -377,23 +396,23 @@ mod tests {
         let cold_rumor = FakeRumor::default();
 
         // Start all rumors off as hot
-        heat.start_hot_rumor(&hot_rumor);
-        heat.start_hot_rumor(&warm_rumor);
-        heat.start_hot_rumor(&cold_rumor);
+        heat.start_hot_rumor_rhw(&hot_rumor);
+        heat.start_hot_rumor_rhw(&warm_rumor);
+        heat.start_hot_rumor_rhw(&cold_rumor);
 
         // Cool some rumors off, to varying degrees
         let hot_key = RumorKey::from(&hot_rumor);
         let warm_key = RumorKey::from(&warm_rumor);
 
         // Freeze this one right out
-        cool_rumor_completely(&heat, &member, &cold_rumor);
+        cool_rumor_completely_rhw(&heat, &member, &cold_rumor);
 
         // Cool this one off just a little bit
-        heat.cool_rumors(&member, &[warm_key.clone()]);
+        heat.cool_rumors_rhw(&member, &[warm_key.clone()]);
 
         // cold_rumor should be completely out, and the cooler
         // rumor sorts before the hotter one.
-        let rumors = heat.currently_hot_rumors(&member);
+        let rumors = heat.currently_hot_rumors_rhr(&member);
         let expected_hot_rumors = &[warm_key.clone(), hot_key.clone()];
         assert_eq!(rumors, expected_hot_rumors);
     }
@@ -444,20 +463,20 @@ mod tests {
         // they're completely "cooled" for every member. This should
         // approximate a long-standing, stable network, where all
         // rumors have been disseminated to all members.
-        heat.start_hot_rumor(&member_1);
-        heat.start_hot_rumor(&member_2);
-        heat.start_hot_rumor(&member_3);
-        heat.start_hot_rumor(&service_1);
-        heat.start_hot_rumor(&service_2);
-        heat.start_hot_rumor(&service_3);
+        heat.start_hot_rumor_rhw(&member_1);
+        heat.start_hot_rumor_rhw(&member_2);
+        heat.start_hot_rumor_rhw(&member_3);
+        heat.start_hot_rumor_rhw(&service_1);
+        heat.start_hot_rumor_rhw(&service_2);
+        heat.start_hot_rumor_rhw(&service_3);
 
         for m in &[member_1_id, member_2_id, member_3_id] {
-            cool_rumor_completely(&heat, m, &service_1);
-            cool_rumor_completely(&heat, m, &service_2);
-            cool_rumor_completely(&heat, m, &service_3);
-            cool_rumor_completely(&heat, m, &member_1);
-            cool_rumor_completely(&heat, m, &member_2);
-            cool_rumor_completely(&heat, m, &member_3);
+            cool_rumor_completely_rhw(&heat, m, &service_1);
+            cool_rumor_completely_rhw(&heat, m, &service_2);
+            cool_rumor_completely_rhw(&heat, m, &service_3);
+            cool_rumor_completely_rhw(&heat, m, &member_1);
+            cool_rumor_completely_rhw(&heat, m, &member_2);
+            cool_rumor_completely_rhw(&heat, m, &member_3);
         }
 
         // Peek at the internals; the purge method is basically about
@@ -465,7 +484,7 @@ mod tests {
         //
         // This just asserts our baseline.
         {
-            let inner = heat.0.read().unwrap();
+            let inner = heat.0.read();
             assert_eq!(inner.len(), 6);
 
             // Check the Member rumors
@@ -492,12 +511,12 @@ mod tests {
         }
 
         // This is the meat of the test
-        heat.purge(&member_2_id);
+        heat.purge_rhw(&member_2_id);
 
         // Now we peek at the internals again, verifying that only the
         // information pertaining to member 2 is gone.
         {
-            let inner = heat.0.read().unwrap();
+            let inner = heat.0.read();
             assert_eq!(inner.len(), 5);
 
             // Check the Member rumors... all these should be present

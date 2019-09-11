@@ -685,7 +685,8 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    fn add_service_rsw_mlw(&mut self, spec: ServiceSpec) {
+    /// * `RumorHeat::inner` (write)
+    fn add_service_rsw_mlw_rhw(&mut self, spec: ServiceSpec) {
         let ident = spec.ident.clone();
         let service = match Service::new(self.sys.clone(),
                                          spec,
@@ -729,10 +730,10 @@ impl Manager {
             return;
         }
 
-        self.gossip_latest_service_rumor_rsw_mlw(&service);
+        self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
         if service.topology == Topology::Leader {
             self.butterfly
-                .start_election_rsw_mlr(&service.service_group, 0);
+                .start_election_rsw_mlr_rhw(&service.service_group, 0);
         }
 
         if let Err(e) = self.user_config_watcher.add(&service) {
@@ -766,10 +767,11 @@ impl Manager {
     /// * `MemberList::entries` (write)
     /// * `GatewayState::inner` (write)
     /// * `Server::member` (write)
+    /// * `RumorHeat::inner` (write)
     #[allow(clippy::cognitive_complexity)]
-    pub fn run_rsw_imlw_mlw_gsw_smw(mut self,
-                                    svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
-                                    -> Result<()> {
+    pub fn run_rsw_imlw_mlw_gsw_smw_rhw(mut self,
+                                        svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
+                                        -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
         let mut next_cpu_measurement = SteadyTime::now();
@@ -800,11 +802,11 @@ impl Manager {
 
         // This serves to start up any services that need starting
         // (which will be all of them at this point!)
-        self.maybe_spawn_service_futures_rsw_mlw_gsw();
+        self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw();
 
         outputln!("Starting gossip-listener on {}",
                   self.butterfly.gossip_addr());
-        self.butterfly.start_rsw_mlw_smw(&Timing::default())?;
+        self.butterfly.start_rsw_mlw_smw_rhw(&Timing::default())?;
         debug!("gossip-listener started");
         self.persist_state_rsr_mlr_gsw();
         let http_listen_addr = self.sys.http_listen();
@@ -1004,17 +1006,17 @@ impl Manager {
                 // event in the specs directory is registered, or
                 // another service finishes shutting down).
                 self.services_need_reconciliation.toggle_if_set();
-                self.maybe_spawn_service_futures_rsw_mlw_gsw();
+                self.maybe_spawn_service_futures_rsw_mlw_gsw_rhw();
             }
 
             self.update_peers_from_watch_file_mlr_imlw()?;
             self.update_running_services_from_user_config_watcher();
 
-            for f in self.stop_services_with_updates_rsw_mlr() {
+            for f in self.stop_services_with_updates_rsw_mlr_rhw() {
                 self.runtime.spawn(f);
             }
 
-            self.restart_elections_rsw_mlr(self.feature_flags);
+            self.restart_elections_rsw_mlr_rhw(self.feature_flags);
             self.census_ring
                 .update_from_rumors_rsr_mlr(&self.state.cfg.cache_key_path,
                                             &self.butterfly.service_store,
@@ -1039,7 +1041,7 @@ impl Manager {
                 #[allow(unused_variables)]
                 let service_timer = service_hist.start_timer();
                 if service.tick(&self.census_ring, &self.launcher, &self.runtime.executor()) {
-                    self.gossip_latest_service_rumor_rsw_mlw(&service);
+                    self.gossip_latest_service_rumor_rsw_mlw_rhw(&service);
                 }
             }
 
@@ -1090,7 +1092,7 @@ impl Manager {
             }
             ShutdownMode::Normal | ShutdownMode::Departed => {
                 outputln!("Gracefully departing from butterfly network.");
-                self.butterfly.set_departed_mlw_smw();
+                self.butterfly.set_departed_mlw_smw_rhw();
 
                 let mut svcs = self.state
                                    .services
@@ -1133,8 +1135,9 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
+    /// * `RumorHeat::inner` (write)
     #[rustfmt::skip]
-    fn take_services_with_updates_rsw_mlr(&mut self) -> Vec<Service> {
+    fn take_services_with_updates_rsw_mlr_rhw(&mut self) -> Vec<Service> {
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
 
         let mut state_services = self.state
@@ -1146,7 +1149,7 @@ impl Manager {
                 if service.needs_restart {
                     Some(current_ident.clone())
                 } else if let Some(new_ident) =
-                    updater.check_for_updated_package_rsw_mlr(&service, &self.census_ring)
+                    updater.check_for_updated_package_rsw_mlr_rhw(&service, &self.census_ring)
                 {
                     outputln!("Updating from {} to {}", current_ident, new_ident);
                     event::service_update_started(&service, &new_ident);
@@ -1173,6 +1176,7 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
+    /// * `RumorHeat::inner` (write)
     // TODO (CM): In the future, when service start up is
     // future-based, we'll want to have an actual "restart"
     // future, that queues up the start future after the stop
@@ -1182,8 +1186,9 @@ impl Manager {
     // our specfile reconciliation logic to catch the fact that
     // the service needs to be restarted. At that point, this function
     // can be renamed; right now, it says exactly what it's doing.
-    fn stop_services_with_updates_rsw_mlr(&mut self) -> Vec<impl Future<Item = (), Error = ()>> {
-        self.take_services_with_updates_rsw_mlr()
+    fn stop_services_with_updates_rsw_mlr_rhw(&mut self)
+                                              -> Vec<impl Future<Item = (), Error = ()>> {
+        self.take_services_with_updates_rsw_mlr_rhw()
             .into_iter()
             .map(|service| self.stop_service_future_gsw(service, None))
             .collect()
@@ -1193,7 +1198,8 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    fn gossip_latest_service_rumor_rsw_mlw(&self, service: &Service) {
+    /// * `RumorHeat::inner` (write)
+    fn gossip_latest_service_rumor_rsw_mlw_rhw(&self, service: &Service) {
         let incarnation = self.butterfly
                               .service_store
                               .lock_rsr()
@@ -1202,7 +1208,7 @@ impl Manager {
                               .unwrap_or(1);
 
         self.butterfly
-            .insert_service_rsw_mlw(service.to_rumor(incarnation));
+            .insert_service_rsw_mlw_rhw(service.to_rumor(incarnation));
     }
 
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }
@@ -1328,8 +1334,9 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (read)
     /// * `RumorStore::list` (write)
-    fn restart_elections_rsw_mlr(&mut self, feature_flags: FeatureFlag) {
-        self.butterfly.restart_elections_rsw_mlr(feature_flags);
+    /// * `RumorHeat::inner` (write)
+    fn restart_elections_rsw_mlr_rhw(&mut self, feature_flags: FeatureFlag) {
+        self.butterfly.restart_elections_rsw_mlr_rhw(feature_flags);
     }
 
     /// # Locking (see locking.md)
@@ -1446,9 +1453,10 @@ impl Manager {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
     /// * `GatewayState::inner` (write)
-    fn maybe_spawn_service_futures_rsw_mlw_gsw(&mut self) {
+    /// * `RumorHeat::inner` (write)
+    fn maybe_spawn_service_futures_rsw_mlw_gsw_rhw(&mut self) {
         let ops = self.compute_service_operations();
-        for f in self.operations_into_futures_rsw_mlw_gsw(ops) {
+        for f in self.operations_into_futures_rsw_mlw_gsw_rhw(ops) {
             self.runtime.spawn(f);
         }
     }
@@ -1475,9 +1483,10 @@ impl Manager {
     /// * `MemberList::entries` (write)
     /// # Locking for the returned Futures
     /// * `GatewayState::inner` (write)
-    fn operations_into_futures_rsw_mlw_gsw<O>(&mut self,
-                                              ops: O)
-                                              -> Vec<impl Future<Item = (), Error = ()>>
+    /// * `RumorHeat::inner` (write)
+    fn operations_into_futures_rsw_mlw_gsw_rhw<O>(&mut self,
+                                                  ops: O)
+                                                  -> Vec<impl Future<Item = (), Error = ()>>
         where O: IntoIterator<Item = ServiceOperation>
     {
         ops.into_iter()
@@ -1506,7 +1515,7 @@ impl Manager {
                        f
                    }
                    ServiceOperation::Start(spec) => {
-                       self.add_service_rsw_mlw(spec);
+                       self.add_service_rsw_mlw_rhw(spec);
                        None // No future to return (currently synchronous!)
                    }
                }

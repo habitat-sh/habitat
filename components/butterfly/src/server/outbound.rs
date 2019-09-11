@@ -96,11 +96,11 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                     have_members = true;
                 } else {
                     server.member_list.with_initial_members_imlr(|member| {
-                                          ping_mlr_smr(&server,
-                                                       &socket,
-                                                       &member,
-                                                       member.swim_socket_address(),
-                                                       None);
+                                          ping_mlr_smr_rhw(&server,
+                                                           &socket,
+                                                           &member,
+                                                           member.swim_socket_address(),
+                                                           None);
                                       });
                 }
             }
@@ -124,7 +124,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                 // until this timer expires.
                 let next_protocol_period = timing.next_protocol_period();
 
-                probe_mlw_smr(&server, &socket, &rx_inbound, &timing, member);
+                probe_mlw_smr_rhw(&server, &socket, &rx_inbound, &timing, member);
 
                 if SteadyTime::now() <= next_protocol_period {
                     let wait_time = (next_protocol_period - SteadyTime::now()).num_milliseconds();
@@ -164,11 +164,12 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
 /// * `Server::member` (read)
-fn probe_mlw_smr(server: &Server,
-                 socket: &UdpSocket,
-                 rx_inbound: &AckReceiver,
-                 timing: &Timing,
-                 member: Member) {
+/// * `RumorHeat::inner` (write)
+fn probe_mlw_smr_rhw(server: &Server,
+                     socket: &UdpSocket,
+                     rx_inbound: &AckReceiver,
+                     timing: &Timing,
+                     member: Member) {
     let pa_timer = SWIM_PROBE_DURATION.with_label_values(&["ping/ack"])
                                       .start_timer();
     let mut pr_timer: Option<HistogramTimer> = None;
@@ -176,9 +177,9 @@ fn probe_mlw_smr(server: &Server,
 
     // Ping the member, and wait for the ack.
     SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
-    ping_mlr_smr(server, socket, &member, addr, None);
+    ping_mlr_smr_rhw(server, socket, &member, addr, None);
 
-    if recv_ack_mlw(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
+    if recv_ack_mlw_rhw(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
         SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
         pa_timer.observe_duration();
         return;
@@ -187,7 +188,7 @@ fn probe_mlw_smr(server: &Server,
     let pingreq_message = PingReq { membership: vec![],
                                     from:       server.myself.lock_smr().to_member(),
                                     target:     member.clone(), };
-    let swim = populate_membership_rumors_mlr(server, &member, pingreq_message);
+    let swim = populate_membership_rumors_mlr_rhw(server, &member, pingreq_message);
 
     server.member_list
           .with_pingreq_targets_mlr(server.member_id(), &member.id, |pingreq_target| {
@@ -197,14 +198,14 @@ fn probe_mlw_smr(server: &Server,
               pingreq(server, socket, pingreq_target, &member, &swim);
           });
 
-    if recv_ack_mlw(server, rx_inbound, timing, &member, addr, AckFrom::PingReq) {
+    if recv_ack_mlw_rhw(server, rx_inbound, timing, &member, addr, AckFrom::PingReq) {
         SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
     } else {
         // We mark as suspect when we fail to get a response from the PingReq. That moves us
         // into the suspicion phase, where anyone marked as suspect has a certain number of
         // protocol periods to recover.
         warn!("Marking {} as Suspect", &member.id);
-        server.insert_member_mlw(member, Health::Suspect);
+        server.insert_member_mlw_rhw(member, Health::Suspect);
         SWIM_PROBES_SENT.with_label_values(&["pingreq/failure"])
                         .inc();
     }
@@ -218,13 +219,14 @@ fn probe_mlw_smr(server: &Server,
 ///
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
-fn recv_ack_mlw(server: &Server,
-                rx_inbound: &AckReceiver,
-                timing: &Timing,
-                member: &Member,
-                addr: SocketAddr,
-                ack_from: AckFrom)
-                -> bool {
+/// * `RumorHeat::inner` (write)
+fn recv_ack_mlw_rhw(server: &Server,
+                    rx_inbound: &AckReceiver,
+                    timing: &Timing,
+                    member: &Member,
+                    addr: SocketAddr,
+                    ack_from: AckFrom)
+                    -> bool {
     let timeout = match ack_from {
         AckFrom::Ping => timing.ping_timeout(),
         AckFrom::PingReq => timing.pingreq_timeout(),
@@ -239,18 +241,18 @@ fn recv_ack_mlw(server: &Server,
                 }
                 if member.id != ack.from.id {
                     if ack.from.departed {
-                        server.insert_member_mlw(ack.from, Health::Departed);
+                        server.insert_member_mlw_rhw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member_mlw(ack.from, Health::Alive);
+                        server.insert_member_mlw_rhw(ack.from, Health::Alive);
                     }
                     // Keep listening, we want the ack we expected
                     continue;
                 } else {
                     // We got the ack we are looking for; return.
                     if ack.from.departed {
-                        server.insert_member_mlw(ack.from, Health::Departed);
+                        server.insert_member_mlw_rhw(ack.from, Health::Departed);
                     } else {
-                        server.insert_member_mlw(ack.from, Health::Alive);
+                        server.insert_member_mlw_rhw(ack.from, Health::Alive);
                     }
                     return true;
                 }
@@ -273,10 +275,11 @@ fn recv_ack_mlw(server: &Server,
 ///
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
-pub fn populate_membership_rumors_mlr(server: &Server,
-                                      target: &Member,
-                                      message: impl Into<Swim>)
-                                      -> Swim {
+/// * `RumorHeat::inner` (write)
+pub fn populate_membership_rumors_mlr_rhw(server: &Server,
+                                          target: &Member,
+                                          message: impl Into<Swim>)
+                                          -> Swim {
     let mut swim = message.into();
 
     // If this isn't the first time we are communicating with this target, we want to include this
@@ -292,7 +295,7 @@ pub fn populate_membership_rumors_mlr(server: &Server,
     // the 5 coolest (but still warm!) Member rumors.
     let rumors: Vec<RumorKey> = server
         .rumor_heat
-        .currently_hot_rumors(&target.id)
+        .currently_hot_rumors_rhr(&target.id)
         .into_iter()
         .filter(|ref r| r.kind == RumorType::Member)
         .take(5) // TODO (CM): magic number!
@@ -307,7 +310,7 @@ pub fn populate_membership_rumors_mlr(server: &Server,
     // confirmed dead; the odds are, they won't receive them. Lets spam them a little harder with
     // rumors.
     if !server.member_list.persistent_and_confirmed_mlr(target) {
-        server.rumor_heat.cool_rumors(&target.id, &rumors);
+        server.rumor_heat.cool_rumors_rhw(&target.id, &rumors);
     }
 
     swim
@@ -364,16 +367,17 @@ fn pingreq(server: &Server, // TODO: eliminate this arg
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
 /// * `Server::member` (read)
-pub fn ping_mlr_smr(server: &Server,
-                    socket: &UdpSocket,
-                    target: &Member,
-                    addr: SocketAddr,
-                    forward_to: Option<&Member>) {
+/// * `RumorHeat::inner` (write)
+pub fn ping_mlr_smr_rhw(server: &Server,
+                        socket: &UdpSocket,
+                        target: &Member,
+                        addr: SocketAddr,
+                        forward_to: Option<&Member>) {
     let ping_msg = Ping { membership: vec![],
                           from:       server.myself.lock_smr().to_member(),
                           forward_to: forward_to.cloned(), /* TODO: see if we can eliminate this
                                                             * clone */ };
-    let swim = populate_membership_rumors_mlr(server, target, ping_msg);
+    let swim = populate_membership_rumors_mlr_rhw(server, target, ping_msg);
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {
@@ -468,16 +472,17 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, msg: A
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
 /// * `Server::member` (read)
-pub fn ack_mlr_smr(server: &Server,
-                   socket: &UdpSocket,
-                   target: &Member,
-                   addr: SocketAddr,
-                   forward_to: Option<Member>) {
+/// * `RumorHeat::inner` (write)
+pub fn ack_mlr_smr_rhw(server: &Server,
+                       socket: &UdpSocket,
+                       target: &Member,
+                       addr: SocketAddr,
+                       forward_to: Option<Member>) {
     let ack_msg = Ack { membership: vec![],
                         from:       server.myself.lock_smr().to_member(),
                         forward_to: forward_to.map(Member::from), };
     let member_id = ack_msg.from.id.clone();
-    let swim = populate_membership_rumors_mlr(server, target, ack_msg);
+    let swim = populate_membership_rumors_mlr_rhw(server, target, ack_msg);
     let bytes = match swim.clone().encode() {
         Ok(bytes) => bytes,
         Err(e) => {

@@ -120,33 +120,34 @@ impl DatFileReader {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    pub fn read_into_rsw_mlw(&mut self, server: &Server) -> Result<()> {
+    /// * `RumorHeat::inner` (write)
+    pub fn read_into_rsw_mlw_rhw(&mut self, server: &Server) -> Result<()> {
         for Membership { member, health } in self.read_members()? {
-            server.insert_member_mlw(member, health);
+            server.insert_member_mlw_rhw(member, health);
         }
 
         for service in self.read_rumors::<Service>()? {
-            server.insert_service_rsw_mlw(service);
+            server.insert_service_rsw_mlw_rhw(service);
         }
 
         for service_config in self.read_rumors::<ServiceConfig>()? {
-            server.insert_service_config_rsw(service_config);
+            server.insert_service_config_rsw_rhw(service_config);
         }
 
         for service_file in self.read_rumors::<ServiceFile>()? {
-            server.insert_service_file_rsw(service_file);
+            server.insert_service_file_rsw_rhw(service_file);
         }
 
         for election in self.read_rumors::<Election>()? {
-            server.insert_election_rsw_mlr(election);
+            server.insert_election_rsw_mlr_rhw(election);
         }
 
         for update_election in self.read_rumors::<ElectionUpdate>()? {
-            server.insert_update_election_rsw_mlr(update_election);
+            server.insert_update_election_rsw_mlr_rhw(update_election);
         }
 
         for departure in self.read_rumors::<Departure>()? {
-            server.insert_departure_rsw_mlw(departure);
+            server.insert_departure_rsw_mlw_rhw(departure);
         }
 
         Ok(())

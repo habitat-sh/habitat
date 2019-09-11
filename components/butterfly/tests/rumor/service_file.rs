@@ -4,7 +4,7 @@ use habitat_core::service::ServiceGroup;
 
 #[test]
 fn two_members_share_service_files() {
-    let mut net = btest::SwimNet::new(2);
+    let mut net = btest::SwimNet::new_rhw(2);
     net.mesh_mlw_smr();
     net.add_service_file(0,
                          "witcher",
@@ -19,7 +19,7 @@ fn two_members_share_service_files() {
 
 #[test]
 fn service_file_via_client() {
-    let mut net = btest::SwimNet::new(2);
+    let mut net = btest::SwimNet::new_rhw(2);
     net.mesh_mlw_smr();
 
     net.wait_for_gossip_rounds(1);

@@ -149,14 +149,17 @@ impl ServiceUpdater {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
+    /// * `RumorHeat::inner` (write)
     #[allow(clippy::cognitive_complexity)]
-    pub fn check_for_updated_package_rsw_mlr(&mut self,
-                                             service: &Service,
-                                             // TODO (CM): Strictly speaking, we don't need to
-                                             // pass CensusRing down into here, just the census
-                                             // group for our service.
-                                             census_ring: &CensusRing)
-                                             -> Option<PackageIdent> {
+    pub fn check_for_updated_package_rsw_mlr_rhw(&mut self,
+                                                 service: &Service,
+                                                 // TODO (CM): Strictly speaking, we don't need
+                                                 // to
+                                                 // pass CensusRing down into here, just the
+                                                 // census
+                                                 // group for our service.
+                                                 census_ring: &CensusRing)
+                                                 -> Option<PackageIdent> {
         debug!("Checking for updated package!");
 
         // TODO (CM): can we do without this?
@@ -191,9 +194,9 @@ impl ServiceUpdater {
                                     u64::max_value()
                                 };
                                 self.butterfly
-                                    .start_update_election_rsw_mlr(&service.service_group,
-                                                                   suitability,
-                                                                   0);
+                                    .start_update_election_rsw_mlr_rhw(&service.service_group,
+                                                                       suitability,
+                                                                       0);
                                 *st = RollingState::InElection
                             }
                             _ => return None,
@@ -201,7 +204,7 @@ impl ServiceUpdater {
                     } else {
                         debug!("Rolling update, using default suitability");
                         self.butterfly
-                            .start_update_election_rsw_mlr(&service.service_group, 0, 0);
+                            .start_update_election_rsw_mlr_rhw(&service.service_group, 0, 0);
                         *st = RollingState::InElection;
                     }
                 }
