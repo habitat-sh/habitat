@@ -101,6 +101,8 @@ pub enum Error {
     InvalidPathString(ffi::OsString),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
+    /// Occurs when this hosts outbound IP address cannot be determined
+    IpLookupFailed(io::Error),
     /// Errors when joining paths :)
     JoinPathsError(env::JoinPathsError),
     // When LogonUserW does not have the correct logon type
@@ -297,6 +299,9 @@ impl fmt::Display for Error {
                 format!("Could not generate String from path: {:?}", s)
             }
             Error::IO(ref err) => format!("{}", err),
+            Error::IpLookupFailed(ref err) => {
+                format!("Failed to discover this hosts outbound IP address: {}", err)
+            }
             Error::JoinPathsError(ref err) => format!("{}", err),
             Error::LogonTypeNotGranted => {
                 "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' account right to be \

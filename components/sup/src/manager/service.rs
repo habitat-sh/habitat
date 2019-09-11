@@ -1224,7 +1224,7 @@ mod tests {
         let sys = Sys::new(false,
                            GossipListenAddr::default(),
                            listen_ctl_addr,
-                           HttpListenAddr::default());
+                           HttpListenAddr::default()).expect("to create Sys");
 
         let ident = if cfg!(target_os = "linux") {
             PackageIdent::new("core", "tree", Some("1.7.0"), Some("20180609045201"))

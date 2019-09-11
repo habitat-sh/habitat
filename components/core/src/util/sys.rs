@@ -1,4 +1,5 @@
-use crate::error::Result;
+use crate::error::{Error,
+                   Result};
 pub use crate::os::system::{uname,
                             Uname};
 use std::net::{IpAddr,
@@ -7,8 +8,8 @@ use std::net::{IpAddr,
 static GOOGLE_DNS: &str = "8.8.8.8:53";
 
 pub fn ip() -> Result<IpAddr> {
-    let socket = UdpSocket::bind("0.0.0.0:0")?;
-    socket.connect(GOOGLE_DNS)?;
-    let addr = socket.local_addr()?;
+    let socket = UdpSocket::bind("0.0.0.0:0").map_err(Error::IpLookupFailed)?;
+    socket.connect(GOOGLE_DNS).map_err(Error::IpLookupFailed)?;
+    let addr = socket.local_addr().map_err(Error::IpLookupFailed)?;
     Ok(addr.ip())
 }

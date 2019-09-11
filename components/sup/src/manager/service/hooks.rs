@@ -689,7 +689,7 @@ mod tests {
         let sys = Sys::new(true,
                            GossipListenAddr::default(),
                            ListenCtlAddr::default(),
-                           HttpListenAddr::default());
+                           HttpListenAddr::default()).expect("to create Sys");
 
         let pg_id = PackageIdent::new("testing",
                                       &service_group.service(),

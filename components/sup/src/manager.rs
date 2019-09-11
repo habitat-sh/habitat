@@ -528,7 +528,7 @@ impl Manager {
         let mut sys = Sys::new(cfg.gossip_permanent,
                                cfg.gossip_listen,
                                cfg.ctl_listen,
-                               cfg.http_listen);
+                               cfg.http_listen)?;
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::new(RwLock::new(HashMap::new()));
 
