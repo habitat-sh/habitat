@@ -4,6 +4,7 @@ use habitat_butterfly::{member,
                                  Suitability}};
 use std::{env,
           net::SocketAddr,
+          sync::Arc,
           thread,
           time::Duration};
 
@@ -38,7 +39,7 @@ fn main() {
                                          None,
                                          None,
                                          None,
-                                         Box::new(ZeroSuitability)).unwrap();
+                                         Arc::new(ZeroSuitability)).unwrap();
     println!("Server ID: {}", server.member_id());
 
     let targets: Vec<String> = args.collect();

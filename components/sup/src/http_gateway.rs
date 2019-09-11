@@ -583,7 +583,7 @@ mod tests {
                         None,
                         None,
                         None,
-                        Box::new(ZeroSuitability)).unwrap()
+                        std::sync::Arc::new(ZeroSuitability)).unwrap()
         }
 
         let server = start_server();

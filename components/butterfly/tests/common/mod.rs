@@ -23,7 +23,8 @@ use std::{net::{IpAddr,
                 DerefMut,
                 Range},
           str::FromStr,
-          sync::Mutex,
+          sync::{Arc,
+                 Mutex},
           thread,
           time::Duration};
 use time::SteadyTime;
@@ -62,7 +63,7 @@ pub fn start_server_smw_rhw(name: &str, ring_key: Option<SymKey>, suitability: u
                                  ring_key,
                                  Some(String::from(name)),
                                  None,
-                                 Box::new(NSuitability(suitability))).unwrap();
+                                 Arc::new(NSuitability(suitability))).unwrap();
     server.start_rsw_mlw_smw_rhw(&Timing::default())
           .expect("Cannot start server");
     server

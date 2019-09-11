@@ -286,7 +286,7 @@ pub struct Server {
     pub departure_store:      RumorStore<Departure>,
     swim_addr:                SocketAddr,
     gossip_addr:              SocketAddr,
-    suitability_lookup:       Arc<Box<dyn Suitability>>,
+    suitability_lookup:       Arc<dyn Suitability>,
     data_path:                Option<PathBuf>,
     dat_file:                 Option<Arc<Mutex<DatFileWriter>>>,
     socket:                   Option<UdpSocket>,
@@ -342,7 +342,7 @@ impl Server {
                // complicates other parts of this code. We should find a way
                // to remove the optionality.
                data_path: Option<&Path>,
-               suitability_lookup: Box<dyn Suitability>)
+               suitability_lookup: Arc<dyn Suitability>)
                -> Result<Server> {
         let maybe_swim_socket_addr = swim_addr.to_socket_addrs().map(|mut iter| iter.next());
         let maybe_gossip_socket_addr = gossip_addr.to_socket_addrs().map(|mut iter| iter.next());
@@ -364,29 +364,29 @@ impl Server {
                 Ok(Server { name: Arc::new(name.unwrap_or_else(|| member_id.clone())),
                             // TODO (CM): could replace this with an accessor
                             // on member, if we have a better type
-                            member_id:            Arc::new(member_id),
-                            myself:               Arc::new(myself),
-                            member_list:          Arc::new(MemberList::new()),
-                            ring_key:             Arc::new(ring_key),
-                            rumor_heat:           Arc::default(),
-                            service_store:        RumorStore::default(),
+                            member_id: Arc::new(member_id),
+                            myself: Arc::new(myself),
+                            member_list: Arc::new(MemberList::new()),
+                            ring_key: Arc::new(ring_key),
+                            rumor_heat: Arc::default(),
+                            service_store: RumorStore::default(),
                             service_config_store: RumorStore::default(),
-                            service_file_store:   RumorStore::default(),
-                            election_store:       RumorStore::default(),
-                            update_store:         RumorStore::default(),
-                            departure_store:      RumorStore::default(),
-                            swim_addr:            swim_socket_addr,
-                            gossip_addr:          gossip_socket_addr,
-                            suitability_lookup:   Arc::new(suitability_lookup),
-                            data_path:            data_path.as_ref().map(|p| p.into()),
-                            dat_file:             None,
-                            departed:             Arc::new(AtomicBool::new(false)),
-                            pause:                Arc::new(AtomicBool::new(false)),
-                            swim_rounds:          Arc::new(AtomicIsize::new(0)),
-                            gossip_rounds:        Arc::new(AtomicIsize::new(0)),
-                            block_list:           Arc::new(Lock::new(HashSet::new())),
-                            socket:               None,
-                            election_timers:      Arc::new(Mutex::new(HashMap::new())), })
+                            service_file_store: RumorStore::default(),
+                            election_store: RumorStore::default(),
+                            update_store: RumorStore::default(),
+                            departure_store: RumorStore::default(),
+                            swim_addr: swim_socket_addr,
+                            gossip_addr: gossip_socket_addr,
+                            suitability_lookup,
+                            data_path: data_path.as_ref().map(|p| p.into()),
+                            dat_file: None,
+                            departed: Arc::new(AtomicBool::new(false)),
+                            pause: Arc::new(AtomicBool::new(false)),
+                            swim_rounds: Arc::new(AtomicIsize::new(0)),
+                            gossip_rounds: Arc::new(AtomicIsize::new(0)),
+                            block_list: Arc::new(Lock::new(HashSet::new())),
+                            socket: None,
+                            election_timers: Arc::new(Mutex::new(HashMap::new())) })
             }
             (Err(e), _) | (_, Err(e)) => Err(Error::CannotBind(e)),
             (Ok(None), _) | (_, Ok(None)) => {
@@ -1641,6 +1641,7 @@ mod tests {
     }
 
     mod server {
+        use super::*;
         use crate::{member::Member,
                     server::{timing::Timing,
                              Server,
@@ -1689,7 +1690,7 @@ mod tests {
                         None,
                         None,
                         None,
-                        Box::new(ZeroSuitability)).unwrap()
+                        Arc::new(ZeroSuitability)).unwrap()
         }
 
         fn start_with_corrupt_rumor_file(tmpdir: &TempDir) -> Server {
@@ -1721,7 +1722,7 @@ mod tests {
                         None,
                         None,
                         Some(tmpdir.path()),
-                        Box::new(ZeroSuitability)).unwrap()
+                        Arc::new(ZeroSuitability)).unwrap()
         }
 
         #[test]

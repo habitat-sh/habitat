@@ -110,8 +110,7 @@ use std::{collections::{HashMap,
                  mpsc as std_mpsc,
                  Arc,
                  Condvar,
-                 Mutex,
-                 RwLock},
+                 Mutex},
           thread,
           time::Duration as StdDuration};
 use time::{self,
@@ -341,7 +340,7 @@ impl ReconciliationFlag {
 pub struct ManagerState {
     /// The configuration used to instantiate this Manager instance
     cfg: ManagerConfig,
-    services: Arc<RwLock<HashMap<PackageIdent, Service>>>,
+    services: Arc<sync::ManagerServices>,
     gateway_state: Arc<sync::GatewayState>,
 }
 
@@ -415,6 +414,71 @@ pub(crate) mod sync {
         /// Data returned by /services/<SERVICE_NAME>/<GROUP_NAME>/health
         /// endpoint
         health_check_data: HashMap<ServiceGroup, HealthCheckResult>,
+    }
+
+    type ManagerServicesInner = HashMap<PackageIdent, Service>;
+
+    pub struct ManagerServicesReadGuard<'a>(ReadGuard<'a, ManagerServicesInner>);
+
+    impl<'a> ManagerServicesReadGuard<'a> {
+        fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.read()) }
+
+        pub fn services(&self) -> impl Iterator<Item = &Service> { self.0.values() }
+    }
+
+    pub struct ManagerServicesWriteGuard<'a>(WriteGuard<'a, ManagerServicesInner>);
+
+    impl<'a> ManagerServicesWriteGuard<'a> {
+        fn new(lock: &'a Lock<ManagerServicesInner>) -> Self { Self(lock.write()) }
+
+        pub fn iter(&self) -> impl Iterator<Item = (&PackageIdent, &Service)> { self.0.iter() }
+
+        pub fn insert(&mut self, key: PackageIdent, value: Service) { self.0.insert(key, value); }
+
+        pub fn remove(&mut self, key: &PackageIdent) -> Option<Service> { self.0.remove(key) }
+
+        pub fn services(&mut self) -> impl Iterator<Item = &mut Service> { self.0.values_mut() }
+
+        pub fn drain_services(&mut self) -> DrainServices<'_> {
+            DrainServices { base: self.0.drain(), }
+        }
+    }
+
+    pub struct DrainServices<'a> {
+        base: std::collections::hash_map::Drain<'a, PackageIdent, Service>,
+    }
+
+    impl<'a> Iterator for DrainServices<'a> {
+        type Item = Service;
+
+        fn next(&mut self) -> Option<Service> { self.base.next().map(|(_ident, service)| service) }
+    }
+
+    #[derive(Debug, Default)]
+    pub struct ManagerServices {
+        inner: Lock<ManagerServicesInner>,
+    }
+
+    impl ManagerServices {
+        #[must_use]
+        pub fn lock_msr(&self) -> ManagerServicesReadGuard {
+            ManagerServicesReadGuard::new(&self.inner)
+        }
+
+        #[must_use]
+        pub fn lock_msw(&self) -> ManagerServicesWriteGuard {
+            ManagerServicesWriteGuard::new(&self.inner)
+        }
+    }
+
+    impl Suitability for ManagerServices {
+        fn get(&self, service_group: &str) -> u64 {
+            self.lock_msr()
+                .services()
+                .find(|svc| svc.service_group.as_ref() == service_group)
+                .and_then(Service::suitability)
+                .unwrap_or_else(u64::min_value)
+        }
     }
 }
 
@@ -531,15 +595,15 @@ impl Manager {
                                cfg.http_listen)?;
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::default();
+        let suitability_lookup = Arc::clone(&services) as Arc<dyn Suitability>;
 
-        let server =
-            habitat_butterfly::Server::new(sys.gossip_listen(),
-                                           sys.gossip_listen(),
-                                           member,
-                                           cfg.ring_key,
-                                           None,
-                                           Some(&fs_cfg.data_path),
-                                           Box::new(SuitabilityLookup(Arc::clone(&services))))?;
+        let server = habitat_butterfly::Server::new(sys.gossip_listen(),
+                                                    sys.gossip_listen(),
+                                                    member,
+                                                    cfg.ring_key,
+                                                    None,
+                                                    Some(&fs_cfg.data_path),
+                                                    suitability_lookup)?;
         outputln!("Supervisor Member-ID {}", sys.member_id);
         for peer_addr in &cfg.gossip_peers {
             let mut peer = Member::default();
@@ -688,6 +752,7 @@ impl Manager {
     /// * `MemberList::entries` (write)
     /// * `RumorHeat::inner` (write)
     fn add_service_rsw_mlw_rhw(&mut self, spec: ServiceSpec) {
+        // TODO: annotate
         let ident = spec.ident.clone();
         let service = match Service::new(self.sys.clone(),
                                          spec,
@@ -753,8 +818,7 @@ impl Manager {
 
         self.state
             .services
-            .write()
-            .expect("Services lock is poisoned!")
+            .lock_msw()
             .insert(service.spec_ident.clone(), service);
     }
 
@@ -1031,12 +1095,7 @@ impl Manager {
                 self.persist_state_rsr_mlr_gsw();
             }
 
-            for service in self.state
-                               .services
-                               .write()
-                               .expect("Services lock is poisoned!")
-                               .values_mut()
-            {
+            for service in self.state.services.lock_msw().services() {
                 // time will be recorded automatically by HistogramTimer's drop implementation when
                 // this var goes out of scope
                 #[allow(unused_variables)]
@@ -1082,12 +1141,7 @@ impl Manager {
         match shutdown_mode {
             ShutdownMode::Restarting => {
                 outputln!("Preparing services for Supervisor restart");
-                for svc in self.state
-                               .services
-                               .write()
-                               .expect("Services lock is poisoned!")
-                               .values_mut()
-                {
+                for svc in self.state.services.lock_msw().services() {
                     svc.detach();
                 }
             }
@@ -1095,12 +1149,7 @@ impl Manager {
                 outputln!("Gracefully departing from butterfly network.");
                 self.butterfly.set_departed_mlw_smw_rhw();
 
-                for (_ident, svc) in self.state
-                                         .services
-                                         .write()
-                                         .expect("Services lock is poisoned!")
-                                         .drain()
-                {
+                for svc in self.state.services.lock_msw().drain_services() {
                     self.runtime.spawn(self.stop_service_future_gsw(svc, None));
                 }
             }
@@ -1138,13 +1187,10 @@ impl Manager {
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
     #[rustfmt::skip]
-    fn take_services_with_updates_rsw_mlr_rhw(&mut self) -> Vec<Service> {
+    fn take_services_with_updates_rsw_mlr_rhw(&mut self) -> Vec<Service> { // TODO: annotate
         let mut updater = self.updater.lock().expect("Updater lock poisoned");
 
-        let state_services = self.state
-                                 .services
-                                 .read()
-                                 .expect("Services lock is poisoned!");
+        let mut state_services = self.state.services.lock_msw();
         let idents_to_restart: Vec<_> = state_services.iter()
             .filter_map(|(current_ident, service)| {
                 if service.needs_restart {
@@ -1163,10 +1209,6 @@ impl Manager {
             .collect();
 
         let mut services_to_restart = Vec::with_capacity(idents_to_restart.len());
-        let mut state_services = self.state
-                                     .services
-                                     .write()
-                                     .expect("Services lock is poisoned!");
         for current_ident in idents_to_restart {
             // unwrap is safe because we've to the write lock, and we
             // know there's a value present at this key.
@@ -1219,14 +1261,10 @@ impl Manager {
     fn check_for_departure(&self) -> bool { self.butterfly.is_departed() }
 
     fn check_for_changed_services(&mut self) -> bool {
+        // TODO: annotate
         let mut service_states = HashMap::new();
         let mut active_services = Vec::new();
-        for service in self.state
-                           .services
-                           .write()
-                           .expect("Services lock is poisoned!")
-                           .values_mut()
-        {
+        for service in self.state.services.lock_msr().services() {
             service_states.insert(service.spec_ident.clone(), service.last_state_change());
             active_services.push(service.spec_ident.clone());
         }
@@ -1281,18 +1319,17 @@ impl Manager {
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (write)
     fn persist_services_state_gsw(&self) {
+        // TODO: annotate
         let config_rendering = if self.feature_flags.contains(FeatureFlag::REDACT_HTTP) {
             ConfigRendering::Redacted
         } else {
             ConfigRendering::Full
         };
 
-        let services = self.state
-                           .services
-                           .read()
-                           .expect("Services lock is poisoned!");
-        let existing_idents: Vec<PackageIdent> =
-            services.values().map(|s| s.spec_ident.clone()).collect();
+        let service_map = self.state.services.lock_msr();
+        let existing_idents: Vec<PackageIdent> = service_map.services()
+                                                            .map(|s| s.spec_ident.clone())
+                                                            .collect();
 
         // Services that are not active but are being watched for changes
         // These would include stopped persistent services or other
@@ -1323,9 +1360,9 @@ impl Manager {
                             .map(|s| ServiceProxy::new(s, config_rendering))
                             .collect();
         let mut services_to_render: Vec<ServiceProxy<'_>> =
-            services.values()
-                    .map(|s| ServiceProxy::new(s, config_rendering))
-                    .collect();
+            service_map.services()
+                       .map(|s| ServiceProxy::new(s, config_rendering))
+                       .collect();
 
         services_to_render.extend(watched_service_proxies);
 
@@ -1467,11 +1504,8 @@ impl Manager {
     }
 
     fn remove_service_from_state(&mut self, ident: &PackageIdent) -> Option<Service> {
-        self.state
-            .services
-            .write()
-            .expect("Services lock is poisoned")
-            .remove(&ident)
+        // TODO: annotate
+        self.state.services.lock_msw().remove(&ident)
     }
 
     /// Start, stop, or restart services to bring what's running in
@@ -1534,12 +1568,10 @@ impl Manager {
     ///
     /// See `specs_to_operations` for the real logic.
     fn compute_service_operations(&mut self) -> Vec<ServiceOperation> {
+        // TODO: annotate
         // First, figure out what's currently running.
-        let services = self.state
-                           .services
-                           .read()
-                           .expect("Services lock is poisoned");
-        let currently_running_specs = services.values().map(Service::to_spec);
+        let service_map = self.state.services.lock_msr(); // TODO: shorten held lock period
+        let currently_running_specs = service_map.services().map(Service::to_spec);
 
         // Now, figure out what we should compare against, ignoring
         // any services that are currently doing something
@@ -1656,12 +1688,8 @@ impl Manager {
     }
 
     fn update_running_services_from_user_config_watcher(&mut self) {
-        for service in self.state
-                           .services
-                           .write()
-                           .expect("Services lock is poisoned")
-                           .values_mut()
-        {
+        // TODO: annotate
+        for service in self.state.services.lock_msw().services() {
             if self.user_config_watcher.have_events_for(service) {
                 outputln!("user.toml changes detected for {}", &service.spec_ident);
                 service.user_config_updated = true;
@@ -1719,21 +1747,6 @@ habitat_core::env_config_int!(/// Represents how many threads to start for our m
                               // This is the same internal logic used in Tokio itself.
                               // https://docs.rs/tokio/0.1.12/src/tokio/runtime/builder.rs.html#68
                               num_cpus::get().max(1));
-
-#[derive(Debug)]
-struct SuitabilityLookup(Arc<RwLock<HashMap<PackageIdent, Service>>>);
-
-impl Suitability for SuitabilityLookup {
-    fn get(&self, service_group: &str) -> u64 {
-        self.0
-            .read()
-            .expect("Services lock is poisoned!")
-            .values()
-            .find(|s| *s.service_group == service_group)
-            .and_then(Service::suitability)
-            .unwrap_or(u64::min_value())
-    }
-}
 
 fn obtain_process_lock(fs_cfg: &FsCfg) -> Result<()> {
     match write_process_lock(&fs_cfg.proc_lock_file) {
