@@ -1,6 +1,4 @@
-use crate::{error::{Error,
-                    Result},
-            VERSION};
+use crate::VERSION;
 use habitat_butterfly::rumor::service::SysInfo;
 use habitat_common::{outputln,
                      types::{GossipListenAddr,
@@ -35,22 +33,22 @@ impl Sys {
                ctl: ListenCtlAddr,
                http: HttpListenAddr)
                -> Sys {
-        let ip = match lookup_ip() {
-            Ok(ip) => ip,
-            Err(e) => {
-                let ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
-                outputln!("IP Address lookup failed; using fallback of {} ({})", ip, e);
-                ip
-            }
-        };
-        let host = match lookup_hostname() {
-            Ok(host) => host,
-            Err(e) => {
-                let host = String::from("localhost");
-                outputln!("Hostname lookup failed; using fallback of {} ({})", host, e);
-                host
-            }
-        };
+        let ip = habitat_core::util::sys::ip().unwrap_or_else(|e| {
+                                                  let ip = IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1));
+                                                  outputln!("IP Address lookup failed; using \
+                                                             fallback of {} ({})",
+                                                            ip,
+                                                            e);
+                                                  ip
+                                              });
+        let host = habitat_core::os::net::hostname().unwrap_or_else(|e| {
+                                                        let host = String::from("localhost");
+                                                        outputln!("Hostname lookup failed; using \
+                                                                   fallback of {} ({})",
+                                                                  host,
+                                                                  e);
+                                                        host
+                                                    });
         Sys { version: VERSION.to_string(),
               member_id: "unloaded".to_string(),
               ip,
@@ -85,19 +83,5 @@ impl Sys {
 
     pub fn http_listen(&self) -> HttpListenAddr {
         HttpListenAddr::new(self.http_gateway_ip, self.http_gateway_port)
-    }
-}
-
-pub fn lookup_ip() -> Result<IpAddr> {
-    match habitat_core::util::sys::ip() {
-        Ok(s) => Ok(s),
-        Err(e) => Err(Error::HabitatCore(e)),
-    }
-}
-
-pub fn lookup_hostname() -> Result<String> {
-    match habitat_core::os::net::hostname() {
-        Ok(hostname) => Ok(hostname),
-        Err(_) => Err(Error::IPFailed),
     }
 }
