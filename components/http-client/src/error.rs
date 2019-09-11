@@ -33,17 +33,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::HabitatCore(ref err) => err.description(),
-            Error::ReqwestError(ref err) => err.description(),
-            Error::IO(ref err) => err.description(),
-            Error::Json(ref err) => err.description(),
-            Error::UrlParseError(ref err) => err.description(),
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<hab_core::Error> for Error {
     fn from(err: hab_core::Error) -> Error { Error::HabitatCore(err) }

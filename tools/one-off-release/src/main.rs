@@ -32,9 +32,7 @@ impl StringError {
     fn new(error: String) -> Self { Self(error) }
 }
 
-impl error::Error for StringError {
-    fn description(&self) -> &str { &self.0 }
-}
+impl error::Error for StringError {}
 
 impl fmt::Display for StringError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result { write!(f, "{}", self.0) }

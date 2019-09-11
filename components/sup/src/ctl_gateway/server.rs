@@ -77,16 +77,7 @@ pub enum HandlerError {
     SendError(mpsc::SendError<CtlCommand>),
 }
 
-impl error::Error for HandlerError {
-    fn description(&self) -> &str {
-        match *self {
-            HandlerError::Decode(ref err) => err.description(),
-            HandlerError::Io(ref err) => err.description(),
-            HandlerError::NetErr(ref err) => err.description(),
-            HandlerError::SendError(ref err) => err.description(),
-        }
-    }
-}
+impl error::Error for HandlerError {}
 
 impl fmt::Display for HandlerError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
