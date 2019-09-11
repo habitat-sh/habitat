@@ -93,8 +93,8 @@ fn five_members_elect_a_new_leader_when_the_old_one_dies() {
 #[allow(clippy::cognitive_complexity)]
 fn five_members_elect_a_new_leader_when_they_are_quorum_partitioned() {
     let mut net = btest::SwimNet::new_with_suitability(vec![1, 0, 0, 0, 0]);
-    net[0].member.write().set_persistent();
-    net[4].member.write().set_persistent();
+    net[0].set_member_persistent();
+    net[4].set_member_persistent();
     net.add_service(0, "core/witcher/1.2.3/20161208121212");
     net.add_service(1, "core/witcher/1.2.3/20161208121212");
     net.add_service(2, "core/witcher/1.2.3/20161208121212");

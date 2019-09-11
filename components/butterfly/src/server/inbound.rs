@@ -154,7 +154,7 @@ fn process_pingreq_mlr_smr(server: &Server,
     if let Some(target) = server.member_list.get_cloned_mlr(&msg.target.id) {
         msg.from.address = addr.ip().to_string();
         let ping_msg = Ping { membership: vec![],
-                              from:       server.member.read().as_member(),
+                              from:       server.member.lock_smr().as_member(),
                               forward_to: Some(msg.from.clone()), };
         let swim = outbound::populate_membership_rumors_mlr(server, &target, ping_msg);
         // Set the route-back address to the one we received the

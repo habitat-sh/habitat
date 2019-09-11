@@ -185,7 +185,7 @@ fn probe_mlw_smr(server: &Server,
     }
 
     let pingreq_message = PingReq { membership: vec![],
-                                    from:       server.member.read().as_member(),
+                                    from:       server.member.lock_smr().as_member(),
                                     target:     member.clone(), };
     let swim = populate_membership_rumors_mlr(server, &member, pingreq_message);
 
@@ -370,7 +370,7 @@ pub fn ping_mlr_smr(server: &Server,
                     addr: SocketAddr,
                     forward_to: Option<&Member>) {
     let ping_msg = Ping { membership: vec![],
-                          from:       server.member.read().as_member(),
+                          from:       server.member.lock_smr().as_member(),
                           forward_to: forward_to.cloned(), /* TODO: see if we can eliminate this
                                                             * clone */ };
     let swim = populate_membership_rumors_mlr(server, target, ping_msg);
@@ -474,7 +474,7 @@ pub fn ack_mlr_smr(server: &Server,
                    addr: SocketAddr,
                    forward_to: Option<Member>) {
     let ack_msg = Ack { membership: vec![],
-                        from:       server.member.read().as_member(),
+                        from:       server.member.lock_smr().as_member(),
                         forward_to: forward_to.map(Member::from), };
     let member_id = ack_msg.from.id.clone();
     let swim = populate_membership_rumors_mlr(server, target, ack_msg);
