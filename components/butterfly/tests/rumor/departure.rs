@@ -5,7 +5,7 @@ use habitat_butterfly::{client::Client,
 #[test]
 fn two_members_share_departures() {
     let mut net = btest::SwimNet::new(2);
-    net.mesh();
+    net.mesh_mlw_smr();
     net.add_departure(0);
     net.wait_for_gossip_rounds(1);
     assert!(net[1].departure_store
@@ -16,7 +16,7 @@ fn two_members_share_departures() {
 #[test]
 fn departure_via_client() {
     let mut net = btest::SwimNet::new(3);
-    net.mesh();
+    net.mesh_mlw_smr();
 
     net.wait_for_gossip_rounds(1);
     let mut client =

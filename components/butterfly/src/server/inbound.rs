@@ -101,7 +101,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    ping.from.id);
                             continue;
                         }
-                        process_ping_mlw(server, socket, addr, ping);
+                        process_ping_mlw_smw(server, socket, addr, ping);
                     }
                     SwimKind::Ack(ack) => {
                         if server.is_member_blocked_sblr(&ack.from.id) && ack.forward_to.is_none() {
@@ -109,7 +109,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    ack.from.id);
                             continue;
                         }
-                        process_ack_mlw(server, socket, tx_outbound, addr, ack);
+                        process_ack_mlw_smw(server, socket, tx_outbound, addr, ack);
                     }
                     SwimKind::PingReq(pingreq) => {
                         if server.is_member_blocked_sblr(&pingreq.from.id) {
@@ -173,11 +173,12 @@ fn process_pingreq_mlr_smr(server: &Server,
 ///
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
-fn process_ack_mlw(server: &Server,
-                   socket: &UdpSocket,
-                   tx_outbound: &AckSender,
-                   addr: SocketAddr,
-                   mut msg: Ack) {
+/// * `Server::member` (write)
+fn process_ack_mlw_smw(server: &Server,
+                       socket: &UdpSocket,
+                       tx_outbound: &AckSender,
+                       addr: SocketAddr,
+                       mut msg: Ack) {
     trace!("Ack from {}@{}", msg.from.id, addr);
     if msg.forward_to.is_some() && *server.member_id != msg.forward_to.as_ref().unwrap().id {
         let (forward_to_addr, from_addr) = {
@@ -215,7 +216,8 @@ fn process_ack_mlw(server: &Server,
 
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
-fn process_ping_mlw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
+/// * `Server::member` (write)
+fn process_ping_mlw_smw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
     outbound::ack_mlr_smr(server, socket, &msg.from, addr, msg.forward_to);
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();

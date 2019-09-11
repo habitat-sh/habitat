@@ -7,7 +7,7 @@ use habitat_core::service::ServiceGroup;
 #[test]
 fn two_members_share_service_config() {
     let mut net = btest::SwimNet::new(2);
-    net.mesh();
+    net.mesh_mlw_smr();
     net.add_service_config(0, "witcher", "tcp-backlog = 128");
     net.wait_for_gossip_rounds(1);
     assert!(net[1].service_config_store
@@ -19,7 +19,7 @@ fn two_members_share_service_config() {
 #[test]
 fn service_config_via_client() {
     let mut net = btest::SwimNet::new(2);
-    net.mesh();
+    net.mesh_mlw_smr();
 
     net.wait_for_gossip_rounds(1);
     let mut client =

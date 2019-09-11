@@ -769,10 +769,11 @@ impl Manager {
     /// * `MemberList::initial_members` (write)
     /// * `MemberList::entries` (write)
     /// * `GatewayState::inner` (write)
+    /// * `Server::member` (write)
     #[allow(clippy::cognitive_complexity)]
-    pub fn run_rsw_imlw_mlw_gsw(mut self,
-                                svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
-                                -> Result<()> {
+    pub fn run_rsw_imlw_mlw_gsw_smw(mut self,
+                                    svc: Option<habitat_sup_protocol::ctl::SvcLoad>)
+                                    -> Result<()> {
         let main_hist = RUN_LOOP_DURATION.with_label_values(&["sup"]);
         let service_hist = RUN_LOOP_DURATION.with_label_values(&["service"]);
         let mut next_cpu_measurement = SteadyTime::now();
