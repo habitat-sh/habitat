@@ -579,9 +579,7 @@ impl Server {
     /// Return the name of this server.
     pub fn name(&self) -> &str { &self.name }
 
-    pub fn set_member_persistent(&mut self) { self.myself.lock_smw().set_persistent() }
-
-    pub fn member_as_member(&self) -> Member { self.myself.lock_smr().to_member() }
+    pub fn myself(&self) -> &Myself { self.myself.as_ref() }
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
     ///

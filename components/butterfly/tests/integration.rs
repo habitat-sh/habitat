@@ -86,8 +86,8 @@ fn six_members_unmeshed_partition_and_rejoin_no_persistent_peers() {
 #[test]
 fn six_members_unmeshed_partition_and_rejoin_persistent_peers() {
     let mut net = btest::SwimNet::new(6);
-    net[0].set_member_persistent();
-    net[4].set_member_persistent();
+    net[0].myself().lock_smw().set_persistent();
+    net[4].myself().lock_smw().set_persistent();
     net.connect_smr(0, 1);
     net.connect_smr(1, 2);
     net.connect_smr(2, 3);

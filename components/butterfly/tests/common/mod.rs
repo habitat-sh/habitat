@@ -70,7 +70,7 @@ pub fn start_server_smw(name: &str, ring_key: Option<SymKey>, suitability: u64) 
 /// # Locking (see locking.md)
 /// * `Server::member` (read)
 pub fn member_from_server_smr(server: &Server) -> Member {
-    let mut member = server.member_as_member();
+    let mut member = server.myself().lock_smr().to_member();
     // AAAAAAARGH... we currently have to do this because otherwise we
     // have no notion of where we're coming from... in "real life",
     // other Supervisors would discover this from the networking stack
