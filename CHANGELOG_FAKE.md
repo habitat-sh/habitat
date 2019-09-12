@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.61 -->
+<!-- latest_release 0.84.62 -->
+## [fake-0.84.62](https://github.com/habitat-sh/habitat/tree/fake-0.84.62) (2019-09-12)
+
+#### Merged Pull Requests
+- Release Habitat for macOS 10.13 [#6951](https://github.com/habitat-sh/habitat/pull/6951) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.84.61](https://github.com/habitat-sh/habitat/tree/fake-0.84.61) (2019-09-11)
 
 #### Merged Pull Requests
 - Upgrade buildkite agent on macOS instead of install [#6943](https://github.com/habitat-sh/habitat/pull/6943) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.60](https://github.com/habitat-sh/habitat/tree/fake-0.84.60) (2019-09-10)
 
