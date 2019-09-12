@@ -609,12 +609,10 @@ impl Server {
     /// * `Server::member` (write)
     pub fn set_departed_mlw_smw(&self) {
         if self.socket.is_some() {
-            {
-                self.myself.lock_smw().increment_incarnation();
-                // TODO (CM): It's not clear that this operation is actually needed.
-                self.myself.lock_smw().mark_departed();
-                self.member_list.set_departed_mlw(&self.member_id);
-            }
+            self.myself.lock_smw().increment_incarnation();
+            // TODO (CM): It's not clear that this operation is actually needed.
+            self.myself.lock_smw().mark_departed();
+            self.member_list.set_departed_mlw(&self.member_id);
             // We need to mark this as "hot" in order to propagate it.
             //
             // TODO (CM): This exact code is present numerous places;
