@@ -274,7 +274,7 @@ pub struct Server {
     member_id: Arc<String>,
     // TODO (CM): This is currently public because butterfly tests
     // depends on it being so. Refactor so it can be private.
-    member:                   Arc<Myself>,
+    myself:                   Arc<Myself>,
     pub member_list:          Arc<MemberList>,
     ring_key:                 Arc<Option<SymKey>>,
     rumor_heat:               RumorHeat,
@@ -303,7 +303,7 @@ impl Clone for Server {
     fn clone(&self) -> Server {
         Server { name:                 self.name.clone(),
                  member_id:            self.member_id.clone(),
-                 member:               self.member.clone(),
+                 myself:               self.myself.clone(),
                  member_list:          self.member_list.clone(),
                  ring_key:             self.ring_key.clone(),
                  rumor_heat:           self.rumor_heat.clone(),
@@ -365,7 +365,7 @@ impl Server {
                             // TODO (CM): could replace this with an accessor
                             // on member, if we have a better type
                             member_id:            Arc::new(member_id),
-                            member:               Arc::new(myself),
+                            myself:               Arc::new(myself),
                             member_list:          Arc::new(MemberList::new()),
                             ring_key:             Arc::new(ring_key),
                             rumor_heat:           RumorHeat::default(),
@@ -489,7 +489,7 @@ impl Server {
                 // persisted previously.
                 let mut store = incarnation_store::IncarnationStore::new(path.join("INCARNATION"));
                 store.initialize()?;
-                self.member.lock_smw().sync_incarnation(store)?;
+                self.myself.lock_smw().sync_incarnation(store)?;
             }
         }
 
@@ -579,9 +579,9 @@ impl Server {
     /// Return the name of this server.
     pub fn name(&self) -> &str { &self.name }
 
-    pub fn set_member_persistent(&mut self) { self.member.lock_smw().set_persistent() }
+    pub fn set_member_persistent(&mut self) { self.myself.lock_smw().set_persistent() }
 
-    pub fn member_as_member(&self) -> Member { self.member.lock_smr().to_member() }
+    pub fn member_as_member(&self) -> Member { self.myself.lock_smr().to_member() }
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
     ///
@@ -612,8 +612,9 @@ impl Server {
     pub fn set_departed_mlw_smw(&self) {
         if self.socket.is_some() {
             {
-                self.member.lock_smw().increment_incarnation();
-                self.member.lock_smw().mark_departed();
+                self.myself.lock_smw().increment_incarnation();
+                // TODO (CM): It's not clear that this operation is actually needed.
+                self.myself.lock_smw().mark_departed();
                 self.member_list.set_departed_mlw(&self.member_id);
             }
             // We need to mark this as "hot" in order to propagate it.
@@ -654,9 +655,9 @@ impl Server {
 
         if member.id == self.member_id()
            && health != Health::Alive
-           && member.incarnation >= self.member.lock_smr().incarnation()
+           && member.incarnation >= self.myself.lock_smr().incarnation()
         {
-            self.member
+            self.myself
                 .lock_smw()
                 .refute_incarnation(member.incarnation);
             health = Health::Alive;
