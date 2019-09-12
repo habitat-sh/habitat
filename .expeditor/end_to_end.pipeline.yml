@@ -266,7 +266,75 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
-
+  
+  - label: "[:linux: test_fresh_install_can_communicate_with_builder]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - test/end-to-end/test_fresh_install_can_communicate_with_builder.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+  
+  - label: "[:linux: test_invalid_cached_certificates_are_ignored_by_hab]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - test/end-to-end/test_invalid_cached_certificates_are_ignored_by_hab.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+  
+  - label: "[:linux: test_studio_can_build_packages]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - test/end-to-end/test_studio_can_build_packages.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+  
+  - label: "[:linux: test_custom_ssl_cert_is_available_in_studio]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - test/end-to-end/test_custom_ssl_cert_is_available_in_studio.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+  
+  - label: "[:linux: test_studio_hab_is_expected_version]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - test/end-to-end/test_studio_hab_is_expected_version.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+  
+  - label: "[:linux: test_self_signed_cert_is_loaded_by_hab]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - test/end-to-end/test_self_signed_cert_is_loaded_by_hab.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+  
   - label: "[:windows: test_windows_service_stops_on_launcher_termination]"
     command:
       - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_windows_service_stops_on_launcher_termination
