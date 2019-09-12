@@ -115,7 +115,7 @@ pub(crate) mod sync {
     impl<'a> MyselfReadGuard<'a> {
         fn new(lock: &'a Lock<MyselfInner>) -> Self { Self(lock.read()) }
 
-        pub fn as_member(&self) -> Member { self.0.as_member() }
+        pub fn to_member(&self) -> Member { self.0.as_member() }
 
         pub fn incarnation(&self) -> Incarnation { self.0.incarnation() }
     }
@@ -581,7 +581,7 @@ impl Server {
 
     pub fn set_member_persistent(&mut self) { self.member.lock_smw().set_persistent() }
 
-    pub fn member_as_member(&self) -> Member { self.member.lock_smr().as_member() }
+    pub fn member_as_member(&self) -> Member { self.member.lock_smr().to_member() }
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
     ///
