@@ -32,6 +32,7 @@ to make this clear the function for inserting a service is named
 Whenever a thread needs to hold multiple locks concurrently, they
 must be acquired in the conventional order and released in the reverse order:
 
+1. `ManagerServices::inner` (`ms`)
 1. `RumorStore::list` (`rs`)
 1. `MemberList::initial_members` (`iml`)
 1. `MemberList::entries` (`ml`)

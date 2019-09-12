@@ -254,9 +254,10 @@ impl SrvHandler {
 
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (read)
-    fn command_from_message_gsr(msg: &SrvMessage,
-                                ctl_sender: CtlSender)
-                                -> std::result::Result<CtlCommand, HandlerError> {
+    /// * `ManagerServices::inner` (read)
+    fn command_from_message_gsr_msr(msg: &SrvMessage,
+                                    ctl_sender: CtlSender)
+                                    -> std::result::Result<CtlCommand, HandlerError> {
         match msg.message_id() {
             "SvcGetDefaultCfg" => {
                 let m = msg.parse::<protocol::ctl::SvcGetDefaultCfg>()
@@ -264,7 +265,7 @@ impl SrvHandler {
                 Ok(CtlCommand::new(ctl_sender,
                                    msg.transaction(),
                                    move |state, req, _action_sender| {
-                                       commands::service_cfg(state, req, m.clone())
+                                       commands::service_cfg_msr(state, req, m.clone())
                                    }))
             }
             "SvcFilePut" => {
@@ -387,8 +388,9 @@ impl Future for SrvHandler {
                             self.start_timer(&msg.message_id());
                             trace!("OnMessage, {}", msg.message_id());
 
-                            let cmd = match Self::command_from_message_gsr(&msg,
-                                                                           self.ctl_sender.clone())
+                            let cmd = match Self::command_from_message_gsr_msr(&msg,
+                                                                               self.ctl_sender
+                                                                                   .clone())
                             {
                                 Ok(cmd) => cmd,
                                 Err(_) => {

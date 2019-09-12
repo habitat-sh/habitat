@@ -100,7 +100,7 @@ type AckReceiver = mpsc::Receiver<(SocketAddr, Ack)>;
 type AckSender = mpsc::Sender<(SocketAddr, Ack)>;
 
 pub trait Suitability: Debug + Send + Sync {
-    fn get(&self, service_group: &str) -> u64;
+    fn suitability_for_msr(&self, service_group: &str) -> u64;
 }
 
 pub(crate) mod sync {
@@ -448,13 +448,14 @@ impl Server {
     /// * `MemberList::entries` (write)
     /// * `Server::member` (write)
     /// * `RumorHeat::inner` (write)
+    /// * `ManagerServices::inner` (read)
     ///
     /// # Errors
     ///
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
-    pub fn start_rsw_mlw_smw_rhw(&mut self, timing: &timing::Timing) -> Result<()> {
+    pub fn start_rsw_mlw_smw_rhw_msr(&mut self, timing: &timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = self.data_path {
@@ -472,7 +473,7 @@ impl Server {
                                                                    &self.update_store,
                                                                    &self.departure_store)?;
 
-            match reader.read_into_rsw_mlw_rhw(&self) {
+            match reader.read_into_rsw_mlw_rhw_msr(&self) {
                 Ok(_) => {
                     debug!("Successfully ingested rumors from {}",
                            reader.path().display())
@@ -865,8 +866,9 @@ impl Server {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
-    pub fn start_election_rsw_mlr_rhw(&self, service_group: &str, term: u64) {
-        let suitability = self.suitability_lookup.get(&service_group);
+    /// * `ManagerServices::inner` (read)
+    pub fn start_election_rsw_mlr_rhw_msr(&self, service_group: &str, term: u64) {
+        let suitability = self.suitability_lookup.suitability_for_msr(&service_group);
         let has_quorum = self.check_quorum_mlr(service_group);
         let e = Election::new(self.member_id(),
                               service_group,
@@ -998,7 +1000,8 @@ impl Server {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
-    pub fn restart_elections_rsw_mlr_rhw(&self, feature_flags: FeatureFlag) {
+    /// * `ManagerServices::inner` (read)
+    pub fn restart_elections_rsw_mlr_rhw_msr(&self, feature_flags: FeatureFlag) {
         let elections_to_restart =
             self.elections_to_restart_rsr_mlr(&self.election_store, feature_flags);
 
@@ -1014,7 +1017,7 @@ impl Server {
             warn!("Starting a new election for {} {}", service_group, term);
             self.election_store
                 .remove_rsw(&service_group, Election::const_id());
-            self.start_election_rsw_mlr_rhw(&service_group, term);
+            self.start_election_rsw_mlr_rhw_msr(&service_group, term);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
@@ -1034,7 +1037,8 @@ impl Server {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
     /// * `RumorHeat::inner` (write)
-    pub fn insert_election_rsw_mlr_rhw(&self, mut election: Election) {
+    /// * `ManagerServices::inner` (read)
+    pub fn insert_election_rsw_mlr_rhw_msr(&self, mut election: Election) {
         debug!("insert_election: {:?}", election);
         let rk = RumorKey::from(&election);
 
@@ -1058,7 +1062,7 @@ impl Server {
                     debug!("removing old rumor and starting new election");
                     self.election_store
                         .remove_rsw(election.key(), election.id());
-                    self.start_election_rsw_mlr_rhw(&election.service_group, election.term);
+                    self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
@@ -1108,7 +1112,7 @@ impl Server {
                                               .lock()
                                               .expect("Election timers lock poisoned");
                 existing_timers.insert(election.service_group.clone(), ElectionTimer(timer));
-                self.start_election_rsw_mlr_rhw(&election.service_group, election.term);
+                self.start_election_rsw_mlr_rhw_msr(&election.service_group, election.term);
             }
 
             if !election.is_finished() {
@@ -1662,7 +1666,7 @@ mod tests {
         #[derive(Debug)]
         struct ZeroSuitability;
         impl Suitability for ZeroSuitability {
-            fn get(&self, _service_group: &str) -> u64 { 0 }
+            fn suitability_for_msr(&self, _service_group: &str) -> u64 { 0 }
         }
 
         fn start_server() -> Server {
@@ -1733,14 +1737,14 @@ mod tests {
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
-            server.start_rsw_mlw_smw_rhw(&Timing::default())
+            server.start_rsw_mlw_smw_rhw_msr(&Timing::default())
                   .expect("Server failed to start");
         }
 
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start_rsw_mlw_smw_rhw(&Timing::default())
+            server.start_rsw_mlw_smw_rhw_msr(&Timing::default())
                   .expect("Server failed to start");
         }
     }
