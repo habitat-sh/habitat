@@ -6,11 +6,9 @@ source .buildkite/env
 source .buildkite/scripts/shared.sh
 
 # Set SSL cert location
+# TODO: Should only need this until 0.85.0 ships
+brew install openssl
 export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
-
-echo "--- Installing buildkite agent"
-brew tap buildkite/buildkite
-brew upgrade --token="$BUILDKITE_AGENT_ACCESS_TOKEN" buildkite-agent
 
 echo "--- Installing Habitat Toolchain Omnibus package"
 # We now have a temporary pipeline to building this bootstrap package, but
