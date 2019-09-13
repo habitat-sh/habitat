@@ -20,6 +20,17 @@ crate::env_config_socketaddr!(OutboundIpAddrLookupSocketAddr,
                               8,
                               53);
 
+/// The technique used to determine the outgoing IP address is documented [here][1].
+///
+/// "A connected UDP socket can also be used to determine the outgoing interface
+/// that will be used to a particular destination. This is because of a side effect of the connect
+/// function when applied to a UDP socket: The kernel chooses the local IP address (assuming the
+/// process has not already called bind to explicitly assign this). This local IP address is chosen
+/// by searching the routing table for the destination IP address, and then using the primary IP
+/// address for the resulting interface." From "Unix Network Programming v1.3" chapter 8
+/// section 14.
+///
+/// [1]: http://www.masterraghu.com/subjects/np/introduction/unix_network_programming_v1.3/ch08lev1sec14.html
 pub fn ip() -> Result<IpAddr> {
     let connect_addr = SocketAddr::from(OutboundIpAddrLookupSocketAddr::configured_value());
     ip_impl(connect_addr).map_err(Error::NoOutboundIpAddr)
