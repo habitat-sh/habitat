@@ -55,6 +55,7 @@ use habitat_core::{crypto::{init,
                    os::process::ShutdownTimeout,
                    package::{target,
                              PackageIdent,
+                             PackageIdentTarget,
                              PackageTarget},
                    service::{HealthCheckInterval,
                              ServiceGroup},
@@ -842,7 +843,15 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 }
 
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
-    let key_path = cache_key_path_from_matches(&m);
+    let cache_dir = cache_dir_from_matches_or_default(m);
+
+    // If user specified a custom cache, base key cache path off of that.
+    let key_path = if m.is_present("CACHE_DIRECTORY") {
+        cache_key_path(Some(&cache_dir))
+    } else {
+        cache_key_path_from_matches(&m)
+    };
+
     let url = bldr_url_from_matches(&m)?;
 
     // When packages are uploaded, they *always* go to `unstable`;
@@ -860,13 +869,43 @@ fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     };
 
     let token = auth_token_param_or_env(&m)?;
-    let artifact_paths = m.values_of("HART_FILE").unwrap(); // Required via clap
-    for artifact_path in artifact_paths.map(Path::new) {
+
+    let mut artifact_paths: Vec<PathBuf> = Vec::new();
+
+    if m.is_present("INPUT_FILE") {
+        let input_file =
+            File::open(Path::new(m.value_of("INPUT_FILE").unwrap())).expect("Could not open \
+                                                                             INPUT_FILE!");
+        let reader = BufReader::new(input_file);
+        // The file contains newline delimited PackageIdentTarget strings
+        // ex. acme/wal-g/0.1.16/20190416172109/x86_64-linux
+        for entry in reader.lines() {
+            match PackageIdentTarget::from_str(&entry.unwrap()) {
+                Ok(pkg_target) => {
+                    let pkg_full_path =
+                        cache_artifact_path(Some(&cache_dir)).join(&pkg_target.archive_name()
+                                                                              .unwrap());
+                    if pkg_full_path.is_file() {
+                        ui.status(Status::Found, format!("{}", pkg_full_path.display()))?;
+                        artifact_paths.push(pkg_full_path);
+                    } else {
+                        ui.fatal(format!("'{}' cannot be found!", &pkg_full_path.display()))?;
+                    }
+                }
+                Err(e) => ui.fatal(format!("{}", e))?,
+            }
+        }
+    } else {
+        for path in m.values_of("HART_FILE").unwrap().map(Path::new) {
+            artifact_paths.push(path.to_path_buf());
+        }
+    }
+    for artifact_path in &artifact_paths {
         command::pkg::upload::start(ui,
                                     &url,
                                     &additional_release_channel,
                                     &token,
-                                    artifact_path,
+                                    &artifact_path,
                                     force_upload,
                                     auto_build,
                                     &key_path)?;
@@ -1419,7 +1458,7 @@ fn auth_token_param_or_env(m: &ArgMatches<'_>) -> Result<String> {
                                    .ok_or(Error::ArgumentError("No auth token specified"))
                 }
             }
-        }
+        },
     }
 }
 

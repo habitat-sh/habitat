@@ -647,7 +647,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
             Body::sized(file, file_size)
         };
         let mut resp = self.0.post(&path).bearer_auth(token).body(body).send()?;
-        resp.ok_if(StatusCode::OK)
+        match resp.status() {
+            StatusCode::OK | StatusCode::CREATED => Ok(()),
+            _ => Err(err_from_response(&mut resp)),
+        }
     }
 
     /// Upload a secret origin key to a remote Builder.
