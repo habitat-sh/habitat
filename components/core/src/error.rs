@@ -101,8 +101,6 @@ pub enum Error {
     InvalidPathString(ffi::OsString),
     /// Occurs when making lower level IO calls.
     IO(io::Error),
-    /// Occurs when this hosts outbound IP address cannot be determined
-    IpLookupFailed(io::Error),
     /// Errors when joining paths :)
     JoinPathsError(env::JoinPathsError),
     // When LogonUserW does not have the correct logon type
@@ -119,7 +117,7 @@ pub enum Error {
     /// When an IO error while accessing a MetaFile.
     MetaFileIO(io::Error),
     /// Occurs when we can't find an outbound IP address
-    NoOutboundAddr,
+    NoOutboundIpAddr(io::Error),
     /// Occurs when a call to OpenDesktopW fails
     OpenDesktopFailed(String),
     /// Occurs when a suitable installed package cannot be found.
@@ -299,9 +297,6 @@ impl fmt::Display for Error {
                 format!("Could not generate String from path: {:?}", s)
             }
             Error::IO(ref err) => format!("{}", err),
-            Error::IpLookupFailed(ref err) => {
-                format!("Failed to discover this hosts outbound IP address: {}", err)
-            }
             Error::JoinPathsError(ref err) => format!("{}", err),
             Error::LogonTypeNotGranted => {
                 "hab_svc_user user must possess the 'SE_SERVICE_LOGON_NAME' account right to be \
@@ -317,8 +312,8 @@ impl fmt::Display for Error {
             }
             Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
-            Error::NoOutboundAddr => {
-                "Failed to discover this hosts outbound IP address".to_string()
+            Error::NoOutboundIpAddr(ref e) => {
+                format!("Failed to discover this host's outbound IP address: {}", e)
             }
             Error::OpenDesktopFailed(ref e) => e.to_string(),
             Error::PackageNotFound(ref pkg) => {

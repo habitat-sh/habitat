@@ -11,7 +11,7 @@ use std::{io,
 const UNSPECIFIED_SOCKET_ADDR: (Ipv4Addr, u16) = (Ipv4Addr::UNSPECIFIED, 0);
 const GOOGLE_DNS: &str = "8.8.8.8:53";
 
-pub fn ip() -> Result<IpAddr> { ip_impl(GOOGLE_DNS).map_err(Error::IpLookupFailed) }
+pub fn ip() -> Result<IpAddr> { ip_impl(GOOGLE_DNS).map_err(Error::NoOutboundIpAddr) }
 
 fn ip_impl(connect_addr: impl ToSocketAddrs) -> io::Result<IpAddr> {
     let socket = UdpSocket::bind(UNSPECIFIED_SOCKET_ADDR)?;
