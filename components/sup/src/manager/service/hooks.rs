@@ -424,10 +424,8 @@ impl Hook for SuitabilityHook {
                     Ok(reader) => {
                         return Self::parse_suitability(reader, pkg_name);
                     }
-                    Err(e) => {
-                        outputln!(preamble pkg_name,
-                                        "Failed to open stdout file: {}", e)
-                    }
+                    Err(e) => outputln!(preamble pkg_name,
+                                        "Failed to open stdout file: {}", e),
                 }
             }
             Some(code) => {
@@ -662,15 +660,16 @@ mod tests {
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
-    use habitat_core::{fs::{cache_key_path,
-                            svc_logs_path},
+    use habitat_core::{fs::cache_key_path,
                        package::{PackageIdent,
                                  PackageInstall},
                        service::{ServiceBind,
                                  ServiceGroup}};
     use std::{fs,
               io::BufReader,
-              iter};
+              iter,
+              net::{IpAddr,
+                    Ipv4Addr}};
     use tempfile::TempDir;
 
     // Turns out it's useful for Hooks to implement AsRef<Path>, at
@@ -792,7 +791,8 @@ mod tests {
         let sys = Sys::new(true,
                            GossipListenAddr::default(),
                            ListenCtlAddr::default(),
-                           HttpListenAddr::default()).expect("to create Sys");
+                           HttpListenAddr::default(),
+                           IpAddr::V4(Ipv4Addr::LOCALHOST));
         let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
             .expect("Could not create config");
         let mut ring = CensusRing::new("member-a");

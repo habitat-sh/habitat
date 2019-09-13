@@ -101,7 +101,8 @@ use std::{collections::{HashMap,
                Read,
                Write},
           iter::IntoIterator,
-          net::SocketAddr,
+          net::{IpAddr,
+                SocketAddr},
           path::{Path,
                  PathBuf},
           str::FromStr,
@@ -540,7 +541,7 @@ impl Manager {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
-    pub fn load_imlw(cfg: ManagerConfig, launcher: LauncherCli) -> Result<Manager> {
+    pub fn load_imlw(cfg: ManagerConfig, launcher: LauncherCli, sys_ip: IpAddr) -> Result<Manager> {
         let state_path = cfg.sup_root();
         let fs_cfg = FsCfg::new(state_path);
         Self::create_state_path_dirs(&fs_cfg)?;
@@ -550,7 +551,7 @@ impl Manager {
         }
         obtain_process_lock(&fs_cfg)?;
 
-        Self::new_imlw(cfg, fs_cfg, launcher)
+        Self::new_imlw(cfg, fs_cfg, launcher, sys_ip)
     }
 
     pub fn term(proc_lock_file: &Path) -> Result<()> {
@@ -571,7 +572,11 @@ impl Manager {
 
     /// # Locking (see locking.md)
     /// * `MemberList::initial_members` (write)
-    fn new_imlw(cfg: ManagerConfig, fs_cfg: FsCfg, launcher: LauncherCli) -> Result<Manager> {
+    fn new_imlw(cfg: ManagerConfig,
+                fs_cfg: FsCfg,
+                launcher: LauncherCli,
+                sys_ip: IpAddr)
+                -> Result<Manager> {
         debug!("new(cfg: {:?}, fs_cfg: {:?}", cfg, fs_cfg);
         let mut runtime =
             RuntimeBuilder::new().name_prefix("tokio-")
@@ -594,7 +599,8 @@ impl Manager {
         let mut sys = Sys::new(cfg.gossip_permanent,
                                cfg.gossip_listen,
                                cfg.ctl_listen,
-                               cfg.http_listen)?;
+                               cfg.http_listen,
+                               sys_ip);
         let member = Self::load_member(&mut sys, &fs_cfg)?;
         let services = Arc::default();
         let suitability_lookup = Arc::clone(&services) as Arc<dyn Suitability>;

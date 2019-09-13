@@ -1,5 +1,4 @@
-use crate::{error::Result,
-            VERSION};
+use crate::VERSION;
 use habitat_butterfly::rumor::service::SysInfo;
 use habitat_common::{outputln,
                      types::{GossipListenAddr,
@@ -31,9 +30,9 @@ impl Sys {
     pub fn new(permanent: bool,
                gossip: GossipListenAddr,
                ctl: ListenCtlAddr,
-               http: HttpListenAddr)
-               -> Result<Self> {
-        let ip = habitat_core::util::sys::ip()?;
+               http: HttpListenAddr,
+               ip: IpAddr)
+               -> Self {
         let host = habitat_core::os::net::hostname().unwrap_or_else(|e| {
                                                         let host = String::from("localhost");
                                                         outputln!("Hostname lookup failed; using \
@@ -42,17 +41,17 @@ impl Sys {
                                                                   e);
                                                         host
                                                     });
-        Ok(Self { version: VERSION.to_string(),
-                  member_id: "unloaded".to_string(),
-                  ip,
-                  hostname: host,
-                  gossip_ip: gossip.ip(),
-                  gossip_port: gossip.port(),
-                  ctl_gateway_ip: ctl.ip(),
-                  ctl_gateway_port: ctl.port(),
-                  http_gateway_ip: http.ip(),
-                  http_gateway_port: http.port(),
-                  permanent })
+        Self { version: VERSION.to_string(),
+               member_id: "unloaded".to_string(),
+               ip,
+               hostname: host,
+               gossip_ip: gossip.ip(),
+               gossip_port: gossip.port(),
+               ctl_gateway_ip: ctl.ip(),
+               ctl_gateway_port: ctl.port(),
+               http_gateway_ip: http.ip(),
+               http_gateway_port: http.port(),
+               permanent }
     }
 
     pub fn as_sys_info(&self) -> SysInfo {
