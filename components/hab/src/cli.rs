@@ -1120,6 +1120,12 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                             Implies NO_COLOR")
                             (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
                              "The interval (seconds) on which to run health checks [default: 30]")
+                            (@arg SYS_IP_ADDRESS: --("sys-ip-address") +takes_value
+                             "The fallback IPv4 address if we can not dynamically determine an \
+                             outgoing IPv4 address. This value can be a network interface name \
+                             with only one IPv4 address or a value that can be parsed as an IPv4 \
+                             address. The resulting value is used as the `sys.ip` template \
+                             variable.")
     );
 
     let sub = if feature_flags.contains(FeatureFlag::EVENT_STREAM) {

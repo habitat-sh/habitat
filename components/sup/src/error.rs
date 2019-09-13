@@ -70,6 +70,8 @@ pub enum Error {
     NameLookup(io::Error),
     NetErr(habitat_sup_protocol::net::NetErr),
     NetParseError(net::AddrParseError),
+    NetworkInterfaceIpv4AddressAmbiguity(String),
+    NetworkInterfaceHasNoIpv4Address(String),
     NoActiveMembers(habitat_core::service::ServiceGroup),
     NoLauncher,
     NoSuchBind(String),
@@ -183,7 +185,16 @@ impl fmt::Display for Error {
             }
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetErr(ref err) => err.to_string(),
-            Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
+            Error::NetParseError(ref e) => {
+                format!("Can't parse IP address or socket address: {}", e)
+            }
+            Error::NetworkInterfaceIpv4AddressAmbiguity(ref interface) => {
+                format!("Network interface {} has mutliple IPv4 addresses",
+                        interface)
+            }
+            Error::NetworkInterfaceHasNoIpv4Address(ref interface) => {
+                format!("Network interface {} has no IPv4 address", interface)
+            }
             Error::NoActiveMembers(ref g) => format!("No active members in service group {}", g),
             Error::NoLauncher => "Supervisor must be run from `hab-launch`".to_string(),
             Error::NoSuchBind(ref b) => format!("No such bind: {}", b),

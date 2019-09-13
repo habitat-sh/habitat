@@ -173,7 +173,8 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
     set_supervisor_logging_options(m);
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
-    let sys_ip = util::discover_outgoing_ip()?;
+    let sys_ip = util::determine_sys_ip_address(m.value_of("SYS_IP_ADDRESS"))?;
+    info!("Determined sys IP address to be {}", sys_ip);
     let manager = Manager::load_imlw(cfg, launcher, sys_ip)?;
 
     // We need to determine if we have an initial service to start
