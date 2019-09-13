@@ -19,6 +19,7 @@ description: Documentation for Chef Habitat uploading, auto-building, and deploy
   - [Using Multiple Plans](#multiple-plans-builder)
   - [Set up Automated Builds](#automated-builds)
   - [Install and Use Builder On-Premises](#on-prem)
+  - [Using Custom Certificates](#using-custom-certs)
 
 ---
 ## <a name="builder-account" id="builder-account" data-magellan-target="builder-account">Create a Builder Account</a>
@@ -504,3 +505,22 @@ Currently, our on-premises Builder depot only stores packages for download and u
 
 For a detailed explanation of features, requirements and setup instructions, [see the GitHub repository](https://github.com/habitat-sh/on-prem-builder).
 
+---
+## <a name="using-custom-certs" id="using-custom-certs" data-magellan-target="using-custom-certs">Using Custom Certificates</a>
+
+Dealing with custom certificates (for example, self-signed) is a fairly common scenario in enterprise environments. For example, if you are running a Chef Habitat Builder Depot on-premises, you might have a self-signed SSL certificate on the instance.
+
+If you attempt to perform an operation using the Habitat client that talks to a service with a custom certificate, you might get an error such as:
+```
+✗✗✗
+✗✗✗ the handshake failed: The OpenSSL library reported an error: error:14090086:SSL routines:ssl3_get_server_certificate:certificate verify failed:s3_clnt.c:1269:: unable to get local issuer certificate
+✗✗✗
+```
+
+One way to deal with this issue is to use the `SSL_CERT_FILE` environment variable, and point it to the path of the custom certificate prior to performing the client operation.
+
+With the release of Habitat 0.85.0, there is another option that is now available. Habitat will now look for custom certificates in its `~/.hab/cache/ssl` directory (or `/hab/cache/ssl` if running as root). Multiple certificates (for example, a self-signed certificate, and a custom certificate authority certificate) can be copied over to the cache directory and will become automatically avaialable for use by the Habitat client.
+
+The `/hab/cache/ssl` directory is also made available inside a Habitat Studio. So, if you have populated the cache directory before entering the Studio, you will find that its contents are populated with the files from outside the Studio. In addition, when entering the Habitat Studio, the `SSL_CERT_FILE` environment variable will be propagated to the Studio, and the file that it is pointing to will also be copied over to the `/hab/cache/ssl` directory.
+
+Note: The filename `cert.pem` is reserved for Habitat, so please do not use that file name when copying certs into the cache directory.

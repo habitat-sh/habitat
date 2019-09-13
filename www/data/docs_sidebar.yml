@@ -49,6 +49,8 @@ sidebar_links:
       link: "/docs/using-builder/#multiple-plans-builder"
     - title: Set up Automated Builds
       link: "/docs/using-builder/#automated-builds"
+    - title: Using Custom Certificates
+      link: "/docs/using-builder/#using-custom-certs"
   - title: Managing Services
     link: "/docs/using-habitat"
     sub_links:
