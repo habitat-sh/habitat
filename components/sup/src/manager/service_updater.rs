@@ -154,10 +154,8 @@ impl ServiceUpdater {
     pub fn check_for_updated_package_rsw_mlr_rhw(&mut self,
                                                  service: &Service,
                                                  // TODO (CM): Strictly speaking, we don't need
-                                                 // to
-                                                 // pass CensusRing down into here, just the
-                                                 // census
-                                                 // group for our service.
+                                                 // to pass CensusRing down into here, just the
+                                                 // census group for our service.
                                                  census_ring: &CensusRing)
                                                  -> Option<PackageIdent> {
         debug!("Checking for updated package!");
