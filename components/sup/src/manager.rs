@@ -1393,6 +1393,7 @@ impl Manager {
 
     /// # Locking (see locking.md)
     /// * `GatewayState::inner` (write)
+    /// * `ManagerServices::inner` (write)
     fn stop_service_gsw_msw(&mut self, ident: &PackageIdent, shutdown_input: &ShutdownInput) {
         if let Some(service) = self.remove_service_from_state_msw(&ident) {
             let future = self.stop_service_future_gsw(service, Some(shutdown_input));
