@@ -29,7 +29,7 @@ use crate::{error::{Error,
                     election::{Election,
                                ElectionRumor,
                                ElectionUpdate},
-                    heat::RumorHeat,
+                    heat::sync::RumorHeat,
                     service::Service,
                     service_config::ServiceConfig,
                     service_file::ServiceFile,
@@ -277,7 +277,7 @@ pub struct Server {
     myself:                   Arc<Myself>,
     pub member_list:          Arc<MemberList>,
     ring_key:                 Arc<Option<SymKey>>,
-    rumor_heat:               RumorHeat,
+    rumor_heat:               Arc<RumorHeat>,
     pub service_store:        RumorStore<Service>,
     pub service_config_store: RumorStore<ServiceConfig>,
     pub service_file_store:   RumorStore<ServiceFile>,
@@ -368,7 +368,7 @@ impl Server {
                             myself:               Arc::new(myself),
                             member_list:          Arc::new(MemberList::new()),
                             ring_key:             Arc::new(ring_key),
-                            rumor_heat:           RumorHeat::default(),
+                            rumor_heat:           Arc::default(),
                             service_store:        RumorStore::default(),
                             service_config_store: RumorStore::default(),
                             service_file_store:   RumorStore::default(),
@@ -597,10 +597,10 @@ impl Server {
             // has departed; that's why we subsequently start a "hot"
             // rumor.
             if health == Health::Departed {
-                self.rumor_heat.purge_rhw(&member_id);
+                self.rumor_heat.lock_rhw().purge(&member_id);
             }
 
-            self.rumor_heat.start_hot_rumor_rhw(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -625,7 +625,8 @@ impl Server {
             // NOT calling RumorHeat::purge here because we'll be
             // shutting down soon anyway.
             self.rumor_heat
-                .start_hot_rumor_rhw(RumorKey::new(RumorType::Member, &*self.member_id, ""));
+                .lock_rhw()
+                .start_hot_rumor(RumorKey::new(RumorType::Member, &*self.member_id, ""));
 
             let check_list = self.member_list.check_list_mlr(&self.member_id);
 
@@ -668,9 +669,9 @@ impl Server {
 
         if self.member_list.insert_mlw(member, health) {
             if member_id != self.member_id() && health == Health::Departed {
-                self.rumor_heat.purge_rhw(&member_id);
+                self.rumor_heat.lock_rhw().purge(&member_id);
             }
-            self.rumor_heat.start_hot_rumor_rhw(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -729,14 +730,15 @@ impl Server {
                                  .min()
                 {
                     member_list.set_departed_mlw(&member_id_to_depart);
-                    rumor_heat.purge_rhw(&member_id_to_depart);
-                    rumor_heat.start_hot_rumor_rhw(RumorKey::new(RumorType::Member,
-                                                                 &*member_id_to_depart,
-                                                                 ""));
+                    rumor_heat.lock_rhw().purge(&member_id_to_depart);
+                    rumor_heat.lock_rhw()
+                              .start_hot_rumor(RumorKey::new(RumorType::Member,
+                                                             &*member_id_to_depart,
+                                                             ""));
                 }
             }
 
-            rumor_heat.start_hot_rumor_rhw(rk);
+            rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -748,7 +750,7 @@ impl Server {
     pub fn insert_service_config_rsw_rhw(&self, service_config: ServiceConfig) {
         let rk = RumorKey::from(&service_config);
         if self.service_config_store.insert_rsw(service_config) {
-            self.rumor_heat.start_hot_rumor_rhw(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -760,7 +762,7 @@ impl Server {
     pub fn insert_service_file_rsw_rhw(&self, service_file: ServiceFile) {
         let rk = RumorKey::from(&service_file);
         if self.service_file_store.insert_rsw(service_file) {
-            self.rumor_heat.start_hot_rumor_rhw(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -778,12 +780,13 @@ impl Server {
         }
 
         self.member_list.set_departed_mlw(&departure.member_id);
-        self.rumor_heat.purge_rhw(&departure.member_id);
+        self.rumor_heat.lock_rhw().purge(&departure.member_id);
         self.rumor_heat
-            .start_hot_rumor_rhw(RumorKey::new(RumorType::Member, &departure.member_id, ""));
+            .lock_rhw()
+            .start_hot_rumor(RumorKey::new(RumorType::Member, &departure.member_id, ""));
 
         if self.departure_store.insert_rsw(departure) {
-            self.rumor_heat.start_hot_rumor_rhw(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -874,7 +877,9 @@ impl Server {
             warn!("start_election check_quorum failed: {:?}", e);
         }
         debug!("start_election: {:?}", e);
-        self.rumor_heat.start_hot_rumor_rhw(RumorKey::from(&e));
+        self.rumor_heat
+            .lock_rhw()
+            .start_hot_rumor(RumorKey::from(&e));
         self.election_store.insert_rsw(e);
     }
 
@@ -896,7 +901,9 @@ impl Server {
             warn!("start_election check_quorum failed: {:?}", e);
         }
         debug!("start_update_election: {:?}", e);
-        self.rumor_heat.start_hot_rumor_rhw(RumorKey::from(&e));
+        self.rumor_heat
+            .lock_rhw()
+            .start_hot_rumor(RumorKey::from(&e));
         self.update_store.insert_rsw(e);
     }
 
@@ -1115,7 +1122,7 @@ impl Server {
         }
 
         if self.election_store.insert_rsw(election) {
-            self.rumor_heat.start_hot_rumor_rhw(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -1191,7 +1198,7 @@ impl Server {
         }
 
         if self.update_store.insert_rsw(election) {
-            self.rumor_heat.start_hot_rumor_rhw(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 

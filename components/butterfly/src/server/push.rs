@@ -81,7 +81,9 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                 if server.member_list.pingable_mlr(&member)
                    && !server.member_list.persistent_and_confirmed_mlr(&member)
                 {
-                    let rumors = server.rumor_heat.currently_hot_rumors_rhr(&member.id);
+                    let rumors = server.rumor_heat
+                                       .lock_rhr()
+                                       .currently_hot_rumors(&member.id);
                     if !rumors.is_empty() {
                         let sc = server.clone();
                         let guard = match thread::Builder::new().name(String::from("push-worker"))
@@ -308,7 +310,9 @@ fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]
         }
     }
 
-    server.rumor_heat.cool_rumors_rhw(&member.id, &rumors);
+    server.rumor_heat
+          .lock_rhw()
+          .cool_rumors(&member.id, &rumors);
 }
 
 /// Given a rumorkey, creates a protobuf rumor for sharing.

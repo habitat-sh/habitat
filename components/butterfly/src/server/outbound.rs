@@ -295,7 +295,8 @@ pub fn populate_membership_rumors_mlr_rhw(server: &Server,
     // the 5 coolest (but still warm!) Member rumors.
     let rumors: Vec<RumorKey> = server
         .rumor_heat
-        .currently_hot_rumors_rhr(&target.id)
+        .lock_rhr()
+        .currently_hot_rumors(&target.id)
         .into_iter()
         .filter(|ref r| r.kind == RumorType::Member)
         .take(5) // TODO (CM): magic number!
@@ -310,7 +311,9 @@ pub fn populate_membership_rumors_mlr_rhw(server: &Server,
     // confirmed dead; the odds are, they won't receive them. Lets spam them a little harder with
     // rumors.
     if !server.member_list.persistent_and_confirmed_mlr(target) {
-        server.rumor_heat.cool_rumors_rhw(&target.id, &rumors);
+        server.rumor_heat
+              .lock_rhw()
+              .cool_rumors(&target.id, &rumors);
     }
 
     swim
