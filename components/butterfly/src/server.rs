@@ -447,6 +447,7 @@ impl Server {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
     /// * `Server::member` (write)
+    /// * `RumorHeat::inner` (write)
     ///
     /// # Errors
     ///
