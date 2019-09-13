@@ -46,7 +46,7 @@ habitat_core::env_config_int!(/// The number of times that a rumor will be share
 /// When a rumor changes, we can effectively reset things by starting
 /// the rumor mill up again. This will zero out all counters for every
 /// member, starting the sharing cycle over again.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct RumorHeat(Arc<Lock<HashMap<RumorKey, HashMap<String, usize>>>>);
 
 impl RumorHeat {
@@ -59,9 +59,7 @@ impl RumorHeat {
     /// # Locking (see locking.md)
     /// * `RumorHeat::inner` (write)
     pub fn start_hot_rumor_rhw<T: Into<RumorKey>>(&self, rumor: T) {
-        let rk: RumorKey = rumor.into();
-        let mut rumors = self.0.write();
-        rumors.insert(rk, HashMap::new());
+        self.0.write().insert(rumor.into(), Default::default());
     }
 
     /// Return a list of currently "hot" rumors for the specified
@@ -166,10 +164,6 @@ impl RumorHeat {
         }
         debug!("Purged {} heat count entries for {:?}", count, id);
     }
-}
-
-impl Default for RumorHeat {
-    fn default() -> RumorHeat { RumorHeat(Arc::new(Lock::new(HashMap::new()))) }
 }
 
 #[cfg(test)]
