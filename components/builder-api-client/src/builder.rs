@@ -16,6 +16,7 @@ use crate::{error::{Error,
             DisplayProgress,
             OriginKeyIdent,
             OriginSecret,
+            Package,
             ReverseDependencies,
             SchedulerResponse};
 use broadcast::BroadcastWriter;
@@ -81,17 +82,6 @@ pub struct OriginPrivateSigningKey {
 }
 
 mod json {
-    #[derive(Clone, Deserialize)]
-    pub struct Package {
-        pub ident:    PackageIdent,
-        pub checksum: String,
-        pub manifest: String,
-        pub deps:     Vec<PackageIdent>,
-        pub tdeps:    Vec<PackageIdent>,
-        pub exposes:  Vec<u32>,
-        pub config:   String,
-    }
-
     #[derive(Clone, Deserialize)]
     pub struct PackageIdent {
         pub origin:  String,
@@ -751,7 +741,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
             .ok_if(&[StatusCode::OK])
     }
 
-    /// Returns a package struct for the latest package.
+    /// Returns a package ident struct for the latest package. Arguably should be renamed
     ///
     /// An optional version can be specified which will scope the release returned to the latest
     /// release of that package.
@@ -765,6 +755,27 @@ impl BuilderAPIProvider for BuilderAPIClient {
                     channel: &ChannelIdent,
                     token: Option<&str>)
                     -> Result<PackageIdent> {
+        debug!("Retrieving package ident for {}, target {}",
+               package, target);
+
+        let package = self.show_package_metadata((package, target), channel, token)?;
+        Ok(package.ident)
+    }
+
+    /// Returns a package struct for the latest package.
+    ///
+    /// An optional version can be specified which will scope the release returned to the latest
+    /// release of that package.
+    ///
+    /// # Failures
+    ///
+    /// * Package cannot be found
+    /// * Remote Builder is not available
+    fn show_package_metadata(&self,
+                             (package, target): (&PackageIdent, PackageTarget),
+                             channel: &ChannelIdent,
+                             token: Option<&str>)
+                             -> Result<Package> {
         debug!("Retrieving package metadata for {}, target {}",
                package, target);
 
@@ -787,8 +798,8 @@ impl BuilderAPIProvider for BuilderAPIClient {
             .map_err(Error::BadResponseBody)?;
         trace!(target: "habitat_http_client::api_client::show_package", "{:?}", encoded);
 
-        let package: json::Package = serde_json::from_str::<json::Package>(&encoded)?;
-        Ok(package.ident.into())
+        let package: Package = serde_json::from_str::<Package>(&encoded)?;
+        Ok(package)
     }
 
     /// Upload a package to a remote Builder.
