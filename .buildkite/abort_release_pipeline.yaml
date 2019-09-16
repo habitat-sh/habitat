@@ -1,6 +1,7 @@
 env:
   HAB_LICENSE: "accept-no-persist"
   HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
+  HAB_BLDR_URL: "https://bldr.habitat.sh"
 
 steps:
   - label: ":crying_cat_face: :boom: Destroy release channel"
