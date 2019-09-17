@@ -81,14 +81,16 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
                 if server.member_list.pingable_mlr(&member)
                    && !server.member_list.persistent_and_confirmed_mlr(&member)
                 {
-                    let rumors = server.rumor_heat.currently_hot_rumors(&member.id);
+                    let rumors = server.rumor_heat
+                                       .lock_rhr()
+                                       .currently_hot_rumors(&member.id);
                     if !rumors.is_empty() {
                         let sc = server.clone();
                         let guard = match thread::Builder::new().name(String::from("push-worker"))
                                                                 .spawn(move || {
-                                                                    send_rumors_rsr_mlr(&sc,
-                                                                                        &member,
-                                                                                        &rumors)
+                                                                    send_rumors_rsr_mlr_rhw(&sc,
+                                                                                            &member,
+                                                                                            &rumors)
                                                                 }) {
                             Ok(guard) => guard,
                             Err(e) => {
@@ -129,12 +131,13 @@ fn run_loop(server: &Server, timing: &Timing) -> ! {
 /// # Locking (see locking.md)
 /// * `RumorStore::list` (read)
 /// * `MemberList::entries` (read)
+/// * `RumorHeat::inner` (write)
 // If we ever need to modify this function, it would be an excellent opportunity to
 // simplify the redundant aspects and remove this allow(clippy::cognitive_complexity),
 // but changing it in the absence of other necessity seems like too much risk for the
 // expected reward.
 #[allow(clippy::cognitive_complexity)]
-fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
+fn send_rumors_rsr_mlr_rhw(server: &Server, member: &Member, rumors: &[RumorKey]) {
     let socket = (**ZMQ_CONTEXT).as_mut()
                                 .socket(zmq::PUSH)
                                 .expect("Failure to create the ZMQ push socket");
@@ -306,7 +309,10 @@ fn send_rumors_rsr_mlr(server: &Server, member: &Member, rumors: &[RumorKey]) {
             }
         }
     }
-    server.rumor_heat.cool_rumors(&member.id, &rumors);
+
+    server.rumor_heat
+          .lock_rhw()
+          .cool_rumors(&member.id, &rumors);
 }
 
 /// Given a rumorkey, creates a protobuf rumor for sharing.

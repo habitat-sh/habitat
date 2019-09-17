@@ -101,7 +101,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    ping.from.id);
                             continue;
                         }
-                        process_ping_mlw_smw(server, socket, addr, ping);
+                        process_ping_mlw_smw_rhw(server, socket, addr, ping);
                     }
                     SwimKind::Ack(ack) => {
                         if server.is_member_blocked_sblr(&ack.from.id) && ack.forward_to.is_none() {
@@ -109,7 +109,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    ack.from.id);
                             continue;
                         }
-                        process_ack_mlw_smw(server, socket, tx_outbound, addr, ack);
+                        process_ack_mlw_smw_rhw(server, socket, tx_outbound, addr, ack);
                     }
                     SwimKind::PingReq(pingreq) => {
                         if server.is_member_blocked_sblr(&pingreq.from.id) {
@@ -117,7 +117,7 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
                                    pingreq.from.id);
                             continue;
                         }
-                        process_pingreq_mlr_smr(server, socket, addr, pingreq);
+                        process_pingreq_mlr_smr_rhw(server, socket, addr, pingreq);
                     }
                 }
             }
@@ -147,16 +147,17 @@ pub fn run_loop(server: &Server, socket: &UdpSocket, tx_outbound: &AckSender) ->
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
 /// * `Server::member` (read)
-fn process_pingreq_mlr_smr(server: &Server,
-                           socket: &UdpSocket,
-                           addr: SocketAddr,
-                           mut msg: PingReq) {
+/// * `RumorHeat::inner` (write)
+fn process_pingreq_mlr_smr_rhw(server: &Server,
+                               socket: &UdpSocket,
+                               addr: SocketAddr,
+                               mut msg: PingReq) {
     if let Some(target) = server.member_list.get_cloned_mlr(&msg.target.id) {
         msg.from.address = addr.ip().to_string();
         let ping_msg = Ping { membership: vec![],
                               from:       server.myself.lock_smr().to_member(),
                               forward_to: Some(msg.from.clone()), };
-        let swim = outbound::populate_membership_rumors_mlr(server, &target, ping_msg);
+        let swim = outbound::populate_membership_rumors_mlr_rhw(server, &target, ping_msg);
         // Set the route-back address to the one we received the
         // pingreq from
         outbound::ping(server,
@@ -174,11 +175,12 @@ fn process_pingreq_mlr_smr(server: &Server,
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
 /// * `Server::member` (write)
-fn process_ack_mlw_smw(server: &Server,
-                       socket: &UdpSocket,
-                       tx_outbound: &AckSender,
-                       addr: SocketAddr,
-                       mut msg: Ack) {
+/// * `RumorHeat::inner` (write)
+fn process_ack_mlw_smw_rhw(server: &Server,
+                           socket: &UdpSocket,
+                           tx_outbound: &AckSender,
+                           addr: SocketAddr,
+                           mut msg: Ack) {
     trace!("Ack from {}@{}", msg.from.id, addr);
     if msg.forward_to.is_some() && *server.member_id != msg.forward_to.as_ref().unwrap().id {
         let (forward_to_addr, from_addr) = {
@@ -207,7 +209,7 @@ fn process_ack_mlw_smw(server: &Server,
     match tx_outbound.send((addr, msg)) {
         Ok(()) => {
             for membership in memberships {
-                server.insert_member_from_rumor_mlw_smw(membership.member, membership.health);
+                server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
             }
         }
         Err(e) => panic!("Outbound thread has died - this shouldn't happen: #{:?}", e),
@@ -217,17 +219,18 @@ fn process_ack_mlw_smw(server: &Server,
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
 /// * `Server::member` (write)
-fn process_ping_mlw_smw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
-    outbound::ack_mlr_smr(server, socket, &msg.from, addr, msg.forward_to);
+/// * `RumorHeat::inner` (write)
+fn process_ping_mlw_smw_rhw(server: &Server, socket: &UdpSocket, addr: SocketAddr, mut msg: Ping) {
+    outbound::ack_mlr_smr_rhw(server, socket, &msg.from, addr, msg.forward_to);
     // Populate the member for this sender with its remote address
     msg.from.address = addr.ip().to_string();
     trace!("Ping from {}@{}", msg.from.id, addr);
     if msg.from.departed {
-        server.insert_member_mlw(msg.from, Health::Departed);
+        server.insert_member_mlw_rhw(msg.from, Health::Departed);
     } else {
-        server.insert_member_mlw(msg.from, Health::Alive);
+        server.insert_member_mlw_rhw(msg.from, Health::Alive);
     }
     for membership in msg.membership {
-        server.insert_member_from_rumor_mlw_smw(membership.member, membership.health);
+        server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
     }
 }
