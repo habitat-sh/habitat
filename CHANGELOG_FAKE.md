@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.68 -->
+<!-- latest_release 0.84.69 -->
+## [fake-0.84.69](https://github.com/habitat-sh/habitat/tree/fake-0.84.69) (2019-09-17)
+
+#### Merged Pull Requests
+- Convert RwLocks in the rumor::heat module to habitat_common::sync::Lock [#6957](https://github.com/habitat-sh/habitat/pull/6957) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.84.68](https://github.com/habitat-sh/habitat/tree/fake-0.84.68) (2019-09-17)
 
 #### Merged Pull Requests
 - Error when sys.ip cannot be determined [#6953](https://github.com/habitat-sh/habitat/pull/6953) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.84.67](https://github.com/habitat-sh/habitat/tree/fake-0.84.67) (2019-09-17)
 
