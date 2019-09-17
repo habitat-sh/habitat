@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.69 -->
+<!-- latest_release 0.86.0 -->
+## [fake-0.86.0](https://github.com/habitat-sh/habitat/tree/fake-0.86.0) (2019-09-17)
+
+#### Merged Pull Requests
+- Bump VERSION to 0.87.0-dev [#6968](https://github.com/habitat-sh/habitat/pull/6968) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.84.69](https://github.com/habitat-sh/habitat/tree/fake-0.84.69) (2019-09-17)
 
 #### Merged Pull Requests
 - Convert RwLocks in the rumor::heat module to habitat_common::sync::Lock [#6957](https://github.com/habitat-sh/habitat/pull/6957) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.84.68](https://github.com/habitat-sh/habitat/tree/fake-0.84.68) (2019-09-17)
 
