@@ -25,7 +25,7 @@ try {
 
 } finally { 
     Write-Host "Cleaning up"
-    
+    sleep 5
     Send-AwaitCommand "exit"
     Receive-AwaitResponse
 
