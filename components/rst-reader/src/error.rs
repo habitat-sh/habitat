@@ -18,13 +18,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::Butterfly(_) => "Error reading RST file",
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<habitat_butterfly::error::Error> for Error {
     fn from(err: habitat_butterfly::error::Error) -> Error { Error::Butterfly(err) }

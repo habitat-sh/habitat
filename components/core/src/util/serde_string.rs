@@ -28,9 +28,7 @@ pub fn deserialize<'de, T, E, D>(d: D) -> result::Result<T, D::Error>
             match FromStr::from_str(value) {
                 Ok(t) => Ok(t),
                 Err(err) => {
-                    Err(R::custom(format!("string cannot be parsed: \"{}\" ({})",
-                                          value,
-                                          err.description())))
+                    Err(R::custom(format!("string cannot be parsed: \"{}\" ({})", value, err)))
                 }
             }
         }

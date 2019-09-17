@@ -3,8 +3,7 @@ use crate::error::{Error,
                    Result};
 use glob;
 use habitat_common::outputln;
-use std::{error::Error as StdErr,
-          ffi::OsStr,
+use std::{ffi::OsStr,
           iter::IntoIterator,
           path::{Path,
                  PathBuf}};
@@ -64,7 +63,7 @@ impl SpecDir {
                     outputln!("Error when loading service spec file '{}' ({}). This file will be \
                                skipped.",
                               spec_file.display(),
-                              e.description());
+                              e);
                     continue;
                 }
             };

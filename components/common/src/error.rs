@@ -152,55 +152,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::APIClient(ref err) => err.description(),
-            Error::ArtifactIdentMismatch((..)) => "Artifact ident does not match expected ident",
-            Error::BadEnvConfig(_) => "Unknown syntax in Env Configuration",
-            Error::BadGlyphStyle(_) => "Unknown symbol style",
-            Error::CantUploadGossipToml => "Can't upload gossip.toml, it's a reserved filename",
-            Error::ChannelNotFound => "Channel not found",
-            Error::CryptoKeyError(_) => "Missing or invalid key",
-            Error::DownloadFailed(_) => "Failed to download from remote",
-            Error::EditorEnv(_) => "Missing EDITOR environment variable",
-            Error::EditStatus => "Failed edit text command",
-            Error::FileNameError => "Failed to extract a filename from a path",
-            Error::FileNotFound(_) => "File not found",
-            Error::GossipFileRelativePath(_) => {
-                "Path for gossip file cannot have relative components (eg: ..)"
-            }
-            Error::HabitatCore(ref err) => err.description(),
-            Error::InstallHookFailed(_) => "Install hook exited unsuccessfully",
-            Error::InvalidEventStreamToken(_) => "Invalid event stream token provided",
-            Error::InvalidInstallHookMode(_) => "Invalid InstallHookMode",
-            Error::IO(ref err) => err.description(),
-            Error::JoinPathsError(ref err) => err.description(),
-            Error::MissingCLIInputError(_) => "Missing required CLI argument!",
-            Error::NetParseError(_) => "Can't parse IP:port",
-            Error::OfflineArtifactNotFound(_) => "Cached artifact not found in offline mode",
-            Error::OfflineOriginKeyNotFound(_) => "Cached origin key not found in offline mode",
-            Error::OfflinePackageNotFound(_) => {
-                "No installed package or cached artifact could be found locally in offline mode"
-            }
-            Error::PackageNotFound(_) => "Package not found",
-            Error::PermissionFailed(_) => "File system permissions error",
-            Error::RenderContextSerialization(_) => "Unable to serialize rendering context",
-            Error::RootRequired => {
-                "Root or administrator permissions required to complete operation"
-            }
-            Error::StatusFileCorrupt(_) => "Unable to decode contents of INSTALL_STATUS file",
-            Error::StrFromUtf8Error(_) => "Failed to convert a string as UTF-8",
-            Error::StringFromUtf8Error(_) => "Failed to convert a string as UTF-8",
-            Error::TemplateFileError(ref err) => err.description(),
-            Error::TemplateRenderError(_) => "Failed to render template",
-            Error::TomlMergeError(_) => "Failed to merge TOML!",
-            Error::TomlParser(_) => "Failed to parse TOML!",
-            Error::TomlSerializeError(_) => "Can't serialize TOML",
-            Error::WireDecode(_) => "Failed to decode wire message",
-        }
-    }
-}
+impl error::Error for Error {}
 
 impl From<api_client::Error> for Error {
     fn from(err: api_client::Error) -> Self { Error::APIClient(err) }
