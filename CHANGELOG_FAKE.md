@@ -1,11 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.64 -->
+<!-- latest_release 0.84.65 -->
+## [fake-0.84.65](https://github.com/habitat-sh/habitat/tree/fake-0.84.65) (2019-09-17)
+
+#### Merged Pull Requests
+- Fix the rustfmt instructions and add helper script [#6946](https://github.com/habitat-sh/habitat/pull/6946) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
+## [fake-0.84.65](https://github.com/habitat-sh/habitat/tree/fake-0.84.65) (2019-09-17)
+
+#### Merged Pull Requests
+- Add conditional compliation flags for unsupported targets [#6862](https://github.com/habitat-sh/habitat/pull/6862) ([davidMcneil](https://github.com/davidMcneil))
+
 ## [fake-0.84.64](https://github.com/habitat-sh/habitat/tree/fake-0.84.64) (2019-09-17)
 
 #### Merged Pull Requests
 - Redo the locks inside the butterfly::server module. [#6941](https://github.com/habitat-sh/habitat/pull/6941) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.84.63](https://github.com/habitat-sh/habitat/tree/fake-0.84.63) (2019-09-16)
 
