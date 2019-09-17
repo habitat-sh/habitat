@@ -96,6 +96,28 @@ cargo run -p hab plan --help
 cargo run -p hab sup --help
 ```
 
+## Compiling with symbols for unsupported targets
+
+The [`habitat_core`](components/core/Cargo.toml) crate defines a [feature](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) for each potential target. `habitat_core` also defines a `supported_targets` feature that enables all supported targets. The supported targets are `x86_64-darwin`, `x86_64-linux`, `x86_64-linux-kernel2`, and `x86_64-windows`. All other targets are unsupported. Their target identifiers exist solely for experimentation.
+
+The `supported_targets` feature is enabled by default. No extra configuration is needed to produce a build aware of these targets. If you would like to produce a build that is aware of an unsupported target, you must set the desired feature flag in all crates that wrap the corresponding `habitat_core` feature flag. Currently, [`hab`](components/hab/Cargo.toml) is the only example of such a crate. For example, to enable the `aarch64-linux` target, follow these steps:
+
+1. Verify that [`habitat_core`](components/core/Cargo.toml) has a feature that corresponds to the `aarch64-linux` target.
+2. Determine all crates that use this feature flag. Search all crate's `Cargo.toml` for `habitat_core/aarch64-linux`. We find that the only crate is [`hab`](components/hab/Cargo.toml). The `hab` feature is named the same, `aarch64-linux`, as the `habitat_core` feature.
+3. Enable the `aarch64-linux` feature in the `hab` crate. Currently, workspaces can not use the `--features` flag. See [here](https://github.com/rust-lang/cargo/issues/5015). This prevents us from using `cargo build --features "hab/aarch64-linux"` in the workspace folder. This leaves manually editing the [`Cargo.toml`](components/hab/Cargo.toml) file as the best method to enable a feature. This can be accomplished by temporarily adding `aarch64-linux` to the `hab` crate's default feature list. Resulting in the line `default = ["supported_targets", "aarach64-linux"]`.
+4. Create a new build.
+
+### Adding a new unsupported target
+
+To add a new unsupported target, it is easiest to follow the changes of another unsupported target (e.g. `aarch64-linux`). The steps are roughly:
+
+1. Add the necessary information to the `package_targets` macro invocation in [components/core/src/package/target.rs](components/core/src/package/target.rs).
+2. Add a new [feature](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section) to the [`habitat_core`](components/core/Cargo.toml) crate with the same name as the target.
+3. Determine all crates that need to use the new feature as a configuration predicate (e.g. `#[cfg(feature = <new_target>)]`). Add a feature in that crate that wraps the `habitat_core/<new_target>` feature.
+4. Add conditional logic using the configuration predicate.
+
+**Note**: Step 3 is required because you can not check if a crate's dependency has a feature set. See [here](https://stackoverflow.com/questions/57792943/can-you-test-if-the-feature-of-a-dependency-is-set-using-the-cfg-macro).
+
 ## Compiling launcher
 
 The `hab-launch` binary has a separate build and release process from the rest of the habitat ecosystem.

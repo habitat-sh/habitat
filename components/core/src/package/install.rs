@@ -752,7 +752,7 @@ mod test {
     /// Returns a `PackageTarget` that does not match the active target of this system.
     fn wrong_package_target() -> &'static PackageTarget {
         let active = PackageTarget::active_target();
-        match PackageTarget::supported_targets().find(|&&target| target != active) {
+        match PackageTarget::targets().find(|&&target| target != active) {
             Some(wrong) => wrong,
             None => panic!("Should be able to find an unsupported package type"),
         }

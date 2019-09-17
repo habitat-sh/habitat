@@ -52,5 +52,11 @@ windows-acl = "*"
 num_cpus = "*" # For doc tests
 
 [features]
-default = []
+default = ["supported_targets"]
 functional = []
+supported_targets = ["x86_64-darwin", "x86_64-linux", "x86_64-linux-kernel2", "x86_64-windows"]
+x86_64-darwin = []
+x86_64-linux = []
+x86_64-linux-kernel2 = []
+x86_64-windows = []
+aarch64-linux = []

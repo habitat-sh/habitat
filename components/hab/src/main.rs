@@ -1558,6 +1558,7 @@ fn binlink_dest_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
 /// to provide a better user experience (ie, for the 99% case)
 fn active_target() -> PackageTarget {
     match PackageTarget::active_target() {
+        #[cfg(feature = "supported_targets")]
         target::X86_64_DARWIN => target::X86_64_LINUX,
         t => t,
     }
