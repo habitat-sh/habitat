@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.67 -->
+<!-- latest_release 0.84.68 -->
+## [fake-0.84.68](https://github.com/habitat-sh/habitat/tree/fake-0.84.68) (2019-09-17)
+
+#### Merged Pull Requests
+- Error when sys.ip cannot be determined [#6953](https://github.com/habitat-sh/habitat/pull/6953) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
 ## [fake-0.84.67](https://github.com/habitat-sh/habitat/tree/fake-0.84.67) (2019-09-17)
 
 #### Merged Pull Requests
 - Cleanup errors [#6949](https://github.com/habitat-sh/habitat/pull/6949) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.84.66](https://github.com/habitat-sh/habitat/tree/fake-0.84.66) (2019-09-17)
 
