@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.63 -->
+<!-- latest_release 0.84.64 -->
+## [fake-0.84.64](https://github.com/habitat-sh/habitat/tree/fake-0.84.64) (2019-09-17)
+
+#### Merged Pull Requests
+- Redo the locks inside the butterfly::server module. [#6941](https://github.com/habitat-sh/habitat/pull/6941) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.84.63](https://github.com/habitat-sh/habitat/tree/fake-0.84.63) (2019-09-16)
 
 #### Merged Pull Requests
 - Add HAB_BLDR_URL environment variable to other pipeline files [#6966](https://github.com/habitat-sh/habitat/pull/6966) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.84.62](https://github.com/habitat-sh/habitat/tree/fake-0.84.62) (2019-09-12)
 
