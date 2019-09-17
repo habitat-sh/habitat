@@ -97,7 +97,7 @@ fn run_loop(server: &Server) -> ! {
             }
         };
 
-        let blocked = server.is_member_blocked(&proto.from_id);
+        let blocked = server.is_member_blocked_sblr(&proto.from_id);
         let blocked_label = if blocked { "true" } else { "false" };
         let label_values = &[&proto.r#type.to_string(), "success", blocked_label];
 
@@ -114,7 +114,7 @@ fn run_loop(server: &Server) -> ! {
 
         match proto.kind {
             RumorKind::Membership(membership) => {
-                server.insert_member_from_rumor_mlw(membership.member, membership.health);
+                server.insert_member_from_rumor_mlw_smw(membership.member, membership.health);
             }
             RumorKind::Service(service) => server.insert_service_rsw_mlw(*service),
             RumorKind::ServiceConfig(service_config) => {

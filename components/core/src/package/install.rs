@@ -445,7 +445,7 @@ impl PackageInstall {
     }
 
     fn root_paths(&self, paths: &mut Vec<PathBuf>) -> Result<String> {
-        for path in &mut paths.into_iter() {
+        for path in &mut paths.iter_mut() {
             *path = fs::fs_rooted_path(&path, &self.fs_root_path);
         }
         env::join_paths(paths)?.into_string()

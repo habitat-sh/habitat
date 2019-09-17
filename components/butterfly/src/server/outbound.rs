@@ -96,11 +96,11 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                     have_members = true;
                 } else {
                     server.member_list.with_initial_members_imlr(|member| {
-                                          ping_mlr(&server,
-                                                   &socket,
-                                                   &member,
-                                                   member.swim_socket_address(),
-                                                   None);
+                                          ping_mlr_smr(&server,
+                                                       &socket,
+                                                       &member,
+                                                       member.swim_socket_address(),
+                                                       None);
                                       });
                 }
             }
@@ -124,7 +124,7 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
                 // until this timer expires.
                 let next_protocol_period = timing.next_protocol_period();
 
-                probe_mlw(&server, &socket, &rx_inbound, &timing, member);
+                probe_mlw_smr(&server, &socket, &rx_inbound, &timing, member);
 
                 if SteadyTime::now() <= next_protocol_period {
                     let wait_time = (next_protocol_period - SteadyTime::now()).num_milliseconds();
@@ -163,11 +163,12 @@ fn run_loop(server: &Server, socket: &UdpSocket, rx_inbound: &AckReceiver, timin
 ///
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (write)
-fn probe_mlw(server: &Server,
-             socket: &UdpSocket,
-             rx_inbound: &AckReceiver,
-             timing: &Timing,
-             member: Member) {
+/// * `Server::member` (read)
+fn probe_mlw_smr(server: &Server,
+                 socket: &UdpSocket,
+                 rx_inbound: &AckReceiver,
+                 timing: &Timing,
+                 member: Member) {
     let pa_timer = SWIM_PROBE_DURATION.with_label_values(&["ping/ack"])
                                       .start_timer();
     let mut pr_timer: Option<HistogramTimer> = None;
@@ -175,7 +176,7 @@ fn probe_mlw(server: &Server,
 
     // Ping the member, and wait for the ack.
     SWIM_PROBES_SENT.with_label_values(&["ping"]).inc();
-    ping_mlr(server, socket, &member, addr, None);
+    ping_mlr_smr(server, socket, &member, addr, None);
 
     if recv_ack_mlw(server, rx_inbound, timing, &member, addr, AckFrom::Ping) {
         SWIM_PROBES_SENT.with_label_values(&["ack"]).inc();
@@ -184,7 +185,7 @@ fn probe_mlw(server: &Server,
     }
 
     let pingreq_message = PingReq { membership: vec![],
-                                    from:       server.member.read().unwrap().as_member(),
+                                    from:       server.myself.lock_smr().to_member(),
                                     target:     member.clone(), };
     let swim = populate_membership_rumors_mlr(server, &member, pingreq_message);
 
@@ -362,13 +363,14 @@ fn pingreq(server: &Server, // TODO: eliminate this arg
 ///
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
-pub fn ping_mlr(server: &Server,
-                socket: &UdpSocket,
-                target: &Member,
-                addr: SocketAddr,
-                forward_to: Option<&Member>) {
+/// * `Server::member` (read)
+pub fn ping_mlr_smr(server: &Server,
+                    socket: &UdpSocket,
+                    target: &Member,
+                    addr: SocketAddr,
+                    forward_to: Option<&Member>) {
     let ping_msg = Ping { membership: vec![],
-                          from:       server.member.read().unwrap().as_member(),
+                          from:       server.myself.lock_smr().to_member(),
                           forward_to: forward_to.cloned(), /* TODO: see if we can eliminate this
                                                             * clone */ };
     let swim = populate_membership_rumors_mlr(server, target, ping_msg);
@@ -465,13 +467,14 @@ pub fn forward_ack(server: &Server, socket: &UdpSocket, addr: SocketAddr, msg: A
 ///
 /// # Locking (see locking.md)
 /// * `MemberList::entries` (read)
-pub fn ack_mlr(server: &Server,
-               socket: &UdpSocket,
-               target: &Member,
-               addr: SocketAddr,
-               forward_to: Option<Member>) {
+/// * `Server::member` (read)
+pub fn ack_mlr_smr(server: &Server,
+                   socket: &UdpSocket,
+                   target: &Member,
+                   addr: SocketAddr,
+                   forward_to: Option<Member>) {
     let ack_msg = Ack { membership: vec![],
-                        from:       server.member.read().unwrap().as_member(),
+                        from:       server.myself.lock_smr().to_member(),
                         forward_to: forward_to.map(Member::from), };
     let member_id = ack_msg.from.id.clone();
     let swim = populate_membership_rumors_mlr(server, target, ack_msg);

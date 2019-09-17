@@ -38,7 +38,9 @@ impl Suitability for NSuitability {
     fn get(&self, _service_group: &str) -> u64 { self.0 }
 }
 
-pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
+/// # Locking (see locking.md)
+/// * `Server::member` (write)
+pub fn start_server_smw(name: &str, ring_key: Option<SymKey>, suitability: u64) -> Server {
     let swim_port;
     let gossip_port;
     {
@@ -60,16 +62,15 @@ pub fn start_server(name: &str, ring_key: Option<SymKey>, suitability: u64) -> S
                                  Some(String::from(name)),
                                  None,
                                  Box::new(NSuitability(suitability))).unwrap();
-    server.start_rsw_mlw(&Timing::default())
+    server.start_rsw_mlw_smw(&Timing::default())
           .expect("Cannot start server");
     server
 }
 
-pub fn member_from_server(server: &Server) -> Member {
-    let mut member = server.member
-                           .read()
-                           .expect("Member lock is poisoned")
-                           .as_member();
+/// # Locking (see locking.md)
+/// * `Server::member` (read)
+pub fn member_from_server_smr(server: &Server) -> Member {
+    let mut member = server.myself().lock_smr().to_member();
     // AAAAAAARGH... we currently have to do this because otherwise we
     // have no notion of where we're coming from... in "real life",
     // other Supervisors would discover this from the networking stack
@@ -101,7 +102,7 @@ impl SwimNet {
         SwimNet { members: suitabilities.into_iter()
                                         .enumerate()
                                         .map(|(x, suitability)| {
-                                            start_server(&format!("{}", x), None, suitability)
+                                            start_server_smw(&format!("{}", x), None, suitability)
                                         })
                                         .collect(), }
     }
@@ -115,25 +116,30 @@ impl SwimNet {
         let mut members = Vec::with_capacity(count);
         for x in 0..count {
             let rk = ring_key.clone();
-            members.push(start_server(&format!("{}", x), Some(rk), 0));
+            members.push(start_server_smw(&format!("{}", x), Some(rk), 0));
         }
         SwimNet { members }
     }
 
-    pub fn connect(&mut self, from_entry: usize, to_entry: usize) {
-        let to = member_from_server(&self.members[to_entry]);
+    /// # Locking (see locking.md)
+    /// * `Server::member` (read)
+    pub fn connect_smr(&mut self, from_entry: usize, to_entry: usize) {
+        let to = member_from_server_smr(&self.members[to_entry]);
         self.members[from_entry].insert_member_mlw(to, Health::Alive);
     }
 
-    // Fully mesh the network
-    pub fn mesh(&mut self) {
+    /// Fully mesh the network
+    ///
+    /// # Locking (see locking.md)
+    /// * `Server::member` (read)
+    pub fn mesh_mlw_smr(&mut self) {
         for pos in 0..self.members.len() {
             let mut to_mesh: Vec<Member> = Vec::new();
             for x_pos in 0..self.members.len() {
                 if pos == x_pos {
                     continue;
                 }
-                to_mesh.push(member_from_server(&self.members[x_pos]))
+                to_mesh.push(member_from_server_smr(&self.members[x_pos]))
             }
             for server_b in to_mesh.into_iter() {
                 self.members[pos].insert_member_mlw(server_b, Health::Alive);
@@ -148,7 +154,7 @@ impl SwimNet {
         let to = self.members
                      .get(to_entry)
                      .expect("Asked for a network member who is out of bounds");
-        from.add_to_block_list(String::from(to.member_id()));
+        from.add_to_block_list_sblw(String::from(to.member_id()));
     }
 
     pub fn unblock(&self, from_entry: usize, to_entry: usize) {
@@ -158,7 +164,7 @@ impl SwimNet {
         let to = self.members
                      .get(to_entry)
                      .expect("Asked for a network member who is out of bounds");
-        from.remove_from_block_list(to.member_id());
+        from.remove_from_block_list_sblw(to.member_id());
     }
 
     /// # Locking (see locking.md)

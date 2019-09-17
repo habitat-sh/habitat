@@ -13,7 +13,8 @@ mod pull;
 mod push;
 pub mod timing;
 
-use self::incarnation_store::IncarnationStore;
+use self::{incarnation_store::IncarnationStore,
+           sync::Myself};
 use crate::{error::{Error,
                     Result},
             member::{Health,
@@ -40,6 +41,7 @@ use crate::{error::{Error,
                     RumorType},
             swim::Ack};
 use habitat_common::{liveliness_checker,
+                     sync::Lock,
                      FeatureFlag};
 use habitat_core::crypto::SymKey;
 use prometheus::{HistogramTimer,
@@ -66,8 +68,7 @@ use std::{collections::{HashMap,
                  mpsc::{self,
                         channel},
                  Arc,
-                 Mutex,
-                 RwLock},
+                 Mutex},
           thread,
           time::{Duration,
                  Instant}};
@@ -102,127 +103,168 @@ pub trait Suitability: Debug + Send + Sync {
     fn get(&self, service_group: &str) -> u64;
 }
 
-/// Encapsulate a `Member` with the added understanding that this
-/// represents the identity of this Butterfly Server.
-///
-/// In particular, this localizes all incarnation increment and
-/// persistence logic.
-#[derive(Clone, Debug)]
-pub struct Myself {
-    member: Member,
-    // TODO (CM): This is only optional because the current
-    // implementation of Server requires it. See note there for more.
-    incarnation_store: Option<incarnation_store::IncarnationStore>,
-}
+pub(crate) mod sync {
+    use super::*;
+    use crate::member::Member;
+    use habitat_common::sync::{Lock,
+                               ReadGuard,
+                               WriteGuard};
 
-impl Myself {
-    /// Create a new `Myself` for the given `Member`, whose
-    /// incarnation number is backed by `store`
-    ///
-    /// Currently, `store` should only be `None` when the Butterfly
-    /// Server is being initially set up; it will add one in the
-    /// course of starting up. This is not ideal.
-    ///
-    /// It may also be `None` in the context of our current Butterfly
-    /// integration tests. This also needs to be fixed, since that
-    /// signals a difference between testing and "real life".
-    fn new(member: Member, store: Option<IncarnationStore>) -> Myself {
-        Myself { member,
-                 incarnation_store: store }
+    pub struct MyselfReadGuard<'a>(ReadGuard<'a, MyselfInner>);
+
+    impl<'a> MyselfReadGuard<'a> {
+        fn new(lock: &'a Lock<MyselfInner>) -> Self { Self(lock.read()) }
+
+        pub fn to_member(&self) -> Member { self.0.as_member() }
+
+        pub fn incarnation(&self) -> Incarnation { self.0.incarnation() }
     }
 
-    /// Read the incarnation number stored in the `IncarnationStore`
-    /// and set it as our own.
-    ///
-    /// Fails if `IncarnationStore` has not been set (i.e., is `None).
-    fn sync_incarnation(&mut self) -> Result<()> {
-        match self.incarnation_store {
-            Some(ref mut s) => {
-                let value = s.load()?;
-                self.member.incarnation = value;
-                INCARNATION.set(value.to_i64());
-            }
-            None => {
-                // Can't sync unless you've got a store!
-                //
-                // Note: This shouldn't be able to happen, and will
-                // hopefully go away once we refactor things such that
-                // `Myself` just gets created with an IncarnationStore directly.
-                return Err(Error::InvalidIncarnationSynchronization);
-            }
-        };
-        debug!("Setting incarnation number to {}", self.member.incarnation);
-        Ok(())
+    pub struct MyselfWriteGuard<'a>(WriteGuard<'a, MyselfInner>);
+
+    impl<'a> MyselfWriteGuard<'a> {
+        fn new(lock: &'a Lock<MyselfInner>) -> Self { Self(lock.write()) }
+
+        pub fn sync_incarnation(&mut self,
+                                store: incarnation_store::IncarnationStore)
+                                -> Result<()> {
+            self.0.sync_incarnation(store)
+        }
+
+        pub fn increment_incarnation(&mut self) { self.0.increment_incarnation() }
+
+        pub fn refute_incarnation(&mut self, incoming: Incarnation) {
+            self.0.refute_incarnation(incoming)
+        }
+
+        pub fn mark_departed(&mut self) { self.0.mark_departed() }
+
+        pub fn set_persistent(&mut self) { self.0.set_persistent() }
     }
 
-    /// Increments the incarnation by 1. A `Member`'s incarnation
-    /// number can *only* be incremented by itself.
+    /// Encapsulate a `Member` with the added understanding that this
+    /// represents the identity of this Butterfly Server.
     ///
-    /// This is a facade over `refute_incarnation` (you can think of
-    /// it as "refuting yourself"; see its documentation for further
-    /// details.
-    fn increment_incarnation(&mut self) {
-        let i = self.member.incarnation;
-        self.refute_incarnation(i);
+    /// In particular, this localizes all incarnation increment and
+    /// persistence logic.
+    #[derive(Debug)]
+    pub struct Myself {
+        inner: Lock<MyselfInner>,
     }
 
-    /// Increments our incarnation to be one greater than that of the
-    /// rumor we're refuting. A `Member`'s incarnation number can
-    /// *only* be incremented by itself.
-    ///
-    /// Ideally, the incoming incarnation *should* be strictly equal
-    /// to our own. However, due to historical behavior of the
-    /// Butterfly server, in some cases, it is possible for a server
-    /// to have a much lower idea of its own incarnation than the rest
-    /// of the network (in particular, it is possible in the
-    /// transition from a server that doesn't persist its incarnation
-    /// to one that does, as well as in the case where a persisting
-    /// server cannot write out its number to disk for some reason;
-    /// see below for more on that). In this case, to prevent having
-    /// to constantly refute the same rumor over and over,
-    /// incrementing one-at-a-time until our incarnation number is
-    /// greater, we'll just cut to the chase and become one-greater
-    /// immediately.
-    ///
-    /// This should also cut down on network traffic overall, as we'll
-    /// be sending out fewer rumors.
-    ///
-    /// Note that if there was an error while persisting the
-    /// incarnation number, we _still continue_. The error will be
-    /// logged, but the _in-memory_ incarnation number will still be
-    /// incremented. If the file is not writable over a long period of
-    /// time, it may be possible for the in-memory incarnation to
-    /// diverge from the persisted version.
-    ///
-    /// Not incrementing the in-memory incarnation number in the face
-    /// of a persistence error could cause errors in refutation in the
-    /// network, and it is not yet clear that we would want to do
-    /// that.
-    fn refute_incarnation(&mut self, incoming: Incarnation) {
-        self.member.incarnation = incoming + 1;
-        INCARNATION.set(self.member.incarnation.to_i64());
-        if let Some(ref mut s) = self.incarnation_store {
-            if let Err(e) = s.store(self.member.incarnation) {
-                error!("Error persisting incarnation '{}' to disk: {:?}",
-                       self.member.incarnation, e);
+    impl Myself {
+        /// Create a new `Myself` for the given `Member`, whose
+        /// incarnation number is backed by `store`
+        ///
+        /// Currently, `store` should only be `None` when the Butterfly
+        /// Server is being initially set up; it will add one in the
+        /// course of starting up. This is not ideal.
+        ///
+        /// It may also be `None` in the context of our current Butterfly
+        /// integration tests. This also needs to be fixed, since that
+        /// signals a difference between testing and "real life".
+        pub fn new(member: Member, incarnation_store: Option<IncarnationStore>) -> Self {
+            let inner = MyselfInner { member,
+                                      incarnation_store };
+            Self { inner: Lock::new(inner), }
+        }
+
+        #[must_use]
+        pub fn lock_smr(&self) -> MyselfReadGuard { MyselfReadGuard::new(&self.inner) }
+
+        #[must_use]
+        pub fn lock_smw(&self) -> MyselfWriteGuard { MyselfWriteGuard::new(&self.inner) }
+    }
+
+    #[derive(Debug)]
+    struct MyselfInner {
+        member: Member,
+        // TODO (CM): This is only optional because the current
+        // implementation of Server requires it. See note there for more.
+        incarnation_store: Option<incarnation_store::IncarnationStore>,
+    }
+
+    impl MyselfInner {
+        /// Read the incarnation number stored in the `IncarnationStore`
+        /// and set it as our own.
+        fn sync_incarnation(&mut self, store: incarnation_store::IncarnationStore) -> Result<()> {
+            let value = store.load()?;
+            self.incarnation_store = Some(store);
+            self.member.incarnation = value;
+            INCARNATION.set(value.to_i64());
+            debug!("Setting incarnation number to {}", self.member.incarnation);
+            Ok(())
+        }
+
+        /// Increments the incarnation by 1. A `Member`'s incarnation
+        /// number can *only* be incremented by itself.
+        ///
+        /// This is a facade over `refute_incarnation` (you can think of
+        /// it as "refuting yourself"; see its documentation for further
+        /// details.
+        fn increment_incarnation(&mut self) {
+            let i = self.member.incarnation;
+            self.refute_incarnation(i);
+        }
+
+        /// Increments our incarnation to be one greater than that of the
+        /// rumor we're refuting. A `Member`'s incarnation number can
+        /// *only* be incremented by itself.
+        ///
+        /// Ideally, the incoming incarnation *should* be strictly equal
+        /// to our own. However, due to historical behavior of the
+        /// Butterfly server, in some cases, it is possible for a server
+        /// to have a much lower idea of its own incarnation than the rest
+        /// of the network (in particular, it is possible in the
+        /// transition from a server that doesn't persist its incarnation
+        /// to one that does, as well as in the case where a persisting
+        /// server cannot write out its number to disk for some reason;
+        /// see below for more on that). In this case, to prevent having
+        /// to constantly refute the same rumor over and over,
+        /// incrementing one-at-a-time until our incarnation number is
+        /// greater, we'll just cut to the chase and become one-greater
+        /// immediately.
+        ///
+        /// This should also cut down on network traffic overall, as we'll
+        /// be sending out fewer rumors.
+        ///
+        /// Note that if there was an error while persisting the
+        /// incarnation number, we _still continue_. The error will be
+        /// logged, but the _in-memory_ incarnation number will still be
+        /// incremented. If the file is not writable over a long period of
+        /// time, it may be possible for the in-memory incarnation to
+        /// diverge from the persisted version.
+        ///
+        /// Not incrementing the in-memory incarnation number in the face
+        /// of a persistence error could cause errors in refutation in the
+        /// network, and it is not yet clear that we would want to do
+        /// that.
+        fn refute_incarnation(&mut self, incoming: Incarnation) {
+            self.member.incarnation = incoming + 1;
+            INCARNATION.set(self.member.incarnation.to_i64());
+            if let Some(ref mut s) = self.incarnation_store {
+                if let Err(e) = s.store(self.member.incarnation) {
+                    error!("Error persisting incarnation '{}' to disk: {:?}",
+                           self.member.incarnation, e);
+                }
             }
         }
+
+        /// Returns the current incarnation number.
+        fn incarnation(&self) -> Incarnation { self.member.incarnation }
+
+        fn mark_departed(&mut self) { self.member.departed = true }
+
+        /// Return a copy of the underlying `Member`.
+        fn as_member(&self) -> Member { self.member.clone() }
+
+        // This is ONLY provided for some integration tests that currently
+        // depend on being able to mutate the member. Ideally, the only
+        // thing that should be mutable, once you actually have a fully
+        // set-up Butterfly server, is the incarnation number, which is
+        // accounted for in `Myself::increment_incarnation`.
+        fn set_persistent(&mut self) { self.member.persistent = true; }
     }
-
-    /// Returns the current incarnation number.
-    pub fn incarnation(&self) -> Incarnation { self.member.incarnation }
-
-    pub fn mark_departed(&mut self) { self.member.departed = true }
-
-    /// Return a copy of the underlying `Member`.
-    pub fn as_member(&self) -> Member { self.member.clone() }
-
-    // This is ONLY provided for some integration tests that currently
-    // depend on being able to mutate the member. Ideally, the only
-    // thing that should be mutable, once you actually have a fully
-    // set-up Butterfly server, is the incarnation number, which is
-    // accounted for in `Myself::increment_incarnation`.
-    pub fn set_persistent(&mut self) { self.member.persistent = true; }
 }
 
 /// The server struct. Is thread-safe.
@@ -232,7 +274,7 @@ pub struct Server {
     member_id: Arc<String>,
     // TODO (CM): This is currently public because butterfly tests
     // depends on it being so. Refactor so it can be private.
-    pub member:               Arc<RwLock<Myself>>,
+    myself:                   Arc<Myself>,
     pub member_list:          Arc<MemberList>,
     ring_key:                 Arc<Option<SymKey>>,
     rumor_heat:               RumorHeat,
@@ -253,7 +295,7 @@ pub struct Server {
     pause:           Arc<AtomicBool>,
     swim_rounds:     Arc<AtomicIsize>,
     gossip_rounds:   Arc<AtomicIsize>,
-    block_list:      Arc<RwLock<HashSet<String>>>,
+    block_list:      Arc<Lock<HashSet<String>>>,
     election_timers: Arc<Mutex<HashMap<String, ElectionTimer>>>,
 }
 
@@ -261,7 +303,7 @@ impl Clone for Server {
     fn clone(&self) -> Server {
         Server { name:                 self.name.clone(),
                  member_id:            self.member_id.clone(),
-                 member:               self.member.clone(),
+                 myself:               self.myself.clone(),
                  member_list:          self.member_list.clone(),
                  ring_key:             self.ring_key.clone(),
                  rumor_heat:           self.rumor_heat.clone(),
@@ -323,7 +365,7 @@ impl Server {
                             // TODO (CM): could replace this with an accessor
                             // on member, if we have a better type
                             member_id:            Arc::new(member_id),
-                            member:               Arc::new(RwLock::new(myself)),
+                            myself:               Arc::new(myself),
                             member_list:          Arc::new(MemberList::new()),
                             ring_key:             Arc::new(ring_key),
                             rumor_heat:           RumorHeat::default(),
@@ -342,7 +384,7 @@ impl Server {
                             pause:                Arc::new(AtomicBool::new(false)),
                             swim_rounds:          Arc::new(AtomicIsize::new(0)),
                             gossip_rounds:        Arc::new(AtomicIsize::new(0)),
-                            block_list:           Arc::new(RwLock::new(HashSet::new())),
+                            block_list:           Arc::new(Lock::new(HashSet::new())),
                             socket:               None,
                             election_timers:      Arc::new(Mutex::new(HashMap::new())), })
             }
@@ -404,13 +446,14 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
+    /// * `Server::member` (write)
     ///
     /// # Errors
     ///
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
-    pub fn start_rsw_mlw(&mut self, timing: &timing::Timing) -> Result<()> {
+    pub fn start_rsw_mlw_smw(&mut self, timing: &timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = self.data_path {
@@ -446,10 +489,7 @@ impl Server {
                 // persisted previously.
                 let mut store = incarnation_store::IncarnationStore::new(path.join("INCARNATION"));
                 store.initialize()?;
-
-                let mut me = self.member.write().expect("Member lock is poisoned");
-                me.incarnation_store = Some(store);
-                me.sync_incarnation()?;
+                self.myself.lock_smw().sync_incarnation(store)?;
             }
         }
 
@@ -495,27 +535,27 @@ impl Server {
     pub fn need_peer_seeding_mlr(&self) -> bool { self.member_list.is_empty_mlr() }
 
     /// Persistently block a given address, causing no traffic to be seen.
-    pub fn add_to_block_list(&self, member_id: String) {
-        let mut block_list = self.block_list
-                                 .write()
-                                 .expect("Write lock for block_list is poisoned");
-        block_list.insert(member_id);
+    ///
+    /// # Locking (see locking.md)
+    /// * `Server::block_list` (write)
+    pub fn add_to_block_list_sblw(&self, member_id: String) {
+        self.block_list.write().insert(member_id);
     }
 
     /// Remove a given address from the block_list.
-    pub fn remove_from_block_list(&self, member_id: &str) {
-        let mut block_list = self.block_list
-                                 .write()
-                                 .expect("Write lock for block_list is poisoned");
-        block_list.remove(member_id);
+    ///
+    /// # Locking (see locking.md)
+    /// * `Server::block_list` (write)
+    pub fn remove_from_block_list_sblw(&self, member_id: &str) {
+        self.block_list.write().remove(member_id);
     }
 
     /// Check if a given member ID is on the block_list.
-    fn is_member_blocked(&self, member_id: &str) -> bool {
-        let block_list = self.block_list
-                             .read()
-                             .expect("Write lock for block_list is poisoned");
-        block_list.contains(member_id)
+    ///
+    /// # Locking (see locking.md)
+    /// * `Server::block_list` (read)
+    fn is_member_blocked_sblr(&self, member_id: &str) -> bool {
+        self.block_list.read().contains(member_id)
     }
 
     /// Stop the outbound and inbound threads from processing work.
@@ -538,6 +578,8 @@ impl Server {
 
     /// Return the name of this server.
     pub fn name(&self) -> &str { &self.name }
+
+    pub fn myself(&self) -> &Myself { self.myself.as_ref() }
 
     /// Insert a member to the `MemberList`, and update its `RumorKey` appropriately.
     ///
@@ -564,17 +606,13 @@ impl Server {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
-    pub fn set_departed_mlw(&self) {
+    /// * `Server::member` (write)
+    pub fn set_departed_mlw_smw(&self) {
         if self.socket.is_some() {
-            {
-                let mut me = self.member.write().expect("Member lock is poisoned");
-                me.increment_incarnation();
-                // TODO (CM): It's not clear that this operation is
-                // actually needed.
-                me.mark_departed();
-
-                self.member_list.set_departed_mlw(&self.member_id);
-            }
+            self.myself.lock_smw().increment_incarnation();
+            // TODO (CM): It's not clear that this operation is actually needed.
+            self.myself.lock_smw().mark_departed();
+            self.member_list.set_departed_mlw(&self.member_id);
             // We need to mark this as "hot" in order to propagate it.
             //
             // TODO (CM): This exact code is present numerous places;
@@ -596,7 +634,7 @@ impl Server {
             for member in check_list.iter().take(SELF_DEPARTURE_RUMOR_FANOUT) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
-                outbound::ack_mlr(&self, self.socket.as_ref().unwrap(), member, addr, None);
+                outbound::ack_mlr_smr(&self, self.socket.as_ref().unwrap(), member, addr, None);
             }
         } else {
             debug!("No socket present; server was never started, so nothing to depart");
@@ -607,15 +645,18 @@ impl Server {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
-    fn insert_member_from_rumor_mlw(&self, member: Member, mut health: Health) {
+    /// * `Server::member` (write)
+    fn insert_member_from_rumor_mlw_smw(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
 
-        if member.id == self.member_id() && health != Health::Alive {
-            let mut me = self.member.write().expect("Member lock is poisoned");
-            if member.incarnation >= me.incarnation() {
-                me.refute_incarnation(member.incarnation);
-                health = Health::Alive;
-            }
+        if member.id == self.member_id()
+           && health != Health::Alive
+           && member.incarnation >= self.myself.lock_smr().incarnation()
+        {
+            self.myself
+                .lock_smw()
+                .refute_incarnation(member.incarnation);
+            health = Health::Alive;
         }
 
         let member_id = member.id.clone();
@@ -727,7 +768,6 @@ impl Server {
         }
 
         self.member_list.set_departed_mlw(&departure.member_id);
-
         self.rumor_heat.purge(&departure.member_id);
         self.rumor_heat
             .start_hot_rumor(RumorKey::new(RumorType::Member, &departure.member_id, ""));
@@ -1539,14 +1579,14 @@ mod tests {
         #[test]
         fn myself_can_increment_its_incarnation() {
             let path = Temp::new_dir().expect("Could not create temp file");
-            let mut me = myself(path.as_ref().join("INCARNATION"));
+            let me = myself(path.as_ref().join("INCARNATION"));
 
-            assert_eq!(me.incarnation(),
+            assert_eq!(me.lock_smr().incarnation(),
                        Incarnation::default(),
                        "Incarnation should start at the default of {}",
                        Incarnation::default());
-            me.increment_incarnation();
-            assert_eq!(me.incarnation(),
+            me.lock_smw().increment_incarnation();
+            assert_eq!(me.lock_smr().incarnation(),
                        Incarnation::from(1),
                        "Incarnation should have incremented by 1");
         }
@@ -1554,16 +1594,16 @@ mod tests {
         #[test]
         fn refute_an_incarnation() {
             let path = Temp::new_dir().expect("Could not create temp file");
-            let mut me = myself(path.as_ref().join("INCARNATION"));
+            let me = myself(path.as_ref().join("INCARNATION"));
 
-            assert_eq!(me.incarnation(),
+            assert_eq!(me.lock_smr().incarnation(),
                        Incarnation::default(),
                        "Incarnation should start at the default of {}",
                        Incarnation::default());
 
             let incarnation_to_refute = Incarnation::from(25);
-            me.refute_incarnation(incarnation_to_refute);
-            assert_eq!(me.incarnation(),
+            me.lock_smw().refute_incarnation(incarnation_to_refute);
+            assert_eq!(me.lock_smr().incarnation(),
                        incarnation_to_refute + 1,
                        "Incarnation should be one greater than the refuted incarnation");
         }
@@ -1661,14 +1701,14 @@ mod tests {
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
-            server.start_rsw_mlw(&Timing::default())
+            server.start_rsw_mlw_smw(&Timing::default())
                   .expect("Server failed to start");
         }
 
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start_rsw_mlw(&Timing::default())
+            server.start_rsw_mlw_smw(&Timing::default())
                   .expect("Server failed to start");
         }
     }
