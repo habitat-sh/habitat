@@ -436,7 +436,7 @@ pub struct Manager {
     // result of being able to manipulate the config watcher from
     // other threads (e.g., maybe we subscribe to messages to change
     // the watcher)
-    user_config_watcher: Arc<RwLock<UserConfigWatcher>>,
+    user_config_watcher: UserConfigWatcher,
     spec_dir:            SpecDir,
     organization:        Option<String>,
     self_updater:        Option<SelfUpdater>,
@@ -591,7 +591,7 @@ impl Manager {
                      launcher,
                      peer_watcher,
                      spec_watcher,
-                     user_config_watcher: Arc::new(RwLock::new(UserConfigWatcher::new())),
+                     user_config_watcher: UserConfigWatcher::new(),
                      spec_dir,
                      fs_cfg: Arc::new(fs_cfg),
                      organization: cfg.organization,
@@ -735,11 +735,7 @@ impl Manager {
                 .start_election_rsw_mlr(&service.service_group, 0);
         }
 
-        if let Err(e) = self.user_config_watcher
-                            .write()
-                            .expect("user-config-watcher lock is poisoned")
-                            .add(&service)
-        {
+        if let Err(e) = self.user_config_watcher.add(&service) {
             outputln!("Unable to start UserConfigWatcher for {}: {}",
                       service.spec_ident,
                       e);
@@ -1357,7 +1353,7 @@ impl Manager {
                                mut service: Service,
                                shutdown_input: Option<&ShutdownInput>)
                                -> impl Future<Item = (), Error = ()> {
-        let user_config_watcher = Arc::clone(&self.user_config_watcher);
+        let mut user_config_watcher = self.user_config_watcher.clone();
         let updater = Arc::clone(&self.updater);
         let busy_services = Arc::clone(&self.busy_services);
         let services_need_reconciliation = self.services_need_reconciliation.clone();
@@ -1369,10 +1365,7 @@ impl Manager {
         let ident = service.spec_ident.clone();
         let stop_it = service.stop_gsw(shutdown_config).then(move |_| {
                                                            event::service_stopped(&service);
-                                                           user_config_watcher.write()
-                                                                          .expect("Watcher lock \
-                                                                                   poisoned")
-                                                                          .remove(&service);
+                                                           user_config_watcher.remove(&service);
                                                            updater.lock()
                                                                   .expect("Updater lock poisoned")
                                                                   .remove(&service);
@@ -1655,11 +1648,7 @@ impl Manager {
                                .expect("Services lock is poisoned");
 
         for service in services.values_mut() {
-            if self.user_config_watcher
-                   .read()
-                   .expect("user_config_watcher lock is poisoned")
-                   .have_events_for(service)
-            {
+            if self.user_config_watcher.have_events_for(service) {
                 outputln!("user.toml changes detected for {}", &service.spec_ident);
                 service.user_config_updated = true;
             }
