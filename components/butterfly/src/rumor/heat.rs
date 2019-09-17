@@ -79,14 +79,6 @@ pub(crate) mod sync {
             // We don't need the heat anymore, just return the rumors.
             rumor_heat.into_iter().map(|(k, _)| k).collect()
         }
-
-        // /// Return the number of elements in our internal map
-        // pub fn len(&self) -> usize { self.0.len() }
-
-        // /// Return the heat for a specific rumor
-        // pub fn heat(&self, rumor_key: &RumorKey, id: &str) -> Option<usize> {
-        //     self.0.get(rumor_key).and_then(|k| k.get(id).cloned())
-        // }
     }
 
     pub struct RumorHeatWriteGuard<'a>(WriteGuard<'a, RumorHeatInner>);
