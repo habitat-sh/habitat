@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.84.65 -->
+<!-- latest_release 0.84.66 -->
+## [fake-0.84.66](https://github.com/habitat-sh/habitat/tree/fake-0.84.66) (2019-09-17)
+
+#### Merged Pull Requests
+- Audit `habitat_sup::manager::Manager` locking [#6940](https://github.com/habitat-sh/habitat/pull/6940) ([baumanj](https://github.com/baumanj))
+<!-- latest_release -->
+
 ## [fake-0.84.65](https://github.com/habitat-sh/habitat/tree/fake-0.84.65) (2019-09-17)
 
 #### Merged Pull Requests
 - Fix the rustfmt instructions and add helper script [#6946](https://github.com/habitat-sh/habitat/pull/6946) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.84.65](https://github.com/habitat-sh/habitat/tree/fake-0.84.65) (2019-09-17)
 
