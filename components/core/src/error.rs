@@ -117,7 +117,7 @@ pub enum Error {
     /// When an IO error while accessing a MetaFile.
     MetaFileIO(io::Error),
     /// Occurs when we can't find an outbound IP address
-    NoOutboundAddr,
+    NoOutboundIpAddr(io::Error),
     /// Occurs when a call to OpenDesktopW fails
     OpenDesktopFailed(String),
     /// Occurs when a suitable installed package cannot be found.
@@ -312,8 +312,8 @@ impl fmt::Display for Error {
             }
             Error::MetaFileNotFound(ref e) => format!("Couldn't read MetaFile: {}, not found", e),
             Error::MetaFileIO(ref e) => format!("IO error while accessing MetaFile: {:?}", e),
-            Error::NoOutboundAddr => {
-                "Failed to discover this hosts outbound IP address".to_string()
+            Error::NoOutboundIpAddr(ref e) => {
+                format!("Failed to discover this host's outbound IP address: {}", e)
             }
             Error::OpenDesktopFailed(ref e) => e.to_string(),
             Error::PackageNotFound(ref pkg) => {

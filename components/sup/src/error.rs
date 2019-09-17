@@ -64,7 +64,6 @@ pub enum Error {
     InvalidTopology(String),
     InvalidUpdateStrategy(String),
     Io(io::Error),
-    IPFailed,
     Launcher(habitat_launcher_client::Error),
     MissingRequiredBind(Vec<String>),
     MissingRequiredIdent,
@@ -175,7 +174,6 @@ impl fmt::Display for Error {
             Error::InvalidTopology(ref t) => format!("Invalid topology: {}", t),
             Error::InvalidUpdateStrategy(ref s) => format!("Invalid update strategy: {}", s),
             Error::Io(ref err) => err.to_string(),
-            Error::IPFailed => "Failed to discover this hosts outbound IP address".to_string(),
             Error::Launcher(ref err) => err.to_string(),
             Error::MissingRequiredBind(ref e) => {
                 format!("Missing required bind(s), {}", e.join(", "))
