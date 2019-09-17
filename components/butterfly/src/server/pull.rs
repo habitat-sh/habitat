@@ -114,23 +114,23 @@ fn run_loop(server: &Server) -> ! {
 
         match proto.kind {
             RumorKind::Membership(membership) => {
-                server.insert_member_from_rumor_mlw_smw(membership.member, membership.health);
+                server.insert_member_from_rumor_mlw_smw_rhw(membership.member, membership.health);
             }
-            RumorKind::Service(service) => server.insert_service_rsw_mlw(*service),
+            RumorKind::Service(service) => server.insert_service_rsw_mlw_rhw(*service),
             RumorKind::ServiceConfig(service_config) => {
-                server.insert_service_config_rsw(service_config);
+                server.insert_service_config_rsw_rhw(service_config);
             }
             RumorKind::ServiceFile(service_file) => {
-                server.insert_service_file_rsw(service_file);
+                server.insert_service_file_rsw_rhw(service_file);
             }
             RumorKind::Election(election) => {
-                server.insert_election_rsw_mlr(election);
+                server.insert_election_rsw_mlr_rhw(election);
             }
             RumorKind::ElectionUpdate(election) => {
-                server.insert_update_election_rsw_mlr(election);
+                server.insert_update_election_rsw_mlr_rhw(election);
             }
             RumorKind::Departure(departure) => {
-                server.insert_departure_rsw_mlw(departure);
+                server.insert_departure_rsw_mlw_rhw(departure);
             }
         }
     }

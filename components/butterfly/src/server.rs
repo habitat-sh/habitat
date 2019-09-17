@@ -29,7 +29,7 @@ use crate::{error::{Error,
                     election::{Election,
                                ElectionRumor,
                                ElectionUpdate},
-                    heat::RumorHeat,
+                    heat::sync::RumorHeat,
                     service::Service,
                     service_config::ServiceConfig,
                     service_file::ServiceFile,
@@ -277,7 +277,7 @@ pub struct Server {
     myself:                   Arc<Myself>,
     pub member_list:          Arc<MemberList>,
     ring_key:                 Arc<Option<SymKey>>,
-    rumor_heat:               RumorHeat,
+    rumor_heat:               Arc<RumorHeat>,
     pub service_store:        RumorStore<Service>,
     pub service_config_store: RumorStore<ServiceConfig>,
     pub service_file_store:   RumorStore<ServiceFile>,
@@ -368,7 +368,7 @@ impl Server {
                             myself:               Arc::new(myself),
                             member_list:          Arc::new(MemberList::new()),
                             ring_key:             Arc::new(ring_key),
-                            rumor_heat:           RumorHeat::default(),
+                            rumor_heat:           Arc::default(),
                             service_store:        RumorStore::default(),
                             service_config_store: RumorStore::default(),
                             service_file_store:   RumorStore::default(),
@@ -447,13 +447,14 @@ impl Server {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
     /// * `Server::member` (write)
+    /// * `RumorHeat::inner` (write)
     ///
     /// # Errors
     ///
     /// * Returns `Error::CannotBind` if the socket cannot be bound
     /// * Returns `Error::SocketSetReadTimeout` if the socket read timeout cannot be set
     /// * Returns `Error::SocketSetWriteTimeout` if the socket write timeout cannot be set
-    pub fn start_rsw_mlw_smw(&mut self, timing: &timing::Timing) -> Result<()> {
+    pub fn start_rsw_mlw_smw_rhw(&mut self, timing: &timing::Timing) -> Result<()> {
         debug!("entering habitat_butterfly::server::Server::start");
         let (tx_outbound, rx_inbound) = channel();
         if let Some(ref path) = self.data_path {
@@ -471,7 +472,7 @@ impl Server {
                                                                    &self.update_store,
                                                                    &self.departure_store)?;
 
-            match reader.read_into_rsw_mlw(&self) {
+            match reader.read_into_rsw_mlw_rhw(&self) {
                 Ok(_) => {
                     debug!("Successfully ingested rumors from {}",
                            reader.path().display())
@@ -585,7 +586,8 @@ impl Server {
     ///
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
-    pub fn insert_member_mlw(&self, member: Member, health: Health) {
+    /// * `RumorHeat::inner` (write)
+    pub fn insert_member_mlw_rhw(&self, member: Member, health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
         let member_id = member.id.clone();
         if self.member_list.insert_mlw(member, health) {
@@ -595,9 +597,10 @@ impl Server {
             // has departed; that's why we subsequently start a "hot"
             // rumor.
             if health == Health::Departed {
-                self.rumor_heat.purge(&member_id);
+                self.rumor_heat.lock_rhw().purge(&member_id);
             }
-            self.rumor_heat.start_hot_rumor(rk);
+
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -607,7 +610,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
     /// * `Server::member` (write)
-    pub fn set_departed_mlw_smw(&self) {
+    /// * `RumorHeat::inner` (write)
+    pub fn set_departed_mlw_smw_rhw(&self) {
         if self.socket.is_some() {
             self.myself.lock_smw().increment_incarnation();
             // TODO (CM): It's not clear that this operation is actually needed.
@@ -621,6 +625,7 @@ impl Server {
             // NOT calling RumorHeat::purge here because we'll be
             // shutting down soon anyway.
             self.rumor_heat
+                .lock_rhw()
                 .start_hot_rumor(RumorKey::new(RumorType::Member, &*self.member_id, ""));
 
             let check_list = self.member_list.check_list_mlr(&self.member_id);
@@ -634,7 +639,7 @@ impl Server {
             for member in check_list.iter().take(SELF_DEPARTURE_RUMOR_FANOUT) {
                 let addr = member.swim_socket_address();
                 // Safe because we checked above
-                outbound::ack_mlr_smr(&self, self.socket.as_ref().unwrap(), member, addr, None);
+                outbound::ack_mlr_smr_rhw(&self, self.socket.as_ref().unwrap(), member, addr, None);
             }
         } else {
             debug!("No socket present; server was never started, so nothing to depart");
@@ -646,7 +651,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `MemberList::entries` (write)
     /// * `Server::member` (write)
-    fn insert_member_from_rumor_mlw_smw(&self, member: Member, mut health: Health) {
+    /// * `RumorHeat::inner` (write)
+    fn insert_member_from_rumor_mlw_smw_rhw(&self, member: Member, mut health: Health) {
         let rk: RumorKey = RumorKey::from(&member);
 
         if member.id == self.member_id()
@@ -663,9 +669,9 @@ impl Server {
 
         if self.member_list.insert_mlw(member, health) {
             if member_id != self.member_id() && health == Health::Departed {
-                self.rumor_heat.purge(&member_id);
+                self.rumor_heat.lock_rhw().purge(&member_id);
             }
-            self.rumor_heat.start_hot_rumor(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -684,7 +690,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    pub fn insert_service_rsw_mlw(&self, service: Service) {
+    /// * `RumorHeat::inner` (write)
+    pub fn insert_service_rsw_mlw_rhw(&self, service: Service) {
         Self::insert_service_impl(service,
                                   &self.service_store,
                                   &self.member_list,
@@ -723,13 +730,15 @@ impl Server {
                                  .min()
                 {
                     member_list.set_departed_mlw(&member_id_to_depart);
-                    rumor_heat.purge(&member_id_to_depart);
-                    rumor_heat.start_hot_rumor(RumorKey::new(RumorType::Member,
+                    rumor_heat.lock_rhw().purge(&member_id_to_depart);
+                    rumor_heat.lock_rhw()
+                              .start_hot_rumor(RumorKey::new(RumorType::Member,
                                                              &*member_id_to_depart,
                                                              ""));
                 }
             }
-            rumor_heat.start_hot_rumor(rk);
+
+            rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -737,10 +746,11 @@ impl Server {
     ///
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
-    pub fn insert_service_config_rsw(&self, service_config: ServiceConfig) {
+    /// * `RumorHeat::inner` (write)
+    pub fn insert_service_config_rsw_rhw(&self, service_config: ServiceConfig) {
         let rk = RumorKey::from(&service_config);
         if self.service_config_store.insert_rsw(service_config) {
-            self.rumor_heat.start_hot_rumor(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -748,10 +758,11 @@ impl Server {
     ///
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
-    pub fn insert_service_file_rsw(&self, service_file: ServiceFile) {
+    /// * `RumorHeat::inner` (write)
+    pub fn insert_service_file_rsw_rhw(&self, service_file: ServiceFile) {
         let rk = RumorKey::from(&service_file);
         if self.service_file_store.insert_rsw(service_file) {
-            self.rumor_heat.start_hot_rumor(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -760,7 +771,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
-    pub fn insert_departure_rsw_mlw(&self, departure: Departure) {
+    /// * `RumorHeat::inner` (write)
+    pub fn insert_departure_rsw_mlw_rhw(&self, departure: Departure) {
         let rk = RumorKey::from(&departure);
         if *self.member_id == departure.member_id {
             self.departed
@@ -768,12 +780,13 @@ impl Server {
         }
 
         self.member_list.set_departed_mlw(&departure.member_id);
-        self.rumor_heat.purge(&departure.member_id);
+        self.rumor_heat.lock_rhw().purge(&departure.member_id);
         self.rumor_heat
+            .lock_rhw()
             .start_hot_rumor(RumorKey::new(RumorType::Member, &departure.member_id, ""));
 
         if self.departure_store.insert_rsw(departure) {
-            self.rumor_heat.start_hot_rumor(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -851,7 +864,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
-    pub fn start_election_rsw_mlr(&self, service_group: &str, term: u64) {
+    /// * `RumorHeat::inner` (write)
+    pub fn start_election_rsw_mlr_rhw(&self, service_group: &str, term: u64) {
         let suitability = self.suitability_lookup.get(&service_group);
         let has_quorum = self.check_quorum_mlr(service_group);
         let e = Election::new(self.member_id(),
@@ -863,14 +877,20 @@ impl Server {
             warn!("start_election check_quorum failed: {:?}", e);
         }
         debug!("start_election: {:?}", e);
-        self.rumor_heat.start_hot_rumor(RumorKey::from(&e));
+        self.rumor_heat
+            .lock_rhw()
+            .start_hot_rumor(RumorKey::from(&e));
         self.election_store.insert_rsw(e);
     }
 
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
-    pub fn start_update_election_rsw_mlr(&self, service_group: &str, suitability: u64, term: u64) {
+    /// * `RumorHeat::inner` (write)
+    pub fn start_update_election_rsw_mlr_rhw(&self,
+                                             service_group: &str,
+                                             suitability: u64,
+                                             term: u64) {
         let has_quorum = self.check_quorum_mlr(service_group);
         let e = ElectionUpdate::new(self.member_id(),
                                     service_group,
@@ -881,7 +901,9 @@ impl Server {
             warn!("start_election check_quorum failed: {:?}", e);
         }
         debug!("start_update_election: {:?}", e);
-        self.rumor_heat.start_hot_rumor(RumorKey::from(&e));
+        self.rumor_heat
+            .lock_rhw()
+            .start_hot_rumor(RumorKey::from(&e));
         self.update_store.insert_rsw(e);
     }
 
@@ -975,7 +997,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
-    pub fn restart_elections_rsw_mlr(&self, feature_flags: FeatureFlag) {
+    /// * `RumorHeat::inner` (write)
+    pub fn restart_elections_rsw_mlr_rhw(&self, feature_flags: FeatureFlag) {
         let elections_to_restart =
             self.elections_to_restart_rsr_mlr(&self.election_store, feature_flags);
 
@@ -991,7 +1014,7 @@ impl Server {
             warn!("Starting a new election for {} {}", service_group, term);
             self.election_store
                 .remove_rsw(&service_group, Election::const_id());
-            self.start_election_rsw_mlr(&service_group, term);
+            self.start_election_rsw_mlr_rhw(&service_group, term);
         }
 
         for (service_group, old_term) in update_elections_to_restart {
@@ -999,7 +1022,7 @@ impl Server {
             warn!("Starting a new election for {} {}", service_group, term);
             self.update_store
                 .remove_rsw(&service_group, ElectionUpdate::const_id());
-            self.start_update_election_rsw_mlr(&service_group, 0, term);
+            self.start_update_election_rsw_mlr_rhw(&service_group, 0, term);
         }
     }
 
@@ -1010,7 +1033,8 @@ impl Server {
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
-    pub fn insert_election_rsw_mlr(&self, mut election: Election) {
+    /// * `RumorHeat::inner` (write)
+    pub fn insert_election_rsw_mlr_rhw(&self, mut election: Election) {
         debug!("insert_election: {:?}", election);
         let rk = RumorKey::from(&election);
 
@@ -1034,7 +1058,7 @@ impl Server {
                     debug!("removing old rumor and starting new election");
                     self.election_store
                         .remove_rsw(election.key(), election.id());
-                    self.start_election_rsw_mlr(&election.service_group, election.term);
+                    self.start_election_rsw_mlr_rhw(&election.service_group, election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
@@ -1084,8 +1108,9 @@ impl Server {
                                               .lock()
                                               .expect("Election timers lock poisoned");
                 existing_timers.insert(election.service_group.clone(), ElectionTimer(timer));
-                self.start_election_rsw_mlr(&election.service_group, election.term);
+                self.start_election_rsw_mlr_rhw(&election.service_group, election.term);
             }
+
             if !election.is_finished() {
                 let has_quorum = self.check_quorum_mlr(election.key());
                 if has_quorum {
@@ -1095,15 +1120,17 @@ impl Server {
                 }
             }
         }
+
         if self.election_store.insert_rsw(election) {
-            self.rumor_heat.start_hot_rumor(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
     /// # Locking (see locking.md)
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (read)
-    pub fn insert_update_election_rsw_mlr(&self, mut election: ElectionUpdate) {
+    /// * `RumorHeat::inner` (write)
+    pub fn insert_update_election_rsw_mlr_rhw(&self, mut election: ElectionUpdate) {
         debug!("insert_update_election: {:?}", election);
         let rk = RumorKey::from(&election);
 
@@ -1126,7 +1153,9 @@ impl Server {
                 if new_term {
                     debug!("removing old rumor and starting new election");
                     self.update_store.remove_rsw(election.key(), election.id());
-                    self.start_update_election_rsw_mlr(&election.service_group, 0, election.term);
+                    self.start_update_election_rsw_mlr_rhw(&election.service_group,
+                                                           0,
+                                                           election.term);
                 }
                 // If we are the member that this election is voting for, then check to see if the
                 // election is over! If it is, mark this election as final before you process it.
@@ -1155,8 +1184,9 @@ impl Server {
             } else {
                 // Otherwise, we need to create a new election object for ourselves prior to
                 // merging.
-                self.start_update_election_rsw_mlr(&election.service_group, 0, election.term);
+                self.start_update_election_rsw_mlr_rhw(&election.service_group, 0, election.term);
             }
+
             if !election.is_finished() {
                 let has_quorum = self.check_quorum_mlr(election.key());
                 if has_quorum {
@@ -1166,8 +1196,9 @@ impl Server {
                 }
             }
         }
+
         if self.update_store.insert_rsw(election) {
-            self.rumor_heat.start_hot_rumor(rk);
+            self.rumor_heat.lock_rhw().start_hot_rumor(rk);
         }
     }
 
@@ -1701,14 +1732,14 @@ mod tests {
         fn new_with_corrupt_rumor_file() {
             let tmpdir = TempDir::new().unwrap();
             let mut server = start_with_corrupt_rumor_file(&tmpdir);
-            server.start_rsw_mlw_smw(&Timing::default())
+            server.start_rsw_mlw_smw_rhw(&Timing::default())
                   .expect("Server failed to start");
         }
 
         #[test]
         fn start_listener() {
             let mut server = start_server();
-            server.start_rsw_mlw_smw(&Timing::default())
+            server.start_rsw_mlw_smw_rhw(&Timing::default())
                   .expect("Server failed to start");
         }
     }
