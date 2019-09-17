@@ -41,7 +41,6 @@ nats = { git = "https://github.com/habitat-sh/rust-nats" }
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"
-pnet = "*"
 prometheus = "*"
 prost = "*"
 prost-derive = "*"

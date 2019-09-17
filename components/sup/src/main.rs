@@ -58,7 +58,8 @@ use habitat_sup_protocol::{self as sup_proto,
 use std::{env,
           io::{self,
                Write},
-          net::{SocketAddr,
+          net::{IpAddr,
+                SocketAddr,
                 ToSocketAddrs},
           path::{Path,
                  PathBuf},
@@ -173,8 +174,16 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
     set_supervisor_logging_options(m);
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
-    let sys_ip = util::determine_sys_ip_address(m.value_of("SYS_IP_ADDRESS"))?;
-    info!("Determined sys IP address to be {}", sys_ip);
+
+    let maybe_sys_ip = m.value_of("SYS_IP_ADDRESS")
+                        .and_then(|s| IpAddr::from_str(s).ok());
+    let sys_ip = if let Some(sys_ip) = maybe_sys_ip {
+        sys_ip
+    } else {
+        habitat_core::util::sys::ip()?
+    };
+    info!("Using sys IP address {}", sys_ip);
+
     let manager = Manager::load_imlw(cfg, launcher, sys_ip)?;
 
     // We need to determine if we have an initial service to start
