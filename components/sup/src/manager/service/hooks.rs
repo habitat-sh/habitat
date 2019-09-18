@@ -386,8 +386,10 @@ impl Hook for SuitabilityHook {
                     Ok(reader) => {
                         return Self::parse_suitability(reader, pkg_name);
                     }
-                    Err(e) => outputln!(preamble pkg_name,
-                                        "Failed to open stdout file: {}", e),
+                    Err(e) => {
+                        outputln!(preamble pkg_name,
+                                        "Failed to open stdout file: {}", e)
+                    }
                 }
             }
             Some(code) => {

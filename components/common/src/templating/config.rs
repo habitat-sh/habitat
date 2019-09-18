@@ -197,7 +197,7 @@ impl Cfg {
     /// exports.
     pub fn to_exported(&self, pkg: &Pkg) -> Result<toml::value::Table> {
         let mut map = toml::value::Table::default();
-        let cfg = toml::Value::try_from(&self).expect("Cfg -> TOML conversion");;
+        let cfg = toml::Value::try_from(&self).expect("Cfg -> TOML conversion");
         for (key, path) in pkg.exports.iter() {
             let mut curr = &cfg;
             let mut found = false;

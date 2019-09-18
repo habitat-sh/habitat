@@ -293,9 +293,9 @@ Wait for a few minutes so that supervisors on all the workers can update to the 
 1. Update `RUSTFMT_VERSION` in the root of the habitat repo.
 1. Locally install the nightly toolchain and update the formatting. For example:
     ```
-    rustup toolchain install $(cat RUSTFMT_VERSION)
+    rustup toolchain install $(< RUSTFMT_VERSION)
     rustup component add --toolchain $(cat RUSTFMT_VERSION) rustfmt
-    cargo +$(RUSTFMT_VERSION) fmt
+    cargo +$(< RUSTFMT_VERSION) fmt
     ```
 1. Open a PR and merge the toolchain update as well as any formatting changes.
 1. Repeat with the `builder` repo.
