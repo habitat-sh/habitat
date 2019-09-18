@@ -31,7 +31,7 @@ steps:
 
   - label: "[:linux: hup-does-not-abandon-services]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - hab pkg install --binlink --channel=stable core/expect
       - test/end-to-end/hup-does-not-abandon-services.exp
     expeditor:
@@ -43,7 +43,7 @@ steps:
 
   - label: "[:linux: hab-svc-load]"
     command:
-      - .expeditor/scripts/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
       - hab pkg install --binlink --channel=stable core/expect
       - test/end-to-end/hab-svc-load.exp
     expeditor:

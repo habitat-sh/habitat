@@ -22,7 +22,7 @@ fi
 # Note that the `ci-studio-common.sh` file is baked into the image we
 # use.
 commands=(". /opt/ci-studio-common/buildkite-agent-hooks/ci-studio-common.sh"
-          ".expeditor/scripts/setup_environment.sh DEV"
+          ".expeditor/scripts/end_to_end/setup_environment.sh DEV"
           "hab pkg install --binlink --channel=stable core/expect"
           "${*}")
 
