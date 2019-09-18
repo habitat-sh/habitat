@@ -1,11 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.5 -->
+<!-- latest_release 0.86.6 -->
+## [fake-0.86.6](https://github.com/habitat-sh/habitat/tree/fake-0.86.6) (2019-09-18)
+
+#### Merged Pull Requests
+- Update docs for 0.85.0 release [#6971](https://github.com/habitat-sh/habitat/pull/6971) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
+## [fake-0.86.6](https://github.com/habitat-sh/habitat/tree/fake-0.86.6) (2019-09-18)
+
+#### Merged Pull Requests
+- Fix end-to-end tests [#6948](https://github.com/habitat-sh/habitat/pull/6948) ([christophermaier](https://github.com/christophermaier))
+
 ## [fake-0.86.5](https://github.com/habitat-sh/habitat/tree/fake-0.86.5) (2019-09-18)
 
 #### Merged Pull Requests
 - Update dependencies [#6973](https://github.com/habitat-sh/habitat/pull/6973) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.86.4](https://github.com/habitat-sh/habitat/tree/fake-0.86.4) (2019-09-18)
 
