@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.2 -->
+<!-- latest_release 0.86.3 -->
+## [fake-0.86.3](https://github.com/habitat-sh/habitat/tree/fake-0.86.3) (2019-09-18)
+
+#### Merged Pull Requests
+- Allow Windows studio tests to soft-fail [#6970](https://github.com/habitat-sh/habitat/pull/6970) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.86.2](https://github.com/habitat-sh/habitat/tree/fake-0.86.2) (2019-09-18)
 
 #### Merged Pull Requests
 - Remove automated Homebrew release script [#6969](https://github.com/habitat-sh/habitat/pull/6969) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.86.1](https://github.com/habitat-sh/habitat/tree/fake-0.86.1) (2019-09-18)
 
