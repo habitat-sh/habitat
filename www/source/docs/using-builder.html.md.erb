@@ -510,7 +510,7 @@ For a detailed explanation of features, requirements and setup instructions, [se
 
 Many enterprise environments use custom certificates (for example, self-signed). For example, an on-premises Chef Habitat Builder Depot might have a self-signed SSL certificate.
 
-If you attempt to perform an operation using the Habitat client that talks to a service with a custom certificate, you might get an error such as:
+Attempting to perform an operation using the Habitat client to communicate with a service that has a custom certificate can produce an error, such as:
 ```
 ✗✗✗
 ✗✗✗ the handshake failed: The OpenSSL library reported an error: error:14090086:SSL routines:ssl3_get_server_certificate:certificate verify failed:s3_clnt.c:1269:: unable to get local issuer certificate
