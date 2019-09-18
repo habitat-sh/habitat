@@ -19,6 +19,10 @@ echo "--- Installing buildkite agent"
 brew tap buildkite/buildkite
 brew install --token="$BUILDKITE_AGENT_ACCESS_TOKEN" buildkite-agent
 
+echo "--- Install openssl for the certs"
+brew install openssl
+export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
+
 echo "--- Installing mac bootstrap package"
 # subscribe to releases: https://github.com/habitat-sh/release-engineering/issues/84
 bootstrap_package_version="$(cat MAC_BOOTSTRAPPER_VERSION)"

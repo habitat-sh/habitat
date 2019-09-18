@@ -85,9 +85,9 @@ echo "Compressing 'hab' binary"
 case "$BUILD_PKG_TARGET" in
 *-linux | *-linux-kernel2)
     pkg_artifact="$tmp_root/results/${archive_name}.tar.gz"
-    tarball="$(basename --suffix=".gz") ${pkg_artifact}"
+    tarball="$(basename --suffix=".gz" "${pkg_artifact}")"
     hab pkg exec core/tar tar cf "$tarball" "$build_dir/$(basename "$pkg_dir")"
-    hab pkg exec core/gzip gzip -9 -c "$tarball" > "$build_dir/$pkg_artifact"
+    hab pkg exec core/gzip gzip -9 -c "$tarball" > "$pkg_artifact"
     ;;
 *-darwin | *-windows)
     pkg_artifact="$tmp_root/results/${archive_name}.zip"

@@ -64,6 +64,9 @@ steps:
         macos:
           os-version: "10.13"
           inherit-environment-vars: true
+      buildkite:
+        timeout_in_minutes: 45
+
 
   - wait
 
