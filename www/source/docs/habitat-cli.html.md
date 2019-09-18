@@ -1,6 +1,5 @@
----
 <!-- This is a generated file, do not edit it directly. See https://github.com/habitat-sh/habitat/blob/master/www/scripts/generate-cli-docs.js -->
-
+ ---
 title: Chef Habitat Docs - hab CLI Reference
 draft: false
 ---
@@ -11,7 +10,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.83.0/20190703190133 (linux) | 29 Jul 2019 |
+| hab 0.85.0/20190916214648 (linux) | 17 Sep 2019 |
 
 ## hab
 
@@ -117,8 +116,10 @@ hab bldr channel [SUBCOMMAND]
 | Command | Description |
 | ------- | ----------- |
 | [hab bldr channel create](#hab-bldr-channel-create) | Creates a new channel |
+| [hab bldr channel demote](#hab-bldr-channel-demote) | Atomically demotes selected packages in a target channel |
 | [hab bldr channel destroy](#hab-bldr-channel-destroy) | Destroys a channel |
 | [hab bldr channel list](#hab-bldr-channel-list) | Lists origin channels |
+| [hab bldr channel promote](#hab-bldr-channel-promote) | Atomically promotes all packages in channel |
 ---
 
 ### hab bldr channel create
@@ -149,6 +150,42 @@ hab bldr channel create [OPTIONS] <CHANNEL>
 
 ```
 <CHANNEL>    The channel name
+```
+
+
+
+---
+
+### hab bldr channel demote
+
+Atomically demotes selected packages in a target channel
+
+**USAGE**
+
+```
+hab bldr channel demote [OPTIONS] <SOURCE_CHANNEL> <TARGET_CHANNEL> --origin <ORIGIN>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
+```
+
+**ARGS**
+
+```
+<SOURCE_CHANNEL>    The channel from which all packages will be selected for demotion
+<TARGET_CHANNEL>    The channel selected packages will be removed from
 ```
 
 
@@ -216,6 +253,42 @@ hab bldr channel list [OPTIONS] [ORIGIN]
 
 ```
 <ORIGIN>    The origin for which channels will be listed. Default is from 'HAB_ORIGIN'or cli.toml
+```
+
+
+
+---
+
+### hab bldr channel promote
+
+Atomically promotes all packages in channel
+
+**USAGE**
+
+```
+hab bldr channel promote [OPTIONS] <SOURCE_CHANNEL> <TARGET_CHANNEL> --origin <ORIGIN>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-o, --origin <ORIGIN>      The origin for the channels. Default is from 'HAB_ORIGIN' or cli.toml
+```
+
+**ARGS**
+
+```
+<SOURCE_CHANNEL>    The channel from which all packages will be selected for promotion
+<TARGET_CHANNEL>    The channel to which packages will be promoted
 ```
 
 
@@ -754,9 +827,44 @@ hab origin [SUBCOMMAND]
 
 | Command | Description |
 | ------- | ----------- |
+| [hab origin create](#hab-origin-create) | Creates a new Builder origin |
 | [hab origin delete](#hab-origin-delete) | Removes an unused/empty origin |
 | [hab origin key](#hab-origin-key) | Commands relating to Habitat origin key maintenance |
 | [hab origin secret](#hab-origin-secret) | Commands related to secret management |
+---
+
+### hab origin create
+
+Creates a new Builder origin
+
+**USAGE**
+
+```
+hab origin create [OPTIONS] <ORIGIN>
+```
+
+**FLAGS**
+
+```
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+```
+
+**ARGS**
+
+```
+<ORIGIN>    The origin to be created
+```
+
+
+
 ---
 
 ### hab origin delete
@@ -883,7 +991,7 @@ hab origin key export [OPTIONS] <ORIGIN> --cache-key-path <CACHE_KEY_PATH>
 
 ```
 --cache-key-path <CACHE_KEY_PATH>    Path to export origin keys from. Default value is hab/cache/keys if root and .hab/cache/keys under the home directory otherwise. [env: HAB_CACHE_KEY_PATH=]
--t, --type <PAIR_TYPE>                   Export either the 'public' or 'private' key
+-t, --type <PAIR_TYPE>                   Export either the 'public' or 'secret' key. The 'secret' key is the origin private key
 ```
 
 **ARGS**
@@ -1224,7 +1332,7 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 **OPTIONS**
 
 ```
--d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=/hab/bin]  [default: /bin]
+-d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=]  [default: /bin]
 ```
 
 **ARGS**
@@ -1614,7 +1722,7 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 
 ```
 -z, --auth <AUTH_TOKEN>            Authentication token for Builder
-    --binlink-dir <BINLINK_DIR>    Binlink all binaries from installed package(s) into BINLINK_DIR [env: HAB_BINLINK_DIR=/hab/bin]  [default: /bin]
+    --binlink-dir <BINLINK_DIR>    Binlink all binaries from installed package(s) into BINLINK_DIR [env: HAB_BINLINK_DIR=]  [default: /bin]
 -u, --url <BLDR_URL>               Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -c, --channel <CHANNEL>            Install from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
 ```
@@ -1875,9 +1983,10 @@ hab pkg upload [FLAGS] [OPTIONS] <HART_FILE>... --cache-key-path <CACHE_KEY_PATH
 **FLAGS**
 
 ```
---force      Skips checking availability of package and force uploads, potentially overwriting a stored copy of a package. (default: false)
--h, --help       Prints help information
--V, --version    Prints version information
+--force       Skips checking availability of package and force uploads, potentially overwriting a stored copy of a package. (default: false)
+    --no-build    Disable auto-build for all packages in this upload.
+-h, --help        Prints help information
+-V, --version     Prints version information
 ```
 
 **OPTIONS**
