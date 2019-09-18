@@ -23,7 +23,8 @@ use std::{net::{IpAddr,
                 DerefMut,
                 Range},
           str::FromStr,
-          sync::Mutex,
+          sync::{Arc,
+                 Mutex},
           thread,
           time::Duration};
 use time::SteadyTime;
@@ -35,7 +36,7 @@ lazy_static::lazy_static! {
 #[derive(Debug)]
 struct NSuitability(u64);
 impl Suitability for NSuitability {
-    fn get(&self, _service_group: &str) -> u64 { self.0 }
+    fn suitability_for_msr(&self, _service_group: &str) -> u64 { self.0 }
 }
 
 /// # Locking (see locking.md)
@@ -62,8 +63,8 @@ pub fn start_server_smw_rhw(name: &str, ring_key: Option<SymKey>, suitability: u
                                  ring_key,
                                  Some(String::from(name)),
                                  None,
-                                 Box::new(NSuitability(suitability))).unwrap();
-    server.start_rsw_mlw_smw_rhw(&Timing::default())
+                                 Arc::new(NSuitability(suitability))).unwrap();
+    server.start_rsw_mlw_smw_rhw_msr(&Timing::default())
           .expect("Cannot start server");
     server
 }
@@ -460,8 +461,9 @@ impl SwimNet {
     }
 
     pub fn add_election(&mut self, member: usize, service: &str) {
-        self[member].start_election_rsw_mlr_rhw(&ServiceGroup::new(None, service, "prod", None).unwrap(),
-                                        0);
+        self[member].start_election_rsw_mlr_rhw_msr(&ServiceGroup::new(None, service, "prod",
+                                                                       None).unwrap(),
+                                                    0);
     }
 }
 

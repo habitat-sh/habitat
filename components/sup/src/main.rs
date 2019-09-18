@@ -79,7 +79,7 @@ fn main() {
     logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
-    let result = start_rsr_imlw_mlw_gsw_smw_rhw(flags);
+    let result = start_rsr_imlw_mlw_gsw_smw_rhw_msw(flags);
     let exit_code = match result {
         Ok(_) => 0,
         Err(ref err) => {
@@ -117,7 +117,8 @@ fn boot() -> Option<LauncherCli> {
 /// * `GatewayState::inner` (write)
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
-fn start_rsr_imlw_mlw_gsw_smw_rhw(feature_flags: FeatureFlag) -> Result<()> {
+/// * `ManagerServices::inner` (write)
+fn start_rsr_imlw_mlw_gsw_smw_rhw_msw(feature_flags: FeatureFlag) -> Result<()> {
     if feature_flags.contains(FeatureFlag::TEST_BOOT_FAIL) {
         outputln!("Simulating boot failure");
         return Err(Error::TestBootFail);
@@ -147,7 +148,7 @@ fn start_rsr_imlw_mlw_gsw_smw_rhw(feature_flags: FeatureFlag) -> Result<()> {
         ("bash", Some(_)) => sub_bash(),
         ("run", Some(m)) => {
             let launcher = launcher.ok_or(Error::NoLauncher)?;
-            sub_run_rsr_imlw_mlw_gsw_smw_rhw(m, launcher, feature_flags)
+            sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m, launcher, feature_flags)
         }
         ("sh", Some(_)) => sub_sh(),
         ("term", Some(_)) => sub_term(),
@@ -164,10 +165,11 @@ fn sub_bash() -> Result<()> { command::shell::bash() }
 /// * `GatewayState::inner` (write)
 /// * `Server::member` (write)
 /// * `RumorHeat::inner` (write)
-fn sub_run_rsr_imlw_mlw_gsw_smw_rhw(m: &ArgMatches,
-                                    launcher: LauncherCli,
-                                    feature_flags: FeatureFlag)
-                                    -> Result<()> {
+/// * `ManagerServices::inner` (write)
+fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
+                                        launcher: LauncherCli,
+                                        feature_flags: FeatureFlag)
+                                        -> Result<()> {
     set_supervisor_logging_options(m);
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
@@ -205,7 +207,7 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw(m: &ArgMatches,
         None
     };
 
-    manager.run_rsw_imlw_mlw_gsw_smw_rhw(svc)
+    manager.run_rsw_imlw_mlw_gsw_smw_rhw_msw(svc)
 }
 
 fn sub_sh() -> Result<()> { command::shell::sh() }

@@ -33,20 +33,18 @@ use toml;
 
 static LOGKEY: &str = "CMD";
 
-pub fn service_cfg(mgr: &ManagerState,
-                   req: &mut CtlRequest,
-                   opts: protocol::ctl::SvcGetDefaultCfg)
-                   -> NetResult<()> {
+/// # Locking (see locking.md)
+/// * `ManagerServices::inner` (read)
+pub fn service_cfg_msr(mgr: &ManagerState,
+                       req: &mut CtlRequest,
+                       opts: protocol::ctl::SvcGetDefaultCfg)
+                       -> NetResult<()> {
     let ident: PackageIdent = opts.ident.ok_or_else(err_update_client)?.into();
     let mut msg = protocol::types::ServiceCfg { format:
                                                     Some(protocol::types::service_cfg::Format::Toml
                                                          as i32),
                                                 default: None, };
-    for service in mgr.services
-                      .read()
-                      .expect("Services lock is poisoned")
-                      .values()
-    {
+    for service in mgr.services.lock_msr().services() {
         if service.pkg.ident.satisfies(&ident) {
             if let Some(ref cfg) = service.cfg.default {
                 msg.default =

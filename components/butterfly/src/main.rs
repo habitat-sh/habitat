@@ -4,13 +4,14 @@ use habitat_butterfly::{member,
                                  Suitability}};
 use std::{env,
           net::SocketAddr,
+          sync::Arc,
           thread,
           time::Duration};
 
 #[derive(Debug)]
 struct ZeroSuitability;
 impl Suitability for ZeroSuitability {
-    fn get(&self, _service_group: &str) -> u64 { 0 }
+    fn suitability_for_msr(&self, _service_group: &str) -> u64 { 0 }
 }
 
 fn main() {
@@ -38,7 +39,7 @@ fn main() {
                                          None,
                                          None,
                                          None,
-                                         Box::new(ZeroSuitability)).unwrap();
+                                         Arc::new(ZeroSuitability)).unwrap();
     println!("Server ID: {}", server.member_id());
 
     let targets: Vec<String> = args.collect();
@@ -51,7 +52,7 @@ fn main() {
         server.member_list.add_initial_member_imlw(member);
     }
 
-    server.start_rsw_mlw_smw_rhw(&server::timing::Timing::default())
+    server.start_rsw_mlw_smw_rhw_msr(&server::timing::Timing::default())
           .expect("Cannot start server");
     loop {
         println!("{:#?}", server.member_list);

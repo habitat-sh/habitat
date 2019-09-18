@@ -121,7 +121,8 @@ impl DatFileReader {
     /// * `RumorStore::list` (write)
     /// * `MemberList::entries` (write)
     /// * `RumorHeat::inner` (write)
-    pub fn read_into_rsw_mlw_rhw(&mut self, server: &Server) -> Result<()> {
+    /// * `ManagerServices::inner` (read)
+    pub fn read_into_rsw_mlw_rhw_msr(&mut self, server: &Server) -> Result<()> {
         for Membership { member, health } in self.read_members()? {
             server.insert_member_mlw_rhw(member, health);
         }
@@ -139,7 +140,7 @@ impl DatFileReader {
         }
 
         for election in self.read_rumors::<Election>()? {
-            server.insert_election_rsw_mlr_rhw(election);
+            server.insert_election_rsw_mlr_rhw_msr(election);
         }
 
         for update_election in self.read_rumors::<ElectionUpdate>()? {

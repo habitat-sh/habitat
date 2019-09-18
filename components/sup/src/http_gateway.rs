@@ -555,7 +555,7 @@ mod tests {
         #[derive(Debug)]
         struct ZeroSuitability;
         impl Suitability for ZeroSuitability {
-            fn get(&self, _service_group: &str) -> u64 { 0 }
+            fn suitability_for_msr(&self, _service_group: &str) -> u64 { 0 }
         }
 
         fn start_server() -> Server {
@@ -583,7 +583,7 @@ mod tests {
                         None,
                         None,
                         None,
-                        Box::new(ZeroSuitability)).unwrap()
+                        std::sync::Arc::new(ZeroSuitability)).unwrap()
         }
 
         let server = start_server();
