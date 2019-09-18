@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.0 -->
+<!-- latest_release 0.86.1 -->
+## [fake-0.86.1](https://github.com/habitat-sh/habitat/tree/fake-0.86.1) (2019-09-18)
+
+#### Merged Pull Requests
+- Audit `habitat_sup::manager::ManagerServices` locking [#6956](https://github.com/habitat-sh/habitat/pull/6956) ([baumanj](https://github.com/baumanj))
+<!-- latest_release -->
+
 ## [fake-0.86.0](https://github.com/habitat-sh/habitat/tree/fake-0.86.0) (2019-09-17)
 
 #### Merged Pull Requests
 - Bump VERSION to 0.87.0-dev [#6968](https://github.com/habitat-sh/habitat/pull/6968) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.84.69](https://github.com/habitat-sh/habitat/tree/fake-0.84.69) (2019-09-17)
 
