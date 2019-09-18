@@ -517,7 +517,7 @@ If you attempt to perform an operation using the Habitat client that talks to a 
 ✗✗✗
 ```
 
-One way to deal with this issue is to use the `SSL_CERT_FILE` environment variable, and point it to the path of the custom certificate prior to performing the client operation.
+One option to remediate this error is to define a `SSL_CERT_FILE` environment variable pointing to the custom certificate path before performing the client operation.
 
 With the release of Habitat 0.85.0, there is another option that is now available. Habitat will now look for custom certificates in its `~/.hab/cache/ssl` directory (or `/hab/cache/ssl` if running as root). Multiple certificates (for example, a self-signed certificate, and a custom certificate authority certificate) can be copied over to the cache directory and will become automatically avaialable for use by the Habitat client.
 
