@@ -132,7 +132,7 @@ struct Opt {
     auth: String,
 
     /// The builder acceptance url
-    #[structopt(raw(default_value = "ACCEPTANCE_URL"), long)]
+    #[structopt(default_value = "ACCEPTANCE_URL", long)]
     acceptance_url: String,
 
     /// The channel to tag packages with when promoting to live
@@ -151,7 +151,7 @@ struct Opt {
     #[structopt(default_value = "info",
                 short,
                 long,
-                raw(possible_values = r#"&["trace", "debug", "info", "warn", "error"]"#))]
+                possible_values(&["trace", "debug", "info", "warn", "error"]))]
     log_level: LevelFilter,
 }
 
