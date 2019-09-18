@@ -633,6 +633,7 @@ steps:
         always-pull: true
         propagate-environment: true
     timeout_in_minutes: 20
+    soft_fail: true
     retry:
       automatic:
         limit: 1
