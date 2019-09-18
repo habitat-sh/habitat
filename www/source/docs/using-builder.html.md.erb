@@ -521,6 +521,6 @@ One option to remediate this error is to define a `SSL_CERT_FILE` environment va
 
 The Habitat 0.85.0 release in September 2019 improved the handling of custom certificates.  Now Habitat knows to look for custom certificates in the `~/.hab/cache/ssl` directory, which is `/hab/cache/ssl` when you are running as root. Copying multiple certificates--for example, a self-signed certificate and a custom certificate authority certificate--to the Chef Habitat cache directory makes them automatically available to the Habitat client.
 
-The `/hab/cache/ssl` directory is also made available inside a Habitat Studio. So, if you have populated the cache directory before entering the Studio, you will find that its contents are populated with the files from outside the Studio. In addition, when entering the Habitat Studio, the `SSL_CERT_FILE` environment variable will be propagated to the Studio, and the file that it is pointing to will also be copied over to the `/hab/cache/ssl` directory.
+The `/hab/cache/ssl` directory is also available inside a Habitat Studio. As long as the certificates are inside the cache directory before you enter the Studio, you'll also find them inside the Studio. In addition, if you've set the `SSL_CERT_FILE` environment variable, you'll also find both it and the file that it points to inside the Studio`/hab/cache/ssl` directory.
 
 Note: The filename `cert.pem` is reserved for Habitat, so please do not use that file name when copying certs into the cache directory.
