@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.6 -->
+<!-- latest_release 0.86.7 -->
+## [fake-0.86.7](https://github.com/habitat-sh/habitat/tree/fake-0.86.7) (2019-09-19)
+
+#### Merged Pull Requests
+- Update Rust nightly version [#6975](https://github.com/habitat-sh/habitat/pull/6975) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.86.6](https://github.com/habitat-sh/habitat/tree/fake-0.86.6) (2019-09-18)
 
 #### Merged Pull Requests
 - Update docs for 0.85.0 release [#6971](https://github.com/habitat-sh/habitat/pull/6971) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.86.6](https://github.com/habitat-sh/habitat/tree/fake-0.86.6) (2019-09-18)
 
