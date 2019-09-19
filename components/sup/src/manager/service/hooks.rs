@@ -1,3 +1,5 @@
+#[cfg(windows)]
+use super::pipe_hook_client::PipeHookClient;
 use habitat_common::{error::Result,
                      outputln,
                      templating::{hooks::{self,
@@ -82,9 +84,12 @@ impl Hook for FileUpdatedHook {
 
 #[derive(Debug, Serialize)]
 pub struct HealthCheckHook {
-    render_pair:     RenderPair,
+    render_pair: RenderPair,
     stdout_log_path: PathBuf,
     stderr_log_path: PathBuf,
+    #[cfg(windows)]
+    #[serde(skip_serializing)]
+    pipe_client: PipeHookClient,
 }
 
 impl Hook for HealthCheckHook {
@@ -93,9 +98,42 @@ impl Hook for HealthCheckHook {
     fn file_name() -> &'static str { "health-check" }
 
     fn new(package_name: &str, pair: RenderPair) -> Self {
-        HealthCheckHook { render_pair:     pair,
-                          stdout_log_path: hooks::stdout_log_path::<Self>(package_name),
-                          stderr_log_path: hooks::stderr_log_path::<Self>(package_name), }
+        let out_path = hooks::stdout_log_path::<Self>(package_name);
+        let err_path = hooks::stderr_log_path::<Self>(package_name);
+        #[cfg(windows)]
+        let path = pair.path.to_path_buf();
+        HealthCheckHook { render_pair:                 pair,
+                          stdout_log_path:             out_path.clone(),
+                          stderr_log_path:             err_path.clone(),
+                          #[cfg(windows)]
+                          pipe_client:
+                              PipeHookClient::new(Self::file_name().to_string(),
+                                                  path,
+                                                  out_path,
+                                                  err_path), }
+    }
+
+    #[cfg(windows)]
+    fn run<T>(&self,
+              service_group: &str,
+              pkg: &Pkg,
+              svc_encrypted_password: Option<T>)
+              -> Result<Self::ExitValue>
+        where T: ToString
+    {
+        match self.pipe_client
+                  .exec_hook(service_group, pkg, svc_encrypted_password)
+        {
+            Ok(exit) => {
+                let hook_output = HookOutput::new(self.stdout_log_path(), self.stderr_log_path());
+                Ok(self.handle_exit(pkg, &hook_output, ExitStatus::from(exit)))
+            }
+            Err(err) => {
+                outputln!(preamble service_group,
+                    "Hook failed to run, {}, {}", Self::file_name(), err);
+                Err(err)
+            }
+        }
     }
 
     fn handle_exit<'a>(&self,
@@ -617,13 +655,15 @@ mod tests {
                                     service_file::ServiceFile as ServiceFileRumor,
                                     RumorStore}};
     use habitat_common::{cli::FS_ROOT,
+                         locked_env_var,
                          templating::{config::Cfg,
                                       package::Pkg,
                                       test_helpers::*},
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
-    use habitat_core::{fs::cache_key_path,
+    use habitat_core::{fs::{cache_key_path,
+                            svc_logs_path},
                        package::{PackageIdent,
                                  PackageInstall},
                        service::{ServiceBind,
@@ -671,46 +711,24 @@ mod tests {
                                                                             ServiceGroup")
     }
 
-    ////////////////////////////////////////////////////////////////////////
-
-    #[test]
-    fn compile_hook_table() {
-        let tmp_root = rendered_hooks_path();
-        let hooks_path = tmp_root.path().join("hooks");
-        fs::create_dir_all(&hooks_path).unwrap();
-
-        let service_group = service_group();
-
-        let concrete_path = hooks_path.clone(); // rendered_hooks_path();
-        let template_path = hook_templates_path();
-
-        ////////////////////////////////////////////////////////////////////////
-        // BEGIN RENDER CONTEXT SETUP
-        // (See comment above)
-
-        let sys = Sys::new(true,
-                           GossipListenAddr::default(),
-                           ListenCtlAddr::default(),
-                           HttpListenAddr::default()).expect("to create Sys");
-
+    fn pkg(service_group: &ServiceGroup) -> Pkg {
         let pg_id = PackageIdent::new("testing",
-                                      &service_group.service(),
+                                      service_group.service(),
                                       Some("1.0.0"),
                                       Some("20170712000000"));
-
         let pkg_install = PackageInstall::new_from_parts(pg_id.clone(),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"),
                                                          PathBuf::from("/tmp"));
-        let pkg = Pkg::from_install(&pkg_install).expect("Could not create package!");
+        Pkg::from_install(&pkg_install).unwrap()
+    }
 
-        // This is gross, but it actually works
-        let cfg_path = &concrete_path.as_path().join("default.toml");
-        create_with_content(cfg_path, "message = \"Hello\"");
-
-        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
-            .expect("Could not create config");
-
+    fn ctx<'a>(service_group: &'a ServiceGroup,
+               pkg: &'a Pkg,
+               sys: &'a Sys,
+               cfg: &'a Cfg,
+               ring: &'a mut CensusRing)
+               -> RenderContext<'a> {
         // SysInfo is basic Swim infrastructure information
         let mut sys_info = SysInfo::default();
         sys_info.ip = "1.2.3.4".to_string();
@@ -723,7 +741,7 @@ mod tests {
         let sg_one = service_group.clone(); // ServiceGroup::new("shield", "one", None).unwrap();
 
         let service_store: RumorStore<ServiceRumor> = RumorStore::default();
-        let service_one = ServiceRumor::new("member-a", &pg_id, sg_one.clone(), sys_info, None);
+        let service_one = ServiceRumor::new("member-a", &pkg.ident, sg_one.clone(), sys_info, None);
         service_store.insert_rsw(service_one);
 
         let election_store: RumorStore<ElectionRumor> = RumorStore::default();
@@ -742,7 +760,6 @@ mod tests {
         let service_config_store: RumorStore<ServiceConfigRumor> = RumorStore::default();
         let service_file_store: RumorStore<ServiceFileRumor> = RumorStore::default();
 
-        let mut ring = CensusRing::new("member-a");
         ring.update_from_rumors_rsr_mlr(&cache_key_path(Some(&*FS_ROOT)),
                                         &service_store,
                                         &election_store,
@@ -753,10 +770,33 @@ mod tests {
 
         let bindings = iter::empty::<&ServiceBind>();
 
-        let ctx = RenderContext::new(&service_group, &sys, &pkg, &cfg, &ring, bindings);
+        RenderContext::new(service_group, sys, pkg, cfg, ring, bindings)
+    }
 
-        // END RENDER CONTEXT SETUP
-        ////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////
+
+    #[test]
+    fn compile_hook_table() {
+        let tmp_root = rendered_hooks_path();
+        let hooks_path = tmp_root.path().join("hooks");
+        fs::create_dir_all(&hooks_path).unwrap();
+        let service_group = service_group();
+        let concrete_path = hooks_path.clone(); // rendered_hooks_path();
+        let template_path = hook_templates_path();
+
+        // This is gross, but it actually works
+        let cfg_path = &concrete_path.as_path().join("default.toml");
+        create_with_content(cfg_path, "message = \"Hello\"");
+
+        let pkg = pkg(&service_group);
+        let sys = Sys::new(true,
+                           GossipListenAddr::default(),
+                           ListenCtlAddr::default(),
+                           HttpListenAddr::default()).expect("to create Sys");
+        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
+            .expect("Could not create config");
+        let mut ring = CensusRing::new("member-a");
+        let ctx = ctx(&service_group, &pkg, &sys, &cfg, &mut ring);
 
         let hook_table = HookTable::load(&service_group, &template_path, &hooks_path);
         assert!(hook_table.compile(&service_group, &ctx).changed());
@@ -799,5 +839,43 @@ mod tests {
         let reader = BufReader::new("test\nanother\n124".as_bytes());
         let result = SuitabilityHook::parse_suitability(reader, "test_pkg_name");
         assert_eq!(result.unwrap(), 124);
+    }
+
+    locked_env_var!(HAB_HOOK_PIPE_SCRIPT, pipe_service_path);
+
+    #[cfg(windows)]
+    #[test]
+    fn run_named_pipe_health_check_hook() {
+        let var = pipe_service_path();
+        let script = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static")
+                                                              .join("named_pipe_service.ps1");
+        var.set(&script);
+
+        let service_group = service_group();
+        let tmp_root = rendered_hooks_path().into_path();
+        let hooks_path = tmp_root.clone().join("hooks");
+        fs::create_dir_all(&hooks_path).unwrap();
+        fs::create_dir_all(svc_logs_path(&service_group.service())).unwrap();
+        let concrete_path = hooks_path.clone();
+        let template_path = hook_templates_path();
+
+        let hook = HealthCheckHook::load(&service_group.service(), &concrete_path, &template_path)
+            .expect("Could not create testing healch-check hook");
+
+        let pkg = pkg(&service_group);
+        let sys = Sys::new(true,
+                           GossipListenAddr::default(),
+                           ListenCtlAddr::default(),
+                           HttpListenAddr::default()).expect("to create Sys");
+        let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
+            .expect("Could not create config");
+        let mut ring = CensusRing::new("member-a");
+        let ctx = ctx(&service_group, &pkg, &sys, &cfg, &mut ring);
+
+        hook.compile(&service_group, &ctx).unwrap();
+
+        let result = hook.run(&service_group, &pkg, None::<&str>).unwrap();
+
+        assert_eq!(Some(1), result.exit_status().code());
     }
 }

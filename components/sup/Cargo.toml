@@ -76,7 +76,10 @@ jemalloc-ctl = "*"
 
 [target.'cfg(windows)'.dependencies]
 ctrlc = "*"
-winapi =  { version = "*", features = ["tlhelp32"] }
+mio-named-pipes = "*"
+mio = "*"
+uuid = { version = "*", features = ["v4"] }
+winapi =  { version = "*", features = ["namedpipeapi", "tlhelp32"] }
 
 [dev-dependencies]
 habitat_core = { path = "../core" }

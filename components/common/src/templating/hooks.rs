@@ -440,7 +440,7 @@ pub struct HookOutput<'a> {
 }
 
 impl<'a> HookOutput<'a> {
-    fn new(stdout_log: &'a Path, stderr_log: &'a Path) -> Self {
+    pub fn new(stdout_log: &'a Path, stderr_log: &'a Path) -> Self {
         Self { stdout_log_file: stdout_log,
                stderr_log_file: stderr_log, }
     }

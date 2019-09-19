@@ -78,6 +78,7 @@ function Invoke-Build {
 
 function Invoke-Install {
     Copy-Item "$env:CARGO_TARGET_DIR/release/hab-sup.exe" "$pkg_prefix/bin/hab-sup.exe"
+    Copy-Item "$PLAN_CONTEXT/../static/named_pipe_service.ps1" "$pkg_prefix/bin/named_pipe_service.ps1"
     Copy-Item "$(Get-HabPackagePath "openssl")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "zlib")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "libarchive")/bin/*.dll" "$pkg_prefix/bin"
