@@ -6,6 +6,10 @@ source .expeditor/scripts/shared.sh
 
 ### This file should include things that are used exclusively by the release pipeline
 
+get_release_channel() {
+    echo "habitat-release-${BUILDKITE_BUILD_ID}"
+}
+
 # Download public and private keys for the "core" origin from Builder.
 #
 # Currently relies on a global variable `hab_binary` being set, since
@@ -22,11 +26,19 @@ import_keys() {
         core
 }
 
-get_latest_pkg_version_in_channel() {
+# Returns the full "release" version in the form of X.Y.Z/DATESTAMP
+get_latest_pkg_release_version_in_release_channel() {
     local pkg_name="${1:?}"
-    version=$(curl -s "${HAB_BLDR_URL}/v1/depot/channels/core/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${BUILD_PKG_TARGET}" \
-        | jq -r '.ident | .version')
-    echo "${version}"
+    curl -s "${HAB_BLDR_URL}/v1/depot/channels/core/$(get_release_channel)/pkgs/${pkg_name}/latest?target=${BUILD_PKG_TARGET}" \
+        | jq -r '.ident | .version + "/" + .release'
+}
+
+# Returns the semver version in the form of X.Y.Z
+get_latest_pkg_version_in_release_channel() {
+    local pkg_name="${1:?}"
+    local release
+    release=$(get_latest_pkg_release_version_in_release_channel "$pkg_name")
+    echo "$release" | cut -f1 -d"/"
 }
 
 # Install the latest binary from the release channel and set the `hab_binary` variable
@@ -44,8 +56,8 @@ install_release_channel_hab_binary() {
 
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
     # now install the latest hab available in our channel, if it and the studio exist yet
-    hab_version=$(get_latest_pkg_version_in_channel "hab")
-    studio_version=$(get_latest_pkg_version_in_channel "hab-studio")
+    hab_version=$(get_latest_pkg_version_in_release_channel "hab")
+    studio_version=$(get_latest_pkg_version_in_release_channel "hab-studio")
 
     if [[ -n $hab_version && -n $studio_version && $hab_version == "$studio_version" ]]; then
         echo "-- Hab and studio versions match! Found hab: ${hab_version:-null} - studio: ${studio_version:-null}. Upgrading :awesome:"
@@ -57,119 +69,4 @@ install_release_channel_hab_binary() {
     else
         echo "--- Hab and studio versions did not match. hab: ${hab_version:-null} - studio: ${studio_version:-null}"
     fi
-}
-
-get_hab_ident() {
-    local target=$1
-    buildkite-agent meta-data get "hab-ident-${target}"
-}
-
-has_hab_ident() {
-    local target=$1
-    buildkite-agent meta-data exists "hab-ident-${target}"
-}
-
-set_hab_ident() {
-    local target=$1
-    local ident=$2
-    buildkite-agent meta-data set "hab-ident-${target}" "${ident}"
-}
-
-get_hab_artifact() {
-    local target=$1
-    buildkite-agent meta-data get "hab-artifact-${target}"
-}
-
-set_hab_artifact() {
-    local target=$1
-    local artifact=$2
-    buildkite-agent meta-data set "hab-artifact-${target}" "${artifact}"
-}
-
-get_hab_release() {
-    local target=$1
-    buildkite-agent meta-data get "hab-release-${target}"
-}
-
-set_hab_release() {
-    local target=$1
-    local release=$2
-    buildkite-agent meta-data set "hab-release-${target}" "${release}"
-}
-
-get_studio_ident() {
-    local target=$1
-    buildkite-agent meta-data get "studio-ident-${target}"
-}
-
-has_studio_ident() {
-    local target=$1
-    buildkite-agent meta-data exists "studio-ident-${target}"
-}
-
-set_studio_ident() {
-    local target=$1
-    local ident=$2
-    buildkite-agent meta-data set "studio-ident-${target}" "${ident}"
-}
-
-get_backline_ident() {
-    local target=$1
-    buildkite-agent meta-data get "backline-ident-${target}"
-}
-
-set_backline_ident() {
-    local target=$1
-    local ident=$2
-    buildkite-agent meta-data set "backline-ident-${target}" "${ident}"
-}
-
-get_backline_artifact() {
-    local target=$1
-    buildkite-agent meta-data get "backline-artifact-${target}"
-}
-
-set_backline_artifact() {
-    local target=$1
-    local ident=$2
-    buildkite-agent meta-data set "backline-artifact-${target}" "${ident}"
-}
-
-get_release_channel() {
-    echo "habitat-release-${BUILDKITE_BUILD_ID}"
-}
-
-get_version() {
-    buildkite-agent meta-data get "version"
-}
-
-set_version() {
-    local version=$1
-    buildkite-agent meta-data set "version" "${version}"
-}
-
-# Until we can reliably deal with packages that have the same
-# identifier, but different target, we'll track the information in
-# Buildkite metadata.
-#
-# Each time we put a package into our release channel, we'll record
-# what target it was built for.
-set_target_metadata() {
-    local package_ident="${1}"
-    local target="${2}"
-
-    echo "--- :partyparrot: Setting target metadata for '${package_ident}' (${target})"
-    buildkite-agent meta-data set "${package_ident}-${target}" "true"
-}
-
-# When we do the final promotions, we need to know the target of each
-# package in order to properly get the promotion done. If Buildkite metadata for
-# an ident/target pair exists, then that means that's a valid
-# combination, and we can use the target in the promotion call.
-ident_has_target() {
-    local package_ident="${1}"
-    local target="${2}"
-
-    echo "--- :partyparrot: Checking target metadata for '${package_ident}' (${target})"
-    buildkite-agent meta-data exists "${package_ident}-${target}"
 }

@@ -45,28 +45,4 @@ ${hab_binary} pkg promote \
               --auth="${HAB_AUTH_TOKEN}" \
               "${pkg_ident:?}" "${channel}" "${BUILD_PKG_TARGET}"
 
-set_target_metadata "${pkg_ident:?}" "${BUILD_PKG_TARGET}"
-
-echo "--- :writing_hand: Recording Build Metadata"
-case "${component}" in
-    "hab")
-        echo "--- :buildkite: Storing artifact ${pkg_ident:?}"
-        # buildkite-agent artifact upload "results/${pkg_artifact}"
-        set_hab_ident "${BUILD_PKG_TARGET:?}" "${pkg_ident:?}"
-        set_hab_release "${BUILD_PKG_TARGET:?}" "${pkg_release:?}"
-        set_hab_artifact "${BUILD_PKG_TARGET:?}" "${pkg_artifact:?}"
-        ;;
-    "studio")
-        echo "--- :buildkite: Recording metadata for ${pkg_ident:?}"
-        # buildkite-agent artifact upload "results/${pkg_artifact}"
-        set_studio_ident "${BUILD_PKG_TARGET:?}" "${pkg_ident:?}"
-        ;;
-    "backline")
-        echo "--- :buildkite: Recording metadata for ${pkg_ident:?}"
-        set_backline_ident "${BUILD_PKG_TARGET}" "${pkg_ident:?}"
-        set_backline_artifact "${BUILD_PKG_TARGET}" "${pkg_artifact:?}"
-        ;;
-    *)
-        ;;
-esac
 echo "<br>* ${pkg_ident:?} (${BUILD_PKG_TARGET:?})" | buildkite-agent annotate --append --context "release-manifest"

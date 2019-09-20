@@ -19,6 +19,10 @@ echo "--- Installing buildkite agent"
 brew tap buildkite/buildkite
 brew install --token="$BUILDKITE_AGENT_ACCESS_TOKEN" buildkite-agent
 
+echo "--- Install openssl for the certs"
+brew install openssl
+export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
+
 echo "--- Installing mac bootstrap package"
 # subscribe to releases: https://github.com/habitat-sh/release-engineering/issues/84
 bootstrap_package_version="$(cat MAC_BOOTSTRAPPER_VERSION)"
@@ -69,12 +73,8 @@ ${hab_binary} pkg promote \
               --auth="${HAB_AUTH_TOKEN}" \
               "${pkg_ident}" "${channel}" "${BUILD_PKG_TARGET}"
 
-set_target_metadata "${pkg_ident}" "${BUILD_PKG_TARGET}"
-
 echo "--- :buildkite: Storing artifact ${pkg_ident}"
 buildkite-agent artifact upload "results/${pkg_artifact}"
-set_hab_ident "${BUILD_PKG_TARGET}" "${pkg_ident}"
-set_hab_release "${BUILD_PKG_TARGET}" "${pkg_release:?}"
-set_hab_artifact "${BUILD_PKG_TARGET}" "${pkg_artifact}"
+buildkite-agent meta-data set MACOS_ARTIFACT "results/${pkg_artifact}"
 
 echo "<br>* ${pkg_ident} (${BUILD_PKG_TARGET})" | buildkite-agent annotate --append --context "release-manifest"
