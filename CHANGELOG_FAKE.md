@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.9 -->
+<!-- latest_release 0.86.10 -->
+## [fake-0.86.10](https://github.com/habitat-sh/habitat/tree/fake-0.86.10) (2019-09-25)
+
+#### Merged Pull Requests
+- copy choco build files to temp directory [#6980](https://github.com/habitat-sh/habitat/pull/6980) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.86.9](https://github.com/habitat-sh/habitat/tree/fake-0.86.9) (2019-09-20)
 
 #### Merged Pull Requests
 - Add script to repackage binaries and push to our S3 bucket [#6908](https://github.com/habitat-sh/habitat/pull/6908) ([scotthain](https://github.com/scotthain))
-<!-- latest_release -->
 
 ## [fake-0.86.8](https://github.com/habitat-sh/habitat/tree/fake-0.86.8) (2019-09-19)
 
