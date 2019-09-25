@@ -853,10 +853,14 @@ The exit code returned from an `install` hook will be "remembered". If a previou
 An `install` hook, unlike other hooks, will not have access to any census data exposed via binds or the `svc` namespace. Also, configuration in `svc_config_path` is not accessible to an `install` hook. If an `install` hook needs to utilize templated configuration files, templates located in the `svc_config_install_path` may be referenced. This location will contain rendered templates in a package's `config_install` folder. Finally, any configuration updates made during a service's runtime that would alter an `install` hook or any configuration template in `svc_config_install_path` will not cause a service to reload.
 
 **reload**
-: File location `<plan>/hooks/reload`. For processes that can update their configuration without requiring a restart a `reload` hook can be written. This hook will execute instead of the default behavior of restarting the process. `{{pkg.svc_pid_file}}` can be used to get a handle on the `PID` of the service.
+File location: `<plan>/hooks/reload`. This hook is now deprecated; you should use `reconfigure` instead (see below). To provide backward compatibility, if a `reload` hook is provided, the service will restart in response to configuration changes.
 
 **reconfigure**
-: File location `<plan>/hooks/reconfigure`. This hook is run when service configuration has changed due to updates coming from the gossip protocol or from the `user.toml` file. Before the `reconfigure` hook the config files are re-rendered and the process is either restarted or the `reload` hook is called if present.
+File location: `<plan>/hooks/reconfigure`. A `reconfigure` hook can be written for services that can respond to changes in `<plan>/config` without requiring a restart. This hook will execute **instead** of the default behavior of restarting the process. `{{pkg.svc_pid_file}}` can be used to get the `PID` of the service.
+
+Habitat does not support changing the `PID` of the underlying service in any lifecycle hook. If part of a service's reconfiguration relies on changing the `PID`, you should not provide a `reconfigure` hook, and instead, use the default behavior of restarting the service for reconfiguration.
+
+The `reconfigure` hook is not necessarily run on every change to `<plan>/config`. The `reconfigure` hook will not be run if the service restarts before the `reconfigure` hook has run. The restart is considered sufficient for reconfiguring the service. For example, when applying a configuration that changes both the `run` hook and `<plan>/config`, the change to the `run` hook will trigger a restart. Therefore, the `reconfigure` hook will not be run. To put it another way, the `reconfigure` hook will only respond to changes in `<plan>/config` after the service has started.
 
 **suitability**
 : File location `<plan>/hooks/suitability`. The suitability hook allows a service to report a priority by which it should be elected leader. The hook is called when a new election is triggered and the last line it outputs to `stdout` should be a number parsable as a `u64`. In the event that a leader goes down and an election is started the service with the highest reported suitability will become the new leader.
