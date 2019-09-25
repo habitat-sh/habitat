@@ -10,7 +10,10 @@ function Get-RepoRoot {
 }
 
 $versionStamp = "$Version-$Release"
-$choco_install = "$(Get-RepoRoot)/components/hab/win/chocolateyinstall.ps1"
+$tempDir = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
+New-Item $tempDir -ItemType Directory -Force | Out-Null
+Copy-Item "$(Get-RepoRoot)/components/hab/win/*" $tempDir
+$choco_install = Join-Path $tempDir chocolateyinstall.ps1
 
 (Get-Content $choco_install) |
     % {$_.Replace('$version$', $versionStamp) } |
@@ -20,5 +23,6 @@ $choco_install = "$(Get-RepoRoot)/components/hab/win/chocolateyinstall.ps1"
     % {$_.Replace('$checksum$', $Checksum) } |
     Set-Content $choco_install
 
-choco pack "$(Get-RepoRoot)/components/hab/win/habitat.nuspec" --version $Version 
+choco pack "$tempDir/habitat.nuspec" --version $Version
 choco push habitat.$Version.nupkg -k $ApiKey --timeout 600
+Remove-Item $tempDir -Recurse -Force
