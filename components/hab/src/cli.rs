@@ -545,6 +545,27 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (ex: core/redis, core/busybox-static/1.42.2/21120102031201)")
                 (@arg NO_DEPS: --("no-deps") "Don't uninstall dependencies")
             )
+            // alas no hyphens in subcommand names..
+            // https://github.com/clap-rs/clap/issues/1297
+            (@subcommand bulkupload =>
+                (about: "\n!!! ATTENTION !!!\nThis command is ALPHA and subject to change.\n\nBulk Uploads Habitat Artifacts to a Depot from a local directory.")
+                (aliases: &["bul", "bulk"])
+                (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Depot \
+                    endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
+                    environment variable if defined. (default: https://bldr.habitat.sh)")
+                (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
+                (@arg CHANNEL: --channel -c +takes_value
+                    "Optional additional release channel to upload package to. \
+                     Packages are always uploaded to `unstable`, regardless \
+                     of the value of this option.")
+                (@arg FORCE: --force "Skips checking availability of package and \
+                    force uploads, potentially overwriting a stored copy of a package. \
+                    (default: false)")
+                (@arg AUTO_BUILD: --("auto-build") "Enable auto-build for all packages in this upload. Only applicable to SaaS Builder. \
+                    (default: false)")
+                (@arg UPLOAD_DIRECTORY: +required {dir_exists}
+                    "Directory Path from which artifacts will be uploaded.")
+            )
             (@subcommand upload =>
                 (about: "Uploads a local Habitat Artifact to Builder")
                 (aliases: &["u", "up", "upl", "uplo", "uploa"])
@@ -560,20 +581,12 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     force uploads, potentially overwriting a stored copy of a package. \
                     (default: false)")
                 (@arg NO_BUILD: --("no-build")  "Disable auto-build for all packages in this upload.")
+                (@arg HART_FILE: +required +multiple {file_exists}
+                    "One or more filepaths to a Habitat Artifact \
+                    (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
                 (arg: arg_cache_key_path("Path to search for public origin keys to upload. \
                     Default value is hab/cache/keys if root and .hab/cache/keys under the home \
                     directory otherwise."))
-                (@arg CACHE_DIRECTORY: --cache +takes_value {dir_exists} default_value("/hab/cache")
-                    "Path to search for artifacts referenced in --input-file.")
-                (@group upload =>
-                    (@attributes +required)
-                    (@arg INPUT_FILE: -i --("input-file") +takes_value {file_exists}
-                        "Input file containing a newline delimited list of PackageIdentTarget strings to upload. \
-                        (ex entry: 'acme/wal-g/0.1.16/20190416172109/x86_64-linux')")
-                    (@arg HART_FILE: +multiple {file_exists}
-                        "One or more filepaths to a Habitat Artifact \
-                        (ex: /home/acme-redis-3.0.7-21120102031201-x86_64-linux.hart)")
-                )
             )
             (@subcommand delete =>
                 (about: "Removes a package from Builder")

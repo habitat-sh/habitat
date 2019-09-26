@@ -853,7 +853,10 @@ impl BuilderAPIProvider for BuilderAPIClient {
                            .body(body)
                            .send()?;
 
-        resp.ok_if(StatusCode::OK)
+        match resp.status() {
+            StatusCode::OK | StatusCode::CREATED => Ok(()),
+            _ => Err(err_from_response(&mut resp)),
+        }
     }
 
     fn x_put_package(&self, pa: &mut PackageArchive, token: &str) -> Result<()> {
