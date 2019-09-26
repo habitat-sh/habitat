@@ -860,12 +860,12 @@ fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let options = glob::MatchOptions { case_sensitive:              true,
                                        require_literal_separator:   true,
                                        require_literal_leading_dot: true, };
-    let artifact_paths = vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(),
-                                            &options);
+    let artifact_paths =
+        vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(), options);
 
     ui.begin(format!("Preparing to upload hartifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
-                                               .unwrap_or(ChannelIdent::unstable()),
+                                               .unwrap_or_else(ChannelIdent::unstable),
                      url))?;
     ui.status(Status::Using,
               format!("{} for hartifacts and {} for signing keys.",
@@ -1777,10 +1777,10 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
     matches.value_of("UPLOAD_DIRECTORY").map(PathBuf::from)
 }
 
-fn vec_from_glob_with(pattern: &str, options: &glob::MatchOptions) -> Vec<PathBuf> {
-    glob_with(pattern, *options).unwrap()
-                                .map(|r| r.unwrap())
-                                .collect()
+fn vec_from_glob_with(pattern: &str, options: glob::MatchOptions) -> Vec<PathBuf> {
+    glob_with(pattern, options).unwrap()
+                               .map(std::result::Result::unwrap)
+                               .collect()
 }
 
 /// A Builder URL, but *only* if the user specified it via CLI args or
