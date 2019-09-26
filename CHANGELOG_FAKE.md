@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.10 -->
+<!-- latest_release 0.86.11 -->
+## [fake-0.86.11](https://github.com/habitat-sh/habitat/tree/fake-0.86.11) (2019-09-26)
+
+#### Merged Pull Requests
+- Remove redundant hook reference partial, update docs [#6979](https://github.com/habitat-sh/habitat/pull/6979) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.86.10](https://github.com/habitat-sh/habitat/tree/fake-0.86.10) (2019-09-25)
 
 #### Merged Pull Requests
 - copy choco build files to temp directory [#6980](https://github.com/habitat-sh/habitat/pull/6980) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.86.9](https://github.com/habitat-sh/habitat/tree/fake-0.86.9) (2019-09-20)
 
