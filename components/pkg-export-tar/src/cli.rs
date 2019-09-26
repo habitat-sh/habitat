@@ -107,6 +107,13 @@ impl<'a, 'b> Cli<'a, 'b> {
                         "Install base packages from the specified release channel \
                          (default: stable)",
                     ),
+            )
+            .arg(
+                Arg::with_name("BLDR_AUTH_TOKEN")
+                    .long("auth")
+                    .short("z")
+                    .value_name("BLDR_AUTH_TOKEN")
+                    .help("Provide a Builder auth token for private pkg export"),
             );
 
         Cli { app }
