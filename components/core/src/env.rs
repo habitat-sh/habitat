@@ -248,6 +248,7 @@ macro_rules! env_config_string {
 macro_rules! default_as_str {
     ($wrapping_type:ident) => {
         impl $wrapping_type {
+            #[allow(dead_code)] // I'm not clear why, but this is required to avoid a warning on default_as_str()
             pub fn default_as_str() -> &'static str {
                 lazy_static::lazy_static! {
                     pub static ref DEFAULT: String = { $wrapping_type::default().to_string() };

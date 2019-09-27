@@ -527,6 +527,7 @@ mod tests {
     /// This has to actually touch the file system because the nature of the bug its testing
     /// for is Windows-specific: AtomicWriter will fail its rename if the file is held open
     /// by the existence of a BufReader<File>.
+    #[allow(clippy::unnecessary_unwrap)]
     #[test]
     fn read_or_create_mlr_successfully_creates_when_no_file_exists() {
         let dir = tempdir().expect("temp dir created");

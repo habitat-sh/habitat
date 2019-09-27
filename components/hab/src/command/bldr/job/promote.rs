@@ -1,25 +1,23 @@
-use crate::hcore::package::PackageIdent;
-use reqwest::StatusCode;
-use std::str::FromStr;
-
 use crate::{api_client,
             common::ui::{Status,
                          UIReader,
                          UIWriter,
                          UI},
-            hcore::ChannelIdent};
-
-use crate::{error::{Error,
+            error::{Error,
                     Result},
+            hcore::{package::PackageIdent,
+                    ChannelIdent},
             PRODUCT,
             VERSION};
+use reqwest::StatusCode;
+use std::str::FromStr;
 
 fn is_ident(s: &str) -> bool { PackageIdent::from_str(s).is_ok() }
 
 fn in_origin(ident: &str, origin: Option<&str>) -> bool {
-    if origin.is_some() {
+    if let Some(o) = origin {
         let pi = PackageIdent::from_str(ident).unwrap(); // unwrap Ok
-        origin.unwrap() == pi.origin
+        o == pi.origin
     } else {
         true
     }
