@@ -2,8 +2,6 @@ $ErrorActionPreference = "Stop"
 
 $env:HAB_LICENSE = "accept-no-persist"
 
-$env:studio_command = "bin/hab-studio.ps1"
-
 hab pkg install core/powershell
 hab pkg install core/7zip
 hab pkg install core/hab 
@@ -19,7 +17,7 @@ Copy-Item "$(hab pkg path core/7zip)/bin/*" "bin/7zip"
 Copy-Item "$(hab pkg path core/hab-plan-build-ps1)/bin/*" "bin/"
 
 try {
-    & test/shared/test-all.ps1 -studio_command "bin/hab-studio.ps1"
+    & test/shared/test-all.ps1 -studio_command "bin/hab-studio.bat"
     $exit_code = $LASTEXITCODE
 } finally {
     # The tests can exit before the Studio or Await have closed all open 
@@ -29,6 +27,8 @@ try {
     Remove-Item "bin/7zip" -Recurse
     Remove-Item "bin/powershell" -Recurse
     Remove-Item "bin/hab" -Recurse
-    Remove-Item "bin/*"
+    Remove-Item "bin/environment.ps1"
+    Remove-Item "bin/shared.ps1"
+    Remove-Item "bin/hab-plan-build.ps1"
 }
 exit $exit_code
