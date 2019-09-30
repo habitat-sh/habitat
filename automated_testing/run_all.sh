@@ -15,17 +15,21 @@ mkdir "${output_dir}"
 
 # Ensure the requisite images are present.
 make habitat_integration_base
-make supervisor_image CHANNEL=${channel} IMAGE_NAME=${image_name}
+make supervisor_image CHANNEL="${channel}" IMAGE_NAME="${image_name}"
 
 # Assume success until told otherwise; the first failure will set this
 # to non-zero.
 exit_code=0
 
-for testcase in $(ls testcases); do
-    printf "Running: ${testcase}..."
+for testcase in testcases/*; do
+    # We just want the test case name here, not the path to it.
+    # (the `testcases/*` glob above gets us things like
+    # "testcases/foo", and we just want "foo")
+    testcase="$(basename "${testcase}")"
+    printf "Running: %s..." "${testcase}"
     # TODO (CM): pass output directory to run_test_case.sh and have it
     # split the output into several files as appropriate
-    if SUPERVISOR_IMAGE=${image_name} ./run_test_case.sh "${testcase}" &> "${output_dir}/${testcase}_output.txt"; then
+    if SUPERVISOR_IMAGE="${image_name}" ./run_test_case.sh "${testcase}" &> "${output_dir}/${testcase}_output.txt"; then
         printf " PASS\n"
     else
         printf " FAIL\n"

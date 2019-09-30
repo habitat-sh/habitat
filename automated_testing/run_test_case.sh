@@ -33,7 +33,8 @@ fi
 # These are all standard docker-compose environment variables
 export COMPOSE_PROJECT_NAME="habitat_integration_${testcase}"
 export COMPOSE_PATH_SEPARATOR=":"
-export COMPOSE_FILE=$(IFS=${COMPOSE_PATH_SEPARATOR}; echo "${compose_files[*]}")
+export COMPOSE_FILE
+COMPOSE_FILE=$(IFS=${COMPOSE_PATH_SEPARATOR}; echo "${compose_files[*]}")
 
 # These are assumed in our base docker-compose.yml file
 export TESTCASE="${testcase}"
