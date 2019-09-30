@@ -12,6 +12,8 @@ mod context;
 mod health;
 mod hook_runner;
 mod hooks;
+#[cfg(windows)]
+mod pipe_hook_client;
 mod spawned_future;
 pub mod spec;
 mod supervisor;

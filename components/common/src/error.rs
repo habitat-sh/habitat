@@ -41,6 +41,7 @@ pub enum Error {
     /// Errors when joining paths :)
     JoinPathsError(env::JoinPathsError),
     MissingCLIInputError(String),
+    NamedPipeTimeoutOnStart(String, String, io::Error),
     NetParseError(net::AddrParseError),
     OfflineArtifactNotFound(PackageIdent),
     OfflineOriginKeyNotFound(String),
@@ -114,6 +115,10 @@ impl fmt::Display for Error {
             }
             Error::IO(ref err) => format!("{}", err),
             Error::JoinPathsError(ref err) => format!("{}", err),
+            Error::NamedPipeTimeoutOnStart(ref group, ref hook, ref err) => {
+                format!("Unable to start powershell named pipe for {} hook of {}: {}",
+                        hook, group, err)
+            }
             Error::NetParseError(ref err) => format!("{}", err),
             Error::OfflineArtifactNotFound(ref ident) => {
                 format!("Cached artifact not found in offline mode: {}", ident)

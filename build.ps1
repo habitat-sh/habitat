@@ -95,11 +95,11 @@ function Invoke-Build([string]$Path, [switch]$Clean, [string]$Command, [switch]$
             break
         }
         "clippy" {
-            & $PSScriptRoot\test\run_clippy.ps1 -ToolChain $toolchain `
-              -UnexaminedLintsPath $PSScriptRoot\test\unexamined_lints.txt `
-              -AllowedLintsPath $PSScriptRoot\test\allowed_lints.txt `
-              -LintsToFixPath $PSScriptRoot\test\lints_to_fix.txt `
-              -DeniedLintsPath $PSScriptRoot\test\denied_lints.txt `
+            & $PSScriptRoot\.expeditor\scripts\verify\run_clippy.ps1 -ToolChain $toolchain `
+              -UnexaminedLintsPath $PSScriptRoot\support\unexamined_lints.txt `
+              -AllowedLintsPath $PSScriptRoot\support\allowed_lints.txt `
+              -LintsToFixPath $PSScriptRoot\support\lints_to_fix.txt `
+              -DeniedLintsPath $PSScriptRoot\support\denied_lints.txt `
             break
         }
         "test" {

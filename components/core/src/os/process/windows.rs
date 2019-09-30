@@ -12,7 +12,8 @@ use winapi::{shared::minwindef::{DWORD,
                   processthreadsapi,
                   winnt::{HANDLE,
                           PROCESS_QUERY_LIMITED_INFORMATION,
-                          PROCESS_TERMINATE}}};
+                          PROCESS_TERMINATE,
+                          SYNCHRONIZE}}};
 
 const STILL_ACTIVE: u32 = 259;
 
@@ -28,7 +29,8 @@ pub fn current_pid() -> u32 { unsafe { processthreadsapi::GetCurrentProcessId() 
 pub fn handle_from_pid(pid: Pid) -> Option<HANDLE> {
     unsafe {
         let proc_handle = processthreadsapi::OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION
-                                                         | PROCESS_TERMINATE,
+                                                         | PROCESS_TERMINATE
+                                                         | SYNCHRONIZE,
                                                          FALSE,
                                                          pid);
 
