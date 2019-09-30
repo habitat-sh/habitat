@@ -863,16 +863,16 @@ fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let artifact_paths =
         vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(), options);
 
-    ui.begin(format!("Preparing to upload hartifacts to the '{}' channel on {}",
+    ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
                                                .unwrap_or_else(ChannelIdent::unstable),
                      url))?;
     ui.status(Status::Using,
-              format!("{} for hartifacts and {} for signing keys.",
+              format!("{} for artifacts and {} for signing keys.",
                       &artifact_path.display(),
                       &key_path.display()))?;
     ui.status(Status::Found,
-              format!("{} hartifacts for upload.", artifact_paths.len()))?;
+              format!("{} artifacts for upload.", artifact_paths.len()))?;
 
     for artifact_path in &artifact_paths {
         command::pkg::upload::start(ui,
