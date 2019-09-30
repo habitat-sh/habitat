@@ -15,12 +15,7 @@ use std::str::FromStr;
 fn is_ident(s: &str) -> bool { PackageIdent::from_str(s).is_ok() }
 
 fn in_origin(ident: &str, origin: Option<&str>) -> bool {
-    if let Some(o) = origin {
-        let pi = PackageIdent::from_str(ident).unwrap(); // unwrap Ok
-        o == pi.origin
-    } else {
-        true
-    }
+    origin.map_or(true, |o| PackageIdent::from_str(ident).unwrap().origin == o)
 }
 
 pub fn get_ident_list(ui: &mut UI,
