@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.11 -->
+<!-- latest_release 0.86.12 -->
+## [fake-0.86.12](https://github.com/habitat-sh/habitat/tree/fake-0.86.12) (2019-09-30)
+
+#### Merged Pull Requests
+- windows health checks run from a single powershell instance [#6947](https://github.com/habitat-sh/habitat/pull/6947) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.86.11](https://github.com/habitat-sh/habitat/tree/fake-0.86.11) (2019-09-26)
 
 #### Merged Pull Requests
 - Remove redundant hook reference partial, update docs [#6979](https://github.com/habitat-sh/habitat/pull/6979) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.86.10](https://github.com/habitat-sh/habitat/tree/fake-0.86.10) (2019-09-25)
 
