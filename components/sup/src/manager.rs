@@ -1801,7 +1801,7 @@ fn read_process_lock<T>(lock_path: T) -> Result<Pid>
                 Some(Ok(line)) => {
                     match line.parse::<Pid>() {
                         Ok(pid) if pid == 0 => {
-                            error!("Read PID of 0 from process lock file {}!",
+                            error!(target: "pidfile_tracing", "Read PID of 0 from process lock file {}!",
                                    lock_path.display());
                             // Treat this the same as a corrupt pid
                             // file, because that's basically what it

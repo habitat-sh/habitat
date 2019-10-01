@@ -147,6 +147,11 @@ impl LauncherCli {
 
         Self::send(&self.tx, &msg)?;
         let reply = Self::recv::<protocol::SpawnOk>(&self.rx)?;
+        if reply.pid == 0 {
+            warn!(target: "pidfile_tracing", "Spawn operation for {} resulted in a spawned PID of 0, which \
+                   should be impossible! (proceeding anyway)",
+                  id);
+        }
         Ok(reply.pid as Pid)
     }
 

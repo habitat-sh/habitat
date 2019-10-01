@@ -163,6 +163,9 @@ impl Supervisor {
                                  user_info,
                                  svc_password, // Windows optional
                                  (*pkg.env).clone())?;
+        if pid == 0 {
+            warn!(target: "pidfile_tracing", "Spawned service for {} has a PID of 0!", group);
+        }
         self.pid = Some(pid);
         self.create_pidfile()?;
         self.change_state(ProcessState::Up);
@@ -189,6 +192,11 @@ impl Supervisor {
 
         if let Some(pid) = self.pid {
             let pid_file = self.pid_file.clone();
+            if pid == 0 {
+                warn!(target: "pidfile_tracing", "Cowardly refusing to stop {}, because we think it has a PID of 0, which makes no sense",
+                      service_group);
+                return future::Either::B(future::ok(()));
+            }
 
             future::Either::A(terminator::terminate_service(pid, service_group, shutdown_config).and_then(
                 |_shutdown_method| {
@@ -198,7 +206,12 @@ impl Supervisor {
             ))
         } else {
             // Not quite sure how we'd get down here without a PID...
-            warn!("Attempted to stop {}, but we have no PID!", service_group);
+
+            // TODO (CM): when this pidfile tracing bit has been
+            // cleared up, remove this logging target; it was added
+            // just to help with debugging. The overall logging
+            // message can stay, however.
+            warn!(target: "pidfile_tracing", "Cowardly refusing to stop {}, because we mysteriously have no PID!", service_group);
             future::Either::B(future::ok(()))
         }
     }
@@ -206,7 +219,11 @@ impl Supervisor {
     /// Create a PID file for a running service
     fn create_pidfile(&self) -> Result<()> {
         if let Some(pid) = self.pid {
-            debug!("Creating PID file for child {} -> {}",
+            // TODO (CM): when this pidfile tracing bit has been
+            // cleared up, remove this logging target; it was added
+            // just to help with debugging. The overall logging
+            // message can stay, however.
+            debug!(target: "pidfile_tracing", "Creating PID file for child {} -> {}",
                    self.pid_file.display(),
                    pid);
             fs::atomic_write(&self.pid_file, pid.to_string())?;
@@ -223,10 +240,14 @@ impl Supervisor {
     // amenable to use in a future. Hopefully these two can be
     // consolidated in the (ahem) future.
     fn cleanup_pidfile_future(pid_file: PathBuf) {
-        debug!("Attempting to clean up pid file {}", pid_file.display());
+        // TODO (CM): when this pidfile tracing bit has been cleared
+        // up, remove these logging targets; they were added just to
+        // help with debugging. The overall logging messages can stay,
+        // however.
+        debug!(target: "pidfile_tracing", "Attempting to clean up pid file {}", pid_file.display());
         match std::fs::remove_file(pid_file) {
-            Ok(_) => debug!("Removed pid file"),
-            Err(e) => debug!("Error removing pid file: {}, continuing", e),
+            Ok(_) => debug!(target: "pidfile_tracing", "Removed pid file"),
+            Err(e) => debug!(target: "pidfile_tracing", "Error removing pid file: {}, continuing", e),
         }
     }
 
@@ -254,6 +275,10 @@ impl Serialize for Supervisor {
 fn read_pid<T>(pid_file: T) -> Option<Pid>
     where T: AsRef<Path>
 {
+    // TODO (CM): when this pidfile tracing bit has been cleared
+    // up, remove these logging targets; they were added just to
+    // help with debugging. The overall logging messages can stay,
+    // however.
     let p = pid_file.as_ref();
 
     match File::open(p) {
@@ -263,7 +288,7 @@ fn read_pid<T>(pid_file: T) -> Option<Pid>
                 Some(Ok(line)) => {
                     match line.parse::<Pid>() {
                         Ok(pid) if pid == 0 => {
-                            error!("Read PID of 0 from {}!", p.display());
+                            error!(target: "pidfile_tracing", "Read PID of 0 from {}!", p.display());
                             // Treat this the same as a corrupt pid
                             // file, because that's basically what it
                             // is. A PID of 0 effectively means the
@@ -272,21 +297,21 @@ fn read_pid<T>(pid_file: T) -> Option<Pid>
                             None
                         }
                         Ok(pid) => Some(pid),
-                        Err(_) => {
-                            error!("Unable to decode contents of PID file: {}", p.display());
+                        Err(e) => {
+                            error!(target: "pidfile_tracing", "Unable to parse contents of PID file: {}; {:?}", p.display(), e);
                             None
                         }
                     }
                 }
                 _ => {
-                    error!("Unable to decode contents of PID file: {}", p.display());
+                    error!(target: "pidfile_tracing", "Unable to read a line of PID file: {}", p.display());
                     None
                 }
             }
         }
         Err(ref err) if err.kind() == std::io::ErrorKind::NotFound => None,
         Err(_) => {
-            error!("Error reading PID file: {}", p.display());
+            error!(target: "pidfile_tracing", "Error reading PID file: {}", p.display());
             None
         }
     }

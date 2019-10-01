@@ -105,6 +105,7 @@ pub fn run(msg: protocol::Spawn) -> Result<Service> {
     let stdout = child.stdout.take();
     let stderr = child.stderr.take();
     let process = Process(child);
+    debug!(target: "pidfile_tracing", "Launcher spawned {} with PID = {}", msg.binary, process.id());
     Ok(Service::new(msg, process, stdout, stderr))
 }
 
