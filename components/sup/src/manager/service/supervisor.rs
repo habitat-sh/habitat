@@ -262,6 +262,15 @@ fn read_pid<T>(pid_file: T) -> Option<Pid>
             match reader.lines().next() {
                 Some(Ok(line)) => {
                     match line.parse::<Pid>() {
+                        Ok(pid) if pid == 0 => {
+                            error!("Read PID of 0 from {}!", p.display());
+                            // Treat this the same as a corrupt pid
+                            // file, because that's basically what it
+                            // is. A PID of 0 effectively means the
+                            // Supervisor thinks it's supervising
+                            // itself. This *should* be an impossible situation.
+                            None
+                        }
                         Ok(pid) => Some(pid),
                         Err(_) => {
                             error!("Unable to decode contents of PID file: {}", p.display());
