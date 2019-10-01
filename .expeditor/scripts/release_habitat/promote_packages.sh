@@ -39,13 +39,29 @@ mapfile -t packages_to_promote < <(echo "${channel_pkgs_json}" | \
                          map(.origin + "/" + .name + "/" + .version + "/" + .release)
                          | .[]')
 
+targets=("x86_64-linux"
+         "x86_64-linux-kernel2"
+         "x86_64-windows")
+
+
+
 for pkg in "${packages_to_promote[@]}"; do
-    # We only do this extra API call because we can't get the target
-    # from the above API call. Once
-    # https://github.com/habitat-sh/builder/issues/1111 is addressed,
-    # we won't need this additional call (we'll have to modify the
-    # above `jq` call to create `packages_to_promote`, however).
-    pkg_target=$(curl -s "${ACCEPTANCE_HAB_BLDR_URL}/v1/depot/pkgs/${pkg}" | jq -r '.target')
-    echo "--- Promoting ${pkg} (${pkg_target}) to the '${destination_channel}' channel"
-    ${hab_binary} pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${destination_channel}" "${pkg_target}"
+    echo "--- :habicat: Promoting '$pkg' to '$destination_channel'"
+    for pkg_target in "${targets[@]}"; do
+      if ident_has_target "${pkg}" "${pkg_target}"; then
+          echo "--- Promoting ${pkg} (${pkg_target}) to the '${destination_channel}' channel"
+          echo "${pkg} ${pkg_target}" >> manifest_entries
+          ${hab_binary} pkg promote --auth="${HAB_AUTH_TOKEN}" "${pkg}" "${destination_channel}" "${pkg_target}"
+      else
+          echo "--- :thumbsdown: not a match"
+      fi
+    done
 done
+
+# create manifest!
+./create_manifest manifest_entries
+
+# push manifest to S3
+echo "--- Pushing manifest file to S3"
+unstable_s3_url="s3://chef-automate-artifacts/dev/latest/habitat/manifest.json"
+s3_upload_file "manifest.json" "$unstable_s3_url"

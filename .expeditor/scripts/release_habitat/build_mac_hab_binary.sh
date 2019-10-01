@@ -74,3 +74,5 @@ buildkite-agent artifact upload "results/${pkg_artifact}"
 buildkite-agent meta-data set MACOS_ARTIFACT "results/${pkg_artifact}"
 
 echo "<br>* ${pkg_ident} (${BUILD_PKG_TARGET})" | buildkite-agent annotate --append --context "release-manifest"
+
+set_target_metadata "${pkg_ident}" "${pkg_target}"
