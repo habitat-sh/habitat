@@ -40,7 +40,8 @@ use habitat_common::{cli::cache_key_path_from_matches,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
-use habitat_core::{crypto::{self,
+use habitat_core::{self,
+                   crypto::{self,
                             SymKey},
                    os::process::ShutdownTimeout,
                    url::{bldr_url_from_env,
@@ -85,6 +86,12 @@ fn main() {
         Ok(_) => 0,
         Err(ref err) => {
             println!("{}", err);
+            match err {
+                Error::HabitatCore(habitat_core::Error::NoOutboundIpAddr(_)) => {
+                    println!("Consider setting the `--sys-ip-address` option.");
+                }
+                _ => (),
+            }
             ERR_NO_RETRY_EXCODE
         }
     };
