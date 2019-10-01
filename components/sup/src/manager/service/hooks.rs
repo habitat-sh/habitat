@@ -662,8 +662,6 @@ mod tests {
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
-    #[cfg(windows)]
-    use habitat_core::fs::svc_logs_path;
     use habitat_core::{fs::cache_key_path,
                        package::{PackageIdent,
                                  PackageInstall},

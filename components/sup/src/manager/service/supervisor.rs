@@ -247,7 +247,9 @@ impl Supervisor {
         debug!(target: "pidfile_tracing", "Attempting to clean up pid file {}", pid_file.display());
         match std::fs::remove_file(pid_file) {
             Ok(_) => debug!(target: "pidfile_tracing", "Removed pid file"),
-            Err(e) => debug!(target: "pidfile_tracing", "Error removing pid file: {}, continuing", e),
+            Err(e) => {
+                debug!(target: "pidfile_tracing", "Error removing pid file: {}, continuing", e)
+            }
         }
     }
 
