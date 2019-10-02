@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.13 -->
+<!-- latest_release 0.86.14 -->
+## [fake-0.86.14](https://github.com/habitat-sh/habitat/tree/fake-0.86.14) (2019-10-02)
+
+#### Bug Fixes
+- use -file instead of -command when forwarding args to hab-studio.ps1 so that args are passed as individual args and not as a single string [#6985](https://github.com/habitat-sh/habitat/pull/6985) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.86.13](https://github.com/habitat-sh/habitat/tree/fake-0.86.13) (2019-10-01)
 
 #### Merged Pull Requests
 - Remove tarball that got inadvertently added [#6989](https://github.com/habitat-sh/habitat/pull/6989) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.86.12](https://github.com/habitat-sh/habitat/tree/fake-0.86.12) (2019-09-30)
 
