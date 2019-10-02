@@ -4,7 +4,8 @@ use std::{env,
           path::{Path,
                  PathBuf}};
 
-use crate::{common::ui::UI,
+use crate::{common::ui::{UIWriter,
+                         UI},
             hcore::{crypto::CACHE_KEY_PATH_ENV_VAR,
                     env as henv,
                     fs}};
@@ -13,7 +14,6 @@ use crate::{config,
             error::{Error,
                     Result},
             BLDR_URL_ENVVAR,
-            CTL_SECRET_ENVVAR,
             ORIGIN_ENVVAR};
 
 use habitat_core::AUTH_TOKEN_ENVVAR;
@@ -75,10 +75,14 @@ pub fn start(ui: &mut UI, args: &[OsString]) -> Result<()> {
                             config.auth_token,
                             Sensitivity::NoPrintValue);
     set_env_var_from_config(BLDR_URL_ENVVAR, config.bldr_url, Sensitivity::PrintValue);
-    set_env_var_from_config(CTL_SECRET_ENVVAR,
-                            config.ctl_secret,
-                            Sensitivity::NoPrintValue);
     set_env_var_from_config(ORIGIN_ENVVAR, config.origin, Sensitivity::PrintValue);
+
+    if config.ctl_secret.is_some() {
+        ui.warn("Your Supervisor CtlGateway secret is not being copied to the Studio \
+                 environment because the Studio's Supervisor is local. If you wish to contact a \
+                 remote Supervisor from the Studio, please set the HAB_CTL_SECRET variable with \
+                 your secret.")?;
+    }
 
     if henv::var(CACHE_KEY_PATH_ENV_VAR).is_err() {
         let path = fs::cache_key_path(None::<&str>);
