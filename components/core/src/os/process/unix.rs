@@ -30,11 +30,11 @@ pub fn is_alive(pid: Pid) -> bool {
     // where a PID of 0 would be generated have been addressed in the
     // code, but this is belt-and-suspenders code at the moment.)
     if pid == 0 {
-        warn!(target: "pidfile_tracing","Trying to determine if PID 0 is alive; this is an unexpected situation; returning false!");
+        error!(target: "pidfile_tracing","Trying to determine if PID 0 is alive; this is an unexpected situation; returning false!");
         return false;
     }
 
-    match unsafe { libc::kill(pid as pid_t, 0) } {
+    match unsafe { libc::kill(pid, 0) } {
         0 => true,
         _ => {
             match io::Error::last_os_error().raw_os_error() {
