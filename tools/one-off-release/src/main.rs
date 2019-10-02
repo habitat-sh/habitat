@@ -133,7 +133,7 @@ struct Opt {
     auth: String,
 
     /// The builder acceptance url
-    #[structopt(default_value = "ACCEPTANCE_URL", long)]
+    #[structopt(default_value = ACCEPTANCE_URL, long)]
     acceptance_url: String,
 
     /// The channel to tag packages with when promoting to live
