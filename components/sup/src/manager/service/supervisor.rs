@@ -35,8 +35,8 @@ static LOGKEY: &str = "SV";
 
 #[derive(Debug)]
 pub struct Supervisor {
-    group_name: String,
-    state:      ProcessState,
+    service_group: ServiceGroup,
+    state:         ProcessState,
     pub state_entered: Timespec,
     pid:               Option<Pid>,
     pid_file:          PathBuf,
@@ -44,11 +44,12 @@ pub struct Supervisor {
 
 impl Supervisor {
     pub fn new(service_group: &ServiceGroup) -> Supervisor {
-        Supervisor { group_name:    service_group.to_string(),
-                     state:         ProcessState::Down,
+        let pid_file = fs::svc_pid_file(service_group.service());
+        Supervisor { service_group: service_group.clone(),
+                     state: ProcessState::Down,
                      state_entered: time::get_time(),
-                     pid:           None,
-                     pid_file:      fs::svc_pid_file(service_group.service()), }
+                     pid: None,
+                     pid_file }
     }
 
     /// Check if the child process is running
@@ -75,7 +76,7 @@ impl Supervisor {
     }
 
     // NOTE: the &self argument is only used to get access to
-    // self.group_name, and even then only for Linux :/
+    // self.service_group, and even then only for Linux :/
     #[cfg(unix)]
     fn user_info(&self, pkg: &Pkg) -> Result<UserInfo> {
         if users::can_run_services_as_svc_user() {
@@ -105,7 +106,7 @@ impl Supervisor {
 
             let name_for_logging = username.clone()
                                            .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
-            outputln!(preamble self.group_name, "Current user ({}) lacks sufficient capabilites to \
+            outputln!(preamble self.service_group, "Current user ({}) lacks sufficient capabilites to \
                 run services as a different user; running as self!", name_for_logging);
 
             Ok(UserInfo { username,
@@ -134,7 +135,7 @@ impl Supervisor {
                  svc_password: Option<&str>)
                  -> Result<()> {
         let user_info = self.user_info(&pkg)?;
-        outputln!(preamble self.group_name,
+        outputln!(preamble self.service_group,
                   "Starting service as user={}, group={}",
                   user_info.username.as_ref().map_or("<anonymous>", String::as_str),
                   user_info.groupname.as_ref().map_or("<anonymous>", String::as_str)
@@ -174,7 +175,7 @@ impl Supervisor {
 
     pub fn status(&self) -> (bool, String) {
         let status = format!("{}: {} for {}",
-                             self.group_name,
+                             self.service_group,
                              self.state,
                              time::get_time() - self.state_entered);
         let healthy = match self.state {
@@ -186,19 +187,17 @@ impl Supervisor {
 
     /// Returns a future that stops a service asynchronously.
     pub fn stop(&self, shutdown_config: ShutdownConfig) -> impl Future<Item = (), Error = Error> {
-        // TODO (CM): we should really just keep the service
-        // group around AS a service group
-        let group_name = self.group_name.clone();
+        let service_group = self.service_group.clone();
 
         if let Some(pid) = self.pid {
             let pid_file = self.pid_file.clone();
             if pid == 0 {
                 warn!(target: "pidfile_tracing", "Cowardly refusing to stop {}, because we think it has a PID of 0, which makes no sense",
-                      group_name);
+                      service_group);
                 return future::Either::B(future::ok(()));
             }
 
-            future::Either::A(terminator::terminate_service(pid, group_name, shutdown_config).and_then(
+            future::Either::A(terminator::terminate_service(pid, service_group, shutdown_config).and_then(
                 |_shutdown_method| {
                     Supervisor::cleanup_pidfile_future(pid_file);
                     Ok(())
@@ -211,7 +210,7 @@ impl Supervisor {
             // cleared up, remove this logging target; it was added
             // just to help with debugging. The overall logging
             // message can stay, however.
-            warn!(target: "pidfile_tracing", "Cowardly refusing to stop {}, because we mysteriously have no PID!", group_name);
+            warn!(target: "pidfile_tracing", "Cowardly refusing to stop {}, because we mysteriously have no PID!", service_group);
             future::Either::B(future::ok(()))
         }
     }

@@ -4,7 +4,8 @@ use crate::{manager::ShutdownConfig,
                   ShutdownMethod}};
 use futures::sync::oneshot;
 use habitat_common::outputln;
-use habitat_core::os::process::Pid;
+use habitat_core::{os::process::Pid,
+                   service::ServiceGroup};
 use std::thread;
 
 static LOGKEY: &str = "ST"; // "Service Terminator"
@@ -14,7 +15,7 @@ static LOGKEY: &str = "ST"; // "Service Terminator"
 /// This is performed in a separate thread in order to prevent
 /// blocking the rest of the Supervisor.
 pub fn terminate_service(pid: Pid,
-                         service_group: String,
+                         service_group: ServiceGroup,
                          shutdown_config: ShutdownConfig)
                          -> SpawnedFuture<ShutdownMethod> {
     let (tx, rx) = oneshot::channel();
