@@ -35,8 +35,8 @@ static LOGKEY: &str = "SV";
 
 #[derive(Debug)]
 pub struct Supervisor {
-    pub preamble:      String,
-    pub state:         ProcessState,
+    preamble:          String,
+    state:             ProcessState,
     pub state_entered: Timespec,
     pid:               Option<Pid>,
     pid_file:          PathBuf,
