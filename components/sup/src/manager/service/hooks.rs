@@ -848,6 +848,8 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn run_named_pipe_health_check_hook() {
+        use habitat_core::fs::svc_logs_path;
+
         let var = pipe_service_path();
         let script = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("static")
                                                               .join("named_pipe_service.ps1");
