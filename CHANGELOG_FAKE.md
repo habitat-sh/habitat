@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.14 -->
+<!-- latest_release 0.86.15 -->
+## [fake-0.86.15](https://github.com/habitat-sh/habitat/tree/fake-0.86.15) (2019-10-02)
+
+#### Merged Pull Requests
+- do not inject studio environment with ctl_secret from cli.toml [#6988](https://github.com/habitat-sh/habitat/pull/6988) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.86.14](https://github.com/habitat-sh/habitat/tree/fake-0.86.14) (2019-10-02)
 
 #### Bug Fixes
 - use -file instead of -command when forwarding args to hab-studio.ps1 so that args are passed as individual args and not as a single string [#6985](https://github.com/habitat-sh/habitat/pull/6985) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.86.13](https://github.com/habitat-sh/habitat/tree/fake-0.86.13) (2019-10-01)
 
