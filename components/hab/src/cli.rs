@@ -548,7 +548,7 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
             // alas no hyphens in subcommand names..
             // https://github.com/clap-rs/clap/issues/1297
             (@subcommand bulkupload =>
-                (about: "\n!!! ATTENTION !!!\nThis command is ALPHA and subject to change.\n\nBulk Uploads Habitat Artifacts to a Depot from a local directory.")
+                (about: "Bulk Uploads Habitat Artifacts to a Depot from a local directory.")
                 (aliases: &["bul", "bulk"])
                 (@arg BLDR_URL: -u --url +takes_value {valid_url} "Specify an alternate Depot \
                     endpoint. If not specified, the value will be taken from the HAB_BLDR_URL \
