@@ -60,6 +60,7 @@ use std::{env,
           io::{self,
                Write},
           net::{IpAddr,
+                Ipv4Addr,
                 SocketAddr,
                 ToSocketAddrs},
           path::{Path,
@@ -86,12 +87,6 @@ fn main() {
         Ok(_) => 0,
         Err(ref err) => {
             println!("{}", err);
-            match err {
-                Error::HabitatCore(habitat_core::Error::NoOutboundIpAddr(_)) => {
-                    println!("Consider setting the `--sys-ip-address` option.");
-                }
-                _ => (),
-            }
             ERR_NO_RETRY_EXCODE
         }
     };
@@ -184,11 +179,9 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
 
     let maybe_sys_ip = m.value_of("SYS_IP_ADDRESS")
                         .and_then(|s| IpAddr::from_str(s).ok());
-    let sys_ip = if let Some(sys_ip) = maybe_sys_ip {
-        sys_ip
-    } else {
-        habitat_core::util::sys::ip()?
-    };
+    let sys_ip = maybe_sys_ip.unwrap_or_else(|| {
+                     habitat_core::util::sys::ip().unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST))
+                 });
     info!("Using sys IP address {}", sys_ip);
 
     let manager = Manager::load_imlw(cfg, launcher, sys_ip)?;
