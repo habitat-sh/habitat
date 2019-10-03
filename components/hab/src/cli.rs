@@ -558,11 +558,9 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     "Optional additional release channel to upload package to. \
                      Packages are always uploaded to `unstable`, regardless \
                      of the value of this option.")
-                (@arg FORCE: --force "Skips checking availability of package and \
-                    force uploads, potentially overwriting a stored copy of a package. \
-                    (default: false)")
-                (@arg AUTO_BUILD: --("auto-build") "Enable auto-build for all packages in this upload. Only applicable to SaaS Builder. \
-                    (default: false)")
+                (@arg FORCE: --force "Skip checking availability of package and \
+                    force uploads, potentially overwriting a stored copy of a package.")
+                (@arg AUTO_BUILD: --("auto-build") "Enable auto-build for all packages in this upload. Only applicable to SaaS Builder.")
                 (@arg UPLOAD_DIRECTORY: +required {dir_exists}
                     "Directory Path from which artifacts will be uploaded.")
             )
