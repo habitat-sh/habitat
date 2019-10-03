@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.15 -->
+<!-- latest_release 0.86.16 -->
+## [fake-0.86.16](https://github.com/habitat-sh/habitat/tree/fake-0.86.16) (2019-10-03)
+
+#### Merged Pull Requests
+- Add auth option to tar exporter [#6982](https://github.com/habitat-sh/habitat/pull/6982) ([chefsalim](https://github.com/chefsalim))
+<!-- latest_release -->
+
 ## [fake-0.86.15](https://github.com/habitat-sh/habitat/tree/fake-0.86.15) (2019-10-02)
 
 #### Merged Pull Requests
 - do not inject studio environment with ctl_secret from cli.toml [#6988](https://github.com/habitat-sh/habitat/pull/6988) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.86.14](https://github.com/habitat-sh/habitat/tree/fake-0.86.14) (2019-10-02)
 
