@@ -60,6 +60,8 @@ pub struct BuildSpec<'a> {
     /// A Habitat Package Identifer or local path to a Habitat Artifact file which
     /// will be installed.
     pub ident_or_archive: &'a str,
+    /// The Builder Auth Token to use in the request
+    pub auth: Option<&'a str>,
 }
 
 impl<'a> BuildSpec<'a> {
@@ -77,6 +79,7 @@ impl<'a> BuildSpec<'a> {
                     base_pkgs_channel: m.value_of("BASE_PKGS_CHANNEL")
                                         .map(ChannelIdent::from)
                                         .unwrap_or_default(),
+                    auth:              m.value_of("BLDR_AUTH_TOKEN"),
                     ident_or_archive:  m.value_of("PKG_IDENT_OR_ARTIFACT").unwrap(), }
     }
 
@@ -166,7 +169,8 @@ impl<'a> BuildSpec<'a> {
                      ident_or_archive,
                      self.base_pkgs_url,
                      &self.base_pkgs_channel,
-                     fs_root_path)
+                     fs_root_path,
+                     None)
     }
 
     fn install_user_pkg(&self,
@@ -174,7 +178,12 @@ impl<'a> BuildSpec<'a> {
                         ident_or_archive: &str,
                         fs_root_path: &Path)
                         -> Result<PackageIdent> {
-        self.install(ui, ident_or_archive, self.url, &self.channel, fs_root_path)
+        self.install(ui,
+                     ident_or_archive,
+                     self.url,
+                     &self.channel,
+                     fs_root_path,
+                     self.auth)
     }
 
     fn install(&self,
@@ -182,7 +191,8 @@ impl<'a> BuildSpec<'a> {
                ident_or_archive: &str,
                url: &str,
                channel: &ChannelIdent,
-               fs_root_path: &Path)
+               fs_root_path: &Path,
+               token: Option<&str>)
                -> Result<PackageIdent> {
         let install_source: InstallSource = ident_or_archive.parse()?;
         let package_install =
@@ -194,7 +204,7 @@ impl<'a> BuildSpec<'a> {
                                                      VERSION,
                                                      fs_root_path,
                                                      &cache_artifact_path(Some(&fs_root_path)),
-                                                     None,
+                                                     token,
                                                      // TODO fn: pass through and enable offline
                                                      // install mode
                                                      &InstallMode::default(),
