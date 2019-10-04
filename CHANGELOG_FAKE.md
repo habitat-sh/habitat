@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.20 -->
+<!-- latest_release 0.86.21 -->
+## [fake-0.86.21](https://github.com/habitat-sh/habitat/tree/fake-0.86.21) (2019-10-04)
+
+#### Merged Pull Requests
+- Update the fake release process [#6995](https://github.com/habitat-sh/habitat/pull/6995) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.86.20](https://github.com/habitat-sh/habitat/tree/fake-0.86.20) (2019-10-04)
 
 #### Merged Pull Requests
 - Remove baumanj from CODEOWNERS [#6997](https://github.com/habitat-sh/habitat/pull/6997) ([baumanj](https://github.com/baumanj))
-<!-- latest_release -->
 
 ## [fake-0.86.19](https://github.com/habitat-sh/habitat/tree/fake-0.86.19) (2019-10-04)
 
