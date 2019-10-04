@@ -856,11 +856,11 @@ fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
         BuildOnUpload::Disable
     };
     let token = auth_token_param_or_env(m)?;
-    let options = glob::MatchOptions { case_sensitive:              true,
-                                       require_literal_separator:   true,
-                                       require_literal_leading_dot: true, };
+    const OPTIONS: glob::MatchOptions = glob::MatchOptions { case_sensitive:              true,
+                                                             require_literal_separator:   true,
+                                                             require_literal_leading_dot: true, };
     let artifact_paths =
-        vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(), options);
+        vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(), OPTIONS);
 
     ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
                      additional_release_channel.clone()
