@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.18 -->
+<!-- latest_release 0.86.19 -->
+## [fake-0.86.19](https://github.com/habitat-sh/habitat/tree/fake-0.86.19) (2019-10-04)
+
+#### Merged Pull Requests
+- Fix the text around job demotion [#6996](https://github.com/habitat-sh/habitat/pull/6996) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.86.18](https://github.com/habitat-sh/habitat/tree/fake-0.86.18) (2019-10-04)
 
 #### Merged Pull Requests
 - `hab pkg bulkupload` packages from a directory [#6958](https://github.com/habitat-sh/habitat/pull/6958) ([jeremymv2](https://github.com/jeremymv2))
-<!-- latest_release -->
 
 ## [fake-0.86.17](https://github.com/habitat-sh/habitat/tree/fake-0.86.17) (2019-10-04)
 
