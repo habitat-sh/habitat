@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.19 -->
+<!-- latest_release 0.86.20 -->
+## [fake-0.86.20](https://github.com/habitat-sh/habitat/tree/fake-0.86.20) (2019-10-04)
+
+#### Merged Pull Requests
+- Remove baumanj from CODEOWNERS [#6997](https://github.com/habitat-sh/habitat/pull/6997) ([baumanj](https://github.com/baumanj))
+<!-- latest_release -->
+
 ## [fake-0.86.19](https://github.com/habitat-sh/habitat/tree/fake-0.86.19) (2019-10-04)
 
 #### Merged Pull Requests
 - Fix the text around job demotion [#6996](https://github.com/habitat-sh/habitat/pull/6996) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.86.18](https://github.com/habitat-sh/habitat/tree/fake-0.86.18) (2019-10-04)
 
