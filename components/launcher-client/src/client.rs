@@ -155,6 +155,18 @@ impl LauncherCli {
         Ok(reply.pid as Pid)
     }
 
+    /// Query the launcher for the PID of the named service. If the
+    /// Launcher is aware of it, you'll get `Ok(Some(Pid))`
+    pub fn pid_of(&self, service_name: &str) -> Result<Option<Pid>> {
+        let msg = protocol::PidOf { service_name: service_name.to_string(), };
+        Self::send(&self.tx, &msg)?;
+        let reply = Self::recv::<protocol::PidIs>(&self.rx)?;
+        match reply.pid {
+            Some(pid) => Ok(Some(pid as Pid)),
+            None => Ok(None),
+        }
+    }
+
     pub fn terminate(&self, pid: Pid) -> Result<i32> {
         let msg = protocol::Terminate { pid: pid.into() };
         Self::send(&self.tx, &msg)?;

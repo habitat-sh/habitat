@@ -11,6 +11,7 @@ message Restart {
 }
 
 message Spawn {
+  // The name of the service group we're spawning, e.g. "redis.default".
   optional string id = 1;
   optional string binary = 2;
   optional string svc_user = 3;
@@ -38,4 +39,23 @@ enum ShutdownMethod {
   AlreadyExited = 0;
   GracefulTermination = 1;
   Killed = 2;
+}
+
+// Query the Launcher to find the current PID of the named
+// service.
+//
+// Note: this is the entire service group name, like
+// "redis.default". It really needs to be whatever Spawn#id is.
+message PidOf {
+  optional string service_name = 1;
+}
+
+// The response that corresponds to `PidOf`. If the service is known
+// to the Launcher, the PID will be present. If not, the PID will be
+// absent.
+message PidIs {
+  // TODO: the launcher really only deals with u32, but should this be
+  // int64 for consistency? Should we make a new type? What's the best
+  // way to evolve that?
+  optional uint32 pid = 1;
 }

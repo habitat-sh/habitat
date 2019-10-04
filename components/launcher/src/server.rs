@@ -379,6 +379,37 @@ impl ServiceTable {
 
     pub fn remove(&mut self, pid: u32) -> Option<Service> { self.0.remove(&pid) }
 
+    // Obviously this is not the most elegant implementation. However,
+    // in practice we don't have a whole lot of processes per
+    // Supervisor. A better-than-O(n) solution would also require more
+    // extensive refactoring of this data type, which is not something
+    // I particularly want to dive into *right now* (eventually,
+    // though).
+    //
+    // Note that this also implicitly relies on the fact that a single
+    // supervisor can't be running more than one service with a given
+    // name. That should always be the case, but *this* code doesn't
+    // enforce that.
+    //
+    // TODO (CM): Enforce that service_name is actually a full
+    // ServiceGroup name (and elsewhere)
+    /// Given the name of a service group (e.g. "redis.default"),
+    /// return the PID of the process we're currently running for that
+    /// service group, if it exists.
+    ///
+    /// This allows a restarting Supervisor to query the Launcher to
+    /// figure out if there are currently-running services to which it
+    /// needs to re-attach itself.
+    pub fn pid_of(&self, service_name: &str) -> Option<u32> {
+        self.0.iter().find_map(|(pid, service)| {
+                         if service_name == service.args().id {
+                             Some(*pid)
+                         } else {
+                             None
+                         }
+                     })
+    }
+
     fn kill_all(&mut self) {
         for service in self.0.values_mut() {
             outputln!(preamble service.name(), "Stopping...");
@@ -461,6 +492,7 @@ fn dispatch(tx: &Sender, bytes: &[u8], services: &mut ServiceTable) {
         "Restart" => handlers::RestartHandler::run,
         "Spawn" => handlers::SpawnHandler::run,
         "Terminate" => handlers::TerminateHandler::run,
+        "PidOf" => handlers::PidHandler::run,
         unknown => {
             // This sucks a bit because it replicates some code from the
             // Handler trait, but manipulating an unknown message

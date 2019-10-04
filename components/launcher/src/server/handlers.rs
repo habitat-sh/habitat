@@ -1,8 +1,10 @@
+mod pid;
 mod restart;
 mod spawn;
 mod terminate;
 
-pub use self::{restart::*,
+pub use self::{pid::*,
+               restart::*,
                spawn::*,
                terminate::*};
 
