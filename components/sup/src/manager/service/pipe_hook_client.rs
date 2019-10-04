@@ -26,6 +26,7 @@ use std::{self,
                         fs::*,
                         io::*},
           path::PathBuf,
+          process,
           thread,
           time::{Duration,
                  Instant}};
@@ -150,12 +151,13 @@ impl PipeHookClient {
                                    .join("named_pipe_service.ps1")
             }
         };
-        let ps_cmd = format!("& '{}' -HookPath '{}' -PipeName {}",
+        let ps_cmd = format!("& '{}' -HookPath '{}' -PipeName {} -ParentPID {}",
                              script_path.to_string_lossy(),
                              self.hook_path.to_string_lossy(),
-                             self.pipe_name);
-        // Start instance of powershell to host named pipe server for this client
+                             self.pipe_name,
+                             process::id());
 
+        // Start instance of powershell to host named pipe server for this client
         let args = vec!["-NonInteractive", "-Command", ps_cmd.as_str()];
         let child = Child::spawn("pwsh.exe",
                                  &args,
@@ -610,8 +612,8 @@ mod test {
                                          tmpdir.path().join("out.log"),
                                          tmpdir.path().join("err.log"));
 
-        client.exec_hook("tg13", &pkg(), None::<String>).unwrap();
-        client.exec_hook("tg13", &pkg(), None::<String>).unwrap();
+        client.exec_hook("tg14", &pkg(), None::<String>).unwrap();
+        client.exec_hook("tg14", &pkg(), None::<String>).unwrap();
 
         // give stream a chance to write
         thread::sleep(Duration::from_millis(10));
@@ -619,5 +621,23 @@ mod test {
         let content = file_content(tmpdir.path().join("err.log"));
         assert_eq!(content.find("I am the only error"),
                    content.rfind("I am the only error"));
+    }
+
+    #[test]
+    fn pipe_hook_client_exec_hook_passes_pid() {
+        let var = pipe_service_path();
+        var.set(&named_pipe_service_ps1());
+        let tmpdir = TempDir::new().unwrap();
+        let path = tmpdir.path().join("health-check");
+        create_with_content(&path, "exit $ParentPID");
+
+        let client = PipeHookClient::new("test".to_string(),
+                                         path,
+                                         tmpdir.path().join("out.log"),
+                                         tmpdir.path().join("err.log"));
+
+        let exit = client.exec_hook("tg15", &pkg(), None::<String>).unwrap();
+
+        assert_eq!(std::process::id(), exit);
     }
 }

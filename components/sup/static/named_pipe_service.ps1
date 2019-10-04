@@ -1,6 +1,7 @@
 param (
     [string]$HookPath,
-    [string]$PipeName
+    [string]$PipeName,
+    [int]$ParentPID
 )
 
 function Restore-Environment($origEnv) {
@@ -20,8 +21,7 @@ Write-Host "Starting PS pipe server for $PipeName with PID $PID"
 Copy-Item $HookPath "${HookPath}.ps1" -Force
 
 # Get a handle for this service's parent (should be the supervisor)
-$parent_pid = (Get-CimInstance -Class Win32_Process -Filter "ProcessID=$PID").ParentProcessId
-$parent = Get-Process -Id $parent_pid
+$parent = Get-Process -Id $ParentPID
 
 try {
     $np = new-object System.IO.Pipes.NamedPipeServerStream($PipeName, [System.IO.Pipes.PipeDirection]::InOut)
