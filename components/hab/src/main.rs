@@ -845,9 +845,8 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
 
 fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let upload_dir = bulkupload_dir_from_matches(m);
-    // upload_dir is required via clap and exists
-    let artifact_path = upload_dir.as_ref().unwrap().join("artifacts");
-    let key_path = upload_dir.as_ref().unwrap().join("keys");
+    let artifact_path = upload_dir.join("artifacts");
+    let key_path = upload_dir.join("keys");
     let url = bldr_url_from_matches(&m)?;
     let additional_release_channel = channel_from_matches(&m);
     let force_upload = m.is_present("FORCE");
@@ -1773,8 +1772,10 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
     Ok(out)
 }
 
-fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> Option<PathBuf> {
-    matches.value_of("UPLOAD_DIRECTORY").map(PathBuf::from)
+fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
+    matches.value_of("UPLOAD_DIRECTORY")
+           .map(PathBuf::from)
+           .expect("CLAP-validated upload dir")
 }
 
 fn vec_from_glob_with(pattern: &str, options: glob::MatchOptions) -> Vec<PathBuf> {
