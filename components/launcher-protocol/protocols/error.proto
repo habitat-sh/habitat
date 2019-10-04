@@ -8,6 +8,11 @@ enum ErrCode {
   UserNotFound = 2;
   ExecWait = 3;
   NoPID = 4;
+  // Returned when the Launcher receives a protocol message that it
+  // does not know how to handle. This could happen if a newer
+  // Supervisor was trying to communicate with an older Launcher that
+  // didn't understand a newer message, for instance.
+  UnknownMessage = 5;
 }
 
 message NetErr {

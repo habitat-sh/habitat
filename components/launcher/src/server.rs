@@ -462,7 +462,16 @@ fn dispatch(tx: &Sender, bytes: &[u8], services: &mut ServiceTable) {
         "Spawn" => handlers::SpawnHandler::run,
         "Terminate" => handlers::TerminateHandler::run,
         unknown => {
-            warn!("Received unknown message from Supervisor, {}", unknown);
+            // This sucks a bit because it replicates some code from the
+            // Handler trait, but manipulating an unknown message
+            // doesn't really fit that pattern :(
+            let msg = format!("Received unknown message from Supervisor, {}", unknown);
+            warn!("{}", msg);
+            let reply = protocol::NetErr { code: protocol::ErrCode::UnknownMessage,
+                                           msg };
+            if let Err(err) = send(tx, &reply) {
+                error!("{}: replying, {}", unknown, err);
+            }
             return;
         }
     };
