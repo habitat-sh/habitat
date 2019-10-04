@@ -47,7 +47,6 @@ steps:
       executor:
         docker:
           host_os: windows
-          os_version: 2016
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -139,7 +138,6 @@ steps:
       executor:
         docker:
           host_os: windows
-          os_version: 2016
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -195,7 +193,6 @@ steps:
       executor:
         docker:
           host_os: windows
-          os_version: 2016
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -229,7 +226,6 @@ steps:
       executor:
         docker:
           host_os: windows
-          os_version: 2016
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -263,7 +259,6 @@ steps:
       executor:
         docker:
           host_os: windows
-          os_version: 2016
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -297,7 +292,6 @@ steps:
       executor:
         docker:
           host_os: windows
-          os_version: 2016
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
@@ -349,7 +343,6 @@ steps:
       executor:
         docker:
           host_os: windows
-          os_version: 2016
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN

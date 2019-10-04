@@ -11,14 +11,9 @@ steps:
   - label: "[lint] :linux: :bash: Shellcheck"
     command:
       - .expeditor/scripts/verify/shellcheck.sh
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -27,8 +22,9 @@ steps:
   - label: "[lint] :linux: :bash: rustfmt"
     command:
       - .expeditor/scripts/verify/rustfmt.sh
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -36,28 +32,19 @@ steps:
 
   - label: "[lint] :linux: :paperclip: clippy!"
     command: make lint
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.2.0:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
-
 
   - label: "[lint] :windows: :paperclip: clippy!"
     command:
       - .expeditor\scripts\verify\run_clippy.ps1 .\support\unexamined_lints.txt .\support\allowed_lints.txt .\support\lints_to_fix.txt .\support\denied_lints.txt
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
 
 #######################################################################
@@ -70,14 +57,9 @@ steps:
   - label: "[unit] :linux: ignored"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh -- --ignored
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -86,14 +68,9 @@ steps:
   - label: "[unit] :linux: builder-api-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh builder-api-client
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -102,28 +79,18 @@ steps:
   - label: "[unit] :linux: butterfly lock_as_mutex"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh butterfly --nightly --features "lock_as_mutex deadlock_detection" -- --test-threads=1 --format=pretty
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 20
     soft_fail: true
 
   - label: "[unit] :linux: butterfly lock_as_rwlock"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh butterfly --nightly --features "lock_as_rwlock deadlock_detection" -- --test-threads=1 --format=pretty
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -135,11 +102,17 @@ steps:
     agents:
       queue: 'default-privileged'
     plugins:
-      docker#v3.0.1:
+      docker#v3.3.0:
         always-pull: true
         user: "buildkite-agent"
         group: "buildkite-agent"
         image: "chefes/buildkite"
+    # FIXME - using the correct executor format as shown below, this fails with a disk error as as follows:
+    # https://buildkite.com/chef/habitat-sh-habitat-master-verify/builds/3666#ae448100-387f-4f4c-a62f-c8e3973a1f02
+    # Issue: https://github.com/habitat-sh/habitat/issues/7000
+    # expeditor:
+    #   executor:
+    #     docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -148,14 +121,9 @@ steps:
   - label: "[unit] :linux: core"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh core
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -164,14 +132,9 @@ steps:
   - label: "[unit] :linux: http-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh http-client
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -180,14 +143,9 @@ steps:
   - label: "[unit] :linux: hab"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh hab
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -196,14 +154,9 @@ steps:
   - label: "[unit] :linux: launcher-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh launcher-client
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -212,14 +165,9 @@ steps:
   - label: "[unit] :linux: launcher-protocol"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh launcher-protocol
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -228,14 +176,9 @@ steps:
   - label: "[unit] :linux: pkg-export-docker"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-docker
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -244,14 +187,9 @@ steps:
   - label: "[unit] :linux: pkg-export-helm"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-helm
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -260,14 +198,9 @@ steps:
   - label: "[unit] :linux: pkg-export-kubernetes"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-kubernetes
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -276,14 +209,9 @@ steps:
   - label: "[unit] :linux: pkg-export-tar"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh pkg-export-tar
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -292,14 +220,9 @@ steps:
   - label: "[unit] :linux: sup lock_as_rwlock"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_rwlock"
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -308,28 +231,18 @@ steps:
   - label: "[unit] :linux: sup lock_as_mutex"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup --features "ignore_integration_tests lock_as_mutex"
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 40
     soft_fail: true
 
   - label: "[unit] :linux: sup-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup-client
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -338,14 +251,9 @@ steps:
   - label: "[unit] :linux: sup-protocol"
     command:
       - .expeditor/scripts/verify/run_cargo_test.sh sup-protocol
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
@@ -370,14 +278,11 @@ steps:
   - label: "[unit] :windows: ignored"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 -TestOptions "--ignored"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -386,14 +291,11 @@ steps:
   - label: "[unit] :windows: builder-api-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 builder-api-client
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -402,28 +304,22 @@ steps:
   - label: "[unit] :windows: butterfly lock_as_mutex"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_mutex deadlock_detection" -TestOptions "--test-threads=1"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     soft_fail: true
 
   - label: "[unit] :windows: butterfly lock_as_rwlock"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 butterfly -Nightly -Features "lock_as_rwlock deadlock_detection" -TestOptions "--test-threads=1"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -432,14 +328,11 @@ steps:
   - label: "[unit] :windows: common"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 common -TestOptions "--test-threads=1"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -448,14 +341,11 @@ steps:
   - label: "[unit] :windows: core"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 core
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -464,14 +354,11 @@ steps:
   - label: "[unit] :windows: hab"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 hab
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -480,14 +367,11 @@ steps:
   - label: "[unit] :windows: http-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 http-client
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -496,14 +380,11 @@ steps:
   - label: "[unit] :windows: launcher-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 launcher-client
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -512,14 +393,11 @@ steps:
   - label: "[unit] :windows: launcher-protocol"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 launcher-protocol
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -528,14 +406,11 @@ steps:
   - label: "[unit] :windows: pkg-export-docker"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-docker
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 25
     retry:
       automatic:
@@ -544,14 +419,11 @@ steps:
   - label: "[unit] :windows: pkg-export-tar"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 pkg-export-tar
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -561,14 +433,11 @@ steps:
     command:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - .expeditor/scripts/verify/run_cargo_test.ps1 sup -Features "lock_as_mutex" -TestOptions "--test-threads=1"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     soft_fail: true
 
@@ -576,14 +445,11 @@ steps:
     command:
       # This test has test (not code) concurrency issues and will fail if we don't limit it
       - .expeditor/scripts/verify/run_cargo_test.ps1 sup -Features "lock_as_rwlock" -TestOptions "--test-threads=1"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -592,14 +458,11 @@ steps:
   - label: "[unit] :windows: sup-client"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 sup-client
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -608,14 +471,11 @@ steps:
   - label: "[unit] :windows: sup-protocol"
     command:
       - .expeditor/scripts/verify/run_cargo_test.ps1 sup-protocol
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -624,14 +484,11 @@ steps:
   - label: "[unit] :windows: studio"
     command:
       - .expeditor/scripts/verify/run_studio_test.ps1 "studio-from-source"
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     soft_fail: true
     retry:
@@ -641,14 +498,11 @@ steps:
   - label: "[unit] :windows: plan-build-ps1"
     command:
       - components\plan-build-ps1\tests\test.ps1
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
     retry:
       automatic:
@@ -665,8 +519,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh backline
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -677,8 +533,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh bintray-publish
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -689,8 +547,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh hab
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -701,8 +561,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh launcher
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -713,8 +575,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-aci
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -725,8 +589,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-cfize
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -737,8 +603,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-dockerize
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -749,8 +617,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-export-docker
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -761,8 +631,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-export-helm
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -773,8 +645,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-export-kubernetes
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -785,8 +659,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-export-tar
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -797,8 +673,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-mesosize
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -809,8 +687,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh plan-build
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -821,8 +701,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh studio
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -833,8 +715,10 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh sup
-    agents:
-      queue: 'default-privileged'
+    expeditor:
+      executor:
+        linux:
+          privileged: true
     retry:
       automatic:
         limit: 1
@@ -851,14 +735,11 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 hab
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -870,14 +751,11 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 launcher
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -888,14 +766,11 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 pkg-export-docker
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -906,14 +781,11 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 pkg-export-tar
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
     retry:
       automatic:
@@ -925,14 +797,11 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 plan-build-ps1
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -943,14 +812,11 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 studio
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -961,14 +827,11 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 sup
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
@@ -979,14 +842,11 @@ steps:
       HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 windows-service
-    agents:
-      queue: 'default-windows-2016-privileged'
-    plugins:
-      docker#v3.2.0:
-        image: "chefes/buildkite-windows-2016"
-        shell: [ "powershell", "-Command" ]
-        always-pull: true
-        propagate-environment: true
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
     retry:
       automatic:
         limit: 1
