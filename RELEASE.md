@@ -56,8 +56,8 @@ additional commits, see [Addressing issues with a Release](#addressing-issues-wi
 
 Once the release tag is pushed, a Buildkite build will be triggered on the release tag.
 
-You can view/adminster Buildkite builds [here](https://buildkite.com/chef/habitat-sh-habitat-master-release).
-When you get to the "Ensure that Builder is stable on the new release" step, you need to ssh to the various
+You can view/adminster Buildkite builds [here](https://buildkite.com/chef/habitat-sh-habitat-master-release-habitat).
+After the new build is running on Builder, you should ssh to the various
 hosts and confirm that the new version of the supervisor is running and check the builder dashboards
 (see https://forums.habitat.sh/t/on-call-engineering-duties/626). To quickly check the versions of the supervisor,
 you can run ([`hab-instances`](https://github.com/habitat-sh/builder/blob/master/tools/ssh_helpers/hab-instances) is in the `builder` repo and assumes you already set up the [ssh-helpers](https://github.com/habitat-sh/builder/blob/master/tools/ssh_helpers/Usage.md)):
@@ -339,24 +339,13 @@ A fake release can be run at any time, and from any branch (including
 need to have access to the Buildkite release pipeline, however, so
 this is limited to core Habitat team members.
 
-1. Go to the [release pipeline](https://buildkite.com/chef/habitat-sh-habitat-master-release) page on Buildkite.
-2. Click the "New Build" button, which presents you with a form to fill in.
-3. Set the "Message" field to something that helps identify what this run is for (e.g., "Testing pipeline change to add more foo to the baz")
-4. Ensure that the "Commit" field has the value `HEAD`
-5. Set the "Branch" field to the name of the branch you want to test.
-6. Under "Options" you *MUST* add a value for the special environment variable `FAKE_RELEASE_TAG`.
-
-   Our release is currently driven by Git tags, with the name of the
-   tag becoming the release identifier (which in turn is incorporated
-   into various internal bookkeeping identifiers, including the
-   release candidate channel name in Builder). Since we won't have a
-   tag in this case, we use this environment variable to "fake
-   it". (If we _did_ have a tag, that would kick off a *real* release,
-   which we explicitly do not want!) Try something like:
-
-       FAKE_RELEASE_TAG=my_super_nifty_test_release
-
-7. Press the "Create Build Button".
+1. Go to the [release
+   pipeline](https://buildkite.com/chef/habitat-sh-habitat-master-release-habitat) page on Buildkite.
+1. Click the "New Build" button, which presents you with a form to fill in.
+1. Set the "Message" field to something that helps identify what this run is for (e.g., "Testing pipeline change to add more foo to the baz")
+1. Ensure that the "Commit" field has the value `HEAD`
+1. Set the "Branch" field to the name of the branch you want to test.
+1. Press the "Create Build Button".
 
 In a moment, you should see a new run of the release pipeline
 start. This run is as close to the real release process as
