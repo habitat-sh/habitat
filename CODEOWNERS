@@ -1,19 +1,19 @@
 .buildkite @christophermaier @scotthain
-components/backline @baumanj
+components/backline
 components/builder-api-client @chefsalim @raskchanky
-components/butterfly* @christophermaier @baumanj @raskchanky
-components/core @christophermaier @chefsalim @raskchanky @baumanj
-components/common @baumanj @raskchanky @christophermaier
-components/hab @christophermaier @chefsalim @baumanj @raskchanky @eeyun
+components/butterfly* @christophermaier @raskchanky
+components/core @christophermaier @chefsalim @raskchanky
+components/common @raskchanky @christophermaier
+components/hab @christophermaier @chefsalim @raskchanky @eeyun
 components/http-client @chefsalim @raskchanky
-components/launcher* @christophermaier @baumanj @raskchanky
+components/launcher* @christophermaier @raskchanky
 components/pkg-* @christophermaier @eeyun
 components/plan-build @christophermaier @scotthain
-components/studio @baumanj @eeyun
-components/sup* @christophermaier @baumanj @raskchanky
+components/studio @eeyun
+components/sup* @christophermaier @raskchanky
 components/win-users @mwrock
-support @christophermaier @raskchanky @baumanj
-tools @baumanj @chefsalim @christophermaier @eeyun @raskchanky
+support @christophermaier @raskchanky
+tools @chefsalim @christophermaier @eeyun @raskchanky
 www @chef/automate-ui-team
 www/site/content/* @kagarmoe @mjingle
 UX_PRINCIPLES.md @apriofrost
