@@ -20,6 +20,7 @@ dirs = "*"
 env_logger = "*"
 flate2 = "*"
 futures = "*"
+glob = "*"
 habitat_api_client = { path = "../builder-api-client" }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }

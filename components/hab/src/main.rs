@@ -11,6 +11,7 @@ use clap::{ArgMatches,
            Shell};
 use env_logger;
 use futures::prelude::*;
+use glob::glob_with;
 use hab::{cli::{self,
                 parse_optional_arg},
           command::{self,
@@ -251,6 +252,7 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
                 ("uninstall", Some(m)) => sub_pkg_uninstall(ui, m)?,
                 ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
+                ("bulkupload", Some(m)) => sub_pkg_bulkupload(ui, m)?,
                 ("delete", Some(m)) => sub_pkg_delete(ui, m)?,
                 ("verify", Some(m)) => sub_pkg_verify(ui, m)?,
                 ("header", Some(m)) => sub_pkg_header(ui, m)?,
@@ -839,6 +841,50 @@ fn sub_pkg_sign(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                                Some(&PairType::Secret))?;
 
     command::pkg::sign::start(ui, &pair, &src, &dst)
+}
+
+fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+    let upload_dir = bulkupload_dir_from_matches(m);
+    let artifact_path = upload_dir.join("artifacts");
+    let key_path = upload_dir.join("keys");
+    let url = bldr_url_from_matches(m)?;
+    let additional_release_channel = channel_from_matches(m);
+    let force_upload = m.is_present("FORCE");
+    let auto_build = if m.is_present("AUTO_BUILD") {
+        BuildOnUpload::PackageDefault
+    } else {
+        BuildOnUpload::Disable
+    };
+    let token = auth_token_param_or_env(m)?;
+    const OPTIONS: glob::MatchOptions = glob::MatchOptions { case_sensitive:              true,
+                                                             require_literal_separator:   true,
+                                                             require_literal_leading_dot: true, };
+    let artifact_paths =
+        vec_from_glob_with(&artifact_path.join("*.hart").display().to_string(), OPTIONS);
+
+    ui.begin(format!("Preparing to upload artifacts to the '{}' channel on {}",
+                     additional_release_channel.clone()
+                                               .unwrap_or_else(ChannelIdent::unstable),
+                     url))?;
+    ui.status(Status::Using,
+              format!("{} for artifacts and {} for signing keys.",
+                      &artifact_path.display(),
+                      key_path.display()))?;
+    ui.status(Status::Found,
+              format!("{} artifacts for upload.", artifact_paths.len()))?;
+
+    for artifact_path in artifact_paths {
+        command::pkg::upload::start(ui,
+                                    &url,
+                                    &additional_release_channel,
+                                    &token,
+                                    &artifact_path,
+                                    force_upload,
+                                    auto_build,
+                                    &key_path)?;
+    }
+
+    Ok(())
 }
 
 fn sub_pkg_upload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
@@ -1724,6 +1770,18 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
                                                      })
                                                      .wait()?;
     Ok(out)
+}
+
+fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
+    matches.value_of("UPLOAD_DIRECTORY")
+           .map(PathBuf::from)
+           .expect("CLAP-validated upload dir")
+}
+
+fn vec_from_glob_with(pattern: &str, options: glob::MatchOptions) -> Vec<PathBuf> {
+    glob_with(pattern, options).unwrap()
+                               .map(std::result::Result::unwrap)
+                               .collect()
 }
 
 /// A Builder URL, but *only* if the user specified it via CLI args or

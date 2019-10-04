@@ -20,15 +20,18 @@ impl fmt::Display for NetError {
 }
 
 pub trait ResponseExt {
-    fn ok_if(&mut self, code: reqwest::StatusCode) -> Result<()>;
+    fn ok_if<'a>(&'a mut self,
+                 code: impl IntoIterator<Item = &'a reqwest::StatusCode>)
+                 -> Result<()>;
     fn get_header<'a, K: AsHeaderName>(&'a self, name: K) -> Result<&'a str>;
 }
 
 impl ResponseExt for reqwest::Response {
-    fn ok_if(&mut self, code: reqwest::StatusCode) -> Result<()> {
+    fn ok_if<'a>(&'a mut self,
+                 code: impl IntoIterator<Item = &'a reqwest::StatusCode>)
+                 -> Result<()> {
         debug!("Response Status: {:?}", self.status());
-
-        if self.status() == code {
+        if code.into_iter().any(|&code| code == self.status()) {
             Ok(())
         } else {
             Err(err_from_response(self))
