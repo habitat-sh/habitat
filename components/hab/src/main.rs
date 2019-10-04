@@ -847,15 +847,15 @@ fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let upload_dir = bulkupload_dir_from_matches(m);
     let artifact_path = upload_dir.join("artifacts");
     let key_path = upload_dir.join("keys");
-    let url = bldr_url_from_matches(&m)?;
-    let additional_release_channel = channel_from_matches(&m);
+    let url = bldr_url_from_matches(m)?;
+    let additional_release_channel = channel_from_matches(m);
     let force_upload = m.is_present("FORCE");
     let auto_build = if m.is_present("AUTO_BUILD") {
         BuildOnUpload::PackageDefault
     } else {
         BuildOnUpload::Disable
     };
-    let token = auth_token_param_or_env(&m)?;
+    let token = auth_token_param_or_env(m)?;
     let options = glob::MatchOptions { case_sensitive:              true,
                                        require_literal_separator:   true,
                                        require_literal_leading_dot: true, };
@@ -869,11 +869,11 @@ fn sub_pkg_bulkupload(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     ui.status(Status::Using,
               format!("{} for artifacts and {} for signing keys.",
                       &artifact_path.display(),
-                      &key_path.display()))?;
+                      key_path.display()))?;
     ui.status(Status::Found,
               format!("{} artifacts for upload.", artifact_paths.len()))?;
 
-    for artifact_path in &artifact_paths {
+    for artifact_path in artifact_paths {
         command::pkg::upload::start(ui,
                                     &url,
                                     &additional_release_channel,
