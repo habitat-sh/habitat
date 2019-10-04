@@ -111,9 +111,10 @@ pub fn start(ui: &mut UI,
         }
     }
 
-    let question = format!("{} {} package(s) to channel '{}'. Continue?",
+    let question = format!("{} {} package(s) {} channel '{}'. Continue?",
                            promoting_demoting,
                            idents.len(),
+                           to_from,
                            channel);
 
     if !ui.prompt_yes_no(&question, Some(true))? {

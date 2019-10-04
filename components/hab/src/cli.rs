@@ -159,12 +159,12 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
                     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
                 )
                 (@subcommand demote =>
-                    (about: "Demote packages from a completed build job to a specified channel")
+                    (about: "Demote packages from a completed build job from a specified channel")
                     (aliases: &["d", "de", "dem", "demo", "demot"])
                     (@arg GROUP_ID: +required +takes_value
                         "The job id that was returned from \"hab bldr start\" \
                         (ex: 771100000000000000)")
-                    (@arg CHANNEL: +takes_value +required "The target channel name")
+                    (@arg CHANNEL: +takes_value +required "The name of the channel to demote from")
                     (@arg ORIGIN: -o --origin +takes_value {valid_origin}
                         "Limit the demotable packages to the specified origin")
                     (@arg INTERACTIVE: -i --interactive
