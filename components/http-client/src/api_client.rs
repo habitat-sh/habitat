@@ -7,6 +7,7 @@ use std::{fs,
 
 use reqwest::{header::{HeaderMap,
                        HeaderValue,
+                       CONNECTION,
                        USER_AGENT},
               Certificate,
               IntoUrl,
@@ -79,8 +80,21 @@ impl ApiClient {
         let skip_cert_verify = env::var("HAB_SSL_CERT_VERIFY_NONE").is_ok();
         debug!("Skip cert verification: {}", skip_cert_verify);
 
-        let headers =
-            HeaderMap::from_iter(vec![(USER_AGENT, user_agent(product, version)?)].into_iter());
+        // We set the Connection header to close so that the underlying socket
+        // will be closed upon completion of the current request and response.
+        // This is done in order to compensate for a bug in reqwest on Windows
+        // which creates a new socket on each creation of a client that is not
+        // closed until the process exits. Until the process exits, these connections
+        // remain in CLOSE_WAIT. Since this ApiClient is created fresh from CLI
+        // commands, we are not taking advantage of keep-alive anyways so setting
+        // the Connection header to close should not have adverse effects.
+        let headers = HeaderMap::from_iter(vec![
+            (USER_AGENT, user_agent(product, version)?),
+            (
+                CONNECTION,
+                HeaderValue::from_str("close").expect("Valid Connection header"),
+            ),
+        ].into_iter());
 
         let mut client = reqwest::Client::builder().proxy(proxy_for(&endpoint)?)
                                                    .default_headers(headers)
