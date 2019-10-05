@@ -177,11 +177,16 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
 
-    let maybe_sys_ip = m.value_of("SYS_IP_ADDRESS")
-                        .and_then(|s| IpAddr::from_str(s).ok());
-    let sys_ip = maybe_sys_ip.unwrap_or_else(|| {
-                     habitat_core::util::sys::ip().unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST))
-                 });
+    let sys_ip = m.value_of("SYS_IP_ADDRESS")
+                  .and_then(|s| IpAddr::from_str(s).ok())
+                  .or_else(|| {
+                      let result_ip = habitat_core::util::sys::ip();
+                      if let Err(e) = &result_ip {
+                          warn!("{}", e);
+                      }
+                      result_ip.ok()
+                  })
+                  .unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST));
     info!("Using sys IP address {}", sys_ip);
 
     let manager = Manager::load_imlw(cfg, launcher, sys_ip)?;
