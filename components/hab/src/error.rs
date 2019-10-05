@@ -23,7 +23,7 @@ pub type Result<T> = result::Result<T, Error>;
 #[allow(dead_code)]
 pub enum Error {
     APIClient(api_client::Error),
-    ArgumentError(&'static str),
+    ArgumentError(String),
     ButterflyError(String),
     CacheSslCertError(String),
     CannotParseBinlinkBinaryName(PathBuf),

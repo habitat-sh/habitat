@@ -156,17 +156,6 @@ pub struct OriginPrivateSigningKey {
 
 mod json {
     #[derive(Clone, Deserialize)]
-    pub struct Package {
-        pub ident:    PackageIdent,
-        pub checksum: String,
-        pub manifest: String,
-        pub deps:     Vec<PackageIdent>,
-        pub tdeps:    Vec<PackageIdent>,
-        pub exposes:  Vec<u32>,
-        pub config:   String,
-    }
-
-    #[derive(Clone, Deserialize)]
     pub struct PackageIdent {
         pub origin:  String,
         pub name:    String,
@@ -182,6 +171,17 @@ mod json {
                                   release: Some(ident.release), }
         }
     }
+}
+
+#[derive(Clone, Deserialize)]
+pub struct Package {
+    pub ident:    PackageIdent,
+    pub checksum: String,
+    pub manifest: String,
+    pub deps:     Vec<PackageIdent>,
+    pub tdeps:    Vec<PackageIdent>,
+    pub exposes:  Vec<u32>,
+    pub config:   String,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -317,6 +317,12 @@ pub trait BuilderAPIProvider: Sync + Send {
                     channel: &ChannelIdent,
                     token: Option<&str>)
                     -> Result<PackageIdent>;
+
+    fn show_package_metadata(&self,
+                             ident_and_target: (&PackageIdent, PackageTarget),
+                             channel: &ChannelIdent,
+                             token: Option<&str>)
+                             -> Result<Package>;
 
     fn delete_package(&self,
                       ident_and_target: (&PackageIdent, PackageTarget),
