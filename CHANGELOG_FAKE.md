@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.22 -->
+<!-- latest_release 0.86.23 -->
+## [fake-0.86.23](https://github.com/habitat-sh/habitat/tree/fake-0.86.23) (2019-10-05)
+
+#### Merged Pull Requests
+- Ma/hab 6878/pkg download [#6945](https://github.com/habitat-sh/habitat/pull/6945) ([markan](https://github.com/markan))
+<!-- latest_release -->
+
 ## [fake-0.86.22](https://github.com/habitat-sh/habitat/tree/fake-0.86.22) (2019-10-04)
 
 #### Bug Fixes
 - pass supervisor pid to named pipe server instead of querying it from server to fix win7 [#6998](https://github.com/habitat-sh/habitat/pull/6998) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.86.21](https://github.com/habitat-sh/habitat/tree/fake-0.86.21) (2019-10-04)
 
