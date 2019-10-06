@@ -2563,6 +2563,7 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 -r, --ring <RING> The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup run --ring myring) [env: HAB_RING=]
     --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
 -s, --strategy <STRATEGY> The update strategy; [default: none] [values: none, at-once, rolling]
+    --sys-ip-address <SYS_IP_ADDRESS> The IPv4 address to use as the `sys.ip` template variable. If this argument is not set, the supervisor tries to dynamically determine an IP address. If that fails, the supervisor defaults to using `127.0.0.1`.
 
 -t, --topology <TOPOLOGY> Service topology; [default: none] [possible values: standalone, leader]
 ```
