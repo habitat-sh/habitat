@@ -20,6 +20,7 @@ lazy_static::lazy_static! {
     static ref RE: Regex = Regex::new(r"\*\s(?P<ident>.*) \((?P<target>.*)\)").expect("valid regex");
 }
 
+#[allow(dead_code)]
 const ACCEPTANCE_URL: &str = "https://bldr.acceptance.habitat.sh";
 const PACKAGES_ENDPOINT: &str = "v1/depot/pkgs/";
 const DOWNLOAD_ENDPOINT: &str = "download";

@@ -662,6 +662,8 @@ mod tests {
                          types::{GossipListenAddr,
                                  HttpListenAddr,
                                  ListenCtlAddr}};
+    #[cfg(windows)]
+    use habitat_core::fs::svc_logs_path;
     use habitat_core::{fs::cache_key_path,
                        package::{PackageIdent,
                                  PackageInstall},
@@ -868,7 +870,8 @@ mod tests {
         let sys = Sys::new(true,
                            GossipListenAddr::default(),
                            ListenCtlAddr::default(),
-                           HttpListenAddr::default()).expect("to create Sys");
+                           HttpListenAddr::default(),
+                           IpAddr::V4(Ipv4Addr::LOCALHOST));
         let cfg = Cfg::new(&pkg, Some(&concrete_path.as_path().to_path_buf()))
             .expect("Could not create config");
         let mut ring = CensusRing::new("member-a");
