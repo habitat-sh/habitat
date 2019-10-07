@@ -15,10 +15,6 @@ channel=$(get_release_channel)
 
 echo "--- Channel: $channel - bldr url: $HAB_BLDR_URL"
 
-echo "--- Installing buildkite agent"
-brew tap buildkite/buildkite
-brew install --token="$BUILDKITE_AGENT_ACCESS_TOKEN" buildkite-agent
-
 echo "--- Install openssl for the certs"
 brew install openssl
 export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
