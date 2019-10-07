@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.23 -->
+<!-- latest_release 0.86.24 -->
+## [fake-0.86.24](https://github.com/habitat-sh/habitat/tree/fake-0.86.24) (2019-10-07)
+
+#### Merged Pull Requests
+- Migrate to executors and windows 2019 across the board pt 1 [#6999](https://github.com/habitat-sh/habitat/pull/6999) ([scotthain](https://github.com/scotthain))
+<!-- latest_release -->
+
 ## [fake-0.86.23](https://github.com/habitat-sh/habitat/tree/fake-0.86.23) (2019-10-05)
 
 #### Merged Pull Requests
 - Ma/hab 6878/pkg download [#6945](https://github.com/habitat-sh/habitat/pull/6945) ([markan](https://github.com/markan))
-<!-- latest_release -->
 
 ## [fake-0.86.22](https://github.com/habitat-sh/habitat/tree/fake-0.86.22) (2019-10-04)
 
