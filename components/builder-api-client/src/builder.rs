@@ -1019,7 +1019,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
             .delete(&path)
             .bearer_auth(token)
             .send()?
-            .ok_if(&[StatusCode::CREATED])
+            .ok_if(&[StatusCode::OK])
     }
 
     /// Promote all packages in channel
