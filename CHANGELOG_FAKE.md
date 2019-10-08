@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.25 -->
+<!-- latest_release 0.86.26 -->
+## [fake-0.86.26](https://github.com/habitat-sh/habitat/tree/fake-0.86.26) (2019-10-08)
+
+#### Merged Pull Requests
+- Add e2e tests to validate SSL_CERT_FILE behavior in studio [#6944](https://github.com/habitat-sh/habitat/pull/6944) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.86.25](https://github.com/habitat-sh/habitat/tree/fake-0.86.25) (2019-10-08)
 
 #### Merged Pull Requests
 - HTTP 200 indicates successful response from `hab bldr channel delete` [#7002](https://github.com/habitat-sh/habitat/pull/7002) ([jeremymv2](https://github.com/jeremymv2))
-<!-- latest_release -->
 
 ## [fake-0.86.24](https://github.com/habitat-sh/habitat/tree/fake-0.86.24) (2019-10-07)
 
