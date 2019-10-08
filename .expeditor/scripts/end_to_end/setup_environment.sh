@@ -13,12 +13,12 @@ declare -g hab_binary
 curlbash_hab "$BUILD_PKG_TARGET"
 
 echo "--- Installing latest core/hab from ${HAB_BLDR_URL}, ${channel} channel"
-hab pkg install core/hab \
+sudo -E hab pkg install core/hab \
     --binlink \
     --force \
     --channel "${channel}" \
     --url="${HAB_BLDR_URL}"
 echo "--- Using $(hab --version)"
 
-useradd --system --no-create-home hab
+sudo useradd --system --no-create-home hab
 
