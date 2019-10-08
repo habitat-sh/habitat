@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.26 -->
+<!-- latest_release 0.86.27 -->
+## [fake-0.86.27](https://github.com/habitat-sh/habitat/tree/fake-0.86.27) (2019-10-08)
+
+#### New Features & Enhancements
+- Allow user to specify `sys.ip` address [#6960](https://github.com/habitat-sh/habitat/pull/6960) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
 ## [fake-0.86.26](https://github.com/habitat-sh/habitat/tree/fake-0.86.26) (2019-10-08)
 
 #### Merged Pull Requests
 - Add e2e tests to validate SSL_CERT_FILE behavior in studio [#6944](https://github.com/habitat-sh/habitat/pull/6944) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.86.25](https://github.com/habitat-sh/habitat/tree/fake-0.86.25) (2019-10-08)
 
