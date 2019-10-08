@@ -183,7 +183,9 @@ impl fmt::Display for Error {
             }
             Error::NameLookup(ref e) => format!("Error resolving a name or IP address: {}", e),
             Error::NetErr(ref err) => err.to_string(),
-            Error::NetParseError(ref e) => format!("Can't parse ip:port: {}", e),
+            Error::NetParseError(ref e) => {
+                format!("Can't parse IP address or socket address: {}", e)
+            }
             Error::NoActiveMembers(ref g) => format!("No active members in service group {}", g),
             Error::NoLauncher => "Supervisor must be run from `hab-launch`".to_string(),
             Error::NoSuchBind(ref b) => format!("No such bind: {}", b),

@@ -40,7 +40,8 @@ use habitat_common::{cli::cache_key_path_from_matches,
                      FeatureFlag};
 #[cfg(windows)]
 use habitat_core::crypto::dpapi::encrypt;
-use habitat_core::{crypto::{self,
+use habitat_core::{self,
+                   crypto::{self,
                             SymKey},
                    os::process::ShutdownTimeout,
                    url::{bldr_url_from_env,
@@ -58,7 +59,9 @@ use habitat_sup_protocol::{self as sup_proto,
 use std::{env,
           io::{self,
                Write},
-          net::{SocketAddr,
+          net::{IpAddr,
+                Ipv4Addr,
+                SocketAddr,
                 ToSocketAddrs},
           path::{Path,
                  PathBuf},
@@ -173,7 +176,20 @@ fn sub_run_rsr_imlw_mlw_gsw_smw_rhw_msw(m: &ArgMatches,
     set_supervisor_logging_options(m);
 
     let cfg = mgrcfg_from_sup_run_matches(m, feature_flags)?;
-    let manager = Manager::load_imlw(cfg, launcher)?;
+
+    let sys_ip = m.value_of("SYS_IP_ADDRESS")
+                  .and_then(|s| IpAddr::from_str(s).ok())
+                  .or_else(|| {
+                      let result_ip = habitat_core::util::sys::ip();
+                      if let Err(e) = &result_ip {
+                          warn!("{}", e);
+                      }
+                      result_ip.ok()
+                  })
+                  .unwrap_or(IpAddr::V4(Ipv4Addr::LOCALHOST));
+    info!("Using sys IP address {}", sys_ip);
+
+    let manager = Manager::load_imlw(cfg, launcher, sys_ip)?;
 
     // We need to determine if we have an initial service to start
     let svc = if let Some(pkg) = m.value_of("PKG_IDENT_OR_ARTIFACT") {

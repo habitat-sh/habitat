@@ -30,7 +30,8 @@ use habitat_core::{crypto::{keys::PairType,
                              ServiceGroup},
                    ChannelIdent};
 use habitat_sup_protocol;
-use std::{net::SocketAddr,
+use std::{net::{Ipv4Addr,
+                SocketAddr},
           path::Path,
           result,
           str::FromStr};
@@ -1120,6 +1121,11 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
                                                             Implies NO_COLOR")
                             (@arg HEALTH_CHECK_INTERVAL: --("health-check-interval") -i +takes_value {valid_health_check_interval}
                              "The interval (seconds) on which to run health checks [default: 30]")
+                            (@arg SYS_IP_ADDRESS: --("sys-ip-address") +takes_value {valid_ipv4_address}
+                             "The IPv4 address to use as the `sys.ip` template variable. If this \
+                             argument is not set, the supervisor tries to dynamically determine \
+                             an IP address. If that fails, the supervisor defaults to using \
+                             `127.0.0.1`.")
     );
 
     let sub = if feature_flags.contains(FeatureFlag::EVENT_STREAM) {
@@ -1367,6 +1373,18 @@ fn file_exists_or_stdin(val: String) -> result::Result<(), String> {
         Ok(())
     } else {
         file_exists(val)
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+fn valid_ipv4_address(val: String) -> result::Result<(), String> {
+    match Ipv4Addr::from_str(&val) {
+        Ok(_) => Ok(()),
+        Err(_) => {
+            Err(format!("'{}' is not a valid IPv4 address, eg: \
+                         '192.168.1.105'",
+                        val))
+        }
     }
 }
 
