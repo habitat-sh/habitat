@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.24 -->
+<!-- latest_release 0.86.25 -->
+## [fake-0.86.25](https://github.com/habitat-sh/habitat/tree/fake-0.86.25) (2019-10-08)
+
+#### Merged Pull Requests
+- HTTP 200 indicates successful response from `hab bldr channel delete` [#7002](https://github.com/habitat-sh/habitat/pull/7002) ([jeremymv2](https://github.com/jeremymv2))
+<!-- latest_release -->
+
 ## [fake-0.86.24](https://github.com/habitat-sh/habitat/tree/fake-0.86.24) (2019-10-07)
 
 #### Merged Pull Requests
 - Migrate to executors and windows 2019 across the board pt 1 [#6999](https://github.com/habitat-sh/habitat/pull/6999) ([scotthain](https://github.com/scotthain))
-<!-- latest_release -->
 
 ## [fake-0.86.23](https://github.com/habitat-sh/habitat/tree/fake-0.86.23) (2019-10-05)
 
