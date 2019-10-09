@@ -232,6 +232,16 @@ steps:
 
   - wait
 
+  - label: ":windows: Build windows service"
+    command: .expeditor/scripts/release_habitat/build_component.ps1 windows-service
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
   - label: "[:linux: build hab-sup]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh sup
