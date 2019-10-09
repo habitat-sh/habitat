@@ -344,7 +344,7 @@ impl DockerBuildRoot {
         let result = cmd.output().expect("Docker command failed to spawn");
         let os = String::from_utf8_lossy(&result.stdout);
         if !os.contains("windows") {
-            return Err(Error::DockerNotInWindowsMode(os.to_string()))?;
+            return Err(Error::DockerNotInWindowsMode(os.to_string()).into());
         }
 
         self.build_docker_image(ui, naming, memory)
