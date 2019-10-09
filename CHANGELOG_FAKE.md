@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.29 -->
+<!-- latest_release 0.86.30 -->
+## [fake-0.86.30](https://github.com/habitat-sh/habitat/tree/fake-0.86.30) (2019-10-09)
+
+#### Merged Pull Requests
+- Upgrade to rust 1.38.0 [#6984](https://github.com/habitat-sh/habitat/pull/6984) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.86.29](https://github.com/habitat-sh/habitat/tree/fake-0.86.29) (2019-10-09)
 
 #### Merged Pull Requests
 - Add some &quot;PID 0&quot; protections [#6990](https://github.com/habitat-sh/habitat/pull/6990) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.86.28](https://github.com/habitat-sh/habitat/tree/fake-0.86.28) (2019-10-08)
 
