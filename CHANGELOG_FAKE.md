@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.32 -->
+<!-- latest_release 0.88.0 -->
+## [fake-0.88.0](https://github.com/habitat-sh/habitat/tree/fake-0.88.0) (2019-10-09)
+
+#### Merged Pull Requests
+- 0.87.0 release [#7026](https://github.com/habitat-sh/habitat/pull/7026) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.86.32](https://github.com/habitat-sh/habitat/tree/fake-0.86.32) (2019-10-09)
 
 #### Merged Pull Requests
 - add # to correctly comment out redirect stderr in run hook example [#7003](https://github.com/habitat-sh/habitat/pull/7003) ([ericcalabretta](https://github.com/ericcalabretta))
-<!-- latest_release -->
 
 ## [fake-0.86.31](https://github.com/habitat-sh/habitat/tree/fake-0.86.31) (2019-10-09)
 
