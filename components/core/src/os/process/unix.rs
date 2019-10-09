@@ -21,7 +21,20 @@ pub fn current_pid() -> Pid { unsafe { libc::getpid() as pid_t } }
 
 /// Determines if a process is running with the given process identifier.
 pub fn is_alive(pid: Pid) -> bool {
-    match unsafe { libc::kill(pid as pid_t, 0) } {
+    // Sending a signal to 0 is sending a signal to yourself, so this
+    // would just be checking that the current process itself is alive,
+    // which... *duh*.
+    //
+    // (This is in service of discovering how we would ever end up
+    // with pid == 0 down here in the first place.  I think places
+    // where a PID of 0 would be generated have been addressed in the
+    // code, but this is belt-and-suspenders code at the moment.)
+    if pid == 0 {
+        error!(target: "pidfile_tracing","Trying to determine if PID 0 is alive; this is an unexpected situation; returning false!");
+        return false;
+    }
+
+    match unsafe { libc::kill(pid, 0) } {
         0 => true,
         _ => {
             match io::Error::last_os_error().raw_os_error() {
