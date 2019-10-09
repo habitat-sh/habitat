@@ -516,7 +516,6 @@ steps:
   - label: "[build] :linux: backline"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh backline
     expeditor:
@@ -530,7 +529,6 @@ steps:
   - label: "[build] :linux: bintray-publish"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh bintray-publish
     expeditor:
@@ -544,7 +542,6 @@ steps:
   - label: "[build] :linux: hab"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh hab
     expeditor:
@@ -558,7 +555,6 @@ steps:
   - label: "[build] :linux: launcher"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh launcher
     expeditor:
@@ -572,7 +568,6 @@ steps:
   - label: "[build] :linux: pkg-aci"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-aci
     expeditor:
@@ -586,7 +581,6 @@ steps:
   - label: "[build] :linux: pkg-cfize"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-cfize
     expeditor:
@@ -600,7 +594,6 @@ steps:
   - label: "[build] :linux: pkg-dockerize"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-dockerize
     expeditor:
@@ -614,7 +607,6 @@ steps:
   - label: "[build] :linux: pkg-export-docker"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-export-docker
     expeditor:
@@ -628,7 +620,6 @@ steps:
   - label: "[build] :linux: pkg-export-helm"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-export-helm
     expeditor:
@@ -642,7 +633,6 @@ steps:
   - label: "[build] :linux: pkg-export-kubernetes"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-export-kubernetes
     expeditor:
@@ -656,7 +646,6 @@ steps:
   - label: "[build] :linux: pkg-export-tar"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-export-tar
     expeditor:
@@ -670,7 +659,6 @@ steps:
   - label: "[build] :linux: pkg-mesosize"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh pkg-mesosize
     expeditor:
@@ -684,7 +672,6 @@ steps:
   - label: "[build] :linux: plan-build"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh plan-build
     expeditor:
@@ -698,7 +685,6 @@ steps:
   - label: "[build] :linux: studio"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh studio
     expeditor:
@@ -712,7 +698,6 @@ steps:
   - label: "[build] :linux: sup"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh sup
     expeditor:
@@ -732,7 +717,6 @@ steps:
   - label: "[build] :windows: hab"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 hab
     expeditor:
@@ -748,7 +732,6 @@ steps:
   - label: "[build] :windows: launcher"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 launcher
     expeditor:
@@ -763,7 +746,6 @@ steps:
   - label: "[build] :windows: pkg-export-docker"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 pkg-export-docker
     expeditor:
@@ -778,7 +760,6 @@ steps:
   - label: "[build] :windows: pkg-export-tar"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 pkg-export-tar
     expeditor:
@@ -794,7 +775,6 @@ steps:
   - label: "[build] :windows: plan-build-ps1"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 plan-build-ps1
     expeditor:
@@ -809,7 +789,6 @@ steps:
   - label: "[build] :windows: studio"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 studio
     expeditor:
@@ -824,7 +803,6 @@ steps:
   - label: "[build] :windows: sup"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 sup
     expeditor:
@@ -839,7 +817,6 @@ steps:
   - label: "[build] :windows: windows-service"
     env:
       HAB_LICENSE: "accept-no-persist"
-      HAB_STUDIO_SECRET_HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.ps1 windows-service
     expeditor:
