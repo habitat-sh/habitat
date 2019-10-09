@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.30 -->
+<!-- latest_release 0.86.31 -->
+## [fake-0.86.31](https://github.com/habitat-sh/habitat/tree/fake-0.86.31) (2019-10-09)
+
+#### Merged Pull Requests
+- Remove HAB_STUDIO_SECRET_HAB_LICENSE which shouldn&#39;t be needed any more [#6994](https://github.com/habitat-sh/habitat/pull/6994) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.86.30](https://github.com/habitat-sh/habitat/tree/fake-0.86.30) (2019-10-09)
 
 #### Merged Pull Requests
 - Upgrade to rust 1.38.0 [#6984](https://github.com/habitat-sh/habitat/pull/6984) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.86.29](https://github.com/habitat-sh/habitat/tree/fake-0.86.29) (2019-10-09)
 
