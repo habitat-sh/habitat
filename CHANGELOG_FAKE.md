@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.86.28 -->
+<!-- latest_release 0.86.29 -->
+## [fake-0.86.29](https://github.com/habitat-sh/habitat/tree/fake-0.86.29) (2019-10-09)
+
+#### Merged Pull Requests
+- Add some &quot;PID 0&quot; protections [#6990](https://github.com/habitat-sh/habitat/pull/6990) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.86.28](https://github.com/habitat-sh/habitat/tree/fake-0.86.28) (2019-10-08)
 
 #### Merged Pull Requests
 - Add e2e scripts for powershell [#6952](https://github.com/habitat-sh/habitat/pull/6952) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.86.27](https://github.com/habitat-sh/habitat/tree/fake-0.86.27) (2019-10-08)
 
