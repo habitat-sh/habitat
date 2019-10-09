@@ -52,11 +52,11 @@ impl Deps {
                             .spawn()
                             .map_err(|_| Error::HelmLaunchFailed)
                             .and_then(|mut c| {
-                                if !c.wait().map_err(|_| Error::HelmLaunchFailed)?.success() {
-                                    Err(Error::HelmNotSetup(String::from("Failed to update \
-                                                                          chart dependencies")))?
-                                } else {
+                                if c.wait().map_err(|_| Error::HelmLaunchFailed)?.success() {
                                     Ok(())
+                                } else {
+                                    Err(Error::HelmNotSetup(String::from("Failed to update \
+                                                                          chart dependencies")))
                                 }
                             })?;
 

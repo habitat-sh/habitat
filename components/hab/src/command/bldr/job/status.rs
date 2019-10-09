@@ -1,15 +1,13 @@
-use std::io::Write;
-
 use crate::{api_client,
             common::ui::{Status,
                          UIWriter,
-                         UI}};
-use tabwriter::TabWriter;
-
-use crate::{error::{Error,
+                         UI},
+            error::{Error,
                     Result},
             PRODUCT,
             VERSION};
+use std::io::Write;
+use tabwriter::TabWriter;
 
 pub fn start(ui: &mut UI,
              bldr_url: &str,
@@ -21,8 +19,8 @@ pub fn start(ui: &mut UI,
     let api_client =
         api_client::Client::new(bldr_url, PRODUCT, VERSION, None).map_err(Error::APIClient)?;
 
-    if origin.is_some() {
-        do_origin_status(ui, &api_client, origin.unwrap(), limit)?;
+    if let Some(o) = origin {
+        do_origin_status(ui, &api_client, o, limit)?;
     } else {
         do_job_group_status(ui, &api_client, group_id.unwrap(), show_jobs)?;
     }

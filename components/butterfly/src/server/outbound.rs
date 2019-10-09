@@ -210,8 +210,8 @@ fn probe_mlw_smr_rhw(server: &Server,
                         .inc();
     }
 
-    if pr_timer.is_some() {
-        pr_timer.unwrap().observe_duration();
+    if let Some(prt) = pr_timer {
+        prt.observe_duration();
     }
 }
 

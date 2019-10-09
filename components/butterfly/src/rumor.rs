@@ -376,16 +376,11 @@ mod storage {
         {
             let map = self.0.list.read();
             let inner_map = map.get(Departure::const_key());
-            let len = if inner_map.is_some() {
-                inner_map.unwrap().len()
-            } else {
-                0
-            };
-
+            let len = inner_map.map_or(0, HashMap::len);
             let mut s = serializer.serialize_seq(Some(len))?;
 
-            if inner_map.is_some() {
-                for k in inner_map.unwrap().keys() {
+            if let Some(im) = inner_map {
+                for k in im.keys() {
                     s.serialize_element(k)?;
                 }
             }

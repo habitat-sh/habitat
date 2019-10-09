@@ -19,6 +19,8 @@ clippy::get_last_with_len
 clippy::get_unwrap
 clippy::identity_conversion
 clippy::if_let_some_result
+clippy::inherent_to_string
+clippy::inherent_to_string_shadow_display
 clippy::integer_division
 clippy::just_underscores_and_digits
 clippy::large_enum_variant
@@ -26,6 +28,7 @@ clippy::len_without_is_empty
 clippy::len_zero
 clippy::let_and_return
 clippy::let_unit_value
+clippy::main_recursion
 clippy::map_clone
 clippy::match_bool
 clippy::match_ref_pats
@@ -54,6 +57,8 @@ clippy::string_lit_as_bytes
 clippy::too_many_arguments
 clippy::toplevel_ref_arg
 clippy::trivially_copy_pass_by_ref
+clippy::try_err
+clippy::type_repetition_in_bounds
 clippy::unit_arg
 clippy::unnecessary_operation
 clippy::unreadable_literal

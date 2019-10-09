@@ -543,7 +543,7 @@ mod tests {
                                                            &RumorStore::default(),
                                                            &RumorStore::default());
 
-        assert!(result.is_ok(), "{}", result.unwrap_err());
+        assert!(result.is_ok(), "{:?}", result);
         assert!(file_path.is_file());
         let dat_file_length = fs::metadata(file_path).map(|md| md.len());
         assert_ne!(dat_file_length.unwrap(), 0);

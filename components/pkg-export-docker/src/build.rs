@@ -696,7 +696,7 @@ impl BuildRootContext {
             return Err(Error::PrimaryServicePackageNotFound(self.idents
                                                                 .iter()
                                                                 .map(|e| e.ident().to_string())
-                                                                .collect()))?;
+                                                                .collect()).into());
         }
 
         Ok(())
