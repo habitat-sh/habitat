@@ -4,6 +4,55 @@
 ## Unreleased
 
 <!-- latest_release -->
+## [0.87.0](https://github.com/habitat-sh/habitat/tree/0.87.0) (2019-10-09)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.85.0...0.87.0)
+
+#### New Features & Enhancements
+- Add some &quot;PID 0&quot; protections [#6990](https://github.com/habitat-sh/habitat/pull/6990) ([christophermaier](https://github.com/christophermaier))
+- Allow user to specify `sys.ip` address [#6960](https://github.com/habitat-sh/habitat/pull/6960) ([davidMcneil](https://github.com/davidMcneil))
+- Ma/hab 6878/pkg download [#6945](https://github.com/habitat-sh/habitat/pull/6945) ([markan](https://github.com/markan))
+- `hab pkg bulkupload` packages from a directory [#6958](https://github.com/habitat-sh/habitat/pull/6958) ([jeremymv2](https://github.com/jeremymv2))
+- Add auth option to tar exporter [#6982](https://github.com/habitat-sh/habitat/pull/6982) ([chefsalim](https://github.com/chefsalim))
+- windows health checks run from a single powershell instance [#6947](https://github.com/habitat-sh/habitat/pull/6947) ([mwrock](https://github.com/mwrock))
+- Add conditional compliation flags for unsupported targets [#6862](https://github.com/habitat-sh/habitat/pull/6862) ([davidMcneil](https://github.com/davidMcneil))
+
+#### Bug Fixes
+- HTTP 200 indicates successful response from `hab bldr channel delete` [#7002](https://github.com/habitat-sh/habitat/pull/7002) ([jeremymv2](https://github.com/jeremymv2))
+- pass supervisor pid to named pipe server instead of querying it from server to fix win7 [#6998](https://github.com/habitat-sh/habitat/pull/6998) ([mwrock](https://github.com/mwrock))
+- set connection header to close on all ApiClient requests [#6993](https://github.com/habitat-sh/habitat/pull/6993) ([mwrock](https://github.com/mwrock))
+- do not inject studio environment with ctl_secret from cli.toml [#6988](https://github.com/habitat-sh/habitat/pull/6988) ([mwrock](https://github.com/mwrock))
+- use -file instead of -command when forwarding args to hab-studio.ps1 so that args are passed as individual args and not as a single string [#6985](https://github.com/habitat-sh/habitat/pull/6985) ([mwrock](https://github.com/mwrock))
+
+#### Merged Pull Requests
+- add # to correctly comment out redirect stderr in run hook example [#7003](https://github.com/habitat-sh/habitat/pull/7003) ([ericcalabretta](https://github.com/ericcalabretta))
+- Remove HAB_STUDIO_SECRET_HAB_LICENSE which shouldn&#39;t be needed any more [#6994](https://github.com/habitat-sh/habitat/pull/6994) ([raskchanky](https://github.com/raskchanky))
+- Upgrade to rust 1.38.0 [#6984](https://github.com/habitat-sh/habitat/pull/6984) ([raskchanky](https://github.com/raskchanky))
+- Add e2e scripts for powershell [#6952](https://github.com/habitat-sh/habitat/pull/6952) ([smacfarlane](https://github.com/smacfarlane))
+- Add e2e tests to validate SSL_CERT_FILE behavior in studio [#6944](https://github.com/habitat-sh/habitat/pull/6944) ([smacfarlane](https://github.com/smacfarlane))
+- Migrate to executors and windows 2019 across the board pt 1 [#6999](https://github.com/habitat-sh/habitat/pull/6999) ([scotthain](https://github.com/scotthain))
+- Update the fake release process [#6995](https://github.com/habitat-sh/habitat/pull/6995) ([raskchanky](https://github.com/raskchanky))
+- Remove baumanj from CODEOWNERS [#6997](https://github.com/habitat-sh/habitat/pull/6997) ([baumanj](https://github.com/baumanj))
+- Fix the text around job demotion [#6996](https://github.com/habitat-sh/habitat/pull/6996) ([raskchanky](https://github.com/raskchanky))
+- Remove tarball that got inadvertently added [#6989](https://github.com/habitat-sh/habitat/pull/6989) ([christophermaier](https://github.com/christophermaier))
+- Remove redundant hook reference partial, update docs [#6979](https://github.com/habitat-sh/habitat/pull/6979) ([christophermaier](https://github.com/christophermaier))
+- copy choco build files to temp directory [#6980](https://github.com/habitat-sh/habitat/pull/6980) ([mwrock](https://github.com/mwrock))
+- Add script to repackage binaries and push to our S3 bucket [#6908](https://github.com/habitat-sh/habitat/pull/6908) ([scotthain](https://github.com/scotthain))
+- Update docs for new cert handling [#6959](https://github.com/habitat-sh/habitat/pull/6959) ([chefsalim](https://github.com/chefsalim))
+- Update Rust nightly version [#6975](https://github.com/habitat-sh/habitat/pull/6975) ([christophermaier](https://github.com/christophermaier))
+- Update docs for 0.85.0 release [#6971](https://github.com/habitat-sh/habitat/pull/6971) ([christophermaier](https://github.com/christophermaier))
+- Fix end-to-end tests [#6948](https://github.com/habitat-sh/habitat/pull/6948) ([christophermaier](https://github.com/christophermaier))
+- Update dependencies [#6973](https://github.com/habitat-sh/habitat/pull/6973) ([christophermaier](https://github.com/christophermaier))
+- Bump `rustfmt` to 2019-09-18 [#6974](https://github.com/habitat-sh/habitat/pull/6974) ([christophermaier](https://github.com/christophermaier))
+- Allow Windows studio tests to soft-fail [#6970](https://github.com/habitat-sh/habitat/pull/6970) ([smacfarlane](https://github.com/smacfarlane))
+- Remove automated Homebrew release script [#6969](https://github.com/habitat-sh/habitat/pull/6969) ([christophermaier](https://github.com/christophermaier))
+- Audit `habitat_sup::manager::ManagerServices` locking [#6956](https://github.com/habitat-sh/habitat/pull/6956) ([baumanj](https://github.com/baumanj))
+- Bump VERSION to 0.87.0-dev [#6968](https://github.com/habitat-sh/habitat/pull/6968) ([smacfarlane](https://github.com/smacfarlane))
+- Convert RwLocks in the rumor::heat module to habitat_common::sync::Lock [#6957](https://github.com/habitat-sh/habitat/pull/6957) ([raskchanky](https://github.com/raskchanky))
+- Error when sys.ip cannot be determined [#6953](https://github.com/habitat-sh/habitat/pull/6953) ([davidMcneil](https://github.com/davidMcneil))
+- Cleanup errors [#6949](https://github.com/habitat-sh/habitat/pull/6949) ([davidMcneil](https://github.com/davidMcneil))
+- Audit `habitat_sup::manager::Manager` locking [#6940](https://github.com/habitat-sh/habitat/pull/6940) ([baumanj](https://github.com/baumanj))
+- Fix the rustfmt instructions and add helper script [#6946](https://github.com/habitat-sh/habitat/pull/6946) ([davidMcneil](https://github.com/davidMcneil))
+- Redo the locks inside the butterfly::server module. [#6941](https://github.com/habitat-sh/habitat/pull/6941) ([raskchanky](https://github.com/raskchanky))
 
 ## [0.85.0](https://github.com/habitat-sh/habitat/tree/0.85.0) (2019-09-09)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.83.0...0.85.0)
