@@ -799,6 +799,42 @@ two = 2
     }
 
     #[test]
+    fn binds_are_output_in_consistent_order() {
+        let mut render_context = default_render_context();
+        let mut new_binds = BTreeMap::new();
+
+        new_binds.insert("foo".to_string(),
+                         BindGroup { leader:  None,
+                                     first:   None,
+                                     members: vec![], });
+        new_binds.insert("bar".to_string(),
+                         BindGroup { leader:  None,
+                                     first:   None,
+                                     members: vec![], });
+        new_binds.insert("quux".to_string(),
+                         BindGroup { leader:  None,
+                                     first:   None,
+                                     members: vec![], });
+        new_binds.insert("baz".to_string(),
+                         BindGroup { leader:  None,
+                                     first:   None,
+                                     members: vec![], });
+
+        render_context.bind = Binds(new_binds);
+
+        let j = serde_json::to_string(&render_context).expect("can't serialize to JSON");
+        assert_valid(&j, "render_context_schema.json");
+
+        // The point here is to just render our context to a string repeatedly and compare it to
+        // our original rendered string. Our goal was to have consistent ordering of binds on every
+        // render and this should be sufficient to tell us if that's the case.
+        for _ in 0..50 {
+            let x = serde_json::to_string(&render_context).expect("can't serialize to JSON");
+            assert_eq!(j, x);
+        }
+    }
+
+    #[test]
     fn no_leader_renders_correctly() {
         let ctx = default_render_context();
 
@@ -818,7 +854,7 @@ two = 2
 
         // Let's create a new leader, with a custom member_id
         let mut svc_member = default_svc_member();
-        svc_member.member_id = Cow::Owned("deadbeefdeadbeefdeadbeefdeadbeef".into());
+        svc_member.member_id = Cow::Owned("samshamandthepharaohs".into());
 
         // Set up our own bind with a leader
         let mut bind_map = BTreeMap::new();
@@ -834,7 +870,7 @@ two = 2
                              LEADER{{/if}}",
                             &ctx);
 
-        assert_eq!(output, "deadbeefdeadbeefdeadbeefdeadbeef");
+        assert_eq!(output, "samshamandthepharaohs");
     }
 
     // Technically, `bind.<SERVICE>.first` could be None, according to
