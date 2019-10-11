@@ -16,7 +16,8 @@ use serde_derive::{Deserialize,
                    Serialize};
 use std::{cmp::{Ordering,
                 PartialOrd},
-          collections::{HashMap,
+          collections::{BTreeMap,
+                        HashMap,
                         HashSet},
           env,
           fmt,
@@ -219,7 +220,7 @@ impl PackageInstall {
 
     /// Constructs and returns a `HashMap` of environment variable/value key pairs of all
     /// environment variables needed to properly run a command from the context of this package.
-    pub fn environment_for_command(&self) -> Result<HashMap<String, String>> {
+    pub fn environment_for_command(&self) -> Result<BTreeMap<String, String>> {
         let mut env = self.runtime_environment_file_map(MetaFile::RuntimeEnvironment)?;
         // Remove any pre-existing PATH key as this is either from an older package or is
         // present for backwards compatibility with older Habitat releases.
@@ -358,14 +359,14 @@ impl PackageInstall {
     /// These mappings are used as a filter-map to generate a public configuration when the package
     /// is started as a service. This public configuration can be retrieved by peers to assist in
     /// configuration of themselves.
-    pub fn exports(&self) -> Result<HashMap<String, String>> {
+    pub fn exports(&self) -> Result<BTreeMap<String, String>> {
         match self.read_metafile(MetaFile::Exports) {
             Ok(body) => {
                 let parsed_value = parse_key_value(&body);
                 let result = parsed_value.map_err(|_| Error::MetaFileMalformed(MetaFile::Exports))?;
                 Ok(result)
             }
-            Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(HashMap::new()),
+            Err(Error::MetaFileNotFound(MetaFile::Exports)) => Ok(BTreeMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -544,8 +545,8 @@ impl PackageInstall {
         Ok(paths)
     }
 
-    fn parse_runtime_environment_metafile(body: &str) -> Result<HashMap<String, String>> {
-        let mut env = HashMap::new();
+    fn parse_runtime_environment_metafile(body: &str) -> Result<BTreeMap<String, String>> {
+        let mut env = BTreeMap::new();
         for line in body.lines() {
             let parts: Vec<&str> = line.splitn(2, '=').collect();
             if parts.len() != 2 {
@@ -562,10 +563,10 @@ impl PackageInstall {
     /// or an empty `HashMap` if not found.
     ///
     /// If no value of file is found, return an empty `HashMap`.
-    fn runtime_environment_file_map(&self, metafile: MetaFile) -> Result<HashMap<String, String>> {
+    fn runtime_environment_file_map(&self, metafile: MetaFile) -> Result<BTreeMap<String, String>> {
         match self.read_metafile(metafile) {
             Ok(ref body) => Self::parse_runtime_environment_metafile(body),
-            Err(Error::MetaFileNotFound(_)) => Ok(HashMap::new()),
+            Err(Error::MetaFileNotFound(_)) => Ok(BTreeMap::new()),
             Err(e) => Err(e),
         }
     }
@@ -1339,7 +1340,7 @@ core/bar=pub:core/publish sub:core/subscribe
         let fs_root = Builder::new().prefix("fs-root").tempdir().unwrap();
         let pkg_install = testing_package_install("acme/pathy", fs_root.path());
 
-        assert_eq!(HashMap::<String, String>::new(),
+        assert_eq!(BTreeMap::<String, String>::new(),
                    pkg_install.environment_for_command().unwrap());
     }
 
@@ -1388,7 +1389,7 @@ core/bar=pub:core/publish sub:core/subscribe
                        MetaFile::RuntimeEnvironment,
                        "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n");
 
-        let mut expected = HashMap::new();
+        let mut expected = BTreeMap::new();
         expected.insert("FOO".to_string(), "bar".to_string());
         expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
 
@@ -1411,7 +1412,7 @@ core/bar=pub:core/publish sub:core/subscribe
                        MetaFile::RuntimeEnvironment,
                        "PATH=/should/be/ignored\nJAVA_HOME=/my/java/home\nFOO=bar\n");
 
-        let mut expected = HashMap::new();
+        let mut expected = BTreeMap::new();
         let fs_root_path = fs_root.into_path();
         expected.insert("FOO".to_string(), "bar".to_string());
         expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());

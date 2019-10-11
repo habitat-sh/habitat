@@ -6,7 +6,7 @@ use crate::{common::ui::{Status,
             hcore::{fs as hfs,
                     package::{PackageIdent,
                               PackageInstall}}};
-use std::{collections::HashMap,
+use std::{collections::BTreeMap,
           env,
           fs,
           path::{Path,
@@ -18,6 +18,104 @@ use std::{fs::File,
 
 #[cfg(windows)]
 const COMMENT_MARKER: &str = "REM";
+
+struct Binlink {
+    link:   PathBuf,
+    target: PathBuf,
+}
+
+impl Binlink {
+    pub fn new(target: &Path, link: &Path) -> Result<Self> {
+        Ok(Self { link:   Self::binstub_path(&target, link)?,
+                  target: target.to_path_buf(), })
+    }
+
+    pub fn from_file(path: &Path) -> Result<Self> {
+        #[cfg(unix)]
+        {
+            Ok(Binlink { link:   path.to_path_buf(),
+                         target: fs::read_link(&path)?, })
+        }
+
+        #[cfg(windows)]
+        {
+            let file = File::open(path)?;
+            for line in BufReader::new(file).lines() {
+                let ln = line?;
+                if ln.to_uppercase().starts_with(COMMENT_MARKER) {
+                    let (_, rest) = ln.split_at(COMMENT_MARKER.len());
+                    if let Some(target) = Self::get_target_from_toml(rest) {
+                        return Ok(Self { link:   path.into(),
+                                         target: target.into(), });
+                    }
+                }
+            }
+            Err(Error::CannotParseBinlinkTarget(path.to_path_buf()))
+        }
+    }
+
+    #[cfg(windows)]
+    fn get_target_from_toml(toml: &str) -> Option<String> {
+        toml.parse()
+            .ok()
+            .as_ref()
+            .and_then(toml::value::Value::as_table)
+            // Prior to 0.84.0, we used 'source' so we fallback
+            // to 'source' for links created with older versions
+            .and_then(|toml_table| toml_table.get("target").or_else(|| toml_table.get("source")))
+            .and_then(toml::value::Value::as_str)
+            .map(String::from)
+    }
+
+    #[cfg(unix)]
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn link(&self, _env: BTreeMap<String, String>) -> Result<()> {
+        use crate::hcore::os::filesystem;
+        filesystem::symlink(&self.target, &self.link)?;
+        Ok(())
+    }
+
+    #[cfg(windows)]
+    pub fn link(&self, env: BTreeMap<String, String>) -> Result<()> {
+        fs::write(&self.link, self.stub_template(env)?.as_bytes())?;
+        Ok(())
+    }
+
+    fn binstub_path(target: &Path, link: &Path) -> Result<PathBuf> {
+        #[cfg(windows)]
+        {
+            let bin_name = match target.file_stem() {
+                Some(name) => name,
+                None => return Err(Error::CannotParseBinlinkTarget(target.to_path_buf())),
+            };
+            let mut path = link.join(bin_name);
+            path.set_extension("bat");
+            Ok(path)
+        }
+
+        #[cfg(unix)]
+        match target.file_name() {
+            Some(name) => Ok(link.join(name)),
+            None => Err(Error::CannotParseBinlinkTarget(target.to_path_buf())),
+        }
+    }
+
+    #[cfg(windows)]
+    fn stub_template(&self, env: HashMap<String, String>) -> Result<String> {
+        let mut exports = String::new();
+        for (key, mut value) in env.into_iter() {
+            if key == "PATH" {
+                value.push_str(";%PATH%");
+            }
+            exports.push_str(&format!("SET {}={}\n", key, value));
+        }
+
+        Ok(format!(include_str!("../../../static/template_binstub.\
+                                 bat"),
+                   target = self.target.display(),
+                   env = exports))
+    }
+}
 
 pub fn start(ui: &mut UI,
              ident: &PackageIdent,
@@ -139,104 +237,6 @@ fn is_dest_on_path(dest_dir: &Path) -> bool {
         env::split_paths(&val).any(|p| p == dest_dir)
     } else {
         false
-    }
-}
-
-struct Binlink {
-    link:   PathBuf,
-    target: PathBuf,
-}
-
-impl Binlink {
-    pub fn new(target: &Path, link: &Path) -> Result<Self> {
-        Ok(Self { link:   Self::binstub_path(&target, link)?,
-                  target: target.to_path_buf(), })
-    }
-
-    pub fn from_file(path: &Path) -> Result<Self> {
-        #[cfg(unix)]
-        {
-            Ok(Binlink { link:   path.to_path_buf(),
-                         target: fs::read_link(&path)?, })
-        }
-
-        #[cfg(windows)]
-        {
-            let file = File::open(path)?;
-            for line in BufReader::new(file).lines() {
-                let ln = line?;
-                if ln.to_uppercase().starts_with(COMMENT_MARKER) {
-                    let (_, rest) = ln.split_at(COMMENT_MARKER.len());
-                    if let Some(target) = Self::get_target_from_toml(rest) {
-                        return Ok(Self { link:   path.into(),
-                                         target: target.into(), });
-                    }
-                }
-            }
-            Err(Error::CannotParseBinlinkTarget(path.to_path_buf()))
-        }
-    }
-
-    #[cfg(windows)]
-    fn get_target_from_toml(toml: &str) -> Option<String> {
-        toml.parse()
-            .ok()
-            .as_ref()
-            .and_then(toml::value::Value::as_table)
-            // Prior to 0.84.0, we used 'source' so we fallback
-            // to 'source' for links created with older versions
-            .and_then(|toml_table| toml_table.get("target").or_else(|| toml_table.get("source")))
-            .and_then(toml::value::Value::as_str)
-            .map(String::from)
-    }
-
-    #[cfg(unix)]
-    #[allow(clippy::needless_pass_by_value)]
-    pub fn link(&self, _env: HashMap<String, String>) -> Result<()> {
-        use crate::hcore::os::filesystem;
-        filesystem::symlink(&self.target, &self.link)?;
-        Ok(())
-    }
-
-    #[cfg(windows)]
-    pub fn link(&self, env: HashMap<String, String>) -> Result<()> {
-        fs::write(&self.link, self.stub_template(env)?.as_bytes())?;
-        Ok(())
-    }
-
-    fn binstub_path(target: &Path, link: &Path) -> Result<PathBuf> {
-        #[cfg(windows)]
-        {
-            let bin_name = match target.file_stem() {
-                Some(name) => name,
-                None => return Err(Error::CannotParseBinlinkTarget(target.to_path_buf())),
-            };
-            let mut path = link.join(bin_name);
-            path.set_extension("bat");
-            Ok(path)
-        }
-
-        #[cfg(unix)]
-        match target.file_name() {
-            Some(name) => Ok(link.join(name)),
-            None => Err(Error::CannotParseBinlinkTarget(target.to_path_buf())),
-        }
-    }
-
-    #[cfg(windows)]
-    fn stub_template(&self, env: HashMap<String, String>) -> Result<String> {
-        let mut exports = String::new();
-        for (key, mut value) in env.into_iter() {
-            if key == "PATH" {
-                value.push_str(";%PATH%");
-            }
-            exports.push_str(&format!("SET {}={}\n", key, value));
-        }
-
-        Ok(format!(include_str!("../../../static/template_binstub.\
-                                 bat"),
-                   target = self.target.display(),
-                   env = exports))
     }
 }
 

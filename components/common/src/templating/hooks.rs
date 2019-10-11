@@ -480,7 +480,7 @@ impl<'a> HookOutput<'a> {
         }
     }
 
-    /// Try to write a stream to stdout and to `path`  
+    /// Try to write a stream to stdout and to `path`
     fn tee_standard_stream(preamble_str: &str, reader: impl Read, path: &Path) {
         let mut file_result = File::create(path);
         if let Err(e) = &file_result {

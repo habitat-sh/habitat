@@ -33,19 +33,17 @@
 //! their focused and single-use purpose; they shouldn't be used for
 //! anything else, and so, they _can't_ be used for anything else.
 
-use std::{borrow::Cow,
-          collections::HashMap,
-          path::PathBuf,
-          result};
-
-use serde::{ser::SerializeMap,
-            Serialize,
-            Serializer};
-
 use super::{config::Cfg,
             package::{Env,
                       Pkg}};
 use crate::hcore::package::PackageIdent;
+use serde::{ser::SerializeMap,
+            Serialize,
+            Serializer};
+use std::{borrow::Cow,
+          collections::BTreeMap,
+          path::PathBuf,
+          result};
 
 /// The context of a rendering call, exposing information on the
 /// currently-running Supervisor and service, its service group, and
@@ -99,7 +97,7 @@ struct Package<'a> {
     env:     Cow<'a, Env>,
     // TODO (CM): Ideally, this would be Vec<u16>, since they're ports.
     exposes: Cow<'a, Vec<String>>,
-    exports: Cow<'a, HashMap<String, String>>,
+    exports: Cow<'a, BTreeMap<String, String>>,
     // TODO (CM): Maybe Path instead of Cow<'a PathBuf>?
     path:                    Cow<'a, PathBuf>,
     svc_path:                Cow<'a, PathBuf>,
@@ -279,11 +277,11 @@ two = 2
                         PackageIdent::new("test", "pkg2", Some("2.0.0"), Some("20180321150416")),
                         PackageIdent::new("test", "pkg3", Some("3.0.0"), Some("20180321150416")),];
 
-        let mut env_hash = HashMap::new();
+        let mut env_hash = BTreeMap::new();
         env_hash.insert("PATH".into(), "/foo:/bar:/baz".into());
         env_hash.insert("SECRET".into(), "sooperseekrit".into());
 
-        let mut export_hash = HashMap::new();
+        let mut export_hash = BTreeMap::new();
         export_hash.insert("blah".into(), "stuff.thing".into());
         export_hash.insert("port".into(), "test_port".into());
 

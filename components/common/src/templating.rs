@@ -5,27 +5,23 @@ pub mod hooks;
 pub mod package;
 pub mod test_helpers;
 
-use std::{fmt,
-          ops::{Deref,
-                DerefMut},
-          result};
-
-use regex::Regex;
-
-use handlebars::{Handlebars,
-                 RenderError,
-                 TemplateFileError};
-use serde::Serialize;
-use serde_json;
-
+pub use self::context::RenderContext;
 use crate::{error::{Error,
                     Result},
             hcore::{fs,
                     package::PackageInstall},
             templating::hooks::{Hook,
                                 InstallHook}};
-
-pub use self::context::RenderContext;
+use handlebars::{Handlebars,
+                 RenderError,
+                 TemplateFileError};
+use regex::Regex;
+use serde::Serialize;
+use serde_json;
+use std::{fmt,
+          ops::{Deref,
+                DerefMut},
+          result};
 
 // This is specifically for finding syntax violations to object access in handlebars templates.
 // This should eventually be removed when we have upgraded the handlebars library and provided

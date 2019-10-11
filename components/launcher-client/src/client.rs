@@ -7,11 +7,11 @@ use habitat_launcher_protocol::{self as protocol,
 use ipc_channel::ipc::{IpcOneShotServer,
                        IpcReceiver,
                        IpcSender};
-use std::{collections::HashMap,
+use std::{collections::BTreeMap,
           io,
           path::Path};
 
-type Env = HashMap<String, String>;
+type Env = BTreeMap<String, String>;
 type IpcServer = IpcOneShotServer<Vec<u8>>;
 
 pub struct LauncherCli {

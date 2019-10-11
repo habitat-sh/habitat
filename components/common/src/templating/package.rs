@@ -1,23 +1,21 @@
-use std::{collections::HashMap,
+use crate::{error::{Error,
+                    Result},
+            hcore::{fs,
+                    os::{process::{ShutdownSignal,
+                                   ShutdownTimeout},
+                         users},
+                    package::{PackageIdent,
+                              PackageInstall},
+                    util::serde_string},
+            util::path};
+use serde::{ser::SerializeStruct,
+            Serialize,
+            Serializer};
+use std::{collections::BTreeMap,
           env,
           ops::Deref,
           path::PathBuf,
           result};
-
-use crate::hcore::{fs,
-                   os::{process::{ShutdownSignal,
-                                  ShutdownTimeout},
-                        users},
-                   package::{PackageIdent,
-                             PackageInstall},
-                   util::serde_string};
-use serde::{ser::SerializeStruct,
-            Serialize,
-            Serializer};
-
-use crate::{error::{Error,
-                    Result},
-            util::path};
 
 const DEFAULT_USER: &str = "hab";
 const DEFAULT_GROUP: &str = "hab";
@@ -25,16 +23,16 @@ const DEFAULT_GROUP: &str = "hab";
 const PATH_KEY: &str = "PATH";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Env(HashMap<String, String>);
+pub struct Env(BTreeMap<String, String>);
 
 impl Deref for Env {
-    type Target = HashMap<String, String>;
+    type Target = BTreeMap<String, String>;
 
     fn deref(&self) -> &Self::Target { &self.0 }
 }
 
-impl From<HashMap<String, String>> for Env {
-    fn from(inner_map: HashMap<String, String>) -> Self { Env(inner_map) }
+impl From<BTreeMap<String, String>> for Env {
+    fn from(inner_map: BTreeMap<String, String>) -> Self { Env(inner_map) }
 }
 
 impl Env {
@@ -72,7 +70,7 @@ pub struct Pkg {
     pub deps: Vec<PackageIdent>,
     pub env: Env,
     pub exposes: Vec<String>,
-    pub exports: HashMap<String, String>,
+    pub exports: BTreeMap<String, String>,
     pub path: PathBuf,
     pub svc_path: PathBuf,
     pub svc_config_path: PathBuf,

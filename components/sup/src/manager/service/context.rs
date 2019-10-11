@@ -50,7 +50,7 @@ use serde::{ser::SerializeMap,
             Serialize,
             Serializer};
 use std::{borrow::Cow,
-          collections::HashMap,
+          collections::BTreeMap,
           net::IpAddr,
           path::PathBuf,
           result};
@@ -165,7 +165,7 @@ struct Package<'a> {
     env:     Cow<'a, Env>,
     // TODO (CM): Ideally, this would be Vec<u16>, since they're ports.
     exposes: Cow<'a, Vec<String>>,
-    exports: Cow<'a, HashMap<String, String>>,
+    exports: Cow<'a, BTreeMap<String, String>>,
     // TODO (CM): Maybe Path instead of Cow<'a PathBuf>?
     path:            Cow<'a, PathBuf>,
     svc_path:        Cow<'a, PathBuf>,
@@ -347,13 +347,13 @@ impl<'a> Serialize for Svc<'a> {
 ////////////////////////////////////////////////////////////////////////
 
 #[derive(Clone, Debug, Serialize)]
-struct Binds<'a>(HashMap<String, BindGroup<'a>>);
+struct Binds<'a>(BTreeMap<String, BindGroup<'a>>);
 
 impl<'a> Binds<'a> {
     fn new<T>(bindings: T, census: &'a CensusRing) -> Self
         where T: Iterator<Item = &'a ServiceBind>
     {
-        let mut map = HashMap::default();
+        let mut map = BTreeMap::default();
         for bind in bindings {
             if let Some(group) = census.census_group_for(&bind.service_group()) {
                 map.insert(bind.name().to_string(), BindGroup::new(group));
@@ -545,24 +545,20 @@ fn select_first(census_group: &CensusGroup) -> Option<SvcMember<'_>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use crate::{manager::service::Cfg,
+                test_helpers::*};
+    use habitat_butterfly::rumor::service::SysInfo;
+    use habitat_common::templating::{config::PackageConfigPaths,
+                                     TemplateRenderer};
+    use habitat_core::package::PackageIdent;
+    use serde_json;
     use std::{fs,
               io::{Read,
                    Write},
               net::{IpAddr,
                     Ipv4Addr},
               path::PathBuf};
-
-    use serde_json;
     use tempfile::TempDir;
-
-    use habitat_butterfly::rumor::service::SysInfo;
-    use habitat_common::templating::{config::PackageConfigPaths,
-                                     TemplateRenderer};
-    use habitat_core::package::PackageIdent;
-
-    use crate::{manager::service::Cfg,
-                test_helpers::*};
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -673,11 +669,11 @@ two = 2
                         PackageIdent::new("test", "pkg2", Some("2.0.0"), Some("20180321150416")),
                         PackageIdent::new("test", "pkg3", Some("3.0.0"), Some("20180321150416")),];
 
-        let mut env_hash = HashMap::new();
+        let mut env_hash = BTreeMap::new();
         env_hash.insert("PATH".into(), "/foo:/bar:/baz".into());
         env_hash.insert("SECRET".into(), "sooperseekrit".into());
 
-        let mut export_hash = HashMap::new();
+        let mut export_hash = BTreeMap::new();
         export_hash.insert("blah".into(), "stuff.thing".into());
         export_hash.insert("port".into(), "test_port".into());
 
@@ -732,7 +728,7 @@ two = 2
                         me:                     Cow::Owned(me.clone()),
                         first:                  Cow::Owned(me.clone()), };
 
-        let mut bind_map = HashMap::new();
+        let mut bind_map = BTreeMap::new();
         let bind_group = BindGroup { first:   Some(me.clone()),
                                      leader:  None,
                                      members: vec![me.clone()], };
@@ -797,7 +793,7 @@ two = 2
     #[test]
     fn no_binds_are_valid() {
         let mut render_context = default_render_context();
-        render_context.bind = Binds(HashMap::new());
+        render_context.bind = Binds(BTreeMap::new());
         let j = serde_json::to_string(&render_context).expect("can't serialize to JSON");
         assert_valid(&j, "render_context_schema.json");
     }
@@ -825,7 +821,7 @@ two = 2
         svc_member.member_id = Cow::Owned("deadbeefdeadbeefdeadbeefdeadbeef".into());
 
         // Set up our own bind with a leader
-        let mut bind_map = HashMap::new();
+        let mut bind_map = BTreeMap::new();
         let bind_group = BindGroup { first:   Some(svc_member.clone()),
                                      leader:  Some(svc_member.clone()),
                                      members: vec![svc_member.clone()], };
@@ -853,7 +849,7 @@ two = 2
     #[test]
     fn bind_first_can_technically_be_none() {
         let mut render_context = default_render_context();
-        let mut new_binds = HashMap::new();
+        let mut new_binds = BTreeMap::new();
 
         new_binds.insert("foo".to_string(),
                          BindGroup { leader:  None,

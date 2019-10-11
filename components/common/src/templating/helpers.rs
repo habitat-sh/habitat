@@ -9,10 +9,6 @@ mod to_toml;
 mod to_uppercase;
 mod to_yaml;
 
-use serde::Serialize;
-use serde_json::{self,
-                 Value as Json};
-
 pub use self::{each_alive::EACH_ALIVE,
                pkg_path_for::PKG_PATH_FOR,
                str_concat::STR_CONCAT,
@@ -23,6 +19,9 @@ pub use self::{each_alive::EACH_ALIVE,
                to_toml::TO_TOML,
                to_uppercase::TO_UPPERCASE,
                to_yaml::TO_YAML};
+use serde::Serialize;
+use serde_json::{self,
+                 Value as Json};
 
 // Taken from `handlebars::context::JsonTruthy`. The trait is marked public but it's in a private
 // module. It's super useful so let's pull it into here.
