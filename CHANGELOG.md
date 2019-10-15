@@ -4,8 +4,8 @@
 ## Unreleased
 
 <!-- latest_release -->
-## [0.87.0](https://github.com/habitat-sh/habitat/tree/0.87.0) (2019-10-09)
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.85.0...0.87.0)
+## [0.88.0](https://github.com/habitat-sh/habitat/tree/0.88.0) (2019-10-15)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.85.0...0.88.0)
 
 #### New Features & Enhancements
 - Add some &quot;PID 0&quot; protections [#6990](https://github.com/habitat-sh/habitat/pull/6990) ([christophermaier](https://github.com/christophermaier))

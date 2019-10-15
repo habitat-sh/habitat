@@ -10,7 +10,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.85.0/20190916214648 (linux) | 17 Sep 2019 |
+| hab 0.88.0/20191009204957 (linux) | 15 Oct 2019 |
 
 ## hab
 
@@ -320,7 +320,7 @@ hab bldr job [SUBCOMMAND]
 | Command | Description |
 | ------- | ----------- |
 | [hab bldr job cancel](#hab-bldr-job-cancel) | Cancel a build job group and any in-progress builds |
-| [hab bldr job demote](#hab-bldr-job-demote) | Demote packages from a completed build job to a specified channel |
+| [hab bldr job demote](#hab-bldr-job-demote) | Demote packages from a completed build job from a specified channel |
 | [hab bldr job promote](#hab-bldr-job-promote) | Promote packages from a completed build job to a specified channel |
 | [hab bldr job start](#hab-bldr-job-start) | Schedule a build job or group of jobs |
 | [hab bldr job status](#hab-bldr-job-status) | Get the status of one or more job groups |
@@ -363,7 +363,7 @@ hab bldr job cancel [FLAGS] [OPTIONS] <GROUP_ID>
 
 ### hab bldr job demote
 
-Demote packages from a completed build job to a specified channel
+Demote packages from a completed build job from a specified channel
 
 **USAGE**
 
@@ -391,7 +391,7 @@ hab bldr job demote [FLAGS] [OPTIONS] <GROUP_ID> <CHANNEL>
 
 ```
 <GROUP_ID>    The job id that was returned from "hab bldr start" (ex: 771100000000000000)
-<CHANNEL>     The target channel name
+<CHANNEL>     The name of the channel to demote from
 ```
 
 
@@ -1261,11 +1261,13 @@ hab pkg [SUBCOMMAND]
 | [hab pkg binds](#hab-pkg-binds) | Displays the binds for a service |
 | [hab pkg binlink](#hab-pkg-binlink) | Creates a binlink for a package binary in a common 'PATH' location |
 | [hab pkg build](#hab-pkg-build) | Builds a Plan using a Studio |
+| [hab pkg bulkupload](#hab-pkg-bulkupload) | Bulk Uploads Habitat Artifacts to a Depot from a local directory. |
 | [hab pkg channels](#hab-pkg-channels) | Find out what channels a package belongs to |
 | [hab pkg config](#hab-pkg-config) | Displays the default configuration options for a service |
 | [hab pkg delete](#hab-pkg-delete) | Removes a package from Builder |
 | [hab pkg demote](#hab-pkg-demote) | Demote a package from a specified channel |
 | [hab pkg dependencies](#hab-pkg-dependencies) | Returns the Habitat Artifact dependencies. By default it will return the direct dependencies of the package |
+| [hab pkg download](#hab-pkg-download) | Download Habitat artifacts (including dependencies and keys) from Builder |
 | [hab pkg env](#hab-pkg-env) | Prints the runtime environment of a specific installed package |
 | [hab pkg exec](#hab-pkg-exec) | Executes a command using the 'PATH' context of an installed package |
 | [hab pkg export](#hab-pkg-export) | Exports the package to the specified format |
@@ -1332,7 +1334,7 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 **OPTIONS**
 
 ```
--d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=]  [default: /bin]
+-d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=/hab/bin]  [default: /bin]
 ```
 
 **ARGS**
@@ -1378,6 +1380,43 @@ hab pkg build [FLAGS] [OPTIONS] <PLAN_CONTEXT> --cache-key-path <CACHE_KEY_PATH>
 
 ```
 <PLAN_CONTEXT>    A directory containing a plan file or a habitat/ directory which contains the plan file
+```
+
+
+
+---
+
+### hab pkg bulkupload
+
+Bulk Uploads Habitat Artifacts to a Depot from a local directory.
+
+**USAGE**
+
+```
+hab pkg bulkupload [FLAGS] [OPTIONS] <UPLOAD_DIRECTORY>
+```
+
+**FLAGS**
+
+```
+--auto-build    Enable auto-build for all packages in this upload. Only applicable to SaaS Builder.
+    --force         Skip checking availability of package and force uploads, potentially overwriting a stored copy of a package.
+-h, --help          Prints help information
+-V, --version       Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>    Authentication token for Builder
+-u, --url <BLDR_URL>       Specify an alternate Depot endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
+-c, --channel <CHANNEL>    Optional additional release channel to upload package to. Packages are always uploaded to unstable, regardless of the value of this option.
+```
+
+**ARGS**
+
+```
+<UPLOAD_DIRECTORY>    Directory Path from which artifacts will be uploaded.
 ```
 
 
@@ -1542,6 +1581,46 @@ hab pkg dependencies [FLAGS] <PKG_IDENT>
 
 ```
 <PKG_IDENT>    A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+```
+
+
+
+---
+
+### hab pkg download
+
+Download Habitat artifacts (including dependencies and keys) from Builder
+
+**USAGE**
+
+```
+hab pkg download [FLAGS] [OPTIONS] [--] [PKG_IDENT]...
+```
+
+**FLAGS**
+
+```
+--verify     Verify package integrity after download (Warning: this can be slow)
+-h, --help       Prints help information
+-V, --version    Prints version information
+```
+
+**OPTIONS**
+
+```
+-z, --auth <AUTH_TOKEN>                          Authentication token for Builder
+-u, --url <BLDR_URL> Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. [default: https://bldr.habitat.sh]
+-c, --channel <CHANNEL> Download from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
+
+    --download-directory <DOWNLOAD_DIRECTORY>    The path to store downloaded artifacts
+    --file <PKG_IDENT_FILE>...                   File with newline separated package identifiers
+-t, --target <PKG_TARGET>                        Target architecture to fetch. E.g. x86_64-linux
+```
+
+**ARGS**
+
+```
+<PKG_IDENT>...    One or more Habitat package identifiers (ex: acme/redis)
 ```
 
 
@@ -1722,7 +1801,7 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 
 ```
 -z, --auth <AUTH_TOKEN>            Authentication token for Builder
-    --binlink-dir <BINLINK_DIR>    Binlink all binaries from installed package(s) into BINLINK_DIR [env: HAB_BINLINK_DIR=]  [default: /bin]
+    --binlink-dir <BINLINK_DIR>    Binlink all binaries from installed package(s) into BINLINK_DIR [env: HAB_BINLINK_DIR=/hab/bin]  [default: /bin]
 -u, --url <BLDR_URL>               Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -c, --channel <CHANNEL>            Install from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
 ```
@@ -2563,8 +2642,8 @@ hab sup run [FLAGS] [OPTIONS] [--] [PKG_IDENT_OR_ARTIFACT]
 -r, --ring <RING> The name of the ring used by the Supervisor when running with wire encryption. (ex: hab sup run --ring myring) [env: HAB_RING=]
     --shutdown-timeout <SHUTDOWN_TIMEOUT> The number of seconds after sending a shutdown signal to wait before killing a service process (default: set in plan)
 -s, --strategy <STRATEGY> The update strategy; [default: none] [values: none, at-once, rolling]
-    --sys-ip-address <SYS_IP_ADDRESS> The IPv4 address to use as the `sys.ip` template variable. If this argument is not set, the supervisor tries to dynamically determine an IP address. If that fails, the supervisor defaults to using `127.0.0.1`.
 
+    --sys-ip-address <SYS_IP_ADDRESS> The IPv4 address to use as the sys.ip template variable. If this argument is not set, the supervisor tries to dynamically determine an IP address. If that fails, the supervisor defaults to using 127.0.0.1.
 -t, --topology <TOPOLOGY> Service topology; [default: none] [possible values: standalone, leader]
 ```
 
