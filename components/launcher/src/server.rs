@@ -418,7 +418,6 @@ impl ServiceTable {
 
 pub fn run(args: Vec<String>) -> Result<i32> {
     let mut server = Server::new(args)?;
-    signals::init();
     liveliness_checker::spawn_thread_alive_checker();
     let loop_value: ThreadUnregistered<_, _> = loop {
         let checked_thread = liveliness_checker::mark_thread_alive();

@@ -956,17 +956,6 @@ impl Manager {
             debug!("http-gateway started");
         }
 
-        // On Windows initializng the signal handler will create a ctrl+c handler for the
-        // process which will disable default windows ctrl+c behavior and allow us to
-        // handle via check_for_signal. However, if the supervsor is in a long running
-        // non-run hook, the below loop will not get to check_for_signal in a reasonable
-        // amount of time and the supervisor will not respond to ctrl+c. On Windows, we
-        // let the launcher catch ctrl+c and gracefully shut down services. ctrl+c should
-        // simply halt the supervisor
-        if !self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
-            signals::init();
-        }
-
         // Enter the main Supervisor loop. When we break out, it'll be
         // because we've been instructed to shutdown. The value we
         // break out with governs exactly how we shut down.
