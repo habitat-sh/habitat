@@ -11,20 +11,17 @@ class ManifestUtil
 
     manifest = {}
     manifest["schema_version"] = "1"
-    # manifest["build"] = major_version(pkg_ident)
     manifest["packages"] = { }
 
-    packages = []
+    input_lines = []
 
     f = File.open(filename, { mode: 'r', encoding: 'UTF-8' })
     f.each_line do | line |
-      packages << line.chomp
+      input_lines << line.chomp
     end
 
-
-    packages.uniq.each do | pkg |
-      pkg_ident = pkg.split(' ')[0]
-      pkg_target = pkg.split(' ')[1]
+    input_lines.uniq.each do | pkg |
+      pkg_ident, pkg_target = pkg.split
       add_product(manifest, pkg_ident, pkg_target, log)
     end
 
@@ -32,9 +29,6 @@ class ManifestUtil
   end
 
   def add_product(manifest, pkg_ident, pkg_target, log)
-    new_package =  {
-      pkg_target => [ pkg_ident ]
-    }
 
     # Check to see if we have added a something with this pkg_target
     if manifest["packages"].has_key?(pkg_target)
@@ -42,19 +36,17 @@ class ManifestUtil
       manifest["packages"][pkg_target] << pkg_ident
     else
       # create first element of the array since we haven't had this pkg_target yet
-      manifest["packages"][pkg_target] = [ (pkg_ident) ]
+      manifest["packages"][pkg_target] = [ pkg_ident ]
     end
     manifest
   end
 
-  def major_version(pkg_ident)
-    v = pkg_ident.split("/")[2]
-  end
 end
 
 def usage(log)
   log.error "Usage:"
   log.error "create_manifest.rb <filename> - generate a manifest from the input list."
+  log.error "Each line of the input file should be of the form: \"$FULLY_QUALIFIED_IDENT $PKG_TARGET\""
 end
 
 # setup logger
