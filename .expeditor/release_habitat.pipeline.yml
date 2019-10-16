@@ -233,7 +233,8 @@ steps:
   - wait
 
   - label: ":windows: Build windows service"
-    command: .expeditor/scripts/release_habitat/build_component.ps1 windows-service
+    command:
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 windows-service
     expeditor:
       executor:
         docker:
