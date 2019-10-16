@@ -107,8 +107,13 @@ pub struct ServiceSpec {
     #[serde(with = "serde_string")]
     pub desired_state: DesiredState,
     pub shutdown_timeout: Option<ShutdownTimeout>,
-    pub health_check_interval: HealthCheckInterval,
     pub svc_encrypted_password: Option<String>,
+    // it is important that the health check interval
+    // is the last field to be serialized because it
+    // is serialized as a table. Individual values
+    // serialized after the health check interval will
+    // break the parser.
+    pub health_check_interval: HealthCheckInterval,
 }
 
 impl ServiceSpec {
