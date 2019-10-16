@@ -524,10 +524,8 @@ mod tests {
 
     #[test]
     fn trivial_census_failure() {
-        let failure = validate_string(
-            r#"{"census_groups": {}, "changed": false, "last_election_counter": "narf"}"#,
-            "http_gateway_census_schema.json",
-        );
+        let failure = validate_string(r#"{"census_groups": {}, "changed": false, "last_election_counter": "narf"}"#,
+                                      "http_gateway_census_schema.json");
         assert!(!failure.is_valid(),
                 "Expected schema validation to fail, but it succeeded");
     }
@@ -540,7 +538,8 @@ mod tests {
 
     #[test]
     fn trivial_butterfly_failure() {
-        let failure = validate_string(r#"{"departure": {}, "election": {}, "member": {}, "service": false, "service_file": []}"#, "http_gateway_butterfly_schema.json");
+        let failure = validate_string(r#"{"departure": {}, "election": {}, "member": {}, "service": false, "service_file": []}"#,
+                                      "http_gateway_butterfly_schema.json");
         assert!(!failure.is_valid(),
                 "Expected schema validation to fail, but it succeeded");
     }
