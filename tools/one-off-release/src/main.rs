@@ -164,8 +164,8 @@ fn main() {
               tmp_dir,
               log_level, } = Opt::from_args();
 
-    LogBuilder::new().default_format_timestamp(false)
-                     .default_format_module_path(false)
+    LogBuilder::new().format_timestamp(None)
+                     .format_module_path(false)
                      .filter_level(log_level)
                      .filter(Some("hyper"), LevelFilter::Warn)
                      .filter(Some("reqwest"), LevelFilter::Warn)
