@@ -1,19 +1,9 @@
-$ErrorActionPreference="stop" 
-
 Param(
    [Parameter(Mandatory=$true)]
-   [string[]]$TestArgs
+   [string[]]$TestName
 )
 
-
-# These are the commands that will be sequentially run in the
-# container. The final one will be the test itself, which is supplied
-# as the arguments of the script.
-$commands=@(".\.expeditor\scripts\end_to_end\setup_environment.ps1 DEV" ) + $TestArgs
-
-# Add a `;` after every command, for feeding into the container. This
-# allows them to run in sequence.
-$commandSequence = ($commands -join ";")
+$ErrorActionPreference="stop" 
 
 docker run `
        --rm `
@@ -22,4 +12,4 @@ docker run `
        --env-file="$(pwd)/e2e_env" `
        --volume="$(pwd):c:\workdir" `
        --workdir=/workdir `
-       chefes/buildkite-windows powershell.exe $commandSequence
+       chefes/buildkite-windows powershell.exe .\.expeditor\scripts\end_to_end\run_e2e_test.ps1 DEV $TestName
