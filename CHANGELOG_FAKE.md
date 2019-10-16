@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.0 -->
+<!-- latest_release 0.89.1 -->
+## [fake-0.89.1](https://github.com/habitat-sh/habitat/tree/fake-0.89.1) (2019-10-16)
+
+#### Merged Pull Requests
+- Update rustfmt to 2019-10-15 [#7046](https://github.com/habitat-sh/habitat/pull/7046) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.0](https://github.com/habitat-sh/habitat/tree/fake-0.89.0) (2019-10-15)
 
 #### Merged Pull Requests
 - Prep for 0.90.0 [#7041](https://github.com/habitat-sh/habitat/pull/7041) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.88.0](https://github.com/habitat-sh/habitat/tree/fake-0.88.0) (2019-10-09)
 
