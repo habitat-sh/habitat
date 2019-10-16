@@ -32,6 +32,8 @@ pipelines:
       description: Habitat release process
   - end_to_end:
       description: Habitat long running end to end tests - always runs on DEV environment
+  - finish_release:
+      description: Tasks to be performed after a release has been promoted to stable
 
 staging_areas:
   - release_staging:
