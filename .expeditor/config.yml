@@ -40,7 +40,13 @@ staging_areas:
 subscriptions:
   - workload: pull_request_opened:{{agent_id}}:*
     actions:
-      - post_github_comment:.expeditor/templates/welcome.mustache
+      - post_github_comment:.expeditor/templates/welcome.mustache:
+          ignore_team_members:
+            - habitat-sh/habitat-core-maintainers
+      - built_in:github_auto_assign_author:
+          only_if_team_member:
+            - habitat-sh/habitat-core-maintainers
+
 
   - workload: staged_workload_released:{{agent_id}}:release_staging:*
     actions:
