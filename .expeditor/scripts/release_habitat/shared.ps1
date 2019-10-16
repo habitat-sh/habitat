@@ -55,3 +55,21 @@ function GetLatestPkgVersionFromChannel($PackageName) {
   }
   $version
 }
+
+# Until we can reliably deal with packages that have the same
+# identifier, but different target, we'll track the information in
+# Buildkite metadata.
+#
+# Each time we put a package into our release channel, we'll record
+# what target it was built for.
+#
+# The corresponding Linux function accepts a target, but this one is
+# only ever going to be called on Windows, so we'll just hard-code
+# that.
+#
+# Note that there is no corresponding `IdentHasTarget` function
+# because *that* can be called from Linux hosts, so there's no need
+# for a Windows-only implementation.
+function Set-TargetMetadata($PackageIdent) {
+    Invoke-Expression "buildkite-agent meta-data set $PackageIdent-x86_64-windows true"
+}
