@@ -69,6 +69,22 @@ function Install-RustToolchain($Toolchain) {
   }
 }
 
+function Wait-Supervisor($Timeout=1) {
+  Write-Host "Waiting up to $Timeout seconds for Supervisor to start..."
+  $startTime = [DateTime]::Now
+  $success = (Test-NetConnection -ComputerName localhost -Port 9631).TcpTestSucceeded
+  while(!$success) {
+      Start-Sleep -Seconds 1
+      $timeTaken = [DateTime]::Now.Subtract($startTime)
+      if($timeTaken.TotalSeconds -ge $Timeout) {
+          Write-Error "Timed out waiting $Timeout seconds for Supervisor to start"
+          break
+      }
+      $success = (Test-NetConnection -ComputerName localhost -Port 9631).TcpTestSucceeded
+  }
+  if($success) { Write-Host "Supervisor is now running." }
+}
+
 # On buildkite, the rust binaries will be directly in C:
 if($env:BUILDKITE) {
   # this will avoid a path length limit from the long buildkite working dir path
