@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.4 -->
+<!-- latest_release 0.89.5 -->
+## [fake-0.89.5](https://github.com/habitat-sh/habitat/tree/fake-0.89.5) (2019-10-16)
+
+#### Merged Pull Requests
+- Auto assign prs if opened by a Habitat team member [#7052](https://github.com/habitat-sh/habitat/pull/7052) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.89.4](https://github.com/habitat-sh/habitat/tree/fake-0.89.4) (2019-10-16)
 
 #### Merged Pull Requests
 - fix windows-service pipeline build with powershell interpreter [#7051](https://github.com/habitat-sh/habitat/pull/7051) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.89.4](https://github.com/habitat-sh/habitat/tree/fake-0.89.4) (2019-10-16)
 
