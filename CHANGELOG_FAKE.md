@@ -1,11 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.2 -->
+<!-- latest_release 0.89.3 -->
+## [fake-0.89.3](https://github.com/habitat-sh/habitat/tree/fake-0.89.3) (2019-10-16)
+
+#### Merged Pull Requests
+- Update nightly rust to 2019-10-15 [#7048](https://github.com/habitat-sh/habitat/pull/7048) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
+## [fake-0.89.3](https://github.com/habitat-sh/habitat/tree/fake-0.89.3) (2019-10-16)
+
+#### Merged Pull Requests
+- Build windows-service in new release pipeline [#7029](https://github.com/habitat-sh/habitat/pull/7029) ([christophermaier](https://github.com/christophermaier))
+
 ## [fake-0.89.2](https://github.com/habitat-sh/habitat/tree/fake-0.89.2) (2019-10-16)
 
 #### Merged Pull Requests
 - Bump cargo dependencies [#7045](https://github.com/habitat-sh/habitat/pull/7045) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.1](https://github.com/habitat-sh/habitat/tree/fake-0.89.1) (2019-10-16)
 
