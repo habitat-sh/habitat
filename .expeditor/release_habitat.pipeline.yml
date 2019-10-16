@@ -28,7 +28,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-  
+
   - label: "[:linux: :two: build hab]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh hab

@@ -7,7 +7,7 @@ param (
     [string]$Component
 )
 
-$ErrorActionPreference="stop" 
+$ErrorActionPreference="stop"
 
 # Import shared functions
 . $PSScriptRoot\shared.ps1

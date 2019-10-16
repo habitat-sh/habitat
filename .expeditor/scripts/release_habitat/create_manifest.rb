@@ -15,7 +15,7 @@ class ManifestUtil
     manifest["packages"] = { }
 
     packages = []
-    
+
     f = File.open(filename, { mode: 'r', encoding: 'UTF-8' })
     f.each_line do | line |
       packages << line.chomp
@@ -32,10 +32,10 @@ class ManifestUtil
   end
 
   def add_product(manifest, pkg_ident, pkg_target, log)
-    new_package =  { 
+    new_package =  {
       pkg_target => [ pkg_ident ]
     }
-    
+
     # Check to see if we have added a something with this pkg_target
     if manifest["packages"].has_key?(pkg_target)
       # add to existing array

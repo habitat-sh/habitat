@@ -51,7 +51,7 @@ install_release_channel_hab_binary() {
     local pkg_target="${1:-$BUILD_PKG_TARGET}"
     curlbash_hab "${pkg_target}"
 
-    # workaround for https://github.com/habitat-sh/habitat/issues/6771	
+    # workaround for https://github.com/habitat-sh/habitat/issues/6771
     ${hab_binary} pkg install core/hab-studio
 
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"

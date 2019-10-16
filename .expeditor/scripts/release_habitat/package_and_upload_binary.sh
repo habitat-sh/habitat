@@ -27,7 +27,7 @@ ${hab_binary} pkg install core/gzip \
 # Import packages@chef.io GPG signing key
 aws s3 cp s3://chef-cd-citadel/packages_at_chef.io.pgp \
   packages_at_chef.io.pgp \
-  --profile=chef-cd 
+  --profile=chef-cd
 gpg --import packages_at_chef.io.pgp
 
 tmp_root="$(mktemp -d -t "grant-XXXX")"
@@ -74,7 +74,7 @@ mkdir -p "$tmp_root/results"
 if [[ $BUILD_PKG_TARGET == *"windows" ]]; then
   # windows has more than just the hab binary, so we need to copy all the files
   # in the directory
-  for file in "$(dirname "$extracted_hab_binary")"/*; do 
+  for file in "$(dirname "$extracted_hab_binary")"/*; do
     cp -p "$file" "$pkg_dir/"
   done
 else
