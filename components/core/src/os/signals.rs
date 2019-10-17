@@ -10,9 +10,9 @@ use std::sync::atomic::{AtomicBool,
 mod unix;
 
 #[cfg(unix)]
-pub use self::unix::{check_for_signal,
-                     init,
-                     SignalEvent};
+pub use self::unix::{pending_sigchld,
+                     pending_sighup,
+                     init};
 
 static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
@@ -28,4 +28,4 @@ pub fn init() {
 }
 
 /// Returns `true` if we have received a signal to shut down.
-pub fn check_for_shutdown() -> bool { SHUTDOWN.compare_and_swap(true, false, Ordering::SeqCst) }
+pub fn pending_shutdown() -> bool { SHUTDOWN.compare_and_swap(true, false, Ordering::SeqCst) }

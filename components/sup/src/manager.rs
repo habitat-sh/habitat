@@ -58,9 +58,8 @@ use habitat_common::{liveliness_checker,
                              ListenCtlAddr},
                      FeatureFlag};
 #[cfg(unix)]
-use habitat_core::os::{process::{ShutdownSignal,
-                                 Signal},
-                       signals::SignalEvent};
+use habitat_core::os::process::{ShutdownSignal,
+                                Signal};
 use habitat_core::{crypto::SymKey,
                    env,
                    fs::FS_ROOT_PATH,
@@ -1013,8 +1012,7 @@ impl Manager {
             #[cfg(unix)]
             match self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
                 false => {
-                    if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal()
-                    {
+                    if signals::pending_sighup() {
                         outputln!("Supervisor shutting down for signal");
                         break ShutdownMode::Restarting;
                     }

@@ -1,21 +1,17 @@
 //! Traps and notifies UNIX signals.
 
-use crate::os::process::{Signal,
-                         SignalCode};
-use std::{collections::VecDeque,
-          mem,
+use crate::os::process::SignalCode;
+use std::{mem,
           ptr,
           io,
-          sync::{atomic::Ordering,
-                 Mutex,
+          sync::{atomic::{AtomicBool,
+                          Ordering},
                  Once},
           thread};
 
 static INIT: Once = Once::new();
-
-lazy_static::lazy_static! {
-    static ref CAUGHT_SIGNALS: Mutex<VecDeque<SignalCode>> = Mutex::new(VecDeque::new());
-}
+static PENDING_HUP: AtomicBool = AtomicBool::new(false);
+static PENDING_CHLD: AtomicBool = AtomicBool::new(false);
 
 pub fn init() {
     INIT.call_once(|| {
@@ -26,77 +22,65 @@ pub fn init() {
         });
 }
 
-pub enum SignalEvent {
-    WaitForChild,
-    Passthrough(Signal),
-}
-
-/// Consumers should call this function fairly frequently and since the vast
-/// majority of the time there is at most one signal event waiting, we return
-/// at most one. If multiple signals have been received since the last call,
-/// they will be returned, one per call in the order they were received.
-pub fn check_for_signal() -> Option<SignalEvent> {
-    let mut signals = CAUGHT_SIGNALS.lock().expect("Signal mutex poisoned");
-
-    if let Some(code) = signals.pop_front() {
-        match from_signal_code(code) {
-            Some(Signal::CHLD) => Some(SignalEvent::WaitForChild),
-            Some(signal) => Some(SignalEvent::Passthrough(signal)),
-            None => {
-                println!("Received invalid signal: #{}", code);
-                None
-            }
-        }
-    } else {
-        None
-    }
-}
+pub fn pending_sighup() -> bool { PENDING_HUP.compare_and_swap(true, false, Ordering::SeqCst) }
+pub fn pending_sigchld() -> bool { PENDING_CHLD.compare_and_swap(true, false, Ordering::SeqCst) }
 
 fn start_signal_handler() -> io::Result<()> {
     let mut handled_signals = Sigset::empty()?;
     handled_signals.addsig(libc::SIGINT)?;
     handled_signals.addsig(libc::SIGTERM)?;
     handled_signals.addsig(libc::SIGHUP)?;
+    handled_signals.addsig(libc::SIGCHLD)?;
+
+    // The following signals have no defined behavior. They are left
+    // "handled" to preserve past behavior since handling them we
+    // don't get their default behavior.
     handled_signals.addsig(libc::SIGQUIT)?;
     handled_signals.addsig(libc::SIGALRM)?;
     handled_signals.addsig(libc::SIGUSR1)?;
     handled_signals.addsig(libc::SIGUSR2)?;
-    handled_signals.addsig(libc::SIGCHLD)?;
+
     handled_signals.block()?;
     thread::Builder::new().name("signal-handler".to_string())
-                          .spawn(move || {
-                              loop {
-                                  // Using expect here seems reasonable because our understanding of wait() is that it only
-                                  // returns an error if we called it with a bad signal.
-                                  let signal = handled_signals.wait().expect("sigwait failed");
-                                  debug!("signal-handler thread received signal {:?}!", signal);
-                                  match signal {
-                                      libc::SIGINT | libc::SIGTERM => {
-                                          super::SHUTDOWN.store(true, Ordering::SeqCst);
-                                      }
-                                      _ => {
-                                          CAUGHT_SIGNALS.lock()
-                                                        .expect("Signal mutex poisoned")
-                                                        .push_back(signal);
-                                      }
-                                  };
-                              }
-                          })?;
+        .spawn(move || process_signals(&handled_signals))?;
     Ok(())
 }
 
-// Sigset is a wrapper for the underlying libc type.
+fn process_signals(handled_signals: &Sigset) {
+    loop {
+        // Using expect here seems reasonable because our
+        // understanding of wait() is that it only returns an error if
+        // we called it with a bad signal.
+        let signal = handled_signals.wait().expect("sigwait failed");
+        debug!("signal-handler thread received signal #{}", signal);
+        match signal {
+            libc::SIGINT | libc::SIGTERM => {
+                super::SHUTDOWN.store(true, Ordering::SeqCst);
+            }
+            libc::SIGHUP => {
+                PENDING_HUP.store(true, Ordering::SeqCst);
+            }
+            libc::SIGCHLD => {
+                PENDING_CHLD.store(true, Ordering::SeqCst);
+            }
+            _ => {
+                debug!("signal #{} handled but ignored", signal);
+            }
+        };
+    }
+}
+
+/// Sigset is a wrapper for the underlying libc type.
 struct Sigset {
     inner: libc::sigset_t
 }
 
 impl Sigset {
-    // empty returns an empty Sigset.
-    //
-    // For more information on the relevant libc function see:
-    //
-    // http://man7.org/linux/man-pages/man3/sigsetops.3.html
-    //
+    /// empty returns an empty Sigset.
+    ///
+    /// For more information on the relevant libc function see:
+    ///
+    /// http://man7.org/linux/man-pages/man3/sigsetops.3.html
     fn empty() -> io::Result<Sigset> {
         let mut set: libc::sigset_t = unsafe { mem::zeroed() };
         let ret = unsafe { libc::sigemptyset(&mut set) };
@@ -107,12 +91,11 @@ impl Sigset {
         }
     }
 
-    // addsig adds the given signal to the Sigset.
-    //
-    // For more information on the relevant libc function see:
-    //
-    // http://man7.org/linux/man-pages/man3/sigsetops.3.html
-    //
+    /// addsig adds the given signal to the Sigset.
+    ///
+    /// For more information on the relevant libc function see:
+    ///
+    /// http://man7.org/linux/man-pages/man3/sigsetops.3.html
     fn addsig(&mut self, signal: SignalCode) -> io::Result<()> {
         let ret = unsafe { libc::sigaddset(&mut self.inner, signal) };
         if ret < 0 {
@@ -122,15 +105,14 @@ impl Sigset {
         }
     }
 
-    // block sets the calling thread's signal mask to the current
-    // sigmask, blocking delivery of all signals in the sigmask.
-    //
-    // This should be called before wait() to avoid race conditions.
-    //
-    // For more information on the relevant libc function see:
-    //
-    // http://man7.org/linux/man-pages/man3/pthread_sigmask.3.html
-    //
+    /// block sets the calling thread's signal mask to the current
+    /// sigmask, blocking delivery of all signals in the sigmask.
+    ///
+    /// This should be called before wait() to avoid race conditions.
+    ///
+    /// For more information on the relevant libc function see:
+    ///
+    /// http://man7.org/linux/man-pages/man3/pthread_sigmask.3.html
     fn block(&self) -> io::Result<()> {
         let ret = unsafe { libc::pthread_sigmask(libc::SIG_SETMASK, &self.inner, ptr::null_mut()) };
         if ret < 0 {
@@ -140,22 +122,21 @@ impl Sigset {
         }
     }
 
-    // wait blocks until a signal in the current sigset has been
-    // delivered to the thread.
-    //
-    // Callers should call block() before this function to avoid race
-    // conditions.
-    //
-    // For information on the relevant libc function see:
-    //
-    // http://man7.org/linux/man-pages/man3/sigwait.3.html
-    //
-    // The manual page on linux only lists a single failure case:
-    //
-    // > EINVAL set contains an invalid signal number.
-    //
-    // thus most callers should be able to expect success.
-    //
+    /// wait blocks until a signal in the current sigset has been
+    /// delivered to the thread.
+    ///
+    /// Callers should call block() before this function to avoid race
+    /// conditions.
+    ///
+    /// For information on the relevant libc function see:
+    ///
+    /// http://man7.org/linux/man-pages/man3/sigwait.3.html
+    ///
+    /// The manual page on linux only lists a single failure case:
+    ///
+    /// > EINVAL set contains an invalid signal number.
+    ///
+    /// thus most callers should be able to expect success.
     fn wait(&self) -> io::Result<SignalCode> {
         let mut signal: libc::c_int = 0;
         let ret = unsafe { libc::sigwait(&self.inner, &mut signal) };
@@ -164,16 +145,5 @@ impl Sigset {
         } else {
             Ok(signal)
         }
-    }
-}
-
-
-/// These are the signals that we can eventually translate into
-/// some kind of event
-fn from_signal_code(code: SignalCode) -> Option<Signal> {
-    match code {
-        libc::SIGHUP => Some(Signal::HUP),
-        libc::SIGCHLD => Some(Signal::CHLD),
-        _ => None,
     }
 }
