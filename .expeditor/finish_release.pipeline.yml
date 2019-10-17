@@ -1,0 +1,13 @@
+expeditor:
+  defaults:
+    buildkite:
+      timeout_in_minutes: 30
+      env:
+        HAB_ORIGIN: "core"
+        ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+        DO_FAKE_RELEASE: "true"
+
+steps:
+  - label: NOOP
+    command:
+      - echo "Hello"
