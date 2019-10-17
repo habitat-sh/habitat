@@ -1,9 +1,9 @@
 //! Traps and notifies UNIX signals.
 
 use crate::os::process::SignalCode;
-use std::{mem,
+use std::{io,
+          mem,
           ptr,
-          io,
           sync::{atomic::{AtomicBool,
                           Ordering},
                  Once},
@@ -40,9 +40,9 @@ fn start_signal_handler() -> io::Result<()> {
     handled_signals.addsig(libc::SIGUSR1)?;
     handled_signals.addsig(libc::SIGUSR2)?;
 
-    handled_signals.block()?;
+    handled_signals.setsigmask()?;
     thread::Builder::new().name("signal-handler".to_string())
-        .spawn(move || process_signals(&handled_signals))?;
+                          .spawn(move || process_signals(&handled_signals))?;
     Ok(())
 }
 
@@ -72,7 +72,7 @@ fn process_signals(handled_signals: &Sigset) {
 
 /// Sigset is a wrapper for the underlying libc type.
 struct Sigset {
-    inner: libc::sigset_t
+    inner: libc::sigset_t,
 }
 
 impl Sigset {
@@ -87,7 +87,7 @@ impl Sigset {
         if ret < 0 {
             Err(io::Error::last_os_error())
         } else {
-            Ok(Sigset{inner: set})
+            Ok(Sigset { inner: set })
         }
     }
 
@@ -105,7 +105,7 @@ impl Sigset {
         }
     }
 
-    /// block sets the calling thread's signal mask to the current
+    /// setsigmask sets the calling thread's signal mask to the current
     /// sigmask, blocking delivery of all signals in the sigmask.
     ///
     /// This should be called before wait() to avoid race conditions.
@@ -113,7 +113,7 @@ impl Sigset {
     /// For more information on the relevant libc function see:
     ///
     /// http://man7.org/linux/man-pages/man3/pthread_sigmask.3.html
-    fn block(&self) -> io::Result<()> {
+    fn setsigmask(&self) -> io::Result<()> {
         let ret = unsafe { libc::pthread_sigmask(libc::SIG_SETMASK, &self.inner, ptr::null_mut()) };
         if ret < 0 {
             Err(io::Error::last_os_error())
@@ -125,8 +125,8 @@ impl Sigset {
     /// wait blocks until a signal in the current sigset has been
     /// delivered to the thread.
     ///
-    /// Callers should call block() before this function to avoid race
-    /// conditions.
+    /// Callers should call setsigmask() before this function to avoid
+    /// race conditions.
     ///
     /// For information on the relevant libc function see:
     ///

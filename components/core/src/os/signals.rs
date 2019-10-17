@@ -10,9 +10,9 @@ use std::sync::atomic::{AtomicBool,
 mod unix;
 
 #[cfg(unix)]
-pub use self::unix::{pending_sigchld,
-                     pending_sighup,
-                     init};
+pub use self::unix::{init,
+                     pending_sigchld,
+                     pending_sighup};
 
 static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
