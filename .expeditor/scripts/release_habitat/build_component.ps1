@@ -16,8 +16,6 @@ if($Component.Equals("")) {
     Write-Error "--- :error: Component to build not specified, please use the -Component flag"
 }
 
-Install-BuildkiteAgent
-
 $Env:HAB_BLDR_URL=$Env:ACCEPTANCE_HAB_BLDR_URL
 $Env:HAB_PACKAGE_TARGET=$Env:BUILD_PKG_TARGET
 
