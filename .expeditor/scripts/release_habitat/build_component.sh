@@ -41,10 +41,6 @@ ${hab_binary} pkg upload \
               --auth="${HAB_AUTH_TOKEN}" \
               "results/${pkg_artifact:?}"
 
-${hab_binary} pkg promote \
-              --auth="${HAB_AUTH_TOKEN}" \
-              "${pkg_ident:?}" "${channel}" "${BUILD_PKG_TARGET}"
-
 echo "<br>* ${pkg_ident:?} (${BUILD_PKG_TARGET:?})" | buildkite-agent annotate --append --context "release-manifest"
 
 set_target_metadata "${pkg_ident}" "${pkg_target}"

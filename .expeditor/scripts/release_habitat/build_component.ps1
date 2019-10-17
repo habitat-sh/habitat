@@ -49,8 +49,6 @@ Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
 
 Write-Host "--- Running hab pkg upload for $Component to channel $Env:HAB_BLDR_CHANNEL"
 Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$Env:HAB_BLDR_CHANNEL"
-Write-Host "--- Running hab pkg promote for $pkg_ident to channel $Env:HAB_BLDR_CHANNEL"
-Invoke-Expression "$baseHabExe pkg promote $pkg_ident $Env:HAB_BLDR_CHANNEL $Env:BUILD_PKG_TARGET"
 Set-TargetMetadata $pkg_ident
 
 Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} (x86_64-windows)'"

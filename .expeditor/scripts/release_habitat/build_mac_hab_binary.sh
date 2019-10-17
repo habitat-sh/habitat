@@ -65,10 +65,6 @@ ${hab_binary} pkg upload \
               --auth="${HAB_AUTH_TOKEN}" \
               "results/${pkg_artifact:?}"
 
-${hab_binary} pkg promote \
-              --auth="${HAB_AUTH_TOKEN}" \
-              "${pkg_ident}" "${channel}" "${BUILD_PKG_TARGET}"
-
 echo "--- :buildkite: Storing artifact ${pkg_ident}"
 buildkite-agent artifact upload "results/${pkg_artifact}"
 buildkite-agent meta-data set MACOS_ARTIFACT "results/${pkg_artifact}"
