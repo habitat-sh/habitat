@@ -216,7 +216,7 @@ pub trait Hook: fmt::Debug + Sized + Send {
         let args = vec!["-NonInteractive", "-command", ps_cmd.as_str()];
         Ok(Child::spawn("pwsh.exe",
                         &args,
-                        &pkg.env,
+                        &pkg.env.to_hash_map(),
                         &pkg.svc_user,
                         svc_encrypted_password)?)
     }

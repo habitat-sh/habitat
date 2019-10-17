@@ -1,13 +1,16 @@
-use std::{collections::HashMap,
-          io,
-          mem};
-
-use crate::protocol::{self,
-                      ShutdownMethod};
+use crate::{error::{Error,
+                    Result},
+            protocol::{self,
+                       ShutdownMethod},
+            service::Service};
 use core::os::process::{handle_from_pid,
                         windows_child::{Child,
                                         ExitStatus,
                                         Handle}};
+use std::{collections::HashMap,
+          io,
+          iter::FromIterator,
+          mem};
 use time::{Duration,
            SteadyTime};
 use winapi::{shared::{minwindef::{DWORD,
@@ -26,10 +29,6 @@ use winapi::{shared::{minwindef::{DWORD,
                   winbase::{INFINITE,
                             WAIT_OBJECT_0},
                   wincon}};
-
-use crate::{error::{Error,
-                    Result},
-            service::Service};
 
 const PROCESS_ACTIVE: u32 = 259;
 type ProcessTable = HashMap<DWORD, Vec<DWORD>>;
@@ -145,9 +144,11 @@ fn spawn_pwsh(ps_binary_name: &str, msg: protocol::Spawn) -> Result<Service> {
         }
     };
 
+    let new_env = HashMap::from_iter(msg.env.clone().into_iter());
+
     match Child::spawn(ps_binary_name,
                        &["-NonInteractive", "-command", ps_cmd.as_str()],
-                       &msg.env,
+                       &new_env,
                        &user,
                        password)
     {

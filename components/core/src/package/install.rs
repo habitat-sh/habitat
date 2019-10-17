@@ -1358,7 +1358,7 @@ core/bar=pub:core/publish sub:core/subscribe
                        "PSModulePath=/should/not/be/ignored;c:/my/dir;/should/really/not/be/\
                         ignored\n");
 
-        let mut expected = HashMap::new();
+        let mut expected = BTreeMap::new();
         let fs_root_path = fs_root.into_path();
         expected.insert("FOO".to_string(), "bar".to_string());
         expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());

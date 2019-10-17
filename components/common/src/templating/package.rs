@@ -11,8 +11,10 @@ use crate::{error::{Error,
 use serde::{ser::SerializeStruct,
             Serialize,
             Serializer};
-use std::{collections::BTreeMap,
+use std::{collections::{BTreeMap,
+                        HashMap},
           env,
+          iter::FromIterator,
           ops::Deref,
           path::PathBuf,
           result};
@@ -47,6 +49,10 @@ impl Env {
         let path = Self::transform_path(env.get(PATH_KEY))?;
         env.insert(PATH_KEY.to_string(), path);
         Ok(Env(env))
+    }
+
+    pub fn to_hash_map(&self) -> HashMap<String, String> {
+        HashMap::from_iter(self.0.clone().into_iter())
     }
 
     fn transform_path(path: Option<&String>) -> Result<String> {

@@ -101,7 +101,7 @@ impl Binlink {
     }
 
     #[cfg(windows)]
-    fn stub_template(&self, env: HashMap<String, String>) -> Result<String> {
+    fn stub_template(&self, env: BTreeMap<String, String>) -> Result<String> {
         let mut exports = String::new();
         for (key, mut value) in env.into_iter() {
             if key == "PATH" {
