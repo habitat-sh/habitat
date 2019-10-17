@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.5 -->
+<!-- latest_release 0.89.6 -->
+## [fake-0.89.6](https://github.com/habitat-sh/habitat/tree/fake-0.89.6) (2019-10-17)
+
+#### Bug Fixes
+- fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.89.5](https://github.com/habitat-sh/habitat/tree/fake-0.89.5) (2019-10-16)
 
 #### Merged Pull Requests
 - Auto assign prs if opened by a Habitat team member [#7052](https://github.com/habitat-sh/habitat/pull/7052) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.4](https://github.com/habitat-sh/habitat/tree/fake-0.89.4) (2019-10-16)
 
