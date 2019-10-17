@@ -34,9 +34,6 @@ declare -g hab_binary
 curlbash_hab "$BUILD_PKG_TARGET"
 import_keys
 
-# Set SSL cert location
-export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
-
 # We invoke hab-plan-build.sh directly via sudo, so we don't get the key management that studio provides.
 # Copy keys from the user account Habitat cache to the system Habitat cache so that they are present for root.
 sudo mkdir -p /hab/cache/keys
