@@ -45,6 +45,7 @@ use crate::{api_client::{self,
                          pkg_install_path,
                          svc_hooks_path,
                          AtomicWriter},
+                    os::users,
                     package::{list::temp_package_directory,
                               Identifiable,
                               PackageArchive,
@@ -405,9 +406,16 @@ fn run_install_hook<T>(ui: &mut T, package: &PackageInstall) -> Result<()>
         ui.status(Status::Executing,
                   format!("install hook for '{}'", &package.ident(),))?;
         templating::compile_for_package_install(package)?;
-        if !hook.run(&package.ident().name,
-                     &Pkg::from_install(package)?,
-                     None::<&str>)
+        let mut pkg = Pkg::from_install(package)?;
+        // Only windows uses svc_password
+        if cfg!(target_os = "windows") {
+            // Install hooks do not have access to svc_passwords so
+            // we execute them under the current user account.
+            if let Some(user) = users::get_current_username() {
+                pkg.svc_user = user;
+            }
+        }
+        if !hook.run(&package.ident().name, &pkg, None::<&str>)
                 .unwrap_or(false)
         {
             return Err(Error::InstallHookFailed(package.ident().clone()));
