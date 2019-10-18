@@ -3,7 +3,7 @@ use crate::{error::{Error,
             package::PackageIdent};
 use serde_derive::Serialize;
 use std::{self,
-          collections::HashMap,
+          collections::BTreeMap,
           env,
           fmt,
           fs::File,
@@ -22,12 +22,12 @@ const ENV_PATH_SEPARATOR: char = ':';
 #[cfg(windows)]
 const ENV_PATH_SEPARATOR: char = ';';
 
-pub fn parse_key_value(s: &str) -> Result<HashMap<String, String>> {
-    Ok(HashMap::from_iter(s.lines()
-                           .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
-                           .map(|kv| {
-                               (kv[0].to_string(), kv[1].to_string())
-                           })))
+pub fn parse_key_value(s: &str) -> Result<BTreeMap<String, String>> {
+    Ok(BTreeMap::from_iter(s.lines()
+                            .map(|l| l.splitn(2, '=').collect::<Vec<_>>())
+                            .map(|kv| {
+                                (kv[0].to_string(), kv[1].to_string())
+                            })))
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -100,7 +100,7 @@ pub struct PkgEnv {
 }
 
 impl PkgEnv {
-    pub fn new(values: HashMap<String, String>, separators: &HashMap<String, String>) -> Self {
+    pub fn new(values: BTreeMap<String, String>, separators: &BTreeMap<String, String>) -> Self {
         Self { inner: values.into_iter()
                             .map(|(key, value)| {
                                 if let Some(sep) = separators.get(&key) {
@@ -295,7 +295,7 @@ port=front-end.port
 
     #[test]
     fn can_parse_environment_file() {
-        let mut m: HashMap<String, String> = HashMap::new();
+        let mut m: BTreeMap<String, String> = BTreeMap::new();
         m.insert("PATH".to_string(),
                  "/hab/pkgs/python/setuptools/35.0.1/20170424072606/bin".to_string());
         m.insert(
@@ -309,7 +309,7 @@ port=front-end.port
 
     #[test]
     fn can_parse_environment_sep_file() {
-        let mut m: HashMap<String, String> = HashMap::new();
+        let mut m: BTreeMap<String, String> = BTreeMap::new();
         m.insert("PATH".to_string(), ":".to_string());
         m.insert("PYTHONPATH".to_string(), ":".to_string());
 
@@ -318,7 +318,7 @@ port=front-end.port
 
     #[test]
     fn can_parse_exports_file() {
-        let mut m: HashMap<String, String> = HashMap::new();
+        let mut m: BTreeMap<String, String> = BTreeMap::new();
         m.insert("status-port".to_string(), "status.port".to_string());
         m.insert("port".to_string(), "front-end.port".to_string());
 
@@ -350,7 +350,7 @@ port=front-end.port
 
     #[test]
     fn build_pkg_env_is_empty() {
-        let result = PkgEnv::new(HashMap::new(), &HashMap::new());
+        let result = PkgEnv::new(BTreeMap::new(), &BTreeMap::new());
         assert!(result.is_empty());
     }
 

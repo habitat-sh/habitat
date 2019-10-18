@@ -161,7 +161,7 @@ impl PipeHookClient {
         let args = vec!["-NonInteractive", "-Command", ps_cmd.as_str()];
         let child = Child::spawn("pwsh.exe",
                                  &args,
-                                 &pkg.env,
+                                 &pkg.env.to_hash_map(),
                                  &pkg.svc_user,
                                  svc_encrypted_password)?;
         debug!("spawned powershell server for {} {} hook on pipe: {}",
