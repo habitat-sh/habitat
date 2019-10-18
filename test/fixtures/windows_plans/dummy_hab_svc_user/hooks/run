@@ -1,0 +1,2 @@
+Write-host "I am running"
+ping -t localhost

@@ -53,13 +53,15 @@ pub use habitat_common::templating::{config::{Cfg,
                                                PkgProxy}};
 use habitat_common::{outputln,
                      templating::{config::CfgRenderer,
-                                  hooks::Hook}};
+                                  hooks::Hook,
+                                  package::DEFAULT_USER}};
 use habitat_core::{crypto::hash,
                    fs::{atomic_write,
                         svc_hooks_path,
                         SvcDir,
                         FS_ROOT_PATH},
-                   os::process::ShutdownTimeout,
+                   os::{process::ShutdownTimeout,
+                        users},
                    package::{metadata::Bind,
                              PackageIdent,
                              PackageInstall},
@@ -242,7 +244,7 @@ impl Service {
                     -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = package.all_binds()?;
-        let pkg = Pkg::from_install(&package)?;
+        let pkg = Self::resolve_pkg(&package, &spec)?;
         let spec_file = manager_fs_cfg.specs_path.join(spec.file());
         let service_group = ServiceGroup::new(spec.application_environment.as_ref(),
                                               &pkg.name,
@@ -283,6 +285,34 @@ impl Service {
                      health_check_handle: None,
                      post_run_handle: None,
                      shutdown_timeout: spec.shutdown_timeout })
+    }
+
+    // And now prepare yourself for a little horribleness...Ready?
+    // In releases 0.88.0 and prior, we would run hooks under
+    // the hab user account on windows if it existed and no other
+    // svc_user was specified just like we do on linux. That is problematic
+    // and not a ubiquitous pattern for windows. The default user is now
+    // always the current user. However, packages built on those older
+    // versions included a SVC_USER metafile with the 'hab' user by default.
+    // So to protect for scenarios where a user has launched an older package,
+    // is on windows and has a 'hab' account on the system BUT never intended
+    // to run hooks under that account and therefore has not passed a
+    // '--password' argument to 'hab svc load', we will revert the user to
+    // the current user.
+    #[cfg(windows)]
+    fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
+        let mut pkg = Pkg::from_install(&package)?;
+        if spec.svc_encrypted_password.is_none() && pkg.svc_user == DEFAULT_USER {
+            if let Some(user) = users::get_current_username() {
+                pkg.svc_user = user;
+            }
+        }
+        Ok(pkg)
+    }
+
+    #[cfg(unix)]
+    fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
+        Ok(Pkg::from_install(&package)?)
     }
 
     /// Returns the config root given the package and optional config-from path.

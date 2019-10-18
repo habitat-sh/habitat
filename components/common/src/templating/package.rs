@@ -19,7 +19,7 @@ use std::{collections::{BTreeMap,
           path::PathBuf,
           result};
 
-const DEFAULT_USER: &str = "hab";
+pub const DEFAULT_USER: &str = "hab";
 const DEFAULT_GROUP: &str = "hab";
 
 const PATH_KEY: &str = "PATH";
@@ -193,19 +193,21 @@ fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> 
 }
 
 /// check and see if a user/group is specified in package metadata.
-/// if not, we'll try and use hab/hab.
-/// If hab/hab doesn't exist, try to use (current username, current group).
+/// if not, we'll use the current user that the process is running under.
+/// If hab/hab (default) is specified but doesn't exist, use the current username.
 /// If that doesn't work, then give up.
-/// Windows will also check if hab exists if it was the given user name
-/// If it does not exist then fall back to the current username
-/// This is because historically windows plans defaulted to
-/// the hab pkg_svc_user even if not explicitly provided
+/// Note that in all releases through 0.88.0, hab packaged a svc_user value
+/// of 'hab' unless specified otherwise in a plan. So for all packages built
+/// by those releases, a svc_user should always be specified, but as already
+/// stated, we do check to see if the user exists. This turns out to do more
+/// harm than good on windows especially if there is a hab user on the system
+/// that was not intended to run habitat services.
 #[cfg(windows)]
 fn get_user_and_group(pkg_install: &PackageInstall) -> Result<(String, String)> {
     match get_pkg_user_and_group(&pkg_install)? {
         Some((ref user, ref _group)) if user == DEFAULT_USER => Ok(default_user_and_group()?),
         Some((user, group)) => Ok((user, group)),
-        _ => Ok(default_user_and_group()?),
+        _ => Ok(current_user_and_group()?),
     }
 }
 
@@ -233,19 +235,23 @@ fn default_user_and_group() -> Result<(String, String)> {
         (Some(_), Some(_)) => Ok((DEFAULT_USER.to_string(), DEFAULT_GROUP.to_string())),
         _ => {
             debug!("hab:hab does NOT exist");
-            let user = users::get_current_username();
-            let group = users::get_current_groupname();
-            match (user, group) {
-                (Some(user), Some(group)) => {
-                    debug!("Running as {}/{}", user, group);
-                    Ok((user, group))
-                }
-                _ => {
-                    Err(Error::PermissionFailed("Can't determine current \
-                                                 user:group"
-                                                            .to_string()))
-                }
-            }
+            current_user_and_group()
+        }
+    }
+}
+
+fn current_user_and_group() -> Result<(String, String)> {
+    let user = users::get_current_username();
+    let group = users::get_current_groupname();
+    match (user, group) {
+        (Some(user), Some(group)) => {
+            debug!("Running as {}/{}", user, group);
+            Ok((user, group))
+        }
+        _ => {
+            Err(Error::PermissionFailed("Can't determine current \
+                                         user:group"
+                                                    .to_string()))
         }
     }
 }

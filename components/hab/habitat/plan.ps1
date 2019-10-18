@@ -82,3 +82,7 @@ function Invoke-Install {
     Copy-Item "$(Get-HabPackagePath "xz")/bin/*.dll" "$pkg_prefix/bin"
     Copy-Item "$(Get-HabPackagePath "visual-cpp-redist-2015")/bin/*.dll" "$pkg_prefix/bin"
 }
+
+function Invoke-Clean {
+    if(!$env:HAB_SKIP_CLEAN) { Invoke-DefaultClean }
+}
