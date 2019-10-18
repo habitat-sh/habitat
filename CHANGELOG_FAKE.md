@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.7 -->
+<!-- latest_release 0.89.8 -->
+## [fake-0.89.8](https://github.com/habitat-sh/habitat/tree/fake-0.89.8) (2019-10-18)
+
+#### Merged Pull Requests
+- Order objects used for template data [#7031](https://github.com/habitat-sh/habitat/pull/7031) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_release -->
+
 ## [fake-0.89.7](https://github.com/habitat-sh/habitat/tree/fake-0.89.7) (2019-10-17)
 
 #### Merged Pull Requests
 - Create initial shape of finish_release pipeline [#7053](https://github.com/habitat-sh/habitat/pull/7053) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.6](https://github.com/habitat-sh/habitat/tree/fake-0.89.6) (2019-10-17)
 
