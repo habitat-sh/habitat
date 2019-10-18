@@ -110,9 +110,13 @@ $script:pkg_expose = @()
 # An associative array representing configuration data which should be gossiped to peers.
 $script:pkg_exports = @{}
 # The user to run the service as
-$script:pkg_svc_user = "hab"
-# The group to run the service as
-$script:pkg_svc_group = "$pkg_svc_user"
+$script:pkg_svc_user = ""
+# svc_group is not actually used on Windows but it needs to exist.
+# The Pkg struct in the common crate expects both user and group to be populated
+# otherwise it handles neither. Ideally we would have a windows only implementation
+# that just ignored the group. That would be trivial to add but risks backward
+# compatibility with new packages without SVC_GROUP and older supervisors
+$script:pkg_svc_group = "hab"
 
 # Initially set $pkg_svc_* variables. This happens before the Plan is sourced,
 # meaning that `$pkg_name` is not yet set. However, `$pkg_svc_run` wants

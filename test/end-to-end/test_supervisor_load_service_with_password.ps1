@@ -8,7 +8,7 @@ $lsa_wrapper.SetRight($username, "SeServiceLogonRight")
 
 $env:HAB_ORIGIN = "ci"
 hab origin key generate ci
-hab pkg build test/fixtures/dummy_windows_plan
+hab pkg build test/fixtures/windows_plans/dummy_svc_user
 . .\results\last_build.ps1
 hab pkg install .\results\$pkg_artifact
 

@@ -67,7 +67,7 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
         ERROR_INSUFFICIENT_BUFFER => {}
         ERROR_NONE_MAPPED => return None,
         _ => {
-            error!("Error while looking up account for {}: {}",
+            debug!("Error while looking up account for {}: {}",
                    name,
                    Error::last_os_error());
             return None;
