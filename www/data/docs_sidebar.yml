@@ -84,27 +84,27 @@ sidebar_links:
     link: "/docs/reference"
     sub_links:
     - title: Environment Variables
-      link: "/docs/reference/#environment-variables"
+      link: "/docs/environment-variables"
     - title: Plan Settings
-      link: "/docs/reference/#plan-settings"
+      link: "/docs/plan-settings"
     - title: Plan Variables
-      link: "/docs/reference/#plan-variables"
+      link: "/docs/plan-variables"
     - title: Plan Helper Functions
-      link: "/docs/reference/#utility-functions"
+      link: "/docs/utility-functions"
     - title: Build Phase Callbacks
-      link: "/docs/reference/#reference-callbacks"
+      link: "/docs/reference-callbacks"
     - title: Application Lifecycle Hooks
-      link: "/docs/reference/#reference-hooks"
+      link: "/docs/reference-hooks"
     - title: Handlebars Helpers
-      link: "/docs/reference/#helpers"
+      link: "/docs/helpers"
     - title: Template Data
       link: "/docs/reference/#template-data"
     - title: Package Contents
-      link: "/docs/reference/#package-contents"
+      link: "/docs/package-contents"
     - title: Supervisor Log Configuration
-      link: "/docs/reference/#sup-log-configuration"
+      link: "/docs/sup-log-configuration"
     - title: Supervisor Log Keys
-      link: "/docs/reference/#sup-log-keys"
+      link: "/docs/sup-log-keys"
   - title: Diagrams
     link: "/docs/diagrams"
     sub_links:
