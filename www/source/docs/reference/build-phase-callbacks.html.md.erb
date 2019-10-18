@@ -1,9 +1,11 @@
 ---
 title: Build Phase Callbacks
+description: Override default behavior with build phase callbacks.
 category: Reference
+tags: plan.sh, builds
 ---
 
-## <a name="reference-callbacks" id="reference-callbacks" data-magellan-target="reference-callbacks">Build Phase Callbacks</a>
+# <a name="build-phase-callbacks" id="build-phase-callbacks" data-magellan-target="build-phase-callbacks">Build Phase Callbacks</a>
 
 When defining your plan, you can override the default behavior of Chef Habitat in each build phase through a callback. To define a callback, simply create a shell function of the same name in your plan file and then write your script. If you do not want to use the default callback behavior, you must override the callback and `return 0` in the function definition or simply provide no implementation in a `plan.ps1`.
 

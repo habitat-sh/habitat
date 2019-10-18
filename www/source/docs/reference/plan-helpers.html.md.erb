@@ -1,16 +1,18 @@
 ---
-title: Configuration Helpers
+title: Plan Helpers
+description: Define dynamic configuration settings with plan helpers.
 category: Reference
+tags: plan.sh, hooks, helpers
 ---
 
-## <a name="helpers" id="helpers" data-magellan-target="helpers" class="anchor">Handlebars Helpers</a>
+## <a name="plan-helpers" id="plan-helpers" data-magellan-target="plan-helpers" class="anchor">Plan Helpers</a>
 
 Chef Habitat allows you to use [Handlebars-based](http://handlebarsjs.com) tuneables in your plan, and you can also use both built-in Handlebars helpers and Chef Habitat-specific helpers in defining your configuration logic.
 
 - [Built-in Helpers](#builtin-helpers)
 - [Chef Habitat Helpers](#habitat-helpers)
 
-### <a name="builtin-helpers" id="builtin-helpers" data-magellan-target="builtin-helpers" class="anchor">Built-In Helpers</a>
+## <a name="builtin-helpers" id="builtin-helpers" data-magellan-target="builtin-helpers" class="anchor">Built-In Helpers</a>
 
 You can use block expressions to add basic logic to your template such as checking if a value exists or iterating through a list of items.
 
@@ -21,7 +23,7 @@ syntax is the same for all block expressions and looks like this:
       {{expression}}
     {{/helper}}
 
-Chef Habitat supports the standard [built-in helpers](http://handlebarsjs.com/builtin_helpers.html):
+Chef Habitat supports the standard Handlebar control statements and [built-in helpers](http://handlebarsjs.com/builtin_helpers.html):
 
 * `if`
 * `unless`
@@ -68,7 +70,7 @@ When writing your template, you can use the `with` helper to reduce duplication:
       repl-disable-tcp-nodelay {{disable-tcp-nodelay}}
     {{/with ~}}
 
-Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services  in a leader-follower topology.
+Helpers can also be nested and used together in block expressions. Here is another example from the redis.config file where the `if` and `with` helpers are used together to set up `core/redis` Chef Habitat services in a leader-follower topology.
 
     {{#if svc.me.follower ~}}
       replicaof {{svc.leader.sys.ip}} {{svc.leader.cfg.port}}
@@ -121,7 +123,7 @@ And for both **each** and **unless**, you can use `@first` and `@last` to specif
       {{#unless @last ~}}, {{/unless ~}}
     {{/eachAlive ~}}]
 
-### <a name="habitat-helpers" id="habitat-helpers" data-magellan-target="habitat-helpers" class="anchor">Chef Habitat Helpers</a>
+## <a name="habitat-helpers" id="habitat-helpers" data-magellan-target="habitat-helpers" class="anchor">Chef Habitat Helpers</a>
 
 Chef Habitat's templating flavour includes a number of custom helpers for writing configuration and hook files.
 

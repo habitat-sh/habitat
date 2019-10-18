@@ -1,11 +1,13 @@
 ---
-title: Habitat Plan Helper Functions
+title: Habitat Build Helper
+description: Define how your package builds with helper functions.
 category: Reference
+tags: plan.sh, builds
 ---
 
-## <a name="utility-functions" id="utility-functions" data-magellan-target="utility-functions">Plan Helper Functions</a>
+# <a name="build-helpers" id="build-helpers" data-magellan-target="build-helpers">Build Helpers</a>
 
-The following helper functions can be useful in your plan to help you build your package correctly. Attach() specifically is to help with debugging - the other helper functions are to help you in building your package.
+The following helper functions can be useful in your plan to help you build your package correctly. `Attach()`` specifically is to help with debugging - the other helper functions are to help you in building your package.
 
 > **Note**: Most of the following helper functions are not available in Powershell plans (`plan.ps1`). However in most cases, the standard Powershell cmdlets provide the same functionality. For example: use `Resolve-Path` instead of `abspath` or `Get-Command` instead of `exists`.
 

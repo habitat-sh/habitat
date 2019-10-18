@@ -81,26 +81,26 @@ sidebar_links:
   - title: CLI Commands
     link: "/docs/habitat-cli"
   - title: Reference
-    link: "/docs/reference"
+    link: "/docs/reference/overview"
     sub_links:
     - title: Environment Variables
-      link: "/docs/environment-variables"
-    - title: Plan Settings
-      link: "/docs/plan-settings"
-    - title: Plan Variables
-      link: "/docs/plan-variables"
-    - title: Plan Helper Functions
-      link: "/docs/utility-functions"
-    - title: Build Phase Callbacks
-      link: "/docs/reference-callbacks"
-    - title: Application Lifecycle Hooks
-      link: "/docs/reference-hooks"
-    - title: Handlebars Helpers
-      link: "/docs/helpers"
-    - title: Template Data
-      link: "/docs/reference/#template-data"
+      link: "/docs/reference/environment-variables"
     - title: Package Contents
       link: "/docs/package-contents"
+    - title: Plan Helpers
+      link: "/docs/reference/plan-helpers"
+    - title: Plan Settings
+      link: "/docs/reference/plan-settings"
+    - title: Plan Variables
+      link: "/docs/reference/plan-variables"
+    - title: Build Helpers
+      link: "/docs/reference/build-helpers"
+    - title: Build Phase Callbacks
+      link: "/docs/reference/reference-callbacks"
+    - title: Application Lifecycle Hooks
+      link: "/docs/reference/lifecycle-hooks"
+    - title: Template Data
+      link: "/docs/reference/template-data"
     - title: Supervisor Log Configuration
       link: "/docs/sup-log-configuration"
     - title: Supervisor Log Keys

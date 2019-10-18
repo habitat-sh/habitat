@@ -1,15 +1,17 @@
 ---
 title: Habitat Plan Settings
+description: Define basic information about your artifact with plan settings.
 category: Reference
+tags: plan.sh
 ---
 
-## <a name="plan-settings" id="plan-settings" data-magellan-target="plan-settings">Plan settings</a>
+# <a name="plan-settings" id="plan-settings" data-magellan-target="plan-settings">Plan settings</a>
 
 The following settings are defined at the beginning of your plan. They specify basic information about your plan such as name, version, and dependencies.
 
 > **Note**: We are using Bash syntax here, but Powershell plans use the same variable names and should conform to standard Powershell language rules (ie. `$` before variable names and quoting string values).
 
-### General Settings
+## General Settings
 
 **pkg_name**
 : _Required_. Sets the name of the package. This will be used along with `pkg_origin`, and `pkg_version` to define the fully-qualified package name, which determines where the package is installed to on disk, how it is referred to in package metadata, and so on. A `pkg_name` can contain upper and lowercase letters, numbers, dashes, and underscores.

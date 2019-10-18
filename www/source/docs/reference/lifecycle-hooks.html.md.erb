@@ -1,9 +1,11 @@
 ---
 title: Application Lifecycle Hooks
+description: Control service runtime actions with application lifecycle hooks.
 category: Reference
+tags: plan.sh, runtime, services
 ---
 
-## <a name="reference-hooks" id="reference-hooks" data-magellan-target="reference-hooks">Application Lifecycle Hooks</a>
+# <a name="reference-hooks" id="reference-hooks" data-magellan-target="reference-hooks">Application Lifecycle Hooks</a>
 
 Each plan can specify lifecycle event handlers, or hooks, to perform certain actions during a service's runtime. Each hook is a script with a [shebang](https://en.wikipedia.org/wiki/Shebang_(Unix)) defined at the top to specify the interpreter to be used. On Windows, Powershell Core is the only interpreter ever used.
 
@@ -11,11 +13,11 @@ To define a hook, simply create a bash file of the same name in `/my_plan_name/h
 
 > **Important** You cannot block the thread in a hook unless it is in the `run` hook. Never call `hab` or `sleep` in a hook that is not the `run` hook.
 
-### Related article: runtime settings
+## Related article: runtime settings
 
 [Chef Habitat's runtime settings](/docs/reference#template-data) can be used in any of the plan hooks and also in any templatized configuration file for your application or service.
 
-> **Note**: In Chef Habitat 0.68.0 and less, some hooks used `_` in their names. This is now deprecated; if you used them, please use `-` instead.
+> **Note**: In Chef Habitat 0.68.0 and earlier, some hooks used `_` in their names. This is now deprecated; if you used them, please use `-` instead.
 
 **file-updated**
 : File location `<plan>/hooks/file-updated`. This hook is run whenever a configuration file that is not related to a user or about the state of the service instances is updated.
