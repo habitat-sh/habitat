@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.8 -->
+<!-- latest_release 0.89.9 -->
+## [fake-0.89.9](https://github.com/habitat-sh/habitat/tree/fake-0.89.9) (2019-10-18)
+
+#### Merged Pull Requests
+- do not use hab as default user on windows [#7059](https://github.com/habitat-sh/habitat/pull/7059) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.89.8](https://github.com/habitat-sh/habitat/tree/fake-0.89.8) (2019-10-18)
 
 #### Merged Pull Requests
 - Order objects used for template data [#7031](https://github.com/habitat-sh/habitat/pull/7031) ([raskchanky](https://github.com/raskchanky))
-<!-- latest_release -->
 
 ## [fake-0.89.7](https://github.com/habitat-sh/habitat/tree/fake-0.89.7) (2019-10-17)
 
