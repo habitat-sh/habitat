@@ -139,8 +139,8 @@ impl<'a> DownloadTask<'a> {
         // This was written intentionally with an eye towards data parallelism
         // Any or all of these phases should naturally fit a fork-join model
 
-        ui.begin(format!("Preparing to resolve packages and download transitive \
-                          dependendencies for {} package idents",
+        ui.begin(format!("Preparing to resolve packages and download transitive dependencies \
+                          for {} package idents",
                          self.idents.len()))?;
         ui.begin(format!("Using channel {} from {}", self.channel, self.url))?;
         ui.begin(format!("Storing in download directory {:?} ", self.download_path))?;
