@@ -56,7 +56,8 @@ use retry::{delay,
 use crate::error::{Error,
                    Result};
 
-use habitat_common::ui::{Status,
+use habitat_common::ui::{Glyph,
+                         Status,
                          UIWriter};
 
 pub const RETRIES: usize = 5;
@@ -139,10 +140,10 @@ impl<'a> DownloadTask<'a> {
         // This was written intentionally with an eye towards data parallelism
         // Any or all of these phases should naturally fit a fork-join model
 
-        ui.begin(format!("Preparing to resolve packages and download transitive dependencies \
-                          for {} package idents",
+        ui.begin(format!("Resolving dependencies for {} package idents",
                          self.idents.len()))?;
         ui.begin(format!("Using channel {} from {}", self.channel, self.url))?;
+        ui.begin(format!("Using target {}", self.target))?;
         ui.begin(format!("Storing in download directory {:?} ", self.download_path))?;
 
         self.verify_and_prepare_download_directory(ui)?;
@@ -194,7 +195,8 @@ impl<'a> DownloadTask<'a> {
         let mut downloaded_artifacts = Vec::<PackageArchive>::new();
 
         ui.status(Status::Downloading,
-                  format!("Downloading {} artifacts", expanded_idents.len()))?;
+                  format!("Downloading {} artifacts (and their signing keys)",
+                          expanded_idents.len()))?;
 
         for (ident, target) in expanded_idents {
             let archive: PackageArchive = match self.get_downloaded_archive(ui, ident, *target) {
@@ -225,14 +227,10 @@ impl<'a> DownloadTask<'a> {
         // depot; our purpose is to sync with latest, and falling back
         // to a local package would defeat that. Find the latest
         // package in the proper channel from Builder API,
-        ui.status(Status::Determining,
-                  format!("latest version of {} for {} in the '{}' channel",
-                          ident, target, self.channel))?;
+        ui.status(Status::Determining, format!("latest version of {}", ident))?;
         match self.fetch_latest_package_in_channel_for(ident, target, self.channel, self.token) {
             Ok(latest_package) => {
-                ui.status(Status::Using,
-                          format!("{} as latest matching {} for {}",
-                                  latest_package.ident, ident, target))?;
+                ui.status(Status::Using, format!("{}", latest_package.ident))?;
                 Ok(latest_package)
             }
             Err(Error::APIClient(APIError(StatusCode::NOT_FOUND, _))) => {
@@ -271,8 +269,8 @@ impl<'a> DownloadTask<'a> {
         if self.downloaded_artifact_path(ident, target).is_file() {
             debug!("Found {} in download directory, skipping remote download",
                    ident);
-            ui.status(Status::Skipping,
-                      format!("because {} was found in the download directory", ident))?;
+            ui.status(Status::Custom(Glyph::Elipses, String::from("Using cached")),
+                      format!("{}", ident))?;
         } else if let Err(err) = retry(delay::Fixed::from(RETRY_WAIT).take(RETRIES), fetch_artifact)
         {
             return Err(CommonError::DownloadFailed(format!("We tried {} times but could not \
@@ -297,7 +295,7 @@ impl<'a> DownloadTask<'a> {
                          -> Result<()>
         where T: UIWriter
     {
-        ui.status(Status::Downloading, format!("{} for {}", ident, target))?;
+        ui.status(Status::Downloading, format!("{}", ident))?;
         match self.api_client.fetch_package((ident, target),
                                             self.token,
                                             &self.path_for_artifact(),
@@ -320,16 +318,12 @@ impl<'a> DownloadTask<'a> {
                            -> Result<()>
         where T: UIWriter
     {
-        ui.status(Status::Downloading,
-                  format!("{} public origin key", &name_with_rev))?;
         let (name, rev) = parse_name_with_rev(&name_with_rev)?;
         self.api_client.fetch_origin_key(&name,
                                           &rev,
                                           token,
                                           &self.path_for_keys(),
                                           ui.progress())?;
-        ui.status(Status::Cached,
-                  format!("{} public origin key", &name_with_rev))?;
         Ok(())
     }
 
@@ -347,7 +341,7 @@ impl<'a> DownloadTask<'a> {
         let signer = artifact::artifact_signer(&artifact.path)?;
         if SigKeyPair::get_public_key_path(&signer, &self.path_for_keys()).is_err() {
             ui.status(Status::Downloading,
-                      format!("Public key for signer {:?}", signer))?;
+                      format!("public key for signer {:?}", signer))?;
             self.fetch_origin_key(ui, &signer, self.token)?;
         }
 
@@ -395,8 +389,7 @@ impl<'a> DownloadTask<'a> {
                             &self.path_for_artifact()];
 
         ui.status(Status::Verifying,
-                  format!("Checking the download directory ({}) permissions and creating it \
-                           (if needed)",
+                  format!("the download directory \"{}\"",
                           self.download_path.display()))?;
 
         let mut builder = DirBuilder::new();
