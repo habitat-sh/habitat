@@ -7,11 +7,12 @@ require 'json'
 require 'logger'
 
 class ManifestUtil
-  def generate(version, filename, log)
+  def generate(version, sha, filename, log)
 
     manifest = {
       "schema_version" => "1",
       "version" => version,
+      "sha" => sha,
       "packages" => { }
     }
 
@@ -47,9 +48,10 @@ end
 
 def usage(log)
   log.error "Usage:"
-  log.error "create_manifest.rb <filename> <version> - generate a manifest from the input list."
+  log.error "create_manifest.rb <filename> <version> <sha> - generate a manifest from the input list."
   log.error "Each line of the input file should be of the form: \"$FULLY_QUALIFIED_IDENT $PKG_TARGET\""
   log.error "<version> is the contents of the VERSION file from the Habitat repository"
+  log.error "<sha> is a Git SHA for the code the managed artifacts are built from."
 end
 
 # setup logger
@@ -59,13 +61,14 @@ log.formatter = proc do |severity, datetime, progname, msg|
 end
 
 # Some basic help
-if ARGV.nil? || ARGV.length != 2
+if ARGV.nil? || ARGV.length != 3
   usage(log)
   exit
 end
 
 filename = ARGV[0]
 version = ARGV[1]
+sha = ARGV[2]
 
-manifest = ManifestUtil.new.generate(version, filename, log)
+manifest = ManifestUtil.new.generate(version, sha, filename, log)
 File.write("manifest.json", JSON.pretty_generate(manifest), { mode: 'w', encoding: 'UTF-8' })

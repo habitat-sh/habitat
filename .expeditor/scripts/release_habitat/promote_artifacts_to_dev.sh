@@ -74,7 +74,8 @@ done
 
 echo "--- Generating manifest.json file"
 version=$(get_version)
-./create_manifest.rb "${manifest_input_file}" "${version}"
+sha="${BUILDKITE_COMMIT}"
+./create_manifest.rb "${manifest_input_file}" "${version}" "${sha}"
 # Note that the "manifest.json" filename is determined by the
 # `create_manifest.rb` script.
 
