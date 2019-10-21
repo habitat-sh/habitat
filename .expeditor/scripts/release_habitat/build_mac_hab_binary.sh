@@ -62,10 +62,6 @@ ${hab_binary} pkg upload \
               --auth="${HAB_AUTH_TOKEN}" \
               "results/${pkg_artifact:?}"
 
-echo "--- :buildkite: Storing artifact ${pkg_ident}"
-buildkite-agent artifact upload "results/${pkg_artifact}"
-buildkite-agent meta-data set MACOS_ARTIFACT "results/${pkg_artifact}"
-
 echo "<br>* ${pkg_ident} (${BUILD_PKG_TARGET})" | buildkite-agent annotate --append --context "release-manifest"
 
 set_target_metadata "${pkg_ident}" "${pkg_target}"
