@@ -1,13 +1,22 @@
 #!/bin/bash
 
-set -euo pipefail
-
 source .expeditor/scripts/shared.sh
 
 ### This file should include things that are used exclusively by the release pipeline
 
 get_release_channel() {
     echo "habitat-release-${BUILDKITE_BUILD_ID}"
+}
+
+# Read the contents of the VERSION file. This will be used to
+# determine where generated artifacts go in S3.
+get_version_from_repo() {
+    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+    if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
+        cat "$dir/../../../VERSION_FAKE"
+    else
+        cat "$dir/../../../VERSION"
+    fi
 }
 
 # Download public and private keys for the "core" origin from Builder.

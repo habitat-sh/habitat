@@ -1,11 +1,7 @@
 #!/bin/bash
 
-# This is the bucket that all manifests, hart files, and other
-# assorted artifacts will be uploaded to.
-#
-# Despite the name (an accident of history), we store more than just
-# Automate-related material there.
-readonly s3_bucket_name="chef-automate-artifacts"
+# TODO (CM): for the verify and release pipelines, this should
+# probably operate from the install.sh script in the repo itself, right?
 
 # Always install the latest hab binary appropriate for your linux platform
 #
@@ -45,27 +41,164 @@ get_toolchain() {
     cat "$dir/../../rust-toolchain"
 }
 
-s3_upload_file() {
-    local file_name="${1:?}"
-    local s3_url="${2:?}"
-    aws --profile chef-cd s3 cp "$file_name" "$s3_url" --acl public-read
+# Chef's GPG key for generating signatures. See `import_gpg_keys`
+# and `gpg_sign` below.
+readonly chef_gpg_key="2940ABA983EF826A"
+
+# Imports Chef's packages@chef.io GPG keys. This must be called before
+# running either `gpg_sign` or `gpg_verify`.
+import_gpg_keys() {
+    aws s3 cp \
+        s3://chef-cd-citadel/packages_at_chef.io.pgp \
+        packages_at_chef.io.pgp \
+        --profile=chef-cd
+    gpg --import packages_at_chef.io.pgp
 }
 
-# Sets the given manifest `file` to be the current one for the given
-# environment.
-upload_manifest_for_environment() {
+# Signs `file` with Chef's GPG key, generating a corresponding
+# `*.asc` signature in the same directory as `file`.
+gpg_sign() {
     local file="${1}"
-    local environment_name="${2}"
-    s3_upload_file "$file" "s3://${s3_bucket_name}/${environment_name}/latest/habitat/manifest.json"
+    gpg --armor \
+        --digest-algo sha256 \
+        --default-key "${chef_gpg_key}" \
+        --output "${file}.asc" \
+        --detach-sign \
+        "${file}"
+}
+
+# Verify a file's GPG signature. Assumes a similarly named `asc` file
+# is located in the same directory.
+gpg_verify(){
+    local file="${1}"
+    gpg --verify "${file}.asc" "${file}"
+}
+
+# Generate a SHA256 checksum of `file`.
+checksum_file() {
+    local file="${1}"
+    sha256sum "${file}" > "${file}.sha256sum"
+}
+
+# This is the bucket that all manifests, hart files, and other
+# assorted artifacts will be uploaded to.
+#
+# Despite the name (an accident of history), we store more than just
+# Automate-related material there.
+readonly s3_bucket_name="chef-automate-artifacts"
+
+# Helper function for running s3 cp with appropriate settings.
+s3_cp() {
+    local src="${1}"
+    local dest="${2}"
+    aws --profile chef-cd \
+        s3 cp "${src}" "${dest}" \
+        --acl public-read
+}
+
+s3_file_url_root() {
+    local version="${1}"
+    echo "https://${s3_bucket_name}.s3.amazonaws.com/files/habitat/${version}"
+}
+
+s3_channel_url_root() {
+    local channel="${1}"
+    echo "https://${s3_bucket_name}.s3.amazonaws.com/${channel}/latest/habitat"
+}
+
+# Intended for uploading manifests and `hab` packages in non-Habitat
+# archives (e.g., tarballs, not harts) to S3.
+#
+# Artifacts are GPG signed and checksummed, and those files are
+# uploaded as well to a versioned directory.
+#
+# e.g. store_in_s3 0.88.0 hab-x86_64-linux.tar.gz
+#      store_in_s3 0.88.0 manifest.json
+store_in_s3() {
+    # I guess we *could* just call `get_version` right here if we
+    # wanted to.
+    local version="${1}"
+    local artifact="${2}"
+
+    checksum_file "${artifact}"
+    gpg_sign "${artifact}"
+
+    local versioned_url
+    versioned_url="$(s3_file_url_root "${version}")"
+
+    s3_cp \
+        "${artifact}" \
+        "${versioned_url}/${artifact}"
+    s3_cp \
+        "${artifact}.asc" \
+        "${versioned_url}/${artifact}.asc"
+    s3_cp \
+        "${artifact}.sha256sum" \
+        "${versioned_url}/${artifact}.sha256sum"
+}
+
+# Recursively copy all the Habitat artifacts of a given version into
+# the specified destination channel as the current "latest"
+# artifacts.
+#
+# This should take care of manifests, hab archives, and all the
+# associated signature and checksum files
+#
+# e.g. promote_version_in_s3 0.88.0 dev
+#      promote_version_in_s3 0.88.0 acceptance
+promote_version_in_s3() {
+    local version="${1}"
+    local destination="${2}"
+    aws --profile chef-cd \
+        s3 cp \
+        "$(s3_file_url_root "${version}")" \
+        "$(s3_channel_url_root "${destination}")" \
+        --recursive \
+        --acl public-read
 }
 
 # Retrieves the current package manifest for the given environment.
 #
-# Returns the JSON on standard output, suitable for piping
-# into `jq`.
-#
-# e.g. manifest_for_environment acceptance | jq
-manifest_for_environment() {
-    local environment_name="${1:?}"
-    curl --silent "http://${s3_bucket_name}.s3.amazonaws.com/${environment_name}/latest/habitat/manifest.json"
+# After GPG verifying the file, the file will be present in the
+# current directory with the name "manifest.json".
+get_manifest_for_environment() {
+    local environment_name="${1}"
+
+    local source_root
+    source_root="$(s3_channel_url_root "${environment_name}")"
+
+    curl --silent \
+         --remote-name \
+         "${source_root}/manifest.json"
+    curl --silent \
+         --remote-name \
+         "${source_root}/manifest.json.asc"
+
+    gpg_verify "manifest.json"
+}
+
+# Reads information from a manifest.json file and promotes the Habitat
+# packages specified therein to the designated channel in Builder.
+promote_packages_to_builder_channel() {
+    local manifest="${1}"
+    local destination_channel="${2}"
+
+    local manifest_json
+    manifest_json=$(cat "${manifest}")
+
+    mapfile -t targets < <(echo "${manifest_json}" | jq -r ".packages | keys | .[]")
+
+    echo "--- Promoting Habitat packages to the ${destination_channel} channel of ${HAB_BLDR_URL}"
+    for target in "${targets[@]}"; do
+        mapfile -t idents < <(echo "${manifest_json}" | jq -r ".packages.\"${target}\" | .[]")
+        for ident in "${idents[@]}"; do
+            echo "--- Promoting ${ident} (${target}) to '${destination_channel}'"
+            ${hab_binary} pkg promote \
+                          --auth="${HAB_AUTH_TOKEN}" \
+                          --url="${HAB_BLDR_URL}" \
+                          "${ident}" "${destination_channel}" "${target}"
+        done
+    done
+
+
 }
