@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.11 -->
+<!-- latest_release 0.89.12 -->
+## [fake-0.89.12](https://github.com/habitat-sh/habitat/tree/fake-0.89.12) (2019-10-21)
+
+#### Merged Pull Requests
+- hab pkg download file can have comments, whitespace [#7064](https://github.com/habitat-sh/habitat/pull/7064) ([markan](https://github.com/markan))
+<!-- latest_release -->
+
 ## [fake-0.89.11](https://github.com/habitat-sh/habitat/tree/fake-0.89.11) (2019-10-21)
 
 #### Merged Pull Requests
 - Install Rust using the &quot;minimal&quot; profile [#7072](https://github.com/habitat-sh/habitat/pull/7072) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.11](https://github.com/habitat-sh/habitat/tree/fake-0.89.11) (2019-10-21)
 
