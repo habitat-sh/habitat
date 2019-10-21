@@ -7,11 +7,13 @@ require 'json'
 require 'logger'
 
 class ManifestUtil
-  def generate(filename, log)
+  def generate(version, filename, log)
 
-    manifest = {}
-    manifest["schema_version"] = "1"
-    manifest["packages"] = { }
+    manifest = {
+      "schema_version" => "1",
+      "version" => version,
+      "packages" => { }
+    }
 
     input_lines = []
 
@@ -45,8 +47,9 @@ end
 
 def usage(log)
   log.error "Usage:"
-  log.error "create_manifest.rb <filename> - generate a manifest from the input list."
+  log.error "create_manifest.rb <filename> <version> - generate a manifest from the input list."
   log.error "Each line of the input file should be of the form: \"$FULLY_QUALIFIED_IDENT $PKG_TARGET\""
+  log.error "<version> is the contents of the VERSION file from the Habitat repository"
 end
 
 # setup logger
@@ -56,17 +59,13 @@ log.formatter = proc do |severity, datetime, progname, msg|
 end
 
 # Some basic help
-if ARGV.nil? || ARGV.length == 0
+if ARGV.nil? || ARGV.length != 2
   usage(log)
   exit
 end
 
-if (ARGV[0].nil?)
-    log.error "This option requires a pkg_ident, pkg_target, and output filename."
-    usage(log)
-end
-
 filename = ARGV[0]
+version = ARGV[1]
 
-manifest = ManifestUtil.new.generate(filename, log)
+manifest = ManifestUtil.new.generate(version, filename, log)
 File.write("manifest.json", JSON.pretty_generate(manifest), { mode: 'w', encoding: 'UTF-8' })
