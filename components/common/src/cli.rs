@@ -90,7 +90,37 @@ pub fn file_into_idents(path: &str) -> Result<Vec<PackageIdent>, habitat_core::e
                 habitat_core::error::Error::FileNotFound(format!("Could not open file {}", path))
             })?;
 
-    s.lines()
-     .map(|line| PackageIdent::from_str(line.trim()))
-     .collect()
+    s.lines().filter_map(line_to_ident).collect()
+}
+
+fn line_to_ident(line: &str) -> Option<Result<PackageIdent, habitat_core::error::Error>> {
+    let trimmed = line.split('#').nth(0).unwrap_or("").trim();
+    match trimmed.len() {
+        0 => None,
+        _ => Some(PackageIdent::from_str(trimmed)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    // These tests aren't super pretty because we can't do PartialEq for the Option<Error<X>> stuff,
+    // so lots of unwrap
+    fn test_line_to_ident() {
+        assert!(line_to_ident("").is_none());
+        assert!(line_to_ident("# foo").is_none());
+        assert!(line_to_ident("   # foo").is_none());
+        assert!(line_to_ident("\n\r# foo").is_none());
+
+        assert_eq!(line_to_ident("core/gzip").unwrap().unwrap(),
+                   PackageIdent::from_str("core/gzip").unwrap());
+        assert_eq!(line_to_ident("core/gzip #foo").unwrap().unwrap(),
+                   PackageIdent::from_str("core/gzip").unwrap());
+
+        assert!(line_to_ident("core").unwrap().is_err());
+
+        assert!(line_to_ident("core # not").unwrap().is_err());
+    }
 }
