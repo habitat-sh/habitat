@@ -1,22 +1,19 @@
 #!/bin/bash
 
+# Promote all artifacts into the dev channel. This includes:
+#
+# * Generating a manifest.json enumerating all the Habitat packages
+#   stored in Builder.
+# * Promoting all the Habitat packages from the current
+#   pipeline-scoped channel to "dev" in Builder.
+# * Promoting (copying) previously-generated `hab` binary distribution
+#   artifacts stored in S3 to the "dev" environment/channel hierarchy
+#   in S3.
+#
+# Any subsequent promotions will be driven by the contents of the
+# manifest.json file. This script just handles the creation of that
+# file and the *initial* promotion.
 set -euo pipefail
-
-# Generates a manifest.json file based on the contents of the current
-# release channel.
-#
-# Any subsequent promotions will be driven by the contents of this
-# file.
-#
-# Note that because we don't yet have a good API from which to query both ident
-# and package target information, we abuse Buildkite metadata to store
-# that information locally. We then use this to determine the exact
-# information we put into the manifest.json file.
-#
-# As such, this script can basically be thought of as a way to extract
-# this Buildkite metadata and capture it in a durable,
-# Buildkite-independent form (namely, `manifest.json`) that we can use
-# in downstream applications.
 
 source .expeditor/scripts/release_habitat/shared.sh
 
@@ -37,7 +34,15 @@ source_channel=${1:?You must specify a source channel value}
 
 echo "--- Generating manifest input from $source_channel"
 
-# Extract as much raw data as we can (i.e., just the idents) from Builder
+# Note that because we don't yet have a good API from which to query
+# both ident and package target information, we abuse Buildkite
+# metadata to store that information locally. We then use this to
+# determine the exact information we put into the manifest.json file.
+#
+# As such, this script can basically be thought of as a way to extract
+# this Buildkite metadata and capture it in a durable,
+# Buildkite-independent form (namely, `manifest.json`) that we can use
+# in downstream applications.
 channel_pkgs_json=$(curl -s "${HAB_BLDR_URL}/v1/depot/channels/${HAB_ORIGIN}/${source_channel}/pkgs")
 mapfile -t packages_to_promote < <(echo "${channel_pkgs_json}" | \
                          jq -r \
@@ -49,7 +54,9 @@ mapfile -t packages_to_promote < <(echo "${channel_pkgs_json}" | \
 manifest_input_file="manifest_input.txt"
 targets=("x86_64-linux"
          "x86_64-linux-kernel2"
-         "x86_64-windows")
+         "x86_64-windows"
+         "x86_64-darwin")
+
 for pkg in "${packages_to_promote[@]}"; do
     for pkg_target in "${targets[@]}"; do
         # Note that we must check all targets, and not short-circuit
@@ -66,9 +73,20 @@ for pkg in "${packages_to_promote[@]}"; do
 done
 
 echo "--- Generating manifest.json file"
-./create_manifest "${manifest_input_file}"
+version=$(get_version)
+./create_manifest.rb "${manifest_input_file}" "${version}"
+# Note that the "manifest.json" filename is determined by the
+# `create_manifest.rb` script.
+
+########################################################################
 
 echo "--- Pushing manifest file to S3"
-# Note that the "manifest.json" filename is determined by the
-# `create_manifest` script.
-upload_manifest_for_environment manifest.json dev
+store_in_s3 "${version}" manifest.json
+
+# The remaining logic is essentially the same as in `promote.sh`, but
+# done separately since we just stored the manifest in the "files"
+# hierarchy, and not in the "channels" hierarchy; *this* code is what
+# ultimately gets it into said hierarchy.
+
+promote_packages_to_builder_channel manifest.json dev
+promote_version_in_s3 "${version}" dev

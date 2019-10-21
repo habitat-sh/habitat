@@ -65,49 +65,6 @@ steps:
       buildkite:
         timeout_in_minutes: 45
 
-
-  - wait
-
-  - label: "[:linux: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-
-  - label: "[:linux: :two: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
-
-  - label: "[:windows: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-windows
-
-  - label: "[:macos: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-darwin
-
   - wait
 
   - label: "[:linux: build hab-plan-build]"
@@ -383,11 +340,54 @@ steps:
 
   - wait
 
-  # This handles promotion of packages of all targets; *everything* in
-  # the channel goes into DEV
-  - label: "[:hab: Promote to DEV]"
+  # TODO (CM): It wouldn't take too much additional work to have
+  # `package_and_upload_binary.sh` operate on ALL targets at once.
+
+  - label: "[:linux: upload hab binary]"
     command:
-      - .expeditor/scripts/release_habitat/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  - label: "[:windows: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+
+  - label: "[:macos: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-darwin
+
+  - wait
+
+  - label: "[:hab: Generate Manifest and promote to dev channel]"
+    command:
+      - .expeditor/scripts/release_habitat/promote_artifacts_to_dev.sh habitat-release-$BUILDKITE_BUILD_ID
     expeditor:
       executor:
         docker:
