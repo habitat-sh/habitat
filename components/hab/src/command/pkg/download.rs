@@ -95,13 +95,28 @@ pub fn start<U>(ui: &mut U,
     where U: UIWriter
 {
     debug!("Starting download with url: {}, channel: {}, product: {}, version: {}, target: {}, \
-            download_path: {:?}, token: {:?}, verify: {}",
-           url, channel, product, version, target, download_path, token, verify);
+            download_path: {:?}, token: {:?}, verify: {}, ident_count: {}",
+           url,
+           channel,
+           product,
+           version,
+           target,
+           download_path,
+           token,
+           verify,
+           idents.len());
 
     let download_path_default = &cache_root_path::<PathBuf>(None); // Satisfy E0716
     let download_path_expanded = download_path.unwrap_or(download_path_default).as_ref();
     debug!("Using download_path {:?} expanded to {:?}",
            download_path, download_path_expanded);
+
+    if idents.is_empty() {
+        ui.fatal("No package identifers provided. Specify identifiers on the command line, or \
+                  via a input file")?;
+        return Err(CommonError::MissingCLIInputError(String::from("No package identifiers \
+                                                                   found")).into());
+    }
 
     // We deliberately use None to specify the default path as this is used for cert paths, which
     // we don't want to override.
