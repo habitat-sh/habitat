@@ -29,7 +29,7 @@ ${hab_binary} pkg download core/hab \
               --target="${BUILD_PKG_TARGET}" \
               --channel="${channel}" \
               --download-directory="."
-hart="$(find . -type f -name 'core-hab-*.hart')"
+hart="$(find . -type f -name 'core-hab-*-'"${BUILD_PKG_TARGET}"'.hart')"
 
 echo "--- Extracting binaries from ${hart}"
 
