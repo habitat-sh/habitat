@@ -1,11 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.10 -->
+<!-- latest_release 0.89.11 -->
+## [fake-0.89.11](https://github.com/habitat-sh/habitat/tree/fake-0.89.11) (2019-10-21)
+
+#### Merged Pull Requests
+- Install Rust using the &quot;minimal&quot; profile [#7072](https://github.com/habitat-sh/habitat/pull/7072) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
+## [fake-0.89.11](https://github.com/habitat-sh/habitat/tree/fake-0.89.11) (2019-10-21)
+
+#### Merged Pull Requests
+- make pkg download fail when zero packages [#7068](https://github.com/habitat-sh/habitat/pull/7068) ([markan](https://github.com/markan))
+
 ## [fake-0.89.10](https://github.com/habitat-sh/habitat/tree/fake-0.89.10) (2019-10-21)
 
 #### Merged Pull Requests
 - Ma/hab 7056/message cleanup [#7069](https://github.com/habitat-sh/habitat/pull/7069) ([markan](https://github.com/markan))
-<!-- latest_release -->
 
 ## [fake-0.89.9](https://github.com/habitat-sh/habitat/tree/fake-0.89.9) (2019-10-18)
 
