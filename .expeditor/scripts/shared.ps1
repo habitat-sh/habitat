@@ -54,7 +54,7 @@ function Install-Rustup($Toolchain) {
       Write-Host "Installing rustup and $toolchain-x86_64-pc-windows-msvc Rust."
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       invoke-restmethod -usebasicparsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' -outfile 'rustup-init.exe'
-      ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path
+      ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path --profile=minimal
       $env:path += ";$env:USERPROFILE\.cargo\bin"
   }
 }

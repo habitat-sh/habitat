@@ -29,7 +29,7 @@ install_rustup() {
     echo "--- :rust: rustup is currently installed."
   else
     echo "--- :rust: Installing rustup."
-    curl https://sh.rustup.rs -sSf | sh -s -- --no-modify-path -y
+    curl https://sh.rustup.rs -sSf | sh -s -- --no-modify-path -y --profile=minimal
     # shellcheck disable=SC1090
     source "$HOME"/.cargo/env
   fi
