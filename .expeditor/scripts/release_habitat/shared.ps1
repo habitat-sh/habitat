@@ -1,5 +1,15 @@
 . $PSScriptRoot\..\shared.ps1
 
+function Install-BuildkiteAgent() {
+  # Though the Windows machine we're running on has to have the
+  # buildkite-agent installed, by definition, if you need to use the
+  # buildkite-agent inside a container running on that host (e.g., to
+  # do artifact uploads, or to manipulate pipeline metadata), then
+  # you'll need to install it in the container as well.
+  Write-Host "--- Installing buildkite agent in container"
+  iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/buildkite/agent/master/install.ps1')) | Out-Null
+}
+
 function Install-LatestHabitat() {
   # Install latest hab from using install.ps1
   $env:HAB_LICENSE = "accept-no-persist"
