@@ -24,17 +24,6 @@ get_rustfmt_toolchain() {
   cat "$dir/../../../RUSTFMT_VERSION"
 }
 
-install_rustup() {
-  if command -v rustup && command -v cargo &>/dev/null; then
-    echo "--- :rust: rustup is currently installed."
-  else
-    echo "--- :rust: Installing rustup."
-    curl https://sh.rustup.rs -sSf | sh -s -- --no-modify-path -y --profile=minimal
-    # shellcheck disable=SC1090
-    source "$HOME"/.cargo/env
-  fi
-}
-
 install_rustfmt() {
   local toolchain="${1?toolchain argument required}"
   install_rust_toolchain "$toolchain"
