@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.17 -->
+<!-- latest_release 0.89.18 -->
+## [fake-0.89.18](https://github.com/habitat-sh/habitat/tree/fake-0.89.18) (2019-10-22)
+
+#### Merged Pull Requests
+- Install Buildkite Agent in Windows container again [#7081](https://github.com/habitat-sh/habitat/pull/7081) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.17](https://github.com/habitat-sh/habitat/tree/fake-0.89.17) (2019-10-22)
 
 #### Merged Pull Requests
 - Add HAB_AUTH_TOKEN and BUILDKITE_AGENT_TOKEN back on Windows [#7079](https://github.com/habitat-sh/habitat/pull/7079) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.16](https://github.com/habitat-sh/habitat/tree/fake-0.89.16) (2019-10-22)
 
