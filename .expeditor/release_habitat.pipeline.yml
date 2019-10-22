@@ -50,7 +50,7 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
-  - label: "[:macos: build hab]"
+  - label: "[:mac: build hab]"
     command:
       # We need to install bash 4+ so we are able to use all the modern capabilities.
       - brew install bash
@@ -373,7 +373,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
 
-  - label: "[:macos: upload hab binary]"
+  - label: "[:mac: upload hab binary]"
     command:
       - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
     expeditor:
@@ -395,7 +395,7 @@ steps:
 
   - wait
 
-  - label: "[:habitat: delete build channel]"
+  - label: "[:habicat: delete build channel]"
     command:
       - .expeditor/scripts/release_habitat/remove_build_channel.sh habitat-release-$BUILDKITE_BUILD_ID
     expeditor:
