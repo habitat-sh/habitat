@@ -20,9 +20,9 @@ use habitat_common::{liveliness_checker::{self,
                                           ThreadUnregistered},
                      outputln};
 #[cfg(unix)]
-use habitat_core::os::{process::{Pid,
-                                 Signal},
-                       signals::SignalEvent};
+use habitat_core::os::process::{Pid,
+                                Signal};
+
 use ipc_channel::ipc::{IpcOneShotServer,
                        IpcReceiver,
                        IpcSender};
@@ -254,14 +254,14 @@ impl Server {
         // tracking still works on Windows.
         self.reap_services();
 
-        if signals::check_for_shutdown() {
+        if signals::pending_shutdown() {
             self.shutdown();
             return Ok(TickState::Exit(0));
         }
 
         #[cfg(unix)]
-        match signals::check_for_signal() {
-            Some(SignalEvent::WaitForChild) => {
+        {
+            if signals::pending_sigchld() {
                 // We only return Some if we ended up reaping our
                 // Supervisor; otherwise, we don't need to do anything
                 // special. If the supervisor exits but reap_zombie_orphans()
@@ -271,12 +271,11 @@ impl Server {
                     return result;
                 }
             }
-            Some(SignalEvent::Passthrough(signal)) => {
-                self.forward_signal(signal);
-            }
-            None => {}
-        }
 
+            if signals::pending_sighup() {
+                self.forward_signal(Signal::HUP);
+            }
+        }
         self.handle_message()
     }
 
@@ -418,7 +417,6 @@ impl ServiceTable {
 
 pub fn run(args: Vec<String>) -> Result<i32> {
     let mut server = Server::new(args)?;
-    signals::init();
     liveliness_checker::spawn_thread_alive_checker();
     let loop_value: ThreadUnregistered<_, _> = loop {
         let checked_thread = liveliness_checker::mark_thread_alive();

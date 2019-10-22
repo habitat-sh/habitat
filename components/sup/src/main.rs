@@ -43,7 +43,8 @@ use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{self,
                    crypto::{self,
                             SymKey},
-                   os::process::ShutdownTimeout,
+                   os::{process::ShutdownTimeout,
+                        signals},
                    url::{bldr_url_from_env,
                          default_bldr_url},
                    ChannelIdent};
@@ -82,6 +83,16 @@ fn main() {
     logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
+    // On Windows initializing the signal handler will create a ctrl+c handler for the
+    // process which will disable default windows ctrl+c behavior and allow us to
+    // handle the signal via pending_shutdown(). Currently the supervisor does not
+    // call pending_shutdown(), effectively ignoring ctrl+c. On Windows, we
+    // let the launcher catch ctrl+c and gracefully shut down services. When IGNORE_SIGNALS is set,
+    // ctrl+c should simply halt the supervisor.
+    if !flags.contains(FeatureFlag::IGNORE_SIGNALS) {
+        signals::init();
+    }
+
     let result = start_rsr_imlw_mlw_gsw_smw_rhw_msw(flags);
     let exit_code = match result {
         Ok(_) => 0,
