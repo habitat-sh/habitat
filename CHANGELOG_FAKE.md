@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.18 -->
+<!-- latest_release 0.89.19 -->
+## [fake-0.89.19](https://github.com/habitat-sh/habitat/tree/fake-0.89.19) (2019-10-22)
+
+#### Merged Pull Requests
+- Use proper Buildkite emojis in release pipeline [#7080](https://github.com/habitat-sh/habitat/pull/7080) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.18](https://github.com/habitat-sh/habitat/tree/fake-0.89.18) (2019-10-22)
 
 #### Merged Pull Requests
 - Install Buildkite Agent in Windows container again [#7081](https://github.com/habitat-sh/habitat/pull/7081) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.17](https://github.com/habitat-sh/habitat/tree/fake-0.89.17) (2019-10-22)
 
