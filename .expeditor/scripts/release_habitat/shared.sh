@@ -1,13 +1,22 @@
 #!/bin/bash
 
-set -euo pipefail
-
 source .expeditor/scripts/shared.sh
 
 ### This file should include things that are used exclusively by the release pipeline
 
 get_release_channel() {
     echo "habitat-release-${BUILDKITE_BUILD_ID}"
+}
+
+# Read the contents of the VERSION file. This will be used to
+# determine where generated artifacts go in S3.
+get_version_from_repo() {
+    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+    if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
+        cat "$dir/../../../VERSION_FAKE"
+    else
+        cat "$dir/../../../VERSION"
+    fi
 }
 
 # Download public and private keys for the "core" origin from Builder.
@@ -51,9 +60,6 @@ install_release_channel_hab_binary() {
     local pkg_target="${1:-$BUILD_PKG_TARGET}"
     curlbash_hab "${pkg_target}"
 
-    # workaround for https://github.com/habitat-sh/habitat/issues/6771	
-    ${hab_binary} pkg install core/hab-studio
-
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
     # now install the latest hab available in our channel, if it and the studio exist yet
     hab_version=$(get_latest_pkg_version_in_release_channel "hab")
@@ -69,4 +75,30 @@ install_release_channel_hab_binary() {
     else
         echo "--- Hab and studio versions did not match. hab: ${hab_version:-null} - studio: ${studio_version:-null}"
     fi
+}
+
+# Until we can reliably deal with packages that have the same
+# identifier, but different target, we'll track the information in
+# Buildkite metadata.
+#
+# Each time we put a package into our release channel, we'll record
+# what target it was built for.
+set_target_metadata() {
+    package_ident="${1}"
+    target="${2}"
+
+    echo "--- :partyparrot: Setting target metadata for '${package_ident}' (${target})"
+    buildkite-agent meta-data set "${package_ident}-${target}" "true"
+}
+
+# When we do the final promotions, we need to know the target of each
+# package in order to properly get the promotion done. If Buildkite metadata for
+# an ident/target pair exists, then that means that's a valid
+# combination, and we can use the target in the promotion call.
+ident_has_target() {
+    package_ident="${1}"
+    target="${2}"
+
+    echo "--- :partyparrot: Checking target metadata for '${package_ident}' (${target})"
+    buildkite-agent meta-data exists "${package_ident}-${target}"
 }

@@ -193,7 +193,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
-  
+
   - label: "[:linux: test_studio_with_ssl_cert_file_envvar_set]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
@@ -205,7 +205,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
- 
+
   - label: "[:linux: :docker: test_studio_with_ssl_cert_file_envvar_set]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
@@ -219,7 +219,7 @@ steps:
         linux:
           single-use: true
           privileged: true
-  
+
   - label: "[:linux: test_studio_when_ssl_cert_file_is_invalid_cert]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
@@ -231,7 +231,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
-  
+
   - label: "[:linux: test_studio_when_ssl_cert_file_is_nonexistant_file]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
@@ -243,7 +243,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
-  
+
   - label: "[:linux: test_studio_when_ssl_cert_file_is_directory]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh DEV
@@ -255,4 +255,13 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
-  
+
+  - wait
+
+  - label: "[:hab: Promote to Acceptance]"
+    command:
+      - .expeditor/scripts/promote.sh dev acceptance
+    expeditor:
+      executor:
+        docker:
+          privileged: true

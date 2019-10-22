@@ -34,9 +34,6 @@ declare -g hab_binary
 curlbash_hab "$BUILD_PKG_TARGET"
 import_keys
 
-# Set SSL cert location
-export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
-
 # We invoke hab-plan-build.sh directly via sudo, so we don't get the key management that studio provides.
 # Copy keys from the user account Habitat cache to the system Habitat cache so that they are present for root.
 sudo mkdir -p /hab/cache/keys
@@ -65,12 +62,6 @@ ${hab_binary} pkg upload \
               --auth="${HAB_AUTH_TOKEN}" \
               "results/${pkg_artifact:?}"
 
-${hab_binary} pkg promote \
-              --auth="${HAB_AUTH_TOKEN}" \
-              "${pkg_ident}" "${channel}" "${BUILD_PKG_TARGET}"
-
-echo "--- :buildkite: Storing artifact ${pkg_ident}"
-buildkite-agent artifact upload "results/${pkg_artifact}"
-buildkite-agent meta-data set MACOS_ARTIFACT "results/${pkg_artifact}"
-
 echo "<br>* ${pkg_ident} (${BUILD_PKG_TARGET})" | buildkite-agent annotate --append --context "release-manifest"
+
+set_target_metadata "${pkg_ident}" "${pkg_target}"

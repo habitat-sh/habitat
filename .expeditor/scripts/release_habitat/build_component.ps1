@@ -7,7 +7,7 @@ param (
     [string]$Component
 )
 
-$ErrorActionPreference="stop" 
+$ErrorActionPreference="stop"
 
 # Import shared functions
 . $PSScriptRoot\shared.ps1
@@ -15,8 +15,6 @@ $ErrorActionPreference="stop"
 if($Component.Equals("")) {
     Write-Error "--- :error: Component to build not specified, please use the -Component flag"
 }
-
-Install-BuildkiteAgent
 
 $Env:HAB_BLDR_URL=$Env:ACCEPTANCE_HAB_BLDR_URL
 $Env:HAB_PACKAGE_TARGET=$Env:BUILD_PKG_TARGET
@@ -27,7 +25,6 @@ choco install jq -y | Out-Null
 # For viewability
 $Channel = "habitat-release-$Env:BUILDKITE_BUILD_ID"
 Write-Host "--- Channel: $Channel - bldr url: $Env:HAB_BLDR_URL"
-$Env:HAB_BLDR_CHANNEL="$Channel"
 
 $baseHabExe=Install-LatestHabitat
 
@@ -44,14 +41,18 @@ $Env:HAB_STUDIO_SECRET_DO_FAKE_RELEASE=$Env:DO_FAKE_RELEASE
 
 # Run a build!
 Write-Host "--- Running hab pkg build for $Component"
+
+# Note: HAB_BLDR_CHANNEL *must* be set for the following `hab pkg
+# build` command! There isn't currently a CLI option to set that, and
+# we must ensure that we're pulling dependencies from our build
+# channel when applicable.
+$Env:HAB_BLDR_CHANNEL="$Channel"
 Invoke-Expression "$baseHabExe pkg build components\$Component --keys core"
 . results\last_build.ps1
 
-Write-Host "--- Running hab pkg upload for $Component to channel $Env:HAB_BLDR_CHANNEL"
-Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$Env:HAB_BLDR_CHANNEL"
-Write-Host "--- Running hab pkg promote for $pkg_ident to channel $Env:HAB_BLDR_CHANNEL"
-Invoke-Expression "$baseHabExe pkg promote $pkg_ident $Env:HAB_BLDR_CHANNEL $Env:BUILD_PKG_TARGET"
-Invoke-Expression "buildkite-agent meta-data set $pkg_ident-x86_64-windows true"
+Write-Host "--- Running hab pkg upload for $Component to channel $Channel"
+Invoke-Expression "$baseHabExe pkg upload results\$pkg_artifact --channel=$Channel"
+Set-TargetMetadata $pkg_ident
 
 Invoke-Expression "buildkite-agent annotate --append --context 'release-manifest' '<br>* ${pkg_ident} (x86_64-windows)'"
 
