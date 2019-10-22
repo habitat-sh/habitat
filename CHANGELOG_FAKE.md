@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.13 -->
+<!-- latest_release 0.89.14 -->
+## [fake-0.89.14](https://github.com/habitat-sh/habitat/tree/fake-0.89.14) (2019-10-22)
+
+#### Merged Pull Requests
+- Wire up promotion logic between new CI pipeline stages [#7043](https://github.com/habitat-sh/habitat/pull/7043) ([scotthain](https://github.com/scotthain))
+<!-- latest_release -->
+
 ## [fake-0.89.13](https://github.com/habitat-sh/habitat/tree/fake-0.89.13) (2019-10-22)
 
 #### Merged Pull Requests
 - core: use synchronous signal handling on unix [#7050](https://github.com/habitat-sh/habitat/pull/7050) ([stevendanna](https://github.com/stevendanna))
-<!-- latest_release -->
 
 ## [fake-0.89.12](https://github.com/habitat-sh/habitat/tree/fake-0.89.12) (2019-10-21)
 
