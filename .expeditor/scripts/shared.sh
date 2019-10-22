@@ -36,6 +36,17 @@ curlbash_hab() {
     echo "--- :habicat: Hab binary set to $hab_binary"
 }
 
+install_rustup() {
+  if command -v rustup && command -v cargo &>/dev/null; then
+    echo "--- :rust: rustup is currently installed."
+  else
+    echo "--- :rust: Installing rustup."
+    curl https://sh.rustup.rs -sSf | sh -s -- --no-modify-path -y --profile=minimal
+    # shellcheck disable=SC1090
+    source "$HOME"/.cargo/env
+  fi
+}
+
 get_toolchain() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
     cat "$dir/../../rust-toolchain"

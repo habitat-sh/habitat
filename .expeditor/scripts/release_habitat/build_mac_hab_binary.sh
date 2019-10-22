@@ -39,10 +39,7 @@ import_keys
 sudo mkdir -p /hab/cache/keys
 sudo cp -r ~/.hab/cache/keys/* /hab/cache/keys/
 
-echo "--- :rust: Installing Rust"
-curl https://sh.rustup.rs -sSf | sh -s -- -y
-# This ensures the appropriate binaries are on our path
-source "${HOME}/.cargo/env"
+install_rustup
 
 # set the rust toolchain
 rust_toolchain="$(cat rust-toolchain)"
