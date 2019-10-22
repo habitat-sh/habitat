@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.15 -->
+<!-- latest_release 0.89.16 -->
+## [fake-0.89.16](https://github.com/habitat-sh/habitat/tree/fake-0.89.16) (2019-10-22)
+
+#### Merged Pull Requests
+- Move install_rustup to top-level shared Bash library [#7078](https://github.com/habitat-sh/habitat/pull/7078) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.15](https://github.com/habitat-sh/habitat/tree/fake-0.89.15) (2019-10-22)
 
 #### Merged Pull Requests
 - Reorder pipeline stages for maximum parallelism [#7077](https://github.com/habitat-sh/habitat/pull/7077) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.14](https://github.com/habitat-sh/habitat/tree/fake-0.89.14) (2019-10-22)
 
