@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.14 -->
+<!-- latest_release 0.89.15 -->
+## [fake-0.89.15](https://github.com/habitat-sh/habitat/tree/fake-0.89.15) (2019-10-22)
+
+#### Merged Pull Requests
+- Reorder pipeline stages for maximum parallelism [#7077](https://github.com/habitat-sh/habitat/pull/7077) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.14](https://github.com/habitat-sh/habitat/tree/fake-0.89.14) (2019-10-22)
 
 #### Merged Pull Requests
 - Wire up promotion logic between new CI pipeline stages [#7043](https://github.com/habitat-sh/habitat/pull/7043) ([scotthain](https://github.com/scotthain))
-<!-- latest_release -->
 
 ## [fake-0.89.13](https://github.com/habitat-sh/habitat/tree/fake-0.89.13) (2019-10-22)
 
