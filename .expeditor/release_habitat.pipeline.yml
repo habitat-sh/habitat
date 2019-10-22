@@ -155,6 +155,9 @@ steps:
 
   - wait
 
+  # Now that we've got a new Studio, we can build everything else
+  # using the build toolchain we just built.
+
   - label: "[:linux: build launcher]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh launcher
@@ -178,19 +181,6 @@ steps:
   - label: "[:windows: build launcher]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 launcher
-    expeditor:
-      executor:
-        docker:
-          host_os: windows
-          environment:
-            - BUILD_PKG_TARGET=x86_64-windows
-            - BUILDKITE_AGENT_ACCESS_TOKEN
-
-  - wait
-
-  - label: ":windows: Build windows service"
-    command:
-      - powershell .expeditor/scripts/release_habitat/build_component.ps1 windows-service
     expeditor:
       executor:
         docker:
@@ -229,8 +219,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
-
-  - wait
 
   - label: "[:linux: build hab-pkg-aci]"
     command:
@@ -325,6 +313,18 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
 
   - wait
+
+  # Windows Service must be built after the Windows Launcher
+  - label: ":windows: Build windows service"
+    command:
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 windows-service
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
 
   # The cfize export currently has a dependency on
   # hab-pkg-export-docker, so it must be built after that.
