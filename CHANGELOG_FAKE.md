@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.22 -->
+<!-- latest_release 0.89.23 -->
+## [fake-0.89.23](https://github.com/habitat-sh/habitat/tree/fake-0.89.23) (2019-10-23)
+
+#### Merged Pull Requests
+- [CI] Ensure version file can be properly sourced [#7089](https://github.com/habitat-sh/habitat/pull/7089) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.22](https://github.com/habitat-sh/habitat/tree/fake-0.89.22) (2019-10-23)
 
 #### Merged Pull Requests
 - Add Windows studios e2e tests to verify SSL_CERT_FILE behavior [#7047](https://github.com/habitat-sh/habitat/pull/7047) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.21](https://github.com/habitat-sh/habitat/tree/fake-0.89.21) (2019-10-23)
 
