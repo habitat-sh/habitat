@@ -274,6 +274,23 @@ pub fn user_config_path<T: AsRef<Path>>(service_name: T) -> PathBuf {
     user_path(service_name).join("config")
 }
 
+/// This produces a list of the default windows system paths
+/// that are set by default on any modern version of windows.
+/// This also arranges them in the same order as they would be by
+/// default. The ordering is likely not super important but we
+/// might as well match how windows sets them just in case.
+pub fn windows_system_paths() -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    if let Some(sys_root) = env::var_os("SystemRoot") {
+        let system32 = Path::new(&sys_root).join("system32");
+        paths.push(system32.clone());
+        paths.push(PathBuf::from(sys_root));
+        paths.push(system32.join("wbem"));
+        paths.push(system32.join("WindowsPowerShell").join("v1.0"));
+    }
+    paths
+}
+
 /// Represents the service directory for a given package.
 pub struct SvcDir<'a> {
     service_name: &'a str,
