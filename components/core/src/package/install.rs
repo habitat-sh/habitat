@@ -236,7 +236,17 @@ impl PackageInstall {
 
         // Only insert a PATH entry if the resulting path string is non-empty
         if !rooted_path.is_empty() {
-            env.insert(PATH_KEY.to_string(), rooted_path);
+            if cfg!(windows) {
+                // On Windows we want to make sure to append the system paths.
+                // While this is not critical for every application, any windows
+                // app may expect these to be on the path to access system utilities
+                // and libraries and could possibly fail if they are absent.
+                let paths = env::split_paths(&rooted_path).chain(fs::windows_system_paths());
+                let joined = env::join_paths(paths)?;
+                env.insert(PATH_KEY.to_string(), joined.to_string_lossy().to_string());
+            } else {
+                env.insert(PATH_KEY.to_string(), rooted_path);
+            }
         }
 
         // release 0.85.0 introduces the RUNTIME_ENVIRONMENT_PATHS metadata
@@ -1414,20 +1424,19 @@ core/bar=pub:core/publish sub:core/subscribe
 
         let mut expected = BTreeMap::new();
         let fs_root_path = fs_root.into_path();
+        let mut paths = vec![fs::fs_rooted_path(&pkg_prefix_for(&pkg_install).join("bin"),
+                                                &fs_root_path),
+                             fs::fs_rooted_path(&pkg_prefix_for(&other_pkg_install).join("sbin"),
+                                                &fs_root_path),];
+        if cfg!(windows) {
+            paths.append(&mut fs::windows_system_paths());
+        }
         expected.insert("FOO".to_string(), "bar".to_string());
         expected.insert("JAVA_HOME".to_string(), "/my/java/home".to_string());
-        expected.insert(
-                        "PATH".to_string(),
-                        env::join_paths(vec![
-            fs::fs_rooted_path(&pkg_prefix_for(&pkg_install).join("bin"), &fs_root_path),
-            fs::fs_rooted_path(
-                &pkg_prefix_for(&other_pkg_install).join("sbin"),
-                &fs_root_path,
-            ),
-        ]).unwrap()
-                        .to_string_lossy()
-                        .into_owned(),
-        );
+        expected.insert("PATH".to_string(),
+                        env::join_paths(paths).unwrap()
+                                              .to_string_lossy()
+                                              .into_owned());
 
         assert_eq!(expected, pkg_install.environment_for_command().unwrap());
     }
