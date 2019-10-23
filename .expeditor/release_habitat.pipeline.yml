@@ -385,7 +385,7 @@ steps:
 
   - wait
 
-  - label: "[:hab: Generate Manifest and promote to dev channel]"
+  - label: "[:habicat: Generate Manifest and promote to dev channel]"
     command:
       - .expeditor/scripts/release_habitat/promote_artifacts_to_dev.sh habitat-release-$BUILDKITE_BUILD_ID
     expeditor:
