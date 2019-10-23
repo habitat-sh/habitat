@@ -73,7 +73,7 @@ for pkg in "${packages_to_promote[@]}"; do
 done
 
 echo "--- Generating manifest.json file"
-version=$(get_version)
+version=$(get_version_from_repo)
 sha="${BUILDKITE_COMMIT}"
 ./create_manifest.rb "${manifest_input_file}" "${version}" "${sha}"
 # Note that the "manifest.json" filename is determined by the
