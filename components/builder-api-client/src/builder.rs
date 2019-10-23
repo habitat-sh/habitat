@@ -796,7 +796,7 @@ impl BuilderAPIProvider for BuilderAPIClient {
         let mut encoded = String::new();
         resp.read_to_string(&mut encoded)
             .map_err(Error::BadResponseBody)?;
-        trace!(target: "habitat_http_client::api_client::show_package", "{:?}", encoded);
+        trace!(target: "habitat_http_client::api_client::show_package_metadata", "{:?}", encoded);
 
         let package: Package = serde_json::from_str::<Package>(&encoded)?;
         Ok(package)
@@ -1260,7 +1260,7 @@ mod tests {
         let client = BuilderAPIClient::new("http://test.com", "", "", None).expect("valid client");
 
         let sample_data = vec!["one_a", "one_b", "one_c", "one_d", "one_e", "two_a", "two_b",
-                               "two_c", "two_d", "two_e"];
+                               "two_c", "two_d", "two_e",];
 
         let searcher = seach_generator(sample_data.as_slice(), 2);
         let r = client.search_package_impl("one", 10, None, searcher)
