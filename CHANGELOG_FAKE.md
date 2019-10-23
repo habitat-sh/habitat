@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.28 -->
+<!-- latest_release 0.89.29 -->
+## [fake-0.89.29](https://github.com/habitat-sh/habitat/tree/fake-0.89.29) (2019-10-23)
+
+#### Merged Pull Requests
+- [CI] Import GPG keys for signing S3 uploads [#7096](https://github.com/habitat-sh/habitat/pull/7096) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.28](https://github.com/habitat-sh/habitat/tree/fake-0.89.28) (2019-10-23)
 
 #### Merged Pull Requests
 - [CI] Use full path to create_manifest.rb [#7094](https://github.com/habitat-sh/habitat/pull/7094) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.27](https://github.com/habitat-sh/habitat/tree/fake-0.89.27) (2019-10-23)
 
