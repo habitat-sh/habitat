@@ -81,6 +81,8 @@ sha="${BUILDKITE_COMMIT}"
 
 ########################################################################
 
+import_gpg_keys
+
 echo "--- Pushing manifest file to S3"
 store_in_s3 "${version}" manifest.json
 
