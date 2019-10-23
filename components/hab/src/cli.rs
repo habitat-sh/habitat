@@ -13,6 +13,7 @@ use habitat_common::{cli::{file_into_idents,
                      types::{AutomateAuthToken,
                              EventStreamConnectMethod,
                              EventStreamMetadata,
+                             EventStreamServerCertificate,
                              GossipListenAddr,
                              HttpListenAddr,
                              ListenCtlAddr},
@@ -1320,6 +1321,13 @@ fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static>
                                                          .takes_value(true)
                                                          .multiple(true)
                                                          .validator(EventStreamMetadata::validate))
+       .arg(Arg::with_name("EVENT_STREAM_SERVER_CERTIFICATE").help("The path to the event stream \
+                                                                    server's certificate in PEM \
+                                                                    format")
+                                              .long("event-stream-server-certificate")
+                                              .required(false)
+                                              .takes_value(true)
+                                              .validator(EventStreamServerCertificate::validate))
 }
 
 // CLAP Validation Functions

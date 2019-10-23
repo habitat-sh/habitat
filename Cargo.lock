@@ -1186,6 +1186,7 @@ dependencies = [
  "lazy_static 1.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.54 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.4.8 (registry+https://github.com/rust-lang/crates.io-index)",
+ "native-tls 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "parking_lot 0.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pbr 1.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "petgraph 0.4.13 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1377,7 +1378,7 @@ dependencies = [
  "log4rs 0.8.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "mio 0.6.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "mio-named-pipes 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "nats 0.3.2 (git+https://github.com/habitat-sh/rust-nats)",
+ "nats 0.3.2 (git+https://github.com/habitat-sh/rust-nats?rev=a4c24be66fc54c0038af383b6df18d2ed0b5f376)",
  "notify 4.0.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "num_cpus 1.10.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "palaver 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -2004,9 +2005,9 @@ dependencies = [
 [[package]]
 name = "nats"
 version = "0.3.2"
-source = "git+https://github.com/habitat-sh/rust-nats#833fe87df57e21586848e61b612f94f154af7127"
+source = "git+https://github.com/habitat-sh/rust-nats?rev=a4c24be66fc54c0038af383b6df18d2ed0b5f376#a4c24be66fc54c0038af383b6df18d2ed0b5f376"
 dependencies = [
- "openssl 0.10.25 (registry+https://github.com/rust-lang/crates.io-index)",
+ "native-tls 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "percent-encoding 2.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.6.5 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.101 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -4156,7 +4157,7 @@ dependencies = [
 "checksum mktemp 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "edf4fc746c5c977923b802d86fc9a95ca79a27d8c487613f68830d68d07c7b27"
 "checksum multimap 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2eb04b9f127583ed176e163fb9ec6f3e793b87e21deedd5734a69386a18a0151"
 "checksum native-tls 0.2.3 (registry+https://github.com/rust-lang/crates.io-index)" = "4b2df1a4c22fd44a62147fd8f13dd0f95c9d8ca7b2610299b2a2f9cf8964274e"
-"checksum nats 0.3.2 (git+https://github.com/habitat-sh/rust-nats)" = "<none>"
+"checksum nats 0.3.2 (git+https://github.com/habitat-sh/rust-nats?rev=a4c24be66fc54c0038af383b6df18d2ed0b5f376)" = "<none>"
 "checksum net2 0.2.33 (registry+https://github.com/rust-lang/crates.io-index)" = "42550d9fb7b6684a6d404d9fa7250c2eb2646df731d1c06afc06dcee9e1bcf88"
 "checksum nix 0.11.0 (registry+https://github.com/rust-lang/crates.io-index)" = "d37e713a259ff641624b6cb20e3b12b2952313ba36b6823c0f16e6cfd9e5de17"
 "checksum nix 0.13.0 (registry+https://github.com/rust-lang/crates.io-index)" = "46f0f3210768d796e8fa79ec70ee6af172dacbe7147f5e69be5240a47778302b"
