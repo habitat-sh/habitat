@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.21 -->
+<!-- latest_release 0.89.22 -->
+## [fake-0.89.22](https://github.com/habitat-sh/habitat/tree/fake-0.89.22) (2019-10-23)
+
+#### Merged Pull Requests
+- Add Windows studios e2e tests to verify SSL_CERT_FILE behavior [#7047](https://github.com/habitat-sh/habitat/pull/7047) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.89.21](https://github.com/habitat-sh/habitat/tree/fake-0.89.21) (2019-10-23)
 
 #### Merged Pull Requests
 - Correct a Buildkite emoji I missed earlier [#7083](https://github.com/habitat-sh/habitat/pull/7083) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.20](https://github.com/habitat-sh/habitat/tree/fake-0.89.20) (2019-10-22)
 
