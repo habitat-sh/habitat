@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.29 -->
+<!-- latest_release 0.89.30 -->
+## [fake-0.89.30](https://github.com/habitat-sh/habitat/tree/fake-0.89.30) (2019-10-23)
+
+#### Merged Pull Requests
+- [CI] Need to have an auth token to promote in Builder [#7098](https://github.com/habitat-sh/habitat/pull/7098) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.29](https://github.com/habitat-sh/habitat/tree/fake-0.89.29) (2019-10-23)
 
 #### Merged Pull Requests
 - [CI] Import GPG keys for signing S3 uploads [#7096](https://github.com/habitat-sh/habitat/pull/7096) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.28](https://github.com/habitat-sh/habitat/tree/fake-0.89.28) (2019-10-23)
 
