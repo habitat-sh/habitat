@@ -10,12 +10,15 @@ get_release_channel() {
 
 # Read the contents of the VERSION file. This will be used to
 # determine where generated artifacts go in S3.
+#
+# As long as you don't `cd` out of the repository, this will do the
+# trick.
 get_version_from_repo() {
-    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+    dir="$(git rev-parse --show-toplevel)"
     if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
-        cat "$dir/../../../VERSION_FAKE"
+        cat "$dir/VERSION_FAKE"
     else
-        cat "$dir/../../../VERSION"
+        cat "$dir/VERSION"
     fi
 }
 
