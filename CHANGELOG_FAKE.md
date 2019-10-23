@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.24 -->
+<!-- latest_release 0.89.25 -->
+## [fake-0.89.25](https://github.com/habitat-sh/habitat/tree/fake-0.89.25) (2019-10-23)
+
+#### Merged Pull Requests
+- [CI] Use proper S3 URIs for uploads [#7091](https://github.com/habitat-sh/habitat/pull/7091) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.24](https://github.com/habitat-sh/habitat/tree/fake-0.89.24) (2019-10-23)
 
 #### Merged Pull Requests
 - Fix compiler warnings [#7088](https://github.com/habitat-sh/habitat/pull/7088) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.89.23](https://github.com/habitat-sh/habitat/tree/fake-0.89.23) (2019-10-23)
 
