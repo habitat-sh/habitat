@@ -109,12 +109,12 @@ s3_cp() {
 
 s3_file_url_root() {
     local version="${1}"
-    echo "https://${s3_bucket_name}.s3.amazonaws.com/files/habitat/${version}"
+    echo "s3://${s3_bucket_name}/files/habitat/${version}"
 }
 
 s3_channel_url_root() {
     local channel="${1}"
-    echo "https://${s3_bucket_name}.s3.amazonaws.com/${channel}/latest/habitat"
+    echo "s3://${s3_bucket_name}/${channel}/latest/habitat"
 }
 
 # Intended for uploading manifests and `hab` packages in non-Habitat
@@ -178,12 +178,13 @@ get_manifest_for_environment() {
     local source_root
     source_root="$(s3_channel_url_root "${environment_name}")"
 
-    curl --silent \
-         --remote-name \
-         "${source_root}/manifest.json"
-    curl --silent \
-         --remote-name \
-         "${source_root}/manifest.json.asc"
+    s3_cp \
+        "${source_root}/manifest.json" \
+        "manifest.json"
+
+    s3_cp \
+        "${source_root}/manifest.json.asc" \
+        "manifest.json.asc"
 
     gpg_verify "manifest.json"
 }
