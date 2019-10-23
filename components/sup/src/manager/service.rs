@@ -46,6 +46,8 @@ use futures::{future,
               Future,
               IntoFuture};
 use habitat_butterfly::rumor::service::Service as ServiceRumor;
+#[cfg(windows)]
+use habitat_common::templating::package::DEFAULT_USER;
 pub use habitat_common::templating::{config::{Cfg,
                                               UserConfigPath},
                                      package::{Env,
@@ -53,15 +55,15 @@ pub use habitat_common::templating::{config::{Cfg,
                                                PkgProxy}};
 use habitat_common::{outputln,
                      templating::{config::CfgRenderer,
-                                  hooks::Hook,
-                                  package::DEFAULT_USER}};
+                                  hooks::Hook}};
+#[cfg(windows)]
+use habitat_core::os::users;
 use habitat_core::{crypto::hash,
                    fs::{atomic_write,
                         svc_hooks_path,
                         SvcDir,
                         FS_ROOT_PATH},
-                   os::{process::ShutdownTimeout,
-                        users},
+                   os::process::ShutdownTimeout,
                    package::{metadata::Bind,
                              PackageIdent,
                              PackageInstall},
@@ -311,7 +313,7 @@ impl Service {
     }
 
     #[cfg(unix)]
-    fn resolve_pkg(package: &PackageInstall, spec: &ServiceSpec) -> Result<Pkg> {
+    fn resolve_pkg(package: &PackageInstall, _spec: &ServiceSpec) -> Result<Pkg> {
         Ok(Pkg::from_install(&package)?)
     }
 
