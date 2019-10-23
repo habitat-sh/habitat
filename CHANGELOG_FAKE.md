@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.27 -->
+<!-- latest_release 0.89.28 -->
+## [fake-0.89.28](https://github.com/habitat-sh/habitat/tree/fake-0.89.28) (2019-10-23)
+
+#### Merged Pull Requests
+- [CI] Use full path to create_manifest.rb [#7094](https://github.com/habitat-sh/habitat/pull/7094) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.27](https://github.com/habitat-sh/habitat/tree/fake-0.89.27) (2019-10-23)
 
 #### Merged Pull Requests
 - [CI] Actually use the correct function to get the version [#7093](https://github.com/habitat-sh/habitat/pull/7093) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.26](https://github.com/habitat-sh/habitat/tree/fake-0.89.26) (2019-10-23)
 
