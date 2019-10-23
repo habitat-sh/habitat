@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.25 -->
+<!-- latest_release 0.89.26 -->
+## [fake-0.89.26](https://github.com/habitat-sh/habitat/tree/fake-0.89.26) (2019-10-23)
+
+#### Bug Fixes
+- add windows system paths to environment PATH variable if included [#7073](https://github.com/habitat-sh/habitat/pull/7073) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.89.25](https://github.com/habitat-sh/habitat/tree/fake-0.89.25) (2019-10-23)
 
 #### Merged Pull Requests
 - [CI] Use proper S3 URIs for uploads [#7091](https://github.com/habitat-sh/habitat/pull/7091) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.24](https://github.com/habitat-sh/habitat/tree/fake-0.89.24) (2019-10-23)
 
