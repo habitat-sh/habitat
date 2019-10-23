@@ -140,6 +140,16 @@ impl State {
                 gateway_state }
     }
 
+    // Initialize the gateway_state for this health check to Unknown.
+    //
+    // # Locking (see locking.md)
+    // # `GatewayState::inner` (write)
+    pub fn init_gateway_state_gsw(self) {
+        self.gateway_state
+            .lock_gsw()
+            .set_health_of(self.service_group, HealthCheckResult::Unknown);
+    }
+
     /// Creates a future that runs the health check and then waits for
     /// a suitable interval. Multiple such iterations will then be
     /// chained together for an unending stream of health checks.
