@@ -58,15 +58,15 @@ use habitat_common::{liveliness_checker,
                              ListenCtlAddr},
                      FeatureFlag};
 #[cfg(unix)]
-use habitat_core::os::process::{ShutdownSignal,
-                                Signal};
+use habitat_core::os::{process::{ShutdownSignal,
+                                 Signal},
+                       signals};
 use habitat_core::{crypto::SymKey,
                    env,
                    fs::FS_ROOT_PATH,
-                   os::{process::{self,
-                                  Pid,
-                                  ShutdownTimeout},
-                        signals},
+                   os::process::{self,
+                                 Pid,
+                                 ShutdownTimeout},
                    package::{Identifiable,
                              PackageIdent,
                              PackageInstall},
