@@ -9,6 +9,9 @@
 # minimal testing pending our figuring out the best approach for
 # command line testing.
 #
+# Assumptions:
+# 1. ACCEPTANCE_HAB_AUTH_TOKEN or HAB_AUTH_TOKEN Environment variables are set and valid
+# 2. ${CACHE_DIR} can be set to a writable location on the filesystem
 
 set -euo pipefail
 
@@ -19,6 +22,7 @@ set -euo pipefail
 HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
 IDENT_FILE="ident_file"
+HAB_AUTH_TOKEN=${ACCEPTANCE_HAB_AUTH_TOKEN:-${HAB_AUTH_TOKEN}}
 
 echo
 echo "==========Testing command ${HAB}, using cache dir ${CACHE_DIR}"
