@@ -20,7 +20,7 @@ import_gpg_keys
 
 # Unsure we *really* need to bother with this tmp_root business, but
 # it does help to contain things a bit.
-tmp_root="$(mktemp -d -t "repackage-XXXX")"
+tmp_root="$(mktemp --directory --tmpdir=$(pwd) -t "repackage-XXXX")"
 cd "${tmp_root}"
 
 echo "--- Downloading core/hab for $BUILD_PKG_TARGET from ${channel} channel"
