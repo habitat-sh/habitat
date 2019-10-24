@@ -837,12 +837,7 @@ impl Service {
 
     /// Run initialization hook if present.
     fn initialize(&mut self) {
-        let timer = hook_timer("initialize");
-
-        if self.state.initialized() {
-            timer.observe_duration();
-            return;
-        }
+        let _timer = hook_timer("initialize");
 
         outputln!(preamble self.service_group, "Initializing");
         self.state = ServiceState::Initialized;
