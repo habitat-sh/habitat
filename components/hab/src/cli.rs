@@ -1323,7 +1323,8 @@ fn add_event_stream_options(app: App<'static, 'static>) -> App<'static, 'static>
                                                          .validator(EventStreamMetadata::validate))
        .arg(Arg::with_name("EVENT_STREAM_SERVER_CERTIFICATE").help("The path to the event stream \
                                                                     server's certificate in PEM \
-                                                                    format")
+                                                                    format used to establish a \
+                                                                    TLS connection")
                                               .long("event-stream-server-certificate")
                                               .required(false)
                                               .takes_value(true)
