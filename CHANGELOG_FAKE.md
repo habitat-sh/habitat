@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.36 -->
+<!-- latest_release 0.89.37 -->
+## [fake-0.89.37](https://github.com/habitat-sh/habitat/tree/fake-0.89.37) (2019-10-24)
+
+#### Merged Pull Requests
+- do not fail e2e test if unable to start service with bogus args [#7107](https://github.com/habitat-sh/habitat/pull/7107) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.89.36](https://github.com/habitat-sh/habitat/tree/fake-0.89.36) (2019-10-24)
 
 #### New Features & Enhancements
 - Add TLS to event stream [#7092](https://github.com/habitat-sh/habitat/pull/7092) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.89.35](https://github.com/habitat-sh/habitat/tree/fake-0.89.35) (2019-10-24)
 
