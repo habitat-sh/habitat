@@ -166,6 +166,8 @@ impl TemplateUpdate {
 #[derive(Debug, PartialEq, Eq)]
 enum ServiceState {
     Uninitialized,
+    Initializing,
+    InitializerFinished,
     Initialized,
 }
 
@@ -840,14 +842,13 @@ impl Service {
         let _timer = hook_timer("initialize");
 
         outputln!(preamble self.service_group, "Initializing");
-        self.state = ServiceState::Initialized;
         if let Some(ref hook) = self.hooks.init {
             self.state = if hook.run(&self.service_group,
                                      &self.pkg,
                                      self.svc_encrypted_password.as_ref())
                                 .unwrap_or(false)
             {
-                ServiceState::Initialized
+                ServiceState::InitializerFinished
             } else {
                 ServiceState::Uninitialized
             };
@@ -1012,13 +1013,19 @@ impl Service {
                 // process.
                 if up {
                     self.reattach(executor);
-                    return false;
+                } else {
+                    self.state = ServiceState::Initializing;
+                    self.initialize();
                 }
-                self.initialize();
-                if self.state.initialized() {
-                    self.start(launcher, executor);
-                    self.post_run(executor);
-                }
+            }
+            ServiceState::Initializing => {
+                // Wait until the initializer finishes running
+                ()
+            }
+            ServiceState::InitializerFinished => {
+                self.start(launcher, executor);
+                self.post_run(executor);
+                self.state = ServiceState::Initialized;
             }
             ServiceState::Initialized => {
                 // If the service is initialized and the process is not running, the process
