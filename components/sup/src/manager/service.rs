@@ -76,6 +76,7 @@ use habitat_sup_protocol::types::BindingMode;
 pub use habitat_sup_protocol::types::{ProcessState,
                                       Topology,
                                       UpdateStrategy};
+use parking_lot::RwLock;
 use prometheus::{HistogramTimer,
                  HistogramVec};
 use serde::{ser::SerializeStruct,
@@ -163,7 +164,7 @@ impl TemplateUpdate {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum InitializationState {
     Uninitialized,
     Initializing,
@@ -190,7 +191,7 @@ pub struct Service {
     // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
     pub needs_restart: bool,
     // TODO (DM):
-    initialization_state: InitializationState,
+    initialization_state: Arc<RwLock<InitializationState>>,
 
     config_renderer: CfgRenderer,
     // Note: This field is really only needed for serializing a
@@ -276,7 +277,8 @@ impl Service {
                      last_election_status: ElectionStatus::None,
                      user_config_updated: false,
                      needs_restart: false,
-                     initialization_state: InitializationState::Uninitialized,
+                     initialization_state:
+                         Arc::new(RwLock::new(InitializationState::Uninitialized)),
                      manager_fs_cfg,
                      supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
                      pkg,
@@ -384,7 +386,9 @@ impl Service {
         }
     }
 
-    fn initialized(&self) -> bool { self.initialization_state == InitializationState::Initialized }
+    fn initialized(&self) -> bool {
+        *self.initialization_state.read() == InitializationState::Initialized
+    }
 
     /// Create the state necessary for managing a repeatedly-running
     /// health check hook.
@@ -450,7 +454,7 @@ impl Service {
     /// This should generally be the opposite of `Service::detach`.
     fn reattach(&mut self, executor: &TaskExecutor) {
         outputln!("Reattaching to {}", self.service_group);
-        self.initialization_state = InitializationState::Initialized;
+        *self.initialization_state.write() = InitializationState::Initialized;
         self.restart_health_checks(executor);
         // We intentionally do not restart the `post_run` retry future. Currently, there is not
         // a way to track if `post_run` ran successfully following a Supervisor restart.
@@ -838,13 +842,14 @@ impl Service {
     /// Run initialization hook if present.
     fn initialize(&mut self) {
         let _timer = hook_timer("initialize");
+        *self.initialization_state.write() = InitializationState::Initializing;
 
         outputln!(preamble self.service_group, "Initializing");
         if let Some(ref hook) = self.hooks.init {
-            self.initialization_state = if hook.run(&self.service_group,
-                                                    &self.pkg,
-                                                    self.svc_encrypted_password.as_ref())
-                                               .unwrap_or(false)
+            *self.initialization_state.write() = if hook.run(&self.service_group,
+                                                             &self.pkg,
+                                                             self.svc_encrypted_password.as_ref())
+                                                        .unwrap_or(false)
             {
                 InitializationState::InitializerFinished
             } else {
@@ -1004,7 +1009,10 @@ impl Service {
                      template_update: &TemplateUpdate)
                      -> bool {
         let up = self.check_process();
-        match self.initialization_state {
+        // It is ok that we do not hold this lock while we are performing that match. If we
+        // transistion states while we are matching, we will catch the new state on the next call.
+        let initialization_state = self.initialization_state.read().clone();
+        match initialization_state {
             InitializationState::Uninitialized => {
                 // If the service is not initialized and the process is still running, the
                 // Supervisor was restarted and we just have to reattach to the
@@ -1012,7 +1020,6 @@ impl Service {
                 if up {
                     self.reattach(executor);
                 } else {
-                    self.initialization_state = InitializationState::Initializing;
                     self.initialize();
                 }
             }
@@ -1022,7 +1029,7 @@ impl Service {
             InitializationState::InitializerFinished => {
                 self.start(launcher, executor);
                 self.post_run(executor);
-                self.initialization_state = InitializationState::Initialized;
+                *self.initialization_state.write() = InitializationState::Initialized;
             }
             InitializationState::Initialized => {
                 // If the service is initialized and the process is not running, the process
