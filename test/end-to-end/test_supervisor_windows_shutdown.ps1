@@ -1,6 +1,5 @@
 hab pkg install core/nginx --channel stable
 hab pkg install core/windows-service
-hab pkg exec core/windows-service install
 
 Describe "Clean Habitat Shutdown" {
     Start-Service Habitat

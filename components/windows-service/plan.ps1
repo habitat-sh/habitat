@@ -1,6 +1,6 @@
 $pkg_name="windows-service"
 $pkg_origin="core"
-$pkg_version="0.5.0"
+$pkg_version="0.6.0"
 $pkg_maintainer="The Habitat Maintainers <humans@habitat.sh>"
 $pkg_license=@('Apache-2.0')
 $pkg_description="A Windows Service for runnung the Habitat Supervisor"
