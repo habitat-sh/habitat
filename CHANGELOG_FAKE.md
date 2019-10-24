@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.33 -->
+<!-- latest_release 0.89.34 -->
+## [fake-0.89.34](https://github.com/habitat-sh/habitat/tree/fake-0.89.34) (2019-10-24)
+
+#### Merged Pull Requests
+- [CI] Fix spuriously-failing end-to-end test [#7103](https://github.com/habitat-sh/habitat/pull/7103) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.33](https://github.com/habitat-sh/habitat/tree/fake-0.89.33) (2019-10-24)
 
 #### Merged Pull Requests
 - Noindex/nofollow blog pages [#7074](https://github.com/habitat-sh/habitat/pull/7074) ([kagarmoe](https://github.com/kagarmoe))
-<!-- latest_release -->
 
 ## [fake-0.89.32](https://github.com/habitat-sh/habitat/tree/fake-0.89.32) (2019-10-24)
 
