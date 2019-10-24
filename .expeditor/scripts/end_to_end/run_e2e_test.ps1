@@ -1,5 +1,5 @@
 param (
-    [string]$Channel="DEV",
+    [string]$Channel="dev",
     [string]$TestName
 )
 
