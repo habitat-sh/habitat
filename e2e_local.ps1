@@ -12,4 +12,4 @@ docker run `
        --env-file="$(pwd)/e2e_env" `
        --volume="$(pwd):c:\workdir" `
        --workdir=/workdir `
-       chefes/buildkite-windows powershell.exe .\.expeditor\scripts\end_to_end\run_e2e_test.ps1 DEV $TestName
+       chefes/buildkite-windows powershell.exe .\.expeditor\scripts\end_to_end\run_e2e_test.ps1 dev $TestName

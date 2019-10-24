@@ -269,7 +269,7 @@ steps:
 
   - label: "[:windows: test_windows_service_stops_on_launcher_termination]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 DEV test_windows_service_stops_on_launcher_termination
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_windows_service_stops_on_launcher_termination
     expeditor:
       executor:
         docker:
