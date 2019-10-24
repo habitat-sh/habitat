@@ -548,7 +548,7 @@ impl HookCompileTable {
 #[derive(Debug, Default, Serialize)]
 pub struct HookTable {
     pub health_check: Option<Arc<HealthCheckHook>>,
-    pub init:         Option<InitHook>,
+    pub init:         Option<Arc<InitHook>>,
     pub file_updated: Option<FileUpdatedHook>,
     pub reload:       Option<ReloadHook>,
     pub reconfigure:  Option<ReconfigureHook>,
@@ -571,7 +571,7 @@ impl HookTable {
                 table.health_check =
                     HealthCheckHook::load(package_name, &hooks_path, &templates).map(Arc::new);
                 table.suitability = SuitabilityHook::load(package_name, &hooks_path, &templates);
-                table.init = InitHook::load(package_name, &hooks_path, &templates);
+                table.init = InitHook::load(package_name, &hooks_path, &templates).map(Arc::new);
                 table.reload = ReloadHook::load(package_name, &hooks_path, &templates);
                 table.reconfigure = ReconfigureHook::load(package_name, &hooks_path, &templates);
                 table.run = RunHook::load(package_name, &hooks_path, &templates);
@@ -601,7 +601,7 @@ impl HookTable {
             changed.health_check = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         if let Some(ref hook) = self.init {
-            changed.init = self.compile_one(hook, service_group, ctx);
+            changed.init = self.compile_one(hook.as_ref(), service_group, ctx);
         }
         if let Some(ref hook) = self.reload {
             changed.reload |= self.compile_one(hook, service_group, ctx);
@@ -667,7 +667,8 @@ mod tests {
                                  PackageInstall},
                        service::{ServiceBind,
                                  ServiceGroup}};
-    use std::{fs,
+    use std::{convert,
+              fs,
               io::BufReader,
               iter,
               net::{IpAddr,
@@ -804,7 +805,10 @@ mod tests {
         assert!(hook_table.compile(&service_group, &ctx).changed());
 
         // Verify init hook
-        let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
+        let init_hook_content = file_content(&hook_table.init
+                                                        .as_ref()
+                                                        .map(convert::AsRef::as_ref)
+                                                        .expect("no init hook??"));
         let expected_init_hook = "#!/bin/bash\n\necho \"The message is Hello\"\n";
         let expected_run_hook = "#!/bin/bash\n\necho \"Running a program\"\n";
         assert_eq!(init_hook_content, expected_init_hook);
@@ -817,7 +821,10 @@ mod tests {
         assert!(!hook_table.compile(&service_group, &ctx).changed());
 
         // Re-Verify init hook
-        let init_hook_content = file_content(&hook_table.init.as_ref().expect("no init hook??"));
+        let init_hook_content = file_content(hook_table.init
+                                                       .as_ref()
+                                                       .map(convert::AsRef::as_ref)
+                                                       .expect("no init hook??"));
         assert_eq!(init_hook_content, expected_init_hook);
 
         // Re-Verify run hook

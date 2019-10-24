@@ -840,21 +840,29 @@ impl Service {
     }
 
     /// Run initialization hook if present.
-    fn initialize(&mut self) {
-        let _timer = hook_timer("initialize");
-        *self.initialization_state.write() = InitializationState::Initializing;
-
+    fn initialize(&mut self, executor: &TaskExecutor) {
         outputln!(preamble self.service_group, "Initializing");
+        *self.initialization_state.write() = InitializationState::Initializing;
         if let Some(ref hook) = self.hooks.init {
-            *self.initialization_state.write() = if hook.run(&self.service_group,
-                                                             &self.pkg,
-                                                             self.svc_encrypted_password.as_ref())
-                                                        .unwrap_or(false)
-            {
-                InitializationState::InitializerFinished
-            } else {
-                InitializationState::Uninitialized
-            };
+            let hook_runner = HookRunner::new(Arc::clone(&hook),
+                                              self.service_group.clone(),
+                                              self.pkg.clone(),
+                                              self.svc_encrypted_password.clone());
+            // These clones are unfortunate. async/await will make this much better.
+            let service_group = self.service_group.clone();
+            let initialization_state = Arc::clone(&self.initialization_state);
+            let initialization_state_for_err = Arc::clone(&self.initialization_state);
+            let f = hook_runner.into_future().map(move |(maybe_exit_value, _)| {
+                *initialization_state.write() = if maybe_exit_value.unwrap_or(false) {
+                    InitializationState::InitializerFinished
+                } else {
+                    InitializationState::Uninitialized
+                };
+            }).map_err(move |e| {
+                outputln!(preamble service_group, "Service initialization failed: {}", e);
+                *initialization_state_for_err.write() = InitializationState::Uninitialized;
+            });
+            executor.spawn(f);
         }
     }
 
@@ -1009,8 +1017,8 @@ impl Service {
                      template_update: &TemplateUpdate)
                      -> bool {
         let up = self.check_process();
-        // It is ok that we do not hold this lock while we are performing that match. If we
-        // transistion states while we are matching, we will catch the new state on the next call.
+        // It is ok that we do not hold this lock while we are performing the match. If we
+        // transistion states while we are matching, we will catch the new state on the next tick.
         let initialization_state = self.initialization_state.read().clone();
         match initialization_state {
             InitializationState::Uninitialized => {
@@ -1020,7 +1028,7 @@ impl Service {
                 if up {
                     self.reattach(executor);
                 } else {
-                    self.initialize();
+                    self.initialize(executor);
                 }
             }
             InitializationState::Initializing => {
