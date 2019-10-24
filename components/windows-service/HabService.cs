@@ -96,8 +96,10 @@ namespace HabService
                 proc.StartInfo.Arguments = launcherArgs;
                 log.Info(String.Format("Habitat windows service is starting launcher at: {0}", LauncherPath));
                 log.Info(String.Format("Habitat windows service is starting launcher with args: {0}", launcherArgs));
+                proc.EnableRaisingEvents = true;
                 proc.OutputDataReceived += new DataReceivedEventHandler(SupOutputHandler);
                 proc.ErrorDataReceived += new DataReceivedEventHandler(SupErrorHandler);
+                proc.Exited += new EventHandler(ExitHandler);
                 proc.Start();
                 proc.BeginErrorReadLine();
                 proc.BeginOutputReadLine();
@@ -179,35 +181,46 @@ namespace HabService
             }
         }
 
+        private void ExitHandler(object sender, System.EventArgs e)
+        {
+            log.Error(String.Format("Habitat Supervisor has exited with exit code {0}", proc.ExitCode));
+            Stop();
+        }
+
         protected override void OnStop()
         {
             try
             {
-                // As a service we have no console so attach to the console of the launcher
-                if(!AttachConsole((uint)proc.Id)) {
-                    log.Error("Unable to attach to console!");
-                    log.Error(Marshal.GetLastWin32Error());
-                }
-                // Turn off our own Ctrl-C handler so we don't die
-                if(!SetConsoleCtrlHandler(null, true)) {
-                    log.Error("Failed to disable ctrl+c!");
-                    log.Error(Marshal.GetLastWin32Error());
-                }
-                // Broadcast the ctrl-c
-                if(!GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0)) {
-                    log.Error("Failed to send ctrl+c signal!");
-                    log.Error(Marshal.GetLastWin32Error());
-                }
+                if(!proc.HasExited) {
+                    // unregister exit handler so we don't trigger it here
+                    proc.Exited -= ExitHandler;
 
-                if (!proc.WaitForExit(60000))
-                {
-                    log.Error("Launcher did not exit after waiting for one minute!");
-                    log.Info("Forcefully terminating Launcher process.");
-                    proc.Kill();
-                }
+                    // As a service we have no console so attach to the console of the launcher
+                    if(!AttachConsole((uint)proc.Id)) {
+                        log.Error("Unable to attach to console!");
+                        log.Error(Marshal.GetLastWin32Error());
+                    }
+                    // Turn off our own Ctrl-C handler so we don't die
+                    if(!SetConsoleCtrlHandler(null, true)) {
+                        log.Error("Failed to disable ctrl+c!");
+                        log.Error(Marshal.GetLastWin32Error());
+                    }
+                    // Broadcast the ctrl-c
+                    if(!GenerateConsoleCtrlEvent(CtrlTypes.CTRL_C_EVENT, 0)) {
+                        log.Error("Failed to send ctrl+c signal!");
+                        log.Error(Marshal.GetLastWin32Error());
+                    }
 
-                // Remove ourselves from the dead console
-                FreeConsole();
+                    if (!proc.WaitForExit(60000))
+                    {
+                        log.Error("Habitat Supervisor did not exit after waiting for one minute!");
+                        log.Info("Forcefully terminating Habitat Supervisor process.");
+                        proc.Kill();
+                    }
+
+                    // Remove ourselves from the dead console
+                    FreeConsole();
+                }
 
                 log.Info("Habitat service stopped");
             }

@@ -1,0 +1,7 @@
+. {{pkg.path}}\bin\habitat.ps1
+
+if((Get-Service Habitat -ErrorAction SilentlyContinue) -ne $null) {
+    UnInstall-HabService
+}
+
+Install-HabService

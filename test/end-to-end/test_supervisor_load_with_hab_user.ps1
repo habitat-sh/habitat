@@ -14,7 +14,6 @@ $env:HAB_ORIGIN = "ci"
 hab origin key generate ci
 
 hab pkg install core/windows-service
-hab pkg exec core/windows-service install
 Start-Service Habitat
 Wait-Supervisor -Timeout 45
 

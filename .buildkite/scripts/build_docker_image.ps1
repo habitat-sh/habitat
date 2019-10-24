@@ -45,7 +45,7 @@ try {
     $InstallHarts = @(
         "core/hab-studio",
         "core/hab-sup",
-        "core/windows-service"
+        "core/windows-service --ignore-install-hook"
     )
     $InstallHarts | % {
         Invoke-Expression "hab pkg install $_ --channel=$ReleaseChannel"

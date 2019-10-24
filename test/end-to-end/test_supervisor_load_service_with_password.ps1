@@ -13,7 +13,6 @@ hab pkg build test/fixtures/windows_plans/dummy_svc_user
 hab pkg install .\results\$pkg_artifact
 
 hab pkg install core/windows-service
-hab pkg exec core/windows-service install
 Start-Service Habitat
 Wait-Supervisor -Timeout 45
 
