@@ -29,7 +29,6 @@ source_environment=${1:?You must provide an Expeditor environment}
 destination_channel=${2:?You must specify a destination channel value}
 
 export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
-export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
 
 ########################################################################
 
