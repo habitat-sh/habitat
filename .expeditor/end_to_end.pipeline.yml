@@ -4,6 +4,8 @@ expeditor:
     ACCEPTANCE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: scotthain-sig-key
+  accounts:
+    - aws/chef-cd
   defaults:
     buildkite:
       timeout_in_minutes: 30
