@@ -393,6 +393,7 @@ impl Service {
     /// checks for the service
     fn start_health_checks(&mut self, executor: &TaskExecutor) {
         debug!("Starting health checks for {}", self.pkg.ident);
+        self.health_state().init_gateway_state_gsw();
         let (handle, f) =
             sup_futures::cancelable_future(self.health_state().check_repeatedly_gsw());
 
