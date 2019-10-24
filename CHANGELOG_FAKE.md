@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.31 -->
+<!-- latest_release 0.89.32 -->
+## [fake-0.89.32](https://github.com/habitat-sh/habitat/tree/fake-0.89.32) (2019-10-24)
+
+#### Merged Pull Requests
+- Initialize health check gateway state to Unknown [#7087](https://github.com/habitat-sh/habitat/pull/7087) ([stevendanna](https://github.com/stevendanna))
+<!-- latest_release -->
+
 ## [fake-0.89.31](https://github.com/habitat-sh/habitat/tree/fake-0.89.31) (2019-10-24)
 
 #### Merged Pull Requests
 - [CI] Pull from &quot;dev&quot; channel for e2e tests, not &quot;DEV&quot; [#7100](https://github.com/habitat-sh/habitat/pull/7100) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.30](https://github.com/habitat-sh/habitat/tree/fake-0.89.30) (2019-10-23)
 
