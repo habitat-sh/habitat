@@ -10,8 +10,8 @@ expeditor:
       env:
         HAB_ORIGIN: "core"
         HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
-        HAB_BLDR_CHANNEL: "DEV"
-        HAB_INTERNAL_BLDR_CHANNEL: "DEV"
+        HAB_BLDR_CHANNEL: "dev"
+        HAB_INTERNAL_BLDR_CHANNEL: "dev"
 
 steps:
 #######################################################################
@@ -20,7 +20,7 @@ steps:
 
   - label: "[:linux: test_hab_help_doesnt_install_hab_sup]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_hab_help_doesnt_install_hab_sup.sh /bin/hab
     expeditor:
       executor:
@@ -31,7 +31,7 @@ steps:
 
   - label: "[:linux: hup-does-not-abandon-services]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - hab pkg install --binlink --channel=stable core/expect
       - test/end-to-end/hup-does-not-abandon-services.exp
     expeditor:
@@ -43,7 +43,7 @@ steps:
 
   - label: "[:linux: hab-svc-load]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - hab pkg install --binlink --channel=stable core/expect
       - test/end-to-end/hab-svc-load.exp
     expeditor:
@@ -55,7 +55,7 @@ steps:
 
   - label: "[:windows: hab-svc-load]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 DEV test_supervisor_load_service
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service
     expeditor:
       executor:
         docker:
@@ -66,7 +66,7 @@ steps:
 
   - label: "[:windows: Start-Service]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 DEV test_supervisor_windows_service
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_service
     expeditor:
       executor:
         docker:
@@ -77,7 +77,7 @@ steps:
 
   - label: "[:windows: cleanly-shutdown-supervisor]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 DEV test_supervisor_windows_shutdown
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_windows_shutdown
     expeditor:
       executor:
         docker:
@@ -88,7 +88,7 @@ steps:
 
   - label: "[:windows: hab-svc-load-with-svc-user]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 DEV test_supervisor_load_service_with_password
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_service_with_password
     expeditor:
       executor:
         docker:
@@ -99,7 +99,7 @@ steps:
 
   - label: "[:windows: hab-svc-load-with-hab-user]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 DEV test_supervisor_load_with_hab_user
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_supervisor_load_with_hab_user
     expeditor:
       executor:
         docker:
@@ -110,7 +110,7 @@ steps:
 
   - label: "[:linux: test_launcher_checks_supervisor_version]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_launcher_checks_supervisor_version.sh
 
     soft_fail: true
@@ -120,12 +120,12 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="DEV"
-            - HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL="DEV"
+            - HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL="dev"
+            - HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL="dev"
 
   - label: "[:linux: test_launcher_exits_on_supervisor_connection_failure]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_launcher_exits_on_supervisor_connection_failure.sh
     expeditor:
       executor:
@@ -136,7 +136,7 @@ steps:
 
   - label: "[:linux: test_launcher_exits_on_supervisor_startup_failure]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_launcher_exits_on_supervisor_startup_failure.sh
     artifact_paths:
       - sup.log
@@ -149,7 +149,7 @@ steps:
 
   - label: "[:linux: test_launcher_restarts_supervisor]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_launcher_restarts_supervisor.sh
     artifact_paths:
       - sup.log
@@ -162,7 +162,7 @@ steps:
 
   - label: "[:linux: test_socket_file_cleanup]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_socket_file_cleanup.sh
     expeditor:
       executor:
@@ -173,7 +173,7 @@ steps:
 
   - label: "[:linux: test_tar_export]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_tar_export.sh
     expeditor:
       executor:
@@ -184,7 +184,7 @@ steps:
 
   - label: "[:linux: test_studio_auto_installs]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_studio_auto_installs.sh
     expeditor:
       executor:
@@ -196,7 +196,7 @@ steps:
 
   - label: "[:linux: test_studio_with_ssl_cert_file_envvar_set]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_studio_with_ssl_cert_file_envvar_set.sh
     expeditor:
       executor:
@@ -205,10 +205,10 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
-  
+
   - label: "[:windows: test_studio_with_ssl_cert_file_envvar_set]"
     command:
-      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 DEV test_studio_with_ssl_cert_file_envvar_set
+      - powershell .expeditor/scripts/end_to_end/run_e2e_test.ps1 dev test_studio_with_ssl_cert_file_envvar_set
     expeditor:
       executor:
         docker:
@@ -216,10 +216,10 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
- 
+
   - label: "[:linux: :docker: test_studio_with_ssl_cert_file_envvar_set]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_studio_with_ssl_cert_file_envvar_set.sh
     env:
       BUILD_PKG_TARGET: x86_64-linux
@@ -233,7 +233,7 @@ steps:
 
   - label: "[:linux: test_studio_when_ssl_cert_file_is_invalid_cert]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_studio_when_ssl_cert_file_is_invalid_cert.sh
     expeditor:
       executor:
@@ -245,7 +245,7 @@ steps:
 
   - label: "[:linux: test_studio_when_ssl_cert_file_is_nonexistant_file]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_studio_when_ssl_cert_file_is_nonexistant_file.sh
     expeditor:
       executor:
@@ -257,7 +257,7 @@ steps:
 
   - label: "[:linux: test_studio_when_ssl_cert_file_is_directory]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_studio_when_ssl_cert_file_is_directory.sh
     expeditor:
       executor:
@@ -269,7 +269,7 @@ steps:
 
   - wait
 
-  - label: "[:hab: Promote to Acceptance]"
+  - label: "[:habicat: Promote to Acceptance]"
     command:
       - .expeditor/scripts/promote.sh dev acceptance
     expeditor:
