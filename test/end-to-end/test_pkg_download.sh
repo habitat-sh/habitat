@@ -25,7 +25,7 @@ IDENT_FILE="ident_file"
 HAB_AUTH_TOKEN=${ACCEPTANCE_HAB_AUTH_TOKEN:-${HAB_AUTH_TOKEN}}
 
 echo
-echo "==========Testing command ${HAB}, using cache dir ${CACHE_DIR}"
+echo "==========Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
 echo
 
 before_test() {
