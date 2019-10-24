@@ -1005,33 +1005,38 @@ impl Service {
                      template_update: &TemplateUpdate)
                      -> bool {
         let up = self.check_process();
-        if !self.state.initialized() {
-            // If the service is not initialized and the process is still running, the Supervisor
-            // was restarted and we just have to reattach to the process.
-            if up {
-                self.reattach(executor);
-                return false;
+        match self.state {
+            ServiceState::Uninitialized => {
+                // If the service is not initialized and the process is still running, the
+                // Supervisor was restarted and we just have to reattach to the
+                // process.
+                if up {
+                    self.reattach(executor);
+                    return false;
+                }
+                self.initialize();
+                if self.state.initialized() {
+                    self.start(launcher, executor);
+                    self.post_run(executor);
+                }
             }
-            self.initialize();
-            if self.state.initialized() {
-                self.start(launcher, executor);
-                self.post_run(executor);
+            ServiceState::Initialized => {
+                // If the service is initialized and the process is not running, the process
+                // unexpectedly died and needs to be restarted.
+                if !up || template_update.needs_restart() {
+                    // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could
+                    // just schedule the `stop` future, but the `Manager` wraps
+                    // the `stop` future with additional functionality. Can we
+                    // refactor to make this flag unnecessary?
+                    self.needs_restart = true;
+                    return true;
+                } else if template_update.needs_reconfigure() {
+                    // Only reconfigure if we did NOT restart the service
+                    self.reconfigure(executor);
+                    return true;
+                }
             }
-        } else {
-            // If the service is initialized and the process is not running, the process
-            // unexpectedly died and needs to be restarted.
-            if !up || template_update.needs_restart() {
-                // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could just
-                // schedule the `stop` future, but the `Manager` wraps the `stop` future with
-                // additional functionality. Can we refactor to make this flag unnecessary?
-                self.needs_restart = true;
-                return true;
-            } else if template_update.needs_reconfigure() {
-                // Only reconfigure if we did NOT restart the service
-                self.reconfigure(executor);
-                return true;
-            }
-        }
+        };
         false
     }
 
