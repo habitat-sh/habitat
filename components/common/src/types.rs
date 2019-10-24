@@ -1,7 +1,9 @@
 use crate::error::Error;
 use clap::ArgMatches;
+use native_tls::Certificate;
 use std::{collections::HashMap,
           fmt,
+          fs,
           io,
           net::{IpAddr,
                 Ipv4Addr,
@@ -195,6 +197,47 @@ impl Into<Option<Duration>> for EventStreamConnectMethod {
             EventStreamConnectMethod::Immediate => None,
             EventStreamConnectMethod::Timeout { secs } => Some(Duration::from_secs(secs)),
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct EventStreamServerCertificate(Certificate);
+
+impl EventStreamServerCertificate {
+    /// The name of the Clap argument.
+    pub const ARG_NAME: &'static str = "EVENT_STREAM_SERVER_CERTIFICATE";
+
+    #[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+    pub fn validate(value: String) -> result::Result<(), String> {
+        value.parse::<Self>().map(|_| ()).map_err(|e| e.to_string())
+    }
+
+    /// Create an instance of `EventStreamServerCertificate` from validated user input.
+    pub fn from_arg_matches(m: &ArgMatches) -> Option<Self> {
+        m.value_of(Self::ARG_NAME).map(|value| {
+                                      value.parse().expect("EVENT_STREAM_SERVER_CERTIFICATE \
+                                                            should be validated")
+                                  })
+    }
+}
+
+impl FromStr for EventStreamServerCertificate {
+    type Err = Error;
+
+    /// Treat the string as a file path. Try and read the file as a PEM certificate.
+    fn from_str(s: &str) -> ::std::result::Result<Self, Self::Err> {
+        let contents = fs::read(s)?;
+        Ok(EventStreamServerCertificate(Certificate::from_pem(&contents)?))
+    }
+}
+
+impl Into<Certificate> for EventStreamServerCertificate {
+    fn into(self) -> Certificate { self.0 }
+}
+
+impl fmt::Debug for EventStreamServerCertificate {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "EventStreamServerCertificate")
     }
 }
 

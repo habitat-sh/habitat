@@ -35,7 +35,8 @@ pub use error::{Error,
 use futures::sync::mpsc::Sender;
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
-                            EventStreamMetadata};
+                            EventStreamMetadata,
+                            EventStreamServerCertificate};
 use habitat_core::package::ident::PackageIdent;
 use parking_lot::Mutex;
 use state::Container;
@@ -104,50 +105,54 @@ pub fn stop_stream() {
 /// be passed in by a user
 #[derive(Clone, Debug)]
 pub struct EventStreamConfig {
-    environment:    String,
-    application:    String,
-    site:           Option<String>,
-    meta:           EventStreamMetadata,
-    token:          AutomateAuthToken,
-    url:            String,
-    connect_method: EventStreamConnectMethod,
+    environment:        String,
+    application:        String,
+    site:               Option<String>,
+    meta:               EventStreamMetadata,
+    token:              AutomateAuthToken,
+    url:                String,
+    connect_method:     EventStreamConnectMethod,
+    server_certificate: Option<EventStreamServerCertificate>,
 }
 
 impl<'a> From<&'a ArgMatches<'a>> for EventStreamConfig {
     fn from(m: &ArgMatches) -> Self {
-        EventStreamConfig { environment:    m.value_of("EVENT_STREAM_ENVIRONMENT")
-                                             .map(str::to_string)
-                                             .expect("Required option for EventStream feature"),
-                            application:    m.value_of("EVENT_STREAM_APPLICATION")
-                                             .map(str::to_string)
-                                             .expect("Required option for EventStream feature"),
-                            site:           m.value_of("EVENT_STREAM_SITE").map(str::to_string),
-                            meta:           EventStreamMetadata::from(m),
-                            token:          AutomateAuthToken::from(m),
-                            url:            m.value_of("EVENT_STREAM_URL")
-                                             .map(str::to_string)
-                                             .expect("Required option for EventStream feature"),
-                            connect_method: EventStreamConnectMethod::from(m), }
+        EventStreamConfig { environment:        m.value_of("EVENT_STREAM_ENVIRONMENT")
+                                                 .map(str::to_string)
+                                                 .expect("Required option for EventStream feature"),
+                            application:        m.value_of("EVENT_STREAM_APPLICATION")
+                                                 .map(str::to_string)
+                                                 .expect("Required option for EventStream feature"),
+                            site:               m.value_of("EVENT_STREAM_SITE").map(str::to_string),
+                            meta:               EventStreamMetadata::from(m),
+                            token:              AutomateAuthToken::from(m),
+                            url:                m.value_of("EVENT_STREAM_URL")
+                                                 .map(str::to_string)
+                                                 .expect("Required option for EventStream feature"),
+                            connect_method:     EventStreamConnectMethod::from(m),
+                            server_certificate: EventStreamServerCertificate::from_arg_matches(m), }
     }
 }
 
 /// All the information needed to establish a connection to a NATS
 /// Streaming server.
 pub struct EventStreamConnectionInfo {
-    pub name:           String,
-    pub verbose:        bool,
-    pub cluster_uri:    String,
-    pub auth_token:     AutomateAuthToken,
-    pub connect_method: EventStreamConnectMethod,
+    pub name:               String,
+    pub verbose:            bool,
+    pub cluster_uri:        String,
+    pub auth_token:         AutomateAuthToken,
+    pub connect_method:     EventStreamConnectMethod,
+    pub server_certificate: Option<EventStreamServerCertificate>,
 }
 
 impl EventStreamConnectionInfo {
     pub fn new(supervisor_id: &str, config: EventStreamConfig) -> Self {
-        EventStreamConnectionInfo { name:           format!("hab_client_{}", supervisor_id),
-                                    verbose:        true,
-                                    cluster_uri:    config.url,
-                                    auth_token:     config.token,
-                                    connect_method: config.connect_method, }
+        EventStreamConnectionInfo { name:               format!("hab_client_{}", supervisor_id),
+                                    verbose:            true,
+                                    cluster_uri:        config.url,
+                                    auth_token:         config.token,
+                                    connect_method:     config.connect_method,
+                                    server_certificate: config.server_certificate, }
     }
 }
 
