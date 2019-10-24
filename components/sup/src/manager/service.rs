@@ -163,6 +163,16 @@ impl TemplateUpdate {
     }
 }
 
+#[derive(Debug, PartialEq, Eq)]
+enum ServiceState {
+    Uninitialized,
+    Initialized,
+}
+
+impl ServiceState {
+    fn initialized(&self) -> bool { self == &Self::Initialized }
+}
+
 #[derive(Debug)]
 pub struct Service {
     pub service_group:       ServiceGroup,
@@ -176,12 +186,13 @@ pub struct Service {
     pub cfg:                 Cfg,
     pub pkg:                 Pkg,
     pub sys:                 Arc<Sys>,
-    pub initialized:         bool,
     pub user_config_updated: bool,
     pub shutdown_timeout:    Option<ShutdownTimeout>,
     // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
     // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
     pub needs_restart: bool,
+    // TODO (DM):
+    state: ServiceState,
 
     config_renderer: CfgRenderer,
     // Note: This field is really only needed for serializing a
@@ -264,10 +275,10 @@ impl Service {
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
                                             svc_hooks_path(&service_group.service())),
-                     initialized: false,
                      last_election_status: ElectionStatus::None,
                      user_config_updated: false,
                      needs_restart: false,
+                     state: ServiceState::Uninitialized,
                      manager_fs_cfg,
                      supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
                      pkg,
@@ -439,7 +450,7 @@ impl Service {
     /// This should generally be the opposite of `Service::detach`.
     fn reattach(&mut self, executor: &TaskExecutor) {
         outputln!("Reattaching to {}", self.service_group);
-        self.initialized = true;
+        self.state = ServiceState::Initialized;
         self.restart_health_checks(executor);
         // We intentionally do not restart the `post_run` retry future. Currently, there is not
         // a way to track if `post_run` ran successfully following a Supervisor restart.
@@ -515,7 +526,7 @@ impl Service {
                 -> bool {
         // We may need to block the service from starting until all
         // its binds are satisfied
-        if !self.initialized {
+        if !self.state.initialized() {
             match self.binding_mode {
                 BindingMode::Relaxed => (),
                 BindingMode::Strict => {
@@ -828,18 +839,23 @@ impl Service {
     fn initialize(&mut self) {
         let timer = hook_timer("initialize");
 
-        if self.initialized {
+        if self.state.initialized() {
             timer.observe_duration();
             return;
         }
 
         outputln!(preamble self.service_group, "Initializing");
-        self.initialized = true;
+        self.state = ServiceState::Initialized;
         if let Some(ref hook) = self.hooks.init {
-            self.initialized = hook.run(&self.service_group,
-                                        &self.pkg,
-                                        self.svc_encrypted_password.as_ref())
-                                   .unwrap_or(false);
+            self.state = if hook.run(&self.service_group,
+                                     &self.pkg,
+                                     self.svc_encrypted_password.as_ref())
+                                .unwrap_or(false)
+            {
+                ServiceState::Initialized
+            } else {
+                ServiceState::Uninitialized
+            };
         }
     }
 
@@ -898,7 +914,7 @@ impl Service {
     pub fn suitability(&self) -> Option<u64> {
         let _timer = hook_timer("suitability");
 
-        if !self.initialized {
+        if !self.state.initialized() {
             return None;
         }
 
@@ -994,7 +1010,7 @@ impl Service {
                      template_update: &TemplateUpdate)
                      -> bool {
         let up = self.check_process();
-        if !self.initialized {
+        if !self.state.initialized() {
             // If the service is not initialized and the process is still running, the Supervisor
             // was restarted and we just have to reattach to the process.
             if up {
@@ -1002,7 +1018,7 @@ impl Service {
                 return false;
             }
             self.initialize();
-            if self.initialized {
+            if self.state.initialized() {
                 self.start(launcher, executor);
                 self.post_run(executor);
             }
@@ -1028,7 +1044,7 @@ impl Service {
     fn file_updated(&self) -> bool {
         let _timer = hook_timer("file-updated");
 
-        if self.initialized {
+        if self.state.initialized() {
             if let Some(ref hook) = self.hooks.file_updated {
                 return hook.run(&self.service_group,
                                 &self.pkg,
@@ -1217,7 +1233,6 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("desired_state", &s.desired_state)?;
         strukt.serialize_field("health_check", &s.health_check_result)?;
         strukt.serialize_field("hooks", &s.hooks)?;
-        strukt.serialize_field("initialized", &s.initialized)?;
         strukt.serialize_field("last_election_status", &s.last_election_status)?;
         strukt.serialize_field("manager_fs_cfg", &s.manager_fs_cfg)?;
 
