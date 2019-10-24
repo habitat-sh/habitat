@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.32 -->
+<!-- latest_release 0.89.33 -->
+## [fake-0.89.33](https://github.com/habitat-sh/habitat/tree/fake-0.89.33) (2019-10-24)
+
+#### Merged Pull Requests
+- Noindex/nofollow blog pages [#7074](https://github.com/habitat-sh/habitat/pull/7074) ([kagarmoe](https://github.com/kagarmoe))
+<!-- latest_release -->
+
 ## [fake-0.89.32](https://github.com/habitat-sh/habitat/tree/fake-0.89.32) (2019-10-24)
 
 #### Merged Pull Requests
 - Initialize health check gateway state to Unknown [#7087](https://github.com/habitat-sh/habitat/pull/7087) ([stevendanna](https://github.com/stevendanna))
-<!-- latest_release -->
 
 ## [fake-0.89.31](https://github.com/habitat-sh/habitat/tree/fake-0.89.31) (2019-10-24)
 
