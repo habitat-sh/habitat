@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.34 -->
+<!-- latest_release 0.89.35 -->
+## [fake-0.89.35](https://github.com/habitat-sh/habitat/tree/fake-0.89.35) (2019-10-24)
+
+#### Merged Pull Requests
+- stop windows service if launcher exits [#7099](https://github.com/habitat-sh/habitat/pull/7099) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.89.34](https://github.com/habitat-sh/habitat/tree/fake-0.89.34) (2019-10-24)
 
 #### Merged Pull Requests
 - [CI] Fix spuriously-failing end-to-end test [#7103](https://github.com/habitat-sh/habitat/pull/7103) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.33](https://github.com/habitat-sh/habitat/tree/fake-0.89.33) (2019-10-24)
 
