@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.35 -->
+<!-- latest_release 0.89.36 -->
+## [fake-0.89.36](https://github.com/habitat-sh/habitat/tree/fake-0.89.36) (2019-10-24)
+
+#### New Features & Enhancements
+- Add TLS to event stream [#7092](https://github.com/habitat-sh/habitat/pull/7092) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
 ## [fake-0.89.35](https://github.com/habitat-sh/habitat/tree/fake-0.89.35) (2019-10-24)
 
 #### Merged Pull Requests
 - stop windows service if launcher exits [#7099](https://github.com/habitat-sh/habitat/pull/7099) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.89.34](https://github.com/habitat-sh/habitat/tree/fake-0.89.34) (2019-10-24)
 
