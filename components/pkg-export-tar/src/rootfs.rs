@@ -26,5 +26,5 @@ pub fn create<T>(root: T) -> Result<()>
 pub fn create<T>(_root: T) -> Result<()>
     where T: AsRef<Path>
 {
-    unimplemented!()
+    Ok(())
 }
