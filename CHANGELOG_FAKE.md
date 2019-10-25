@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.39 -->
+<!-- latest_release 0.89.40 -->
+## [fake-0.89.40](https://github.com/habitat-sh/habitat/tree/fake-0.89.40) (2019-10-25)
+
+#### Merged Pull Requests
+- Make the init hook async [#7111](https://github.com/habitat-sh/habitat/pull/7111) ([davidMcneil](https://github.com/davidMcneil))
+<!-- latest_release -->
+
 ## [fake-0.89.39](https://github.com/habitat-sh/habitat/tree/fake-0.89.39) (2019-10-25)
 
 #### Merged Pull Requests
 - Add additionl e2e tests validating SSL cert functionality [#7038](https://github.com/habitat-sh/habitat/pull/7038) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.38](https://github.com/habitat-sh/habitat/tree/fake-0.89.38) (2019-10-24)
 
