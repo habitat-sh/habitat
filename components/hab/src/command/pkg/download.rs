@@ -43,7 +43,8 @@ use crate::{api_client::{self,
                              keys::parse_name_with_rev,
                              SigKeyPair},
                     fs::cache_root_path,
-                    package::{PackageArchive,
+                    package::{Identifiable,
+                              PackageArchive,
                               PackageIdent,
                               PackageTarget},
                     ChannelIdent,
@@ -238,12 +239,19 @@ impl<'a> DownloadTask<'a> {
                                       -> Result<Package>
         where T: UIWriter
     {
-        // Unlike in the install command, we always hit the online
-        // depot; our purpose is to sync with latest, and falling back
-        // to a local package would defeat that. Find the latest
-        // package in the proper channel from Builder API,
+        // Unlike in the install command, we always hit the online depot; our purpose is to sync
+        // with latest, and falling back to a local package would defeat that. Find the
+        // latest package in the proper channel from Builder API,
+
+        // We rely on the fact that all packages are always added to the unstable channel as well as
+        // any other channel specified.
+        let mut channel = &ChannelIdent::unstable();
+        if !ident.fully_qualified() {
+            channel = self.channel
+        };
+
         ui.status(Status::Determining, format!("latest version of {}", ident))?;
-        match self.fetch_latest_package_in_channel_for(ident, target, self.channel, self.token) {
+        match self.fetch_latest_package_in_channel_for(ident, target, &channel, self.token) {
             Ok(latest_package) => {
                 ui.status(Status::Using, format!("{}", latest_package.ident))?;
                 Ok(latest_package)
@@ -256,9 +264,9 @@ impl<'a> DownloadTask<'a> {
                 ui.warn(format!("No packages matching ident {} for {} exist in the '{}' \
                                  channel. Check the package ident, target, channel and Builder \
                                  url ({}) for correctness",
-                                ident, target, self.channel, self.url))?;
+                                ident, target, &channel, self.url))?;
                 Err(CommonError::PackageNotFound(format!("{} for {} in channel {}",
-                                                         ident, target, self.channel)).into())
+                                                         ident, target, &channel)).into())
             }
             Err(e) => {
                 debug!("Error fetching ident {} for target {}: {:?}",
