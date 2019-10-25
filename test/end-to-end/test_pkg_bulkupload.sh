@@ -28,7 +28,7 @@ PKG_A_HART="${CACHE_DIR}/artifacts/testbulkupload-testpkg1-0.1.0-20191024190939-
 PKG_B_HART="${CACHE_DIR}/artifacts/testbulkupload-testpkg2-0.1.0-20191024191005-x86_64-linux.hart"
 
 echo
-echo "==========Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
+echo "--- Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
 echo
 
 before_upload() {
@@ -50,7 +50,7 @@ test_expecting_fail() {
     CMD=$2
 
     echo
-    echo "==========Expected failure: Testing ${DESC}"
+    echo "--- Expected failure: Testing ${DESC}"
     if ${CMD}; then
 	echo "FAIL (expected error) $CMD"
 	exit 1
@@ -64,7 +64,7 @@ test_expecting_pass() {
     CMD=$2
 
     echo
-    echo "==========Expected success: Testing ${DESC}"
+    echo "--- Expected success: Testing ${DESC}"
     if ! ${CMD}; then
 	echo "FAIL (expected pass) $CMD"
 	exit 1
