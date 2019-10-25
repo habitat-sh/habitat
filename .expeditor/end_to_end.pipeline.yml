@@ -372,7 +372,7 @@ steps:
 
   - label: "[:linux: test_pkg_download]"
     command:
-      - .expeditor/scripts/end_to_end/setup_environment.sh DEV
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_pkg_download.sh
     expeditor:
       executor:
