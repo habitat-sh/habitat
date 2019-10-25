@@ -40,7 +40,7 @@ source .expeditor/scripts/shared.sh
 #
 # Only Chef Expeditor should be triggering "real" runs of pipelines
 # that use this script.
-valid_build_creator="Chef Expeditor"
+readonly valid_build_creator="Chef Expeditor"
 
 if [[ "${BUILDKITE_BUILD_CREATOR}" == "${valid_build_creator}" ]]; then
     # We're in a real pipeline run; let's promote!
