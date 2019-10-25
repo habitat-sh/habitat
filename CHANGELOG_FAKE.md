@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.38 -->
+<!-- latest_release 0.89.39 -->
+## [fake-0.89.39](https://github.com/habitat-sh/habitat/tree/fake-0.89.39) (2019-10-25)
+
+#### Merged Pull Requests
+- Add additionl e2e tests validating SSL cert functionality [#7038](https://github.com/habitat-sh/habitat/pull/7038) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.89.38](https://github.com/habitat-sh/habitat/tree/fake-0.89.38) (2019-10-24)
 
 #### Merged Pull Requests
 - [CI] Add the correct AWS account to the e2e pipeline [#7110](https://github.com/habitat-sh/habitat/pull/7110) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.37](https://github.com/habitat-sh/habitat/tree/fake-0.89.37) (2019-10-24)
 
