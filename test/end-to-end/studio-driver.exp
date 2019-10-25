@@ -1,0 +1,38 @@
+#!/usr/bin/env expect
+
+set env(HAB_NOCOLORING) true
+set studio_test [lindex $argv 0]
+# Print out some helpful tracing messages in the test output.
+
+proc log {message} {
+    puts "LOG >>> $message"
+}
+
+# Cleanup after the test
+exit -onexit {
+    exec $studio_command rm
+}
+
+# Installing packages can take time
+set timeout 60
+
+spawn hab studio enter
+expect {
+  {\[default:/src:0]#} { 
+    log "Studio entered successfully"
+  }
+  eof {
+    error "Unable to enter studio"
+  }
+  timeout {
+    error "Timeout entering studio"
+  } 
+}
+
+send "$studio_test\n"
+send "exit\n"
+expect eof
+catch wait result
+exit [lindex $result 3]
+
+
