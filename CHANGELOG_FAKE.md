@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.40 -->
+<!-- latest_release 0.89.41 -->
+## [fake-0.89.41](https://github.com/habitat-sh/habitat/tree/fake-0.89.41) (2019-10-25)
+
+#### Merged Pull Requests
+- Add tests to validate SSL behavior on Windows [#7114](https://github.com/habitat-sh/habitat/pull/7114) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.89.40](https://github.com/habitat-sh/habitat/tree/fake-0.89.40) (2019-10-25)
 
 #### Merged Pull Requests
 - Make the init hook async [#7111](https://github.com/habitat-sh/habitat/pull/7111) ([davidMcneil](https://github.com/davidMcneil))
-<!-- latest_release -->
 
 ## [fake-0.89.39](https://github.com/habitat-sh/habitat/tree/fake-0.89.39) (2019-10-25)
 
