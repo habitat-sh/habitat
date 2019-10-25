@@ -76,6 +76,7 @@ use habitat_sup_protocol::types::BindingMode;
 pub use habitat_sup_protocol::types::{ProcessState,
                                       Topology,
                                       UpdateStrategy};
+use parking_lot::RwLock;
 use prometheus::{HistogramTimer,
                  HistogramVec};
 use serde::{ser::SerializeStruct,
@@ -163,6 +164,14 @@ impl TemplateUpdate {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum InitializationState {
+    Uninitialized,
+    Initializing,
+    InitializerFinished,
+    Initialized,
+}
+
 #[derive(Debug)]
 pub struct Service {
     pub service_group:       ServiceGroup,
@@ -176,12 +185,15 @@ pub struct Service {
     pub cfg:                 Cfg,
     pub pkg:                 Pkg,
     pub sys:                 Arc<Sys>,
-    pub initialized:         bool,
     pub user_config_updated: bool,
     pub shutdown_timeout:    Option<ShutdownTimeout>,
     // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
     // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
     pub needs_restart: bool,
+    // TODO (DM): The need to track initialization state across ticks would be removed if we
+    // migrated away from the event loop architecture to an architecture that had a top level
+    // `Service` future. See https://github.com/habitat-sh/habitat/issues/7112
+    initialization_state: Arc<RwLock<InitializationState>>,
 
     config_renderer: CfgRenderer,
     // Note: This field is really only needed for serializing a
@@ -234,6 +246,7 @@ pub struct Service {
     /// can stop that future.
     health_check_handle: Option<sup_futures::FutureHandle>,
     post_run_handle: Option<sup_futures::FutureHandle>,
+    initialize_handle: Option<sup_futures::FutureHandle>,
 }
 
 impl Service {
@@ -264,10 +277,11 @@ impl Service {
                      hooks: HookTable::load(&pkg.name,
                                             &hooks_root,
                                             svc_hooks_path(&service_group.service())),
-                     initialized: false,
                      last_election_status: ElectionStatus::None,
                      user_config_updated: false,
                      needs_restart: false,
+                     initialization_state:
+                         Arc::new(RwLock::new(InitializationState::Uninitialized)),
                      manager_fs_cfg,
                      supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
                      pkg,
@@ -286,6 +300,7 @@ impl Service {
                      gateway_state,
                      health_check_handle: None,
                      post_run_handle: None,
+                     initialize_handle: None,
                      shutdown_timeout: spec.shutdown_timeout })
     }
 
@@ -375,6 +390,10 @@ impl Service {
         }
     }
 
+    fn initialized(&self) -> bool {
+        *self.initialization_state.read() == InitializationState::Initialized
+    }
+
     /// Create the state necessary for managing a repeatedly-running
     /// health check hook.
     fn health_state(&self) -> health::State {
@@ -439,7 +458,7 @@ impl Service {
     /// This should generally be the opposite of `Service::detach`.
     fn reattach(&mut self, executor: &TaskExecutor) {
         outputln!("Reattaching to {}", self.service_group);
-        self.initialized = true;
+        *self.initialization_state.write() = InitializationState::Initialized;
         self.restart_health_checks(executor);
         // We intentionally do not restart the `post_run` retry future. Currently, there is not
         // a way to track if `post_run` ran successfully following a Supervisor restart.
@@ -459,6 +478,7 @@ impl Service {
     /// generally be mirror images of each other.
     pub fn detach(&mut self) {
         debug!("Detatching service {}", self.pkg.ident);
+        self.stop_initialize();
         self.stop_post_run();
         self.stop_health_checks();
     }
@@ -515,7 +535,7 @@ impl Service {
                 -> bool {
         // We may need to block the service from starting until all
         // its binds are satisfied
-        if !self.initialized {
+        if !self.initialized() {
             match self.binding_mode {
                 BindingMode::Relaxed => (),
                 BindingMode::Strict => {
@@ -825,21 +845,38 @@ impl Service {
     }
 
     /// Run initialization hook if present.
-    fn initialize(&mut self) {
-        let timer = hook_timer("initialize");
-
-        if self.initialized {
-            timer.observe_duration();
-            return;
-        }
-
+    fn initialize(&mut self, executor: &TaskExecutor) {
         outputln!(preamble self.service_group, "Initializing");
-        self.initialized = true;
+        *self.initialization_state.write() = InitializationState::Initializing;
         if let Some(ref hook) = self.hooks.init {
-            self.initialized = hook.run(&self.service_group,
-                                        &self.pkg,
-                                        self.svc_encrypted_password.as_ref())
-                                   .unwrap_or(false);
+            let hook_runner = HookRunner::new(Arc::clone(&hook),
+                                              self.service_group.clone(),
+                                              self.pkg.clone(),
+                                              self.svc_encrypted_password.clone());
+            // These clones are unfortunate. async/await will make this much better.
+            let service_group = self.service_group.clone();
+            let initialization_state = Arc::clone(&self.initialization_state);
+            let initialization_state_for_err = Arc::clone(&self.initialization_state);
+            let f = hook_runner.into_future().map(move |(maybe_exit_value, _)| {
+                *initialization_state.write() = if maybe_exit_value.unwrap_or(false) {
+                    InitializationState::InitializerFinished
+                } else {
+                    InitializationState::Uninitialized
+                };
+            }).map_err(move |e| {
+                outputln!(preamble service_group, "Service initialization failed: {}", e);
+                *initialization_state_for_err.write() = InitializationState::Uninitialized;
+            });
+            let (handle, f) = sup_futures::cancelable_future(f);
+            self.initialize_handle = Some(handle);
+            let f = f.map_err(|_| ());
+            executor.spawn(f);
+        }
+    }
+
+    fn stop_initialize(&mut self) {
+        if let Some(h) = self.initialize_handle.take() {
+            h.terminate();
         }
     }
 
@@ -898,7 +935,7 @@ impl Service {
     pub fn suitability(&self) -> Option<u64> {
         let _timer = hook_timer("suitability");
 
-        if !self.initialized {
+        if !self.initialized() {
             return None;
         }
 
@@ -994,33 +1031,45 @@ impl Service {
                      template_update: &TemplateUpdate)
                      -> bool {
         let up = self.check_process();
-        if !self.initialized {
-            // If the service is not initialized and the process is still running, the Supervisor
-            // was restarted and we just have to reattach to the process.
-            if up {
-                self.reattach(executor);
-                return false;
+        // It is ok that we do not hold this lock while we are performing the match. If we
+        // transistion states while we are matching, we will catch the new state on the next tick.
+        let initialization_state = self.initialization_state.read().clone();
+        match initialization_state {
+            InitializationState::Uninitialized => {
+                // If the service is not initialized and the process is still running, the
+                // Supervisor was restarted and we just have to reattach to the
+                // process.
+                if up {
+                    self.reattach(executor);
+                } else {
+                    self.initialize(executor);
+                }
             }
-            self.initialize();
-            if self.initialized {
+            InitializationState::Initializing => {
+                // Wait until the initializer finishes running
+            }
+            InitializationState::InitializerFinished => {
                 self.start(launcher, executor);
                 self.post_run(executor);
+                *self.initialization_state.write() = InitializationState::Initialized;
             }
-        } else {
-            // If the service is initialized and the process is not running, the process
-            // unexpectedly died and needs to be restarted.
-            if !up || template_update.needs_restart() {
-                // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could just
-                // schedule the `stop` future, but the `Manager` wraps the `stop` future with
-                // additional functionality. Can we refactor to make this flag unnecessary?
-                self.needs_restart = true;
-                return true;
-            } else if template_update.needs_reconfigure() {
-                // Only reconfigure if we did NOT restart the service
-                self.reconfigure(executor);
-                return true;
+            InitializationState::Initialized => {
+                // If the service is initialized and the process is not running, the process
+                // unexpectedly died and needs to be restarted.
+                if !up || template_update.needs_restart() {
+                    // TODO (DM): This flag is a hack. We have the `TaskExecutor` here. We could
+                    // just schedule the `stop` future, but the `Manager` wraps
+                    // the `stop` future with additional functionality. Can we
+                    // refactor to make this flag unnecessary?
+                    self.needs_restart = true;
+                    return true;
+                } else if template_update.needs_reconfigure() {
+                    // Only reconfigure if we did NOT restart the service
+                    self.reconfigure(executor);
+                    return true;
+                }
             }
-        }
+        };
         false
     }
 
@@ -1028,7 +1077,7 @@ impl Service {
     fn file_updated(&self) -> bool {
         let _timer = hook_timer("file-updated");
 
-        if self.initialized {
+        if self.initialized() {
             if let Some(ref hook) = self.hooks.file_updated {
                 return hook.run(&self.service_group,
                                 &self.pkg,
@@ -1217,7 +1266,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("desired_state", &s.desired_state)?;
         strukt.serialize_field("health_check", &s.health_check_result)?;
         strukt.serialize_field("hooks", &s.hooks)?;
-        strukt.serialize_field("initialized", &s.initialized)?;
+        strukt.serialize_field("initialized", &s.initialized())?;
         strukt.serialize_field("last_election_status", &s.last_election_status)?;
         strukt.serialize_field("manager_fs_cfg", &s.manager_fs_cfg)?;
 
