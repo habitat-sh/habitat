@@ -1254,6 +1254,7 @@ impl<'a> Serialize for ServiceProxy<'a> {
         strukt.serialize_field("desired_state", &s.desired_state)?;
         strukt.serialize_field("health_check", &s.health_check_result)?;
         strukt.serialize_field("hooks", &s.hooks)?;
+        strukt.serialize_field("initialized", &s.initialized())?;
         strukt.serialize_field("last_election_status", &s.last_election_status)?;
         strukt.serialize_field("manager_fs_cfg", &s.manager_fs_cfg)?;
 
