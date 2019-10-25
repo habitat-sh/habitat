@@ -190,7 +190,9 @@ pub struct Service {
     // TODO (DM): This flag is a temporary hack to signal to the `Manager` that this service needs
     // to be restarted. As we continue refactoring lifecycle hooks this flag should be removed.
     pub needs_restart: bool,
-    // TODO (DM):
+    // TODO (DM): The need to track initialization state across ticks would be removed if we
+    // migrated away from the event loop architecture to an architecture that had a top level
+    // `Service` future. See https://github.com/habitat-sh/habitat/issues/7112
     initialization_state: Arc<RwLock<InitializationState>>,
 
     config_renderer: CfgRenderer,
