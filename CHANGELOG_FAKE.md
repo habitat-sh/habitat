@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.42 -->
+<!-- latest_release 0.89.43 -->
+## [fake-0.89.43](https://github.com/habitat-sh/habitat/tree/fake-0.89.43) (2019-10-25)
+
+#### Merged Pull Requests
+- Fully qualified package names download irrespective of channel [#7108](https://github.com/habitat-sh/habitat/pull/7108) ([markan](https://github.com/markan))
+<!-- latest_release -->
+
 ## [fake-0.89.42](https://github.com/habitat-sh/habitat/tree/fake-0.89.42) (2019-10-25)
 
 #### Bug Fixes
 - fix tar exporter on windows [#7116](https://github.com/habitat-sh/habitat/pull/7116) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.89.41](https://github.com/habitat-sh/habitat/tree/fake-0.89.41) (2019-10-25)
 
