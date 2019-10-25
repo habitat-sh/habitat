@@ -25,7 +25,7 @@ IDENT_FILE="ident_file"
 HAB_AUTH_TOKEN=${ACCEPTANCE_HAB_AUTH_TOKEN:-${HAB_AUTH_TOKEN}}
 
 echo
-echo "==========Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
+echo "--- Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
 echo
 
 before_test() {
@@ -88,7 +88,7 @@ test_expecting_fail() {
     CMD=$2
 
     echo
-    echo "==========Testing ${DESC}"
+    echo "--- Testing ${DESC}"
     if ${CMD}; then
 	echo "FAIL (expected error) $CMD"
 	exit 1
@@ -100,7 +100,7 @@ test_expecting_fail() {
 success_from_command_line() {
     before_test
 
-    echo "==========Testing command line idents"
+    echo "--- Testing command line idents"
 
     CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/gzip"
     echo "Testing command line: ${CMD}"
@@ -112,7 +112,7 @@ success_from_command_line() {
 success_from_file() {
     before_test
 
-    echo "==========Testing file idents"
+    echo "--- Testing file idents"
 
     echo "core/gzip" > ${IDENT_FILE}
     CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"
@@ -125,7 +125,7 @@ success_from_file() {
 success_from_file_with_comments_and_emtpy_lines() {
     before_test
 
-    echo "==========Testing file idents when file has white spaces and comments"
+    echo "--- Testing file idents when file has white spaces and comments"
 
     cat << IDENT_FILE > ${IDENT_FILE}
 # this is a series
@@ -143,7 +143,7 @@ IDENT_FILE
 success_from_alternate_arch() {
     before_test
 
-    echo "==========Testing command line idents"
+    echo "--- Testing command line idents"
 
     CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/rust --target=x86_64-windows"
     echo "Testing command line: ${CMD}"
