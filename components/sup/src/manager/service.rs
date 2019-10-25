@@ -246,6 +246,7 @@ pub struct Service {
     /// can stop that future.
     health_check_handle: Option<sup_futures::FutureHandle>,
     post_run_handle: Option<sup_futures::FutureHandle>,
+    initialize_handle: Option<sup_futures::FutureHandle>,
 }
 
 impl Service {
@@ -299,6 +300,7 @@ impl Service {
                      gateway_state,
                      health_check_handle: None,
                      post_run_handle: None,
+                     initialize_handle: None,
                      shutdown_timeout: spec.shutdown_timeout })
     }
 
@@ -476,6 +478,7 @@ impl Service {
     /// generally be mirror images of each other.
     pub fn detach(&mut self) {
         debug!("Detatching service {}", self.pkg.ident);
+        self.stop_initialize();
         self.stop_post_run();
         self.stop_health_checks();
     }
@@ -864,7 +867,16 @@ impl Service {
                 outputln!(preamble service_group, "Service initialization failed: {}", e);
                 *initialization_state_for_err.write() = InitializationState::Uninitialized;
             });
+            let (handle, f) = sup_futures::cancelable_future(f);
+            self.initialize_handle = Some(handle);
+            let f = f.map_err(|_| ());
             executor.spawn(f);
+        }
+    }
+
+    fn stop_initialize(&mut self) {
+        if let Some(h) = self.initialize_handle.take() {
+            h.terminate();
         }
     }
 
