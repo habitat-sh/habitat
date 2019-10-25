@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.41 -->
+<!-- latest_release 0.89.42 -->
+## [fake-0.89.42](https://github.com/habitat-sh/habitat/tree/fake-0.89.42) (2019-10-25)
+
+#### Bug Fixes
+- fix tar exporter on windows [#7116](https://github.com/habitat-sh/habitat/pull/7116) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.89.41](https://github.com/habitat-sh/habitat/tree/fake-0.89.41) (2019-10-25)
 
 #### Merged Pull Requests
 - Add tests to validate SSL behavior on Windows [#7114](https://github.com/habitat-sh/habitat/pull/7114) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.40](https://github.com/habitat-sh/habitat/tree/fake-0.89.40) (2019-10-25)
 
