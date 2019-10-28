@@ -1,5 +1,3 @@
-#!/usr/bin/env bats
-
 # Common helper functions and setup code for BATS-based testing.
 #
 # Every BATS test file should include the following line at the top;
@@ -39,6 +37,7 @@ download_hart() {
     local ident=${1}
     local target=${2}
     hab pkg download "${ident}" --download-directory="${TEST_TEMP_DIR}" --target="${target}" > /dev/null 2>&1
-    local ident_to_filename="$(echo "${ident}" | tr "/" "-")"'*'"-${target}.hart"
-    find "${TEST_TEMP_DIR}/artifacts" -type f -name ${ident_to_filename}
+    local ident_to_filename
+    ident_to_filename="$(echo "${ident}" | tr "/" "-")"'*'"-${target}.hart"
+    find "${TEST_TEMP_DIR}/artifacts" -type f -name "${ident_to_filename}"
 }
