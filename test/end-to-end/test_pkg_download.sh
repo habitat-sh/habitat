@@ -23,7 +23,7 @@ HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
 IDENT_FILE="ident_file"
 # we explicitly define --channel where needed in the tests
-export HAB_BLDR_CHANNEL=
+unset HAB_BLDR_CHANNEL
 
 echo
 echo "--- Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
