@@ -27,6 +27,7 @@ habitat_butterfly = { path = "../butterfly", default-features = false }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 habitat_api_client = { path = "../builder-api-client" }
+habitat_http_client = { path = "../http-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"

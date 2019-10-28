@@ -6,6 +6,7 @@ use crate::{event::{Error,
             sup_futures};
 use futures::{future::Future,
               sync::mpsc as futures_mpsc};
+use habitat_http_client;
 use nats::{native_tls::TlsConnector,
            Client};
 use std::{thread,
@@ -43,6 +44,9 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
     let uri = nats_uri(&cluster_uri, &auth_token.to_string());
 
     let mut tls_config = TlsConnector::builder();
+    for certificate in habitat_http_client::certificates(None)? {
+        tls_config.add_root_certificate(certificate);
+    }
     if let Some(certificate) = server_certificate {
         tls_config.add_root_certificate(certificate.into());
     }
