@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.44 -->
+<!-- latest_release 0.89.45 -->
+## [fake-0.89.45](https://github.com/habitat-sh/habitat/tree/fake-0.89.45) (2019-10-28)
+
+#### Merged Pull Requests
+- wire up e2e hab pkg download tests into expeditor [#7104](https://github.com/habitat-sh/habitat/pull/7104) ([jeremymv2](https://github.com/jeremymv2))
+<!-- latest_release -->
+
 ## [fake-0.89.44](https://github.com/habitat-sh/habitat/tree/fake-0.89.44) (2019-10-28)
 
 #### Merged Pull Requests
 - [CI] Initial Expeditor Promotion trigger [#7115](https://github.com/habitat-sh/habitat/pull/7115) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.43](https://github.com/habitat-sh/habitat/tree/fake-0.89.43) (2019-10-25)
 
