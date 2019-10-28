@@ -133,6 +133,7 @@ store_in_s3() {
 
     checksum_file "${artifact}"
     gpg_sign "${artifact}"
+    gpg_sign "${artifact}.sha256sum"
 
     local versioned_url
     versioned_url="$(s3_file_url_root "${version}")"
@@ -146,6 +147,9 @@ store_in_s3() {
     s3_cp \
         "${artifact}.sha256sum" \
         "${versioned_url}/${artifact}.sha256sum"
+    s3_cp \
+        "${artifact}.sha256sum.asc" \
+        "${versioned_url}/${artifact}.sha256sum.asc"
 }
 
 # Recursively copy all the Habitat artifacts of a given version into
