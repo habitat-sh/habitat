@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.47 -->
+<!-- latest_release 0.89.48 -->
+## [fake-0.89.48](https://github.com/habitat-sh/habitat/tree/fake-0.89.48) (2019-10-28)
+
+#### Merged Pull Requests
+- [CI] DEV -&gt; dev [#7122](https://github.com/habitat-sh/habitat/pull/7122) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.47](https://github.com/habitat-sh/habitat/tree/fake-0.89.47) (2019-10-28)
 
 #### Merged Pull Requests
 - Sign sha256sum for compatibility with existing bintray releases [#7121](https://github.com/habitat-sh/habitat/pull/7121) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.47](https://github.com/habitat-sh/habitat/tree/fake-0.89.47) (2019-10-28)
 
