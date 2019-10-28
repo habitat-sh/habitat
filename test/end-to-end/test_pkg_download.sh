@@ -10,7 +10,7 @@
 # command line testing.
 #
 # Assumptions:
-# 1. ACCEPTANCE_HAB_AUTH_TOKEN or HAB_AUTH_TOKEN Environment variables are set and valid
+# 1. HAB_AUTH_TOKEN Environment variables is set and valid
 # 2. ${CACHE_DIR} can be set to a writable location on the filesystem
 
 set -euo pipefail
@@ -22,7 +22,8 @@ set -euo pipefail
 HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
 IDENT_FILE="ident_file"
-HAB_AUTH_TOKEN=${ACCEPTANCE_HAB_AUTH_TOKEN:-${HAB_AUTH_TOKEN}}
+# we explicitly define --channel where needed in the tests
+export HAB_BLDR_CHANNEL=
 
 echo
 echo "--- Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
@@ -102,7 +103,7 @@ success_from_command_line() {
 
     echo "--- Testing command line idents"
 
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/gzip"
+    CMD="$HAB pkg download --channel stable --download-directory=${CACHE_DIR} core/gzip"
     echo "Testing command line: ${CMD}"
     ${CMD}
 
@@ -115,7 +116,7 @@ success_from_file() {
     echo "--- Testing file idents"
 
     echo "core/gzip" > ${IDENT_FILE}
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"
+    CMD="$HAB pkg download --channel stable --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"
     echo "Testing command line: ${CMD}"
     ${CMD}
 
@@ -133,7 +134,7 @@ success_from_file_with_comments_and_emtpy_lines() {
 
  core/gzip 
 IDENT_FILE
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"
+    CMD="$HAB pkg download --channel stable --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"
     echo "Testing command line: ${CMD}"
     ${CMD}
 
@@ -145,7 +146,7 @@ success_from_alternate_arch() {
 
     echo "--- Testing command line idents"
 
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/rust --target=x86_64-windows"
+    CMD="$HAB pkg download --channel stable --download-directory=${CACHE_DIR} core/rust --target=x86_64-windows"
     echo "Testing command line: ${CMD}"
     ${CMD}
 
