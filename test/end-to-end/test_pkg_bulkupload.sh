@@ -15,7 +15,7 @@ set -euo pipefail
 
 export HAB_NOCOLORING=true
 export HAB_NONINTERACTIVE=true
-export HAB_ORIGIN="habitat-testing"
+export HAB_ORIGIN="testbulkupload"
 export HAB_BLDR_URL=${HAB_BLDR_URL:-https://bldr.acceptance.habitat.sh}
 unset HAB_BLDR_CHANNEL
 
