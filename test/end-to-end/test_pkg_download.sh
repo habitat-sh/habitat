@@ -10,8 +10,7 @@
 # command line testing.
 #
 # Assumptions:
-# 1. HAB_AUTH_TOKEN Environment variables is set and valid
-# 2. ${CACHE_DIR} can be set to a writable location on the filesystem
+# 1. ${CACHE_DIR} can be set to a writable location on the filesystem
 
 set -euo pipefail
 
@@ -22,8 +21,6 @@ set -euo pipefail
 HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
 IDENT_FILE="ident_file"
-# we explicitly define --channel where needed in the tests
-unset HAB_BLDR_CHANNEL
 
 echo
 echo "--- Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
