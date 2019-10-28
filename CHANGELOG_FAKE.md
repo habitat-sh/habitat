@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.45 -->
+<!-- latest_release 0.89.46 -->
+## [fake-0.89.46](https://github.com/habitat-sh/habitat/tree/fake-0.89.46) (2019-10-28)
+
+#### Merged Pull Requests
+- sup: immediately set initialization_state if no init hook exists [#7117](https://github.com/habitat-sh/habitat/pull/7117) ([stevendanna](https://github.com/stevendanna))
+<!-- latest_release -->
+
 ## [fake-0.89.45](https://github.com/habitat-sh/habitat/tree/fake-0.89.45) (2019-10-28)
 
 #### Merged Pull Requests
 - wire up e2e hab pkg download tests into expeditor [#7104](https://github.com/habitat-sh/habitat/pull/7104) ([jeremymv2](https://github.com/jeremymv2))
-<!-- latest_release -->
 
 ## [fake-0.89.44](https://github.com/habitat-sh/habitat/tree/fake-0.89.44) (2019-10-28)
 
