@@ -21,7 +21,7 @@ unset HAB_BLDR_CHANNEL
 
 HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
-FIXTURES_DIR="/workdir/test/end-to-end/fixtures/bulkupload"
+FIXTURES_DIR="test/end-to-end/fixtures/bulkupload"
 PKG_A_TAR="${FIXTURES_DIR}/testbulkupload-testpkg1-0.1.0-20191024190939.tar"
 PKG_B_TAR="${FIXTURES_DIR}/testbulkupload-testpkg2-0.1.0-20191024191005.tar"
 PKG_A_HART="${CACHE_DIR}/artifacts/testbulkupload-testpkg1-0.1.0-20191024190939-x86_64-linux.hart"
