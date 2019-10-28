@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.43 -->
+<!-- latest_release 0.89.44 -->
+## [fake-0.89.44](https://github.com/habitat-sh/habitat/tree/fake-0.89.44) (2019-10-28)
+
+#### Merged Pull Requests
+- [CI] Initial Expeditor Promotion trigger [#7115](https://github.com/habitat-sh/habitat/pull/7115) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.43](https://github.com/habitat-sh/habitat/tree/fake-0.89.43) (2019-10-25)
 
 #### Merged Pull Requests
 - Fully qualified package names download irrespective of channel [#7108](https://github.com/habitat-sh/habitat/pull/7108) ([markan](https://github.com/markan))
-<!-- latest_release -->
 
 ## [fake-0.89.42](https://github.com/habitat-sh/habitat/tree/fake-0.89.42) (2019-10-25)
 
