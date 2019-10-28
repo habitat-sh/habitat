@@ -1,10 +1,11 @@
 hab pkg install core/nginx --channel stable
 $job = start-job { hab sup run }
-Wait-Supervisor -Timeout 45
+hab pkg install core/nginx
+Wait-Supervisor -Timeout 120
 
 Describe "hab svc load" {
     $loadOut = hab svc load core/nginx
-    Start-Sleep -Seconds 5
+    Wait-SupervisorService nginx -Timeout 20
 
     It "Succesfully loads service" {
         $loadOut | Should -Be "The core/nginx service was successfully loaded"
