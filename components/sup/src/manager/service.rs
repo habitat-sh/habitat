@@ -871,6 +871,8 @@ impl Service {
             self.initialize_handle = Some(handle);
             let f = f.map_err(|_| ());
             executor.spawn(f);
+        } else {
+            *self.initialization_state.write() = InitializationState::InitializerFinished;
         }
     }
 
