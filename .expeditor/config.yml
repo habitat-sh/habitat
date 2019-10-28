@@ -91,7 +91,29 @@ subscriptions:
     actions:
       - bash:.expeditor/scripts/cargo_update.sh
 
+  # Promotion Workloads
+  ########################################################################
+  # Only allow promotion actions to current or stable; other
+  # promotions are handled automatically by the pipeline.
+  - workload: project_promoted:{{agent_id}}:current:*
+    actions:
+      - bash:.expeditor/scripts/expeditor_promote.sh
+  - workload: project_promoted:{{agent_id}}:stable:*
+    actions:
+      - bash:.expeditor/scripts/expeditor_promote.sh
+
 schedules:
   - name: cargo_update
     description: "Run 'cargo update' every Monday at 12PM UTC"
     cronline: "0 12 * * 1"
+
+promote:
+  channels:
+    # e2e pipeline tests from here
+    - dev
+    # acceptance Builder Supervisors update from here
+    - acceptance
+    # prod Builder Supervisors update from here
+    - current
+    # Habitat packages in stable, binary packages available to the world
+    - stable

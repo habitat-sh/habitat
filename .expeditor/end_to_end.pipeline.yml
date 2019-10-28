@@ -374,7 +374,7 @@ steps:
 
   - label: "[:habicat: Promote to Acceptance]"
     command:
-      - .expeditor/scripts/promote.sh dev acceptance
+      - .expeditor/scripts/buildkite_promote.sh dev acceptance
     expeditor:
       executor:
         docker:

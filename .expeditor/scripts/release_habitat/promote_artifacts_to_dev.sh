@@ -87,7 +87,8 @@ import_gpg_keys
 echo "--- Pushing manifest file to S3"
 store_in_s3 "${version}" manifest.json
 
-# The remaining logic is essentially the same as in `promote.sh`, but
+# The remaining logic is essentially the same as in
+# `buildkite_promote.sh` and `expeditor_promote.sh`, but
 # done separately since we just stored the manifest in the "files"
 # hierarchy, and not in the "channels" hierarchy; *this* code is what
 # ultimately gets it into said hierarchy.
