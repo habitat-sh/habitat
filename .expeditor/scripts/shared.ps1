@@ -85,6 +85,26 @@ function Wait-Supervisor($Timeout=1) {
   if($success) { Write-Host "Supervisor is now running." }
 }
 
+function Wait-SupervisorService($ServiceName, $Timeout=1) {
+  Write-Host "Waiting up to $Timeout seconds for Supervisor to start $ServiceName ..."
+  $startTime = [DateTime]::Now
+  try {
+      $success = (((Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default" -UseBasicParsing).content | ConvertFrom-Json).process.state -eq "up")
+  } catch { } # We ignore 404s and other unsuccesful codes
+  while(!$success) {
+      Start-Sleep -Seconds 1
+      $timeTaken = [DateTime]::Now.Subtract($startTime)
+      if($timeTaken.TotalSeconds -ge $Timeout) {
+          Write-Error "Timed out waiting $Timeout seconds for Supervisor to start $ServiceName"
+          break
+      }
+      try {
+        $success = (((Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default" -UseBasicParsing).content | ConvertFrom-Json).process.state -eq "up")
+      } catch { } # We ignore 404s and other unsuccesful codes
+    }
+  if($success) { Write-Host "$ServiceName is now up." }
+}
+
 # On buildkite, the rust binaries will be directly in C:
 if($env:BUILDKITE) {
   # this will avoid a path length limit from the long buildkite working dir path
