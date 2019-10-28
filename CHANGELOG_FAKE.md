@@ -1,11 +1,21 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.46 -->
+<!-- latest_release 0.89.47 -->
+## [fake-0.89.47](https://github.com/habitat-sh/habitat/tree/fake-0.89.47) (2019-10-28)
+
+#### Merged Pull Requests
+- Sign sha256sum for compatibility with existing bintray releases [#7121](https://github.com/habitat-sh/habitat/pull/7121) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
+## [fake-0.89.47](https://github.com/habitat-sh/habitat/tree/fake-0.89.47) (2019-10-28)
+
+#### New Features & Enhancements
+- Allow event stream server TLS connection to use habitat cache/ssl [#7120](https://github.com/habitat-sh/habitat/pull/7120) ([davidMcneil](https://github.com/davidMcneil))
+
 ## [fake-0.89.46](https://github.com/habitat-sh/habitat/tree/fake-0.89.46) (2019-10-28)
 
 #### Merged Pull Requests
 - sup: immediately set initialization_state if no init hook exists [#7117](https://github.com/habitat-sh/habitat/pull/7117) ([stevendanna](https://github.com/stevendanna))
-<!-- latest_release -->
 
 ## [fake-0.89.45](https://github.com/habitat-sh/habitat/tree/fake-0.89.45) (2019-10-28)
 
