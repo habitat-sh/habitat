@@ -15,13 +15,13 @@ set -euo pipefail
 
 export HAB_NOCOLORING=true
 export HAB_NONINTERACTIVE=true
-export HAB_AUTH_TOKEN=${ACCEPTANCE_HAB_AUTH_TOKEN:-${HAB_AUTH_TOKEN}}
-export HAB_ORIGIN="testbulkupload"
+export HAB_ORIGIN="habitat-testing"
 export HAB_BLDR_URL=${HAB_BLDR_URL:-https://bldr.acceptance.habitat.sh}
+unset HAB_BLDR_CHANNEL
 
 HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
-FIXTURES_DIR="fixtures/bulkupload"
+FIXTURES_DIR="/workdir/test/end-to-end/fixtures/bulkupload"
 PKG_A_TAR="${FIXTURES_DIR}/testbulkupload-testpkg1-0.1.0-20191024190939.tar"
 PKG_B_TAR="${FIXTURES_DIR}/testbulkupload-testpkg2-0.1.0-20191024191005.tar"
 PKG_A_HART="${CACHE_DIR}/artifacts/testbulkupload-testpkg1-0.1.0-20191024190939-x86_64-linux.hart"
@@ -38,8 +38,9 @@ before_upload() {
     # origin create will exit 0 if the origin already exists
     ${HAB} origin create ${HAB_ORIGIN}
     ${HAB} origin key download --secret ${HAB_ORIGIN}
+    ${HAB} origin key download ${HAB_ORIGIN}
     mkdir -p ${CACHE_DIR}/artifacts ${CACHE_DIR}/keys
-    cp -f ~/.hab/cache/keys/${HAB_ORIGIN}-*pub ${CACHE_DIR}/keys/
+    cp -f /hab/cache/keys/${HAB_ORIGIN}-*pub ${CACHE_DIR}/keys/
     ${HAB} pkg sign --origin ${HAB_ORIGIN} ${PKG_A_TAR} ${PKG_A_HART}
     ${HAB} pkg sign --origin ${HAB_ORIGIN} ${PKG_B_TAR} ${PKG_B_HART}
     echo
