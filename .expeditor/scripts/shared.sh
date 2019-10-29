@@ -218,3 +218,26 @@ promote_packages_to_builder_channel() {
 
 
 }
+
+# Retrieves a suitable HAB_AUTH_TOKEN value from Vault.
+#
+# (Does NOT set that variable, though!)
+#
+# This is intended for use in scripts that Expeditor runs for us;
+# scripts that run in Buildkite can have such credentials injected via
+# other means (See https://expeditor.chef.io/docs/reference/secrets-dsl)
+#
+# NOTE: Currently this is pointed at Acceptance; it will need to be
+# changed when we flip over to Production.
+hab_auth_token() {
+    vault kv get \
+          -field=scotthain-sig-key \
+          account/static/habitat/chef-ci
+}
+
+# Eventually this should be "https://bldr.habitat.sh"... we'll change
+# it when we flip over.
+#
+# Not naming it `hab_bldr_url` to avoid Shellcheck complaints about
+# possible misspellings, but also to make it very obvious what it is.
+readonly temporary_hab_bldr_url="https://bldr.acceptance.habitat.sh"

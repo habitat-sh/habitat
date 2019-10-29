@@ -18,11 +18,10 @@ destination_channel="${EXPEDITOR_TARGET_CHANNEL}"
 declare -g hab_binary
 hab_binary="hab"
 
-# TODO (CM): Similar to other uses at the top of the various pipeline
-# YAML files, this will also need to be changed once we go to
-# production; this is a token for Acceptance Builder, not Prod Builder
 export HAB_AUTH_TOKEN
-HAB_AUTH_TOKEN=$(vault kv get -field=scotthain-sig-key account/static/habitat/chef-ci)
+HAB_AUTH_TOKEN=$(hab_auth_token)
+
+export HAB_BLDR_URL="${temporary_hab_bldr_url}"
 
 ########################################################################
 # CORE LOGIC
