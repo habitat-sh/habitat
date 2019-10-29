@@ -47,6 +47,25 @@ steps:
           shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
 
+
+
+#######################################################################
+# CI Tests!
+#######################################################################
+
+  - label: "[unit] CI Tests :scream:"
+    command:
+      - cd .expeditor
+      - ./run-bats.sh
+    expeditor:
+      executor:
+        # The tests could theoretically be run under the Docker
+        # executor if the chefes/buildkite image had the bats
+        # helpers this expects. For now, though, try running the
+        # test in Docker "manually".
+        linux:
+          privileged: true
+
 #######################################################################
 # Unit Tests - Linux!
 #######################################################################

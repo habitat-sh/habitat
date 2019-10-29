@@ -105,3 +105,102 @@ ident_has_target() {
     echo "--- :partyparrot: Checking target metadata for '${package_ident}' (${target})"
     buildkite-agent meta-data exists "${package_ident}-${target}"
 }
+
+get_version_from_hart() {
+    local hart="${1}"
+    ${hab_binary} pkg info --json "${hart}" | jq -r '.version'
+}
+
+get_release_from_hart() {
+    local hart="${1}"
+    ${hab_binary} pkg info --json "${hart}" | jq -r '.release'
+}
+
+# This bit of magic strips off the Habitat header (first 6 lines) from
+# the compressed tar file that is a core/hab .hart, and extracts the
+# contents of the `bin` directory only, into the ${archive_dir}
+# directory.
+#
+# For Linux and macOS packages, this will just include the single
+# `hab` binary, but on Windows, it will include `hab.exe`, as well as
+# all the DLL files needed to run it.
+#
+# At the end of the day, that's all we need to package up in a
+# Habitat-agnostic archive.
+#
+# Note that `dir` should exist before calling this function.
+extract_hab_binaries_from_hart() {
+    local hart="${1}"
+    local dir="${2}"
+
+    tail --lines=+6 "${hart}" | \
+        tar --extract \
+            --directory="${dir}" \
+            --xz \
+            --strip-components=7 \
+            --wildcards "hab/pkgs/core/hab/*/*/bin/"
+}
+
+make_tarball() {
+    local name="${1}"
+    local dir="${2}"
+
+    local artifact="${name}.tar.gz"
+    # Don't use --verbose, since this is called in various contexts
+    # where output may not be welcome.
+    tar --create \
+        "${dir}" | gzip --best > "${artifact}"
+}
+
+make_zip() {
+    local name="${1}"
+    local dir="${2}"
+
+    local artifact="${name}.zip"
+    # Similar to the tar command above, keep the noise level down,
+    # since this is called in various contexts where output may not be
+    # welcome.
+    zip --quiet -9 -r "${artifact}" "${dir}"
+}
+
+internal_archive_dir_name() {
+    local hart="${1}"
+    local target="${2}"
+    local hab_version
+    hab_version="$(get_version_from_hart "${hart}")"
+    local hab_release
+    hab_release="$(get_release_from_hart "${hart}")"
+
+    echo "hab-${hab_version}-${hab_release}-${target}"
+}
+
+create_archive_from_hart() {
+    local hart="${1}"
+    local target="${2}"
+
+    local archive_dir
+    archive_dir="$(internal_archive_dir_name "${hart}" "${target}")"
+    mkdir "${archive_dir}"
+
+    extract_hab_binaries_from_hart "${hart}" "${archive_dir}"
+
+    pkg_name="hab-${target}"
+
+    case "$target" in
+        *-linux | *-linux-kernel2)
+            pkg_artifact="${pkg_name}.tar.gz"
+            make_tarball "${pkg_name}" "${archive_dir}"
+            ;;
+        *-darwin | *-windows)
+            # TODO (CM): Why a zip for macOS?
+            pkg_artifact="${pkg_name}.zip"
+            make_zip "${pkg_name}" "${archive_dir}"
+            ;;
+        *)
+            echo "${hart} has unknown TARGET=$BUILD_PKG_TARGET"
+            exit 3
+            ;;
+    esac
+
+    echo "${pkg_artifact}"
+}
