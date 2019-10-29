@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.51 -->
+<!-- latest_release 0.89.52 -->
+## [fake-0.89.52](https://github.com/habitat-sh/habitat/tree/fake-0.89.52) (2019-10-29)
+
+#### Merged Pull Requests
+- [CI] Add some unit testing around some of our CI code [#7124](https://github.com/habitat-sh/habitat/pull/7124) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.51](https://github.com/habitat-sh/habitat/tree/fake-0.89.51) (2019-10-29)
 
 #### Merged Pull Requests
 - set BUILD_PKG_TARGET Env variable to fix failed pkg download tests [#7127](https://github.com/habitat-sh/habitat/pull/7127) ([jeremymv2](https://github.com/jeremymv2))
-<!-- latest_release -->
 
 ## [fake-0.89.50](https://github.com/habitat-sh/habitat/tree/fake-0.89.50) (2019-10-29)
 
