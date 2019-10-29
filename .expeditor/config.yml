@@ -1,5 +1,8 @@
 # Documentation available at https://expeditor.chef.io/
 
+project:
+  alias: "habitat"
+
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
   # is bumped automatically via the `built_in:bump_version` merge_action.
