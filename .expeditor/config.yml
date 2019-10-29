@@ -1,5 +1,8 @@
 # Documentation available at https://expeditor.chef.io/
 
+project:
+  alias: "habitat"
+
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
   # is bumped automatically via the `built_in:bump_version` merge_action.
@@ -93,12 +96,13 @@ subscriptions:
 
   # Promotion Workloads
   ########################################################################
-  # Only allow promotion actions to current or stable; other
-  # promotions are handled automatically by the pipeline.
-  - workload: project_promoted:{{agent_id}}:current:*
+  # Only allow promotion actions from acceptance (to current) and
+  # current (to stable); other promotions are handled automatically by
+  # the pipeline.
+  - workload: project_promoted:{{agent_id}}:acceptance:*
     actions:
       - bash:.expeditor/scripts/expeditor_promote.sh
-  - workload: project_promoted:{{agent_id}}:stable:*
+  - workload: project_promoted:{{agent_id}}:current:*
     actions:
       - bash:.expeditor/scripts/expeditor_promote.sh
 
