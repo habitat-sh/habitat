@@ -379,6 +379,7 @@ steps:
         docker:
           privileged: true
           environment:
+            - BUILD_PKG_TARGET=x86_64-linux
             - ACCEPTANCE_HAB_AUTH_TOKEN
 
   - wait
