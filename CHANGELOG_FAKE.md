@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.50 -->
+<!-- latest_release 0.89.51 -->
+## [fake-0.89.51](https://github.com/habitat-sh/habitat/tree/fake-0.89.51) (2019-10-29)
+
+#### Merged Pull Requests
+- set BUILD_PKG_TARGET Env variable to fix failed pkg download tests [#7127](https://github.com/habitat-sh/habitat/pull/7127) ([jeremymv2](https://github.com/jeremymv2))
+<!-- latest_release -->
+
 ## [fake-0.89.50](https://github.com/habitat-sh/habitat/tree/fake-0.89.50) (2019-10-29)
 
 #### Merged Pull Requests
 - fix version checks in windows tar exporter [#7125](https://github.com/habitat-sh/habitat/pull/7125) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.89.49](https://github.com/habitat-sh/habitat/tree/fake-0.89.49) (2019-10-28)
 
