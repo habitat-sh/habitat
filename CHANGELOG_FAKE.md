@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.49 -->
+<!-- latest_release 0.89.50 -->
+## [fake-0.89.50](https://github.com/habitat-sh/habitat/tree/fake-0.89.50) (2019-10-29)
+
+#### Merged Pull Requests
+- fix version checks in windows tar exporter [#7125](https://github.com/habitat-sh/habitat/pull/7125) ([mwrock](https://github.com/mwrock))
+<!-- latest_release -->
+
 ## [fake-0.89.49](https://github.com/habitat-sh/habitat/tree/fake-0.89.49) (2019-10-28)
 
 #### Merged Pull Requests
 - poll for service startup in windows e2e tests [#7123](https://github.com/habitat-sh/habitat/pull/7123) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.89.48](https://github.com/habitat-sh/habitat/tree/fake-0.89.48) (2019-10-28)
 
