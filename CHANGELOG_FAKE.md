@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.52 -->
+<!-- latest_release 0.89.53 -->
+## [fake-0.89.53](https://github.com/habitat-sh/habitat/tree/fake-0.89.53) (2019-10-29)
+
+#### Merged Pull Requests
+- [CI] Tweak the promotion action [#7129](https://github.com/habitat-sh/habitat/pull/7129) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.52](https://github.com/habitat-sh/habitat/tree/fake-0.89.52) (2019-10-29)
 
 #### Merged Pull Requests
 - [CI] Add some unit testing around some of our CI code [#7124](https://github.com/habitat-sh/habitat/pull/7124) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.51](https://github.com/habitat-sh/habitat/tree/fake-0.89.51) (2019-10-29)
 
