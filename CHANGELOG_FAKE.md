@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.53 -->
+<!-- latest_release 0.89.54 -->
+## [fake-0.89.54](https://github.com/habitat-sh/habitat/tree/fake-0.89.54) (2019-10-30)
+
+#### Merged Pull Requests
+- [CI] Always clean up release channels [#7130](https://github.com/habitat-sh/habitat/pull/7130) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.53](https://github.com/habitat-sh/habitat/tree/fake-0.89.53) (2019-10-29)
 
 #### Merged Pull Requests
 - [CI] Tweak the promotion action [#7129](https://github.com/habitat-sh/habitat/pull/7129) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.52](https://github.com/habitat-sh/habitat/tree/fake-0.89.52) (2019-10-29)
 
