@@ -68,17 +68,26 @@ subscriptions:
       - trigger_pipeline:end_to_end
       - unlock_staging_area:release_staging:
           always_run: true
+      - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
+          always_run: true
+          post_commit: true
 
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:release_staging:
           always_run: true
+      - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
+          always_run: true
+          post_commit: true
 
   - workload: buildkite_build_canceled:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:release_staging:
           always_run: true
+      - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
+          always_run: true
+          post_commit: true
 
   # Responses to End-To-End Pipeline
   ########################################################################

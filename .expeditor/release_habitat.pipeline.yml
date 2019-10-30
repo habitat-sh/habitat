@@ -392,15 +392,3 @@ steps:
       executor:
         docker:
           privileged: true
-
-  - wait
-
-  - label: "[:habicat: delete build channel]"
-    command:
-      - .expeditor/scripts/release_habitat/remove_build_channel.sh habitat-release-$BUILDKITE_BUILD_ID
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
