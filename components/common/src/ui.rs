@@ -202,6 +202,7 @@ pub enum Status {
     Demoted,
     Demoting,
     Determining,
+    Discovering,
     Downloading,
     DryRunDeleting,
     Encrypting,
@@ -241,6 +242,7 @@ impl Status {
             Status::Demoted => (Glyph::CheckMark, "Demoted".into(), Color::Info),
             Status::Demoting => (Glyph::RightArrow, "Demoting".into(), Color::Info),
             Status::Determining => (Glyph::Cloud, "Determining".into(), Color::Info),
+            Status::Discovering => (Glyph::Cloud, "Discovering".into(), Color::Info),
             Status::Downloading => (Glyph::DownArrow, "Downloading".into(), Color::Info),
             Status::DryRunDeleting => {
                 (Glyph::BoxedX, "Would be deleted (Dry run)".into(), Color::Critical)

@@ -1,5 +1,6 @@
 pub mod binlink;
 pub mod build;
+pub mod bulkupload;
 pub mod channels;
 pub mod delete;
 pub mod demote;
