@@ -1006,18 +1006,12 @@ impl Manager {
                 break ShutdownMode::Departed;
             }
 
-            // This formulation is gross, but it doesn't seem to compile on Windows otherwise.
-            #[allow(clippy::match_bool)]
-            #[allow(clippy::single_match)]
             #[cfg(unix)]
-            match self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
-                false => {
-                    if signals::pending_sighup() {
-                        outputln!("Supervisor shutting down for signal");
-                        break ShutdownMode::Restarting;
-                    }
+            {
+                if signals::pending_sighup() {
+                    outputln!("Supervisor shutting down for signal");
+                    break ShutdownMode::Restarting;
                 }
-                _ => {}
             }
 
             if let Some(package) = self.check_for_updated_supervisor() {
