@@ -16,7 +16,10 @@ release_info=$(jq -r '.version + " " + .sha' < manifest.json)
 version=$(cut -d' ' -f1 <<< $release_info)
 gitsha=$(cut -d' ' -f2 <<< $release_info)
 
-
 echo "--- :github: Creating release"
-echo "hub release create --message \"$version\" --commitish \"$gitsha\" \"$version\""
-
+if is_real_release; then
+  hub release create --message "$version" --commitish "$gitsha" "$version"
+else 
+  echo "--- NOT CREATING RELEASE: Build triggered by ${BUILDKITE_BUILD_CREATOR}"
+  echo "hub release create --message \"$version\" --commitish \"$gitsha\" \"$version\""
+fi

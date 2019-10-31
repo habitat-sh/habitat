@@ -14,6 +14,10 @@ steps:
     command:
       - .expeditor/scripts/finish_release/create_github_release.sh 
     expeditor:
+      secrets:
+        GITHUB_TOKEN:
+          account: github
+          field: token
       executor:
         docker:
      

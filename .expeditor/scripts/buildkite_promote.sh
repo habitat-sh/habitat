@@ -34,15 +34,7 @@ export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
 
 source .expeditor/scripts/shared.sh
 
-# This allows people to e.g. trigger end-to-end pipeline runs manually
-# when iterating on tests, but without having to fear that they'll
-# inadvertently promote a set of artifacts accidentally.
-#
-# Only Chef Expeditor should be triggering "real" runs of pipelines
-# that use this script.
-readonly valid_build_creator="Chef Expeditor"
-
-if [[ "${BUILDKITE_BUILD_CREATOR}" == "${valid_build_creator}" ]]; then
+if is_real_release; then
     # We're in a real pipeline run; let's promote!
 
     # Take advantage of the fact that we're just promoting and we can run
@@ -65,5 +57,5 @@ if [[ "${BUILDKITE_BUILD_CREATOR}" == "${valid_build_creator}" ]]; then
     promote_version_in_s3 "${version}" "${destination_channel}"
 
 else
-    echo "--- NOT PROMOTING: Build triggered by ${BUILDKITE_BUILD_CREATOR} and *not* ${valid_build_creator}"
+    echo "--- NOT PROMOTING: Build triggered by ${BUILDKITE_BUILD_CREATOR}"
 fi
