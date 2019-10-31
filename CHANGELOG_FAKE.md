@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.54 -->
+<!-- latest_release 0.89.55 -->
+## [fake-0.89.55](https://github.com/habitat-sh/habitat/tree/fake-0.89.55) (2019-10-31)
+
+#### Merged Pull Requests
+- e2e tests for hab pkg bulkupload, wired up into expeditor [#7113](https://github.com/habitat-sh/habitat/pull/7113) ([jeremymv2](https://github.com/jeremymv2))
+<!-- latest_release -->
+
 ## [fake-0.89.54](https://github.com/habitat-sh/habitat/tree/fake-0.89.54) (2019-10-30)
 
 #### Merged Pull Requests
 - [CI] Always clean up release channels [#7130](https://github.com/habitat-sh/habitat/pull/7130) ([christophermaier](https://github.com/christophermaier))
-<!-- latest_release -->
 
 ## [fake-0.89.53](https://github.com/habitat-sh/habitat/tree/fake-0.89.53) (2019-10-29)
 
