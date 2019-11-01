@@ -71,3 +71,8 @@ function GetLatestPkgVersionFromChannel($PackageName) {
 function Set-TargetMetadata($PackageIdent) {
     Invoke-Expression "buildkite-agent meta-data set $PackageIdent-x86_64-windows true"
 }
+
+
+function Get-ReleaseChannel {
+    "habitat-release-$Env:BUILDKITE_BUILD_ID"
+}
