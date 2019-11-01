@@ -1,0 +1,79 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hab-bastion
+spec:
+  ports:
+  - name: gossip-listener
+    protocol: UDP
+    port: 9638
+    targetPort: 9638
+  - name: http-gateway
+    protocol: TCP
+    port: 9631
+    targetPort: 9631
+  selector:
+    app: hab-bastion
+  clusterIP: None
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hab-bastion
+spec:
+  selector:
+    matchLabels:
+      app: hab-bastion
+  serviceName: hab-bastion
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hab-bastion
+    spec:
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        fsGroup: 42
+      containers:
+      - name: hab-bastion
+        image: irvingpop/hab_bastion:latest
+        args:
+        - '--permanent-peer'
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "100m" # equivalent to 0.1 of a CPU core
+        ports:
+        - name: gossip-listener
+          protocol: UDP
+          containerPort: 9638
+        - name: http-gateway
+          protocol: TCP
+          containerPort: 9631
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9631
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9631
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        volumeMounts:
+        - name: hab-bastion
+          mountPath: /hab/sup
+  volumeClaimTemplates:
+  - metadata:
+      name: hab-bastion
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # uncomment if you don't have a default storageclass
+      # storageClassName: "standard"
+      resources:
+        requests:
+          storage: 10Gi
