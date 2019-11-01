@@ -248,12 +248,12 @@ readonly temporary_hab_bldr_url="https://bldr.acceptance.habitat.sh"
 #
 # Only Chef Expeditor should be triggering "real" runs of pipelines
 # that use this script.
-is_real_release() {
-  local -r valid_build_creator="Chef Expeditor"
 
-  if [[ "${BUILDKITE_BUILD_CREATOR}" == "${valid_build_creator}" ]]; then
-    return 0
+maybe_run() {
+  if [[ "${BUILDKITE_BUILD_CREATOR}" == "Chef Expeditor" ]]; then
+    "$@"
+  else
+    echo "Build initiated by $BUILDKITE_BUILD_CREATOR"
+    echo "Would have run: $*"
   fi
-
-  return 1
-} 
+}
