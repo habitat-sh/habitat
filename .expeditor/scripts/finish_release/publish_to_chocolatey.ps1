@@ -1,7 +1,7 @@
 $ErrorActionPreference="stop" 
 
 Write-Host "--- Fetching manifest"
-$baseUrl = "https://packages.chef.io/files/dev/habitat/latest"
+$baseUrl = "https://packages.chef.io/files/stable/habitat/latest"
 $manifestUrl = "$baseUrl/manifest.json"
 Write-Host "Fetching $manifestUrl"
 $manifest = (Invoke-WebRequest -URI "$manifestUrl" -ErrorAction Stop -UseBasicParsing).Content | ConvertFrom-Json
