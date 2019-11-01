@@ -1,17 +1,14 @@
 $ErrorActionPreference="stop" 
 
 Write-Host "--- Fetching manifest"
-$baseUrl = "https://packages.chef.io/stable/habitat/latest"
+$baseUrl = "https://packages.chef.io/files/dev/habitat/latest"
 $manifestUrl = "$baseUrl/manifest.json"
 Write-Host "Fetching $manifestUrl"
 $manifest = (Invoke-WebRequest -URI "$manifestUrl" -ErrorAction Stop -UseBasicParsing).Content | ConvertFrom-Json
 
 Write-Host "--- :thinking_face: Determining version and release to publish"
-$ident = ($manifest.packages.'x86_64-windows' | Select-String "core/hab/" -List | Out-String -InputObject { $_ }).Trim()
-$Version=$ident.Split("/")[2]
-$Release=$ident.Split("/")[3]
-$versionStamp = "$Version-$Release"
-Write-Host $versionStamp
+$Version = ($manifest.version).Trim()
+Write-Host $Version
 
 Write-Host "--- Fetching checksum"
 $shasumUrl= "$baseUrl/hab-x86_64-windows.zip.sha256sum"
@@ -26,7 +23,7 @@ Copy-Item "components/hab/win/*" $tempDir
 $choco_install = Join-Path $tempDir chocolateyinstall.ps1
 
 (Get-Content $choco_install) |
-    % {$_.Replace('$version$', $versionStamp) } |
+    % {$_.Replace('$version$', $Version) } |
     Set-Content $choco_install
 
 (Get-Content $choco_install) |

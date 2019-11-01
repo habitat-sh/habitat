@@ -1,5 +1,5 @@
 $version = '$version$'
-$url = "https://packages.chef.io/files/stable/habitat/latest/hab-x86_64-windows.zip"
+$url = "https://packages.chef.io/files/habitat/$version/hab-x86_64-windows.zip"
 $unzipLocation = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 $checksum = '$checksum$'
 
