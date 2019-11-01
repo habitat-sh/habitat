@@ -1,0 +1,17 @@
+format_version = 1
+file_descriptor = "fooa"
+
+# option 1,
+# complex, target first
+[[x86_64-linux]]
+channel = "stable"
+packages = ["core/gzip", "core/grep/3.1", "core/redis/4.0.14/20190319155852"]
+
+[[x86_64-linux]]
+channel = "unstable"
+packages = ["chef/chef-client", "chef/inspec/4.18.30/20191107165916"]
+
+[[x86_64-windows]]
+channel = "stable"
+packages = ["effortless/audit-baseline"]
+

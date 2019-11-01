@@ -55,6 +55,7 @@ pub enum Error {
     NameLookup,
     NetErr(net::NetErr),
     PackageArchiveMalformed(String),
+    PackageSetParseError(String),
     ParseIntError(num::ParseIntError),
     PathPrefixError(path::StripPrefixError),
     ProvidesError(String),
@@ -156,6 +157,9 @@ impl fmt::Display for Error {
             Error::PackageArchiveMalformed(ref e) => {
                 format!("Package archive was unreadable or contained unexpected contents: {:?}",
                         e)
+            }
+            Error::PackageSetParseError(ref e) => {
+                format!("Package set file could not be parsed: {:?}", e)
             }
             Error::ParseIntError(ref err) => format!("{}", err),
             Error::PathPrefixError(ref err) => format!("{}", err),

@@ -11,7 +11,9 @@ use habitat_core::{env as henv,
                    os::process::{ShutdownSignal,
                                  ShutdownTimeout},
                    package::PackageIdent};
-use std::{path::PathBuf,
+use std::{ffi::OsStr,
+          path::{Path,
+                 PathBuf},
           str::FromStr};
 
 pub const RING_ENVVAR: &str = "HAB_RING";
@@ -82,6 +84,16 @@ pub fn cache_key_path_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
     {
         CACHE_KEY_PATH => cache_key_path(Some(&*FS_ROOT)),
         val => PathBuf::from(val),
+    }
+}
+
+pub fn is_toml_file(val: &str) -> bool {
+    let extension = Path::new(&val).extension().and_then(OsStr::to_str);
+    match extension {
+        // We could do some more validation (parse the whole toml file and check it) but that seems
+        // excessive.
+        Some("toml") => true,
+        _ => false,
     }
 }
 

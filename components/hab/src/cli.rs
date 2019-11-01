@@ -5,6 +5,7 @@ use clap::{App,
            Arg,
            ArgMatches};
 use habitat_common::{cli::{file_into_idents,
+                           is_toml_file,
                            BINLINK_DIR_ENVVAR,
                            DEFAULT_BINLINK_DIR,
                            PACKAGE_TARGET_ENVVAR,
@@ -940,14 +941,14 @@ fn sub_pkg_download() -> App<'static, 'static> {
         "Specify an alternate Builder endpoint. If not specified, the value will \
          be taken from the HAB_BLDR_URL environment variable if defined.")
     (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
-        "Download from the specified release channel")
+        "Download from the specified release channel. Overridden if channel is specified in toml file.")
     (@arg DOWNLOAD_DIRECTORY: --("download-directory") +takes_value "The path to store downloaded artifacts")
-    (@arg PKG_IDENT_FILE: --file +takes_value +multiple {valid_ident_file}
-        "File with newline separated package identifiers")
+    (@arg PKG_IDENT_FILE: --file +takes_value +multiple {valid_ident_or_toml_file}
+        "File with newline separated package identifiers, or TOML file (ending with .toml extension)")
     (@arg PKG_IDENT: +multiple {valid_ident}
             "One or more Habitat package identifiers (ex: acme/redis)")
     (@arg PKG_TARGET: --target -t +takes_value {valid_target}
-            "Target architecture to fetch. E.g. x86_64-linux")
+            "Target architecture to fetch. E.g. x86_64-linux. Overridden if architecture is specified in toml file.")
     (@arg VERIFY: --verify
             "Verify package integrity after download (Warning: this can be slow)")
     );
@@ -1455,6 +1456,17 @@ fn valid_ident(val: String) -> result::Result<(), String> {
                          form origin/name[/version[/release]]",
                         &val))
         }
+    }
+}
+
+#[allow(clippy::needless_pass_by_value)] // Signature required by CLAP
+fn valid_ident_or_toml_file(val: String) -> result::Result<(), String> {
+    if is_toml_file(&val) {
+        // We could do some more validation (parse the whole toml file and check it) but that seems
+        // excessive.
+        Ok(())
+    } else {
+        valid_ident_file(val)
     }
 }
 

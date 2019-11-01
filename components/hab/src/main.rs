@@ -11,10 +11,13 @@ use clap::{ArgMatches,
            Shell};
 use env_logger;
 use futures::prelude::*;
+
 use hab::{cli::{self,
                 parse_optional_arg},
           command::{self,
-                    pkg::list::ListingType},
+                    pkg::{download::{PackageSet,
+                                     PackageSetFile},
+                          list::ListingType}},
           config::{self,
                    Config},
           error::{Error,
@@ -27,6 +30,7 @@ use hab::{cli::{self,
           ORIGIN_ENVVAR,
           PRODUCT,
           VERSION};
+
 use habitat_api_client::BuildOnUpload;
 use habitat_common::{self as common,
                      cli::{cache_key_path_from_matches,
@@ -88,6 +92,7 @@ use tabwriter::TabWriter;
 use termcolor::{self,
                 Color,
                 ColorSpec};
+use toml;
 
 /// Makes the --org CLI param optional when this env var is set
 const HABITAT_ORG_ENVVAR: &str = "HAB_ORG";
@@ -542,24 +547,30 @@ fn sub_pkg_download(ui: &mut UI, m: &ArgMatches<'_>, _feature_flags: FeatureFlag
     let token = maybe_auth_token(&m);
     let url = bldr_url_from_matches(&m)?;
     let download_dir = download_dir_from_matches(m);
+
+    // Construct flat file based inputs
     let channel = channel_from_matches_or_default(m);
-
-    let mut install_sources = idents_from_matches(m)?;
-    let mut install_sources_from_file = idents_from_file_matches(m)?;
-    install_sources_from_file.append(&mut install_sources);
-
     let target = target_from_matches(m)?;
+
+    let install_sources = idents_from_matches(m)?;
+
+    let mut package_sets = vec![PackageSet { target,
+                                             channel: channel.clone(),
+                                             idents: install_sources }];
+
+    let mut install_sources_from_file = idents_from_file_matches(ui, m, &channel, target)?;
+    package_sets.append(&mut install_sources_from_file);
+    package_sets.retain(|set| !set.idents.is_empty());
+
     let verify = verify_from_matches(m);
 
     init();
 
     command::pkg::download::start(ui,
                                   &url,
-                                  &channel,
                                   PRODUCT,
                                   VERSION,
-                                  install_sources_from_file,
-                                  target,
+                                  &package_sets,
                                   download_dir.as_ref(),
                                   token.as_ref().map(String::as_str),
                                   verify)?;
@@ -1645,17 +1656,71 @@ fn idents_from_matches(matches: &ArgMatches<'_>) -> Result<Vec<PackageIdent>> {
     }
 }
 
-fn idents_from_file_matches(matches: &ArgMatches<'_>) -> Result<Vec<PackageIdent>> {
-    let mut sources: Vec<PackageIdent> = Vec::new();
+fn idents_from_file_matches(ui: &mut UI,
+                            matches: &ArgMatches<'_>,
+                            cli_channel: &ChannelIdent,
+                            cli_target: PackageTarget)
+                            -> Result<Vec<PackageSet>> {
+    let mut sources: Vec<PackageSet> = Vec::new();
 
     if let Some(files) = matches.values_of("PKG_IDENT_FILE") {
-        for filename in files {
-            let mut packages_from_file =
-                habitat_common::cli::file_into_idents(&filename.to_string())?;
-            sources.append(&mut packages_from_file);
+        for f in files {
+            let filename = &f.to_string();
+            if habitat_common::cli::is_toml_file(filename) {
+                let mut package_sets = idents_from_toml_file(ui, filename)?;
+                sources.append(&mut package_sets)
+            } else {
+                let idents_from_file = habitat_common::cli::file_into_idents(filename)?;
+                let package_set = PackageSet { idents:  idents_from_file,
+                                               channel: cli_channel.clone(),
+                                               target:  cli_target, };
+                sources.push(package_set)
+            }
         }
     }
     Ok(sources)
+}
+
+fn idents_from_toml_file(ui: &mut UI, filename: &str) -> Result<Vec<PackageSet>> {
+    let mut sources: Vec<PackageSet> = Vec::new();
+
+    let file_data = std::fs::read_to_string(filename)?;
+    let toml_data: PackageSetFile =
+        toml::from_str(&file_data).map_err(habitat_common::Error::TomlParser)?;
+
+    // We currently only accept version 1
+    if toml_data.format_version.unwrap_or(1) != 1 {
+        return Err(Error::PackageSetParseError(format!(
+            "format_version invalid, only version 1 allowed ({} provided",
+            toml_data.format_version.unwrap()
+        )));
+    }
+
+    ui.status(Status::Using,
+              format!("File {}, '{}'",
+                      filename,
+                      toml_data.file_descriptor.unwrap_or_else(|| "".to_string())))?;
+
+    for (target, target_array) in toml_data.targets {
+        for package_set_value in target_array {
+            let channel = package_set_value.channel;
+            let idents: Vec<PackageIdent> = strings_to_idents(&package_set_value.packages)?;
+            let package_set = PackageSet { target,
+                                           channel,
+                                           idents };
+            debug!("Package Set {:?}", package_set);
+            sources.push(package_set)
+        }
+    }
+    Ok(sources)
+}
+
+fn strings_to_idents(strings: &[String]) -> Result<Vec<PackageIdent>> {
+    let ident_or_results: Result<Vec<PackageIdent>> =
+        strings.iter()
+               .map(|s| PackageIdent::from_str(&s).map_err(Error::from))
+               .collect();
+    ident_or_results
 }
 
 fn verify_from_matches(matches: &ArgMatches<'_>) -> bool { matches.is_present("VERIFY") }

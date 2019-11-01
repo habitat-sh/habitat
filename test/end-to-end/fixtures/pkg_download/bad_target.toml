@@ -1,0 +1,9 @@
+format_version = 1
+file_descriptor = "fooa"
+
+# we do not support PDP 11 builds. Be thankful.
+[[pdp11-ultrix]]
+channel = "stable"
+packages = ["core/gzip", "core/grep/3.1", "core/redis/4.0.14/20190319155852"]
+
+
