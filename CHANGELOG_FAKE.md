@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.59 -->
+<!-- latest_release 0.89.60 -->
+## [fake-0.89.60](https://github.com/habitat-sh/habitat/tree/fake-0.89.60) (2019-11-04)
+
+#### Merged Pull Requests
+- Purge CDN on channel promote [#7134](https://github.com/habitat-sh/habitat/pull/7134) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.89.59](https://github.com/habitat-sh/habitat/tree/fake-0.89.59) (2019-11-04)
 
 #### Merged Pull Requests
 - Migrate choco_push into new finish-release process [#7142](https://github.com/habitat-sh/habitat/pull/7142) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.58](https://github.com/habitat-sh/habitat/tree/fake-0.89.58) (2019-11-04)
 
