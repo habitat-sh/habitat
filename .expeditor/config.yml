@@ -111,9 +111,14 @@ subscriptions:
   - workload: project_promoted:{{agent_id}}:acceptance:*
     actions:
       - bash:.expeditor/scripts/expeditor_promote.sh
+      - bash:.expeditor/scripts/purge_cdn.sh:
+          post_commit: true
+
   - workload: project_promoted:{{agent_id}}:current:*
     actions:
       - bash:.expeditor/scripts/expeditor_promote.sh
+      - bash:.expeditor/scripts/purge_cdn.sh:
+          post_commit: true
 
 schedules:
   - name: cargo_update
