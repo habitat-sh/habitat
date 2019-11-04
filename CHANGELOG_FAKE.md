@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.56 -->
+<!-- latest_release 0.89.57 -->
+## [fake-0.89.57](https://github.com/habitat-sh/habitat/tree/fake-0.89.57) (2019-11-04)
+
+#### Merged Pull Requests
+- Create  GitHub release in post-release pipeline [#7143](https://github.com/habitat-sh/habitat/pull/7143) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.89.56](https://github.com/habitat-sh/habitat/tree/fake-0.89.56) (2019-11-02)
 
 #### Bug Fixes
 - remove IGNORE_SIGNALS feature [#7140](https://github.com/habitat-sh/habitat/pull/7140) ([mwrock](https://github.com/mwrock))
-<!-- latest_release -->
 
 ## [fake-0.89.55](https://github.com/habitat-sh/habitat/tree/fake-0.89.55) (2019-10-31)
 
