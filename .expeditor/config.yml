@@ -6,12 +6,11 @@ project:
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
   # is bumped automatically via the `built_in:bump_version` merge_action.
-  # TODO: Change this to `VERSION` once we are live
-  version_file: "VERSION_FAKE"
-  version_tag_format: 'fake-{{version}}'
+  version_file: "VERSION"
+  version_tag_format: '{{version}}'
   # The file where our CHANGELOG is kept. This file is updated automatically with
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
-  changelog_file: "CHANGELOG_FAKE.md"
+  changelog_file: "CHANGELOG.md"
   delete_branch_on_merge: true
 
 # Slack channel in Chef Software slack to send notifications about Expeditor actions
