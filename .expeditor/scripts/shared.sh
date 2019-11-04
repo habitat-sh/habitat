@@ -241,3 +241,19 @@ hab_auth_token() {
 # Not naming it `hab_bldr_url` to avoid Shellcheck complaints about
 # possible misspellings, but also to make it very obvious what it is.
 readonly temporary_hab_bldr_url="https://bldr.acceptance.habitat.sh"
+
+# This allows people to e.g. trigger end-to-end pipeline runs manually
+# when iterating on tests, but without having to fear that they'll
+# inadvertently promote a set of artifacts accidentally.
+#
+# Only Chef Expeditor should be triggering "real" runs of pipelines
+# that use this script.
+
+maybe_run() {
+  if [[ "${BUILDKITE_BUILD_CREATOR}" == "Chef Expeditor" ]]; then
+    "$@"
+  else
+    echo "Build initiated by $BUILDKITE_BUILD_CREATOR"
+    echo "Would have run: $*"
+  fi
+}

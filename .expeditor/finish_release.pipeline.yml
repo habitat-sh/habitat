@@ -1,4 +1,6 @@
 expeditor:
+  accounts:
+    - aws/chef-cd 
   defaults:
     buildkite:
       timeout_in_minutes: 30
@@ -8,6 +10,15 @@ expeditor:
         DO_FAKE_RELEASE: "true"
 
 steps:
-  - label: NOOP
+  - label: ":github: Create GitHub Release"
     command:
-      - echo "Hello"
+      - .expeditor/scripts/finish_release/create_github_release.sh 
+    expeditor:
+      secrets:
+        GITHUB_TOKEN:
+          account: github
+          field: token
+      executor:
+        docker:
+     
+
