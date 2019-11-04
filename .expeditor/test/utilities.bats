@@ -15,13 +15,7 @@ teardown() {
     assert_equal $(get_release_channel) "habitat-release-1234-5679-abcd"
 }
 
-@test "get_version_from_repo for fake releases" {
-    DO_FAKE_RELEASE=1
-    assert_equal $(get_version_from_repo) $(cat "VERSION_FAKE")
-}
-
 @test "get_version_from_repo for real releases" {
-    unset DO_FAKE_RELEASE
     assert_equal $(get_version_from_repo) $(cat "VERSION")
 }
 

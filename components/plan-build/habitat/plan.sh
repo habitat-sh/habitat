@@ -26,13 +26,9 @@ pkg_build_deps=(core/bats)
 program=$pkg_name
 
 pkg_version() {
-  if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
-    cat "$SRC_PATH/../../VERSION_FAKE"
-  else
-    cat "$SRC_PATH/../../VERSION"
-  fi
+  cat "$SRC_PATH/../../VERSION"
 }
- 
+
 do_before() {
   do_default_before
   update_pkg_version

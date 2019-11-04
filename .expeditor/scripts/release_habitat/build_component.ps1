@@ -45,9 +45,6 @@ Invoke-Expression "$baseHabExe origin key download core --auth $Env:HAB_AUTH_TOK
 $Env:HAB_CACHE_KEY_PATH = "C:\hab\cache\keys"
 $Env:HAB_ORIGIN = "core"
 
-# This is a temporary measure so we can run fake releases
-$Env:HAB_STUDIO_SECRET_DO_FAKE_RELEASE=$Env:DO_FAKE_RELEASE
-
 # Run a build!
 Write-Host "--- Running hab pkg build for $Component"
 

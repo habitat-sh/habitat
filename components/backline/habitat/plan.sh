@@ -14,13 +14,9 @@ pkg_deps=(core/hab-plan-build
           core/ncurses)
 
 pkg_version() {
-  if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
-    cat "$SRC_PATH/../../VERSION_FAKE"
-  else
-    cat "$SRC_PATH/../../VERSION"
-  fi
+  cat "$SRC_PATH/../../VERSION"
 }
- 
+
 do_before() {
   do_default_before
   update_pkg_version
