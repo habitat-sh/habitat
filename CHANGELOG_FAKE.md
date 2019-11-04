@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.58 -->
+<!-- latest_release 0.89.59 -->
+## [fake-0.89.59](https://github.com/habitat-sh/habitat/tree/fake-0.89.59) (2019-11-04)
+
+#### Merged Pull Requests
+- Migrate choco_push into new finish-release process [#7142](https://github.com/habitat-sh/habitat/pull/7142) ([smacfarlane](https://github.com/smacfarlane))
+<!-- latest_release -->
+
 ## [fake-0.89.58](https://github.com/habitat-sh/habitat/tree/fake-0.89.58) (2019-11-04)
 
 #### Merged Pull Requests
 - Disable build-on-upload for packages in the release pipeline [#7147](https://github.com/habitat-sh/habitat/pull/7147) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.57](https://github.com/habitat-sh/habitat/tree/fake-0.89.57) (2019-11-04)
 
