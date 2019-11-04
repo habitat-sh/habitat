@@ -3,7 +3,86 @@
 <!-- latest_release unreleased -->
 ## Unreleased
 
+#### Merged Pull Requests
+- [CI] Add Studio Image creation to release pipeline [#7141](https://github.com/habitat-sh/habitat/pull/7141) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
+
+<!-- release_rollup since=0.88.0 -->
+### Changes since 0.88.0 release
+
+#### New Features & Enhancements
+- Allow event stream server TLS connection to use habitat cache/ssl [#7120](https://github.com/habitat-sh/habitat/pull/7120) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.89.47 -->
+- Make the init hook async [#7111](https://github.com/habitat-sh/habitat/pull/7111) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.89.40 -->
+- Add TLS to event stream [#7092](https://github.com/habitat-sh/habitat/pull/7092) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.89.36 -->
+- core: use synchronous signal handling on unix [#7050](https://github.com/habitat-sh/habitat/pull/7050) ([stevendanna](https://github.com/stevendanna)) <!-- 0.89.13 -->
+- hab pkg download file can have comments, whitespace [#7064](https://github.com/habitat-sh/habitat/pull/7064) ([markan](https://github.com/markan)) <!-- 0.89.12 -->
+
+#### Bug Fixes
+- remove IGNORE_SIGNALS feature [#7140](https://github.com/habitat-sh/habitat/pull/7140) ([mwrock](https://github.com/mwrock)) <!-- 0.89.56 -->
+- fix version checks in windows tar exporter [#7125](https://github.com/habitat-sh/habitat/pull/7125) ([mwrock](https://github.com/mwrock)) <!-- 0.89.50 -->
+- sup: immediately set initialization_state if no init hook exists [#7117](https://github.com/habitat-sh/habitat/pull/7117) ([stevendanna](https://github.com/stevendanna)) <!-- 0.89.46 -->
+- Fully qualified package names download irrespective of channel [#7108](https://github.com/habitat-sh/habitat/pull/7108) ([markan](https://github.com/markan)) <!-- 0.89.43 -->
+- fix tar exporter on windows [#7116](https://github.com/habitat-sh/habitat/pull/7116) ([mwrock](https://github.com/mwrock)) <!-- 0.89.42 -->
+- stop windows service if launcher exits [#7099](https://github.com/habitat-sh/habitat/pull/7099) ([mwrock](https://github.com/mwrock)) <!-- 0.89.35 -->
+- Initialize health check gateway state to Unknown [#7087](https://github.com/habitat-sh/habitat/pull/7087) ([stevendanna](https://github.com/stevendanna)) <!-- 0.89.32 -->
+- add windows system paths to environment PATH variable if included [#7073](https://github.com/habitat-sh/habitat/pull/7073) ([mwrock](https://github.com/mwrock)) <!-- 0.89.26 -->
+- make pkg download fail when zero packages [#7068](https://github.com/habitat-sh/habitat/pull/7068) ([markan](https://github.com/markan)) <!-- 0.89.11 -->
+- do not use hab as default user on windows [#7059](https://github.com/habitat-sh/habitat/pull/7059) ([mwrock](https://github.com/mwrock)) <!-- 0.89.9 -->
+- Order objects used for template data [#7031](https://github.com/habitat-sh/habitat/pull/7031) ([raskchanky](https://github.com/raskchanky)) <!-- 0.89.8 -->
+- fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
+
+#### Merged Pull Requests
+- Purge CDN on channel promote [#7134](https://github.com/habitat-sh/habitat/pull/7134) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.60 -->
+- Migrate choco_push into new finish-release process [#7142](https://github.com/habitat-sh/habitat/pull/7142) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.59 -->
+- Disable build-on-upload for packages in the release pipeline [#7147](https://github.com/habitat-sh/habitat/pull/7147) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.58 -->
+- Create  GitHub release in post-release pipeline [#7143](https://github.com/habitat-sh/habitat/pull/7143) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.57 -->
+- e2e tests for hab pkg bulkupload, wired up into expeditor [#7113](https://github.com/habitat-sh/habitat/pull/7113) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.89.55 -->
+- [CI] Always clean up release channels [#7130](https://github.com/habitat-sh/habitat/pull/7130) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.54 -->
+- [CI] Tweak the promotion action [#7129](https://github.com/habitat-sh/habitat/pull/7129) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.53 -->
+- [CI] Add some unit testing around some of our CI code [#7124](https://github.com/habitat-sh/habitat/pull/7124) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.52 -->
+- set BUILD_PKG_TARGET Env variable to fix failed pkg download tests [#7127](https://github.com/habitat-sh/habitat/pull/7127) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.89.51 -->
+- poll for service startup in windows e2e tests [#7123](https://github.com/habitat-sh/habitat/pull/7123) ([mwrock](https://github.com/mwrock)) <!-- 0.89.49 -->
+- [CI] DEV -&gt; dev [#7122](https://github.com/habitat-sh/habitat/pull/7122) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.48 -->
+- Sign sha256sum for compatibility with existing bintray releases [#7121](https://github.com/habitat-sh/habitat/pull/7121) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.47 -->
+- wire up e2e hab pkg download tests into expeditor [#7104](https://github.com/habitat-sh/habitat/pull/7104) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.89.45 -->
+- [CI] Initial Expeditor Promotion trigger [#7115](https://github.com/habitat-sh/habitat/pull/7115) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.44 -->
+- Add tests to validate SSL behavior on Windows [#7114](https://github.com/habitat-sh/habitat/pull/7114) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.41 -->
+- Add additionl e2e tests validating SSL cert functionality [#7038](https://github.com/habitat-sh/habitat/pull/7038) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.39 -->
+- [CI] Add the correct AWS account to the e2e pipeline [#7110](https://github.com/habitat-sh/habitat/pull/7110) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.38 -->
+- do not fail e2e test if unable to start service with bogus args [#7107](https://github.com/habitat-sh/habitat/pull/7107) ([mwrock](https://github.com/mwrock)) <!-- 0.89.37 -->
+- [CI] Fix spuriously-failing end-to-end test [#7103](https://github.com/habitat-sh/habitat/pull/7103) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.34 -->
+- Noindex/nofollow blog pages [#7074](https://github.com/habitat-sh/habitat/pull/7074) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.89.33 -->
+- [CI] Pull from &quot;dev&quot; channel for e2e tests, not &quot;DEV&quot; [#7100](https://github.com/habitat-sh/habitat/pull/7100) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.31 -->
+- [CI] Need to have an auth token to promote in Builder [#7098](https://github.com/habitat-sh/habitat/pull/7098) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.30 -->
+- [CI] Import GPG keys for signing S3 uploads [#7096](https://github.com/habitat-sh/habitat/pull/7096) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.29 -->
+- [CI] Use full path to create_manifest.rb [#7094](https://github.com/habitat-sh/habitat/pull/7094) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.28 -->
+- [CI] Actually use the correct function to get the version [#7093](https://github.com/habitat-sh/habitat/pull/7093) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.27 -->
+- [CI] Use proper S3 URIs for uploads [#7091](https://github.com/habitat-sh/habitat/pull/7091) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.25 -->
+- Fix compiler warnings [#7088](https://github.com/habitat-sh/habitat/pull/7088) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.89.24 -->
+- [CI] Ensure version file can be properly sourced [#7089](https://github.com/habitat-sh/habitat/pull/7089) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.23 -->
+- Add Windows studios e2e tests to verify SSL_CERT_FILE behavior [#7047](https://github.com/habitat-sh/habitat/pull/7047) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.22 -->
+- Correct a Buildkite emoji I missed earlier [#7083](https://github.com/habitat-sh/habitat/pull/7083) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.21 -->
+- [CI Pipeline] Explicitly specify --url argument to hab pkg download [#7082](https://github.com/habitat-sh/habitat/pull/7082) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.20 -->
+- Use proper Buildkite emojis in release pipeline [#7080](https://github.com/habitat-sh/habitat/pull/7080) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.19 -->
+- Install Buildkite Agent in Windows container again [#7081](https://github.com/habitat-sh/habitat/pull/7081) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.18 -->
+- Add HAB_AUTH_TOKEN and BUILDKITE_AGENT_TOKEN back on Windows [#7079](https://github.com/habitat-sh/habitat/pull/7079) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.17 -->
+- Move install_rustup to top-level shared Bash library [#7078](https://github.com/habitat-sh/habitat/pull/7078) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.16 -->
+- Reorder pipeline stages for maximum parallelism [#7077](https://github.com/habitat-sh/habitat/pull/7077) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.15 -->
+- Wire up promotion logic between new CI pipeline stages [#7043](https://github.com/habitat-sh/habitat/pull/7043) ([scotthain](https://github.com/scotthain)) <!-- 0.89.14 -->
+- Install Rust using the &quot;minimal&quot; profile [#7072](https://github.com/habitat-sh/habitat/pull/7072) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.11 -->
+- Ma/hab 7056/message cleanup [#7069](https://github.com/habitat-sh/habitat/pull/7069) ([markan](https://github.com/markan)) <!-- 0.89.10 -->
+- Create initial shape of finish_release pipeline [#7053](https://github.com/habitat-sh/habitat/pull/7053) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.7 -->
+- Auto assign prs if opened by a Habitat team member [#7052](https://github.com/habitat-sh/habitat/pull/7052) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.5 -->
+- fix windows-service pipeline build with powershell interpreter [#7051](https://github.com/habitat-sh/habitat/pull/7051) ([mwrock](https://github.com/mwrock)) <!-- 0.89.4 -->
+- Adds version note to foundation.min.js [#7042](https://github.com/habitat-sh/habitat/pull/7042) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.89.4 -->
+- Update nightly rust to 2019-10-15 [#7048](https://github.com/habitat-sh/habitat/pull/7048) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.3 -->
+- Build windows-service in new release pipeline [#7029](https://github.com/habitat-sh/habitat/pull/7029) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.3 -->
+- Bump cargo dependencies [#7045](https://github.com/habitat-sh/habitat/pull/7045) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.2 -->
+- Update rustfmt to 2019-10-15 [#7046](https://github.com/habitat-sh/habitat/pull/7046) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.1 -->
+- Prep for 0.90.0 [#7041](https://github.com/habitat-sh/habitat/pull/7041) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.0 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
 ## [0.88.0](https://github.com/habitat-sh/habitat/tree/0.88.0) (2019-10-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.85.0...0.88.0)
 
@@ -53,6 +132,7 @@
 - Audit `habitat_sup::manager::Manager` locking [#6940](https://github.com/habitat-sh/habitat/pull/6940) ([baumanj](https://github.com/baumanj))
 - Fix the rustfmt instructions and add helper script [#6946](https://github.com/habitat-sh/habitat/pull/6946) ([davidMcneil](https://github.com/davidMcneil))
 - Redo the locks inside the butterfly::server module. [#6941](https://github.com/habitat-sh/habitat/pull/6941) ([raskchanky](https://github.com/raskchanky))
+<!-- latest_stable_release -->
 
 ## [0.85.0](https://github.com/habitat-sh/habitat/tree/0.85.0) (2019-09-09)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.83.0...0.85.0)
