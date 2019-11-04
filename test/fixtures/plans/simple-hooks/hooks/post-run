@@ -1,0 +1,3 @@
+#!/usr/bin/env pwsh
+
+Write-Output "post-run hook {{pkg.name}}"

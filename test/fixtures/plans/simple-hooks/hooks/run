@@ -1,0 +1,6 @@
+#!/usr/bin/env pwsh
+
+while ($true) {
+    Write-Output "run hook {{pkg.name}}"
+    Start-Sleep 3
+}

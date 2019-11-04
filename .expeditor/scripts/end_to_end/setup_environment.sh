@@ -16,9 +16,17 @@ echo "--- Installing latest core/hab from ${HAB_BLDR_URL}, ${channel} channel"
 sudo -E hab pkg install core/hab \
     --binlink \
     --force \
-    --channel "${channel}" \
+    --channel="${channel}" \
     --url="${HAB_BLDR_URL}"
-echo "--- Using $(hab --version)"
+echo "--- Using core/hab version $(hab --version)"
+
+echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
+sudo -E hab pkg install core/powershell \
+    --binlink \
+    --force \
+    --channel="stable" \
+    --url="${HAB_BLDR_URL}"
+echo "--- Using core/powershell version $(pwsh --version)"
 
 sudo useradd --system --no-create-home hab
 

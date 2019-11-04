@@ -89,3 +89,6 @@ paths = [
 
 [hab-pkg-mesosize]
 plan_path = "components/pkg-mesosize"
+
+[simple-hooks]
+plan_path = "test/fixtures/plans/simple-hooks"
