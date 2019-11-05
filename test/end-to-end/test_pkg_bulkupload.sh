@@ -3,20 +3,22 @@
 # Basic set of tests for the hab pkg bulkupload command
 #
 # Assumptions:
-# 1. PIPELINE_HAB_AUTH_TOKEN or HAB_AUTH_TOKEN Environment variables are set and valid
+# 1. PIPELINE_HAB_AUTH_TOKEN and PIPELINE_HAB_BLDR_URL environment variables are set and valid
 # 2. ${CACHE_DIR} can be set to a writable location on the filesystem
 # 3. non zero exit code from each command implies success
 
 # TODO: Future improvement would be to create a clean room Builder or origin.
 # Doing so would allow for more accurate validation of the bulkupload by interrogating
-# the Builder. Of course this introduces significant setup time cost..
+# the Builder. Of course this introduces significant setup time
+# cost... For now, we'll want to point to the Acceptance Builder, not Production.
 
 set -euo pipefail
 
 export HAB_NOCOLORING=true
 export HAB_NONINTERACTIVE=true
 export HAB_ORIGIN="testbulkupload"
-export HAB_BLDR_URL=${HAB_BLDR_URL:-https://bldr.acceptance.habitat.sh}
+export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
+export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 unset HAB_BLDR_CHANNEL
 
 HAB=${HAB_TEST_CMD:-hab}

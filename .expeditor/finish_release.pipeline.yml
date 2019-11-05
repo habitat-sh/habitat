@@ -6,7 +6,7 @@ expeditor:
       timeout_in_minutes: 30
       env:
         HAB_ORIGIN: "core"
-        PIPELINE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+        PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
 
 steps:
   - label: ":github: Create GitHub Release"
