@@ -1,11 +1,16 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.89.60 -->
+<!-- latest_release 0.89.61 -->
+## [fake-0.89.61](https://github.com/habitat-sh/habitat/tree/fake-0.89.61) (2019-11-05)
+
+#### Merged Pull Requests
+- [CI] Add Studio Image creation to release pipeline [#7141](https://github.com/habitat-sh/habitat/pull/7141) ([christophermaier](https://github.com/christophermaier))
+<!-- latest_release -->
+
 ## [fake-0.89.60](https://github.com/habitat-sh/habitat/tree/fake-0.89.60) (2019-11-04)
 
 #### Merged Pull Requests
 - Purge CDN on channel promote [#7134](https://github.com/habitat-sh/habitat/pull/7134) ([smacfarlane](https://github.com/smacfarlane))
-<!-- latest_release -->
 
 ## [fake-0.89.59](https://github.com/habitat-sh/habitat/tree/fake-0.89.59) (2019-11-04)
 
