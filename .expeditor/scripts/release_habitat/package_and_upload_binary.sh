@@ -7,7 +7,7 @@ set -euo pipefail
 
 source .expeditor/scripts/release_habitat/shared.sh
 
-export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
+export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
 channel=$(get_release_channel)
 

@@ -9,7 +9,7 @@ $ReleaseChannel=Get-ReleaseChannel
 
 Write-Host "--- Building the Windows Docker Studio"
 
-& $PSScriptRoot/build_docker_image.ps1 -ReleaseChannel $ReleaseChannel -BldrUrl $Env:ACCEPTANCE_HAB_BLDR_URL
+& $PSScriptRoot/build_docker_image.ps1 -ReleaseChannel $ReleaseChannel -BldrUrl $Env:PIPELINE_HAB_BLDR_URL
 
 Write-Host "--- Publishing the Windows Docker Studio"
 . ./results/last_image.ps1

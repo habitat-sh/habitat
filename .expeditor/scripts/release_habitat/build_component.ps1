@@ -23,7 +23,7 @@ $Env:HAB_AUTH_TOKEN=$Rawtoken.Replace("`"","")
 
 $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
 
-$Env:HAB_BLDR_URL=$Env:ACCEPTANCE_HAB_BLDR_URL
+$Env:HAB_BLDR_URL=$Env:PIPELINE_HAB_BLDR_URL
 $Env:HAB_PACKAGE_TARGET=$Env:BUILD_PKG_TARGET
 
 Install-BuildkiteAgent

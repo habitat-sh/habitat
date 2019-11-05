@@ -24,7 +24,7 @@ channel=$(get_release_channel)
 target="${BUILD_PKG_TARGET}"
 image_name="habitat/default-studio-${target}"
 image_name_with_tag="${image_name}:${version}"
-bldr_url="${ACCEPTANCE_HAB_BLDR_URL}"
+bldr_url="${PIPELINE_HAB_BLDR_URL}"
 
 # NOTE: This operation currently uses the `chefdelivery` service
 # account; these credentials are automatically injected by the

@@ -11,7 +11,7 @@ expeditor:
       timeout_in_minutes: 30
       env:
         HAB_ORIGIN: "core"
-        ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+        PIPELINE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
 
 steps:
 #######################################################################

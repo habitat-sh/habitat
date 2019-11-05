@@ -17,7 +17,7 @@ set -euo pipefail
 
 source .expeditor/scripts/release_habitat/shared.sh
 
-export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
+export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
 
 # Take advantage of the fact that we're just promoting and we can run

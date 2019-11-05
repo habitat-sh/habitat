@@ -9,7 +9,7 @@ source .expeditor/scripts/release_habitat/shared.sh
 eval "$(vault-util fetch-secret-env)"
 
 export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
-export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
+export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
 channel=$(get_release_channel)
 
