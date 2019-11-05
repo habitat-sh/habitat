@@ -1,15 +1,10 @@
 steps:
   - label: "Deploy the website :pen:"
     command:
-      - echo "No op! Enable the pipeline"
-    agents:
-      queue: 'default-privileged'
-    plugins:
-      docker#v3.0.1:
-        always-pull: true
-        user: "buildkite-agent"
-        group: "buildkite-agent"
-        image: "chefes/buildkite"
+      - .expeditor/scripts/verify/website-deploy.sh
+    expeditor:
+      executor:
+        docker:
     timeout_in_minutes: 10
     retry:
       automatic:
