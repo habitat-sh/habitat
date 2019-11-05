@@ -1,7 +1,7 @@
 expeditor:
   secrets:
     # TODO: change this once we go to production
-    ACCEPTANCE_HAB_AUTH_TOKEN:
+    PIPELINE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
       field: scotthain-sig-key
   accounts:
@@ -380,7 +380,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - ACCEPTANCE_HAB_AUTH_TOKEN
+            - PIPELINE_HAB_AUTH_TOKEN
 
   - label: "[:linux: test_pkg_bulkupload]"
     command:
@@ -391,7 +391,7 @@ steps:
         docker:
           privileged: true
           environment:
-            - ACCEPTANCE_HAB_AUTH_TOKEN
+            - PIPELINE_HAB_AUTH_TOKEN
             - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
             - BUILD_PKG_TARGET=x86_64-linux
 

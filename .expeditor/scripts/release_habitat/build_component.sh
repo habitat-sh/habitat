@@ -4,7 +4,7 @@ set -euo pipefail
 
 source .expeditor/scripts/release_habitat/shared.sh
 
-export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
+export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
 ########################################################################

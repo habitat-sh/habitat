@@ -3,7 +3,7 @@
 # Basic set of tests for the hab pkg bulkupload command
 #
 # Assumptions:
-# 1. ACCEPTANCE_HAB_AUTH_TOKEN or HAB_AUTH_TOKEN Environment variables are set and valid
+# 1. PIPELINE_HAB_AUTH_TOKEN or HAB_AUTH_TOKEN Environment variables are set and valid
 # 2. ${CACHE_DIR} can be set to a writable location on the filesystem
 # 3. non zero exit code from each command implies success
 

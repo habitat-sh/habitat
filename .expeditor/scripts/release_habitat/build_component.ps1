@@ -17,8 +17,7 @@ if($Component.Equals("")) {
 }
 
 # We have to do this because everything that comes from vault is quoted on windows.
-# TODO: This can be removed when we go live!
-$Rawtoken=$Env:ACCEPTANCE_HAB_AUTH_TOKEN
+$Rawtoken=$Env:PIPELINE_HAB_AUTH_TOKEN
 $Env:HAB_AUTH_TOKEN=$Rawtoken.Replace("`"","")
 
 $Env:buildkiteAgentToken = $Env:BUILDKITE_AGENT_ACCESS_TOKEN
