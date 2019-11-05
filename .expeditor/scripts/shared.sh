@@ -238,9 +238,14 @@ hab_auth_token() {
 # Eventually this should be "https://bldr.habitat.sh"... we'll change
 # it when we flip over.
 #
+# Our pipelines can define this value as a top-level environment
+# variable, but we don't have that ability with scripts executed
+# directly by Expeditor. Those scripts use this (similar to
+# `hab_auth_token` above).
+#
 # Not naming it `hab_bldr_url` to avoid Shellcheck complaints about
 # possible misspellings, but also to make it very obvious what it is.
-readonly temporary_hab_bldr_url="https://bldr.acceptance.habitat.sh"
+readonly expeditor_hab_bldr_url="https://bldr.acceptance.habitat.sh"
 
 # This allows people to e.g. trigger end-to-end pipeline runs manually
 # when iterating on tests, but without having to fear that they'll
