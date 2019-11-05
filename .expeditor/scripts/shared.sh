@@ -245,7 +245,7 @@ hab_auth_token() {
 #
 # Not naming it `hab_bldr_url` to avoid Shellcheck complaints about
 # possible misspellings, but also to make it very obvious what it is.
-readonly expeditor_hab_bldr_url="https://bldr.acceptance.habitat.sh"
+readonly expeditor_hab_bldr_url="https://bldr.habitat.sh"
 
 # This allows people to e.g. trigger end-to-end pipeline runs manually
 # when iterating on tests, but without having to fear that they'll
