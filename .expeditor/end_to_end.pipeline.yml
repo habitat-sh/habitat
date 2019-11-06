@@ -9,7 +9,7 @@ expeditor:
     buildkite:
       timeout_in_minutes: 30
       env:
-        HAB_ORIGIN: "core"
+        HAB_ORIGIN: "habitat-testing" # just to be safe
         HAB_BLDR_URL: "https://bldr.habitat.sh"
         HAB_BLDR_CHANNEL: "dev"
         HAB_INTERNAL_BLDR_CHANNEL: "dev"
@@ -204,7 +204,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_with_ssl_cert_file_envvar_set]"
     command:
@@ -217,7 +217,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:windows: test_studio_with_ssl_cert_file_envvar_set]"
     command:
@@ -229,7 +229,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: :docker: test_studio_with_ssl_cert_file_envvar_set]"
     command:
@@ -238,7 +238,6 @@ steps:
     env:
       BUILD_PKG_TARGET: x86_64-linux
       STUDIO_DOCKER_TEST: true
-      HAB_ORIGIN: ci
     expeditor:
       executor:
         linux:
@@ -256,7 +255,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_when_ssl_cert_file_is_nonexistant_file]"
     command:
@@ -269,7 +268,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_when_ssl_cert_file_is_directory]"
     command:
@@ -282,7 +281,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_fresh_install_can_communicate_with_builder]"
     command:
@@ -307,7 +306,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_BLDR_URL
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_can_build_packages]"
     command:
@@ -319,7 +318,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_custom_ssl_cert_is_available_in_studio]"
     command:
@@ -331,7 +330,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_hab_is_expected_version]"
     command:
@@ -343,7 +342,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_self_signed_cert_is_loaded_by_hab]"
     command:
@@ -377,7 +376,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
-            - HAB_ORIGIN=ci
+            - HAB_ORIGIN
 
   - label: "[:linux: test_pkg_download]"
     command:
@@ -390,8 +389,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
 
-
-  # TODO (CM) : I think this isn't going to work properly
   - label: "[:linux: test_pkg_bulkupload]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
