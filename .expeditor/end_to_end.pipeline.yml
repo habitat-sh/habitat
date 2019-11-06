@@ -1,9 +1,8 @@
 expeditor:
   secrets:
-    # TODO: change this once we go to production
     PIPELINE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
-      field: scotthain-sig-key
+      field: auth_token # Production Builder
   accounts:
     - aws/chef-cd
   defaults:
@@ -403,7 +402,7 @@ steps:
         # actually uploading things to Production Builder, for safety.
         PIPELINE_HAB_AUTH_TOKEN:
           path: account/static/habitat/chef-ci
-          field: scotthain-sig-key
+          field: acceptance_auth_token
       executor:
         docker:
           privileged: true
