@@ -123,7 +123,7 @@ subscriptions:
       - bash:.expeditor/scripts/expeditor_promote.sh
       - bash:.expeditor/scripts/purge_cdn.sh:
           post_commit: true
-      - trigger_pipeline:finish_release
+      - trigger_pipeline:finish_release:
           post_commit: true
 
 schedules:
