@@ -4,7 +4,7 @@
 ## Unreleased
 
 #### Merged Pull Requests
-- [CI] Add Studio Image creation to release pipeline [#7141](https://github.com/habitat-sh/habitat/pull/7141) ([christophermaier](https://github.com/christophermaier))
+- [CI] Switch from Acceptance to Production Builder [#7157](https://github.com/habitat-sh/habitat/pull/7157([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.88.0 -->
@@ -32,6 +32,7 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
+- [CI] Add Studio Image creation to release pipeline [#7141](https://github.com/habitat-sh/habitat/pull/7141) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.61 -->
 - Purge CDN on channel promote [#7134](https://github.com/habitat-sh/habitat/pull/7134) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.60 -->
 - Migrate choco_push into new finish-release process [#7142](https://github.com/habitat-sh/habitat/pull/7142) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.59 -->
 - Disable build-on-upload for packages in the release pipeline [#7147](https://github.com/habitat-sh/habitat/pull/7147) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.58 -->
