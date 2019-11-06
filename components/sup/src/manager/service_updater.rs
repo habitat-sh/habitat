@@ -305,6 +305,12 @@ impl ServiceUpdater {
                                        census_group.me())
                                 {
                                     (Some(leader), Some(peer), Some(me)) => {
+                                        if leader.member_id == me.member_id {
+                                            debug!("I'm a leader now");
+                                            self.states
+                                                .insert(service.service_group.clone(), UpdaterState::Rolling(RollingState::Leader(LeaderState::Waiting)));
+                                            return None;
+                                        }
                                         if leader.pkg == me.pkg {
                                             debug!("We're not in an update");
                                             return None;
