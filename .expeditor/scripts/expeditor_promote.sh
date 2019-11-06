@@ -21,7 +21,7 @@ hab_binary="hab"
 export HAB_AUTH_TOKEN
 HAB_AUTH_TOKEN=$(hab_auth_token)
 
-export HAB_BLDR_URL="${temporary_hab_bldr_url}"
+export HAB_BLDR_URL="${expeditor_hab_bldr_url}"
 
 ########################################################################
 # CORE LOGIC

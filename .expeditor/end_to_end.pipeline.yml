@@ -1,17 +1,16 @@
 expeditor:
   secrets:
-    # TODO: change this once we go to production
-    ACCEPTANCE_HAB_AUTH_TOKEN:
+    PIPELINE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
-      field: scotthain-sig-key
+      field: auth_token # Production Builder
   accounts:
     - aws/chef-cd
   defaults:
     buildkite:
       timeout_in_minutes: 30
       env:
-        HAB_ORIGIN: "core"
-        HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
+        HAB_ORIGIN: "habitat-testing" # just to be safe
+        HAB_BLDR_URL: "https://bldr.habitat.sh"
         HAB_BLDR_CHANNEL: "dev"
         HAB_INTERNAL_BLDR_CHANNEL: "dev"
 
@@ -114,7 +113,6 @@ steps:
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_launcher_checks_supervisor_version.sh
-
     soft_fail: true
     expeditor:
       executor:
@@ -205,7 +203,8 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - HAB_BLDR_URL
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_with_ssl_cert_file_envvar_set]"
     command:
@@ -217,7 +216,8 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - HAB_BLDR_URL
+            - HAB_ORIGIN
 
   - label: "[:windows: test_studio_with_ssl_cert_file_envvar_set]"
     command:
@@ -229,6 +229,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+            - HAB_ORIGIN
 
   - label: "[:linux: :docker: test_studio_with_ssl_cert_file_envvar_set]"
     command:
@@ -236,7 +237,6 @@ steps:
       - test/end-to-end/test_studio_with_ssl_cert_file_envvar_set.sh
     env:
       BUILD_PKG_TARGET: x86_64-linux
-      HAB_BLDR_URL: https://bldr.acceptance.habitat.sh
       STUDIO_DOCKER_TEST: true
     expeditor:
       executor:
@@ -254,7 +254,8 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - HAB_BLDR_URL
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_when_ssl_cert_file_is_nonexistant_file]"
     command:
@@ -266,7 +267,8 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - HAB_BLDR_URL
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_when_ssl_cert_file_is_directory]"
     command:
@@ -278,7 +280,8 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - HAB_BLDR_URL
+            - HAB_ORIGIN
 
   - label: "[:linux: test_fresh_install_can_communicate_with_builder]"
     command:
@@ -290,7 +293,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - HAB_BLDR_URL
 
   - label: "[:linux: test_invalid_cached_certificates_are_ignored_by_hab]"
     command:
@@ -302,7 +305,8 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - HAB_BLDR_URL
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_can_build_packages]"
     command:
@@ -314,6 +318,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_ORIGIN
 
   - label: "[:linux: test_custom_ssl_cert_is_available_in_studio]"
     command:
@@ -325,6 +330,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_ORIGIN
 
   - label: "[:linux: test_studio_hab_is_expected_version]"
     command:
@@ -336,6 +342,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+            - HAB_ORIGIN
 
   - label: "[:linux: test_self_signed_cert_is_loaded_by_hab]"
     command:
@@ -369,6 +376,7 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
+            - HAB_ORIGIN
 
   - label: "[:linux: test_pkg_download]"
     command:
@@ -380,19 +388,24 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-            - ACCEPTANCE_HAB_AUTH_TOKEN
 
   - label: "[:linux: test_pkg_bulkupload]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_pkg_bulkupload.sh
     expeditor:
+      secrets:
+        # This is an *Acceptance* Builder token; don't want this test
+        # actually uploading things to Production Builder, for safety.
+        PIPELINE_HAB_AUTH_TOKEN:
+          path: account/static/habitat/chef-ci
+          field: acceptance_auth_token
       executor:
         docker:
           privileged: true
           environment:
-            - ACCEPTANCE_HAB_AUTH_TOKEN
-            - HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
+            - PIPELINE_HAB_AUTH_TOKEN
+            - PIPELINE_HAB_BLDR_URL=https://bldr.acceptance.habitat.sh
             - BUILD_PKG_TARGET=x86_64-linux
 
   - wait

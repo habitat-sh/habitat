@@ -15,7 +15,7 @@ set -euo pipefail
 
 source .expeditor/scripts/release_habitat/shared.sh
 
-export HAB_BLDR_URL="${temporary_hab_bldr_url}"
+export HAB_BLDR_URL="${expeditor_hab_bldr_url}"
 export HAB_AUTH_TOKEN
 HAB_AUTH_TOKEN="$(hab_auth_token)"
 

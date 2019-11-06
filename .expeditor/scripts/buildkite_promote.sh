@@ -28,7 +28,7 @@ source_environment=${1:?You must provide an Expeditor environment}
 # e.g. `acceptance`, `current`, etc
 destination_channel=${2:?You must specify a destination channel value}
 
-export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
+export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 
 ########################################################################
 
@@ -57,8 +57,7 @@ maybe_run promote_version_in_s3 "${version}" "${destination_channel}"
 
 echo "--- Purging fastly cache for 'dev' channel"
 # While this is probably not necessary as we generally `hab pkg install` for packages
-# from the 'dev' channel,  we did run into issues with wedged packages as we were 
-# testing the migration to packages.chef.io. Rather than potentially waste hours of 
+# from the 'dev' channel,  we did run into issues with wedged packages as we were
+# testing the migration to packages.chef.io. Rather than potentially waste hours of
 # troubleshooting down the road, we'll purge the 'dev' channel at the end of every build.
 maybe_run .expeditor/scripts/purge_cdn.sh
-

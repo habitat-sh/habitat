@@ -10,15 +10,7 @@ $pkg_build_deps=@(
 $pkg_bin_dirs=@("bin")
 
 function pkg_version {
-  # This looks a little funny but a non
-  # null value will be evaluated as true
-  if ($Env:DO_FAKE_RELEASE) {
-      Write-BuildLine "Doing a fake release"
-      Get-Content "$SRC_PATH/VERSION_FAKE"
-  } else {
-      Write-BuildLine "Doing a real release!"
-      Get-Content "$SRC_PATH/VERSION"
-  }
+    Get-Content "$SRC_PATH/VERSION"
 }
 
 function Invoke-Before {

@@ -15,11 +15,7 @@ get_release_channel() {
 # trick.
 get_version_from_repo() {
     dir="$(git rev-parse --show-toplevel)"
-    if [[ -n "${DO_FAKE_RELEASE:-}" ]]; then
-        cat "$dir/VERSION_FAKE"
-    else
-        cat "$dir/VERSION"
-    fi
+    cat "$dir/VERSION"
 }
 
 # Download public and private keys for the "core" origin from Builder.
