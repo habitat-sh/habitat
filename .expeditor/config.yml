@@ -98,6 +98,7 @@ subscriptions:
     actions:
       - trigger_pipeline:test_scenarios
 
+
   # Scheduled Pipelines
   ########################################################################
 
@@ -121,6 +122,8 @@ subscriptions:
       - built_in:rollover_changelog
       - bash:.expeditor/scripts/expeditor_promote.sh
       - bash:.expeditor/scripts/purge_cdn.sh:
+          post_commit: true
+      - trigger_pipeline:finish_release
           post_commit: true
 
 schedules:
