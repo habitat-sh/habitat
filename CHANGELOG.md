@@ -1,6 +1,6 @@
 # Habitat CHANGELOG
 
-<!-- latest_release unreleased -->
+<!-- latest_release 0.90.0 -->
 ## Unreleased
 
 #### Merged Pull Requests
