@@ -245,10 +245,8 @@ impl ServiceUpdater {
                     }
                     LeaderState::Waiting => {
                         match census_ring.census_group_for(&service.service_group) {
-                            Some(census_group) => {
-                                if census_group.members()
-                                               .any(|cm| cm.pkg != census_group.me().unwrap().pkg)
-                                {
+                            Some(cg) => {
+                                if cg.active_members().any(|c| c.pkg != cg.me().unwrap().pkg) {
                                     debug!("Update leader still waiting for followers...");
                                     return None;
                                 }
