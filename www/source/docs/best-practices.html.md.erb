@@ -309,7 +309,7 @@ Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platf
 ## Chef Habitat on Kubernetes
 
 Chef Habitat can export your package as a Docker container that runs on Kubernetes in the form of a pod.
-Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds) and secrets and the required [initial peer](/docs/best-practices/#robust-supervisor-networks)(PID 1) to all other pods.
+Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds), secrets and the required [initial peer](/docs/best-practices/#robust-supervisor-networks) to all other pods.
 
 Chef Habitat robustly deploys the bastion pod with a Kubernetes stateful set, persistent volume, and liveness checking, which ensures node availability and ring data persistence. The Kubernetes stateful set comes with an attached Kubernetes service that makes discoverable with DNS. Each namespace should contain a single service and stateful set.
 
@@ -355,7 +355,7 @@ spec:
         fsGroup: 42
 ```
 
-This section sets the group ownership for the persistent volume mount point so the Habitat supervisor can write to it.  The Habitat user (`hab`) by default has the uid `42` and the gid `42`.
+This section sets the group ownership for the persistent volume mount point so the Habitat Supervisor can write to it.  The Habitat user (`hab`) by default has the uid `42` and the gid `42`.
 
 ```yaml
       containers:
@@ -365,8 +365,8 @@ This section sets the group ownership for the persistent volume mount point so t
         - '--permanent-peer'
 ```
 
-The `image:` line defines the source of the docker container. In this case, the instructions create an image from a Chef Habitat plan using the `hab pkg export docker` command. It only runs the Chef Habitat supervisor (hab-sup) service.
-The argument `--permanent-peer` instructs the supervisor to act as a permanent peer.
+The `image:` line defines the source of the docker container. In this case, the instructions create an image from a Chef Habitat plan using the `hab pkg export docker` command. It only runs the Chef Habitat Supervisor (hab-sup) service.
+The argument `--permanent-peer` instructs the Supervisor to act as a permanent peer.
 
 ```yaml
         resources:
@@ -411,14 +411,14 @@ The `readinessProbe` signals to Kubernetes that the pod has started up successfu
       name: hab-bastion
     spec:
       accessModes: [ "ReadWriteOnce" ]
-      # uncomment if you don't have a default storageclass
+      # uncomment if you don't have a default StorageClass
       # storageClassName: "standard"
       resources:
         requests:
           storage: 10Gi
 ```
 
-All of the Habitat supervisor's state data is stored under `/hab/sup` - we mount this on a persistent volume so it gets re-attached if the pod is ever relaunched. The data persists!
+All of the Habitat Supervisor's state data is stored under `/hab/sup` - we mount this on a persistent volume so it gets re-attached if the pod is ever rescheduled. The data persists!
 
 ### Create a Kubernetes Deployment that works with the Bastion
 
@@ -476,7 +476,7 @@ spec:
 
 ## Bare Kubernetes
 
-If your packages don't require communication with the Chef Habitat supervisor ring, such as binds, secrets, etc., then you can execute your packages directly on the cluster. You can deploy Chef Habitat packages exported as containers to Kubernetes with the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, you can launch the container like this example:
+If your packages don't require communication with the Chef Habitat Supervisor ring, such as binds, secrets, etc., then you can execute your packages directly on the cluster. You can deploy Chef Habitat packages exported as containers to Kubernetes with the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, you can launch the container like this example:
 
 ```shell
 $ kubectl run mytutorial --image=myorigin/mytutorial --port=8080
