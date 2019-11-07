@@ -54,10 +54,3 @@ maybe_run promote_packages_to_builder_channel manifest.json "${destination_chann
 version="$(jq -r '.version' < manifest.json)"
 echo "--- Promoting binary packages and manifest to the ${destination_channel} channel in S3"
 maybe_run promote_version_in_s3 "${version}" "${destination_channel}"
-
-echo "--- Purging fastly cache for 'dev' channel"
-# While this is probably not necessary as we generally `hab pkg install` for packages
-# from the 'dev' channel,  we did run into issues with wedged packages as we were
-# testing the migration to packages.chef.io. Rather than potentially waste hours of
-# troubleshooting down the road, we'll purge the 'dev' channel at the end of every build.
-maybe_run .expeditor/scripts/purge_cdn.sh
