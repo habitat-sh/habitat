@@ -1,11 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.1 -->
-## [0.90.1](https://github.com/habitat-sh/habitat/tree/0.90.1) (2019-11-07)
+<!-- latest_release 0.90.2 -->
+## [0.90.2](https://github.com/habitat-sh/habitat/tree/0.90.2) (2019-11-07)
 
 #### Merged Pull Requests
-- Move changelog update back to staged_workload_released [#7166](https://github.com/habitat-sh/habitat/pull/7166) ([smacfarlane](https://github.com/smacfarlane))
-- [CI] Switch from Acceptance to Production Builder [#7157](https://github.com/habitat-sh/habitat/pull/7157([christophermaier](https://github.com/christophermaier))
+- [CI] Temporarily skip the bulkupload e2e test pending some refactoring [#7168](https://github.com/habitat-sh/habitat/pull/7168) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.88.0 -->
@@ -33,6 +32,7 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
+- [CI] Temporarily skip the bulkupload e2e test pending some refactoring [#7168](https://github.com/habitat-sh/habitat/pull/7168) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.2 -->
 - Move changelog update back to staged_workload_released [#7166](https://github.com/habitat-sh/habitat/pull/7166) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.1 -->
 - [CI] Add Studio Image creation to release pipeline [#7141](https://github.com/habitat-sh/habitat/pull/7141) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.61 -->
 - Purge CDN on channel promote [#7134](https://github.com/habitat-sh/habitat/pull/7134) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.89.60 -->
