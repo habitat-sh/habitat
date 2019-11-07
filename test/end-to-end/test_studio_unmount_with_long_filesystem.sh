@@ -2,9 +2,8 @@
 
 set -euo pipefail 
 
-studio_command="${1}"
-
-sudo hab pkg install core/e2fsprogs
+echo "--- Creating and mounting filesystem with name >1024 characters"
+sudo --preserve-env hab pkg install core/e2fsprogs --channel stable
 
 # Maximum directory name length is 255 characters so we need to create
 # a nested set of directories to have a mount point with > 1024 characters. 
@@ -12,14 +11,6 @@ tmpdir=$(mktemp -d -p /tmp hab-studio-XXXXXXX)
 directory="$(printf "a%.0s" {1..100})"
 mnt_path="/mnt/$(printf "$directory/%.0s" {1..10})"
 
-cleanup() { 
-  sudo umount "$mnt_path" || true
-  sudo rm -rf "$mnt_path"
-  ( cd "$tmpdir"/studio && $studio_command rm )
-  rm -rf "$tmpdir" 
-}
-
-trap cleanup EXIT
 
 (
   cd "$tmpdir"
@@ -36,8 +27,13 @@ trap cleanup EXIT
 
   mkdir studio 
   cd studio
-  $studio_command new 
+  echo "--- Generating origin key"
+  hab origin key generate "$HAB_ORIGIN"
+  echo "--- Creating studio"
+  hab studio new 
   # Print out the mount table using the system tools before removing it
+  echo "--- Printing the mount table"
   mount 
-  $studio_command rm 
+  echo "--- Destroying the studio"
+  hab studio rm 
 )

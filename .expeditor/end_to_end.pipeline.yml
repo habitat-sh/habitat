@@ -343,6 +343,18 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
             - HAB_ORIGIN
+  
+  - label: "[:linux: test_studio_unmount_with_long_filesystem]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
+      - test/end-to-end/test_studio_unmount_with_long_filesystem.sh
+    env:
+      BUILD_PKG_TARGET: x86_64-linux
+    expeditor:
+      executor:
+        linux:
+          single-use: true
+          privileged: true
 
   - label: "[:linux: test_self_signed_cert_is_loaded_by_hab]"
     command:

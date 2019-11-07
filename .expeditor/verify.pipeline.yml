@@ -280,7 +280,7 @@ steps:
 
   - label: "[unit] :linux: studio"
     command:
-      - .expeditor/scripts/verify/run_studio_test.sh "studio-from-source"
+      - .expeditor/scripts/verify/run_studio_test.sh
     expeditor:
       executor:
         linux:
@@ -502,7 +502,7 @@ steps:
 
   - label: "[unit] :windows: studio"
     command:
-      - .expeditor/scripts/verify/run_studio_test.ps1 "studio-from-source"
+      - .expeditor/scripts/verify/run_studio_test.ps1
     expeditor:
       executor:
         docker:
