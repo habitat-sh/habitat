@@ -53,7 +53,9 @@ subscriptions:
 
   - workload: staged_workload_released:{{agent_id}}:release_staging:*
     actions:
-      - built_in:bump_version
+      - built_in:bump_version:
+          ignore_labels:
+            - "Expeditor: Skip Version Bump"
       - built_in:update_changelog
       - trigger_pipeline:release_habitat:
           only_if: built_in:bump_version

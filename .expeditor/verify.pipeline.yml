@@ -545,19 +545,6 @@ steps:
       automatic:
         limit: 1
 
-  - label: "[build] :linux: bintray-publish"
-    env:
-      HAB_LICENSE: "accept-no-persist"
-    command:
-      - .expeditor/scripts/verify/build_component.sh bintray-publish
-    expeditor:
-      executor:
-        linux:
-          privileged: true
-    retry:
-      automatic:
-        limit: 1
-
   - label: "[build] :linux: hab"
     env:
       HAB_LICENSE: "accept-no-persist"
