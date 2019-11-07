@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.3 -->
-## [0.90.3](https://github.com/habitat-sh/habitat/tree/0.90.3) (2019-11-07)
+<!-- latest_release unreleased -->
+## Unreleased
 
 #### Merged Pull Requests
-- [CI] Make purge_cdn.sh script executable [#7170](https://github.com/habitat-sh/habitat/pull/7170) ([christophermaier](https://github.com/christophermaier))
+- [CI] Remove old CI pipeline code [#7169](https://github.com/habitat-sh/habitat/pull/7169) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.88.0 -->
@@ -32,6 +32,7 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
+- [CI] Remove old CI pipeline code [#7169](https://github.com/habitat-sh/habitat/pull/7169) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.3 -->
 - [CI] Make purge_cdn.sh script executable [#7170](https://github.com/habitat-sh/habitat/pull/7170) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.3 -->
 - [CI] Temporarily skip the bulkupload e2e test pending some refactoring [#7168](https://github.com/habitat-sh/habitat/pull/7168) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.2 -->
 - Move changelog update back to staged_workload_released [#7166](https://github.com/habitat-sh/habitat/pull/7166) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.1 -->
