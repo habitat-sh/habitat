@@ -28,42 +28,36 @@ source_environment=${1:?You must provide an Expeditor environment}
 # e.g. `acceptance`, `current`, etc
 destination_channel=${2:?You must specify a destination channel value}
 
-export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
+export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 
 ########################################################################
 
 source .expeditor/scripts/shared.sh
 
-# This allows people to e.g. trigger end-to-end pipeline runs manually
-# when iterating on tests, but without having to fear that they'll
-# inadvertently promote a set of artifacts accidentally.
-#
-# Only Chef Expeditor should be triggering "real" runs of pipelines
-# that use this script.
-readonly valid_build_creator="Chef Expeditor"
+# We're in a real pipeline run; let's promote!
 
-if [[ "${BUILDKITE_BUILD_CREATOR}" == "${valid_build_creator}" ]]; then
-    # We're in a real pipeline run; let's promote!
+# Take advantage of the fact that we're just promoting and we can run
+# 100% on linux
+declare -g hab_binary
+curlbash_hab "x86_64-linux"
 
-    # Take advantage of the fact that we're just promoting and we can run
-    # 100% on linux
-    declare -g hab_binary
-    curlbash_hab "x86_64-linux"
+# Needed for validation of the downloaded manifest
+import_gpg_keys
 
-    # Needed for validation of the downloaded manifest
-    import_gpg_keys
+echo "--- Retrieving manifest.json for ${source_environment} environment"
+get_manifest_for_environment "${source_environment}"
 
-    echo "--- Retrieving manifest.json for ${source_environment} environment"
-    get_manifest_for_environment "${source_environment}"
+# Extract the targets from the manifest
+echo "--- Promoting Habitat packages into the ${destination_channel} channel on ${HAB_BLDR_URL}"
+maybe_run promote_packages_to_builder_channel manifest.json "${destination_channel}"
 
-    # Extract the targets from the manifest
-    echo "--- Promoting Habitat packages into the ${destination_channel} channel on ${HAB_BLDR_URL}"
-    promote_packages_to_builder_channel manifest.json "${destination_channel}"
+version="$(jq -r '.version' < manifest.json)"
+echo "--- Promoting binary packages and manifest to the ${destination_channel} channel in S3"
+maybe_run promote_version_in_s3 "${version}" "${destination_channel}"
 
-    version="$(jq -r '.version' < manifest.json)"
-    echo "--- Promoting binary packages and manifest to the ${destination_channel} channel in S3"
-    promote_version_in_s3 "${version}" "${destination_channel}"
-
-else
-    echo "--- NOT PROMOTING: Build triggered by ${BUILDKITE_BUILD_CREATOR} and *not* ${valid_build_creator}"
-fi
+echo "--- Purging fastly cache for 'dev' channel"
+# While this is probably not necessary as we generally `hab pkg install` for packages
+# from the 'dev' channel,  we did run into issues with wedged packages as we were
+# testing the migration to packages.chef.io. Rather than potentially waste hours of
+# troubleshooting down the road, we'll purge the 'dev' channel at the end of every build.
+maybe_run .expeditor/scripts/purge_cdn.sh

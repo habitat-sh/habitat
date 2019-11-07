@@ -227,17 +227,36 @@ promote_packages_to_builder_channel() {
 # scripts that run in Buildkite can have such credentials injected via
 # other means (See https://expeditor.chef.io/docs/reference/secrets-dsl)
 #
-# NOTE: Currently this is pointed at Acceptance; it will need to be
-# changed when we flip over to Production.
+# Should correspond with `expeditor_hab_bldr_url` below.
 hab_auth_token() {
     vault kv get \
-          -field=scotthain-sig-key \
+          -field=auth_token \
           account/static/habitat/chef-ci
 }
 
-# Eventually this should be "https://bldr.habitat.sh"... we'll change
-# it when we flip over.
+# Our pipelines can define this value as a top-level environment
+# variable, but we don't have that ability with scripts executed
+# directly by Expeditor. Those scripts use this (similar to
+# `hab_auth_token` above).
 #
 # Not naming it `hab_bldr_url` to avoid Shellcheck complaints about
 # possible misspellings, but also to make it very obvious what it is.
-readonly temporary_hab_bldr_url="https://bldr.acceptance.habitat.sh"
+#
+# Should correspond with `hab_auth_token` above.
+readonly expeditor_hab_bldr_url="https://bldr.habitat.sh"
+
+# This allows people to e.g. trigger end-to-end pipeline runs manually
+# when iterating on tests, but without having to fear that they'll
+# inadvertently promote a set of artifacts accidentally.
+#
+# Only Chef Expeditor should be triggering "real" runs of pipelines
+# that use this script.
+
+maybe_run() {
+  if [[ "${BUILDKITE_BUILD_CREATOR}" == "Chef Expeditor" ]]; then
+    "$@"
+  else
+    echo "Build initiated by $BUILDKITE_BUILD_CREATOR"
+    echo "Would have run: $*"
+  fi
+}

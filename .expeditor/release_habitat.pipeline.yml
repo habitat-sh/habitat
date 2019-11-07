@@ -1,9 +1,9 @@
 expeditor:
   secrets:
-    # TODO: change this once we go to production
-    ACCEPTANCE_HAB_AUTH_TOKEN:
+    PIPELINE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
-      field: scotthain-sig-key
+      field: auth_token # Production Builder
+      # acceptance_auth_token = acceptance
   accounts:
     - aws/chef-cd
   defaults:
@@ -11,8 +11,7 @@ expeditor:
       timeout_in_minutes: 30
       env:
         HAB_ORIGIN: "core"
-        ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
-        DO_FAKE_RELEASE: "true"
+        PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
 
 steps:
 #######################################################################
@@ -382,6 +381,38 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-darwin
+
+  - label: ":docker: Upload containers to Docker Hub"
+    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+    expeditor:
+      executor:
+        linux:
+          privileged: true
+
+  - label: ":docker: :two: Upload containers to Docker Hub"
+    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    expeditor:
+      executor:
+        linux:
+          privileged: true
+
+  - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
+    command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
+    expeditor:
+      executor:
+        windows:
+          os_version: 2016
+
+  - label: ":docker: :windows: Upload windows 2019 container to Docker Hub"
+    command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
+    expeditor:
+      executor:
+        windows:
+          os_version: 2019
 
   - wait
 

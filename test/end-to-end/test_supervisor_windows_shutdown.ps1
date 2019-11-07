@@ -12,6 +12,7 @@ Describe "Clean Habitat Shutdown" {
         try  { Invoke-WebRequest "http://localhost" -Method HEAD -UseBasicParsing }
         catch [System.Net.WebException] { $response = $_.Exception.Response }
         $response.Server | Should -BeLike "nginx/*"
+        Test-Path C:\hab\svc\nginx\PID | Should -Be $true
     }
     It "Stops all processes" {
         Stop-Service Habitat
@@ -19,5 +20,6 @@ Describe "Clean Habitat Shutdown" {
         Get-Process hab-launch -ErrorAction SilentlyContinue | Should -Be $null
         Get-Process pwsh -ErrorAction SilentlyContinue | Should -Be $null
         Get-Process nginx -ErrorAction SilentlyContinue | Should -Be $null
+        Test-Path C:\hab\svc\nginx\PID | Should -Be $false
     }
 }

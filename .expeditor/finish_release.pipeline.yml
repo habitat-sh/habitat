@@ -1,13 +1,34 @@
 expeditor:
+  accounts:
+    - aws/chef-cd
   defaults:
     buildkite:
       timeout_in_minutes: 30
       env:
         HAB_ORIGIN: "core"
-        ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
-        DO_FAKE_RELEASE: "true"
+        PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
 
 steps:
-  - label: NOOP
+  - label: ":github: Create GitHub Release"
     command:
-      - echo "Hello"
+      - .expeditor/scripts/finish_release/create_github_release.sh
+    expeditor:
+      secrets:
+        GITHUB_TOKEN:
+          account: github
+          field: token
+      executor:
+        docker:
+
+  - label: ":chocolate_bar: Publish Chocolatey package"
+    command:
+      - powershell .expeditor/scripts/finish_release/publish_to_chocolatey.ps1
+    expeditor:
+      secrets:
+        CHOCO_API_KEY:
+          path: account/static/chocolatey/habitat
+          field: api_key
+      executor:
+        docker:
+          host_os: windows
+          environment:
