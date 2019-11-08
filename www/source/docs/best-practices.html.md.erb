@@ -303,35 +303,188 @@ Chef Habitat packages may be exported with the Supervisor directly into a [a var
 ---
 ## <a name="kubernetes" id="kubernetes" data-magellan-target="kubernetes">Kubernetes</a>
 
-[Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [Tectonic](https://tectonic.com/) by [CoreOS](https://coreos.com/), and [OpenShift](https://openshift.com/) by [RedHat](https://redhat.com). Chef Habitat and Kubernetes are complementary: Kubernetes focuses on providing a platform for deployment, scaling, and operations of application containers across clusters of hosts while Chef Habitat manages the build pipeline and lifecycle of those application containers.
+[Kubernetes](http://kubernetes.io/) is an open source container cluster manager that is available as a stand-alone platform or embedded in several distributed platforms including [Google's Container Engine](https://cloud.google.com/container-engine/), [AWS Elastic Kubernetes Service](https://aws.amazon.com/eks/), [Azure Kubernetes Service](https://azure.microsoft.com/en-us/services/kubernetes-service/), and [Red Hat OpenShift](https://openshift.com/).
+Chef Habitat and Kubernetes are complementary. While Kubernetes provides a platform for deployment, scaling, and operations of application containers across clusters of hosts, Chef Habitat manages the build pipeline and lifecycle of those application containers.
 
-### Chef Habitat Operator
+## Chef Habitat on Kubernetes
 
-The [Chef Habitat Kubernetes Operator](https://github.com/habitat-sh/habitat-operator) is on-going work to create an operator that leverages Kubernetes API services to create a native and robust integration between the two technologies.
+Chef Habitat can export your package as a Docker container that runs on Kubernetes in the form of a pod.
+Additionally, a Chef Habitat bastion pod provides essential gossip ring features like service discovery (binds), secrets and the required [initial peer](/docs/best-practices/#robust-supervisor-networks) to all other pods.
 
-By using the Chef Habitat Operator, you can abstract from many of the low level details of running a Chef Habitat package in Kubernetes, and jump straight to deploying your application, with support for Chef Habitat features like [service configuration](https://github.com/habitat-sh/habitat-operator/tree/master/examples/config), [binding](https://github.com/habitat-sh/habitat-operator/tree/master/examples/bind), [topologies](https://github.com/habitat-sh/habitat-operator/tree/master/examples/leader) and more.
+Chef Habitat robustly deploys the bastion pod with a Kubernetes stateful set, persistent volume, and liveness checking, which ensures node availability and ring data persistence. The Kubernetes stateful set comes with an attached Kubernetes service that makes discoverable with DNS. Each namespace should contain a single service and stateful set.
 
-For more details on the Chef Habitat Operator, please refer to the [introductory blog post](https://kinvolk.io/blog/2017/10/habitat-operator---running-habitat-services-with-kubernetes/), follow along on [github](https://github.com/habitat-sh/habitat-operator), and join us in our [#kubernetes](https://habitat-sh.slack.com/messages/kubernetes/) channel in the [Chef Habitat Slack](https://slack.habitat.sh).
+### Deploy the Chef Habitat bastion on Kubernetes
 
-### Kubernetes exporter
+Complete examples may be downloaded from [this folder](https://www.habitat.sh/docs/examples/kubernetes_hab_bastion/)
 
-When using the Chef Habitat Operator, you can easily convert packages and run them on your Kubernetes cluster using the [Kubernetes exporter](https://kinvolk.io/blog/2017/12/introducing-the-habitat-kubernetes-exporter/):
+To explain how this works, let's break down the hab-bastion.yaml file:
 
-```bash
-$ hab pkg export kubernetes ORIGIN/NAME
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hab-bastion
+spec:
+  ports:
+  - name: gossip-listener
+    protocol: UDP
+    port: 9638
+    targetPort: 9638
+  - name: http-gateway
+    protocol: TCP
+    port: 9631
+    targetPort: 9631
+  selector:
+    app: hab-bastion
+  clusterIP: None
 ```
 
-### Bare Kubernetes
+This service definition creates a virtual IP (VIP), opening access to the Chef Habitat service that runs on the pod.
+- The habitat gossip port (9638/UDP) listener
+- The habitat http-gateway (9631/TCP) listener
+- makes service name available in DNS (as `hab-bastion` or `hab-bastion.namespace-name`, etc) and discoverable by any pod
 
-Users are not required to use the Chef Habitat Operator. Chef Habitat packages exported as containers may be deployed to Kubernetes through the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, the container may be launched like this example:
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: hab-bastion
+spec:
+    spec:
+      securityContext:
+        fsGroup: 42
+```
 
-```bash
+This section sets the group ownership for the persistent volume mount point so the Habitat Supervisor can write to it.  The Habitat user (`hab`) by default has the uid `42` and the gid `42`.
+
+```yaml
+      containers:
+      - name: hab-bastion
+        image: mydockerorigin/hab_bastion:latest
+        args:
+        - '--permanent-peer'
+```
+
+The `image:` line defines the source of the docker container. In this case, the instructions create an image from a Chef Habitat plan using the `hab pkg export docker` command. It only runs the Chef Habitat Supervisor (hab-sup) service.
+The argument `--permanent-peer` instructs the Supervisor to act as a permanent peer.
+
+```yaml
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "100m" # equivalent to 0.1 of a CPU core
+```
+
+Resource requests are important because they give instructions to the Kubernetes scheduler--without them, you might overload some nodes while under-using others.
+
+```yaml
+        ports:
+        - name: gossip-listener
+          protocol: UDP
+          containerPort: 9638
+        - name: http-gateway
+          protocol: TCP
+          containerPort: 9631
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9631
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9631
+          initialDelaySeconds: 15
+          periodSeconds: 20
+```
+
+The `livenessProbe` tells Kubernetes if the pod is healthy or not.  If not, the pod gets restarted.
+The `readinessProbe` signals to Kubernetes that the pod has started up successfully.
+
+```yaml
+        volumeMounts:
+        - name: hab-bastion
+          mountPath: /hab/sup
+  volumeClaimTemplates:
+  - metadata:
+      name: hab-bastion
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      # uncomment if you don't have a default StorageClass
+      # storageClassName: "standard"
+      resources:
+        requests:
+          storage: 10Gi
+```
+
+All of the Habitat Supervisor's state data is stored under `/hab/sup` - we mount this on a persistent volume so it gets re-attached if the pod is ever rescheduled. The data persists!
+
+### Create a Kubernetes Deployment that works with the Bastion
+
+The following is an example of a Kubernetes `Stateful Set` built from the CockroachDB plan. The Bastion pattern uses the `--peer hab-bastion` configuration arguments to instruct the Kubernetes pods to use the `hab-bastion` service as a DNS-resolvable host name.
+
+```yaml
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cockroachdb
+spec:
+  selector:
+    matchLabels:
+      app: cockroachdb
+  serviceName: cockroachdb
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: cockroachdb
+    spec:
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        fsGroup: 42
+      containers:
+      - name: cockroachdb
+        image: irvingpop/cockroach:latest
+        args:
+        - --peer
+        - hab-bastion
+        - --topology
+        - leader
+        resources:
+          requests:
+            memory: "300Mi"
+            cpu: "500m"
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: cockroachdb
+          containerPort: 26257
+        volumeMounts:
+        - name: cockroachdb-data
+          mountPath: /hab/svc/cockroach/data
+  volumeClaimTemplates:
+  - metadata:
+      name: cockroachdb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+```
+
+## Bare Kubernetes
+
+If your packages don't require communication with the Chef Habitat Supervisor ring, such as binds, secrets, etc., then you can execute your packages directly on the cluster. You can deploy Chef Habitat packages exported as containers to Kubernetes with the [`kubectl` command](http://kubernetes.io/docs/user-guide/pods/single-container/). Using the [Docker exporter](/docs/developing-packages#pkg-exports) to create a containerized application, you can launch the container like this example:
+
+```shell
 $ kubectl run mytutorial --image=myorigin/mytutorial --port=8080
 ```
 
-Assuming the Docker image is pulled from `myorigin/mytutorial` we are exposing port 8080 on the container for access. Networking ports exposed by Chef Habitat need to be passed to `kubectl run` as `--port` options. We can see our deployment with the `kubectl get` command:
+Assuming you're using the Docker image pulled from `myorigin/mytutorial`, port 8080 on the container should be accessible. Pass networking ports exposed by Chef Habitat with `kubectl run` as `--port` options. In this example, the `kubectl get` command is:
 
-```bash
+```shell
 $ kubectl get pods -l run=mytutorial
 ```
 
