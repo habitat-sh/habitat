@@ -96,6 +96,7 @@ subscriptions:
     actions:
       - trigger_pipeline:test_scenarios
 
+
   # Scheduled Pipelines
   ########################################################################
 
@@ -122,6 +123,8 @@ subscriptions:
       # packages.chef.io is the only thing the "curlbash" installers
       # should care about.
       - bash:.expeditor/scripts/purge_cdn.sh:
+          post_commit: true
+      - trigger_pipeline:finish_release:
           post_commit: true
 
 schedules:
