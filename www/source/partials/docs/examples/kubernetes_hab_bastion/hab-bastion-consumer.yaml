@@ -1,0 +1,50 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cockroachdb
+spec:
+  selector:
+    matchLabels:
+      app: cockroachdb
+  serviceName: cockroachdb
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: cockroachdb
+    spec:
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        fsGroup: 42
+      containers:
+      - name: cockroachdb
+        image: irvingpop/cockroach:latest
+        args:
+        - --peer
+        - hab-bastion
+        - --topology
+        - leader
+#        env:
+#        - name: HAB_COCKROACH
+#          value: |
+        resources:
+          requests:
+            memory: "300Mi"
+            cpu: "500m" # equivalent to 0.5 CPU core
+        ports:
+        - name: http
+          containerPort: 8080
+        - name: cockroachdb
+          containerPort: 26257
+        volumeMounts:
+        - name: cockroachdb-data
+          mountPath: /hab/svc/cockroach/data
+  volumeClaimTemplates:
+  - metadata:
+      name: cockroachdb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi

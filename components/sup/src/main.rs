@@ -43,7 +43,8 @@ use habitat_core::crypto::dpapi::encrypt;
 use habitat_core::{self,
                    crypto::{self,
                             SymKey},
-                   os::process::ShutdownTimeout,
+                   os::{process::ShutdownTimeout,
+                        signals},
                    url::{bldr_url_from_env,
                          default_bldr_url},
                    ChannelIdent};
@@ -82,6 +83,8 @@ fn main() {
     logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
+    signals::init();
+
     let result = start_rsr_imlw_mlw_gsw_smw_rhw_msw(flags);
     let exit_code = match result {
         Ok(_) => 0,

@@ -12,9 +12,6 @@ paths = [
 [hab-backline]
 plan_path = "components/backline"
 
-[hab-bintray-publish]
-plan_path = "components/bintray-publish"
-
 [hab-launcher]
 plan_path = "components/launcher/habitat"
 paths = [

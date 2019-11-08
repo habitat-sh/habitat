@@ -8,8 +8,8 @@ source .expeditor/scripts/release_habitat/shared.sh
 # https://github.com/chef/ci-studio-common/issues/200)
 eval "$(vault-util fetch-secret-env)"
 
-export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
-export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
+export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
+export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
 channel=$(get_release_channel)
 
@@ -34,18 +34,12 @@ declare -g hab_binary
 curlbash_hab "$BUILD_PKG_TARGET"
 import_keys
 
-# Set SSL cert location
-export SSL_CERT_FILE=/usr/local/etc/openssl/cert.pem
-
 # We invoke hab-plan-build.sh directly via sudo, so we don't get the key management that studio provides.
 # Copy keys from the user account Habitat cache to the system Habitat cache so that they are present for root.
 sudo mkdir -p /hab/cache/keys
 sudo cp -r ~/.hab/cache/keys/* /hab/cache/keys/
 
-echo "--- :rust: Installing Rust"
-curl https://sh.rustup.rs -sSf | sh -s -- -y
-# This ensures the appropriate binaries are on our path
-source "${HOME}/.cargo/env"
+install_rustup
 
 # set the rust toolchain
 rust_toolchain="$(cat rust-toolchain)"
@@ -63,14 +57,9 @@ echo "--- :habicat: Uploading ${pkg_ident:?} to ${HAB_BLDR_URL} in the '${channe
 ${hab_binary} pkg upload \
               --channel="${channel}" \
               --auth="${HAB_AUTH_TOKEN}" \
+              --no-build \
               "results/${pkg_artifact:?}"
 
-${hab_binary} pkg promote \
-              --auth="${HAB_AUTH_TOKEN}" \
-              "${pkg_ident}" "${channel}" "${BUILD_PKG_TARGET}"
-
-echo "--- :buildkite: Storing artifact ${pkg_ident}"
-buildkite-agent artifact upload "results/${pkg_artifact}"
-buildkite-agent meta-data set MACOS_ARTIFACT "results/${pkg_artifact}"
-
 echo "<br>* ${pkg_ident} (${BUILD_PKG_TARGET})" | buildkite-agent annotate --append --context "release-manifest"
+
+set_target_metadata "${pkg_ident}" "${pkg_target}"

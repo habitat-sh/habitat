@@ -293,7 +293,16 @@ mod test {
               rootfs.path(),
               force).unwrap();
         #[cfg(windows)]
-        assert!(fs::read_to_string(rootfs_bin_dir.join(magicate_link)).unwrap().contains(&format!("PATH={}{}", rootfs_src_dir.to_string_lossy(), ";%PATH%")));
+        assert!(
+                fs::read_to_string(rootfs_bin_dir.join(magicate_link)).unwrap()
+                                                                      .contains(&format!(
+            "PATH={};{};{}",
+            rootfs_src_dir.to_string_lossy(),
+            env::join_paths(hcore::fs::windows_system_paths()).unwrap()
+                                                              .to_string_lossy(),
+            "%PATH%"
+        ))
+        );
         assert_eq!(rootfs_src_dir.join("magicate.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join(magicate_link)).unwrap()
                                                                           .target);
@@ -305,7 +314,16 @@ mod test {
               rootfs.path(),
               force).unwrap();
         #[cfg(windows)]
-        assert!(fs::read_to_string(rootfs_bin_dir.join(hypnoanalyze_link)).unwrap().contains(&format!("PATH={}{}", rootfs_src_dir.to_string_lossy(), ";%PATH%")));
+        assert!(
+                fs::read_to_string(rootfs_bin_dir.join(hypnoanalyze_link)).unwrap()
+                                                                          .contains(&format!(
+            "PATH={};{};{}",
+            rootfs_src_dir.to_string_lossy(),
+            env::join_paths(hcore::fs::windows_system_paths()).unwrap()
+                                                              .to_string_lossy(),
+            "%PATH%"
+        ))
+        );
         assert_eq!(rootfs_src_dir.join("hypnoanalyze.exe"),
                    Binlink::from_file(&rootfs_bin_dir.join(hypnoanalyze_link)).unwrap()
                                                                               .target);

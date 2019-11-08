@@ -60,14 +60,13 @@ use habitat_common::{liveliness_checker,
 #[cfg(unix)]
 use habitat_core::os::{process::{ShutdownSignal,
                                  Signal},
-                       signals::SignalEvent};
+                       signals};
 use habitat_core::{crypto::SymKey,
                    env,
                    fs::FS_ROOT_PATH,
-                   os::{process::{self,
-                                  Pid,
-                                  ShutdownTimeout},
-                        signals},
+                   os::process::{self,
+                                 Pid,
+                                 ShutdownTimeout},
                    package::{Identifiable,
                              PackageIdent,
                              PackageInstall},
@@ -956,17 +955,6 @@ impl Manager {
             debug!("http-gateway started");
         }
 
-        // On Windows initializng the signal handler will create a ctrl+c handler for the
-        // process which will disable default windows ctrl+c behavior and allow us to
-        // handle via check_for_signal. However, if the supervsor is in a long running
-        // non-run hook, the below loop will not get to check_for_signal in a reasonable
-        // amount of time and the supervisor will not respond to ctrl+c. On Windows, we
-        // let the launcher catch ctrl+c and gracefully shut down services. ctrl+c should
-        // simply halt the supervisor
-        if !self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
-            signals::init();
-        }
-
         // Enter the main Supervisor loop. When we break out, it'll be
         // because we've been instructed to shutdown. The value we
         // break out with governs exactly how we shut down.
@@ -1018,19 +1006,12 @@ impl Manager {
                 break ShutdownMode::Departed;
             }
 
-            // This formulation is gross, but it doesn't seem to compile on Windows otherwise.
-            #[allow(clippy::match_bool)]
-            #[allow(clippy::single_match)]
             #[cfg(unix)]
-            match self.feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
-                false => {
-                    if let Some(SignalEvent::Passthrough(Signal::HUP)) = signals::check_for_signal()
-                    {
-                        outputln!("Supervisor shutting down for signal");
-                        break ShutdownMode::Restarting;
-                    }
+            {
+                if signals::pending_sighup() {
+                    outputln!("Supervisor shutting down for signal");
+                    break ShutdownMode::Restarting;
                 }
-                _ => {}
             }
 
             if let Some(package) = self.check_for_updated_supervisor() {

@@ -4,8 +4,8 @@ set -euo pipefail
 
 source .expeditor/scripts/release_habitat/shared.sh
 
-export HAB_AUTH_TOKEN="${ACCEPTANCE_HAB_AUTH_TOKEN}"
-export HAB_BLDR_URL="${ACCEPTANCE_HAB_BLDR_URL}"
+export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
+export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 
 ########################################################################
 
@@ -29,9 +29,6 @@ ${hab_binary} studio rm
 
 echo "--- :habicat: Building components/${component}"
 
-# This is a temporary measure so we can run fake releases
-export HAB_STUDIO_SECRET_DO_FAKE_RELEASE=$DO_FAKE_RELEASE
-
 HAB_BLDR_CHANNEL="${channel}" ${hab_binary} pkg build "components/${component}"
 source results/last_build.env
 
@@ -39,10 +36,9 @@ echo "--- :habicat: Uploading ${pkg_ident:?} to ${HAB_BLDR_URL} in the '${channe
 ${hab_binary} pkg upload \
               --channel="${channel}" \
               --auth="${HAB_AUTH_TOKEN}" \
+              --no-build \
               "results/${pkg_artifact:?}"
 
-${hab_binary} pkg promote \
-              --auth="${HAB_AUTH_TOKEN}" \
-              "${pkg_ident:?}" "${channel}" "${BUILD_PKG_TARGET}"
-
 echo "<br>* ${pkg_ident:?} (${BUILD_PKG_TARGET:?})" | buildkite-agent annotate --append --context "release-manifest"
+
+set_target_metadata "${pkg_ident}" "${pkg_target}"

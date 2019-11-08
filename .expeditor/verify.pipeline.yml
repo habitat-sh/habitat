@@ -47,6 +47,25 @@ steps:
           shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 40
 
+
+
+#######################################################################
+# CI Tests!
+#######################################################################
+
+  - label: "[unit] CI Tests :scream:"
+    command:
+      - cd .expeditor
+      - ./run-bats.sh
+    expeditor:
+      executor:
+        # The tests could theoretically be run under the Docker
+        # executor if the chefes/buildkite image had the bats
+        # helpers this expects. For now, though, try running the
+        # test in Docker "manually".
+        linux:
+          privileged: true
+
 #######################################################################
 # Unit Tests - Linux!
 #######################################################################
@@ -518,19 +537,6 @@ steps:
       HAB_LICENSE: "accept-no-persist"
     command:
       - .expeditor/scripts/verify/build_component.sh backline
-    expeditor:
-      executor:
-        linux:
-          privileged: true
-    retry:
-      automatic:
-        limit: 1
-
-  - label: "[build] :linux: bintray-publish"
-    env:
-      HAB_LICENSE: "accept-no-persist"
-    command:
-      - .expeditor/scripts/verify/build_component.sh bintray-publish
     expeditor:
       executor:
         linux:

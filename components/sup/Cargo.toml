@@ -27,6 +27,7 @@ habitat_butterfly = { path = "../butterfly", default-features = false }
 habitat_common = { path = "../common" }
 habitat_core = { path = "../core" }
 habitat_api_client = { path = "../builder-api-client" }
+habitat_http_client = { path = "../http-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"
@@ -37,7 +38,7 @@ lazy_static = "*"
 libc = "= 0.2.54" 
 log = "*"
 log4rs = "*"
-nats = { git = "https://github.com/habitat-sh/rust-nats" }
+nats = { git = "https://github.com/habitat-sh/rust-nats", rev = "a4c24be66fc54c0038af383b6df18d2ed0b5f376" }
 notify = "*"
 num_cpus = "*"
 parking_lot = "*"

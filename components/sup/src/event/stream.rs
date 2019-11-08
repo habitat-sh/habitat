@@ -6,7 +6,9 @@ use crate::{event::{Error,
             sup_futures};
 use futures::{future::Future,
               sync::mpsc as futures_mpsc};
-use nats::Client;
+use habitat_http_client;
+use nats::{native_tls::TlsConnector,
+           Client};
 use std::{thread,
           time::{Duration,
                  Instant}};
@@ -37,8 +39,18 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
                                     verbose,
                                     cluster_uri,
                                     auth_token,
-                                    connect_method, } = conn_info;
+                                    connect_method,
+                                    server_certificate, } = conn_info;
     let uri = nats_uri(&cluster_uri, &auth_token.to_string());
+
+    let mut tls_config = TlsConnector::builder();
+    for certificate in habitat_http_client::certificates(None)? {
+        tls_config.add_root_certificate(certificate);
+    }
+    if let Some(certificate) = server_certificate {
+        tls_config.add_root_certificate(certificate.into());
+    }
+    let tls_config = tls_config.build()?;
 
     // Note: With the way we are using the client, we will not respond to pings from the server
     // (https://nats-io.github.io/docs/nats_protocol/nats-protocol.html#pingpong).
@@ -50,6 +62,7 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
     let mut client = Client::new(uri.as_ref())?;
     client.set_name(&name);
     client.set_synchronous(verbose);
+    client.set_tls_config(tls_config);
 
     // Try to establish an intial connection to the NATS server.
     let start = Instant::now();
@@ -57,7 +70,7 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
     while let Err(e) = client.connect() {
         if let Some(timeout) = maybe_timeout {
             if Instant::now() > start + timeout {
-                return Err(Error::ConnectEventServerError);
+                return Err(Error::ConnectEventServer);
             }
             error!("Failed to connect to NATS server '{}'. Retrying...", e);
         } else {

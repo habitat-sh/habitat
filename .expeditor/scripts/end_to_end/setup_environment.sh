@@ -6,7 +6,7 @@ source .expeditor/scripts/shared.sh
 
 # `channel` should be channel we are pulling from
 #
-# e.g. `DEV`, `ACCEPTANCE` etc.
+# e.g. `dev`, `acceptance` etc.
 channel=${1:?You must specify a channel value}
 
 declare -g hab_binary

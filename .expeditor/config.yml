@@ -1,14 +1,16 @@
 # Documentation available at https://expeditor.chef.io/
 
+project:
+  alias: "habitat"
+
 github:
   # The file where the MAJOR.MINOR.PATCH version is kept. The version in this file
   # is bumped automatically via the `built_in:bump_version` merge_action.
-  # TODO: Change this to `VERSION` once we are live
-  version_file: "VERSION_FAKE"
-  version_tag_format: 'fake-{{version}}'
+  version_file: "VERSION"
+  version_tag_format: '{{version}}'
   # The file where our CHANGELOG is kept. This file is updated automatically with
   # details from the Pull Request via the `built_in:update_changelog` merge_action.
-  changelog_file: "CHANGELOG_FAKE.md"
+  changelog_file: "CHANGELOG.md"
   delete_branch_on_merge: true
 
 # Slack channel in Chef Software slack to send notifications about Expeditor actions
@@ -49,10 +51,11 @@ subscriptions:
           only_if_team_member:
             - habitat-sh/habitat-core-maintainers
 
-
   - workload: staged_workload_released:{{agent_id}}:release_staging:*
     actions:
-      - built_in:bump_version
+      - built_in:bump_version:
+          ignore_labels:
+            - "Expeditor: Skip Version Bump"
       - built_in:update_changelog
       - trigger_pipeline:release_habitat:
           only_if: built_in:bump_version
@@ -65,17 +68,26 @@ subscriptions:
       - trigger_pipeline:end_to_end
       - unlock_staging_area:release_staging:
           always_run: true
+      - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
+          always_run: true
+          post_commit: true
 
   # Make sure we unlock to allow later builds if one fails.
   - workload: buildkite_build_failed:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:release_staging:
           always_run: true
+      - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
+          always_run: true
+          post_commit: true
 
   - workload: buildkite_build_canceled:{{agent_id}}:release_habitat:*
     actions:
       - unlock_staging_area:release_staging:
           always_run: true
+      - bash:.expeditor/scripts/release_habitat/expeditor_destroy_build_channel.sh:
+          always_run: true
+          post_commit: true
 
   # Responses to End-To-End Pipeline
   ########################################################################
@@ -91,7 +103,39 @@ subscriptions:
     actions:
       - bash:.expeditor/scripts/cargo_update.sh
 
+  # Promotion Workloads
+  ########################################################################
+  # Only allow promotion actions from acceptance (to current) and
+  # current (to stable); other promotions are handled automatically by
+  # the pipeline.
+  - workload: project_promoted:{{agent_id}}:acceptance:*
+    actions:
+      - bash:.expeditor/scripts/expeditor_promote.sh
+
+  - workload: project_promoted:{{agent_id}}:current:*
+    actions:
+      - built_in:rollover_changelog
+      - bash:.expeditor/scripts/expeditor_promote.sh
+      # This purges the cache on promotion to stable, so our
+      # "curlbash" installers get the right packages. This isn't
+      # needed on other promotions, because the stable channel of
+      # packages.chef.io is the only thing the "curlbash" installers
+      # should care about.
+      - bash:.expeditor/scripts/purge_cdn.sh:
+          post_commit: true
+
 schedules:
   - name: cargo_update
     description: "Run 'cargo update' every Monday at 12PM UTC"
     cronline: "0 12 * * 1"
+
+promote:
+  channels:
+    # e2e pipeline tests from here
+    - dev
+    # acceptance Builder Supervisors update from here
+    - acceptance
+    # prod Builder Supervisors update from here
+    - current
+    # Habitat packages in stable, binary packages available to the world
+    - stable

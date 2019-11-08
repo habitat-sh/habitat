@@ -12,10 +12,9 @@ To install the Habitat Windows service, run:
 
 ```
 hab pkg install core/windows-service
-hab pkg exec core/windows-service install
 ```
 
-This will install the service in the Windows Service Control Manager (SCM). You can locate the service in the Services console app. It will be named "Habitat." It will be set to start automatically and run under the `Local System` account. You may of course change the startup type and/or account identity in the service's properties.
+This will install the package and invoke its `install` hook creating the service in the Windows Service Control Manager (SCM). You can locate the service in the Services console app. It will be named "Habitat." It will be set to start automatically and run under the `Local System` account. You may of course change the startup type and/or account identity in the service's properties.
 
 ## Uninstallation
 

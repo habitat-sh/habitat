@@ -1,13 +1,21 @@
 #!/bin/bash
 
-set -euo pipefail
-
 source .expeditor/scripts/shared.sh
 
 ### This file should include things that are used exclusively by the release pipeline
 
 get_release_channel() {
     echo "habitat-release-${BUILDKITE_BUILD_ID}"
+}
+
+# Read the contents of the VERSION file. This will be used to
+# determine where generated artifacts go in S3.
+#
+# As long as you don't `cd` out of the repository, this will do the
+# trick.
+get_version_from_repo() {
+    dir="$(git rev-parse --show-toplevel)"
+    cat "$dir/VERSION"
 }
 
 # Download public and private keys for the "core" origin from Builder.
@@ -51,9 +59,6 @@ install_release_channel_hab_binary() {
     local pkg_target="${1:-$BUILD_PKG_TARGET}"
     curlbash_hab "${pkg_target}"
 
-    # workaround for https://github.com/habitat-sh/habitat/issues/6771	
-    ${hab_binary} pkg install core/hab-studio
-
     echo "--- :habicat: Installed latest stable hab: $(${hab_binary} --version)"
     # now install the latest hab available in our channel, if it and the studio exist yet
     hab_version=$(get_latest_pkg_version_in_release_channel "hab")
@@ -69,4 +74,129 @@ install_release_channel_hab_binary() {
     else
         echo "--- Hab and studio versions did not match. hab: ${hab_version:-null} - studio: ${studio_version:-null}"
     fi
+}
+
+# Until we can reliably deal with packages that have the same
+# identifier, but different target, we'll track the information in
+# Buildkite metadata.
+#
+# Each time we put a package into our release channel, we'll record
+# what target it was built for.
+set_target_metadata() {
+    package_ident="${1}"
+    target="${2}"
+
+    echo "--- :partyparrot: Setting target metadata for '${package_ident}' (${target})"
+    buildkite-agent meta-data set "${package_ident}-${target}" "true"
+}
+
+# When we do the final promotions, we need to know the target of each
+# package in order to properly get the promotion done. If Buildkite metadata for
+# an ident/target pair exists, then that means that's a valid
+# combination, and we can use the target in the promotion call.
+ident_has_target() {
+    package_ident="${1}"
+    target="${2}"
+
+    echo "--- :partyparrot: Checking target metadata for '${package_ident}' (${target})"
+    buildkite-agent meta-data exists "${package_ident}-${target}"
+}
+
+get_version_from_hart() {
+    local hart="${1}"
+    ${hab_binary} pkg info --json "${hart}" | jq -r '.version'
+}
+
+get_release_from_hart() {
+    local hart="${1}"
+    ${hab_binary} pkg info --json "${hart}" | jq -r '.release'
+}
+
+# This bit of magic strips off the Habitat header (first 6 lines) from
+# the compressed tar file that is a core/hab .hart, and extracts the
+# contents of the `bin` directory only, into the ${archive_dir}
+# directory.
+#
+# For Linux and macOS packages, this will just include the single
+# `hab` binary, but on Windows, it will include `hab.exe`, as well as
+# all the DLL files needed to run it.
+#
+# At the end of the day, that's all we need to package up in a
+# Habitat-agnostic archive.
+#
+# Note that `dir` should exist before calling this function.
+extract_hab_binaries_from_hart() {
+    local hart="${1}"
+    local dir="${2}"
+
+    tail --lines=+6 "${hart}" | \
+        tar --extract \
+            --directory="${dir}" \
+            --xz \
+            --strip-components=7 \
+            --wildcards "hab/pkgs/core/hab/*/*/bin/"
+}
+
+make_tarball() {
+    local name="${1}"
+    local dir="${2}"
+
+    local artifact="${name}.tar.gz"
+    # Don't use --verbose, since this is called in various contexts
+    # where output may not be welcome.
+    tar --create \
+        "${dir}" | gzip --best > "${artifact}"
+}
+
+make_zip() {
+    local name="${1}"
+    local dir="${2}"
+
+    local artifact="${name}.zip"
+    # Similar to the tar command above, keep the noise level down,
+    # since this is called in various contexts where output may not be
+    # welcome.
+    zip --quiet -9 -r "${artifact}" "${dir}"
+}
+
+internal_archive_dir_name() {
+    local hart="${1}"
+    local target="${2}"
+    local hab_version
+    hab_version="$(get_version_from_hart "${hart}")"
+    local hab_release
+    hab_release="$(get_release_from_hart "${hart}")"
+
+    echo "hab-${hab_version}-${hab_release}-${target}"
+}
+
+create_archive_from_hart() {
+    local hart="${1}"
+    local target="${2}"
+
+    local archive_dir
+    archive_dir="$(internal_archive_dir_name "${hart}" "${target}")"
+    mkdir "${archive_dir}"
+
+    extract_hab_binaries_from_hart "${hart}" "${archive_dir}"
+
+    pkg_name="hab-${target}"
+
+    case "$target" in
+        *-linux | *-linux-kernel2)
+            pkg_artifact="${pkg_name}.tar.gz"
+            make_tarball "${pkg_name}" "${archive_dir}"
+            ;;
+        *-darwin | *-windows)
+            # TODO (CM): Why a zip for macOS?
+            pkg_artifact="${pkg_name}.zip"
+            make_zip "${pkg_name}" "${archive_dir}"
+            ;;
+        *)
+            echo "${hart} has unknown TARGET=$BUILD_PKG_TARGET"
+            exit 3
+            ;;
+    esac
+
+    echo "${pkg_artifact}"
 }

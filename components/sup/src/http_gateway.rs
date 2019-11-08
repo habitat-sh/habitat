@@ -244,18 +244,7 @@ impl Server {
                                            .service(routes())
                              }).workers(thread_count);
 
-            // On Windows the default actix signal handler will create a ctrl+c handler for the
-            // process which will disable default windows ctrl+c behavior and allow us to
-            // handle via check_for_signal in the supervisor service loop. However, if the
-            // supervisor is in a long running non-run hook, that loop will not get to
-            // check_for_signal in a reasonable amount of time and the supervisor will not
-            // respond to ctrl+c. On Windows, we let the launcher catch ctrl+c and gracefully
-            // shut down services. ctrl+c should simply halt the supervisor. The IgnoreSignals
-            // feature is always enabled in the Habitat Windows Service which relies on ctrl+c
-            // signals to stop the supervisor.
-            if feature_flags.contains(FeatureFlag::IGNORE_SIGNALS) {
-                server = server.disable_signals();
-            }
+            server = server.disable_signals();
 
             let bind = match tls_config {
                 Some(c) => server.bind_rustls(listen_addr.to_string(), c),

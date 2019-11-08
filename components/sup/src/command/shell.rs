@@ -3,11 +3,11 @@ use crate::error::{Error,
 use habitat_common::{outputln,
                      util::path};
 use habitat_core::fs::find_command;
-use libc;
+
+use habitat_core::os::process::become_command;
+
 use std::{env,
-          ffi::CString,
-          path::PathBuf,
-          ptr};
+          path::PathBuf};
 
 /// Our output key
 static LOGKEY: &str = "SH";
@@ -40,11 +40,6 @@ fn exec_shell(cmd: &str) -> Result<()> {
         Some(p) => p,
         None => return Err(Error::ExecCommandNotFound(cmd.to_string())),
     };
-    let c_cmd = CString::new(cmd_path.to_string_lossy().into_owned())?;
-    let mut argv = [c_cmd.as_ptr(), ptr::null()];
-    debug!("Exec {:?}", &cmd_path.display());
-    unsafe {
-        libc::execvp(c_cmd.as_ptr(), argv.as_mut_ptr());
-    }
+    become_command(cmd_path, &[])?;
     Ok(())
 }

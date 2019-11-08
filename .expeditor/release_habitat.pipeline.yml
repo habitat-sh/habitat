@@ -1,9 +1,9 @@
 expeditor:
   secrets:
-    # TODO: change this once we go to production
-    ACCEPTANCE_HAB_AUTH_TOKEN:
+    PIPELINE_HAB_AUTH_TOKEN:
       path: account/static/habitat/chef-ci
-      field: scotthain-sig-key
+      field: auth_token # Production Builder
+      # acceptance_auth_token = acceptance
   accounts:
     - aws/chef-cd
   defaults:
@@ -11,15 +11,13 @@ expeditor:
       timeout_in_minutes: 30
       env:
         HAB_ORIGIN: "core"
-        ACCEPTANCE_HAB_BLDR_URL: "https://bldr.acceptance.habitat.sh"
-        DO_FAKE_RELEASE: "true"
+        PIPELINE_HAB_BLDR_URL: "https://bldr.habitat.sh"
 
 steps:
 #######################################################################
 # Release!
 #######################################################################
 
-  # TODO If you add quotes around the target currently breaks a bash case statement :/
   - label: "[:linux: build hab]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh hab
@@ -29,7 +27,7 @@ steps:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
-  
+
   - label: "[:linux: :two: build hab]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh hab
@@ -51,7 +49,7 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
-  - label: "[:macos: build hab]"
+  - label: "[:mac: build hab]"
     command:
       # We need to install bash 4+ so we are able to use all the modern capabilities.
       - brew install bash
@@ -65,49 +63,6 @@ steps:
           inherit-environment-vars: true
       buildkite:
         timeout_in_minutes: 45
-
-
-  - wait
-
-  - label: "[:linux: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux
-
-  - label: "[:linux: :two: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-linux-kernel2
-
-  - label: "[:windows: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-windows
-
-  - label: "[:macos: upload hab binary]"
-    command:
-      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
-    expeditor:
-      executor:
-        docker:
-          privileged: true
-          environment:
-            - BUILD_PKG_TARGET=x86_64-darwin
 
   - wait
 
@@ -199,6 +154,9 @@ steps:
 
   - wait
 
+  # Now that we've got a new Studio, we can build everything else
+  # using the build toolchain we just built.
+
   - label: "[:linux: build launcher]"
     command:
       - .expeditor/scripts/release_habitat/build_component.sh launcher
@@ -222,19 +180,6 @@ steps:
   - label: "[:windows: build launcher]"
     command:
       - powershell .expeditor/scripts/release_habitat/build_component.ps1 launcher
-    expeditor:
-      executor:
-        docker:
-          host_os: windows
-          environment:
-            - BUILD_PKG_TARGET=x86_64-windows
-            - BUILDKITE_AGENT_ACCESS_TOKEN
-
-  - wait
-
-  - label: ":windows: Build windows service"
-    command:
-      - powershell .expeditor/scripts/release_habitat/build_component.ps1 windows-service
     expeditor:
       executor:
         docker:
@@ -273,8 +218,6 @@ steps:
           environment:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
-
-  - wait
 
   - label: "[:linux: build hab-pkg-aci]"
     command:
@@ -370,6 +313,18 @@ steps:
 
   - wait
 
+  # Windows Service must be built after the Windows Launcher
+  - label: ":windows: Build windows service"
+    command:
+      - powershell .expeditor/scripts/release_habitat/build_component.ps1 windows-service
+    expeditor:
+      executor:
+        docker:
+          host_os: windows
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+            - BUILDKITE_AGENT_ACCESS_TOKEN
+
   # The cfize export currently has a dependency on
   # hab-pkg-export-docker, so it must be built after that.
   - label: "[:linux: build hab-pkg-cfize]"
@@ -384,24 +339,87 @@ steps:
 
   - wait
 
-  # This handles promotion of packages of all targets; *everything* in
-  # the channel goes into DEV
-  - label: "[:hab: Promote to DEV]"
-    command:
-      - .expeditor/scripts/release_habitat/promote_packages.sh habitat-release-$BUILDKITE_BUILD_ID DEV
-    expeditor:
-      executor:
-        docker:
-          privileged: true
+  # TODO (CM): It wouldn't take too much additional work to have
+  # `package_and_upload_binary.sh` operate on ALL targets at once.
 
-  - wait
-
-  - label: "[:habitat: delete build channel]"
+  - label: "[:linux: upload hab binary]"
     command:
-      - .expeditor/scripts/release_habitat/remove_build_channel.sh habitat-release-$BUILDKITE_BUILD_ID
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
     expeditor:
       executor:
         docker:
           privileged: true
           environment:
             - BUILD_PKG_TARGET=x86_64-linux
+
+  - label: "[:linux: :two: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux-kernel2
+
+  - label: "[:windows: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-windows
+
+  - label: "[:mac: upload hab binary]"
+    command:
+      - .expeditor/scripts/release_habitat/package_and_upload_binary.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-darwin
+
+  - label: ":docker: Upload containers to Docker Hub"
+    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux"
+    expeditor:
+      executor:
+        linux:
+          privileged: true
+
+  - label: ":docker: :two: Upload containers to Docker Hub"
+    command: .expeditor/scripts/release_habitat/dockerhub_upload.sh
+    env:
+      BUILD_PKG_TARGET: "x86_64-linux-kernel2"
+    expeditor:
+      executor:
+        linux:
+          privileged: true
+
+  - label: ":docker: :windows: Upload windows 2016 container to Docker Hub"
+    command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
+    expeditor:
+      executor:
+        windows:
+          os_version: 2016
+
+  - label: ":docker: :windows: Upload windows 2019 container to Docker Hub"
+    command: .expeditor/scripts/release_habitat/publish_docker_studio.ps1
+    expeditor:
+      executor:
+        windows:
+          os_version: 2019
+
+  - wait
+
+  - label: "[:habicat: Generate Manifest and promote to dev channel]"
+    command:
+      - .expeditor/scripts/release_habitat/promote_artifacts_to_dev.sh habitat-release-$BUILDKITE_BUILD_ID
+    expeditor:
+      executor:
+        docker:
+          privileged: true

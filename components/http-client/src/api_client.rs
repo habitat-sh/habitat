@@ -5,11 +5,12 @@ use std::{fs,
           str::FromStr,
           time::Duration};
 
+use native_tls::Certificate;
 use reqwest::{header::{HeaderMap,
                        HeaderValue,
                        CONNECTION,
                        USER_AGENT},
-              Certificate,
+              Certificate as ReqwestCertificate,
               IntoUrl,
               Proxy,
               RequestBuilder};
@@ -102,7 +103,13 @@ impl ApiClient {
                                                    .danger_accept_invalid_certs(skip_cert_verify);
 
         client =
-            certificates(fs_root_path)?.into_iter()
+            certificates(fs_root_path)?.iter()
+                                       .map(Certificate::to_der)
+                                       .collect::<std::result::Result<Vec<_>, _>>()?
+                                       .into_iter()
+                                       .map(|raw| ReqwestCertificate::from_der(&*raw))
+                                       .collect::<std::result::Result<Vec<_>, _>>()?
+                                       .into_iter()
                                        .fold(client, |client, cert| {
                                            client.add_root_certificate(cert)
                                        });
@@ -280,7 +287,7 @@ fn user_agent(product: &str, version: &str) -> Result<HeaderValue> {
 ///    will also get loaded into the root certs list. Both PEM and DER formats are supported. All
 ///    files will be assumed to be one of the supported formats, and any errors will be ignored
 ///    silently (other than debug logging)
-fn certificates(fs_root_path: Option<&Path>) -> Result<Vec<Certificate>> {
+pub fn certificates(fs_root_path: Option<&Path>) -> Result<Vec<Certificate>> {
     let mut certificates = Vec::new();
     let cert_cache_dir = cache_ssl_path(fs_root_path);
 
@@ -360,5 +367,5 @@ fn cert_from_file(file_path: &Path) -> Result<Certificate> {
     let buf = fs::read(file_path)?;
 
     Certificate::from_pem(&buf).or_else(|_| Certificate::from_der(&buf))
-                               .map_err(Error::ReqwestError)
+                               .map_err(Error::NativeTlsError)
 }

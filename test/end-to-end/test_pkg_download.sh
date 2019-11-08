@@ -7,8 +7,10 @@
 # for cleaner code and more fine grained tests. However, they are a
 # bit of a pain to program in bash. This is intended to provide
 # minimal testing pending our figuring out the best approach for
-# command line testing. 
+# command line testing.
 #
+# Assumptions:
+# 1. ${CACHE_DIR} can be set to a writable location on the filesystem
 
 set -euo pipefail
 
@@ -16,12 +18,12 @@ set -euo pipefail
 #
 # Uses the `HAB_INTERNAL_BLDR_CHANNEL` environment variable to control
 # the base packages channel for the exporter.
-HAB=$HAB_TEST_CMD || "hab"
+HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
 IDENT_FILE="ident_file"
 
 echo
-echo "==========Testing command ${HAB}, using cache dir ${CACHE_DIR}"
+echo "--- Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
 echo
 
 before_test() {
@@ -52,7 +54,7 @@ check_gzip_idents() {
     check_ident_downloaded "core-less"
     check_ident_downloaded "core-ncurses"
 
-    count=$(find "${CACHE_DIR}/artifacts" -type f | wc -l) 
+    count=$(find "${CACHE_DIR}/artifacts" -type f | wc -l)
 
     echo "found $count downloads"
     if [ "$count" -eq "8" ]; then
@@ -68,7 +70,7 @@ check_rust_idents() {
     check_ident_downloaded "core-visual-cpp-redist-2015"
     check_ident_downloaded "core-visual-cpp-build-tools-2015"
 
-    count=$(find "${CACHE_DIR}/artifacts" -type f | wc -l) 
+    count=$(find "${CACHE_DIR}/artifacts" -type f | wc -l)
 
     echo "found $count downloads"
     if [ "$count" -eq "3" ]; then
@@ -84,23 +86,21 @@ test_expecting_fail() {
     CMD=$2
 
     echo
-    echo "==========Testing ${DESC}"
+    echo "--- Testing ${DESC}"
     if ${CMD}; then
 	echo "FAIL (expected error) $CMD"
 	exit 1
     else
 	echo "PASS (got error) $CMD"
     fi;
-    
-
 }
 
 success_from_command_line() {
     before_test
 
-    echo "==========Testing command line idents"
-    
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/gzip"
+    echo "--- Testing command line idents"
+
+    CMD="$HAB pkg download --channel stable --download-directory=${CACHE_DIR} core/gzip"
     echo "Testing command line: ${CMD}"
     ${CMD}
 
@@ -108,25 +108,42 @@ success_from_command_line() {
 }
 
 success_from_file() {
-    
     before_test
 
-    echo "==========Testing file idents"
-    
+    echo "--- Testing file idents"
+
     echo "core/gzip" > ${IDENT_FILE}
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"   
+    CMD="$HAB pkg download --channel stable --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"
     echo "Testing command line: ${CMD}"
     ${CMD}
 
-    check_gzip_idents   
+    check_gzip_idents
+}
+
+success_from_file_with_comments_and_emtpy_lines() {
+    before_test
+
+    echo "--- Testing file idents when file has white spaces and comments"
+
+    cat << IDENT_FILE > ${IDENT_FILE}
+# this is a series
+# of comments, followed by empty lines and whitespaces
+
+ core/gzip 
+IDENT_FILE
+    CMD="$HAB pkg download --channel stable --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"
+    echo "Testing command line: ${CMD}"
+    ${CMD}
+
+    check_gzip_idents
 }
 
 success_from_alternate_arch() {
     before_test
-    
-    echo "==========Testing command line idents"
-    
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/rust --target=x86_64-windows"
+
+    echo "--- Testing command line idents"
+
+    CMD="$HAB pkg download --channel stable --download-directory=${CACHE_DIR} core/rust --target=x86_64-windows"
     echo "Testing command line: ${CMD}"
     ${CMD}
 
@@ -136,23 +153,30 @@ success_from_alternate_arch() {
 bad_package_as_arg() {
     before_test
 
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} arglebargle"   
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} arglebargle"
     test_expecting_fail "Bad package on command line" "$CMD"
+}
+
+no_package_from_args() {
+    before_test
+
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR}"
+    test_expecting_fail "No package identifers provided" "$CMD"
 }
 
 bad_package_in_file() {
     before_test
-	
+
     echo "arglebargle" > ${IDENT_FILE}
 
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"   
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${IDENT_FILE}"
     test_expecting_fail "Bad package in provided file" "$CMD"
 }
 
 no_such_package() {
     before_test
 
-    CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/half_life_4"   
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/half_life_4"
     test_expecting_fail "Bad package on command line" "$CMD"
 
 }
@@ -183,14 +207,14 @@ bad_token() {
 
 bad_url() {
     before_test
-    
+
     CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/gzip --url='https://www.example.org'"
     test_expecting_fail "Bad url" "$CMD"
 }
 
 bad_channel() {
     before_test
-    
+
     CMD="$HAB pkg download --download-directory=${CACHE_DIR} core/gzip --channel=number_five"
     test_expecting_fail "Bad channel" "$CMD"
 }
@@ -199,12 +223,14 @@ bad_channel() {
 # functional tests
 success_from_command_line
 success_from_file
+success_from_file_with_comments_and_emtpy_lines
 
 success_from_alternate_arch
 
 # failure tests
 
 bad_package_as_arg
+no_package_from_args
 bad_package_in_file
 no_such_package
 cannot_create_dir
@@ -212,4 +238,3 @@ bad_target
 bad_token
 bad_url
 bad_channel
-
