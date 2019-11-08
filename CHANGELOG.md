@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.5 -->
-## [0.90.5](https://github.com/habitat-sh/habitat/tree/0.90.5) (2019-11-08)
+<!-- latest_release unreleased -->
+## Unreleased
 
 #### Merged Pull Requests
-- Kubernetes docs update, removing references to the Operator and replacing with the Bastion pattern [#7144](https://github.com/habitat-sh/habitat/pull/7144) ([irvingpop](https://github.com/irvingpop))
+- Trigger finish release pipeline as post_commit action of promotion to current [#7164](https://github.com/habitat-sh/habitat/pull/7164) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.88.0 -->
@@ -32,6 +32,7 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
+- Trigger finish release pipeline as post_commit action of promotion to current [#7164](https://github.com/habitat-sh/habitat/pull/7164) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.5 -->
 - Kubernetes docs update, removing references to the Operator and replacing with the Bastion pattern [#7144](https://github.com/habitat-sh/habitat/pull/7144) ([irvingpop](https://github.com/irvingpop)) <!-- 0.90.5 -->
 - [CI] Purge Fastly cache on promotion to stable only [#7172](https://github.com/habitat-sh/habitat/pull/7172) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.4 -->
 - [CI] Remove old CI pipeline code [#7169](https://github.com/habitat-sh/habitat/pull/7169) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.3 -->
