@@ -1,17 +1,15 @@
-use std::{ffi::CStr,
-          mem};
-
-use libc;
-
 use crate::{error::{Error,
                     Result},
             os::system::Uname};
 use errno::errno;
+use libc;
+use std::{ffi::CStr,
+          mem};
 
 pub fn uname() -> Result<Uname> { unsafe { uname_libc() } }
 
 unsafe fn uname_libc() -> Result<Uname> {
-    let mut utsname: libc::utsname = mem::uninitialized();
+    let mut utsname: libc::utsname = mem::MaybeUninit::uninit().assume_init();
     let rv = libc::uname(&mut utsname);
     if rv < 0 {
         let errno = errno();
