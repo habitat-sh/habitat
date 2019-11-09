@@ -1,0 +1,43 @@
+{
+  "name": "foundation-sites",
+  "version": "6.2.4",
+  "license": "MIT",
+  "main": [
+    "scss/foundation.scss",
+    "dist/foundation.js"
+  ],
+  "ignore": [
+    "config",
+    "docs",
+    "gulp",
+    "lib",
+    "test",
+    "composer.json",
+    "CONTRIBUTING.md",
+    "gulpfile.js",
+    "meteor-README.md",
+    "package.js",
+    "package.json",
+    "sache.json",
+    ".editorconfig",
+    ".npm",
+    ".gitignore",
+    ".npmignore",
+    ".versions",
+    ".babelrc"
+  ],
+  "dependencies": {
+    "jquery": "~2.2.0",
+    "what-input": "~2.0.0"
+  },
+  "homepage": "https://github.com/zurb/foundation-sites",
+  "_release": "6.2.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "v6.2.4",
+    "commit": "ab172838d6de406204956015c9fd393c5a526e0e"
+  },
+  "_source": "https://github.com/zurb/foundation-sites.git",
+  "_target": "~6.2.3",
+  "_originalSource": "foundation-sites"
+}

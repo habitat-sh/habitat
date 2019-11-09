@@ -219,8 +219,8 @@ body.circles {
 
 .main-content__has-sidebar {
   background-color: $hab-white; // fallback
-  background: url("/images/graphics/article-watermark.png") no-repeat right bottom $white-slightly-transparent;
-  background: url("/images/graphics/article-watermark.svg") no-repeat right bottom $white-slightly-transparent;
+  background: url("/images/graphics/article-watermark.png") no-repeat right bottom $white-slightly-transparent ;
+  background: url("/images/graphics/article-watermark.svg") no-repeat right bottom  $white-slightly-transparent ;
   border-radius: $global-radius;
   height: 100%;
   min-height: 70vh;

@@ -15,15 +15,19 @@ gem 'redcarpet'
 gem 'middleman-vegas'
 
 # Middleman Gems
-gem 'middleman', '>= 4.1'
-gem 'middleman-autoprefixer'
-gem 'middleman-livereload'
+gem 'middleman', '>= 4.1.2'
 gem 'middleman-s3_sync'
-gem 'middleman-sprockets'
+gem 'middleman-sprockets', "~> 4.0.0.rc"
+gem "middleman-compass"
 gem 'middleman-blog', '>= 4.0'
 gem 'middleman-minify-html'
 gem 'mime-types'
 
+# Vendor prefixes for sass
+gem 'middleman-autoprefixer'
+
+# Live-reloading plugin
+gem "middleman-livereload", "~> 3.4"
 
 gem 'rubocop', require: false
 gem 'scss_lint', require: false
