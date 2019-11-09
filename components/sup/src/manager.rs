@@ -1859,9 +1859,7 @@ const FD_DIR: &str = "/proc/self/fd";
 const FD_DIR: &str = "/dev/fd";
 
 #[cfg(unix)]
-fn get_fd_count() -> std::io::Result<usize> {
-    Ok(fs::read_dir(FD_DIR)?.count())
-}
+fn get_fd_count() -> std::io::Result<usize> { Ok(fs::read_dir(FD_DIR)?.count()) }
 
 #[cfg(unix)]
 fn track_memory_stats() {
