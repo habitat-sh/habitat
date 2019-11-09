@@ -14,6 +14,7 @@ use serde_json;
 use serde_transcode;
 use std::{self,
           borrow::Cow,
+          clone::Clone,
           env,
           fs::File,
           io::prelude::*,
@@ -105,7 +106,7 @@ impl Cfg {
     pub fn new<P>(package: &P, config_from: Option<&PathBuf>) -> Result<Cfg>
         where P: PackageConfigPaths
     {
-        let override_config_dir = config_from.and_then(|c| Some(c.clone()));
+        let override_config_dir = config_from.map(Clone::clone);
         let default = {
             let pkg_root = match override_config_dir {
                 Some(ref path) => Cow::Borrowed(path),

@@ -30,7 +30,7 @@ pub fn temp_package_directory(path: &Path) -> Result<TempDir> {
     let temp_install_prefix =
         path.file_name()
             .and_then(OsStr::to_str)
-            .and_then(|dirname| Some(format!("{}-{}", INSTALL_TMP_PREFIX, dirname)))
+            .map(|dirname| format!("{}-{}", INSTALL_TMP_PREFIX, dirname))
             .ok_or_else(|| {
                 Error::PackageUnpackFailed("Could not generate prefix for temporary package \
                                             directory"

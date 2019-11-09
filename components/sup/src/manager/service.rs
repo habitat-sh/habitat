@@ -334,14 +334,14 @@ impl Service {
 
     /// Returns the config root given the package and optional config-from path.
     fn config_root(package: &Pkg, config_from: Option<&PathBuf>) -> PathBuf {
-        config_from.and_then(|p| Some(p.as_path()))
+        config_from.map(PathBuf::as_path)
                    .unwrap_or(&package.path)
                    .join("config")
     }
 
     /// Returns the hooks root given the package and optional config-from path.
     fn hooks_root(package: &Pkg, config_from: Option<&PathBuf>) -> PathBuf {
-        config_from.and_then(|p| Some(p.as_path()))
+        config_from.map(PathBuf::as_path)
                    .unwrap_or(&package.path)
                    .join("hooks")
     }

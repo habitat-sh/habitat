@@ -193,11 +193,9 @@ impl ServiceGroup {
         SG_FROM_STR_RE.captures(&self.0)
                       .unwrap()
                       .name("application_environment")
-                      .and_then(|v| {
-                          Some(
-                    ApplicationEnvironment::from_str(v.as_str())
-                        .expect("ApplicationEnvironment is valid and parses."),
-                )
+                      .map(|v| {
+                          ApplicationEnvironment::from_str(v.as_str())
+                        .expect("ApplicationEnvironment is valid and parses.")
                       })
     }
 
@@ -221,7 +219,7 @@ impl ServiceGroup {
         SG_FROM_STR_RE.captures(&self.0)
                       .unwrap()
                       .name("organization")
-                      .and_then(|v| Some(v.as_str()))
+                      .map(|v| v.as_str())
     }
 
     /// Set a new organization for this Service Group.
