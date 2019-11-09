@@ -31,11 +31,7 @@ habitat_http_client = { path = "../http-client" }
 habitat-launcher-client = { path = "../launcher-client" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 lazy_static = "*"
-# Temporarily pin libc. The palaver crate uses the shorthand for semver compatible updates,
-# but the libc crate changed the types of some of the consts and functions it provides.
-# This pin can be removed once a release with https://github.com/alecmocatta/palaver/pull/15
-# and https://github.com/alecmocatta/palaver/pull/16 merged is made.
-libc = "= 0.2.54" 
+libc = "*"
 log = "*"
 log4rs = "*"
 nats = { git = "https://github.com/habitat-sh/rust-nats", rev = "a4c24be66fc54c0038af383b6df18d2ed0b5f376" }
@@ -70,8 +66,6 @@ valico = "*"
 caps = "*"
 
 [target.'cfg(target_family = "unix")'.dependencies]
-# palaver's default features require nightly; see https://github.com/alecmocatta/palaver/blob/master/Cargo.toml
-palaver = { version = "*", default-features = false }
 jemallocator = "*"
 jemalloc-ctl = "*"
 

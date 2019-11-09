@@ -35,8 +35,6 @@ extern crate lazy_static;
 extern crate log;
 extern crate notify;
 extern crate num_cpus;
-#[cfg(unix)]
-extern crate palaver;
 #[macro_use]
 extern crate prometheus;
 extern crate prost;
