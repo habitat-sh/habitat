@@ -21,4 +21,4 @@ node_modules/
 .DS_Store
 
 # Ignore bower_components
-bower_components/
+source/bower_components
