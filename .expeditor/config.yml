@@ -106,10 +106,14 @@ subscriptions:
 
   # Promotion Workloads
   ########################################################################
-  # Only allow promotion actions from acceptance (to current) and
-  # current (to stable); other promotions are handled automatically by
-  # the pipeline.
+  # Only allow promotion actions from acceptance->staging,
+  # staging->current, and current->stable; other promotions are
+  # handled automatically by the pipeline.
   - workload: project_promoted:{{agent_id}}:acceptance:*
+    actions:
+      - bash:.expeditor/scripts/expeditor_promote.sh
+
+  - workload: project_promoted:{{agent_id}}:staging:*
     actions:
       - bash:.expeditor/scripts/expeditor_promote.sh
 
@@ -138,6 +142,9 @@ promote:
     - dev
     # acceptance Builder Supervisors update from here
     - acceptance
+    # stable "holding area" for us to perform manual evaluations. This
+    # is only really until we have automated more of our testing.
+    - staging
     # prod Builder Supervisors update from here
     - current
     # Habitat packages in stable, binary packages available to the world
