@@ -390,7 +390,6 @@ steps:
             - BUILD_PKG_TARGET=x86_64-linux
 
   - label: "[:linux: test_pkg_bulkupload]"
-    skip: "Pending a refactoring"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
       - test/end-to-end/test_pkg_bulkupload.sh

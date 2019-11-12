@@ -16,36 +16,47 @@ set -euo pipefail
 
 export HAB_NOCOLORING=true
 export HAB_NONINTERACTIVE=true
-export HAB_ORIGIN="testbulkupload"
+export HAB_ORIGIN="habitat-testing"
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
 export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
+export BUILD_PKG_TARGET=x86_64-linux
 unset HAB_BLDR_CHANNEL
 
 HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
-FIXTURES_DIR="test/end-to-end/fixtures/bulkupload"
-PKG_A_TAR="${FIXTURES_DIR}/testbulkupload-testpkg1-0.1.0-20191024190939.tar"
-PKG_B_TAR="${FIXTURES_DIR}/testbulkupload-testpkg2-0.1.0-20191024191005.tar"
-PKG_A_HART="${CACHE_DIR}/artifacts/testbulkupload-testpkg1-0.1.0-20191024190939-x86_64-linux.hart"
-PKG_B_HART="${CACHE_DIR}/artifacts/testbulkupload-testpkg2-0.1.0-20191024191005-x86_64-linux.hart"
+export HAB_CACHE_KEY_PATH="${CACHE_DIR}"/keys
+FIXTURES_DIR="test/fixtures"
+TESTPKG1_DIR="${FIXTURES_DIR}/testpkg1"
+TESTPKG2_DIR="${FIXTURES_DIR}/testpkg2"
+TESTPKG1_IDENT="${HAB_ORIGIN}/testpkg1"
+TESTPKG2_IDENT="${HAB_ORIGIN}/testpkg2"
 
 echo
 echo "--- Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
 echo
 
-before_upload() {
+setup_tasks() {
     echo
-    echo ">>>>> before_upload() tasks"
-    rm -rf ${CACHE_DIR}
+    echo ">>>>> setup_tasks"
     # origin create will exit 0 if the origin already exists
-    ${HAB} origin create ${HAB_ORIGIN}
-    ${HAB} origin key download --secret ${HAB_ORIGIN}
-    ${HAB} origin key download ${HAB_ORIGIN}
+    ${HAB} origin create --url "${HAB_BLDR_URL}" ${HAB_ORIGIN}
+    rm -rf "${CACHE_DIR}"
     mkdir -p ${CACHE_DIR}/artifacts ${CACHE_DIR}/keys
-    cp -f /hab/cache/keys/${HAB_ORIGIN}-*pub ${CACHE_DIR}/keys/
-    ${HAB} pkg sign --origin ${HAB_ORIGIN} ${PKG_A_TAR} ${PKG_A_HART}
-    ${HAB} pkg sign --origin ${HAB_ORIGIN} ${PKG_B_TAR} ${PKG_B_HART}
-    echo
+    # We always attempt to re-use same the package versions so we are not cluttering up Builder needlessly.
+    # The packages may not exist yet in Builder so we allow for failure on the download.
+    ${HAB} pkg download --url "${HAB_BLDR_URL}" --download-directory ${CACHE_DIR} --channel unstable ${TESTPKG1_IDENT} ${TESTPKG2_IDENT} || true
+    if [ -z "$(ls -A ${CACHE_DIR}/artifacts)" ]; then
+        echo "--- INFO: Packages were not found for download, proceeding with a new build."
+        ${HAB} origin key download --secret --url "${HAB_BLDR_URL}" --cache-key-path ${CACHE_DIR}/keys ${HAB_ORIGIN}
+        ${HAB} origin key download --url "${HAB_BLDR_URL}" --cache-key-path ${CACHE_DIR}/keys ${HAB_ORIGIN}
+        for dir in ${TESTPKG1_DIR} ${TESTPKG2_DIR}; do
+            ${HAB} pkg build ${dir}
+            # shellcheck disable=SC1091
+            source results/last_build.env
+            # shellcheck disable=SC2154
+            cp -f results/"$pkg_artifact" ${CACHE_DIR}/artifacts/
+        done
+    fi
 }
 
 test_expecting_fail() {
@@ -54,11 +65,12 @@ test_expecting_fail() {
 
     echo
     echo "--- Expected failure: Testing ${DESC}"
+    echo "Testing command line: ${CMD}"
     if ${CMD}; then
-	echo "FAIL (expected error) $CMD"
+	echo "FAIL (expected error) ${CMD}"
 	exit 1
     else
-	echo "PASS $CMD"
+	echo "PASS ${CMD}"
     fi
 }
 
@@ -68,84 +80,61 @@ test_expecting_pass() {
 
     echo
     echo "--- Expected success: Testing ${DESC}"
+    echo "Testing command line: ${CMD}"
     if ! ${CMD}; then
-	echo "FAIL (expected pass) $CMD"
+	echo "FAIL (expected pass) ${CMD}"
 	exit 1
     else
-	echo "PASS $CMD"
+	echo "PASS ${CMD}"
     fi
 }
 
 success_upload() {
-    before_upload
-
     CMD="${HAB} pkg bulkupload ${CACHE_DIR}"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_pass "bulkupload with no options" "${CMD}"
 }
 
 success_upload_force() {
-    before_upload
-
     CMD="${HAB} pkg bulkupload --force ${CACHE_DIR}"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_pass "bulkupload with force option" "${CMD}"
 }
 
 success_upload_channel_promotion() {
-    before_upload
-
     CMD="${HAB} pkg bulkupload --channel bulkuploadtest ${CACHE_DIR}"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_pass "bulkupload with channel promotion option" "${CMD}"
 }
 
 success_upload_auto_build() {
-    before_upload
-
     CMD="${HAB} pkg bulkupload --auto-build ${CACHE_DIR}"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_pass "bulkupload with auto-build option" "${CMD}"
 }
 
 fail_no_upload_dir() {
     CMD="${HAB} pkg bulkupload"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_fail "bulkupload without specifying upload directory argument" "${CMD}"
 }
 
 fail_upload_dir_nonexistant() {
     CMD="${HAB} pkg bulkupload doesnotexist"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_fail "bulkupload specifying nonexistant upload directory argument" "${CMD}"
 }
 
 fail_bad_url() {
     CMD="${HAB} pkg bulkupload --url asdf ${CACHE_DIR}"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_fail "bulkupload bad url" "${CMD}"
 }
 
 fail_bad_auth() {
     CMD="${HAB} pkg bulkupload --auth asdfjkl ${CACHE_DIR}"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_fail "bulkupload bad auth" "${CMD}"
 }
 
 fail_missing_channel_name() {
     CMD="${HAB} pkg bulkupload --channel ${CACHE_DIR}"
-    echo "Testing command line: ${CMD}"
-
     test_expecting_fail "bulkupload missing channel name" "${CMD}"
 }
+
+setup_tasks
 
 # Expecting PASS
 success_upload
