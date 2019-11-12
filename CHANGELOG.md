@@ -1,9 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release 0.90.6 -->
+## [0.90.6](https://github.com/habitat-sh/habitat/tree/0.90.6) (2019-11-12)
 
 #### Merged Pull Requests
+- hab pkg bulkupload origin creation option [#7133](https://github.com/habitat-sh/habitat/pull/7133) ([jeremymv2](https://github.com/jeremymv2))
 - Trigger finish release pipeline as post_commit action of promotion to current [#7164](https://github.com/habitat-sh/habitat/pull/7164) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
@@ -32,6 +33,7 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
+- hab pkg bulkupload origin creation option [#7133](https://github.com/habitat-sh/habitat/pull/7133) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.6 -->
 - Trigger finish release pipeline as post_commit action of promotion to current [#7164](https://github.com/habitat-sh/habitat/pull/7164) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.5 -->
 - Kubernetes docs update, removing references to the Operator and replacing with the Bastion pattern [#7144](https://github.com/habitat-sh/habitat/pull/7144) ([irvingpop](https://github.com/irvingpop)) <!-- 0.90.5 -->
 - [CI] Purge Fastly cache on promotion to stable only [#7172](https://github.com/habitat-sh/habitat/pull/7172) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.4 -->
