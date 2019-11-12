@@ -936,7 +936,7 @@ fn sub_pkg_download() -> App<'static, 'static> {
     let sub = clap_app!(@subcommand download =>
     (about: "Download Habitat artifacts (including dependencies and keys) from Builder")
     (@arg AUTH_TOKEN: -z --auth +takes_value "Authentication token for Builder")
-    (@arg BLDR_URL: --url -u +takes_value {valid_url} default_value(habitat_core::url::DEFAULT_BLDR_URL)
+    (@arg BLDR_URL: --url -u +takes_value {valid_url}
         "Specify an alternate Builder endpoint. If not specified, the value will \
          be taken from the HAB_BLDR_URL environment variable if defined.")
     (@arg CHANNEL: --channel -c +takes_value default_value[stable] env(ChannelIdent::ENVVAR)
