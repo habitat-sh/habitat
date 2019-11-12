@@ -78,8 +78,6 @@ use habitat_launcher_client::{LauncherCli,
                               LAUNCHER_PID_ENV};
 use habitat_sup_protocol;
 use num_cpus;
-#[cfg(unix)]
-use palaver;
 use prometheus::{HistogramVec,
                  IntGauge,
                  IntGaugeVec};
@@ -1848,10 +1846,14 @@ fn get_fd_count() -> std::io::Result<usize> {
     }
 }
 
+// Assume we have /proc/self/fd unless we know we don't
+#[cfg(not(any(target_os = "freebsd", target_os = "macos", target_os = "ios")))]
+const FD_DIR: &str = "/proc/self/fd";
+#[cfg(any(target_os = "freebsd", target_os = "macos", target_os = "ios"))]
+const FD_DIR: &str = "/dev/fd";
+
 #[cfg(unix)]
-fn get_fd_count() -> std::io::Result<usize> {
-    palaver::file::FdIter::new().map(palaver::file::FdIter::count)
-}
+fn get_fd_count() -> std::io::Result<usize> { Ok(fs::read_dir(FD_DIR)?.count()) }
 
 #[cfg(unix)]
 fn track_memory_stats() {
