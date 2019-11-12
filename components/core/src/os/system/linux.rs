@@ -9,8 +9,10 @@ use std::{ffi::CStr,
 pub fn uname() -> Result<Uname> { unsafe { uname_libc() } }
 
 unsafe fn uname_libc() -> Result<Uname> {
-    let mut utsname: libc::utsname = mem::MaybeUninit::uninit().assume_init();
-    let rv = libc::uname(&mut utsname);
+    let mut utsname = mem::MaybeUninit::uninit();
+    let rv = libc::uname(utsname.as_mut_ptr());
+    let utsname = utsname.assume_init();
+
     if rv < 0 {
         let errno = errno();
         let code = errno.0 as i32;
