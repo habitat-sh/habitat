@@ -1,0 +1,44 @@
+{
+  "schema_version": "1",
+  "version": "0.90.6",
+  "sha": "94958f5115aa4681299d71a50c282bff812f0193",
+  "packages": {
+    "x86_64-linux": [
+      "core/hab/0.90.6/20191112141314",
+      "core/hab-backline/0.90.6/20191112144317",
+      "core/hab-launcher/12605/20191112144831",
+      "core/hab-pkg-aci/0.90.6/20191112144831",
+      "core/hab-pkg-cfize/0.90.6/20191112150707",
+      "core/hab-pkg-export-docker/0.90.6/20191112144833",
+      "core/hab-pkg-export-helm/0.90.6/20191112144833",
+      "core/hab-pkg-export-kubernetes/0.90.6/20191112144842",
+      "core/hab-pkg-export-tar/0.90.6/20191112144835",
+      "core/hab-pkg-mesosize/0.90.6/20191112145022",
+      "core/hab-plan-build/0.90.6/20191112144131",
+      "core/hab-studio/0.90.6/20191112144501",
+      "core/hab-sup/0.90.6/20191112144831"
+    ],
+    "x86_64-linux-kernel2": [
+      "core/hab/0.90.6/20191112141320",
+      "core/hab-backline/0.90.6/20191112144328",
+      "core/hab-launcher/12605/20191112144859",
+      "core/hab-pkg-export-tar/0.90.6/20191112144909",
+      "core/hab-plan-build/0.90.6/20191112144132",
+      "core/hab-studio/0.90.6/20191112144506",
+      "core/hab-sup/0.90.6/20191112144854"
+    ],
+    "x86_64-darwin": [
+      "core/hab/0.90.6/20191112141558"
+    ],
+    "x86_64-windows": [
+      "core/hab/0.90.6/20191112142421",
+      "core/hab-launcher/12605/20191112144934",
+      "core/hab-pkg-export-docker/0.90.6/20191112145034",
+      "core/hab-pkg-export-tar/0.90.6/20191112144934",
+      "core/hab-plan-build-ps1/0.90.6/20191112144151",
+      "core/hab-studio/0.90.6/20191112144514",
+      "core/hab-sup/0.90.6/20191112145002",
+      "core/windows-service/0.6.0/20191112150717"
+    ]
+  }
+}
