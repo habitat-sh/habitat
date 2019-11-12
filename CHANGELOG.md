@@ -1,9 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release unreleased -->
-## Unreleased
+<!-- latest_release 0.90.7 -->
+## [0.90.7](https://github.com/habitat-sh/habitat/tree/0.90.7) (2019-11-12)
 
 #### Merged Pull Requests
+- Update changelog [#7186](https://github.com/habitat-sh/habitat/pull/7186) ([christophermaier](https://github.com/christophermaier))
 - [CI] Add "staging" area into our promotion scheme for manual testing [#7185](https://github.com/habitat-sh/habitat/pull/7185) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
@@ -32,6 +33,7 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
+- Update changelog [#7186](https://github.com/habitat-sh/habitat/pull/7186) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
 - [CI] Add "staging" area into our promotion scheme for manual testing [#7185](https://github.com/habitat-sh/habitat/pull/7185) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
 - sup: remove palaver dependency [#7178](https://github.com/habitat-sh/habitat/pull/7178) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.7 -->
 - make: fix fmt target [#7179](https://github.com/habitat-sh/habitat/pull/7179) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.7 -->
