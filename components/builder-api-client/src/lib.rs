@@ -286,6 +286,8 @@ pub trait BuilderAPIProvider: Sync + Send {
 
     fn delete_origin_secret(&self, origin: &str, token: &str, key: &str) -> Result<()>;
 
+    fn check_origin(&self, origin: &str, token: &str) -> Result<()>;
+
     fn delete_origin(&self, origin: &str, token: &str) -> Result<()>;
 
     fn list_origin_secrets(&self, origin: &str, token: &str) -> Result<Vec<String>>;

@@ -471,6 +471,24 @@ impl BuilderAPIProvider for BuilderAPIClient {
             .ok_if(&[StatusCode::NO_CONTENT])
     }
 
+    /// Check an origin exists
+    ///
+    ///  # Failures
+    ///
+    ///  * Origin is not found
+    ///  * Remote Builder is not available
+    fn check_origin(&self, origin: &str, token: &str) -> Result<()> {
+        debug!("Checking for existence of origin: {}", origin);
+
+        let path = format!("depot/origins/{}", origin);
+
+        self.0
+            .get(&path)
+            .bearer_auth(token)
+            .send()?
+            .ok_if(&[StatusCode::OK])
+    }
+
     /// Delete an origin
     ///
     ///  # Failures
