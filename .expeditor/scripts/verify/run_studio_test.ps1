@@ -19,9 +19,11 @@ if(!(Get-Module Await -ListAvailable)) {
   Install-Module Await -Force | Out-Null
 }
 
+# Studio test uses relative paths to copy necessary files and expects to be run
+# from the studio source directory
 Push-Location "components/studio"
 try {
- & test/$studio_type/test.ps1
+ & test/test.ps1
 }
 finally { Pop-Location }
 

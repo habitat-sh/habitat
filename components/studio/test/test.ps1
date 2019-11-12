@@ -1,3 +1,10 @@
+# This is a lightweight test to verify a studio can be created before merging a PR.
+# This (hopefully) prevents us spending time building the first half of a release 
+# only to hit a broken studio. 
+# 
+# Failure case: because this creates a studio from source, we don't exercise changes
+# in our plan.sh, and could still end up with a bad studio build.
+
 $ErrorActionPreference = "Stop"
 
 $env:HAB_LICENSE = "accept-no-persist"
@@ -17,12 +24,12 @@ Copy-Item "$(hab pkg path core/7zip)/bin/*" "bin/7zip"
 Copy-Item "$(hab pkg path core/hab-plan-build-ps1)/bin/*" "bin/"
 
 try {
-    & test/shared/test-all.ps1 -studio_command "bin/hab-studio.bat"
+    & bin/hab-studio.bat new
     $exit_code = $LASTEXITCODE
 } finally {
-    # The tests can exit before the Studio or Await have closed all open 
-    # handles to the following files/directories. This sleep gives those 
-    # processes a chance to finish.  
+    # The test can exit before the Studio has closed all open 
+    # handles to the following files/directories. This sleep 
+    # gives those processes a chance to finish.  
     sleep 5
     Remove-Item "bin/7zip" -Recurse
     Remove-Item "bin/powershell" -Recurse

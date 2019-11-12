@@ -2,12 +2,10 @@
 
 set -eou pipefail
 
-studio_type=${1?studio type argument required}
-
 sudo hab license accept
-sudo hab pkg install core/expect
-sudo hab pkg binlink core/expect expect 
 
+# Studio test uses relative paths to copy necessary files and expects to be run
+# from the studio source directory
 pushd components/studio
 
-test/"$studio_type"/test.sh
+test/test.sh
