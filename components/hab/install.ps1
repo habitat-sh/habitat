@@ -23,8 +23,10 @@ param (
 
 $ErrorActionPreference="stop"
 
-Function Get-Version($version, $channel) {
-    $jsonFile = Join-Path (Get-WorkDir) "version.json"
+Set-Variable packagesChefioRootUrl -Option ReadOnly -value "https://packages.chef.io/files"
+
+Function Get-BintrayVersion($version, $channel) {
+    $jsonFile = Join-Path ($workdir) "version.json"
 
     # bintray expects a '-' to separate version and release and not '/'
     $version = $version.Replace("/", "-")
@@ -78,17 +80,48 @@ Function Get-File($url, $dst) {
 }
 
 Function Get-WorkDir {
-    Join-Path $env:temp "hab.XXXX"
+  $parent = [System.IO.Path]::GetTempPath()
+  [string] $name = [System.Guid]::NewGuid()
+  New-Item -ItemType Directory -Path (Join-Path $parent $name)
 }
 
-Function Get-Archive($channel, $version) {
+# Downloads the requested archive from packages.chef.io
+Function Get-PackagesChefioArchive($channel, $version) {
+    $url = $packagesChefioRootUrl
+    if(!$version -Or $version -eq "latest") {
+      $hab_url="$url/$channel/habitat/latest/hab-x86_64-windows.zip"
+    } else {
+      $hab_url="$url/habitat/${version}/hab-x86_64-windows.zip"
+    }
+    $sha_url="$hab_url.sha256sum"
+    $hab_dest = (Join-Path ($workdir) "hab.zip")
+    $sha_dest = (Join-Path ($workdir) "hab.zip.shasum256")
+
+    Get-File $hab_url $hab_dest
+    $result = @{ "zip" = $hab_dest }
+
+    # Note that this will fail on versions less than 0.71.0
+    # when we did not upload shasum files to bintray.
+    # NOTE: This is left in place because, while we don't ship <0.71.0
+    # from s3 today, the intent is to move old releases over 
+    try {
+        Get-File $sha_url $sha_dest
+        $result["shasum"] = (Get-Content $sha_dest).Split()[0]
+    }
+    catch {
+        Write-Warning "No shasum exists for $version. Skipping validation."
+    }
+    $result
+}
+
+Function Get-BintrayArchive($channel, $version) {
     $url = "https://api.bintray.com/content/habitat/$channel/windows/x86_64/hab-$version-x86_64-windows.zip"
     $query = "?bt_package=hab-x86_64-windows"
 
     $hab_url="$url$query"
     $sha_url="$url.sha256sum$query"
-    $hab_dest = (Join-Path (Get-WorkDir) "hab.zip")
-    $sha_dest = (Join-Path (Get-WorkDir) "hab.zip.shasum256")
+    $hab_dest = (Join-Path ($workdir) "hab.zip")
+    $sha_dest = (Join-Path ($workdir) "hab.zip.shasum256")
 
     Get-File $hab_url $hab_dest
     $result = @{ "zip" = $hab_dest }
@@ -139,7 +172,7 @@ Function Install-Habitat {
     $habPath = Join-Path $env:ProgramData Habitat
     if(Test-Path $habPath) { Remove-Item $habPath -Recurse -Force }
     New-Item $habPath -ItemType Directory | Out-Null
-    $folder = (Get-ChildItem (Join-Path (Get-WorkDir) "hab-*"))
+    $folder = (Get-ChildItem (Join-Path ($workdir) "hab-*"))
     Copy-Item "$($folder.FullName)\*" $habPath
     $env:PATH = New-PathString -StartingPath $env:PATH -Path $habPath
     $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
@@ -166,7 +199,7 @@ Function New-PathString([string]$StartingPath, [string]$Path) {
 }
 
 Function Expand-Zip($zipPath) {
-    $dest = Get-WorkDir
+    $dest = $workdir
     try {
         # Works on .Net 4.5 and up (as well as .Net Core)
         # Yes on PS v5 and up we have Expand-Archive but this works on PS v4 too
@@ -203,13 +236,28 @@ Function Assert-Habitat($ident) {
     }
 }
 
+Function Test-UsePackagesChefio($version) {
+    # The $_patch may contain the /release string as well.
+    # This is fine because we only care about major/minor for this 
+    # comparison. 
+
+    $_major,$_minor,$_patch = $version -split ".",3,"SimpleMatch"
+    $v1 = New-Object -TypeName Version -ArgumentList $_major,$_minor
+    $v2 = New-Object -TypeName Version -ArgumentList "0.89"
+    !$version -Or ($v1 -ge $v2)
+}
+
 Write-Host "Installing Habitat 'hab' program"
 
 $workdir = Get-WorkDir
 New-Item $workdir -ItemType Directory -Force | Out-Null
 try {
-    $Version = Get-Version $Version $Channel
-    $archive = Get-Archive $channel $version
+    if(Test-UsePackagesChefio($Version)) { 
+      $archive = Get-PackagesChefioArchive $channel $version
+    } else {
+      $Version = Get-BintrayVersion $Version $Channel
+      $archive = Get-BintrayArchive $channel $version
+    }
     if($archive.shasum) {
         Assert-Shasum $archive
     }

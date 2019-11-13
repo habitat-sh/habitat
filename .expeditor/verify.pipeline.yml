@@ -291,6 +291,32 @@ steps:
       automatic:
         limit: 1
 
+  - label: "[unit] :linux: install script"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+    command:
+      - .expeditor/scripts/verify/test_install_script.sh
+    expeditor:
+      executor:
+        docker:
+    timeout_in_minutes: 5
+    retry:
+      automatic:
+        limit: 1
+  ###############################################################
+  # MacOS tests
+  - label: "[unit] :darwin: install script"
+    command:
+      - .expeditor/scripts/verify/test_install_script.sh
+    expeditor:
+      executor:
+        macos:
+          inherit-environment-vars: true
+    timeout_in_minutes: 5
+    retry:
+      automatic:
+        limit: 1
+
  #################################################################
 
   # See "[unit] :linux: ignored"; the same approach applies here for windows
@@ -523,6 +549,21 @@ steps:
           host_os: windows
           shell: [ "powershell", "-Command" ]
     timeout_in_minutes: 20
+    retry:
+      automatic:
+        limit: 1
+
+  - label: "[unit] :windows: install script"
+    env:
+      HAB_LICENSE: "accept-no-persist"
+    command:
+      - .expeditor/scripts/verify/test_install_script.ps1
+    expeditor:
+      executor:
+        docker: 
+          host_os: windows
+          shell: [ "powershell", "-Command" ]
+    timeout_in_minutes: 5
     retry:
       automatic:
         limit: 1
