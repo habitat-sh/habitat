@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.9 -->
-## [0.90.9](https://github.com/habitat-sh/habitat/tree/0.90.9) (2019-11-13)
+<!-- latest_release 0.90.10 -->
+## [0.90.10](https://github.com/habitat-sh/habitat/tree/0.90.10) (2019-11-13)
 
 #### Merged Pull Requests
-- Rust 1.39.0 [#7177](https://github.com/habitat-sh/habitat/pull/7177) ([raskchanky](https://github.com/raskchanky))
+- Use HAB_BLDR_URL in hab pkg download [#7187](https://github.com/habitat-sh/habitat/pull/7187) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.88.0 -->
@@ -32,6 +32,7 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
+- Use HAB_BLDR_URL in hab pkg download [#7187](https://github.com/habitat-sh/habitat/pull/7187) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.10 -->
 - Rust 1.39.0 [#7177](https://github.com/habitat-sh/habitat/pull/7177) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.9 -->
 - [CI] Remove `ignore_labels` from Expeditor config [#7188](https://github.com/habitat-sh/habitat/pull/7188) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.8 -->
 - Update changelog [#7186](https://github.com/habitat-sh/habitat/pull/7186) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
