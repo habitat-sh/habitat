@@ -7,11 +7,27 @@
 - Update install scripts to pull from packages.chef.io for new releases [#7119](https://github.com/habitat-sh/habitat/pull/7119) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
-<!-- release_rollup since=0.88.0 -->
-### Changes since 0.88.0 release
+<!-- release_rollup since=0.90.6 -->
+### Changes since 0.90.6 release
+
+#### Merged Pull Requests
+- [CI] Remove changelog rollover automation [#7191](https://github.com/habitat-sh/habitat/pull/7191) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.11 -->
+- Use HAB_BLDR_URL in hab pkg download [#7187](https://github.com/habitat-sh/habitat/pull/7187) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.10 -->
+- Rust 1.39.0 [#7177](https://github.com/habitat-sh/habitat/pull/7177) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.9 -->
+- [CI] Remove `ignore_labels` from Expeditor config [#7188](https://github.com/habitat-sh/habitat/pull/7188) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.8 -->
+- Update changelog [#7186](https://github.com/habitat-sh/habitat/pull/7186) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
+- [CI] Add "staging" area into our promotion scheme for manual testing [#7185](https://github.com/habitat-sh/habitat/pull/7185) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
+- sup: remove palaver dependency [#7178](https://github.com/habitat-sh/habitat/pull/7178) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.7 -->
+- make: fix fmt target [#7179](https://github.com/habitat-sh/habitat/pull/7179) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.7 -->
+- Fix studio tests [#7174](https://github.com/habitat-sh/habitat/pull/7174) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.7 -->
 
 #### Behavioral Changes
 - Update install scripts to pull from packages.chef.io for new releases [#7119](https://github.com/habitat-sh/habitat/pull/7119) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.12 -->
+<!-- release_rollup -->
+
+<!-- latest_stable_release -->
+## [0.90.6](https://github.com/habitat-sh/habitat/tree/0.90.6) (2019-11-13)
+[Full Changelog](https://github.com/habitat-sh/habitat/compare/0.88.0...0.90.6)
 
 #### New Features & Enhancements
 - Allow event stream server TLS connection to use habitat cache/ssl [#7120](https://github.com/habitat-sh/habitat/pull/7120) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.89.47 -->
@@ -35,15 +51,6 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
-- [CI] Remove changelog rollover automation [#7191](https://github.com/habitat-sh/habitat/pull/7191) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.11 -->
-- Use HAB_BLDR_URL in hab pkg download [#7187](https://github.com/habitat-sh/habitat/pull/7187) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.10 -->
-- Rust 1.39.0 [#7177](https://github.com/habitat-sh/habitat/pull/7177) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.9 -->
-- [CI] Remove `ignore_labels` from Expeditor config [#7188](https://github.com/habitat-sh/habitat/pull/7188) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.8 -->
-- Update changelog [#7186](https://github.com/habitat-sh/habitat/pull/7186) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
-- [CI] Add "staging" area into our promotion scheme for manual testing [#7185](https://github.com/habitat-sh/habitat/pull/7185) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
-- sup: remove palaver dependency [#7178](https://github.com/habitat-sh/habitat/pull/7178) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.7 -->
-- make: fix fmt target [#7179](https://github.com/habitat-sh/habitat/pull/7179) ([stevendanna](https://github.com/stevendanna)) <!-- 0.90.7 -->
-- Fix studio tests [#7174](https://github.com/habitat-sh/habitat/pull/7174) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.7 -->
 - hab pkg bulkupload origin creation option [#7133](https://github.com/habitat-sh/habitat/pull/7133) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.6 -->
 - Trigger finish release pipeline as post_commit action of promotion to current [#7164](https://github.com/habitat-sh/habitat/pull/7164) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.5 -->
 - Kubernetes docs update, removing references to the Operator and replacing with the Bastion pattern [#7144](https://github.com/habitat-sh/habitat/pull/7144) ([irvingpop](https://github.com/irvingpop)) <!-- 0.90.5 -->
@@ -101,9 +108,7 @@
 - Bump cargo dependencies [#7045](https://github.com/habitat-sh/habitat/pull/7045) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.2 -->
 - Update rustfmt to 2019-10-15 [#7046](https://github.com/habitat-sh/habitat/pull/7046) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.1 -->
 - Prep for 0.90.0 [#7041](https://github.com/habitat-sh/habitat/pull/7041) ([christophermaier](https://github.com/christophermaier)) <!-- 0.89.0 -->
-<!-- release_rollup -->
 
-<!-- latest_stable_release -->
 ## [0.88.0](https://github.com/habitat-sh/habitat/tree/0.88.0) (2019-10-15)
 [Full Changelog](https://github.com/habitat-sh/habitat/compare/0.85.0...0.88.0)
 
