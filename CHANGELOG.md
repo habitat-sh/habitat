@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.8 -->
-## [0.90.8](https://github.com/habitat-sh/habitat/tree/0.90.8) (2019-11-12)
+<!-- latest_release 0.90.9 -->
+## [0.90.9](https://github.com/habitat-sh/habitat/tree/0.90.9) (2019-11-13)
 
 #### Merged Pull Requests
-- [CI] Remove `ignore_labels` from Expeditor config [#7188](https://github.com/habitat-sh/habitat/pull/7188) ([christophermaier](https://github.com/christophermaier))
+- Rust 1.39.0 [#7177](https://github.com/habitat-sh/habitat/pull/7177) ([raskchanky](https://github.com/raskchanky))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.88.0 -->
@@ -32,6 +32,7 @@
 - fixes using a svc_user on windows [#7049](https://github.com/habitat-sh/habitat/pull/7049) ([mwrock](https://github.com/mwrock)) <!-- 0.89.6 -->
 
 #### Merged Pull Requests
+- Rust 1.39.0 [#7177](https://github.com/habitat-sh/habitat/pull/7177) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.9 -->
 - [CI] Remove `ignore_labels` from Expeditor config [#7188](https://github.com/habitat-sh/habitat/pull/7188) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.8 -->
 - Update changelog [#7186](https://github.com/habitat-sh/habitat/pull/7186) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
 - [CI] Add "staging" area into our promotion scheme for manual testing [#7185](https://github.com/habitat-sh/habitat/pull/7185) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.7 -->
