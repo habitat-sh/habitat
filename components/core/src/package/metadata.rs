@@ -76,7 +76,7 @@ impl FromStr for BindMapping {
     fn from_str(line: &str) -> Result<Self> {
         let mut parts = line.split(':');
         let bind_name = parts.next()
-                             .and_then(|bn| Some(bn.to_string()))
+                             .map(ToString::to_string)
                              .ok_or(Error::MetaFileBadBind)?;
         let satisfying_service = match parts.next() {
             None => return Err(Error::MetaFileBadBind),

@@ -477,7 +477,7 @@ impl Type {
         TYPE_FROM_STR_RE.captures(self.as_str())
                         .unwrap()
                         .name("variant")
-                        .and_then(|v| Some(v.as_str()))
+                        .map(|v| v.as_str())
     }
 }
 

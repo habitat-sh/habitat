@@ -1,5 +1,4 @@
-use std::str::FromStr;
-
+use super::super::RenderResult;
 use crate::hcore::{fs,
                    package::{Identifiable,
                              PackageIdent}};
@@ -9,8 +8,7 @@ use handlebars::{Handlebars,
                  RenderContext,
                  RenderError};
 use serde_json;
-
-use super::super::RenderResult;
+use std::str::FromStr;
 
 #[derive(Clone, Copy)]
 pub struct PkgPathForHelper;
@@ -27,10 +25,13 @@ impl HelperDef for PkgPathForHelper {
                 .unwrap();
         let target_pkg =
             deps.iter()
-                .find(|ident| ident.satisfies(&param))
-                .and_then(|i| {
-                    Some(fs::pkg_install_path(&i, Some(&*fs::FS_ROOT_PATH)).to_string_lossy()
-                                                                           .into_owned())
+                .find_map(|ident| {
+                    if ident.satisfies(&param) {
+                        Some(fs::pkg_install_path(&ident, Some(&*fs::FS_ROOT_PATH)).to_string_lossy()
+                                                                               .into_owned())
+                    } else {
+                        None
+                    }
                 })
                 .unwrap_or_default();
         rc.writer.write_all(target_pkg.into_bytes().as_ref())?;

@@ -82,6 +82,7 @@ use std::{env,
           process,
           result,
           str::FromStr,
+          string::ToString,
           thread};
 use tabwriter::TabWriter;
 use termcolor::{self,
@@ -1826,7 +1827,7 @@ fn bulkupload_dir_from_matches(matches: &ArgMatches<'_>) -> PathBuf {
 /// the environment
 fn bldr_url_from_input(m: &ArgMatches<'_>) -> Option<String> {
     m.value_of("BLDR_URL")
-     .and_then(|u| Some(u.to_string()))
+     .map(ToString::to_string)
      .or_else(bldr_url_from_env)
 }
 
