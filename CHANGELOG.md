@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.12 -->
-## [0.90.12](https://github.com/habitat-sh/habitat/tree/0.90.12) (2019-11-13)
+<!-- latest_release 0.90.13 -->
+## [0.90.13](https://github.com/habitat-sh/habitat/tree/0.90.13) (2019-11-13)
 
-#### Behavioral Changes
-- Update install scripts to pull from packages.chef.io for new releases [#7119](https://github.com/habitat-sh/habitat/pull/7119) ([smacfarlane](https://github.com/smacfarlane))
+#### Merged Pull Requests
+- [CI] Update changelog [#7193](https://github.com/habitat-sh/habitat/pull/7193) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
 ### Changes since 0.90.6 release
 
 #### Merged Pull Requests
+- [CI] Update changelog [#7193](https://github.com/habitat-sh/habitat/pull/7193) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.13 -->
 - [CI] Remove changelog rollover automation [#7191](https://github.com/habitat-sh/habitat/pull/7191) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.11 -->
 - Use HAB_BLDR_URL in hab pkg download [#7187](https://github.com/habitat-sh/habitat/pull/7187) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.10 -->
 - Rust 1.39.0 [#7177](https://github.com/habitat-sh/habitat/pull/7177) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.9 -->
