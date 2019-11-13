@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.11 -->
-## [0.90.11](https://github.com/habitat-sh/habitat/tree/0.90.11) (2019-11-13)
+<!-- latest_release 0.90.12 -->
+## [0.90.12](https://github.com/habitat-sh/habitat/tree/0.90.12) (2019-11-13)
 
-#### Merged Pull Requests
-- [CI] Remove changelog rollover automation [#7191](https://github.com/habitat-sh/habitat/pull/7191) ([christophermaier](https://github.com/christophermaier))
+#### Behavioral Changes
+- Update install scripts to pull from packages.chef.io for new releases [#7119](https://github.com/habitat-sh/habitat/pull/7119) ([smacfarlane](https://github.com/smacfarlane))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.88.0 -->
 ### Changes since 0.88.0 release
+
+#### Behavioral Changes
+- Update install scripts to pull from packages.chef.io for new releases [#7119](https://github.com/habitat-sh/habitat/pull/7119) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.12 -->
 
 #### New Features & Enhancements
 - Allow event stream server TLS connection to use habitat cache/ssl [#7120](https://github.com/habitat-sh/habitat/pull/7120) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.89.47 -->
