@@ -70,10 +70,15 @@ import_gpg_keys() {
 # `*.asc` signature in the same directory as `file`.
 gpg_sign() {
     local file="${1}"
+
+    # Adding the `--yes` option here because we've seen cases where an
+    # *.asc file is already present somehow, even though that _should_
+    # be impossible.
     gpg --armor \
         --digest-algo sha256 \
         --default-key "${chef_gpg_key}" \
         --output "${file}.asc" \
+        --yes \
         --detach-sign \
         "${file}"
 }
