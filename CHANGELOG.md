@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.15 -->
-## [0.90.15](https://github.com/habitat-sh/habitat/tree/0.90.15) (2019-11-14)
+<!-- latest_release 0.90.16 -->
+## [0.90.16](https://github.com/habitat-sh/habitat/tree/0.90.16) (2019-11-14)
 
 #### Merged Pull Requests
-- [CI] Sign files using `gpg --yes` [#7201](https://github.com/habitat-sh/habitat/pull/7201) ([christophermaier](https://github.com/christophermaier))
+- [CI] Fix Github release script [#7192](https://github.com/habitat-sh/habitat/pull/7192) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
 ### Changes since 0.90.6 release
 
 #### Merged Pull Requests
+- [CI] Fix Github release script [#7192](https://github.com/habitat-sh/habitat/pull/7192) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.16 -->
 - [CI] Sign files using `gpg --yes` [#7201](https://github.com/habitat-sh/habitat/pull/7201) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.15 -->
 - refactor bulkupload end-to-end tests for habitat-testing origin [#7182](https://github.com/habitat-sh/habitat/pull/7182) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.14 -->
 - [CI] Update changelog [#7193](https://github.com/habitat-sh/habitat/pull/7193) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.13 -->
