@@ -16,9 +16,11 @@ set -euo pipefail
 
 export HAB_NOCOLORING=true
 export HAB_NONINTERACTIVE=true
+# HAB_ORIGIN should never be changed to anything other than an origin used only
+# for testing. It is hardcoded here to our designated origin for this purpose (habitat-testing).
 export HAB_ORIGIN="habitat-testing"
 export HAB_BLDR_URL="${PIPELINE_HAB_BLDR_URL}"
-export HAB_AUTH_TOKEN="${ACCEPTANCE_PIPELINE_HAB_AUTH_TOKEN}"
+export HAB_AUTH_TOKEN="${PIPELINE_HAB_AUTH_TOKEN}"
 export BUILD_PKG_TARGET=x86_64-linux
 unset HAB_BLDR_CHANNEL
 
@@ -42,14 +44,15 @@ setup_tasks() {
     ${HAB} origin create --url "${HAB_BLDR_URL}" ${HAB_ORIGIN}
     rm -rf "${CACHE_DIR}"
     mkdir -p ${CACHE_DIR}/artifacts ${CACHE_DIR}/keys
-    # We always attempt to re-use same the package versions so we are not cluttering up Builder needlessly.
-    # The packages may not exist yet in Builder so we allow for failure on the download.
+    # We always attempt to re-use the same package versions so we are not cluttering up Builder needlessly.
+    # The packages may not exist yet in Builder, therefore we allow for failure on the download.
     ${HAB} pkg download --url "${HAB_BLDR_URL}" --download-directory ${CACHE_DIR} --channel unstable ${TESTPKG1_IDENT} ${TESTPKG2_IDENT} || true
     if [ -z "$(ls -A ${CACHE_DIR}/artifacts)" ]; then
         echo "--- INFO: Packages were not found for download, proceeding with a new build."
         ${HAB} origin key download --secret --url "${HAB_BLDR_URL}" --cache-key-path ${CACHE_DIR}/keys ${HAB_ORIGIN}
         ${HAB} origin key download --url "${HAB_BLDR_URL}" --cache-key-path ${CACHE_DIR}/keys ${HAB_ORIGIN}
         for dir in ${TESTPKG1_DIR} ${TESTPKG2_DIR}; do
+            # Build the packages and sign them with HAB_ORIGIN key from HAB_CACHE_KEY_PATH set above.
             ${HAB} pkg build ${dir}
             # shellcheck disable=SC1091
             source results/last_build.env
