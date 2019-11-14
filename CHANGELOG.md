@@ -1,16 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.13 -->
-## [0.90.13](https://github.com/habitat-sh/habitat/tree/0.90.13) (2019-11-13)
+<!-- latest_release 0.90.14 -->
+## [0.90.14](https://github.com/habitat-sh/habitat/tree/0.90.14) (2019-11-14)
 
 #### Merged Pull Requests
-- [CI] Update changelog [#7193](https://github.com/habitat-sh/habitat/pull/7193) ([christophermaier](https://github.com/christophermaier))
+- refactor bulkupload end-to-end tests for habitat-testing origin [#7182](https://github.com/habitat-sh/habitat/pull/7182) ([jeremymv2](https://github.com/jeremymv2))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
 ### Changes since 0.90.6 release
 
 #### Merged Pull Requests
+- refactor bulkupload end-to-end tests for habitat-testing origin [#7182](https://github.com/habitat-sh/habitat/pull/7182) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.14 -->
 - [CI] Update changelog [#7193](https://github.com/habitat-sh/habitat/pull/7193) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.13 -->
 - [CI] Remove changelog rollover automation [#7191](https://github.com/habitat-sh/habitat/pull/7191) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.11 -->
 - Use HAB_BLDR_URL in hab pkg download [#7187](https://github.com/habitat-sh/habitat/pull/7187) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.10 -->
