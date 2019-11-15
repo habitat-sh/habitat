@@ -217,6 +217,11 @@ impl Server {
         // for a possible future where this isn't needed, and reaping
         // could theoretically just take place at the very end of this
         // shutdown process, rather than repeatedly.
+        //
+        // TODO (CM): need some kind of timeout here... if the
+        // Supervisor didn't get the signal, then we're just going to
+        // hang here forever. We should have a (customizable) timeout
+        // here, after which we kill *everything*.
         while let Ok(None) = self.supervisor.try_wait() {
             self.services.reap_services();
             thread::sleep(Duration::from_millis(5));

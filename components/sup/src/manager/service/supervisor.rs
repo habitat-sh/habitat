@@ -7,7 +7,8 @@ use super::{terminator,
             ProcessState};
 use crate::{error::{Error,
                     Result},
-            manager::ShutdownConfig};
+            manager::{ServicePidSource,
+                      ShutdownConfig}};
 use futures::{future,
               Future};
 use habitat_common::{outputln,
@@ -37,14 +38,28 @@ static LOGKEY: &str = "SV";
 pub struct Supervisor {
     service_group: ServiceGroup,
     state:         ProcessState,
+    // TODO (CM): make this private
     pub state_entered: Timespec,
-    pid:               Option<Pid>,
-    pid_file:          PathBuf,
+    pid: Option<Pid>,
+    /// If the Supervisor is being run with the PIDS_FROM_LAUNCHER
+    /// feature enabled, this will be `None`, otherwise it will be
+    /// `Some(path)`. Client code should use the `Some`/`None` status
+    /// of this field as an indicator of which mode the Supervisor is
+    /// running in.
+    pid_file: Option<PathBuf>,
 }
 
 impl Supervisor {
-    pub fn new(service_group: &ServiceGroup) -> Supervisor {
-        let pid_file = fs::svc_pid_file(service_group.service());
+    /// Create a new instance for `service_group`.
+    ///
+    /// The `pid_source` governs how we determine the PID of the
+    /// supervised process. Once the PIDS_FROM_LAUNCHER feature flag
+    /// goes away, this can be removed.
+    pub fn new(service_group: &ServiceGroup, pid_source: ServicePidSource) -> Supervisor {
+        let pid_file = match pid_source {
+            ServicePidSource::Files => Some(fs::svc_pid_file(service_group.service())),
+            ServicePidSource::Launcher => None,
+        };
         Supervisor { service_group: service_group.clone(),
                      state: ProcessState::Down,
                      state_entered: time::get_time(),
@@ -53,9 +68,21 @@ impl Supervisor {
     }
 
     /// Check if the child process is running
-    pub fn check_process(&mut self) -> bool {
+    pub fn check_process(&mut self, launcher: &LauncherCli) -> bool {
         self.pid = self.pid
-                       .or_else(|| read_pid(&self.pid_file))
+                       .or_else(|| {
+                           if let Some(ref pid_file) = self.pid_file {
+                               read_pid(pid_file)
+                           } else {
+                               match launcher.pid_of(&self.service_group.to_string()) {
+                                   Ok(maybe_pid) => maybe_pid,
+                                   Err(e) => {
+                                       error!("Error getting pid from launcher: {:?}", e);
+                                       None
+                                   }
+                               }
+                           }
+                       })
                        .and_then(|pid| {
                            if process::is_alive(pid) {
                                Some(pid)
@@ -69,7 +96,9 @@ impl Supervisor {
             self.change_state(ProcessState::Up);
         } else {
             self.change_state(ProcessState::Down);
-            self.cleanup_pidfile();
+            if let Some(ref pid_file) = self.pid_file {
+                Self::cleanup_pidfile(pid_file.clone());
+            }
         }
 
         self.pid.is_some()
@@ -168,7 +197,10 @@ impl Supervisor {
             warn!(target: "pidfile_tracing", "Spawned service for {} has a PID of 0!", group);
         }
         self.pid = Some(pid);
-        self.create_pidfile()?;
+        // Only create a pidfile if we're actually using them.
+        if let Some(ref pid_file) = self.pid_file {
+            self.create_pidfile(pid_file)?;
+        }
         self.change_state(ProcessState::Up);
         Ok(())
     }
@@ -199,7 +231,10 @@ impl Supervisor {
 
             future::Either::A(terminator::terminate_service(pid, service_group, shutdown_config).and_then(
                 |_shutdown_method| {
-                    Supervisor::cleanup_pidfile_future(pid_file);
+                    // Only delete the pidfile if we're actually using one.
+                    if let Some(pid_file) = pid_file {
+                        Self::cleanup_pidfile(pid_file);
+                    }
                     Ok(())
                 },
             ))
@@ -216,29 +251,22 @@ impl Supervisor {
     }
 
     /// Create a PID file for a running service
-    fn create_pidfile(&self) -> Result<()> {
+    fn create_pidfile(&self, pid_file: &PathBuf) -> Result<()> {
         if let Some(pid) = self.pid {
             // TODO (CM): when this pidfile tracing bit has been
             // cleared up, remove this logging target; it was added
             // just to help with debugging. The overall logging
             // message can stay, however.
             debug!(target: "pidfile_tracing", "Creating PID file for child {} -> {}",
-                   self.pid_file.display(),
+                   pid_file.display(),
                    pid);
-            fs::atomic_write(&self.pid_file, pid.to_string())?;
+            fs::atomic_write(pid_file, pid.to_string())?;
         }
 
         Ok(())
     }
 
-    /// Remove a pidfile for this package if it exists.
-    /// Do NOT fail if there is an error removing the PIDFILE
-    fn cleanup_pidfile(&self) { Self::cleanup_pidfile_future(self.pid_file.clone()); }
-
-    // This is just a different way to model `cleanup_pidfile` that's
-    // amenable to use in a future. Hopefully these two can be
-    // consolidated in the (ahem) future.
-    fn cleanup_pidfile_future(pid_file: PathBuf) {
+    fn cleanup_pidfile(pid_file: PathBuf) {
         // TODO (CM): when this pidfile tracing bit has been cleared
         // up, remove these logging targets; they were added just to
         // help with debugging. The overall logging messages can stay,

@@ -39,6 +39,7 @@ use crate::{census::{CensusGroup,
                     Result},
             manager::{sync::GatewayState,
                       FsCfg,
+                      ServicePidSource,
                       ShutdownConfig,
                       Sys},
             sup_futures};
@@ -255,7 +256,8 @@ impl Service {
                     spec: ServiceSpec,
                     manager_fs_cfg: Arc<FsCfg>,
                     organization: Option<&str>,
-                    gateway_state: Arc<GatewayState>)
+                    gateway_state: Arc<GatewayState>,
+                    pid_source: ServicePidSource)
                     -> Result<Service> {
         spec.validate(&package)?;
         let all_pkg_binds = package.all_binds()?;
@@ -283,7 +285,8 @@ impl Service {
                      initialization_state:
                          Arc::new(RwLock::new(InitializationState::Uninitialized)),
                      manager_fs_cfg,
-                     supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group))),
+                     supervisor: Arc::new(Mutex::new(Supervisor::new(&service_group,
+                                                                     pid_source))),
                      pkg,
                      service_group,
                      binds: spec.binds,
@@ -350,7 +353,8 @@ impl Service {
                spec: ServiceSpec,
                manager_fs_cfg: Arc<FsCfg>,
                organization: Option<&str>,
-               gateway_state: Arc<GatewayState>)
+               gateway_state: Arc<GatewayState>,
+               pid_source: ServicePidSource)
                -> Result<Service> {
         // The package for a spec should already be installed.
         let fs_root_path = Path::new(&*FS_ROOT_PATH);
@@ -360,7 +364,8 @@ impl Service {
                               spec,
                               manager_fs_cfg,
                               organization,
-                              gateway_state)?)
+                              gateway_state,
+                              pid_source)?)
     }
 
     /// Create the service path for this package.
@@ -772,11 +777,11 @@ impl Service {
     }
 
     /// Updates the process state of the service's supervisor
-    fn check_process(&mut self) -> bool {
+    fn check_process(&mut self, launcher: &LauncherCli) -> bool {
         self.supervisor
             .lock()
             .expect("Couldn't lock supervisor")
-            .check_process()
+            .check_process(launcher)
     }
 
     /// Updates the service configuration with data from a census group if the census group has
@@ -1032,7 +1037,7 @@ impl Service {
                      executor: &TaskExecutor,
                      template_update: &TemplateUpdate)
                      -> bool {
-        let up = self.check_process();
+        let up = self.check_process(launcher);
         // It is ok that we do not hold this lock while we are performing the match. If we
         // transistion states while we are matching, we will catch the new state on the next tick.
         let initialization_state = self.initialization_state.read().clone();
@@ -1337,10 +1342,14 @@ mod tests {
         let afs = Arc::new(fscfg);
 
         let gs = Arc::default();
-        Service::with_package(asys, &install, spec, afs, Some("haha"), gs).expect("I wanted a \
-                                                                                   service to \
-                                                                                   load, but it \
-                                                                                   didn't")
+        Service::with_package(asys,
+                              &install,
+                              spec,
+                              afs,
+                              Some("haha"),
+                              gs,
+                              ServicePidSource::Launcher).expect("I wanted a service to load, but \
+                                                                  it didn't")
     }
 
     #[test]
