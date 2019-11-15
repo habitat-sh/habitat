@@ -1,16 +1,20 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.17 -->
-## [0.90.17](https://github.com/habitat-sh/habitat/tree/0.90.17) (2019-11-15)
+<!-- latest_release 0.90.18 -->
+## [0.90.18](https://github.com/habitat-sh/habitat/tree/0.90.18) (2019-11-15)
 
 #### Merged Pull Requests
-- remove acceptance env references for bulkupload test [#7203](https://github.com/habitat-sh/habitat/pull/7203) ([jeremymv2](https://github.com/jeremymv2))
+- [CI] Don&#39;t install `core/rust` in Windows test steps [#7210](https://github.com/habitat-sh/habitat/pull/7210) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
 ### Changes since 0.90.6 release
 
 #### Merged Pull Requests
+- [CI] Don&#39;t install `core/rust` in Windows test steps [#7210](https://github.com/habitat-sh/habitat/pull/7210) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.18 -->
+- Update CLI docs for 0.90.6 [#7206](https://github.com/habitat-sh/habitat/pull/7206) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.18 -->
+- Update rustfmt to nightly-2019-11-14 [#7208](https://github.com/habitat-sh/habitat/pull/7208) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.18 -->
+- Update Rust nightly version to 2019-11-15 [#7207](https://github.com/habitat-sh/habitat/pull/7207) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.18 -->
 - remove acceptance env references for bulkupload test [#7203](https://github.com/habitat-sh/habitat/pull/7203) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.17 -->
 - [CI] Fix Github release script [#7192](https://github.com/habitat-sh/habitat/pull/7192) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.16 -->
 - [CI] Sign files using `gpg --yes` [#7201](https://github.com/habitat-sh/habitat/pull/7201) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.15 -->
