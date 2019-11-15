@@ -28,8 +28,6 @@ function Setup-Environment {
       "core/zeromq",
       "core/zlib"
   )
-  # we always want the latest rust
-  hab pkg install core/rust
 
   # Set up some path variables for ease of use later
   $cacertsDir     = & hab pkg path core/cacerts
