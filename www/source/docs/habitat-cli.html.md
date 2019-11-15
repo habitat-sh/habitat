@@ -10,7 +10,7 @@ The commands for the Chef Habitat CLI (`hab`) are listed below.
 
 | Applies to Version | Last Updated |
 | ------- | ------------ |
-| hab 0.88.0/20191009204957 (linux) | 15 Oct 2019 |
+| hab 0.90.6/20191112141314 (linux) | 15 Nov 2019 |
 
 ## hab
 
@@ -1334,7 +1334,7 @@ hab pkg binlink [FLAGS] [OPTIONS] <PKG_IDENT> [BINARY]
 **OPTIONS**
 
 ```
--d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=/hab/bin]  [default: /bin]
+-d, --dest <DEST_DIR>    Sets the destination directory [env: HAB_BINLINK_DIR=]  [default: /bin]
 ```
 
 **ARGS**
@@ -1399,10 +1399,11 @@ hab pkg bulkupload [FLAGS] [OPTIONS] <UPLOAD_DIRECTORY>
 **FLAGS**
 
 ```
---auto-build    Enable auto-build for all packages in this upload. Only applicable to SaaS Builder.
-    --force         Skip checking availability of package and force uploads, potentially overwriting a stored copy of a package.
--h, --help          Prints help information
--V, --version       Prints version information
+--auto-build             Enable auto-build for all packages in this upload. Only applicable to SaaS Builder.
+    --auto-create-origins    Skip the confirmation prompt and automatically create origins that do not exist in the target Builder.
+    --force                  Skip checking availability of package and force uploads, potentially overwriting a stored copy of a package.
+-h, --help                   Prints help information
+-V, --version                Prints version information
 ```
 
 **OPTIONS**
@@ -1801,7 +1802,7 @@ hab pkg install [FLAGS] [OPTIONS] <PKG_IDENT_OR_ARTIFACT>...
 
 ```
 -z, --auth <AUTH_TOKEN>            Authentication token for Builder
-    --binlink-dir <BINLINK_DIR>    Binlink all binaries from installed package(s) into BINLINK_DIR [env: HAB_BINLINK_DIR=/hab/bin]  [default: /bin]
+    --binlink-dir <BINLINK_DIR>    Binlink all binaries from installed package(s) into BINLINK_DIR [env: HAB_BINLINK_DIR=]  [default: /bin]
 -u, --url <BLDR_URL>               Specify an alternate Builder endpoint. If not specified, the value will be taken from the HAB_BLDR_URL environment variable if defined. (default: https://bldr.habitat.sh)
 -c, --channel <CHANNEL>            Install from the specified release channel [env: HAB_BLDR_CHANNEL=]  [default: stable]
 ```
