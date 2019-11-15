@@ -163,7 +163,7 @@ After you have either specified your source in `pkg_source`, or overridden the *
 
 > Note: If your computed value does not match the value calculated by the `hab-plan-build` script, an error with the expected value will be returned when you execute your plan.
 
-If your package does not download any application or service source files, then you will need to override the **do_download()**, **do_verify()**, and **do_unpack()** callbacks. See [Callbacks](/docs/reference#reference-callbacks) for more details.
+If your package does not download any application or service source files, then you will need to override the **do_download()**, **do_verify()**, and **do_unpack()** callbacks. See [Callbacks](/docs/reference/build-phase-callbacks') for more details.
 
 #### Define your dependencies
 
@@ -173,11 +173,11 @@ Declare any build dependencies in `pkg_build_deps` and any run dependencies in `
 
 The package `core/glibc` is typically listed as a run dependency and `core/coreutils` as a build dependency, however, you should not take any inference from this. There are no standard dependencies that every package must have. For example, the mytutorialapp package only includes the `core/node` as a run dependency. You should include dependencies that would natively be part of the build or runtime dependencies your application or service would normally depend on.
 
-There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/reference/#package-contents) for more information.
+There is a third type of dependencies, transitive dependencies, that are the run dependencies of either the build or run dependencies listed in your plan. You do not need to explicitly declare transitive dependencies, but they are included in the list of files when your package is built. See [Package contents](/docs/reference/package-contents) for more information.
 
 #### Override any build phase with callbacks
 
-As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [build phase callbacks](/docs/reference/#reference-callbacks), but if you need to reference specific packages in the process of building your applications or services, then you need to override the default implementations as in the example below.
+As shown in an example above, there are occasions when you want to override the default behavior of the hab-plan-build script. The Plan syntax guide lists the default implementations for [build phase callbacks](/docs/reference/build-phase-callbacks'), but if you need to reference specific packages in the process of building your applications or services, then you need to override the default implementations as in the example below.
 
 ```bash
 pkg_name=httpd
@@ -236,11 +236,11 @@ When overriding any callbacks, you may use any of the variables, settings, or fu
 
 ### Runtime workflow
 
-Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined for the Supervisor. This is done at runtime through Application lifecycle hooks. See [Application Lifecycle hooks](/docs/reference/#reference-hooks) for more information and examples.
+Similar to defining the setup and installation experience at buildtime, behavior for your application or service needs to be defined for the Supervisor. This is done at runtime through Application lifecycle hooks. See [Application Lifecycle hooks](/docs/reference/reference-hooks) for more information and examples.
 
 If you only need to start the application or service when the Chef Habitat service starts, you can instead use the `pkg_svc_run` setting and specify the command as a string. When your package is created, a basic run hook will be created by Chef Habitat.
 
-You can use any of the [runtime configuration settings](/docs/reference/#template-data), either defined by you in your config file, or defined by Chef Habitat.
+You can use any of the [runtime configuration settings](/docs/reference/template-data), either defined by you in your config file, or defined by Chef Habitat.
 
 Once you are done writing your plan, use the studio to [build your package](/docs/developing-packages/#plan-builds).
 
@@ -507,7 +507,7 @@ A non-interactive build is one in which Chef Habitat creates a Studio for you, b
 
 By default, the Studio is reset to a clean state after the package is built; however, *if you are using the Linux version of `hab`*, you can reuse a previous Studio when building your package by specifying the `-R` option when calling the `hab pkg build` subcommand.
 
-For information on the contents of an installed package, see [Package contents](/docs/reference/#package-contents).
+For information on the contents of an installed package, see [Package contents](/docs/reference/package-contents).
 
 ---
 ## <a name="debug-builds" id="debug-builds" data-magellan-target="debug-builds" type="anchor">Troubleshooting Builds</a>

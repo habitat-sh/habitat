@@ -19,8 +19,8 @@ section
     {
         Import-DscResource -Module xWebAdministration
         Node 'localhost' {
-            WindowsFeature ASP 
-            { 
+            WindowsFeature ASP
+            {
                 Ensure = "Present"
                 Name = "Web-Asp-Net45"
             }
@@ -31,7 +31,7 @@ section
                 Ensure = "Present"
                 State  = "Started"
             }
-            
+
             xWebsite {{cfg.site_name}}
             {
                 Ensure          = "Present"
@@ -58,7 +58,7 @@ section
             }
         }
     }
-   
+
  p This is going to enable the <code>Web-Asp-Net45</code> feature and all dependent Windows features which will include the IIS web server itself. It will also configure all application specific IIS entities (app pool, website, app folder) so that the web server points to our application directory and listens on the configured port. The net result is that when DSC finishes applying this configuration, our web site should be browsable.
 
  h3 Chef Habitat Templating
@@ -68,8 +68,8 @@ section
  h3 Using runtime settings in templates
 
  p Chef Habitat allows you to reference configuration values set at runtime. These can be helpful in your templates if you need to reference port numbers, IP addresses, or other values when performing business logic during the lifecycle of your running service.
- 
- p You can use #{link_to 'runtime configuration settings','/docs/reference/#template-data'} in your templates. These include #{link_to 'user-created configuration settings',"/tutorials/build-your-own/#{current_page.data.platform_short}/add-config/"} defined by you in your config file, or built-in values defined by Chef Habitat.
+
+ p You can use #{link_to 'runtime configuration settings','/docs/reference/template-data'} in your templates. These include #{link_to 'user-created configuration settings',"/tutorials/build-your-own/#{current_page.data.platform_short}/add-config/"} defined by you in your config file, or built-in values defined by Chef Habitat.
 
  h2 Applying the DSC Configuration
 
@@ -88,6 +88,6 @@ section
 
  p Chef Habitat provides several helper functions when implementing templates. For example, <code>pkgPathFor</code> is used to provide the root path for a package within your application's dependency tree. This is useful if your hook requires a binary or file from a dependent package as we do here when importing the <code>core/dsc-core</code> Powershell module.
 
- p For the complete list of helper functions, see #{link_to 'Handlebars Helpers','/docs/reference/#handlebars-helpers'}.
+ p For the complete list of helper functions, see #{link_to 'Handlebars Helpers','/docs/reference/plan-helpers'}.
 
 = link_to 'Next: Define Hooks', "/demo/windows/steps/7", class: 'button cta'

@@ -849,7 +849,7 @@ You can read more about [basic plan settings](/docs/developing-packages/#write-p
 
 ##### Callbacks
 
-You can read more about [callbacks](/docs/reference/#reference-callbacks) here. The minimum requirement for a core plan are:
+You can read more about [callbacks](/docs/reference/build-phase-callbacks') here. The minimum requirement for a core plan are:
 
 ##### Do's
 
@@ -860,16 +860,16 @@ You can read more about [callbacks](/docs/reference/#reference-callbacks) here. 
 - You should never call `exit` within a build phase. In a `plan.sh`, you should instead return an exit code such as `return 1` for failure, and `return 0` for success. In a `plan.ps1` you should call `Write-Exception` or `throw` an exception upon failure.
 - If you clone a repo from git, you must override `do_verify()` to `return 0` in a `plan.sh` or if you are authoring a `plan.ps1` then override `Invoke-Verify` with an empty implementation.
 - Never use `pkg_source` unless you are downloading something as a third party.
-- You should never shell out to `hab` from within a callback. If you think you want to, you should use a [utility function](/docs/reference/#utility-functions) instead.
+- You should never shell out to `hab` from within a callback. If you think you want to, you should use a [utility function](/docs/reference/utility-functions) instead.
 - You should not call any function or helper that begin with an underscore, for example `_dont_call_this_function()`. Those are internal only functions that are not supported for external use and will break your plan if you call them.
 - Don't run any code or run anything outside of a build phase or a function.
 
 ##### Application lifecycle hooks
 
-The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks](/docs/reference/#reference-hooks) here.
+The Supervisor dynamically invokes hooks at run-time, triggered by an application lifecycle event. You can read more about [hooks](/docs/reference/reference-hooks) here.
 
 - You cannot block the thread in a hook unless it is in the `run` hook. Never call `hab` or `sleep` in a hook that is not the `run` hook.
-- You should never shell out to `hab` from within a hook. If you think you want to, you should use a [runtime configuration setting](/docs/reference/#template-data) instead. If none of those will solve your problem, open an issue and tell the core team why.
+- You should never shell out to `hab` from within a hook. If you think you want to, you should use a [runtime configuration setting](/docs/reference/template-data) instead. If none of those will solve your problem, open an issue and tell the core team why.
 - Run hooks should:
   - Redirect `stderr` to `stdout` (e.g. with `exec 2>&1` at the start of the hook)
   - In a Linux targeted hook, call the command to execute with `exec <command> <options>` rather than running the command directly. This ensures the command is executed in the same process and that the service will restart correctly on configuration changes.
@@ -921,7 +921,7 @@ You can write plans to package up these binary artifacts with minimal special ha
 
 ### Override The Build Phases You Don't Need
 
-A Chef Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. Each of these phases has [default behavior](/docs/reference/#reference-callbacks) within the build system.
+A Chef Habitat package build proceeds in phases: download, verification, unpacking (where you would also patch source code, if you had it), build, and finally installation. Each of these phases has [default behavior](/docs/reference/build-phase-callbacks') within the build system.
 
 When building binary packages, you override the behavior of phases that do not apply to you. At the very minimum, you must override the `do_build` and `do_install` phases, for example:
 

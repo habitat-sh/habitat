@@ -1,0 +1,339 @@
+==> 2017-04-11-Hello-World.html.md <==
+---
+title: Hello World!
+
+==> 2017-04-12-Multi-Service-Supervision.html.md <==
+---
+title: Multi-Service Supervision
+
+==> 2017-05-16-brupal-twice.html.md <==
+---
+title: Packaging PHP in Chef Habitat. A Tale Of Two Drupals.
+
+==> 2017-05-22-use-shield-to-backup-and-restore-redis.html.md <==
+---
+title: Use Shield to backup and restore Redis
+
+==> 2017-05-23-Builder.html.md <==
+---
+title: Chef Habitat Builder
+
+==> 2017-05-23-Scaffolding-App-From-Scratch.html.md <==
+---
+title: Packaging an App from Scratch with Scaffolding
+
+==> 2017-05-23-Scaffolding.html.md <==
+---
+title: Scaffolding
+
+==> 2017-06-02-ChefConf.html.md <==
+---
+title: ChefConf 2017 in retrospect
+
+==> 2017-06-07-Triage-and-Contributions.html.md <==
+---
+title: Triage and Contribution Process
+
+==> 2017-06-16-Habitat-Issue-Tracker.html.md <==
+---
+title: Chef Habitat.sh Governance and Issue Tracking
+
+==> 2017-06-28-Happy-Birthday-Habitat.html.md <==
+---
+title: Happy Birthday, Chef Habitat!
+
+==> 2017-07-07-Habitat-on-Windows.html.md <==
+---
+title: Chef Habitat on Windows!
+
+==> 2017-07-25-Habitat-mysql-cluster.html.md <==
+---
+title: Making a Leader/Follower MySql Cluster with Chef Habitat!
+
+==> 2017-07-28-Hab-Studio-Artifact-Caching.html.md <==
+---
+title: Chef Habitat Studio Artifact Caching
+
+==> 2017-08-09-Habitat-plans-for-net-full-iis-apps.html.md <==
+---
+title: Running a Full Framework ASP.NET IIS application in Chef Habitat
+
+==> 2017-08-15-Packaging-a-Website-with-Nginx-and-Habitat.html.md <==
+---
+title: Packaging a Website with Nginx and Chef Habitat
+
+==> 2017-08-18-habitat-rails-postgres-3-different-ways.html.md <==
+---
+title: Chef Habitat, Rails, and Postgres in 3 Different Ways
+
+==> 2017-08-23-community-summits.html.md <==
+---
+title: Join us for the Community Summits
+
+==> 2017-09-09-a-journey-with-habitat-on-amazon-ecs-part1.html.md <==
+---
+title: A journey with Chef Habitat on Amazon ECS, part 1
+
+==> 2017-09-12-a-journey-with-habitat-on-amazon-ecs-part2.html.md <==
+---
+title: A journey with Chef Habitat on Amazon ECS, part 2
+
+==> 2017-10-09-Habitat-Builder-for-the-People.html.md <==
+---
+title: Chef Habitat Builder for the People!
+
+==> 2017-10-09-node-scaffolding-habitat.html.md <==
+---
+title: NodeJS Scaffolding and Builder
+
+==> 2017-10-18-Introducing-Composites.html.md <==
+---
+title: Introducing Composites
+
+==> 2017-10-20-habitatize-ruby-web-application.html.md <==
+---
+title: "Chef Habitatize Yourself"
+
+==> 2017-10-26-node-scaffolding-scripts.html.md <==
+---
+title: "Node Scaffolding now supports pre and post build scripts!"
+
+==> 2017-10-27-distributed-java-application.html.md <==
+---
+title: "Modernize your Java development workflow with Chef Habitat"
+
+==> 2017-10-30-node-with-db.html.md <==
+---
+title: NodeJS Scaffolding with Databases!
+
+==> 2017-10-31-windows-service.html.md <==
+---
+title: "Running Chef Habitat as a Windows Service"
+
+==> 2017-11-16-Windows-Container-Studio.html.md <==
+---
+title: "Windows Container Studio"
+
+==> 2017-11-28-Discourse-Migration.html.md <==
+---
+title: "Chef Habitat Discourse Migration"
+
+==> 2017-11-30-runtime-environment-variables.html.md <==
+---
+title: Introducing Runtime Environment Variables
+
+==> 2017-12-01-Windows-Docker-Export.html.md <==
+---
+title: "Exporting Windows Packages to Docker"
+
+==> 2017-12-06-Kubecon-Habitat-Kubernetes.html.md <==
+---
+title: Kubecon, Chef Habitat, and Kubernetes!
+
+==> 2017-12-11-chefconf-2018-cfp.html.md <==
+---
+title: ChefConf 2018 CFP - Application Automation Track
+
+==> 2017-12-21-Packaging-Windows-Services.html.md <==
+---
+title: "Packaging a .Net Windows Service Application"
+
+==> 2018-01-03-a-plan-for-sql-server.html.md <==
+---
+title: "A Plan for Microsoft SQL Server"
+
+==> 2018-01-16-Getting-Started-Node.html.md <==
+---
+title: "Getting Started with Node & Chef Habitat"
+
+==> 2018-02-05-Habitat-0.53.0-Released.html.md <==
+---
+title: Chef Habitat 0.53.0 Released!
+
+==> 2018-02-07-openshift-support.html.md <==
+---
+title: Chef Habitat Can Now Run in OpenShift
+
+==> 2018-02-17-patching-source.html.md <==
+---
+title: Packaging Source that Needs a Patch
+
+==> 2018-02-20-0540Release.html.md <==
+---
+title: Chef Habitat 0.54.0 Released
+
+==> 2018-02-21-Habitat-Helm.html.md <==
+---
+title: Chef Habitat and Helm!
+
+==> 2018-03-06-Personal-Access-Tokens.html.md <==
+---
+title: Introducing Chef Habitat Personal Access Tokens
+
+==> 2018-03-09-habitat-cloudfoundry.html.md <==
+---
+title: Exporting Docker Images for Cloud Foundry with Chef Habitat
+
+==> 2018-03-21-0550-Release.html.md <==
+---
+title: Chef Habitat 0.55.0 Released
+
+==> 2018-05-01-Auto-App-Updates-k8s.html.md <==
+---
+title: Automate Application Updates with Chef Habitat and Kubernetes
+
+==> 2018-05-01-Hab-OSB.html.md <==
+---
+title: Chef Habitat + Open Service Broker 
+
+==> 2018-05-01-Hab-and-k8s.html.md <==
+---
+title: "Chef Habitat and Kubernetes: How Does It Work?"
+
+==> 2018-05-04-tracking-application-health-with-splunk.html.md <==
+---
+title: Tracking Application Health with Splunk
+
+==> 2018-05-07-aks-and-acr-walkthrough.html.md <==
+---
+title: Walkthrough - Publishing Chef Habitat packages to Azure Kubernetes Service (AKS)
+
+==> 2018-05-11-changes-in-the-0.56.0-supervisor.html.md <==
+---
+title: "Changes in the Forthcoming 0.56.0 Supervisor: What You Need To Know"
+
+==> 2018-05-21-On-Prem-Builder.html.md <==
+---
+title: Introducing Chef Habitat On-Premises Builder Depot
+
+==> 2018-05-29-0560-Release.html.md <==
+---
+title: Chef Habitat 0.56.0 Released
+
+==> 2018-06-13-base-plans-refresh.html.md <==
+---
+title: Base Plans Refresh is Coming to Chef Habitat Core Plans!
+
+==> 2018-06-15-Habitat-0.57.0-Released.html.md <==
+---
+title: Chef Habitat 0.57.0 Released!
+
+==> 2018-06-22-core-plans-and-certain-linux-kernels.html.md <==
+---
+title: Core Plans and Certain Linux Kernels
+
+==> 2018-07-02-Habitat-0.58.0-Released.html.md <==
+---
+title: Chef Habitat 0.58.0 Released!
+
+==> 2018-07-12-Habitat-0.59.0-Released.html.md <==
+---
+title: Chef Habitat 0.59.0 Released!
+
+==> 2018-07-18-habitat-gcr-and-gke.html.md <==
+---
+title: Chef Habitat, Google Container Registry (GCR) and Google Kubernetes Engine (GKE)
+
+==> 2018-07-25-Packaging-COTS-for-Windows.html.md <==
+---
+title: "Packaging COTS Applications for Windows"
+
+==> 2018-08-13-1348Release.html.md <==
+---
+title: Chef Habitat 0.61.0 Released
+
+==> 2018-08-18-lift-and-shift-hab.html.md <==
+---
+title: Lifting and Shifting in Practice with Chef Habitat
+
+==> 2018-08-30-Introducing-Cacher.html.md <==
+---
+title: Introducing Cacher
+
+==> 2018-08-31-0620Release.html.md <==
+---
+title: Chef Habitat 0.62.0 Released
+
+==> 2018-09-10-Habitat-0.63.0-Release.html.md <==
+---
+title: Chef Habitat 0.63.0 Released
+
+==> 2018-09-27-0.64.0-release.html.md <==
+---
+title: Chef Habitat 0.64.0 Release!
+
+==> 2018-09-28-0.64.1-release.html.md <==
+---
+title: Chef Habitat 0.64.1 Release!
+
+==> 2018-10-05-0.65.0-release.html.md <==
+---
+title: Chef Habitat 0.65.0 Release!
+
+==> 2018-10-22-0.66.0-release.html.md <==
+---
+title: Chef Habitat 0.66.0 Release!
+
+==> 2018-10-29-shelving-composites.html.md <==
+---
+title: Shelving Composites (for now)
+
+==> 2018-10-30-0.67.0-release.html.md <==
+---
+title: Chef Habitat 0.67.0 Release!
+
+==> 2018-11-07-0.68.0-release.html.md <==
+---
+title: Chef Habitat 0.68.0 Release!
+
+==> 2018-11-27-0.69.0-release.html.md <==
+---
+title: Chef Habitat 0.69.0 Released
+
+==> 2018-12-05-0.70.0-release.html.md <==
+---
+title: Chef Habitat 0.70.0 Released
+
+==> 2018-12-19-0.71.0-release.html.md <==
+---
+title: Chef Habitat 0.71.0 Released
+
+==> 2019-01-04-0.72.0-release.html.md <==
+---
+title: Chef Habitat 0.72.0 Released
+
+==> 2019-01-15-0.73.0-release.html.md <==
+---
+title: Chef Habitat 0.73.0 Released
+
+==> 2019-01-22-base-plans-refresh.html.md <==
+---
+title: Base Plans Refresh is Coming to Chef Habitat Core Plans!
+
+==> 2019-02-06-0.74.0-release.html.md <==
+---
+title: Chef Habitat 0.74.0 Released
+
+==> 2019-02-06-introducing-the-install-hook.html.md <==
+---
+title: Introducing the Install Hook!
+
+==> 2019-02-20-0.75.0-release.html.md <==
+---
+title: Chef Habitat 0.75.0 Released
+
+==> 2019-02-28-0.76.0-release.html.md <==
+---
+title: Chef Habitat 0.76.0 Released
+
+==> 2019-03-01-0.77.0-release.html.md <==
+---
+title: Chef Habitat 0.77.0 Released
+
+==> 2019-03-13-0.78.0-release.html.md <==
+---
+title: Chef Habitat 0.78.0 Released
+
+==> 2019-04-09-0.79.0-release.html.md <==
+---
+title: Chef Habitat 0.79.0 Release!

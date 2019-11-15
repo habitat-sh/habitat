@@ -96,7 +96,7 @@ sidebar_links:
     - title: Build Helpers
       link: "/docs/reference/build-helpers"
     - title: Build Phase Callbacks
-      link: "/docs/reference/reference-callbacks"
+      link: "/docs/reference/build-phase-callbacks"
     - title: Application Lifecycle Hooks
       link: "/docs/reference/lifecycle-hooks"
     - title: Template Data
