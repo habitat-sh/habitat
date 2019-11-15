@@ -1,4 +1,4 @@
-$ErrorActionPreference="stop" 
+$ErrorActionPreference="stop"
 
 Write-Host "--- Fetching manifest"
 $baseUrl = "https://packages.chef.io/files/stable/habitat/latest"
@@ -37,13 +37,20 @@ Write-Host "--- Publishing package"
 
 $valid_build_creator="Chef Expeditor"
 
-if($env:BUILDKITE_BUILD_CREATOR -eq $valid_build_creator) {
-  choco pack $tempDir/habitat.nuspec --version $Version
-  choco push habitat.$Version.nupkg -k $env:CHOCO_API_KEY --timeout 600
-} else {
-  Write-Host "--- NOT PUBLISHING: Build triggered by $env:BUILDKITE_BUILD_CREATOR and not $valid_build_creator"
-  Write-Host "choco pack $tempDir/habitat.nuspec --version $Version"
-  Write-Host "choco push habitat.$Version.nupkg -k <elided ChocoApiKey> --timeout 600"
-}
+$pack_cmd = "choco pack $tempDir/habitat.nuspec --version $Version"
+$publish_cmd = "choco push habitat.$Version.nupkg --timeout 600"
 
-Remove-Item $tempDir -Recurse -Force
+try {
+    if($env:BUILDKITE_BUILD_CREATOR -eq $valid_build_creator) {
+        Invoke-Expression $pack_cmd
+        if (-not $?) { throw "unable to choco pack" }
+        Invoke-Expression $publish_cmd " --key " $env:CHOCO_API_KEY
+        if (-not $?) { throw "unable to publish Chocolatey package" }
+    } else {
+        Write-Host "--- NOT PUBLISHING: Build triggered by $env:BUILDKITE_BUILD_CREATOR and not $valid_build_creator"
+        Write-Host $pack_cmd
+        Write-Host $publish_cmd " --key <elided ChocoApiKey>"
+    }
+} finally {
+    Remove-Item $tempDir -Recurse -Force
+}
