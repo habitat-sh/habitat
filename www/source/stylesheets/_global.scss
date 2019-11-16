@@ -399,9 +399,17 @@ code {
     color: $white;
 }
 
+h2
+  a::before {
+    display: block;
+    content: "";
+    height: 220px;
+    margin: -220px 0 0;
+  }
+
 h2:not(:first-child) {
-  margin-top: rem-calc(40);
-}
+   margin-top: rem-calc(40);
+ }
 
 ol.upper-alpha {
   list-style-type: upper-alpha;
