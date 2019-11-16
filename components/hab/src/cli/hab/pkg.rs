@@ -210,10 +210,17 @@ pub enum Pkg {
         #[structopt(name = "IGNORE_MISSING_SEEDS", long = "ignore-missing-seeds")]
         ignore_missing_seed: bool,
     },
-    /// Prints the runtime environment of a specific installed package
+    /// Prints the runtime or build-time environment of specific installed packages
     Env {
-        #[structopt(flatten)]
-        pkg_ident: PkgIdent,
+        /// A package identifier (ex: core/redis, core/busybox-static/1.42.2)
+        #[structopt(name = "PKG_IDENT", required = true)]
+        pkg_ident:       Vec<PackageIdent>,
+        /// Include common build-time environment variables in addition to runtime variables
+        #[structopt(name = "BUILD", short = "b", long = "build")]
+        build:           bool,
+        /// Append existing values to environment variables when printing
+        #[structopt(name = "APPEND_EXISTING", short = "a", long = "append-existing")]
+        append_existing: bool,
     },
     /// Executes a command using the 'PATH' context of an installed package
     Exec {

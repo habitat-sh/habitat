@@ -4,7 +4,8 @@ use super::{list::package_list_for_ident,
                        Bind,
                        BindMapping,
                        MetaFile,
-                       PackageType},
+                       PackageType,
+                       BUILD_ENVIRONMENT_FILES},
             Identifiable,
             PackageIdent};
 use crate::{error::{Error,
@@ -217,6 +218,22 @@ impl PackageInstall {
     /// the composite, and not the fully-resolved identifiers you
     /// would get from other "dependency" metadata files.
     pub fn pkg_services(&self) -> Result<Vec<PackageIdent>> { self.read_deps(MetaFile::Services) }
+
+    pub fn build_environment(&self) -> Result<BTreeMap<String, String>> {
+        let mut env: BTreeMap<String, String> = BTreeMap::new();
+        for file in BUILD_ENVIRONMENT_FILES.iter() {
+            match self.read_metafile(*file) {
+                Ok(data) => {
+                    env.insert(file.envvar(), data.trim().to_string());
+                }
+                Err(Error::MetaFileNotFound(_)) => {}
+                Err(e) => {
+                    return Err(e);
+                }
+            }
+        }
+        Ok(env)
+    }
 
     /// Constructs and returns a `HashMap` of environment variable/value key pairs of all
     /// environment variables needed to properly run a command from the context of this package.

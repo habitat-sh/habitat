@@ -600,9 +600,13 @@ pub fn get(feature_flags: FeatureFlag) -> App<'static, 'static> {
              )
             (subcommand: sub_pkg_download())
             (@subcommand env =>
-                (about: "Prints the runtime environment of a specific installed package")
-                (@arg PKG_IDENT: +required +takes_value {valid_ident}
+                (about: "Prints the runtime or build-time environment of specific installed packages")
+                (@arg PKG_IDENT: +required +takes_value +multiple {valid_ident}
                     "A package identifier (ex: core/redis, core/busybox-static/1.42.2)")
+                (@arg BUILD: -b --build
+                    "Include common build-time environment variables in addition to runtime variables")
+                (@arg APPEND_EXISTING: -a --("append-existing")
+                    "Append existing values to environment variables when printing")
             )
             (@subcommand exec =>
                 (about: "Executes a command using the 'PATH' context of an installed package")

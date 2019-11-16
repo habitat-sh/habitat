@@ -16,11 +16,25 @@ use std::{self,
           string::ToString,
           vec::IntoIter};
 
-#[cfg(not(windows))]
-const ENV_PATH_SEPARATOR: char = ':';
+#[cfg(unix)]
+pub const DEFAULT_AGGREGATE_SEP: char = ':';
 
 #[cfg(windows)]
-const ENV_PATH_SEPARATOR: char = ';';
+pub const DEFAULT_AGGREGATE_SEP: char = ';';
+
+const ENV_PATH_SEPARATOR: char = DEFAULT_AGGREGATE_SEP;
+
+#[cfg(unix)]
+pub static BUILD_ENVIRONMENT_FILES: [MetaFile; 7] = [MetaFile::CFlags,
+                                                     MetaFile::CPPFlags,
+                                                     MetaFile::CXXFlags,
+                                                     MetaFile::LdFlags,
+                                                     MetaFile::LdRunPath,
+                                                     MetaFile::Path,
+                                                     MetaFile::PkgConfigPath];
+
+#[cfg(windows)]
+pub static BUILD_ENVIRONMENT_FILES: [MetaFile; 2] = [MetaFile::IncludeDirs, MetaFile::LibDirs];
 
 pub fn parse_key_value(s: &str) -> Result<BTreeMap<String, String>> {
     Ok(BTreeMap::from_iter(s.lines()
@@ -142,6 +156,8 @@ pub enum MetaFile {
     BuildDeps,
     BuildTDeps,
     CFlags,
+    CPPFlags,
+    CXXFlags,
     Config,
     Deps,
     Environment,
@@ -149,10 +165,13 @@ pub enum MetaFile {
     Exports,
     Exposes,
     Ident,
+    IncludeDirs,
     LdFlags,
     LdRunPath,
+    LibDirs,
     Manifest,
     Path,
+    PkgConfigPath,
     ResolvedServices, // Composite-only
     RuntimeEnvironment,
     RuntimeEnvironmentPaths,
@@ -167,6 +186,18 @@ pub enum MetaFile {
     Type,
 }
 
+impl MetaFile {
+    pub fn envvar(self) -> String {
+        match self {
+            MetaFile::IncludeDirs => "INCLUDE".to_string(),
+            MetaFile::LibDirs => "LIB".to_string(),
+            _ => self.to_string(),
+        }
+    }
+
+    pub fn filename(self) -> String { self.to_string() }
+}
+
 impl fmt::Display for MetaFile {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let id = match *self {
@@ -176,6 +207,8 @@ impl fmt::Display for MetaFile {
             MetaFile::BuildDeps => "BUILD_DEPS",
             MetaFile::BuildTDeps => "BUILD_TDEPS",
             MetaFile::CFlags => "CFLAGS",
+            MetaFile::CPPFlags => "CPPLAGS",
+            MetaFile::CXXFlags => "CXXFLAGS",
             MetaFile::Config => "default.toml",
             MetaFile::Deps => "DEPS",
             MetaFile::Environment => "ENVIRONMENT",
@@ -183,10 +216,13 @@ impl fmt::Display for MetaFile {
             MetaFile::Exports => "EXPORTS",
             MetaFile::Exposes => "EXPOSES",
             MetaFile::Ident => "IDENT",
+            MetaFile::IncludeDirs => "INCLUDE_DIRS",
             MetaFile::LdFlags => "LDFLAGS",
             MetaFile::LdRunPath => "LD_RUN_PATH",
+            MetaFile::LibDirs => "LIB_DIRS",
             MetaFile::Manifest => "MANIFEST",
             MetaFile::Path => "PATH",
+            MetaFile::PkgConfigPath => "PKG_CONFIG_PATH",
             MetaFile::ResolvedServices => "RESOLVED_SERVICES",
             MetaFile::RuntimeEnvironment => "RUNTIME_ENVIRONMENT",
             MetaFile::RuntimeEnvironmentPaths => "RUNTIME_ENVIRONMENT_PATHS",
@@ -229,7 +265,7 @@ pub fn read_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Resul
 ///
 /// Useful for fallback logic for dealing with older Habitat packages.
 fn existing_metafile<P: AsRef<Path>>(installed_path: P, file: MetaFile) -> Option<PathBuf> {
-    let filepath = installed_path.as_ref().join(file.to_string());
+    let filepath = installed_path.as_ref().join(file.filename());
     match std::fs::metadata(&filepath) {
         Ok(_) => Some(filepath),
         Err(_) => None,

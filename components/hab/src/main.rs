@@ -672,9 +672,10 @@ async fn sub_pkg_download(ui: &mut UI,
 }
 
 fn sub_pkg_env(m: &ArgMatches<'_>) -> Result<()> {
-    let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
-
-    command::pkg::env::start(&ident, &*FS_ROOT)
+    let idents = idents_from_matches(m)?;
+    let build = m.is_present("BUILD");
+    let append_existing = m.is_present("APPEND_EXISTING");
+    command::pkg::env::start(&idents, &*FS_ROOT, build, append_existing)
 }
 
 fn sub_pkg_exec(m: &ArgMatches<'_>, cmd_args: &[OsString]) -> Result<()> {
