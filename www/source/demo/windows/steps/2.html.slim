@@ -4,7 +4,7 @@ section
  p At the center of Chef Habitat packaging is the plan. This is a directory comprised of Powershell scripts and optional configuration files that define how you download, configure, make, install, and manage the lifecycle of the software in the package. When writing a plan, it's important to understand that you are defining both how the package is built and how the Chef Habitat service will behave when the Supervisor starts and manages the child process in the package.
 
  p To create your plan, navigate to the root of your project repo and run the following:
- 
+
  = code(:shell) do
    |
      PS C:\contosouniversity> hab plan init
@@ -35,11 +35,11 @@ section
       $pkg_version="0.1.0"
       $pkg_maintainer="The Chef Habitat Maintainers <humans@habitat.sh>"
       $pkg_license=@("Apache-2.0")
- 
+
  h2 Versioning
 
  p Every package needs a version number to use as part of its package identification. The <code>hab plan init</code> subcommand creates a version for you, but in general, you have two options for adding versioning:
- 
+
  ul
    li Explicitly add <code>pkg_version</code> to your plan file
    li Use the <code>Set-PkgVersion</code> helper functions to compute <code>pkg_version</code>
@@ -50,7 +50,7 @@ section
    |
      $pkg_version="1.2.8"
 
- p See #{link_to 'Basic settings', '/docs/reference#plan-settings'} and #{link_to 'Utility functions', '/docs/reference#utility-functions'} for more information on these versioning options.
+ p See #{link_to 'Basic settings', '/docs/reference/plan-settings'} and #{link_to 'Utility functions', '/docs/reference/plan-helper-functions'} for more information on these versioning options.
 
  p The rest of the steps in this guide will show you how to customize your plan, connect to a SQL Server database, and test your package.
 

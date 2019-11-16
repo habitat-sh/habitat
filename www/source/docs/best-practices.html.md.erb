@@ -860,7 +860,7 @@ You can read more about [callbacks](/docs/reference/build-phase-callbacks') here
 - You should never call `exit` within a build phase. In a `plan.sh`, you should instead return an exit code such as `return 1` for failure, and `return 0` for success. In a `plan.ps1` you should call `Write-Exception` or `throw` an exception upon failure.
 - If you clone a repo from git, you must override `do_verify()` to `return 0` in a `plan.sh` or if you are authoring a `plan.ps1` then override `Invoke-Verify` with an empty implementation.
 - Never use `pkg_source` unless you are downloading something as a third party.
-- You should never shell out to `hab` from within a callback. If you think you want to, you should use a [utility function](/docs/reference/utility-functions) instead.
+- You should never shell out to `hab` from within a callback. If you think you want to, you should use a [utility function](/docs/reference/plan-helper-functions) instead.
 - You should not call any function or helper that begin with an underscore, for example `_dont_call_this_function()`. Those are internal only functions that are not supported for external use and will break your plan if you call them.
 - Don't run any code or run anything outside of a build phase or a function.
 

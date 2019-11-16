@@ -290,7 +290,7 @@ The path to this directory is available at build time in the plan as the variabl
 All templates located in a package's `config_install` folder are rendered to a config_install directory, `/hab/svc/<pkg_name>/config_install`. These templates are only accesible to the execution of an `install` hook and any changes to the values referenced by these templates at runtime will not result in re-rendering the template.
 The path to this directory is available at build time in the plan as the variable `$pkg_svc_config_install_path` and available at runtime in templates and `install` hooks as `{{pkg.svc_config_install_path}}`.
 
-Chef Habitat not only allows you to use Handlebars-based tunables in your plan, but you can also use both built-in Handlebars helpers as well as Chef Habitat-specific helpers to define your configuration logic. See [Reference](/reference/#helpers) for more information.
+Chef Habitat not only allows you to use Handlebars-based tunables in your plan, but you can also use both built-in Handlebars helpers as well as Chef Habitat-specific helpers to define your configuration logic. See [Reference](/reference/application-lifecycle-helpers) for more information.
 
 ## <a name="pkg-binds" id="pkg-binds" data-magellan-target="pkg-binds" type="anchor">Runtime Binds and Exports</a>
 
