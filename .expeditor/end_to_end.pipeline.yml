@@ -21,14 +21,14 @@ steps:
 
   - label: ":docker: Docker End-to-End Supervisor Tests"
     command:
-      - cd automated_testing
+      - cd test/end-to-end/multi-supervisor
       - ./run_all.sh dev
     expeditor:
       executor:
         linux:
           privileged: true
     artifact_paths:
-      - "automated_testing/habitat_integration_output/**"
+      - "test/end-to-end/multi-supervisor/habitat_integration_output/**"
 
   - label: "[:linux: test_hab_help_doesnt_install_hab_sup]"
     command:
