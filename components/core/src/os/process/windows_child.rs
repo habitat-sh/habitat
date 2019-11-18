@@ -249,7 +249,14 @@ impl Child {
         //
         // For more information, msdn also has an article about this race:
         // http://support.microsoft.com/kb/315939
-        let _ = CREATE_PROCESS_LOCK.lock().unwrap();
+        //
+        // The Rust standard library uses a similar lock[1] when spawning a process. Race
+        // conditions can easily occur because these two implementations do not share the same
+        // lock. We should be careful that spawning processes using the standard library and our
+        // custom implementation never occur simultaneously.
+        //
+        // [1] https://github.com/rust-lang/rust/blob/1bd30ce2aac40c7698aa4a1b9520aa649ff2d1c5/src/libstd/sys/windows/process.rs#L179
+        let _lock = CREATE_PROCESS_LOCK.lock().unwrap();
 
         let mut pipes = StdioPipes { stdin:  None,
                                      stdout: None,
