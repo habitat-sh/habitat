@@ -435,6 +435,33 @@ steps:
             - BUILD_PKG_TARGET=x86_64-windows
             - BUILDKITE_AGENT_ACCESS_TOKEN
 
+  - label: "[:linux: test PIDS_FROM_LAUNCHER feature]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
+      - test/end-to-end/test_PIDS_FROM_LAUNCHER_feature.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+
+  - label: "[:linux: test PIDS_FROM_LAUNCHER feature with old Launcher]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
+      - test/end-to-end/test_PIDS_FROM_LAUNCHER_feature_old_launcher.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+
+  - label: "[:linux: test PIDS_FROM_LAUNCHER disabled]"
+    command:
+      - .expeditor/scripts/end_to_end/setup_environment.sh dev
+      - test/end-to-end/test_PIDS_FROM_LAUNCHER_feature_old_launcher_disabled.sh
+    expeditor:
+      executor:
+        docker:
+          privileged: true
+
   - wait
 
   - label: "[:habicat: Promote to Acceptance]"
