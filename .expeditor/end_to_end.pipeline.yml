@@ -22,8 +22,7 @@ steps:
   - label: ":docker: Docker End-to-End Supervisor Tests"
     command:
       - cd automated_testing
-      # TODO (CM): should be DEV, but somehow it doesn't have the packages I need at the moment?!
-      - ./run_all.sh stable
+      - ./run_all.sh dev
     expeditor:
       executor:
         linux:
