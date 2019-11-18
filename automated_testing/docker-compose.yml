@@ -73,6 +73,19 @@ services:
     build:
       context: ${TESTCASE_DIR}
     image: ${TESTCASE}_image
+    volumes:
+      # This is for when your tests require access to the individual
+      # Supervisor "servers"' file systems. We need access to the
+      # Docker socket inside the container, so we can use `docker` to
+      # get into the other containers to check.
+      #
+      # Whenever possible, though, your tests should be as
+      # Docker-independent as they can.
+      #
+      # Yo dawg, I heard you like Docker....
+      - source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        type: bind
 
   # The Supervisor containers are defined below. They're often simply
   # clones of each other (with different hostnames), but they can be

@@ -14,3 +14,7 @@ ENV HAB_LICENSE=accept-no-persist
 
 # Ensure that the desired version of `hab` is actually in the image.
 RUN hab pkg install core/hab --binlink --force --channel="${CHANNEL}"
+
+# For tests where the testing container needs access to Docker to test
+# things. If that describes your test, remember to mount /var/run/docker.sock!
+RUN hab pkg install core/docker --binlink --force
