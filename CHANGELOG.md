@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.18 -->
-## [0.90.18](https://github.com/habitat-sh/habitat/tree/0.90.18) (2019-11-15)
+<!-- latest_release 0.90.19 -->
+## [0.90.19](https://github.com/habitat-sh/habitat/tree/0.90.19) (2019-11-18)
 
-#### Merged Pull Requests
-- [CI] Don&#39;t install `core/rust` in Windows test steps [#7210](https://github.com/habitat-sh/habitat/pull/7210) ([christophermaier](https://github.com/christophermaier))
+#### Bug Fixes
+- Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
 ### Changes since 0.90.6 release
+
+#### Bug Fixes
+- Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
 - [CI] Don&#39;t install `core/rust` in Windows test steps [#7210](https://github.com/habitat-sh/habitat/pull/7210) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.18 -->
