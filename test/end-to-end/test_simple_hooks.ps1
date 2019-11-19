@@ -8,13 +8,13 @@ Describe "Simple hooks output" {
 
     It "Has correct 'install' hook stdout" { 
         $path = Join-Path $pkgLogsPath "install.stdout.log"
-        Wait-PathUpdatedAfter $path $TestStartTime 10
+        Wait-PathHasContentUpdatedAfter $path $TestStartTime 10
         $path | Should -FileContentMatchExactly "install hook $svc"
     }
 
     It "Has correct 'init' hook stdout" {
         $path = Join-Path $pkgLogsPath "init.stdout.log"
-        Wait-PathUpdatedAfter $path $TestStartTime 10
+        Wait-PathHasContentUpdatedAfter $path $TestStartTime 10
         $path | Should -FileContentMatchExactly "init hook $svc"
     }
 
@@ -25,15 +25,16 @@ Describe "Simple hooks output" {
 
     It "Has correct 'post-run' hook stdout" { 
         $path = Join-Path $pkgLogsPath "post-run.stdout.log"
-        Wait-PathUpdatedAfter $path $TestStartTime 10
+        Wait-PathHasContentUpdatedAfter $path $TestStartTime 10
         $path | Should -FileContentMatchExactly "post-run hook $svc"
     }
 
+    $beforeUnloadTime = Get-Date
     Unload-SupervisorService -PackageName $pkg -Timeout 20
 
     It "Has correct 'post-stop' hook stdout" {
         $path = Join-Path $pkgLogsPath "post-stop.stdout.log"
-        Wait-PathUpdatedAfter $path $TestStartTime 10
+        Wait-PathHasContentUpdatedAfter $path $beforeUnloadTime 10
         $path | Should -FileContentMatchExactly "post-stop hook $svc"
     }
 }

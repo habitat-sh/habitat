@@ -35,13 +35,23 @@ function Wait-True([ScriptBlock]$TestScript, [ScriptBlock]$TimeoutScript, [int]$
 
 function Wait-PathUpdatedAfter($Path, $Time, $Timeout) {
     $testScript = {
-        if (!(Test-Path -Path $Path)) {
-            return $False
-        }
-        (Get-Item -Path $Path).LastWriteTime -ge $Time
+        (Test-Path -Path $Path) -And ((Get-Item -Path $Path).LastWriteTime -gt $Time)
     }
     $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for '$Path' to be updated after '$($Time.ToString("yyyy-MM-ddTHH:MM:ssZ"))'" }
     Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+}
+
+function Wait-PathHasContent($Path, $Time, $Timeout) {
+    $testScript = {
+        (Test-Path -Path $Path) -And ((Get-Content -Path $Path).Length -gt 0)
+    }
+    $timeoutScript = { Write-Error "Timed out waiting $Timeout seconds for '$Path' to have content after '$($Time.ToString("yyyy-MM-ddTHH:MM:ssZ"))'" }
+    Wait-True -TestScript $testScript -TimeoutScript $timeoutScript -Timeout $Timeout
+}
+
+function Wait-PathHasContentUpdatedAfter($Path, $Time, $Timeout) {
+    Wait-PathHasContent $Path $Time $Timeout
+    Wait-PathUpdatedAfter $Path $Time $Timeout
 }
 
 function Wait-Supervisor($Timeout = 1) {
