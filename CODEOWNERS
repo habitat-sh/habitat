@@ -14,6 +14,5 @@ components/sup* @christophermaier @raskchanky
 components/win-users @mwrock
 support @christophermaier @raskchanky
 tools @chefsalim @christophermaier @eeyun @raskchanky
-www @chef/automate-ui-team
-www/site/content/* @kagarmoe @mjingle
+www @chef/automate-ui-team @kagarmoe @mjingle @ianmadd
 UX_PRINCIPLES.md @apriofrost
