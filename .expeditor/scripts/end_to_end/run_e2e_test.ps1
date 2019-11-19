@@ -1,25 +1,9 @@
 param (
-    [string]$Channel="dev",
-    [string]$TestName
+   [string]$Channel = "dev",
+   [string]$TestName,
+   [string]$BuilderUrl = $env:HAB_BLDR_URL
 )
 
-$ErrorActionPreference="stop" 
-$env:HAB_LICENSE = "accept-no-persist"
 . .expeditor/scripts/shared.ps1
-
-Install-Habitat
-
-Write-Host "--- Installing latest core/hab from $env:HAB_BLDR_URL, $Channel channel"
-hab pkg install core/hab `
-    --binlink `
-    --force `
-    --channel "$Channel" `
-    --url="$env:HAB_BLDR_URL"
-$env:PATH="$env:SystemDrive\hab\bin;$env:PATH"
-Write-Host "--- Using $(hab --version)"
-
-hab pkg install core/pester --channel stable
-Import-Module "$(hab pkg path core/pester)\module\pester.psd1"
-$env:HAB_NOCOLORING = "true"
-
-Invoke-Pester test/end-to-end/${TestName}.ps1 -EnableExit
+. .expeditor/scripts/end_to_end/setup_environment.ps1 $Channel $BuilderUrl
+Invoke-NativeCommand pwsh .expeditor/scripts/end_to_end/run_e2e_test_core.ps1 $TestName $BuilderUrl

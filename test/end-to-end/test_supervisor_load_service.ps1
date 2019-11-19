@@ -15,9 +15,9 @@ Describe "hab svc load" {
     }
     It "Actually runs nginx" {
         # This will error with a 403 because nginx is not running any sites
-        try  { Invoke-WebRequest "http://localhost" -Method HEAD -UseBasicParsing }
-        catch [System.Net.WebException] { $response = $_.Exception.Response }
-        $response.Server | Should -BeLike "nginx/*"
+        try  { Invoke-WebRequest "http://localhost" }
+        catch [Microsoft.PowerShell.Commands.HttpResponseException] { $headers = $_.Exception.Response.Headers }
+        [string]$headers.Server | Should -BeLike "nginx/*"
     }
 
     AfterAll {

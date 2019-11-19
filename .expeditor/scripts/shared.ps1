@@ -1,3 +1,29 @@
+$env:PathSeparator = if ($IsWindows -Or !$IsCoreCLR) {
+  ";"
+} else {
+  ":"
+}
+
+# Run a command, and automatically throw an error if the exit code is non-zero.
+function Invoke-NativeCommand() {
+  if ($args.Count -eq 0) {
+      throw "Must supply arguments."
+  }
+
+  $command = $args[0]
+  $commandArgs = @()
+  if ($args.Count -gt 1) {
+      $commandArgs = $args[1..($args.Count - 1)]
+  }
+
+  & $command $commandArgs
+  $result = $LASTEXITCODE
+
+  if ($result -ne 0) {
+      throw "$command $commandArgs exited with code $result."
+  }
+}
+
 function Get-RustfmtToolchain {
   # It turns out that every nightly version of rustfmt has slight tweaks from the previous version.
   # This means that if we're always using the latest version, then we're going to have enormous
@@ -25,16 +51,15 @@ function Get-Toolchain {
 }
 
 function New-PathString([string]$StartingPath, [string]$Path) {
-  if (-not [string]::IsNullOrEmpty($path)) {
+  if (-not [string]::IsNullOrEmpty($Path)) {
       if (-not [string]::IsNullOrEmpty($StartingPath)) {
-          [string[]]$PathCollection = "$path;$StartingPath" -split ';'
+          [string[]]$PathCollection = "$Path$env:PathSeparator$StartingPath" -split $env:PathSeparator
           $Path = ($PathCollection |
               Select-Object -Unique |
-              Where-Object {-not [string]::IsNullOrEmpty($_.trim())} |
-              Where-Object {test-path "$_"}
-          ) -join ';'
+              Where-Object {-not [string]::IsNullOrEmpty($_.trim())}
+          ) -join $env:PathSeparator
       }
-      $path
+      $Path
   }
   else {
       $StartingPath
@@ -67,42 +92,6 @@ function Install-RustToolchain($Toolchain) {
   } else {
       Write-Host "Rust toolchain $toolchain is already installed"
   }
-}
-
-function Wait-Supervisor($Timeout=1) {
-  Write-Host "Waiting up to $Timeout seconds for Supervisor to start..."
-  $startTime = [DateTime]::Now
-  $success = (Test-NetConnection -ComputerName localhost -Port 9631).TcpTestSucceeded
-  while(!$success) {
-      Start-Sleep -Seconds 1
-      $timeTaken = [DateTime]::Now.Subtract($startTime)
-      if($timeTaken.TotalSeconds -ge $Timeout) {
-          Write-Error "Timed out waiting $Timeout seconds for Supervisor to start"
-          break
-      }
-      $success = (Test-NetConnection -ComputerName localhost -Port 9631).TcpTestSucceeded
-  }
-  if($success) { Write-Host "Supervisor is now running." }
-}
-
-function Wait-SupervisorService($ServiceName, $Timeout=1) {
-  Write-Host "Waiting up to $Timeout seconds for Supervisor to start $ServiceName ..."
-  $startTime = [DateTime]::Now
-  try {
-      $success = (((Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default" -UseBasicParsing).content | ConvertFrom-Json).process.state -eq "up")
-  } catch { } # We ignore 404s and other unsuccesful codes
-  while(!$success) {
-      Start-Sleep -Seconds 1
-      $timeTaken = [DateTime]::Now.Subtract($startTime)
-      if($timeTaken.TotalSeconds -ge $Timeout) {
-          Write-Error "Timed out waiting $Timeout seconds for Supervisor to start $ServiceName"
-          break
-      }
-      try {
-        $success = (((Invoke-WebRequest "http://localhost:9631/services/$ServiceName/default" -UseBasicParsing).content | ConvertFrom-Json).process.state -eq "up")
-      } catch { } # We ignore 404s and other unsuccesful codes
-    }
-  if($success) { Write-Host "$ServiceName is now up." }
 }
 
 # On buildkite, the rust binaries will be directly in C:
