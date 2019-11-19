@@ -1209,8 +1209,8 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Application name; [default: not set].")
         (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
             "Environment name; [default: not set].")
-        (@arg CHANNEL: --channel +takes_value default_value[stable]
-            "Receive package updates from the specified release channel")
+        (@arg CHANNEL: --channel +takes_value
+            "Receive package updates from the specified release channel [default: stable]")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default].")
         (@arg BLDR_URL: -u --url +takes_value {valid_url}

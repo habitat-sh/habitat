@@ -47,3 +47,9 @@ impl ChannelIdent {
 impl fmt::Display for ChannelIdent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{}", self.0) }
 }
+
+pub fn channel_from_env() -> Option<ChannelIdent> {
+    env::var(ChannelIdent::ENVVAR).ok().map(ChannelIdent::from)
+}
+
+pub fn default_channel() -> ChannelIdent { channel_from_env().unwrap_or_default() }
