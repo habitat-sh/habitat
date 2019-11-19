@@ -14,6 +14,7 @@ pub enum Error {
     IPCIO(io::ErrorKind),
     Protocol(protocol::Error),
     Send(ipc_channel::Error),
+    Timeout,
 }
 
 pub type Result<T> = result::Result<T, Error>;
@@ -30,6 +31,7 @@ impl fmt::Display for Error {
             Error::IPCIO(ref e) => format!("Unable to receive message from Launcher, {:?}", e),
             Error::Protocol(ref e) => format!("{}", e),
             Error::Send(ref e) => format!("Unable to send to Launcher's pipe, {}", e),
+            Error::Timeout => "Launcher interaction timed out".to_string(),
         };
         write!(f, "{}", msg)
     }

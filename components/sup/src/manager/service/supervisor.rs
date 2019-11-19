@@ -7,7 +7,8 @@ use super::{terminator,
             ProcessState};
 use crate::{error::{Error,
                     Result},
-            manager::ShutdownConfig};
+            manager::{ServicePidSource,
+                      ShutdownConfig}};
 use futures::{future,
               Future};
 use habitat_common::{outputln,
@@ -35,26 +36,53 @@ static LOGKEY: &str = "SV";
 
 #[derive(Debug)]
 pub struct Supervisor {
-    pub preamble:      String,
-    pub state:         ProcessState,
+    service_group: ServiceGroup,
+    state:         ProcessState,
+    // TODO (CM): make this private
     pub state_entered: Timespec,
-    pid:               Option<Pid>,
-    pid_file:          PathBuf,
+    pid: Option<Pid>,
+    /// If the Supervisor is being run with the PIDS_FROM_LAUNCHER
+    /// feature enabled, this will be `None`, otherwise it will be
+    /// `Some(path)`. Client code should use the `Some`/`None` status
+    /// of this field as an indicator of which mode the Supervisor is
+    /// running in.
+    pid_file: Option<PathBuf>,
 }
 
 impl Supervisor {
-    pub fn new(service_group: &ServiceGroup) -> Supervisor {
-        Supervisor { preamble:      service_group.to_string(),
-                     state:         ProcessState::Down,
+    /// Create a new instance for `service_group`.
+    ///
+    /// The `pid_source` governs how we determine the PID of the
+    /// supervised process. Once the PIDS_FROM_LAUNCHER feature flag
+    /// goes away, this can be removed.
+    pub fn new(service_group: &ServiceGroup, pid_source: ServicePidSource) -> Supervisor {
+        let pid_file = match pid_source {
+            ServicePidSource::Files => Some(fs::svc_pid_file(service_group.service())),
+            ServicePidSource::Launcher => None,
+        };
+        Supervisor { service_group: service_group.clone(),
+                     state: ProcessState::Down,
                      state_entered: time::get_time(),
-                     pid:           None,
-                     pid_file:      fs::svc_pid_file(service_group.service()), }
+                     pid: None,
+                     pid_file }
     }
 
     /// Check if the child process is running
-    pub fn check_process(&mut self) -> bool {
+    pub fn check_process(&mut self, launcher: &LauncherCli) -> bool {
         self.pid = self.pid
-                       .or_else(|| read_pid(&self.pid_file))
+                       .or_else(|| {
+                           if let Some(ref pid_file) = self.pid_file {
+                               read_pid(pid_file)
+                           } else {
+                               match launcher.pid_of(&self.service_group.to_string()) {
+                                   Ok(maybe_pid) => maybe_pid,
+                                   Err(e) => {
+                                       error!("Error getting pid from launcher: {:?}", e);
+                                       None
+                                   }
+                               }
+                           }
+                       })
                        .and_then(|pid| {
                            if process::is_alive(pid) {
                                Some(pid)
@@ -68,14 +96,16 @@ impl Supervisor {
             self.change_state(ProcessState::Up);
         } else {
             self.change_state(ProcessState::Down);
-            self.cleanup_pidfile();
+            if let Some(ref pid_file) = self.pid_file {
+                Self::cleanup_pidfile(pid_file.clone());
+            }
         }
 
         self.pid.is_some()
     }
 
     // NOTE: the &self argument is only used to get access to
-    // self.preamble, and even then only for Linux :/
+    // self.service_group, and even then only for Linux :/
     #[cfg(unix)]
     fn user_info(&self, pkg: &Pkg) -> Result<UserInfo> {
         if users::can_run_services_as_svc_user() {
@@ -105,7 +135,7 @@ impl Supervisor {
 
             let name_for_logging = username.clone()
                                            .unwrap_or_else(|| format!("anonymous [UID={}]", uid));
-            outputln!(preamble self.preamble, "Current user ({}) lacks sufficient capabilites to \
+            outputln!(preamble self.service_group, "Current user ({}) lacks sufficient capabilites to \
                 run services as a different user; running as self!", name_for_logging);
 
             Ok(UserInfo { username,
@@ -134,7 +164,7 @@ impl Supervisor {
                  svc_password: Option<&str>)
                  -> Result<()> {
         let user_info = self.user_info(&pkg)?;
-        outputln!(preamble self.preamble,
+        outputln!(preamble self.service_group,
                   "Starting service as user={}, group={}",
                   user_info.username.as_ref().map_or("<anonymous>", String::as_str),
                   user_info.groupname.as_ref().map_or("<anonymous>", String::as_str)
@@ -167,14 +197,17 @@ impl Supervisor {
             warn!(target: "pidfile_tracing", "Spawned service for {} has a PID of 0!", group);
         }
         self.pid = Some(pid);
-        self.create_pidfile()?;
+        // Only create a pidfile if we're actually using them.
+        if let Some(ref pid_file) = self.pid_file {
+            self.create_pidfile(pid_file)?;
+        }
         self.change_state(ProcessState::Up);
         Ok(())
     }
 
     pub fn status(&self) -> (bool, String) {
         let status = format!("{}: {} for {}",
-                             self.preamble,
+                             self.service_group,
                              self.state,
                              time::get_time() - self.state_entered);
         let healthy = match self.state {
@@ -186,9 +219,7 @@ impl Supervisor {
 
     /// Returns a future that stops a service asynchronously.
     pub fn stop(&self, shutdown_config: ShutdownConfig) -> impl Future<Item = (), Error = Error> {
-        // TODO (CM): we should really just keep the service
-        // group around AS a service group
-        let service_group = self.preamble.clone();
+        let service_group = self.service_group.clone();
 
         if let Some(pid) = self.pid {
             let pid_file = self.pid_file.clone();
@@ -200,7 +231,10 @@ impl Supervisor {
 
             future::Either::A(terminator::terminate_service(pid, service_group, shutdown_config).and_then(
                 |_shutdown_method| {
-                    Supervisor::cleanup_pidfile_future(pid_file);
+                    // Only delete the pidfile if we're actually using one.
+                    if let Some(pid_file) = pid_file {
+                        Self::cleanup_pidfile(pid_file);
+                    }
                     Ok(())
                 },
             ))
@@ -217,29 +251,22 @@ impl Supervisor {
     }
 
     /// Create a PID file for a running service
-    fn create_pidfile(&self) -> Result<()> {
+    fn create_pidfile(&self, pid_file: &PathBuf) -> Result<()> {
         if let Some(pid) = self.pid {
             // TODO (CM): when this pidfile tracing bit has been
             // cleared up, remove this logging target; it was added
             // just to help with debugging. The overall logging
             // message can stay, however.
             debug!(target: "pidfile_tracing", "Creating PID file for child {} -> {}",
-                   self.pid_file.display(),
+                   pid_file.display(),
                    pid);
-            fs::atomic_write(&self.pid_file, pid.to_string())?;
+            fs::atomic_write(pid_file, pid.to_string())?;
         }
 
         Ok(())
     }
 
-    /// Remove a pidfile for this package if it exists.
-    /// Do NOT fail if there is an error removing the PIDFILE
-    fn cleanup_pidfile(&self) { Self::cleanup_pidfile_future(self.pid_file.clone()); }
-
-    // This is just a different way to model `cleanup_pidfile` that's
-    // amenable to use in a future. Hopefully these two can be
-    // consolidated in the (ahem) future.
-    fn cleanup_pidfile_future(pid_file: PathBuf) {
+    fn cleanup_pidfile(pid_file: PathBuf) {
         // TODO (CM): when this pidfile tracing bit has been cleared
         // up, remove these logging targets; they were added just to
         // help with debugging. The overall logging messages can stay,
