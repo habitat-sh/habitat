@@ -1,14 +1,17 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.21 -->
-## [0.90.21](https://github.com/habitat-sh/habitat/tree/0.90.21) (2019-11-19)
+<!-- latest_release 0.90.22 -->
+## [0.90.22](https://github.com/habitat-sh/habitat/tree/0.90.22) (2019-11-19)
 
-#### Merged Pull Requests
-- Add some automated networked tests [#6983](https://github.com/habitat-sh/habitat/pull/6983) ([christophermaier](https://github.com/christophermaier))
+#### New Features & Enhancements
+- Add PIDS_FROM_LAUNCHER feature to eliminate service PID files [#7214](https://github.com/habitat-sh/habitat/pull/7214) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
 ### Changes since 0.90.6 release
+
+#### New Features & Enhancements
+- Add PIDS_FROM_LAUNCHER feature to eliminate service PID files [#7214](https://github.com/habitat-sh/habitat/pull/7214) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.22 -->
 
 #### Bug Fixes
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
