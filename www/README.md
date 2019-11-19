@@ -40,12 +40,12 @@ In some cases, you may need to install `gawk` in order to obtain the `ffi` gem. 
 1. [Setup your workstation](#setup)
 2. Configure your environment
 
-  * AWS_BUCKET - for production deploys, this should be `habitat-www`, for acceptance deploys `habitat-www-acceptance`
+  * AWS_BUCKET - for production deploys, this should be `habitat-www-live`, for acceptance deploys `habitat-www-acceptance`
   * AWS_DEFAULT_REGION - this should be `us-west-2`
   * AWS_ACCESS_KEY_ID - your personal AWS account identifier
   * AWS_SECRET_ACCESS_KEY - your AWS account's personal access key
   * FASTLY_API_KEY - your Fastly account's personal access key
-  * FASTLY_SERVICE_KEY - service identifier for `www.habitat.sh`
+  * FASTLY_SERVICE_KEY - The Fastly Service ID for either `www.habitat.sh` or `www.acceptance.habitat.sh`, depending on which one you're deploying.
 
   ```
   $ export AWS_ACCESS_KEY_ID=AKIBJTPWS4EK8L2RXUBZ
@@ -87,4 +87,5 @@ manually. The other variables still need to be set.
     make build
     cd build
     aws s3 sync . s3://$AWS_BUCKET
+    make purge_cache
     ```
