@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.22 -->
-## [0.90.22](https://github.com/habitat-sh/habitat/tree/0.90.22) (2019-11-19)
+<!-- latest_release 0.90.23 -->
+## [0.90.23](https://github.com/habitat-sh/habitat/tree/0.90.23) (2019-11-19)
 
-#### New Features & Enhancements
-- Add PIDS_FROM_LAUNCHER feature to eliminate service PID files [#7214](https://github.com/habitat-sh/habitat/pull/7214) ([christophermaier](https://github.com/christophermaier))
+#### Merged Pull Requests
+- Update the README for www deploys [#7216](https://github.com/habitat-sh/habitat/pull/7216) ([raskchanky](https://github.com/raskchanky))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Update the README for www deploys [#7216](https://github.com/habitat-sh/habitat/pull/7216) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.23 -->
 - Add some automated networked tests [#6983](https://github.com/habitat-sh/habitat/pull/6983) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.21 -->
 - Make `run_e2e_test.ps1` and `shared.ps1` script work on powershell core [#7148](https://github.com/habitat-sh/habitat/pull/7148) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.20 -->
 - [CI] Don&#39;t install `core/rust` in Windows test steps [#7210](https://github.com/habitat-sh/habitat/pull/7210) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.18 -->
