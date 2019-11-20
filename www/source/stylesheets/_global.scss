@@ -400,16 +400,19 @@ code {
 }
 
 h2
+// Prevent H2 from landing under the top nav
   a::before {
     display: block;
     content: "";
-    height: 220px;
-    margin: -220px 0 0;
+    height: rem-calc($header-height + 20px);
+    margin: -(rem-calc($header-height)) 0 0;
+    pointer-events: none;
+    visibility: hidden;
   }
 
 h2:not(:first-child) {
-   margin-top: rem-calc(40);
- }
+  margin-top: rem-calc(40);
+}
 
 ol.upper-alpha {
   list-style-type: upper-alpha;
