@@ -3,7 +3,7 @@ use super::{BindingMode,
             UpdateStrategy};
 use crate::error::{Error,
                    Result};
-use habitat_core::{default_channel,
+use habitat_core::{env::Config,
                    fs::atomic_write,
                    os::process::ShutdownTimeout,
                    package::{PackageIdent,
@@ -126,7 +126,7 @@ impl ServiceSpec {
                group: DEFAULT_GROUP.to_string(),
                application_environment: None,
                bldr_url: default_bldr_url(),
-               channel: default_channel(),
+               channel: ChannelIdent::configured_value(),
                topology: Topology::default(),
                update_strategy: UpdateStrategy::default(),
                binds: Vec::default(),
