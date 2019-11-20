@@ -300,12 +300,14 @@ code {
   font-size: $code-font-size;
   margin: rem-calc(10 0 30);
 
+  h2 &,
+  h3 &,
   p &,
   li &,
   td &,
   dd & {
     border-radius: $global-radius;
-    padding: rem-calc(0 5 1);
+    padding: rem-calc(0 1);
     margin: 0 rem-calc(1);
   }
 }
