@@ -1,0 +1,14 @@
+# Enter YAML or JSON in a file in the www/source/data directory.
+
+# Can be data for iteration like:
+
+# - title: "Star Wars Chewbacca Slippers"
+#   description: "Slippers emit two different Wookiee roars when you walk!"
+#   price: 29.99
+# - title: "Star Wars R2-D2 Coffee Press"
+#   description: "Holds 32 ounces of coffee for you (4 cups)"
+#   price: 39.99
+
+# You can also use this for longer data that you want to display and let users copy, or a file for downloading.
+
+# Displaying data also requires a layout
