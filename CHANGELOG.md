@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.24 -->
-## [0.90.24](https://github.com/habitat-sh/habitat/tree/0.90.24) (2019-11-20)
+<!-- latest_release 0.90.25 -->
+## [0.90.25](https://github.com/habitat-sh/habitat/tree/0.90.25) (2019-11-20)
 
 #### Merged Pull Requests
-- Fix e2e_local scripts [#7221](https://github.com/habitat-sh/habitat/pull/7221) ([davidMcneil](https://github.com/davidMcneil))
+- Kg/frontmatter [#7171](https://github.com/habitat-sh/habitat/pull/7171) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Kg/frontmatter [#7171](https://github.com/habitat-sh/habitat/pull/7171) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.25 -->
 - Fix e2e_local scripts [#7221](https://github.com/habitat-sh/habitat/pull/7221) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.24 -->
 - Update the README for www deploys [#7216](https://github.com/habitat-sh/habitat/pull/7216) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.23 -->
 - Add some automated networked tests [#6983](https://github.com/habitat-sh/habitat/pull/6983) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.21 -->
