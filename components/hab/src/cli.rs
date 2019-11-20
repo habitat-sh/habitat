@@ -1,4 +1,5 @@
-use crate::command::studio;
+use crate::{command::studio,
+            BLDR_URL_ENVVAR};
 
 use clap::{App,
            AppSettings,
@@ -1209,14 +1210,12 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Application name; [default: not set].")
         (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
             "Environment name; [default: not set].")
-        (@arg CHANNEL: --channel +takes_value
+        (@arg CHANNEL: --channel +takes_value env(ChannelIdent::ENVVAR)
             "Receive package updates from the specified release channel [default: stable]")
         (@arg GROUP: --group +takes_value
             "The service group; shared config and topology [default: default].")
-        (@arg BLDR_URL: -u --url +takes_value {valid_url}
-            "Specify an alternate Builder endpoint. If not specified, the value will \
-             be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-             https://bldr.habitat.sh)")
+        (@arg BLDR_URL: -u --url +takes_value {valid_url} env(BLDR_URL_ENVVAR)
+            "Specify an alternate Builder endpoint [default: https://bldr.habitat.sh]")
         (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
             "Service topology; [default: none]")
         (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
