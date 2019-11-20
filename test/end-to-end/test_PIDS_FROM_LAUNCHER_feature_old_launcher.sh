@@ -13,6 +13,7 @@ export HAB_FEAT_PIDS_FROM_LAUNCHER=1
 hab pkg install core/hab-launcher/12605/20191112144831
 
 start_supervisor
+wait_for_control_gateway
 
 load_service "core/redis" "redis"
 
@@ -26,6 +27,7 @@ redis_pid="$(pgrep redis)"
 sup_pid="$(pgrep hab-sup)"
 
 restart_supervisor
+wait_for_control_gateway
 
 new_redis_pid="$(pgrep redis)"
 new_sup_pid="$(pgrep hab-sup)"

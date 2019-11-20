@@ -5,23 +5,11 @@
 
 # Waits for `timeout_sec` seconds for a process named `process_name`
 # to be found.
-#
-# Exits with code 1 if the process is not found in the allotted time.
 wait_for_process() {
     local process_name="${1}"
     local timeout_sec="${2}"
 
-    for i in $(seq "${timeout_sec}"); do
-        if pgrep "${process_name}" &>/dev/null; then
-            echo
-            return
-        else
-            echo -n .
-            sleep 1
-        fi
-    done
-    echo "${process_name} did not start after ${timeout_sec} seconds!"
-    exit 1
+    timeout "${timeout_sec}" sh -c "until pgrep ${process_name}; do sleep 1; done"
 }
 
 # Log the arguments to standard error with a helpful line header.
@@ -34,7 +22,7 @@ log_pid() {
     local process_name="${1}"
     local pid
     pid="$(pgrep "${process_name}")"
-    log "Process '${process_name}' has PID ${pid}"
+    log "Process '${process_name}' has PID '${pid}'"
 }
 
 # Restarts the Supervisor by sending a SIGHUP, and then waits for it
@@ -58,8 +46,11 @@ load_service() {
     # the service to start (we've got to download packages, and that
     # takes an indeterminate amount of time). If we had synchronous
     # loading, this wouldn't be an issue.
+    log "Installing ${service}"
     hab pkg install "${service}" --channel=stable
+    log "Loading ${service}"
     hab svc load "${service}"
+    log "Waiting for ${service} to start"
     wait_for_process "${binary}" 5
 
     log_pid "redis"
@@ -81,4 +72,20 @@ start_supervisor() {
 cleanup_supervisor() {
     hab sup term
     sed -e 's/^/TEST_SUP_LOG>>> /' "${sup_log_file}" >&2
+}
+
+# Waits up to 10 seconds for a Supervisor is listening on its default
+# control gateway port. A Supervisor process may be running, but we
+# can't really interact with it until the gateway is up.
+#
+# NOTE: This currently assumes the test is the only thing running a
+# Supervisor.
+wait_for_control_gateway() {
+    # TODO (CM): Ideally would use -z, but that appears to cause
+    # issues with the control gateway in our Docker-based testing
+    # pipeline... something about the peer address of the connection
+    # not being available.
+    #
+    # Also, this assumes GNU netcat, installed via Habitat.
+    timeout --foreground 10 sh -c 'until netcat -vv --close localhost 9632; do sleep 1; done'
 }
