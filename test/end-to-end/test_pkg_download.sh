@@ -25,7 +25,7 @@ set -euo pipefail
 HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
 IDENT_FILE="ident_file"
-SCRIPT_DIR=$(dirname ${BASH_SOURCE[0]})
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
 FIXTURES="${SCRIPT_DIR}/fixtures/pkg_download"
 
 echo
