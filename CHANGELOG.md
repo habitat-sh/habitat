@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.29 -->
-## [0.90.29](https://github.com/habitat-sh/habitat/tree/0.90.29) (2019-11-21)
+<!-- latest_release 0.90.30 -->
+## [0.90.30](https://github.com/habitat-sh/habitat/tree/0.90.30) (2019-11-21)
 
 #### Merged Pull Requests
-- Fixes formatting for hooks section [#7222](https://github.com/habitat-sh/habitat/pull/7222) ([kagarmoe](https://github.com/kagarmoe))
+- restores Swiftype [#7075](https://github.com/habitat-sh/habitat/pull/7075) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,8 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- restores Swiftype [#7075](https://github.com/habitat-sh/habitat/pull/7075) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.30 -->
+- H2 anchors stay in view [#7212](https://github.com/habitat-sh/habitat/pull/7212) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.30 -->
 - Fixes formatting for hooks section [#7222](https://github.com/habitat-sh/habitat/pull/7222) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.29 -->
 - [CI] Fix PIDS_FROM_LAUNCHER e2e tests [#7220](https://github.com/habitat-sh/habitat/pull/7220) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.28 -->
 - Smaller  margins on code element [#7223](https://github.com/habitat-sh/habitat/pull/7223) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.27 -->
