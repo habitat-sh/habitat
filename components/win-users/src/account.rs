@@ -1,15 +1,17 @@
 use std::{env,
           io::Error,
-          ptr::null_mut};
+          ptr::{null,
+                null_mut}};
 
 use widestring::WideCString;
 use winapi::{shared::{minwindef::{BOOL,
                                   LPDWORD},
                       ntdef::LPCWSTR,
                       winerror::*},
-             um::winnt::{PSID,
-                         PSID_NAME_USE,
-                         SID_NAME_USE}};
+             um::{winbase::LookupAccountSidW,
+                  winnt::{PSID,
+                          PSID_NAME_USE,
+                          SID_NAME_USE}}};
 
 use super::sid::Sid;
 
@@ -37,6 +39,85 @@ impl Account {
 
     pub fn from_name_and_system(name: &str, system_name: &str) -> Option<Account> {
         lookup_account(name, Some(system_name.to_string()))
+    }
+
+    pub fn from_sid(sid: &str) -> Option<Account> {
+        let sid = if let Ok(sid) = Sid::from_str(sid) {
+            sid
+        } else {
+            return None;
+        };
+        let mut name_size: u32 = 0;
+        let mut domain_size: u32 = 0;
+        unsafe {
+            LookupAccountSidW(null(),
+                              sid.raw.as_ptr() as *mut _,
+                              null_mut(),
+                              &mut name_size as LPDWORD,
+                              null_mut(),
+                              &mut domain_size as LPDWORD,
+                              null_mut())
+        };
+        match Error::last_os_error().raw_os_error().unwrap() as u32 {
+            ERROR_INSUFFICIENT_BUFFER => {}
+            ERROR_NONE_MAPPED => return None,
+            _ => {
+                debug!("Error while looking up account for {}: {}",
+                       sid.to_string().expect("to convert sid to string"),
+                       Error::last_os_error());
+                return None;
+            }
+        }
+
+        let mut name: Vec<u16> = Vec::with_capacity(name_size as usize);
+        let mut domain: Vec<u16> = Vec::with_capacity(domain_size as usize);
+        let mut sid_type = 0;
+
+        let ret = unsafe {
+            LookupAccountSidW(null(),
+                              sid.raw.as_ptr() as *mut _,
+                              name.as_mut_ptr(),
+                              &mut name_size as LPDWORD,
+                              domain.as_mut_ptr(),
+                              &mut domain_size as LPDWORD,
+                              &mut sid_type as PSID_NAME_USE)
+        };
+        if ret == 0 {
+            error!("Failed to retrieve name for {}: {}",
+                   sid.to_string().expect("to convert sid to string"),
+                   Error::last_os_error());
+            return None;
+        }
+        unsafe {
+            name.set_len(name_size as usize);
+            domain.set_len(domain_size as usize);
+        }
+        let name = WideCString::new(name).expect("valid name widestring")
+                                         .to_string_lossy();
+        let domain = WideCString::new(domain).expect("valid domain widestring")
+                                             .to_string_lossy();
+        Some(Account { name,
+                       system_name: None,
+                       domain,
+                       account_type: sid_type,
+                       sid })
+    }
+
+    pub fn machine() -> Account {
+        let name = env::var("COMPUTERNAME").expect("COMPUTERNAME env var");
+        Account::from_name(&name).expect("computer account")
+    }
+
+    pub fn local_administrator() -> Account {
+        // Use the SID string constant for the local administrator
+        // https://docs.microsoft.com/en-us/windows/win32/secauthz/sid-strings
+        Account::from_sid("LA").expect("local administrator account")
+    }
+
+    pub fn local_system() -> Account {
+        // Use the SID string constant for the local system
+        // https://docs.microsoft.com/en-us/windows/win32/secauthz/sid-strings
+        Account::from_sid("SY").expect("local system account")
     }
 }
 
@@ -158,8 +239,21 @@ mod tests {
     }
 
     #[test]
-    fn machine_account_returns_some() {
-        assert_eq!(Account::from_name((env::var("COMPUTERNAME").unwrap() + "$").as_str()).is_some(),
-                   true)
+    fn test_built_in_accounts() {
+        let machine = Account::machine();
+        assert_eq!(machine.name, machine.domain);
+        let machine_sid = machine.sid.to_string().expect("sid to string");
+        assert!(machine_sid.starts_with("S-1-5-21-"));
+
+        let administrator = Account::local_administrator();
+        assert_eq!(administrator.name, "Administrator");
+        assert_eq!(administrator.domain, machine.name);
+        assert_eq!(administrator.sid.to_string().expect("sid to string"),
+                   format!("{}-500", machine_sid));
+
+        let system = Account::local_system();
+        assert_eq!(system.name, "SYSTEM");
+        assert_eq!(system.domain, "NT AUTHORITY");
+        assert_eq!(system.sid.to_string().expect("sid to string"), "S-1-5-18");
     }
 }
