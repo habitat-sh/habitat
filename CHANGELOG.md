@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.26 -->
-## [0.90.26](https://github.com/habitat-sh/habitat/tree/0.90.26) (2019-11-20)
+<!-- latest_release 0.90.27 -->
+## [0.90.27](https://github.com/habitat-sh/habitat/tree/0.90.27) (2019-11-21)
 
 #### Merged Pull Requests
-- Adds docs people to www [#7218](https://github.com/habitat-sh/habitat/pull/7218) ([kagarmoe](https://github.com/kagarmoe))
+- Smaller  margins on code element [#7223](https://github.com/habitat-sh/habitat/pull/7223) ([kagarmoe](https://github.com/kagarmoe))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Smaller  margins on code element [#7223](https://github.com/habitat-sh/habitat/pull/7223) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.27 -->
 - Adds docs people to www [#7218](https://github.com/habitat-sh/habitat/pull/7218) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.26 -->
 - Kg/frontmatter [#7171](https://github.com/habitat-sh/habitat/pull/7171) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.25 -->
 - Fix e2e_local scripts [#7221](https://github.com/habitat-sh/habitat/pull/7221) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.24 -->
