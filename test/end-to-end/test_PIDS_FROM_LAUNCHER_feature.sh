@@ -9,6 +9,7 @@ source test/end-to-end/shared.sh
 export HAB_FEAT_PIDS_FROM_LAUNCHER=1
 
 start_supervisor
+wait_for_control_gateway
 
 load_service "core/redis" "redis"
 
@@ -22,6 +23,7 @@ redis_pid="$(pgrep redis)"
 sup_pid="$(pgrep hab-sup)"
 
 restart_supervisor
+wait_for_control_gateway
 
 new_redis_pid="$(pgrep redis)"
 new_sup_pid="$(pgrep hab-sup)"

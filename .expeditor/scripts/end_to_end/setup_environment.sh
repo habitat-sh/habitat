@@ -20,6 +20,13 @@ sudo -E hab pkg install core/hab \
     --url="${HAB_BLDR_URL}"
 echo "--- Using core/hab version $(hab --version)"
 
+echo "--- Installing latest core/netcat from ${HAB_BLDR_URL}, stable channel"
+sudo -E hab pkg install core/netcat \
+    --binlink \
+    --force \
+    --channel="stable" \
+    --url="${HAB_BLDR_URL}"
+
 echo "--- Installing latest core/powershell from ${HAB_BLDR_URL}, stable channel"
 sudo -E hab pkg install core/powershell \
     --binlink \
@@ -29,4 +36,3 @@ sudo -E hab pkg install core/powershell \
 echo "--- Using core/powershell version $(pwsh --version)"
 
 sudo useradd --system --no-create-home hab
-

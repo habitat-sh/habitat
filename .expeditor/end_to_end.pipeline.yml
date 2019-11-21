@@ -454,6 +454,8 @@ steps:
       executor:
         docker:
           privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
 
   - label: "[:linux: test PIDS_FROM_LAUNCHER feature with old Launcher]"
     command:
@@ -463,15 +465,19 @@ steps:
       executor:
         docker:
           privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
 
   - label: "[:linux: test PIDS_FROM_LAUNCHER disabled]"
     command:
       - .expeditor/scripts/end_to_end/setup_environment.sh dev
-      - test/end-to-end/test_PIDS_FROM_LAUNCHER_feature_old_launcher_disabled.sh
+      - test/end-to-end/test_PIDS_FROM_LAUNCHER_feature_disabled.sh
     expeditor:
       executor:
         docker:
           privileged: true
+          environment:
+            - BUILD_PKG_TARGET=x86_64-linux
 
   - wait
 
