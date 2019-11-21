@@ -165,5 +165,6 @@ mod tests {
     fn harden_path_test() {
         let file = NamedTempFile::new().expect("to create temp file");
         assert!(harden_path(file.path()).is_ok());
+        assert!(harden_path("C:/this/is/a/nonexistant/path").is_err());
     }
 }
