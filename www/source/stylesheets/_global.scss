@@ -401,6 +401,17 @@ code {
     color: $white;
 }
 
+h2
+// Prevent H2 from landing under the top nav
+  a::before {
+    display: block;
+    content: "";
+    height: rem-calc($header-height + 20px);
+    margin: -(rem-calc($header-height)) 0 0;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
 h2:not(:first-child) {
   margin-top: rem-calc(40);
 }
