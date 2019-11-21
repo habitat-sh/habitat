@@ -1210,12 +1210,18 @@ fn sub_svc_load() -> App<'static, 'static> {
             "Application name; [default: not set].")
         (@arg ENVIRONMENT: --environment -e +takes_value requires[APPLICATION]
             "Environment name; [default: not set].")
+        // Both CHANNEL and BLDR_URL should not be configured with default values here.
+        // We only want the defaults for these two items to be set from the Supervisor
+        // context when the ServiceSpec is initialized. This allows the underlying
+        // ServiceSpec fields to respond to the Supervisor's HAB_BLDR_URL and/or
+        // HAB_BLDR_CHANNEL environment context if set, or the configured defaults
+        // for each if not. Setting defaults here would break that intent.
         (@arg CHANNEL: --channel +takes_value env(ChannelIdent::ENVVAR)
             "Receive package updates from the specified release channel [default: stable]")
-        (@arg GROUP: --group +takes_value
-            "The service group; shared config and topology [default: default].")
         (@arg BLDR_URL: -u --url +takes_value {valid_url} env(BLDR_URL_ENVVAR)
             "Specify an alternate Builder endpoint [default: https://bldr.habitat.sh]")
+        (@arg GROUP: --group +takes_value
+            "The service group; shared config and topology [default: default].")
         (@arg TOPOLOGY: --topology -t +takes_value possible_value[standalone leader]
             "Service topology; [default: none]")
         (@arg STRATEGY: --strategy -s +takes_value {valid_update_strategy}
