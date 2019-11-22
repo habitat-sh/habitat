@@ -18,12 +18,19 @@ set -euo pipefail
 #
 # Uses the `HAB_INTERNAL_BLDR_CHANNEL` environment variable to control
 # the base packages channel for the exporter.
+#
+# Developers most likely want to run:
+# HAB_TEST_CMD=./target/debug/hab test/end-to-end/test_pkg_download.sh
+#
 HAB=${HAB_TEST_CMD:-hab}
 CACHE_DIR="test-cache"
 IDENT_FILE="ident_file"
+SCRIPT_DIR=$(dirname "${BASH_SOURCE[0]}")
+FIXTURES="${SCRIPT_DIR}/fixtures/pkg_download"
 
 echo
 echo "--- Testing with command ${HAB}, using cache dir ${CACHE_DIR}"
+echo "--- Using fixtures from ${FIXTURES}"
 echo
 
 before_test() {
@@ -79,6 +86,20 @@ check_rust_idents() {
 	echo "FAIL $CMD"
     fi
 }
+
+check_count_idents() {
+    expected=$1
+
+    count=$(find "${CACHE_DIR}/artifacts" -type f | wc -l)
+
+    echo "found $count downloads"
+    if [ "$count" -ge "$expected" ]; then
+	echo "PASS $CMD"
+    else
+	echo "FAIL $CMD"
+    fi
+}
+
 
 # desc cmd
 test_expecting_fail() {
@@ -219,8 +240,63 @@ bad_channel() {
     test_expecting_fail "Bad channel" "$CMD"
 }
 
+# toml tests
+toml_success_happy_path() {
+    before_test
 
-# functional tests
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${FIXTURES}/happy_path.toml"
+    echo "Testing command line: ${CMD}"
+    ${CMD}
+}
+
+toml_success_no_header() {
+    before_test
+
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${FIXTURES}/no_header.toml"
+    
+    echo "Testing command line: ${CMD}"
+    ${CMD}
+}
+
+toml_bad_header() {
+    before_test
+
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${FIXTURES}/bad_header.toml"
+
+    # note the message here is a little deceptive
+    #  Failed to parse TOML: string cannot be parsed: "this_is_garbage" (Invalid package target: this_is_garbage. A valid target is in the form architecture-platform (example: x86_64-linux)) at line 13 column 1
+    # the problem isn't actually it's an invalid target, but the TOML format doesn't let us distinquish that.
+    test_expecting_fail "Failed to parse TOML:" "$CMD"
+}
+
+toml_bad_ident() {
+    before_test
+
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${FIXTURES}/bad_ident.toml"
+	  
+    test_expecting_fail "Invalid package identifier:" "$CMD"
+}
+
+toml_bad_target() {
+    before_test
+
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${FIXTURES}/bad_target.toml"
+	  
+    test_expecting_fail "Failed to parse TOML:" "$CMD"
+}
+
+toml_no_target() {
+    before_test
+
+    CMD="$HAB pkg download --download-directory=${CACHE_DIR} --file=${FIXTURES}/no_target.toml"
+	  
+    test_expecting_fail "No package identifers provided." "$CMD"
+
+}
+
+
+
+# Functional tests
 success_from_command_line
 success_from_file
 success_from_file_with_comments_and_emtpy_lines
@@ -238,3 +314,13 @@ bad_target
 bad_token
 bad_url
 bad_channel
+ 
+# toml tests
+toml_success_happy_path
+toml_success_no_header
+
+toml_bad_header
+toml_bad_ident
+toml_bad_target
+toml_no_target
+

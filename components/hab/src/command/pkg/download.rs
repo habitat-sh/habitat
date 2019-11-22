@@ -27,7 +27,8 @@
 //! * Verify it is un-altered
 //! * Fetch the signing keys
 
-use std::{collections::HashSet,
+use std::{collections::{HashMap,
+                        HashSet},
           fs::DirBuilder,
           path::{Path,
                  PathBuf},
@@ -50,6 +51,10 @@ use crate::{api_client::{self,
                     ChannelIdent,
                     Error as CoreError}};
 
+use habitat_common::ui::{Glyph,
+                         Status,
+                         UIWriter};
+
 use reqwest::StatusCode;
 use retry::{delay,
             retry};
@@ -57,12 +62,33 @@ use retry::{delay,
 use crate::error::{Error,
                    Result};
 
-use habitat_common::ui::{Glyph,
-                         Status,
-                         UIWriter};
-
 pub const RETRIES: usize = 5;
 pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
+
+#[derive(Debug, Deserialize)]
+pub struct PackageSetFile {
+    pub format_version:  Option<u8>,
+    pub file_descriptor: Option<String>,
+
+    // Note: flatten cause *all* keys not explicitly listed as a struct member to be treated as a
+    // target. If someone gives a bad key, the error message will be incorrect as to the cause.
+    // This is a limitation of the target as keys choice for the TOML file format.
+    #[serde(flatten)]
+    pub targets: HashMap<PackageTarget, Vec<PackageSetValue>>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct PackageSetValue {
+    pub channel:  ChannelIdent,
+    pub packages: Vec<String>,
+}
+
+#[derive(Debug)]
+pub struct PackageSet {
+    pub target:  PackageTarget,
+    pub channel: ChannelIdent,
+    pub idents:  Vec<PackageIdent>,
+}
 
 /// Download a Habitat package.
 ///
@@ -84,35 +110,37 @@ pub const RETRY_WAIT: Duration = Duration::from_millis(3000);
 #[allow(clippy::too_many_arguments)]
 pub fn start<U>(ui: &mut U,
                 url: &str,
-                channel: &ChannelIdent,
                 product: &str,
                 version: &str,
-                idents: Vec<PackageIdent>,
-                target: PackageTarget,
+                package_sets: &[PackageSet], // clippy suggestion
                 download_path: Option<&PathBuf>,
                 token: Option<&str>,
                 verify: bool)
                 -> Result<()>
     where U: UIWriter
 {
-    debug!("Starting download with url: {}, channel: {}, product: {}, version: {}, target: {}, \
-            download_path: {:?}, token: {:?}, verify: {}, ident_count: {}",
+    debug!(
+           "Starting download with url: {}, product: {}, version: {}, 
+         download_path: {:?}, token: {:?}, verify: {}, set_count: {}",
            url,
-           channel,
            product,
            version,
-           target,
            download_path,
            token,
            verify,
-           idents.len());
+           package_sets.len()
+    );
 
     let download_path_default = &cache_root_path::<PathBuf>(None); // Satisfy E0716
     let download_path_expanded = download_path.unwrap_or(download_path_default).as_ref();
     debug!("Using download_path {:?} expanded to {:?}",
            download_path, download_path_expanded);
 
-    if idents.is_empty() {
+    debug!("{} {}",
+           package_sets.is_empty(),
+           package_sets[0].idents.is_empty());
+
+    if package_sets.is_empty() {
         ui.fatal("No package identifers provided. Specify identifiers on the command line, or \
                   via a input file")?;
         return Err(CommonError::MissingCLIInputError(String::from("No package identifiers \
@@ -122,12 +150,11 @@ pub fn start<U>(ui: &mut U,
     // We deliberately use None to specify the default path as this is used for cert paths, which
     // we don't want to override.
     let api_client = Client::new(url, product, version, None)?;
-    let task = DownloadTask { idents,
-                              target,
+
+    let task = DownloadTask { package_sets,
                               url,
                               api_client,
                               token,
-                              channel,
                               download_path: download_path_expanded,
                               verify };
 
@@ -139,12 +166,10 @@ pub fn start<U>(ui: &mut U,
 }
 
 struct DownloadTask<'a> {
-    idents:        Vec<PackageIdent>,
-    target:        PackageTarget,
+    package_sets:  &'a [PackageSet],
     url:           &'a str,
     api_client:    BoxedClient,
     token:         Option<&'a str>,
-    channel:       &'a ChannelIdent,
     download_path: &'a Path,
     verify:        bool,
 }
@@ -155,11 +180,6 @@ impl<'a> DownloadTask<'a> {
     {
         // This was written intentionally with an eye towards data parallelism
         // Any or all of these phases should naturally fit a fork-join model
-
-        ui.begin(format!("Resolving dependencies for {} package idents",
-                         self.idents.len()))?;
-        ui.begin(format!("Using channel {} from {}", self.channel, self.url))?;
-        ui.begin(format!("Using target {}", self.target))?;
         ui.begin(format!("Storing in download directory {:?} ", self.download_path))?;
 
         self.verify_and_prepare_download_directory(ui)?;
@@ -178,22 +198,32 @@ impl<'a> DownloadTask<'a> {
     fn expand_sources<T>(&self, ui: &mut T) -> Result<HashSet<(PackageIdent, PackageTarget)>>
         where T: UIWriter
     {
-        let mut expanded_packages = Vec::<Package>::new();
+        let mut expanded_packages = Vec::<(Package, PackageTarget)>::new();
         let mut expanded_idents = HashSet::<(PackageIdent, PackageTarget)>::new();
 
         // This loop should be easy to convert to a parallel map.
-        for ident in &self.idents {
-            let package = self.determine_latest_from_ident(ui, &ident.clone(), self.target)?;
-            expanded_packages.push(package);
+        for package_set in self.package_sets {
+            ui.begin(format!("Resolving dependencies for {} package idents",
+                             package_set.idents.len()))?;
+            ui.begin(format!("Using channel {} from {}", package_set.channel, self.url))?;
+            ui.begin(format!("Using target {}", package_set.target))?;
+
+            for ident in &package_set.idents {
+                let package = self.determine_latest_from_ident(ui,
+                                                               &package_set.channel,
+                                                               package_set.target,
+                                                               &ident)?;
+                expanded_packages.push((package, package_set.target));
+            }
         }
 
         // Collect all the expanded deps into one structure
         // Done separately because it's not as easy to parallelize
-        for package in expanded_packages {
+        for (package, target) in expanded_packages {
             for ident in package.tdeps {
-                expanded_idents.insert((ident.clone(), self.target));
+                expanded_idents.insert((ident.clone(), target));
             }
-            expanded_idents.insert((package.ident.clone(), self.target));
+            expanded_idents.insert((package.ident.clone(), target));
         }
 
         ui.status(Status::Found,
@@ -234,8 +264,9 @@ impl<'a> DownloadTask<'a> {
 
     fn determine_latest_from_ident<T>(&self,
                                       ui: &mut T,
-                                      ident: &PackageIdent,
-                                      target: PackageTarget)
+                                      channel_default: &ChannelIdent,
+                                      target: PackageTarget,
+                                      ident: &PackageIdent)
                                       -> Result<Package>
         where T: UIWriter
     {
@@ -247,7 +278,7 @@ impl<'a> DownloadTask<'a> {
         // any other channel specified.
         let mut channel = &ChannelIdent::unstable();
         if !ident.fully_qualified() {
-            channel = self.channel
+            channel = channel_default
         };
 
         ui.status(Status::Determining, format!("latest version of {}", ident))?;
