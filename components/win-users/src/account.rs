@@ -108,10 +108,10 @@ impl Account {
         Account::from_name(&name).expect("computer account")
     }
 
-    pub fn local_administrator() -> Account {
-        // Use the SID string constant for the local administrator
+    pub fn built_in_administrators() -> Account {
+        // Use the SID string constant for the built in administrators
         // https://docs.microsoft.com/en-us/windows/win32/secauthz/sid-strings
-        Account::from_sid("LA").expect("local administrator account")
+        Account::from_sid("BA").expect("local administrator account")
     }
 
     pub fn local_system() -> Account {
@@ -240,20 +240,48 @@ mod tests {
 
     #[test]
     fn test_built_in_accounts() {
+        // Check the machine account
         let machine = Account::machine();
         assert_eq!(machine.name, machine.domain);
         let machine_sid = machine.sid.to_string().expect("sid to string");
         assert!(machine_sid.starts_with("S-1-5-21-"));
 
-        let administrator = Account::local_administrator();
+        // Check the local administrator account
+        let administrator = Account::from_sid("LA").expect("Administrator account");
         assert_eq!(administrator.name, "Administrator");
         assert_eq!(administrator.domain, machine.name);
         assert_eq!(administrator.sid.to_string().expect("sid to string"),
                    format!("{}-500", machine_sid));
 
+        // Check the built in administrators account
+        let administrators = Account::built_in_administrators();
+        assert_eq!(administrators.name, "Administrators");
+        assert_eq!(administrators.domain, "BUILTIN");
+        assert_eq!(administrators.sid.to_string().expect("sid to string"),
+                   "S-1-5-32-544");
+
+        // The built in administrators account should be identical to the account we get looking up
+        // the "Administrators" account by name
+        let a = Account::from_name("Administrators").expect("Administrators account");
+        assert_eq!(administrators.name, a.name);
+        assert_eq!(administrators.system_name, a.system_name);
+        assert_eq!(administrators.domain, a.domain);
+        assert_eq!(administrators.account_type, a.account_type);
+        assert_eq!(administrators.sid.raw, a.sid.raw);
+
+        // Check the system account
         let system = Account::local_system();
         assert_eq!(system.name, "SYSTEM");
         assert_eq!(system.domain, "NT AUTHORITY");
         assert_eq!(system.sid.to_string().expect("sid to string"), "S-1-5-18");
+
+        // The system account should be identical to the account we get looking up the
+        // "SYSTEM" account by name
+        let s = Account::from_name("SYSTEM").expect("SYSTEM account");
+        assert_eq!(system.name, s.name);
+        assert_eq!(system.system_name, s.system_name);
+        assert_eq!(system.domain, s.domain);
+        assert_eq!(system.account_type, s.account_type);
+        assert_eq!(system.sid.raw, s.sid.raw);
     }
 }

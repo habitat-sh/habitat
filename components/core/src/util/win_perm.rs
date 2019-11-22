@@ -86,7 +86,7 @@ pub fn harden_path<T: AsRef<Path>>(path: T) -> Result<()> {
                                    Account::from_name(&current_user).expect("current user account \
                                                                              to exist"),
                                access_mask: FILE_ALL_ACCESS, },
-             PermissionEntry { account:     Account::local_administrator(),
+             PermissionEntry { account:     Account::built_in_administrators(),
                                access_mask: FILE_ALL_ACCESS, },
              PermissionEntry { account:     Account::local_system(),
                                access_mask: FILE_ALL_ACCESS, },];
