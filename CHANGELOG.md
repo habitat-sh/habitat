@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.31 -->
-## [0.90.31](https://github.com/habitat-sh/habitat/tree/0.90.31) (2019-11-22)
+<!-- latest_release 0.90.32 -->
+## [0.90.32](https://github.com/habitat-sh/habitat/tree/0.90.32) (2019-11-22)
 
 #### Merged Pull Requests
-- Implement toml based file format [#7176](https://github.com/habitat-sh/habitat/pull/7176) ([markan](https://github.com/markan))
+- Bye Travis [#7232](https://github.com/habitat-sh/habitat/pull/7232) ([raskchanky](https://github.com/raskchanky))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Bye Travis [#7232](https://github.com/habitat-sh/habitat/pull/7232) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.32 -->
 - Implement toml based file format [#7176](https://github.com/habitat-sh/habitat/pull/7176) ([markan](https://github.com/markan)) <!-- 0.90.31 -->
 - restores Swiftype [#7075](https://github.com/habitat-sh/habitat/pull/7075) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.30 -->
 - H2 anchors stay in view [#7212](https://github.com/habitat-sh/habitat/pull/7212) ([kagarmoe](https://github.com/kagarmoe)) <!-- 0.90.30 -->
