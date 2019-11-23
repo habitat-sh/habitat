@@ -1079,13 +1079,10 @@ pub fn sub_sup_run(feature_flags: FeatureFlag) -> App<'static, 'static> {
              foo-20181113185935 \
 
                   GCrBOW6CCN75LMl0j2V5QqQ6nNzWm6and9hkKBSUFPI=')")
-                            (@arg CHANNEL: --channel +takes_value default_value[stable]
+                            (@arg CHANNEL: --channel +takes_value env(ChannelIdent::ENVVAR) default_value[stable]
                              "Receive Supervisor updates from the specified release channel")
-                            (@arg BLDR_URL: -u --url +takes_value {valid_url}
-                             "Specify an alternate Builder endpoint. If not specified, the value will \
-                              be taken from the HAB_BLDR_URL environment variable if defined. (default: \
-                              https://bldr.habitat.sh)")
-
+                            (@arg BLDR_URL: -u --url +takes_value {valid_url} env(BLDR_URL_ENVVAR)
+                             "Specify an alternate Builder endpoint [default: https://bldr.habitat.sh]")
                             (@arg CONFIG_DIR: --("config-from") +takes_value {dir_exists}
                              "Use package config from this path, rather than the package itself")
                             (@arg AUTO_UPDATE: --("auto-update") -A "Enable automatic updates for the Supervisor \

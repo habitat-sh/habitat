@@ -46,6 +46,9 @@ impl SelfUpdater {
             update_url: String,
             update_channel: ChannelIdent)
             -> Receiver<PackageInstall> {
+        debug!("Self updater initialized. Will check {} for supervisor version > {} in the {} \
+                channel.",
+               update_url, current, update_channel);
         let (tx, rx) = sync_channel(0);
         thread::Builder::new().name("self-updater".to_string())
                               .spawn(move || Self::run(&tx, &current, &update_url, &update_channel))
