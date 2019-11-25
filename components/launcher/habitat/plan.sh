@@ -38,6 +38,9 @@ do_prepare() {
   # Used by Cargo to use a pristine, isolated directory for all compilation
   export CARGO_TARGET_DIR="$HAB_CACHE_SRC_PATH/$pkg_dirname"
   build_line "Setting CARGO_TARGET_DIR=$CARGO_TARGET_DIR"
+  
+  export PLAN_VERSION="${pkg_version}/${pkg_release}"
+  build_line "Setting PLAN_VERSION=$PLAN_VERSION"
 
   export LIBARCHIVE_LIB_DIR=$(pkg_path_for libarchive)/lib
   export LIBARCHIVE_INCLUDE_DIR=$(pkg_path_for libarchive)/include
