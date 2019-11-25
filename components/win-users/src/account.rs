@@ -49,7 +49,7 @@ impl Account {
         };
         let mut name_size: u32 = 0;
         let mut domain_size: u32 = 0;
-        unsafe {
+        let ret = unsafe {
             LookupAccountSidW(null(),
                               sid.raw.as_ptr() as *mut _,
                               null_mut(),
@@ -58,14 +58,16 @@ impl Account {
                               &mut domain_size as LPDWORD,
                               null_mut())
         };
-        match Error::last_os_error().raw_os_error().unwrap() as u32 {
-            ERROR_INSUFFICIENT_BUFFER => {}
-            ERROR_NONE_MAPPED => return None,
-            _ => {
-                debug!("Error while looking up account for {}: {}",
-                       sid.to_string().expect("to convert sid to string"),
-                       Error::last_os_error());
-                return None;
+        if ret == 0 {
+            match Error::last_os_error().raw_os_error().unwrap() as u32 {
+                ERROR_INSUFFICIENT_BUFFER => {}
+                ERROR_NONE_MAPPED => return None,
+                _ => {
+                    debug!("Error while looking up account for {}: {}",
+                           sid.to_string().expect("to convert sid to string"),
+                           Error::last_os_error());
+                    return None;
+                }
             }
         }
 
@@ -135,7 +137,7 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
     let mut sid_size: u32 = 0;
     let mut domain_size: u32 = 0;
     let wide = WideCString::from_str(stripped_name).unwrap();
-    unsafe {
+    let ret = unsafe {
         LookupAccountNameW(null_mut(),
                            wide.as_ptr(),
                            null_mut(),
@@ -144,14 +146,16 @@ fn lookup_account(name: &str, system_name: Option<String>) -> Option<Account> {
                            &mut domain_size as LPDWORD,
                            null_mut())
     };
-    match Error::last_os_error().raw_os_error().unwrap() as u32 {
-        ERROR_INSUFFICIENT_BUFFER => {}
-        ERROR_NONE_MAPPED => return None,
-        _ => {
-            debug!("Error while looking up account for {}: {}",
-                   name,
-                   Error::last_os_error());
-            return None;
+    if ret == 0 {
+        match Error::last_os_error().raw_os_error().unwrap() as u32 {
+            ERROR_INSUFFICIENT_BUFFER => {}
+            ERROR_NONE_MAPPED => return None,
+            _ => {
+                debug!("Error while looking up account for {}: {}",
+                       name,
+                       Error::last_os_error());
+                return None;
+            }
         }
     }
 
