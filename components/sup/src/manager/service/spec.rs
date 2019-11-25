@@ -125,6 +125,11 @@ impl ServiceSpec {
         Self { ident,
                group: DEFAULT_GROUP.to_string(),
                application_environment: None,
+               // bldr_url and channel will respond to HAB_BLDR_URL and
+               // HAB_BLDR_CHANNEL environment variables respectively if
+               // they are set in the context of the running supervisor.
+               // Values will fallback to the configured defaults if not
+               // set in the environment.
                bldr_url: default_bldr_url(),
                channel: ChannelIdent::configured_value(),
                topology: Topology::default(),
