@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.34 -->
-## [0.90.34](https://github.com/habitat-sh/habitat/tree/0.90.34) (2019-11-25)
+<!-- latest_release 0.90.35 -->
+## [0.90.35](https://github.com/habitat-sh/habitat/tree/0.90.35) (2019-11-25)
 
 #### Merged Pull Requests
-- Use current commit to determine launcher version [#7234](https://github.com/habitat-sh/habitat/pull/7234) ([smacfarlane](https://github.com/smacfarlane))
+- [Chore] Clean up libbuild.rs [#7238](https://github.com/habitat-sh/habitat/pull/7238) ([christophermaier](https://github.com/christophermaier))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,8 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- [Chore] Clean up libbuild.rs [#7238](https://github.com/habitat-sh/habitat/pull/7238) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.35 -->
+- Use current commit to determine launcher version for Windows [#7235](https://github.com/habitat-sh/habitat/pull/7235) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.35 -->
 - Use current commit to determine launcher version [#7234](https://github.com/habitat-sh/habitat/pull/7234) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.34 -->
 - [CI] Fix failing macOS build [#7233](https://github.com/habitat-sh/habitat/pull/7233) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.33 -->
 - Bye Travis [#7232](https://github.com/habitat-sh/habitat/pull/7232) ([raskchanky](https://github.com/raskchanky)) <!-- 0.90.32 -->
