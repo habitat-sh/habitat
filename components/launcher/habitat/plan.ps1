@@ -39,7 +39,7 @@ function Invoke-Prepare {
 }
 
 function pkg_version {
-    git rev-list master --count
+    git rev-list (git rev-parse HEAD) --count
 }
 
 function Invoke-Before {
