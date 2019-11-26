@@ -486,8 +486,7 @@ pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
                                              // disregards the protocol such as from a `netcat -z`
                                              // connection.
                                              .filter_map(|tcp_stream| {
-                                                 if tcp_stream.peer_addr().is_ok() {
-                                                     let addr = tcp_stream.peer_addr().unwrap();
+                                                 if let Ok(addr) = tcp_stream.peer_addr() {
                                                      let io = SrvCodec::new().framed(tcp_stream);
                                                      let client = Client { handle: handle.clone(),
                                                                            state:  state.clone(), };
