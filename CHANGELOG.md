@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.35 -->
-## [0.90.35](https://github.com/habitat-sh/habitat/tree/0.90.35) (2019-11-25)
+<!-- latest_release 0.90.36 -->
+## [0.90.36](https://github.com/habitat-sh/habitat/tree/0.90.36) (2019-11-26)
 
 #### Merged Pull Requests
-- [Chore] Clean up libbuild.rs [#7238](https://github.com/habitat-sh/habitat/pull/7238) ([christophermaier](https://github.com/christophermaier))
+- Use well known SIDs when looking up administrator and system accounts [#7224](https://github.com/habitat-sh/habitat/pull/7224) ([davidMcneil](https://github.com/davidMcneil))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- Use well known SIDs when looking up administrator and system accounts [#7224](https://github.com/habitat-sh/habitat/pull/7224) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.36 -->
 - [Chore] Clean up libbuild.rs [#7238](https://github.com/habitat-sh/habitat/pull/7238) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.35 -->
 - Use current commit to determine launcher version for Windows [#7235](https://github.com/habitat-sh/habitat/pull/7235) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.35 -->
 - Use current commit to determine launcher version [#7234](https://github.com/habitat-sh/habitat/pull/7234) ([smacfarlane](https://github.com/smacfarlane)) <!-- 0.90.34 -->
