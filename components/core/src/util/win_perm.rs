@@ -82,12 +82,14 @@ pub fn harden_path<T: AsRef<Path>>(path: T) -> Result<()> {
         }
     };
 
-    let entries = vec![PermissionEntry { account:     Account::from_name(&current_user).unwrap(),
-                                         access_mask: FILE_ALL_ACCESS, },
-                       PermissionEntry { account:     Account::from_name("Administrators").unwrap(),
-                                         access_mask: FILE_ALL_ACCESS, },
-                       PermissionEntry { account:     Account::from_name("SYSTEM").unwrap(),
-                                         access_mask: FILE_ALL_ACCESS, },];
+    let entries = vec![PermissionEntry { account:
+                                   Account::from_name(&current_user).expect("current user account \
+                                                                             to exist"),
+                               access_mask: FILE_ALL_ACCESS, },
+             PermissionEntry { account:     Account::built_in_administrators(),
+                               access_mask: FILE_ALL_ACCESS, },
+             PermissionEntry { account:     Account::local_system(),
+                               access_mask: FILE_ALL_ACCESS, },];
     set_permissions(path.as_ref(), &entries)
 }
 
@@ -97,7 +99,8 @@ mod tests {
               io::Write,
               path::Path};
 
-    use tempfile::Builder;
+    use tempfile::{Builder,
+                   NamedTempFile};
     use winapi::um::winnt::FILE_ALL_ACCESS;
     use windows_acl::helper;
 
@@ -156,5 +159,12 @@ mod tests {
                        e);
             }
         }
+    }
+
+    #[test]
+    fn harden_path_test() {
+        let file = NamedTempFile::new().expect("to create temp file");
+        assert!(harden_path(file.path()).is_ok());
+        assert!(harden_path("C:/this/is/a/nonexistant/path").is_err());
     }
 }

@@ -15,4 +15,4 @@ log = "*"
 
 [target.'cfg(windows)'.dependencies]
 widestring = "*"
-winapi = { version = "*", features = ["winbase", "winerror", "handleapi"] }
+winapi = { version = "*", features = ["winbase", "winerror", "handleapi", "sddl"] }

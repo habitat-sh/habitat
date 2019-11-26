@@ -17,6 +17,7 @@ use winapi::{shared::{minwindef::{BOOL,
                                   TRUE,
                                   WORD},
                       ntdef::HANDLE,
+                      sddl::ConvertStringSidToSidW,
                       winerror},
              um::{handleapi,
                   processthreadsapi,
@@ -161,6 +162,19 @@ impl Sid {
             copy(sid, buf.as_mut_ptr() as PSID, sz);
             Ok(Self { raw: buf })
         }
+    }
+
+    pub fn from_str(sid: &str) -> io::Result<Self> {
+        let sid = WideCString::from_str(sid).expect("valid SID widestring");
+        let mut buffer = null_mut();
+        cvt(unsafe { ConvertStringSidToSidW(sid.as_ptr(), &mut buffer) })?;
+        let length = unsafe { GetLengthSid(buffer) } as usize;
+        let mut raw = Vec::with_capacity(length);
+        for p in 0..length {
+            raw.push(unsafe { *(buffer as *mut u8).add(p) });
+        }
+        unsafe { winbase::LocalFree(buffer as HLOCAL) };
+        Ok(Self { raw })
     }
 
     pub fn to_string(&self) -> io::Result<String> {
@@ -318,4 +332,11 @@ mod tests {
 
     #[test]
     fn current_user_sid() { assert!(Sid::from_current_user().is_ok()) }
+
+    #[test]
+    fn system_sid_identity() {
+        let sid_str = "S-1-5-18";
+        let s = Sid::from_str(sid_str).expect("valid sid");
+        assert_eq!(s.to_string().expect("sid to string"), sid_str);
+    }
 }
