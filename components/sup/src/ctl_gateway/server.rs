@@ -481,14 +481,20 @@ pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
           let server =
               TcpListener::bind(&listen_addr).expect("Could not bind ctl gateway listen address!")
                                              .incoming()
-                                             .map(|tcp_stream| {
-                                                 let addr =
-                                                     tcp_stream.peer_addr().expect("Couldn't get \
-                                                                                    peer address!");
-                                                 let io = SrvCodec::new().framed(tcp_stream);
-                                                 let client = Client { handle: handle.clone(),
-                                                                       state:  state.clone(), };
-                                                 (client.serve(io), addr)
+                                             // Filter out instances where there is no peer address
+                                             // on the socket. peer_addr() can be Err when a client
+                                             // disregards the protocol such as from a `netcat -z`
+                                             // connection.
+                                             .filter_map(|tcp_stream| {
+                                                 if tcp_stream.peer_addr().is_ok() {
+                                                     let addr = tcp_stream.peer_addr().unwrap();
+                                                     let io = SrvCodec::new().framed(tcp_stream);
+                                                     let client = Client { handle: handle.clone(),
+                                                                           state:  state.clone(), };
+                                                     Some((client.serve(io), addr))
+                                                 } else {
+                                                     None
+                                                 }
                                              })
                                              .for_each(|(client, addr)| {
                                                  handle.spawn(client.then(move |res| {
