@@ -9,23 +9,27 @@ workspace = "../../"
 [dependencies]
 base64 = "*"
 bytes = "*"
-futures = "0.1"
 habitat_core = { path = "../core" }
 lazy_static = "*"
 log = "*"
-prost = "*"
-prost-derive = "*"
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost = { git = "https://github.com/dingelish/prost" }
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost-derive = { git = "https://github.com/dingelish/prost" }
 rand = "*"
 serde = "*"
 serde_derive = "*"
-tokio = "*"
-tokio-codec = "*"
+tokio = { version = "0.2", features = ["full"] }
+tokio-util = { version = "0.2", features = ["full"] }
 
 [build-dependencies]
 heck = "*"
-prost = "*"
-prost-build = "*"
-prost-types = "*"
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost = { git = "https://github.com/dingelish/prost" }
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost-build = { git = "https://github.com/dingelish/prost" }
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost-types = { git = "https://github.com/dingelish/prost" }
 tempfile = "*"
 
 [dev-dependencies]
