@@ -308,6 +308,9 @@ impl ServiceUpdater {
                                        census_group.me())
                                 {
                                     (Some(leader), Some(peer), Some(me)) => {
+                                        // if the current leader is no longer live
+                                        // it is possible that this follower is now
+                                        // a leader
                                         if leader.member_id == me.member_id {
                                             debug!("I'm a leader now");
                                             self.states
