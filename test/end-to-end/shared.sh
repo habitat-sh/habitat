@@ -81,11 +81,6 @@ cleanup_supervisor() {
 # NOTE: This currently assumes the test is the only thing running a
 # Supervisor.
 wait_for_control_gateway() {
-    # TODO (CM): Ideally would use -z, but that appears to cause
-    # issues with the control gateway in our Docker-based testing
-    # pipeline... something about the peer address of the connection
-    # not being available.
-    #
-    # Also, this assumes GNU netcat, installed via Habitat.
-    timeout --foreground 10 sh -c 'until netcat -vv --close localhost 9632; do sleep 1; done'
+    # This assumes GNU netcat, installed via Habitat.
+    timeout --foreground 10 sh -c 'until netcat -vv -z localhost 9632; do sleep 1; done'
 }
