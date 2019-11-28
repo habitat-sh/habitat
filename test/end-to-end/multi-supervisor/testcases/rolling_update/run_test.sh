@@ -13,13 +13,13 @@ hab pkg install core/jq-static -b
 test_channel=rolling-$(date '+%s%3N')
 test_ident=habitat-testing/nginx/1.17.4/20191115184838
 
-hab pkg promote ${test_ident} ${test_channel}
+hab pkg promote ${test_ident} "${test_channel}"
 
-hab svc load habitat-testing/nginx --topology leader --strategy rolling --channel ${test_channel} --remote-sup=alpha.habitat.dev
-hab svc load habitat-testing/nginx --topology leader --strategy rolling --channel ${test_channel} --remote-sup=beta.habitat.dev
+hab svc load habitat-testing/nginx --topology leader --strategy rolling --channel "${test_channel}" --remote-sup=alpha.habitat.dev
+hab svc load habitat-testing/nginx --topology leader --strategy rolling --channel "${test_channel}" --remote-sup=beta.habitat.dev
 
 cleanup () {
-    hab bldr channel destroy ${test_channel} --origin habitat-testing
+    hab bldr channel destroy "${test_channel}" --origin habitat-testing
 }
 
 sleep 15
@@ -35,7 +35,7 @@ done
 
 
 test_ident=habitat-testing/nginx/1.17.4/20191115185517
-hab pkg promote ${test_ident} ${test_channel}
+hab pkg promote ${test_ident} "${test_channel}"
 
 sleep 15
 
