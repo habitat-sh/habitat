@@ -86,14 +86,6 @@ subscriptions:
           always_run: true
           post_commit: true
 
-  # Responses to End-To-End Pipeline
-  ########################################################################
-
-  - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
-    actions:
-      - trigger_pipeline:test_scenarios
-
-
   # Scheduled Pipelines
   ########################################################################
 
