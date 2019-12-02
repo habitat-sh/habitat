@@ -492,6 +492,7 @@ pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
                                                                            state:  state.clone(), };
                                                      Some((client.serve(io), addr))
                                                  } else {
+                                                     debug!("Client peer address not available from socket!");
                                                      None
                                                  }
                                              })
