@@ -122,6 +122,25 @@ s3_channel_url_root() {
     echo "s3://${s3_bucket_name}/${channel}/latest/habitat"
 }
 
+s3_sync() {
+	local src="${1}"
+	local dst="${2}"
+	aws s3 sync "${src}" "${dst}"
+}
+
+purge_fastly_cache() {
+	local service_key="${1}"
+	local channel="${2:-}"
+	local token
+	token=$(fastly_token)
+
+	if [ -n "$channel" ]; then
+		curl -X POST -H "Fastly-Key: ${token}" "https://api.fastly.com/service/$service_key/purge/${channel}/habitat/latest"
+	else
+		curl -X POST -H "Fastly-Key: ${token}" "https://api.fastly.com/service/$service_key/purge_all"
+	fi
+}
+
 # Intended for uploading manifests and `hab` packages in non-Habitat
 # archives (e.g., tarballs, not harts) to S3.
 #

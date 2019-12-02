@@ -4,10 +4,19 @@
 
 set -euo pipefail
 
-# check to see if any of the files in the www directory were modified and bail out if not
-if ! git log --oneline --name-only master..HEAD | grep "www/"; then
-  echo "No files in the www directory were modified. Exiting."
-  exit 0
+source .expeditor/scripts/shared.sh
+
+env="${1:-}"
+
+if [[ "$env" != "acceptance" && "$env" != "production"  ]]; then
+  echo "The argument to this script should be either 'acceptance' or 'production'"
+  exit 1
+fi
+
+if [ "$env" == "acceptance" ]; then
+  export AWS_BUCKET="habitat-www-acceptance"
+elif [ "$env" == "production" ]; then
+  export AWS_BUCKET="habitat-www-live"
 fi
 
 # verify that all the environment variables are properly set
@@ -23,5 +32,5 @@ done
 cd www
 make build
 cd build
-aws s3 sync . "s3://$AWS_BUCKET"
-make purge_cache
+s3_sync "." "s3://$AWS_BUCKET"
+purge_fastly_cache "$FASTLY_SERVICE_KEY"

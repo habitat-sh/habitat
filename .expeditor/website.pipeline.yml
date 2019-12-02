@@ -1,7 +1,23 @@
+expeditor:
+  secrets:
+    FASTLY_API_KEY:
+      path: account/static/fastly/eng-services-ops
+      field: token
+  accounts:
+    - aws/chef-cd
+    - aws/habitat
+  defaults:
+    buildkite:
+      timeout_in_minutes: 30
+      env:
+        FASTLY_SERVICE_KEY: "T32H9RqMWpCV9qhp3S9xq"
+        AWS_PROFILE: "habitat"
+        AWS_DEFAULT_REGION: "us-west-2"
+
 steps:
   - label: "Deploy the website :pen:"
     command:
-      - .expeditor/scripts/verify/website-deploy.sh
+      - .expeditor/scripts/verify/website-deploy.sh production
     expeditor:
       executor:
         docker:
