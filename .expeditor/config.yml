@@ -86,21 +86,6 @@ subscriptions:
           always_run: true
           post_commit: true
 
-  # Responses to End-To-End Pipeline
-  ########################################################################
-
-  - workload: buildkite_build_passed:{{agent_id}}:end_to_end:*
-    actions:
-      - trigger_pipeline:test_scenarios
-
-
-  # Scheduled Pipelines
-  ########################################################################
-
-  - workload: schedule_triggered:{{agent_id}}:cargo_update:*
-    actions:
-      - bash:.expeditor/scripts/cargo_update.sh
-
   # Promotion Workloads
   ########################################################################
   # Only allow promotion actions from acceptance->staging,
@@ -126,11 +111,6 @@ subscriptions:
           post_commit: true
       - trigger_pipeline:finish_release:
           post_commit: true
-
-schedules:
-  - name: cargo_update
-    description: "Run 'cargo update' every Monday at 12PM UTC"
-    cronline: "0 12 * * 1"
 
 promote:
   channels:
