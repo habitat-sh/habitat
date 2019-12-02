@@ -1,5 +1,4 @@
-.buildkite @christophermaier
-components/backline
+.expeditor @christophermaier @smacfarlane
 components/builder-api-client @chefsalim @raskchanky
 components/butterfly* @christophermaier @raskchanky
 components/core @christophermaier @chefsalim @raskchanky
