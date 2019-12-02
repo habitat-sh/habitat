@@ -1,4 +1,4 @@
-.buildkite @christophermaier @scotthain
+.buildkite @christophermaier
 components/backline
 components/builder-api-client @chefsalim @raskchanky
 components/butterfly* @christophermaier @raskchanky
@@ -8,7 +8,7 @@ components/hab @christophermaier @chefsalim @raskchanky @eeyun
 components/http-client @chefsalim @raskchanky
 components/launcher* @christophermaier @raskchanky
 components/pkg-* @christophermaier @eeyun
-components/plan-build @christophermaier @scotthain
+components/plan-build @christophermaier
 components/studio @eeyun
 components/sup* @christophermaier @raskchanky
 components/win-users @mwrock
