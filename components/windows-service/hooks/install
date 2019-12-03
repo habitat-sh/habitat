@@ -4,4 +4,14 @@ if((Get-Service Habitat -ErrorAction SilentlyContinue) -ne $null) {
     UnInstall-HabService
 }
 
+$configPath = Join-Path $env:SystemDrive "hab\svc\windows-service\HabService.dll.config"
+$configPathBU = "${configPath}_backup"
+if(Test-Path $configPath) {
+    Copy-Item $configPath $configPathBU
+}
+
 Install-HabService
+
+if(Test-Path $configPathBU) {
+    Move-Item $configPathBU $configPath -Force
+}
