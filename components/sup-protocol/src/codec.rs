@@ -75,14 +75,17 @@ const COMPLETE_MASK: u32 = 0x1;
 /// client and server speak.
 pub type SrvStream = Framed<TcpStream, SrvCodec>;
 
+// The type of the transaction id.
+pub type TxnId = u32;
+
 /// An unsigned 32-bit integer packed with transaction information which is present if a request
 /// should receive a response from the destination.
 #[derive(Default, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-pub struct SrvTxn(u32);
+pub struct SrvTxn(TxnId);
 
 impl SrvTxn {
     /// The contained transaction ID.
-    pub fn id(self) -> u32 { self.0 & TXN_ID_MASK }
+    pub fn id(self) -> TxnId { self.0 & TXN_ID_MASK }
 
     /// Update the transaction ID to the next valid value.
     pub fn increment(&mut self) {
@@ -107,8 +110,8 @@ impl SrvTxn {
     pub fn set_response(&mut self) { self.0 |= 1 << RESPONSE_OFFSET; }
 }
 
-impl From<u32> for SrvTxn {
-    fn from(value: u32) -> Self { SrvTxn(value) }
+impl From<TxnId> for SrvTxn {
+    fn from(value: TxnId) -> Self { SrvTxn(value) }
 }
 
 impl fmt::Debug for SrvTxn {

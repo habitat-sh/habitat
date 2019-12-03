@@ -6,12 +6,12 @@ authors = ["The Habitat Maintainers <humans@habitat.sh>"]
 workspace = "../../"
 
 [dependencies]
-futures = "0.1"
+futures = { version = "0.3.1" }
 habitat-sup-protocol = { path = "../sup-protocol", default-features = false }
 habitat_common = { path = "../common" }
 log = "*"
-prost = "*"
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost = { git = "https://github.com/dingelish/prost" }
 termcolor = "*"
-tokio = "*"
-tokio-core = "*"
-tokio-codec = "*"
+tokio = { version = "0.2", features = ["full"] }
+tokio-util = { version = "0.2", features = ["full"] }
