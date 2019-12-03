@@ -1,10 +1,10 @@
 # Habitat CHANGELOG
 
-<!-- latest_release 0.90.39 -->
-## [0.90.39](https://github.com/habitat-sh/habitat/tree/0.90.39) (2019-12-02)
+<!-- latest_release 0.90.40 -->
+## [0.90.40](https://github.com/habitat-sh/habitat/tree/0.90.40) (2019-12-03)
 
 #### Merged Pull Requests
-- avoid ctl_gateway panic on peer_addr().expect() [#7244](https://github.com/habitat-sh/habitat/pull/7244) ([jeremymv2](https://github.com/jeremymv2))
+- some minor windows service improvements [#7251](https://github.com/habitat-sh/habitat/pull/7251) ([mwrock](https://github.com/mwrock))
 <!-- latest_release -->
 
 <!-- release_rollup since=0.90.6 -->
@@ -17,6 +17,7 @@
 - Fix lock when spawning windows processes [#7213](https://github.com/habitat-sh/habitat/pull/7213) ([davidMcneil](https://github.com/davidMcneil)) <!-- 0.90.19 -->
 
 #### Merged Pull Requests
+- some minor windows service improvements [#7251](https://github.com/habitat-sh/habitat/pull/7251) ([mwrock](https://github.com/mwrock)) <!-- 0.90.40 -->
 - avoid ctl_gateway panic on peer_addr().expect() [#7244](https://github.com/habitat-sh/habitat/pull/7244) ([jeremymv2](https://github.com/jeremymv2)) <!-- 0.90.39 -->
 - [CI] Clean up some Expeditor cruft [#7249](https://github.com/habitat-sh/habitat/pull/7249) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.38 -->
 - [Chore] Update CODEOWNERS for new CI infrastructure [#7250](https://github.com/habitat-sh/habitat/pull/7250) ([christophermaier](https://github.com/christophermaier)) <!-- 0.90.38 -->
