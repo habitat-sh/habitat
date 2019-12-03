@@ -10,7 +10,6 @@ extern crate log;
 use clap::{ArgMatches,
            Shell};
 use env_logger;
-use futures::prelude::*;
 
 use hab::{cli::{self,
                 parse_optional_arg},
@@ -111,17 +110,18 @@ lazy_static! {
     };
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     env_logger::init();
     let mut ui = UI::default_with_env();
     let flags = FeatureFlag::from_env(&mut ui);
-    if let Err(e) = start(&mut ui, flags) {
+    if let Err(e) = start(&mut ui, flags).await {
         ui.fatal(e).unwrap();
         std::process::exit(1)
     }
 }
 
-fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
+async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     if std::env::args().skip(1).collect::<Vec<_>>() == vec!["license", "accept"] {
         license::accept_license(ui)?;
         return Ok(());
@@ -166,7 +166,7 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     let app_matches = child.join().unwrap();
 
     match app_matches.subcommand() {
-        ("apply", Some(m)) => sub_svc_set(m)?,
+        ("apply", Some(m)) => sub_svc_set(m).await?,
         ("cli", Some(matches)) => {
             match matches.subcommand() {
                 ("setup", Some(m)) => sub_cli_setup(ui, m)?,
@@ -176,14 +176,14 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
         }
         ("config", Some(m)) => {
             match m.subcommand() {
-                ("apply", Some(m)) => sub_svc_set(m)?,
-                ("show", Some(m)) => sub_svc_config(m)?,
+                ("apply", Some(m)) => sub_svc_set(m).await?,
+                ("show", Some(m)) => sub_svc_config(m).await?,
                 _ => unreachable!(),
             }
         }
         ("file", Some(m)) => {
             match m.subcommand() {
-                ("upload", Some(m)) => sub_file_put(m)?,
+                ("upload", Some(m)) => sub_file_put(m).await?,
                 _ => unreachable!(),
             }
         }
@@ -257,7 +257,7 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                 ("provides", Some(m)) => sub_pkg_provides(m)?,
                 ("search", Some(m)) => sub_pkg_search(m)?,
                 ("sign", Some(m)) => sub_pkg_sign(ui, m)?,
-                ("uninstall", Some(m)) => sub_pkg_uninstall(ui, m)?,
+                ("uninstall", Some(m)) => sub_pkg_uninstall(ui, m).await?,
                 ("upload", Some(m)) => sub_pkg_upload(ui, m)?,
                 ("bulkupload", Some(m)) => sub_pkg_bulkupload(ui, m)?,
                 ("delete", Some(m)) => sub_pkg_delete(ui, m)?,
@@ -297,17 +297,17 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                         _ => unreachable!(),
                     }
                 }
-                ("load", Some(m)) => sub_svc_load(m)?,
-                ("unload", Some(m)) => sub_svc_unload(m)?,
-                ("start", Some(m)) => sub_svc_start(m)?,
-                ("stop", Some(m)) => sub_svc_stop(m)?,
-                ("status", Some(m)) => sub_svc_status(m)?,
+                ("load", Some(m)) => sub_svc_load(m).await?,
+                ("unload", Some(m)) => sub_svc_unload(m).await?,
+                ("start", Some(m)) => sub_svc_start(m).await?,
+                ("stop", Some(m)) => sub_svc_stop(m).await?,
+                ("status", Some(m)) => sub_svc_status(m).await?,
                 _ => unreachable!(),
             }
         }
         ("sup", Some(m)) => {
             match m.subcommand() {
-                ("depart", Some(m)) => sub_sup_depart(m)?,
+                ("depart", Some(m)) => sub_sup_depart(m).await?,
                 ("secret", Some(m)) => {
                     match m.subcommand() {
                         ("generate", _) => sub_sup_secret_generate()?,
@@ -315,14 +315,14 @@ fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
                     }
                 }
                 // this is effectively an alias of `hab svc status`
-                ("status", Some(m)) => sub_svc_status(m)?,
+                ("status", Some(m)) => sub_svc_status(m).await?,
                 _ => unreachable!(),
             }
         }
         ("supportbundle", _) => sub_supportbundle(ui)?,
         ("setup", Some(m)) => sub_cli_setup(ui, m)?,
-        ("start", Some(m)) => sub_svc_start(m)?,
-        ("stop", Some(m)) => sub_svc_stop(m)?,
+        ("start", Some(m)) => sub_svc_start(m).await?,
+        ("stop", Some(m)) => sub_svc_stop(m).await?,
         ("user", Some(matches)) => {
             match matches.subcommand() {
                 ("key", Some(m)) => {
@@ -618,7 +618,7 @@ fn sub_pkg_hash(m: &ArgMatches<'_>) -> Result<()> {
     }
 }
 
-fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let execute_strategy = if m.is_present("DRYRUN") {
         command::pkg::ExecutionStrategy::DryRun
@@ -632,7 +632,7 @@ fn sub_pkg_uninstall(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
     };
     let excludes = excludes_from_matches(&m);
 
-    let services = supervisor_services()?;
+    let services = supervisor_services().await?;
 
     command::pkg::uninstall::start(ui,
                                    &ident,
@@ -1007,7 +1007,7 @@ fn sub_pkg_channels(ui: &mut UI, m: &ArgMatches<'_>) -> Result<()> {
                                   token.as_ref().map(String::as_str))
 }
 
-fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
@@ -1056,102 +1056,90 @@ fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                         .map(ToString::to_string)
                         .unwrap_or_else(|| "UNKNOWN".to_string()),))?;
     ui.status(Status::Creating, "service configuration")?;
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(validate)
-                .for_each(|reply| match reply.message_id() {
-                    "NetOk" => Ok(()),
-                    "NetErr" => {
-                        let m = reply
-                            .parse::<sup_proto::net::NetErr>()
-                            .map_err(SrvClientError::Decode)?;
-                        match ErrCode::from_i32(m.code) {
-                            Some(ErrCode::InvalidPayload) => {
-                                ui.warn(m)?;
-                                Ok(())
-                            }
-                            _ => Err(SrvClientError::from(m)),
-                        }
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut response = client.request(validate).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "NetOk" => (),
+            "NetErr" => {
+                let m = reply.parse::<sup_proto::net::NetErr>()
+                             .map_err(SrvClientError::Decode)?;
+                match ErrCode::from_i32(m.code) {
+                    Some(ErrCode::InvalidPayload) => {
+                        ui.warn(m)?;
                     }
-                    _ => Err(SrvClientError::from(io::Error::from(
-                        io::ErrorKind::UnexpectedEof,
-                    ))),
-                })
-                                                     })
-                                                     .wait()?;
-    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
-    // JW: We should not need to make two connections here. I need a way to return the
-    // SrvClient from a for_each iterator so we can chain upon a successful stream but I don't
-    // know if it's possible with this version of futures.
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(set).for_each(|reply| {
-                          match reply.message_id() {
-                "NetOk" => Ok(()),
-                "NetErr" => {
-                    let m = reply
-                        .parse::<sup_proto::net::NetErr>()
-                        .map_err(SrvClientError::Decode)?;
-                    Err(SrvClientError::from(m))
+                    _ => Err(SrvClientError::from(m))?,
                 }
-                _ => Err(SrvClientError::from(io::Error::from(
-                    io::ErrorKind::UnexpectedEof,
-                ))),
             }
-                      })
-                                                     })
-                                                     .wait()?;
+            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+        }
+    }
+    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
+    // We could potentially reuse the client defined previously, but the server closes the TCP
+    // connection after every request.
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut response = client.request(set).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "NetOk" => (),
+            "NetErr" => {
+                let m = reply.parse::<sup_proto::net::NetErr>()
+                             .map_err(SrvClientError::Decode)?;
+                Err(SrvClientError::from(m))?;
+            }
+            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+        }
+    }
     ui.end("Applied configuration")?;
     Ok(())
 }
 
-fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcGetDefaultCfg::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(msg).for_each(|reply| {
-                          match reply.message_id() {
-                "ServiceCfg" => {
-                    let m = reply
-                        .parse::<sup_proto::types::ServiceCfg>()
-                        .map_err(SrvClientError::Decode)?;
-                    println!("{}", m.default.unwrap_or_default());
-                    Ok(())
-                }
-                "NetErr" => {
-                    let m = reply
-                        .parse::<sup_proto::net::NetErr>()
-                        .map_err(SrvClientError::Decode)?;
-                    Err(SrvClientError::from(m))
-                }
-                _ => Err(SrvClientError::from(io::Error::from(
-                    io::ErrorKind::UnexpectedEof,
-                ))),
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut response = client.request(msg).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "ServiceCfg" => {
+                reply.parse::<sup_proto::types::ServiceCfg>()
+                     .map_err(SrvClientError::Decode)?;
             }
-                      })
-                                                     })
-                                                     .wait()?;
+            "NetErr" => {
+                let m = reply.parse::<sup_proto::net::NetErr>()
+                             .map_err(SrvClientError::Decode)?;
+                Err(SrvClientError::from(m))?;
+            }
+            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+        }
+    }
     Ok(())
 }
 
-fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_load(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = svc_load_from_input(m)?;
     let ident: PackageIdent = m.value_of("PKG_IDENT").unwrap().parse()?;
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(msg)
-                                                             .for_each(|m| handle_ctl_reply(&m))
-                                                     })
-                                                     .wait()?;
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut response = client.request(msg).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        handle_ctl_reply(&reply)?;
+    }
     Ok(())
 }
 
-fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
@@ -1161,30 +1149,32 @@ fn sub_svc_unload(m: &ArgMatches<'_>) -> Result<()> {
 
     let msg = sup_proto::ctl::SvcUnload { ident: Some(ident.into()),
                                           timeout_in_seconds };
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(msg)
-                                                             .for_each(|m| handle_ctl_reply(&m))
-                                                     })
-                                                     .wait()?;
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut response = client.request(msg).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        handle_ctl_reply(&reply)?;
+    }
     Ok(())
 }
 
-fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_start(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut msg = sup_proto::ctl::SvcStart::default();
     msg.ident = Some(ident.into());
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(msg)
-                                                             .for_each(|m| handle_ctl_reply(&m))
-                                                     })
-                                                     .wait()?;
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut response = client.request(msg).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        handle_ctl_reply(&reply)?;
+    }
     Ok(())
 }
 
-fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
@@ -1193,38 +1183,25 @@ fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
         msg.ident = Some(PackageIdent::from_str(pkg)?.into());
     }
 
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         let mut out = TabWriter::new(io::stdout());
-                                                         conn.call(msg)
-                .into_future()
-                .map_err(|(err, _)| err)
-                .and_then(move |(reply, rest)| {
-                    match reply {
-                        None => {
-                            return Err(SrvClientError::from(io::Error::from(
-                                io::ErrorKind::UnexpectedEof,
-                            )));
-                        }
-                        Some(m) => print_svc_status(&mut out, &m, true)?,
-                    }
-                    Ok((out, rest))
-                })
-                .and_then(|(out, rest)| {
-                    rest.fold(out, move |mut out, reply| {
-                        print_svc_status(&mut out, &reply, false)?;
-                        Ok::<_, SrvClientError>(out)
-                    })
-                })
-                .and_then(|mut out| {
-                    out.flush()?;
-                    Ok(())
-                })
-                                                     })
-                                                     .wait()?;
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut out = TabWriter::new(io::stdout());
+    let mut response = client.request(msg).await?;
+    // Ensure there is at least one result from the server otherwise produce an error
+    if let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        print_svc_status(&mut out, &reply, true)?;
+    } else {
+        Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?;
+    }
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        print_svc_status(&mut out, &reply, true)?;
+    }
+    out.flush()?;
     Ok(())
 }
 
-fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
     let ident = PackageIdent::from_str(m.value_of("PKG_IDENT").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
@@ -1234,15 +1211,16 @@ fn sub_svc_stop(m: &ArgMatches<'_>) -> Result<()> {
 
     let msg = sup_proto::ctl::SvcStop { ident: Some(ident.into()),
                                         timeout_in_seconds };
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(msg)
-                                                             .for_each(|m| handle_ctl_reply(&m))
-                                                     })
-                                                     .wait()?;
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut response = client.request(msg).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        handle_ctl_reply(&reply)?;
+    }
     Ok(())
 }
 
-fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
     let service_group = ServiceGroup::from_str(m.value_of("SERVICE_GROUP").unwrap())?;
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
@@ -1285,69 +1263,61 @@ fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
         }
         _ => msg.content = Some(buf.to_vec()),
     }
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         ui.status(Status::Applying,
-                                                                   format!("via peer {}",
-                                                                           listen_ctl_addr))
-                                                           .unwrap();
-                                                         conn.call(msg).for_each(|reply| {
-                          match reply.message_id() {
-                "NetOk" => Ok(()),
-                "NetErr" => {
-                    let m = reply
-                        .parse::<sup_proto::net::NetErr>()
-                        .map_err(SrvClientError::Decode)?;
-                    match ErrCode::from_i32(m.code) {
-                        Some(ErrCode::InvalidPayload) => {
-                            ui.warn(m)?;
-                            Ok(())
-                        }
-                        _ => Err(SrvClientError::from(m)),
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
+      .unwrap();
+    let mut response = client.request(msg).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "NetOk" => (),
+            "NetErr" => {
+                let m = reply.parse::<sup_proto::net::NetErr>()
+                             .map_err(SrvClientError::Decode)?;
+                match ErrCode::from_i32(m.code) {
+                    Some(ErrCode::InvalidPayload) => {
+                        ui.warn(m)?;
                     }
+                    _ => Err(SrvClientError::from(m))?,
                 }
-                _ => Err(SrvClientError::from(io::Error::from(
-                    io::ErrorKind::UnexpectedEof,
-                ))),
             }
-                      })
-                                                     })
-                                                     .wait()?;
+            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+        }
+    }
     ui.end("Uploaded file")?;
     Ok(())
 }
 
-fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
+async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
     let cfg = config::load()?;
     let listen_ctl_addr = listen_ctl_addr_from_input(m)?;
     let secret_key = ctl_secret_key(&cfg)?;
     let mut ui = ui();
     let mut msg = sup_proto::ctl::SupDepart::default();
     msg.member_id = Some(m.value_of("MEMBER_ID").unwrap().to_string());
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-        ui.begin(format!("Permanently marking {} as departed",
-                         msg.member_id
-                            .as_ref()
-                            .map(String::as_str)
-                            .unwrap_or("UNKNOWN")))
-          .unwrap();
-        ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
-          .unwrap();
-        conn.call(msg).for_each(|reply| {
-                          match reply.message_id() {
-                "NetOk" => Ok(()),
-                "NetErr" => {
-                    let m = reply
-                        .parse::<sup_proto::net::NetErr>()
-                        .map_err(SrvClientError::Decode)?;
-                    Err(SrvClientError::from(m))
-                }
-                _ => Err(SrvClientError::from(io::Error::from(
-                    io::ErrorKind::UnexpectedEof,
-                ))),
+
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    ui.begin(format!("Permanently marking {} as departed",
+                     msg.member_id
+                        .as_ref()
+                        .map(String::as_str)
+                        .unwrap_or("UNKNOWN")))
+      .unwrap();
+    ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))
+      .unwrap();
+    let mut response = client.request(msg).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "NetOk" => (),
+            "NetErr" => {
+                let m = reply.parse::<sup_proto::net::NetErr>()
+                             .map_err(SrvClientError::Decode)?;
+                Err(SrvClientError::from(m))?;
             }
-                      })
-    })
-    .wait()?;
+            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+        }
+    }
     ui.end("Departure recorded.")?;
     Ok(())
 }
@@ -1845,7 +1815,7 @@ fn launcher_is_running(fs_root_path: &Path) -> bool {
     pid_file_path.is_file()
 }
 
-fn supervisor_services() -> Result<Vec<PackageIdent>> {
+async fn supervisor_services() -> Result<Vec<PackageIdent>> {
     if !launcher_is_running(&*FS_ROOT) {
         return Ok(vec![]);
     }
@@ -1856,29 +1826,27 @@ fn supervisor_services() -> Result<Vec<PackageIdent>> {
     let msg = sup_proto::ctl::SvcStatus::default();
 
     let mut out: Vec<PackageIdent> = vec![];
-    SrvClient::connect(&listen_ctl_addr, &secret_key).and_then(|conn| {
-                                                         conn.call(msg).for_each(|reply| {
-                          match reply.message_id() {
-                              "ServiceStatus" => {
-                                  let m = reply.parse::<sup_proto::types::ServiceStatus>()
-                                               .map_err(SrvClientError::Decode)?;
-                                  out.push(m.ident.into());
-                                  Ok(())
-                              }
-                              "NetOk" => Ok(()),
-                              "NetErr" => {
-                                  let err = reply.parse::<sup_proto::net::NetErr>()
-                                                 .map_err(SrvClientError::Decode)?;
-                                  Err(SrvClientError::from(err))
-                              }
-                              _ => {
-                                  warn!("Unexpected status message, {:?}", reply);
-                                  Ok(())
-                              }
-                          }
-                      })
-                                                     })
-                                                     .wait()?;
+    let mut client = SrvClient::connect(&listen_ctl_addr, &secret_key).await?;
+    let mut response = client.request(msg).await?;
+    while let Some(message_result) = response.recv().await {
+        let reply = message_result?;
+        match reply.message_id() {
+            "ServiceStatus" => {
+                let m = reply.parse::<sup_proto::types::ServiceStatus>()
+                             .map_err(SrvClientError::Decode)?;
+                out.push(m.ident.into());
+            }
+            "NetOk" => (),
+            "NetErr" => {
+                let err = reply.parse::<sup_proto::net::NetErr>()
+                               .map_err(SrvClientError::Decode)?;
+                Err(SrvClientError::from(err))?;
+            }
+            _ => {
+                warn!("Unexpected status message, {:?}", reply);
+            }
+        }
+    }
     Ok(out)
 }
 

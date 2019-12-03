@@ -19,7 +19,6 @@ chrono = {version = "*", features = ["serde"]}
 dirs = "*"
 env_logger = "*"
 flate2 = "*"
-futures = "0.1"
 glob = "*"
 habitat_api_client = { path = "../builder-api-client" }
 habitat_common = { path = "../common" }
@@ -42,6 +41,7 @@ serde_yaml = "*"
 tabwriter = "*"
 tar = "*"
 termcolor = "*"
+tokio = { version = "0.2", features = ["full"] }
 toml = { version = "*", default-features = false }
 url = "*"
 walkdir = "*"
