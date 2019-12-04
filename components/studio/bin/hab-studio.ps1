@@ -505,7 +505,7 @@ function Update-SslCertFile {
     try {
       $cert_filename = (Get-Item $env:SSL_CERT_FILE).Name
       $studio_ssl_cert_file = (Join-Path $env:HAB_CACHE_SSL_PATH $cert_filename)
-      if (Test-Path (Join-Path $env:HAB_STUDIO_ROOT $studio_ssl_cert_file)) {
+      if (Test-Path $studio_ssl_cert_file) {
         $env:SSL_CERT_FILE = $studio_ssl_cert_file
       }
     } catch {
