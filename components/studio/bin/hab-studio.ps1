@@ -504,7 +504,10 @@ function Update-SslCertFile {
   if($env:SSL_CERT_FILE) {
     try {
       $cert_filename = (Get-Item $env:SSL_CERT_FILE).Name
-      $env:SSL_CERT_FILE = Join-Path $env:HAB_CACHE_SSL_PATH $cert_filename
+      $studio_ssl_cert_file = (Join-Path $env:HAB_CACHE_SSL_PATH $cert_filename)
+      if (Test-Path (Join-Path $env:HAB_STUDIO_ROOT $studio_ssl_cert_file)) {
+        $env:SSL_CERT_FILE = $studio_ssl_cert_file
+      }
     } catch {
       Write-HabInfo "Unable to set SSL_CERT_FILE from '$env:SSL_CERT_FILE'"
     }
