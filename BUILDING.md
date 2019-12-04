@@ -47,7 +47,7 @@ cargo --version
 
 Next, use our installation script to install rustfmt
 ```
-./.expeditor/scripts/verify/rustfmt.sh
+./support/rustfmt_nightly.sh
 ```
 
 At any time, you can find the version of rustfmt we are using by running this command at the root level

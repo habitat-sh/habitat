@@ -112,6 +112,15 @@ subscriptions:
       - trigger_pipeline:finish_release:
           post_commit: true
 
+  # Post release notification workloads
+  #
+  # Do not change the branch name here without also changing
+  # it in .expeditor/scripts/finish_release/bump_rustfmt.sh
+  # pull_request_<ACTION>:<REPO>:<BRANCH>:<NUMBER>:<GITHUB_DELIVERY_UUID>
+  - workload: pull_request_opened:{{github_repo}}:expeditor/rustfmt_*:*
+    actions:
+      - bash:.expeditor/scripts/finish_release/notify_rustfmt.sh
+
 promote:
   channels:
     # e2e pipeline tests from here
