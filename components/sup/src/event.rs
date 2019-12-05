@@ -16,6 +16,7 @@ mod stream;
 mod types;
 
 pub(crate) use self::types::ServiceMetadata;
+use prost_types::Duration as ProstDuration;
 use self::types::{EventMessage,
                   EventMetadata,
                   HealthCheckEvent,
@@ -37,7 +38,8 @@ use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
                             EventStreamMetadata,
                             EventStreamServerCertificate};
-use habitat_core::package::ident::PackageIdent;
+use habitat_core::{package::ident::PackageIdent,
+                   service::HealthCheckInterval};
 use parking_lot::Mutex;
 use state::Container;
 use std::{net::SocketAddr,
@@ -223,7 +225,8 @@ pub fn service_update_started(service: &Service, update: &PackageIdent) {
 // currently works. Revisit when async/await + Pin is all stabilized.
 pub fn health_check(metadata: ServiceMetadata,
                     health_check_result: HealthCheckResult,
-                    health_check_hook_status: HealthCheckHookStatus) {
+                    health_check_hook_status: HealthCheckHookStatus,
+                    health_check_interval: HealthCheckInterval) {
     if stream_initialized() {
         let health_check_result: types::HealthCheckResult = health_check_result.into();
         let maybe_duration = health_check_hook_status.maybe_duration();
@@ -233,6 +236,9 @@ pub fn health_check(metadata: ServiceMetadata,
         let StandardStreams { stdout, stderr } =
             maybe_process_output.map(ProcessOutput::standard_streams)
                                 .unwrap_or_default();
+
+        let prost_interval = ProstDuration::from(Duration::from(health_check_interval));
+
         publish(HEALTHCHECK_SUBJECT,
                 HealthCheckEvent { service_metadata: Some(metadata),
                                    event_metadata: None,
@@ -240,7 +246,8 @@ pub fn health_check(metadata: ServiceMetadata,
                                    execution: maybe_duration.map(Duration::into),
                                    exit_status,
                                    stdout,
-                                   stderr });
+                                   stderr,
+                                   interval: Some(prost_interval) });
     }
 }
 
@@ -323,6 +330,7 @@ mod tests {
                   sync::mpsc as futures_mpsc};
     #[cfg(windows)]
     use habitat_core::os::process::windows_child::ExitStatus;
+    use habitat_core::service::HealthCheckInterval;
     #[cfg(unix)]
     use std::{os::unix::process::ExitStatusExt,
               process::ExitStatus};
@@ -343,10 +351,12 @@ mod tests {
                                    meta:          EventStreamMetadata::default(), });
         health_check(ServiceMetadata::default(),
                      HealthCheckResult::Ok,
-                     HealthCheckHookStatus::NoHook);
+                     HealthCheckHookStatus::NoHook,
+                     HealthCheckInterval::default());
         health_check(ServiceMetadata::default(),
                      HealthCheckResult::Warning,
-                     HealthCheckHookStatus::FailedToRun(Duration::from_secs(5)));
+                     HealthCheckHookStatus::FailedToRun(Duration::from_secs(5)),
+                     HealthCheckInterval::default());
         #[cfg(windows)]
         let exit_status = ExitStatus::from(2);
         #[cfg(unix)]
@@ -357,7 +367,8 @@ mod tests {
                                     exit_status);
         health_check(ServiceMetadata::default(),
                      HealthCheckResult::Critical,
-                     HealthCheckHookStatus::Ran(process_output, Duration::from_secs(10)));
+                     HealthCheckHookStatus::Ran(process_output, Duration::from_secs(10)),
+                     HealthCheckInterval::default());
         #[cfg(windows)]
         let exit_status = ExitStatus::from(3);
         #[cfg(unix)]
@@ -368,7 +379,8 @@ mod tests {
                                     exit_status);
         health_check(ServiceMetadata::default(),
                      HealthCheckResult::Unknown,
-                     HealthCheckHookStatus::Ran(process_output, Duration::from_secs(15)));
+                     HealthCheckHookStatus::Ran(process_output, Duration::from_secs(15)),
+                     HealthCheckInterval::default());
         let events = rx.take(4).collect().wait().unwrap();
 
         let event = HealthCheckEvent::decode(&events[0].payload).unwrap();
@@ -377,6 +389,12 @@ mod tests {
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, None);
         assert_eq!(event.stderr, None);
+
+        let default_interval = HealthCheckInterval::default();
+        let prost_interval = ProstDuration::from(Duration::from(default_interval));
+        let prost_interval_option = Some(prost_interval);
+
+        assert_eq!(event.interval, prost_interval_option);
 
         let event = HealthCheckEvent::decode(&events[1].payload).unwrap();
         assert_eq!(event.result, 1);

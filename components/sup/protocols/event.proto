@@ -76,7 +76,7 @@ message ServiceStoppedEvent {
 message ServiceUpdateStartedEvent {
   EventMetadata event_metadata = 1;
   ServiceMetadata service_metadata = 2;
-  // Details of the service pkg to which 
+  // Details of the service pkg to which
   // we're attempting to update.This is
   // implemented as a string for now,
   // but at some point we'll may want
@@ -98,4 +98,6 @@ message HealthCheckEvent {
   google.protobuf.StringValue stdout = 6;
   // The health check hook stderr output
   google.protobuf.StringValue stderr = 7;
+  // The heath check interval
+  google.protobuf.Duration interval = 8;
 }
