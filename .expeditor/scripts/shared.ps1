@@ -90,8 +90,8 @@ function Install-Rustup($Toolchain) {
         Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
       }
 
-#./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path --profile=minimal
-#$env:path += ";$env:USERPROFILE\.cargo\bin"
+  ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path --profile=minimal
+  $env:path += ";$env:USERPROFILE\.cargo\bin"
   }
 }
 
