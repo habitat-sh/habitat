@@ -3,78 +3,43 @@
 This document contains step-by-step details for how to release Habitat. All components are released
 from the master branch on a bi-weekly schedule occurring every other Monday.
 
-# Create an issue to track progress from the template
+## Promote a Candidate for Manual Testing
 
-1. Create an issue which will track the progress of the release with [this template](https://github.com/habitat-sh/habitat/issues/new?template=release-checklist.md).
-1. Check off the items in the list as you go.
-1. If you make any changes to the release automation or documentation to include in the next release, you can mark those PRs as resolving the issue. Otherwise, just close it when the release is done.
+In Slack, execute the following command:
 
-## Prepare Master Branch for Release
-
-1. Call for a "Freeze" on all merges to master and set the topic in #hab-team to indicate that it
-is in effect
-
-1. Clone the Habitat repository if you do not already have it
-
-    ```
-    $ git clone git@github.com:habitat-sh/habitat.git ~/habitat
-    ```
-
-1. Ensure you are on the master branch and have the latest of `~/habitat`:
-
-    ```
-    $ cd ~/habitat
-    $ git checkout master
-    $ git pull origin master
-    ```
-
-1. Create a new release branch in the Habitat repo. You can call this branch whatever you wish:
-
-    ```
-    $ cd ~/habitat
-    $ git checkout -b <branch>
-    ```
-
-1. Remove the `-dev` suffix from the version number found in the `VERSION` file. *Note*: there must not be a space after the `-i`.
-
-    ```
-    $ sed -i'' -e 's/-dev//' VERSION
-    ```
-1. If necessary, fix up any issues with `CHANGELOG.md`, such as PRs that were missing the `X-` label and didn't get put in the correct category. ** IMPORTANT ** while we are migrating to the new release process, all changelog info will go to the `CHANGELOG_FAKE.md` file - please copy paste the appropriate entries to `CHANGELOG.md` prior to release.
-
-1. Commit `VERSION` changes and push your branch.
-1. Issue a new PR with the `Expeditor: Exclude from Changelog` label and await approval (in the form of a [dank gif](http://imgur.com/X0sNq)) from two maintainers.
-1. Pull master once again once the PR is merged into master.
-1. Create & push a Git tag:
-
-    ```
-    $ make tag-release
-    ```
-
-If there are problems discovered during validation, or you need to modify the tag to include
-additional commits, see [Addressing issues with a Release](#addressing-issues-with-a-release).
-
-Once the release tag is pushed, a Buildkite build will be triggered on the release tag.
-
-You can view/adminster Buildkite builds [here](https://buildkite.com/chef/habitat-sh-habitat-master-release-habitat).
-After the new build is running on Builder, you should ssh to the various
-hosts and confirm that the new version of the supervisor is running and check the builder dashboards
-(see https://forums.habitat.sh/t/on-call-engineering-duties/626). To quickly check the versions of the supervisor,
-you can run ([`hab-instances`](https://github.com/habitat-sh/builder/blob/master/tools/ssh_helpers/hab-instances) is in the `builder` repo and assumes you already set up the [ssh-helpers](https://github.com/habitat-sh/builder/blob/master/tools/ssh_helpers/Usage.md)):
-```bash
-for host in $(./tools/ssh_helpers/hab-instances live | jq -r '.Reservations[] | .Instances[0] | .PublicDnsName + ";" + (.Tags | from_entries | ."X-Environment" + "-" + .Name)' | cut -d';' -f2); do
-    ssh "$host" pgrep -afl hab-sup | grep -E "/\d+\.\d+\.\d+/"
-done
 ```
-This won't work for Windows workers (they require RDP), so you can confirm Windows worker services are running via the Builder dashboard.
-
-The release tag builds will upload all release binaries to a channel named `rc-[VERSION]` and the `hab` cli will be uploaded but _not_ published to the `stable` Bintray repository. These builds can take about 45 minutes to fully complete. Keep an eye on them so we can validate the binaries when they finish.
+/expeditor promote habitat acceptance
+```
+This will take whatever packages are currently in the `acceptance`
+channel and promote them into the `staging` channel. This manual
+action is the only way things get into the `staging` channel, so you
+can perform whatever manual validation you need without worrying about
+new packages coming in and invalidating your efforts.
 
 ## Validate the Release
 
-For each platform ([darwin](https://bintray.com/habitat/stable/hab-x86_64-darwin), [linux](https://bintray.com/habitat/stable/hab-x86_64-linux), [linux-kernel2](https://bintray.com/habitat/stable/hab-x86_64-linux-kernel2), [windows](https://bintray.com/habitat/stable/hab-x86_64-windows)), download the latest stable cli version from [Bintray](https://bintray.com/habitat/stable) (you will need to be signed into Bintray and a member of the "Habitat" organization). These can be downloaded from the version files page but are unpublished so that our download page does not yet include them. There may be special behavior related to this release that you will want to validate but at the very least, do the following basic tests.
+For each platform
+([darwin](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-darwin.zip),
+[linux](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-linux.tar.gz),
+[linux-kernel2](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-linux-kernel2.tar.gz),
+[windows](https://packages.chef.io/files/staging/habitat/latest/hab-x86_64-windows.zip)),
+download the latest release candidate CLI from `packages.chef.io`. You
+**must** have run the `/expeditor` Slack command above _before_
+downloading the package!
 
-You need to set `HAB_INTERNAL_BLDR_CHANNEL` and `CI_OVERRIDE_CHANNEL` to the name of the release channel (you _may_ also need to set `HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL` and `HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL` for non-Docker-based studio).
+Alternatively, you can use our "curlbash" installer, specifying the
+`staging` channel as an argument:
+
+``` sh
+curl
+https://raw.githubusercontent.com/habitat-sh/habitat/master/components/hab/install.sh
+| sudo bash -s -- -c staging`
+```
+
+There may be special behavior related to this release that you will want to validate but at the very least, do the following basic tests.
+
+You need to set `HAB_INTERNAL_BLDR_CHANNEL` and `CI_OVERRIDE_CHANNEL`
+to the value `staging` (you _may_ also need to set `HAB_STUDIO_SECRET_HAB_INTERNAL_BLDR_CHANNEL` and `HAB_STUDIO_SECRET_CI_OVERRIDE_CHANNEL` for non-Docker-based studio).
 
 NOTE: If you are running `sudo hab studio enter` with all the required environmental variables set, but it's still telling you that it cannot find the package in stable, try `sudo -E hab studio enter`.
 
@@ -84,10 +49,11 @@ Then you can actually exercise the software as follows:
 
 1. It pulls down the correct studio image
 1. That studio's `hab` is at the correct version (`hab --version`)
-1. A `sup-log` shows a running supervisor (if `sup-log` does not show a supervisor running, run `hab install core/hab-sup --channel release_channel` then `hab sup run`)
+1. A `sup-log` shows a running supervisor (if `sup-log` does not show
+   a supervisor running, run `hab install core/hab-sup --channel=staging` then `hab sup run`)
 1. Verify that the supervisor is the correct version (`hab sup --version`)
 
-When testing the linux studio, you will need to `export CI_OVERRIDE_CHANNEL` to the rc channel of the release. So if you are releasing 0.75.2, the channel would be `rc-0.75.2`.
+When testing the Linux studio, you will also need to `export CI_OVERRIDE_CHANNEL=staging`.
 
 ### Validating x86_64-linux-kernel2
 
@@ -97,74 +63,33 @@ The Vagrantfile is configured to grab the [core-plans](https://github.com/habita
 
 As an example, immediately after provisioning you can SSH into the machine and run `HAB_ORIGIN=<my_origin> hab pkg build core-plans/redis`.
 
-### Addressing issues with a Release
+## Promote from Staging to Current
 
-If you find issues when validating the release binaries that must be fixed before promoting the release, you will need to fix those issues and then have Buildkite rerun the deployment. After you merge the necessary PRs to fix the release issues:
+If all your manual validation works out, you should promote the
+release candidate from the `staging` channel to the `current`
+channel. Once again, we use the Slack command:
 
 ```
-     $ make re-tag-release
+/expeditor promote habitat staging
 ```
+This will result in the Supervisors in our Production Builder updating
+themselves to the release candidate.
+
+## Promote from Current to Stable
+
+Once you're satisfied with the new Supervisors in Production, you can
+finish the release process by promoting from the `current` channel to
+the `stable` channel.
+
+```
+/expeditor promote habitat current
+```
+This places all the release candidates into the `stable` channel,
+making them "officially" available to the world, and thus "released".
+
 
 # Post-Release Tasks
 The Buildkite release is fairly-well automated at this point, but once it is complete, there are still a few remaining manual tasks to perform. In time, these will be automated as well.
-
-## Update Builder Bootstrap Bundle
-
-Once the Buildkite linux deployment has completed, we generate a release bundle of all Habitat and Builder components which are uploaded to an S3 bucket which we read from when we bootstrap new nodes. This bundle is useful if you are bootstrapping in an environment which doesn't have access to Builder or there simply isn't a Builder instance in existence (ah, those were the days).
-
-NOTE: Do this step from either a Linux VM or in a studio.
-
-1. Configure your AWS credentials in your environment.
-
-In general, this means ensuring that `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are present in your environment.
-
-_However_, if you are using [okta_aws](https://github.com/chef/okta_aws) (and if you're working at Chef, you should be!), things are a little bit different.
-
-In this case, you will need to run the following:
-
-```sh
-okta_aws habitat
-export AWS_DEFAULT_PROFILE=habitat
-```
-
-This ensures that the script can access your appropriate Okta-mediated credentials.
-
-1. Execute the script that currently lives in the [builder](https://github.com/habitat-sh/builder) repository:
-
-    ```
-    $ cd /path/to/builder-repo
-    $ sudo terraform/scripts/create_bootstrap_bundle.sh <HABITAT_VERSION>
-    ```
-
-## Update Homebrew Tap
-
-This should be automatically handled by Buildkite. You can find manual instructions in [a previous version of this file](https://github.com/habitat-sh/habitat/blob/267d31f03a00dfa3b1b8e0ba00c20efa4913a7a8/RELEASE.md).
-
-Validate the update by running `brew upgrade hab` on Mac OS X and checking the version is correct.
-
-## Push Chocolatey package
-
-Until Buildkite integrates the Chocolatey package creation and upload, we need to run `support/ci/choco_push.ps1` from a Windows machine that has the `choco` cli installed.
-
-The `choco` cli can be installed via:
-```
-Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-```
-
-Now run:
-```
-.\support\ci\choco_push.ps1 -Version [VERSION] -Release [RELEASE] -ApiKey [CHOCO_API_KEY] -Checksum [BINTRAY_PUBLISHED_CHECKSUM]
-```
-
-`CHOCO_API_KEY` can be retrieved from 1password. `BINTRAY_PUBLISHED_CHECKSUM` should be the checksum in `windows.zip.sha256sum` file uploaded to bintray.
-
-
-## Publish Release
-
-Create release in [GitHub](https://github.com/habitat-sh/habitat/releases)
-
-On the GitHub releases page, there should already be a tag for the release (pushed up previously).
-Draft a new Release, specify the tag, and title it with the same (eg, 0.18.0). Then hit Publish Release.
 
 ## Verify the Acceptance environment is using the new hab-backline
 
@@ -195,37 +120,26 @@ previous step to see if there were any errors during the deploy process.
 
 We currently use Expeditor (an internal tool) to _partially_ manage our changelog. It adds items to `CHANGELOG.md` for every PR that is merged, based on certain labels that are attached to the PR. This is all well and good.
 
-However, due to our versioning scheme (specifically, the use of the `-dev` suffix), we can't yet take advantage of Expeditor's built-in version bumping capabilities. This will change soon, but in the meantime, this means that we must manually add the release header to the changelog and do some re-arranging of additional headers.
+However, due to how our pipeline is structured, we can't really use
+Expeditor's built-in changelog rollup functionaltiy.
 
-In a nutshell, the top of the `CHANGELOG.md` file should be modified to look something like this:
+(The rollup is something Expeditor does at the current head of master;
+when we release, we are almost always going to be dealing with
+artifacts that trail the current head of master by one or more
+commits. If we were to use Expeditor, we would either be doing a
+rollup for a "release" that hadn't been fully validated yet (and might
+indeed never be formally released), or doing a rollup for a "release"
+that claims to include features that were only merged after the
+validated release candidates were built!)
 
-```
-# Habitat CHANGELOG
-
-<!-- latest_release unreleased -->
-
-## Unreleased
-
-// Any merges after the release tag should be in this section
-
-<!-- latest_release -->
-
-## [<JUST_RELEASED_VERSION>](https://github.com/habitat-sh/habitat/tree/<JUST_RELEASED_VERSION>) (YYYY-MM-DD)
-[Full Changelog](https://github.com/habitat-sh/habitat/compare/LAST_VERSION...<JUST_RELEASED_VERSION>)
-```
-
-These are the only places in the file that the `latest_release unreleased` and `latest_release` comment lines should be.
-
-For additional background, please consult [Expeditor's CHANGELOG documentation](https://expeditor.chef.io/docs/reference/changelog/).
-
-# Drink. It. In.
-
-## Bump Version
-
-1. Update the version number found in the `VERSION` file to the next target release and append the `-dev` suffix to that number
-1. Issue a PR and merge it yourself
-
-> Example: If the release version was `0.9.0` then the contents of `VERSION` might read `0.10.0-dev` if your next target is `0.10.0`.
+All this means that we must manually manage the rollup headers to
+match the contents of the release candidate. In practice, this should
+amount to moving around a few of Expeditor's HTML comments, and
+creating a new header for the just-released version. Take a look at
+the contents of the `CHANGELOG.md` file for the pattern. You should
+also consult [Expeditor's CHANGELOG
+documentation](https://expeditor.chef.io/docs/reference/changelog/)
+for additional details.
 
 ## Update the Acceptance environment with the new hab-backline
 
@@ -288,31 +202,6 @@ Wait for a few minutes so that supervisors on all the workers can update to the 
 1. Open a PR for the `Cargo.lock` updates and any accompanying fixes which are necessary.
 1. Repeat with the [builder](https://github.com/habitat-sh/builder) repo (omit the `habitat-launcher` build).
 
-# Update rustfmt
-1. Using https://rust-lang.github.io/rustup-components-history/, find the most recent date that all the Tier1 platforms have a present `rustfmt`. For example: `nightly-2019-03-04`.
-1. Update `RUSTFMT_VERSION` in the root of the habitat repo.
-1. Locally install the nightly toolchain and update the formatting. For example:
-    ```
-    rustup toolchain install $(cat RUSTFMT_VERSION)
-    rustup component add --toolchain $(cat RUSTFMT_VERSION) rustfmt
-    cargo +$(cat RUSTFMT_VERSION) fmt
-    ```
-1. Open a PR and merge the toolchain update as well as any formatting changes.
-1. Repeat with the `builder` repo.
-
-# Update nightly Rust
-
-Some of our tests use nightly features of Rust, and we need to manage
-the version being used. This is declared in the `RUST_NIGHTLY_VERSION`
-file (similar to how we manage `rustfmt` above). Ideally, this would
-change when we update the `rustfmt` version, and to the _same_
-version, but there are occasionally bugs in nightly Rust that require
-us to lock to an earlier version.
-
-To update the nightly version of Rust used in our tests, just edit the
-`RUST_NIGHTLY_VERSION` file appropriately. If the tests pass in CI, it
-was successful.
-
 # Release postmortem
 
 If there were any problems with the release process that may benefit from changes to code
@@ -325,36 +214,6 @@ or speaking in counter-factuals (🙆: "I did…/I thought…", 🙅‍♂️: "
 1. Agree on, assign and prioritize remediation items to ensure continuous improvement of our release process and codebase more generally
 
 If the release truly had no problems at all, add a "Yay!" to [the retro board](https://trello.com/b/H3ysuKy9/habitat-retro) and celebrate our success as a team.
-
-# Running a "Fake" Release
-
-Whenever you make a change to code that affects the release (i.e., the
-definitions of the Buildkite pipeline itself, code for the Studio or
-`hab-plan-build`, etc.), you should try to run a "fake" release, to
-ensure that nothing broke. It's much nicer to discover this before the
-code merges, than in the middle of a real release, after all.
-
-A fake release can be run at any time, and from any branch (including
-`master`), whether they are attached to pull requests or not. You will
-need to have access to the Buildkite release pipeline, however, so
-this is limited to core Habitat team members.
-
-1. Go to the [release
-   pipeline](https://buildkite.com/chef/habitat-sh-habitat-master-release-habitat) page on Buildkite.
-1. Click the "New Build" button, which presents you with a form to fill in.
-1. Set the "Message" field to something that helps identify what this run is for (e.g., "Testing pipeline change to add more foo to the baz")
-1. Ensure that the "Commit" field has the value `HEAD`
-1. Set the "Branch" field to the name of the branch you want to test.
-1. Press the "Create Build Button".
-
-In a moment, you should see a new run of the release pipeline
-start. This run is as close to the real release process as
-possible. It will run through all build steps and logic, but will not
-actually push artifacts to the real release channels.
-
-Also note that there is no additional automation around this
-currently. If you want to initiate a fake release, you must take that
-action yourself.
 
 # "Yanking" a Release
 
@@ -393,18 +252,22 @@ a release:
    This includes not only the `hab` CLI and Supervisor-related
    binaries, but _everything_, including Studio and exporters, and for
    all supported platforms. The list of specific package releases can
-   be found at the top of the Buildkite page for the specific release
-   pipeline execution that created the failed release.
+   be found in the `manifest.json` file located at
 
-2. Delete the Bintray releases for all supported platforms.
+   ```
+   https://chef-automate-artifacts.s3-us-west-2.amazonaws.com/files/habitat/${VERSION}/manifest.json
+   ```
+2. Put the last-known-good artifacts into the `stable` directory in
+   S3. This amounts to copying the contents of
 
-   - https://bintray.com/habitat/stable/hab-x86_64-linux
-   - https://bintray.com/habitat/stable/hab-x86_64-linux-kernel2
-   - https://bintray.com/habitat/stable/hab-x86_64-windows
-   - https://bintray.com/habitat/stable/hab-x86_64-darwin
+       https://chef-automate-artifacts.s3-us-west-2.amazonaws.com/files/habitat/${LAST_GOOD_VERSION}/
 
-   Select the offending version from the list, and then click `Edit`
-   from that version's page. Press the `Delete Version` button.
+   into
+
+       https://chef-automate-artifacts.s3-us-west-2.amazonaws.com/stable/latest/habitat/
+
+   This makes it so our "curlbash" installer will pull the correct
+   packages.
 
 3. Revert the version's change for the Homebrew tap
 
@@ -476,4 +339,3 @@ a release:
 # Creating a One-Off Release
 
 See the [one-off-release tool](tools/one-off-release/README.md).
-
