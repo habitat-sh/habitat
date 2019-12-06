@@ -288,6 +288,7 @@ latest_release_tag() {
 
 install_hub() {
   # TODO: Create a Hab core plans pkg for this.
+  # see https://github.com/habitat-sh/habitat/issues/7267
   local tag
   tag=$(latest_release_tag github/hub)
   tag_sans_v="${tag//v/}"
