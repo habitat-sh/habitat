@@ -457,35 +457,26 @@ struct SrvState {
 ///
 /// New connections will be authenticated using `secret_key`. Messages from the main thread
 /// will be sent over the channel `mgr_sender`.
-pub fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
-    let tb = thread::Builder::new().name("ctl-gateway".to_string());
-    tb.spawn(move || {
-          let mut rt = Runtime::new().expect("to create tokio Runtime");
-          let state = SrvState { secret_key,
-                                 mgr_sender };
-          let state = Arc::new(Mutex::new(state));
-          let server = async {
-              let mut listner =
-                  TcpListener::bind(&listen_addr).await
-                                                 .expect("Could not bind ctl gateway listen \
-                                                          address!");
-              let mut incoming = listner.incoming();
-              while let Some(tcp_stream) = incoming.next().await {
-                  match tcp_stream {
-                      Ok(tcp_stream) => {
-                          let addr = tcp_stream.peer_addr().expect("Couldn't get peer address!");
-                          let io = SrvCodec::new().framed(tcp_stream);
-                          let client = Client { state: Arc::clone(&state), };
-                          tokio::spawn(async move {
-                              let res = client.serve(io).await;
-                              debug!("DISCONNECTED from {:?} with result {:?}", addr, res);
-                          });
-                      }
-                      Err(e) => error!("SrvHandler failed to connect, err: {}", e),
-                  }
-              }
-          };
-          rt.block_on(server);
-      })
-      .expect("ctl-gateway thread start failure");
+pub async fn run(listen_addr: SocketAddr, secret_key: String, mgr_sender: MgrSender) {
+    let state = SrvState { secret_key,
+                           mgr_sender };
+    let state = Arc::new(Mutex::new(state));
+    let mut listner =
+        TcpListener::bind(&listen_addr).await
+                                       .expect("Could not bind ctl gateway listen address!");
+    let mut incoming = listner.incoming();
+    while let Some(tcp_stream) = incoming.next().await {
+        match tcp_stream {
+            Ok(tcp_stream) => {
+                let addr = tcp_stream.peer_addr().expect("Couldn't get peer address!");
+                let io = SrvCodec::new().framed(tcp_stream);
+                let client = Client { state: Arc::clone(&state), };
+                tokio::spawn(async move {
+                    let res = client.serve(io).await;
+                    debug!("DISCONNECTED from {:?} with result {:?}", addr, res);
+                });
+            }
+            Err(e) => error!("SrvHandler failed to connect, err: {}", e),
+        }
+    }
 }

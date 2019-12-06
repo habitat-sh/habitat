@@ -933,7 +933,8 @@ impl Manager {
         let ctl_listen_addr = self.sys.ctl_listen();
         let ctl_secret_key = ctl_gateway::readgen_secret_key(&self.fs_cfg.sup_root)?;
         outputln!("Starting ctl-gateway on {}", &ctl_listen_addr);
-        ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, mgr_sender);
+        self.runtime
+            .spawn(ctl_gateway::server::run(ctl_listen_addr, ctl_secret_key, mgr_sender));
         debug!("ctl-gateway started");
 
         if self.http_disable {
