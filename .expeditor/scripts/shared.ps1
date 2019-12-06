@@ -85,11 +85,11 @@ function Install-Rustup($Toolchain) {
       $RetryCount = 0
       while( $RetryCount -lt 5 ) {
         try { 
-          Invoke-RestMethod -UseBasicParsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' `
-                            -OutFile 'rustup-init.exe'
-
-        } catch {
           $RetryCount += 1
+          Invoke-RestMethod -UseBasicParsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' `
+                            -OutFile 'rustup-init.exe' 
+          break
+        } catch {
           Write-Host "--- (Tries: $RetryCount) Unable to install rustup"
           # Dig into the exception to get the Response details.
           Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
