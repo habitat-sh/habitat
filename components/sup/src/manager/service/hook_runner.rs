@@ -51,7 +51,7 @@ impl<H> HookRunner<H> where H: Hook + Sync + 'static
                      passwd }
     }
 
-    pub async fn retryable_future(self) -> () {
+    pub async fn retryable_future(self) {
         loop {
             match self.clone().into_future().await {
                 Ok((maybe_exit_value, _duration)) => {

@@ -325,7 +325,8 @@ impl EventStream {
 mod tests {
     use super::*;
     use crate::prost::Message;
-    use futures::sync::mpsc as futures_mpsc;
+    use futures::{channel::mpsc as futures_mpsc,
+                  stream::StreamExt};
     #[cfg(windows)]
     use habitat_core::os::process::windows_child::ExitStatus;
     use habitat_core::service::HealthCheckInterval;
@@ -333,9 +334,9 @@ mod tests {
     use std::{os::unix::process::ExitStatusExt,
               process::ExitStatus};
 
-    #[test]
+    #[tokio::test]
     #[cfg(any(unix, windows))]
-    fn health_check_event() {
+    async fn health_check_event() {
         let (tx, rx) = futures_mpsc::channel(4);
         let event_stream = EventStream { sender: tx,
                                          handle: None, };
@@ -379,9 +380,9 @@ mod tests {
                      HealthCheckResult::Unknown,
                      HealthCheckHookStatus::Ran(process_output, Duration::from_secs(15)),
                      HealthCheckInterval::default());
-        let events = rx.take(4).collect().wait().unwrap();
+        let events = rx.take(4).collect::<Vec<_>>().await;
 
-        let event = HealthCheckEvent::decode(&events[0].payload).unwrap();
+        let event = HealthCheckEvent::decode(events[0].payload.as_slice()).unwrap();
         assert_eq!(event.result, 0);
         assert_eq!(event.execution, None);
         assert_eq!(event.exit_status, None);
@@ -394,14 +395,14 @@ mod tests {
 
         assert_eq!(event.interval, prost_interval_option);
 
-        let event = HealthCheckEvent::decode(&events[1].payload).unwrap();
+        let event = HealthCheckEvent::decode(events[1].payload.as_slice()).unwrap();
         assert_eq!(event.result, 1);
         assert_eq!(event.execution.unwrap().seconds, 5);
         assert_eq!(event.exit_status, None);
         assert_eq!(event.stdout, None);
         assert_eq!(event.stderr, None);
 
-        let event = HealthCheckEvent::decode(&events[2].payload).unwrap();
+        let event = HealthCheckEvent::decode(events[2].payload.as_slice()).unwrap();
         assert_eq!(event.result, 2);
         assert_eq!(event.execution.unwrap().seconds, 10);
         #[cfg(windows)]
@@ -412,7 +413,7 @@ mod tests {
         assert_eq!(event.stdout, Some(String::from("stdout")));
         assert_eq!(event.stderr, Some(String::from("stderr")));
 
-        let event = HealthCheckEvent::decode(&events[3].payload).unwrap();
+        let event = HealthCheckEvent::decode(events[3].payload.as_slice()).unwrap();
         assert_eq!(event.result, 3);
         assert_eq!(event.execution.unwrap().seconds, 15);
         #[cfg(windows)]

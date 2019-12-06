@@ -121,6 +121,7 @@ async fn main() {
     }
 }
 
+#[allow(clippy::cognitive_complexity)]
 async fn start(ui: &mut UI, feature_flags: FeatureFlag) -> Result<()> {
     if std::env::args().skip(1).collect::<Vec<_>>() == vec!["license", "accept"] {
         license::accept_license(ui)?;
@@ -1069,10 +1070,10 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
                     Some(ErrCode::InvalidPayload) => {
                         ui.warn(m)?;
                     }
-                    _ => Err(SrvClientError::from(m))?,
+                    _ => return Err(SrvClientError::from(m).into()),
                 }
             }
-            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
         }
     }
     ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
@@ -1087,9 +1088,9 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
             "NetErr" => {
                 let m = reply.parse::<sup_proto::net::NetErr>()
                              .map_err(SrvClientError::Decode)?;
-                Err(SrvClientError::from(m))?;
+                return Err(SrvClientError::from(m).into());
             }
-            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
         }
     }
     ui.end("Applied configuration")?;
@@ -1115,9 +1116,9 @@ async fn sub_svc_config(m: &ArgMatches<'_>) -> Result<()> {
             "NetErr" => {
                 let m = reply.parse::<sup_proto::net::NetErr>()
                              .map_err(SrvClientError::Decode)?;
-                Err(SrvClientError::from(m))?;
+                return Err(SrvClientError::from(m).into());
             }
-            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
         }
     }
     Ok(())
@@ -1191,7 +1192,7 @@ async fn sub_svc_status(m: &ArgMatches<'_>) -> Result<()> {
         let reply = message_result?;
         print_svc_status(&mut out, &reply, true)?;
     } else {
-        Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?;
+        return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into());
     }
     while let Some(message_result) = response.recv().await {
         let reply = message_result?;
@@ -1278,10 +1279,10 @@ async fn sub_file_put(m: &ArgMatches<'_>) -> Result<()> {
                     Some(ErrCode::InvalidPayload) => {
                         ui.warn(m)?;
                     }
-                    _ => Err(SrvClientError::from(m))?,
+                    _ => return Err(SrvClientError::from(m).into()),
                 }
             }
-            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
         }
     }
     ui.end("Uploaded file")?;
@@ -1313,9 +1314,9 @@ async fn sub_sup_depart(m: &ArgMatches<'_>) -> Result<()> {
             "NetErr" => {
                 let m = reply.parse::<sup_proto::net::NetErr>()
                              .map_err(SrvClientError::Decode)?;
-                Err(SrvClientError::from(m))?;
+                return Err(SrvClientError::from(m).into());
             }
-            _ => Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)))?,
+            _ => return Err(SrvClientError::from(io::Error::from(io::ErrorKind::UnexpectedEof)).into()),
         }
     }
     ui.end("Departure recorded.")?;
@@ -1840,7 +1841,7 @@ async fn supervisor_services() -> Result<Vec<PackageIdent>> {
             "NetErr" => {
                 let err = reply.parse::<sup_proto::net::NetErr>()
                                .map_err(SrvClientError::Decode)?;
-                Err(SrvClientError::from(err))?;
+                return Err(SrvClientError::from(err).into());
             }
             _ => {
                 warn!("Unexpected status message, {:?}", reply);

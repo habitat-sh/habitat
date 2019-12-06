@@ -172,7 +172,7 @@ impl Client {
                              .to_string();
         let message = socket.next()
                             .await
-                            .ok_or(io::Error::from(io::ErrorKind::UnexpectedEof))??;
+                            .ok_or_else(|| io::Error::from(io::ErrorKind::UnexpectedEof))??;
         let success = if message.message_id() != "Handshake" {
             debug!("No handshake");
             return Err(HandlerError::from(io::Error::from(io::ErrorKind::ConnectionAborted)));

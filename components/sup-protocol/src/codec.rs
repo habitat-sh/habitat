@@ -203,15 +203,6 @@ impl SrvMessage {
         }
     }
 
-    /// Returns true if the message is a response to a transactional request and false otherwise.
-    #[cfg(test)]
-    fn is_response(&self) -> bool {
-        match self.transaction {
-            Some(txn) => txn.is_response(),
-            None => false,
-        }
-    }
-
     /// Returns true if the message is transactional.
     pub fn is_transaction(&self) -> bool { self.transaction.is_some() }
 
