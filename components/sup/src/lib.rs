@@ -64,7 +64,6 @@ pub mod event;
 pub mod http_gateway;
 pub mod logger; // must be pub if used in the `hab-sup` binary
 pub mod manager;
-mod sup_futures;
 mod sys;
 #[cfg(test)]
 pub mod test_helpers;

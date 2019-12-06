@@ -1,5 +1,5 @@
 use crate::event;
-use futures::sync::oneshot;
+use futures::channel::oneshot;
 use glob;
 use habitat_api_client;
 use habitat_butterfly;

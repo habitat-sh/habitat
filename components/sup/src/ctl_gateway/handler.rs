@@ -5,9 +5,10 @@ use crate::{ctl_gateway::server::CtlCommand,
             manager::{action::ActionSender,
                       ManagerState}};
 use futures::{future::Future,
-              Async,
-              Poll};
-use std::sync::Arc;
+              task::{Context,
+                     Poll}};
+use std::{pin::Pin,
+          sync::Arc};
 
 pub struct CtlHandler {
     /// The command to execute
@@ -31,10 +32,9 @@ impl CtlHandler {
 }
 
 impl Future for CtlHandler {
-    type Error = ();
-    type Item = ();
+    type Output = ();
 
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
+    fn poll(self: Pin<&mut Self>, _cx: &mut Context) -> Poll<Self::Output> {
         // Execute the given command.
         //
         // TODO (CM): survey the existing commands for things that may
@@ -42,15 +42,16 @@ impl Future for CtlHandler {
         // `poll` should execute pretty quickly to avoid monopolizing
         // the reactor (long-running tasks should spawn their own
         // threads to do the main work).
-        if let Err(err) = self.cmd.run(&self.state, self.action_sender.clone()) {
+        let inner = self.get_mut();
+        if let Err(err) = inner.cmd.run(&inner.state, inner.action_sender.clone()) {
             debug!("CtlHandler failed, {:?}", err);
-            if self.cmd.req.transactional() {
-                self.cmd.req.reply_complete(err);
+            if inner.cmd.req.transactional() {
+                inner.cmd.req.reply_complete(err);
             }
         }
 
         // Regardless of whether the command was successful or not,
         // the future is now done.
-        Ok(Async::Ready(()))
+        Poll::Ready(())
     }
 }

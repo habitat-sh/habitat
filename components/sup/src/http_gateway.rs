@@ -15,9 +15,9 @@ use actix_web::{dev::{Body,
                 HttpResponse,
                 HttpServer,
                 Scope};
-use futures::future::{ok,
-                      Either,
-                      Future};
+use futures01::future::{ok,
+                        Either,
+                        Future};
 use habitat_common::{self,
                      templating::hooks,
                      types::HttpListenAddr,

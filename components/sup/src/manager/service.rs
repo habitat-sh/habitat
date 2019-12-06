@@ -14,7 +14,6 @@ mod hook_runner;
 mod hooks;
 #[cfg(windows)]
 mod pipe_hook_client;
-mod spawned_future;
 pub mod spec;
 mod supervisor;
 mod terminator;
@@ -41,11 +40,10 @@ use crate::{census::{CensusGroup,
                       FsCfg,
                       ServicePidSource,
                       ShutdownConfig,
-                      Sys},
-            sup_futures};
-use futures::{future,
-              Future,
-              IntoFuture};
+                      Sys}};
+use futures::future::{self,
+                      AbortHandle,
+                      FutureExt};
 use habitat_butterfly::rumor::service::Service as ServiceRumor;
 #[cfg(windows)]
 use habitat_common::templating::package::DEFAULT_USER;
@@ -94,7 +92,7 @@ use std::{self,
           sync::{Arc,
                  Mutex}};
 use time::Timespec;
-use tokio::runtime::TaskExecutor;
+use tokio::runtime::Handle;
 
 static LOGKEY: &str = "SR";
 
@@ -245,9 +243,9 @@ pub struct Service {
     /// A "handle" to the never-ending future that periodically runs
     /// health checks on this service. This is the means by which we
     /// can stop that future.
-    health_check_handle: Option<sup_futures::FutureHandle>,
-    post_run_handle: Option<sup_futures::FutureHandle>,
-    initialize_handle: Option<sup_futures::FutureHandle>,
+    health_check_handle: Option<AbortHandle>,
+    post_run_handle: Option<AbortHandle>,
+    initialize_handle: Option<AbortHandle>,
 }
 
 impl Service {
@@ -375,7 +373,7 @@ impl Service {
         Ok(())
     }
 
-    fn start(&mut self, launcher: &LauncherCli, executor: &TaskExecutor) {
+    fn start(&mut self, launcher: &LauncherCli, executor: &Handle) {
         debug!("Starting service {}", self.pkg.ident);
         let result = self.supervisor
                          .lock()
@@ -415,25 +413,17 @@ impl Service {
 
     /// Initiate an endless future that performs periodic health
     /// checks for the service
-    fn start_health_checks(&mut self, executor: &TaskExecutor) {
+    fn start_health_checks(&mut self, executor: &Handle) {
         debug!("Starting health checks for {}", self.pkg.ident);
         self.health_state().init_gateway_state_gsw();
-        let (handle, f) =
-            sup_futures::cancelable_future(self.health_state().check_repeatedly_gsw());
+        let (f, handle) = future::abortable(self.health_state().check_repeatedly_gsw());
 
         self.health_check_handle = Some(handle);
 
-        let service_group_copy = self.service_group.clone();
-        executor.spawn(f.map_err(move |err| {
-                                                   if err.is_some() {
-                                                       warn!("Health checking for {} \
-                                                              unexpectedly errored!",
-                                                             service_group_copy);
-                                                   } else {
-                                                       outputln!(preamble service_group_copy,
-                                                                 "Health checking has been stopped");
-                                                   }
-                                               }));
+        let service_group = self.service_group.clone();
+        executor.spawn(f.map(move |_| {
+                            outputln!(preamble service_group, "Health checking has been stopped");
+                        }));
     }
 
     /// Stop the endless future that performs health checks for the
@@ -441,7 +431,7 @@ impl Service {
     fn stop_health_checks(&mut self) {
         if let Some(h) = self.health_check_handle.take() {
             debug!("Stopping health checks for {}", self.pkg.ident);
-            h.terminate();
+            h.abort();
         }
     }
 
@@ -450,7 +440,7 @@ impl Service {
     ///
     /// This is mainly good for "resetting" the checks, and will
     /// initiate a new health check immediately.
-    fn restart_health_checks(&mut self, executor: &TaskExecutor) {
+    fn restart_health_checks(&mut self, executor: &Handle) {
         debug!("Restarting health checks for {}", self.pkg.ident);
         self.stop_health_checks();
         self.start_health_checks(executor);
@@ -461,7 +451,7 @@ impl Service {
     /// processes, futures, etc.
     ///
     /// This should generally be the opposite of `Service::detach`.
-    fn reattach(&mut self, executor: &TaskExecutor) {
+    fn reattach(&mut self, executor: &Handle) {
         outputln!("Reattaching to {}", self.service_group);
         *self.initialization_state.write() = InitializationState::Initialized;
         self.restart_health_checks(executor);
@@ -492,35 +482,24 @@ impl Service {
     /// necessary cleanup, and run its post-stop hook, if any.
     /// # Locking for the returned Future (see locking.md)
     /// * `GatewayState::inner` (write)
-    pub fn stop_gsw(&mut self,
-                    shutdown_config: ShutdownConfig)
-                    -> impl Future<Item = (), Error = Error> {
+    pub async fn stop_gsw(&mut self, shutdown_config: ShutdownConfig) {
         debug!("Stopping service {}", self.pkg.ident);
         self.detach();
 
         let service_group = self.service_group.clone();
         let gs = Arc::clone(&self.gateway_state);
 
-        let f = self.supervisor
-                    .lock()
-                    .expect("Couldn't lock supervisor")
-                    .stop(shutdown_config)
-                    .and_then(move |_| {
-                        gs.lock_gsw().remove(&service_group);
-                        Ok(())
-                    });
+        self.supervisor
+            .lock()
+            .expect("Couldn't lock supervisor")
+            .stop(shutdown_config);
+        gs.lock_gsw().remove(&service_group);
 
-        // eww
-        let service_group_2 = self.service_group.clone();
-        match self.post_stop() {
-            None => future::Either::A(f),
-            Some(hook) => {
-                future::Either::B(f.and_then(|_| hook.into_future().map(|_exitvalue| ())))
+        if let Some(hook) = self.post_stop() {
+            if let Err(e) = hook.into_future().await {
+                outputln!(preamble service_group, "Service stop failed: {}", e);
             }
-        }.map_err(move |e| {
-             outputln!(preamble service_group_2, "Service stop failed: {}", e);
-             e
-         })
+        }
     }
 
     pub fn last_state_change(&self) -> Timespec {
@@ -536,7 +515,7 @@ impl Service {
     pub fn tick(&mut self,
                 census_ring: &CensusRing,
                 launcher: &LauncherCli,
-                executor: &TaskExecutor)
+                executor: &Handle)
                 -> bool {
         // We may need to block the service from starting until all
         // its binds are satisfied
@@ -850,7 +829,7 @@ impl Service {
     }
 
     /// Run initialization hook if present.
-    fn initialize(&mut self, executor: &TaskExecutor) {
+    fn initialize(&mut self, executor: &Handle) {
         outputln!(preamble self.service_group, "Initializing");
         *self.initialization_state.write() = InitializationState::Initializing;
         if let Some(ref hook) = self.hooks.init {
@@ -862,19 +841,23 @@ impl Service {
             let service_group = self.service_group.clone();
             let initialization_state = Arc::clone(&self.initialization_state);
             let initialization_state_for_err = Arc::clone(&self.initialization_state);
-            let f = hook_runner.into_future().map(move |(maybe_exit_value, _)| {
-                *initialization_state.write() = if maybe_exit_value.unwrap_or(false) {
-                    InitializationState::InitializerFinished
-                } else {
-                    InitializationState::Uninitialized
-                };
-            }).map_err(move |e| {
-                outputln!(preamble service_group, "Service initialization failed: {}", e);
-                *initialization_state_for_err.write() = InitializationState::Uninitialized;
-            });
-            let (handle, f) = sup_futures::cancelable_future(f);
+            let f = async move {
+                match hook_runner.into_future().await {
+                    Ok((maybe_exit_value, _)) => {
+                        *initialization_state.write() = if maybe_exit_value.unwrap_or(false) {
+                            InitializationState::InitializerFinished
+                        } else {
+                            InitializationState::Uninitialized
+                        };
+                    }
+                    Err(e) => {
+                        outputln!(preamble service_group, "Service initialization failed: {}", e);
+                        *initialization_state_for_err.write() = InitializationState::Uninitialized;
+                    }
+                }
+            };
+            let (f, handle) = future::abortable(f);
             self.initialize_handle = Some(handle);
-            let f = f.map_err(|_| ());
             executor.spawn(f);
         } else {
             *self.initialization_state.write() = InitializationState::InitializerFinished;
@@ -883,12 +866,12 @@ impl Service {
 
     fn stop_initialize(&mut self) {
         if let Some(h) = self.initialize_handle.take() {
-            h.terminate();
+            h.abort();
         }
     }
 
     /// Run reconfigure hook if present.
-    fn reconfigure(&mut self, executor: &TaskExecutor) {
+    fn reconfigure(&mut self, executor: &Handle) {
         let _timer = hook_timer("reconfigure");
 
         if let Some(ref hook) = self.hooks.reload {
@@ -910,13 +893,14 @@ impl Service {
         }
     }
 
-    fn post_run(&mut self, executor: &TaskExecutor) {
+    fn post_run(&mut self, executor: &Handle) {
         if let Some(ref hook) = self.hooks.post_run {
             let hook_runner = HookRunner::new(Arc::clone(&hook),
                                               self.service_group.clone(),
                                               self.pkg.clone(),
                                               self.svc_encrypted_password.clone());
-            let (handle, f) = hook_runner.retryable_future();
+            let f = HookRunner::retryable_future(hook_runner);
+            let (f, handle) = future::abortable(f);
             self.post_run_handle = Some(handle);
             executor.spawn(f);
         }
@@ -926,7 +910,7 @@ impl Service {
     /// exit code.
     fn stop_post_run(&mut self) {
         if let Some(h) = self.post_run_handle.take() {
-            h.terminate();
+            h.abort();
         }
     }
 
@@ -1034,7 +1018,7 @@ impl Service {
     /// Returns `true` if the service was marked to be restarted or reconfigured.
     fn execute_hooks(&mut self,
                      launcher: &LauncherCli,
-                     executor: &TaskExecutor,
+                     executor: &Handle,
                      template_update: &TemplateUpdate)
                      -> bool {
         let up = self.check_process(launcher);

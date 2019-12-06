@@ -5,12 +5,14 @@ use super::handler::CtlHandler;
 use crate::{ctl_gateway::server::MgrReceiver,
             manager::{action::ActionSender,
                       ManagerState}};
-use futures::{future::Future,
-              sync::oneshot,
-              Async,
-              Poll,
-              Stream};
-use std::sync::Arc;
+use futures::{channel::oneshot,
+              future::FutureExt,
+              stream::{Stream,
+                       StreamExt},
+              task::{Context,
+                     Poll}};
+use std::{pin::Pin,
+          sync::Arc};
 
 pub struct CtlAcceptor {
     /// Communication channel from the control gateway server. User
@@ -45,32 +47,26 @@ impl CtlAcceptor {
 }
 
 impl Stream for CtlAcceptor {
-    type Error = ();
     type Item = CtlHandler;
 
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.shutdown_trigger.poll() {
-            Ok(Async::Ready(())) => {
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
+        match self.shutdown_trigger.poll_unpin(cx) {
+            Poll::Ready(Ok(())) => {
                 info!("Signal received; stopping CtlAcceptor");
-                Ok(Async::Ready(None))
+                Poll::Ready(None)
             }
-            Err(e) => {
+            Poll::Ready(Err(e)) => {
                 error!("Error polling CtlAcceptor shutdown trigger: {}", e);
-                Ok(Async::Ready(None))
+                Poll::Ready(None)
             }
-            Ok(Async::NotReady) => {
-                match self.mgr_receiver.poll() {
-                    Ok(Async::Ready(Some(cmd))) => {
+            Poll::Pending => {
+                match futures::ready!(self.mgr_receiver.poll_next_unpin(cx)) {
+                    Some(cmd) => {
                         let task =
                             CtlHandler::new(cmd, self.state.clone(), self.action_sender.clone());
-                        Ok(Async::Ready(Some(task)))
+                        Poll::Ready(Some(task))
                     }
-                    Ok(Async::Ready(None)) => Ok(Async::Ready(None)),
-                    Ok(Async::NotReady) => Ok(Async::NotReady),
-                    Err(e) => {
-                        debug!("CtlAcceptor error, {:?}", e);
-                        Err(())
-                    }
+                    None => Poll::Ready(None),
                 }
             }
         }

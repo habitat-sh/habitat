@@ -1,12 +1,11 @@
-use super::spawned_future::SpawnedFuture;
 use crate::{manager::ShutdownConfig,
             sys::{service,
                   ShutdownMethod}};
-use futures::sync::oneshot;
 use habitat_common::outputln;
 use habitat_core::{os::process::Pid,
                    service::ServiceGroup};
-use std::thread;
+use tokio::task::{self,
+                  JoinError};
 
 static LOGKEY: &str = "ST"; // "Service Terminator"
 
@@ -14,24 +13,14 @@ static LOGKEY: &str = "ST"; // "Service Terminator"
 ///
 /// This is performed in a separate thread in order to prevent
 /// blocking the rest of the Supervisor.
-pub fn terminate_service(pid: Pid,
-                         service_group: ServiceGroup,
-                         shutdown_config: ShutdownConfig)
-                         -> SpawnedFuture<ShutdownMethod> {
-    let (tx, rx) = oneshot::channel();
-
-    let handle_result = thread::Builder::new()
-        .name(format!("{}-{}", LOGKEY, pid))
-        .spawn(move || {
-            outputln!(preamble service_group, "Terminating service (PID: {})", pid);
-            let shutdown = service::kill(pid, &shutdown_config);
-            outputln!(preamble service_group, "{} (PID: {})", shutdown, pid);
-            tx.send(shutdown)
-                .expect("Couldn't send oneshot signal from terminate_service: receiver went away");
-        });
-
-    match handle_result {
-        Ok(_handle) => rx.into(),
-        Err(io_err) => io_err.into(),
-    }
+pub async fn terminate_service(pid: Pid,
+                               service_group: ServiceGroup,
+                               shutdown_config: ShutdownConfig)
+                               -> Result<ShutdownMethod, JoinError> {
+    task::spawn_blocking(move || {
+        outputln!(preamble service_group, "Terminating service (PID: {})", pid);
+        let shutdown = service::kill(pid, &shutdown_config);
+        outputln!(preamble service_group, "{} (PID: {})", shutdown, pid);
+        shutdown
+    }).await
 }

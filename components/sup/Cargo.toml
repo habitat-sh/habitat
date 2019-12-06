@@ -15,12 +15,14 @@ path = "src/main.rs"
 doc = false
 
 [dependencies]
-bytes = "*"
+bytes = "0.5.0"
 actix-web = { version = "*", default-features = false, features = [ "rust-tls" ] }
 byteorder = "*"
 clap = { version = "*", features = [ "suggestions", "color", "unstable" ] }
 cpu-time = "*"
-futures = "0.1"
+futures = { version = "0.3.1" }
+# futures 0.1 is needed because actix-web has not yet upgraded to futures 0.3
+futures01 = { package = "futures", version = "0.1" }
 glob = "*"
 hab = { path = "../hab" }
 habitat_butterfly = { path = "../butterfly", default-features = false }
@@ -39,9 +41,12 @@ notify = "*"
 num_cpus = "*"
 parking_lot = "*"
 prometheus = "*"
-prost = "*"
-prost-derive = "*"
-prost-types = "0.5.0" # This is current stable, but for some reason gets pulled in as 0.4.0 if we use "*" (2019-03-28)
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost = { git = "https://github.com/dingelish/prost" }
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost-derive = { git = "https://github.com/dingelish/prost" }
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost-types = { git = "https://github.com/dingelish/prost" }
 rand = "*"
 regex = "*"
 rustls = "*"
@@ -55,10 +60,8 @@ tempfile = "*"
 termcolor = "*"
 time = "*"
 toml = { version = "*", default-features = false }
-tokio = "*"
-tokio-core = "*"
-tokio-codec = "*"
-tokio-timer = "*"
+tokio = { version = "0.2", features = ["full"] }
+tokio-util = { version = "0.2", features = ["full"] }
 url = "*"
 valico = "*"
 
@@ -82,7 +85,8 @@ hyper = "*"
 json = "*"
 
 [build-dependencies]
-prost-build = "*"
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost-build = { git = "https://github.com/dingelish/prost" }
 
 [features]
 default = []

@@ -21,8 +21,10 @@ log = "*"
 lazy_static = "*"
 prometheus = "*"
 parking_lot = "*"
-prost = "*"
-prost-derive = "*"
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost = { git = "https://github.com/dingelish/prost" }
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost-derive = { git = "https://github.com/dingelish/prost" }
 rand = "*"
 serde = { version = "*", features = ["rc"] }
 serde_derive = "*"
@@ -40,8 +42,10 @@ mktemp = "*"
 [build-dependencies]
 heck = "*"
 pkg-config = "*"
-prost = "*"
-prost-build = "*"
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost = { git = "https://github.com/dingelish/prost" }
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost-build = { git = "https://github.com/dingelish/prost" }
 tempfile = "*"
 
 [features]

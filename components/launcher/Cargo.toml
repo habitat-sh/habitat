@@ -20,7 +20,8 @@ habitat-launcher-protocol = { path = "../launcher-protocol" }
 ipc-channel = { git = "https://github.com/habitat-sh/ipc-channel", branch = "hbt-windows" }
 libc = "*"
 log = "*"
-prost = "*"
+# Must use fork due to this issue https://github.com/danburkert/prost/issues/242
+prost = { git = "https://github.com/dingelish/prost" }
 semver = "*"
 time = "*"
 

@@ -22,17 +22,17 @@ use self::types::{EventMessage,
                   ServiceStartedEvent,
                   ServiceStoppedEvent,
                   ServiceUpdateStartedEvent};
-use crate::{manager::{service::{HealthCheckHookStatus,
-                                HealthCheckResult,
-                                ProcessOutput,
-                                Service,
-                                StandardStreams},
-                      sys::Sys},
-            sup_futures::FutureHandle};
+use crate::manager::{service::{HealthCheckHookStatus,
+                               HealthCheckResult,
+                               ProcessOutput,
+                               Service,
+                               StandardStreams},
+                     sys::Sys};
 use clap::ArgMatches;
 pub use error::{Error,
                 Result};
-use futures::sync::mpsc::Sender;
+use futures::{channel::mpsc::Sender,
+              future::AbortHandle};
 use habitat_common::types::{AutomateAuthToken,
                             EventStreamConnectMethod,
                             EventStreamMetadata,
@@ -98,7 +98,7 @@ pub fn init_stream(config: EventStreamConfig,
 pub fn stop_stream() {
     if let Some(e) = EVENT_STREAM.try_get::<EventStreamContainer>() {
         if let Some(h) = e.lock().handle.take() {
-            h.terminate();
+            h.abort();
         }
     }
 }
@@ -301,11 +301,11 @@ impl EventPacket {
 /// event stream through this.
 struct EventStream {
     sender: Sender<EventPacket>,
-    handle: Option<FutureHandle>,
+    handle: Option<AbortHandle>,
 }
 
 impl EventStream {
-    fn new(sender: Sender<EventPacket>, handle: FutureHandle) -> Self {
+    fn new(sender: Sender<EventPacket>, handle: AbortHandle) -> Self {
         Self { sender,
                handle: Some(handle) }
     }
@@ -325,9 +325,7 @@ impl EventStream {
 mod tests {
     use super::*;
     use crate::prost::Message;
-    use futures::{future::Future,
-                  stream::Stream,
-                  sync::mpsc as futures_mpsc};
+    use futures::sync::mpsc as futures_mpsc;
     #[cfg(windows)]
     use habitat_core::os::process::windows_child::ExitStatus;
     use habitat_core::service::HealthCheckInterval;

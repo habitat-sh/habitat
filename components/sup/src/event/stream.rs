@@ -1,19 +1,18 @@
-use crate::{event::{Error,
-                    EventPacket,
-                    EventStream,
-                    EventStreamConnectionInfo,
-                    Result},
-            sup_futures};
-use futures::{future::Future,
-              sync::mpsc as futures_mpsc};
+use crate::event::{Error,
+                   EventPacket,
+                   EventStream,
+                   EventStreamConnectionInfo,
+                   Result};
+use futures::{channel::mpsc as futures_mpsc,
+              future,
+              stream::StreamExt};
 use habitat_http_client;
 use nats::{native_tls::TlsConnector,
            Client};
 use std::{thread,
           time::{Duration,
                  Instant}};
-use tokio::{prelude::Stream,
-            runtime::Runtime};
+use tokio::runtime::Runtime;
 
 const NATS_SCHEME: &str = "nats://";
 const EVENT_CHANNEL_SIZE: usize = 1024;
@@ -33,7 +32,7 @@ fn nats_uri(uri: &str, auth_token: &str) -> String {
 pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
                           runtime: &mut Runtime)
                           -> Result<EventStream> {
-    let (event_tx, event_rx) = futures_mpsc::channel(EVENT_CHANNEL_SIZE);
+    let (event_tx, mut event_rx) = futures_mpsc::channel::<EventPacket>(EVENT_CHANNEL_SIZE);
 
     let EventStreamConnectionInfo { name,
                                     verbose,
@@ -80,19 +79,14 @@ pub(super) fn init_stream(conn_info: EventStreamConnectionInfo,
         thread::sleep(Duration::from_secs(1));
     }
 
-    let (handle, event_handler) =
-        sup_futures::cancelable_future(event_rx.for_each(move |packet: EventPacket| {
-                                                   if let Err(e) = client.publish(packet.subject,
-                                                                                  &packet.payload)
-                                                   {
-                                                       error!("Failed to publish event to '{}', \
-                                                               '{}'",
-                                                              packet.subject, e);
-                                                   }
-                                                   Ok(())
-                                               }));
-    // Convert the error type so `spawn` can handle it.
-    let event_handler = event_handler.map_err(|_| ());
+    let event_handler = async move {
+        while let Some(packet) = event_rx.next().await {
+            if let Err(e) = client.publish(packet.subject, &packet.payload) {
+                error!("Failed to publish event to '{}', '{}'", packet.subject, e);
+            }
+        }
+    };
+    let (event_handler, handle) = future::abortable(event_handler);
     runtime.spawn(event_handler);
 
     Ok(EventStream::new(event_tx, handle))

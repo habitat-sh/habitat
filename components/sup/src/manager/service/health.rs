@@ -1,4 +1,5 @@
-use crate::{error::Error,
+use crate::{error::{self,
+                    Error},
             manager::{event::{self,
                               ServiceMetadata as ServiceEventMetadata},
                       service::{hook_runner,
@@ -6,12 +7,6 @@ use crate::{error::Error,
                                 supervisor::Supervisor,
                                 ProcessOutput},
                       sync::GatewayState}};
-use futures::{future::{self,
-                       lazy,
-                       Either,
-                       Future,
-                       Loop},
-              IntoFuture};
 use habitat_common::{outputln,
                      templating::package::Pkg};
 use habitat_core::service::{HealthCheckInterval,
@@ -21,8 +16,8 @@ use std::{convert::TryFrom,
           ops::Deref,
           sync::{Arc,
                  Mutex},
-          time::{Duration,
-                 Instant}};
+          time::Duration};
+use tokio::time;
 
 static LOGKEY: &str = "HK";
 
@@ -155,7 +150,7 @@ impl State {
     /// chained together for an unending stream of health checks.
     /// # Locking for the returned Future (see locking.md)
     /// * `GatewayState::inner` (write)
-    fn single_iteration_gsw(self) -> impl Future<Item = (), Error = ()> {
+    async fn single_iteration_gsw(self) -> error::Result<()> {
         let State { hook,
                     service_group,
                     package,
@@ -168,130 +163,103 @@ impl State {
 
         // Use an Arc to avoid having to have full clones everywhere. :/
         let service_group = Arc::new(service_group);
-        let service_group_ref = Arc::clone(&service_group);
 
-        if let Some(hook) = hook {
-            let hr = hook_runner::HookRunner::new(hook,
-                                                  service_group.deref().clone(),
-                                                  package.clone(),
-                                                  svc_encrypted_password);
-            Either::A(hr.into_future().map(|(output, duration)| {
-                                          if let Some(output) = output {
-                                              HealthCheckHookStatus::Ran(output, duration)
-                                          } else {
-                                              HealthCheckHookStatus::FailedToRun(duration)
-                                          }
-                                      }))
+        let health_check_hook_status = if let Some(hook) = hook {
+            let (output, duration) =
+                hook_runner::HookRunner::new(hook,
+                                             service_group.deref().clone(),
+                                             package.clone(),
+                                             svc_encrypted_password).into_future()
+                                                                    .await?;
+            if let Some(output) = output {
+                HealthCheckHookStatus::Ran(output, duration)
+            } else {
+                HealthCheckHookStatus::FailedToRun(duration)
+            }
         } else {
-            Either::B(lazy(|| Ok(HealthCheckHookStatus::NoHook)))
-        }.map_err(move |e| {
-             error!("Error running health check hook for {}: {:?}",
-                    service_group_ref, e)
-         })
-         .and_then(move |health_check_hook_status| {
-             let health_check_result = match &health_check_hook_status {
-                 HealthCheckHookStatus::Ran(output, _) => {
-                     // The hook ran. Try and convert its exit status to a `HealthCheckResult`.
-                     output.exit_status()
-                           .code()
-                           .and_then(|code| {
-                               let result = HealthCheckResult::try_from(code);
-                               if let Err(e) = &result {
-                                   let pkg_name = &package.name;
-                                   outputln!(preamble pkg_name,
+            HealthCheckHookStatus::NoHook
+        };
+        let health_check_result = match &health_check_hook_status {
+            HealthCheckHookStatus::Ran(output, _) => {
+                // The hook ran. Try and convert its exit status to a `HealthCheckResult`.
+                output.exit_status()
+                      .code()
+                      .and_then(|code| {
+                          let result = HealthCheckResult::try_from(code);
+                          if let Err(e) = &result {
+                              let pkg_name = &package.name;
+                              outputln!(preamble pkg_name,
                                              "Health check exited with an unknown status code, {}",
                                              e);
-                               }
-                               result.ok()
-                           })
-                           .unwrap_or(HealthCheckResult::Unknown)
-                 }
-                 HealthCheckHookStatus::FailedToRun(_) => {
-                     // There was a hook but it did not successfully run. The health check result is
-                     // unknown.
-                     HealthCheckResult::Unknown
-                 }
-                 HealthCheckHookStatus::NoHook => {
-                     //  There was no hook to run. Use the supervisor status as a healthcheck.
-                     if supervisor.lock()
-                                  .expect("couldn't unlock supervisor")
-                                  .status()
-                                  .0
-                     {
-                         HealthCheckResult::Ok
-                     } else {
-                         HealthCheckResult::Critical
-                     }
-                 }
-             };
+                          }
+                          result.ok()
+                      })
+                      .unwrap_or(HealthCheckResult::Unknown)
+            }
+            HealthCheckHookStatus::FailedToRun(_) => {
+                // There was a hook but it did not successfully run. The health check result is
+                // unknown.
+                HealthCheckResult::Unknown
+            }
+            HealthCheckHookStatus::NoHook => {
+                //  There was no hook to run. Use the supervisor status as a healthcheck.
+                if supervisor.lock()
+                             .expect("couldn't unlock supervisor")
+                             .status()
+                             .0
+                {
+                    HealthCheckResult::Ok
+                } else {
+                    HealthCheckResult::Critical
+                }
+            }
+        };
 
-             let interval = if health_check_result == HealthCheckResult::Ok {
-                 // routine health check
-                 nominal_interval
-             } else {
-                 // special health check interval
-                 HealthCheckInterval::default()
-             };
+        let interval = if health_check_result == HealthCheckResult::Ok {
+            // routine health check
+            nominal_interval
+        } else {
+            // special health check interval
+            HealthCheckInterval::default()
+        };
 
-             event::health_check(service_event_metadata,
-                                 health_check_result,
-                                 health_check_hook_status,
-                                 interval);
+        event::health_check(service_event_metadata,
+                            health_check_result,
+                            health_check_hook_status,
+                            interval);
 
-             debug!("Caching HealthCheckResult = '{}' for '{}'",
-                    health_check_result, service_group);
-             *service_health_result.lock()
-                                   .expect("Could not unlock service_health_result") =
-                 health_check_result;
-             gateway_state.lock_gsw()
-                          .set_health_of(service_group.deref().clone(), health_check_result);
+        debug!("Caching HealthCheckResult = '{}' for '{}'",
+               health_check_result, service_group);
+        *service_health_result.lock()
+                              .expect("Could not unlock service_health_result") =
+            health_check_result;
+        gateway_state.lock_gsw()
+                     .set_health_of(service_group.deref().clone(), health_check_result);
 
-             trace!("Next health check for {} in {}", service_group, interval);
+        trace!("Next health check for {} in {}", service_group, interval);
 
-             let instant =
-                 Instant::now().checked_add(interval.into())
-                               .expect("This should never happen with normal health check \
-                                        interval sizes");
-             tokio_timer::timer::Handle::current().delay(instant)
-                                                  .map_err(move |timer_error| {
-                                                      if timer_error.is_shutdown() {
-                                                          warn!("Timer for {} health check shut \
-                                                                 down!",
-                                                                service_group);
-                                                      }
-                                                      if timer_error.is_at_capacity() {
-                                                          warn!("Timer for {} health check is at \
-                                                                 capacity!",
-                                                                service_group);
-                                                      }
-                                                  })
-         })
+        time::delay_for(interval.into()).await;
+        Ok(())
     }
 
     /// Repeatedly runs a health check, followed by an appropriate
     /// delay, forever.
     /// # Locking for the returned Future (see locking.md)
     /// * `GatewayState::inner` (write)
-    pub fn check_repeatedly_gsw(self) -> impl Future<Item = (), Error = ()> {
-        future::loop_fn(self, move |state| {
-            // TODO (CM): If we wanted to keep track of how many times
-            // a health check has failed in the past X executions, or
-            // do similar historical tracking, here's where we'd do
-            // it.
-            let service_group = state.service_group.clone();
-            state.clone().single_iteration_gsw().then(move |res| {
-                                                    if res.is_ok() {
-                                                        trace!("Health check future for {} \
-                                                                succeeded; continuing loop",
-                                                               service_group);
-                                                        Ok(Loop::Continue(state))
-                                                    } else {
-                                                        trace!("Health check future for {} \
-                                                                failed; continuing loop.",
-                                                               service_group);
-                                                        Ok(Loop::Continue(state))
-                                                    }
-                                                })
-        })
+    pub async fn check_repeatedly_gsw(self) {
+        // TODO (CM): If we wanted to keep track of how many times
+        // a health check has failed in the past X executions, or
+        // do similar historical tracking, here's where we'd do
+        // it.
+        let service_group = self.service_group.clone();
+        loop {
+            if let Err(e) = self.clone().single_iteration_gsw().await {
+                error!("Error running health check hook for {}: {:?}",
+                       service_group, e)
+            } else {
+                trace!("Health check future for {} succeeded; continuing loop",
+                       service_group);
+            }
+        }
     }
 }
