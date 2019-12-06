@@ -26,8 +26,17 @@ get_rustfmt_toolchain() {
 
 install_rustfmt() {
   local toolchain="${1?toolchain argument required}"
+  # Only include rustc, rust-std, and cargo components
+  # as the base default. This ensures that when we install the
+  # rustfmt component, we don't try to bring in anything else
+  # like clippy that might not be available in the toolchain
+  # for a given target.
+  # https://blog.rust-lang.org/2019/10/15/Rustup-1.20.0.html#profiles
+  rustup set profile minimal
   install_rust_toolchain "$toolchain"
   rustup component add --toolchain "$toolchain" rustfmt
+  # set profile back to default
+  rustup set profile default
 }
 
 install_rust_toolchain() {

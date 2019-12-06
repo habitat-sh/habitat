@@ -32,3 +32,16 @@ steps:
         docker:
           host_os: windows
           environment:
+
+  - label: ":rust: Check for new nightly rustfmt version"
+    command:
+      - .expeditor/scripts/finish_release/bump_rustfmt.sh
+    expeditor:
+      secrets:
+        GITHUB_TOKEN:
+          account: github
+          field: token
+      executor:
+        linux:
+          privileged: true
+    soft_fail: true

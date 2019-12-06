@@ -1,3 +1,9 @@
+# Due to our desire to enable certain
+# rustfmt features that are only available
+# in nightly builds of rustfmt, we set
+# this flag to true.
+unstable_features = true
+
 # stable options
 edition = "2018"
 fn_args_layout = "Tall"

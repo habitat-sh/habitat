@@ -9,9 +9,11 @@ fi
 
 {
     if ! rustup run "$toolchain" rustfmt --version; then
+        rustup set profile minimal
         rustup toolchain install "$toolchain"
         rustup component add --toolchain "$toolchain" rustfmt
+        rustup set profile default
     fi
 } &> /dev/null
 
-rustup run "$toolchain" rustfmt "$@"
+cargo +"${toolchain}" fmt -- "$@"

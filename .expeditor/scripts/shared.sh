@@ -239,6 +239,13 @@ hab_auth_token() {
           account/static/habitat/chef-ci
 }
 
+# Retrieve a suitable GITHUB_TOKEN value from Vault.
+chef_ci_github_token() {
+    vault kv get \
+          -field=token \
+          account/static/github/chef-ci
+}
+
 # Our pipelines can define this value as a top-level environment
 # variable, but we don't have that ability with scripts executed
 # directly by Expeditor. Those scripts use this (similar to
@@ -271,4 +278,25 @@ fastly_token() {
     vault kv get \
           -field=token \
           account/static/fastly/eng-services-ops
+}
+
+latest_release_tag() {
+  local repo="${1?repo argument required}"
+  tag=$(curl --silent "https://api.github.com/repos/${repo}/releases/latest" | jq -r .tag_name)
+  echo "${tag}"
+}
+
+install_hub() {
+  # TODO: Create a Hab core plans pkg for this.
+  # see https://github.com/habitat-sh/habitat/issues/7267
+  local tag
+  tag=$(latest_release_tag github/hub)
+  tag_sans_v="${tag//v/}"
+  url="https://github.com/github/hub/releases/download/${tag}/hub-linux-amd64-${tag_sans_v}.tgz"
+  echo "--- :github: Installing hub version ${tag} to /bin/hub from ${url}"
+  curl -L -O "${url}"
+  tar xfz hub-linux-amd64-*.tgz
+  cp -f hub-linux-amd64-*/bin/hub /bin
+  chmod a+x /bin/hub
+  rm -rf hub-linux-amd64*
 }
