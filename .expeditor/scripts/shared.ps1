@@ -80,23 +80,31 @@ function Install-Rustup($Toolchain) {
       [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
       # We occasionally would see the following error in CI, which would fail our builds and abort the pipeline: 
       #     invoke-restmethod : Unable to read data from the transport connection: An existing connection was forcibly closed by the remote host.
-      # The MaximumRetryCount and RetryIntervalSec will prevent the issue if it was an transient network issue, 
-      # and wrapping it in a try/catch allows us to print out some potentially useful information about the failure. 
-      try { 
-        Invoke-RestMethod -UseBasicParsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' `
-                          -OutFile 'rustup-init.exe' `
-                          -MaximumRetryCount 5 `
-                          -RetryIntervalSec 5
-      } catch {
-        Write-Host "Unable to install rustup"
-        # Dig into the exception to get the Response details.
-        Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
-        Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+      # Wrap the dowload in a retry loop to prevent the issue if it was an transient network issue, 
+      # and try/catch to allow us to print out some potentially useful information about the failure. 
+      $RetryCount = 0
+      while( $RetryCount -lt 5 ) {
+        try { 
+          Invoke-RestMethod -UseBasicParsing 'https://static.rust-lang.org/rustup/dist/i686-pc-windows-gnu/rustup-init.exe' `
+                            -OutFile 'rustup-init.exe'
+
+        } catch {
+          $RetryCount += 1
+          Write-Host "--- (Tries: $RetryCount) Unable to install rustup"
+          # Dig into the exception to get the Response details.
+          Write-Host "StatusCode:" $_.Exception.Response.StatusCode.value__ 
+          Write-Host "StatusDescription:" $_.Exception.Response.StatusDescription
+          Write-Host "$($_ | Format-List * -force | Out-String)"
+          Start-Sleep -seconds 5
+        }
+      } 
+      if( $RetryCount -ge 5) {
+        Write-Host "--- Unable to install rustup after 5 tries"
         exit 1
       }
 
-  ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path --profile=minimal
-  $env:path += ";$env:USERPROFILE\.cargo\bin"
+      ./rustup-init.exe -y --default-toolchain $toolchain-x86_64-pc-windows-msvc --no-modify-path --profile=minimal
+      $env:path += ";$env:USERPROFILE\.cargo\bin"
   }
 }
 
