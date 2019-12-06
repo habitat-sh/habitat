@@ -55,8 +55,6 @@ pub enum SrvClientError {
     ConnectionRefused,
     /// The remote server unexpectedly closed the connection.
     ConnectionClosed,
-    /// The client is disconnected and no further requests can be sent.
-    Disconnected,
     /// Unable to locate a secret key on disk.
     CtlSecretNotFound(PathBuf),
     /// Decoding a message from the remote failed.
@@ -86,9 +84,6 @@ impl fmt::Display for SrvClientError {
                  foreground with:\n\nhab sup run\n\nOr try restarting the Supervisor through your \
                  operating system's init process or Windows service."
                                                                      .to_string()
-            }
-            SrvClientError::Disconnected => {
-                "The client is disconnected and no further requests can be sent.".to_string()
             }
             SrvClientError::CtlSecretNotFound(ref path) => {
                 format!("No Supervisor CtlGateway secret set in `cli.toml` or found at {}. Run \
@@ -129,7 +124,6 @@ impl From<termcolor::ParseColorError> for SrvClientError {
 /// Client for connecting and communicating with a server speaking SrvProtocol.
 ///
 /// See module doc for usage.
-#[derive(Clone)]
 pub struct SrvClient;
 
 impl SrvClient {

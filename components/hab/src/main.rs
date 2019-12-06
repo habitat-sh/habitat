@@ -1077,8 +1077,6 @@ async fn sub_svc_set(m: &ArgMatches<'_>) -> Result<()> {
         }
     }
     ui.status(Status::Applying, format!("via peer {}", listen_ctl_addr))?;
-    // We could potentially reuse the client defined previously, but the server closes the TCP
-    // connection after every request.
     let mut response = SrvClient::request(&listen_ctl_addr, &secret_key, set).await?;
     while let Some(message_result) = response.next().await {
         let reply = message_result?;
